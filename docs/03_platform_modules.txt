@@ -1,0 +1,183 @@
+(NOTE: view this file with a monospaced font)
+
+03. eLua platform modules
+================================================================================
+
+In order to make eLua usable on different platform, eLua provides a number of 
+"platform modules" that link the language with the hardware platform. They're 
+mainly tied up with the platform peripherals (PIO, UART, SPI and others). 
+Currently only the PIO module is implemented by eLua, but much more will be 
+added as the project evolves. They are loaded when Lua starts (just like the
+"standard" modules like os, math, string).
+
+All the platform modules have two parts: the generic part (the one that is
+exposed directly to Lua and it's supposed to be platform independent) and the
+platform specific part (the one that links the module operations to actual 
+hardware operations). Consequently, when adding a new platform, one doesn't need
+to rewrite the whole module, just the platform-dependent part. The "platform 
+interface.txt" file shows the conenction between platform modules and platform
+interface functions. For example, the "pio" module (src/modules/pio.c) needs 3 
+functions for interfacing with a specific platform: platform_pio_has_port,
+platform_pio_has_pin and platform_pio_op.
+
+All the modules are located in the "src/modules" directory. Besides their
+actual implementation, the "src/modules/auxmods.h" file contains the Lua
+compatible description of all the modules in the system.
+
+Sometimes it doesn't make sense to include all the modules for a particular
+platform. For example, for the i386 platform it doesn't make sense to include 
+the "pio" module (although this is technically possible by providing "bogus" 
+platform interface functions, the  module won't be able to do anything on a i386 
+CPU, unless you want to "emulate" it via the parallel port or some other 
+peripheral). To accomodate this, each platform must provide a "platform_libs.h" 
+(src/platform/<your platform>) which lists the modules that are used for that 
+specific platform. For example, if we want to enable only the PIO module for the
+AT91SAM7X platform, to the "platform_libs.h" file would look like this:
+
+(BEGIN src/platform/at91sam7x/platform_libs.h)
+// Auxiliary libraries that will be compiled for this platform
+
+#ifndef __PLATFORM_LIBS_H__
+#define __PLATFORM_LIBS_H__
+
+#include "auxmods.h"
+
+#define LUA_PLATFORM_LIBS\
+  { AUXLIB_PIO, luaopen_pio }
+  
+#endif
+(END src/platform/at91sam7x/platform_libs.h)
+
+On the other hand, we don't want any modules for the i386 platform (yet), so the
+"platform_libs.h" file is empty in this case:
+
+(BEGIN src/platform/i386/platform_libs.h)
+// Auxiliary libraries that will be compiled for this platform
+
+#ifndef __PLATFORM_LIBS_H__
+#define __PLATFORM_LIBS_H__
+  
+#endif
+(END src/platform/i386/platform_libs.h)
+
+This is why some of platform functions described in "platform interface.txt" are
+optional. If there are no modules that use them in one platform, then you don't
+need to define them at all for that platform, not even as "bogus" functions.
+
+================================================================================
+=== The PIO module
+================================================================================
+
+The PIO module lets Lua access the programmable input/output (PIO) pins of the
+microcontroller. It exposes symbolic name for ports (pio.PA, pio.PB, ... pio.PF)
+and symbolic names for port pins (pio.PA0, pio.PA1, ... pio.PB30, ...). Also,
+it exposes functions to access both ports and pins:
+
+pio.setpin( value, Pin1, Pin2 ... ): set the value to all the pins in the list 
+  to "value" (0 or 1).
+  
+pio.set( Pin1, Pin2, ... ): set the value of all the pins in the list to 1.
+
+pio.clear( Pin1, Pin2, ... ): set the value of all the pins in the list to 0.
+
+Val1, Val2, ... = pio.get( Pin1, Pin2, ... ): reads one or more pins and returns
+  their values (0 or 1).
+  
+pio.input( Pin1, Pin2, ... ): set the specified pin(s) as input(s).
+
+pio.output( Pin1, Pin2, ... ): set the specified pin(s) as output(s).
+
+pio.setport( value, Port1, Port2, ... ): set the value of all the ports in the
+  list to "value".
+  
+Val1, Val2, ... = pio.getport( Port1, Port2, ... ): reads one or more ports and
+  returns their values.
+
+pio.port_input( Port1, Port2, ... ): set the specified port(s) as input(s).
+
+pio.port_output( Port1, Port2, ... ): set the specified port(s) as output(s).
+
+================================================================================
+=== The SPI module
+================================================================================
+
+The SPI module lets Lua access the SPI interfaces of the target CPU. It exposes
+functions for SPI setup and sending/receiving data, selecting/unselecting slave
+devices, as well as different SPI specific constants.
+
+Actual_clock = spi.setup( id, spi.MASTER | spi.SLAVE, clock, cpol, cpha,
+  databits): set the SPI interface with the given parameters, returns the clock
+  that was set for the interface.
+  
+spi.select( id ): sets the SS line of the given interface.
+
+spi.unselect( id ): clears the SS line of the given interface.
+
+spi.send( id, Data1, Data2, ... ): sends all the data to the specified SPI
+  interface.
+  
+In1, In2, ... = spi.send_recv( id, Out1, Out2, ... ): sends all the "out" bytes
+  to the specified SPI interface and returts the data read after each sent byte.
+  
+================================================================================
+=== The UART module
+================================================================================
+
+The UART module lets Lua access the UART interfaces of the target CPU. It
+exposes functions for UART setup and sending/receiving data, as well as some
+UART specific constants.
+  
+Actual_baud = uart.setup( id, baud, databits, 
+  uart.PAR_EVEN |uart.PAR_ODD | uart.PAR_NONE, 
+  uart.STOP_1 | uart.SSTOP_1_5 | uart.STOP_2 ): set the UART interface with the
+  given parameters, returns the baud rate that was set for the UART.
+  
+uart.send( id, Data1, Data2, ... ): send all the data to the specified UART
+  interface.
+  
+Data = uart.recv( id, uart.NO_TIMEOUT | uart.INF_TIMEOUT | timeout ): reads a 
+  byte from the specified UART interface.
+  
+uart.sendbuf( id, string ): this is similar to "uart.send", but its parameter is
+  a string.  
+
+================================================================================
+=== The timer module
+================================================================================
+
+It allows Lua to execute timer specific operations (delay, read timer value,
+start timer, get time difference).
+
+tmr.delay( id, delay ): uses timer 'id' to wait for 'delay' us.
+
+Data = tmr.read( id ): reads the value of timer 'id'. The returned value is 
+  platform dependent.
+  
+Data = tmr.start( id ): start the timer 'id', and also returns its value at
+  the moment of start. The returned value is platform dependent.
+  
+diff = tmr.diff( id, end, start ): returns the time difference (in us) between
+  the timer values 'end' and 'start' (obtained from calling tmr.start or
+  tmr.read). The order of end/start is irrelevant. 
+  
+Data = tmr.mindelay( id ): returns the minimum delay (in us ) that can be 
+  achieved by calling the tmr.delay function. If the return value is 0, the 
+  platform layer is capable of executing sub-microsecond delays.
+  
+Data = tmr.maxdelay( id ): returns the maximum delay (in us) that can be
+  achieved by calling the tmr.delay function.
+  
+Data = tmr.setclock( id, clock ): sets the clock of the given timer. Returns the
+  actual clock set for the timer.
+  
+Data = tmr.getclock( id ): return the clock of the given timer.
+
+================================================================================
+=== The platform data module
+================================================================================
+
+it allows Lua to identify the platform on which it runs.
+
+Name = pd.name(): returns the platform name.
+
+Clock = pd.clock(): returns the platform CPU clock.

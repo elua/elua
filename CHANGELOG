@@ -1,0 +1,15 @@
+27.07.2008  Bogdan Marinescu <bogdan.marinescu@gmail.com>
+
+  * Second official release (0.2)
+  * Added support for Cortex LM3S8962
+  * New platform modules (UART, SPI, Timer, platform data)
+  * First release of the eLua shell
+  * Lua source files can now be sent to target with XMODEM
+  
+11.07.2008  Bogdan Marinescu <bogdan.marinescu@gmail.com>
+
+  * First official release (0.1)
+  * Supports AT91SAM7X/AT91SAM7X256 and i386
+  * Access PIO from Lua
+  * ROMFS
+  * Choice between floating point Lua and integer only Lua

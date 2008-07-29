@@ -1,0 +1,73 @@
+(NOTE: view this file with a monospaced font)
+
+01. Building eLua
+================================================================================
+
+To build eLua you'll need:
+
+- a GCC/Newlib toolchain for your target (see http://elua.luaforge.net for 
+  instructions on how to build your own toolchain). Please note that even if
+  you already have a compiled toolchain, the differences in the Newlib configure
+  flags (mainly the --disable-newlib-supplied-syscalls flags) might prevent 
+  eLua for building properly on your machine.
+- Linux. Compiling under windows should be possible, however this isn't tested. 
+  I'm using Ubuntu, so I'm also using "apt-get". If you're using a distro with a 
+  different package manager you'll need to translate the "apt-get" calls to your 
+  specific distribution.
+- python. It should be already installed; if it's not:
+
+  $ sudo apt-get install python
+  
+- scons. eLua uses scons instead of make and makefiles, because I find scons
+  much more "natural" and easier to use than make. To install it:
+  
+  $ sudo apt-get install scons
+  
+- your toolchain's "bin" directory (this is generally something like 
+  /usr/local/cross-arm/bin, where /usr/local/cross-arm is the directory in which 
+  you installed your toolchain) must be in $PATH. 
+- if you're building for the i386 platform, you'll also need "nasm":
+
+  $ sudo apt-get install nasm
+  
+For each platform, eLua assumes a certain name for the compiler/linker/assembler
+executable files, as shown below.
+
+================================================================================
+| Tool       |      Compiler       |         Linker       |      Assembler     |  
+|------------|---------------------|----------------------|--------------------|  
+| Platform   |                     |                      |                    |
+|============|=====================|======================|====================|
+| ARM (all)  |    arm-elf-gcc      |     arm-elf-gcc      |     arm-elf-gcc    |
+|============|=====================|======================|====================|
+| i386       |    i686-elf-gcc     |     i686-elf-gcc     |        nasm        |
+|============|=====================|======================|====================|
+| Cortex-M3  |    arm-elf-gcc      |     arm-elf-gcc      |     arm-elf-gcc    |
+================================================================================
+
+If your toolchain uses different names, you have to modify the "conf.py" file
+from src/platform/<your platform>.
+
+To build, go to the directory where you unpacked your eLua distribution and 
+invoke scons:
+
+$ scons [target=<lua|lualong>] [platform=<at91sam7x|i386|lm3s8962>] 
+  [samtype=<7x256|7x512>] [prog]
+  
+- target=lua | lualong: specify if you want to build full Lua (with floating point 
+  support) or integer only Lua (lualong). The default is "lua".
+- platform=at91sam7x | i386 | lm3s8962: specify what platform to build for. 
+  The default is 'at91sam7x'.
+- samtype=7x256 or samtype=7x512: specify this only if the platform is at91sam7x
+  to choose between two different CPUs (AT91SAM7X256 and AT91SAM7X512). The 
+  default is '7x256'.
+- prog: by default, the above 'scons' command will build only the 'elf' file.
+  Specify "prog" to build also the platform-specific programming file where
+  appropriate (for example, on a AT91SAM7X256 this results in a .bin file that
+  can be programmed in the CPU). 
+  
+The output will be a file named elua_<target>_<platform>.elf (and also another
+file with the same name but ending in .bin if "prog" was specified for platforms
+that need .bin files for programming).
+If you want the equivalent of a "make clean", invoke "scons" as shown above,
+but add a "-c" at the end of the command line.

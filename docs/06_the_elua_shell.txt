@@ -1,0 +1,76 @@
+(NOTE: view this file with a monospaced font)
+
+06. The eLua shell
+================================================================================
+
+After you burn eLua to your board and you connect the board to your terminal
+emulator running on the PC, you'll be greeted with the eLua shell prompt, which
+allows you to:
+
+- run 'lua' as you would run it from the Linux or Windows command prompt
+- upload a Lua source file via XMODEM and execute in on board
+- query the eLua version
+- get help on shell usage
+
+First you'll need to configure your terminal emulation program to connect to
+your eLua board. These are the parameters you'll need to set for your serial
+connection:
+
+- speed 115200, 8N1 (8 data bits, no parity, one stop bit)
+- no flow control
+- newline handling (if available): CR on receive, CR+LF on send
+
+After you setup your terminal program, press the RESET button on the bord.
+When you see the "eLua# " prompt, just enter "help" to see the on-line shell
+help:
+
+eLua# help
+Shell commands:
+  help - print this help
+  lua [args] - run Lua with the given arguments
+  recv - receive a file (XMODEM) and execute it
+  ver - print eLua version
+  exit - exit from this shelll
+
+More details about some of the shell commands are presented below.
+
+The "recv" command
+================================================================================
+To use this, your terminal emulation program must support sending files via the
+XMODEM protocol. Both XMODEM with checksum (the original version) and XMODEM 
+with CRC are supported, but only XMODEM with 128 byte packets is allowed (XMODEM
+with 1K packets won't work). The file size that you can upload is limited to 1024
+bytes, but this can be easily changed by modifying the "XMODEM_MAX_FILE_SIZE" 
+macro in src/main.c:
+
+(BEGIN src/main.c)
+// Maximum file size that can be received via XMODEM
+// Should be a multiple of 128
+#define XMODEM_MAX_FILE_SIZE      1024
+(END src/main.c)
+
+To use this feature, enter "recv" at the shell prompt. eLua will respond with 
+"Waiting for file ...". At this point you can send the file to the eLua board 
+via XMODEM. eLua will receive and execute the file.
+
+The "lua" command
+================================================================================
+This allows you to start the Lua interpreter with command line parameters, just 
+as you would do from a Linux or Windows command prompt. This command has some
+restrictions:
+
+- the command line can't be longer than 50 chars
+- character escaping is not implemented. For example, the next command won't work
+  because of the \' escape sequences:
+
+eLua# lua -e 'print(\'Hello, World!\')' -i
+Press CTRL+Z to exit Lua
+lua: (command line):1: unexpected symbol near '\'
+
+However, if you use both '' and "" for string quoting, it will work:
+
+eLua# lua -e 'print("Hello, World")' -i
+Press CTRL+Z to exit Lua
+Lua 5.1.3  Copyright (C) 1994-2008 Lua.org, PUC-Rio
+Hello,World
+>

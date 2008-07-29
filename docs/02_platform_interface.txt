@@ -1,0 +1,180 @@
+(NOTE: view this file with a monospaced font)
+
+02. eLua platform interface
+================================================================================
+
+This document describes the "platform" interface in eLua. Its purpose is to ease
+the task of porting eLua to a new platform, as well as having a uniform layer
+for accesing peripherals (such as PIO, UART, SPI ...) on all platforms.
+
+The definitions of the functions shown here are in the "inc/platform.h" file.
+Some of the functions are required, others are optional; see also the "adding 
+a new platform.txt" and "platform modules.txt" files for additional information.
+Also, for each function or function group, the name of the module(s) that use
+it (if any) is specified. If other part of the code uses the module, a
+"ALSO USED BY" line will be present in the module description.
+
+================================================================================
+
+int platform_init();
+
+TYPE: REQUIRED
+USED BY MODULE: N/A
+
+PURPOSE: platform-specific initialization (this is a good place to initialize 
+the platform CPU, as well as the CPU peripherals, like the UART).
+RETURNS: PLATFORM_OK or PLATFORM_ERR (if PLATFORM_ERR is returned the program
+blocks in an infinite loop).
+
+================================================================================
+
+void* platform_get_first_free_ram();
+void* platform_get_last_free_ram();
+
+TYPE: REQUIRED
+USED BY MODULE: N/A
+
+PURPOSE: returns the first and the last free RAM address; the space between them 
+will be used for the system heap. The space must be CONTIGUOUS; currently the 
+implementation does now allow for "holes" in the RAM memory space. 
+If the system RAM exists in a single memory space (for example the internal RAM 
+on the MCU) the CPU's stack pointer should be set at the end of the RAM at 
+startup. Thus, the first free ram will start right after the data/bss sections, 
+and the last free RAM is the last physical address of RAM minus the size of the 
+stack. The heap and the stack will grow on opposite directions (upward/downward) 
+and the heap will stop if asked to grow "over" the stack.
+If the MCU has both internal RAM and external RAM, a simple arrangement is to 
+place the CPU stack at the end of the internal RAM and the heap in the external 
+memory (which is generally much larger than the MCU's internal memory).
+
+================================================================================
+
+int platform_pio_has_port( unsigned port );
+int platform_pio_has_pin( unsigned port, unsigned pin );
+pio_type platform_pio_op( unsigned port, pio_type pinmask, int op );
+
+TYPE: OPTIONAL
+USED BY MODULE: pio
+
+PURPOSE: PIO operations. eLua defines a number of "virtual ports", each one 32 
+bits in size, as shows in "inc/platform.h". But since it somehow needs to map 
+these virtual ports to physical ports, it will ask the platform if a port is 
+physically present (via platform_pio_has_port) and also if a bit (a "pin") in 
+the port is physically present (via platform_pio_has_pin). 
+The platform_pio_op function is the one that does the actual work with the PIO
+subsystem. It receives an operation id ("op") as well as a mask ("pinmask") to 
+which the operation applies. The possible operations are shown in the 'enum' 
+below (taken from "inc/platform.h"):
+
+(BEGIN inc/platform.h)
+enum
+{
+  // Pin operations
+  PLATFORM_IO_PIN_SET,                      // Set pin(s) to 1
+  PLATFORM_IO_PIN_CLEAR,                    // Set pin(s) to 0
+  PLATFORM_IO_PIN_GET,                      // Get value of pin
+  PLATFORM_IO_PIN_DIR_INPUT,                // Configure pin(s) as input
+  PLATFORM_IO_PIN_DIR_OUTPUT,               // Configure pin(s) as output
+  // Port operations
+  PLATFORM_IO_PORT_SET_VALUE,               // Set port value
+  PLATFORM_IO_PORT_GET_VALUE,               // Get port value
+  PLATFORM_IO_PORT_DIR_INPUT,               // Configure port as input
+  PLATFORM_IO_PORT_DIR_OUTPUT               // Configure port as output
+};
+(END inc/platform.h)
+
+================================================================================
+
+int platform_spi_exists( unsigned id );
+u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, 
+                        unsigned cpha, unsigned databits );
+spi_data_type platform_spi_send_recv( unsigned id, spi_data_type data );
+void platform_spi_select( unsigned id, int is_select );
+
+TYPE: OPTIONAL
+USED BY MODULE: spi
+
+PURPOSE: SPI operations. eLua defines 4 "virtual" SPI interfaces. The function
+platform_spi_exists() gets an identifier from 0 to 3 and returns 1 if the SPI
+interface with the given identifier exists on the target machine, 0 ohterwise.
+platform_spi_setup() is called to configure the SPI interface with the given
+parameters, returning the actual clock that was set for the interface. The
+actual data transfer is done by calling platform_spi_send_recv(), which executes
+a SPI "cycle" (send one byte, receive one byte). Finally, platform_spi_select()
+is used to set the state of the SPI SS (slave select) pin, if the target's SPI
+interface provides this functionality.
+
+================================================================================
+
+int platform_uart_exists( unsigned id );
+u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, 
+                         int stopbits );
+void platform_uart_send( unsigned id, u8 data );
+int platform_uart_recv( unsigned id, unsigned timer_id, int timeout );
+
+TYPE: OPTIONAL
+USED BY MODULE: uart
+ALSO USED BY: XMODEM
+
+PURPOSE: UART operations. eLua defines 4 "virtual" UART interfaces. The function
+platform_uart_exists() gets an identifier from 0 to 3 and returns 1 if the UART
+interface with the given identifier exists on the target machine, 0 ohterwise.
+platform_uart_setup() is called to configure the SPI interface with the given
+parameters, returning the actual baud that was set for the interface. The
+actual data transfer is done by calling platform_uart_send to send a byte, and
+platform_uart_recv to receive a byte. The receive function has a timeout than
+can take different values:
+
+- timeout == 0: receive without waiting for data. If a data byte is available 
+  return it, otherwise return -1.
+- timeout == PLATFORM_UART_INFINITE_TIMEOUT: wait until a data byte is available 
+  and then return it. This will block indefinetely if no data is available.
+- timeout > 0: if a data byte is available in the give time (expressed in us)
+  return id, otherwise return -1.
+
+================================================================================
+
+int platform_timer_exists( unsigned id );
+void platform_timer_delay( unsigned id, u32 delay_us );
+u32 platform_timer_op( unsigned id, int op, u32 data );
+u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, 
+                                timer_data_type start );
+                                
+TYPE: OPTIONAL
+USED BY MODULE: tmr, uart (for receive with timeout)
+ALSO USED BY: XMODEM
+
+PURPOSE: timer operations. eLua defines 16 "virtual" timers. The function
+platform_timer_exists() gets an identifier from 0 to 15 and returns 1 if the 
+timer with the given identifier exists on the target machine, 0 otherwise.
+platform_timer_delay() will block the execution for the specified number of
+microseconds, and platform_timer_get_diff_us() gets two timer values and returns
+the time difference (in microseconds) between them.
+platform_timer_op() executes the specified operation on the givem timer. The
+operations are defined in an enum from inc/platform.h:
+                             
+(BEGIN inc/platform.h)
+// Timer operations
+enum
+{
+  PLATFORM_TIMER_OP_START,              // Start the timer
+  PLATFORM_TIMER_OP_READ,               // Read the value of timer
+  PLATFORM_TIMER_OP_SET_CLOCK,          // Set the clock of the timer
+  PLATFORM_TIMER_OP_GET_CLOCK,          // Read the clock of the timer
+  PLATFORM_TIMER_OP_GET_MAX_DELAY,      // Get the maximum achievable delay
+  PLATFORM_TIMER_OP_GET_MIN_DELAY       // Get the minimum achievable delay
+};
+(END inc/platform.h)
+
+================================================================================
+
+const char* platform_pd_get_name();
+u32 platform_pd_get_cpu_frequency();
+
+TYPE: optional
+USED BY MODULE: pd
+
+PURPOSE: platform data. These functions are used to identify the platform on 
+which eLua is running. platform_pd_get_name() returns a string that is the
+platform name, and platform_pd_get_cpu_frequency() returns the platform's CPU
+frequency in hz.
