@@ -5,7 +5,7 @@
 
 To build eLua you'll need:
 
-- a GCC/Newlib toolchain for your target (see http://elua.luaforge.net for 
+- a GCC/Newlib toolchain for your target (see http://elua.berlios.de for 
   instructions on how to build your own toolchain). Please note that even if
   you already have a compiled toolchain, the differences in the Newlib configure
   flags (mainly the --disable-newlib-supplied-syscalls flags) might prevent 
