@@ -8,6 +8,7 @@
 #include "pmc.h"
 #include "genstd.h"
 #include "tc.h"
+#include "stacks.h"
 #include <reent.h>
 #include <errno.h>
 #include <string.h>
@@ -374,8 +375,7 @@ void* platform_get_first_free_ram()
   #define SRAM_SIZE 0x20000
 #endif
 
-#define STACK_SIZE 256
 void* platform_get_last_free_ram()
 {
-  return ( void* )( SRAM_ORIGIN + SRAM_SIZE - STACK_SIZE );
+  return ( void* )( SRAM_ORIGIN + SRAM_SIZE - STACK_SIZE_TOTAL );
 }

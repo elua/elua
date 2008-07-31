@@ -32,12 +32,11 @@
 //------------------------------------------------------------------------------
 
 #include "board.h"
+#include "stacks.h"
 
 //------------------------------------------------------------------------------
 //         Definitions
 //------------------------------------------------------------------------------
-
-#define IRQ_STACK_SIZE   8*3*4
 
 #define ARM_MODE_ABT     0x17
 #define ARM_MODE_FIQ     0x11
@@ -163,7 +162,7 @@ ZeroBSS:
 /* IRQ mode */
         msr     CPSR_c, #ARM_MODE_IRQ | I_BIT | F_BIT
         mov     sp, r4
-        sub     r4, r4, #IRQ_STACK_SIZE
+        sub     r4, r4, #STACK_SIZE_IRQ
 
 /* Supervisor mode (interrupts enabled) */
         msr     CPSR_c, #ARM_MODE_SVC | F_BIT
