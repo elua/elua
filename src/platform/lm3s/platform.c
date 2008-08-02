@@ -340,7 +340,7 @@ u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_typ
 
 const char* platform_pd_get_name()
 {
-  return "LM3S8962";
+  return "LM3S";
 }
 
 u32 platform_pd_get_cpu_frequency()
