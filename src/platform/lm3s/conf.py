@@ -1,9 +1,5 @@
 # Configuration file for the LM3S microcontroller
 
-# 'lm3stype' can be '8962' or '6965' to select chip version
-samtype = ARGUMENTS.get( 'lm3stype', '8962' )
-
-
 specific_files = "startup_gcc.c platform.c usart.c sysctl.c gpio.c ssi.c timer.c"
 ldscript = "lm3s.ld"
   

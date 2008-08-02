@@ -1,25 +1,41 @@
 import os, sys 
 target = ARGUMENTS.get( 'target', 'lua' ).lower() 
-platform = ARGUMENTS.get( 'platform', 'at91sam7x' ).lower()
+cputype = ARGUMENTS.get( 'cpu', 'at91sam7x256' ).lower()
 
-# Sanity check
-if platform not in [ 'at91sam7x', 'i386', 'lm3s' ]:
-  print "Invalid platform", platform
+# List of platform/CPU combinations
+cpu_list = { 'at91sam7x' : [ 'at91sam7x256', 'at91sam7x512' ], 
+              'lm3s' : [ 'lm3s8962' ], 
+              'str9' : [ 'str912fw44' ],
+              'i386' : [ 'i386' ]
+            }
+            
+platform = None        
+# Look for the given CPU in the list of platforms            
+for p, v in cpu_list.items():
+  if cputype in v:
+    platform = p
+    break
+else:
+  print "Unknown CPU %s" % cputype
+  print "List of accepted CPUs: "
+  for p, v in cpu_list.items():
+    print " ", p, "-->", 
+    for cpu in v:
+      print cpu,
+    print
   sys.exit( -1 )
-  
-output = 'elua_' + target + '_' + platform 
-cdefs = ''
+    
+output = 'elua_' + target + '_' + cputype 
+cdefs = '-D%s' % cputype
+
 # Lua source files and include path
 lua_files = """lapi.c lcode.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c lobject.c lopcodes.c
    lparser.c lstate.c lstring.c ltable.c ltm.c lundump.c lvm.c lzio.c lauxlib.c lbaselib.c
    ldblib.c liolib.c lmathlib.c loslib.c ltablib.c lstrlib.c loadlib.c linit.c lua.c"""
-if target == 'lnum':
-  lua_full_files = " src/lnum/lnum.c " + " ".join( [ "src/lnum/%s" % name for name in lua_files.split() ] )
-  local_include = "-Iinc -Iinc/newlib -Isrc/lnum"  
-elif target == 'lualong':
+if target == 'lualong':
   lua_full_files = " " + " ".join( [ "src/lualong/%s" % name for name in lua_files.split() ] )
   local_include = "-Iinc -Iinc/newlib -Isrc/lualong"  
-  cdefs = '-DLUA_INTONLY'
+  cdefs = cdefs + ' -DLUA_INTONLY'
 elif target == 'lua':
   lua_full_files = " " + " ".join( [ "src/lua/%s" % name for name in lua_files.split() ] )   
   local_include = "-Iinc -Iinc/newlib -Isrc/lua"   
