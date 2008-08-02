@@ -51,16 +51,19 @@ from src/platform/<your platform>.
 To build, go to the directory where you unpacked your eLua distribution and 
 invoke scons:
 
-$ scons [target=<lua|lualong>] [platform=<at91sam7x|i386|lm3s8962>] 
-  [samtype=<7x256|7x512>] [prog]
+$ scons [target=<lua|lualong>] [platform=<at91sam7x|i386|lm3s>] 
+  [samtype=<7x256|7x512>] [lm3stype=<8962|6965>] [prog]
   
 - target=lua | lualong: specify if you want to build full Lua (with floating point 
   support) or integer only Lua (lualong). The default is "lua".
-- platform=at91sam7x | i386 | lm3s8962: specify what platform to build for. 
+- platform=at91sam7x | i386 | lm3s: specify what platform to build for. 
   The default is 'at91sam7x'.
 - samtype=7x256 or samtype=7x512: specify this only if the platform is at91sam7x
   to choose between two different CPUs (AT91SAM7X256 and AT91SAM7X512). The 
   default is '7x256'.
+- lm3stype=8962 or samtype=6965: specify this only if the platform is lm3s
+  to choose between two different CPUs (LM3S8962 and LM3S6965). The 
+  default is '8962'.
 - prog: by default, the above 'scons' command will build only the 'elf' file.
   Specify "prog" to build also the platform-specific programming file where
   appropriate (for example, on a AT91SAM7X256 this results in a .bin file that

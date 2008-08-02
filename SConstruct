@@ -3,7 +3,7 @@ target = ARGUMENTS.get( 'target', 'lua' ).lower()
 platform = ARGUMENTS.get( 'platform', 'at91sam7x' ).lower()
 
 # Sanity check
-if platform not in [ 'at91sam7x', 'i386', 'lm3s8962' ]:
+if platform not in [ 'at91sam7x', 'i386', 'lm3s' ]:
   print "Invalid platform", platform
   sys.exit( -1 )
   
