@@ -214,14 +214,14 @@ LUALIB_API int luaopen_pio( lua_State *L )
     if( platform_pio_has_port( port ) )
     {
       // First the whole port
-      sprintf( name, "P%c", ( char )( port + 'A' ) );
+      sprintf( name, "%s", platform_pio_get_prefix( port ) );
       lua_pushnumber( L, ( lua_Number )PLATFORM_IO_ENCODE( port, 0, PLATFORM_IO_ENC_PORT ) );
       lua_setfield( L, -2, name );        
       // Then all its pins
       for( pin = 0; pin < PLATFORM_IO_PINS; pin ++ )
         if( platform_pio_has_pin( port, pin ) )
         {
-          sprintf( name, "P%c%d", ( char )( port + 'A' ), pin );
+          sprintf( name, "%s_%d", platform_pio_get_prefix( port ), pin );
           lua_pushnumber( L, ( lua_Number )PLATFORM_IO_ENCODE( port, pin, PLATFORM_IO_ENC_PIN ) );
           lua_setfield( L, -2, name );
         }

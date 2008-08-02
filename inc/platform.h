@@ -55,6 +55,7 @@ enum
 
 // The platform I/O functions
 int platform_pio_has_port( unsigned port );
+const char* platform_pio_get_prefix( unsigned port );
 int platform_pio_has_pin( unsigned port, unsigned pin );
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op );
 
@@ -145,6 +146,7 @@ u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_typ
 // Contains functions for platform identification
 
 const char* platform_pd_get_name();
+const char* platform_pd_cpu_name();
 u32 platform_pd_get_cpu_frequency();
 
 // *****************************************************************************
