@@ -5,7 +5,7 @@ samtype = ARGUMENTS.get( 'lm3stype', '8962' )
 
 
 specific_files = "startup_gcc.c platform.c usart.c sysctl.c gpio.c ssi.c timer.c"
-ldscript = "lm3s8962.ld"
+ldscript = "lm3s.ld"
   
 # Prepend with path
 specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )
