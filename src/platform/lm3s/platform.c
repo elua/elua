@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdio.h>
 
 // Platform specific includes
 #include "hw_ints.h"
@@ -37,7 +38,7 @@ static int uart_recv()
 // ****************************************************************************
 // Platform initialization
 
-static u32 timer_base[] = { TIMER0_BASE, TIMER1_BASE, TIMER2_BASE, TIMER3_BASE };
+static const u32 timer_base[] = { TIMER0_BASE, TIMER1_BASE, TIMER2_BASE, TIMER3_BASE };
 
 int platform_init()
 { 
@@ -90,6 +91,14 @@ int platform_init()
 int platform_pio_has_port( unsigned port )
 {
   return port <= 6;
+}
+
+const char* platform_pio_get_prefix( unsigned port )
+{
+  static char c[ 3 ];
+  
+  sprintf( c, "P%c", ( char )( port + 'A' ) );
+  return c;
 }
 
 int platform_pio_has_pin( unsigned port, unsigned pin )
@@ -341,6 +350,11 @@ u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_typ
 const char* platform_pd_get_name()
 {
   return "LM3S";
+}
+
+const char* platform_pd_cpu_name()
+{
+  return "LM3S8962";
 }
 
 u32 platform_pd_get_cpu_frequency()
