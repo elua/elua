@@ -13,6 +13,7 @@
 #include <errno.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdio.h>
 
 #define PABS( x ) ( ( x ) >= 0 ? ( x ) : -( x ) )
 
@@ -38,7 +39,7 @@ static const Pin platform_uart_pins[ 2 ][ 2 ] =
   { PIN_USART0_RXD, PIN_USART0_TXD },
   { PIN_USART1_RXD, PIN_USART1_TXD }
 };
-static AT91S_TC* timer_base[] = { AT91C_BASE_TC0, AT91C_BASE_TC1, AT91C_BASE_TC2 };
+static const AT91S_TC* timer_base[] = { AT91C_BASE_TC0, AT91C_BASE_TC1, AT91C_BASE_TC2 };
 
 int platform_init()
 {
@@ -69,7 +70,7 @@ int platform_init()
   // Configure the timers
   AT91C_BASE_TCB->TCB_BMR = 7;
   for( i = 0; i < 3; i ++ )
-    TC_Configure( timer_base[ i ], AT91C_TC_CLKS_TIMER_DIV5_CLOCK | AT91C_TC_WAVE );
+    TC_Configure( ( AT91S_TC* )timer_base[ i ], AT91C_TC_CLKS_TIMER_DIV5_CLOCK | AT91C_TC_WAVE );
   
   // Set the send/recv functions                          
   std_set_send_func( uart_send );
@@ -90,6 +91,14 @@ static Pin pio_port_desc[] =
 int platform_pio_has_port( unsigned port )
 {
   return port <= 1;
+}
+
+const char* platform_pio_get_prefix( unsigned port )
+{
+  static char c[ 3 ];
+  
+  sprintf( c, "P%c", ( char )( port + 'A' ) );
+  return c;
 }
 
 int platform_pio_has_pin( unsigned port, unsigned pin )
@@ -248,7 +257,7 @@ int platform_uart_recv( unsigned id, unsigned timer_id, int timeout )
 
 // ****************************************************************************
 // Timer functions
-static unsigned clkdivs[] = { 2, 8, 32, 128, 1024 };
+static const unsigned clkdivs[] = { 2, 8, 32, 128, 1024 };
 
 // Helper: get timer clock
 static u32 platform_timer_get_clock( unsigned id )
@@ -269,7 +278,7 @@ static u32 platform_timer_set_clock( unsigned id, u32 clock )
   for( i = 0; i < 5; i ++ )
     if( PABS( clock - BOARD_MCK / clkdivs[ i ] ) < PABS( clock - BOARD_MCK / clkdivs[ mini ] ) )
       mini = i;
-  TC_Configure( timer_base[ id ], mini | AT91C_TC_WAVE );  
+  TC_Configure( ( AT91S_TC* )timer_base[ id ], mini | AT91C_TC_WAVE );  
   return BOARD_MCK / clkdivs[ mini ];
 }
 
@@ -280,7 +289,7 @@ int platform_timer_exists( unsigned id )
 
 void platform_timer_delay( unsigned id, u32 delay_us )
 {
-  AT91S_TC* base = timer_base[ id ];  
+  AT91S_TC* base = ( AT91S_TC* )timer_base[ id ];  
   u32 freq;
   timer_data_type final;
   volatile int i;
@@ -297,7 +306,7 @@ void platform_timer_delay( unsigned id, u32 delay_us )
 u32 platform_timer_op( unsigned id, int op, u32 data )
 {
   u32 res = 0;
-  AT91S_TC* base = timer_base[ id ];
+  AT91S_TC* base = ( AT91S_TC* )timer_base[ id ];
   volatile int i;
   
   switch( op )
@@ -352,6 +361,15 @@ u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_typ
 const char* platform_pd_get_name()
 {
   return "AT91SAM7X";
+}
+
+const char* platform_pd_cpu_name()
+{
+#ifdef at91sam7x256
+  return "AT91SAM7X256";
+#else
+  return "AT91SAM7X512";
+#endif
 }
 
 u32 platform_pd_get_cpu_frequency()
