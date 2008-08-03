@@ -39,11 +39,7 @@ static const GPIO_TypeDef* port_data[] = { GPIO0, GPIO1, GPIO2, GPIO3, GPIO4, GP
 static const TIM_TypeDef* timer_data[] = { TIM0, TIM1, TIM2, TIM3 };
 
 static void platform_config_scu()
-{ 
-  FMI_BankRemapConfig(4, 2, 0, 0x80000); /* Set Flash banks size & address */
-  FMI_Config(FMI_READ_WAIT_STATE_2, FMI_WRITE_WAIT_STATE_0, FMI_PWD_ENABLE, 
-             FMI_LVD_ENABLE, FMI_FREQ_HIGH); /* FMI Waite States */
-  
+{     
   volatile u16 i = 0xFFFF;
   while (i-- > 0);  
   
@@ -52,13 +48,19 @@ static void platform_config_scu()
   SCU_PLLFactorsConfig(192,25,2);            /* PLL = 96 MHz */
   SCU_PLLCmd(ENABLE);                        /* PLL Enabled  */
   SCU_MCLKSourceConfig(SCU_MCLK_PLL);        /* MCLK = PLL   */  
+  
+  SCU_PFQBCCmd( ENABLE );
 
   /* Set the RCLK Clock divider to max speed*/
   SCU_RCLKDivisorConfig(SCU_RCLK_Div1);
   /* Set the PCLK Clock to MCLK/8 */
   SCU_PCLKDivisorConfig(SCU_PCLK_Div8);
-  /* Set the HCLK Clock to MCLK/2 */
-  SCU_HCLKDivisorConfig(SCU_HCLK_Div2);
+  /* Set the HCLK Clock to MCLK */
+  SCU_HCLKDivisorConfig(SCU_HCLK_Div1);
+  
+  /* Enable VIC clock */
+  SCU_AHBPeriphClockConfig(__VIC, ENABLE);
+  SCU_AHBPeriphReset(__VIC, DISABLE);  
                  
   // Enable the UART clocks
   SCU_APBPeriphClockConfig(__UART_ALL, ENABLE);

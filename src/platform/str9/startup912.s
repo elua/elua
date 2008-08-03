@@ -27,10 +27,12 @@
 #*************************************************************************
 # Control Startup Code Operation
 #*************************************************************************
-.equ   SRAM_SETUP  ,   1      /* Enable setup of SRAM */
+.equ   SRAM_SETUP  ,   1     /* Enable setup of SRAM */
+.equ   FMI_SETUP   ,   1     /* Enable FMI Setup */
+.equ   CLOCK_SETUP ,   1     /* Enable clock setup */
 
 #*************************************************************************
-# Hardware Definitions 
+# Hardware Definitions
 #*************************************************************************
 
 # Flash Memory Interface (FMI) definitions (Flash banks sizes and addresses)
@@ -41,7 +43,6 @@
 .equ   FMI_NBBADR_OFS  ,     0x10            /* Non-boot Bank Base Address Register   #!!! adresseses do not correspond*/
 .equ   FMI_CR_OFS      ,     0x18            /* Control Register */
 .equ   FMI_SR_OFS      ,     0x1C            /* Status Register */
-
 
 .equ   FMI_CR_Val      ,     0x00000018
 .equ   FMI_BBSR_Val    ,     0x00000004
@@ -79,7 +80,7 @@
 # Stack definitions
 #*************************************************************************
 
-        .equ    Top_Stack,         RAM_Base + RAM_Size
+        .equ    Top_Stack,     RAM_Base + RAM_Size
 
 # NOTE: Startup Code must be linked first at Address at which it expects to run.
 
@@ -98,11 +99,11 @@ _startup:
 # Exception Vectors
 #*************************************************************************
 Vectors:
-        LDR     PC, Reset_Addr      /* 0x0000 */        
-        LDR     PC, Undef_Addr      /* 0x0004 */        
-        LDR     PC, SWI_Addr        /* 0x0008 */        
-        LDR     PC, PAbt_Addr       /* 0x000C */        
-        LDR     PC, DAbt_Addr       /* 0x0010 */        
+        LDR     PC, Reset_Addr      /* 0x0000 */
+        LDR     PC, Undef_Addr      /* 0x0004 */
+        LDR     PC, SWI_Addr        /* 0x0008 */
+        LDR     PC, PAbt_Addr       /* 0x000C */
+        LDR     PC, DAbt_Addr       /* 0x0010 */
         NOP                         /* 0x0014 Reserved Vector */
         LDR     PC, [PC, #-0xFF0]   /* 0x0018 wraps around address space to 0xFFFFFF030. Vector from VicVECAddr */
         LDR     PC, FIQ_Addr        /* 0x001C FIQ has no VIC vector slot!   */
@@ -112,22 +113,22 @@ Vectors:
 #*************************************************************************
 
 Reset_Addr:     .word   Hard_Reset           /* CPU reset vector and entry point */
-Undef_Addr:     .word   Undef_Handler
+Undef_Addr:     .word   Undefined_Handler
 SWI_Addr:       .word   SWI_Handler
 PAbt_Addr:      .word   PAbt_Handler
 DAbt_Addr:      .word   DAbt_Handler
                 .word   0                      /* Reserved Address */
-IRQ_Addr:       .word   IRQ_Handler            /* Does not get used due to "LDR PC, [PC, #-0xFF0]" above */                
-FIQ_Addr:       .word   FIQ_Handler            
+IRQ_Addr:       .word   IRQ_Handler            /* Does not get used due to "LDR PC, [PC, #-0xFF0]" above */
+FIQ_Addr:       .word   FIQ_Handler
 
 # Dummy Interrupt Vector Table (real service routines in INTERRUPT.C)
 
-Undef_Handler:  B       Undef_Handler
-SWI_Handler:    B       SWI_Handler
-PAbt_Handler:   B       PAbt_Handler
-DAbt_Handler:   B       DAbt_Handler
-IRQ_Handler:    B       IRQ_Handler       /* should never get here as IRQ is via VIC slot... */               
-FIQ_Handler:    B       FIQ_Handler
+Undefined_Handler:  B       Undefined_Handler
+SWI_Handler:        B       SWI_Handler
+PAbt_Handler:       B       PAbt_Handler
+DAbt_Handler:       B       DAbt_Handler
+IRQ_Handler:        B       IRQ_Handler       /* should never get here as IRQ is via VIC slot... */
+FIQ_Handler:        B       FIQ_Handler
 
 
 #*************************************************************************
@@ -135,6 +136,8 @@ FIQ_Handler:    B       FIQ_Handler
 #*************************************************************************
 Hard_Reset:  
 
+           StartupDelay 900000     
+                
 #*************************************************************************
 # Setup SRAM Size
 
@@ -147,6 +150,90 @@ Hard_Reset:
                 .ENDIF
                     
 #*************************************************************************
+# Setup Flash Memory Interface (FMI)
+
+                .IF      FMI_SETUP == 1
+
+                LDR     R0, =FMI_BASE
+                LDR     R1, =FMI_BBSR_Val
+                STR     R1, [R0, #FMI_BBSR_OFS]
+                LDR     R1, =FMI_NBBSR_Val
+                STR     R1, [R0, #FMI_NBBSR_OFS]
+                LDR     R1, =(FMI_BBADR_Val >> 2)
+                STR     R1, [R0, #FMI_BBADR_OFS]
+                LDR     R1, =(FMI_NBBADR_Val >> 2)
+                STR     R1, [R0, #FMI_NBBADR_OFS]
+                LDR     R2, =FMI_CR_Val
+                STR     R2, [R0, #FMI_CR_OFS]
+                LDR     R2, =FMI_SR_Val
+                STR     R2, [R0, #FMI_SR_OFS]
+
+# Write "Write flash configuration" command (60h)
+                MOV     R0, R1, LSL #2
+                MOV     R1, #0x60
+                STRH    R1, [R0, #0]
+
+# Write "Write flash configuration confirm" command (03h)
+                LDR     R2, =(FLASH_CFG_Val >> 2)
+                ADD     R0, R0, R2
+                MOV     R1, #0x03
+                STRH    R1, [R0, #0]
+
+                .ENDIF
+                    
+#*************************************************************************
+# Setup Clock PLL
+
+                .IF      CLOCK_SETUP == 1
+
+                LDR     R0, =SCU_BASE
+                LDR     R1, =0x00020002
+                STR     R1, [R0, #SCU_CLKCNTR_OFS]    /* Select OSC as clock src */
+
+                NOP     /* Wait for oscillator stabilisation */
+                NOP     /* Must be more than 10 oscillator periods */
+                NOP
+                NOP
+                NOP
+                NOP
+                NOP
+                NOP
+                NOP
+                NOP
+                NOP
+                NOP
+                NOP
+                NOP
+                NOP
+                NOP
+                LDR     R1, =0x0003C019               /* Disable PLL */
+                STR     R1, [R0, #SCU_PLLCONF_OFS]
+                LDR     R1, =SCU_PLLCONF_Val
+                STR     R1, [R0, #SCU_PLLCONF_OFS]    /* Set new PLL values */
+
+                .IF      (SCU_PLLCONF_Val & 0x8000)     /* See if PLL is being used */
+
+                LDR     R1, =SCU_SYSSTAT_LOCK
+PLL_LOCK_LOOP:
+                LDR      R2,[R0, #SCU_SYSTAT_OFS]      /* Wait for PLL lock */
+                ANDS   R2, R2, R1
+                BEQ      PLL_LOCK_LOOP
+
+                .ENDIF
+
+                LDR     R1, =SCU_PLLCONF_Val
+                STR     R1, [R0, #SCU_PLLCONF_OFS]
+                LDR     R1, =SCU_CLKCNTR_Val
+                STR     R1, [R0, #SCU_CLKCNTR_OFS]
+
+                LDR     R1, =SCU_PCGR0_Val            /* Enable clock gating */
+                STR     R1, [R0, #SCU_PCGR0_OFS]
+                LDR     R1, =SCU_PCGR1_Val
+                STR     R1, [R0, #SCU_PCGR1_OFS]
+                    
+                .ENDIF                    
+                                        
+#*************************************************************************
 # Compiler Runtime Environment Setup
 #*************************************************************************
 # Note: R13 = SP
@@ -156,13 +243,17 @@ Hard_Reset:
 
 # Set up Interrupt Mode and set IRQ Mode Stack
               msr     CPSR_c, #Mode_IRQ|I_BIT|F_BIT
-              mov     r13, r0                     
-              sub     r0, r0, #STACK_SIZE_IRQ
+              mov     r13, r0
+              sub     r0, r0, #STACK_SIZE_IRQ                  
+
+#    Set up Supervisor Mode and set Supervisor Mode Stack
+              msr     CPSR_c, #Mode_SVC|I_BIT|F_BIT
+              mov     r13, r0
+              sub     r0, r0, #STACK_SIZE_SVC
 
 #    Set up User Mode and set User Mode Stack
               msr     CPSR_c, #Mode_USR   /* Leave interrupts enabled in user mode                 */
-              mov     r13, r0             /* Note: interrupts will not happen until VIC is enabled */     
-     
+              mov     r13, r0             /* Note: interrupts will not happen until VIC is enabled */
 
 #*************************************************************************
 # Initialise RAM For Compiler Variables
@@ -187,7 +278,6 @@ Hard_Reset:
 
 forever:
        B      forever
-
 
 #*************************************************************************
 # END
