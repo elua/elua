@@ -400,12 +400,12 @@ u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_typ
 // ****************************************************************************
 // Platform data functions
 
-const char* platform_pd_get_name()
+const char* platform_pd_get_platform_name()
 {
   return "STR9";
 }
 
-const char* platform_pd_cpu_name()
+const char* platform_pd_get_cpu_name()
 {
   return "STR912FW44X";
 }

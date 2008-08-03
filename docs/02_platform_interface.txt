@@ -168,13 +168,14 @@ enum
 
 ================================================================================
 
-const char* platform_pd_get_name();
-u32 platform_pd_get_cpu_frequency();
+const char* platform_pd_get_platform_name();
+const char* platform_pd_get_cpu_name();
+u32         platform_pd_get_cpu_frequency();
 
 TYPE: optional
 USED BY MODULE: pd
 
-PURPOSE: platform data. These functions are used to identify the platform on 
-which eLua is running. platform_pd_get_name() returns a string that is the
-platform name, and platform_pd_get_cpu_frequency() returns the platform's CPU
-frequency in hz.
+PURPOSE: platform data. These functions are used to identify the platform on
+which eLua is running. platform_pd_get_platform_name() returns a string for the
+platform name, platform_pd_get_cpu_name() returns a string for the cpu name, and
+platform_pd_get_cpu_frequency() returns the platform's CPU frequency in Hz.

@@ -145,8 +145,8 @@ u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_typ
 // Platform data subsection
 // Contains functions for platform identification
 
-const char* platform_pd_get_name();
-const char* platform_pd_cpu_name();
+const char* platform_pd_get_platform_name();
+const char* platform_pd_get_cpu_name();
 u32 platform_pd_get_cpu_frequency();
 
 // *****************************************************************************

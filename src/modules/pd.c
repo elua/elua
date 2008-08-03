@@ -6,17 +6,17 @@
 #include "platform.h"
 #include "auxmods.h"
 
-// Lua: platform = name()
-static int pd_name( lua_State* L )
+// Lua: platform = platform()
+static int pd_platform( lua_State* L )
 {
-  lua_pushstring( L, platform_pd_get_name() );
+  lua_pushstring( L, platform_pd_get_platform_name() );
   return 1;
 }
 
 // Lua: cpuname = cpu()
 static int pd_cpu( lua_State* L )
 {
-  lua_pushstring( L, platform_pd_cpu_name() );
+  lua_pushstring( L, platform_pd_get_cpu_name() );
   return 1;
 }
 
@@ -30,7 +30,9 @@ static int pd_clock( lua_State* L )
 // Module function map
 static const luaL_reg pd_map[] = 
 {
-  { "name",  pd_name },
+//FIXME: remove "name" once web site samples use platform()
+  { "name",  pd_platform },
+  { "platform",  pd_platform }, 
   { "cpu", pd_cpu },
   { "clock", pd_clock },
   { NULL, NULL }

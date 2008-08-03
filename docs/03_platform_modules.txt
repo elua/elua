@@ -178,7 +178,7 @@ Data = tmr.getclock( id ): return the clock of the given timer.
 
 it allows Lua to identify the platform on which it runs.
 
-Name = pd.name(): returns the platform name (f.e. LM3S)
+Platform = pd.platform(): returns the platform name (f.e. LM3S)
 
 Cpu = pd.cpu(): returns the CPU name (f.e. LM3S8962)
 

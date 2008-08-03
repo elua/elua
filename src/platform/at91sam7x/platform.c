@@ -358,12 +358,12 @@ u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_typ
 // ****************************************************************************
 // Platform data functions
 
-const char* platform_pd_get_name()
+const char* platform_pd_get_platform_name()
 {
   return "AT91SAM7X";
 }
 
-const char* platform_pd_cpu_name()
+const char* platform_pd_get_cpu_name()
 {
 #ifdef at91sam7x256
   return "AT91SAM7X256";
