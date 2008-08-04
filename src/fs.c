@@ -7,6 +7,9 @@
 #include "luatest.h"
 #include <stdio.h>
 
+#include "build.h"
+#ifdef BUILD_ROMFS
+
 #define ROMFS_MAX_FDS   4
 #define fsmin( x , y ) ( ( x ) < ( y ) ? ( x ) : ( y ) )
 
@@ -135,3 +138,12 @@ DM_DEVICE* fs_init()
 {
   return &romfs_device;
 }
+
+#else // #ifdef BUILD_ROMFS
+
+DM_DEVICE* fs_init()
+{
+  return NULL;
+}
+
+#endif // #ifdef BUILD_ROMFS
