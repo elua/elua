@@ -36,6 +36,6 @@ typedef struct
 } FS;
 
 // FS functions
-DM_DEVICE* fs_init();
+DM_DEVICE* romfs_init();
 
 #endif

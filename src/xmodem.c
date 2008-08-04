@@ -21,6 +21,9 @@
 #include "xmodem.h"
 #include "platform.h"
 
+#include "build.h"
+#ifdef BUILD_XMODEM
+
 #define XMODEM_BUFFER_SIZE    128
 
 // pointers to stream I/O functions
@@ -227,3 +230,15 @@ long xmodem_receive( char* dest, u32 limit )
   xmodem_out_func(CAN);
   return XMODEM_ERROR_RETRYEXCEED;
 }
+
+#else // #ifdef BUILD_XMODEM
+
+// Dummy init function
+
+void xmodem_init( p_xm_send_func send_func, p_xm_recv_func recv_func )
+{
+  send_func = send_func;
+  recv_func = recv_func;
+}
+
+#endif // #ifdef BUILD_XMODEM

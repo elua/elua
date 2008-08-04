@@ -48,7 +48,7 @@ local_include = local_include + " -Isrc/modules -Isrc/platform/%s" % platform
 local_libs = ''
   
 # Application files
-app_files = " src/fs.c src/main.c src/xmodem.c src/shell.c"
+app_files = " src/romfs.c src/main.c src/xmodem.c src/shell.c"
   
 # Newlib related files  
 newlib_files = " src/newlib/devman.c src/newlib/stubs.c src/newlib/genstd.c"

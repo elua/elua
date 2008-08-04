@@ -11,4 +11,4 @@
 int shell_init( unsigned maxprog );
 void shell_start();
 
-#endif
+#endif // #ifndef __SHELL_H__

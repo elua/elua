@@ -10,6 +10,9 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "build.h"
+#ifdef BUILD_SHELL
+
 // Shell alternate ' ' char
 #define SHELL_ALT_SPACE           '\x07'
 
@@ -91,11 +94,17 @@ static void shell_lua( char* args )
 // 'recv' handler
 static void shell_recv( char* args )
 {
+  args = args;
+  
+#ifndef BUILD_XMODEM  
+    printf( "XMODEM support not compiled, unable to recv\n" );
+    return;
+#else // #ifndef BUILD_XMODEM
+
   char *p;
   long actsize;
   lua_State* L;    
-
-  args = args;
+  
   printf( "Waiting for file ... " );
   while( 1 )
   {
@@ -122,6 +131,7 @@ static void shell_recv( char* args )
   luaL_openlibs( L );
   actsize = luaL_dostring( L, shell_prog );
   lua_close( L );
+#endif // #ifndef BUILD_XMODEM  
 }
 
 // 'ver' handler
@@ -255,3 +265,17 @@ int shell_init( unsigned maxprog )
   shell_max_prog = maxprog;
   return 1;
 }
+
+#else // #ifdef BUILD_SHELL
+
+int shell_init( unsigned maxprog )
+{
+  maxprog = maxprog;
+  return 0;
+}
+
+void shell_start()
+{
+}
+
+#endif // #ifdef BUILD_SHELL

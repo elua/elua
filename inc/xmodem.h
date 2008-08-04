@@ -51,7 +51,7 @@
 #define XMODEM_RETRY_LIMIT    16
 
 // error return codes
-#define XMODEM_ERROR_REMOTECANCEL   (-1)
+#define XMODEM_ERROR_REMOTECANCEL (-1)
 #define XMODEM_ERROR_OUTOFSYNC    (-2)
 #define XMODEM_ERROR_RETRYEXCEED  (-3)
 #define XMODEM_ERROR_OUTOFMEM     (-4)
@@ -60,12 +60,12 @@
 typedef void ( *p_xm_send_func )( u8 );
 typedef int ( *p_xm_recv_func )( u32 );
 
-//! initialize xmodem stream I/O routines
-void xmodem_init( p_xm_send_func send_func, p_xm_recv_func recv_func );
-
 //! xmodem receive
 long xmodem_receive( char* dest, u32 limit );
 
-#endif
+//! initialize xmodem stream I/O routines
+void xmodem_init( p_xm_send_func send_func, p_xm_recv_func recv_func );
+
+#endif // #ifndef XMODEM_H
 
 //@}

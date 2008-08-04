@@ -1,5 +1,5 @@
 // Filesystem implementation
-#include "fs.h"
+#include "romfs.h"
 #include "type.h"
 #include <string.h>
 #include <errno.h>
@@ -16,12 +16,12 @@
 static FS romfs_fd_table[ ROMFS_MAX_FDS ];
 static int romfs_num_fd;
 
-static u8 fs_read( u16 addr )
+static u8 romfs_read( u16 addr )
 {
   return luatest_fs[ addr ];
 }
 
-static int fs_find_empty_fd()
+static int romfs_find_empty_fd()
 {
   int i;
   
@@ -31,14 +31,14 @@ static int fs_find_empty_fd()
   return -1;
 }
 
-static void fs_close_fd( int fd )
+static void romfs_close_fd( int fd )
 {
   memset( romfs_fd_table + fd, 0, sizeof( FS ) );
 }
 
 // Open the given file, returning one of FS_FILE_NOT_FOUND, FS_FILE_ALREADY_OPENED
 // or FS_FILE_OK
-u8 fs_open_file( const char* fname, p_read_fs_byte p_read_func, FS* pfs )
+u8 romfs_open_file( const char* fname, p_read_fs_byte p_read_func, FS* pfs )
 {
   u16 i, j;
   char fsname[ MAX_FNAME_LENGTH + 1 ];
@@ -89,12 +89,12 @@ static int romfs_open_r( struct _reent *r, const char *path, int flags, int mode
     r->_errno = ENFILE;
     return -1;
   }
-  if( fs_open_file( path, fs_read, &tempfs ) != FS_FILE_OK )
+  if( romfs_open_file( path, romfs_read, &tempfs ) != FS_FILE_OK )
   {
     r->_errno = ENOENT;
     return -1;
   }
-  i = fs_find_empty_fd();
+  i = romfs_find_empty_fd();
   memcpy( romfs_fd_table + i, &tempfs, sizeof( FS ) );
   romfs_num_fd ++;
   return i;
@@ -102,7 +102,7 @@ static int romfs_open_r( struct _reent *r, const char *path, int flags, int mode
 
 static int romfs_close_r( struct _reent *r, int fd )
 {
-  fs_close_fd( fd );
+  romfs_close_fd( fd );
   romfs_num_fd --;
   return 0;
 }
@@ -134,14 +134,14 @@ static DM_DEVICE romfs_device =
   NULL                              // No "ioctl" on ROMFS
 };
 
-DM_DEVICE* fs_init()
+DM_DEVICE* romfs_init()
 {
   return &romfs_device;
 }
 
 #else // #ifdef BUILD_ROMFS
 
-DM_DEVICE* fs_init()
+DM_DEVICE* romfs_init()
 {
   return NULL;
 }
