@@ -254,14 +254,19 @@ void shell_start()
       break;
   }
   // Shell exit point
-  free( shell_prog );
+  if( shell_prog )
+    free( shell_prog );
 }
 
 // Initialize the shell, returning 1 for OK and 0 for error
 int shell_init( unsigned maxprog )
 {
+#ifdef BUILD_XMODEM
   if( ( shell_prog = malloc( maxprog + 1 ) ) == NULL )
     return 0;
+#else
+  shell_prog = NULL;
+#endif
   shell_max_prog = maxprog;
   return 1;
 }
