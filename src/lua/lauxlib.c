@@ -623,6 +623,7 @@ LUALIB_API int (luaL_loadstring) (lua_State *L, const char *s) {
 
 /* }====================================================== */
 
+
 static void *l_alloc (void *ud, void *ptr, size_t osize, size_t nsize) {
   (void)ud;
   (void)osize;
@@ -633,6 +634,7 @@ static void *l_alloc (void *ud, void *ptr, size_t osize, size_t nsize) {
   else
     return realloc(ptr, nsize);
 }
+
 
 static int panic (lua_State *L) {
   (void)L;  /* to avoid warnings */
@@ -647,3 +649,4 @@ LUALIB_API lua_State *luaL_newstate (void) {
   if (L) lua_atpanic(L, &panic);
   return L;
 }
+
