@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "type.h"
 #include "devman.h"
 #include "platform.h"
@@ -19,7 +20,7 @@ extern char end[];
 
 // Maximum file size that can be received via XMODEM
 // Should be a multiple of 128
-#define XMODEM_MAX_FILE_SIZE      1024
+#define XMODEM_MAX_FILE_SIZE    4096
 
 #ifdef BUILD_XMODEM
 
@@ -57,16 +58,10 @@ static int xmodem_recv( u32 timeout )
 #define TERMINAL_LINES        25
 #define TERMINAL_COLS         80
 
-#ifdef BUILD_TERMINAL
+#ifdef BUILD_TERM
 
 #define TERM_UART_ID          0
 #define TERM_TIMER_ID         0
-
-typedef void ( *p_term_out )( u8 );
-// Terminal input function
-typedef int ( *p_term_in )( int );
-// Terminal translate input function
-typedef int ( *p_term_translate )( u8 );
 
 static void term_out( u8 data )
 {
@@ -75,7 +70,7 @@ static void term_out( u8 data )
 
 static int term_in( int mode )
 {
-  if( mode == TERM_INPUT_WAIT )
+  if( mode == TERM_INPUT_DONT_WAIT )
     return platform_uart_recv( TERM_UART_ID, TERM_TIMER_ID, 0 );
   else
     return platform_uart_recv( TERM_UART_ID, TERM_TIMER_ID, PLATFORM_UART_INFINITE_TIMEOUT );
@@ -85,7 +80,9 @@ static int term_translate( u8 data )
 {
   int c;
   
-  if( data == 0x1B ) // escape sequence
+  if( isprint( data ) )
+    return data;
+  else if( data == 0x1B ) // escape sequence
   {
     // The second character is '[', the next one is relevant for us
     if( term_in( TERM_INPUT_DONT_WAIT ) == -1 )
@@ -133,7 +130,7 @@ static int term_translate( u8 data )
   return KC_UNKNOWN;
 }
 
-#else // #ifdef BUILD_TERMINAL
+#else // #ifdef BUILD_TERM
 
 static void term_out( u8 data )
 {
@@ -152,7 +149,7 @@ static int term_translate( u8 data )
   return -1;
 }
 
-#endif // #ifdef BUILD_TERMINAL
+#endif // #ifdef BUILD_TERM
 
 // ****************************************************************************
 //  Program entry point

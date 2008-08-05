@@ -39,19 +39,23 @@ static int uart_send( lua_State* L )
   return 0;
 }
 
-// Lua: sendbuf( id, buf )
-static int uart_sendbuf( lua_State* L )
+// Lua: sendstr( id, string1, string2, ... )
+static int uart_sendstr( lua_State* L )
 {
   int id;
   const char* buf;
   size_t len, i;
+  int total = lua_gettop( L ), s;
   
-  //MOD_CHECK_MIN_ARGS( 2 );  
+  MOD_CHECK_MIN_ARGS( 2 );  
   id = luaL_checkinteger( L, 1 );
-  luaL_checktype( L, 2, LUA_TSTRING );
-  buf = lua_tolstring( L, 2, &len );
-  for( i = 0; i < len; i ++ )
-    platform_uart_send( id, buf[ i ] );
+  for( s = 2; s <= total; s ++ )
+  {
+    luaL_checktype( L, s, LUA_TSTRING );
+    buf = lua_tolstring( L, s, &len );
+    for( i = 0; i < len; i ++ )
+      platform_uart_send( id, buf[ i ] );
+  }
   return 0;
 }
 
@@ -75,7 +79,7 @@ static const luaL_reg uart_map[] =
   { "setup",  uart_setup },
   { "send", uart_send },
   { "recv", uart_recv },
-  { "sendbuf", uart_sendbuf },
+  { "sendstr", uart_sendstr },
   { NULL, NULL }
 };
 

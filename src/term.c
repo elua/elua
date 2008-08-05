@@ -98,6 +98,12 @@ unsigned term_get_cols()
 // Write a character to the terminal
 void term_putch( u8 ch )
 {
+  if( ch == '\n' )
+  {
+    if( term_cy < term_num_lines )
+      term_cy ++;
+    term_cx = 0;
+  }
   term_out( ch );
 }
 

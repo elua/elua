@@ -44,22 +44,30 @@ void term_putstr( const char* str );
 unsigned term_get_cx();
 unsigned term_get_cy();
 
+#define TERM_KEYCODES\
+  _D( KC_UP ),\
+  _D( KC_DOWN ),\
+  _D( KC_LEFT ),\
+  _D( KC_RIGHT ),\
+  _D( KC_HOME ),\
+  _D( KC_END ),\
+  _D( KC_PAGEUP ),\
+  _D( KC_PAGEDOWN ),\
+  _D( KC_ENTER ),\
+  _D( KC_TAB ),\
+  _D( KC_BACKSPACE ),\
+  _D( KC_UNKNOWN )
+  
 // Terminal input functions
 // Keyboard codes
+#define _D( x ) x
+
 enum
 {
-  KC_UP = 256,
-  KC_DOWN,
-  KC_LEFT,
-  KC_RIGHT,
-  KC_HOME,
-  KC_END,
-  KC_PAGEUP,
-  KC_PAGEDOWN,
-  KC_ENTER,
-  KC_TAB,
-  KC_BACKSPACE,
-  KC_UNKNOWN
+  term_dummy = 255,
+  TERM_KEYCODES,
+  TERM_FIRST_KEY = KC_UP,
+  TERM_LAST_KEY = KC_UNKNOWN
 };
 
 int term_getch( int mode );

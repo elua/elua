@@ -54,7 +54,8 @@ app_files = " src/romfs.c src/main.c src/xmodem.c src/shell.c src/term.c"
 newlib_files = " src/newlib/devman.c src/newlib/stubs.c src/newlib/genstd.c"
 
 # Lua module files
-module_files = " src/modules/pio.c src/modules/spi.c src/modules/tmr.c src/modules/pd.c src/modules/uart.c"
+module_files = """ src/modules/pio.c src/modules/spi.c src/modules/tmr.c src/modules/pd.c src/modules/uart.c
+                   src/modules/term.c """
   
 # Optimizer flags (speed or size)
 #opt = "-O3"

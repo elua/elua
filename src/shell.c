@@ -103,8 +103,8 @@ static void shell_recv( char* args )
 
   char *p;
   long actsize;
-  lua_State* L;    
-  
+  lua_State* L;   
+
   printf( "Waiting for file ... " );
   while( 1 )
   {
@@ -129,7 +129,8 @@ static void shell_recv( char* args )
     return;
   }
   luaL_openlibs( L );
-  actsize = luaL_dostring( L, shell_prog );
+  if( luaL_dostring( L, shell_prog ) )
+    printf( "Error: %s\n", lua_tostring( L, -1 ) );
   lua_close( L );
 #endif // #ifndef BUILD_XMODEM  
 }

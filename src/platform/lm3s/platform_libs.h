@@ -10,6 +10,7 @@
   { AUXLIB_SPI, luaopen_spi },\
   { AUXLIB_TMR, luaopen_tmr },\
   { AUXLIB_PD, luaopen_pd },\
-  { AUXLIB_UART, luaopen_uart }
+  { AUXLIB_UART, luaopen_uart },\
+  { AUXLIB_TERM, luaopen_term }
   
 #endif
