@@ -38,45 +38,29 @@ static int uart_recv()
 // ****************************************************************************
 // Platform initialization
 
-static const u32 timer_base[] = { TIMER0_BASE, TIMER1_BASE, TIMER2_BASE, TIMER3_BASE };
+// forward
+void timers_init();
+void uarts_init();
+void spis_init();
+void pios_init();
 
 int platform_init()
 { 
-  unsigned i;
-  
   // Set the clocking to run directly from the crystal.
   SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_8MHZ);
   
-  // Enable peripherals
-  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);           
-  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);             
-  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);             
-  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);             
-  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);             
-  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);             
-  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOG);             
-  SysCtlPeripheralEnable(SYSCTL_PERIPH_SSI0);
-  SysCtlPeripheralEnable(SYSCTL_PERIPH_UART1);
+  // Setup PIO
+  pios_init();
 
-  // Configure the UART for 115,200, 8-N-1 operation.
-  // (this also enables the UART)
-  GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
-  SysCtlPeripheralEnable(SYSCTL_PERIPH_UART0);  
-  UARTConfigSetExpClk(UART0_BASE, SysCtlClockGet(), 115200,
-                      (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
-                       UART_CONFIG_PAR_NONE)); 
+  // Setup SSIs
+  spis_init();
+
+  // Setup UARTs
+  uarts_init();
   
   // Setup timers
-  SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
-  SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER1);
-  SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER2);
-  SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER3);  
-  for( i = 0; i < 4; i ++ )
-  {
-    TimerConfigure(timer_base[ i ], TIMER_CFG_32_BIT_PER);
-    TimerEnable(timer_base[ i ], TIMER_A);
-  }
-                         
+  timers_init();                         
+
   // Set the send/recv functions                          
   std_set_send_func( uart_send );
   std_set_get_func( uart_recv );      
@@ -88,9 +72,39 @@ int platform_init()
 // ****************************************************************************
 // PIO
 
+static const u32 pio_base[] = { GPIO_PORTA_BASE, GPIO_PORTB_BASE, GPIO_PORTC_BASE, GPIO_PORTD_BASE, 
+                                GPIO_PORTE_BASE, GPIO_PORTF_BASE, GPIO_PORTG_BASE, GPIO_PORTH_BASE };
+static const u32 pio_sysctl[] = { SYSCTL_PERIPH_GPIOA, SYSCTL_PERIPH_GPIOB, SYSCTL_PERIPH_GPIOC, SYSCTL_PERIPH_GPIOD, 
+                                  SYSCTL_PERIPH_GPIOE, SYSCTL_PERIPH_GPIOF, SYSCTL_PERIPH_GPIOG, SYSCTL_PERIPH_GPIOH };
+
+#ifdef lm3s8962
+#define PIOS_COUNT 42
+#define PIOS_PORT_COUNT 7
+static const u8 pio_port_pins[] = { 8, 8, 8, 8,
+                                    4, 4, 2, 0 };
+#endif
+
+#ifdef lm3s6965
+#define PIOS_COUNT 42
+#define PIOS_PORT_COUNT 7
+static const u8 pio_port_pins[] = { 8, 8, 8, 8,
+                                    4, 4, 2, 0 };
+#endif
+
+
+void pios_init()
+{
+  unsigned i;
+
+  for( i = 0; i < PIOS_PORT_COUNT; i ++ )
+  {
+    SysCtlPeripheralEnable(pio_sysctl[ i ]);
+  }
+}
+
 int platform_pio_has_port( unsigned port )
 {
-  return port <= 6;
+  return port < PIOS_PORT_COUNT;
 }
 
 const char* platform_pio_get_prefix( unsigned port )
@@ -103,21 +117,12 @@ const char* platform_pio_get_prefix( unsigned port )
 
 int platform_pio_has_pin( unsigned port, unsigned pin )
 {
-  if( port <= 3 )
-    return pin <= 7;
-  else if( ( port == 4 ) || ( port == 5 ) )
-    return pin <= 3;
-  else if( port == 6 )
-    return pin <= 1;
-  return 0;
+  return pin < pio_port_pins[ port ];
 }
-
-static const pio_type port_base[] = { GPIO_PORTA_BASE, GPIO_PORTB_BASE, GPIO_PORTC_BASE, GPIO_PORTD_BASE, GPIO_PORTE_BASE,
-                                      GPIO_PORTF_BASE, GPIO_PORTG_BASE };
 
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 {
-  pio_type retval = 0, base = port_base[ port ];
+  pio_type retval = 0, base = pio_base[ port ];
   
   switch( op )
   {
@@ -159,38 +164,65 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 // ****************************************************************************
 // SPI
 
-#define SSI_CLK             GPIO_PIN_2
-#define SSI_TX              GPIO_PIN_5
-#define SSI_RX              GPIO_PIN_4
+#ifdef lm3s8962
+#define SPIS_COUNT 1
+#endif
+
+#ifdef lm3s6965
+#define SPIS_COUNT 1
+#endif
+
+// All possible LM3S uarts defs
+// FIXME this anticipates support for a platform with 2 SPI port
+//  PIN info extracted from LM3S6950 and 5769 datasheets
+static const u32 spi_base[] = { SSI0_BASE, SSI1_BASE };
+static const u32 spi_sysctl[] = { SYSCTL_PERIPH_SSI0, SYSCTL_PERIPH_SSI1 };
+static const u32 spi_gpio_base[] = { GPIO_PORTA_BASE | GPIO_PORTE_BASE };
+static const u8 spi_gpio_pins[] = { GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5,
+                                    GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 };
+//                                  SSIxClk      SSIxFss      SSIxRx       SSIxTx
+static const u8 spi_gpio_clk_pin[] = { GPIO_PIN_2, GPIO_PIN_0 };
+
+void spis_init()
+{
+  unsigned i;
+
+  for( i = 0; i < SPIS_COUNT; i ++ )
+  {
+    SysCtlPeripheralEnable(spi_sysctl[ i ]);
+  }
+}
 
 int platform_spi_exists( unsigned id )
 {
-  return id < 1;
+  return id < SPIS_COUNT;
 }
 
 u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigned cpha, unsigned databits )
 {
   unsigned protocol;
   
-  id = id;
   if( cpol == 0 )
     protocol = cpha ? SSI_FRF_MOTO_MODE_1 : SSI_FRF_MOTO_MODE_0;
   else
     protocol = cpha ? SSI_FRF_MOTO_MODE_3 : SSI_FRF_MOTO_MODE_2;
   mode = mode == PLATFORM_SPI_MASTER ? SSI_MODE_MASTER : SSI_MODE_SLAVE;  
-  SSIDisable( SSI0_BASE );
-  GPIOPinTypeSSI(GPIO_PORTA_BASE, SSI_CLK | SSI_TX | SSI_RX);
-  GPIOPadConfigSet(GPIO_PORTA_BASE, SSI_CLK, GPIO_STRENGTH_4MA, GPIO_PIN_TYPE_STD_WPU);    
-  SSIConfigSetExpClk( SSI0_BASE, SysCtlClockGet(), protocol, mode, clock, databits );
-  SSIEnable( SSI0_BASE );
+  SSIDisable( spi_base[ id ] );
+
+  GPIOPinTypeSSI( spi_gpio_base[ id ], spi_gpio_pins[ id ] );
+  
+  // FIXME: not sure this is always "right"
+  GPIOPadConfigSet(spi_gpio_base[ id ], spi_gpio_clk_pin[ id ], GPIO_STRENGTH_4MA, GPIO_PIN_TYPE_STD_WPU);    
+
+  SSIConfigSetExpClk( spi_base[ id ], SysCtlClockGet(), protocol, mode, clock, databits );
+  SSIEnable( spi_base[ id ] );
   return clock;
 }
 
 spi_data_type platform_spi_send_recv( unsigned id, spi_data_type data )
 {
-  id = id;
-  SSIDataPut( SSI0_BASE, data );
-  SSIDataGet( SSI0_BASE, &data );
+  SSIDataPut( spi_base[ id ], data );
+  SSIDataGet( spi_base[ id ], &data );
   return data;
 }
 
@@ -204,19 +236,48 @@ void platform_spi_select( unsigned id, int is_select )
 // ****************************************************************************
 // UART
 
+#ifdef lm3s8962
+#define UARTS_COUNT 2
+#endif
+
+#ifdef lm3s6965
+#define UARTS_COUNT 3
+#endif
+
+// All possible LM3S uarts defs
+static const u32 uart_base[] = { UART0_BASE, UART1_BASE, UART2_BASE };
+static const u32 uart_sysctl[] = { SYSCTL_PERIPH_UART0, SYSCTL_PERIPH_UART1, SYSCTL_PERIPH_UART2 };
+static const u32 uart_gpio_base[] = { GPIO_PORTA_BASE, GPIO_PORTD_BASE, GPIO_PORTG_BASE };
+static const u8 uart_gpio_pins[] = { GPIO_PIN_0 | GPIO_PIN_1, GPIO_PIN_2 | GPIO_PIN_3, GPIO_PIN_0 | GPIO_PIN_1 };
+
+void uarts_init()
+{
+  unsigned i;
+
+  for( i = 0; i < UARTS_COUNT; i ++ )
+  {
+    SysCtlPeripheralEnable(uart_sysctl[ i ]);
+  }
+
+  // Special case for UART 0
+  // Configure the UART for 115,200, 8-N-1 operation.
+  GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+  UARTConfigSetExpClk(UART0_BASE, SysCtlClockGet(), 115200,
+                     (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
+                      UART_CONFIG_PAR_NONE)); 
+}
+
 int platform_uart_exists( unsigned id )
 {
-  return id <= 1;
+  return id < UARTS_COUNT;
 }
 
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )
 {
   u32 config;
   
-  if( id == 0 )
-    GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
-  else
-    GPIOPinTypeUART(GPIO_PORTD_BASE, GPIO_PIN_2 | GPIO_PIN_3);    
+  GPIOPinTypeUART(uart_gpio_base [ id ], uart_gpio_pins[ id ]);
+
   switch( databits )
   {
     case 5:
@@ -239,17 +300,18 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
     config |= UART_CONFIG_PAR_ODD;
   else
     config |= UART_CONFIG_PAR_NONE;
-  return UARTConfigSetExpClk(id == 0 ? UART0_BASE : UART1_BASE, SysCtlClockGet(), baud, config);
+    
+  return UARTConfigSetExpClk(uart_base[ id ], SysCtlClockGet(), baud, config);
 }
 
 void platform_uart_send( unsigned id, u8 data )
 {
-  UARTCharPut( id == 0 ? UART0_BASE : UART1_BASE, data );
+  UARTCharPut( uart_base[ id ], data );
 }
 
 int platform_uart_recv( unsigned id, unsigned timer_id, int timeout )
 {
-  u32 base = id == 0 ? UART0_BASE : UART1_BASE;
+  u32 base = uart_base[ id ];
   timer_data_type tmr_start, tmr_crt;
   int res;
   
@@ -279,11 +341,35 @@ int platform_uart_recv( unsigned id, unsigned timer_id, int timeout )
 }
 
 // ****************************************************************************
-// Timer
+// Timers
+
+#ifdef lm3s8962
+#define TIMERS_COUNT 4
+#endif
+
+#ifdef lm3s6965
+#define TIMERS_COUNT 4
+#endif
+
+// All possible LM3S timers defs
+static const u32 timer_base[] = { TIMER0_BASE, TIMER1_BASE, TIMER2_BASE, TIMER3_BASE };
+static const u32 timer_sysctl[] = { SYSCTL_PERIPH_TIMER0, SYSCTL_PERIPH_TIMER1, SYSCTL_PERIPH_TIMER2, SYSCTL_PERIPH_TIMER3 };
+
+void timers_init()
+{
+  unsigned i;
+
+  for( i = 0; i < TIMERS_COUNT; i ++ )
+  {
+	SysCtlPeripheralEnable(timer_sysctl[ i ]);
+    TimerConfigure(timer_base[ i ], TIMER_CFG_32_BIT_PER);
+    TimerEnable(timer_base[ i ], TIMER_A);
+  }
+}
 
 int platform_timer_exists( unsigned id )
 {
-  return id <= 3;
+  return id < TIMERS_COUNT;
 }
 
 void platform_timer_delay( unsigned id, u32 delay_us )
@@ -354,7 +440,12 @@ const char* platform_pd_get_platform_name()
 
 const char* platform_pd_get_cpu_name()
 {
+#ifdef lm3s8962
   return "LM3S8962";
+#endif
+#ifdef lm3s6965
+  return "LM3S6965";
+#endif
 }
 
 u32 platform_pd_get_cpu_frequency()

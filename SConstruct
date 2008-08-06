@@ -4,7 +4,7 @@ cputype = ARGUMENTS.get( 'cpu', 'at91sam7x256' ).lower()
 
 # List of platform/CPU combinations
 cpu_list = { 'at91sam7x' : [ 'at91sam7x256', 'at91sam7x512' ], 
-              'lm3s' : [ 'lm3s8962' ], 
+              'lm3s' : [ 'lm3s8962', 'lm3s6965' ], 
               'str9' : [ 'str912fw44' ],
               'i386' : [ 'i386' ]
             }
