@@ -62,6 +62,10 @@ end
 
 while true do
   term.clrscr()
+  term.gotoxy( 3, 12 )
+  term.putstr( "eLua hangman" )
+  term.gotoxy( 3, 13 ) 
+  term.putstr( "ESC to exit" )
   stats()
   
   -- Draw the hanging site
@@ -80,35 +84,40 @@ while true do
   local tried = {}
   local key
   while tries < 7 and nguess < #lword do     
-    key = string.char( term.getch( term.WAIT ) ):lower()
-    term.gotoxy( 2, h - 1 )
-    term.clreol()       
-    if not key:find( '%l' ) then
-      term.putstr( "Invalid character" )
-    else
-      key = key:byte()
-      if tried[ key ] ~= nil then
-        term.putstr( "Already tried this key" )
+    key = term.getch( term.WAIT )
+    if key == term.KC_ESC then break end
+    if key > 0 and key < 255 then
+      key = string.char( key ):lower()
+      term.gotoxy( 2, h - 1 )
+      term.clreol()       
+      if not key:find( '%l' ) then
+        term.putstr( "Invalid character" )
       else
-        tried[ key ] = true
-        local i
-        local ok = false
-        for i = 1, #lword do
-          if key == lword:byte( i ) then
-            ok = true
-            term.gotoxy( 7 + i, h - 3 )
-            term.put( key )
-            nguess = nguess + 1
+        key = key:byte()
+        if tried[ key ] ~= nil then
+          term.putstr( "Already tried this key" )
+        else
+          tried[ key ] = true
+          local i
+          local ok = false
+          for i = 1, #lword do
+            if key == lword:byte( i ) then
+              ok = true
+              term.gotoxy( 7 + i, h - 3 )
+              term.put( key )
+              nguess = nguess + 1
+            end
+          end
+          if not ok then
+            tries = tries + 1
+            hang()
           end
         end
-        if not ok then
-          tries = tries + 1
-          hang()
-        end
       end
+      term.gotoxy( 9, h - 2 )
     end
-    term.gotoxy( 9, h - 2 )
   end
+  if key == term.KC_ESC then break end 
   
   term.gotoxy( 2, h - 1 )
   total = total + 1
