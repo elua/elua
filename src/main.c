@@ -62,6 +62,7 @@ static int xmodem_recv( u32 timeout )
 
 #define TERM_UART_ID          0
 #define TERM_TIMER_ID         0
+#define TERM_TIMEOUT          100000
 
 static void term_out( u8 data )
 {
@@ -84,11 +85,12 @@ static int term_translate( u8 data )
     return data;
   else if( data == 0x1B ) // escape sequence
   {
-    // The second character is '[', the next one is relevant for us
-    if( term_in( TERM_INPUT_DONT_WAIT ) == -1 )
-      return -1;
-    if( ( c = term_in( TERM_INPUT_DONT_WAIT ) ) == -1 )
-      return -1;
+    // If we don't get a second char, we got a simple "ESC", so return KC_ESC
+    // If we get a second char it must be '[', the next one is relevant for us
+    if( platform_uart_recv( TERM_UART_ID, TERM_TIMER_ID, TERM_TIMEOUT ) == -1 )
+      return KC_ESC;
+    if( ( c = platform_uart_recv( TERM_UART_ID, TERM_TIMER_ID, TERM_TIMEOUT ) ) == -1 )
+      return KC_UNKNOWN;
     switch( c )
     {
       case 0x41:
@@ -103,9 +105,8 @@ static int term_translate( u8 data )
   }
   else if( data == 0x0D )
   {
-    // CR/LF sequence, read the second char
-    if( term_in( TERM_INPUT_DONT_WAIT ) == -1 )
-      return -1;
+    // CR/LF sequence, read the second char (LF) if applicable
+    platform_uart_recv( TERM_UART_ID, TERM_TIMER_ID, TERM_TIMEOUT );
     return KC_ENTER;
   }
   else
@@ -176,7 +177,7 @@ int main( void )
   term_init( TERMINAL_LINES, TERMINAL_COLS, term_out, term_in, term_translate );
   
   printf( ".text ends at %p, first free RAM is at %p, last free ram is at %p\r\n", etext, platform_get_first_free_ram(), platform_get_last_free_ram() );
-    
+  
   // Run the shell
   if( shell_init( XMODEM_MAX_FILE_SIZE ) == 0 )
   {
