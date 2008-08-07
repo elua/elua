@@ -4,5 +4,6 @@
 #define __BUILD_H__
 
 #define BUILD_ROMFS
+#define BUILD_SHELL
 
 #endif
