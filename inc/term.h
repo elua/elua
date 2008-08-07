@@ -56,6 +56,7 @@ unsigned term_get_cy();
   _D( KC_ENTER ),\
   _D( KC_TAB ),\
   _D( KC_BACKSPACE ),\
+  _D( KC_ESC ),\
   _D( KC_UNKNOWN )
   
 // Terminal input functions
