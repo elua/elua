@@ -91,14 +91,15 @@ void UART_DeInit(UART_TypeDef* UARTx)
 *                    that contains the configuration information for the
 *                    specified UART peripheral.
 * Output         : None
-* Return         : None
+* Return         : the actual baud rate
 *******************************************************************************/
-void UART_Init(UART_TypeDef* UARTx, UART_InitTypeDef* UART_InitStruct)
+unsigned long UART_Init(UART_TypeDef* UARTx, UART_InitTypeDef* UART_InitStruct)
 {
 
   u64 UART_MainClock = 0;
   u32 IntegerDivider = 0;
   u32 FractionalDivider = 0;
+  u32 temp;
 
   /* Clear the LCR[6:5] bits */
   UARTx->LCR &= UART_WordLength_Mask;
@@ -170,6 +171,10 @@ void UART_Init(UART_TypeDef* UARTx, UART_InitTypeDef* UART_InitStruct)
     /* Disable the FIFOs */
     UARTx->LCR &= UART_FIFO_Disable;
   }
+  
+  // Compute and return real baud (16.16 fixed point math)
+  temp = ( UARTx->IBRD << 16 ) + ( UARTx->FBRD << 10 ) - ( 1 << 9 );
+  return UART_MainClock / ( temp >> 12 );  
 }
 
 /*******************************************************************************

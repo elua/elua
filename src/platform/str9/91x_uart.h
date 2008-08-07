@@ -149,7 +149,7 @@ typedef enum
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 void UART_DeInit(UART_TypeDef* UARTx);
-void UART_Init(UART_TypeDef* UARTx, UART_InitTypeDef* UART_InitStruct);
+unsigned long UART_Init(UART_TypeDef* UARTx, UART_InitTypeDef* UART_InitStruct);
 void UART_StructInit(UART_InitTypeDef* UART_InitStruct);
 void UART_Cmd(UART_TypeDef* UARTx, FunctionalState NewState);
 void UART_ITConfig(UART_TypeDef* UARTx, u16 UART_IT, FunctionalState NewState);
