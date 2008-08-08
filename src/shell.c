@@ -97,14 +97,19 @@ static void shell_recv( char* args )
   args = args;
   
 #ifndef BUILD_XMODEM  
-    printf( "XMODEM support not compiled, unable to recv\n" );
-    return;
+  printf( "XMODEM support not compiled, unable to recv\n" );
+  return;
 #else // #ifndef BUILD_XMODEM
 
   char *p;
   long actsize;
   lua_State* L;   
 
+  if( ( shell_prog = malloc( shell_max_prog + 1 ) ) == NULL )
+  {
+    printf( "Unable to allocate memory\n" );
+    return;
+  }
   printf( "Waiting for file ... " );
   while( 1 )
   {
@@ -126,12 +131,16 @@ static void shell_recv( char* args )
   if( ( L = lua_open() ) == NULL )
   {
     printf( "Unable to create Lua state\n" );
+    free( shell_prog );
+    shell_prog = NULL;
     return;
   }
   luaL_openlibs( L );
   if( luaL_dostring( L, shell_prog ) )
     printf( "Error: %s\n", lua_tostring( L, -1 ) );
   lua_close( L );
+  free( shell_prog );
+  shell_prog = NULL;
 #endif // #ifndef BUILD_XMODEM  
 }
 
@@ -262,12 +271,7 @@ void shell_start()
 // Initialize the shell, returning 1 for OK and 0 for error
 int shell_init( unsigned maxprog )
 {
-#ifdef BUILD_XMODEM
-  if( ( shell_prog = malloc( maxprog + 1 ) ) == NULL )
-    return 0;
-#else
   shell_prog = NULL;
-#endif
   shell_max_prog = maxprog;
   return 1;
 }
