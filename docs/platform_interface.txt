@@ -1,6 +1,6 @@
 (NOTE: view this file with a monospaced font)
 
-02. eLua platform interface
+eLua platform interface
 ================================================================================
 
 This document describes the "platform" interface in eLua. Its purpose is to ease

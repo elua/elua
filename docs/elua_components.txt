@@ -1,0 +1,74 @@
+(NOTE: view this file with a monospaced font)
+
+eLua components
+================================================================================
+
+Besides the Lua core, the platform modules (docs/platform_modules.txt) and the
+Newlib 'glue code', eLua uses a number of other code modules (components) for
+extended functionality. This is a great thing if you actually need the whole
+functionality in your code, but otherwise it becomes a waste of memory space. 
+Since eLua was designed to be as flexible as possible, it includes a mechanism 
+that allows the user to select exactly what components he needs. Only the 
+selected components will be part of the eLua image. Please note that this is 
+_not_ a replacement of the platform modules mechanism, the two are complementary
+to each other, since the components are not connected with the platform 
+interface (docs/platform_interface.txt) in any way.
+To use this feature, every platform (src/platform/[name]) must include a file
+named "build.h" that specifies what components should be built for that 
+platform. For example, the LM3S "build.h" file might look like this:
+
+(BEGIN src/platform/lm3s/build.h)
+// Define here what components you want for this platform
+
+#ifndef __BUILD_H__
+#define __BUILD_H__
+
+#define BUILD_XMODEM
+#define BUILD_SHELL
+#define BUILD_ROMFS
+#define BUILD_TERM
+
+#endif
+(END src/platform/lm3s/build.h)
+
+In this case, the XMODEM, SHELL, ROMFS and TERM components will be built. On the
+other hand, the i386 "build.h" will probably have less components:
+
+(BEGIN src/platform/i386/build.h)
+// Define here what components you want for this platform
+
+#ifndef __BUILD_H__
+#define __BUILD_H__
+
+#define BUILD_ROMFS
+#define BUILD_SHELL
+
+#endif
+(END src/platform/i386/build.h)
+
+You don't need to modify any other part of your code, just rebuild your image
+after you made changes to this file (docs/building.txt)
+Below you can find a list of eLua components and their functionality.
+
+XMODEM
+================================================================================
+The XMODEM component enables eLua to receive Lua source files via its shell and 
+execute them (docs/the_elua_shell.txt). If you don't need to use "recv" from the
+shell you can skip this component.
+
+SHELL
+================================================================================
+This enables the build of the eLua shell (docs/the_elua_shell.txt). If you don't
+need the shell, don't enable this component. eLua will execute the "lua" command
+at startup if the eLua shell is not built.
+
+ROMFS
+================================================================================
+If you need to use the ROM file system (docs/the_rom_file_system.txt) enable
+this component, otherwise you can skip it.
+
+TERM
+================================================================================
+The TERM module adds support for ANSI terminals. See docs/terminal_support.txt
+for details. If you don't need it, and if you're willing to miss the opportunity
+of playing hangman in eLua (examples/hangman.lua) you can skip this component :)

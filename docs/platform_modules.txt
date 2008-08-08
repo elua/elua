@@ -1,6 +1,6 @@
 (NOTE: view this file with a monospaced font)
 
-03. eLua platform modules
+eLua platform modules
 ================================================================================
 
 In order to make eLua usable on different platform, eLua provides a number of 
@@ -63,6 +63,11 @@ On the other hand, we don't want any modules for the i386 platform (yet), so the
 This is why some of platform functions described in "platform interface.txt" are
 optional. If there are no modules that use them in one platform, then you don't
 need to define them at all for that platform, not even as "bogus" functions.
+
+NOTE: this mechanism is not used only for the platform modules, but also for 
+other modules in eLua. For an examples see src/terminal_support.txt in which the
+"term" is presented, and it can be enabled in the exact same way as a platform
+module, even though it's not connected to the platform interface.
 
 ================================================================================
 === The PIO module

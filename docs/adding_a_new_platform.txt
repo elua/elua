@@ -1,6 +1,6 @@
 (NOTE: view this file with a monospaced font)
 
-04. Adding a new platform to eLua
+Adding a new platform to eLua
 ================================================================================
 
 If you want to add a new platform to eLua, the first thing you need to check is
@@ -8,7 +8,7 @@ if the platform has enough resources to run Lua. Roughly speaking, 256k of Flash
 (or even 128k for the integer-only version) and 64k of RAM should be enough for
 a 32-bit platform. As usual, the more, the better (this is especially true for
 the RAM memory).
-Next, check if a GCC/Newlib toolchain is available for the platform. TO be more 
+Next, check if a GCC/Newlib toolchain is available for the platform. To be more 
 precise, the compiler doesn't really matter, as long as you're able to compile
 Newlib with it. If you don't, you won't be able to compile eLua. This limitation
 might be eliminated in future versions, but it's not a priority of the project, 
@@ -32,7 +32,7 @@ for foo, follow these steps:
 
 1. create the src/platform/foo directory
 2. change the main build script (SConstruct) to include your new platform
-3. you need at least 3 files (besides your platform specific files) in the 
+3. you need at least 4 files (besides your platform specific files) in the 
    src/platform/foo directory:
 
   - conf.py: this is read by SConstruct and describes how to build files for
@@ -41,10 +41,11 @@ for foo, follow these steps:
   - type.h: data types used by eLua, declared in a platform independent way. 
     Again, start from an existent type.h file and modify it if needed.
   - platform_libs.h: see "platform modules.txt" for details.
+  - build.h: see "elua_components.txt" for details.
 
 4. implement the platform interface functions (see "platform interface.txt"). By
    convention, they should be implemented in a file called "platform.c". Note that
-   SConstruct defines a C flag <cputype> for your platform so you code can
+   SConstruct defines a C macro (-D<cputype>) for your platform so you code can
    do #ifdef <cputype> ...
   
 5. That's it! Build (see "building.txt") and enjoy!

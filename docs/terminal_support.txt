@@ -1,0 +1,102 @@
+(NOTE: view this file with a monospaced font)
+
+Terminal support in eLua
+================================================================================
+
+Besides standard stdio/stdout/stderr support (docs/console_input_output.txt), 
+eLua provides the "term" module to access ANSI compatible terminal emulators. 
+It is designed to be as flexible as possible, thus allowing a large number of
+terminal emulators to be used.
+To use the term module, remember to:
+
+- build it (add BUILD_TERM in your build.h file)
+- build its Lua binding ( add AUXLIB_TERM in your platform_libs.h)
+
+See docs/elua_components.h and docs/platform_modules.txt for details.
+
+To use it, first call the "term_init" function:
+
+(BEGIN inc/term.h)
+...........................
+// Terminal output function
+typedef void ( *p_term_out )( u8 );
+// Terminal input function
+typedef int ( *p_term_in )( int );
+// Terminal translate input function
+typedef int ( *p_term_translate )( u8 );
+...........................
+// Terminal initialization
+void term_init( unsigned lines, unsigned cols, p_term_out term_out_func, 
+                p_term_in term_in_func, p_term_translate term_translate_func );
+(END inc/term.h)
+
+The initialization function gets the physical size of the terminal emulator
+window (usually 80 lines and 25 cols) and three function pointers:
+
+- p_term_out: this function will be called to output characters to the terminal.
+  It receives the character to output as its single parameter.
+- p_term_in: this function will be called to read a character from the terminal.
+  It receives a parameter that can be either TERM_INPUT_DONT_WAIT (in which case
+  the function returns -1 immediately if no character is available) or
+  TERM_INPUT_WAIT (in which case the function will wait for the character).
+- p_term_translate: this function translates terminal-specific codes to "term"
+  codes. The "term" codes are defined in an enum from inc/term.h:
+
+(BEGIN inc/term.h)
+...........................
+  _D( KC_UP ),\
+  _D( KC_DOWN ),\
+  _D( KC_LEFT ),\
+...........................
+  _D( KC_ESC ),\
+  _D( KC_UNKNOWN )  
+...........................
+(END inc/term.h)
+
+By using this function, it is possible to adapt a very large number of "term
+emulators" to eLua. For example, you might want to run eLua in a "standalone
+mode" that does not require a PC at all, just an external LCD display and maybe
+a keyboard for data input. Your eLua board can connect to this standalone 
+terminal using its I/O pins, for example via SPI. By writing the three functions
+described above, the effort of making eLua work with this new type of device is
+minimal, as writing an "ANSI emulation" for your terminal device is not hard.
+For an example, see src/main.c, where these functions are implemented for an
+UART connection with a terminal emulator program running on PC.
+
+"term" functions
+================================================================================
+The "term" component exports its functions to Lua via the "term" module. The 
+methods of the "term" module are presented below.
+
+term.clrscr(): clear the screen
+
+term.clreol(): clear from the current cursor position to the end of the line 
+
+term.gotoxy( x, y ): position the cursor at the given coordinates
+
+term.up( delta ): move the cursor up "delta" lines
+
+term.down( delta ): move the cursor down "delta" lines
+
+term.left( delta ): move the cursor left "delta" lines
+
+term.right( delta ): move the cursor right "delta" lines
+
+Lines = term.lines(): returns the number of lines
+
+Cols = term.cols(): returns the number of columns
+
+term.put( c1, c2, ... ): writes the specified character(s) to the terminal
+
+term.putstr( s1, s2, ... ): writes the specified string(s) to the terminal
+
+Cx = term.cursorx(): return the cursor X position
+
+Cy = term.cursory(): return the cursor Y position
+
+c = term.getch( term.WAIT | term.NOWAIT ): returns a char read from the 
+  terminal. If term.WAIT is specified the function will wait for a character to
+  be ready, with term.NOWAIT it returns -1 if no char is available or the char
+  code if a char is available. The return of getch can be checked against the
+  char codes defined in inc/term.h, by appending "term." to the constant name 
+  (for example: term.KC_UP, term.KC_LEFT, term.KC_ESC ... )

@@ -1,6 +1,14 @@
 (NOTE: view this file with a monospaced font)
 
-01. Building eLua
+Prerequisites
+================================================================================
+
+Before you start, you might want to check if the list of platform modules and 
+eLua components are set according to your needs. See docs/platform_modules.txt 
+and docs/elua_components.txt for details. By default, all the relevant
+modules and components for a given target are included in the build.
+
+Building eLua
 ================================================================================
 
 To build eLua you'll need:
@@ -43,29 +51,38 @@ executable files, as shown below.
 | i386       |    i686-elf-gcc     |     i686-elf-gcc     |        nasm        |
 |============|=====================|======================|====================|
 | Cortex-M3  |    arm-elf-gcc      |     arm-elf-gcc      |     arm-elf-gcc    |
+|============|=====================|======================|====================|
+| STR9       |    arm-elf-gcc      |     arm-elf-gcc      |     arm-elf-gcc    |
 ================================================================================
 
 If your toolchain uses different names, you have to modify the "conf.py" file
-from src/platform/<your platform>.
+from src/platform/[your platform].
 
 To build, go to the directory where you unpacked your eLua distribution and 
 invoke scons:
 
-$ scons [target=<lua|lualong>] 
-  [cpu=<at91sam7x256|at91sam7x512|i386|str912fw44|lm3s8962|lm3s6965>] 
+$ scons [target=lua | lualong] 
+  [cpu=at91sam7x256 | at91sam7x512 | i386 | str912fw44 | lm3s8962 | lm3s6965]
+  [cpumode=arm | thumb] 
   [prog]
   
-- target=lua | lualong: specify if you want to build full Lua (with floating point 
-  support) or integer only Lua (lualong). The default is "lua".
+- target=lua | lualong: specify if you want to build full Lua (with floating 
+  point support) or integer only Lua (lualong). The default is "lua".
 - cpu=at91sam7x256 | at91sam7x512 | i386 | str912fw44 | lm3s8962 | lm3s6965: 
-  specify what CPU to build for. 
+  specify what CPU to build for. The default is AT91SAM7X256.
+- cpumode=arm | thumb: for ARM target (not Cortex) this specifies the
+  compilation mode. Its default value is 'thumb' for AT91SAM7X targets and
+  'arm' for STR9 targets.
 - prog: by default, the above 'scons' command will build only the 'elf' file.
   Specify "prog" to build also the platform-specific programming file where
   appropriate (for example, on a AT91SAM7X256 this results in a .bin file that
   can be programmed in the CPU). 
   
-The output will be a file named elua_<target>_<cpu>.elf (and also another
+The output will be a file named elua_[target]_[cpu].elf (and also another
 file with the same name but ending in .bin if "prog" was specified for platforms
 that need .bin files for programming).
 If you want the equivalent of a "make clean", invoke "scons" as shown above,
-but add a "-c" at the end of the command line.
+but add a "-c" at the end of the command line. "scons -c" is also recommended 
+after you change the list of modules/components to build for your target (see 
+section "prerequisites" of this document), as scons seems to "overlook" the 
+changes to these files on some occasions.

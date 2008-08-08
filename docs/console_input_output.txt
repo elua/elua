@@ -1,6 +1,6 @@
 (NOTE: view this file with a monospaced font)
 
-05. Console input/output in eLua
+Console input/output in eLua
 ================================================================================
 
 The console input/output is handled by a generic layer (src/newlib/genstd.c) 
