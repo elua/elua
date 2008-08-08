@@ -114,7 +114,7 @@ int platform_uart_recv( unsigned id, unsigned timer_id, int timeout );
 
 TYPE: OPTIONAL
 USED BY MODULE: uart
-ALSO USED BY: XMODEM
+ALSO USED BY: XMODEM, TERM over UART
 
 PURPOSE: UART operations. eLua defines 4 "virtual" UART interfaces. The function
 platform_uart_exists() gets an identifier from 0 to 3 and returns 1 if the UART
@@ -142,7 +142,7 @@ u32 platform_timer_get_diff_us( unsigned id, timer_data_type end,
                                 
 TYPE: OPTIONAL
 USED BY MODULE: tmr, uart (for receive with timeout)
-ALSO USED BY: XMODEM
+ALSO USED BY: XMODEM, TERM over UART
 
 PURPOSE: timer operations. eLua defines 16 "virtual" timers. The function
 platform_timer_exists() gets an identifier from 0 to 15 and returns 1 if the 
