@@ -143,8 +143,8 @@ uart.send( id, Data1, Data2, ... ): send all the data to the specified UART
 Data = uart.recv( id, uart.NO_TIMEOUT | uart.INF_TIMEOUT | timeout ): reads a 
   byte from the specified UART interface.
   
-uart.sendbuf( id, string ): this is similar to "uart.send", but its parameter is
-  a string.  
+uart.sendstr( id, str1, str2, ... ): this is similar to "uart.send", but its 
+  parameters are string.  
 
 ================================================================================
 === The timer module
