@@ -30,8 +30,6 @@ static int pd_clock( lua_State* L )
 // Module function map
 static const luaL_reg pd_map[] = 
 {
-//FIXME: remove "name" once web site samples use platform()
-  { "name",  pd_platform },
   { "platform",  pd_platform }, 
   { "cpu", pd_cpu },
   { "clock", pd_clock },

@@ -1,11 +1,14 @@
 -- eLua test 
 
-if pd.name() == "AT91SAM7X" then
+if pd.platform() == "AT91SAM7X" then
   ledpin = pio.PB_20
-elseif pd.name() == "LM3S" then
+elseif pd.platform() == "LM3S" then
   ledpin = pio.PF_0
-else
+elseif pd.platform() == "STR9" then
   ledpin = pio.P9_0
+else
+  print( "Unknown platform " .. pd.platform() )
+  return
 end
 
 function cycle()
