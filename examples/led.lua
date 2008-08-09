@@ -19,7 +19,7 @@ function cycle()
 end
 
 pio.output( ledpin )
-print( "Hello from eLua on " .. pd.name() )
+print( "Hello from eLua on " .. pd.cpu() )
 print "Watch your LED blinking :)"
 print "Press any key to end this demo.\n"
 
