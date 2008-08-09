@@ -1,4 +1,17 @@
-27.07.2008  Bogdan Marinescu <bogdan.marinescu@gmail.com>
+09.08.2008 Bogdan Marinescu <bogdanm@users.berlios.de>
+           Frederic Thomas <frthomas@users.berlios.de>
+
+  * Official release 0.3
+  * Added support for ST STR912FW44 (bogdanm)
+  * Added support for Cortex LM3S6965 (frthomas)
+  * New terminal support module (term) (bogdanm)
+  * Added new example (hangman.lua) that uses the new term module (bogdanm)
+  * More intuitive and flexible build system (new syntax, component selection
+    at build time) (bogdanm)
+  * eLua examples are now part of the repository (bogdanm)
+  * Project documentation updated (bogdanm, frthomas)
+
+27.07.2008  Bogdan Marinescu <bogdanm@users.berlios.de>
 
   * Second official release (0.2)
   * Added support for Cortex LM3S8962
@@ -6,7 +19,7 @@
   * First release of the eLua shell
   * Lua source files can now be sent to target with XMODEM
   
-11.07.2008  Bogdan Marinescu <bogdan.marinescu@gmail.com>
+11.07.2008  Bogdan Marinescu <bogdanm@users.berlios.de>
 
   * First official release (0.1)
   * Supports AT91SAM7X/AT91SAM7X256 and i386

@@ -1,5 +1,9 @@
 The Lua part of eLua is licensed under the Lua licensing terms, which you can
 find at http://www.lua.org/license.html.
+
+The XMODEM code is adapted from the Procyon AVR library, which is released
+under GPL.
+
 The rest of the code is licensed under GPL, listed below.
 
 ================================================================================
