@@ -13,7 +13,6 @@
 
 #include "type.h"
 
-#define LUA_NUMBER_INTEGRAL
 /*
 ** ==================================================================
 ** Search for "@@" to find all configurable definitions.
