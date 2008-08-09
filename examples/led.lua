@@ -7,7 +7,7 @@ elseif pd.platform() == "LM3S" then
 elseif pd.platform() == "STR9" then
   ledpin = pio.P9_0
 else
-  print( "Unknown platform " .. pd.platform() )
+  print( "\nError: Unknown platform " .. pd.platform() .. " !\n" )
   return
 end
 

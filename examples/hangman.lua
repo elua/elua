@@ -1,10 +1,18 @@
 -- Hangman in eLua using the 'term' module
 -- Inspired by the original 'hangman' from the bsdgames package
 
+-- we need a random function
+-- using math.random for now, which implies target=lua, not lualong
+if not math then
+  print "\nError: Hangman needs the math module (disabled when target=lualong) !\n"
+  return
+end
+
+
 local h, w = term.lines(), term.cols()
 local tries = 0
 
--- "Databse" with our words
+-- "Database" with our words
 local words = { "simple", "hangman", "guess", "elua", "inane", "serial", 
   "stupenduous", "software" }
 
