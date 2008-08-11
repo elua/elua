@@ -8,7 +8,7 @@ specific_files = "startup912.s startup_generic.s platform.c 91x_scu.c 91x_fmi.c 
 if cputype == 'str912fw44':
   ldscript = "str912fw44.lds"
 else:
-  print "Invalid STR9 CPU %s", samtype
+  print "Invalid STR9 CPU %s", cputype
   sys.exit( -1 )  
   
 # Check CPU mode
