@@ -2,7 +2,7 @@
 
 cpumode = ARGUMENTS.get( 'cpumode', 'arm' ).lower()
 
-specific_files = "lpc28xx.s platform.c target.c"
+specific_files = "lpc28xx.s platform.c target.c uart.c"
 
 # Check CPU
 if cputype == 'lpc2888':

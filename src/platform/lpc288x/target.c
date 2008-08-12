@@ -15,17 +15,6 @@ typedef enum _SectionInClockSelect_t
   HighPLL = 7, MainPLL,
 } SectionInClockSelect_t;
 
-static void Dly_us(u32 Dly)
-{
-  INT_REQ5 = 0x04010000;    // enable interrupt
-  T0CTRL = 0;               // stop counting
-  T0LOAD = 12 * Dly;        // load period
-  T0CLR = 0;                // clear timer pendig interrupt
-  T0CTRL |= ( 1 << 7 );     // enable counting
-  while( !( INT_PENDING & ( 1 << 5 ) ) );
-  T0CTRL &= ~( 1 << 7 );
-}
-
 static void LPC288x_SectionClockSelect(volatile unsigned int * pReg, u32 Mode)
 {
 #define ST_OFFSET   ((unsigned long *)&SYSSSR - (unsigned long *)&SYSSCR)
@@ -84,7 +73,7 @@ static void InitSDRAMCtrl(void)
   // DELAY to allow power and clocks to stabilize ~100 us
   // NOP
   EMC_DYN_CTRL = 0x4183;         
-  Dly_us(200);        
+  for( i = 0; i < 1000; i ++ );
   
   // PALL
   EMC_DYN_CTRL = ( EMC_DYN_CTRL & ~0x180 ) | ( 2 << 7 );
