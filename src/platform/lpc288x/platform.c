@@ -38,6 +38,12 @@ int platform_init()
   // Initialize UART
   uart_init( 115200, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
   
+  // Initialize timers
+  T0CTRL = 0;
+  T1CTRL = 0;
+  INT_REQ5 = ( 1 << 28 ) | ( 1 << 27 ) | ( 1 << 26 ) | ( 1 << 16 ) | 0x1;
+  INT_REQ6 = ( 1 << 28 ) | ( 1 << 27 ) | ( 1 << 26 ) | ( 1 << 16 ) | 0x1;    
+  
   // Set the send/recv functions                          
   std_set_send_func( uart_send );
   std_set_get_func( uart_recv );  
@@ -76,7 +82,7 @@ const char* platform_pio_get_prefix( unsigned port )
 static const unsigned pins_per_port[] = { 32, 20, 4, 6, 12, 6, 4, 1 };
 int platform_pio_has_pin( unsigned port, unsigned pin )
 {
-  return port < 8 && pins_per_port[ port ] < pin;
+  return port < 8 && pin < pins_per_port[ port ];
 }
 
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
@@ -178,23 +184,101 @@ int platform_uart_recv( unsigned id, unsigned timer_id, int timeout )
 // ****************************************************************************
 // Timer
 
+static const vu_ptr tmr_load[] = { &T0LOAD, &T1LOAD };
+static const vu_ptr tmr_value[] = { &T0VALUE, &T1VALUE };
+static const vu_ptr tmr_ctrl[] = { &T0CTRL, &T1CTRL };
+static const vu_ptr tmr_clr[] = { &T0CLR, &T1CLR };
+static const unsigned tmr_prescale[] = { 1, 16, 256, 1 };
+#define TABS( x ) ( ( x ) < 0 ? -( x ) : ( x ) )
+
+// Helper: get timer clock
+static u32 platform_timer_get_clock( unsigned id )
+{
+  return MAIN_CLOCK / tmr_prescale[ ( *tmr_ctrl[ id ] >> 2 ) & 0x03 ];
+}
+
+// Helper: set timer clock
+static u32 platform_timer_set_clock( unsigned id, u32 clock )
+{
+  unsigned i, mini = 0;
+  
+  for( i = 0; i < 3; i ++ )
+    if( TABS( clock - MAIN_CLOCK / tmr_prescale[ i ] ) < TABS( clock - MAIN_CLOCK / tmr_prescale[ mini ] ) )
+      mini = i;
+  *tmr_ctrl[ id ] = ( *tmr_ctrl[ id ] & ~0xB ) | ( mini << 2 );
+  return MAIN_CLOCK / tmr_prescale[ mini ];
+}
 int platform_timer_exists( unsigned id )
 {
-  return 0;
+  return id < 2;
 }
 
 void platform_timer_delay( unsigned id, u32 delay_us )
 {
+  u32 freq;
+  u64 final;
+  u32 mask = ( id == 0 ) ? ( 1 << 5 ) : ( 1 << 6 );
+    
+  freq = platform_timer_get_clock( id );
+  final = ( ( u64 )delay_us * freq ) / 1000000;
+  if( final > 0xFFFFFFFF )
+    final = 0xFFFFFFFF;
+  *tmr_ctrl[ id ] &= 0x7F;
+  *tmr_load[ id ] = final;
+  *tmr_clr[ id ] = 0;
+  *tmr_ctrl[ id ] |= 0x80;
+  while( ( INT_PENDING & mask ) == 0 );
 }
       
 u32 platform_timer_op( unsigned id, int op, u32 data )
 {
-  return 0;
+  u32 res = 0;
+  
+  switch( op )
+  {
+    case PLATFORM_TIMER_OP_START:
+      *tmr_ctrl[ id ] &= 0x7F;
+      *tmr_load[ id ] = 0xFFFFFFFF;
+      *tmr_ctrl[ id ] |= 0x80;    
+      res = 0xFFFFFFFF;
+      break;
+      
+    case PLATFORM_TIMER_OP_READ:
+      res = *tmr_value[ id ];
+      break;
+      
+    case PLATFORM_TIMER_OP_GET_MAX_DELAY:
+      res = platform_timer_get_diff_us( id, 0, 0xFFFFFFFF );
+      break;
+      
+    case PLATFORM_TIMER_OP_GET_MIN_DELAY:
+      res = platform_timer_get_diff_us( id, 0, 1 );
+      break;      
+      
+    case PLATFORM_TIMER_OP_SET_CLOCK:
+      res = platform_timer_set_clock( id, data );
+      break;
+      
+    case PLATFORM_TIMER_OP_GET_CLOCK:
+      res = platform_timer_get_clock( id );
+      break;
+  }
+  return res;
 }
 
 u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_type start )
 {
-  return 0;
+  timer_data_type temp;
+  u32 freq;
+    
+  freq = platform_timer_get_clock( id );
+  if( start < end )
+  {
+    temp = end;
+    end = start;
+    start = temp;
+  }
+  return ( ( u64 )( start - end ) * 1000000 ) / freq;
 }
 
 // ****************************************************************************

@@ -24,7 +24,8 @@
 #define FALSE 0
 #endif
 
-#define Fcclk	60000000
+#define MAIN_CLOCK            12000000
+#define Fcclk	                60000000
 
 /* Below Fpclk is primarily used for PCLK going to the
 UART, since UART_FDR is set such Fractional Divider has

@@ -3,7 +3,7 @@
 #ifndef __BUILD_H__
 #define __BUILD_H__
 
-//#define BUILD_XMODEM
+#define BUILD_XMODEM
 #define BUILD_SHELL
 #define BUILD_ROMFS
 #define BUILD_TERM

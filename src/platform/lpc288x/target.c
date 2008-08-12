@@ -117,6 +117,7 @@ void lpc288x_init()
   
   // Set PLL and clocks  
   OSCEN |= 1;
+  
   // Init all section to fast clock
   LPC288x_SectionClockSelect(&SYSSCR ,HF_Osc);
   LPC288x_SectionClockSelect(&APB0SCR,HF_Osc);
@@ -141,8 +142,10 @@ void lpc288x_init()
   // Select Main PLL clock of system state
   LPC288x_SectionClockSelect(&SYSSCR,MainPLL);  
   LPC288x_SectionClockSelect(&UARTSCR,MainPLL);
-    
+  
+  // Initialize interrupt controller
+  INT_PRIOMASK0 = INT_PRIOMASK1 = 0;  
+  
   // Init SDRAM controller
   InitSDRAMCtrl();  
 }
-
