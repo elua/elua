@@ -458,14 +458,14 @@ u32 platform_pd_get_cpu_frequency()
 
 extern char end[];
 
-void* platform_get_first_free_ram()
+void* platform_get_first_free_ram( unsigned id )
 {
-  return ( void* )end;
+  return id > 0 ?  NULL : ( void* )end;
 }
 
 #define STACK_SIZE 256
 #define SRAM_SIZE ( 64 * 1024 )
-void* platform_get_last_free_ram()
+void* platform_get_last_free_ram( unsigned id )
 {
-  return ( void* )( SRAM_BASE + SRAM_SIZE - STACK_SIZE );
+  return id > 0 ? NULL : ( void* )( SRAM_BASE + SRAM_SIZE - STACK_SIZE - 1 );
 }

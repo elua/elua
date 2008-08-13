@@ -106,13 +106,13 @@ int platform_uart_recv( unsigned id, unsigned timer_id, int timeout )
 // Allocator support
 extern char end[];
 
-void* platform_get_first_free_ram()
+void* platform_get_first_free_ram( unsigned id )
 {
-  return ( void* )end;
+  return id > 0  ? NULL : ( void* )end;
 }
 
 #define MY_STACK_SIZE ( 16 * 1024 ) 
-void* platform_get_last_free_ram()
+void* platform_get_last_free_ram( unsigned id )
 {
-  return ( void* )( lastmem - MY_STACK_SIZE );
+  return id > 0 ? NULL : ( void* )( lastmem - MY_STACK_SIZE - 1 );
 }

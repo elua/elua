@@ -152,7 +152,7 @@ u32 platform_pd_get_cpu_frequency();
 // *****************************************************************************
 // Allocator support
 
-void* platform_get_first_free_ram();
-void* platform_get_last_free_ram();
+void* platform_get_first_free_ram( unsigned id );
+void* platform_get_last_free_ram( unsigned id );
 
 #endif

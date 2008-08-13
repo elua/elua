@@ -381,9 +381,9 @@ u32 platform_pd_get_cpu_frequency()
 // Allocator support
 extern char end[];
 
-void* platform_get_first_free_ram()
+void* platform_get_first_free_ram( unsigned id )
 {
-  return ( void* )end;
+  return id > 0 ? NULL : ( void* )end;
 }
 
 #define SRAM_ORIGIN 0x200000
@@ -393,7 +393,7 @@ void* platform_get_first_free_ram()
   #define SRAM_SIZE 0x20000
 #endif
 
-void* platform_get_last_free_ram()
+void* platform_get_last_free_ram( unsigned id )
 {
-  return ( void* )( SRAM_ORIGIN + SRAM_SIZE - STACK_SIZE_TOTAL );
+  return id > 0 ? NULL : ( void* )( SRAM_ORIGIN + SRAM_SIZE - STACK_SIZE_TOTAL - 1 );
 }

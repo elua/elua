@@ -11,9 +11,9 @@
 #include "build.h"
 #include "lua.h"
 #include "term.h"
+#include "tlsf.h"
 
 extern char etext[];
-extern char end[];
 
 // ****************************************************************************
 // XMODEM support code
@@ -163,6 +163,10 @@ int main( void )
     // This should never happen
     while( 1 );
   }
+  
+  // Initialize the TLSF allocator 
+  // (if TLSF is not used, the next function does nothing)
+  tlsf_elua_init();
     
   // Initialize device manager
   dm_init();
@@ -176,7 +180,7 @@ int main( void )
   // Initialize terminal
   term_init( TERMINAL_LINES, TERMINAL_COLS, term_out, term_in, term_translate );
   
-  printf( ".text ends at %p, first free RAM is at %p, last free ram is at %p\r\n", etext, platform_get_first_free_ram(), platform_get_last_free_ram() );
+  printf( ".text ends at %p\n", etext );
   
   // Run the shell
   if( shell_init( XMODEM_MAX_FILE_SIZE ) == 0 )

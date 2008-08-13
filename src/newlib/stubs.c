@@ -9,6 +9,7 @@
 #include "devman.h"
 #include "ioctl.h"
 #include "platform.h"
+#include "tlsf.h"
 
 // Utility function: look in the device manager table and find the index
 // for the given name. Returns an index into the device structure, -1 if error.
@@ -49,6 +50,7 @@ static int find_dm_entry( const char* name, char **pactname )
   }
   if( i == dm_get_num_devices() )
     return -1;
+    
   // Find the actual first char of the name
   preal ++;
   if( *preal == '\0' )
@@ -176,6 +178,8 @@ _ssize_t _write_r( struct _reent *r, int file, const void *ptr, size_t len )
 
 // *****************************************************************************
 // _sbrk_r
+// Only used if we're using the default Newlib allocator (dlmalloc), not TLSF
+#ifndef USE_TLSF
 static char *heap_ptr; 
 
 void* _sbrk_r( struct _reent* r, ptrdiff_t incr )
@@ -187,8 +191,8 @@ void* _sbrk_r( struct _reent* r, ptrdiff_t incr )
   else
   {
     if( heap_ptr == NULL )
-      heap_ptr = ( char* )platform_get_first_free_ram();   
-    if( heap_ptr + incr >= ( char* )platform_get_last_free_ram() ) 
+      heap_ptr = ( char* )platform_get_first_free_ram( 0 );   
+    if( heap_ptr + incr > ( char* )platform_get_last_free_ram( 0 ) ) 
       ptr = ( void* )-1;
     else
     {
@@ -198,6 +202,7 @@ void* _sbrk_r( struct _reent* r, ptrdiff_t incr )
   }
   return ptr;
 }
+#endif
 
 // *****************************************************************************
 // _lseek_r
@@ -284,5 +289,120 @@ int __svfscanf_r( struct _reent *r, FILE *stream, const char *format, va_list ap
 {
   return __svfiscanf_r( r, stream, format, ap );
 }
+#endif // #ifdef LUA_INTONLY
 
-#endif
+// If USE_TLSF is defined, "redirect" allocator calls from Newlib to TLSF
+#ifdef USE_TLSF
+
+// malloc: try to allocate in all the memory pools
+void* _malloc_r( struct _reent* r, size_t size )
+{
+  unsigned i = 0;
+  void* temp = NULL;
+
+  while( 1 )
+  {
+    if( ( temp = platform_get_first_free_ram( i ) ) == NULL )
+      break;
+    if( ( temp = malloc_ex( size, temp ) ) != NULL )
+      break;
+    i ++;
+  }  
+  return temp;
+}
+
+// calloc: try to allocate in all the memory pools
+void* _calloc_r( struct _reent* r, size_t nelem, size_t elem_size )
+{
+  unsigned i = 0;
+  void* temp = NULL;
+
+  while( 1 )
+  {
+    if( ( temp = platform_get_first_free_ram( i ) ) == NULL )
+      break;
+    if( ( temp = calloc_ex( nelem, elem_size, temp ) ) != NULL )
+      break;
+    i ++;
+  }  
+  return temp;
+}
+
+// free: find memory pool with the given pointer, then free it
+void _free_r( struct _reent* r, void* ptr )
+{
+  unsigned i = 0;
+  u32 lstart, lend;
+
+  while( 1 )
+  {
+    if( ( lstart = ( u32 )platform_get_first_free_ram( i ) ) == 0 )
+      break;
+    lend = ( u32 )platform_get_last_free_ram( i );
+    if( ( lstart <= ( u32 )ptr ) && ( ( u32 )ptr <= lend ) )
+    {
+      free_ex( ptr, ( void* )lstart );
+      break;
+    }
+    i ++;
+  }  
+}
+
+// realloc: this is a bit more complex. First we identify the correct memory
+// pool and try to realloc there. If this doesn't work, we try to realloc in 
+// another pool before giving up.
+void* _relloc_r( struct _reent* r, void* ptr, size_t size )
+{
+  void* temp;
+  u32 lstart, lend;
+  unsigned i = 0;
+  size_t prevsize;
+  
+  // Realloc with ptr == NULL : malloc
+  // Realloc with size == 0 : free
+  if( !ptr )
+    return size ? _malloc_r( r, size ) : NULL;
+  else if( !size )
+  {
+    _free_r( r, ptr );
+    return NULL;
+  }
+
+  // At this point we know that this is an actual realloc
+  // Identify the memory pool
+  while( 1 )
+  {
+    if( ( lstart = ( u32 )platform_get_first_free_ram( i ) ) == 0 )
+      return NULL;
+    lend = ( u32 )platform_get_last_free_ram( i );
+    if( ( lstart <= ( u32 )ptr ) && ( ( u32 )ptr <= lend ) )
+      break;
+    i ++;
+  }    
+  
+  // Easy case: realloc succeeds in the same memory pool
+  if( ( temp = realloc_ex( ptr, size, ( void* )lstart ) ) != NULL )
+    return temp;
+  
+  // If realloc returned NULL, look for another pool
+  prevsize = tlsf_elua_get_block_size( ptr );
+  i = 0;
+  while( 1 )
+  {
+    if( ( temp = platform_get_first_free_ram( i ) ) == NULL )
+      break;
+    if( ( u32 )temp != lstart )
+    {
+      if( ( temp = malloc_ex( size, temp ) ) != NULL )
+      {
+        memcpy( temp, ptr, prevsize < size ? prevsize : size );
+        free_ex( ptr, ( void* )lstart );
+        break;      
+      }
+    }
+    i ++;
+  }
+  return temp;
+}
+
+#endif // #ifdef USE_TLSF

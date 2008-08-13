@@ -304,15 +304,22 @@ u32 platform_pd_get_cpu_frequency()
 
 extern char end[];
 
-void* platform_get_first_free_ram()
+void* platform_get_first_free_ram( unsigned id )
 {
-  return ( void* )end;
+  if( id > 1 )
+    return NULL;
+  else
+    return id == 0 ? ( void* )end : ( void* )SDRAM_BASE_ADDR;
 }
 
 #define SRAM_ORIGIN 0x00400000
 #define SRAM_SIZE 0x10000
 
-void* platform_get_last_free_ram()
+void* platform_get_last_free_ram( unsigned id )
 {
-  return ( void* )( SRAM_ORIGIN + SRAM_SIZE - STACK_SIZE_TOTAL );
+  if( id > 1 )
+    return NULL;
+  else
+    return id == 0 ? ( void* )( SRAM_ORIGIN + SRAM_SIZE - STACK_SIZE_TOTAL - 1 ) : 
+                     ( void* )( SDRAM_BASE_ADDR + SDRAM_SIZE - 1 );
 }
