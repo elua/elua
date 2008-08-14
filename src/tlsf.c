@@ -1020,13 +1020,19 @@ void tlsf_elua_init()
   {
     if( ( pstart = ( char* )platform_get_first_free_ram( i ) ) == NULL )
       break;
+    pstart = ( char* )tlsf_elua_align_addr( pstart );
     pend = ( char* )platform_get_last_free_ram( i );
-    // Align start address
-    if( ( u32 )pstart & PTR_MASK ) 
-      pstart = ( char* )( ( ( u32 )pstart + sizeof( void* ) ) & ~PTR_MASK );
     init_memory_pool( ( size_t )( pend - pstart + 1 ), pstart );
     i ++;
   }
+}
+
+// Get the "real" start address (aligned if needed)
+void* tlsf_elua_align_addr( void* ptr )
+{
+  if( ( u32 )ptr & PTR_MASK )
+    ptr = ( void* )( ( ( u32 )ptr + sizeof( void* ) ) & ~PTR_MASK );
+  return ptr;
 }
 
 #else // #ifdef USE_TLSF

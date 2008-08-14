@@ -1,7 +1,7 @@
 import os, sys 
 target = ARGUMENTS.get( 'target', 'lua' ).lower() 
 cputype = ARGUMENTS.get( 'cpu', 'at91sam7x256' ).lower()
-allocator = ARGUMENTS.get( 'allocator', 'newlib' ).lower()
+allocator = ARGUMENTS.get( 'allocator', '' ).lower()
 
 # List of platform/CPU combinations
 cpu_list = { 'at91sam7x' : [ 'at91sam7x256', 'at91sam7x512' ], 
@@ -10,6 +10,13 @@ cpu_list = { 'at91sam7x' : [ 'at91sam7x256', 'at91sam7x512' ],
               'i386' : [ 'i386' ],
               'lpc288x' : [ 'lpc2888' ]
             }
+
+# CPU -> allocator mapping (if an allocator is not specified)
+if allocator == '':
+  if cputype in [ 'lpc2888' ]:
+    allocator = 'tlsf'
+  else:
+    allocator = 'newlib'
             
 platform = None        
 # Look for the given CPU in the list of platforms            

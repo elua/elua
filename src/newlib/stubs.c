@@ -304,10 +304,11 @@ void* _malloc_r( struct _reent* r, size_t size )
   {
     if( ( temp = platform_get_first_free_ram( i ) ) == NULL )
       break;
+    temp = tlsf_elua_align_addr( temp );
     if( ( temp = malloc_ex( size, temp ) ) != NULL )
       break;
     i ++;
-  }  
+  }
   return temp;
 }
 
@@ -321,6 +322,7 @@ void* _calloc_r( struct _reent* r, size_t nelem, size_t elem_size )
   {
     if( ( temp = platform_get_first_free_ram( i ) ) == NULL )
       break;
+    temp = tlsf_elua_align_addr( temp );
     if( ( temp = calloc_ex( nelem, elem_size, temp ) ) != NULL )
       break;
     i ++;
@@ -338,6 +340,7 @@ void _free_r( struct _reent* r, void* ptr )
   {
     if( ( lstart = ( u32 )platform_get_first_free_ram( i ) ) == 0 )
       break;
+    lstart = ( u32 )tlsf_elua_align_addr( ( void* )lstart );
     lend = ( u32 )platform_get_last_free_ram( i );
     if( ( lstart <= ( u32 )ptr ) && ( ( u32 )ptr <= lend ) )
     {
@@ -351,7 +354,7 @@ void _free_r( struct _reent* r, void* ptr )
 // realloc: this is a bit more complex. First we identify the correct memory
 // pool and try to realloc there. If this doesn't work, we try to realloc in 
 // another pool before giving up.
-void* _relloc_r( struct _reent* r, void* ptr, size_t size )
+void* _realloc_r( struct _reent* r, void* ptr, size_t size )
 {
   void* temp;
   u32 lstart, lend;
@@ -374,6 +377,7 @@ void* _relloc_r( struct _reent* r, void* ptr, size_t size )
   {
     if( ( lstart = ( u32 )platform_get_first_free_ram( i ) ) == 0 )
       return NULL;
+    lstart = ( u32 )tlsf_elua_align_addr( ( void* )lstart );
     lend = ( u32 )platform_get_last_free_ram( i );
     if( ( lstart <= ( u32 )ptr ) && ( ( u32 )ptr <= lend ) )
       break;
@@ -391,6 +395,7 @@ void* _relloc_r( struct _reent* r, void* ptr, size_t size )
   {
     if( ( temp = platform_get_first_free_ram( i ) ) == NULL )
       break;
+    temp = tlsf_elua_align_addr( temp );
     if( ( u32 )temp != lstart )
     {
       if( ( temp = malloc_ex( size, temp ) ) != NULL )

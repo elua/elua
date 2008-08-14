@@ -170,14 +170,16 @@ static void shell_mem( char* args )
     lend = ( u32 )platform_get_last_free_ram( i );
     printf( "Start:0x%08lX  Size:%8ld  ", lstart, lend - lstart + 1 );
 #ifdef USE_TLSF
+    lstart = ( u32 )tlsf_elua_align_addr( ( void* )lstart );
     u32 temp = get_used_size( ( void* )lstart );
     printf( "Used:%8ld  Free:%8ld\n", temp, lend - lstart + 1 - temp );
+    i ++;
 #else
     struct mallinfo allocdata;
     allocdata = mallinfo();  
     printf( "Used:%8ld Free:%8ld\n", ( long )allocdata.uordblks, ( long )allocdata.fordblks );      
+    break;
 #endif    
-    i ++;
   }
 }
 

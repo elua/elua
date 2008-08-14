@@ -39,5 +39,6 @@ extern void *tlsf_calloc(size_t nelem, size_t elem_size);
 // BogdanM - added for eLua
 void tlsf_elua_init();
 size_t tlsf_elua_get_block_size( void* ptr );
+void* tlsf_elua_align_addr( void* ptr );
 
 #endif
