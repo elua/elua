@@ -210,8 +210,7 @@ void* _sbrk_r( struct _reent* r, ptrdiff_t incr )
     // Do we have space in the current memory space?
     if( heap_ptr + incr > ( char* )platform_get_last_free_ram( mem_index ) ) 
     {
-      // We don't, so increment our memory space and call sbrk recursively 
-      // to handle this
+      // We don't, so try the next memory space
       heap_ptr = NULL;
       mem_index ++;
     }
