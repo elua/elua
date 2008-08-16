@@ -1,6 +1,7 @@
 import os, sys 
 target = ARGUMENTS.get( 'target', 'lua' ).lower() 
 cputype = ARGUMENTS.get( 'cpu', 'at91sam7x256' ).lower()
+allocator = ARGUMENTS.get( 'allocator', '' ).lower()
 
 # List of platform/CPU combinations
 cpu_list = { 'at91sam7x' : [ 'at91sam7x256', 'at91sam7x512' ], 
@@ -25,9 +26,23 @@ else:
       print cpu,
     print
   sys.exit( -1 )
+
+# CPU/allocator mapping (if allocator not specified)
+if allocator == '':
+  if cputype in [ 'lpc2888' ]:
+    allocator = 'multiple'
+  else:
+    allocator = 'newlib'
+elif allocator not in [ 'newlib', 'multiple' ]:
+  print "Unknown allocator", allocator
+  print "Allocator can be either 'newlib' or 'multiple'"
+  sys.exit( -1 )
+
     
 output = 'elua_' + target + '_' + cputype 
 cdefs = '-D%s' % cputype
+if allocator == 'multiple':
+  cdefs = cdefs + " -DUSE_MULTIPLE_ALLOCATOR"
 
 # Lua source files and include path
 lua_files = """lapi.c lcode.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c lobject.c lopcodes.c
@@ -49,7 +64,7 @@ local_include = local_include + " -Isrc/modules -Isrc/platform/%s" % platform
 local_libs = ''
   
 # Application files
-app_files = " src/romfs.c src/main.c src/xmodem.c src/shell.c src/term.c"
+app_files = " src/romfs.c src/main.c src/xmodem.c src/shell.c src/term.c src/malloc.c"
   
 # Newlib related files  
 newlib_files = " src/newlib/devman.c src/newlib/stubs.c src/newlib/genstd.c"

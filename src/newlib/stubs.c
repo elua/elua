@@ -9,6 +9,7 @@
 #include "devman.h"
 #include "ioctl.h"
 #include "platform.h"
+#include "malloc.h"
 
 // Utility function: look in the device manager table and find the index
 // for the given name. Returns an index into the device structure, -1 if error.
@@ -176,29 +177,55 @@ _ssize_t _write_r( struct _reent *r, int file, const void *ptr, size_t len )
 }
 
 // *****************************************************************************
-// _sbrk_r
+// _sbrk_r (newlib) / elua_sbrk (multiple)
 static char *heap_ptr; 
+static int mem_index;
 
+#ifdef USE_MULTIPLE_ALLOCATOR
+void* elua_sbrk( ptrdiff_t incr )
+#else
 void* _sbrk_r( struct _reent* r, ptrdiff_t incr )
+#endif
 {
-  char* ptr;
+  void* ptr;
   
+  // If increment is 0 return the current break   
   if( incr == 0 )
-    ptr = heap_ptr;
-  else
+    return heap_ptr;
+    
+  // Otherwise ask the platform about our memory space (if needed)
+  // We do this for all our memory spaces
+  while( 1 )
   {
+    if( heap_ptr == NULL )  
+      heap_ptr = ( char* )platform_get_first_free_ram( mem_index );
+      
+    // If no more memory spaces are available, return with error    
     if( heap_ptr == NULL )
-      heap_ptr = ( char* )platform_get_first_free_ram( 0 );   
-    if( heap_ptr + incr > ( char* )platform_get_last_free_ram( 0 ) ) 
+    {
       ptr = ( void* )-1;
+      break;
+    }
+    
+    // Do we have space in the current memory space?
+    if( heap_ptr + incr > ( char* )platform_get_last_free_ram( mem_index ) ) 
+    {
+      // We don't, so increment our memory space and call sbrk recursively 
+      // to handle this
+      heap_ptr = NULL;
+      mem_index ++;
+    }
     else
     {
+      // Memory found in the current space
       ptr = heap_ptr;
-      heap_ptr += incr; 
+      heap_ptr += incr;
+      break;
     }
   }
+  
   return ptr;
-}
+}  
 
 // *****************************************************************************
 // _lseek_r
@@ -266,11 +293,15 @@ int _gettimeofday_r( struct _reent *r, struct timeval *tv, void *tz )
 }
 
 #include <stdlib.h>
-void exit( int status )
+void _exit( int status )
 {
   while( 1 );
 }
 
+int _kill( int pid, int sig )
+{
+  return -1;
+}
 #endif
 
 // If LUA_INTONLY is defined, "redirect" printf/scanf calls to their integer counterparts
@@ -286,3 +317,33 @@ int __svfscanf_r( struct _reent *r, FILE *stream, const char *format, va_list ap
   return __svfiscanf_r( r, stream, format, ap );
 }
 #endif // #ifdef LUA_INTONLY
+
+#ifdef USE_MULTIPLE_ALLOCATOR
+
+// Redirect all allocator calls to our dlmalloc
+void* _malloc_r( struct _reent* r, size_t size )
+{
+  return dlmalloc( size );
+}
+
+void* _calloc_r( struct _reent* r, size_t nelem, size_t elem_size )
+{
+  return dlcalloc( nelem, elem_size );
+}
+
+void _free_r( struct _reent* r, void* ptr )
+{
+  dlfree( ptr );
+}
+
+void* _realloc_r( struct _reent* r, void* ptr, size_t size )
+{
+  return dlrealloc( ptr, size );
+}
+
+void* _memalign_r( struct _reent* r, size_t align, size_t nbytes )
+{
+  return dlmemalign( align, nbytes );
+}
+
+#endif // #ifdef USE_MULTIPLE_ALLOCATOR
