@@ -1,7 +1,6 @@
 import os, sys 
 target = ARGUMENTS.get( 'target', 'lua' ).lower() 
 cputype = ARGUMENTS.get( 'cpu', 'at91sam7x256' ).lower()
-allocator = ARGUMENTS.get( 'allocator', '' ).lower()
 
 # List of platform/CPU combinations
 cpu_list = { 'at91sam7x' : [ 'at91sam7x256', 'at91sam7x512' ], 
@@ -11,13 +10,6 @@ cpu_list = { 'at91sam7x' : [ 'at91sam7x256', 'at91sam7x512' ],
               'lpc288x' : [ 'lpc2888' ]
             }
 
-# CPU -> allocator mapping (if an allocator is not specified)
-if allocator == '':
-  if cputype in [ 'lpc2888' ]:
-    allocator = 'tlsf'
-  else:
-    allocator = 'newlib'
-            
 platform = None        
 # Look for the given CPU in the list of platforms            
 for p, v in cpu_list.items():
@@ -36,8 +28,6 @@ else:
     
 output = 'elua_' + target + '_' + cputype 
 cdefs = '-D%s' % cputype
-if allocator == 'tlsf':
-  cdefs = cdefs + ' -DUSE_TLSF'
 
 # Lua source files and include path
 lua_files = """lapi.c lcode.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c lobject.c lopcodes.c
@@ -59,7 +49,7 @@ local_include = local_include + " -Isrc/modules -Isrc/platform/%s" % platform
 local_libs = ''
   
 # Application files
-app_files = " src/romfs.c src/main.c src/xmodem.c src/shell.c src/term.c src/tlsf.c"
+app_files = " src/romfs.c src/main.c src/xmodem.c src/shell.c src/term.c"
   
 # Newlib related files  
 newlib_files = " src/newlib/devman.c src/newlib/stubs.c src/newlib/genstd.c"

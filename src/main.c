@@ -11,7 +11,6 @@
 #include "build.h"
 #include "lua.h"
 #include "term.h"
-#include "tlsf.h"
 
 extern char etext[];
 
@@ -164,10 +163,6 @@ int main( void )
     while( 1 );
   }
   
-  // Initialize the TLSF allocator 
-  // (if TLSF is not used, the next function does nothing)
-  tlsf_elua_init();
-    
   // Initialize device manager
   dm_init();
   
