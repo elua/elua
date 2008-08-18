@@ -14,6 +14,7 @@
 #include "hw_ints.h"
 #include "hw_memmap.h"
 #include "hw_types.h"
+#include "hw_pwm.h"
 #include "debug.h"
 #include "gpio.h"
 #include "interrupt.h"
@@ -21,6 +22,7 @@
 #include "usart.h"
 #include "ssi.h"
 #include "timer.h"
+#include "pwm.h"
 
 // *****************************************************************************
 // std function
@@ -39,10 +41,11 @@ static int uart_recv()
 // Platform initialization
 
 // forward
-void timers_init();
-void uarts_init();
-void spis_init();
-void pios_init();
+static void timers_init();
+static void uarts_init();
+static void spis_init();
+static void pios_init();
+static void pwms_init();
 
 int platform_init()
 { 
@@ -59,7 +62,10 @@ int platform_init()
   uarts_init();
   
   // Setup timers
-  timers_init();                         
+  timers_init();        
+  
+  // Setup PWMs
+  pwms_init();                 
 
   // Set the send/recv functions                          
   std_set_send_func( uart_send );
@@ -91,8 +97,7 @@ static const u8 pio_port_pins[] = { 8, 8, 8, 8,
                                     4, 4, 2, 0 };
 #endif
 
-
-void pios_init()
+static void pios_init()
 {
   unsigned i;
 
@@ -183,7 +188,7 @@ static const u8 spi_gpio_pins[] = { GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4 | GPIO_
 //                                  SSIxClk      SSIxFss      SSIxRx       SSIxTx
 static const u8 spi_gpio_clk_pin[] = { GPIO_PIN_2, GPIO_PIN_0 };
 
-void spis_init()
+static void spis_init()
 {
   unsigned i;
 
@@ -250,7 +255,7 @@ static const u32 uart_sysctl[] = { SYSCTL_PERIPH_UART0, SYSCTL_PERIPH_UART1, SYS
 static const u32 uart_gpio_base[] = { GPIO_PORTA_BASE, GPIO_PORTD_BASE, GPIO_PORTG_BASE };
 static const u8 uart_gpio_pins[] = { GPIO_PIN_0 | GPIO_PIN_1, GPIO_PIN_2 | GPIO_PIN_3, GPIO_PIN_0 | GPIO_PIN_1 };
 
-void uarts_init()
+static void uarts_init()
 {
   unsigned i;
 
@@ -355,7 +360,7 @@ int platform_uart_recv( unsigned id, unsigned timer_id, int timeout )
 static const u32 timer_base[] = { TIMER0_BASE, TIMER1_BASE, TIMER2_BASE, TIMER3_BASE };
 static const u32 timer_sysctl[] = { SYSCTL_PERIPH_TIMER0, SYSCTL_PERIPH_TIMER1, SYSCTL_PERIPH_TIMER2, SYSCTL_PERIPH_TIMER3 };
 
-void timers_init()
+static void timers_init()
 {
   unsigned i;
 
@@ -428,6 +433,106 @@ u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_typ
     start = temp;
   }
   return ( ( u64 )( start - end ) * 1000000 ) / SysCtlClockGet();
+}
+
+// ****************************************************************************
+// PWMs
+
+#define PLATFORM_NUM_PWMS               6
+#define PABS( x )                       ( ( x ) < 0 ? -( x ) : ( x ) )
+
+// SYSCTL div data and actual div factors
+const static u32 pwm_div_ctl[] = { SYSCTL_PWMDIV_1, SYSCTL_PWMDIV_2, SYSCTL_PWMDIV_4, SYSCTL_PWMDIV_8, SYSCTL_PWMDIV_16, SYSCTL_PWMDIV_32, SYSCTL_PWMDIV_64 };
+const static u8 pwm_div_data[] = { 1, 2, 4, 8, 16, 32, 64 };
+// Port/pin information for all channels
+const static u32 pwm_ports[] =  { GPIO_PORTF_BASE, GPIO_PORTG_BASE, GPIO_PORTB_BASE, GPIO_PORTB_BASE, GPIO_PORTE_BASE, GPIO_PORTE_BASE };
+const static u8 pwm_pins[] = { GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1 };
+// PWM generators
+const static u16 pwm_gens[] = { PWM_GEN_0, PWM_GEN_1, PWM_GEN_2 };
+// PWM outputs
+const static u16 pwm_outs[] = { PWM_OUT_0, PWM_OUT_1, PWM_OUT_2, PWM_OUT_3, PWM_OUT_4, PWM_OUT_5 };
+
+static void pwms_init()
+{
+  SysCtlPeripheralEnable( SYSCTL_PERIPH_PWM );
+  SysCtlPWMClockSet( SYSCTL_PWMDIV_1 );
+}
+
+// Helper function: return the PWM clock
+static u32 platform_pwm_get_clock()
+{
+  unsigned i;
+  u32 clk;
+  
+  clk = SysCtlPWMClockGet();
+  for( i = 0; i < sizeof( pwm_div_ctl ) / sizeof( u32 ); i ++ )
+    if( clk == pwm_div_ctl[ i ] )
+      break;
+  return SysCtlClockGet() / pwm_div_data[ i ];
+}
+
+// Helper function: set the PWM clock
+static u32 platform_pwm_set_clock( u32 clock )
+{
+  unsigned i, min_i;
+  u32 sysclk;
+  
+  sysclk = SysCtlClockGet();
+  for( i = min_i = 0; i < sizeof( pwm_div_data ) / sizeof( u8 ); i ++ )
+    if( PABS( clock - sysclk / pwm_div_data[ i ] ) < PABS( clock - sysclk / pwm_div_data[ min_i ] ) )
+      min_i = i;
+  SysCtlPWMClockSet( pwm_div_ctl[ min_i ] );
+  return sysclk / pwm_div_data[ min_i ];
+}
+
+int platform_pwm_exists( unsigned id )
+{
+  return id < PLATFORM_NUM_PWMS; 
+}
+
+u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
+{
+  u32 pwmclk = platform_pwm_get_clock();
+  u32 period;
+  
+  // Set pin as PWM
+  GPIOPinTypePWM( pwm_ports[ id ], pwm_pins[ id ] );
+  // Compute period
+  period = pwmclk / frequency;
+  // Set the period
+  PWMGenConfigure( PWM_BASE, pwm_gens[ id >> 1 ], PWM_GEN_MODE_UP_DOWN | PWM_GEN_MODE_NO_SYNC );
+  PWMGenPeriodSet( PWM_BASE, pwm_gens[ id >> 1 ], period );
+  // Set duty cycle
+  PWMPulseWidthSet( PWM_BASE, pwm_outs[ id ], ( period * duty ) / 100 );
+  // Return actual frequency
+  return pwmclk / period;
+}
+
+u32 platform_pwm_op( unsigned id, int op, u32 data )
+{
+  u32 res = 0;
+  
+  switch( op )
+  {
+    case PLATFORM_PWM_OP_SET_CLOCK:
+      res = platform_pwm_set_clock( data );
+      
+    case PLATFORM_PWM_OP_GET_CLOCK:
+      res = platform_pwm_get_clock();
+      break;
+      
+    case PLATFORM_PWM_OP_START:
+      PWMOutputState( PWM_BASE, 1 << id, true );
+      PWMGenEnable( PWM_BASE, pwm_gens[ id >> 1 ] );
+      break;
+      
+    case PLATFORM_PWM_OP_STOP:
+      PWMOutputState( PWM_BASE, 1 << id, false );
+      PWMGenDisable( PWM_BASE, pwm_gens[ id >> 1 ] );
+      break;
+  }
+  
+  return res;
 }
 
 // ****************************************************************************

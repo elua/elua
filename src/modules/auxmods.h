@@ -24,6 +24,9 @@ LUALIB_API int ( luaopen_uart )( lua_State* L );
 #define AUXLIB_TERM     "term"
 LUALIB_API int ( luaopen_term )( lua_State* L );
 
+#define AUXLIB_PWM      "pwm"
+LUALIB_API int ( luaopen_pwm )( lua_State* L );
+
 #ifdef ELUA_MOD_CHECK_PARS
 
 // Helper macros

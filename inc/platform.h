@@ -142,6 +142,26 @@ u32 platform_timer_op( unsigned id, int op, u32 data );
 u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_type start );
 
 // *****************************************************************************
+// PWM subsection
+
+// There are 16 "virtual" PWM channels (PWM0...PWM15)
+#define PLATFORM_PWM_TOTAL                    16
+
+// PWM operations
+enum
+{
+  PLATFORM_PWM_OP_START,
+  PLATFORM_PWM_OP_STOP,
+  PLATFORM_PWM_OP_SET_CLOCK,
+  PLATFORM_PWM_OP_GET_CLOCK
+};
+
+// The platform PWM functions
+int platform_pwm_exists( unsigned id );
+u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty );
+u32 platform_pwm_op( unsigned id, int op, u32 data );
+
+// *****************************************************************************
 // Platform data subsection
 // Contains functions for platform identification
 
