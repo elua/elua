@@ -6,6 +6,7 @@
 #include "devman.h"
 #include "luatest.h"
 #include <stdio.h>
+#include "ioctl.h"
 
 #include "build.h"
 #ifdef BUILD_ROMFS
@@ -123,6 +124,42 @@ static _ssize_t romfs_read_r( struct _reent *r, int fd, void* ptr, size_t len )
   return actlen;
 }
 
+// IOCTL: only fseek
+static int romfs_ioctl_r( struct _reent *r, int fd, unsigned long request, void *ptr )
+{
+  struct fd_seek *pseek = ( struct fd_seek* )ptr;
+  FS* pfs = romfs_fd_table + fd;   
+  u16 newpos = 0;
+  
+  if( request == FDSEEK )
+  {
+    switch( pseek->dir )
+    {
+      case SEEK_SET:
+        newpos = pseek->off;
+        break;
+        
+      case SEEK_CUR:
+        newpos = pfs->offset + pseek->off;
+        break;
+        
+      case SEEK_END:
+        newpos = pfs->size + pseek->off;
+        break;
+        
+      default:
+        return -1;
+    }    
+    if( newpos > pfs->size )
+      return -1;
+    pfs->offset = newpos;      
+    pseek->off = newpos;
+    return 0;
+  }
+  else
+    return -1;  
+}
+
 // Our UART device descriptor structure
 static DM_DEVICE romfs_device = 
 {
@@ -131,7 +168,7 @@ static DM_DEVICE romfs_device =
   romfs_close_r, 
   romfs_write_r,
   romfs_read_r,
-  NULL                              // No "ioctl" on ROMFS
+  romfs_ioctl_r
 };
 
 DM_DEVICE* romfs_init()
