@@ -9,6 +9,8 @@
 #include "genstd.h"
 #include "tc.h"
 #include "stacks.h"
+#include "pwmc.h"
+#include "board.h"
 #include <reent.h>
 #include <errno.h>
 #include <string.h>
@@ -49,14 +51,15 @@ int platform_init()
       AT91C_US_PAR_NONE | AT91C_US_NBSTOP_1_BIT | AT91C_US_CHMODE_NORMAL;
       
   // Enable the peripherals we use in the PMC
-  PMC_EnablePeripheral(AT91C_ID_US0);  
-  PMC_EnablePeripheral(AT91C_ID_US1);
-  PMC_EnablePeripheral(AT91C_ID_PIOA);
-  PMC_EnablePeripheral(AT91C_ID_PIOB);
-  PMC_EnablePeripheral(AT91C_ID_TC0);
-  PMC_EnablePeripheral(AT91C_ID_TC1);
-  PMC_EnablePeripheral(AT91C_ID_TC2);
- 
+  PMC_EnablePeripheral( AT91C_ID_US0 );  
+  PMC_EnablePeripheral( AT91C_ID_US1 );
+  PMC_EnablePeripheral( AT91C_ID_PIOA );
+  PMC_EnablePeripheral( AT91C_ID_PIOB );
+  PMC_EnablePeripheral( AT91C_ID_TC0 );
+  PMC_EnablePeripheral( AT91C_ID_TC1 );
+  PMC_EnablePeripheral( AT91C_ID_TC2 );
+  PMC_EnablePeripheral( AT91C_ID_PWMC );
+  
   // Configure pins
   PIO_Configure(platform_uart_pins[ 0 ], PIO_LISTSIZE(platform_uart_pins[ 0 ]));
     
@@ -71,6 +74,13 @@ int platform_init()
   AT91C_BASE_TCB->TCB_BMR = 7;
   for( i = 0; i < 3; i ++ )
     TC_Configure( ( AT91S_TC* )timer_base[ i ], AT91C_TC_CLKS_TIMER_DIV5_CLOCK | AT91C_TC_WAVE );
+        
+  // PWM setup (only the clocks are set at this point)
+  PWMC_ConfigureClocks( BOARD_MCK, BOARD_MCK, BOARD_MCK );
+  PWMC_ConfigureChannel( 0, AT91C_PWMC_CPRE_MCKA, 0, 0 );
+  PWMC_ConfigureChannel( 1, AT91C_PWMC_CPRE_MCKA, 0, 0 );  
+  PWMC_ConfigureChannel( 2, AT91C_PWMC_CPRE_MCKB, 0, 0 );
+  PWMC_ConfigureChannel( 3, AT91C_PWMC_CPRE_MCKB, 0, 0 );    
   
   // Set the send/recv functions                          
   std_set_send_func( uart_send );
@@ -257,6 +267,7 @@ int platform_uart_recv( unsigned id, unsigned timer_id, int timeout )
 
 // ****************************************************************************
 // Timer functions
+
 static const unsigned clkdivs[] = { 2, 8, 32, 128, 1024 };
 
 // Helper: get timer clock
@@ -353,6 +364,95 @@ u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_typ
     start = temp;
   }
   return ( ( u64 )( start - end ) * 1000000 ) / freq;
+}
+
+// ****************************************************************************
+// PWMs
+
+// PWM0, PWM1 -> they can modify CLKA and are statically assigned to CLKA
+// PWM2, PWM3 -> they can modify CLKB and are statically assigned to CLKB
+
+#define PLATFORM_NUM_PWMS               4
+
+// PWM pins
+static const Pin pwm_pins[] = { PIN_PWMC_PWM0, PIN_PWMC_PWM1, PIN_PWMC_PWM2, PIN_PWMC_PWM3 };
+
+// Helper function: return the PWM clock
+static u32 platform_pwm_get_clock( unsigned id )
+{
+  u32 cfg = AT91C_BASE_PWMC->PWMC_CH[ id ].PWMC_CMR;
+  u16 clkdata;
+  
+  clkdata = cfg & 0x0F;
+  if( clkdata < 11 )
+    return BOARD_MCK / ( 1 << clkdata );
+  else
+  {
+    // clka / clkb
+    cfg = AT91C_BASE_PWMC->PWMC_MR;
+    if( clkdata == 12 ) // clkb
+      cfg >>= 16;
+    clkdata = cfg & 0x0FFF;
+    return BOARD_MCK / ( ( clkdata & 0xFF ) * ( 1 << ( clkdata >> 8 ) ) );
+  }
+}
+
+// Helper function: set the PWM clock
+static u32 platform_pwm_set_clock( unsigned id, u32 clock )
+{
+  if( id < 2 )
+    PWMC_ConfigureClocks( clock, 0, BOARD_MCK );
+  else
+    PWMC_ConfigureClocks( 0, clock, BOARD_MCK );
+  return platform_pwm_get_clock( id );
+}
+
+int platform_pwm_exists( unsigned id )
+{
+  return id < PLATFORM_NUM_PWMS; 
+}
+
+u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
+{
+  u32 pwmclk = platform_pwm_get_clock( id );
+  u32 period;  
+
+  // Compute period
+  period = pwmclk / frequency;
+  // Set the period
+  PWMC_SetPeriod( id, period );
+  // Set duty cycle
+  PWMC_SetDutyCycle( id, ( period * duty ) / 100 );
+  // Return actual frequency
+  return pwmclk / period;
+}
+
+u32 platform_pwm_op( unsigned id, int op, u32 data )
+{
+  u32 res = 0;
+  
+  switch( op )
+  {
+    case PLATFORM_PWM_OP_SET_CLOCK:
+      res = platform_pwm_set_clock( id, data );
+      break;
+      
+    case PLATFORM_PWM_OP_GET_CLOCK:
+      res = platform_pwm_get_clock( id );
+      break;
+      
+    case PLATFORM_PWM_OP_START:
+      PIO_Configure( pwm_pins + id, 1 );    
+      PWMC_EnableChannel( id );
+      break;
+      
+    case PLATFORM_PWM_OP_STOP:
+      PWMC_DisableChannel( id );
+      platform_pio_op( 1, 1 << ( 19 + id ), PLATFORM_IO_PIN_DIR_INPUT );
+      break;
+  }
+  
+  return res;
 }
 
 // ****************************************************************************

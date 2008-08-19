@@ -2,7 +2,7 @@
 
 cpumode = ARGUMENTS.get( 'cpumode', 'thumb' ).lower()
 
-specific_files = "board_cstartup.s board_lowlevel.c board_memories.c usart.c pmc.c pio.c platform.c tc.c"
+specific_files = "board_cstartup.s board_lowlevel.c board_memories.c usart.c pmc.c pio.c platform.c tc.c pwmc.c"
 if cputype == 'at91sam7x256':
   ldscript = "flash256.lds"
 elif cputype == 'at91sam7x512':
@@ -19,6 +19,8 @@ elif cpumode == 'thumb':
 else:
   print "Invalid CPU mode %s", cpumode
   sys.exit( -1 )
+  
+cdefs = cdefs + ' -DNOASSERT -DNOTRACE'
   
 # Prepend with path
 specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )
