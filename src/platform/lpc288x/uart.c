@@ -7,8 +7,7 @@
 #include <reent.h>
 #include <errno.h>
 #include <string.h>
-
-#define LABS( x ) ( ( x ) < 0 ? -( x ) : ( x ) )
+#include "utils.h"
 
 // Structure with UART baud/parameters 
 // Computed used Philip's "baud rate calculator" XLS file
@@ -68,7 +67,7 @@ u32 uart_init( u32 baud, int databits, int parity, int stopbits )
   
   // Find correct baud
   for( i = minpos = 0; i < sizeof( uart_baudinfo ) / sizeof( UART_BAUDDATA ); i ++ )
-    if( LABS( baud - uart_baudinfo[ i ].baud ) < LABS( baud - uart_baudinfo[ minpos ].baud ) )
+    if( ABSDIFF( baud, uart_baudinfo[ i ].baud ) < ABSDIFF( baud, uart_baudinfo[ minpos ].baud ) )
       minpos = i;
   pdata = uart_baudinfo + minpos;
       

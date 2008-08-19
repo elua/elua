@@ -13,6 +13,7 @@
 #include "lpc288x.h"
 #include "target.h"
 #include "uart.h"
+#include "utils.h"
 
 // *****************************************************************************
 // std functions
@@ -189,7 +190,6 @@ static const vu_ptr tmr_value[] = { &T0VALUE, &T1VALUE };
 static const vu_ptr tmr_ctrl[] = { &T0CTRL, &T1CTRL };
 static const vu_ptr tmr_clr[] = { &T0CLR, &T1CLR };
 static const unsigned tmr_prescale[] = { 1, 16, 256, 1 };
-#define TABS( x ) ( ( x ) < 0 ? -( x ) : ( x ) )
 
 // Helper: get timer clock
 static u32 platform_timer_get_clock( unsigned id )
@@ -203,7 +203,7 @@ static u32 platform_timer_set_clock( unsigned id, u32 clock )
   unsigned i, mini = 0;
   
   for( i = 0; i < 3; i ++ )
-    if( TABS( clock - MAIN_CLOCK / tmr_prescale[ i ] ) < TABS( clock - MAIN_CLOCK / tmr_prescale[ mini ] ) )
+    if( ABSDIFF( clock, MAIN_CLOCK / tmr_prescale[ i ] ) < ABSDIFF( clock, MAIN_CLOCK / tmr_prescale[ mini ] ) )
       mini = i;
   *tmr_ctrl[ id ] = ( *tmr_ctrl[ id ] & ~0xB ) | ( mini << 2 );
   return MAIN_CLOCK / tmr_prescale[ mini ];

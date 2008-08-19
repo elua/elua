@@ -16,8 +16,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
-
-#define PABS( x ) ( ( x ) >= 0 ? ( x ) : -( x ) )
+#include "utils.h"
 
 // *****************************************************************************
 // std functions
@@ -287,7 +286,7 @@ static u32 platform_timer_set_clock( unsigned id, u32 clock )
   unsigned i, mini = 0;
   
   for( i = 0; i < 5; i ++ )
-    if( PABS( clock - BOARD_MCK / clkdivs[ i ] ) < PABS( clock - BOARD_MCK / clkdivs[ mini ] ) )
+    if( ABSDIFF( clock, BOARD_MCK / clkdivs[ i ] ) < ABSDIFF( clock, BOARD_MCK / clkdivs[ mini ] ) )
       mini = i;
   TC_Configure( ( AT91S_TC* )timer_base[ id ], mini | AT91C_TC_WAVE );  
   return BOARD_MCK / clkdivs[ mini ];

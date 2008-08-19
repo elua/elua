@@ -23,6 +23,7 @@
 #include "ssi.h"
 #include "timer.h"
 #include "pwm.h"
+#include "utils.h"
 
 // *****************************************************************************
 // std function
@@ -439,7 +440,6 @@ u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_typ
 // PWMs
 
 #define PLATFORM_NUM_PWMS               6
-#define PABS( x )                       ( ( x ) < 0 ? -( x ) : ( x ) )
 
 // SYSCTL div data and actual div factors
 const static u32 pwm_div_ctl[] = { SYSCTL_PWMDIV_1, SYSCTL_PWMDIV_2, SYSCTL_PWMDIV_4, SYSCTL_PWMDIV_8, SYSCTL_PWMDIV_16, SYSCTL_PWMDIV_32, SYSCTL_PWMDIV_64 };
@@ -479,7 +479,7 @@ static u32 platform_pwm_set_clock( u32 clock )
   
   sysclk = SysCtlClockGet();
   for( i = min_i = 0; i < sizeof( pwm_div_data ) / sizeof( u8 ); i ++ )
-    if( PABS( clock - sysclk / pwm_div_data[ i ] ) < PABS( clock - sysclk / pwm_div_data[ min_i ] ) )
+    if( ABSDIFF( clock, sysclk / pwm_div_data[ i ] ) < ABSDIFF( clock, sysclk / pwm_div_data[ min_i ] ) )
       min_i = i;
   SysCtlPWMClockSet( pwm_div_ctl[ min_i ] );
   return sysclk / pwm_div_data[ min_i ];
