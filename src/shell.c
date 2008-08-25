@@ -107,7 +107,7 @@ static void shell_recv( char* args )
   long actsize;
   lua_State* L;   
 
-  if( ( shell_prog = malloc( shell_max_prog + 1 ) ) == NULL )
+  if( ( shell_prog = malloc( shell_max_prog ) ) == NULL )
   {
     printf( "Unable to allocate memory\n" );
     return;
@@ -124,12 +124,14 @@ static void shell_recv( char* args )
       printf( "Waiting for file ... " );
     }
   }
-  shell_prog[ actsize ] = 0;
-  if( ( p = strchr( shell_prog, '\x1A' ) ) != NULL )
-    *p = 0;
-  else
-    p = shell_prog + strlen( shell_prog );
+  // Eliminate the XMODEM padding bytes
+  p = shell_prog + actsize - 1;
+  while( *p == '\x1A' )
+    p --;
+  p ++;
   printf( "done, got %ld bytes\n", p - shell_prog );          
+  
+  // Execute
   if( ( L = lua_open() ) == NULL )
   {
     printf( "Unable to create Lua state\n" );
@@ -138,8 +140,11 @@ static void shell_recv( char* args )
     return;
   }
   luaL_openlibs( L );
-  if( luaL_dostring( L, shell_prog ) )
+  if( luaL_loadbuffer( L, shell_prog, p - shell_prog, "xmodem" ) != 0 )
     printf( "Error: %s\n", lua_tostring( L, -1 ) );
+  else
+    if( lua_pcall( L, 0, LUA_MULTRET, 0 ) != 0 )
+      printf( "Error: %s\n", lua_tostring( L, -1 ) );
   lua_close( L );
   free( shell_prog );
   shell_prog = NULL;

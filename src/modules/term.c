@@ -119,7 +119,7 @@ static int luaterm_putxy( lua_State* L )
   term_gotoxy( x, y );
   for( i = 3; i <= total; i ++ )
   {
-    data = ( u8 )luaL_checkinteger( L, 1 );
+    data = ( u8 )luaL_checkinteger( L, i );
     term_putch( data );
   }
   return 0;
