@@ -106,6 +106,25 @@ static int luaterm_put( lua_State* L )
   return 0;
 }
 
+// Lua: putxy( x, y, c1, c2, ... )
+static int luaterm_putxy( lua_State* L )
+{
+  int total = lua_gettop( L ), i;
+  unsigned x, y;
+  u8 data;
+  
+  MOD_CHECK_MIN_ARGS( 3 );
+  x = ( unsigned )luaL_checkinteger( L, 1 );
+  y = ( unsigned )luaL_checkinteger( L, 2 );
+  term_gotoxy( x, y );
+  for( i = 3; i <= total; i ++ )
+  {
+    data = ( u8 )luaL_checkinteger( L, 1 );
+    term_putch( data );
+  }
+  return 0;
+}
+
 // Lua: putstr( string1, string2, ... )
 static int luaterm_putstr( lua_State* L )
 {
@@ -115,6 +134,28 @@ static int luaterm_putstr( lua_State* L )
   
   MOD_CHECK_MIN_ARGS( 1 );  
   for( s = 1; s <= total; s ++ )
+  {
+    luaL_checktype( L, s, LUA_TSTRING );
+    buf = lua_tolstring( L, s, &len );
+    for( i = 0; i < len; i ++ )
+      term_putch( buf[ i ] );
+  }
+  return 0;
+}
+
+// Lua: putstrxy( x, y, string1, string2, ... )
+static int luaterm_putstrxy( lua_State* L )
+{
+  const char* buf;
+  unsigned x, y;
+  size_t len, i;
+  int total = lua_gettop( L ), s;
+  
+  MOD_CHECK_MIN_ARGS( 3 );  
+  x = ( unsigned )luaL_checkinteger( L, 1 );
+  y = ( unsigned )luaL_checkinteger( L, 2 );
+  term_gotoxy( x, y );
+  for( s = 3; s <= total; s ++ )
   {
     luaL_checktype( L, s, LUA_TSTRING );
     buf = lua_tolstring( L, s, &len );
@@ -163,6 +204,8 @@ static const luaL_reg term_map[] =
   { "cols", luaterm_cols },
   { "put", luaterm_put },
   { "putstr", luaterm_putstr },
+  { "putxy", luaterm_putxy },
+  { "putstrxy", luaterm_putstrxy },
   { "cursorx", luaterm_cx },
   { "cursory", luaterm_cy },
   { "getch", luaterm_getch },
