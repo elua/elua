@@ -250,7 +250,11 @@ _off_t _lseek_r( struct _reent *r, int file, _off_t ptr, int dir )
 // mallinfo()
 struct mallinfo mallinfo()
 {
+#ifdef USE_MULTIPLE_ALLOCATOR
+  return dlmallinfo();
+#else
   return _mallinfo_r( _REENT );
+#endif
 }
 
 int _isatty_r( struct _reent* r, int fd )

@@ -1,6 +1,6 @@
 #ifdef USE_MULTIPLE_ALLOCATOR
 
-#include "malloc.h"
+#include "dlmalloc.h"
 
 /*------------------------------ internal #includes ---------------------- */
 
