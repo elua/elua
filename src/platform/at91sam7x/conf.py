@@ -3,12 +3,14 @@
 cpumode = ARGUMENTS.get( 'cpumode', 'thumb' ).lower()
 
 specific_files = "board_cstartup.s board_lowlevel.c board_memories.c usart.c pmc.c pio.c platform.c tc.c pwmc.c"
-if cputype == 'at91sam7x256':
+if cputype == 'AT91SAM7X256':
   ldscript = "flash256.lds"
-elif cputype == 'at91sam7x512':
+  cdefs = cdefs + " -Dat91sam7x256"
+elif cputype == 'AT91SAM7X512':
   ldscript = "flash512.lds"
+  cdefs = cdefs + " -Dat91sam7x512"
 else:
-  print "Invalid AT91SAM7X CPU %s", cputype
+  print "Invalid AT91SAM7X CPU %s" % cputype
   sys.exit( -1 )  
   
 # Check CPU mode

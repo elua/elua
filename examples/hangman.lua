@@ -8,7 +8,6 @@ if not math then
   return
 end
 
-
 local h, w = term.lines(), term.cols()
 local tries = 0
 

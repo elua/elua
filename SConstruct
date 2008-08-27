@@ -1,14 +1,24 @@
 import os, sys 
 target = ARGUMENTS.get( 'target', 'lua' ).lower() 
-cputype = ARGUMENTS.get( 'cpu', 'at91sam7x256' ).lower()
+cputype = ARGUMENTS.get( 'cpu', 'at91sam7x256' ).upper()
 allocator = ARGUMENTS.get( 'allocator', '' ).lower()
+boardname = ARGUMENTS.get( 'board' , '').upper()
 
 # List of platform/CPU combinations
-cpu_list = { 'at91sam7x' : [ 'at91sam7x256', 'at91sam7x512' ], 
-              'lm3s' : [ 'lm3s8962', 'lm3s6965' ], 
-              'str9' : [ 'str912fw44' ],
-              'i386' : [ 'i386' ],
-              'lpc288x' : [ 'lpc2888' ]
+cpu_list = { 'at91sam7x' : [ 'AT91SAM7X256', 'AT91SAM7X512' ], 
+              'lm3s' : [ 'LM3S8962', 'LM3S6965' ], 
+              'str9' : [ 'STR912FW44' ],
+              'i386' : [ 'I386' ],
+              'lpc288x' : [ 'LPC2888' ]
+            }
+
+# List of default board names
+board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],        
+               'EK-LM3S8962' : [ 'LM3S8962' ],
+               'EK-LM3S6965' : [ 'LM3S6965' ],
+               'STR9-comStick' : [ 'STR912FW44' ],
+               'PC' : [ 'I386' ],
+               'LPC-H2888' : [ 'LPC2888' ]
             }
 
 platform = None        
@@ -27,9 +37,19 @@ else:
     print
   sys.exit( -1 )
 
+# If the board is not specified, use the default value
+if boardname == '':
+  for b, v in board_list.items():
+    if cputype in v:
+      boardname = b
+      break
+  else:
+    print "Please specify a board"
+    sys.exit( -1 )
+
 # CPU/allocator mapping (if allocator not specified)
 if allocator == '':
-  if cputype in [ 'lpc2888' ]:
+  if cputype == 'LPC2888':
     allocator = 'multiple'
   else:
     allocator = 'newlib'
@@ -39,8 +59,8 @@ elif allocator not in [ 'newlib', 'multiple' ]:
   sys.exit( -1 )
 
     
-output = 'elua_' + target + '_' + cputype 
-cdefs = '-D%s' % cputype
+output = 'elua_' + target + '_' + cputype.lower()
+cdefs = '-DELUA_CPU=%s -DELUA_BOARD=%s -DELUA_PLATFORM=%s' % ( cputype, boardname, platform.upper() )
 if allocator == 'multiple':
   cdefs = cdefs + " -DUSE_MULTIPLE_ALLOCATOR"
 

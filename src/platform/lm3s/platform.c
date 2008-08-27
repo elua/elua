@@ -78,25 +78,15 @@ int platform_init()
 
 // ****************************************************************************
 // PIO
+// Same configuration on LM3S8962 and LM3S6965
 
 static const u32 pio_base[] = { GPIO_PORTA_BASE, GPIO_PORTB_BASE, GPIO_PORTC_BASE, GPIO_PORTD_BASE, 
                                 GPIO_PORTE_BASE, GPIO_PORTF_BASE, GPIO_PORTG_BASE, GPIO_PORTH_BASE };
 static const u32 pio_sysctl[] = { SYSCTL_PERIPH_GPIOA, SYSCTL_PERIPH_GPIOB, SYSCTL_PERIPH_GPIOC, SYSCTL_PERIPH_GPIOD, 
                                   SYSCTL_PERIPH_GPIOE, SYSCTL_PERIPH_GPIOF, SYSCTL_PERIPH_GPIOG, SYSCTL_PERIPH_GPIOH };
-
-#ifdef lm3s8962
+static const u8 pio_port_pins[] = { 8, 8, 8, 8, 4, 4, 2, 0 };
 #define PIOS_COUNT 42
 #define PIOS_PORT_COUNT 7
-static const u8 pio_port_pins[] = { 8, 8, 8, 8,
-                                    4, 4, 2, 0 };
-#endif
-
-#ifdef lm3s6965
-#define PIOS_COUNT 42
-#define PIOS_PORT_COUNT 7
-static const u8 pio_port_pins[] = { 8, 8, 8, 8,
-                                    4, 4, 2, 0 };
-#endif
 
 static void pios_init()
 {
@@ -163,22 +153,26 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
     case PLATFORM_IO_PIN_GET:
       retval = GPIOPinRead( base, pinmask ) ? 1 : 0;
       break;
+      
+    case PLATFORM_IO_PIN_PULLUP:
+    case PLATFORM_IO_PIN_PULLDOWN:
+      GPIOPadConfigSet( base, pinmask, GPIO_STRENGTH_8MA, op == PLATFORM_IO_PIN_PULLUP ? GPIO_PIN_TYPE_STD_WPU : GPIO_PIN_TYPE_STD_WPD );
+      retval = 1;
+      break;
+      
+    case PLATFORM_IO_PIN_NOPULL:
+      GPIOPadConfigSet( base, pinmask, GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_STD );
+      retval = 1;
+      break;
   }
   return retval;
 }
 
 // ****************************************************************************
 // SPI
+// Same configuration on LM3S8962 and LM3S6965
 
-#ifdef lm3s8962
-#define SPIS_COUNT 1
-#endif
-
-#ifdef lm3s6965
-#define SPIS_COUNT 1
-#endif
-
-// All possible LM3S uarts defs
+// All possible LM3S SPIs defs
 // FIXME this anticipates support for a platform with 2 SPI port
 //  PIN info extracted from LM3S6950 and 5769 datasheets
 static const u32 spi_base[] = { SSI0_BASE, SSI1_BASE };
@@ -188,6 +182,7 @@ static const u8 spi_gpio_pins[] = { GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4 | GPIO_
                                     GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 };
 //                                  SSIxClk      SSIxFss      SSIxRx       SSIxTx
 static const u8 spi_gpio_clk_pin[] = { GPIO_PIN_2, GPIO_PIN_0 };
+#define SPIS_COUNT 		1
 
 static void spis_init()
 {
@@ -218,7 +213,7 @@ u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigne
   GPIOPinTypeSSI( spi_gpio_base[ id ], spi_gpio_pins[ id ] );
   
   // FIXME: not sure this is always "right"
-  GPIOPadConfigSet(spi_gpio_base[ id ], spi_gpio_clk_pin[ id ], GPIO_STRENGTH_4MA, GPIO_PIN_TYPE_STD_WPU);    
+  GPIOPadConfigSet(spi_gpio_base[ id ], spi_gpio_clk_pin[ id ], GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_STD_WPU);    
 
   SSIConfigSetExpClk( spi_base[ id ], SysCtlClockGet(), protocol, mode, clock, databits );
   SSIEnable( spi_base[ id ] );
@@ -241,13 +236,12 @@ void platform_spi_select( unsigned id, int is_select )
 
 // ****************************************************************************
 // UART
+// Different configurations for LM3S8962 (2 UARTs) and LM3S6965 (3 UARTs)
 
-#ifdef lm3s8962
-#define UARTS_COUNT 2
-#endif
-
-#ifdef lm3s6965
-#define UARTS_COUNT 3
+#if ELUA_CPU == LM3S8962
+  #define UARTS_COUNT 2
+#elif ELUA_CPU == LM3S6965
+  #define UARTS_COUNT 3
 #endif
 
 // All possible LM3S uarts defs
@@ -348,18 +342,12 @@ int platform_uart_recv( unsigned id, unsigned timer_id, int timeout )
 
 // ****************************************************************************
 // Timers
-
-#ifdef lm3s8962
-#define TIMERS_COUNT 4
-#endif
-
-#ifdef lm3s6965
-#define TIMERS_COUNT 4
-#endif
+// Same on LM3S8962 and LM3S6965
 
 // All possible LM3S timers defs
 static const u32 timer_base[] = { TIMER0_BASE, TIMER1_BASE, TIMER2_BASE, TIMER3_BASE };
 static const u32 timer_sysctl[] = { SYSCTL_PERIPH_TIMER0, SYSCTL_PERIPH_TIMER1, SYSCTL_PERIPH_TIMER2, SYSCTL_PERIPH_TIMER3 };
+#define TIMERS_COUNT			4
 
 static void timers_init()
 {
@@ -438,6 +426,7 @@ u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_typ
 
 // ****************************************************************************
 // PWMs
+// Same on LM3S8962 and LM3S6965
 
 #define PLATFORM_NUM_PWMS               6
 
@@ -537,21 +526,6 @@ u32 platform_pwm_op( unsigned id, int op, u32 data )
 
 // ****************************************************************************
 // Platform data
-
-const char* platform_pd_get_platform_name()
-{
-  return "LM3S";
-}
-
-const char* platform_pd_get_cpu_name()
-{
-#ifdef lm3s8962
-  return "LM3S8962";
-#endif
-#ifdef lm3s6965
-  return "LM3S6965";
-#endif
-}
 
 u32 platform_pd_get_cpu_frequency()
 {

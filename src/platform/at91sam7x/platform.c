@@ -80,6 +80,11 @@ int platform_init()
   PWMC_ConfigureChannel( 1, AT91C_PWMC_CPRE_MCKA, 0, 0 );  
   PWMC_ConfigureChannel( 2, AT91C_PWMC_CPRE_MCKB, 0, 0 );
   PWMC_ConfigureChannel( 3, AT91C_PWMC_CPRE_MCKB, 0, 0 );    
+  for( i = 0; i < 4; i ++ )
+  {
+    PWMC_EnableChannel( i );
+    PWMC_EnableChannelIt( i );
+  }
   
   // Set the send/recv functions                          
   std_set_send_func( uart_send );
@@ -154,6 +159,14 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
       
     case PLATFORM_IO_PIN_GET:
       retval = PIO_Get( pin ) ? 1 : 0;
+      break;
+      
+    case PLATFORM_IO_PIN_PULLUP:
+      pin->pio->PIO_PPUER = pinmask;
+      break;
+      
+    case PLATFORM_IO_PIN_NOPULL:
+      pin->pio->PIO_PPUDR = pinmask;
       break;
   }
   return retval;
@@ -415,11 +428,14 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
 {
   u32 pwmclk = platform_pwm_get_clock( id );
   u32 period;  
-
+  volatile u32 dummy;
+  
   // Compute period
   period = pwmclk / frequency;
   // Set the period
+  dummy = AT91C_BASE_PWMC->PWMC_ISR;
   PWMC_SetPeriod( id, period );
+  while( ( AT91C_BASE_PWMC->PWMC_ISR & ( 1 << id ) ) == 0 );
   // Set duty cycle
   PWMC_SetDutyCycle( id, ( period * duty ) / 100 );
   // Return actual frequency
@@ -429,7 +445,7 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
 u32 platform_pwm_op( unsigned id, int op, u32 data )
 {
   u32 res = 0;
-  
+    
   switch( op )
   {
     case PLATFORM_PWM_OP_SET_CLOCK:
@@ -442,11 +458,10 @@ u32 platform_pwm_op( unsigned id, int op, u32 data )
       
     case PLATFORM_PWM_OP_START:
       PIO_Configure( pwm_pins + id, 1 );    
-      PWMC_EnableChannel( id );
+      res = AT91C_BASE_PWMC->PWMC_ISR;
       break;
       
     case PLATFORM_PWM_OP_STOP:
-      PWMC_DisableChannel( id );
       platform_pio_op( 1, 1 << ( 19 + id ), PLATFORM_IO_PIN_DIR_INPUT );
       break;
   }
@@ -456,20 +471,6 @@ u32 platform_pwm_op( unsigned id, int op, u32 data )
 
 // ****************************************************************************
 // Platform data functions
-
-const char* platform_pd_get_platform_name()
-{
-  return "AT91SAM7X";
-}
-
-const char* platform_pd_get_cpu_name()
-{
-#ifdef at91sam7x256
-  return "AT91SAM7X256";
-#else
-  return "AT91SAM7X512";
-#endif
-}
 
 u32 platform_pd_get_cpu_frequency()
 {

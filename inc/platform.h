@@ -46,6 +46,9 @@ enum
   PLATFORM_IO_PIN_GET,
   PLATFORM_IO_PIN_DIR_INPUT,
   PLATFORM_IO_PIN_DIR_OUTPUT,
+  PLATFORM_IO_PIN_PULLUP,
+  PLATFORM_IO_PIN_PULLDOWN,
+  PLATFORM_IO_PIN_NOPULL,
   // Port operations
   PLATFORM_IO_PORT_SET_VALUE,
   PLATFORM_IO_PORT_GET_VALUE,
@@ -165,8 +168,6 @@ u32 platform_pwm_op( unsigned id, int op, u32 data );
 // Platform data subsection
 // Contains functions for platform identification
 
-const char* platform_pd_get_platform_name();
-const char* platform_pd_get_cpu_name();
 u32 platform_pd_get_cpu_frequency();
 
 // *****************************************************************************

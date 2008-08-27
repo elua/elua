@@ -6,20 +6,29 @@
 #include "platform.h"
 #include "auxmods.h"
 
+#define MACRO_NAME( x ) MACRO_AGAIN( x )
+#define MACRO_AGAIN( x ) #x
+
 // Lua: platform = platform()
 static int pd_platform( lua_State* L )
 {
-  lua_pushstring( L, platform_pd_get_platform_name() );
+  lua_pushstring( L, MACRO_NAME( ELUA_PLATFORM ) );
   return 1;
 }
 
 // Lua: cpuname = cpu()
 static int pd_cpu( lua_State* L )
 {
-  lua_pushstring( L, platform_pd_get_cpu_name() );
+  lua_pushstring( L, MACRO_NAME( ELUA_CPU ) ); 
   return 1;
 }
 
+// Lua: boardname = board()
+static int pd_board( lua_State* L )
+{
+  lua_pushstring( L, MACRO_NAME( ELUA_BOARD ) );
+  return 1;
+}
 // Lua: speed = frequency()
 static int pd_clock( lua_State* L )
 {
@@ -32,6 +41,7 @@ static const luaL_reg pd_map[] =
 {
   { "platform",  pd_platform }, 
   { "cpu", pd_cpu },
+  { "board", pd_board },
   { "clock", pd_clock },
   { NULL, NULL }
 };

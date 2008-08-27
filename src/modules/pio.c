@@ -188,6 +188,24 @@ static int pio_pin( lua_State* L )
   return 1;
 }
 
+// Lua: pullup( pin1, pin2, ... )
+static int pio_pin_pullup( lua_State* L )
+{
+  return pioh_set_pins( L, 1, PLATFORM_IO_PIN_PULLUP );
+}
+
+// Lua: pulldown( pin1, pin2, ... )
+static int pio_pin_pulldown( lua_State* L )
+{
+  return pioh_set_pins( L, 1, PLATFORM_IO_PIN_PULLDOWN );
+}
+
+// Lua: nopull( pin1, pin2, ... )
+static int pio_pin_nopull( lua_State* L )
+{
+  return pioh_set_pins( L, 1, PLATFORM_IO_PIN_NOPULL );
+}
+
 // Module function map
 static const luaL_reg pio_map[] = 
 {
@@ -201,6 +219,9 @@ static const luaL_reg pio_map[] =
   { "getport", pio_get_port },
   { "port_input", pio_port_input },
   { "port_output", pio_port_output },
+  { "pullup", pio_pin_pullup },
+  { "pulldown", pio_pin_pulldown },
+  { "nopull", pio_pin_nopull },
   { "port", pio_port },
   { "pin", pio_pin },
   { NULL, NULL }

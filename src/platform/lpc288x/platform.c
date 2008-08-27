@@ -284,16 +284,6 @@ u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_typ
 // ****************************************************************************
 // Platform data functions
 
-const char* platform_pd_get_platform_name()
-{
-  return "LPC288x";
-}
-
-const char* platform_pd_get_cpu_name()
-{
-  return "LPC2888";
-}
-
 u32 platform_pd_get_cpu_frequency()
 {
   return Fcclk;
