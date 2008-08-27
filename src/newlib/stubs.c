@@ -9,7 +9,12 @@
 #include "devman.h"
 #include "ioctl.h"
 #include "platform.h"
-#include "malloc.h"
+
+#ifdef USE_MULTIPLE_ALLOCATOR
+#include "dlmalloc.h"
+#else
+#include <malloc.h>
+#endif
 
 // Utility function: look in the device manager table and find the index
 // for the given name. Returns an index into the device structure, -1 if error.
@@ -239,6 +244,13 @@ _off_t _lseek_r( struct _reent *r, int file, _off_t ptr, int dir )
     return (_off_t)-1;
   else
     return seek.off;
+}
+
+// *****************************************************************************
+// mallinfo()
+struct mallinfo mallinfo()
+{
+  return _mallinfo_r( _REENT );
 }
 
 int _isatty_r( struct _reent* r, int fd )

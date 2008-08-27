@@ -156,6 +156,8 @@ static int term_translate( u8 data )
 
 int main( void )
 {
+  FILE* fp;
+  
   // Initialize platform first
   if( platform_init() != PLATFORM_OK )
   {
@@ -176,6 +178,14 @@ int main( void )
   term_init( TERMINAL_LINES, TERMINAL_COLS, term_out, term_in, term_translate );
   
   printf( ".text ends at %p\n", etext );
+  
+  // Autorun: if "autorun.lua" is found in the ROM file system, run it first
+  if( ( fp = fopen( "/rom/autorun.lua", "r" ) ) != NULL )
+  {
+    fclose( fp );
+    char* lua_argv[] = { "lua", "/rom/autorun.lua", NULL };
+    lua_main( 2, lua_argv );    
+  }
   
   // Run the shell
   if( shell_init( XMODEM_MAX_FILE_SIZE ) == 0 )

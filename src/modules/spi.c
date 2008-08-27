@@ -11,8 +11,8 @@ static int spi_select( lua_State* L )
 {
   unsigned id;
   
-  MOD_CHECK_MIN_ARGS( 1 );
   id = luaL_checkinteger( L, 1 );
+  MOD_CHECK_ID( spi, id );
   platform_spi_select( id, PLATFORM_SPI_SELECT_ON );
   return 0;
 }
@@ -22,8 +22,8 @@ static int spi_unselect( lua_State* L )
 {
   unsigned id;
     
-  MOD_CHECK_MIN_ARGS( 1 );  
   id = luaL_checkinteger( L, 1 );
+  MOD_CHECK_ID( spi, id );
   platform_spi_select( id, PLATFORM_SPI_SELECT_OFF );
   return 0;
 }
@@ -34,8 +34,8 @@ static int spi_setup( lua_State* L )
   unsigned id, cpol, cpha, is_master, databits;
   u32 clock, res;
   
-  MOD_CHECK_MIN_ARGS_INT( 6, 0 );  
   id = luaL_checkinteger( L, 1 );
+  MOD_CHECK_ID( spi, id );
   is_master = luaL_checkinteger( L, 2 );
   clock = luaL_checkinteger( L, 3 );
   cpol = luaL_checkinteger( L, 4 );
@@ -52,8 +52,8 @@ static int spi_send( lua_State* L )
   spi_data_type value;
   int total = lua_gettop( L ), i, id;
   
-  MOD_CHECK_MIN_ARGS( 2 );  
   id = luaL_checkinteger( L, 1 );
+  MOD_CHECK_ID( spi, id );
   for( i = 2; i <= total; i ++ )
   {
     value = luaL_checkinteger( L, i );  
@@ -68,8 +68,8 @@ static int spi_send_recv( lua_State* L )
   spi_data_type value;
   int total = lua_gettop( L ), i, id;
   
-  MOD_CHECK_MIN_ARGS( 2 );  
   id = luaL_checkinteger( L, 1 );
+  MOD_CHECK_ID( spi, id );
   for( i = 2; i <= total; i ++ )
   {
     value = luaL_checkinteger( L, i );  
@@ -92,20 +92,8 @@ static const luaL_reg spi_map[] =
 
 LUALIB_API int luaopen_spi( lua_State *L )
 {
-  unsigned id;
-  char name[ 10 ];
   
   luaL_register( L, AUXLIB_SPI, spi_map );
-  
-  // Add all SPI interfaces to our module
-  for( id = 0; id < PLATFORM_SPI_TOTAL; id ++ )
-    if( platform_spi_exists( id ) )
-    {
-      sprintf( name, "SPI%d", id );
-      lua_pushnumber( L, id );
-      lua_setfield( L, -2, name );        
-    }
-    
   // Add the MASTER and SLAVE constants (for spi.setup)
   lua_pushnumber( L, PLATFORM_SPI_MASTER );
   lua_setfield( L, -2, "MASTER" );

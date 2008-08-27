@@ -20,7 +20,7 @@ static void pioh_clear_masks()
 
 // Helper function: pin operations
 // Gets the stack index of the first pin and the operation
-static void pioh_set_pins( lua_State* L, int stackidx, int op )
+static int pioh_set_pins( lua_State* L, int stackidx, int op )
 {
   int total = lua_gettop( L );
   int i, v, port, pin;
@@ -34,7 +34,7 @@ static void pioh_set_pins( lua_State* L, int stackidx, int op )
     port = PLATFORM_IO_GET_PORT( v );
     pin = PLATFORM_IO_GET_PIN( v );
     if( PLATFORM_IO_IS_PORT( v ) || !platform_pio_has_port( port ) || !platform_pio_has_pin( port, pin ) )
-      continue;
+      return luaL_error( L, "invalid pin" );
     pio_masks[ port ] |= 1 << pin;
   }
   
@@ -42,11 +42,12 @@ static void pioh_set_pins( lua_State* L, int stackidx, int op )
   for( i = 0; i < PLATFORM_IO_PORTS; i ++ )
     if( pio_masks[ i ] )
       platform_pio_op( i, pio_masks[ i ], op );
+  return 0;
 }
 
 // Helper function: port operations
 // Gets the stack index of the first port and the operation (also the mask)
-static void pioh_set_ports( lua_State* L, int stackidx, int op, pio_type mask )
+static int pioh_set_ports( lua_State* L, int stackidx, int op, pio_type mask )
 {
   int total = lua_gettop( L );
   int i, v, port;
@@ -59,7 +60,7 @@ static void pioh_set_ports( lua_State* L, int stackidx, int op, pio_type mask )
     v = luaL_checkinteger( L, i );
     port = PLATFORM_IO_GET_PORT( v );
     if( !PLATFORM_IO_IS_PORT( v ) || !platform_pio_has_port( port ) )
-      continue;
+      return luaL_error( L, "invalid port" );
     pio_masks[ port ] = mask;
   }
   
@@ -67,6 +68,7 @@ static void pioh_set_ports( lua_State* L, int stackidx, int op, pio_type mask )
   for( i = 0; i < PLATFORM_IO_PORTS; i ++ )
     if( pio_masks[ i ] )
       platform_pio_op( i, pio_masks[ i ], op );
+  return 0;
 }
 
 // Lua: setpin( val, Pin1, Pin2, Pin3 ... )
@@ -74,42 +76,32 @@ static int pio_set_pin_state( lua_State* L )
 {
   int value;
   
-  MOD_CHECK_MIN_ARGS( 2 );
   value = luaL_checkinteger( L, 1 );  
-  pioh_set_pins( L, 2, value ? PLATFORM_IO_PIN_SET : PLATFORM_IO_PIN_CLEAR );
-  return 0;
+  return pioh_set_pins( L, 2, value ? PLATFORM_IO_PIN_SET : PLATFORM_IO_PIN_CLEAR );
 }
 
 // Lua: set( Pin1, Pin2, Pin3 ... )
 static int pio_set_pin( lua_State* L )
 {
-  MOD_CHECK_MIN_ARGS( 1 );  
-  pioh_set_pins( L, 1, PLATFORM_IO_PIN_SET );
-  return 0;  
+  return pioh_set_pins( L, 1, PLATFORM_IO_PIN_SET );
 }
 
 // Lua: clear( Pin1, Pin2, Pin3 ... )
 static int pio_clear_pin( lua_State* L )
 {
-  MOD_CHECK_MIN_ARGS( 1 );  
-  pioh_set_pins( L, 1, PLATFORM_IO_PIN_CLEAR );
-  return 0;  
+  return pioh_set_pins( L, 1, PLATFORM_IO_PIN_CLEAR );
 }
 
 // Lua: input( Pin1, Pin2, Pin3 ... )
 static int pio_pin_input( lua_State* L )
 {
-  MOD_CHECK_MIN_ARGS( 1 );  
-  pioh_set_pins( L, 1, PLATFORM_IO_PIN_DIR_INPUT );
-  return 0;  
+  return pioh_set_pins( L, 1, PLATFORM_IO_PIN_DIR_INPUT );
 }
 
 // Lua: output( Pin1, Pin2, Pin3 ... )
 static int pio_pin_output( lua_State* L )
 {
-  MOD_CHECK_MIN_ARGS( 1 );
-  pioh_set_pins( L, 1, PLATFORM_IO_PIN_DIR_OUTPUT );
-  return 0;  
+  return pioh_set_pins( L, 1, PLATFORM_IO_PIN_DIR_OUTPUT );
 }
 
 // Lua: setport( val, Port1, Port2, ... )
@@ -117,10 +109,8 @@ static int pio_set_port( lua_State* L )
 {
   int value;
   
-  MOD_CHECK_MIN_ARGS( 2 );
   value = luaL_checkinteger( L, 1 );  
-  pioh_set_ports( L, 2, PLATFORM_IO_PORT_SET_VALUE, value );
-  return 0;
+  return pioh_set_ports( L, 2, PLATFORM_IO_PORT_SET_VALUE, value );
 }
 
 // Lua: value1, value2, ... = getport( Port1, Port2, ... )
@@ -130,13 +120,12 @@ static int pio_get_port( lua_State* L )
   int v, i, port;
   int total = lua_gettop( L );
   
-  MOD_CHECK_MIN_ARGS( 1 );
   for( i = 1; i <= total; i ++ )
   {
     v = luaL_checkinteger( L, i );  
     port = PLATFORM_IO_GET_PORT( v );
     if( !PLATFORM_IO_IS_PORT( v ) || !platform_pio_has_port( port ) )
-      lua_pushnil( L );
+      return luaL_error( L, "invalid port" );
     else
     {
       value = platform_pio_op( port, PLATFORM_IO_ALL_PINS, PLATFORM_IO_PORT_GET_VALUE );
@@ -149,17 +138,13 @@ static int pio_get_port( lua_State* L )
 // Lua: port_input( Port1, Port2, ... )
 static int pio_port_input( lua_State* L )
 {
-  MOD_CHECK_MIN_ARGS( 1 );  
-  pioh_set_ports( L, 1, PLATFORM_IO_PORT_DIR_INPUT, PLATFORM_IO_ALL_PINS );
-  return 0;    
+  return pioh_set_ports( L, 1, PLATFORM_IO_PORT_DIR_INPUT, PLATFORM_IO_ALL_PINS );
 }
 
 // Lua: port_output( Port1, Port2, ... )
 static int pio_port_output( lua_State* L )
 {
-  MOD_CHECK_MIN_ARGS( 1 );
-  pioh_set_ports( L, 1, PLATFORM_IO_PORT_DIR_OUTPUT, PLATFORM_IO_ALL_PINS );
-  return 0;    
+  return pioh_set_ports( L, 1, PLATFORM_IO_PORT_DIR_OUTPUT, PLATFORM_IO_ALL_PINS );
 }
 
 // Lua: value1, value2, ... = get( Pin1, Pin2 ... )
@@ -169,14 +154,13 @@ static int pio_get_pin( lua_State* L )
   int v, i, port, pin;
   int total = lua_gettop( L );
   
-  MOD_CHECK_MIN_ARGS( 1 );
   for( i = 1; i <= total; i ++ )
   {
     v = luaL_checkinteger( L, i );  
     port = PLATFORM_IO_GET_PORT( v );
     pin = PLATFORM_IO_GET_PIN( v );
     if( PLATFORM_IO_IS_PORT( v ) || !platform_pio_has_port( port ) || !platform_pio_has_pin( port, pin ) )
-      lua_pushnil( L );
+      return luaL_error( L, "invalid pin" );
     else
     {
       value = platform_pio_op( port, PLATFORM_IO_PIN_GET, 1 << pin );
@@ -184,6 +168,24 @@ static int pio_get_pin( lua_State* L )
     }
   }
   return total;
+}
+
+// Lua: port = port( value )
+static int pio_port( lua_State* L )
+{
+  pio_type value = ( pio_type )luaL_checkinteger( L, 1 );
+  
+  lua_pushinteger( L, PLATFORM_IO_GET_PORT( value ) );
+  return 1;
+}
+
+// Lua: pin = pin( value )
+static int pio_pin( lua_State* L )
+{
+  pio_type value = ( pio_type )luaL_checkinteger( L, 1 );
+  
+  lua_pushinteger( L, PLATFORM_IO_GET_PIN( value ) );
+  return 1;
 }
 
 // Module function map
@@ -199,6 +201,8 @@ static const luaL_reg pio_map[] =
   { "getport", pio_get_port },
   { "port_input", pio_port_input },
   { "port_output", pio_port_output },
+  { "port", pio_port },
+  { "pin", pio_pin },
   { NULL, NULL }
 };
 

@@ -12,6 +12,12 @@
 #include <malloc.h>
 #include "platform.h"
 
+#ifdef USE_MULTIPLE_ALLOCATOR
+#include "dlmalloc.h"
+#else
+#include <malloc.h>
+#endif
+
 #include "build.h"
 #ifdef BUILD_SHELL
 
@@ -44,6 +50,7 @@ static void shell_help( char* args )
   printf( "  lua [args] - run Lua with the given arguments\n" );
   printf( "  recv - receive a file (XMODEM) and execute it\n" );
   printf( "  ver - print eLua version\n" );
+  printf( "  mem - RAM usage data\n" );  
   printf( "  exit - exit from this shelll\n" );
 }
 
@@ -159,6 +166,24 @@ static void shell_ver( char* args )
   printf( "For more information go to http://elua.berlios.de\n" );
 }
 
+static void shell_mem( char* args )
+{
+  unsigned i = 0;
+  u32 lstart, lend;
+  struct mallinfo allocdata;
+  
+  while( 1 )
+  {
+    if( ( lstart = ( u32 )platform_get_first_free_ram( i ) ) == 0 )
+      break;
+    lend = ( u32 )platform_get_last_free_ram( i );
+    printf( "Start:0x%08lX  Size:%8ld  ", lstart, lend - lstart + 1 );
+    allocdata = mallinfo();  
+    printf( "Used:%8ld Free:%8ld\n", ( long )allocdata.uordblks, ( long )allocdata.fordblks );      
+    break;
+  }
+}
+
 // Insert shell commands here
 static const SHELL_COMMAND shell_commands[] = 
 {
@@ -166,6 +191,7 @@ static const SHELL_COMMAND shell_commands[] =
   { "lua", shell_lua },
   { "recv", shell_recv },
   { "ver", shell_ver },
+  { "mem", shell_mem },
   { "exit", NULL },
   { NULL, NULL }
 };

@@ -30,28 +30,13 @@ LUALIB_API int ( luaopen_pwm )( lua_State* L );
 #define AUXLIB_PACK     "pack"
 LUALIB_API int ( luaopen_pack )( lua_State* L );
 
-#ifdef ELUA_MOD_CHECK_PARS
+#define AUXLIB_BIT      "bit"
+LUALIB_API int ( luaopen_bit )( lua_State* L );
 
 // Helper macros
-#define MOD_CHECK_MIN_ARGS( num )\
-  if( lua_gettop( L ) < num )\
-  {\
-    lua_pushnil( L );\
-    return 1;\
-  }
 
-#define MOD_CHECK_MIN_ARGS_INT( num, res )\
-  if( lua_gettop( L ) < num )\
-  {\
-    lua_pushinteger( L, res );\
-    return 1;\
-  }  
-  
-#else
-
-#define MOD_CHECK_MIN_ARGS( num )
-#define MOD_CHECK_MIN_ARGS_INT( num, res )
-  
-#endif
+#define MOD_CHECK_ID( mod, id )\
+  if( !platform_ ## mod ## _exists( id ) )\
+    return luaL_error( L, #mod" %u does not exist", ( unsigned )id )
 
 #endif

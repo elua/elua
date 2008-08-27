@@ -12,8 +12,8 @@ static int tmrh_timer_op( lua_State* L, int op )
   unsigned id;
   timer_data_type res;
     
-  MOD_CHECK_MIN_ARGS( 1 );  
   id = luaL_checkinteger( L, 1 );
+  MOD_CHECK_ID( timer, id );
   res = platform_timer_op( id, op, 0 );
   lua_pushinteger( L, res );
   return 1;  
@@ -24,8 +24,8 @@ static int tmr_delay( lua_State* L )
 {
   unsigned id, period;
   
-  MOD_CHECK_MIN_ARGS( 2 );
   id = luaL_checkinteger( L, 1 );
+  MOD_CHECK_ID( timer, id );
   period = luaL_checkinteger( L, 2 );
   platform_timer_delay( id, period );
   return 0;
@@ -50,8 +50,8 @@ static int tmr_diff( lua_State* L )
   u32 res;
   unsigned id;
     
-  MOD_CHECK_MIN_ARGS( 3 );
   id = luaL_checkinteger( L, 1 ); 
+  MOD_CHECK_ID( timer, id );
   end = luaL_checkinteger( L, 2 );
   start = luaL_checkinteger( L, 3 );  
   res = platform_timer_get_diff_us( id, end, start );
@@ -65,8 +65,8 @@ static int tmr_mindelay( lua_State* L )
   u32 res;
   unsigned id;
   
-  MOD_CHECK_MIN_ARGS( 1 );
   id = luaL_checkinteger( L, 1 );
+  MOD_CHECK_ID( timer, id );
   res = platform_timer_op( id, PLATFORM_TIMER_OP_GET_MIN_DELAY, 0 );
   lua_pushinteger( L, res );
   return 1;
@@ -78,8 +78,8 @@ static int tmr_maxdelay( lua_State* L )
   u32 res;
   unsigned id;
   
-  MOD_CHECK_MIN_ARGS( 1 );
   id = luaL_checkinteger( L, 1 );
+  MOD_CHECK_ID( timer, id );
   res = platform_timer_op( id, PLATFORM_TIMER_OP_GET_MAX_DELAY, 0 );
   lua_pushinteger( L, res );
   return 1;
@@ -91,8 +91,8 @@ static int tmr_setclock( lua_State* L )
   u32 clock;
   unsigned id;
   
-  MOD_CHECK_MIN_ARGS( 2 );
   id = luaL_checkinteger( L, 1 );
+  MOD_CHECK_ID( timer, id );
   clock = luaL_checkinteger( L, 2 );
   clock = platform_timer_op( id, PLATFORM_TIMER_OP_SET_CLOCK, clock );
   lua_pushinteger( L, clock );
@@ -105,8 +105,8 @@ static int tmr_getclock( lua_State* L )
   u32 res;
   unsigned id;
   
-  MOD_CHECK_MIN_ARGS( 1 );
   id = luaL_checkinteger( L, 1 );
+  MOD_CHECK_ID( timer, id );
   res = platform_timer_op( id, PLATFORM_TIMER_OP_GET_CLOCK, 0 );
   lua_pushinteger( L, res );
   return 1;
@@ -128,19 +128,6 @@ static const luaL_reg tmr_map[] =
 
 LUALIB_API int luaopen_tmr( lua_State *L )
 {
-  unsigned id;
-  char name[ 10 ];
-  
   luaL_register( L, AUXLIB_TMR, tmr_map );
-  
-  // Add all timers to our module
-  for( id = 0; id < PLATFORM_TIMER_TOTAL; id ++ )
-    if( platform_timer_exists( id ) )
-    {
-      sprintf( name, "TMR%d", id );
-      lua_pushnumber( L, id );
-      lua_setfield( L, -2, name );        
-    }
-  
   return 1;
 }

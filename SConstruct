@@ -64,14 +64,14 @@ local_include = local_include + " -Isrc/modules -Isrc/platform/%s" % platform
 local_libs = ''
   
 # Application files
-app_files = " src/romfs.c src/main.c src/xmodem.c src/shell.c src/term.c src/malloc.c"
+app_files = " src/romfs.c src/main.c src/xmodem.c src/shell.c src/term.c src/dlmalloc.c"
   
 # Newlib related files  
 newlib_files = " src/newlib/devman.c src/newlib/stubs.c src/newlib/genstd.c"
 
 # Lua module files
 module_files = """ src/modules/pio.c src/modules/spi.c src/modules/tmr.c src/modules/pd.c src/modules/uart.c
-                   src/modules/term.c src/modules/pwm.c src/modules/lpack.c"""
+                   src/modules/term.c src/modules/pwm.c src/modules/lpack.c src/modules/bit.c"""
   
 # Optimizer flags (speed or size)
 #opt = "-O3"

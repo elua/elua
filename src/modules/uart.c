@@ -12,8 +12,8 @@ static int uart_setup( lua_State* L )
   unsigned id, databits, parity, stopbits;
   u32 baud, res;
   
-  MOD_CHECK_MIN_ARGS_INT( 5, 0 );  
   id = luaL_checkinteger( L, 1 );
+  MOD_CHECK_ID( uart, id );
   baud = luaL_checkinteger( L, 2 );
   databits = luaL_checkinteger( L, 3 );
   parity = luaL_checkinteger( L, 4 );
@@ -29,8 +29,8 @@ static int uart_send( lua_State* L )
   u8 value;
   int total = lua_gettop( L ), i, id;
   
-  MOD_CHECK_MIN_ARGS( 2 );  
   id = luaL_checkinteger( L, 1 );
+  MOD_CHECK_ID( uart, id );
   for( i = 2; i <= total; i ++ )
   {
     value = luaL_checkinteger( L, i );  
@@ -47,8 +47,8 @@ static int uart_sendstr( lua_State* L )
   size_t len, i;
   int total = lua_gettop( L ), s;
   
-  MOD_CHECK_MIN_ARGS( 2 );  
   id = luaL_checkinteger( L, 1 );
+  MOD_CHECK_ID( uart, id );
   for( s = 2; s <= total; s ++ )
   {
     luaL_checktype( L, s, LUA_TSTRING );
@@ -64,8 +64,8 @@ static int uart_recv( lua_State* L )
 {
   int id, timer_id, timeout, res;
   
-  MOD_CHECK_MIN_ARGS( 3 );  
   id = luaL_checkinteger( L, 1 );
+  MOD_CHECK_ID( uart, id );
   timer_id = luaL_checkinteger( L, 2 );
   timeout = luaL_checkinteger( L, 3 );
   res = platform_uart_recv( id, timer_id, timeout );
@@ -85,20 +85,8 @@ static const luaL_reg uart_map[] =
 
 LUALIB_API int luaopen_uart( lua_State *L )
 {
-  unsigned id;
-  char name[ 10 ];
-  
   luaL_register( L, AUXLIB_UART, uart_map );
   
-  // Add all UART interfaces to our module
-  for( id = 0; id < PLATFORM_UART_TOTAL; id ++ )
-    if( platform_uart_exists( id ) )
-    {
-      sprintf( name, "UART%d", id );
-      lua_pushnumber( L, id );
-      lua_setfield( L, -2, name );        
-    }
-    
   // Add the stop bits and parity constants (for uart.setup)
   lua_pushnumber( L, PLATFORM_UART_PARITY_EVEN );
   lua_setfield( L, -2, "PAR_EVEN" );

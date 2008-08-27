@@ -26,7 +26,6 @@ static int luaterm_gotoxy( lua_State* L )
 {
   unsigned x, y;
   
-  MOD_CHECK_MIN_ARGS( 2 );
   x = ( unsigned )luaL_checkinteger( L, 1 );
   y = ( unsigned )luaL_checkinteger( L, 2 );
   term_gotoxy( x, y );
@@ -38,7 +37,6 @@ static int luaterm_up( lua_State* L )
 {
   unsigned delta;
   
-  MOD_CHECK_MIN_ARGS( 1 );
   delta = ( unsigned )luaL_checkinteger( L, 1 );
   term_up( delta );
   return 0;
@@ -49,7 +47,6 @@ static int luaterm_down( lua_State* L )
 {
   unsigned delta;
   
-  MOD_CHECK_MIN_ARGS( 1 );
   delta = ( unsigned )luaL_checkinteger( L, 1 );
   term_down( delta );
   return 0;
@@ -60,7 +57,6 @@ static int luaterm_left( lua_State* L )
 {
   unsigned delta;
   
-  MOD_CHECK_MIN_ARGS( 1 );
   delta = ( unsigned )luaL_checkinteger( L, 1 );
   term_left( delta );
   return 0;
@@ -71,7 +67,6 @@ static int luaterm_right( lua_State* L )
 {
   unsigned delta;
   
-  MOD_CHECK_MIN_ARGS( 1 );
   delta = ( unsigned )luaL_checkinteger( L, 1 );
   term_right( delta );
   return 0;
@@ -97,7 +92,6 @@ static int luaterm_put( lua_State* L )
   int total = lua_gettop( L ), i;
   u8 data;
   
-  MOD_CHECK_MIN_ARGS( 1 );
   for( i = 1; i <= total; i ++ )
   {
     data = ( u8 )luaL_checkinteger( L, 1 );
@@ -113,7 +107,6 @@ static int luaterm_putxy( lua_State* L )
   unsigned x, y;
   u8 data;
   
-  MOD_CHECK_MIN_ARGS( 3 );
   x = ( unsigned )luaL_checkinteger( L, 1 );
   y = ( unsigned )luaL_checkinteger( L, 2 );
   term_gotoxy( x, y );
@@ -132,7 +125,6 @@ static int luaterm_putstr( lua_State* L )
   size_t len, i;
   int total = lua_gettop( L ), s;
   
-  MOD_CHECK_MIN_ARGS( 1 );  
   for( s = 1; s <= total; s ++ )
   {
     luaL_checktype( L, s, LUA_TSTRING );
@@ -151,7 +143,6 @@ static int luaterm_putstrxy( lua_State* L )
   size_t len, i;
   int total = lua_gettop( L ), s;
   
-  MOD_CHECK_MIN_ARGS( 3 );  
   x = ( unsigned )luaL_checkinteger( L, 1 );
   y = ( unsigned )luaL_checkinteger( L, 2 );
   term_gotoxy( x, y );
@@ -184,7 +175,6 @@ static int luaterm_getch( lua_State* L )
 {
   int temp;
   
-  MOD_CHECK_MIN_ARGS( 1 );
   temp = luaL_checkinteger( L, 1 );
   lua_pushinteger( L, term_getch( temp ) );
   return 1;

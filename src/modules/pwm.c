@@ -12,8 +12,8 @@ static int pwm_setup( lua_State* L )
   u32 freq;
   unsigned duty, id;
   
-  MOD_CHECK_MIN_ARGS( 3 );  
   id = luaL_checkinteger( L, 1 );
+  MOD_CHECK_ID( pwm, id );
   freq = luaL_checkinteger( L, 2 );
   duty = luaL_checkinteger( L, 3 );
   if( duty > 100 )
@@ -28,8 +28,8 @@ static int pwm_start( lua_State* L )
 {
   unsigned id;
   
-  MOD_CHECK_MIN_ARGS( 1 );
   id = luaL_checkinteger( L, 1 );
+  MOD_CHECK_ID( pwm, id );
   platform_pwm_op( id, PLATFORM_PWM_OP_START, 0 );
   return 0;  
 }
@@ -39,8 +39,8 @@ static int pwm_stop( lua_State* L )
 {
   unsigned id;
   
-  MOD_CHECK_MIN_ARGS( 1 );
   id = luaL_checkinteger( L, 1 );
+  MOD_CHECK_ID( pwm, id );
   platform_pwm_op( id, PLATFORM_PWM_OP_STOP, 0 );
   return 0;  
 }
@@ -51,8 +51,8 @@ static int pwm_setclock( lua_State* L )
   unsigned id;
   u32 clk;
   
-  MOD_CHECK_MIN_ARGS( 2 );
   id = luaL_checkinteger( L, 1 );
+  MOD_CHECK_ID( pwm, id );
   clk = luaL_checkinteger( L, 2 );
   clk = platform_pwm_op( id, PLATFORM_PWM_OP_SET_CLOCK, clk );
   lua_pushinteger( L, clk );
@@ -65,8 +65,8 @@ static int pwm_getclock( lua_State* L )
   unsigned id;
   u32 clk;
   
-  MOD_CHECK_MIN_ARGS( 1 );
   id = luaL_checkinteger( L, 1 );
+  MOD_CHECK_ID( pwm, id );
   clk = platform_pwm_op( id, PLATFORM_PWM_OP_GET_CLOCK, 0 );
   lua_pushinteger( L, clk );
   return 1;
@@ -85,19 +85,6 @@ static const luaL_reg pwm_map[] =
 
 LUALIB_API int luaopen_pwm( lua_State *L )
 {
-  unsigned id;
-  char name[ 10 ];
-  
   luaL_register( L, AUXLIB_PWM, pwm_map );
-  
-  // Add all PWM interfaces to our module
-  for( id = 0; id < PLATFORM_PWM_TOTAL; id ++ )
-    if( platform_pwm_exists( id ) )
-    {
-      sprintf( name, "PWM%d", id );
-      lua_pushnumber( L, id );
-      lua_setfield( L, -2, name );        
-    }
-    
   return 1;
 }
