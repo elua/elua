@@ -284,9 +284,9 @@ void PIO_Clear(const Pin *pin)
 /// level; otherwise returns 0.
 /// \param pin  Pointer to a Pin instance describing one or more pins.
 //------------------------------------------------------------------------------
-unsigned char PIO_Get(const Pin *pin)
+unsigned long PIO_Get(const Pin *pin)
 {
-    unsigned int reg;
+    unsigned long reg;
     if ((pin->type == PIO_OUTPUT_0) || (pin->type == PIO_OUTPUT_1)) {
 
         reg = READ(pin->pio, PIO_ODSR);
@@ -295,15 +295,8 @@ unsigned char PIO_Get(const Pin *pin)
 
         reg = READ(pin->pio, PIO_PDSR);
     }
-
-    if ((reg & pin->mask) == 0) {
-
-        return 0;
-    }
-    else {
-
-        return 1;
-    }
+    
+    return reg;
 }
 
 

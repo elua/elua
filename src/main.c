@@ -19,7 +19,7 @@ extern char etext[];
 
 // Maximum file size that can be received via XMODEM
 // Should be a multiple of 128
-#define XMODEM_MAX_FILE_SIZE    4096
+#define XMODEM_MAX_FILE_SIZE    1024
 
 #ifdef BUILD_XMODEM
 

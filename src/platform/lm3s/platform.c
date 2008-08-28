@@ -118,7 +118,7 @@ int platform_pio_has_pin( unsigned port, unsigned pin )
 
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 {
-  pio_type retval = 0, base = pio_base[ port ];
+  pio_type retval = 1, base = pio_base[ port ];
   
   switch( op )
   {
@@ -157,12 +157,14 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
     case PLATFORM_IO_PIN_PULLUP:
     case PLATFORM_IO_PIN_PULLDOWN:
       GPIOPadConfigSet( base, pinmask, GPIO_STRENGTH_8MA, op == PLATFORM_IO_PIN_PULLUP ? GPIO_PIN_TYPE_STD_WPU : GPIO_PIN_TYPE_STD_WPD );
-      retval = 1;
       break;
       
     case PLATFORM_IO_PIN_NOPULL:
       GPIOPadConfigSet( base, pinmask, GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_STD );
-      retval = 1;
+      break;
+      
+    default:
+      retval = 0;
       break;
   }
   return retval;

@@ -135,7 +135,7 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 {
   GPIO_TypeDef* base = ( GPIO_TypeDef* )port_data[ port ];
   GPIO_InitTypeDef data;
-  pio_type retval = 0;
+  pio_type retval = 1;
   
   GPIO_StructInit( &data );
   switch( op )
@@ -175,6 +175,10 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
       
     case PLATFORM_IO_PIN_GET:
       retval = GPIO_ReadBit( base, ( u8 )pinmask );
+      break;
+      
+    default:
+      retval = 0;
       break;
   }
   return retval;

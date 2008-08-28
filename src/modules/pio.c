@@ -1,4 +1,4 @@
-// Module for interfacing with PIO
+// Module for interfacing wit5~h PIO
 
 #include "lua.h"
 #include "lualib.h"
@@ -41,7 +41,8 @@ static int pioh_set_pins( lua_State* L, int stackidx, int op )
   // Ask platform to execute the given operation
   for( i = 0; i < PLATFORM_IO_PORTS; i ++ )
     if( pio_masks[ i ] )
-      platform_pio_op( i, pio_masks[ i ], op );
+      if( !platform_pio_op( i, pio_masks[ i ], op ) )
+        return luaL_error( L, "invalid PIO operation" );
   return 0;
 }
 
@@ -67,7 +68,8 @@ static int pioh_set_ports( lua_State* L, int stackidx, int op, pio_type mask )
   // Ask platform to execute the given operation
   for( i = 0; i < PLATFORM_IO_PORTS; i ++ )
     if( pio_masks[ i ] )
-      platform_pio_op( i, pio_masks[ i ], op );
+      if( !platform_pio_op( i, pio_masks[ i ], op ) )
+        return luaL_error( L, "invalid PIO operation" );
   return 0;
 }
 
@@ -163,7 +165,7 @@ static int pio_get_pin( lua_State* L )
       return luaL_error( L, "invalid pin" );
     else
     {
-      value = platform_pio_op( port, PLATFORM_IO_PIN_GET, 1 << pin );
+      value = platform_pio_op( port, 1 << pin, PLATFORM_IO_PIN_GET );
       lua_pushinteger( L, value );
     }
   }

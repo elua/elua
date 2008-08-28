@@ -123,7 +123,7 @@ int platform_pio_has_pin( unsigned port, unsigned pin )
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 {
   Pin* pin;
-  pio_type retval = 0;
+  pio_type retval = 1;
   
   pin = pio_port_desc + port;
   pin->mask = pinmask;
@@ -153,12 +153,11 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
       break;      
             
     case PLATFORM_IO_PORT_GET_VALUE:
-      pin->mask = 0x7FFFFFFF;
       retval = PIO_Get( pin );
       break;
       
     case PLATFORM_IO_PIN_GET:
-      retval = PIO_Get( pin ) ? 1 : 0;
+      retval = PIO_Get( pin ) & pinmask ? 1 : 0;
       break;
       
     case PLATFORM_IO_PIN_PULLUP:
@@ -167,6 +166,10 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
       
     case PLATFORM_IO_PIN_NOPULL:
       pin->pio->PIO_PPUDR = pinmask;
+      break;
+      
+    default:
+      retval = 0;
       break;
   }
   return retval;

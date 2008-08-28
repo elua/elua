@@ -88,7 +88,7 @@ int platform_pio_has_pin( unsigned port, unsigned pin )
 
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 {
-  pio_type retval = 0;
+  pio_type retval = 1;
   
   switch( op )
   {
@@ -128,6 +128,10 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
       
     case PLATFORM_IO_PIN_GET:
       retval = *pio_pin_regs[ port ] & pinmask ? 1 : 0;
+      break;
+      
+    default:
+      retval = 0;
       break;
   }
   return retval;  

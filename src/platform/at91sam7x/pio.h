@@ -161,7 +161,7 @@ typedef struct {
 extern unsigned char PIO_Configure(const Pin *list, unsigned int size);
 extern void PIO_Set(const Pin *pin );
 extern void PIO_Clear(const Pin *pin);
-extern unsigned char PIO_Get(const Pin *pin);
+extern unsigned long PIO_Get(const Pin *pin);
 extern unsigned int PIO_GetISR(const Pin *pin);
 extern unsigned char PIO_GetOutputDataStatus(const Pin *pin);
 
