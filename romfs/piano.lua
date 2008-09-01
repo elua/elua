@@ -13,7 +13,7 @@ elseif pd.board() == "SAM7-EX256" then
   pwmid, tmrid = 0, 1
   tmr.setclock( 1, 1000000 )
 else
-  print( pd.board() .. " not supported with this example\n" )
+  print( pd.board() .. " not supported with this example" )
   return
 end
 

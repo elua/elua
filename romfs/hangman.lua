@@ -4,7 +4,7 @@
 -- we need a random function
 -- using math.random for now, which implies target=lua, not lualong
 if not math then
-  print "\nError: Hangman needs the math module (disabled when target=lualong) !\n"
+  print "\nError: Hangman needs the math module (disabled when target=lualong) !"
   return
 end
 

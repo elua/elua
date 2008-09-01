@@ -4,10 +4,12 @@ if pd.board() == "SAM7-EX256" then
   ledpin = pio.PB_20
 elseif pd.board() == "EK-LM3S8962" or pd.board() == "EK-LM3S6965" then
   ledpin = pio.PF_0
-elseif pd.board() == "STR9-comStick" then
+elseif pd.board() == "STR9-COMSTICK" then
   ledpin = pio.P9_0
+elseif pd.board() == "LPC-H2888" then
+  ledpin = pio.P2_1
 else
-  print( "\nError: Unknown board " .. pd.board() .. " !\n" )
+  print( "\nError: Unknown board " .. pd.board() .. " !" )
   return
 end
 

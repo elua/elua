@@ -1,12 +1,5 @@
 -- TVBGone in eLua
 -- Adapted from LadyAda's TVBGone project
--- Currently working only on the LM3S platform
-
--- Safety checks
-if pwm == nil or tmr == nil or pio == nil then
-  print "The PWM and/or TMR/PIO modules not found, exiting"
-  return
-end
 
 -- Check codes file
 local codes = io.open( "/rom/codes.bin", "rb" )
@@ -15,17 +8,35 @@ if codes == nil then
   return
 end 
 
--- Setup PWM
-local pwmid = pwm.PWM2
-local tmrid = tmr.TMR0
-local led = pio.PF_0
-pwm.setclock( pwmid, 25000000 )
+local pwmid, tmrid
+if pd.board() == 'EK-LM3S8962' or pd.board() == 'EK-LM3S6965' then
+  pwmid, tmrid = 2, 1
+  pwm.setclock( pwmid, 25000000 )
+  led, startpin, exitpin = pio.PF_0, pio.PF_1, pio.PE_1
+else
+  print( pd.board() .. " not supported with this example" )
+  return
+end
+
+-- Setup PIO
 pio.output( led )
-local _, fstr, freq, timesstr, ontime, offtime
+pio.input( startpin, exitpin )
+pio.pullup( startpin, exitpin )
+
+-- Local variables
+local _, fstr, freq, timesstr, ontime, offtime, runme
 
 -- Send all the codes in an infinite loop
 collectgarbage( "stop" )
-while true do
+runme = true
+while runme do
+  while pio.get( startpin ) == 1 do 
+    if pio.get( exitpin ) == 0 then
+      runme = false 
+      break 
+    end
+  end
+  if not runme then break end
   pio.set( led )
   codes:seek( "set", 0 )
   while true do
@@ -41,12 +52,18 @@ while true do
       tmr.delay( tmrid, ontime * 10 )
       pwm.stop( pwmid )
       if offtime == 0 then break end
-      tmr.delay( tmrid, offtime * 10 )    
+      tmr.delay( tmrid, offtime * 10 )
+      if pio.get( exitpin ) == 0 then
+        runme = false
+        break 
+      end          
     end
+    if not runme then break end
     tmr.delay( tmrid, 250000 )
   end
   pio.clear( led )
-  tmr.delay( tmrid, 1000000 )
+  if not runme then break end  
+  tmr.delay( tmrid, 500000 )
 end
 
 codes:close()
