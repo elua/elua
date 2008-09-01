@@ -144,8 +144,8 @@ source_files = specific_files + newlib_files + app_files + lua_full_files + modu
 if not GetOption( 'clean' ):
   print "Building filesystem..."
   import mkfs
-  mkfs.mkfs( "files", "luatest" )
-  os.system( "mv -f luatest.h inc/" )
+  mkfs.mkfs( "romfs", "romfiles" )
+  os.system( "mv -f romfiles.h inc/" )
   os.system( "rm -f src/fs.o" )
   
 # Env for building the program

@@ -4,7 +4,7 @@
 #include <string.h>
 #include <errno.h>
 #include "devman.h"
-#include "luatest.h"
+#include "romfiles.h"
 #include <stdio.h>
 #include "ioctl.h"
 
@@ -19,7 +19,7 @@ static int romfs_num_fd;
 
 static u8 romfs_read( u16 addr )
 {
-  return luatest_fs[ addr ];
+  return romfiles_fs[ addr ];
 }
 
 static int romfs_find_empty_fd()
@@ -119,7 +119,7 @@ static _ssize_t romfs_read_r( struct _reent *r, int fd, void* ptr, size_t len )
   FS* pfs = romfs_fd_table + fd; 
   long actlen = fsmin( len, pfs->size - pfs->offset );
   
-  memcpy( ptr, luatest_fs + pfs->offset + pfs->baseaddr, actlen );
+  memcpy( ptr, romfiles_fs + pfs->offset + pfs->baseaddr, actlen );
   pfs->offset += actlen;
   return actlen;
 }
