@@ -5,7 +5,7 @@ cpumode = ARGUMENTS.get( 'cpumode', 'arm' ).lower()
 specific_files = "lpc28xx.s platform.c target.c uart.c"
 
 # Check CPU
-if cputype == 'lpc2888':
+if cputype == 'LPC2888':
   ldscript = "lpc2888.lds"
 else:
   print "Invalid LPC288x CPU %s", cputype

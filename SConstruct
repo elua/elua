@@ -1,6 +1,6 @@
 import os, sys 
 target = ARGUMENTS.get( 'target', 'lua' ).lower() 
-cputype = ARGUMENTS.get( 'cpu', 'at91sam7x256' ).upper()
+cputype = ARGUMENTS.get( 'cpu', '' ).upper()
 allocator = ARGUMENTS.get( 'allocator', '' ).lower()
 boardname = ARGUMENTS.get( 'board' , '').upper()
 
@@ -12,14 +12,47 @@ cpu_list = { 'at91sam7x' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
               'lpc288x' : [ 'LPC2888' ]
             }
 
-# List of default board names
+# List of board/CPU combinations
 board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],        
                'EK-LM3S8962' : [ 'LM3S8962' ],
                'EK-LM3S6965' : [ 'LM3S6965' ],
-               'STR9-comStick' : [ 'STR912FW44' ],
+               'STR9-COMSTICK' : [ 'STR912FW44' ],
                'PC' : [ 'I386' ],
                'LPC-H2888' : [ 'LPC2888' ]
             }
+
+# Variants: board = <boardname>
+#           cpu = <cpuname>
+#           board = <boardname> cpu=<cpuname>
+if boardname == '' and cputype == '':
+  print "Must specifiy board, cpu, or both"
+  sys.exit( -1 )
+elif boardname != '' and cputype != '':
+  # board = <boardname> cpu=<cpuname>
+  # Check if the board, cpu pair is correct
+  if not board_list.has_key( boardname ):
+    print "Unknown board", boardname
+    sys.exit( -1 )
+  if not cputype in board_list[ boardname ]: 
+    print "Invalid CPU %s for board %s" % ( cputype, boardname )
+    sys.exit( -1 )
+elif boardname != '':
+  # board = <boardname>
+  # Find CPU
+  if not board_list.has_key( boardname ):
+    print "Unknown board", boardname
+    sys.exit( -1 )  
+  cputype = board_list[ boardname ][ 0 ]
+else:  
+  # cpu = <cputype>
+  # Find board name
+  for b, v in board_list.items():
+    if cputype in v:
+      boardname = b
+      break
+  else:
+    print "CPU %s not found" % cputype
+    sys.exit( -1 )
 
 platform = None        
 # Look for the given CPU in the list of platforms            
@@ -37,16 +70,6 @@ else:
     print
   sys.exit( -1 )
 
-# If the board is not specified, use the default value
-if boardname == '':
-  for b, v in board_list.items():
-    if cputype in v:
-      boardname = b
-      break
-  else:
-    print "Please specify a board"
-    sys.exit( -1 )
-
 # CPU/allocator mapping (if allocator not specified)
 if allocator == '':
   if cputype == 'LPC2888':
@@ -58,7 +81,18 @@ elif allocator not in [ 'newlib', 'multiple' ]:
   print "Allocator can be either 'newlib' or 'multiple'"
   sys.exit( -1 )
 
-    
+# User report
+if not GetOption( 'clean' ):
+  print
+  print "*********************************"
+  print "Compiling eLua ..."
+  print "CPU:         ", cputype
+  print "Board:       ", boardname
+  print "Platform:    ", platform
+  print "Allocator:   ", allocator
+  print "*********************************"
+  print    
+
 output = 'elua_' + target + '_' + cputype.lower()
 cdefs = '-DELUA_CPU=%s -DELUA_BOARD=%s -DELUA_PLATFORM=%s' % ( cputype, boardname, platform.upper() )
 if allocator == 'multiple':
