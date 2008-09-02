@@ -1,0 +1,100 @@
+(NOTE: view this file with a monospaced font)
+
+eLua generic modules
+================================================================================
+
+Before you read this file, please make sure that you read and understood the 
+theory from "platform_modules.txt" (at least the first part which describes
+the platform modules implementation). The generic modules use the exact same
+mechanism. In fact, the only difference between them is that the generic modules
+are exactly what their name implies: generic. They don't depend on the platform
+interface, so they don't need specific support for each platform, but they still
+behave identically on all platforms. They are selected by the same mechanism
+used by the platform modules (platform_libs.h). Following is a list of these 
+modules and their exported functions.
+
+The "term" module
+================================================================================
+The "term" component (see terminal_support.txt) exports its functions to Lua via 
+the "term" module. The methods of the "term" module are presented below.
+
+term.clrscr(): clear the screen
+
+term.clreol(): clear from the current cursor position to the end of the line 
+
+term.gotoxy( x, y ): position the cursor at the given coordinates
+
+term.up( delta ): move the cursor up "delta" lines
+
+term.down( delta ): move the cursor down "delta" lines
+
+term.left( delta ): move the cursor left "delta" lines
+
+term.right( delta ): move the cursor right "delta" lines
+
+Lines = term.lines(): returns the number of lines
+
+Cols = term.cols(): returns the number of columns
+
+term.put( c1, c2, ... ): writes the specified character(s) to the terminal
+
+term.putstr( s1, s2, ... ): writes the specified string(s) to the terminal
+
+Cx = term.cursorx(): return the cursor X position
+
+Cy = term.cursory(): return the cursor Y position
+
+c = term.getch( term.WAIT | term.NOWAIT ): returns a char read from the 
+  terminal. If term.WAIT is specified the function will wait for a character to
+  be ready, with term.NOWAIT it returns -1 if no char is available or the char
+  code if a char is available. The return of getch can be checked against the
+  char codes defined in inc/term.h, by appending "term." to the constant name 
+  (for example: term.KC_UP, term.KC_LEFT, term.KC_ESC ... )
+
+The "pack" module
+================================================================================
+Pack allows packing/unpacking of binary data. For example, it allows one to save 
+a specific data type (for example a 16-bit integer) from Lua to a file and then 
+read it back to a Lua variable without having to worry about the different
+physical representations of a Lua number and a 16-bit integer. It's originally
+written by Luiz Henrique de Figueiredo, one of the "fathers" of Lua.
+It exports just two methods ("pack" and "unpack"), but it uses some format
+specifiers for the pack/unpack operations that take a while to get used to. For
+more information download the original distribution and check its documentation
+and examples (http://www.tecgraf.pub-rio.br/~lhf/ftp/lua/~lpack).
+
+The "bit" module
+================================================================================
+As Lua doesn't have built-in operators for bit operations (and, or, xor, not)
+they are provided by this module. It's based on "bitlib" by Reuben Thomas and
+was slightly adapted and augmented for eLua.
+
+Res = bit.bnot( value ): unary negation
+
+Res = bit.band( v1, v2, ... ): binary "and"
+
+Res = bit.bor( v1, v2, ... ): binary "or"
+
+Res = bit.bxor( v1, v2, ... ): binary "exclusive or"
+
+Res = bit.lshift( value, pos ): shift "value" left "pos" positions.
+
+Res = bit.rshift( value, pos ): shift "value" right "pos" positions. The sign is
+  not propagated.
+
+Res = bit.arshift( value, pos ): shift "value" right "pos" positions. The sign
+  is propagated ("arithmetic shift").
+
+Res = bit.bit( bitno ): a shortcut for bit.lshift( 1, bitno )
+
+Res1, Res2, ... = bit.set( bitno, v1, v2, ... ): set the bit at position "bitno"
+  in v1, v2, ... to 1.
+
+Res1, Res2, ... = bit.clear( bitno, v1, v2, ... ): set the bit at position 
+  "bitno"in v1, v2, ... to 0.
+
+Res = bit.isset( value, bitno ): returns true if bit at position "bitno" in 
+  "value" is 1, false otherwise.
+
+Res = bit.isclear( value, bitno ): returns true if bit at position "bitno" in
+  "value" is 0, false otherwise.

@@ -4,6 +4,15 @@ find at http://www.lua.org/license.html.
 The XMODEM code is adapted from the Procyon AVR library, which is released
 under GPL.
 
+The "pack" module is adapted from the "lpack" module by Luiz Henrique de 
+Figueiredo and it's placed in the public domain.
+
+The "bit" module is adapted from the "bitlib" library by Reuben Thomas which
+is distributed under a MIT license.
+
+The multiple memory allocator (dlmalloc) is written by Doug Lea and it's
+placed on the public domain.
+
 The rest of the code is licensed under GPL, listed below.
 
 ================================================================================

@@ -1,3 +1,20 @@
+02.09.2008 Bogdan Marinescu <bogdanm@users.berlios.de>
+
+  * Official release 0.4
+  * Added support for LPC2888 (preliminary)
+  * Added support for multiple memory spaces (this can be used to
+    take advantage of both the internal CPU RAM and external RAM chips
+    on board that have external RAM)
+  * Added PWM module
+  * Added "pack" (binary data packing/unpacking) and "bit" (binary
+    operatinos) modules
+  * New samples: TV-B-Gone, piano, pwmled (all based on the new PWM module)
+  * Build system updated, easier to use, now it knows how to handle "boards" 
+    as well as CPUs
+  * Modified the existing platform modules to take less RAM and to report an
+    error when an unavailable resource is requested
+  * Project documentation updated
+
 09.08.2008 Bogdan Marinescu <bogdanm@users.berlios.de>
            Frederic Thomas <frthomas@users.berlios.de>
 

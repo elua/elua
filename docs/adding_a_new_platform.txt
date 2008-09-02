@@ -31,7 +31,12 @@ Let's suppose that your new platform is called "foo". In order to compile eLua
 for foo, follow these steps:
 
 1. create the src/platform/foo directory
-2. change the main build script (SConstruct) to include your new platform
+2. modify the SConstruct file from the base directory to make it aware of your
+   new CPU, platform and board(s). A "board" translates into a simple macro
+   definition at compile time, and makes it easy to adapt your platform code for
+   different situations. For example, you might have 2 boards with the same CPU,
+   but different I/O pin assignments. By checking the value of the "ELUA_BOARD"
+   macro in your code you can adapt it for each board.
 3. you need at least 4 files (besides your platform specific files) in the 
    src/platform/foo directory:
 
@@ -45,7 +50,7 @@ for foo, follow these steps:
 
 4. implement the platform interface functions (see "platform interface.txt"). By
    convention, they should be implemented in a file called "platform.c". Note that
-   SConstruct defines a C macro (-D<cputype>) for your platform so you code can
-   do #ifdef <cputype> ...
+   SConstruct defines 3 macros that might prove useful: ELUA_CPU, ELUA_PLATFORM
+   and ELUA_BOARD. 
   
 5. That's it! Build (see "building.txt") and enjoy!

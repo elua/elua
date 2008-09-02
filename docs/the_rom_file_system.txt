@@ -10,9 +10,9 @@ part of the eLua binary image, thus they can't be modified after the image is
 built. For the seame reason, you can't add/delete files after the image is built.
 To use this file system:
 
-- copy all the files you need to the files/ directory.
+- copy all the files you need to the romfs/ directory.
 - Build eLua (docs/building.txt). As part of the build process, "mkfs.py" will
-  be called, which will read the contents of the "files/" directory and will
+  be called, which will read the contents of the "romfs/" directory and will
   output a file that contains a binary description of the file system.
 - burn your image to the target
 - from your code, whenever you want to access a file, prefix its name with
@@ -32,5 +32,5 @@ To use this file system:
 
 The maximum file name of a ROMFS file is 14 characters, including the dot
 between the file name and its extension. Make sure that the file names from
-files/ follow this rule.
+romfs/ follow this rule.
 

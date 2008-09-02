@@ -3,12 +3,14 @@
 eLua platform modules
 ================================================================================
 
+(NOTE: after reading this, check also the "generic_modules.txt" file to
+learn about the generic (not platform specific) modules from eLua).
+
 In order to make eLua usable on different platform, eLua provides a number of 
 "platform modules" that link the language with the hardware platform. They're 
 mainly tied up with the platform peripherals (PIO, UART, SPI and others). 
-Currently only the PIO module is implemented by eLua, but much more will be 
-added as the project evolves. They are loaded when Lua starts (just like the
-"standard" modules like os, math, string).
+They are loaded when Lua starts (just like the "standard" modules like os, math,
+string).
 
 All the platform modules have two parts: the generic part (the one that is
 exposed directly to Lua and it's supposed to be platform independent) and the
@@ -64,18 +66,13 @@ This is why some of platform functions described in "platform interface.txt" are
 optional. If there are no modules that use them in one platform, then you don't
 need to define them at all for that platform, not even as "bogus" functions.
 
-NOTE: this mechanism is not used only for the platform modules, but also for 
-other modules in eLua. For an examples see src/terminal_support.txt in which the
-"term" is presented, and it can be enabled in the exact same way as a platform
-module, even though it's not connected to the platform interface.
-
 ================================================================================
 === The PIO module
 ================================================================================
 
 The PIO module lets Lua access the programmable input/output (PIO) pins of the
 microcontroller. It exposes symbolic name for ports (pio.PA, pio.PB, ... pio.PF)
-and symbolic names for port pins (pio.PA0, pio.PA1, ... pio.PB30, ...). Also,
+and symbolic names for port pins (pio.PA_0, pio.PA_1, ... pio.PB_30, ...). Also,
 it exposes functions to access both ports and pins:
 
 pio.setpin( value, Pin1, Pin2 ... ): set the value to all the pins in the list 
@@ -83,10 +80,10 @@ pio.setpin( value, Pin1, Pin2 ... ): set the value to all the pins in the list
   
 pio.set( Pin1, Pin2, ... ): set the value of all the pins in the list to 1.
 
-pio.clear( Pin1, Pin2, ... ): set the value of all the pins in the list to 0.
-
 Val1, Val2, ... = pio.get( Pin1, Pin2, ... ): reads one or more pins and returns
   their values (0 or 1).
+
+pio.clear( Pin1, Pin2, ... ): set the value of all the pins in the list to 0.
   
 pio.input( Pin1, Pin2, ... ): set the specified pin(s) as input(s).
 
@@ -101,6 +98,21 @@ Val1, Val2, ... = pio.getport( Port1, Port2, ... ): reads one or more ports and
 pio.port_input( Port1, Port2, ... ): set the specified port(s) as input(s).
 
 pio.port_output( Port1, Port2, ... ): set the specified port(s) as output(s).
+
+pio.pullup( Pin1, Pin2, ... ): enable internal pullups on the specified pins.
+Note that some CPUs might not provide this feature.
+
+pio.pulldown( Pin1, Pin2, ... ): enable internal pulldowns on the specified
+pins. Note that some CPUs might not provide this feature.
+
+pio.nopull( Pin1, Pin2, ... ): disable the pullups/pulldowns on the specified
+pins. Note that some CPUs might not provide this feature.
+
+Port = pio.port( code ): return the physical port number associated with the
+given code. For example, "pio.port( pio.P0_20 )" will return 0.
+
+Pin = pio.pin( code ): return the physical port number associated with the
+given code. For example, "pio.pin( pio.P0_20 )" will return 20.
 
 ================================================================================
 === The SPI module
@@ -181,10 +193,32 @@ Data = tmr.getclock( id ): return the clock of the given timer.
 === The platform data module
 ================================================================================
 
-it allows Lua to identify the platform on which it runs.
+It allows Lua to identify the platform on which it runs.
 
 Platform = pd.platform(): returns the platform name (f.e. LM3S)
 
 Cpu = pd.cpu(): returns the CPU name (f.e. LM3S8962)
 
+Board = pd.board(): returns the CPU board (f.e. EK-LM3S8962)
+
 Clock = pd.clock(): returns the platform CPU clock.
+
+================================================================================
+=== The PWM module
+================================================================================
+
+It allows Lua to use the PWM blocks on the target CPU.
+
+Data = pwm.setup( id, frequency, duty ): sets the PWM block 'id' to generate the
+  specified frequency with the specified duty cycle (duty is an integer number
+  from 0 to 100, specifying the duty cycle in percents). It returns the actual
+  frequency set on the PWM block.
+
+pwm.start( id ): start the PWM block 'id'.
+
+pwm.stop( id ): stop the PWM block 'id'.
+
+Data = pwm.setclock( id, clock ): set the base clock of the PWM block 'id' to
+  the given clock. In returns the actual clock set on the PWM block.
+
+Data = pwm.getclock( id ): returns the base clock of the PWM block 'id'.

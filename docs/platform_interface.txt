@@ -28,15 +28,23 @@ blocks in an infinite loop).
 
 ================================================================================
 
-void* platform_get_first_free_ram();
-void* platform_get_last_free_ram();
+void* platform_get_first_free_ram( unsigned id );
+void* platform_get_last_free_ram( unsigned id );
 
 TYPE: REQUIRED
 USED BY MODULE: N/A
 
 PURPOSE: returns the first and the last free RAM address; the space between them 
-will be used for the system heap. The space must be CONTIGUOUS; currently the 
-implementation does now allow for "holes" in the RAM memory space. 
+will be used for the system heap. 'id' is a memory space identifier. This can be
+used if there is more than one RAM memory available in the system, and their
+address ranges do not overlap. For example, one can have a CPU with internal RAM 
+(a very common case) but also an external RAM chip. In this case there are two 
+memory spaces, the first one being the internal RAM and the other one the 
+external RAM. While each of them in part is contiguous, they are generally not
+contigous to each other in the system address space, so they must be treated as
+two separate address spaces. If the multiple allocator (see building.txt) is
+used you can define as many memory spaces as you wish in your system, the 
+allocator will make sure to use all of them.
 If the system RAM exists in a single memory space (for example the internal RAM 
 on the MCU) the CPU's stack pointer should be set at the end of the RAM at 
 startup. Thus, the first free ram will start right after the data/bss sections, 
@@ -45,11 +53,14 @@ stack. The heap and the stack will grow on opposite directions (upward/downward)
 and the heap will stop if asked to grow "over" the stack.
 If the MCU has both internal RAM and external RAM, a simple arrangement is to 
 place the CPU stack at the end of the internal RAM and the heap in the external 
-memory (which is generally much larger than the MCU's internal memory).
+memory (which is generally much larger than the MCU's internal memory). Another
+arrangement is to use the multiple allocator and the memory space id as 
+described above.
 
 ================================================================================
 
 int platform_pio_has_port( unsigned port );
+const char* platform_pio_get_prefix( unsigned port );
 int platform_pio_has_pin( unsigned port, unsigned pin );
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op );
 
@@ -61,6 +72,9 @@ bits in size, as shows in "inc/platform.h". But since it somehow needs to map
 these virtual ports to physical ports, it will ask the platform if a port is 
 physically present (via platform_pio_has_port) and also if a bit (a "pin") in 
 the port is physically present (via platform_pio_has_pin). 
+platform_pio_get_prefix gets a port number and return the "port name" as defined
+in the device datasheet. Some devices use PA0, PA1, others simply P0, P1. This
+is what this function is expected to return.
 The platform_pio_op function is the one that does the actual work with the PIO
 subsystem. It receives an operation id ("op") as well as a mask ("pinmask") to 
 which the operation applies. The possible operations are shown in the 'enum' 
@@ -75,6 +89,9 @@ enum
   PLATFORM_IO_PIN_GET,                      // Get value of pin
   PLATFORM_IO_PIN_DIR_INPUT,                // Configure pin(s) as input
   PLATFORM_IO_PIN_DIR_OUTPUT,               // Configure pin(s) as output
+  PLATFORM_IO_PIN_PULLUP,                   // Enable pullups on the pin(s)
+  PLATFORM_IO_PIN_PULLDOWN,                 // Enable pulldowns on the pin(s)
+  PLATFORM_IO_PIN_NOPULL,                   // Disable all pulls on the pin(s)
   // Port operations
   PLATFORM_IO_PORT_SET_VALUE,               // Set port value
   PLATFORM_IO_PORT_GET_VALUE,               // Get port value
@@ -168,14 +185,40 @@ enum
 
 ================================================================================
 
-const char* platform_pd_get_platform_name();
-const char* platform_pd_get_cpu_name();
 u32         platform_pd_get_cpu_frequency();
 
 TYPE: optional
 USED BY MODULE: pd
 
-PURPOSE: platform data. These functions are used to identify the platform on
-which eLua is running. platform_pd_get_platform_name() returns a string for the
-platform name, platform_pd_get_cpu_name() returns a string for the cpu name, and
-platform_pd_get_cpu_frequency() returns the platform's CPU frequency in Hz.
+PURPOSE: platform data. This function is part of the "pd" module that is used to
+identify the platform on which eLua runs. Its purpose is to return the platform's 
+CPU frequency in Hz.
+
+================================================================================
+
+int platform_pwm_exists( unsigned id );
+u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty );
+u32 platform_pwm_op( unsigned id, int op, u32 data );
+
+TYPE: optional
+USED BY MODULE: pwm
+
+PURPOSE: PWM operations. eLua defines 16 "virtual" PWM blocks. The function
+platform_pwm_exists() gets an identifier from 0 to 15 and returns 1 if the PWM
+block with the given identifier exists on the target machinem, 0 otherwise.
+platform_pwm_setup() is called to configure the SPI interface with the given 
+frequency and duty cycle (the duty cycle is a number from 0 to 100 representing
+the duty cycle in percents). 
+Finally, platform_pwm_op() implements PWM specific operations. They are all
+defined in an enum from inc/platform.h, shown below:
+
+(BEGIN inc/platform.h)
+// PWM operations
+enum
+{
+  PLATFORM_PWM_OP_START,                // Start the PWM block
+  PLATFORM_PWM_OP_STOP,                 // Stop the PWM block
+  PLATFORM_PWM_OP_SET_CLOCK,            // Set the base clock of the PWM block
+  PLATFORM_PWM_OP_GET_CLOCK             // Get the base clock of the PWM block
+};
+(END inc/platform.h) 
