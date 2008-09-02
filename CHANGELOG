@@ -2,13 +2,16 @@
 
   * Official release 0.4
   * Added support for LPC2888 (preliminary)
+  * Added PWM module
+  * New samples: TV-B-Gone (shut off your TV), piano (play piano from your PC
+    keyboard), pwmled (fade led on/off), all based on the new PWM module
   * Added support for multiple memory spaces (this can be used to
     take advantage of both the internal CPU RAM and external RAM chips
     on board that have external RAM)
-  * Added PWM module
-  * Added "pack" (binary data packing/unpacking) and "bit" (binary
-    operatinos) modules
-  * New samples: TV-B-Gone, piano, pwmled (all based on the new PWM module)
+  * Autorun: if "autorun.lua" is found in the filesystem, it is executed
+    before starting the shell
+  * Added "pack" (binary data packing/unpacking) and "bit" (binary operatinos) 
+    modules
   * Build system updated, easier to use, now it knows how to handle "boards" 
     as well as CPUs
   * Modified the existing platform modules to take less RAM and to report an
