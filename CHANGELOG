@@ -5,6 +5,8 @@
     (floating point and int only) from the same directory
   * Made the math library configurable using the existent 'platform libraries'
     mechanism
+  * The "os" and "package" modules are no longer loaded by Lua, since they can't
+    be used anyway.  
   * Project documentation updated
  
 02.09.2008 Bogdan Marinescu <bogdanm@users.berlios.de>
