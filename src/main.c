@@ -185,8 +185,6 @@ int main( void )
     lua_main( 2, lua_argv );    
   }
   
-  printf( "%d\n", sizeof( ptrdiff_t ) );
-  
   // Run the shell
   if( shell_init( XMODEM_MAX_FILE_SIZE ) == 0 )
   {
