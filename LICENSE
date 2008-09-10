@@ -10,6 +10,9 @@ Figueiredo and it's placed in the public domain.
 The "bit" module is adapted from the "bitlib" library by Reuben Thomas which
 is distributed under a MIT license.
 
+The "integer only lua" is based on the "Go Long Lua!" patch by John D.
+Ramsdell (from the Lua Power Patches page).
+
 The multiple memory allocator (dlmalloc) is written by Doug Lea and it's
 placed on the public domain.
 

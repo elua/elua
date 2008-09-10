@@ -1,3 +1,12 @@
+10.09.2008 Bogdan Marinescu <bogdanm@users.berlios.de>
+
+  * Minor release 0.4.1; its main purpose is to integrate the new Lua 5.1.4
+  * Changed the file system structure; now you can build both Lua versions
+    (floating point and int only) from the same directory
+  * Made the math library configurable using the existent 'platform libraries'
+    mechanism
+  * Project documentation updated
+ 
 02.09.2008 Bogdan Marinescu <bogdanm@users.berlios.de>
 
   * Official release 0.4

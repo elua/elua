@@ -98,3 +98,11 @@ Res = bit.isset( value, bitno ): returns true if bit at position "bitno" in
 
 Res = bit.isclear( value, bitno ): returns true if bit at position "bitno" in
   "value" is 0, false otherwise.
+
+The "math" module
+================================================================================
+This is actually part of the official Lua distribution, not a separate module.
+Its purpose is to provide mathematic functiosn (sin, cos, tan...) to Lua. Since
+these kind of functions are rarely needed in an embedded environment, the "math"
+module can be enabled and disabled just like the other generic and platform 
+modules in eLua.

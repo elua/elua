@@ -50,17 +50,15 @@ AT91SAM7X platform, to the "platform_libs.h" file would look like this:
 #endif
 (END src/platform/at91sam7x/platform_libs.h)
 
-On the other hand, we don't want any modules for the i386 platform (yet), so the
-"platform_libs.h" file is empty in this case:
+On the other hand, for a platform that doesn't need to enable any modules at
+all, this can be an empty file:
 
-(BEGIN src/platform/i386/platform_libs.h)
 // Auxiliary libraries that will be compiled for this platform
 
 #ifndef __PLATFORM_LIBS_H__
 #define __PLATFORM_LIBS_H__
   
 #endif
-(END src/platform/i386/platform_libs.h)
 
 This is why some of platform functions described in "platform interface.txt" are
 optional. If there are no modules that use them in one platform, then you don't
