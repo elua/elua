@@ -10,6 +10,9 @@
   { AUXLIB_TMR, luaopen_tmr },\
   { AUXLIB_PD, luaopen_pd },\
   { AUXLIB_UART, luaopen_uart },\
-  { AUXLIB_TERM, luaopen_term }
+  { AUXLIB_TERM, luaopen_term },\
+  { AUXLIB_PACK, luaopen_pack },\
+  { AUXLIB_BIT, luaopen_bit },\
+  { LUA_MATHLIBNAME, luaopen_math }
   
 #endif

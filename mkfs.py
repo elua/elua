@@ -90,6 +90,7 @@ def mkfs( dirname, outname ):
   _add_data( 0, outfile, False )
   outfile.write( "};\n\n#endif\n" );
   outfile.close()
+  print "Done, total size is %d bytes" % _bytecnt
   return True
 
 if __name__ == "__main__":

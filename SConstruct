@@ -143,6 +143,7 @@ if not GetOption( 'clean' ):
   print "Building filesystem..."
   import mkfs
   mkfs.mkfs( "romfs", "romfiles" )
+  print
   os.system( "mv -f romfiles.h inc/" )
   os.system( "rm -f src/fs.o" )
   

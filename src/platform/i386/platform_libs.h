@@ -3,6 +3,7 @@
 #ifndef __PLATFORM_LIBS_H__
 #define __PLATFORM_LIBS_H__
 
-#include "auxmods.h"
+#define LUA_PLATFORM_LIBS\
+  { LUA_MATHLIBNAME, luaopen_math }
   
 #endif

@@ -9,8 +9,6 @@ else
   return
 end
 
-print( tmr.mindelay( tmrid ), tmr.maxdelay( tmrid ), tmr.getclock( tmrid ) )
-
 print "Control LED with PWM (fade up/down)"
 print "Press any key to exit"
 local crtduty, incr = 10, 5

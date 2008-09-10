@@ -14,6 +14,7 @@
   { AUXLIB_TERM, luaopen_term },\
   { AUXLIB_PWM, luaopen_pwm },\
   { AUXLIB_PACK, luaopen_pack },\
-  { AUXLIB_BIT, luaopen_bit }
+  { AUXLIB_BIT, luaopen_bit },\
+  { LUA_MATHLIBNAME, luaopen_math }
   
 #endif

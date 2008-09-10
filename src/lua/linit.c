@@ -22,9 +22,6 @@ static const luaL_Reg lualibs[] = {
   {LUA_IOLIBNAME, luaopen_io},
 //  {LUA_OSLIBNAME, luaopen_os},
   {LUA_STRLIBNAME, luaopen_string},
-#if !defined LUA_NUMBER_INTEGRAL    
-  {LUA_MATHLIBNAME, luaopen_math},
-#endif 
   {LUA_DBLIBNAME, luaopen_debug},
 #ifdef LUA_PLATFORM_LIBS  
   LUA_PLATFORM_LIBS,
