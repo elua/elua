@@ -1,5 +1,5 @@
 /*
-** $Id: luaconf.h,v 1.1.1.1 2008/07/11 13:12:07 bogdanm Exp $
+** $Id: luaconf.h,v 1.82.1.7 2008/02/11 16:25:08 roberto Exp $
 ** Configuration file for Lua
 ** See Copyright Notice in lua.h
 */
@@ -10,8 +10,6 @@
 
 #include <limits.h>
 #include <stddef.h>
-
-#include "type.h"
 
 /*
 ** ==================================================================
@@ -143,7 +141,11 @@
 */
 
 /* Changed to long for use with integral Lua numbers. */
+#if !defined LUA_NUMBER_INTEGRAL
+#define LUA_INTEGER ptrdiff_t
+#else
 #define LUA_INTEGER	long
+#endif
 
 /*
 @@ LUA_API is a mark for all core API functions.
@@ -261,7 +263,7 @@
 @* stand-alone interpreter.
 ** CHANGE it if you need longer lines.
 */
-#define LUA_MAXINPUT	512
+#define LUA_MAXINPUT	256
 
 
 /*
@@ -442,10 +444,10 @@
 @* can use.
 ** CHANGE it if you need lots of (Lua) stack space for your C
 ** functions. This limit is arbitrary; its only purpose is to stop C
-** functions to consume unlimited stack space.
+** functions to consume unlimited stack space. (must be smaller than
+** -LUA_REGISTRYINDEX)
 */
-#define LUAI_MCS_AUX	((int)(INT_MAX / (4*sizeof(LUA_NUMBER))))
-#define LUAI_MAXCSTACK	(LUAI_MCS_AUX > SHRT_MAX ? SHRT_MAX : LUAI_MCS_AUX)
+#define LUAI_MAXCSTACK	8000
 
 
 
@@ -515,7 +517,6 @@
    no longer handles the floating point directives %e, %E, %f, %g, and
    %G. */
 
-#define LUA_NUMBER_INTEGRAL
 #if defined LUA_NUMBER_INTEGRAL
 #define LUA_NUMBER	long
 #else

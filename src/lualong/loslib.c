@@ -1,5 +1,5 @@
 /*
-** $Id: loslib.c,v 1.1.1.1 2008/07/11 13:12:00 bogdanm Exp $
+** $Id: loslib.c,v 1.19.1.3 2008/01/18 16:38:18 roberto Exp $
 ** Standard Operating System library
 ** See Copyright Notice in lua.h
 */
@@ -223,7 +223,7 @@ static const luaL_Reg syslib[] = {
   {"date",      os_date},
 #if !defined LUA_NUMBER_INTEGRAL  
   {"difftime",  os_difftime},
-#endif  
+#endif
   {"execute",   os_execute},
   {"exit",      os_exit},
   {"getenv",    os_getenv},

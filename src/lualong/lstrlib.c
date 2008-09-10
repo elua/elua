@@ -1,5 +1,5 @@
 /*
-** $Id: lstrlib.c,v 1.1.1.1 2008/07/11 13:12:02 bogdanm Exp $
+** $Id: lstrlib.c,v 1.132.1.4 2008/07/11 17:27:21 roberto Exp $
 ** Standard library for string operations and pattern-matching
 ** See Copyright Notice in lua.h
 */
@@ -35,7 +35,8 @@ static int str_len (lua_State *L) {
 
 static ptrdiff_t posrelat (ptrdiff_t pos, size_t len) {
   /* relative string position: negative means back from end */
-  return (pos>=0) ? pos : (ptrdiff_t)len+pos+1;
+  if (pos < 0) pos += (ptrdiff_t)len + 1;
+  return (pos >= 0) ? pos : 0;
 }
 
 
@@ -790,7 +791,7 @@ static int str_format (lua_State *L) {
           sprintf(buff, form, (double)luaL_checknumber(L, arg));
           break;
         }
-#endif        
+#endif
         case 'q': {
           addquoted(L, &b, arg);
           continue;  /* skip the 'addsize' at the end */

@@ -102,13 +102,11 @@ if allocator == 'multiple':
 lua_files = """lapi.c lcode.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c lobject.c lopcodes.c
    lparser.c lstate.c lstring.c ltable.c ltm.c lundump.c lvm.c lzio.c lauxlib.c lbaselib.c
    ldblib.c liolib.c lmathlib.c loslib.c ltablib.c lstrlib.c loadlib.c linit.c lua.c"""
-if target == 'lualong':
+if target == 'lualong' or target == 'lua':
   lua_full_files = " " + " ".join( [ "src/lualong/%s" % name for name in lua_files.split() ] )
   local_include = "-Iinc -Iinc/newlib -Isrc/lualong"  
-  cdefs = cdefs + ' -DLUA_INTONLY'
-elif target == 'lua':
-  lua_full_files = " " + " ".join( [ "src/lua/%s" % name for name in lua_files.split() ] )   
-  local_include = "-Iinc -Iinc/newlib -Isrc/lua"   
+  if target == 'lualong':
+    cdefs = cdefs + ' -DLUA_NUMBER_INTEGRAL'
 else:
   print "Invalid target", target
   sys.exit( 1 )

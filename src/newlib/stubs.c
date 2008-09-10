@@ -319,8 +319,8 @@ int _kill( int pid, int sig )
 }
 #endif
 
-// If LUA_INTONLY is defined, "redirect" printf/scanf calls to their integer counterparts
-#ifdef LUA_INTONLY
+// If LUA_NUMBER_INTEGRAL is defined, "redirect" printf/scanf calls to their integer counterparts
+#ifdef LUA_NUMBER_INTEGRAL
 int _vfprintf_r( struct _reent *r, FILE *stream, const char *format, va_list ap )
 {
   return _vfiprintf_r( r, stream, format, ap );
@@ -331,7 +331,7 @@ int __svfscanf_r( struct _reent *r, FILE *stream, const char *format, va_list ap
 {
   return __svfiscanf_r( r, stream, format, ap );
 }
-#endif // #ifdef LUA_INTONLY
+#endif // #ifdef LUA_NUMBER_INTEGRAL
 
 #ifdef USE_MULTIPLE_ALLOCATOR
 
