@@ -90,6 +90,7 @@ if not GetOption( 'clean' ):
   print "Board:       ", boardname
   print "Platform:    ", platform
   print "Allocator:   ", allocator
+  print "Target:      ", target
   print "*********************************"
   print    
 
@@ -121,6 +122,11 @@ app_files = " src/romfs.c src/main.c src/xmodem.c src/shell.c src/term.c src/dlm
 # Newlib related files  
 newlib_files = " src/newlib/devman.c src/newlib/stubs.c src/newlib/genstd.c"
 
+# UIP files
+uip_files = "uip_arp.c uip.c uiplib.c"
+uip_files = " src/elua_uip.c " + " ".join( [ "src/uip/%s" % name for name in uip_files.split() ] )
+local_include = local_include + " -Isrc/uip"
+
 # Lua module files
 module_files = """ src/modules/pio.c src/modules/spi.c src/modules/tmr.c src/modules/pd.c src/modules/uart.c
                    src/modules/term.c src/modules/pwm.c src/modules/lpack.c src/modules/bit.c"""
@@ -136,7 +142,7 @@ tools = {}
 execfile( "src/platform/%s/conf.py" % platform )
 
 # Complete file list
-source_files = specific_files + newlib_files + app_files + lua_full_files + module_files
+source_files = specific_files + newlib_files + uip_files + app_files + lua_full_files + module_files
   
 # Make filesystem first
 if not GetOption( 'clean' ):

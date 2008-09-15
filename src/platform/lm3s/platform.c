@@ -9,6 +9,11 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
+#include "uip.h"
+#include "uip_arp.h"
+#include "elua_uip.h" 
+#include "uip-conf.h"
+#include "build.h"
 
 // Platform specific includes
 #include "hw_ints.h"
@@ -24,6 +29,10 @@
 #include "timer.h"
 #include "pwm.h"
 #include "utils.h"
+#include "ethernet.h"
+#include "systick.h"
+#include "flash.h"
+#include "interrupt.h"
 
 // *****************************************************************************
 // std function
@@ -47,10 +56,11 @@ static void uarts_init();
 static void spis_init();
 static void pios_init();
 static void pwms_init();
+static void eth_init();
 
 int platform_init()
 { 
-  // Set the clocking to run directly from the crystal.
+  // Set the clocking to run from PLL
   SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_8MHZ);
   
   // Setup PIO
@@ -67,6 +77,9 @@ int platform_init()
   
   // Setup PWMs
   pwms_init();                 
+  
+  // Setup ethernet (TCP/IP)
+  eth_init();
 
   // Set the send/recv functions                          
   std_set_send_func( uart_send );
@@ -524,6 +537,101 @@ u32 platform_pwm_op( unsigned id, int op, u32 data )
   }
   
   return res;
+}
+
+// ****************************************************************************
+// Ethernet
+
+#define DEFAULT_IPADDR0         192
+#define DEFAULT_IPADDR1         168
+#define DEFAULT_IPADDR2         1
+#define DEFAULT_IPADDR3         13
+#define DEFAULT_NETMASK0        255
+#define DEFAULT_NETMASK1        255
+#define DEFAULT_NETMASK2        255
+#define DEFAULT_NETMASK3        0
+
+static void eth_init()
+{
+#ifdef BUILD_UIP
+  u32 user0, user1, temp;
+  uip_ipaddr_t ipaddr;  
+  static struct uip_eth_addr sTempAddr;     
+
+  // Initialize the TCP/IP Application
+  elua_uip_init();    
+  
+  // Enable and reset the controller
+  SysCtlPeripheralEnable( SYSCTL_PERIPH_ETH );
+  SysCtlPeripheralReset( SYSCTL_PERIPH_ETH );
+  
+  // Enable Ethernet LEDs
+  GPIODirModeSet( GPIO_PORTF_BASE, GPIO_PIN_2 | GPIO_PIN_3, GPIO_DIR_MODE_HW );
+  GPIOPadConfigSet( GPIO_PORTF_BASE, GPIO_PIN_2 | GPIO_PIN_3, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD );
+
+  // Configure SysTick for a periodic interrupt.
+  SysTickPeriodSet(SysCtlClockGet() / SYSTICKHZ);
+  SysTickEnable();
+  SysTickIntEnable();
+  
+  // Intialize the Ethernet Controller and disable all Ethernet Controller interrupt sources.
+  EthernetIntDisable(ETH_BASE, (ETH_INT_PHY | ETH_INT_MDIO | ETH_INT_RXER |
+                     ETH_INT_RXOF | ETH_INT_TX | ETH_INT_TXER | ETH_INT_RX));
+  temp = EthernetIntStatus(ETH_BASE, false);
+  EthernetIntClear(ETH_BASE, temp);  
+  
+  // Initialize the Ethernet Controller for operation.
+  EthernetInitExpClk(ETH_BASE, SysCtlClockGet());
+
+  // Configure the Ethernet Controller for normal operation.
+  // - Full Duplex
+  // - TX CRC Auto Generation
+  // - TX Padding Enabled
+  EthernetConfigSet(ETH_BASE, (ETH_CFG_TX_DPLXEN | ETH_CFG_TX_CRCEN |
+                               ETH_CFG_TX_PADEN));
+
+  // Enable the Ethernet Controller.
+  EthernetEnable(ETH_BASE);
+
+  // Enable the Ethernet interrupt.
+  IntEnable(INT_ETH);
+
+  // Enable the Ethernet RX Packet interrupt source.
+  EthernetIntEnable(ETH_BASE, ETH_INT_RX);  
+
+  // Enable all processor interrupts.
+  IntMasterEnable();
+
+  // Initialize the uIP TCP/IP stack.
+  uip_init();
+  uip_arp_init();
+  uip_ipaddr(ipaddr, DEFAULT_IPADDR0, DEFAULT_IPADDR1, DEFAULT_IPADDR2, DEFAULT_IPADDR3);
+  uip_sethostaddr(ipaddr);
+  uip_ipaddr(ipaddr, DEFAULT_NETMASK0, DEFAULT_NETMASK1, DEFAULT_NETMASK2, DEFAULT_NETMASK3);
+  uip_setnetmask(ipaddr);     
+
+  // Configure the hardware MAC address for Ethernet Controller filtering of
+  // incoming packets.
+  //
+  // For the Ethernet Eval Kits, the MAC address will be stored in the
+  // non-volatile USER0 and USER1 registers.  These registers can be read
+  // using the FlashUserGet function, as illustrated below.
+  FlashUserGet(&user0, &user1);
+  
+  // Convert the 24/24 split MAC address from NV ram into a 32/16 split MAC
+  // address needed to program the hardware registers, then program the MAC
+  // address into the Ethernet Controller registers.
+  sTempAddr.addr[0] = ((user0 >>  0) & 0xff);
+  sTempAddr.addr[1] = ((user0 >>  8) & 0xff);
+  sTempAddr.addr[2] = ((user0 >> 16) & 0xff);
+  sTempAddr.addr[3] = ((user1 >>  0) & 0xff);
+  sTempAddr.addr[4] = ((user1 >>  8) & 0xff);
+  sTempAddr.addr[5] = ((user1 >> 16) & 0xff);  
+
+  // Program the hardware with it's MAC address (for filtering).
+  EthernetMACAddrSet(ETH_BASE, (unsigned char *)&sTempAddr);  
+  uip_setethaddr(sTempAddr);
+#endif
 }
 
 // ****************************************************************************

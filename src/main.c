@@ -176,7 +176,7 @@ int main( void )
   
   // Initialize terminal
   term_init( TERMINAL_LINES, TERMINAL_COLS, term_out, term_in, term_translate );
-  
+
   // Autorun: if "autorun.lua" is found in the ROM file system, run it first
   if( ( fp = fopen( "/rom/autorun.lua", "r" ) ) != NULL )
   {
