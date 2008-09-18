@@ -1,6 +1,6 @@
 # Configuration file for the LM3S microcontroller
 
-specific_files = "startup_gcc.c platform.c usart.c sysctl.c gpio.c ssi.c timer.c pwm.c ethernet.c systick.c uip_support.c flash.c interrupt.c cpu.s"
+specific_files = "startup_gcc.c platform.c usart.c sysctl.c gpio.c ssi.c timer.c pwm.c ethernet.c systick.c flash.c interrupt.c cpu.s"
 ldscript = "lm3s.ld"
   
 # Prepend with path

@@ -9,6 +9,8 @@
 #include "devman.h"
 #include "ioctl.h"
 #include "platform.h"
+#include "build.h"
+#include "genstd.h"
 
 #ifdef USE_MULTIPLE_ALLOCATOR
 #include "dlmalloc.h"
@@ -362,3 +364,24 @@ void* _memalign_r( struct _reent* r, size_t align, size_t nbytes )
 }
 
 #endif // #ifdef USE_MULTIPLE_ALLOCATOR
+
+// *****************************************************************************
+// eLua stubs (not Newlib specific)
+
+#ifndef BUILD_CON_GENERIC
+
+// Set send/recv functions
+void std_set_send_func( p_std_send_char pfunc )
+{
+}
+
+void std_set_get_func( p_std_get_char pfunc )
+{
+}
+
+DM_DEVICE* std_get_desc()
+{
+  return NULL;
+}
+
+#endif // #ifndef BUILD_CON_GENERIC

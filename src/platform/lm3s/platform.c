@@ -20,6 +20,7 @@
 #include "hw_memmap.h"
 #include "hw_types.h"
 #include "hw_pwm.h"
+#include "hw_nvic.h"
 #include "debug.h"
 #include "gpio.h"
 #include "interrupt.h"
@@ -33,6 +34,11 @@
 #include "systick.h"
 #include "flash.h"
 #include "interrupt.h"
+#include "elua_net.h"
+
+// UIP sys tick data
+#define SYSTICKHZ               4
+#define SYSTICKMS               (1000 / SYSTICKHZ)
 
 // *****************************************************************************
 // std function
@@ -539,17 +545,23 @@ u32 platform_pwm_op( unsigned id, int op, u32 data )
   return res;
 }
 
-// ****************************************************************************
-// Ethernet
 
-#define DEFAULT_IPADDR0         192
-#define DEFAULT_IPADDR1         168
-#define DEFAULT_IPADDR2         1
-#define DEFAULT_IPADDR3         13
-#define DEFAULT_NETMASK0        255
-#define DEFAULT_NETMASK1        255
-#define DEFAULT_NETMASK2        255
-#define DEFAULT_NETMASK3        0
+
+// *****************************************************************************
+// CPU specific functions
+
+void platform_cpu_enable_interrupts()
+{
+  IntMasterEnable();
+}
+
+void platform_cpu_disable_interrupts()
+{
+  IntMasterDisable();
+}
+
+// ****************************************************************************
+// Ethernet functions
 
 static void eth_init()
 {
@@ -557,9 +569,6 @@ static void eth_init()
   u32 user0, user1, temp;
   uip_ipaddr_t ipaddr;  
   static struct uip_eth_addr sTempAddr;     
-
-  // Initialize the TCP/IP Application
-  elua_uip_init();    
   
   // Enable and reset the controller
   SysCtlPeripheralEnable( SYSCTL_PERIPH_ETH );
@@ -605,9 +614,9 @@ static void eth_init()
   // Initialize the uIP TCP/IP stack.
   uip_init();
   uip_arp_init();
-  uip_ipaddr(ipaddr, DEFAULT_IPADDR0, DEFAULT_IPADDR1, DEFAULT_IPADDR2, DEFAULT_IPADDR3);
+  uip_ipaddr(ipaddr, ELUA_IPADDR0, ELUA_IPADDR1, ELUA_IPADDR2, ELUA_IPADDR3);
   uip_sethostaddr(ipaddr);
-  uip_ipaddr(ipaddr, DEFAULT_NETMASK0, DEFAULT_NETMASK1, DEFAULT_NETMASK2, DEFAULT_NETMASK3);
+  uip_ipaddr(ipaddr, ELUA_NETMASK0, ELUA_NETMASK1, ELUA_NETMASK2, ELUA_NETMASK3);
   uip_setnetmask(ipaddr);     
 
   // Configure the hardware MAC address for Ethernet Controller filtering of
@@ -631,8 +640,73 @@ static void eth_init()
   // Program the hardware with it's MAC address (for filtering).
   EthernetMACAddrSet(ETH_BASE, (unsigned char *)&sTempAddr);  
   uip_setethaddr(sTempAddr);
+
+  // Initialize the TCP/IP Application
+  elua_uip_init();    
 #endif
 }
+
+#ifdef BUILD_UIP
+static int eth_timer_fired;
+
+void platform_eth_send_packet( const void* src, u32 size )
+{
+  EthernetPacketPut( ETH_BASE, uip_buf, uip_len );    
+}
+
+u32 platform_eth_get_packet_nb( void* buf, u32 maxlen )
+{
+  return EthernetPacketGetNonBlocking( ETH_BASE, uip_buf, sizeof( uip_buf ) );
+}
+
+void platform_eth_force_interrupt()
+{
+  HWREG( NVIC_SW_TRIG) |= INT_ETH - 16;  
+}
+
+u32 platform_eth_get_elapsed_time()
+{
+  if( eth_timer_fired )
+  {
+    eth_timer_fired = 0;
+    return SYSTICKMS;
+  }
+  else
+    return 0;
+}
+
+void SysTickIntHandler()
+{
+  // Indicate that a SysTick interrupt has occurred.
+  eth_timer_fired = 1;
+
+  // Generate a fake Ethernet interrupt.  This will perform the actual work
+  // of incrementing the timers and taking the appropriate actions.
+  platform_eth_force_interrupt();
+}
+
+void EthernetIntHandler()
+{
+  u32 temp;
+  
+  // Read and Clear the interrupt.
+  temp = EthernetIntStatus( ETH_BASE, false );
+  EthernetIntClear( ETH_BASE, temp );
+
+  // Call the UIP main loop  
+  elua_uip_mainloop();
+}
+
+#else  // #ifdef ELUA_UIP
+
+void SysTickIntHandler()
+{
+}
+
+void EthernetIntHandler()
+{
+}
+#endif // #ifdef ELUA_UIP
 
 // ****************************************************************************
 // Platform data

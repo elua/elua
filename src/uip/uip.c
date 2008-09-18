@@ -1,7 +1,7 @@
 #include "build.h"
 #ifdef BUILD_UIP
 
-#define DEBUG_PRINTF( ... )
+#define DEBUG_PRINTF(...) /*printf(__VA_ARGS__)*/
 
 /**
  * \defgroup uip The uIP TCP/IP stack
@@ -255,13 +255,18 @@ void uip_log(char *msg);
 #define UIP_LOG(m)
 #endif /* UIP_LOGGING == 1 */
 
+#if 0
 #include <stdio.h>
 #undef DEBUG_PRINTF
+#define DEBUG_PRINTF(...) printf(__VA_ARGS__)
 #undef UIP_LOG
-#define DEBUG_PRINTF( ... ) printf( __VA_ARGS__ )
 #define UIP_LOG( x ) printf( x )
+#endif 
 
 #if ! UIP_ARCH_ADD32 && UIP_TCP
+
+#include "type.h"
+
 void
 uip_add32(u8_t *op32, u16_t op16)
 {
@@ -293,7 +298,7 @@ uip_add32(u8_t *op32, u16_t op16)
 
 #if ! UIP_ARCH_CHKSUM
 /*---------------------------------------------------------------------------*/
-static u16_t
+/*static*/ u16_t
 chksum(u16_t sum, const u8_t *data, u16_t len)
 {
   u16_t t;
@@ -426,10 +431,10 @@ uip_init(void)
 }
 /*---------------------------------------------------------------------------*/
 #if UIP_ACTIVE_OPEN && UIP_TCP
-struct uip_conn *
-uip_connect(uip_ipaddr_t *ripaddr, u16_t rport)
+static void 
+uip_find_unused_port()
 {
-  register struct uip_conn *conn, *cconn;
+  register struct uip_conn *conn;
   
   /* Find an unused local port. */
  again:
@@ -443,12 +448,43 @@ uip_connect(uip_ipaddr_t *ripaddr, u16_t rport)
      another one. */
   for(c = 0; c < UIP_CONNS; ++c) {
     conn = &uip_conns[c];
-    if(conn->tcpstateflags != UIP_CLOSED &&
+    if(conn->tcpstateflags != UIP_CLOSED && conn->tcpstateflags != UIP_RESERVED &&
        conn->lport == htons(lastport)) {
       goto again;
     }
   }
+}
 
+static void
+uip_prepare_conn( struct uip_conn* conn, uip_ipaddr_t *ripaddr, u16_t rport )
+{
+  conn->tcpstateflags = UIP_SYN_SENT;
+
+  conn->snd_nxt[0] = iss[0];
+  conn->snd_nxt[1] = iss[1];
+  conn->snd_nxt[2] = iss[2];
+  conn->snd_nxt[3] = iss[3];
+
+  conn->initialmss = conn->mss = UIP_TCP_MSS;
+  
+  conn->len = 1;   /* TCP length of the SYN is one. */
+  conn->nrtx = 0;
+  conn->timer = 1; /* Send the SYN next time around. */
+  conn->rto = UIP_RTO;
+  conn->sa = 0;
+  conn->sv = 16;   /* Initial value of the RTT variance. */
+  conn->lport = htons(lastport);
+  conn->rport = rport;
+  uip_ipaddr_copy(&conn->ripaddr, ripaddr);
+}
+
+struct uip_conn *
+uip_connect(uip_ipaddr_t *ripaddr, u16_t rport)
+{
+  register struct uip_conn *conn, *cconn;
+  
+  uip_find_unused_port();
+  
   conn = 0;
   for(c = 0; c < UIP_CONNS; ++c) {
     cconn = &uip_conns[c];
@@ -468,26 +504,24 @@ uip_connect(uip_ipaddr_t *ripaddr, u16_t rport)
     return 0;
   }
   
-  conn->tcpstateflags = UIP_SYN_SENT;
-
-  conn->snd_nxt[0] = iss[0];
-  conn->snd_nxt[1] = iss[1];
-  conn->snd_nxt[2] = iss[2];
-  conn->snd_nxt[3] = iss[3];
-
-  conn->initialmss = conn->mss = UIP_TCP_MSS;
-  
-  conn->len = 1;   /* TCP length of the SYN is one. */
-  conn->nrtx = 0;
-  conn->timer = 1; /* Send the SYN next time around. */
-  conn->rto = UIP_RTO;
-  conn->sa = 0;
-  conn->sv = 16;   /* Initial value of the RTT variance. */
-  conn->lport = htons(lastport);
-  conn->rport = rport;
-  uip_ipaddr_copy(&conn->ripaddr, ripaddr);
+  uip_prepare_conn( conn, ripaddr, rport );
   
   return conn;
+}
+
+struct uip_conn *uip_connect_socket( int conn, uip_ipaddr_t *ripaddr, u16_t port )
+{
+  register struct uip_conn *pconn;
+  
+  pconn = uip_conns + conn;
+  if( pconn->tcpstateflags != UIP_RESERVED )
+    return 0;
+    
+  uip_find_unused_port();
+  
+  uip_prepare_conn( pconn, ripaddr, port );
+  
+  return pconn;
 }
 #endif /* UIP_ACTIVE_OPEN && UIP_TCP */
 /*---------------------------------------------------------------------------*/
@@ -764,7 +798,7 @@ uip_process(u8_t flag)
       if(uip_connr->timer == UIP_TIME_WAIT_TIMEOUT) {
 	uip_connr->tcpstateflags = UIP_CLOSED;
       }
-    } else if(uip_connr->tcpstateflags != UIP_CLOSED) {
+    } else if(uip_connr->tcpstateflags != UIP_CLOSED && uip_connr->tcpstateflags != UIP_RESERVED) {
       /* If the connection has outstanding data, we increase the
 	 connection's timer and see if it has reached the RTO value
 	 in which case we retransmit. */
@@ -1229,7 +1263,7 @@ uip_process(u8_t flag)
   /* First check any active connections. */
   for(uip_connr = &uip_conns[0]; uip_connr <= &uip_conns[UIP_CONNS - 1];
       ++uip_connr) {
-    if(uip_connr->tcpstateflags != UIP_CLOSED &&
+    if(uip_connr->tcpstateflags != UIP_CLOSED && uip_connr->tcpstateflags != UIP_RESERVED &&
        BUF->destport == uip_connr->lport &&
        BUF->srcport == uip_connr->rport &&
        uip_ipaddr_cmp(BUF->srcipaddr, uip_connr->ripaddr)) {

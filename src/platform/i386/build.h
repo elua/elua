@@ -5,5 +5,6 @@
 
 #define BUILD_ROMFS
 #define BUILD_SHELL
+#define BUILD_CON_GENERIC
 
 #endif

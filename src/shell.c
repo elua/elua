@@ -10,12 +10,20 @@
 #include <string.h>
 #include <stdlib.h>
 #include "platform.h"
+#include "elua_net.h"
 
 #include "build.h"
 #ifdef BUILD_SHELL
 
 // Shell alternate ' ' char
 #define SHELL_ALT_SPACE           '\x07'
+
+// EOF is different in UART mode and TCP/IP mode
+#ifdef BUILD_CON_GENERIC
+  #define SHELL_EOF_STRING        "CTRL+Z"
+#else
+  #define SHELL_EOF_STRING        "CTRL+D"
+#endif
 
 // Shell command handler function
 typedef void( *p_shell_handler )( char* args );
@@ -43,7 +51,7 @@ static void shell_help( char* args )
   printf( "  lua [args] - run Lua with the given arguments\n" );
   printf( "  recv - receive a file (XMODEM) and execute it\n" );
   printf( "  ver - print eLua version\n" );
-  printf( "  exit - exit from this shelll\n" );
+  printf( "  exit - exit from this shell\n" );
 }
 
 // 'lua' handler
@@ -87,7 +95,7 @@ static void shell_lua( char* args )
     }
   }
   lua_argv[ nargs + 1 ] = NULL;
-  printf( "Press CTRL+Z to exit Lua\n" );
+  printf( "Press " SHELL_EOF_STRING " to exit Lua\n" );
   lua_main( nargs + 1, lua_argv );  
   clearerr( stdin );
 }
@@ -267,7 +275,15 @@ void shell_start()
     }
     // Check for 'exit' command
     if( pcmd->cmd && !pcmd->handler_func )
+#ifdef BUILD_UIP
+    {
+      if( ( i = elua_net_get_telnet_socket() ) != -1 )
+        elua_net_close( i );
+    }
+#else
       break;
+#endif
+    
   }
   // Shell exit point
   if( shell_prog )

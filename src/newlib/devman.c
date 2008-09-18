@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include "devman.h"
 #include "genstd.h"
+#include "build.h"
 
 static DM_DEVICE dm_list[ DM_MAX_DEVICES ];           // list of devices
 static int dm_num_devs;                               // number of devices
@@ -16,7 +17,7 @@ int dm_register( DM_DEVICE *pdev )
   int i;
   
   // First char of the name must be '/'
-  if( pdev->name == NULL || *pdev->name == '\0' || *pdev->name != '/' || strlen( pdev->name ) > DM_MAX_DEV_NAME )
+  if( pdev == NULL || pdev->name == NULL || *pdev->name == '\0' || *pdev->name != '/' || strlen( pdev->name ) > DM_MAX_DEV_NAME )
     return DM_ERR_INVALID_NAME;
   
   // Check if the device is not already registered
@@ -77,6 +78,8 @@ int dm_get_num_devices()
 int dm_init() 
 {
   dm_register( std_get_desc() );
+#ifndef BUILD_CON_TCP         // we need buffering on stdout for console over TCP
   setbuf( stdout, NULL );
+#endif
   return DM_OK;
 }

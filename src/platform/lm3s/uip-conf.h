@@ -29,12 +29,6 @@
 #ifndef __UIP_CONF_H__
 #define __UIP_CONF_H__
 
-// Added for eLua: SYSTICK data
-#define SYSTICKHZ               4
-#define SYSTICKMS               (1000 / SYSTICKHZ)
-#define SYSTICKUS               (1000000 / SYSTICKHZ)
-#define SYSTICKNS               (1000000000 / SYSTICKHZ)
-
 //
 // 8 bit datatype
 // This typedef defines the 8-bit type used throughout uIP.

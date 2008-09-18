@@ -73,5 +73,3 @@ CPUcpsie __LABEL__
 CPUwfi __LABEL__
     wfi
     bx      lr
-
-    __END__

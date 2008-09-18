@@ -165,6 +165,20 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty );
 u32 platform_pwm_op( unsigned id, int op, u32 data );
 
 // *****************************************************************************
+// CPU specific functions
+
+void platform_cpu_enable_interrupts();
+void platform_cpu_disable_interrupts();
+
+// *****************************************************************************
+// Ethernet specific functions
+
+void platform_eth_send_packet( const void* src, u32 size );
+u32 platform_eth_get_packet_nb( void* buf, u32 maxlen );
+void platform_eth_force_interrupt();
+u32 platform_eth_get_elapsed_time();
+
+// *****************************************************************************
 // Platform data subsection
 // Contains functions for platform identification
 

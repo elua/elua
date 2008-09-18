@@ -1,16 +1,18 @@
 // Generic stdin/stdout/stderr support functions
 
+#include "build.h"
+#ifdef BUILD_CON_GENERIC
+
 #include "type.h"
 #include "devman.h"
 #include "genstd.h"
 #include <stdio.h>
 #include <errno.h>
 #include <ctype.h>
+#include "utils.h"
 
 static p_std_send_char std_send_char_func;
 static p_std_get_char std_get_char_func;
-
-#define STD_CTRLZ_CODE         26
 
 // 'read'
 static _ssize_t std_read( struct _reent *r, int fd, void* vptr, size_t len )
@@ -91,6 +93,7 @@ static _ssize_t std_write( struct _reent *r, int fd, const void* vptr, size_t le
     r->_errno = EINVAL;
     return -1;
   }  
+  
   for( i = 0; i < len; i ++ ) 
   {
     if( ptr[ i ] == '\n' )
@@ -126,3 +129,5 @@ DM_DEVICE* std_get_desc()
 {
   return &std_device;
 }
+
+#endif // #ifdef BUILD_CON_GENERIC

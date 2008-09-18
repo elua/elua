@@ -117,13 +117,13 @@ local_include = local_include + " -Isrc/modules -Isrc/platform/%s" % platform
 local_libs = ''
   
 # Application files
-app_files = " src/romfs.c src/main.c src/xmodem.c src/shell.c src/term.c src/dlmalloc.c"
+app_files = " src/main.c src/romfs.c src/xmodem.c src/shell.c src/term.c src/dlmalloc.c "
   
 # Newlib related files  
-newlib_files = " src/newlib/devman.c src/newlib/stubs.c src/newlib/genstd.c"
+newlib_files = " src/newlib/devman.c src/newlib/stubs.c src/newlib/genstd.c src/newlib/stdtcp.c"
 
 # UIP files
-uip_files = "uip_arp.c uip.c uiplib.c"
+uip_files = "uip_arp.c uip.c uiplib.c uip-split.c"
 uip_files = " src/elua_uip.c " + " ".join( [ "src/uip/%s" % name for name in uip_files.split() ] )
 local_include = local_include + " -Isrc/uip"
 
@@ -142,7 +142,7 @@ tools = {}
 execfile( "src/platform/%s/conf.py" % platform )
 
 # Complete file list
-source_files = specific_files + newlib_files + uip_files + app_files + lua_full_files + module_files
+source_files = app_files + specific_files + newlib_files + uip_files + lua_full_files + module_files
   
 # Make filesystem first
 if not GetOption( 'clean' ):

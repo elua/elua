@@ -300,12 +300,19 @@ void uip_setipid(u16_t id);
  */
 #define uip_periodic(conn) do { uip_conn = &uip_conns[conn]; \
                                 uip_process(UIP_TIMER); } while (0)
-
+                                
 /**
  *
  *
  */
-#define uip_conn_active(conn) (uip_conns[conn].tcpstateflags != UIP_CLOSED)
+#define uip_conn_active(conn) (uip_conns[conn].tcpstateflags != UIP_CLOSED && \
+                               uip_conns[conn].tcpstateflags != UIP_RESERVED )
+
+/**
+ * Reserve a connection (for a later call to connect)
+ *
+ */
+#define uip_conn_reserve(conn) (uip_conns[conn].tcpstateflags = UIP_RESERVED)
 
 /**
  * Perform periodic processing for a connection identified by a pointer
@@ -336,6 +343,8 @@ void uip_setipid(u16_t id);
  */
 #define uip_poll_conn(conn) do { uip_conn = conn; \
                                  uip_process(UIP_POLL_REQUEST); } while (0)
+#define uip_poll_conn_num(conn) do { uip_conn = &uip_conns[conn]; \
+                                 uip_process(UIP_POLL_REQUEST); } while (0)                                 
 
 
 #if UIP_UDP
@@ -494,10 +503,11 @@ void uip_unlisten(u16_t port);
  * \return A pointer to the uIP connection identifier for the new connection,
  * or NULL if no connection could be allocated.
  *
+ * uip_connect_socket() is the same things, except it takes a connection ID
+ * (prereserved with uip_reserve()) and uses it for connection  
  */
 struct uip_conn *uip_connect(uip_ipaddr_t *ripaddr, u16_t port);
-
-
+struct uip_conn *uip_connect_socket( int conn, uip_ipaddr_t *ripaddr, u16_t port );
 
 /**
  * \internal
@@ -589,6 +599,7 @@ void uip_send(const void *data, int len);
  * \hideinitializer
  */
 #define uip_stop()          (uip_conn->tcpstateflags |= UIP_STOPPED)
+#define uip_stop_conn(conn) (uip_conns[conn].tcpstateflags |= UIP_STOPPED)     
 
 /**
  * Find out if the current connection has been previously stopped with
@@ -596,7 +607,8 @@ void uip_send(const void *data, int len);
  *
  * \hideinitializer
  */
-#define uip_stopped(conn)   ((conn)->tcpstateflags & UIP_STOPPED)
+#define uip_stopped(conn)      ((conn)->tcpstateflags & UIP_STOPPED)
+#define uip_stopped_conn(conn) (uip_conns[conn].tcpstateflags & UIP_STOPPED)
 
 /**
  * Restart the current connection, if is has previously been stopped
@@ -607,10 +619,12 @@ void uip_send(const void *data, int len);
  *
  * \hideinitializer
  */
-#define uip_restart()         do { uip_flags |= UIP_NEWDATA; \
-                                   uip_conn->tcpstateflags &= ~UIP_STOPPED; \
-                              } while(0)
-
+#define uip_restart()           do { uip_flags |= UIP_NEWDATA; \
+                                     uip_conn->tcpstateflags &= ~UIP_STOPPED; \
+                                } while(0)
+#define uip_restart_conn(conn)  do { uip_flags |= UIP_NEWDATA; \
+                                     uip_conns[conn].tcpstateflags &= ~UIP_STOPPED; \
+                                } while(0)                                    
 
 /* uIP tests that can be made to determine in what state the current
    connection is, and what the application function should do. */
@@ -1384,6 +1398,7 @@ void uip_process(u8_t flag);
 #define UIP_CLOSING     6
 #define UIP_TIME_WAIT   7
 #define UIP_LAST_ACK    8
+#define UIP_RESERVED    9
 #define UIP_TS_MASK     15
   
 #define UIP_STOPPED      16
@@ -1459,7 +1474,7 @@ struct uip_icmpip_hdr {
   u8_t icmp6data[16];
   u8_t options[1];
 #endif /* !UIP_CONF_IPV6 */
-};
+} __attribute__ ((__packed__));
 
 
 /* The UDP and IP headers. */
@@ -1491,7 +1506,7 @@ struct uip_udpip_hdr {
     destport;
   u16_t udplen;
   u16_t udpchksum;
-};
+} __attribute__ ((__packed__));
 
 
 

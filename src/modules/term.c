@@ -6,6 +6,7 @@
 #include "platform.h"
 #include "auxmods.h"
 #include "term.h"
+#include "build.h"
 
 // Lua: clrscr()
 static int luaterm_clrscr( lua_State* L )
@@ -209,6 +210,7 @@ static const char* term_key_names[] = { TERM_KEYCODES };
 
 LUALIB_API int luaopen_term( lua_State* L )
 {
+#ifdef BUILD_TERM
   unsigned i;
   
   // Register methods
@@ -228,4 +230,7 @@ LUALIB_API int luaopen_term( lua_State* L )
   lua_setfield( L, -2, "WAIT" );  
   
   return 1;
+#else // #ifdef BUILD_TERM
+  return 0;
+#endif // #ifdef BUILD_TERM  
 }

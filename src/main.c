@@ -12,6 +12,9 @@
 #include "lua.h"
 #include "term.h"
 
+// Validate eLua configuratin options
+#include "validate.h"
+
 extern char etext[];
 
 // ****************************************************************************
