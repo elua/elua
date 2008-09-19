@@ -4,7 +4,6 @@
 ** See Copyright Notice in lua.h
 */
 
-
 #define linit_c
 #define LUA_LIB
 
@@ -13,7 +12,9 @@
 #include "lualib.h"
 #include "lauxlib.h"
 
+#ifndef LUA_CROSS_COMPILER
 #include "platform_libs.h"
+#endif
 
 static const luaL_Reg lualibs[] = {
   {"", luaopen_base},

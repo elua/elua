@@ -32,6 +32,7 @@ static int stripping=0;			/* strip debug information? */
 static char Output[]={ OUTPUT };	/* default output file name */
 static const char* output=Output;	/* actual output file name */
 static const char* progname=PROGNAME;	/* actual program name */
+static DumpTargetInfo target;
 
 static void fatal(const char* message)
 {
@@ -60,6 +61,9 @@ static void usage(const char* message)
  "  -p       parse only\n"
  "  -s       strip debug information\n"
  "  -v       show version information\n"
+ "  -cci bits       cross-compile with given integer size\n"
+ "  -ccn type bits  cross-compile with given lua_Number type and size\n"
+ "  -cce endian     cross-compile with given endianness ('big' or 'little')\n"
  "  --       stop handling options\n",
  progname,Output);
  exit(EXIT_FAILURE);
@@ -98,6 +102,33 @@ static int doargs(int argc, char* argv[])
    stripping=1;
   else if (IS("-v"))			/* show version */
    ++version;
+  else if (IS("-cci")) /* target integer size */
+  {
+   int s = target.sizeof_int = target.sizeof_size_t = atoi(argv[++i])/8;
+   if (!(s==1 || s==2 || s==4)) fatal(LUA_QL("-cci") " must be 8, 16 or 32");
+  }
+  else if (IS("-ccn")) /* target lua_Number type and size */
+  {
+   const char *type=argv[++i];
+   if (strcmp(type,"int")==0) target.lua_Number_integral=1;
+   else if (strcmp(type,"float")==0) target.lua_Number_integral=0;
+   else if (strcmp(type,"float_arm")==0)
+   {
+     target.lua_Number_integral=0;
+     target.is_arm_fpa=1;
+   }
+   else fatal(LUA_QL("-ccn") " type must be " LUA_QL("int") " or " LUA_QL("float") " or " LUA_QL("float_arm"));
+   int s = target.sizeof_lua_Number = atoi(argv[++i])/8;
+   if (target.lua_Number_integral && !(s==1 || s==2 || s==4)) fatal(LUA_QL("-ccn") " size must be 8, 16, or 32 for int");
+   if (!target.lua_Number_integral && !(s==4 || s==8)) fatal(LUA_QL("-ccn") " size must be 32 or 64 for float");
+  }
+  else if (IS("-cce")) /* target endianness */
+  {
+   const char *val=argv[++i];
+   if (strcmp(val,"big")==0) target.little_endian=0;
+   else if (strcmp(val,"little")==0) target.little_endian=1;
+   else fatal(LUA_QL("-cce") " must be " LUA_QL("big") " or " LUA_QL("little"));
+  }
   else					/* unknown option */
    usage(argv[i]);
  }
@@ -175,8 +206,10 @@ static int pmain(lua_State* L)
   FILE* D= (output==NULL) ? stdout : fopen(output,"wb");
   if (D==NULL) cannot("open");
   lua_lock(L);
-  luaU_dump(L,f,writer,D,stripping);
+  int result=luaU_dump_crosscompile(L,f,writer,D,stripping,target);
   lua_unlock(L);
+  if (result==LUA_ERR_CC_INTOVERFLOW) fatal("value too big or small for target integer type");
+  if (result==LUA_ERR_CC_NOTINTEGER) fatal("target lua_Number is integral but fractional value found");
   if (ferror(D)) cannot("write");
   if (fclose(D)) cannot("close");
  }
@@ -187,6 +220,15 @@ int main(int argc, char* argv[])
 {
  lua_State* L;
  struct Smain s;
+ 
+ int test=1;
+ target.little_endian=*(char*)&test;
+ target.sizeof_int=sizeof(int);
+ target.sizeof_size_t=sizeof(size_t);
+ target.sizeof_lua_Number=sizeof(lua_Number);
+ target.lua_Number_integral=(((lua_Number)0.5)==0);
+ target.is_arm_fpa=0;
+
  int i=doargs(argc,argv);
  argc-=i; argv+=i;
  if (argc<=0) usage("no input files given");

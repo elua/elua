@@ -10,11 +10,24 @@
 #include "lobject.h"
 #include "lzio.h"
 
+/* info about target machine for cross-compilation */
+typedef struct {
+ int little_endian;
+ int sizeof_int;
+ int sizeof_size_t;
+ int sizeof_lua_Number;
+ int lua_Number_integral;
+ int is_arm_fpa;
+} DumpTargetInfo;
+
 /* load one chunk; from lundump.c */
 LUAI_FUNC Proto* luaU_undump (lua_State* L, ZIO* Z, Mbuffer* buff, const char* name);
 
 /* make header; from lundump.c */
 LUAI_FUNC void luaU_header (char* h);
+
+/* dump one chunk to a different target; from ldump.c */
+int luaU_dump_crosscompile (lua_State* L, const Proto* f, lua_Writer w, void* data, int strip, DumpTargetInfo target);
 
 /* dump one chunk; from ldump.c */
 LUAI_FUNC int luaU_dump (lua_State* L, const Proto* f, lua_Writer w, void* data, int strip);
@@ -32,5 +45,12 @@ LUAI_FUNC void luaU_print (const Proto* f, int full);
 
 /* size of header of binary files */
 #define LUAC_HEADERSIZE		12
+
+/* error codes from cross-compiler */
+/* target integer is too small to hold a value */
+#define LUA_ERR_CC_INTOVERFLOW 101
+
+/* target lua_Number is integral but a constant is non-integer */
+#define LUA_ERR_CC_NOTINTEGER 102
 
 #endif
