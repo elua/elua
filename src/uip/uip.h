@@ -1560,7 +1560,7 @@ extern uip_ipaddr_t uip_hostaddr, uip_netmask, uip_draddr;
 /**
  * Representation of a 48-bit Ethernet address.
  */
-struct uip_eth_addr {
+struct  uip_eth_addr {
   u8_t addr[6];
 } __attribute__ ((__packed__));
 

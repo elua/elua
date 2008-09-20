@@ -12,21 +12,14 @@
 #include "platform.h"
 #include "utils.h"
 #include "uip-split.h"
+#include "dhcpc.h"
 #include <string.h>
-
-// [REMOVE]
-// Also remove any printf()s here and MYLOGs
-#include <stdio.h>
-#include "hw_types.h"
-#include "hw_uart.h"
-#include "hw_memmap.h"
-#include "usart.h"
-#define MYLOG( x ) UARTCharPut( UART0_BASE, x )
 
 // UIP send buffer
 extern void* uip_sappdata;
 
-
+// Global "configured" flag
+static u8 elua_uip_configured;
 
 // *****************************************************************************
 // Platform independenet eLua UIP "main loop" implementation
@@ -153,6 +146,24 @@ void elua_uip_mainloop()
 }
 
 // *****************************************************************************
+// DHCP callback
+
+#ifdef BUILD_DHCPC
+
+void dhcpc_configured(const struct dhcpc_state *s)
+{
+  if(s->ipaddr[0] != 0)
+  {
+    uip_sethostaddr(s->ipaddr);
+    uip_setnetmask(s->netmask); 
+    uip_setdraddr(s->default_router);     
+    elua_uip_configured = 1;
+  }
+}
+
+#endif
+
+// *****************************************************************************
 // Console over Ethernet support
 
 #ifdef BUILD_CON_TCP
@@ -239,6 +250,10 @@ void elua_uip_appcall()
   struct elua_uip_state *s;
   elua_net_size temp;
   int sockno;
+  
+  // If uIP is not yet configured (DHCP response not received), do nothing
+  if( !elua_uip_configured )
+    return;
     
   s = ( struct elua_uip_state* )&( uip_conn->appstate );
   // Need to find the actual socket location, since UIP doesn't provide this ...
@@ -356,8 +371,27 @@ void elua_uip_appcall()
 }
 
 // Init application
-void elua_uip_init()
+void elua_uip_init( const struct uip_eth_addr *paddr )
 {
+  // Set hardware address
+  uip_setethaddr( (*paddr) );
+  
+  // Initialize the uIP TCP/IP stack.
+  uip_init();
+  uip_arp_init();  
+#ifdef BUILD_DHCPC
+  dhcpc_init( paddr->addr, sizeof( *paddr ) );
+  dhcpc_request();
+#else
+  uip_ipaddr_t ipaddr;
+  uip_ipaddr(ipaddr, ELUA_CONF_IPADDR0, ELUA_CONF_IPADDR1, ELUA_CONF_IPADDR2, ELUA_CONF_IPADDR3);
+  uip_sethostaddr(ipaddr);
+  uip_ipaddr(ipaddr, ELUA_CONF_NETMASK0, ELUA_CONF_NETMASK1, ELUA_CONF_NETMASK2, ELUA_CONF_NETMASK3);
+  uip_setnetmask(ipaddr); 
+  uip_ipaddr(ipaddr, ELUA_CONF_DEFGW0, ELUA_CONF_DEFGW1, ELUA_CONF_DEFGW2, ELUA_CONF_DEFGW3);
+  uip_setdraddr(ipaddr);      
+  elua_uip_configured = 1;
+#endif
 #ifdef BUILD_CON_TCP
   uip_listen( HTONS( ELUA_NET_TELNET_PORT ) );
 #endif  
@@ -366,7 +400,7 @@ void elua_uip_init()
 // *****************************************************************************
 // eLua TCP/IP services (from elua_net.h)
 
-#define ELUA_UIP_IS_SOCK_OK( sock ) ( sock >= 0 && sock < UIP_CONNS )
+#define ELUA_UIP_IS_SOCK_OK( sock ) ( elua_uip_configured && sock >= 0 && sock < UIP_CONNS )
 
 int elua_net_socket( int type )
 {
@@ -469,6 +503,8 @@ int elua_net_get_last_err( int s )
 // Accept a connection on the given port, return its socket id
 int elua_accept( u16 port )
 {
+  if( !elua_uip_configured )
+    return -1;
 #ifdef BUILD_CON_TCP
   if( port == ELUA_NET_TELNET_PORT )
     return -1;

@@ -123,7 +123,7 @@ app_files = " src/main.c src/romfs.c src/xmodem.c src/shell.c src/term.c src/dlm
 newlib_files = " src/newlib/devman.c src/newlib/stubs.c src/newlib/genstd.c src/newlib/stdtcp.c"
 
 # UIP files
-uip_files = "uip_arp.c uip.c uiplib.c uip-split.c"
+uip_files = "uip_arp.c uip.c uiplib.c uip-split.c dhcpc.c psock.c"
 uip_files = " src/elua_uip.c " + " ".join( [ "src/uip/%s" % name for name in uip_files.split() ] )
 local_include = local_include + " -Isrc/uip"
 

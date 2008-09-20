@@ -62,13 +62,13 @@ typedef unsigned short uip_stats_t;
 //
 // UDP support on or off
 //
-#define UIP_CONF_UDP                0
+#define UIP_CONF_UDP                1
 
 //
 // UDP checksums on or off
 // (not currently supported ... should be 0)
 //
-#define UIP_CONF_UDP_CHECKSUMS      0
+#define UIP_CONF_UDP_CHECKSUMS      1
 
 //
 // UDP Maximum Connections
@@ -98,7 +98,7 @@ typedef unsigned short uip_stats_t;
 //
 // uIP buffer size.
 //
-#define UIP_CONF_BUFFER_SIZE        1600
+#define UIP_CONF_BUFFER_SIZE        1024
 
 //
 // uIP statistics on or off
@@ -113,7 +113,7 @@ typedef unsigned short uip_stats_t;
 //
 // Broadcast Support
 //
-#define UIP_CONF_BROADCAST          0
+#define UIP_CONF_BROADCAST          1
 
 //
 // Link-Level Header length
@@ -129,11 +129,13 @@ typedef unsigned short uip_stats_t;
 // Here we include the header file for the application we are using in
 // this example
 #include "elua_uip.h"
+#include "dhcpc.h"
 
 //
-// Define the uIP Application State type
+// Define the uIP Application State type (both TCP and UDP)
 //
 typedef struct elua_uip_state uip_tcp_appstate_t;
+typedef struct dhcpc_state uip_udp_appstate_t;
 
 //
 // UIP_APPCALL: the name of the application function. This function
@@ -141,7 +143,15 @@ typedef struct elua_uip_state uip_tcp_appstate_t;
 // appfunc(void)").
 //
 #ifndef UIP_APPCALL
-#define UIP_APPCALL     elua_uip_appcall
+#define UIP_APPCALL                 elua_uip_appcall
 #endif
+
+#ifndef UIP_ADP_APPCALL
+#define UIP_UDP_APPCALL             dhcpc_appcall
+#endif
+
+// Added for eLua: DHCP TIMER ID
+#define ELUA_DHCP_TIMER_ID          1
+#define CLOCK_SECOND                1000000UL
 
 #endif // __UIP_CONF_H_

@@ -9,7 +9,6 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
-#include "uip.h"
 #include "uip_arp.h"
 #include "elua_uip.h" 
 #include "uip-conf.h"
@@ -35,6 +34,7 @@
 #include "flash.h"
 #include "interrupt.h"
 #include "elua_net.h"
+#include "dhcpc.h"
 
 // UIP sys tick data
 #define SYSTICKHZ               4
@@ -567,7 +567,6 @@ static void eth_init()
 {
 #ifdef BUILD_UIP
   u32 user0, user1, temp;
-  uip_ipaddr_t ipaddr;  
   static struct uip_eth_addr sTempAddr;     
   
   // Enable and reset the controller
@@ -611,14 +610,6 @@ static void eth_init()
   // Enable all processor interrupts.
   IntMasterEnable();
 
-  // Initialize the uIP TCP/IP stack.
-  uip_init();
-  uip_arp_init();
-  uip_ipaddr(ipaddr, ELUA_IPADDR0, ELUA_IPADDR1, ELUA_IPADDR2, ELUA_IPADDR3);
-  uip_sethostaddr(ipaddr);
-  uip_ipaddr(ipaddr, ELUA_NETMASK0, ELUA_NETMASK1, ELUA_NETMASK2, ELUA_NETMASK3);
-  uip_setnetmask(ipaddr);     
-
   // Configure the hardware MAC address for Ethernet Controller filtering of
   // incoming packets.
   //
@@ -639,10 +630,9 @@ static void eth_init()
 
   // Program the hardware with it's MAC address (for filtering).
   EthernetMACAddrSet(ETH_BASE, (unsigned char *)&sTempAddr);  
-  uip_setethaddr(sTempAddr);
 
-  // Initialize the TCP/IP Application
-  elua_uip_init();    
+  // Initialize the eLua uIP layer
+  elua_uip_init( &sTempAddr );
 #endif
 }
 

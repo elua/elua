@@ -31,4 +31,11 @@
   #endif // #ifdef BUILD_TERM
 #endif // #ifdef BUILD_CON_TCP
 
+// For DHCP we need to have TCP/IP support
+#ifdef BUILD_DHCPC
+  #ifndef BUILD_UIP
+  #error "DHCP client requires TCP/IP support (enable BUILD_UIP in build.h)"
+  #endif // #ifndef BUILD_UIP
+#endif // #ifdef BUILD_DHCPC
+
 #endif // #ifndef __VALIDATE_H__

@@ -14,7 +14,7 @@ enum
   ELUA_UIP_STATE_SEND,
   ELUA_UIP_STATE_RECV,
   ELUA_UIP_STATE_RECV_2,
-  ELUA_UIP_STATE_CLOSE,
+  ELUA_UIP_STATE_CLOSE
 };
 
 // eLua UIP "error codes"
@@ -35,9 +35,10 @@ struct elua_uip_state
   elua_net_size     len;
 };
 
+struct uip_eth_addr;
 // Helper functions
 void elua_uip_appcall();
-void elua_uip_init();
+void elua_uip_init( const struct uip_eth_addr* paddr );
 void elua_uip_mainloop();
 
 #endif
