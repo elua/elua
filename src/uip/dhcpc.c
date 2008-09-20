@@ -1,3 +1,5 @@
+#include "build.h"
+#if defined(BUILD_UIP) && defined(BUILD_DHCPC)
 /*
  * Copyright (c) 2005, Swedish Institute of Computer Science
  * All rights reserved.
@@ -356,3 +358,11 @@ dhcpc_request(void)
   }
 }
 /*---------------------------------------------------------------------------*/
+
+#else // #if defined(BUILD_UIP) && defined(BUILD_DHCPC)
+
+void dhcpc_appcall(void)
+{
+}
+
+#endif // #if defined(BUILD_UIP) && defined(BUILD_DHCPC)
