@@ -5,6 +5,9 @@
 #include "lauxlib.h"
 #include "platform.h"
 #include "auxmods.h"
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
 
 // Local operation masks for all the ports
 static pio_type pio_masks[ PLATFORM_IO_PORTS ];
@@ -229,29 +232,73 @@ static const luaL_reg pio_map[] =
   { NULL, NULL }
 };
 
+// __index metafunction for PIO
+// Look for all Px or Px_y keys and return their correct value
+static int pio_mt_index( lua_State* L )
+{
+  const char *key = luaL_checkstring( L ,2 );
+  int port = 0xFFFF, pin = 0xFFFF, isport = 0, sz;
+  
+  if( !key || *key != 'P' )
+    return 0;
+  printf( "Key: %s\n", key );
+  if( isupper( key[ 1 ] ) ) // PA, PB, ...
+  {
+    port = key[ 1 ] - 'A';
+    if( key[ 2 ] == '\0' )
+      isport = 1;
+    else if( key[ 2 ] == '_' )      
+      if( sscanf( key + 3, "%d%n", &pin, &sz ) != 1 || sz != strlen( key ) - 3 )
+        return 0;      
+  }
+  else // P0, P1, ...
+  {
+    // P0, P1, ...
+    if( !strchr( key, '_' ) )   // parse port
+    {
+      if( sscanf( key + 1, "%d%n", &port, &sz ) != 1  || sz != strlen( key ) - 1 )
+        return 0;
+      isport = 1;
+    }
+    else    // parse port_pin
+      if( sscanf( key + 1, "%d_%d%n", &port, &pin, &sz ) != 2 || sz != strlen( key ) - 1 )
+        return 0;
+  }
+  sz = -1;
+  if( isport )
+  {
+    if( platform_pio_has_port( port ) )
+      sz = PLATFORM_IO_ENCODE( port, 0, 1 );
+  }
+  else
+  {
+    if( platform_pio_has_port( port ) && platform_pio_has_pin( port, pin ) )
+      sz = PLATFORM_IO_ENCODE( port, pin, 0 );
+  }
+  if( sz == -1 )
+    return 0;
+  else
+  {
+    lua_pushinteger( L, sz );
+    return 1;
+  }
+}
+
+// Metatable data
+static const luaL_reg pio_mt_map[] =
+{
+  { "__index", pio_mt_index },
+  { NULL, NULL }
+};
+
 LUALIB_API int luaopen_pio( lua_State *L )
 {
-  unsigned port, pin;
-  char name[ 10 ];
-  
   luaL_register( L, AUXLIB_PIO, pio_map );
   
-  // Add all port/pins combinations to our module
-  for( port = 0; port < PLATFORM_IO_PORTS; port ++ )
-    if( platform_pio_has_port( port ) )
-    {
-      // First the whole port
-      sprintf( name, "%s", platform_pio_get_prefix( port ) );
-      lua_pushnumber( L, ( lua_Number )PLATFORM_IO_ENCODE( port, 0, PLATFORM_IO_ENC_PORT ) );
-      lua_setfield( L, -2, name );        
-      // Then all its pins
-      for( pin = 0; pin < PLATFORM_IO_PINS; pin ++ )
-        if( platform_pio_has_pin( port, pin ) )
-        {
-          sprintf( name, "%s_%d", platform_pio_get_prefix( port ), pin );
-          lua_pushnumber( L, ( lua_Number )PLATFORM_IO_ENCODE( port, pin, PLATFORM_IO_ENC_PIN ) );
-          lua_setfield( L, -2, name );
-        }
-    }
+  // Create and set metatable
+  lua_newtable( L );
+  luaL_register( L, NULL, pio_mt_map );  
+  lua_setmetatable( L, -2 );
+
   return 1;
 }

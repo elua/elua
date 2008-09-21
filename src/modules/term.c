@@ -7,6 +7,7 @@
 #include "auxmods.h"
 #include "term.h"
 #include "build.h"
+#include <string.h>
 
 // Lua: clrscr()
 static int luaterm_clrscr( lua_State* L )
@@ -181,6 +182,32 @@ static int luaterm_getch( lua_State* L )
   return 1;
 }
 
+// Key codes by name
+#undef _D
+#define _D( x ) #x
+static const char* term_key_names[] = { TERM_KEYCODES };
+
+// __index metafunction for term
+// Look for all KC_xxxx codes
+static int term_mt_index( lua_State* L )
+{
+  const char *key = luaL_checkstring( L ,2 );
+  unsigned i, total = sizeof( term_key_names ) / sizeof( char* );
+  
+  if( !key || *key != 'K' )
+    return 0;
+  for( i = 0; i < total; i ++ )
+    if( !strcmp( key, term_key_names[ i ] ) )
+      break;
+  if( i == total )
+    return 0;
+  else
+  {
+    lua_pushinteger( L, i + TERM_FIRST_KEY );
+    return 1; 
+  }
+}
+
 // Module function map
 static const luaL_reg term_map[] = 
 {
@@ -203,10 +230,12 @@ static const luaL_reg term_map[] =
   { NULL, NULL }
 };
 
-// Key codes by name
-#undef _D
-#define _D( x ) #x
-static const char* term_key_names[] = { TERM_KEYCODES };
+// Metatable data
+static const luaL_reg term_mt_map[] =
+{
+  { "__index", term_mt_index },
+  { NULL, NULL }
+};
 
 LUALIB_API int luaopen_term( lua_State* L )
 {
@@ -216,13 +245,19 @@ LUALIB_API int luaopen_term( lua_State* L )
   // Register methods
   luaL_register( L, AUXLIB_TERM, term_map );  
   
+  // Create and set metatable
+  lua_newtable( L );
+  luaL_register( L, NULL, term_mt_map );  
+  lua_setmetatable( L, -2 );
+
+#if 0  
   // Register key names
   for( i = 0; i < sizeof( term_key_names ) / sizeof( char* ); i ++ )
   {
     lua_pushnumber( L, i + TERM_FIRST_KEY );
     lua_setfield( L, -2, term_key_names[ i ] );
   }
-  
+#endif  
   // Register the constants for "getch"
   lua_pushnumber( L, TERM_INPUT_DONT_WAIT );
   lua_setfield( L, -2, "NOWAIT" );  
