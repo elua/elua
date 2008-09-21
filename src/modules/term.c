@@ -250,14 +250,6 @@ LUALIB_API int luaopen_term( lua_State* L )
   luaL_register( L, NULL, term_mt_map );  
   lua_setmetatable( L, -2 );
 
-#if 0  
-  // Register key names
-  for( i = 0; i < sizeof( term_key_names ) / sizeof( char* ); i ++ )
-  {
-    lua_pushnumber( L, i + TERM_FIRST_KEY );
-    lua_setfield( L, -2, term_key_names[ i ] );
-  }
-#endif  
   // Register the constants for "getch"
   lua_pushnumber( L, TERM_INPUT_DONT_WAIT );
   lua_setfield( L, -2, "NOWAIT" );  
