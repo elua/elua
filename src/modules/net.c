@@ -152,7 +152,7 @@ static int net_recv( lua_State *L )
   }
   // Initialize buffer
   luaL_buffinit( L, &net_recv_buff );
-  elua_net_recv( sock, &net_recv_buff, maxsize, lastchar, timer_id, timeout );
+  elua_net_recvbuf( sock, &net_recv_buff, maxsize, lastchar, timer_id, timeout );
   luaL_pushresult( &net_recv_buff );
   lua_pushinteger( L, elua_net_get_last_err( sock ) );
   return 2;
