@@ -15,6 +15,7 @@
   { AUXLIB_PWM, luaopen_pwm },\
   { AUXLIB_PACK, luaopen_pack },\
   { AUXLIB_BIT, luaopen_bit },\
+  { AUXLIB_NET, luaopen_net },\
   { LUA_MATHLIBNAME, luaopen_math }
   
 #endif

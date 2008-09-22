@@ -19,7 +19,7 @@
 extern void* uip_sappdata;
 
 // Global "configured" flag
-static u8 elua_uip_configured;
+static volatile u8 elua_uip_configured;
 
 // *****************************************************************************
 // Platform independenet eLua UIP "main loop" implementation
@@ -182,13 +182,14 @@ static int elua_uip_telnet_socket = -1;
 // Utility function for TELNET: parse input buffer, skipping over
 // TELNET specific sequences
 // Returns the length of the buffer after processing
-static elua_net_size elua_uip_telnet_parse_input( struct elua_uip_state* s, elua_net_size size )
+static void elua_uip_telnet_handle_input( struct elua_uip_state* s )
 {
-  u8* dptr = ( u8* )uip_appdata;
+  u8 *dptr = ( u8* )uip_appdata, *orig = ( u8* )s->ptr;
   int skip;
+  elua_net_size actlen = uip_datalen();
   
   // Traverse the input buffer, skipping over TELNET sequences
-  while( ( size > 0 ) && ( dptr < ( u8* )uip_appdata + uip_datalen() ) )
+  while( ( dptr < ( u8* )uip_appdata + uip_datalen() ) && ( s->ptr - orig < s->len ) )
   {
     if( *dptr != TELNET_IAC_CHAR ) // regular char, copy it to buffer
       *s->ptr ++ = *dptr ++;
@@ -203,14 +204,21 @@ static elua_net_size elua_uip_telnet_parse_input( struct elua_uip_state* s, elua
         if( dptr[ 1 ] == TELNET_EOF )
         {
           *s->ptr ++ = STD_CTRLZ_CODE;
-          size ++;
+          actlen ++;
         }
         skip = 2;
       }
       dptr += skip;
-      size = UMAX( 0, size - skip );
+      actlen -= skip;
     }
   } 
+  if( s->ptr > orig )
+  {
+    if( ( s->len = s->ptr - orig ) < actlen )
+      s->res = ELUA_NET_ERR_OVERFLOW;
+    uip_stop();
+    s->state = ELUA_UIP_STATE_IDLE;
+  }
   return size;
 }
 
@@ -244,6 +252,7 @@ static elua_net_size elua_uip_telnet_prep_send( const char* src, elua_net_size s
 // Special handling for "accept"
 volatile static u8 elua_uip_accept_request;
 volatile static int elua_uip_accept_sock;
+volatile static elua_net_ip elua_uip_accept_remote;
 
 void elua_uip_appcall()
 {
@@ -264,7 +273,6 @@ void elua_uip_appcall()
 
   if( uip_connected() )
   {
-    // [TODO] handle locally initiated connections too (via uip_connect)
 #ifdef BUILD_CON_TCP    
     if( uip_conn->lport == HTONS( ELUA_NET_TELNET_PORT ) ) // special case: telnet server
       elua_uip_telnet_socket = sockno;
@@ -273,8 +281,13 @@ void elua_uip_appcall()
     if( elua_uip_accept_request )
     {
       elua_uip_accept_sock = sockno;
+      elua_uip_accept_remote.ipwords[ 0 ] = uip_conn->ripaddr[ 0 ];
+      elua_uip_accept_remote.ipwords[ 1 ] = uip_conn->ripaddr[ 1 ];      
       elua_uip_accept_request = 0;
     }
+    else if( s->state == ELUA_UIP_STATE_CONNECT )
+      s->state = ELUA_UIP_STATE_IDLE;
+    uip_stop();
     return;
   }
 
@@ -293,7 +306,7 @@ void elua_uip_appcall()
   if( uip_aborted() || uip_timedout() || uip_closed() )
   {
     // Signal this error
-    s->res = uip_aborted() ? ELUA_UIP_ERR_ABORTED : ( uip_timedout() ? ELUA_UIP_ERR_TIMEDOUT : ELUA_UIP_ERR_CLOSED );
+    s->res = uip_aborted() ? ELUA_NET_ERR_ABORTED : ( uip_timedout() ? ELUA_NET_ERR_TIMEDOUT : ELUA_NET_ERR_CLOSED );
 #ifdef BUILD_CON_TCP    
     if( sockno == elua_uip_telnet_socket )
       elua_uip_telnet_socket = -1;      
@@ -348,25 +361,60 @@ void elua_uip_appcall()
   {
     if( s->state == ELUA_UIP_STATE_RECV_2 )
     {
-      temp = uip_datalen();
 #ifdef BUILD_CON_TCP      
       if( sockno == elua_uip_telnet_socket )
       {
-        if( ( temp = elua_uip_telnet_parse_input( s, temp ) ) == 0 )
-          return;
+        elua_uip_telnet_handle_input( s );
+        return;
+      }
+#endif   
+      int lastfound = 0;
+      
+      // Check overflow
+      if( s->len < uip_datalen() )
+      {
+        s->res = ELUA_NET_ERR_OVERFLOW;   
+        temp = s->len;
       }
       else
-#endif      
-        memcpy( s->ptr, uip_appdata, UMIN( s->len, temp ) );
-      s->len = UMIN( s->len, temp );  
-      if( s->len < temp )
-        s->res = ELUA_UIP_ERR_OVERFLOW;
-      uip_stop();
-      s->state = ELUA_UIP_STATE_IDLE;
+        temp = uip_datalen();
+      
+      if( s->readto != ELUA_NET_NO_LASTCHAR )
+      {
+        char *tptr = ( char* )uip_appdata;
+        char *last = ( char* )uip_appdata + temp - 1;
+        luaL_Buffer *pbuf = ( luaL_Buffer* )s->ptr;
+        
+        while( tptr <= last )
+        {
+          if( *tptr == s->readto )
+          {
+            lastfound = 1;
+            break;
+          }
+          if( *tptr != '\r' )
+          {
+            luaL_addchar( pbuf, *tptr );
+            s->len --;
+          }
+          tptr ++;
+        }
+      }
+      else
+      {
+        luaL_addlstring( ( luaL_Buffer* )s->ptr, ( const char* )uip_appdata, temp );        
+        s->len -= temp;
+      }
+        
+      // Do we need to read another packet?
+      if( s->len == 0 || lastfound )
+      {
+        uip_stop();
+        s->state = ELUA_UIP_STATE_IDLE;
+      }
     }
     else
       uip_stop();
-    return;
   }
 }
 
@@ -402,6 +450,15 @@ void elua_uip_init( const struct uip_eth_addr *paddr )
 
 #define ELUA_UIP_IS_SOCK_OK( sock ) ( elua_uip_configured && sock >= 0 && sock < UIP_CONNS )
 
+static void elua_prep_socket_state( volatile struct elua_uip_state *pstate, void* buf, elua_net_size len, s16 readto, u8 state )
+{  
+  pstate->ptr = ( char* )buf;
+  pstate->len = len;
+  pstate->res = ELUA_NET_ERR_OK;
+  pstate->readto = readto;
+  pstate->state = state;
+}
+
 int elua_net_socket( int type )
 {
   int i;
@@ -436,30 +493,42 @@ elua_net_size elua_net_send( int s, const void* buf, elua_net_size len )
     return -1;
   if( len == 0 )
     return 0;
-  pstate->ptr = ( char* )buf;
-  pstate->len = len;
-  pstate->res = ELUA_UIP_OK;
-  pstate->state = ELUA_UIP_STATE_SEND;  
+  elua_prep_socket_state( pstate, ( void* )buf, len, ELUA_NET_NO_LASTCHAR, ELUA_UIP_STATE_SEND );
   platform_eth_force_interrupt();
   while( pstate->state != ELUA_UIP_STATE_IDLE );
   return len - pstate->len;
 }
 
-// Receive data
-elua_net_size elua_net_recv( int s, void* buf, elua_net_size maxsize )
+// Receive datain buf, upto "maxsize" bytes, or upto the 'readto' character if it's not -1
+elua_net_size elua_net_recv( int s, luaL_Buffer* buf, elua_net_size maxsize, s16 readto, unsigned timer_id, u32 to_us )
 {
   volatile struct elua_uip_state *pstate = ( volatile struct elua_uip_state* )&( uip_conns[ s ].appstate );
+  u32 tmrstart = 0;
   
   if( !ELUA_UIP_IS_SOCK_OK( s ) || !uip_conn_active( s ) )
     return -1;
   if( maxsize == 0 )
     return 0;
-  pstate->ptr = ( char* )buf;
-  pstate->len = maxsize;
-  pstate->res = ELUA_UIP_OK;  
-  pstate->state = ELUA_UIP_STATE_RECV;
-  while( pstate->state != ELUA_UIP_STATE_IDLE );
-  return pstate->len;
+  elua_prep_socket_state( pstate, buf, maxsize, readto, ELUA_UIP_STATE_RECV );
+  if( to_us > 0 )
+    tmrstart = platform_timer_op( timer_id, PLATFORM_TIMER_OP_START, 0 );
+  while( 1 )
+  {
+    if( pstate->state == ELUA_UIP_STATE_IDLE )
+      break;
+    if( to_us > 0 && platform_timer_get_diff_us( timer_id, tmrstart, platform_timer_op( timer_id, PLATFORM_TIMER_OP_READ, 0 ) ) >= to_us )
+    {
+      platform_cpu_disable_interrupts();
+      if( pstate->state != ELUA_UIP_STATE_IDLE )
+      { 
+        pstate->res = ELUA_NET_ERR_TIMEDOUT;
+        pstate->state = ELUA_UIP_STATE_IDLE;
+      }
+      platform_cpu_enable_interrupts();
+      break;
+    }
+  }
+  return maxsize - pstate->len;
 }
 
 // Return the socket associated with the "telnet" application (or -1 if it does
@@ -483,11 +552,10 @@ int elua_net_close( int s )
   
   if( !ELUA_UIP_IS_SOCK_OK( s ) || !uip_conn_active( s ) )
     return -1;
-  pstate->res = ELUA_UIP_OK;    
-  pstate->state = ELUA_UIP_STATE_CLOSE;
+  elua_prep_socket_state( pstate, NULL, 0, ELUA_NET_NO_LASTCHAR, ELUA_UIP_STATE_CLOSE );
   platform_eth_force_interrupt();
   while( pstate->state != ELUA_UIP_STATE_IDLE );
-  return 0;
+  return pstate->res == ELUA_NET_ERR_OK ? 0 : -1;
 }
 
 // Get last error on specific socket
@@ -500,9 +568,11 @@ int elua_net_get_last_err( int s )
   return pstate->res;
 }
 
-// Accept a connection on the given port, return its socket id
-int elua_accept( u16 port )
+// Accept a connection on the given port, return its socket id (and the IP of the remote host by side effect)
+int elua_accept( u16 port, unsigned timer_id, u32 to_us, elua_net_ip* pfrom )
 {
+  u32 tmrstart = 0;
+  
   if( !elua_uip_configured )
     return -1;
 #ifdef BUILD_CON_TCP
@@ -515,8 +585,41 @@ int elua_accept( u16 port )
   platform_cpu_enable_interrupts();
   elua_uip_accept_sock = -1;
   elua_uip_accept_request = 1;
-  while( elua_uip_accept_request );
+  if( to_us > 0 )
+    tmrstart = platform_timer_op( timer_id, PLATFORM_TIMER_OP_START, 0 );
+  while( 1 )
+  {
+    if( elua_uip_accept_request == 0 )
+      break;
+    if( to_us > 0 && platform_timer_get_diff_us( timer_id, tmrstart, platform_timer_op( timer_id, PLATFORM_TIMER_OP_READ, 0 ) ) >= to_us )
+    {
+      elua_uip_accept_request = 0;
+      break;
+    }
+  }  
+  *pfrom = elua_uip_accept_remote;
   return elua_uip_accept_sock;
+}
+
+// Connect to a specified machine
+int elua_net_connect( int s, elua_net_ip addr, u16 port )
+{
+  volatile struct elua_uip_state *pstate = ( volatile struct elua_uip_state* )&( uip_conns[ s ].appstate );
+  uip_ipaddr_t ipaddr;
+  
+  if( !ELUA_UIP_IS_SOCK_OK( s ) )
+    return -1;
+  // The socket should have been reserved by a previous call to "elua_net_socket"
+  if( !uip_conn_is_reserved( s ) )
+    return -1;
+  // Initiate the connect call  
+  uip_ipaddr( ipaddr, addr.ipbytes[ 0 ], addr.ipbytes[ 1 ], addr.ipbytes[ 2 ], addr.ipbytes[ 3 ] );
+  elua_prep_socket_state( pstate, NULL, 0, ELUA_NET_NO_LASTCHAR, ELUA_UIP_STATE_CONNECT );  
+  if( uip_connect_socket( s, &ipaddr, htons( port ) ) == NULL )
+    return -1;
+  // And wait for it to finish
+  while( pstate->state != ELUA_UIP_STATE_IDLE );
+  return pstate->res == ELUA_NET_ERR_OK ? 0 : -1;
 }
 
 #endif // #ifdef BUILD_UIP

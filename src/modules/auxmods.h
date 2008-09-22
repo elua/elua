@@ -10,28 +10,31 @@
 LUALIB_API int ( luaopen_pio )( lua_State *L );
 
 #define AUXLIB_SPI      "spi"
-LUALIB_API int ( luaopen_spi )( lua_State* L );
+LUALIB_API int ( luaopen_spi )( lua_State *L );
 
 #define AUXLIB_TMR      "tmr"
-LUALIB_API int ( luaopen_tmr )( lua_State* L );
+LUALIB_API int ( luaopen_tmr )( lua_State *L );
 
 #define AUXLIB_PD       "pd"
-LUALIB_API int ( luaopen_pd )( lua_State* L );
+LUALIB_API int ( luaopen_pd )( lua_State *L );
 
 #define AUXLIB_UART     "uart"
-LUALIB_API int ( luaopen_uart )( lua_State* L );
+LUALIB_API int ( luaopen_uart )( lua_State *L );
 
 #define AUXLIB_TERM     "term"
-LUALIB_API int ( luaopen_term )( lua_State* L );
+LUALIB_API int ( luaopen_term )( lua_State *L );
 
 #define AUXLIB_PWM      "pwm"
-LUALIB_API int ( luaopen_pwm )( lua_State* L );
+LUALIB_API int ( luaopen_pwm )( lua_State *L );
 
 #define AUXLIB_PACK     "pack"
-LUALIB_API int ( luaopen_pack )( lua_State* L );
+LUALIB_API int ( luaopen_pack )( lua_State *L );
 
 #define AUXLIB_BIT      "bit"
-LUALIB_API int ( luaopen_bit )( lua_State* L );
+LUALIB_API int ( luaopen_bit )( lua_State *L );
+
+#define AUXLIB_NET      "net"
+LUALIB_API int ( luaopen_net )( lua_State *L );
 
 // Helper macros
 

@@ -240,8 +240,6 @@ static const luaL_reg term_mt_map[] =
 LUALIB_API int luaopen_term( lua_State* L )
 {
 #ifdef BUILD_TERM
-  unsigned i;
-  
   // Register methods
   luaL_register( L, AUXLIB_TERM, term_map );  
   

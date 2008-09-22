@@ -95,7 +95,7 @@ if not GetOption( 'clean' ):
   print    
 
 output = 'elua_' + target + '_' + cputype.lower()
-cdefs = '-DELUA_CPU=%s -DELUA_BOARD=%s -DELUA_PLATFORM=%s' % ( cputype, boardname, platform.upper() )
+cdefs = '-DELUA_CPU=%s -DELUA_BOARD=%s -DELUA_PLATFORM=%s -D__BUFSIZ__=128' % ( cputype, boardname, platform.upper() )
 if allocator == 'multiple':
   cdefs = cdefs + " -DUSE_MULTIPLE_ALLOCATOR"
 
@@ -128,8 +128,8 @@ uip_files = " src/elua_uip.c " + " ".join( [ "src/uip/%s" % name for name in uip
 local_include = local_include + " -Isrc/uip"
 
 # Lua module files
-module_files = """ src/modules/pio.c src/modules/spi.c src/modules/tmr.c src/modules/pd.c src/modules/uart.c
-                   src/modules/term.c src/modules/pwm.c src/modules/lpack.c src/modules/bit.c"""
+module_names = "pio.c spi.c tmr.c pd.c uart.c term.c pwm.c lpack.c bit.c net.c"
+module_files = " " + " ".join( [ "src/modules/%s" % name for name in module_names.split() ] )
   
 # Optimizer flags (speed or size)
 #opt = "-O3"
@@ -160,9 +160,10 @@ comp = Environment( CCCOM = tools[ platform ][ 'cccom' ],
                     OBJSUFFIX = ".o", 
                     PROGSUFFIX = ".elf",
                     ENV = os.environ )
-comp.TargetSignatures( 'content' )
-comp.SourceSignatures( 'MD5' )
+# comp.TargetSignatures( 'content' )
+# comp.SourceSignatures( 'MD5' )
 Default( comp.Program( output, Split( source_files ) ) )
+Decider( 'MD5' )
 
 # Programming target
 prog = Environment( BUILDERS = { 'program' : Builder( action = Action ( tools[ platform ][ 'progfunc' ] ) ) }, ENV = os.environ )

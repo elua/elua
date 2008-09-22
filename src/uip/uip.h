@@ -309,10 +309,12 @@ void uip_setipid(u16_t id);
                                uip_conns[conn].tcpstateflags != UIP_RESERVED )
 
 /**
- * Reserve a connection (for a later call to connect)
+ * Reserve a connection (for a later call to connect) and check if connection
+ * is reserved
  *
  */
 #define uip_conn_reserve(conn) (uip_conns[conn].tcpstateflags = UIP_RESERVED)
+#define uip_conn_is_reserved(conn) (uip_conns[conn].tcpstateflags == UIP_RESERVED)
 
 /**
  * Perform periodic processing for a connection identified by a pointer
