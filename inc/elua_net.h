@@ -45,6 +45,7 @@ elua_net_size elua_net_recv( int s, void *buf, elua_net_size maxsize, s16 readto
 elua_net_size elua_net_send( int s, const void* buf, elua_net_size len );
 int elua_accept( u16 port, unsigned timer_id, u32 to_us, elua_net_ip* pfrom );
 int elua_net_connect( int s, elua_net_ip addr, u16 port );
+elua_net_ip elua_net_lookup( const char* hostname );
 
 int elua_net_get_last_err( int s );
 int elua_net_get_telnet_socket();

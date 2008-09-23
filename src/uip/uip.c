@@ -174,6 +174,8 @@ struct uip_conn uip_conns[UIP_CONNS];
 u16_t uip_listenports[UIP_LISTENPORTS];
                              /* The uip_listenports list all currently
 				listning ports. */
+				
+u8_t uip_forced_poll;   // 1 if forcing the polling, 0 if the polling is not forced
 #endif /* UIP_TCP */
 
 #if UIP_UDP
@@ -792,8 +794,8 @@ uip_process(u8_t flag)
        for the connection to time out. If so, we increase the
        connection's timer and remove the connection if it times
        out. */
-    if(uip_connr->tcpstateflags == UIP_TIME_WAIT ||
-       uip_connr->tcpstateflags == UIP_FIN_WAIT_2) {
+    if( !uip_forced_poll && (uip_connr->tcpstateflags == UIP_TIME_WAIT ||
+       uip_connr->tcpstateflags == UIP_FIN_WAIT_2)) {
       ++(uip_connr->timer);
       if(uip_connr->timer == UIP_TIME_WAIT_TIMEOUT) {
 	uip_connr->tcpstateflags = UIP_CLOSED;
@@ -802,7 +804,7 @@ uip_process(u8_t flag)
       /* If the connection has outstanding data, we increase the
 	 connection's timer and see if it has reached the RTO value
 	 in which case we retransmit. */
-      if(uip_outstanding(uip_connr)) {
+      if(uip_outstanding(uip_connr) && !uip_forced_poll) {
 	if(uip_connr->timer-- == 0) {
 	  if(uip_connr->nrtx == UIP_MAXRTX ||
 	     ((uip_connr->tcpstateflags == UIP_SYN_SENT ||

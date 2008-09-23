@@ -31,6 +31,7 @@ struct uip_eth_addr;
 
 // Helper functions
 void elua_uip_appcall();
+void elua_uip_udp_appcall();
 void elua_uip_init( const struct uip_eth_addr* paddr );
 void elua_uip_mainloop();
 

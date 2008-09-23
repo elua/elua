@@ -345,9 +345,10 @@ void uip_setipid(u16_t id);
  */
 #define uip_poll_conn(conn) do { uip_conn = conn; \
                                  uip_process(UIP_POLL_REQUEST); } while (0)
-#define uip_poll_conn_num(conn) do { uip_conn = &uip_conns[conn]; \
-                                 uip_process(UIP_POLL_REQUEST); } while (0)                                 
-
+                                 
+/* Set the "forced poolling" flag */
+extern u8_t uip_forced_poll;
+#define uip_set_forced_poll(val) do { uip_forced_poll = val; } while(0) 
 
 #if UIP_UDP
 /**

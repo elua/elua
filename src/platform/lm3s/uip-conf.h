@@ -73,7 +73,7 @@ typedef unsigned short uip_stats_t;
 //
 // UDP Maximum Connections
 //
-#define UIP_CONF_UDP_CONNS          2
+#define UIP_CONF_UDP_CONNS          4
 
 //
 // Maximum number of TCP connections.
@@ -147,7 +147,7 @@ typedef struct dhcpc_state uip_udp_appstate_t;
 #endif
 
 #ifndef UIP_ADP_APPCALL
-#define UIP_UDP_APPCALL             dhcpc_appcall
+#define UIP_UDP_APPCALL             elua_uip_udp_appcall
 #endif
 
 // Added for eLua: DHCP TIMER ID

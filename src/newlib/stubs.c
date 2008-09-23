@@ -368,7 +368,7 @@ void* _memalign_r( struct _reent* r, size_t align, size_t nbytes )
 // *****************************************************************************
 // eLua stubs (not Newlib specific)
 
-#ifndef BUILD_CON_GENERIC
+#if !defined( BUILD_CON_GENERIC ) && !defined( BUILD_CON_TCP )
 
 // Set send/recv functions
 void std_set_send_func( p_std_send_char pfunc )
@@ -384,4 +384,4 @@ DM_DEVICE* std_get_desc()
   return NULL;
 }
 
-#endif // #ifndef BUILD_CON_GENERIC
+#endif // #if !defined( BUILD_CON_GENERIC ) && !defined( BUILD_CON_TCP )

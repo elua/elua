@@ -74,6 +74,15 @@ static _ssize_t std_write( struct _reent *r, int fd, const void* vptr, size_t le
   return len;
 }
 
+// Set send/recv functions
+void std_set_send_func( p_std_send_char pfunc )
+{
+}
+
+void std_set_get_func( p_std_get_char pfunc )
+{
+}
+
 // Our UART device descriptor structure
 static DM_DEVICE std_device = 
 {

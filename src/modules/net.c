@@ -66,7 +66,7 @@ static int net_send( lua_State* L )
 }
 
 // Lua: sockno, err = connect( sock, iptype, port )
-// "iptype" is actually an int returned by "net_ipaddr"
+// "iptype" is actually an int returned by "net.packip"
 static int net_connect( lua_State *L )
 {
   elua_net_ip ip;
@@ -79,10 +79,10 @@ static int net_connect( lua_State *L )
   return 2;  
 }
 
-// Lua: data = ipaddr( ip0, ip1, ip2, ip3 ), or
-// Lua: data = ipaddr( "ip" )
+// Lua: data = packip( ip0, ip1, ip2, ip3 ), or
+// Lua: data = packip( "ip" )
 // Returns an internal representation for the given IP address
-static int net_ipaddr( lua_State *L )
+static int net_packip( lua_State *L )
 {
   elua_net_ip ip;
   unsigned i, temp;
@@ -113,16 +113,30 @@ static int net_ipaddr( lua_State *L )
   return 1;
 }
 
-// Lua: ip0, ip1, ip2, ip3 = getip( iptype )
-static int net_getip( lua_State *L )
+// Lua: ip0, ip1, ip2, ip3 = unpackip( iptype, "*n" ), or
+//               string_ip = unpackip( iptype, "*s" )
+static int net_unpackip( lua_State *L )
 {
   elua_net_ip ip;
   unsigned i;  
+  const char* fmt;
   
   ip.ipaddr = ( u32 )luaL_checkinteger( L, 1 );
-  for( i = 0; i < 4; i ++ )
-    lua_pushinteger( L, ip.ipbytes[ i ] );
-  return 4;
+  fmt = luaL_checkstring( L, 2 );
+  if( !strcmp( fmt, "*n" ) )
+  {
+    for( i = 0; i < 4; i ++ ) 
+      lua_pushinteger( L, ip.ipbytes[ i ] );
+    return 4;
+  }
+  else if( !strcmp( fmt, "*s" ) )
+  {
+    lua_pushfstring( L, "%d.%d.%d.%d", ( int )ip.ipbytes[ 0 ], ( int )ip.ipbytes[ 1 ], 
+                     ( int )ip.ipbytes[ 2 ], ( int )ip.ipbytes[ 3 ] );
+    return 1;
+  }
+  else
+    return luaL_error( L, "invalid format" );                                      
 }
 
 static luaL_Buffer net_recv_buff;
@@ -158,17 +172,29 @@ static int net_recv( lua_State *L )
   return 2;
 }
 
+// Lua: iptype = lookup( "name" )
+static int net_lookup( lua_State* L )
+{
+  const char* name = luaL_checkstring( L, 1 );
+  elua_net_ip res;
+  
+  res = elua_net_lookup( name );
+  lua_pushinteger( L, res.ipaddr );
+  return 1;
+}
+
 // Module function map
 static const luaL_reg net_map[] = 
 {
   { "accept", net_accept },
-  { "ipaddr", net_ipaddr },
-  { "getip", net_getip },
+  { "packip", net_packip },
+  { "unpackip", net_unpackip },
   { "connect", net_connect },
   { "socket", net_socket },
   { "close", net_close },
   { "send", net_send },
   { "recv", net_recv },
+  { "lookup", net_lookup },
   { NULL, NULL }
 };
 
