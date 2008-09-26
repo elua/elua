@@ -169,6 +169,7 @@ u32 platform_pwm_op( unsigned id, int op, u32 data );
 
 void platform_cpu_enable_interrupts();
 void platform_cpu_disable_interrupts();
+u32 platform_cpu_get_frequency();
 
 // *****************************************************************************
 // Ethernet specific functions
@@ -177,12 +178,6 @@ void platform_eth_send_packet( const void* src, u32 size );
 u32 platform_eth_get_packet_nb( void* buf, u32 maxlen );
 void platform_eth_force_interrupt();
 u32 platform_eth_get_elapsed_time();
-
-// *****************************************************************************
-// Platform data subsection
-// Contains functions for platform identification
-
-u32 platform_pd_get_cpu_frequency();
 
 // *****************************************************************************
 // Allocator support

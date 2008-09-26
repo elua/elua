@@ -16,6 +16,7 @@
   { AUXLIB_PACK, luaopen_pack },\
   { AUXLIB_BIT, luaopen_bit },\
   { AUXLIB_NET, luaopen_net },\
+  { AUXLIB_CPU, luaopen_cpu },\
   { LUA_MATHLIBNAME, luaopen_math }
   
 #endif

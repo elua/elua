@@ -560,6 +560,11 @@ void platform_cpu_disable_interrupts()
   IntMasterDisable();
 }
 
+u32 platform_cpu_get_frequency()
+{
+  return SysCtlClockGet();
+}
+
 // ****************************************************************************
 // Ethernet functions
 
@@ -697,14 +702,6 @@ void EthernetIntHandler()
 {
 }
 #endif // #ifdef ELUA_UIP
-
-// ****************************************************************************
-// Platform data
-
-u32 platform_pd_get_cpu_frequency()
-{
-  return SysCtlClockGet();
-}
 
 // ****************************************************************************
 // Allocator support

@@ -29,12 +29,6 @@ static int pd_board( lua_State* L )
   lua_pushstring( L, MACRO_NAME( ELUA_BOARD ) );
   return 1;
 }
-// Lua: speed = frequency()
-static int pd_clock( lua_State* L )
-{
-  lua_pushinteger( L, platform_pd_get_cpu_frequency() );
-  return 1;
-}
 
 // Module function map
 static const luaL_reg pd_map[] = 
@@ -42,7 +36,6 @@ static const luaL_reg pd_map[] =
   { "platform",  pd_platform }, 
   { "cpu", pd_cpu },
   { "board", pd_board },
-  { "clock", pd_clock },
   { NULL, NULL }
 };
 

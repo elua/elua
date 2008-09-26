@@ -404,9 +404,9 @@ u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_typ
 }
 
 // ****************************************************************************
-// Platform data functions
+// CPU functions
 
-u32 platform_pd_get_cpu_frequency()
+u32 platform_cpu_get_frequency()
 {
   return SCU_GetMCLKFreqValue() * 1000;
 }

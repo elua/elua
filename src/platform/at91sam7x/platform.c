@@ -473,9 +473,9 @@ u32 platform_pwm_op( unsigned id, int op, u32 data )
 }
 
 // ****************************************************************************
-// Platform data functions
+// CPU functions
 
-u32 platform_pd_get_cpu_frequency()
+u32 platform_cpu_get_frequency()
 {
   return BOARD_MCK;
 }
