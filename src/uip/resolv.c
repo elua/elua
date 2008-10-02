@@ -476,7 +476,7 @@ void resolv_init()
 {
 }
 
-void resolv_conf( u16_t *dnsserver )
+void resolv_conf( void *dnsserver )
 {
 }
 
