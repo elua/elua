@@ -241,7 +241,6 @@ static int pio_mt_index( lua_State* L )
   
   if( !key || *key != 'P' )
     return 0;
-  printf( "Key: %s\n", key );
   if( isupper( key[ 1 ] ) ) // PA, PB, ...
   {
     port = key[ 1 ] - 'A';

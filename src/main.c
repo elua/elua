@@ -26,7 +26,11 @@ extern char etext[];
 
 #ifdef BUILD_XMODEM
 
+#if ELUA_BOARD == MOD711
+#define XMODEM_UART_ID          1
+#else
 #define XMODEM_UART_ID          0
+#endif // #if ELUA_BOARD == MOD711
 #define XMODEM_TIMER_ID         0
 
 static void xmodem_send( u8 data )
@@ -62,7 +66,11 @@ static int xmodem_recv( u32 timeout )
 
 #ifdef BUILD_TERM
 
+#if ELUA_BOARD == MOD711
+#define TERM_UART_ID          1
+#else
 #define TERM_UART_ID          0
+#endif // #if ELUA_BOARD == MOD711
 #define TERM_TIMER_ID         0
 #define TERM_TIMEOUT          100000
 

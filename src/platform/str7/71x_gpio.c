@@ -102,6 +102,11 @@ u8 GPIO_BitRead(GPIO_TypeDef *GPIOx, u8 Port_Pin)
   return ((GPIOx->PD >> Port_Pin) & 0x0001);
 }
 
+u8 GPIO_BitRead_Mask(GPIO_TypeDef *GPIOx, u8 Port_Mask)
+{
+  return (GPIOx->PD & Port_Mask) ? 1 : 0;
+}
+
 /*******************************************************************************
 * Function Name  : GPIO_ByteRead
 * Description    : Reads the specified data port byte and returns its value.
@@ -149,6 +154,18 @@ void GPIO_BitWrite(GPIO_TypeDef *GPIOx, u8 Port_Pin, u8 Bit_Val)
   else
   {
     GPIOx->PD &= ~(1 << Port_Pin);
+  }
+}
+
+void GPIO_BitWrite_Mask(GPIO_TypeDef *GPIOx, u8 Port_Mask, u8 Bit_Val)
+{
+  if (Bit_Val & 0x01)
+  {
+    GPIOx->PD |= Port_Mask;
+  }
+  else
+  {
+    GPIOx->PD &= ~Port_Mask;
   }
 }
 

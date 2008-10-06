@@ -43,9 +43,11 @@ typedef enum
 void GPIO_Config (GPIO_TypeDef *GPIOx, u16 Port_Pins,
                   GpioPinMode_TypeDef GPIO_Mode);
 u8 GPIO_BitRead(GPIO_TypeDef *GPIOx, u8 Port_Pin);
+u8 GPIO_BitRead_Mask(GPIO_TypeDef *GPIOx, u8 Port_Mask);
 u8 GPIO_ByteRead(GPIO_TypeDef *GPIOx, u8 Port_Byte);
 u16 GPIO_WordRead(GPIO_TypeDef *GPIOx);
 void GPIO_BitWrite(GPIO_TypeDef *GPIOx, u8 Port_Pin, u8 Port_Val);
+void GPIO_BitWrite_Mask(GPIO_TypeDef *GPIOx, u8 Port_Mask, u8 Port_Val);
 void GPIO_ByteWrite(GPIO_TypeDef *GPIOx, u8 Port_Byte, u8 Port_Val);
 void GPIO_WordWrite(GPIO_TypeDef *GPIOx, u16 Port_Val);
 
