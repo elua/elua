@@ -43,6 +43,6 @@ LUALIB_API int ( luaopen_cpu )( lua_State* L );
 
 #define MOD_CHECK_ID( mod, id )\
   if( !platform_ ## mod ## _exists( id ) )\
-    return luaL_error( L, #mod" %u does not exist", ( unsigned )id )
+    return luaL_error( L, #mod" %d does not exist", ( unsigned )id )
 
 #endif

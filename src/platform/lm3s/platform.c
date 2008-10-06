@@ -526,7 +526,8 @@ u32 platform_pwm_op( unsigned id, int op, u32 data )
   {
     case PLATFORM_PWM_OP_SET_CLOCK:
       res = platform_pwm_set_clock( data );
-      
+      break;
+            
     case PLATFORM_PWM_OP_GET_CLOCK:
       res = platform_pwm_get_clock();
       break;
@@ -544,8 +545,6 @@ u32 platform_pwm_op( unsigned id, int op, u32 data )
   
   return res;
 }
-
-
 
 // *****************************************************************************
 // CPU specific functions

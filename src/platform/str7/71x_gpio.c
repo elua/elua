@@ -102,7 +102,7 @@ u8 GPIO_BitRead(GPIO_TypeDef *GPIOx, u8 Port_Pin)
   return ((GPIOx->PD >> Port_Pin) & 0x0001);
 }
 
-u8 GPIO_BitRead_Mask(GPIO_TypeDef *GPIOx, u8 Port_Mask)
+u8 GPIO_BitRead_Mask(GPIO_TypeDef *GPIOx, u16 Port_Mask)
 {
   return (GPIOx->PD & Port_Mask) ? 1 : 0;
 }
@@ -157,7 +157,7 @@ void GPIO_BitWrite(GPIO_TypeDef *GPIOx, u8 Port_Pin, u8 Bit_Val)
   }
 }
 
-void GPIO_BitWrite_Mask(GPIO_TypeDef *GPIOx, u8 Port_Mask, u8 Bit_Val)
+void GPIO_BitWrite_Mask(GPIO_TypeDef *GPIOx, u16 Port_Mask, u8 Bit_Val)
 {
   if (Bit_Val & 0x01)
   {

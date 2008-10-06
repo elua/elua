@@ -378,6 +378,66 @@ u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_typ
 }
 
 // ****************************************************************************
+// PWM functions
+
+#define PLATFORM_NUM_PWMS               3
+
+static const u16 pwm_pins[ PLATFORM_NUM_PWMS ] = { 1 << 7, 1 << 13, 1 << 2 };
+static const u8 pwm_ports[ PLATFORM_NUM_PWMS ] = { 1, 0, 1 };
+ 
+int platform_pwm_exists( unsigned id )
+{
+  return id < PLATFORM_NUM_PWMS; 
+}
+
+u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
+{
+  u32 pwmclk = platform_timer_get_clock( id + 1 );
+  u32 period;
+  GPIO_TypeDef *pport = ( GPIO_TypeDef* )gpio_periph[ pwm_ports[ id ] ];
+  TIM_TypeDef *ptimer = ( TIM_TypeDef* )tim_periph[ id + 1 ];
+  
+  // Set pin as PWM
+  GPIO_Config( pport, pwm_pins[ id ], GPIO_AF_PP );
+  // Compute period
+  period = pwmclk / frequency;
+  if( period > 0xFFFF )
+    period = 0xFFFF;
+  // Set the period and duty cycle
+  TIM_PWMOModeConfig( ptimer, ( duty * period ) / 100, TIM_HIGH, period, TIM_LOW );
+  // Return actual frequency
+  return pwmclk / period;
+}
+
+u32 platform_pwm_op( unsigned id, int op, u32 data )
+{
+  u32 res = 0;
+  TIM_TypeDef *ptimer = ( TIM_TypeDef* )tim_periph[ id + 1 ];
+  
+  switch( op )
+  {
+    case PLATFORM_PWM_OP_SET_CLOCK:
+      res = platform_timer_set_clock( id + 1, data );
+      break;
+      
+    case PLATFORM_PWM_OP_GET_CLOCK:
+      res = platform_timer_get_clock( id + 1 );
+      break;
+      
+    case PLATFORM_PWM_OP_START:
+      TIM_CounterConfig( ptimer, TIM_START );
+      break;
+      
+    case PLATFORM_PWM_OP_STOP:
+      TIM_CounterConfig( ptimer, TIM_STOP );
+      platform_pio_op( pwm_ports[ id ], pwm_pins[ id ], PLATFORM_IO_PIN_DIR_INPUT );
+      break;
+  }
+  
+  return res;
+}
+
+// ****************************************************************************
 // Allocator support
 
 extern char end[];
