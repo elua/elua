@@ -178,7 +178,7 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   UART_OnOffConfig( pport, ENABLE ); 
   
   //  Disable FIFOs, reset FIFOs, disable loopback     
-  UART_FifoConfig( pport, DISABLE ); 
+  UART_FifoConfig( pport, ENABLE ); 
   UART_FifoReset( pport, UART_RxFIFO ); 
   UART_FifoReset( pport, UART_TxFIFO ); 
   UART_LoopBackConfig( pport, DISABLE );
