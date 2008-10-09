@@ -1,4 +1,4 @@
-#include "build.h"
+#include "platform_conf.h"
 #if defined(BUILD_UIP) && defined(BUILD_DHCPC)
 /*
  * Copyright (c) 2005, Swedish Institute of Computer Science

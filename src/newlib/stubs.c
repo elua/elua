@@ -9,7 +9,7 @@
 #include "devman.h"
 #include "ioctl.h"
 #include "platform.h"
-#include "build.h"
+#include "platform_conf.h"
 #include "genstd.h"
 
 #ifdef USE_MULTIPLE_ALLOCATOR

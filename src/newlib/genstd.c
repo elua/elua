@@ -1,6 +1,6 @@
 // Generic stdin/stdout/stderr support functions
 
-#include "build.h"
+#include "platform_conf.h"
 #ifdef BUILD_CON_GENERIC
 
 #include "type.h"

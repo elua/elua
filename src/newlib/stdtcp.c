@@ -1,6 +1,6 @@
 // Console (stdin/stdout/stderr) over TCP
 
-#include "build.h"
+#include "platform_conf.h"
 #ifdef BUILD_CON_TCP
 
 #include "type.h"

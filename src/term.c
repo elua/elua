@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include "build.h"
+#include "platform_conf.h"
 #ifdef BUILD_TERM
 
 // Local variables

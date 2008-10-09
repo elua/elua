@@ -10,7 +10,7 @@
 #include <string.h>
 #include <stddef.h>
 
-#include "build.h"
+#include "platform_conf.h"
 #ifdef BUILD_UIP
 
 // Lua: sock, remoteip, err = accept( port, [ timer_id, timeout ] )

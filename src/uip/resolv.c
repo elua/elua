@@ -1,4 +1,4 @@
-#include "build.h"
+#include "platform_conf.h"
 #ifdef BUILD_DNS
 
 /**

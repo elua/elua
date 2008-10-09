@@ -8,9 +8,9 @@
 #include "romfs.h"
 #include "xmodem.h"
 #include "shell.h"
-#include "build.h"
 #include "lua.h"
 #include "term.h"
+#include "platform_conf.h"
 
 // Validate eLua configuratin options
 #include "validate.h"
@@ -25,13 +25,6 @@ extern char etext[];
 #define XMODEM_MAX_FILE_SIZE    4096
 
 #ifdef BUILD_XMODEM
-
-#if ELUA_BOARD == MOD711
-#define XMODEM_UART_ID          1
-#else
-#define XMODEM_UART_ID          0
-#endif // #if ELUA_BOARD == MOD711
-#define XMODEM_TIMER_ID         0
 
 static void xmodem_send( u8 data )
 {
@@ -61,18 +54,7 @@ static int xmodem_recv( u32 timeout )
 // ****************************************************************************
 // Terminal support code
 
-#define TERMINAL_LINES        25
-#define TERMINAL_COLS         80
-
 #ifdef BUILD_TERM
-
-#if ELUA_BOARD == MOD711
-#define TERM_UART_ID          1
-#else
-#define TERM_UART_ID          0
-#endif // #if ELUA_BOARD == MOD711
-#define TERM_TIMER_ID         0
-#define TERM_TIMEOUT          100000
 
 static void term_out( u8 data )
 {
@@ -186,7 +168,7 @@ int main( void )
   xmodem_init( xmodem_send, xmodem_recv );    
   
   // Initialize terminal
-  term_init( TERMINAL_LINES, TERMINAL_COLS, term_out, term_in, term_translate );
+  term_init( TERM_LINES, TERM_COLS, term_out, term_in, term_translate );
 
   // Autorun: if "autorun.lua" is found in the ROM file system, run it first
   if( ( fp = fopen( "/rom/autorun.lua", "r" ) ) != NULL )

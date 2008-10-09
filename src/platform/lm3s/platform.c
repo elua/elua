@@ -12,7 +12,7 @@
 #include "uip_arp.h"
 #include "elua_uip.h" 
 #include "uip-conf.h"
-#include "build.h"
+#include "platform_conf.h"
 
 // Platform specific includes
 #include "hw_ints.h"

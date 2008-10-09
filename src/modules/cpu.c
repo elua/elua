@@ -8,7 +8,7 @@
 #include <string.h> 
 
 #define _C( x ) { #x, x }
-#include "platform_cpu.h"
+#include "platform_conf.h"
 
 // Lua: w32( address, data )
 static int cpu_w32( lua_State *L )

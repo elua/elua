@@ -21,7 +21,7 @@
 #include "xmodem.h"
 #include "platform.h"
 
-#include "build.h"
+#include "platform_conf.h"
 #ifdef BUILD_XMODEM
 
 #define XMODEM_BUFFER_SIZE    128

@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include "ioctl.h"
 
-#include "build.h"
+#include "platform_conf.h"
 #ifdef BUILD_ROMFS
 
 #define ROMFS_MAX_FDS   4

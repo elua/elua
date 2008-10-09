@@ -12,7 +12,7 @@
 #include "platform.h"
 #include "elua_net.h"
 
-#include "build.h"
+#include "platform_conf.h"
 #ifdef BUILD_SHELL
 
 // Shell alternate ' ' char

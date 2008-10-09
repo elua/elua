@@ -13,7 +13,7 @@
 #include "lauxlib.h"
 
 #ifndef LUA_CROSS_COMPILER
-#include "platform_libs.h"
+#include "platform_conf.h"
 #endif
 
 static const luaL_Reg lualibs[] = {

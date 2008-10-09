@@ -6,7 +6,7 @@
 #include "platform.h"
 #include "auxmods.h"
 #include "term.h"
-#include "build.h"
+#include "platform_conf.h"
 #include <string.h>
 
 // Lua: clrscr()

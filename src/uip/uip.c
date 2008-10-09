@@ -1,4 +1,4 @@
-#include "build.h"
+#include "platform_conf.h"
 #ifdef BUILD_UIP
 
 #define DEBUG_PRINTF(...) /*printf(__VA_ARGS__)*/

@@ -6,7 +6,7 @@
 #ifndef __VALIDATE_H__
 #define __VALIDATE_H__
 
-#include "build.h"
+#include "platform_conf.h"
 
 // Can't define more than one console devices
 #if defined( BUILD_CON_TCP ) && defined( BUILD_CON_GENERIC )

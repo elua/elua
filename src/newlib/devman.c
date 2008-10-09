@@ -5,7 +5,7 @@
 #include <fcntl.h>
 #include "devman.h"
 #include "genstd.h"
-#include "build.h"
+#include "platform_conf.h"
 
 static DM_DEVICE dm_list[ DM_MAX_DEVICES ];           // list of devices
 static int dm_num_devs;                               // number of devices
