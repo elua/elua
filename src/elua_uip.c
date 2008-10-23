@@ -288,7 +288,7 @@ void elua_uip_appcall()
 #ifdef BUILD_CON_TCP    
     if( uip_conn->lport == HTONS( ELUA_NET_TELNET_PORT ) ) // special case: telnet server
     {
-      if( elua_uip_telnet_socket == -1 )
+      if( elua_uip_telnet_socket != -1 )
       {
         uip_close();
         return;
