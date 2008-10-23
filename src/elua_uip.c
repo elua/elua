@@ -287,7 +287,15 @@ void elua_uip_appcall()
   {
 #ifdef BUILD_CON_TCP    
     if( uip_conn->lport == HTONS( ELUA_NET_TELNET_PORT ) ) // special case: telnet server
-      elua_uip_telnet_socket = sockno;
+    {
+      if( elua_uip_telnet_socket == -1 )
+      {
+        uip_close();
+        return;
+      }
+      else
+        elua_uip_telnet_socket = sockno;
+    }
     else
 #endif
     if( elua_uip_accept_request )
@@ -383,6 +391,9 @@ void elua_uip_appcall()
 #endif   
       int lastfound = 0;
       
+      // Check end of transmission
+      if( uip_datalen() < UIP_RECEIVE_WINDOW )
+        lastfound = 1;
       // Check overflow
       if( s->len < uip_datalen() )
       {

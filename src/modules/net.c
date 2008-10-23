@@ -146,7 +146,7 @@ static int net_recv( lua_State *L )
 {
   int sock = ( int )luaL_checkinteger( L, 1 );
   elua_net_size maxsize;
-  s16 lastchar = -1;
+  s16 lastchar = ELUA_NET_NO_LASTCHAR;
   unsigned timer_id = 0;
   u32 timeout = 0;
   
