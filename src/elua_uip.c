@@ -342,17 +342,11 @@ void elua_uip_appcall()
     // We write directly in UIP's buffer 
     if( uip_acked() )
     {
-      // Send next part of the buffer (if needed)
-      if( s->len <= uip_mss() ) // end of transmission
-      { 
-        s->len = 0;
+      elua_net_size minlen = UMIN( s->len, uip_mss() );    
+      s->len -= minlen;
+      s->ptr += minlen;
+      if( s->len == 0 )
         s->state = ELUA_UIP_STATE_IDLE;
-      }
-      else
-      {
-        s->len -= uip_conn->len;
-        s->ptr += uip_conn->len;
-      }
     }
     if( s->len > 0 ) // need to (re)transmit?
     {
@@ -364,7 +358,7 @@ void elua_uip_appcall()
       }
       else
 #endif      
-        uip_send( s->ptr, s->len );
+        uip_send( s->ptr, UMIN( s->len, uip_mss() ) );
     }
     return;
   }
