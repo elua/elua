@@ -1,0 +1,79 @@
+(NOTE: view this file with a monospaced font)
+
+TCP/IP in eLua
+================================================================================
+
+eLua's TCP/IP support was designed with flexibility and ease of use in mind. It
+might not provide all the functions of a "full-fledged" TCP/IP stack, but it's 
+still fully functional and probably easier to use than a "regular" (POSIX) TCP/IP
+stack. These are the services provided by the TCP/IP stack:
+
+- a set of functions for network access (defined in inc/elua_net.h)
+- a DHCP client
+- a DNS resolver
+- a module ("net") which can be used from Lua to access the network functions
+- a Telnet miniclient, which is used to support the eLua shell via TCP/IP instead
+  of serial connections.
+
+For more details about the networking API, consult docs/generic_modules.txt.
+
+TCP/IP configuration
+================================================================================
+
+To configure the TCP/IP subsystem, edit src/platform/[platform]/platform_conf.h
+and:
+
+1. #define BUILD_UIP to enable TCP/IP support
+2. if you'll be using the DHCP client, just #define BUILD_DHCPC to build the 
+   DHCP client. In any case, you must also define a static network configuration:
+
+  #define ELUA_CONF_IPADDR0 ... ELUA_CONF_IPADDR3 : the IP address
+  #define ELUA_CONF_NETMASK0 ... ELUA_CONF_NETMASK3 : the network mask
+  #define ELUA_CONF_DEFGW0 ... ELUA_CONF_DEFGW3 : the default gateway
+  #define ELUA_CONF_DNS0 ... ELUA_CONF_DNS3 : the DNS server  
+
+  Note that you must define both BUILD_DHCPC and the ELUA_CONF_* macros. If the
+  DHCP client fails to obtain a valid IP address, the static configuration will 
+  be used instead. To use only the static configuration (and make the eLua image
+  size a bit smaller) don't define the BUILD_DHCPC client.
+
+3. #define BUILD_DNS if you want support for the DNS server.
+4. #define BUILD_CON_TCP if you want support for shell over telnet instead of
+   serial. Note that you must NOT define BUILD_CON_GENERIC in this case.
+
+TCP/IP implementation internals
+================================================================================
+The TCP/IP support was designed in such a way that it doesn't require a specific
+TCP/IP stack implementation. To work with eLua, a TCP/IP stack must simply 
+implement all the functions defined in the inc/elua_net.h file. This allows for
+easy integration of more than one TCP/IP stack. Currently only uIP is used in 
+eLua, but lwIP (and possibly others) are planned to be added at some point.
+Another key point of the TCP/IP implementation (and of the whole eLua design
+for that matter) is that it should be as platform independent as possible: write
+everything in a platform-independent manner, except for some functions (as few as
+possible and as simple as possible) that must be implemented by each platform).
+To illustrate the above, a short overview of the uIP integration is given below.
+
+uIP in eLua
+================================================================================
+
+uIP (http://www.sics.se/~adam/uip/index.php/Main_Page) is a minimalistic TCP/IP
+stack designed specifically for resource constrained embedded systems. While the
+design and implementation of uIP are an excellent example of what can be done
+with a few kilobytes of memory, it has a number of quirks that make it hard to
+integrate with eLua. First, it uses a callback approach, as opposed to the 
+sequential approach of "regular" TCP/IP stacks. It provides a "protosocket" 
+library that can be used to write uIP applications in a more "traditional" way,
+but it's quite restrictive. So, to use it with eLua, a translation layer was
+needed. It is implemented in src/elua_uip.c, and its sole purpose is to "adapt"
+the uIP stack to the eLua model: implement the functions in inc/elua_net.h and
+you're ready to use the stack. In this case the "adaption layer" is quite large
+because of uIP's callback-based design.
+To make the uIP implementation as platform-independent as possible, a special
+networking layer is added to the platform interface (docs/platform_interface.txt
+for details). There are only 4 functions that must be implemented by a backend
+to use the networking layer. They might change as more TCP/IP stacks are added
+to eLua, but probably the networking layer won't get much bigger than it is now.
+
+For a more in-depth understanding of how the networking layer is implemented,
+look at the LM3S implementation in src/platform/lm3s/platform.c.

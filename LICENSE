@@ -16,6 +16,9 @@ Ramsdell (from the Lua Power Patches page).
 The multiple memory allocator (dlmalloc) is written by Doug Lea and it's
 placed on the public domain.
 
+uIP (the TCP/IP stack used by eLua) is written by Adam Dunkels and released 
+under a BSD license. The eLua version is slightly modified.
+
 The rest of the code is licensed under GPL, listed below.
 
 ================================================================================

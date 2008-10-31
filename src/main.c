@@ -20,10 +20,6 @@ extern char etext[];
 // ****************************************************************************
 // XMODEM support code
 
-// Maximum file size that can be received via XMODEM
-// Should be a multiple of 128
-#define XMODEM_MAX_FILE_SIZE    4096
-
 #ifdef BUILD_XMODEM
 
 static void xmodem_send( u8 data )
@@ -179,7 +175,7 @@ int main( void )
   }
   
   // Run the shell
-  if( shell_init( XMODEM_MAX_FILE_SIZE ) == 0 )
+  if( shell_init() == 0 )
   {
     printf( "Unable to initialize the eLua shell!\n" );
     // Start Lua directly

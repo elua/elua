@@ -55,7 +55,7 @@ static _ssize_t std_read( struct _reent *r, int fd, void* vptr, size_t len )
       }      
       continue;
     }
-    if( !isprint( c ) && c != '\r' && c != '\n' && c != STD_CTRLZ_CODE )
+    if( !isprint( c ) && c != '\n' && c != STD_CTRLZ_CODE )
       continue;
     if( c == STD_CTRLZ_CODE )
       return 0;

@@ -45,8 +45,8 @@ for foo, follow these steps:
     conf.py file and modify it to suit your needs, it's easier this way.
   - type.h: data types used by eLua, declared in a platform independent way. 
     Again, start from an existent type.h file and modify it if needed.
-  - platform_libs.h: see "platform modules.txt" for details.
-  - build.h: see "elua_components.txt" for details.
+  - platform_conf.h: see "platform modules.txt", "elua_components.txt" and
+    "tcpip_in_elua.txt" for details
 
 4. implement the platform interface functions (see "platform interface.txt"). By
    convention, they should be implemented in a file called "platform.c". Note that

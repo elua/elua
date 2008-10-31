@@ -37,6 +37,11 @@
 
 #include "type.h"
 
+// XMODEM constants
+#define XMODEM_INITIAL_BUFFER_SIZE    1024
+#define XMODEM_INCREMENT_AMMOUNT      512
+#define XMODEM_BUFFER_SIZE            128
+
 // xmodem control characters
 #define SOH       0x01
 #define STX       0x02
@@ -61,7 +66,7 @@ typedef void ( *p_xm_send_func )( u8 );
 typedef int ( *p_xm_recv_func )( u32 );
 
 //! xmodem receive
-long xmodem_receive( char* dest, u32 limit );
+long xmodem_receive( char** dest );
 
 //! initialize xmodem stream I/O routines
 void xmodem_init( p_xm_send_func send_func, p_xm_recv_func recv_func );

@@ -65,7 +65,7 @@ static int net_send( lua_State* L )
   return 2;  
 }
 
-// Lua: sockno, err = connect( sock, iptype, port )
+// Lua: err = connect( sock, iptype, port )
 // "iptype" is actually an int returned by "net.packip"
 static int net_connect( lua_State *L )
 {
@@ -74,9 +74,9 @@ static int net_connect( lua_State *L )
   u16 port = ( int )luaL_checkinteger( L, 3 );
   
   ip.ipaddr = ( u32 )luaL_checkinteger( L, 2 );
-  lua_pushinteger( L, elua_net_connect( sock, ip, port ) );
+  elua_net_connect( sock, ip, port );
   lua_pushinteger( L, elua_net_get_last_err( sock ) );
-  return 2;  
+  return 1;  
 }
 
 // Lua: data = packip( ip0, ip1, ip2, ip3 ), or

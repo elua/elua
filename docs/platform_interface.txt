@@ -185,17 +185,6 @@ enum
 
 ================================================================================
 
-u32         platform_pd_get_cpu_frequency();
-
-TYPE: optional
-USED BY MODULE: pd
-
-PURPOSE: platform data. This function is part of the "pd" module that is used to
-identify the platform on which eLua runs. Its purpose is to return the platform's 
-CPU frequency in Hz.
-
-================================================================================
-
 int platform_pwm_exists( unsigned id );
 u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty );
 u32 platform_pwm_op( unsigned id, int op, u32 data );
@@ -222,3 +211,48 @@ enum
   PLATFORM_PWM_OP_GET_CLOCK             // Get the base clock of the PWM block
 };
 (END inc/platform.h) 
+
+================================================================================
+
+void platform_cpu_enable_interrupts();
+void platform_cpu_disable_interrupts();
+u32 platform_cpu_get_frequency();
+
+TYPE: optional
+USED BY MODULE: cpu
+
+PURPOSE: CPU interfacing. It allows the user to control some of the CPU functions
+directly from Lua. platform_cpu_enable_interrupts() enables the CPU interrupts
+(globally), while platform_cpu_disable_interrupts() disables them. 
+platform_cpu_get_frequency() returns the CPU "core" frequency in Hz.
+
+================================================================================
+
+void platform_eth_send_packet( const void* src, u32 size );
+u32 platform_eth_get_packet_nb( void* buf, u32 maxlen );
+void platform_eth_force_interrupt();
+u32 platform_eth_get_elapsed_time();
+
+TYPE: optional
+USED BY MODULE: net, also used by the generic TCP/IP support
+
+PURPOSE: network support. These functions are used by uIP (the TCP/IP stack of
+eLua) to implement TCP/IP services on top of the Ethernet ones (for platforms
+that have an integrated Ethernet controller, or are using an external Ethernet
+controller). 
+platform_eth_send_packet() sends the packet pointed by "src" with size "size"
+over the network.
+platform_eth_get_packet_nb() reads an Ethernet packet in "buf", without 
+exceeding "maxlen" of data. If an Ethernet packet is not available when this
+function is called, it returns 0 immediately (non-blocking receive), otherwise
+it returns a negative integer if the packet size is too large or the length of
+the packet if it fits in "maxlen" bytes.
+platform_eth_force_interrupt() is used to force an Ethernet receive interrupt.
+This is needed because uIP's processing function is called from this Ethernet
+interrupt handler alone.
+platform_eth_get_elapsed_time() will return the approximate time (in ms) that
+passed since the last call to platform_eth_get_elapsed_time(). It is used by uIP
+to process periodic events.
+
+For an example of how these functions should be implemented, take a look at the
+LM3S backend (src/platform/lm3s/platform.c)

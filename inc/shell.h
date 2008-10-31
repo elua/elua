@@ -8,7 +8,7 @@
 #define SHELL_MAXSIZE       50
 #define SHELL_MAX_LUA_ARGS  8
 
-int shell_init( unsigned maxprog );
+int shell_init();
 void shell_start();
 
 #endif // #ifndef __SHELL_H__

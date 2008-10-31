@@ -1,0 +1,53 @@
+(NOTE: view this file with a monospaced font)
+
+Cross-compiling Lua programs
+================================================================================
+"Cross compilation" is the process of compiling a program on one system for a 
+different system. For example, the process of compiling the eLua binary image on
+a PC is cross-compiling. Lua can be cross-compiled, too. By cross-compiling Lua
+to bytecode on a PC and executing the resulting bytecode directly on your eLua
+board you have two advantages:
+
+- speed: the Lua interpreter on the eLua board doesn't have to compile your Lua
+  source code, it just executes the compiled bytecode
+- memory: this is more important. If you're exectuing bytecode directly, no more
+  memory is "wasted" on the eLua board for compiling the Lua code to bytecode.
+  Many times this could be a "life saver". If you're trying to run Lua code
+  directly on your board and you're getting "not enough memory" errors, you 
+  might be able to overcome this by compiling the Lua program on the PC and 
+  running the bytecode instead.
+
+But for this cross-compilation to work, the two Lua targets must be compatible
+(they should have the same data types, with the same size, and the same memory
+representation). This isn't completely true for Intel and ARM targets, as gcc
+for ARM uses a very specific representation for double numbers (called FPA
+format) by default, which makes bytecode files generated on the PC useless on
+ARM boards. To overcome this, a "Lua cross-compilation" patch was posted on the
+Lua mailing list a while ago, and it was further modified as part of the eLua
+project to work with ARM targets. This is how to use it (the following 
+instructions were tested on Linux, not Windows, but they should work on Windows 
+too with little or no tweaking):
+
+- first, make sure that your PC has already a build system intalled (gcc,
+  binutils, libc, headers...). You'll also need "scons". The good news is that 
+  you should have it already installed, since otherwise you won't be able to 
+  build even regular eLua.
+
+- from the eLua base directory, issue this command:
+
+  $ scons -f cross-lua.py
+
+  You should get a file called "luac" in the same directory after this.
+
+- to compile your Lua code (in <source>.lua), issue this command:
+
+  $ ./luac -s -ccn float_arm 64 -o <source>.luac <source>.lua
+  if you're using "regular" (floating point) Lua, or:
+
+  $ ./luac -s -ccn int 32 -o <source>.luac <source>.lua
+  if you're using int-ony Lua.
+
+- that's it! You can use the resulting file (<source>.luac) in two ways:
+
+  - "recv" it (docs/the_elua_shell.txt)
+  - copy it to the ROM file system (docs/the_rom_file_system.txt)

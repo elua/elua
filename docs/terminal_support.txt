@@ -3,6 +3,8 @@
 Terminal support in eLua
 ================================================================================
 
+NOTE: currently, this only works over serial connections (not over TCP/IP)
+
 Besides standard stdio/stdout/stderr support (docs/console_input_output.txt), 
 eLua provides the "term" module to access ANSI compatible terminal emulators. 
 It is designed to be as flexible as possible, thus allowing a large number of

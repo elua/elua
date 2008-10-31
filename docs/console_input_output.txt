@@ -3,6 +3,10 @@
 Console input/output in eLua
 ================================================================================
 
+NOTE: this document describes the terminal support over serial connections
+only. Refer to docs/elua_components.txt to learn how to enable console
+support over TCP/IP instead of serial connections.
+
 The console input/output is handled by a generic layer (src/newlib/genstd.c) 
 that can be adapted to a variety of input/output devices. It needs just two
 functions, one for displaying characters and another one for receiving input:

@@ -37,7 +37,6 @@ typedef struct
 
 // Shell data
 static char* shell_prog;
-static unsigned shell_max_prog;
 
 // ****************************************************************************
 // Shell functions
@@ -114,22 +113,21 @@ static void shell_recv( char* args )
   long actsize;
   lua_State* L;   
 
-  if( ( shell_prog = malloc( shell_max_prog ) ) == NULL )
+  if( ( shell_prog = malloc( XMODEM_INITIAL_BUFFER_SIZE ) ) == NULL )
   {
     printf( "Unable to allocate memory\n" );
     return;
   }
   printf( "Waiting for file ... " );
-  while( 1 )
+  if( ( actsize = xmodem_receive( &shell_prog ) ) < 0 )
   {
-    actsize = xmodem_receive( shell_prog, shell_max_prog );
-    if( actsize > 0 )
-      break;
+    free( shell_prog );
+    shell_prog = NULL;
     if( actsize == XMODEM_ERROR_OUTOFMEM )
-    {
-      printf( "file too big\n ... " ); 
-      printf( "Waiting for file ... " );
-    }
+      printf( "file too big\n" ); 
+    else
+      printf( "XMODEM error\n" );
+    return;
   }
   // Eliminate the XMODEM padding bytes
   p = shell_prog + actsize - 1;
@@ -291,18 +289,16 @@ void shell_start()
 }
 
 // Initialize the shell, returning 1 for OK and 0 for error
-int shell_init( unsigned maxprog )
+int shell_init()
 {
   shell_prog = NULL;
-  shell_max_prog = maxprog;
   return 1;
 }
 
 #else // #ifdef BUILD_SHELL
 
-int shell_init( unsigned maxprog )
+int shell_init()
 {
-  maxprog = maxprog;
   return 0;
 }
 

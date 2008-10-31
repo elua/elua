@@ -18,6 +18,7 @@
 //*****************************************************************************
 
 #include <string.h>
+#include <stdlib.h>
 #include "xmodem.h"
 #include "platform.h"
 
@@ -25,8 +26,6 @@
 #ifdef BUILD_XMODEM
 
 #define XMODEM_BUFFER_SIZE    128
-
-// pointers to stream I/O functions
 static p_xm_send_func xmodem_out_func;
 static p_xm_recv_func xmodem_in_func;
 
@@ -93,7 +92,7 @@ void xmodem_init( p_xm_send_func send_func, p_xm_recv_func recv_func )
   xmodem_in_func = recv_func;
 }
 
-long xmodem_receive( char* dest, u32 limit )
+long xmodem_receive( char** dest )
 {
   unsigned char xmbuf[XMODEM_BUFFER_SIZE+6];
   unsigned char seqnum=1;     // xmodem sequence number starts at 1
@@ -103,7 +102,8 @@ long xmodem_receive( char* dest, u32 limit )
   unsigned char crcflag=0;
   unsigned long totalbytes=0;
   int i,c;
-
+  u32 limit = XMODEM_INITIAL_BUFFER_SIZE;
+  
   while(retry > 0)
   {
     // solicit a connection/packet
@@ -177,14 +177,18 @@ long xmodem_receive( char* dest, u32 limit )
         // write/deliver data
         if( totalbytes + pktsize > limit )
         {
-          // Cancel transmission
-          xmodem_flush();
-          xmodem_out_func(CAN);
-          xmodem_out_func(CAN);
-          xmodem_out_func(CAN);    
-          return XMODEM_ERROR_OUTOFMEM;    
+          limit += XMODEM_INCREMENT_AMMOUNT;
+          if( ( *dest = realloc( *dest, limit ) ) == NULL )
+          {
+            // Cancel transmission
+            xmodem_flush();
+            xmodem_out_func(CAN);
+            xmodem_out_func(CAN);
+            xmodem_out_func(CAN);    
+            return XMODEM_ERROR_OUTOFMEM;   
+          }
         }
-        memcpy( dest + totalbytes, xmbuf + 3, pktsize );
+        memcpy( *dest + totalbytes, xmbuf + 3, pktsize );
         totalbytes += pktsize;
         // next sequence number
         seqnum++;

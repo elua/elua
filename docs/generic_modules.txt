@@ -106,3 +106,70 @@ Its purpose is to provide mathematic functiosn (sin, cos, tan...) to Lua. Since
 these kind of functions are rarely needed in an embedded environment, the "math"
 module can be enabled and disabled just like the other generic and platform 
 modules in eLua.
+
+The "net" module
+================================================================================
+TCP/IP networking support is provided to eLua via the "net" module. It contains
+a small set of function, tailored for embedded systems (lighter and less resource
+demanding).
+
+IMPORTANT NOTE: TCP/IP support in eLua is still largely experimental.
+
+Sock = socket( type ): creates a new socket and returns its identifier. type can
+be either net.SOCK_STREAM or net.SOCK_DGRAM, but currently only TCP/IP sockets
+(SOCK_STREAM) are implemented.
+
+Res = close( socket ): closes the given socket, returning an error status.
+
+IP = packip( ip0, ip1, ip2, ip3 ) or IP = packip( "ipstring" ): packs the given
+IP (either in unpacked form or as a string) returning a value that completely
+identifies that IP (it's not actually a new IP datatype, just a 32-bit number).
+
+IP0, IP1, IP2, IP3 = unpackip( ip, "*n" ) or IPString = unpackip( ip, "*s" ):
+unpacks the given IP value, returning it either as 4 numbers or as a string.
+
+Sock, RemoteIp, Err = accept( port, [timer_id, timeout] ): listens on the 
+specified port, waiting for connections. If timer ID and timeout are specified,
+it uses the specified timer to wait for a connection for at most "timeout" 
+microseconds. Returns the socket descriptor for the new connection, the IP of
+the remote end, and an error status.
+
+Sent, Res = send( sock, string ): send the given "string" on the specified
+socket, returning the number of bytes actually send and an error status.
+
+Data, Res = recv( sock, maxsize, [timer_id, timeout] ) or
+Data, Res = recv( sock, "*l", [timer_id, timeout] ): read data from the 
+socket. The first form reads up to a maximum size specified by "maxsize", the
+second form reads a single line (until '\n' is received, ignoring any '\r'
+chars in the stream). 
+IMPORTANT NOTE: currently, the "*l" (line) mode is partially broken, in that it 
+might loose some of the data sent by the remote end. If the remote end sends
+more than one line, only the first is kept, the rest is ignored. For example, 
+if the remote sends "line\n", everything is OK, but if the remote sends
+"line1\nline2\n", "line1" is returned correctly after calling "recv" once, but
+"line2" won't be returned after calling "recv" again. This is due to the "single
+buffer" design of uIP. If you want to make sure you receive all the data you're
+looking for, use the first form of recv, specifying a maximum size. "*l" is only
+usable for line-oriented conversations (like you'd find in a command line shell,
+for example).
+
+IP = lookup( "hostname" ): invokes the DNS resolver to find the IP address of
+"hostname".
+
+Err = connect( sock, ip, port ): connects the specified socket (that must be
+created previously using "socket") to the specified host and port. Returns an
+error status.
+
+The error status is defined in inc/elua_net.h in one enum:
+
+(BEGIN inc/elua_net.h)
+// eLua net error codes
+enum
+{
+  ELUA_NET_ERR_OK = 0,
+  ELUA_NET_ERR_TIMEDOUT,
+  ELUA_NET_ERR_CLOSED,
+  ELUA_NET_ERR_ABORTED,
+  ELUA_NET_ERR_OVERFLOW
+};
+(END inc/elua_net.h)

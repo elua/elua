@@ -146,6 +146,8 @@ void elua_uip_mainloop()
 // DHCP callback
 
 #ifdef BUILD_DHCPC
+static void elua_uip_conf_static();
+
 void dhcpc_configured(const struct dhcpc_state *s)
 {
   if( s->ipaddr[ 0 ] != 0 )
@@ -156,6 +158,8 @@ void dhcpc_configured(const struct dhcpc_state *s)
     resolv_conf( ( u16_t* )s->dnsaddr );
     elua_uip_configured = 1;
   }
+  else
+    elua_uip_conf_static();
 }
 #endif
 
@@ -444,6 +448,20 @@ void elua_uip_appcall()
   }
 }
 
+static void elua_uip_conf_static()
+{
+  uip_ipaddr_t ipaddr;
+  uip_ipaddr( ipaddr, ELUA_CONF_IPADDR0, ELUA_CONF_IPADDR1, ELUA_CONF_IPADDR2, ELUA_CONF_IPADDR3 );
+  uip_sethostaddr( ipaddr );
+  uip_ipaddr( ipaddr, ELUA_CONF_NETMASK0, ELUA_CONF_NETMASK1, ELUA_CONF_NETMASK2, ELUA_CONF_NETMASK3 );
+  uip_setnetmask( ipaddr ); 
+  uip_ipaddr( ipaddr, ELUA_CONF_DEFGW0, ELUA_CONF_DEFGW1, ELUA_CONF_DEFGW2, ELUA_CONF_DEFGW3 );
+  uip_setdraddr( ipaddr );    
+  uip_ipaddr( ipaddr, ELUA_CONF_DNS0, ELUA_CONF_DNS1, ELUA_CONF_DNS2, ELUA_CONF_DNS3 );
+  resolv_conf( ipaddr );  
+  elua_uip_configured = 1;
+}
+
 // Init application
 void elua_uip_init( const struct uip_eth_addr *paddr )
 {
@@ -458,16 +476,7 @@ void elua_uip_init( const struct uip_eth_addr *paddr )
   dhcpc_init( paddr->addr, sizeof( *paddr ) );
   dhcpc_request();
 #else
-  uip_ipaddr_t ipaddr;
-  uip_ipaddr( ipaddr, ELUA_CONF_IPADDR0, ELUA_CONF_IPADDR1, ELUA_CONF_IPADDR2, ELUA_CONF_IPADDR3 );
-  uip_sethostaddr( ipaddr );
-  uip_ipaddr( ipaddr, ELUA_CONF_NETMASK0, ELUA_CONF_NETMASK1, ELUA_CONF_NETMASK2, ELUA_CONF_NETMASK3 );
-  uip_setnetmask( ipaddr ); 
-  uip_ipaddr( ipaddr, ELUA_CONF_DEFGW0, ELUA_CONF_DEFGW1, ELUA_CONF_DEFGW2, ELUA_CONF_DEFGW3 );
-  uip_setdraddr( ipaddr );    
-  uip_ipaddr( ipaddr, ELUA_CONF_DNS0, ELUA_CONF_DNS1, ELUA_CONF_DNS2, ELUA_CONF_DNS3 );
-  resolv_conf( ipaddr );  
-  elua_uip_configured = 1;
+  elua_uip_conf_static();
 #endif
   
   resolv_init();

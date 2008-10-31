@@ -31,35 +31,30 @@ platform. For example, for the i386 platform it doesn't make sense to include
 the "pio" module (although this is technically possible by providing "bogus" 
 platform interface functions, the  module won't be able to do anything on a i386 
 CPU, unless you want to "emulate" it via the parallel port or some other 
-peripheral). To accomodate this, each platform must provide a "platform_libs.h" 
-(src/platform/<your platform>) which lists the modules that are used for that 
-specific platform. For example, if we want to enable only the PIO module for the
-AT91SAM7X platform, to the "platform_libs.h" file would look like this:
+peripheral). To accomodate this, each platform must provide a "platform_conf.h" 
+(src/platform/<your platform>) which (amongst other things) lists the modules 
+that are used for that specific platform. For example, if we want to enable 
+only the PIO module for the AT91SAM7X platform, the "platform_conf.h" file 
+would look like this:
 
-(BEGIN src/platform/at91sam7x/platform_libs.h)
+(BEGIN src/platform/at91sam7x/platform_conf.h)
 // Auxiliary libraries that will be compiled for this platform
 
-#ifndef __PLATFORM_LIBS_H__
-#define __PLATFORM_LIBS_H__
+#ifndef __PLATFORM_CONF_H__
+#define __PLATFORM_CONF_H__
 
 #include "auxmods.h"
+
+...............................................................
 
 #define LUA_PLATFORM_LIBS\
   { AUXLIB_PIO, luaopen_pio }
   
 #endif
-(END src/platform/at91sam7x/platform_libs.h)
+(END src/platform/at91sam7x/platform_conf.h)
 
 On the other hand, for a platform that doesn't need to enable any modules at
-all, this can be an empty file:
-
-// Auxiliary libraries that will be compiled for this platform
-
-#ifndef __PLATFORM_LIBS_H__
-#define __PLATFORM_LIBS_H__
-  
-#endif
-
+all, you don't even need to define the LUA_PLATFORM_LIBS macro.
 This is why some of platform functions described in "platform interface.txt" are
 optional. If there are no modules that use them in one platform, then you don't
 need to define them at all for that platform, not even as "bogus" functions.
@@ -199,8 +194,6 @@ Cpu = pd.cpu(): returns the CPU name (f.e. LM3S8962)
 
 Board = pd.board(): returns the CPU board (f.e. EK-LM3S8962)
 
-Clock = pd.clock(): returns the platform CPU clock.
-
 ================================================================================
 === The PWM module
 ================================================================================
@@ -220,3 +213,55 @@ Data = pwm.setclock( id, clock ): set the base clock of the PWM block 'id' to
   the given clock. In returns the actual clock set on the PWM block.
 
 Data = pwm.getclock( id ): returns the base clock of the PWM block 'id'.
+
+================================================================================
+=== The CPU module
+================================================================================
+
+It brings low level CPU access to Lua (read/write memory, enable/disable 
+interrupts).
+
+w32( address, data ) : write the 32-bit data at the specified address
+
+w16( address, data ) : write the 16-bit data at the specified address
+
+w8( address, data ) : write the 8-bit data at the specified address
+
+Data = r32( address ) : reads 32-bit data from the specified address
+
+Data = r16( address ) : reads 16-bit data from the specified address
+
+Data = r8( address ) : reads 8-bit data from the specified address
+
+cli(): disable CPU interrupts
+
+sei(): enable CPU interrupts
+
+Clock = clock(): returns the CPU frequency
+
+Also, you can expose as many CPU constants (for example memory mapped registers)
+as you want to this module. You might want to use this feature to access some 
+CPU memory areas (as defined in the CPU header files from the CPU support 
+package) directly from Lua. To do this, you'll need to define the 
+PLATFORM_CPU_CONSTANTS macro in the platform's platform_conf.h file 
+(src/platform/<platform name>/platform_conf.h). Include all your constants in a 
+_C( <constant name> ) definition, and then build your project.
+For example, let's suppose that your CPU's interrupt controler has 3 memory
+mapped registers: INT_REG_ENABLE, INT_REG_DISABLE and INT_REG_MASK. If you want
+to access them from Lua, locate the header that defines the values of these
+registers (I'll assume its name is "cpu.h") and add these lines to the
+platform_conf.h:
+
+#include "cpu.h"
+
+#define PLATFORM_CPU_CONSTANTS\
+  _C( INT_REG_ENABLE ),\
+  _C( INT_REG_DISABLE ),\
+  _C( INT_REG_MASK )
+
+After this you'll be able to access the regs directly from Lua, like this:
+
+data = cpu.r32( cpu.INT_REG_ENABLE )
+cpu.w32( cpu.INT_REG_ENABLE, data )
+
+For a "real-life" example, see the src/platform/lm3s/platform_conf.h file.

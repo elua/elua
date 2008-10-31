@@ -53,7 +53,7 @@
 #define ELUA_CONF_IPADDR0         192
 #define ELUA_CONF_IPADDR1         168
 #define ELUA_CONF_IPADDR2         1
-#define ELUA_CONF_IPADDR3         13
+#define ELUA_CONF_IPADDR3         218
 
 #define ELUA_CONF_NETMASK0        255
 #define ELUA_CONF_NETMASK1        255

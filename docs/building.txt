@@ -60,9 +60,9 @@ invoke scons:
 
 $ scons [target=lua | lualong] 
   [cpu=at91sam7x256 | at91sam7x512 | i386 | str912fw44 | lm3s8962 | 
-        lm3s6965 | lpc2888 ]
+        lm3s6965 | lpc2888 | str711fr2 ]
   [board=ek-lm3s8962 | ek-lm3s6965 | str9-comstick | sam7-ex256 | lpc-h2888 | 
-        pc]
+        | mod711 | pc]
   [cpumode=arm | thumb] 
   [allocator = newlib | multiple]
   [prog]
