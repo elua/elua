@@ -1,0 +1,175 @@
+(NOTE: view this file with a monospaced font)
+
+eLua generic modules
+================================================================================
+
+Before you read this file, please make sure that you read and understood the 
+theory from "platform_modules.txt" (at least the first part which describes
+the platform modules implementation). The generic modules use the exact same
+mechanism. In fact, the only difference between them is that the generic modules
+are exactly what their name implies: generic. They don't depend on the platform
+interface, so they don't need specific support for each platform, but they still
+behave identically on all platforms. They are selected by the same mechanism
+used by the platform modules (platform_libs.h). Following is a list of these 
+modules and their exported functions.
+
+The "term" module
+================================================================================
+The "term" component (see terminal_support.txt) exports its functions to Lua via 
+the "term" module. The methods of the "term" module are presented below.
+
+term.clrscr(): clear the screen
+
+term.clreol(): clear from the current cursor position to the end of the line 
+
+term.gotoxy( x, y ): position the cursor at the given coordinates
+
+term.up( delta ): move the cursor up "delta" lines
+
+term.down( delta ): move the cursor down "delta" lines
+
+term.left( delta ): move the cursor left "delta" lines
+
+term.right( delta ): move the cursor right "delta" lines
+
+Lines = term.lines(): returns the number of lines
+
+Cols = term.cols(): returns the number of columns
+
+term.put( c1, c2, ... ): writes the specified character(s) to the terminal
+
+term.putstr( s1, s2, ... ): writes the specified string(s) to the terminal
+
+Cx = term.cursorx(): return the cursor X position
+
+Cy = term.cursory(): return the cursor Y position
+
+c = term.getch( term.WAIT | term.NOWAIT ): returns a char read from the 
+  terminal. If term.WAIT is specified the function will wait for a character to
+  be ready, with term.NOWAIT it returns -1 if no char is available or the char
+  code if a char is available. The return of getch can be checked against the
+  char codes defined in inc/term.h, by appending "term." to the constant name 
+  (for example: term.KC_UP, term.KC_LEFT, term.KC_ESC ... )
+
+The "pack" module
+================================================================================
+Pack allows packing/unpacking of binary data. For example, it allows one to save 
+a specific data type (for example a 16-bit integer) from Lua to a file and then 
+read it back to a Lua variable without having to worry about the different
+physical representations of a Lua number and a 16-bit integer. It's originally
+written by Luiz Henrique de Figueiredo, one of the "fathers" of Lua.
+It exports just two methods ("pack" and "unpack"), but it uses some format
+specifiers for the pack/unpack operations that take a while to get used to. For
+more information download the original distribution and check its documentation
+and examples (http://www.tecgraf.pub-rio.br/~lhf/ftp/lua/~lpack).
+
+The "bit" module
+================================================================================
+As Lua doesn't have built-in operators for bit operations (and, or, xor, not)
+they are provided by this module. It's based on "bitlib" by Reuben Thomas and
+was slightly adapted and augmented for eLua.
+
+Res = bit.bnot( value ): unary negation
+
+Res = bit.band( v1, v2, ... ): binary "and"
+
+Res = bit.bor( v1, v2, ... ): binary "or"
+
+Res = bit.bxor( v1, v2, ... ): binary "exclusive or"
+
+Res = bit.lshift( value, pos ): shift "value" left "pos" positions.
+
+Res = bit.rshift( value, pos ): shift "value" right "pos" positions. The sign is
+  not propagated.
+
+Res = bit.arshift( value, pos ): shift "value" right "pos" positions. The sign
+  is propagated ("arithmetic shift").
+
+Res = bit.bit( bitno ): a shortcut for bit.lshift( 1, bitno )
+
+Res1, Res2, ... = bit.set( bitno, v1, v2, ... ): set the bit at position "bitno"
+  in v1, v2, ... to 1.
+
+Res1, Res2, ... = bit.clear( bitno, v1, v2, ... ): set the bit at position 
+  "bitno"in v1, v2, ... to 0.
+
+Res = bit.isset( value, bitno ): returns true if bit at position "bitno" in 
+  "value" is 1, false otherwise.
+
+Res = bit.isclear( value, bitno ): returns true if bit at position "bitno" in
+  "value" is 0, false otherwise.
+
+The "math" module
+================================================================================
+This is actually part of the official Lua distribution, not a separate module.
+Its purpose is to provide mathematic functiosn (sin, cos, tan...) to Lua. Since
+these kind of functions are rarely needed in an embedded environment, the "math"
+module can be enabled and disabled just like the other generic and platform 
+modules in eLua.
+
+The "net" module
+================================================================================
+TCP/IP networking support is provided to eLua via the "net" module. It contains
+a small set of function, tailored for embedded systems (lighter and less resource
+demanding).
+
+IMPORTANT NOTE: TCP/IP support in eLua is still largely experimental.
+
+Sock = socket( type ): creates a new socket and returns its identifier. type can
+be either net.SOCK_STREAM or net.SOCK_DGRAM, but currently only TCP/IP sockets
+(SOCK_STREAM) are implemented.
+
+Res = close( socket ): closes the given socket, returning an error status.
+
+IP = packip( ip0, ip1, ip2, ip3 ) or IP = packip( "ipstring" ): packs the given
+IP (either in unpacked form or as a string) returning a value that completely
+identifies that IP (it's not actually a new IP datatype, just a 32-bit number).
+
+IP0, IP1, IP2, IP3 = unpackip( ip, "*n" ) or IPString = unpackip( ip, "*s" ):
+unpacks the given IP value, returning it either as 4 numbers or as a string.
+
+Sock, RemoteIp, Err = accept( port, [timer_id, timeout] ): listens on the 
+specified port, waiting for connections. If timer ID and timeout are specified,
+it uses the specified timer to wait for a connection for at most "timeout" 
+microseconds. Returns the socket descriptor for the new connection, the IP of
+the remote end, and an error status.
+
+Sent, Res = send( sock, string ): send the given "string" on the specified
+socket, returning the number of bytes actually send and an error status.
+
+Data, Res = recv( sock, maxsize, [timer_id, timeout] ) or
+Data, Res = recv( sock, "*l", [timer_id, timeout] ): read data from the 
+socket. The first form reads up to a maximum size specified by "maxsize", the
+second form reads a single line (until '\n' is received, ignoring any '\r'
+chars in the stream). 
+IMPORTANT NOTE: currently, the "*l" (line) mode is partially broken, in that it 
+might loose some of the data sent by the remote end. If the remote end sends
+more than one line, only the first is kept, the rest is ignored. For example, 
+if the remote sends "line\n", everything is OK, but if the remote sends
+"line1\nline2\n", "line1" is returned correctly after calling "recv" once, but
+"line2" won't be returned after calling "recv" again. This is due to the "single
+buffer" design of uIP. If you want to make sure you receive all the data you're
+looking for, use the first form of recv, specifying a maximum size. "*l" is only
+usable for line-oriented conversations (like you'd find in a command line shell,
+for example).
+
+IP = lookup( "hostname" ): invokes the DNS resolver to find the IP address of
+"hostname".
+
+Err = connect( sock, ip, port ): connects the specified socket (that must be
+created previously using "socket") to the specified host and port. Returns an
+error status.
+
+The error status is defined in inc/elua_net.h in one enum:
+
+(BEGIN inc/elua_net.h)
+// eLua net error codes
+enum
+{
+  ELUA_NET_ERR_OK = 0,
+  ELUA_NET_ERR_TIMEDOUT,
+  ELUA_NET_ERR_CLOSED,
+  ELUA_NET_ERR_ABORTED,
+  ELUA_NET_ERR_OVERFLOW
+};
+(END inc/elua_net.h)

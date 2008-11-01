@@ -1,0 +1,41 @@
+(NOTE: view this file with a monospaced font)
+
+Console input/output in eLua
+================================================================================
+
+NOTE: this document describes the terminal support over serial connections
+only. Refer to docs/elua_components.txt to learn how to enable console
+support over TCP/IP instead of serial connections.
+
+The console input/output is handled by a generic layer (src/newlib/genstd.c) 
+that can be adapted to a variety of input/output devices. It needs just two
+functions, one for displaying characters and another one for receiving input:
+
+(BEGIN inc/newlib/genstd.h)
+// Send/receive function types
+typedef void ( *p_std_send_char )( int fd, char c );
+typedef int ( *p_std_get_char )();
+(END inc/newlib/genstd.h)
+
+(the send faction gets an additional 'fd' parameter that you can use to 
+differentiate between STDOUT and STDERR).
+To set them, use std_set_send_func and std_set_get_func. Generally this happens
+in the "platform_init" function (see "platform interface.txt") to set the 
+initial "console" device:
+
+(BEGIN src/platform/at91sam7x/platform.c)
+int platform_init()
+{
+.........................
+  // Set the send/recv functions                          
+  std_set_send_func( uart_send );
+  std_set_get_func( uart_recv );
+.........................
+}
+(END src/platform/at91sam7x/platform.c)
+
+The code above makes it possible for you to use the UART as the Lua console, 
+thus being able to use the standard Lua interpreter (for example) via your 
+serial connection.
+If you need another console device, just call std_set_send_func/std_set_get_func
+with the appropriate function pointer.

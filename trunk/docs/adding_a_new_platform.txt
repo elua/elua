@@ -1,0 +1,56 @@
+(NOTE: view this file with a monospaced font)
+
+Adding a new platform to eLua
+================================================================================
+
+If you want to add a new platform to eLua, the first thing you need to check is
+if the platform has enough resources to run Lua. Roughly speaking, 256k of Flash
+(or even 128k for the integer-only version) and 64k of RAM should be enough for
+a 32-bit platform. As usual, the more, the better (this is especially true for
+the RAM memory).
+Next, check if a GCC/Newlib toolchain is available for the platform. To be more 
+precise, the compiler doesn't really matter, as long as you're able to compile
+Newlib with it. If you don't, you won't be able to compile eLua. This limitation
+might be eliminated in future versions, but it's not a priority of the project, 
+so don't count on it happening too soon.
+After this, you need to make sure that you have a basic understanding of the 
+platform, or at least of its initialization sequence. Most platforms require 
+specific sequences for initializing the clock subsystem, or for disabling the 
+watchdog timer, or for remapping the internal memory, and many others. 
+Fortunately the vast majority of chips manufacturers provide support packages 
+for their CPUs, so once you download the support package and understand the 
+initialization code, you should be safe. At the very least, you'll need:
+
+- a "startup" sequence, generally written in assembler, that does very low level
+  intialization, sets the stack pointer, zeroes the BSS section, copies ROM to 
+  RAM for the DATA section, and then jumps to main.
+- a linker command file for GNU LD.
+- the "high-level" initialization code (for example peripheral initialization).
+
+Let's suppose that your new platform is called "foo". In order to compile eLua
+for foo, follow these steps:
+
+1. create the src/platform/foo directory
+2. modify the SConstruct file from the base directory to make it aware of your
+   new CPU, platform and board(s). A "board" translates into a simple macro
+   definition at compile time, and makes it easy to adapt your platform code for
+   different situations. For example, you might have 2 boards with the same CPU,
+   but different I/O pin assignments. By checking the value of the "ELUA_BOARD"
+   macro in your code you can adapt it for each board.
+3. you need at least 4 files (besides your platform specific files) in the 
+   src/platform/foo directory:
+
+  - conf.py: this is read by SConstruct and describes how to build files for
+    the platform, as well as the platform specific files. Start from an existent
+    conf.py file and modify it to suit your needs, it's easier this way.
+  - type.h: data types used by eLua, declared in a platform independent way. 
+    Again, start from an existent type.h file and modify it if needed.
+  - platform_conf.h: see "platform modules.txt", "elua_components.txt" and
+    "tcpip_in_elua.txt" for details
+
+4. implement the platform interface functions (see "platform interface.txt"). By
+   convention, they should be implemented in a file called "platform.c". Note that
+   SConstruct defines 3 macros that might prove useful: ELUA_CPU, ELUA_PLATFORM
+   and ELUA_BOARD. 
+  
+5. That's it! Build (see "building.txt") and enjoy!

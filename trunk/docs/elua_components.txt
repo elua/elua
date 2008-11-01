@@ -1,0 +1,117 @@
+(NOTE: view this file with a monospaced font)
+
+eLua components
+================================================================================
+
+Besides the Lua core, the platform modules (docs/platform_modules.txt) and the
+Newlib 'glue code', eLua uses a number of other code modules (components) for
+extended functionality. This is a great thing if you actually need the whole
+functionality in your code, but otherwise it becomes a waste of memory space. 
+Since eLua was designed to be as flexible as possible, it includes a mechanism 
+that allows the user to select exactly what components he needs. Only the 
+selected components will be part of the eLua image. Please note that this is 
+_not_ a replacement of the platform modules mechanism, the two are complementary
+to each other, since the components are not connected with the platform 
+interface (docs/platform_interface.txt) in any way.
+To use this feature, every platform (src/platform/[name]) must include a file
+named "platform_conf.h" that specifies (among other things) what components 
+should be built for that platform. For example, the LM3S "platform_conf.h" file 
+might look like this:
+
+(BEGIN src/platform/lm3s/platform_conf.h)
+// Define here what components you want for this platform
+
+#ifndef __PLATFORM_CONF_H__
+#define __PLATFORM_CONF_H__
+
+#define BUILD_XMODEM
+#define BUILD_SHELL
+#define BUILD_ROMFS
+#define BUILD_TERM
+........................................
+(END src/platform/lm3s/platform_conf.h)
+
+In this case, the XMODEM, SHELL, ROMFS and TERM components will be built. On the
+other hand, the i386 "platform_conf.h" will probably have less components:
+
+(BEGIN src/platform/i386/platform_conf.h)
+// Define here what components you want for this platform
+
+#ifndef __PLATFORM_CONF_H__
+#define __PLATFORM_CONF_H__
+
+#define BUILD_ROMFS
+#define BUILD_SHELL
+........................................
+(END src/platform/i386/platform_conf.h)
+
+You don't need to modify any other part of your code, just rebuild your image
+after you made changes to this file (docs/building.txt)
+Below you can find a list of eLua components and their functionality.
+
+XMODEM
+================================================================================
+The XMODEM component enables eLua to receive Lua source files via its shell and 
+execute them (docs/the_elua_shell.txt). If you don't need to use "recv" from the
+shell you can skip this component.
+To enable: 
+  #define BUILD_XMODEM
+
+Also, XMODEM is configured with a number of constants also defined in
+platform_conf.h. They are:
+
+XMODEM_UART_ID : the id of the UART on which XMODEM runs
+XMODEM_TIMER_ID : the id of the timer used by the XMODEM implementation
+
+
+SHELL
+================================================================================
+This enables the build of the eLua shell (docs/the_elua_shell.txt). If you don't
+need the shell, don't enable this component. eLua will execute the "lua" command
+at startup if the eLua shell is not built. The shell comes in two flavours: over
+a serial line or over TCP/IP (currently you can't have both at the same time).
+To enable shell over a serial line:
+  #define BUILD_SHELL
+  #define BUILD_CON_GENERIC
+To enable shell over TCP/IP:
+  #define BUILD_SHELL
+  #define BUILD_CON_TCP
+
+ROMFS
+================================================================================
+If you need to use the ROM file system (docs/the_rom_file_system.txt) enable
+this component, otherwise you can skip it.
+To enable: 
+  #define BUILD_ROMFS
+
+TERM
+================================================================================
+The TERM module adds support for ANSI terminals. See docs/terminal_support.txt
+for details. If you don't need it, and if you're willing to miss the opportunity
+of playing hangman in eLua (examples/hangman.lua) you can skip this component :)
+To enable: 
+  #define BUILD_TERM
+
+Also, TERM is configured with a number of constants also defined in 
+platform_conf.h. THey are:
+
+TERM_UART_ID - the id of the UART on which TERM runs
+TERM_TIMER_ID - the id of the timer used by the TERM implementation
+TERM_LINES - number of lines in the terminal emulator
+TERM_COLS - number of columns in the terminal emulator
+TERM_TIMEOUT - inter-key timeout (used to detect keys that send multiple codes,
+  such as up/down/left/right keys).
+
+IMPORTANT NOTE: TERM doesn't currently work over TCP/IP. 
+
+uIP
+================================================================================
+uIP is the TCP/IP stack used curently by eLua to provide networking support
+(docs/tcpip_in_elua.txt). You can enable the TCP/IP stack and two of its services 
+(the DHCP client and the DNS resolver).
+To enable uIP (thus TCP/IP support): 
+  #define BUILD_UIP
+To enable the DHCP client:
+  #define BUILD_DHCPC
+To enable the DNS resolver:
+  #define BUILD_DNS
