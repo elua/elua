@@ -32,19 +32,6 @@ static int xmodem_recv( u32 timeout )
   return platform_uart_recv( XMODEM_UART_ID, XMODEM_TIMER_ID, timeout );
 }
 
-#else // #ifdef BUILD_XMODEM
-
-static void xmodem_send( u8 data )
-{
-  data = data;
-}
-
-static int xmodem_recv( u32 timeout )
-{
-  timeout = timeout;
-  return -1;
-}
-
 #endif // #ifdef BUILD_XMODEM
 
 // ****************************************************************************
@@ -119,25 +106,6 @@ static int term_translate( u8 data )
   return KC_UNKNOWN;
 }
 
-#else // #ifdef BUILD_TERM
-
-static void term_out( u8 data )
-{
-  data = data;
-}
-
-static int term_in( int mode )
-{
-  mode = mode;
-  return -1;
-}
-
-static int term_translate( u8 data )
-{
-  data = data;
-  return -1;
-}
-
 #endif // #ifdef BUILD_TERM
 
 // ****************************************************************************
@@ -159,12 +127,16 @@ int main( void )
   
   // Register the ROM filesystem
   dm_register( romfs_init() );  
-  
+
+#ifdef BUILD_XMODEM  
   // Initialize XMODEM
   xmodem_init( xmodem_send, xmodem_recv );    
-  
+#endif
+
+#ifdef BUILD_TERM  
   // Initialize terminal
   term_init( TERM_LINES, TERM_COLS, term_out, term_in, term_translate );
+#endif
 
   // Autorun: if "autorun.lua" is found in the ROM file system, run it first
   if( ( fp = fopen( "/rom/autorun.lua", "r" ) ) != NULL )

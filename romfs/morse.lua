@@ -4,13 +4,21 @@
 -- Dado Sutter         sep 2008
 -------------------------------------------------------------------------------
 
+local pwmid, tmrid, ledpin
+if pd.board() == "EK-LM3S8962" or pd.board() == "EK-LM3S6965" then
+  pwmid, tmrid, ledpin = 1, 1, pio.PF_0
+elseif pd.board() == "SAM7-EX256" then
+  pwmid, tmrid, ledpin = 0, 1, pio.PB_20
+  tmr.setclock( 1, 100000 )
+else
+  print( pd.board() .. " not supported with this example" )
+  return
+end
+
 ------------ User Adjusted Variables ------------
 
 local dotDelay, playFreq, playFreqSave = 90000, 880, 880
 local freqStep, dotDelayStep = 220, 10000
-
------------- Program Variables ------------
-local pwmid, ledpin= 1, pio.PF_0
 
 -- Morse Alphabet
 local Morse = {
@@ -47,14 +55,14 @@ local Morse = {
 local function play(m)
   term.putstr(m)
   if m == ' ' then
-    tmr.delay(0, 2 * dotDelay)
+    tmr.delay(tmrid, 2 * dotDelay)
   else
     pio.set(ledpin)
     pwm.start(pwmid)
-    tmr.delay(0, m == '.' and dotDelay or 3 * dotDelay)
+    tmr.delay(tmrid, m == '.' and dotDelay or 3 * dotDelay)
     pwm.stop(pwmid)
     pio.clear(ledpin)
-    tmr.delay(0, dotDelay)
+    tmr.delay(tmrid, dotDelay)
   end
 end
 

@@ -1,5 +1,6 @@
 -- eLua test 
 
+local uartid = 0
 if pd.board() == "SAM7-EX256" then
   ledpin = pio.PB_20
 elseif pd.board() == "EK-LM3S8962" or pd.board() == "EK-LM3S6965" then
@@ -8,6 +9,9 @@ elseif pd.board() == "STR9-COMSTICK" then
   ledpin = pio.P9_0
 elseif pd.board() == "LPC-H2888" then
   ledpin = pio.P2_1
+elseif pd.board() == "MOD711" then
+  ledpin = pio.P1_7
+  uartid = 1
 else
   print( "\nError: Unknown board " .. pd.board() .. " !" )
   return
@@ -25,6 +29,6 @@ print( "Hello from eLua on " .. pd.cpu() )
 print "Watch your LED blinking :)"
 print "Press any key to end this demo.\n"
 
-while uart.recv( 0, 0, 0 ) < 0 do
+while uart.recv( uartid, 0, 0 ) < 0 do
   cycle()
 end

@@ -1,3 +1,9 @@
+-- Check platform
+if pd.board() ~= 'EK-LM3S8962' and pd.board() ~= 'EK-LM3S6965' then
+  print( pd.board() .. " not supported by this example" )
+  return
+end
+
 -- Mapping between file extension (and request) and HTTP response
 local extmap = {
   txt = "text/plain",

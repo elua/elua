@@ -1,3 +1,22 @@
+01.11.2008 Bogdan Marinescu <bogdanm@users.berlios.de>
+           Dado Sutter <dadosutter@esp.puc-rio.br> 
+
+  * Official release 0.5
+  * Added support for STR7 CPUs from ST (bogdanm)
+  * Added TCP/IP support using the uIP stack (bogdanm)
+  * Added support for console and shell over TCP/IP instead of serial link
+    (bogdanm)
+  * Added the "net" module (eLua's interface to TCP/IP functions) (bogdanm)
+  * Added the "cpu" module (eLua's interface to the target CPU) (bogdanm)
+  * New samples: morse.lua (Morse code encoder) (dado), lhttpd.lua
+    (Lua scripting HTTP server) (bogdanm)
+  * Added support for cross-compiling Lua code (compile on PC, run on target)
+    (bogdanm)
+  * XMODEM can now receive Lua bytecode in addition to Lua source code (bogdanm)
+  * The XMODEM buffer is now dynamic (grows as needed) instead of fixed size
+    (bogdanm)
+  * Project documentation updated (bogdanm)
+
 10.09.2008 Bogdan Marinescu <bogdanm@users.berlios.de>
 
   * Minor release 0.4.1; its main purpose is to integrate the new Lua 5.1.4
