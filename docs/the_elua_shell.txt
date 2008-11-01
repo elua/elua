@@ -39,19 +39,11 @@ More details about some of the shell commands are presented below.
 
 The "recv" command
 ================================================================================
-To use this, your eLua taret image must be built with support for XMODEM (see 
+To use this, your eLua target image must be built with support for XMODEM (see 
 docs/elua_components.txt for details). Also, your terminal emulation program must 
 support sending files via the XMODEM protocol. Both XMODEM with checksum (the 
 original version) and XMODEM with CRC are supported, but only XMODEM with 128 
-byte packets is allowed (XMODEM with 1K packets won't work). The file size that 
-you can upload is limited by the XMODEM_MAX_FILE_SIZE macro in src/main.c:
-
-(BEGIN src/main.c)
-// Maximum file size that can be received via XMODEM
-// Should be a multiple of 128
-#define XMODEM_MAX_FILE_SIZE      [maximum file size in bytes]
-(END src/main.c)
-
+byte packets is allowed (XMODEM with 1K packets won't work).
 To use this feature, enter "recv" at the shell prompt. eLua will respond with 
 "Waiting for file ...". At this point you can send the file to the eLua board 
 via XMODEM. eLua will receive and execute the file. Don't worry when you see 'C'
@@ -76,6 +68,6 @@ However, if you use both '' and "" for string quoting, it will work:
 
 eLua# lua -e 'print("Hello, World")' -i
 Press CTRL+Z to exit Lua
-Lua 5.1.3  Copyright (C) 1994-2008 Lua.org, PUC-Rio
+Lua 5.1.4  Copyright (C) 1994-2008 Lua.org, PUC-Rio
 Hello,World
 >
