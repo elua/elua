@@ -10,7 +10,8 @@ cpu_list = { 'at91sam7x' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
               'str9' : [ 'STR912FW44' ],
               'i386' : [ 'I386' ],
               'lpc288x' : [ 'LPC2888' ],
-              'str7' : [ 'STR711FR2' ]
+              'str7' : [ 'STR711FR2' ],
+              'stm32' : [ 'STM32F103ZE' ]
             }
 
 # List of board/CPU combinations
@@ -20,7 +21,8 @@ board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
                'STR9-COMSTICK' : [ 'STR912FW44' ],
                'PC' : [ 'I386' ],
                'LPC-H2888' : [ 'LPC2888' ],
-               'MOD711' : [ 'STR711FR2' ]
+               'MOD711' : [ 'STR711FR2' ],
+               'STM3210E-EVAL' : [ 'STM32F103ZE' ]
             }
 
 # Variants: board = <boardname>
