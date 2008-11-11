@@ -1,18 +1,19 @@
 # Configuration file for the STM32 microcontroller
 import fnmatch
+import glob
 import os
 
 local_include = local_include + " -Isrc/platform/%s/FWLib/library/inc" % platform
 
-fwlib_files = " ".join( [ "FWLib/library/src/%s" % f for f in os.listdir("src/platform/%s/FWLib/library/src/" % platform) ] )
+fwlib_files = " ".join(glob.glob("src/platform/%s/FWLib/library/src/*.c" % platform))
 #print "FWLib: %s " % fwlib_files 
 
-specific_files = fwlib_files + " " + "cortexm3_macro.s stm32f10x_vector.c  platform.c stm32f10x_it.c"
+specific_files = "cortexm3_macro.s stm32f10x_vector.c  platform.c stm32f10x_it.c lua_lcd.c"
 
 ldscript = "stm32.ld"
   
 # Prepend with path
-specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )
+specific_files = fwlib_files + " " + " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )
 ldscript = "src/platform/%s/%s" % ( platform, ldscript )
 
 cdefs = cdefs + " -Dgcc"
