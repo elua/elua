@@ -29,9 +29,7 @@
 #include "stm32f10x_systick.h"
 #include "stm32f10x_flash.h"
 
-// UIP sys tick data
-#define SYSTICKHZ               4
-#define SYSTICKMS               (1000 / SYSTICKHZ)
+#include "systick.h"
 
 #define STM32_USE_PIO
 #define STM32_USE_USART
@@ -88,6 +86,9 @@ int platform_init()
 
   // Setup IRQ's
   NVIC_Configuration();
+
+  // Enable SysTick timer.
+  SysTick_Config();
 
 #ifdef STM32_USE_PIO
   // Setup PIO
@@ -200,6 +201,8 @@ void NVIC_Configuration(void)
 {
   NVIC_InitTypeDef NVIC_InitStructure;
 
+  NVIC_DeInit();
+
 #ifdef  VECT_TAB_RAM  
   /* Set the Vector Table base location at 0x20000000 */ 
   NVIC_SetVectorTable(NVIC_VectTab_RAM, 0x0); 
@@ -209,7 +212,10 @@ void NVIC_Configuration(void)
 #endif 
 
   /* Configure the NVIC Preemption Priority Bits */  
-  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);
+  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+
+  /* Configure the SysTick handler priority */
+  NVIC_SystemHandlerPriorityConfig(SystemHandler_SysTick, 0, 0);
 }
 
 // ****************************************************************************
@@ -951,6 +957,7 @@ u32 platform_eth_get_elapsed_time()
     return 0;
 }
 
+#if 0
 void SysTickHandler(void)
 {
   // Indicate that a SysTick interrupt has occurred.
@@ -960,6 +967,7 @@ void SysTickHandler(void)
   // of incrementing the timers and taking the appropriate actions.
   platform_eth_force_interrupt();
 }
+#endif
 
 void EthernetIntHandler()
 {
@@ -975,9 +983,11 @@ void EthernetIntHandler()
 
 #else  // #ifdef ELUA_UIP
 
+#if 0
 void SysTickHandler()
 {
 }
+#endif
 
 void EthernetIntHandler()
 {

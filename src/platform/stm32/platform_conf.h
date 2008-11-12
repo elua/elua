@@ -55,6 +55,7 @@
   { AUXLIB_PACK, luaopen_pack },\
   { AUXLIB_BIT, luaopen_bit },\
   { AUXLIB_CPU, luaopen_cpu },\
+  { AUXLIB_MOD, luaopen_mod },\
   { LUA_MATHLIBNAME, luaopen_math }
 #endif
 

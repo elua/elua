@@ -73,7 +73,16 @@ SECTIONS
 	. = ALIGN(4);
     } >FLASH
  
-    
+    .lua_init :
+    {
+	. = ALIGN(4);
+        _lua_init_start = .;
+	KEEP(*(.lua_init))
+        LONG(0x00000000);
+        LONG(0x00000000);    /* Terminate table */
+        _lua_init_end = .;
+	. = ALIGN(4);
+    } >FLASH  
     /* the program code is stored in the .text section, which goes to Flash */
     .text :
     {
