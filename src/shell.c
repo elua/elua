@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include "platform.h"
 #include "elua_net.h"
+#include "romfs.h"
 
 #include "platform_conf.h"
 #ifdef BUILD_SHELL
@@ -46,11 +47,12 @@ static void shell_help( char* args )
 {
   args = args;
   printf( "Shell commands:\n" );
-  printf( "  help - print this help\n" );
+  printf( "  exit       - exit from this shell\n" );
+  printf( "  help       - print this help\n" );
+  printf( "  ls or dir  - lists ROMFS files and sizes\n" );
   printf( "  lua [args] - run Lua with the given arguments\n" );
-  printf( "  recv - receive a file (XMODEM) and execute it\n" );
-  printf( "  ver - print eLua version\n" );
-  printf( "  exit - exit from this shell\n" );
+  printf( "  recv       - receive a file (XMODEM) and execute it\n" );
+  printf( "  ver        - print eLua version\n" );
 }
 
 // 'lua' handler
@@ -164,6 +166,22 @@ static void shell_ver( char* args )
   printf( "For more information go to http://elua.berlios.de\n" );
 }
 
+
+// 'ls' and 'dir' handler
+static void shell_ls( char* args )
+{
+  u16 offset;
+  char fname[MAX_FNAME_LENGTH + 1];
+  int size;
+  
+  args = args;
+  offset = 0;
+  while ( offset = romfs_get_dir_entry( offset, fname, &size ) )
+    printf(" %s   %d bytes \n", fname, size);
+}
+
+
+
 // Insert shell commands here
 static const SHELL_COMMAND shell_commands[] = 
 {
@@ -172,8 +190,11 @@ static const SHELL_COMMAND shell_commands[] =
   { "recv", shell_recv },
   { "ver", shell_ver },
   { "exit", NULL },
+  { "ls", shell_ls },
+  { "dir", shell_ls },
   { NULL, NULL }
 };
+
 
 // Execute the eLua "shell" in an infinite loop
 void shell_start()

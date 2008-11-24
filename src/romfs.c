@@ -37,6 +37,11 @@ static void romfs_close_fd( int fd )
   memset( romfs_fd_table + fd, 0, sizeof( FS ) );
 }
 
+
+
+  
+
+
 // Open the given file, returning one of FS_FILE_NOT_FOUND, FS_FILE_ALREADY_OPENED
 // or FS_FILE_OK
 u8 romfs_open_file( const char* fname, p_read_fs_byte p_read_func, FS* pfs )
@@ -160,6 +165,7 @@ static int romfs_ioctl_r( struct _reent *r, int fd, unsigned long request, void 
     return -1;  
 }
 
+
 // Our UART device descriptor structure
 static DM_DEVICE romfs_device = 
 {
@@ -175,6 +181,28 @@ DM_DEVICE* romfs_init()
 {
   return &romfs_device;
 }
+
+
+// Retrieves file name and size from ROMFS entry at romfiles[offset]
+// Returns the next file entry offset or null on last entry
+u16 romfs_get_dir_entry( u16 offset, char *fname, int *fsize )
+{
+  u16 i;
+  int j;
+  
+  i = offset;
+  j = 0;
+  if ( romfs_read( i ) != 0 )
+  {
+    while ( ( fname[j++] = romfs_read( i++ )));
+    *fsize = (int) ( romfs_read( i ) + ( romfs_read( i+1 ) << 8 ) );
+    return (u16) ( i + 2 + *fsize );
+  }
+  else
+    return 0;  
+}
+
+
 
 #else // #ifdef BUILD_ROMFS
 

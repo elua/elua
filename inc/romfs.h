@@ -9,11 +9,13 @@
 #define MAX_FNAME_LENGTH      14
 
 /*******************************************************************************
-We assume that the "filesystem" resides in a contiguous zone of memory, with the
-following structure:
+The Read-Only "filesystem" resides in a contiguous zone of memory, with the
+following structure, repeated for each file:
 
-filename (ASCIIZ, max length is MAX_FNAME_LENGTH defined in "netdefs.h", empty if last file)
-file size (2 bytes)
+Filename: ASCIIZ, max length is MAX_FNAME_LENGTH defined here, empty if last file
+File size: (2 bytes)
+File data: (file size bytes)
+
 *******************************************************************************/
 
 enum
@@ -34,8 +36,9 @@ typedef struct
   u16 size;
   p_read_fs_byte p_read_func;
 } FS;
-
+  
 // FS functions
 DM_DEVICE* romfs_init();
+u16 romfs_get_dir_entry(u16 offset, char *fname, int *fsize);
 
 #endif
