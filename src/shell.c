@@ -163,7 +163,7 @@ static void shell_ver( char* args )
 {
   args = args;
   printf( "eLua version %s\n", ELUA_STR_VERSION );
-  printf( "For more information go to http://elua.berlios.de\n" );
+  printf( "For more information go to http://www.eluaproject.net\n" );
 }
 
 
