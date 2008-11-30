@@ -13,7 +13,7 @@
 #define BUILD_ROMFS
 #define BUILD_TERM
 #define BUILD_UIP
-#define BUILD_DHCPC
+//#define BUILD_DHCPC
 #define BUILD_DNS
 #define BUILD_CON_GENERIC
 //#define BUILD_CON_TCP
@@ -44,6 +44,7 @@
   { AUXLIB_BIT, luaopen_bit },\
   { AUXLIB_NET, luaopen_net },\
   { AUXLIB_CPU, luaopen_cpu },\
+  { AUXLIB_DISP, luaopen_disp },\
   { LUA_MATHLIBNAME, luaopen_math }
   
 // *****************************************************************************

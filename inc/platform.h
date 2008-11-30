@@ -144,6 +144,33 @@ void platform_timer_delay( unsigned id, u32 delay_us );
 u32 platform_timer_op( unsigned id, int op, u32 data );
 u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_type start );
 
+
+// *****************************************************************************
+// OLED DISP subsection
+
+
+void platform_disp_init(unsigned long freq);
+
+void platform_disp_clear(void);
+
+void platform_disp_stringDraw(const char *str, unsigned long x, unsigned long y,
+                              unsigned char level);
+                              
+void platform_disp_imageDraw(const unsigned char *img,
+                             unsigned long x, unsigned long y,
+                             unsigned long width, unsigned long height);
+                             
+void platform_disp_enable(unsigned long freq);
+
+void platform_disp_disable(void);
+
+void platform_disp_displayOn(void);
+
+void platform_disp_displayOff(void);
+
+
+ 
+
 // *****************************************************************************
 // PWM subsection
 

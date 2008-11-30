@@ -35,6 +35,7 @@
 #include "interrupt.h"
 #include "elua_net.h"
 #include "dhcpc.h"
+#include "rit128x96x4.h"
 
 // UIP sys tick data
 #define SYSTICKHZ               4
@@ -563,6 +564,52 @@ u32 platform_cpu_get_frequency()
 {
   return SysCtlClockGet();
 }
+
+// ****************************************************************************
+// OLED Display specific functions
+// 
+// Initially immplementing the funcionalities offered by the RIT128x96x4
+// OLED display driver.
+
+void platform_disp_init(unsigned long freq) {
+  RIT128x96x4Init(freq);
+}
+    
+void platform_disp_clear(void) {  
+  RIT128x96x4Clear();
+}
+
+void platform_disp_stringDraw(const char *str, unsigned long x, unsigned long y,
+                              unsigned char level) {
+  RIT128x96x4StringDraw(str, x, y, level);
+}
+
+void platform_disp_imageDraw(const unsigned char *img, 
+                            unsigned long x, unsigned long y, 
+                            unsigned long width, unsigned long height) {
+  RIT128x96x4ImageDraw(img, x, y, width, height);
+}
+
+
+void platform_disp_enable(unsigned long freq) {
+  RIT128x96x4Enable(freq);
+}
+
+void platform_disp_disable(void) {
+  RIT128x96x4Disable();
+}
+
+void platform_disp_displayOn(void) {
+  RIT128x96x4DisplayOn();
+}
+
+void platform_disp_displayOff(void) {
+  RIT128x96x4DisplayOff();
+}
+
+
+
+
 
 // ****************************************************************************
 // Ethernet functions

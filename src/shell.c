@@ -172,12 +172,21 @@ static void shell_ls( char* args )
 {
   u16 offset;
   char fname[MAX_FNAME_LENGTH + 1];
-  int size;
+  int i, size;
+  int total = 0;
   
   args = args;
   offset = 0;
-  while ( offset = romfs_get_dir_entry( offset, fname, &size ) )
-    printf(" %s   %d bytes \n", fname, size);
+  printf( "\n/rom" );
+  while ( offset = romfs_get_dir_entry( offset, fname, &size ))
+  {
+    printf( "\n%s", fname );
+    for( i = strlen( fname ); i <= MAX_FNAME_LENGTH; i++ )
+      printf( " " );
+    printf( "%d bytes", size );
+    total = total + size;
+  }   
+  printf( "\n\nTotal = %d bytes\n\n", total );
 }
 
 
