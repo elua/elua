@@ -24,9 +24,9 @@ function term.keypressed()
 end
 
 function drawPaddle( y, color )
-  disp.strDraw("|", 0, y,   color)
-  disp.strDraw("|", 0, y+4, color)
-  disp.strDraw("|", 0, y+8, color)
+  disp.stringdraw("|", 0, y,   color)
+  disp.stringdraw("|", 0, y+4, color)
+  disp.stringdraw("|", 0, y+8, color)
 end
 
 function updateBallPos()
@@ -37,9 +37,9 @@ function updateBallPos()
   if(( by >= 89 ) or ( by <= 0 )) then
     dy = -dy;
   end
-  disp.strDraw( ball, bx, by, 0 )
+  disp.stringdraw( ball, bx, by, 0 )
   bx, by = ( bx + dx ), ( by + dy );
-  disp.strDraw( ball, bx, by, 15 )
+  disp.stringdraw( ball, bx, by, 15 )
 end
 
 function updatePaddlePos()
@@ -67,7 +67,7 @@ disp.init(1000000)
 term.clrscr()
 --term.gotoxy( 5, 1 )
 --print( "Welcome to eLua Tenis on a RIT display" )
-disp.strDraw( "eLua Pong", 30, 40, 11 )
+disp.stringdraw( "eLua Pong", 30, 40, 11 )
 tmr.delay ( 0, 2000000 )
 
 highscore = 0
@@ -122,7 +122,7 @@ while (true) do
         change = 0
     end
     
-    disp.strDraw( tostring( dscore ), 118, 0, 6 )
+    disp.stringdraw( tostring( dscore ), 118, 0, 6 )
     
   end
   
@@ -131,10 +131,10 @@ while (true) do
   end
 
   disp.clear()
-  disp.strDraw( "Game Over :(", 30, 20, 11 )
-  disp.strDraw( "Your score was " .. tostring( score ), 15, 40, 11 )
-  disp.strDraw( "High score: " .. tostring( highscore ), 15, 50, 11 )
-  disp.strDraw( "SELECT to restart", 6, 70, 11 )
+  disp.stringdraw( "Game Over :(", 30, 20, 11 )
+  disp.stringdraw( "Your score was " .. tostring( score ), 15, 40, 11 )
+  disp.stringdraw( "High score: " .. tostring( highscore ), 15, 50, 11 )
+  disp.stringdraw( "SELECT to restart", 6, 70, 11 )
   for i=0, 500000 do
     if btn.pressed( btn.SELECT ) then
       play = true
