@@ -3,25 +3,7 @@
   Function lm3s_init will become a separate module, require()d here
 --]]
 
-function lm3s_init()
-  btn = {}
-  btn.UP = pio.PE_0
-  btn.DOWN = pio.PE_1
-  btn.LEFT = pio.PE_2
-  btn.RIGHT = pio.PE_3
-  btn.SELECT = pio.PF_1
-  btn.LED1 = pio.PF_0
-  pio.input( btn.UP, btn.DOWN, btn.LEFT, btn.RIGHT, btn.SELECT )
-  pio.pullup( btn.UP, btn.DOWN, btn.LEFT, btn.RIGHT, btn.SELECT )
-  pio.output ( btn.LED1 )
-  btn.pressed = function( btn )
-    return ( pio.get ( btn ) == 0 )
-  end
-end
-
-function term.keypressed()
-  return( uart.recv (0, 0, 0) >= 0 )
-end
+require("LM3S")
 
 function drawPaddle( y, color )
   disp.stringdraw("|", 0, y,   color)
@@ -43,13 +25,13 @@ function updateBallPos()
 end
 
 function updatePaddlePos()
-  if btn.pressed( btn.UP ) then
+  if LM3S.btnpressed( LM3S.BTN_UP ) then
     if ( py > 0 ) then
       drawPaddle( py, 0 )
       py = py - 1
       drawPaddle( py, 11 )
     end
-  elseif btn.pressed( btn.DOWN ) then
+  elseif LM3S.btnpressed( LM3S.BTN_DOWN ) then
     if ( py < 80 ) then
       drawPaddle( py, 0 )
       py = py + 1
@@ -61,12 +43,11 @@ function updatePaddlePos()
 end
 
 ------------ MAIN ------------
-lm3s_init()
 disp.init(1000000)
 
 term.clrscr()
---term.gotoxy( 5, 1 )
---print( "Welcome to eLua Tenis on a RIT display" )
+term.gotoxy( 5, 1 )
+print( "Welcome to eLua Pong on a RIT display" )
 disp.stringdraw( "eLua Pong", 30, 40, 11 )
 tmr.delay ( 0, 2000000 )
 
@@ -104,14 +85,14 @@ while (true) do
     end
     
     if change == 0 then
-      if btn.pressed( btn.RIGHT ) and time > 0 then
+      if LM3S.btnpressed( LM3S.BTN_RIGHT ) and time > 0 then
         change = 1
-      elseif btn.pressed( btn.LEFT ) and dscore > 1 then
+      elseif LM3S.btnpressed( LM3S.BTN_LEFT ) and dscore > 1 then
         change = -1
       end
     end
     
-    if ( btn.pressed( btn.RIGHT ) ) == false and ( btn.pressed( btn.LEFT ) ) == false then
+    if ( LM3S.btnpressed( LM3S.BTN_RIGHT ) ) == false and ( LM3S.btnpressed( LM3S.BTN_LEFT ) ) == false then
       if change == 1 then
         time = time - 2000
         dscore = dscore + 1
@@ -136,7 +117,7 @@ while (true) do
   disp.stringdraw( "High score: " .. tostring( highscore ), 15, 50, 11 )
   disp.stringdraw( "SELECT to restart", 6, 70, 11 )
   for i=0, 500000 do
-    if btn.pressed( btn.SELECT ) then
+    if LM3S.btnpressed( LM3S.BTN_SELECT ) then
       play = true
       break
     end
