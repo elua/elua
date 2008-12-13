@@ -43,8 +43,9 @@ And now let's test CGI. Use the form below to control the on-board LED.<br><br>
   end
 ?>
 <br>
-Press <a href="http://elua/test.lua">here</a> to go to a test page generated completely by a Lua script.<br>
+
+Press <a href="/test.lua">here</a> to go to a test page generated completely by a Lua script.<br>
 <br>
-<span style="font-weight: bold;">AND MOST IMPORTANTLY ... remember to have fun with eLua :)</span><br>
+<span style="font-weight: bold;">AND MOST IMPORTANTLY... remember to have fun with eLua! :)</span><br>
 </div>
 </body></html>
