@@ -303,7 +303,11 @@ int _link_r( struct _reent *r, const char *c1, const char *c2 )
 }
 
 #include <sys/time.h>
+#if ELUA_PLATFORM == AVR32
+int _gettimeofday_r( struct _reent *r, struct timeval *tp, struct timezone *tzp )
+#else
 int _gettimeofday_r( struct _reent *r, struct timeval *tv, void *tz )
+#endif
 {
   r->_errno = ENOSYS;
   return -1;  

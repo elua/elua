@@ -571,45 +571,47 @@ u32 platform_cpu_get_frequency()
 // Initially immplementing the funcionalities offered by the RIT128x96x4
 // OLED display driver.
 
-void platform_disp_init(unsigned long freq) {
-  RIT128x96x4Init(freq);
+void platform_disp_init( unsigned long freq ) 
+{
+  RIT128x96x4Init( freq );
 }
     
-void platform_disp_clear(void) {  
+void platform_disp_clear() 
+{  
   RIT128x96x4Clear();
 }
 
-void platform_disp_stringDraw(const char *str, unsigned long x, unsigned long y,
-                              unsigned char level) {
-  RIT128x96x4StringDraw(str, x, y, level);
+void platform_disp_stringDraw( const char *str, unsigned long x, unsigned long y, unsigned char level ) 
+{
+  RIT128x96x4StringDraw( str, x, y, level );
 }
 
-void platform_disp_imageDraw(const unsigned char *img, 
-                            unsigned long x, unsigned long y, 
-                            unsigned long width, unsigned long height) {
-  RIT128x96x4ImageDraw(img, x, y, width, height);
+void platform_disp_imageDraw( const unsigned char *img, unsigned long x, unsigned long y, 
+                              unsigned long width, unsigned long height ) 
+{
+  RIT128x96x4ImageDraw( img, x, y, width, height );
 }
 
 
-void platform_disp_enable(unsigned long freq) {
-  RIT128x96x4Enable(freq);
+void platform_disp_enable( unsigned long freq ) 
+{
+  RIT128x96x4Enable( freq );
 }
 
-void platform_disp_disable(void) {
+void platform_disp_disable() 
+{
   RIT128x96x4Disable();
 }
 
-void platform_disp_displayOn(void) {
+void platform_disp_displayOn() 
+{
   RIT128x96x4DisplayOn();
 }
 
-void platform_disp_displayOff(void) {
+void platform_disp_displayOff() 
+{
   RIT128x96x4DisplayOff();
 }
-
-
-
-
 
 // ****************************************************************************
 // Ethernet functions

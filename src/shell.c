@@ -178,7 +178,7 @@ static void shell_ls( char* args )
   args = args;
   offset = 0;
   printf( "\n/rom" );
-  while ( offset = romfs_get_dir_entry( offset, fname, &size ))
+  while ( ( offset = romfs_get_dir_entry( offset, fname, &size ) ) ) 
   {
     printf( "\n%s", fname );
     for( i = strlen( fname ); i <= MAX_FNAME_LENGTH; i++ )

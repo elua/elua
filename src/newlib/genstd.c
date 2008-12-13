@@ -63,7 +63,10 @@ static _ssize_t std_read( struct _reent *r, int fd, void* vptr, size_t len )
       std_send_char_func( DM_STDOUT_NUM, c );
     ptr[ i ] = c;
     if( c == '\n' )
+    {
+      std_send_char_func( DM_STDOUT_NUM, '\r' );
       return i + 1;    
+    }
     i ++;
   }
   return len;

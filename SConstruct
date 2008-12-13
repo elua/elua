@@ -1,28 +1,30 @@
-import os, sys 
-target = ARGUMENTS.get( 'target', 'lua' ).lower() 
+import os, sys
+target = ARGUMENTS.get( 'target', 'lua' ).lower()
 cputype = ARGUMENTS.get( 'cpu', '' ).upper()
 allocator = ARGUMENTS.get( 'allocator', '' ).lower()
 boardname = ARGUMENTS.get( 'board' , '').upper()
 
 # List of platform/CPU combinations
-cpu_list = { 'at91sam7x' : [ 'AT91SAM7X256', 'AT91SAM7X512' ], 
-              'lm3s' : [ 'LM3S8962', 'LM3S6965' ], 
+cpu_list = { 'at91sam7x' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
+              'lm3s' : [ 'LM3S8962', 'LM3S6965' ],
               'str9' : [ 'STR912FW44' ],
               'i386' : [ 'I386' ],
               'lpc288x' : [ 'LPC2888' ],
               'str7' : [ 'STR711FR2' ],
-              'stm32' : [ 'STM32F103ZE' ]
+              'stm32' : [ 'STM32F103ZE' ],
+              'avr32' : [ 'AT32UC3A0512' ]
             }
 
 # List of board/CPU combinations
-board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],        
+board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
                'EK-LM3S8962' : [ 'LM3S8962' ],
                'EK-LM3S6965' : [ 'LM3S6965' ],
                'STR9-COMSTICK' : [ 'STR912FW44' ],
                'PC' : [ 'I386' ],
                'LPC-H2888' : [ 'LPC2888' ],
                'MOD711' : [ 'STR711FR2' ],
-               'STM3210E-EVAL' : [ 'STM32F103ZE' ]
+               'STM3210E-EVAL' : [ 'STM32F103ZE' ],
+               'ATEVK1100' : [ 'AT32UC3A0512' ]
             }
 
 # Variants: board = <boardname>
@@ -37,7 +39,7 @@ elif boardname != '' and cputype != '':
   if not board_list.has_key( boardname ):
     print "Unknown board", boardname
     sys.exit( -1 )
-  if not cputype in board_list[ boardname ]: 
+  if not cputype in board_list[ boardname ]:
     print "Invalid CPU %s for board %s" % ( cputype, boardname )
     sys.exit( -1 )
 elif boardname != '':
@@ -45,9 +47,9 @@ elif boardname != '':
   # Find CPU
   if not board_list.has_key( boardname ):
     print "Unknown board", boardname
-    sys.exit( -1 )  
+    sys.exit( -1 )
   cputype = board_list[ boardname ][ 0 ]
-else:  
+else:
   # cpu = <cputype>
   # Find board name
   for b, v in board_list.items():
@@ -58,8 +60,8 @@ else:
     print "CPU %s not found" % cputype
     sys.exit( -1 )
 
-platform = None        
-# Look for the given CPU in the list of platforms            
+platform = None
+# Look for the given CPU in the list of platforms
 for p, v in cpu_list.items():
   if cputype in v:
     platform = p
@@ -68,7 +70,7 @@ else:
   print "Unknown CPU %s" % cputype
   print "List of accepted CPUs: "
   for p, v in cpu_list.items():
-    print " ", p, "-->", 
+    print " ", p, "-->",
     for cpu in v:
       print cpu,
     print
@@ -96,7 +98,7 @@ if not GetOption( 'clean' ):
   print "Allocator:   ", allocator
   print "Target:      ", target
   print "*********************************"
-  print    
+  print
 
 output = 'elua_' + target + '_' + cputype.lower()
 cdefs = '-DELUA_CPU=%s -DELUA_BOARD=%s -DELUA_PLATFORM=%s -D__BUFSIZ__=128' % ( cputype, boardname, platform.upper() )
@@ -109,7 +111,7 @@ lua_files = """lapi.c lcode.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c
    ldblib.c liolib.c lmathlib.c loslib.c ltablib.c lstrlib.c loadlib.c linit.c lua.c"""
 if target == 'lualong' or target == 'lua':
   lua_full_files = " " + " ".join( [ "src/lua/%s" % name for name in lua_files.split() ] )
-  local_include = "-Iinc -Iinc/newlib -Isrc/lua"  
+  local_include = "-Iinc -Iinc/newlib -Isrc/lua"
   if target == 'lualong':
     cdefs = cdefs + ' -DLUA_NUMBER_INTEGRAL'
 else:
@@ -119,11 +121,11 @@ local_include = local_include + " -Isrc/modules -Isrc/platform/%s" % platform
 
 # Additional libraries
 local_libs = ''
-  
+
 # Application files
 app_files = " src/main.c src/romfs.c src/xmodem.c src/shell.c src/term.c src/dlmalloc.c "
-  
-# Newlib related files  
+
+# Newlib related files
 newlib_files = " src/newlib/devman.c src/newlib/stubs.c src/newlib/genstd.c src/newlib/stdtcp.c"
 
 # UIP files
@@ -134,7 +136,7 @@ local_include = local_include + " -Isrc/uip"
 # Lua module files
 module_names = "disp.c modcommon.c pio.c spi.c tmr.c pd.c uart.c term.c pwm.c lpack.c bit.c net.c cpu.c"
 module_files = " " + " ".join( [ "src/modules/%s" % name for name in module_names.split() ] )
-  
+
 # Optimizer flags (speed or size)
 #opt = "-O3"
 opt = "-Os -fomit-frame-pointer"
@@ -147,7 +149,7 @@ execfile( "src/platform/%s/conf.py" % platform )
 
 # Complete file list
 source_files = app_files + specific_files + newlib_files + uip_files + lua_full_files + module_files
-  
+
 # Make filesystem first
 if not GetOption( 'clean' ):
   print "Building filesystem..."
@@ -156,12 +158,12 @@ if not GetOption( 'clean' ):
   print
   os.system( "mv -f romfiles.h inc/" )
   os.system( "rm -f src/fs.o" )
-  
+
 # Env for building the program
-comp = Environment( CCCOM = tools[ platform ][ 'cccom' ], 
+comp = Environment( CCCOM = tools[ platform ][ 'cccom' ],
                     ASCOM = tools[ platform ][ 'ascom' ],
                     LINKCOM = tools[ platform ][ 'linkcom' ],
-                    OBJSUFFIX = ".o", 
+                    OBJSUFFIX = ".o",
                     PROGSUFFIX = ".elf",
                     ENV = os.environ )
 # comp.TargetSignatures( 'content' )
