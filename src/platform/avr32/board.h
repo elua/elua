@@ -74,10 +74,7 @@
   #define FRCOSC    AVR32_PM_RCOSC_FREQUENCY  //!< Default RCOsc frequency.
 #endif
 
-//#define REQ_CPU_FREQ      60000000
-//#define REQ_PBA_FREQ      15000000
-
-#define REQ_CPU_FREQ      48000000
-#define REQ_PBA_FREQ      12000000
+#define REQ_CPU_FREQ      60000000
+#define REQ_PBA_FREQ      15000000
 
 #endif  // _BOARD_H_

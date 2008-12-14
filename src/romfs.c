@@ -38,10 +38,6 @@ static void romfs_close_fd( int fd )
 }
 
 
-
-  
-
-
 // Open the given file, returning one of FS_FILE_NOT_FOUND, FS_FILE_ALREADY_OPENED
 // or FS_FILE_OK
 u8 romfs_open_file( const char* fname, p_read_fs_byte p_read_func, FS* pfs )

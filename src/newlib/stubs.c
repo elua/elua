@@ -200,6 +200,10 @@ void* _sbrk_r( struct _reent* r, ptrdiff_t incr )
   if( incr == 0 )
     return heap_ptr;
     
+  // If increment is negative, return -1
+  if( incr < 0 )
+    return ( void* )-1;
+    
   // Otherwise ask the platform about our memory space (if needed)
   // We do this for all our memory spaces
   while( 1 )
@@ -389,3 +393,18 @@ DM_DEVICE* std_get_desc()
 }
 
 #endif // #if !defined( BUILD_CON_GENERIC ) && !defined( BUILD_CON_TCP )
+
+#if ELUA_PLATFORM == AVR32
+void* memcpy( void *dst, const void* src, size_t len )
+{
+  char *pdest = ( char* )dst;
+  const char* psrc = ( const char* )src;
+  
+  while( len )
+  {
+    *pdest ++ = *psrc ++;
+    len --;
+  }
+  return dst;
+}
+#endif // #if ELUA_PLATFORM == AVR32

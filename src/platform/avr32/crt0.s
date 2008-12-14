@@ -44,7 +44,6 @@
 
 
 #include <avr32/io.h>
-#include "stacks.h"
 
 //! @{
 //! \verbatim
@@ -60,7 +59,6 @@
 _stext:
   // Set initial stack pointer.
   lda.w   sp, _sstack
-  sub     sp, STACK_SIZE_TOTAL
 
   // Set up EVBA so interrupts can be enabled.
   lda.w   r0, _evba

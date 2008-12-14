@@ -273,7 +273,7 @@
 @* stand-alone interpreter.
 ** CHANGE it if you need longer lines.
 */
-#define LUA_MAXINPUT	256
+#define LUA_MAXINPUT	128
 
 
 /*
