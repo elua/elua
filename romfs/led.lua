@@ -1,6 +1,6 @@
 -- eLua test 
 
-local uartid = 0
+local uartid, invert = 0, false
 if pd.board() == "SAM7-EX256" then
   ledpin = pio.PB_20
 elseif pd.board() == "EK-LM3S8962" or pd.board() == "EK-LM3S6965" then
@@ -12,15 +12,18 @@ elseif pd.board() == "LPC-H2888" then
 elseif pd.board() == "MOD711" then
   ledpin = pio.P1_7
   uartid = 1
+elseif pd.board() == "ATEVK1100" then
+  ledpin = pio.PB_27
+  invert = true
 else
   print( "\nError: Unknown board " .. pd.board() .. " !" )
   return
 end
 
 function cycle()
-  pio.set( ledpin )
+  if not invert then pio.set( ledpin ) else pio.clear( ledpin ) end
   tmr.delay( 0, 500000 )
-  pio.clear( ledpin )
+  if not invert then pio.clear( ledpin ) else pio.set( ledpin ) end
   tmr.delay( 0, 500000 )
 end
 

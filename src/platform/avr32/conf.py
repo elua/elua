@@ -1,6 +1,6 @@
 # Configuration file for the AVR32 microcontroller
 
-specific_files = "crt0.s trampoline.s platform.c exception.s intc.c pm.c flashc.c pm_conf_clocks.c usart.c gpio.c"
+specific_files = "crt0.s trampoline.s platform.c exception.s intc.c pm.c flashc.c pm_conf_clocks.c usart.c gpio.c tc.c"
 ldscript = "at32uc3a0512.ld"
 
 # Prepend with path

@@ -37,6 +37,8 @@
 #define LUA_PLATFORM_LIBS\
   { AUXLIB_PD, luaopen_pd },\
   { AUXLIB_UART, luaopen_uart },\
+  { AUXLIB_PIO, luaopen_pio },\
+  { AUXLIB_TMR, luaopen_tmr },\
   { AUXLIB_TERM, luaopen_term },\
   { AUXLIB_PACK, luaopen_pack },\
   { AUXLIB_BIT, luaopen_bit },\
