@@ -394,7 +394,7 @@ DM_DEVICE* std_get_desc()
 
 #endif // #if !defined( BUILD_CON_GENERIC ) && !defined( BUILD_CON_TCP )
 
-#if ELUA_PLATFORM == AVR32
+#ifdef AVR32
 void* memcpy( void *dst, const void* src, size_t len )
 {
   char *pdest = ( char* )dst;
