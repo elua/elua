@@ -5,6 +5,8 @@
 #include "lauxlib.h"
 #include "platform.h"
 #include "auxmods.h"
+#include "platform_conf.h"
+#include "common.h"
 
 // Helper function for the read/start functions
 static int tmrh_timer_op( lua_State* L, int op )
@@ -129,5 +131,9 @@ static const luaL_reg tmr_map[] =
 LUALIB_API int luaopen_tmr( lua_State *L )
 {
   luaL_register( L, AUXLIB_TMR, tmr_map );
+#if VTMR_NUM_TIMERS > 0
+  lua_pushnumber( L, VTMR_FIRST_ID );
+  lua_setfield( L, -2, "VIRT0" );  
+#endif
   return 1;
 }

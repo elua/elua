@@ -13,6 +13,7 @@
 #include "elua_uip.h" 
 #include "uip-conf.h"
 #include "platform_conf.h"
+#include "common.h"
 
 // Platform specific includes
 #include "stm32f10x_lib.h"
@@ -34,35 +35,9 @@
 #define STM32_USE_PIO
 #define STM32_USE_USART
 
-#define CONSOLE 0
-
 void exit(int ret)
 {
   while(1);
-}
-
-// *****************************************************************************
-// std function
-// TODO: Update to interrupt driven routines.
-
-static void uart_send( int fd, char c )
-{
-  fd = fd;
-    /* Loop until USART1 DR register is empty */ 
-    while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET)
-    {
-    }
-
-  USART_SendData(USART1, c);
-}
-
-static int uart_recv()
-{
-    /* Loop until the USART1 Receive Data Register is not empty */
-    while(USART_GetFlagStatus(USART1, USART_FLAG_RXNE) == RESET)
-    {
-    }
-  return USART_ReceiveData(USART1);
 }
 
 // ****************************************************************************
@@ -114,10 +89,8 @@ int platform_init()
   // Setup ethernet (TCP/IP)
   //eth_init();
 
-  // Set the send/recv functions                          
-  std_set_send_func( uart_send );
-  std_set_get_func( uart_recv );      
-
+  cmn_platform_init();
+  
   // All done
   return PLATFORM_OK;
 } 
@@ -134,7 +107,7 @@ int platform_init()
 * Output         : None
 * Return         : None
 *******************************************************************************/
-void RCC_Configuration(void)
+static void RCC_Configuration(void)
 {
   ErrorStatus HSEStartUpStatus;
   /* RCC system reset(for debug purpose) */
@@ -197,7 +170,7 @@ void RCC_Configuration(void)
 * Output         : None
 * Return         : None
 *******************************************************************************/
-void NVIC_Configuration(void)
+static void NVIC_Configuration(void)
 {
   NVIC_InitTypeDef NVIC_InitStructure;
 
@@ -224,18 +197,14 @@ void NVIC_Configuration(void)
 // todo: Needs updates to support different processor lines.
 #ifdef STM32_USE_PIO
 static GPIO_TypeDef * const pio_port[] = { GPIOA, GPIOB, GPIOC, GPIOD, GPIOE, GPIOF, GPIOG };
-static const u8 pio_port_pins[]        = { 16,    16,    16,    16,    16,    16,    16     };  // Update to reality later
 static const u32 pio_port_clk[]        = { RCC_APB2Periph_GPIOA, RCC_APB2Periph_GPIOB, RCC_APB2Periph_GPIOC, RCC_APB2Periph_GPIOD, RCC_APB2Periph_GPIOE, RCC_APB2Periph_GPIOF, RCC_APB2Periph_GPIOG };
-
-#define PIOS_COUNT 112
-#define PIOS_PORT_COUNT 7
 
 static void pios_init()
 {
   GPIO_InitTypeDef GPIO_InitStructure;
   int port;
 
-  for( port = 0; port < PIOS_PORT_COUNT; port++ )
+  for( port = 0; port < NUM_PIO; port++ )
   {
     // Enable clock to port.
     RCC_APB2PeriphClockCmd(pio_port_clk[port], ENABLE);
@@ -246,24 +215,6 @@ static void pios_init()
   
     GPIO_Init(pio_port[port], &GPIO_InitStructure);
   }
-}
-
-int platform_pio_has_port( unsigned port )
-{
-  return port < PIOS_PORT_COUNT;
-}
-
-const char* platform_pio_get_prefix( unsigned port )
-{
-  static char c[ 3 ];
-  
-  sprintf( c, "P%c", ( char )( port + 'A' ) );
-  return c;
-}
-
-int platform_pio_has_pin( unsigned port, unsigned pin )
-{
-  return pin < pio_port_pins[ port ];
 }
 
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
@@ -412,13 +363,6 @@ void platform_spi_select( unsigned id, int is_select )
 // UART
 // TODO: Support timeouts.
 
-// Different configurations for different processors
-#if ELUA_CPU == STM32F103ZE
-  #define UARTS_COUNT 4 // Ignore UART5 because it spans 2 GPIO ports.
-#else
-#  error "CPU type unknown!"
-#endif
-
 // All possible STM32 uarts defs
 static USART_TypeDef * usart[] =          { USART1, USART2, USART3, UART4 };
 static GPIO_TypeDef * usart_gpio_port[] = { GPIOA, GPIOA, GPIOB, GPIOC };
@@ -467,19 +411,14 @@ static void uarts_init()
   
   // Configure the U(S)ART for 115,200, 8-N-1 operation.
 
-  USART_InitStructure.USART_BaudRate = 115200;
+  USART_InitStructure.USART_BaudRate = CON_UART_SPEED;
   USART_InitStructure.USART_WordLength = USART_WordLength_8b;
   USART_InitStructure.USART_StopBits = USART_StopBits_1;
   USART_InitStructure.USART_Parity = USART_Parity_No;
   USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
   USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
 
-  usart_init(CONSOLE, &USART_InitStructure);
-}
-
-int platform_uart_exists( unsigned id )
-{
-  return id < UARTS_COUNT;
+  usart_init(CON_UART_ID, &USART_InitStructure);
 }
 
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )
@@ -546,51 +485,18 @@ void platform_uart_send( unsigned id, u8 data )
   USART_SendData(usart[id], data);
 }
 
-int platform_uart_recv( unsigned id, unsigned timer_id, int timeout )
+int platform_s_uart_recv( unsigned id, unsigned timer_id, int timeout )
 {
-  timer_data_type tmr_start, tmr_crt;
-  int res;
-  
   if( timeout == 0 )
   {
-    while(USART_GetFlagStatus(usart[id], USART_FLAG_RXNE) == RESET)
-    {
-    }
-//    if (USART_GetFlagStatus(usart[id], USART_FLAG_RXNE) == RESET)
-//    {
-//      return -1;
-//    }
-    return USART_ReceiveData(usart[id]);  
+    if (USART_GetFlagStatus(usart[id], USART_FLAG_RXNE) == RESET)
+      return -1;
+    else
+      return USART_ReceiveData(usart[id]);  
   }
-  else if( timeout == PLATFORM_UART_INFINITE_TIMEOUT )
-  {
-    // Receive char blocking
-    while(USART_GetFlagStatus(usart[id], USART_FLAG_RXNE) == RESET)
-    {
-    }
-    return USART_ReceiveData(usart[id]);  
-  }
-  else
-  {
-    // Receive char blocking
-    while(USART_GetFlagStatus(usart[id], USART_FLAG_RXNE) == RESET)
-    {
-    }
-    return USART_ReceiveData(usart[id]);    
-#if 0
-    // Receive char with the specified timeout
-    tmr_start = platform_timer_op( timer_id, PLATFORM_TIMER_OP_START, 0 );
-    while( 1 )
-    {
-      if( ( res = UARTCharGetNonBlocking( base ) ) >= 0 )
-        break;
-      tmr_crt = platform_timer_op( timer_id, PLATFORM_TIMER_OP_READ, 0 );
-      if( platform_timer_get_diff_us( timer_id, tmr_crt, tmr_start ) >= timeout )
-        break;
-    }
-    return res;
-#endif
-  }
+  // Receive char blocking
+  while(USART_GetFlagStatus(usart[id], USART_FLAG_RXNE) == RESET);
+  return USART_ReceiveData(usart[id]);  
 }
 #endif
 
@@ -601,14 +507,13 @@ int platform_uart_recv( unsigned id, unsigned timer_id, int timeout )
 
 // All possible LM3S timers defs
 static TIM_TypeDef * timer[] = { TIM2, TIM3, TIM4, TIM5};
-#define TIMERS_COUNT			4
 
 static void timers_init()
 {
 #if 0
   unsigned i;
 
-  for( i = 0; i < TIMERS_COUNT; i ++ )
+  for( i = 0; i < NUM_TIMER; i ++ )
   {
 	SysCtlPeripheralEnable(timer_sysctl[ i ]);
     TimerConfigure(timer_base[ i ], TIMER_CFG_32_BIT_PER);
@@ -645,12 +550,7 @@ static u32 platform_timer_set_clock(unsigned id, u32 clock)
   return pclk / clkdiv; // Return actual clock rate used.
 }
 
-int platform_timer_exists( unsigned id )
-{
-  return id < TIMERS_COUNT;
-}
-
-void platform_timer_delay( unsigned id, u32 delay_us )
+void platform_s_timer_delay( unsigned id, u32 delay_us )
 {
   timer_data_type final;
   u32 base = timer_base[ id ];
@@ -660,7 +560,7 @@ void platform_timer_delay( unsigned id, u32 delay_us )
   while( TimerValueGet( base, TIMER_A ) > final );
 }
       
-u32 platform_timer_op( unsigned id, int op, u32 data )
+u32 platform_s_timer_op( unsigned id, int op, u32 data )
 {
   u32 res = 0;
   u32 base = timer_base[ id ]; 
@@ -693,19 +593,10 @@ u32 platform_timer_op( unsigned id, int op, u32 data )
   }
   return res;
 }
-
-u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_type start )
+#else
+u32 platform_s_timer_op( unsigned id, int op, u32 data )
 {
-  timer_data_type temp;
-  
-  id = id;
-  if( start < end )
-  {
-    temp = end;
-    end = start;
-    start = temp;
-  }
-  return ( ( u64 )( start - end ) * 1000000 ) / SysCtlClockGet();
+  return 0;
 }
 #endif
 
@@ -825,7 +716,7 @@ void platform_cpu_disable_interrupts()
   //IntMasterDisable();
 }
 
-u32 platform_cpu_get_frequency()
+u32 platform_s_cpu_get_frequency()
 {
   RCC_ClocksTypeDef clocks;
 
@@ -993,20 +884,3 @@ void EthernetIntHandler()
 {
 }
 #endif // #ifdef ELUA_UIP
-
-// ****************************************************************************
-// Allocator support
-
-extern char end[];
-
-void* platform_get_first_free_ram( unsigned id )
-{
-  return id > 0 ?  NULL : ( void* )end;
-}
-
-#define STACK_SIZE 256
-#define SRAM_SIZE ( 64 * 1024 )
-void* platform_get_last_free_ram( unsigned id )
-{
-  return id > 0 ? NULL : ( void* )( SRAM_BASE + SRAM_SIZE - STACK_SIZE - 1 );
-}

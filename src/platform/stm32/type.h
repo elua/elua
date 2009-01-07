@@ -20,4 +20,7 @@ typedef unsigned short WORD;
 typedef unsigned long  DWORD;
 typedef unsigned int   BOOL;
 
+typedef unsigned long long u64;
+typedef signed long long s64;
+
 #endif

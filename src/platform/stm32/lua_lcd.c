@@ -12,7 +12,7 @@
 
 #include "lcd.h"
 
-#if ELUA_BOARD == STM3210E-EVAL
+#ifdef FORSTM3210E_EVAL
 
 static int lcd_init(lua_State * L)
 {

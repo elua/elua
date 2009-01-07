@@ -294,7 +294,7 @@ ITStatus NVIC_GetIRQChannelPendingBitStatus(u8 NVIC_IRQChannel)
 
 /*******************************************************************************
 * Function Name  : NVIC_SetIRQChannelPendingBit
-* Description    : Sets the NVIC’s interrupt pending bit.
+* Description    : Sets the NVIC's interrupt pending bit.
 * Input          : - NVIC_IRQChannel: specifies the interrupt pending bit to Set.
 * Output         : None
 * Return         : None
@@ -309,7 +309,7 @@ void NVIC_SetIRQChannelPendingBit(u8 NVIC_IRQChannel)
 
 /*******************************************************************************
 * Function Name  : NVIC_ClearIRQChannelPendingBit
-* Description    : Clears the NVIC’s interrupt pending bit.
+* Description    : Clears the NVIC's interrupt pending bit.
 * Input          : - NVIC_IRQChannel: specifies the interrupt pending bit to clear.
 * Output         : None
 * Return         : None

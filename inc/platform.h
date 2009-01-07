@@ -117,6 +117,7 @@ int platform_uart_exists( unsigned id );
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits );
 void platform_uart_send( unsigned id, u8 data );
 int platform_uart_recv( unsigned id, unsigned timer_id, int timeout );
+int platform_s_uart_recv( unsigned id, unsigned timer_id, int timeout );
 
 // *****************************************************************************
 // Timer subsection
@@ -141,9 +142,10 @@ enum
 // The platform timer functions
 int platform_timer_exists( unsigned id );
 void platform_timer_delay( unsigned id, u32 delay_us );
+void platform_s_timer_delay( unsigned id, u32 delay_us );
 u32 platform_timer_op( unsigned id, int op, u32 data );
+u32 platform_s_timer_op( unsigned id, int op, u32 data );
 u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_type start );
-
 
 // *****************************************************************************
 // OLED DISP subsection

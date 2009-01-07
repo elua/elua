@@ -13,6 +13,7 @@
 #include "elua_uip.h" 
 #include "uip-conf.h"
 #include "platform_conf.h"
+#include "common.h"
 
 // Platform specific includes
 #include "hw_ints.h"
@@ -38,21 +39,10 @@
 #include "rit128x96x4.h"
 
 // UIP sys tick data
+// NOTE: when using virtual timers, SYSTICKHZ and VTMR_FREQ_HZ should have the
+// same value, as they're served by the same timer (the systick)
 #define SYSTICKHZ               4
 #define SYSTICKMS               (1000 / SYSTICKHZ)
-
-// *****************************************************************************
-// std function
-static void uart_send( int fd, char c )
-{
-  fd = fd;
-  UARTCharPut( UART0_BASE, c );
-}
-
-static int uart_recv()
-{
-  return UARTCharGet( UART0_BASE );
-}
 
 // ****************************************************************************
 // Platform initialization
@@ -88,9 +78,18 @@ int platform_init()
   // Setup ethernet (TCP/IP)
   eth_init();
 
-  // Set the send/recv functions                          
-  std_set_send_func( uart_send );
-  std_set_get_func( uart_recv );      
+  // Common platform initialization code
+  cmn_platform_init();
+  
+  // Virtual timers
+  // If the ethernet controller is used the timer is already initialized, so skip this sequence  
+#if VTMR_NUM_TIMERS > 0 && !defined( BUILD_UIP )
+  // Configure SysTick for a periodic interrupt.
+  SysTickPeriodSet( SysCtlClockGet() / SYSTICKHZ );
+  SysTickEnable();
+  SysTickIntEnable();  
+  IntMasterEnable();
+#endif
   
   // All done
   return PLATFORM_OK;
@@ -104,36 +103,13 @@ static const u32 pio_base[] = { GPIO_PORTA_BASE, GPIO_PORTB_BASE, GPIO_PORTC_BAS
                                 GPIO_PORTE_BASE, GPIO_PORTF_BASE, GPIO_PORTG_BASE, GPIO_PORTH_BASE };
 static const u32 pio_sysctl[] = { SYSCTL_PERIPH_GPIOA, SYSCTL_PERIPH_GPIOB, SYSCTL_PERIPH_GPIOC, SYSCTL_PERIPH_GPIOD, 
                                   SYSCTL_PERIPH_GPIOE, SYSCTL_PERIPH_GPIOF, SYSCTL_PERIPH_GPIOG, SYSCTL_PERIPH_GPIOH };
-static const u8 pio_port_pins[] = { 8, 8, 8, 8, 4, 4, 2, 0 };
-#define PIOS_COUNT 42
-#define PIOS_PORT_COUNT 7
 
 static void pios_init()
 {
   unsigned i;
 
-  for( i = 0; i < PIOS_PORT_COUNT; i ++ )
-  {
+  for( i = 0; i < NUM_PIO; i ++ )
     SysCtlPeripheralEnable(pio_sysctl[ i ]);
-  }
-}
-
-int platform_pio_has_port( unsigned port )
-{
-  return port < PIOS_PORT_COUNT;
-}
-
-const char* platform_pio_get_prefix( unsigned port )
-{
-  static char c[ 3 ];
-  
-  sprintf( c, "P%c", ( char )( port + 'A' ) );
-  return c;
-}
-
-int platform_pio_has_pin( unsigned port, unsigned pin )
-{
-  return pin < pio_port_pins[ port ];
 }
 
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
@@ -204,21 +180,13 @@ static const u8 spi_gpio_pins[] = { GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4 | GPIO_
                                     GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 };
 //                                  SSIxClk      SSIxFss      SSIxRx       SSIxTx
 static const u8 spi_gpio_clk_pin[] = { GPIO_PIN_2, GPIO_PIN_0 };
-#define SPIS_COUNT 		1
 
 static void spis_init()
 {
   unsigned i;
 
-  for( i = 0; i < SPIS_COUNT; i ++ )
-  {
+  for( i = 0; i < NUM_SPI; i ++ )
     SysCtlPeripheralEnable(spi_sysctl[ i ]);
-  }
-}
-
-int platform_spi_exists( unsigned id )
-{
-  return id < SPIS_COUNT;
 }
 
 u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigned cpha, unsigned databits )
@@ -260,12 +228,6 @@ void platform_spi_select( unsigned id, int is_select )
 // UART
 // Different configurations for LM3S8962 (2 UARTs) and LM3S6965 (3 UARTs)
 
-#if ELUA_CPU == LM3S8962
-  #define UARTS_COUNT 2
-#elif ELUA_CPU == LM3S6965
-  #define UARTS_COUNT 3
-#endif
-
 // All possible LM3S uarts defs
 static const u32 uart_base[] = { UART0_BASE, UART1_BASE, UART2_BASE };
 static const u32 uart_sysctl[] = { SYSCTL_PERIPH_UART0, SYSCTL_PERIPH_UART1, SYSCTL_PERIPH_UART2 };
@@ -276,22 +238,15 @@ static void uarts_init()
 {
   unsigned i;
 
-  for( i = 0; i < UARTS_COUNT; i ++ )
-  {
+  for( i = 0; i < NUM_UART; i ++ )
     SysCtlPeripheralEnable(uart_sysctl[ i ]);
-  }
 
   // Special case for UART 0
   // Configure the UART for 115,200, 8-N-1 operation.
   GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
-  UARTConfigSetExpClk(UART0_BASE, SysCtlClockGet(), 115200,
+  UARTConfigSetExpClk(UART0_BASE, SysCtlClockGet(), CON_UART_SPEED,
                      (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
                       UART_CONFIG_PAR_NONE)); 
-}
-
-int platform_uart_exists( unsigned id )
-{
-  return id < UARTS_COUNT;
 }
 
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )
@@ -331,35 +286,13 @@ void platform_uart_send( unsigned id, u8 data )
   UARTCharPut( uart_base[ id ], data );
 }
 
-int platform_uart_recv( unsigned id, unsigned timer_id, int timeout )
+int platform_s_uart_recv( unsigned id, unsigned timer_id, int timeout )
 {
   u32 base = uart_base[ id ];
-  timer_data_type tmr_start, tmr_crt;
-  int res;
   
   if( timeout == 0 )
-  {
     return UARTCharGetNonBlocking( base );  
-  }
-  else if( timeout == PLATFORM_UART_INFINITE_TIMEOUT )
-  {
-    // Receive char blocking
-    return UARTCharGet( base );
-  }
-  else
-  {
-    // Receive char with the specified timeout
-    tmr_start = platform_timer_op( timer_id, PLATFORM_TIMER_OP_START, 0 );
-    while( 1 )
-    {
-      if( ( res = UARTCharGetNonBlocking( base ) ) >= 0 )
-        break;
-      tmr_crt = platform_timer_op( timer_id, PLATFORM_TIMER_OP_READ, 0 );
-      if( platform_timer_get_diff_us( timer_id, tmr_crt, tmr_start ) >= timeout )
-        break;
-    }
-    return res;
-  }
+  return UARTCharGet( base );
 }
 
 // ****************************************************************************
@@ -369,26 +302,20 @@ int platform_uart_recv( unsigned id, unsigned timer_id, int timeout )
 // All possible LM3S timers defs
 static const u32 timer_base[] = { TIMER0_BASE, TIMER1_BASE, TIMER2_BASE, TIMER3_BASE };
 static const u32 timer_sysctl[] = { SYSCTL_PERIPH_TIMER0, SYSCTL_PERIPH_TIMER1, SYSCTL_PERIPH_TIMER2, SYSCTL_PERIPH_TIMER3 };
-#define TIMERS_COUNT			4
 
 static void timers_init()
 {
   unsigned i;
 
-  for( i = 0; i < TIMERS_COUNT; i ++ )
+  for( i = 0; i < NUM_TIMER; i ++ )
   {
-	SysCtlPeripheralEnable(timer_sysctl[ i ]);
+    SysCtlPeripheralEnable(timer_sysctl[ i ]);
     TimerConfigure(timer_base[ i ], TIMER_CFG_32_BIT_PER);
     TimerEnable(timer_base[ i ], TIMER_A);
   }
 }
 
-int platform_timer_exists( unsigned id )
-{
-  return id < TIMERS_COUNT;
-}
-
-void platform_timer_delay( unsigned id, u32 delay_us )
+void platform_s_timer_delay( unsigned id, u32 delay_us )
 {
   timer_data_type final;
   u32 base = timer_base[ id ];
@@ -398,7 +325,7 @@ void platform_timer_delay( unsigned id, u32 delay_us )
   while( TimerValueGet( base, TIMER_A ) > final );
 }
       
-u32 platform_timer_op( unsigned id, int op, u32 data )
+u32 platform_s_timer_op( unsigned id, int op, u32 data )
 {
   u32 res = 0;
   u32 base = timer_base[ id ]; 
@@ -432,25 +359,9 @@ u32 platform_timer_op( unsigned id, int op, u32 data )
   return res;
 }
 
-u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_type start )
-{
-  timer_data_type temp;
-  
-  id = id;
-  if( start < end )
-  {
-    temp = end;
-    end = start;
-    start = temp;
-  }
-  return ( ( u64 )( start - end ) * 1000000 ) / SysCtlClockGet();
-}
-
 // ****************************************************************************
 // PWMs
 // Same on LM3S8962 and LM3S6965
-
-#define PLATFORM_NUM_PWMS               6
 
 // SYSCTL div data and actual div factors
 const static u32 pwm_div_ctl[] = { SYSCTL_PWMDIV_1, SYSCTL_PWMDIV_2, SYSCTL_PWMDIV_4, SYSCTL_PWMDIV_8, SYSCTL_PWMDIV_16, SYSCTL_PWMDIV_32, SYSCTL_PWMDIV_64 };
@@ -494,11 +405,6 @@ static u32 platform_pwm_set_clock( u32 clock )
       min_i = i;
   SysCtlPWMClockSet( pwm_div_ctl[ min_i ] );
   return sysclk / pwm_div_data[ min_i ];
-}
-
-int platform_pwm_exists( unsigned id )
-{
-  return id < PLATFORM_NUM_PWMS; 
 }
 
 u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
@@ -558,11 +464,6 @@ void platform_cpu_enable_interrupts()
 void platform_cpu_disable_interrupts()
 {
   IntMasterDisable();
-}
-
-u32 platform_cpu_get_frequency()
-{
-  return SysCtlClockGet();
 }
 
 // ****************************************************************************
@@ -720,6 +621,9 @@ u32 platform_eth_get_elapsed_time()
 
 void SysTickIntHandler()
 {
+  // Handle virtual timers
+  cmn_virtual_timer_cb();
+  
   // Indicate that a SysTick interrupt has occurred.
   eth_timer_fired = 1;
 
@@ -744,26 +648,10 @@ void EthernetIntHandler()
 
 void SysTickIntHandler()
 {
+  cmn_virtual_timer_cb();
 }
 
 void EthernetIntHandler()
 {
 }
 #endif // #ifdef ELUA_UIP
-
-// ****************************************************************************
-// Allocator support
-
-extern char end[];
-
-void* platform_get_first_free_ram( unsigned id )
-{
-  return id > 0 ?  NULL : ( void* )end;
-}
-
-#define STACK_SIZE 256
-#define SRAM_SIZE ( 64 * 1024 )
-void* platform_get_last_free_ram( unsigned id )
-{
-  return id > 0 ? NULL : ( void* )( SRAM_BASE + SRAM_SIZE - STACK_SIZE - 1 );
-}

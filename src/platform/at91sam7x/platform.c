@@ -17,20 +17,9 @@
 #include <ctype.h>
 #include <stdio.h>
 #include "utils.h"
-
-// *****************************************************************************
-// std functions
-
-static void uart_send( int fd, char c )
-{
-  fd = fd;
-  USART_Write( AT91C_BASE_US0, c, 0 );  
-}
-
-static int uart_recv()
-{
-  return USART_Read( AT91C_BASE_US0, 0 );
-}
+#include "common.h"
+#include "aic.h"
+#include "platform_conf.h"
 
 // ****************************************************************************
 // Platform initialization
@@ -41,6 +30,16 @@ static const Pin platform_uart_pins[ 2 ][ 2 ] =
   { PIN_USART1_RXD, PIN_USART1_TXD }
 };
 static const AT91S_TC* timer_base[] = { AT91C_BASE_TC0, AT91C_BASE_TC1, AT91C_BASE_TC2 };
+
+#if VTMR_NUM_TIMERS > 0
+static void ISR_Tc2()
+{
+  cmn_virtual_timer_cb();
+  AT91C_BASE_TC2->TC_SR;
+  asm( "pop {r0}":: );  
+  asm( "bx  r0":: );
+}
+#endif
 
 int platform_init()
 {
@@ -63,14 +62,14 @@ int platform_init()
   PIO_Configure(platform_uart_pins[ 0 ], PIO_LISTSIZE(platform_uart_pins[ 0 ]));
     
   // Configure the USART in the desired mode @115200 bauds
-  USART_Configure(AT91C_BASE_US0, mode, 115200, BOARD_MCK);
+  USART_Configure(AT91C_BASE_US0, mode, CON_UART_SPEED, BOARD_MCK);
   
   // Enable receiver & transmitter
   USART_SetTransmitterEnabled(AT91C_BASE_US0, 1);
   USART_SetReceiverEnabled(AT91C_BASE_US0, 1);  
   
   // Configure the timers
-  AT91C_BASE_TCB->TCB_BMR = 7;
+  AT91C_BASE_TCB->TCB_BMR = 0x15;
   for( i = 0; i < 3; i ++ )
     TC_Configure( ( AT91S_TC* )timer_base[ i ], AT91C_TC_CLKS_TIMER_DIV5_CLOCK | AT91C_TC_WAVE );
         
@@ -85,10 +84,19 @@ int platform_init()
     PWMC_EnableChannel( i );
     PWMC_EnableChannelIt( i );
   }
+
+  cmn_platform_init();
   
-  // Set the send/recv functions                          
-  std_set_send_func( uart_send );
-  std_set_get_func( uart_recv );
+#if VTMR_NUM_TIMERS > 0
+  // Virtual timer initialization
+  TC_Configure( AT91C_BASE_TC2, AT91C_TC_CLKS_TIMER_DIV5_CLOCK | AT91C_TC_WAVE | AT91C_TC_WAVESEL_UP_AUTO );
+  AT91C_BASE_TC2->TC_RC = ( BOARD_MCK / 1024 ) / VTMR_FREQ_HZ;
+  AIC_DisableIT( AT91C_ID_TC2 );
+  AIC_ConfigureIT( AT91C_ID_TC2, 0, ISR_Tc2 );
+  AT91C_BASE_TC2->TC_IER = AT91C_TC_CPCS;
+  AIC_EnableIT( AT91C_ID_TC2 );  
+  TC_Start( AT91C_BASE_TC2 );
+#endif
     
   return PLATFORM_OK;
 } 
@@ -101,24 +109,6 @@ static Pin pio_port_desc[] =
   { 0, AT91C_BASE_PIOA, AT91C_ID_PIOA, PIO_INPUT, PIO_DEFAULT },
   { 0, AT91C_BASE_PIOB, AT91C_ID_PIOB, PIO_INPUT, PIO_DEFAULT }
 };
-
-int platform_pio_has_port( unsigned port )
-{
-  return port <= 1;
-}
-
-const char* platform_pio_get_prefix( unsigned port )
-{
-  static char c[ 3 ];
-  
-  sprintf( c, "P%c", ( char )( port + 'A' ) );
-  return c;
-}
-
-int platform_pio_has_pin( unsigned port, unsigned pin )
-{
-  return port <= 1 && pin <= 30;
-}
 
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 {
@@ -178,12 +168,6 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 // ****************************************************************************
 // UART functions
 
-// The platform UART functions
-int platform_uart_exists( unsigned id )
-{
-  return id <= 1;
-}
-
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )
 {
   unsigned int mode;
@@ -240,11 +224,9 @@ void platform_uart_send( unsigned id, u8 data )
   USART_Write( base, data, 0 );
 }
 
-int platform_uart_recv( unsigned id, unsigned timer_id, int timeout )
+int platform_s_uart_recv( unsigned id, unsigned timer_id, int timeout )
 {
   AT91S_USART* base = id == 0 ? AT91C_BASE_US0 : AT91C_BASE_US1;  
-  timer_data_type tmr_start, tmr_crt;
-  int res;
     
   if( timeout == 0 )
   {
@@ -254,30 +236,7 @@ int platform_uart_recv( unsigned id, unsigned timer_id, int timeout )
     else
       return -1;
   }
-  else if( timeout == PLATFORM_UART_INFINITE_TIMEOUT )
-  {
-    // Wait for data
-    return USART_Read( base, 0 );
-  }
-  else
-  {
-    // Receive char with the specified timeout
-    tmr_start = platform_timer_op( timer_id, PLATFORM_TIMER_OP_START,0 );
-    while( 1 )
-    {
-      if( USART_IsDataAvailable( base ) )
-      {
-        res = USART_Read( base, 0 );
-        break;
-      }
-      else
-        res = -1;
-      tmr_crt = platform_timer_op( timer_id, PLATFORM_TIMER_OP_READ, 0 );
-      if( platform_timer_get_diff_us( timer_id, tmr_crt, tmr_start ) >= timeout )
-        break;
-    }
-    return res;    
-  }
+  return USART_Read( base, 0 );
 }
 
 // ****************************************************************************
@@ -308,12 +267,7 @@ static u32 platform_timer_set_clock( unsigned id, u32 clock )
   return BOARD_MCK / clkdivs[ mini ];
 }
 
-int platform_timer_exists( unsigned id )
-{
-  return id < 3;
-}
-
-void platform_timer_delay( unsigned id, u32 delay_us )
+void platform_s_timer_delay( unsigned id, u32 delay_us )
 {
   AT91S_TC* base = ( AT91S_TC* )timer_base[ id ];  
   u32 freq;
@@ -329,7 +283,7 @@ void platform_timer_delay( unsigned id, u32 delay_us )
   while( base->TC_CV < final );  
 }
 
-u32 platform_timer_op( unsigned id, int op, u32 data )
+u32 platform_s_timer_op( unsigned id, int op, u32 data )
 {
   u32 res = 0;
   AT91S_TC* base = ( AT91S_TC* )timer_base[ id ];
@@ -366,28 +320,11 @@ u32 platform_timer_op( unsigned id, int op, u32 data )
   return res;
 }
 
-u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_type start )
-{
-  timer_data_type temp;
-  u32 freq;
-    
-  freq = platform_timer_get_clock( id );
-  if( start < end )
-  {
-    temp = end;
-    end = start;
-    start = temp;
-  }
-  return ( ( u64 )( start - end ) * 1000000 ) / freq;
-}
-
 // ****************************************************************************
 // PWMs
 
 // PWM0, PWM1 -> they can modify CLKA and are statically assigned to CLKA
 // PWM2, PWM3 -> they can modify CLKB and are statically assigned to CLKB
-
-#define PLATFORM_NUM_PWMS               4
 
 // PWM pins
 static const Pin pwm_pins[] = { PIN_PWMC_PWM0, PIN_PWMC_PWM1, PIN_PWMC_PWM2, PIN_PWMC_PWM3 };
@@ -420,11 +357,6 @@ static u32 platform_pwm_set_clock( unsigned id, u32 clock )
   else
     PWMC_ConfigureClocks( 0, clock, BOARD_MCK );
   return platform_pwm_get_clock( id );
-}
-
-int platform_pwm_exists( unsigned id )
-{
-  return id < PLATFORM_NUM_PWMS; 
 }
 
 u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
@@ -470,33 +402,4 @@ u32 platform_pwm_op( unsigned id, int op, u32 data )
   }
   
   return res;
-}
-
-// ****************************************************************************
-// CPU functions
-
-u32 platform_cpu_get_frequency()
-{
-  return BOARD_MCK;
-}
-
-// ****************************************************************************
-// Allocator support
-extern char end[];
-
-void* platform_get_first_free_ram( unsigned id )
-{
-  return id > 0 ? NULL : ( void* )end;
-}
-
-#define SRAM_ORIGIN 0x200000
-#ifdef at91sam7x256
-  #define SRAM_SIZE 0x10000
-#else
-  #define SRAM_SIZE 0x20000
-#endif
-
-void* platform_get_last_free_ram( unsigned id )
-{
-  return id > 0 ? NULL : ( void* )( SRAM_ORIGIN + SRAM_SIZE - STACK_SIZE_TOTAL - 1 );
 }

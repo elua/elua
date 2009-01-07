@@ -15,23 +15,11 @@
 #include "91x_gpio.h"
 #include "91x_uart.h"
 #include "91x_tim.h"
+#include "common.h"
+#include "platform_conf.h"
 
 // We define here the UART used by this porting layer
 #define STR9_UART         UART1
-
-// *****************************************************************************
-// std functions
-
-static void uart_send( int fd, char c )
-{
-  fd = fd;
-  platform_uart_send( 0, c );
-}
-
-static int uart_recv()
-{
-  return platform_uart_recv( 0, 0, PLATFORM_UART_INFINITE_TIMEOUT );
-}
 
 // ****************************************************************************
 // Platform initialization
@@ -89,7 +77,7 @@ int platform_init()
     GPIO_DeInit( ( GPIO_TypeDef* )port_data[ i ] );
   
   // UART setup (only STR9_UART is used in this example)
-  platform_uart_setup( 0, 115200, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
+  platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
   
   // Initialize timers
   for( i = 0; i < 4; i ++ )
@@ -103,33 +91,13 @@ int platform_init()
     TIM_CounterCmd( base, TIM_START );
   }
   
-  // Set the send/recv functions                          
-  std_set_send_func( uart_send );
-  std_set_get_func( uart_recv );  
-     
+  cmn_platform_init();
+
   return PLATFORM_OK;
 } 
 
 // ****************************************************************************
 // PIO functions
-
-int platform_pio_has_port( unsigned port )
-{
-  return port < 10;
-}
-
-const char* platform_pio_get_prefix( unsigned port )
-{
-  static char c[ 3 ];
-  
-  sprintf( c, "P%d", port );
-  return c;
-}
-
-int platform_pio_has_pin( unsigned port, unsigned pin )
-{
-  return port < 10 && pin < 8;
-}
 
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 {
@@ -186,11 +154,6 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 
 // ****************************************************************************
 // UART
-
-int platform_uart_exists( unsigned id )
-{
-  return id < 1;
-}
 
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )
 {
@@ -259,11 +222,8 @@ void platform_uart_send( unsigned id, u8 data )
   UART_SendData( STR9_UART, data );
 }
 
-int platform_uart_recv( unsigned id, unsigned timer_id, int timeout )
+int platform_s_uart_recv( unsigned id, unsigned timer_id, int timeout )
 {
-  timer_data_type tmr_start, tmr_crt;
-  int res;
-    
   if( timeout == 0 )
   {
     // Return data only if already available
@@ -272,40 +232,12 @@ int platform_uart_recv( unsigned id, unsigned timer_id, int timeout )
     else
       return -1;
   }
-  else if( timeout == PLATFORM_UART_INFINITE_TIMEOUT )
-  {
-    // Wait for data
-    while( UART_GetFlagStatus(STR9_UART, UART_FLAG_RxFIFOEmpty) == SET );
-    return UART_ReceiveData( STR9_UART );
-  }
-  else
-  {
-    // Receive char with the specified timeout
-    tmr_start = platform_timer_op( timer_id, PLATFORM_TIMER_OP_START,0 );
-    while( 1 )
-    {
-      if( UART_GetFlagStatus(STR9_UART, UART_FLAG_RxFIFOEmpty) != SET  )
-      {
-        res = UART_ReceiveData( STR9_UART );
-        break;
-      }
-      else
-        res = -1;
-      tmr_crt = platform_timer_op( timer_id, PLATFORM_TIMER_OP_READ, 0 );
-      if( platform_timer_get_diff_us( timer_id, tmr_crt, tmr_start ) >= timeout )
-        break;
-    }
-    return res;    
-  }
+  while( UART_GetFlagStatus(STR9_UART, UART_FLAG_RxFIFOEmpty) == SET );
+  return UART_ReceiveData( STR9_UART );
 }
 
 // ****************************************************************************
 // Timer
-
-int platform_timer_exists( unsigned id )
-{
-  return id < 4;
-}
 
 // Helper: get timer clock
 static u32 platform_timer_get_clock( unsigned id )
@@ -330,7 +262,7 @@ static u32 platform_timer_set_clock( unsigned id, u32 clock )
   return baseclk / bestdiv;
 }
 
-void platform_timer_delay( unsigned id, u32 delay_us )
+void platform_s_timer_delay( unsigned id, u32 delay_us )
 {
   TIM_TypeDef* base = ( TIM_TypeDef* )timer_data[ id ];  
   u32 freq;
@@ -351,7 +283,7 @@ void platform_timer_delay( unsigned id, u32 delay_us )
   while( TIM_GetCounterValue( base ) < final );  
 }
       
-u32 platform_timer_op( unsigned id, int op, u32 data )
+u32 platform_s_timer_op( unsigned id, int op, u32 data )
 {
   u32 res = 0;
   TIM_TypeDef* base = ( TIM_TypeDef* )timer_data[ id ];  
@@ -386,44 +318,4 @@ u32 platform_timer_op( unsigned id, int op, u32 data )
       break;
   }
   return res;
-}
-
-u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_type start )
-{
-  timer_data_type temp;
-  u32 freq;
-    
-  freq = platform_timer_get_clock( id );
-  if( start < end )
-  {
-    temp = end;
-    end = start;
-    start = temp;
-  }
-  return ( ( u64 )( start - end ) * 1000000 ) / freq;
-}
-
-// ****************************************************************************
-// CPU functions
-
-u32 platform_cpu_get_frequency()
-{
-  return SCU_GetMCLKFreqValue() * 1000;
-}
-
-// ****************************************************************************
-// Allocator support
-extern char end[];
-
-void* platform_get_first_free_ram( unsigned id )
-{
-  return id > 0 ? NULL : ( void* )end;
-}
-
-#define SRAM_ORIGIN 0x40000000
-#define SRAM_SIZE 0x18000
-
-void* platform_get_last_free_ram( unsigned id )
-{
-  return id > 0 ? NULL : ( void* )( SRAM_ORIGIN + SRAM_SIZE - STACK_SIZE_TOTAL - 1 );
 }

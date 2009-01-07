@@ -4,6 +4,7 @@
 #define __PLATFORM_CONF_H__
 
 #include "auxmods.h"
+#include "type.h"
 
 // *****************************************************************************
 // Define here what components you want for this platform
@@ -22,13 +23,13 @@
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 
-#define XMODEM_UART_ID        0
+#define CON_UART_ID           0
+#define CON_UART_SPEED        115200
 #define XMODEM_TIMER_ID       0
-#define TERM_UART_ID          0
 #define TERM_TIMER_ID         0
 #define TERM_LINES            25
 #define TERM_COLS             80
-#define TERM_TIMEOUT          0
+#define TERM_TIMEOUT          100000
 
 // *****************************************************************************
 // Auxiliary libraries that will be compiled for this platform
@@ -63,25 +64,58 @@
 // Configuration data
 
 // Static TCP/IP configuration
-#define ELUA_CONF_IPADDR0         192
-#define ELUA_CONF_IPADDR1         168
-#define ELUA_CONF_IPADDR2         1
-#define ELUA_CONF_IPADDR3         13
+#define ELUA_CONF_IPADDR0     192
+#define ELUA_CONF_IPADDR1     168
+#define ELUA_CONF_IPADDR2     1
+#define ELUA_CONF_IPADDR3     13
 
-#define ELUA_CONF_NETMASK0        255
-#define ELUA_CONF_NETMASK1        255
-#define ELUA_CONF_NETMASK2        255
-#define ELUA_CONF_NETMASK3        0
+#define ELUA_CONF_NETMASK0    255
+#define ELUA_CONF_NETMASK1    255
+#define ELUA_CONF_NETMASK2    255
+#define ELUA_CONF_NETMASK3    0
 
-#define ELUA_CONF_DEFGW0          192
-#define ELUA_CONF_DEFGW1          168
-#define ELUA_CONF_DEFGW2          1
-#define ELUA_CONF_DEFGW3          1
+#define ELUA_CONF_DEFGW0      192
+#define ELUA_CONF_DEFGW1      168
+#define ELUA_CONF_DEFGW2      1
+#define ELUA_CONF_DEFGW3      1
 
-#define ELUA_CONF_DNS0            192
-#define ELUA_CONF_DNS1            168
-#define ELUA_CONF_DNS2            1
-#define ELUA_CONF_DNS3            1
+#define ELUA_CONF_DNS0        192
+#define ELUA_CONF_DNS1        168
+#define ELUA_CONF_DNS2        1
+#define ELUA_CONF_DNS3        1
+
+// *****************************************************************************
+// Configuration data
+
+// Virtual timers (0 if not used)
+#define VTMR_NUM_TIMERS       0
+#define VTMR_FREQ_HZ          4
+
+// Number of resources (0 if not available/not implemented)
+#define NUM_PIO               7
+#define NUM_SPI               0
+#define NUM_UART              4
+#define NUM_TIMER             0
+#define NUM_PWM               0
+
+// CPU frequency (needed by the CPU module, 0 if not used)
+u32 platform_s_cpu_get_frequency();
+#define CPU_FREQUENCY         platform_s_cpu_get_frequency()
+
+// PIO prefix ('0' for P0, P1, ... or 'A' for PA, PB, ...)
+#define PIO_PREFIX            'A'
+// Pins per port configuration:
+// #define PIO_PINS_PER_PORT (n) if each port has the same number of pins, or
+// #define PIO_PIN_ARRAY { n1, n2, ... } to define pins per port in an array
+// Use #define PIO_PINS_PER_PORT 0 if this isn't needed
+#define PIO_PIN_ARRAY         { 16, 16, 16, 16, 16, 16, 16 }
+
+// Allocator data: define your free memory zones here in two arrays
+// (start address and end address)
+#define STACK_SIZE            256
+#define SRAM_SIZE             ( 64 * 1024 )
+#define MEM_START_ADDRESS     { ( void* )end }
+#define MEM_END_ADDRESS       { ( void* )( SRAM_BASE + SRAM_SIZE - STACK_SIZE - 1 ) }
 
 // *****************************************************************************
 // CPU constants that should be exposed to the eLua "cpu" module

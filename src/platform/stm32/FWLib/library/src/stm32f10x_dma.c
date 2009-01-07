@@ -601,7 +601,7 @@ ITStatus DMA_GetITStatus(u32 DMA_IT)
 
 /*******************************************************************************
 * Function Name  : DMA_ClearITPendingBit
-* Description    : Clears the DMAy Channelx’s interrupt pending bits.
+* Description    : Clears the DMAy Channelx's interrupt pending bits.
 * Input          : - DMA_IT: specifies the DMA interrupt pending bit to clear.
 *                    This parameter can be any combination (for the same DMA) of
 *                    the following values:

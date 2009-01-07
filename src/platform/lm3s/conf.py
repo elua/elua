@@ -7,6 +7,11 @@ ldscript = "lm3s.ld"
 specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )
 ldscript = "src/platform/%s/%s" % ( platform, ldscript )
 
+if cputype == 'LM3S8962':
+  cdefs = cdefs + " -DFORLM3S8962"
+else:
+  cdefs = cdefs + " -DFORLM3S6965"
+
 cdefs = cdefs + " -Dgcc"
 
 # Toolset data

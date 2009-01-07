@@ -307,7 +307,7 @@ int _link_r( struct _reent *r, const char *c1, const char *c2 )
 }
 
 #include <sys/time.h>
-#ifdef AVR32
+#ifdef FORAVR32
 int _gettimeofday_r( struct _reent *r, struct timeval *tp, struct timezone *tzp )
 #else
 int _gettimeofday_r( struct _reent *r, struct timeval *tv, void *tz )
@@ -394,7 +394,7 @@ DM_DEVICE* std_get_desc()
 
 #endif // #if !defined( BUILD_CON_GENERIC ) && !defined( BUILD_CON_TCP )
 
-#ifdef AVR32
+#ifdef FORAVR32
 void* memcpy( void *dst, const void* src, size_t len )
 {
   char *pdest = ( char* )dst;
@@ -407,4 +407,5 @@ void* memcpy( void *dst, const void* src, size_t len )
   }
   return dst;
 }
-#endif // #if ELUA_PLATFORM == AVR32
+#endif // #ifdef FORAVR32
+

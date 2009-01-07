@@ -83,11 +83,6 @@ int platform_init()
 // ****************************************************************************
 // "Dummy" UART functions
 
-int platform_uart_exists( unsigned id )
-{
-  return 0;
-}
-
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )
 {
   return 0;
@@ -97,22 +92,27 @@ void platform_uart_send( unsigned id, u8 data )
 {
 }
 
-int platform_uart_recv( unsigned id, unsigned timer_id, int timeout )
+int platform_s_uart_recv( unsigned id, unsigned timer_id, int timeout )
 {
   return -1;
 }
 
 // ****************************************************************************
-// Allocator support
-extern char end[];
+// "Dummy" timer functions
 
-void* platform_get_first_free_ram( unsigned id )
+void platform_s_timer_delay( unsigned id, u32 delay_us )
 {
-  return id > 0  ? NULL : ( void* )end;
 }
 
-#define MY_STACK_SIZE ( 16 * 1024 ) 
-void* platform_get_last_free_ram( unsigned id )
+u32 platform_s_timer_op( unsigned id, int op, u32 data )
 {
-  return id > 0 ? NULL : ( void* )( lastmem - MY_STACK_SIZE - 1 );
+  return 0;
+}
+
+// ****************************************************************************
+// Allocator support
+
+u32 platform_get_lastmem()
+{
+  return lastmem;
 }

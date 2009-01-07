@@ -2,7 +2,7 @@
 
 specific_files = "crt0.s trampoline.s platform.c exception.s intc.c pm.c flashc.c pm_conf_clocks.c usart.c gpio.c tc.c"
 ldscript = "at32uc3a0512.ld"
-cdefs = cdefs + " -DAVR32"
+cdefs = cdefs + " -DFORAVR32"
 
 # Prepend with path
 specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )

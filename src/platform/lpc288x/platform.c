@@ -14,19 +14,8 @@
 #include "target.h"
 #include "uart.h"
 #include "utils.h"
-
-// *****************************************************************************
-// std functions
-
-static void uart_send( int fd, char c )
-{
-  uart_write( c );
-}
-
-static int uart_recv()
-{
-  return uart_read();
-}
+#include "common.h"
+#include "platform_conf.h"
 
 // ****************************************************************************
 // Platform initialization
@@ -37,7 +26,7 @@ int platform_init()
   lpc288x_init();
   
   // Initialize UART
-  uart_init( 115200, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
+  uart_init( CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
   
   // Initialize timers
   T0CTRL = 0;
@@ -45,9 +34,7 @@ int platform_init()
   INT_REQ5 = ( 1 << 28 ) | ( 1 << 27 ) | ( 1 << 26 ) | ( 1 << 16 ) | 0x1;
   INT_REQ6 = ( 1 << 28 ) | ( 1 << 27 ) | ( 1 << 26 ) | ( 1 << 16 ) | 0x1;    
   
-  // Set the send/recv functions                          
-  std_set_send_func( uart_send );
-  std_set_get_func( uart_recv );  
+  cmn_platform_init();
   
   return PLATFORM_OK;
 } 
@@ -65,26 +52,6 @@ static const vu_ptr pio_m1c_regs[] = { &MODE1C_0, &MODE1C_1, &MODE1C_2, &MODE1C_
 static const vu_ptr pio_m0_regs[] = { &MODE0_0, &MODE0_1, &MODE0_2, &MODE0_3, &MODE0_4, &MODE0_5, &MODE0_6, &MODE0_7 };
 static const vu_ptr pio_m1_regs[] = { &MODE1_0, &MODE1_1, &MODE1_2, &MODE1_3, &MODE1_4, &MODE1_5, &MODE1_6, &MODE1_7 };
 static const vu_ptr pio_pin_regs[] = { &PINS_0, &PINS_1, &PINS_2, &PINS_3, &PINS_4, &PINS_5, &PINS_6, &PINS_7 };
-
-int platform_pio_has_port( unsigned port )
-{
-  return port < 8;
-}
-
-const char* platform_pio_get_prefix( unsigned port )
-{
-  static char c[ 3 ];
-  
-  sprintf( c, "P%d", port );
-  return c;
-}
-
-// Maximum number of pins per port
-static const unsigned pins_per_port[] = { 32, 20, 4, 6, 12, 6, 4, 1 };
-int platform_pio_has_pin( unsigned port, unsigned pin )
-{
-  return port < 8 && pin < pins_per_port[ port ];
-}
 
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 {
@@ -140,11 +107,6 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 // ****************************************************************************
 // UART
 
-int platform_uart_exists( unsigned id )
-{
-  return id < 1;
-}
-
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )
 {
   return uart_init( baud, databits, parity, stopbits );
@@ -155,35 +117,14 @@ void platform_uart_send( unsigned id, u8 data )
   uart_write( data );
 }
 
-int platform_uart_recv( unsigned id, unsigned timer_id, int timeout )
+int platform_s_uart_recv( unsigned id, unsigned timer_id, int timeout )
 {
-  timer_data_type tmr_start, tmr_crt;
-  int res;
-    
   if( timeout == 0 )
   {
     // Return data only if already available
     return uart_read_nb();
   }
-  else if( timeout == PLATFORM_UART_INFINITE_TIMEOUT )
-  {
-    // Wait for data
-    return uart_read();
-  }
-  else
-  {
-    // Receive char with the specified timeout
-    tmr_start = platform_timer_op( timer_id, PLATFORM_TIMER_OP_START,0 );
-    while( 1 )
-    {
-      if( ( res = uart_read_nb() ) > 0 )
-        break;
-      tmr_crt = platform_timer_op( timer_id, PLATFORM_TIMER_OP_READ, 0 );
-      if( platform_timer_get_diff_us( timer_id, tmr_crt, tmr_start ) >= timeout )
-        break;
-    }
-    return res;    
-  }  
+  return uart_read();
 }
 
 // ****************************************************************************
@@ -212,12 +153,8 @@ static u32 platform_timer_set_clock( unsigned id, u32 clock )
   *tmr_ctrl[ id ] = ( *tmr_ctrl[ id ] & ~0xB ) | ( mini << 2 );
   return MAIN_CLOCK / tmr_prescale[ mini ];
 }
-int platform_timer_exists( unsigned id )
-{
-  return id < 2;
-}
 
-void platform_timer_delay( unsigned id, u32 delay_us )
+void platform_s_timer_delay( unsigned id, u32 delay_us )
 {
   u32 freq;
   u64 final;
@@ -234,7 +171,7 @@ void platform_timer_delay( unsigned id, u32 delay_us )
   while( ( INT_PENDING & mask ) == 0 );
 }
       
-u32 platform_timer_op( unsigned id, int op, u32 data )
+u32 platform_s_timer_op( unsigned id, int op, u32 data )
 {
   u32 res = 0;
   
@@ -270,50 +207,3 @@ u32 platform_timer_op( unsigned id, int op, u32 data )
   return res;
 }
 
-u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_type start )
-{
-  timer_data_type temp;
-  u32 freq;
-    
-  freq = platform_timer_get_clock( id );
-  if( start < end )
-  {
-    temp = end;
-    end = start;
-    start = temp;
-  }
-  return ( ( u64 )( start - end ) * 1000000 ) / freq;
-}
-
-// ****************************************************************************
-// CPU functions
-
-u32 platform_cpu_get_frequency()
-{
-  return Fcclk;
-}
-
-// ****************************************************************************
-// Allocator support
-
-extern char end[];
-
-void* platform_get_first_free_ram( unsigned id )
-{
-  if( id > 1 )
-    return NULL;
-  else
-    return id == 0 ? ( void* )end : ( void* )SDRAM_BASE_ADDR;
-}
-
-#define SRAM_ORIGIN 0x00400000
-#define SRAM_SIZE 0x10000
-
-void* platform_get_last_free_ram( unsigned id )
-{
-  if( id > 1 )
-    return NULL;
-  else
-    return id == 0 ? ( void* )( SRAM_ORIGIN + SRAM_SIZE - STACK_SIZE_TOTAL - 1 ) : 
-                     ( void* )( SDRAM_BASE_ADDR + SDRAM_SIZE - 1 );
-}

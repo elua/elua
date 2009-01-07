@@ -728,7 +728,7 @@ FlagStatus FSMC_GetFlagStatus(u32 FSMC_Bank, u32 FSMC_FLAG)
 
 /*******************************************************************************
 * Function Name  : FSMC_ClearFlag
-* Description    : Clears the FSMC’s pending flags.
+* Description    : Clears the FSMC's pending flags.
 * Input          : - FSMC_Bank: specifies the FSMC Bank to be used
 *                    This parameter can be one of the following values:
 *                       - FSMC_Bank2_NAND: FSMC Bank2 NAND 
@@ -819,7 +819,7 @@ ITStatus FSMC_GetITStatus(u32 FSMC_Bank, u32 FSMC_IT)
 
 /*******************************************************************************
 * Function Name  : FSMC_ClearITPendingBit
-* Description    : Clears the FSMC’s interrupt pending bits.
+* Description    : Clears the FSMC's interrupt pending bits.
 * Input          : - FSMC_Bank: specifies the FSMC Bank to be used
 *                    This parameter can be one of the following values:
 *                       - FSMC_Bank2_NAND: FSMC Bank2 NAND 

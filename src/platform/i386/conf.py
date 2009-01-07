@@ -17,6 +17,6 @@ tools[ 'i386' ][ 'ascom' ] = "nasm -felf $SOURCE"
 def progfunc_i386( target, source, env ):
   outname = output + ".elf"
   os.system( "i686-elf-size %s" % outname )
-  print "Visit http://elua.berlios.de for instructions on how to use your eLua ELF file"
+  print "Visit http://www.eluaproject.net for instructions on how to use your eLua ELF file"
   
 tools[ 'i386' ][ 'progfunc' ] = progfunc_i386

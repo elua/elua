@@ -938,7 +938,7 @@ void TIM_GenerateEvent(TIM_TypeDef* TIMx, u16 TIM_EventSource)
 
 /*******************************************************************************
 * Function Name  : TIM_DMAConfig
-* Description    : Configures the TIMx’s DMA interface.
+* Description    : Configures the TIMx's DMA interface.
 * Input          : - TIMx: where x can be  1, 2, 3, 4, 5 or 8 to select the TIM 
 *                    peripheral.
 *                  - TIM_DMABase: DMA Base address.
@@ -969,7 +969,7 @@ void TIM_DMAConfig(TIM_TypeDef* TIMx, u16 TIM_DMABase, u16 TIM_DMABurstLength)
 
 /*******************************************************************************
 * Function Name  : TIM_DMACmd
-* Description    : Enables or disables the TIMx’s DMA Requests.
+* Description    : Enables or disables the TIMx's DMA Requests.
 * Input          : - TIMx: where x can be  1 to 8 to select the TIM peripheral. 
 *                  - TIM_DMASources: specifies the DMA Request sources.
 *                    This parameter can be any combination of the following values:
@@ -2406,7 +2406,7 @@ void TIM_UpdateRequestConfig(TIM_TypeDef* TIMx, u16 TIM_UpdateSource)
 
 /*******************************************************************************
 * Function Name  : TIM_SelectHallSensor
-* Description    : Enables or disables the TIMx’s Hall sensor interface.
+* Description    : Enables or disables the TIMx's Hall sensor interface.
 * Input          : - TIMx: where x can be 1, 2, 3, 4, 5 or 8 to select the TIM peripheral.
 *                  - NewState: new state of the TIMx Hall sensor interface.
 *                    This parameter can be: ENABLE or DISABLE.
@@ -2433,7 +2433,7 @@ void TIM_SelectHallSensor(TIM_TypeDef* TIMx, FunctionalState NewState)
 
 /*******************************************************************************
 * Function Name  : TIM_SelectOnePulseMode
-* Description    : Selects the TIMx’s One Pulse Mode.
+* Description    : Selects the TIMx's One Pulse Mode.
 * Input          : - TIMx: where x can be 1 to 8 to select the TIM peripheral.
 *                  - TIM_OPMode: specifies the OPM Mode to be used.
 *                    This parameter can be one of the following values:

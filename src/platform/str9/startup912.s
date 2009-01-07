@@ -88,10 +88,12 @@
 # STARTUP EXECUTABLE CODE
 #*************************************************************************
 
-      .text
+      .align 4
       .arm
       .extern main
       .global _startup
+
+      .section .vectors, "a"
 
 _startup:
 
@@ -129,6 +131,8 @@ PAbt_Handler:       B       PAbt_Handler
 DAbt_Handler:       B       DAbt_Handler
 IRQ_Handler:        B       IRQ_Handler       /* should never get here as IRQ is via VIC slot... */
 FIQ_Handler:        B       FIQ_Handler
+
+          .text
 
 
 #*************************************************************************

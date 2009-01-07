@@ -42,13 +42,12 @@
 #define XMODEM_INCREMENT_AMMOUNT      512
 #define XMODEM_BUFFER_SIZE            128
 
-// xmodem control characters
 #define SOH       0x01
 #define STX       0x02
 #define EOT       0x04
 #define ACK       0x06
 #define NAK       0x15
-#define CAN       0x18
+#define XMODEM_CAN  0x18
 #define CTRLZ     0x1A
 
 // xmodem timeout/retry parameters

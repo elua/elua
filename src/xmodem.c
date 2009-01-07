@@ -121,8 +121,8 @@ long xmodem_receive( char** dest )
         xmodem_out_func(ACK);
         // completed transmission normally
         return totalbytes;
-      case CAN:
-        if((c = xmodem_in_func(XMODEM_TIMEOUT_DELAY)) == CAN)
+      case XMODEM_CAN:
+        if((c = xmodem_in_func(XMODEM_TIMEOUT_DELAY)) == XMODEM_CAN)
         {
           xmodem_flush();
           xmodem_out_func(ACK);
@@ -182,9 +182,9 @@ long xmodem_receive( char** dest )
           {
             // Cancel transmission
             xmodem_flush();
-            xmodem_out_func(CAN);
-            xmodem_out_func(CAN);
-            xmodem_out_func(CAN);    
+            xmodem_out_func(XMODEM_CAN);
+            xmodem_out_func(XMODEM_CAN);
+            xmodem_out_func(XMODEM_CAN);    
             return XMODEM_ERROR_OUTOFMEM;   
           }
         }
@@ -210,9 +210,9 @@ long xmodem_receive( char** dest )
         // we are completely out of sync
         // cancel transmission
         xmodem_flush();
-        xmodem_out_func(CAN);
-        xmodem_out_func(CAN);
-        xmodem_out_func(CAN);
+        xmodem_out_func(XMODEM_CAN);
+        xmodem_out_func(XMODEM_CAN);
+        xmodem_out_func(XMODEM_CAN);
         return XMODEM_ERROR_OUTOFSYNC;
       }
     }
@@ -229,9 +229,9 @@ long xmodem_receive( char** dest )
 
   // exceeded retry count
   xmodem_flush();
-  xmodem_out_func(CAN);
-  xmodem_out_func(CAN);
-  xmodem_out_func(CAN);
+  xmodem_out_func(XMODEM_CAN);
+  xmodem_out_func(XMODEM_CAN);
+  xmodem_out_func(XMODEM_CAN);
   return XMODEM_ERROR_RETRYEXCEED;
 }
 

@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include "utils.h"
 #include "platform_conf.h"
+#include "common.h"
 
 // Platform-specific includes
 #include <avr32/io.h>
@@ -22,25 +23,25 @@
 #include "usart.h"
 #include "gpio.h"
 #include "tc.h"
-
-// *****************************************************************************
-// std functions
-
-static void uart_send( int fd, char c )
-{
-  fd = fd;
-  platform_uart_send( CON_UART_ID, c );
-}
-
-static int uart_recv()
-{
-  return platform_uart_recv( CON_UART_ID, 0, PLATFORM_UART_INFINITE_TIMEOUT );
-}
+#include "intc.h"
 
 // ****************************************************************************
 // Platform initialization
 
 extern int pm_configure_clocks( pm_freq_param_t *param );
+
+#if VTMR_NUM_TIMERS > 0
+
+#define VTMR_CH     (2)
+
+__attribute__((__interrupt__)) static void tmr_int_handler()
+{
+  volatile avr32_tc_t *tc = &AVR32_TC;
+  
+  tc_read_sr( tc, VTMR_CH );
+  cmn_virtual_timer_cb();
+}                                
+#endif
 
 int platform_init()
 {
@@ -80,6 +81,7 @@ int platform_init()
   unsigned i;
          
   Disable_global_interrupt();  
+  INTC_init_interrupts();
   
   // Setup clocks
   if( PM_FREQ_STATUS_FAIL == pm_configure_clocks( &pm_freq_param ) )
@@ -99,10 +101,31 @@ int platform_init()
     tc_init_waveform( tc, &tmropt );
   }
   
-  // Set the send/recv functions                          
-  std_set_send_func( uart_send );
-  std_set_get_func( uart_recv );  
+  // Setup timer interrupt for the virtual timers if needed
+#if VTMR_NUM_TIMERS > 0
+  INTC_register_interrupt( &tmr_int_handler, AVR32_TC_IRQ2, AVR32_INTC_INT0 );  
+  tmropt.channel = VTMR_CH;
+  tmropt.wavsel = TC_WAVEFORM_SEL_UP_MODE_RC_TRIGGER;
+  tc_init_waveform( tc, &tmropt );
+  tc_interrupt_t tmrint = 
+  {
+    0,              // External trigger interrupt.
+    0,              // RB load interrupt.
+    0,              // RA load interrupt.
+    1,              // RC compare interrupt.
+    0,              // RB compare interrupt.
+    0,              // RA compare interrupt.
+    0,              // Load overrun interrupt.
+    0               // Counter overflow interrupt.
+  };
+  tc_write_rc( tc, VTMR_CH, 32768 / VTMR_FREQ_HZ );
+  tc_configure_interrupts( tc, VTMR_CH, &tmrint );
+  Enable_global_interrupt();
+  tc_start( tc, VTMR_CH );  
+#endif
   
+  cmn_platform_init();
+    
   // All done  
   return PLATFORM_OK;
 } 
@@ -132,7 +155,6 @@ on the hardware ports (PA, PB, PC).
 */
 
 // Port data
-#define NUM_PORTS     5
 #define PA            0
 #define PB            1
 #define PC            2
@@ -146,26 +168,6 @@ on the hardware ports (PA, PB, PC).
 #define PIO_REG_PUER  4
 
 #define GPIO          AVR32_GPIO
-
-static const u8 pio_port_pins[ NUM_PORTS ] = { 31, 32, 6, 32, 8 };
-
-int platform_pio_has_port( unsigned port )
-{
-  return port < NUM_PORTS;
-}
-
-const char* platform_pio_get_prefix( unsigned port )
-{
-  static char c[ 3 ];
-  
-  sprintf( c, "P%c", ( char )( port + 'A' ) );
-  return c;
-}
-
-int platform_pio_has_pin( unsigned port, unsigned pin )
-{
-  return port < NUM_PORTS && pin < pio_port_pins[ port ];
-}
 
 // Helper function: for a given port, return the address of a specific register (value, direction, pullup ...)
 static volatile unsigned long* platform_pio_get_port_reg_addr( unsigned port, int regtype )
@@ -311,9 +313,7 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 // ****************************************************************************
 // UART functions
 
-#define NUM_UARTS     4
-
-static const u32 uart_base_addr[ NUM_UARTS ] = { AVR32_USART0_ADDRESS, AVR32_USART1_ADDRESS, AVR32_USART2_ADDRESS, AVR32_USART3_ADDRESS };
+static const u32 uart_base_addr[ NUM_UART ] = { AVR32_USART0_ADDRESS, AVR32_USART1_ADDRESS, AVR32_USART2_ADDRESS, AVR32_USART3_ADDRESS };
 static const gpio_map_t uart_pins = 
 {
   // UART 0
@@ -329,12 +329,6 @@ static const gpio_map_t uart_pins =
   { AVR32_USART3_RXD_0_0_PIN, AVR32_USART3_RXD_0_0_FUNCTION },
   { AVR32_USART3_TXD_0_0_PIN, AVR32_USART3_TXD_0_0_FUNCTION }
 };
-
-// The platform UART functions
-int platform_uart_exists( unsigned id )
-{
-  return id < NUM_UARTS;
-}
 
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )
 {
@@ -376,7 +370,7 @@ void platform_uart_send( unsigned id, u8 data )
   usart_putchar( pusart, data );
 }
 
-int platform_uart_recv( unsigned id, unsigned timer_id, int timeout )
+int platform_s_uart_recv( unsigned id, unsigned timer_id, int timeout )
 {
   volatile avr32_usart_t *pusart = ( volatile avr32_usart_t* )uart_base_addr[ id ];  
   int temp;
@@ -388,20 +382,13 @@ int platform_uart_recv( unsigned id, unsigned timer_id, int timeout )
     else
       return temp;
   }
-  else if( timeout == PLATFORM_UART_INFINITE_TIMEOUT )
-  {
-    return usart_getchar( pusart );
-  }
   else
-  {
-    return -1;
-  }  
+    return usart_getchar( pusart );
 }
 
 // ****************************************************************************
 // Timer functions
 
-#define NUM_TIMERS 3
 static const u16 clkdivs[] = { 0xFFFF, 2, 8, 32, 128 };
 
 // Helper: get timer clock
@@ -427,12 +414,7 @@ static u32 platform_timer_set_clock( unsigned id, u32 clock )
   return mini == 0 ? 32768 : REQ_PBA_FREQ / clkdivs[ mini ];
 }
 
-int platform_timer_exists( unsigned id )
-{
-  return id < NUM_TIMERS;
-}
-
-void platform_timer_delay( unsigned id, u32 delay_us )
+void platform_s_timer_delay( unsigned id, u32 delay_us )
 {
   volatile avr32_tc_t *tc = &AVR32_TC;  
   u32 freq;
@@ -450,7 +432,7 @@ void platform_timer_delay( unsigned id, u32 delay_us )
   while( ( tc_read_tc( tc, id ) < final ) && !sr->covfs );  
 }
 
-u32 platform_timer_op( unsigned id, int op, u32 data )
+u32 platform_s_timer_op( unsigned id, int op, u32 data )
 {
   u32 res = 0;
   volatile int i;
@@ -487,42 +469,16 @@ u32 platform_timer_op( unsigned id, int op, u32 data )
   return res;
 }
 
-u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_type start )
-{
-  timer_data_type temp;
-  u32 freq;
-    
-  freq = platform_timer_get_clock( id );
-  if( start < end )
-  {
-    temp = end;
-    end = start;
-    start = temp;
-  }
-  return ( ( u64 )( start - end ) * 1000000 ) / freq;
-}
-
 // ****************************************************************************
 // CPU functions
 
-u32 platform_cpu_get_frequency()
+void platform_cpu_enable_interrupts()
 {
-  return REQ_CPU_FREQ;
+  Enable_global_interrupt();
 }
 
-// ****************************************************************************
-// Allocator support
-extern char end[];
-
-void* platform_get_first_free_ram( unsigned id )
+void platform_cpu_disable_interrupts()
 {
-  return id > 0 ? NULL : ( void* )end;
+  Disable_global_interrupt();
 }
 
-#define SRAM_ORIGIN 0x0
-#define SRAM_SIZE 0x10000
-
-void* platform_get_last_free_ram( unsigned id )
-{
-  return id > 0 ? NULL : ( void* )( SRAM_ORIGIN + SRAM_SIZE - STACK_SIZE_TOTAL - 1 );
-}

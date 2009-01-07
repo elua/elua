@@ -825,7 +825,7 @@ ITStatus CAN_GetITStatus(u32 CAN_IT)
 
 /*******************************************************************************
 * Function Name  : CAN_ClearITPendingBit
-* Description    : Clears the CAN’s interrupt pending bits.
+* Description    : Clears the CAN's interrupt pending bits.
 * Input          : CAN_IT: specifies the interrupt pending bit to clear.
 * Output         : None.
 * Return         : None.

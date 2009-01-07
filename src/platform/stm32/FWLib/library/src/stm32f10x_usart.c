@@ -396,7 +396,7 @@ void USART_ITConfig(USART_TypeDef* USARTx, u16 USART_IT, FunctionalState NewStat
 
 /*******************************************************************************
 * Function Name  : USART_DMACmd
-* Description    : Enables or disables the USART’s DMA interface.
+* Description    : Enables or disables the USART's DMA interface.
 * Input          : - USARTx: Select the USART or the UART peripheral. 
 *                    This parameter can be one of the following values:
 *                     - USART1, USART2, USART3 or UART4.
@@ -531,7 +531,7 @@ void USART_LINBreakDetectLengthConfig(USART_TypeDef* USARTx, u16 USART_LINBreakD
 
 /*******************************************************************************
 * Function Name  : USART_LINCmd
-* Description    : Enables or disables the USART’s LIN mode.
+* Description    : Enables or disables the USART's LIN mode.
 * Input          : - USARTx: Select the USART or the UART peripheral. 
 *                    This parameter can be one of the following values:
 *                     - USART1, USART2, USART3, UART4 or UART5.
@@ -659,7 +659,7 @@ void USART_SetPrescaler(USART_TypeDef* USARTx, u8 USART_Prescaler)
 
 /*******************************************************************************
 * Function Name  : USART_SmartCardCmd
-* Description    : Enables or disables the USART’s Smart Card mode.
+* Description    : Enables or disables the USART's Smart Card mode.
 * Input          : - USARTx: where x can be 1, 2 or 3 to select the USART
 *                    peripheral. 
 *                    Note: The Smart Card mode is not available for UART4 and UART5.
@@ -717,7 +717,7 @@ void USART_SmartCardNACKCmd(USART_TypeDef* USARTx, FunctionalState NewState)
 
 /*******************************************************************************
 * Function Name  : USART_HalfDuplexCmd
-* Description    : Enables or disables the USART’s Half Duplex communication.
+* Description    : Enables or disables the USART's Half Duplex communication.
 * Input          : - USARTx: Select the USART or the UART peripheral. 
 *                    This parameter can be one of the following values:
 *                     - USART1, USART2, USART3, UART4 or UART5.
@@ -746,7 +746,7 @@ void USART_HalfDuplexCmd(USART_TypeDef* USARTx, FunctionalState NewState)
 
 /*******************************************************************************
 * Function Name  : USART_IrDAConfig
-* Description    : Configures the USART’s IrDA interface.
+* Description    : Configures the USART's IrDA interface.
 * Input          : - USARTx: Select the USART or the UART peripheral. 
 *                    This parameter can be one of the following values:
 *                     - USART1, USART2, USART3, UART4 or UART5.
@@ -769,7 +769,7 @@ void USART_IrDAConfig(USART_TypeDef* USARTx, u16 USART_IrDAMode)
 
 /*******************************************************************************
 * Function Name  : USART_IrDACmd
-* Description    : Enables or disables the USART’s IrDA interface.
+* Description    : Enables or disables the USART's IrDA interface.
 * Input          : - USARTx: Select the USART or the UART peripheral. 
 *                    This parameter can be one of the following values:
 *                     - USART1, USART2, USART3, UART4 or UART5.
@@ -953,7 +953,7 @@ ITStatus USART_GetITStatus(USART_TypeDef* USARTx, u16 USART_IT)
 
 /*******************************************************************************
 * Function Name  : USART_ClearITPendingBit
-* Description    : Clears the USARTx’s interrupt pending bits.
+* Description    : Clears the USARTx's interrupt pending bits.
 * Input          : - USARTx: Select the USART or the UART peripheral. 
 *                    This parameter can be one of the following values:
 *                     - USART1, USART2, USART3, UART4 or UART5.

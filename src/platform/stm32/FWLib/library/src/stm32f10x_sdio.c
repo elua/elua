@@ -795,7 +795,7 @@ ITStatus SDIO_GetITStatus(u32 SDIO_IT)
 
 /*******************************************************************************
 * Function Name  : SDIO_ClearITPendingBit
-* Description    : Clears the SDIO’s interrupt pending bits.	
+* Description    : Clears the SDIO's interrupt pending bits.	
 * Input          : SDIO_IT: specifies the interrupt pending bit to clear. 
 *                   This parameter can be one or a combination of the following
 *                   values:

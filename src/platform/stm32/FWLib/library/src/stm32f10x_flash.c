@@ -801,7 +801,7 @@ FlagStatus FLASH_GetFlagStatus(u16 FLASH_FLAG)
 
 /*******************************************************************************
 * Function Name  : FLASH_ClearFlag
-* Description    : Clears the FLASH’s pending flags.
+* Description    : Clears the FLASH's pending flags.
 * Input          : - FLASH_FLAG: specifies the FLASH flags to clear.
 *                    This parameter can be any combination of the following values:
 *                    - FLASH_FLAG_BSY: FLASH Busy flag           

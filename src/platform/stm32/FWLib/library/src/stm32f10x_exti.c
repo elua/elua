@@ -154,7 +154,7 @@ FlagStatus EXTI_GetFlagStatus(u32 EXTI_Line)
 
 /*******************************************************************************
 * Function Name  : EXTI_ClearFlag
-* Description    : Clears the EXTI’s line pending flags.
+* Description    : Clears the EXTI's line pending flags.
 * Input          : - EXTI_Line: specifies the EXTI lines flags to clear.
 *                    This parameter can be any combination of EXTI_Linex where 
 *                    x can be (0..18).
@@ -201,7 +201,7 @@ ITStatus EXTI_GetITStatus(u32 EXTI_Line)
 
 /*******************************************************************************
 * Function Name  : EXTI_ClearITPendingBit
-* Description    : Clears the EXTI’s line pending bits.
+* Description    : Clears the EXTI's line pending bits.
 * Input          : - EXTI_Line: specifies the EXTI lines to clear.
 *                    This parameter can be any combination of EXTI_Linex where 
 *                    x can be (0..18).

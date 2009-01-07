@@ -133,7 +133,7 @@ resetHandler:
 1:
         ldr     r4, =_sstack
         mov     sp, r4
-	    ldr     r0, =LowLevelInit
+        ldr     r0, =LowLevelInit
         mov     lr, pc
         bx      r0
 

@@ -1374,7 +1374,7 @@ ITStatus ADC_GetITStatus(ADC_TypeDef* ADCx, u16 ADC_IT)
 
 /*******************************************************************************
 * Function Name  : ADC_ClearITPendingBit
-* Description    : Clears the ADCx’s interrupt pending bits.
+* Description    : Clears the ADCx's interrupt pending bits.
 * Input          : - ADCx: where x can be 1, 2 or 3 to select the ADC peripheral.
 *                  - ADC_IT: specifies the ADC interrupt pending bit to clear.
 *                    This parameter can be any combination of the following values:

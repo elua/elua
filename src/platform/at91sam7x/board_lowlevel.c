@@ -69,7 +69,6 @@
  */
 void defaultSpuriousHandler( void )
 {
-    while (1);
 }
 
 /*!
