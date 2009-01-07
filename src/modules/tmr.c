@@ -7,6 +7,7 @@
 #include "auxmods.h"
 #include "platform_conf.h"
 #include "common.h"
+#include <stdio.h>
 
 // Helper function for the read/start functions
 static int tmrh_timer_op( lua_State* L, int op )
@@ -132,8 +133,15 @@ LUALIB_API int luaopen_tmr( lua_State *L )
 {
   luaL_register( L, AUXLIB_TMR, tmr_map );
 #if VTMR_NUM_TIMERS > 0
-  lua_pushnumber( L, VTMR_FIRST_ID );
-  lua_setfield( L, -2, "VIRT0" );  
+  unsigned i;
+  char tname[ 8 ];
+  for( i = 0; i < VTMR_NUM_TIMERS; i ++ )
+  {
+    tname[ 0 ] = tname[ 7 ] = '\0';
+    snprintf( tname, 7, "VIRT%d", i );
+    lua_pushnumber( L, VTMR_FIRST_ID + i );
+    lua_setfield( L, -2, tname );  
+  }
 #endif
   return 1;
 }
