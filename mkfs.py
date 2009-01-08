@@ -6,6 +6,7 @@ import struct
 _crtline = '  '
 _numdata = 0
 _bytecnt = 0
+
 # Line output function
 def _add_data( data, outfile, moredata = True ):
   global _crtline, _numdata, _bytecnt
@@ -20,20 +21,12 @@ def _add_data( data, outfile, moredata = True ):
     _crtline = '  '
     _numdata = 0
 
-# dirname - the directory where the web page is located. It is assumed that
-#           the directory contains all the files required by the web page, and
-#           nothing more
+# dirname - the directory where the files are located.
 # outname - the name of the C output
+# flist - list of files
 # Returns True for OK, False for error
-def mkfs( dirname, outname ):
-  # Try to list the directory
-  try:
-    flist = os.listdir( dirname )
-  except:
-    print "Unable to list directory %s" % dirname
-    return False
-
-  # Then try to create the output files
+def mkfs( dirname, outname, flist ):
+  # Try to create the output files
   outfname = outname + ".h"
   try:
     outfile = file( outfname, "wb" )
@@ -53,12 +46,16 @@ def mkfs( dirname, outname ):
   
   # Process all files
   for fname in flist:
+    if len( fname ) > 14:
+      print "Skipping %s (name longer than 14 chars)" % realname
+      continue 
+      
     # Get actual file name
     realname = os.path.join( dirname, fname )
     
     # Ensure it actually is a file
     if not os.path.isfile( realname ):
-      print "Skipping %s ... (not a regular file)" % fname
+      print "Skipping %s ... (not found or not a regular file)" % fname
       continue
       
     # Try to open and read the file
@@ -92,10 +89,3 @@ def mkfs( dirname, outname ):
   outfile.close()
   print "Done, total size is %d bytes" % _bytecnt
   return True
-
-if __name__ == "__main__":
-  if len( sys.argv ) != 3:
-    print "Usage: mkfs <dirname> <outname>"
-    sys.exit( -2 )
-    
-  mkfs( sys.argv[ 1 ], sys.argv[ 2 ] )

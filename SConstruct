@@ -4,6 +4,20 @@ cputype = ARGUMENTS.get( 'cpu', '' ).upper()
 allocator = ARGUMENTS.get( 'allocator', '' ).lower()
 boardname = ARGUMENTS.get( 'board' , '').upper()
 
+# ROMFS file list
+romfs = { 'bisect' : [ 'bisect.lua' ],
+          'hangman' : [ 'hangman.lua' ],
+          'lhttpd' : [ 'index.pht', 'lhttpd.lua', 'test.lua' ],
+          'pong' : [ 'pong.lua', 'LM3S.lua' ],
+          'led' : [ 'led.lua' ],
+          'piano' : [ 'piano.lua' ],
+          'pwmled' : [ 'pwmled.lua' ],
+          'tvbgone' : [ 'tvbgone.lua', 'codes.bin' ],
+          'hello' : [ 'hello.lua' ],
+          'info' : [ 'info.lua' ],
+          'morse' : [ 'mose.lua' ]
+        }
+
 # List of platform/CPU combinations
 cpu_list = { 'at91sam7x' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
               'lm3s' : [ 'LM3S8962', 'LM3S6965' ],
@@ -25,6 +39,32 @@ board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
                'MOD711' : [ 'STR711FR2' ],
                'STM3210E-EVAL' : [ 'STM32F103ZE' ],
                'ATEVK1100' : [ 'AT32UC3A0512' ]
+            }
+
+# ROMFS file list
+romfs = { 'bisect' : [ 'bisect.lua' ],
+          'hangman' : [ 'hangman.lua' ],
+          'lhttpd' : [ 'index.pht', 'lhttpd.lua', 'test.lua' ],
+          'pong' : [ 'pong.lua', 'LM3S.lua' ],
+          'led' : [ 'led.lua' ],
+          'piano' : [ 'piano.lua' ],
+          'pwmled' : [ 'pwmled.lua' ],
+          'tvbgone' : [ 'tvbgone.lua', 'codes.bin' ],
+          'hello' : [ 'hello.lua' ],
+          'info' : [ 'info.lua' ],
+          'morse' : [ 'morse.lua' ]
+        }
+
+# List of board/romfs data combinations
+file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'info', 'morse' ],
+              'EK-LM3S8962' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse' ],
+              'EK-LM3S6965' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse' ],
+              'STR9-COMSTICK' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
+              'PC' : [ 'bisect', 'hello', 'info' ],
+              'LPC-H2888' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
+              'MOD711' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
+              'STM3210E-EVAL' : [ 'bisect', 'hello', 'info' ],
+              'ATEVK1100' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ]
             }
 
 # Variants: board = <boardname>
@@ -86,6 +126,7 @@ elif allocator not in [ 'newlib', 'multiple' ]:
   print "Unknown allocator", allocator
   print "Allocator can be either 'newlib' or 'multiple'"
   sys.exit( -1 )
+
 
 # User report
 if not GetOption( 'clean' ):
@@ -153,8 +194,11 @@ source_files = app_files + specific_files + newlib_files + uip_files + lua_full_
 # Make filesystem first
 if not GetOption( 'clean' ):
   print "Building filesystem..."
+  flist = []
+  for sample in file_list[ boardname ]:
+    flist = flist + romfs[ sample ]
   import mkfs
-  mkfs.mkfs( "romfs", "romfiles" )
+  mkfs.mkfs( "romfs", "romfiles", flist )
   print
   os.system( "mv -f romfiles.h inc/" )
   os.system( "rm -f src/fs.o" )
