@@ -49,10 +49,18 @@
 // panel control signal.
 //
 //*****************************************************************************
-#define SYSCTL_PERIPH_GPIO_OLEDDC   SYSCTL_PERIPH_GPIOA
-#define GPIO_OLEDDC_BASE            GPIO_PORTA_BASE
-#define GPIO_OLEDDC_PIN             GPIO_PIN_6
-#define GPIO_OLEDEN_PIN             GPIO_PIN_7
+
+#ifdef FORLM3S6965
+  #define SYSCTL_PERIPH_GPIO_OLEDDC   SYSCTL_PERIPH_GPIOC
+  #define GPIO_OLEDDC_BASE            GPIO_PORTC_BASE
+  #define GPIO_OLEDDC_PIN             GPIO_PIN_7
+  #define GPIO_OLEDEN_PIN             GPIO_PIN_6
+#else
+  #define SYSCTL_PERIPH_GPIO_OLEDDC   SYSCTL_PERIPH_GPIOA
+  #define GPIO_OLEDDC_BASE            GPIO_PORTA_BASE
+  #define GPIO_OLEDDC_PIN             GPIO_PIN_6
+  #define GPIO_OLEDEN_PIN             GPIO_PIN_7
+#endif
 
 //*****************************************************************************
 //
