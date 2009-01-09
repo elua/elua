@@ -3,7 +3,6 @@
 // pwm.c - API for the PWM modules
 //
 // Copyright (c) 2005-2008 Luminary Micro, Inc.  All rights reserved.
-// 
 // Software License Agreement
 // 
 // Luminary Micro, Inc. (LMI) is supplying this software for use solely and
@@ -22,7 +21,7 @@
 // LMI SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
 // CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
 // 
-// This is part of revision 2752 of the Stellaris Peripheral Driver Library.
+// This is part of revision 3740 of the Stellaris Peripheral Driver Library.
 //
 //*****************************************************************************
 
@@ -57,6 +56,52 @@
                                 ((_mod_) + ((_out_) & 0xFFFFFFC0))
 #define PWM_IS_OUTPUT_ODD(_out_)                                              \
                                 ((_out_) & 0x00000001)
+
+//*****************************************************************************
+//
+//! \internal
+//! Checks a PWM generator number.
+//!
+//! \param ulGen is the generator number.
+//!
+//! This function determines if a PWM generator number is valid.
+//!
+//! \return Returnes \b true if the generator number is valid and \b false
+//! otherwise.
+//
+//*****************************************************************************
+#ifdef DEBUG
+static tBoolean
+PWMGenValid(unsigned long ulGen)
+{
+    return((ulGen == PWM_GEN_0) || (ulGen == PWM_GEN_1) ||
+           (ulGen == PWM_GEN_2) || (ulGen == PWM_GEN_3));
+}
+#endif
+
+//*****************************************************************************
+//
+//! \internal
+//! Checks a PWM output number.
+//!
+//! \param ulPWMOut is the output number.
+//!
+//! This function determines if a PWM output number is valid.
+//!
+//! \return Returns \b true if the output number is valid and \b false
+//! otherwise.
+//
+//*****************************************************************************
+#ifdef DEBUG
+static tBoolean
+PWMOutValid(unsigned long ulPWMOut)
+{
+    return((ulPWMOut == PWM_OUT_0) || (ulPWMOut == PWM_OUT_1) ||
+           (ulPWMOut == PWM_OUT_2) || (ulPWMOut == PWM_OUT_3) ||
+           (ulPWMOut == PWM_OUT_4) || (ulPWMOut == PWM_OUT_5) ||
+           (ulPWMOut == PWM_OUT_6) || (ulPWMOut == PWM_OUT_7));
+}
+#endif
 
 //*****************************************************************************
 //
@@ -123,7 +168,7 @@
 //!   whether extended fault source selection support is enabled or not
 //!
 //! Setting \b PWM_GEN_MODE_FAULT_MINPER allows an application to set the
-//! minimum duration of a PWM fault signal.  Fault will be signalled for at
+//! minimum duration of a PWM fault signal.  Fault will be signaled for at
 //! least this time even if the external fault pin deasserts earlier.  Care
 //! should be taken when using this mode since during the fault signal period,
 //! the fault interrupt from the PWM generator will remain asserted.  The fault
@@ -145,8 +190,7 @@ PWMGenConfigure(unsigned long ulBase, unsigned long ulGen,
     // Check the arguments.
     //
     ASSERT(ulBase == PWM_BASE);
-    ASSERT((ulGen == PWM_GEN_0) || (ulGen == PWM_GEN_1) ||
-           (ulGen == PWM_GEN_2) || (ulGen == PWM_GEN_3));
+    ASSERT(PWMGenValid(ulGen));
 
     //
     // Compute the generator's base address.
@@ -223,8 +267,7 @@ PWMGenPeriodSet(unsigned long ulBase, unsigned long ulGen,
     // Check the arguments.
     //
     ASSERT(ulBase == PWM_BASE);
-    ASSERT((ulGen == PWM_GEN_0) || (ulGen == PWM_GEN_1) ||
-           (ulGen == PWM_GEN_2) || (ulGen == PWM_GEN_3));
+    ASSERT(PWMGenValid(ulGen));
 
     //
     // Compute the generator's base address.
@@ -281,8 +324,7 @@ PWMGenPeriodGet(unsigned long ulBase, unsigned long ulGen)
     // Check the arguments.
     //
     ASSERT(ulBase == PWM_BASE);
-    ASSERT((ulGen == PWM_GEN_0) || (ulGen == PWM_GEN_1) ||
-           (ulGen == PWM_GEN_2) || (ulGen == PWM_GEN_3));
+    ASSERT(PWMGenValid(ulGen));
 
     //
     // Compute the generator's base address.
@@ -329,8 +371,7 @@ PWMGenEnable(unsigned long ulBase, unsigned long ulGen)
     // Check the arguments.
     //
     ASSERT(ulBase == PWM_BASE);
-    ASSERT((ulGen == PWM_GEN_0) || (ulGen == PWM_GEN_1) ||
-           (ulGen == PWM_GEN_2) || (ulGen == PWM_GEN_3));
+    ASSERT(PWMGenValid(ulGen));
 
     //
     // Enable the PWM generator.
@@ -359,8 +400,7 @@ PWMGenDisable(unsigned long ulBase, unsigned long ulGen)
     // Check the arguments.
     //
     ASSERT(ulBase == PWM_BASE);
-    ASSERT((ulGen == PWM_GEN_0) || (ulGen == PWM_GEN_1) ||
-           (ulGen == PWM_GEN_2) || (ulGen == PWM_GEN_3));
+    ASSERT(PWMGenValid(ulGen));
 
     //
     // Disable the PWM generator.
@@ -397,10 +437,7 @@ PWMPulseWidthSet(unsigned long ulBase, unsigned long ulPWMOut,
     // Check the arguments.
     //
     ASSERT(ulBase == PWM_BASE);
-    ASSERT((ulPWMOut == PWM_OUT_0) || (ulPWMOut == PWM_OUT_1) ||
-           (ulPWMOut == PWM_OUT_2) || (ulPWMOut == PWM_OUT_3) ||
-           (ulPWMOut == PWM_OUT_4) || (ulPWMOut == PWM_OUT_5) ||
-           (ulPWMOut == PWM_OUT_6) || (ulPWMOut == PWM_OUT_7));
+    ASSERT(PWMOutValid(ulPWMOut));
 
     //
     // Compute the generator's base address.
@@ -470,10 +507,7 @@ PWMPulseWidthGet(unsigned long ulBase, unsigned long ulPWMOut)
     // Check the arguments.
     //
     ASSERT(ulBase == PWM_BASE);
-    ASSERT((ulPWMOut == PWM_OUT_0) || (ulPWMOut == PWM_OUT_1) ||
-           (ulPWMOut == PWM_OUT_2) || (ulPWMOut == PWM_OUT_3) ||
-           (ulPWMOut == PWM_OUT_4) || (ulPWMOut == PWM_OUT_5) ||
-           (ulPWMOut == PWM_OUT_6) || (ulPWMOut == PWM_OUT_7));
+    ASSERT(PWMOutValid(ulPWMOut));
 
     //
     // Compute the generator's base address.
@@ -535,8 +569,7 @@ PWMDeadBandEnable(unsigned long ulBase, unsigned long ulGen,
     // Check the arguments.
     //
     ASSERT(ulBase == PWM_BASE);
-    ASSERT((ulGen == PWM_GEN_0) || (ulGen == PWM_GEN_1) ||
-           (ulGen == PWM_GEN_2) || (ulGen == PWM_GEN_3));
+    ASSERT(PWMGenValid(ulGen));
     ASSERT(usRise < 4096);
     ASSERT(usFall < 4096);
 
@@ -578,8 +611,7 @@ PWMDeadBandDisable(unsigned long ulBase, unsigned long ulGen)
     // Check the arguments.
     //
     ASSERT(ulBase == PWM_BASE);
-    ASSERT((ulGen == PWM_GEN_0) || (ulGen == PWM_GEN_1) ||
-           (ulGen == PWM_GEN_2) || (ulGen == PWM_GEN_3));
+    ASSERT(PWMGenValid(ulGen));
 
     //
     // Disable the deadband functionality.
@@ -891,8 +923,7 @@ PWMGenIntRegister(unsigned long ulBase, unsigned long ulGen,
     // Check the arguments.
     //
     ASSERT(ulBase == PWM_BASE);
-    ASSERT((ulGen == PWM_GEN_0) || (ulGen == PWM_GEN_1) ||
-           (ulGen == PWM_GEN_2) || (ulGen == PWM_GEN_3));
+    ASSERT(PWMGenValid(ulGen));
 
     //
     // Get the interrupt number associated with the specified generator.
@@ -946,8 +977,7 @@ PWMGenIntUnregister(unsigned long ulBase, unsigned long ulGen)
     // Check the arguments.
     //
     ASSERT(ulBase == PWM_BASE);
-    ASSERT((ulGen == PWM_GEN_0) || (ulGen == PWM_GEN_1) ||
-           (ulGen == PWM_GEN_2) || (ulGen == PWM_GEN_3));
+    ASSERT(PWMGenValid(ulGen));
 
     //
     // Get the interrupt number associated with the specified generator.
@@ -1076,8 +1106,7 @@ PWMGenIntTrigEnable(unsigned long ulBase, unsigned long ulGen,
     // Check the arguments.
     //
     ASSERT(ulBase == PWM_BASE);
-    ASSERT((ulGen == PWM_GEN_0) || (ulGen == PWM_GEN_1) ||
-           (ulGen == PWM_GEN_2) || (ulGen == PWM_GEN_3));
+    ASSERT(PWMGenValid(ulGen));
     ASSERT((ulIntTrig & ~(PWM_INT_CNT_ZERO | PWM_INT_CNT_LOAD |
                           PWM_INT_CNT_AU | PWM_INT_CNT_AD | PWM_INT_CNT_BU |
                           PWM_INT_CNT_BD | PWM_TR_CNT_ZERO | PWM_TR_CNT_LOAD |
@@ -1118,8 +1147,7 @@ PWMGenIntTrigDisable(unsigned long ulBase, unsigned long ulGen,
     // Check the arguments.
     //
     ASSERT(ulBase == PWM_BASE);
-    ASSERT((ulGen == PWM_GEN_0) || (ulGen == PWM_GEN_1) ||
-           (ulGen == PWM_GEN_2) || (ulGen == PWM_GEN_3));
+    ASSERT(PWMGenValid(ulGen));
     ASSERT((ulIntTrig & ~(PWM_INT_CNT_ZERO | PWM_INT_CNT_LOAD |
                           PWM_INT_CNT_AU | PWM_INT_CNT_AD | PWM_INT_CNT_BU |
                           PWM_INT_CNT_BD | PWM_TR_CNT_ZERO | PWM_TR_CNT_LOAD |
@@ -1157,8 +1185,7 @@ PWMGenIntStatus(unsigned long ulBase, unsigned long ulGen, tBoolean bMasked)
     // Check the arguments.
     //
     ASSERT(ulBase == PWM_BASE);
-    ASSERT((ulGen == PWM_GEN_0) || (ulGen == PWM_GEN_1) ||
-           (ulGen == PWM_GEN_2) || (ulGen == PWM_GEN_3));
+    ASSERT(PWMGenValid(ulGen));
 
     //
     // Compute the generator's base address.
@@ -1213,8 +1240,7 @@ PWMGenIntClear(unsigned long ulBase, unsigned long ulGen, unsigned long ulInts)
     // Check the arguments.
     //
     ASSERT(ulBase == PWM_BASE);
-    ASSERT((ulGen == PWM_GEN_0) || (ulGen == PWM_GEN_1) ||
-           (ulGen == PWM_GEN_2) || (ulGen == PWM_GEN_3));
+    ASSERT(PWMGenValid(ulGen));
     ASSERT((ulInts & ~(PWM_INT_CNT_ZERO | PWM_INT_CNT_LOAD | PWM_INT_CNT_AU |
                        PWM_INT_CNT_AD | PWM_INT_CNT_BU | PWM_INT_CNT_BD)) ==
            0);
@@ -1388,9 +1414,9 @@ PWMIntStatus(unsigned long ulBase, tBoolean bMasked)
 //! interrupts are derived by performing a logical OR of each of the configured
 //! fault trigger signals for a given generator.  Therefore, these interrupts
 //! are not directly related to the four possible FAULTn inputs to the device
-//! but indicate that a fault has been signalled to one of the four possible
-//! PWM generators.  On a device without extended PWM fault handling, the
-//! interrupt is directly related to the state of the single FAULT pin.
+//! but indicate that a fault has been signaled to one of the four possible PWM
+//! generators.  On a device without extended PWM fault handling, the interrupt
+//! is directly related to the state of the single FAULT pin.
 //!
 //! \note Since there is a write buffer in the Cortex-M3 processor, it may take
 //! several cycles before the interrupt source is actually cleared.  Therefore,
@@ -1457,8 +1483,7 @@ PWMGenFaultConfigure(unsigned long ulBase, unsigned long ulGen,
     //
     ASSERT(HWREG(SYSCTL_DC5) & SYSCTL_DC5_PWMEFLT);
     ASSERT(ulBase == PWM_BASE);
-    ASSERT((ulGen == PWM_GEN_0) || (ulGen == PWM_GEN_1) ||
-           (ulGen == PWM_GEN_2) || (ulGen == PWM_GEN_3));
+    ASSERT(PWMGenValid(ulGen));
     ASSERT(ulMinFaultPeriod < PWM_X_MINFLTPER_M);
     ASSERT((ulFaultSenses & ~(PWM_FAULT0_SENSE_HIGH | PWM_FAULT0_SENSE_LOW |
                               PWM_FAULT1_SENSE_HIGH | PWM_FAULT1_SENSE_LOW |
@@ -1518,8 +1543,7 @@ PWMGenFaultTriggerSet(unsigned long ulBase, unsigned long ulGen,
     //
     ASSERT(HWREG(SYSCTL_DC5) & SYSCTL_DC5_PWMEFLT);
     ASSERT(ulBase == PWM_BASE);
-    ASSERT((ulGen == PWM_GEN_0) || (ulGen == PWM_GEN_1) ||
-           (ulGen == PWM_GEN_2) || (ulGen == PWM_GEN_3));
+    ASSERT(PWMGenValid(ulGen));
     ASSERT(ulGroup == PWM_FAULT_GROUP_0);
     ASSERT((ulFaultTriggers & ~(PWM_FAULT_FAULT0 | PWM_FAULT_FAULT1 |
                                 PWM_FAULT_FAULT2 | PWM_FAULT_FAULT3)) == 0);
@@ -1563,8 +1587,7 @@ PWMGenFaultTriggerGet(unsigned long ulBase, unsigned long ulGen,
     //
     ASSERT(HWREG(SYSCTL_DC5) & SYSCTL_DC5_PWMEFLT);
     ASSERT(ulBase == PWM_BASE);
-    ASSERT((ulGen == PWM_GEN_0) || (ulGen == PWM_GEN_1) ||
-           (ulGen == PWM_GEN_2) || (ulGen == PWM_GEN_3));
+    ASSERT(PWMGenValid(ulGen));
     ASSERT(ulGroup == PWM_FAULT_GROUP_0);
 
     //
@@ -1613,8 +1636,7 @@ PWMGenFaultStatus(unsigned long ulBase, unsigned long ulGen,
     //
     ASSERT(HWREG(SYSCTL_DC5) & SYSCTL_DC5_PWMEFLT);
     ASSERT(ulBase == PWM_BASE);
-    ASSERT((ulGen == PWM_GEN_0) || (ulGen == PWM_GEN_1) ||
-           (ulGen == PWM_GEN_2) || (ulGen == PWM_GEN_3));
+    ASSERT(PWMGenValid(ulGen));
     ASSERT(ulGroup == PWM_FAULT_GROUP_0);
 
     //
@@ -1655,8 +1677,7 @@ PWMGenFaultClear(unsigned long ulBase, unsigned long ulGen,
     //
     ASSERT(HWREG(SYSCTL_DC5) & SYSCTL_DC5_PWMEFLT);
     ASSERT(ulBase == PWM_BASE);
-    ASSERT((ulGen == PWM_GEN_0) || (ulGen == PWM_GEN_1) ||
-           (ulGen == PWM_GEN_2) || (ulGen == PWM_GEN_3));
+    ASSERT(PWMGenValid(ulGen));
     ASSERT(ulGroup == PWM_FAULT_GROUP_0);
     ASSERT((ulFaultTriggers & ~(PWM_FAULT_FAULT0 | PWM_FAULT_FAULT1 |
                                 PWM_FAULT_FAULT2 | PWM_FAULT_FAULT3)) == 0);

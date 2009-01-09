@@ -3,7 +3,6 @@
 // hw_types.h - Common types and macros.
 //
 // Copyright (c) 2005-2008 Luminary Micro, Inc.  All rights reserved.
-// 
 // Software License Agreement
 // 
 // Luminary Micro, Inc. (LMI) is supplying this software for use solely and
@@ -22,7 +21,7 @@
 // LMI SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
 // CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
 // 
-// This is part of revision 2752 of the Stellaris Peripheral Driver Library.
+// This is part of revision 3740 of the Stellaris Firmware Development Package.
 //
 //*****************************************************************************
 
@@ -115,6 +114,12 @@ typedef unsigned char tBoolean;
 
 #ifndef REVISION_IS_A0
 #define REVISION_IS_A0                                                     \
+        ((HWREG(SYSCTL_DID0) & (SYSCTL_DID0_MAJ_M | SYSCTL_DID0_MIN_M)) == \
+         (SYSCTL_DID0_MAJ_REVA | SYSCTL_DID0_MIN_0))
+#endif
+
+#ifndef REVISION_IS_A1
+#define REVISION_IS_A1                                                     \
         ((HWREG(SYSCTL_DID0) & (SYSCTL_DID0_MAJ_M | SYSCTL_DID0_MIN_M)) == \
          (SYSCTL_DID0_MAJ_REVA | SYSCTL_DID0_MIN_0))
 #endif

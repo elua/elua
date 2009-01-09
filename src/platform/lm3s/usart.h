@@ -3,7 +3,6 @@
 // uart.h - Defines and Macros for the UART.
 //
 // Copyright (c) 2005-2008 Luminary Micro, Inc.  All rights reserved.
-// 
 // Software License Agreement
 // 
 // Luminary Micro, Inc. (LMI) is supplying this software for use solely and
@@ -22,12 +21,12 @@
 // LMI SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
 // CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
 // 
-// This is part of revision 2752 of the Stellaris Peripheral Driver Library.
+// This is part of revision 3740 of the Stellaris Peripheral Driver Library.
 //
 //*****************************************************************************
 
-#ifndef __USART_H__
-#define __USART_H__
+#ifndef __UART_H__
+#define __UART_H__
 
 //*****************************************************************************
 //
@@ -113,6 +112,16 @@ extern "C"
 
 //*****************************************************************************
 //
+// Values returned from UARTRxErrorGet().
+//
+//*****************************************************************************
+#define UART_RXERROR_OVERRUN    0x00000008
+#define UART_RXERROR_BREAK      0x00000004
+#define UART_RXERROR_PARITY     0x00000002
+#define UART_RXERROR_FRAMING    0x00000001
+
+//*****************************************************************************
+//
 // API Function prototypes
 //
 //*****************************************************************************
@@ -139,6 +148,7 @@ extern tBoolean UARTCharPutNonBlocking(unsigned long ulBase,
                                        unsigned char ucData);
 extern void UARTCharPut(unsigned long ulBase, unsigned char ucData);
 extern void UARTBreakCtl(unsigned long ulBase, tBoolean bBreakState);
+extern tBoolean UARTBusy(unsigned long ulBase);
 extern void UARTIntRegister(unsigned long ulBase, void(*pfnHandler)(void));
 extern void UARTIntUnregister(unsigned long ulBase);
 extern void UARTIntEnable(unsigned long ulBase, unsigned long ulIntFlags);
@@ -147,6 +157,8 @@ extern unsigned long UARTIntStatus(unsigned long ulBase, tBoolean bMasked);
 extern void UARTIntClear(unsigned long ulBase, unsigned long ulIntFlags);
 extern void UARTDMAEnable(unsigned long ulBase, unsigned long ulDMAFlags);
 extern void UARTDMADisable(unsigned long ulBase, unsigned long ulDMAFlags);
+extern unsigned long UARTRxErrorGet(unsigned long ulBase);
+extern void UARTRxErrorClear(unsigned long ulBase);
 
 //*****************************************************************************
 //

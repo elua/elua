@@ -3,7 +3,6 @@
 // hw_nvic.h - Macros used when accessing the NVIC hardware.
 //
 // Copyright (c) 2005-2008 Luminary Micro, Inc.  All rights reserved.
-// 
 // Software License Agreement
 // 
 // Luminary Micro, Inc. (LMI) is supplying this software for use solely and
@@ -22,7 +21,7 @@
 // LMI SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
 // CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
 // 
-// This is part of revision 2752 of the Stellaris Peripheral Driver Library.
+// This is part of revision 3740 of the Stellaris Firmware Development Package.
 //
 //*****************************************************************************
 
@@ -945,15 +944,17 @@
 //*****************************************************************************
 #define NVIC_DBG_CTRL_DBGKEY_M  0xFFFF0000  // Debug key mask
 #define NVIC_DBG_CTRL_DBGKEY    0xA05F0000  // Debug key
-#define NVIC_DBG_CTRL_MON_PEND  0x00008000  // Pend the monitor
-#define NVIC_DBG_CTRL_MON_REQ   0x00004000  // Monitor request
-#define NVIC_DBG_CTRL_MON_EN    0x00002000  // Debug monitor enable
-#define NVIC_DBG_CTRL_MONSTEP   0x00001000  // Monitor step the core
-#define NVIC_DBG_CTRL_S_SLEEP   0x00000400  // Core is sleeping
-#define NVIC_DBG_CTRL_S_HALT    0x00000200  // Core status on halt
-#define NVIC_DBG_CTRL_S_REGRDY  0x00000100  // Register read/write available
-#define NVIC_DBG_CTRL_S_LOCKUP  0x00000080  // Core is locked up
-#define NVIC_DBG_CTRL_C_RESET   0x00000010  // Reset the core
+#define NVIC_DBG_CTRL_S_RESET_ST \
+                                0x02000000  // Core has reset since last read
+#define NVIC_DBG_CTRL_S_RETIRE_ST \
+                                0x01000000  // Core has executed insruction
+                                            // since last read
+#define NVIC_DBG_CTRL_S_LOCKUP  0x00080000  // Core is locked up
+#define NVIC_DBG_CTRL_S_SLEEP   0x00040000  // Core is sleeping
+#define NVIC_DBG_CTRL_S_HALT    0x00020000  // Core status on halt
+#define NVIC_DBG_CTRL_S_REGRDY  0x00010000  // Register read/write available
+#define NVIC_DBG_CTRL_C_SNAPSTALL \
+                                0x00000020  // Breaks a stalled load/store
 #define NVIC_DBG_CTRL_C_MASKINT 0x00000008  // Mask interrupts when stepping
 #define NVIC_DBG_CTRL_C_STEP    0x00000004  // Step the core
 #define NVIC_DBG_CTRL_C_HALT    0x00000002  // Halt the core

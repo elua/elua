@@ -3,7 +3,6 @@
 // hw_pwm.h - Defines and Macros for Pulse Width Modulation (PWM) ports
 //
 // Copyright (c) 2005-2008 Luminary Micro, Inc.  All rights reserved.
-// 
 // Software License Agreement
 // 
 // Luminary Micro, Inc. (LMI) is supplying this software for use solely and
@@ -22,7 +21,7 @@
 // LMI SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
 // CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
 // 
-// This is part of revision 2752 of the Stellaris Peripheral Driver Library.
+// This is part of revision 3740 of the Stellaris Firmware Development Package.
 //
 //*****************************************************************************
 
@@ -273,8 +272,8 @@
 // bit definitions.
 //
 //*****************************************************************************
-#define PWM_X_INTEN_TRCMPBD     0x00002000  // Trig if COUNT = CMPA D
-#define PWM_X_INTEN_TRCMPBU     0x00001000  // Trig if COUNT = CMPA U
+#define PWM_X_INTEN_TRCMPBD     0x00002000  // Trig if COUNT = CMPB D
+#define PWM_X_INTEN_TRCMPBU     0x00001000  // Trig if COUNT = CMPB U
 #define PWM_X_INTEN_TRCMPAD     0x00000800  // Trig if COUNT = CMPA D
 #define PWM_X_INTEN_TRCMPAU     0x00000400  // Trig if COUNT = CMPA U
 #define PWM_X_INTEN_TRCNTLOAD   0x00000200  // Trig if COUNT = LOAD

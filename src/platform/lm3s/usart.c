@@ -3,7 +3,6 @@
 // uart.c - Driver for the UART.
 //
 // Copyright (c) 2005-2008 Luminary Micro, Inc.  All rights reserved.
-// 
 // Software License Agreement
 // 
 // Luminary Micro, Inc. (LMI) is supplying this software for use solely and
@@ -22,7 +21,7 @@
 // LMI SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
 // CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
 // 
-// This is part of revision 2752 of the Stellaris Peripheral Driver Library.
+// This is part of revision 3740 of the Stellaris Peripheral Driver Library.
 //
 //*****************************************************************************
 
@@ -32,15 +31,46 @@
 //! @{
 //
 //*****************************************************************************
-
+          
 #include "hw_ints.h"
 #include "hw_memmap.h"
 #include "hw_types.h"
 #include "hw_uart.h"
+#include "hw_sysctl.h"
 #include "debug.h"
 #include "interrupt.h"
 #include "sysctl.h"
 #include "usart.h"
+
+//*****************************************************************************
+//
+// The system clock divider defining the maximum baud rate supported by the
+// UART.
+//
+//*****************************************************************************
+#define UART_CLK_DIVIDER 16
+
+//*****************************************************************************
+//
+//! \internal
+//! Checks a UART base address.
+//!
+//! \param ulBase is the base address of the UART port.
+//!
+//! This function determines if a UART port base address is valid.
+//!
+//! \return Returns \b true if the base address is valid and \b false
+//! otherwise.
+//
+//*****************************************************************************
+#ifdef DEBUG
+static tBoolean
+UARTBaseValid(unsigned long ulBase)
+{
+    return((ulBase == UART0_BASE) || (ulBase == UART1_BASE) ||
+           (ulBase == UART2_BASE));
+}
+#endif
 
 //*****************************************************************************
 //
@@ -64,8 +94,7 @@ UARTParityModeSet(unsigned long ulBase, unsigned long ulParity)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == UART0_BASE) || (ulBase == UART1_BASE) ||
-           (ulBase == UART2_BASE));
+    ASSERT(UARTBaseValid(ulBase));
     ASSERT((ulParity == UART_CONFIG_PAR_NONE) ||
            (ulParity == UART_CONFIG_PAR_EVEN) ||
            (ulParity == UART_CONFIG_PAR_ODD) ||
@@ -100,8 +129,7 @@ UARTParityModeGet(unsigned long ulBase)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == UART0_BASE) || (ulBase == UART1_BASE) ||
-           (ulBase == UART2_BASE));
+    ASSERT(UARTBaseValid(ulBase));
 
     //
     // Return the current parity setting.
@@ -135,8 +163,7 @@ UARTFIFOLevelSet(unsigned long ulBase, unsigned long ulTxLevel,
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == UART0_BASE) || (ulBase == UART1_BASE) ||
-           (ulBase == UART2_BASE));
+    ASSERT(UARTBaseValid(ulBase));
     ASSERT((ulTxLevel == UART_FIFO_TX1_8) ||
            (ulTxLevel == UART_FIFO_TX2_8) ||
            (ulTxLevel == UART_FIFO_TX4_8) ||
@@ -181,8 +208,7 @@ UARTFIFOLevelGet(unsigned long ulBase, unsigned long *pulTxLevel,
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == UART0_BASE) || (ulBase == UART1_BASE) ||
-           (ulBase == UART2_BASE));
+    ASSERT(UARTBaseValid(ulBase));
 
     //
     // Read the FIFO level register.
@@ -245,6 +271,13 @@ UARTConfigSetExpClk(unsigned long ulBase, unsigned long ulUARTClk,
       return 0;
 
     //
+    // Check the arguments.
+    //
+    ASSERT(UARTBaseValid(ulBase));
+    ASSERT(ulBaud != 0);
+    ASSERT(ulUARTClk >= (ulBaud * UART_CLK_DIVIDER));
+
+    //
     // Stop the UART.
     //
     UARTDisable(ulBase);
@@ -278,7 +311,7 @@ UARTConfigSetExpClk(unsigned long ulBase, unsigned long ulUARTClk,
     // Return the actual baud
     ulInt = HWREG(ulBase + UART_O_IBRD);
     ulFrac = HWREG(ulBase + UART_O_FBRD);
-    return (ulUARTClk * 4) / ((64 * ulInt) + ulFrac);    
+    return (ulUARTClk * 4) / ((64 * ulInt) + ulFrac);
 }
 
 //*****************************************************************************
@@ -318,8 +351,7 @@ UARTConfigGetExpClk(unsigned long ulBase, unsigned long ulUARTClk,
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == UART0_BASE) || (ulBase == UART1_BASE) ||
-           (ulBase == UART2_BASE));
+    ASSERT(UARTBaseValid(ulBase));
 
     //
     // Compute the baud rate.
@@ -354,8 +386,7 @@ UARTEnable(unsigned long ulBase)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == UART0_BASE) || (ulBase == UART1_BASE) ||
-           (ulBase == UART2_BASE));
+    ASSERT(UARTBaseValid(ulBase));
 
     //
     // Enable the FIFO.
@@ -387,8 +418,7 @@ UARTDisable(unsigned long ulBase)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == UART0_BASE) || (ulBase == UART1_BASE) ||
-           (ulBase == UART2_BASE));
+    ASSERT(UARTBaseValid(ulBase));
 
     //
     // Wait for end of TX.
@@ -411,7 +441,7 @@ UARTDisable(unsigned long ulBase)
 
 //*****************************************************************************
 //
-//! Enables SIR (IrDA) mode on specified UART.
+//! Enables SIR (IrDA) mode on the specified UART.
 //!
 //! \param ulBase is the base address of the UART port.
 //! \param bLowPower indicates if SIR Low Power Mode is to be used.
@@ -419,7 +449,7 @@ UARTDisable(unsigned long ulBase)
 //! Enables the SIREN control bit for IrDA mode on the UART.  If the
 //! \e bLowPower flag is set, then SIRLP bit will also be set.
 //!
-//! \note SIR (IrDA) operation is supported only on Fury-class devices.
+//! \note SIR (IrDA) operation is not supported on Sandstorm-class devices.
 //!
 //! \return None.
 //
@@ -430,8 +460,7 @@ UARTEnableSIR(unsigned long ulBase, tBoolean bLowPower)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == UART0_BASE) || (ulBase == UART1_BASE) ||
-           (ulBase == UART2_BASE));
+    ASSERT(UARTBaseValid(ulBase));
 
     //
     // Enable SIR and SIRLP (if appropriate).
@@ -454,7 +483,7 @@ UARTEnableSIR(unsigned long ulBase, tBoolean bLowPower)
 //!
 //! Clears the SIREN (IrDA) and SIRLP (Low Power) bits.
 //!
-//! \note SIR (IrDA) operation is supported only on Fury-class devices.
+//! \note SIR (IrDA) operation is not supported on Sandstorm-class devices.
 //!
 //! \return None.
 //
@@ -465,8 +494,7 @@ UARTDisableSIR(unsigned long ulBase)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == UART0_BASE) || (ulBase == UART1_BASE) ||
-           (ulBase == UART2_BASE));
+    ASSERT(UARTBaseValid(ulBase));
 
     //
     // Disable SIR and SIRLP (if appropriate).
@@ -493,8 +521,7 @@ UARTCharsAvail(unsigned long ulBase)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == UART0_BASE) || (ulBase == UART1_BASE) ||
-           (ulBase == UART2_BASE));
+    ASSERT(UARTBaseValid(ulBase));
 
     //
     // Return the availability of characters.
@@ -521,8 +548,7 @@ UARTSpaceAvail(unsigned long ulBase)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == UART0_BASE) || (ulBase == UART1_BASE) ||
-           (ulBase == UART2_BASE));
+    ASSERT(UARTBaseValid(ulBase));
 
     //
     // Return the availability of space.
@@ -554,8 +580,7 @@ UARTCharGetNonBlocking(unsigned long ulBase)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == UART0_BASE) || (ulBase == UART1_BASE) ||
-           (ulBase == UART2_BASE));
+    ASSERT(UARTBaseValid(ulBase));
 
     //
     // See if there are any characters in the receive FIFO.
@@ -596,8 +621,7 @@ UARTCharGet(unsigned long ulBase)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == UART0_BASE) || (ulBase == UART1_BASE) ||
-           (ulBase == UART2_BASE));
+    ASSERT(UARTBaseValid(ulBase));
 
     //
     // Wait until a char is available.
@@ -639,8 +663,7 @@ UARTCharPutNonBlocking(unsigned long ulBase, unsigned char ucData)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == UART0_BASE) || (ulBase == UART1_BASE) ||
-           (ulBase == UART2_BASE));
+    ASSERT(UARTBaseValid(ulBase));
 
     //
     // See if there is space in the transmit FIFO.
@@ -686,8 +709,7 @@ UARTCharPut(unsigned long ulBase, unsigned char ucData)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == UART0_BASE) || (ulBase == UART1_BASE) ||
-           (ulBase == UART2_BASE));
+    ASSERT(UARTBaseValid(ulBase));
 
     //
     // Wait until space is available.
@@ -723,8 +745,7 @@ UARTBreakCtl(unsigned long ulBase, tBoolean bBreakState)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == UART0_BASE) || (ulBase == UART1_BASE) ||
-           (ulBase == UART2_BASE));
+    ASSERT(UARTBaseValid(ulBase));
 
     //
     // Set the break condition as requested.
@@ -733,6 +754,35 @@ UARTBreakCtl(unsigned long ulBase, tBoolean bBreakState)
         (bBreakState ?
          (HWREG(ulBase + UART_O_LCRH) | UART_LCRH_BRK) :
          (HWREG(ulBase + UART_O_LCRH) & ~(UART_LCRH_BRK)));
+}
+
+//*****************************************************************************
+//
+//! Determines whether the UART transmitter is busy or not.
+//!
+//! \param ulBase is the base address of the UART port.
+//!
+//! Allows the caller to determine whether all transmitted bytes have cleared
+//! the transmitter hardware.  If \b false is returned, the transmit FIFO is
+//! empty and all bits of the last transmitted character, including all stop
+//! bits, have left the hardware shift register.
+//!
+//! \return Returns \b true if the UART is transmitting or \b false if all
+//! transmissions are complete.
+//
+//*****************************************************************************
+tBoolean
+UARTBusy(unsigned long ulBase)
+{
+    //
+    // Check the argument.
+    //
+    ASSERT(UARTBaseValid(ulBase));
+
+    //
+    // Determine if the UART is busy.
+    //
+    return((HWREG(ulBase + UART_O_FR) & UART_FR_BUSY) ? true : false);
 }
 
 //*****************************************************************************
@@ -762,8 +812,7 @@ UARTIntRegister(unsigned long ulBase, void (*pfnHandler)(void))
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == UART0_BASE) || (ulBase == UART1_BASE) ||
-           (ulBase == UART2_BASE));
+    ASSERT(UARTBaseValid(ulBase));
 
     //
     // Determine the interrupt number based on the UART port.
@@ -807,8 +856,7 @@ UARTIntUnregister(unsigned long ulBase)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == UART0_BASE) || (ulBase == UART1_BASE) ||
-           (ulBase == UART2_BASE));
+    ASSERT(UARTBaseValid(ulBase));
 
     //
     // Determine the interrupt number based on the UART port.
@@ -857,8 +905,7 @@ UARTIntEnable(unsigned long ulBase, unsigned long ulIntFlags)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == UART0_BASE) || (ulBase == UART1_BASE) ||
-           (ulBase == UART2_BASE));
+    ASSERT(UARTBaseValid(ulBase));
 
     //
     // Enable the specified interrupts.
@@ -889,8 +936,7 @@ UARTIntDisable(unsigned long ulBase, unsigned long ulIntFlags)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == UART0_BASE) || (ulBase == UART1_BASE) ||
-           (ulBase == UART2_BASE));
+    ASSERT(UARTBaseValid(ulBase));
 
     //
     // Disable the specified interrupts.
@@ -920,8 +966,7 @@ UARTIntStatus(unsigned long ulBase, tBoolean bMasked)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == UART0_BASE) || (ulBase == UART1_BASE) ||
-           (ulBase == UART2_BASE));
+    ASSERT(UARTBaseValid(ulBase));
 
     //
     // Return either the interrupt status or the raw interrupt status as
@@ -969,8 +1014,7 @@ UARTIntClear(unsigned long ulBase, unsigned long ulIntFlags)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == UART0_BASE) || (ulBase == UART1_BASE) ||
-           (ulBase == UART2_BASE));
+    ASSERT(UARTBaseValid(ulBase));
 
     //
     // Clear the requested interrupt sources.
@@ -1006,8 +1050,7 @@ UARTDMAEnable(unsigned long ulBase, unsigned long ulDMAFlags)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == UART0_BASE) || (ulBase == UART1_BASE) ||
-           (ulBase == UART2_BASE));
+    ASSERT(UARTBaseValid(ulBase));
 
     //
     // Set the requested bits in the UART DMA control register.
@@ -1039,13 +1082,73 @@ UARTDMADisable(unsigned long ulBase, unsigned long ulDMAFlags)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == UART0_BASE) || (ulBase == UART1_BASE) ||
-           (ulBase == UART2_BASE));
+    ASSERT(UARTBaseValid(ulBase));
 
     //
     // Clear the requested bits in the UART DMA control register.
     //
     HWREG(ulBase + UART_O_DMACTL) &= ~ulDMAFlags;
+}
+
+//*****************************************************************************
+//
+//! Gets current receiver errors.
+//!
+//! \param ulBase is the base address of the UART port.
+//!
+//! This function returns the current state of each of the 4 receiver error
+//! sources.  The returned errors are equivalent to the four error bits
+//! returned via the previous call to UARTCharGet() or UARTCharGetNonBlocking()
+//! with the exception that the overrun error is set immediately the overrun
+//! occurs rather than when a character is next read.
+//!
+//! \return Returns a logical OR combination of the receiver error flags,
+//! \b UART_RXERROR_FRAMING, \b UART_RXERROR_PARITY, \b UART_RXERROR_BREAK
+//! and \b UART_RXERROR_OVERRUN.
+//
+//*****************************************************************************
+unsigned long
+UARTRxErrorGet(unsigned long ulBase)
+{
+    //
+    // Check the arguments.
+    //
+    ASSERT(UARTBaseValid(ulBase));
+
+    //
+    // Return the current value of the receive status register.
+    //
+    return(HWREG(ulBase + UART_O_RSR) & 0x0000000F);
+
+}
+
+//*****************************************************************************
+//
+//! Clears all reported receiver errors.
+//!
+//! \param ulBase is the base address of the UART port.
+//!
+//! This function is used to clear all receiver error conditions reported via
+//! UARTRxErrorGet().  If using the overrun, framing error, parity error or
+//! break interrupts, this function must be called after clearing the interrupt
+//! to ensure that later errors of the same type trigger another interrupt.
+//!
+//! \return None.
+//
+//*****************************************************************************
+void
+UARTRxErrorClear(unsigned long ulBase)
+{
+    //
+    // Check the arguments.
+    //
+    ASSERT(UARTBaseValid(ulBase));
+
+    //
+    // Any write to the Error Clear Register will clear all bits which are
+    // currently set.
+    //
+    HWREG(ulBase + UART_O_ECR) = 0;
 }
 
 //*****************************************************************************

@@ -4,7 +4,6 @@
 //                   OLED display.
 //
 // Copyright (c) 2007-2008 Luminary Micro, Inc.  All rights reserved.
-// 
 // Software License Agreement
 // 
 // Luminary Micro, Inc. (LMI) is supplying this software for use solely and
@@ -23,7 +22,7 @@
 // LMI SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
 // CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
 // 
-// This is part of revision 2692 of the Stellaris Peripheral Driver Library.
+// This is part of revision 3740 of the EK-LM3S6965 Rev C Firmware Package.
 //
 //*****************************************************************************
 

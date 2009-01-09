@@ -3,9 +3,8 @@
 // hw_flash.h - Macros used when accessing the flash controller.
 //
 // Copyright (c) 2005-2008 Luminary Micro, Inc.  All rights reserved.
-// 
 // Software License Agreement
-// 
+//
 // Luminary Micro, Inc. (LMI) is supplying this software for use solely and
 // exclusively on LMI's microcontroller products.
 // 
@@ -22,7 +21,7 @@
 // LMI SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
 // CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
 // 
-// This is part of revision 2752 of the Stellaris Peripheral Driver Library.
+// This is part of revision 3740 of the Stellaris Firmware Development Package.
 //
 //*****************************************************************************
 

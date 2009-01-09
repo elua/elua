@@ -3,7 +3,6 @@
 // sysctl.c - Driver for the system controller.
 //
 // Copyright (c) 2005-2008 Luminary Micro, Inc.  All rights reserved.
-// 
 // Software License Agreement
 // 
 // Luminary Micro, Inc. (LMI) is supplying this software for use solely and
@@ -22,7 +21,7 @@
 // LMI SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
 // CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
 // 
-// This is part of revision 2752 of the Stellaris Peripheral Driver Library.
+// This is part of revision 3740 of the Stellaris Peripheral Driver Library.
 //
 //*****************************************************************************
 
@@ -159,6 +158,64 @@ static const unsigned long g_pulXtals[] =
     16000000,
     16384000
 };
+
+//*****************************************************************************
+//
+//! \internal
+//! Checks a peripheral identifier.
+//!
+//! \param ulPeripheral is the peripheral identifier.
+//!
+//! This function determines if a peripheral identifier is valid.
+//!
+//! \return Returns \b true if the peripheral identifier is valid and \b false
+//! otherwise.
+//
+//*****************************************************************************
+#ifdef DEBUG
+static tBoolean
+SysCtlPeripheralValid(unsigned long ulPeripheral)
+{
+    return((ulPeripheral == SYSCTL_PERIPH_ADC) ||
+           (ulPeripheral == SYSCTL_PERIPH_CAN0) ||
+           (ulPeripheral == SYSCTL_PERIPH_CAN1) ||
+           (ulPeripheral == SYSCTL_PERIPH_CAN2) ||
+           (ulPeripheral == SYSCTL_PERIPH_COMP0) ||
+           (ulPeripheral == SYSCTL_PERIPH_COMP1) ||
+           (ulPeripheral == SYSCTL_PERIPH_COMP2) ||
+           (ulPeripheral == SYSCTL_PERIPH_ETH) ||
+           (ulPeripheral == SYSCTL_PERIPH_GPIOA) ||
+           (ulPeripheral == SYSCTL_PERIPH_GPIOB) ||
+           (ulPeripheral == SYSCTL_PERIPH_GPIOC) ||
+           (ulPeripheral == SYSCTL_PERIPH_GPIOD) ||
+           (ulPeripheral == SYSCTL_PERIPH_GPIOE) ||
+           (ulPeripheral == SYSCTL_PERIPH_GPIOF) ||
+           (ulPeripheral == SYSCTL_PERIPH_GPIOG) ||
+           (ulPeripheral == SYSCTL_PERIPH_GPIOH) ||
+           (ulPeripheral == SYSCTL_PERIPH_HIBERNATE) ||
+           (ulPeripheral == SYSCTL_PERIPH_I2C0) ||
+           (ulPeripheral == SYSCTL_PERIPH_I2C1) ||
+           (ulPeripheral == SYSCTL_PERIPH_IEEE1588) ||
+           (ulPeripheral == SYSCTL_PERIPH_MPU) ||
+           (ulPeripheral == SYSCTL_PERIPH_PLL) ||
+           (ulPeripheral == SYSCTL_PERIPH_PWM) ||
+           (ulPeripheral == SYSCTL_PERIPH_QEI0) ||
+           (ulPeripheral == SYSCTL_PERIPH_QEI1) ||
+           (ulPeripheral == SYSCTL_PERIPH_SSI0) ||
+           (ulPeripheral == SYSCTL_PERIPH_SSI1) ||
+           (ulPeripheral == SYSCTL_PERIPH_TEMP) ||
+           (ulPeripheral == SYSCTL_PERIPH_TIMER0) ||
+           (ulPeripheral == SYSCTL_PERIPH_TIMER1) ||
+           (ulPeripheral == SYSCTL_PERIPH_TIMER2) ||
+           (ulPeripheral == SYSCTL_PERIPH_TIMER3) ||
+           (ulPeripheral == SYSCTL_PERIPH_UART0) ||
+           (ulPeripheral == SYSCTL_PERIPH_UART1) ||
+           (ulPeripheral == SYSCTL_PERIPH_UART2) ||
+           (ulPeripheral == SYSCTL_PERIPH_UDMA) ||
+           (ulPeripheral == SYSCTL_PERIPH_USB0) ||
+           (ulPeripheral == SYSCTL_PERIPH_WDOG));
+}
+#endif
 
 //*****************************************************************************
 //
@@ -310,44 +367,7 @@ SysCtlPeripheralPresent(unsigned long ulPeripheral)
     //
     // Check the arguments.
     //
-    ASSERT((ulPeripheral == SYSCTL_PERIPH_ADC) ||
-           (ulPeripheral == SYSCTL_PERIPH_CAN0) ||
-           (ulPeripheral == SYSCTL_PERIPH_CAN1) ||
-           (ulPeripheral == SYSCTL_PERIPH_CAN2) ||
-           (ulPeripheral == SYSCTL_PERIPH_COMP0) ||
-           (ulPeripheral == SYSCTL_PERIPH_COMP1) ||
-           (ulPeripheral == SYSCTL_PERIPH_COMP2) ||
-           (ulPeripheral == SYSCTL_PERIPH_ETH) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOA) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOB) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOC) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOD) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOE) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOF) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOG) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOH) ||
-           (ulPeripheral == SYSCTL_PERIPH_HIBERNATE) ||
-           (ulPeripheral == SYSCTL_PERIPH_I2C0) ||
-           (ulPeripheral == SYSCTL_PERIPH_I2C1) ||
-           (ulPeripheral == SYSCTL_PERIPH_IEEE1588) ||
-           (ulPeripheral == SYSCTL_PERIPH_MPU) ||
-           (ulPeripheral == SYSCTL_PERIPH_PLL) ||
-           (ulPeripheral == SYSCTL_PERIPH_PWM) ||
-           (ulPeripheral == SYSCTL_PERIPH_QEI0) ||
-           (ulPeripheral == SYSCTL_PERIPH_QEI1) ||
-           (ulPeripheral == SYSCTL_PERIPH_SSI0) ||
-           (ulPeripheral == SYSCTL_PERIPH_SSI1) ||
-           (ulPeripheral == SYSCTL_PERIPH_TEMP) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER0) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER1) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER2) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER3) ||
-           (ulPeripheral == SYSCTL_PERIPH_UART0) ||
-           (ulPeripheral == SYSCTL_PERIPH_UART1) ||
-           (ulPeripheral == SYSCTL_PERIPH_UART2) ||
-           (ulPeripheral == SYSCTL_PERIPH_UDMA) ||
-           (ulPeripheral == SYSCTL_PERIPH_USB0) ||
-           (ulPeripheral == SYSCTL_PERIPH_WDOG));
+    ASSERT(SysCtlPeripheralValid(ulPeripheral));
 
     //
     // Read the correct DC register and determine if this peripheral exists.
@@ -399,40 +419,7 @@ SysCtlPeripheralReset(unsigned long ulPeripheral)
     //
     // Check the arguments.
     //
-    ASSERT((ulPeripheral == SYSCTL_PERIPH_ADC) ||
-           (ulPeripheral == SYSCTL_PERIPH_CAN0) ||
-           (ulPeripheral == SYSCTL_PERIPH_CAN1) ||
-           (ulPeripheral == SYSCTL_PERIPH_CAN2) ||
-           (ulPeripheral == SYSCTL_PERIPH_COMP0) ||
-           (ulPeripheral == SYSCTL_PERIPH_COMP1) ||
-           (ulPeripheral == SYSCTL_PERIPH_COMP2) ||
-           (ulPeripheral == SYSCTL_PERIPH_ETH) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOA) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOB) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOC) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOD) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOE) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOF) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOG) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOH) ||
-           (ulPeripheral == SYSCTL_PERIPH_HIBERNATE) ||
-           (ulPeripheral == SYSCTL_PERIPH_I2C0) ||
-           (ulPeripheral == SYSCTL_PERIPH_I2C1) ||
-           (ulPeripheral == SYSCTL_PERIPH_PWM) ||
-           (ulPeripheral == SYSCTL_PERIPH_QEI0) ||
-           (ulPeripheral == SYSCTL_PERIPH_QEI1) ||
-           (ulPeripheral == SYSCTL_PERIPH_SSI0) ||
-           (ulPeripheral == SYSCTL_PERIPH_SSI1) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER0) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER1) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER2) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER3) ||
-           (ulPeripheral == SYSCTL_PERIPH_UART0) ||
-           (ulPeripheral == SYSCTL_PERIPH_UART1) ||
-           (ulPeripheral == SYSCTL_PERIPH_UART2) ||
-           (ulPeripheral == SYSCTL_PERIPH_UDMA) ||
-           (ulPeripheral == SYSCTL_PERIPH_USB0) ||
-           (ulPeripheral == SYSCTL_PERIPH_WDOG));
+    ASSERT(SysCtlPeripheralValid(ulPeripheral));
 
     //
     // Put the peripheral into the reset state.
@@ -493,41 +480,7 @@ SysCtlPeripheralEnable(unsigned long ulPeripheral)
     //
     // Check the arguments.
     //
-    ASSERT((ulPeripheral == SYSCTL_PERIPH_ADC) ||
-           (ulPeripheral == SYSCTL_PERIPH_CAN0) ||
-           (ulPeripheral == SYSCTL_PERIPH_CAN1) ||
-           (ulPeripheral == SYSCTL_PERIPH_CAN2) ||
-           (ulPeripheral == SYSCTL_PERIPH_COMP0) ||
-           (ulPeripheral == SYSCTL_PERIPH_COMP1) ||
-           (ulPeripheral == SYSCTL_PERIPH_COMP2) ||
-           (ulPeripheral == SYSCTL_PERIPH_ETH) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOA) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOB) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOC) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOD) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOE) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOF) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOG) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOH) ||
-           (ulPeripheral == SYSCTL_PERIPH_HIBERNATE) ||
-           (ulPeripheral == SYSCTL_PERIPH_I2C0) ||
-           (ulPeripheral == SYSCTL_PERIPH_I2C1) ||
-           (ulPeripheral == SYSCTL_PERIPH_PWM) ||
-           (ulPeripheral == SYSCTL_PERIPH_QEI0) ||
-           (ulPeripheral == SYSCTL_PERIPH_QEI1) ||
-           (ulPeripheral == SYSCTL_PERIPH_SSI0) ||
-           (ulPeripheral == SYSCTL_PERIPH_SSI1) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER0) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER1) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER2) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER3) ||
-           (ulPeripheral == SYSCTL_PERIPH_USB0) ||
-           (ulPeripheral == SYSCTL_PERIPH_UART0) ||
-           (ulPeripheral == SYSCTL_PERIPH_UART1) ||
-           (ulPeripheral == SYSCTL_PERIPH_UART2) ||
-           (ulPeripheral == SYSCTL_PERIPH_UDMA) ||
-           (ulPeripheral == SYSCTL_PERIPH_USB0) ||
-           (ulPeripheral == SYSCTL_PERIPH_WDOG));
+    ASSERT(SysCtlPeripheralValid(ulPeripheral));
 
     //
     // Enable this peripheral.
@@ -568,40 +521,7 @@ SysCtlPeripheralDisable(unsigned long ulPeripheral)
     //
     // Check the arguments.
     //
-    ASSERT((ulPeripheral == SYSCTL_PERIPH_ADC) ||
-           (ulPeripheral == SYSCTL_PERIPH_CAN0) ||
-           (ulPeripheral == SYSCTL_PERIPH_CAN1) ||
-           (ulPeripheral == SYSCTL_PERIPH_CAN2) ||
-           (ulPeripheral == SYSCTL_PERIPH_COMP0) ||
-           (ulPeripheral == SYSCTL_PERIPH_COMP1) ||
-           (ulPeripheral == SYSCTL_PERIPH_COMP2) ||
-           (ulPeripheral == SYSCTL_PERIPH_ETH) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOA) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOB) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOC) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOD) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOE) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOF) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOG) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOH) ||
-           (ulPeripheral == SYSCTL_PERIPH_HIBERNATE) ||
-           (ulPeripheral == SYSCTL_PERIPH_I2C0) ||
-           (ulPeripheral == SYSCTL_PERIPH_I2C1) ||
-           (ulPeripheral == SYSCTL_PERIPH_PWM) ||
-           (ulPeripheral == SYSCTL_PERIPH_QEI0) ||
-           (ulPeripheral == SYSCTL_PERIPH_QEI1) ||
-           (ulPeripheral == SYSCTL_PERIPH_SSI0) ||
-           (ulPeripheral == SYSCTL_PERIPH_SSI1) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER0) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER1) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER2) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER3) ||
-           (ulPeripheral == SYSCTL_PERIPH_UART0) ||
-           (ulPeripheral == SYSCTL_PERIPH_UART1) ||
-           (ulPeripheral == SYSCTL_PERIPH_UART2) ||
-           (ulPeripheral == SYSCTL_PERIPH_UDMA) ||
-           (ulPeripheral == SYSCTL_PERIPH_USB0) ||
-           (ulPeripheral == SYSCTL_PERIPH_WDOG));
+    ASSERT(SysCtlPeripheralValid(ulPeripheral));
 
     //
     // Disable this peripheral.
@@ -649,40 +569,7 @@ SysCtlPeripheralSleepEnable(unsigned long ulPeripheral)
     //
     // Check the arguments.
     //
-    ASSERT((ulPeripheral == SYSCTL_PERIPH_ADC) ||
-           (ulPeripheral == SYSCTL_PERIPH_CAN0) ||
-           (ulPeripheral == SYSCTL_PERIPH_CAN1) ||
-           (ulPeripheral == SYSCTL_PERIPH_CAN2) ||
-           (ulPeripheral == SYSCTL_PERIPH_COMP0) ||
-           (ulPeripheral == SYSCTL_PERIPH_COMP1) ||
-           (ulPeripheral == SYSCTL_PERIPH_COMP2) ||
-           (ulPeripheral == SYSCTL_PERIPH_ETH) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOA) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOB) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOC) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOD) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOE) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOF) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOG) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOH) ||
-           (ulPeripheral == SYSCTL_PERIPH_HIBERNATE) ||
-           (ulPeripheral == SYSCTL_PERIPH_I2C0) ||
-           (ulPeripheral == SYSCTL_PERIPH_I2C1) ||
-           (ulPeripheral == SYSCTL_PERIPH_PWM) ||
-           (ulPeripheral == SYSCTL_PERIPH_QEI0) ||
-           (ulPeripheral == SYSCTL_PERIPH_QEI1) ||
-           (ulPeripheral == SYSCTL_PERIPH_SSI0) ||
-           (ulPeripheral == SYSCTL_PERIPH_SSI1) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER0) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER1) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER2) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER3) ||
-           (ulPeripheral == SYSCTL_PERIPH_UART0) ||
-           (ulPeripheral == SYSCTL_PERIPH_UART1) ||
-           (ulPeripheral == SYSCTL_PERIPH_UART2) ||
-           (ulPeripheral == SYSCTL_PERIPH_UDMA) ||
-           (ulPeripheral == SYSCTL_PERIPH_USB0) ||
-           (ulPeripheral == SYSCTL_PERIPH_WDOG));
+    ASSERT(SysCtlPeripheralValid(ulPeripheral));
 
     //
     // Enable this peripheral in sleep mode.
@@ -731,40 +618,7 @@ SysCtlPeripheralSleepDisable(unsigned long ulPeripheral)
     //
     // Check the arguments.
     //
-    ASSERT((ulPeripheral == SYSCTL_PERIPH_ADC) ||
-           (ulPeripheral == SYSCTL_PERIPH_CAN0) ||
-           (ulPeripheral == SYSCTL_PERIPH_CAN1) ||
-           (ulPeripheral == SYSCTL_PERIPH_CAN2) ||
-           (ulPeripheral == SYSCTL_PERIPH_COMP0) ||
-           (ulPeripheral == SYSCTL_PERIPH_COMP1) ||
-           (ulPeripheral == SYSCTL_PERIPH_COMP2) ||
-           (ulPeripheral == SYSCTL_PERIPH_ETH) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOA) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOB) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOC) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOD) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOE) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOF) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOG) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOH) ||
-           (ulPeripheral == SYSCTL_PERIPH_HIBERNATE) ||
-           (ulPeripheral == SYSCTL_PERIPH_I2C0) ||
-           (ulPeripheral == SYSCTL_PERIPH_I2C1) ||
-           (ulPeripheral == SYSCTL_PERIPH_PWM) ||
-           (ulPeripheral == SYSCTL_PERIPH_QEI0) ||
-           (ulPeripheral == SYSCTL_PERIPH_QEI1) ||
-           (ulPeripheral == SYSCTL_PERIPH_SSI0) ||
-           (ulPeripheral == SYSCTL_PERIPH_SSI1) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER0) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER1) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER2) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER3) ||
-           (ulPeripheral == SYSCTL_PERIPH_UART0) ||
-           (ulPeripheral == SYSCTL_PERIPH_UART1) ||
-           (ulPeripheral == SYSCTL_PERIPH_UART2) ||
-           (ulPeripheral == SYSCTL_PERIPH_UDMA) ||
-           (ulPeripheral == SYSCTL_PERIPH_USB0) ||
-           (ulPeripheral == SYSCTL_PERIPH_WDOG));
+    ASSERT(SysCtlPeripheralValid(ulPeripheral));
 
     //
     // Disable this peripheral in sleep mode.
@@ -814,40 +668,7 @@ SysCtlPeripheralDeepSleepEnable(unsigned long ulPeripheral)
     //
     // Check the arguments.
     //
-    ASSERT((ulPeripheral == SYSCTL_PERIPH_ADC) ||
-           (ulPeripheral == SYSCTL_PERIPH_CAN0) ||
-           (ulPeripheral == SYSCTL_PERIPH_CAN1) ||
-           (ulPeripheral == SYSCTL_PERIPH_CAN2) ||
-           (ulPeripheral == SYSCTL_PERIPH_COMP0) ||
-           (ulPeripheral == SYSCTL_PERIPH_COMP1) ||
-           (ulPeripheral == SYSCTL_PERIPH_COMP2) ||
-           (ulPeripheral == SYSCTL_PERIPH_ETH) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOA) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOB) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOC) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOD) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOE) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOF) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOG) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOH) ||
-           (ulPeripheral == SYSCTL_PERIPH_HIBERNATE) ||
-           (ulPeripheral == SYSCTL_PERIPH_I2C0) ||
-           (ulPeripheral == SYSCTL_PERIPH_I2C1) ||
-           (ulPeripheral == SYSCTL_PERIPH_PWM) ||
-           (ulPeripheral == SYSCTL_PERIPH_QEI0) ||
-           (ulPeripheral == SYSCTL_PERIPH_QEI1) ||
-           (ulPeripheral == SYSCTL_PERIPH_SSI0) ||
-           (ulPeripheral == SYSCTL_PERIPH_SSI1) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER0) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER1) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER2) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER3) ||
-           (ulPeripheral == SYSCTL_PERIPH_UART0) ||
-           (ulPeripheral == SYSCTL_PERIPH_UART1) ||
-           (ulPeripheral == SYSCTL_PERIPH_UART2) ||
-           (ulPeripheral == SYSCTL_PERIPH_UDMA) ||
-           (ulPeripheral == SYSCTL_PERIPH_USB0) ||
-           (ulPeripheral == SYSCTL_PERIPH_WDOG));
+    ASSERT(SysCtlPeripheralValid(ulPeripheral));
 
     //
     // Enable this peripheral in deep-sleep mode.
@@ -899,40 +720,7 @@ SysCtlPeripheralDeepSleepDisable(unsigned long ulPeripheral)
     //
     // Check the arguments.
     //
-    ASSERT((ulPeripheral == SYSCTL_PERIPH_ADC) ||
-           (ulPeripheral == SYSCTL_PERIPH_CAN0) ||
-           (ulPeripheral == SYSCTL_PERIPH_CAN1) ||
-           (ulPeripheral == SYSCTL_PERIPH_CAN2) ||
-           (ulPeripheral == SYSCTL_PERIPH_COMP0) ||
-           (ulPeripheral == SYSCTL_PERIPH_COMP1) ||
-           (ulPeripheral == SYSCTL_PERIPH_COMP2) ||
-           (ulPeripheral == SYSCTL_PERIPH_ETH) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOA) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOB) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOC) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOD) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOE) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOF) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOG) ||
-           (ulPeripheral == SYSCTL_PERIPH_GPIOH) ||
-           (ulPeripheral == SYSCTL_PERIPH_HIBERNATE) ||
-           (ulPeripheral == SYSCTL_PERIPH_I2C0) ||
-           (ulPeripheral == SYSCTL_PERIPH_I2C1) ||
-           (ulPeripheral == SYSCTL_PERIPH_PWM) ||
-           (ulPeripheral == SYSCTL_PERIPH_QEI0) ||
-           (ulPeripheral == SYSCTL_PERIPH_QEI1) ||
-           (ulPeripheral == SYSCTL_PERIPH_SSI0) ||
-           (ulPeripheral == SYSCTL_PERIPH_SSI1) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER0) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER1) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER2) ||
-           (ulPeripheral == SYSCTL_PERIPH_TIMER3) ||
-           (ulPeripheral == SYSCTL_PERIPH_UART0) ||
-           (ulPeripheral == SYSCTL_PERIPH_UART1) ||
-           (ulPeripheral == SYSCTL_PERIPH_UART2) ||
-           (ulPeripheral == SYSCTL_PERIPH_UDMA) ||
-           (ulPeripheral == SYSCTL_PERIPH_USB0) ||
-           (ulPeripheral == SYSCTL_PERIPH_WDOG));
+    ASSERT(SysCtlPeripheralValid(ulPeripheral));
 
     //
     // Disable this peripheral in deep-sleep mode.

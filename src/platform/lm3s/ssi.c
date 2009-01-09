@@ -3,7 +3,6 @@
 // ssi.c - Driver for Synchronous Serial Interface.
 //
 // Copyright (c) 2005-2008 Luminary Micro, Inc.  All rights reserved.
-// 
 // Software License Agreement
 // 
 // Luminary Micro, Inc. (LMI) is supplying this software for use solely and
@@ -22,7 +21,7 @@
 // LMI SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
 // CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
 // 
-// This is part of revision 2752 of the Stellaris Peripheral Driver Library.
+// This is part of revision 3740 of the Stellaris Peripheral Driver Library.
 //
 //*****************************************************************************
 
@@ -51,7 +50,7 @@
 //! \param ulProtocol specifies the data transfer protocol.
 //! \param ulMode specifies the mode of operation.
 //! \param ulBitRate specifies the clock rate.
-//! \param ulDataWidth specifies number of bits transfered per frame.
+//! \param ulDataWidth specifies number of bits transferred per frame.
 //!
 //! This function configures the synchronous serial interface.  It sets
 //! the SSI protocol, mode of operation, bit rate, and data width.
@@ -99,7 +98,7 @@
 //! \return None.
 //
 //*****************************************************************************
-unsigned long
+void
 SSIConfigSetExpClk(unsigned long ulBase, unsigned long ulSSIClk,
                    unsigned long ulProtocol, unsigned long ulMode,
                    unsigned long ulBitRate, unsigned long ulDataWidth)
@@ -113,13 +112,20 @@ SSIConfigSetExpClk(unsigned long ulBase, unsigned long ulSSIClk,
     //
     // Check the arguments.
     //
-    if(!(((ulMode == SSI_MODE_MASTER) && (ulBitRate <= (ulSSIClk / 2))) ||
-           ((ulMode != SSI_MODE_MASTER) && (ulBitRate <= (ulSSIClk / 12)))))
-      return 0;
-    if(!((ulSSIClk / ulBitRate) <= (254 * 256)))
-      return 0;
-    if(!((ulDataWidth >= 4) && (ulDataWidth <= 16)))
-      return 0;
+    ASSERT((ulBase == SSI0_BASE) || (ulBase == SSI1_BASE));
+    ASSERT((ulProtocol == SSI_FRF_MOTO_MODE_0) ||
+           (ulProtocol == SSI_FRF_MOTO_MODE_1) ||
+           (ulProtocol == SSI_FRF_MOTO_MODE_2) ||
+           (ulProtocol == SSI_FRF_MOTO_MODE_3) ||
+           (ulProtocol == SSI_FRF_TI) ||
+           (ulProtocol == SSI_FRF_NMW));
+    ASSERT((ulMode == SSI_MODE_MASTER) ||
+           (ulMode == SSI_MODE_SLAVE) ||
+           (ulMode == SSI_MODE_SLAVE_OD));
+    ASSERT(((ulMode == SSI_MODE_MASTER) && (ulBitRate <= (ulSSIClk / 2))) ||
+           ((ulMode != SSI_MODE_MASTER) && (ulBitRate <= (ulSSIClk / 12))));
+    ASSERT((ulSSIClk / ulBitRate) <= (254 * 256));
+    ASSERT((ulDataWidth >= 4) && (ulDataWidth <= 16));
 
     //
     // Set the mode.
@@ -148,9 +154,6 @@ SSIConfigSetExpClk(unsigned long ulBase, unsigned long ulSSIClk,
     ulProtocol &= SSI_CR0_FRF_M;
     ulRegVal = (ulSCR << 8) | ulSPH_SPO | ulProtocol | (ulDataWidth - 1);
     HWREG(ulBase + SSI_O_CR0) = ulRegVal;
-
-    // Return actual clock rate
-    return ulSSIClk / ( ulPreDiv * ( ulSCR + 1 ) );
 }
 
 //*****************************************************************************

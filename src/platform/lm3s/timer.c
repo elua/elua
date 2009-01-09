@@ -3,7 +3,6 @@
 // timer.c - Driver for the timer module.
 //
 // Copyright (c) 2005-2008 Luminary Micro, Inc.  All rights reserved.
-// 
 // Software License Agreement
 // 
 // Luminary Micro, Inc. (LMI) is supplying this software for use solely and
@@ -22,7 +21,7 @@
 // LMI SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
 // CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
 // 
-// This is part of revision 2752 of the Stellaris Peripheral Driver Library.
+// This is part of revision 3740 of the Stellaris Peripheral Driver Library.
 //
 //*****************************************************************************
 
@@ -40,6 +39,28 @@
 #include "debug.h"
 #include "interrupt.h"
 #include "timer.h"
+
+//*****************************************************************************
+//
+//! \internal
+//! Checks a timer base address.
+//!
+//! \param ulBase is the base address of the timer module.
+//!
+//! This function determines if a timer module base address is valid.
+//!
+//! \return Returns \b true if the base address is valid and \b false
+//! otherwise.
+//
+//*****************************************************************************
+#ifdef DEBUG
+static tBoolean
+TimerBaseValid(unsigned long ulBase)
+{
+    return((ulBase == TIMER0_BASE) || (ulBase == TIMER1_BASE) ||
+           (ulBase == TIMER2_BASE) || (ulBase == TIMER3_BASE));
+}
+#endif
 
 //*****************************************************************************
 //
@@ -61,8 +82,7 @@ TimerEnable(unsigned long ulBase, unsigned long ulTimer)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == TIMER0_BASE) || (ulBase == TIMER1_BASE) ||
-           (ulBase == TIMER2_BASE) || (ulBase == TIMER3_BASE));
+    ASSERT(TimerBaseValid(ulBase));
     ASSERT((ulTimer == TIMER_A) || (ulTimer == TIMER_B) ||
            (ulTimer == TIMER_BOTH));
 
@@ -91,8 +111,7 @@ TimerDisable(unsigned long ulBase, unsigned long ulTimer)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == TIMER0_BASE) || (ulBase == TIMER1_BASE) ||
-           (ulBase == TIMER2_BASE) || (ulBase == TIMER3_BASE));
+    ASSERT(TimerBaseValid(ulBase));
     ASSERT((ulTimer == TIMER_A) || (ulTimer == TIMER_B) ||
            (ulTimer == TIMER_BOTH));
 
@@ -144,8 +163,7 @@ TimerConfigure(unsigned long ulBase, unsigned long ulConfig)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == TIMER0_BASE) || (ulBase == TIMER1_BASE) ||
-           (ulBase == TIMER2_BASE) || (ulBase == TIMER3_BASE));
+    ASSERT(TimerBaseValid(ulBase));
     ASSERT((ulConfig == TIMER_CFG_32_BIT_OS) ||
            (ulConfig == TIMER_CFG_32_BIT_PER) ||
            (ulConfig == TIMER_CFG_32_RTC) ||
@@ -203,8 +221,7 @@ TimerControlLevel(unsigned long ulBase, unsigned long ulTimer,
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == TIMER0_BASE) || (ulBase == TIMER1_BASE) ||
-           (ulBase == TIMER2_BASE) || (ulBase == TIMER3_BASE));
+    ASSERT(TimerBaseValid(ulBase));
     ASSERT((ulTimer == TIMER_A) || (ulTimer == TIMER_B) ||
            (ulTimer == TIMER_BOTH));
 
@@ -240,8 +257,7 @@ TimerControlTrigger(unsigned long ulBase, unsigned long ulTimer,
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == TIMER0_BASE) || (ulBase == TIMER1_BASE) ||
-           (ulBase == TIMER2_BASE) || (ulBase == TIMER3_BASE));
+    ASSERT(TimerBaseValid(ulBase));
     ASSERT((ulTimer == TIMER_A) || (ulTimer == TIMER_B) ||
            (ulTimer == TIMER_BOTH));
 
@@ -278,8 +294,7 @@ TimerControlEvent(unsigned long ulBase, unsigned long ulTimer,
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == TIMER0_BASE) || (ulBase == TIMER1_BASE) ||
-           (ulBase == TIMER2_BASE) || (ulBase == TIMER3_BASE));
+    ASSERT(TimerBaseValid(ulBase));
     ASSERT((ulTimer == TIMER_A) || (ulTimer == TIMER_B) ||
            (ulTimer == TIMER_BOTH));
 
@@ -316,8 +331,7 @@ TimerControlStall(unsigned long ulBase, unsigned long ulTimer,
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == TIMER0_BASE) || (ulBase == TIMER1_BASE) ||
-           (ulBase == TIMER2_BASE) || (ulBase == TIMER3_BASE));
+    ASSERT(TimerBaseValid(ulBase));
     ASSERT((ulTimer == TIMER_A) || (ulTimer == TIMER_B) ||
            (ulTimer == TIMER_BOTH));
 
@@ -348,8 +362,7 @@ TimerRTCEnable(unsigned long ulBase)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == TIMER0_BASE) || (ulBase == TIMER1_BASE) ||
-           (ulBase == TIMER2_BASE) || (ulBase == TIMER3_BASE));
+    ASSERT(TimerBaseValid(ulBase));
 
     //
     // Enable RTC counting.
@@ -374,8 +387,7 @@ TimerRTCDisable(unsigned long ulBase)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == TIMER0_BASE) || (ulBase == TIMER1_BASE) ||
-           (ulBase == TIMER2_BASE) || (ulBase == TIMER3_BASE));
+    ASSERT(TimerBaseValid(ulBase));
 
     //
     // Disable RTC counting.
@@ -407,8 +419,7 @@ TimerPrescaleSet(unsigned long ulBase, unsigned long ulTimer,
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == TIMER0_BASE) || (ulBase == TIMER1_BASE) ||
-           (ulBase == TIMER2_BASE) || (ulBase == TIMER3_BASE));
+    ASSERT(TimerBaseValid(ulBase));
     ASSERT((ulTimer == TIMER_A) || (ulTimer == TIMER_B) ||
            (ulTimer == TIMER_BOTH));
     ASSERT(ulValue < 256);
@@ -451,8 +462,7 @@ TimerPrescaleGet(unsigned long ulBase, unsigned long ulTimer)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == TIMER0_BASE) || (ulBase == TIMER1_BASE) ||
-           (ulBase == TIMER2_BASE) || (ulBase == TIMER3_BASE));
+    ASSERT(TimerBaseValid(ulBase));
     ASSERT((ulTimer == TIMER_A) || (ulTimer == TIMER_B) ||
            (ulTimer == TIMER_BOTH));
 
@@ -486,8 +496,7 @@ TimerLoadSet(unsigned long ulBase, unsigned long ulTimer,
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == TIMER0_BASE) || (ulBase == TIMER1_BASE) ||
-           (ulBase == TIMER2_BASE) || (ulBase == TIMER3_BASE));
+    ASSERT(TimerBaseValid(ulBase));
     ASSERT((ulTimer == TIMER_A) || (ulTimer == TIMER_B) ||
            (ulTimer == TIMER_BOTH));
 
@@ -529,8 +538,7 @@ TimerLoadGet(unsigned long ulBase, unsigned long ulTimer)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == TIMER0_BASE) || (ulBase == TIMER1_BASE) ||
-           (ulBase == TIMER2_BASE) || (ulBase == TIMER3_BASE));
+    ASSERT(TimerBaseValid(ulBase));
     ASSERT((ulTimer == TIMER_A) || (ulTimer == TIMER_B));
 
     //
@@ -560,8 +568,7 @@ TimerValueGet(unsigned long ulBase, unsigned long ulTimer)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == TIMER0_BASE) || (ulBase == TIMER1_BASE) ||
-           (ulBase == TIMER2_BASE) || (ulBase == TIMER3_BASE));
+    ASSERT(TimerBaseValid(ulBase));
     ASSERT((ulTimer == TIMER_A) || (ulTimer == TIMER_B));
 
     //
@@ -595,8 +602,7 @@ TimerMatchSet(unsigned long ulBase, unsigned long ulTimer,
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == TIMER0_BASE) || (ulBase == TIMER1_BASE) ||
-           (ulBase == TIMER2_BASE) || (ulBase == TIMER3_BASE));
+    ASSERT(TimerBaseValid(ulBase));
     ASSERT((ulTimer == TIMER_A) || (ulTimer == TIMER_B) ||
            (ulTimer == TIMER_BOTH));
 
@@ -637,8 +643,7 @@ TimerMatchGet(unsigned long ulBase, unsigned long ulTimer)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == TIMER0_BASE) || (ulBase == TIMER1_BASE) ||
-           (ulBase == TIMER2_BASE) || (ulBase == TIMER3_BASE));
+    ASSERT(TimerBaseValid(ulBase));
     ASSERT((ulTimer == TIMER_A) || (ulTimer == TIMER_B));
 
     //
@@ -676,8 +681,7 @@ TimerIntRegister(unsigned long ulBase, unsigned long ulTimer,
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == TIMER0_BASE) || (ulBase == TIMER1_BASE) ||
-           (ulBase == TIMER2_BASE) || (ulBase == TIMER3_BASE));
+    ASSERT(TimerBaseValid(ulBase));
     ASSERT((ulTimer == TIMER_A) || (ulTimer == TIMER_B) ||
            (ulTimer == TIMER_BOTH));
 
@@ -745,8 +749,7 @@ TimerIntUnregister(unsigned long ulBase, unsigned long ulTimer)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == TIMER0_BASE) || (ulBase == TIMER1_BASE) ||
-           (ulBase == TIMER2_BASE) || (ulBase == TIMER3_BASE));
+    ASSERT(TimerBaseValid(ulBase));
     ASSERT((ulTimer == TIMER_A) || (ulTimer == TIMER_B) ||
            (ulTimer == TIMER_BOTH));
 
@@ -821,8 +824,7 @@ TimerIntEnable(unsigned long ulBase, unsigned long ulIntFlags)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == TIMER0_BASE) || (ulBase == TIMER1_BASE) ||
-           (ulBase == TIMER2_BASE) || (ulBase == TIMER3_BASE));
+    ASSERT(TimerBaseValid(ulBase));
 
     //
     // Enable the specified interrupts.
@@ -853,8 +855,7 @@ TimerIntDisable(unsigned long ulBase, unsigned long ulIntFlags)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == TIMER0_BASE) || (ulBase == TIMER1_BASE) ||
-           (ulBase == TIMER2_BASE) || (ulBase == TIMER3_BASE));
+    ASSERT(TimerBaseValid(ulBase));
 
     //
     // Disable the specified interrupts.
@@ -884,8 +885,7 @@ TimerIntStatus(unsigned long ulBase, tBoolean bMasked)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == TIMER0_BASE) || (ulBase == TIMER1_BASE) ||
-           (ulBase == TIMER2_BASE) || (ulBase == TIMER3_BASE));
+    ASSERT(TimerBaseValid(ulBase));
 
     //
     // Return either the interrupt status or the raw interrupt status as
@@ -927,8 +927,7 @@ TimerIntClear(unsigned long ulBase, unsigned long ulIntFlags)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == TIMER0_BASE) || (ulBase == TIMER1_BASE) ||
-           (ulBase == TIMER2_BASE) || (ulBase == TIMER3_BASE));
+    ASSERT(TimerBaseValid(ulBase));
 
     //
     // Clear the requested interrupt sources.
@@ -956,8 +955,7 @@ TimerQuiesce(unsigned long ulBase)
     //
     // Check the arguments.
     //
-    ASSERT((ulBase == TIMER0_BASE) || (ulBase == TIMER1_BASE) ||
-           (ulBase == TIMER2_BASE) || (ulBase == TIMER3_BASE));
+    ASSERT(TimerBaseValid(ulBase));
 
     //
     // Disable the timer.
