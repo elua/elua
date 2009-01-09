@@ -265,7 +265,7 @@ UARTConfigSetExpClk(unsigned long ulBase, unsigned long ulUARTClk,
     unsigned long ulDiv;
     unsigned long ulInt, ulFrac;
 
-    if(!(ulUARTClk >= (ulBaud * 16)))
+    if(!(ulUARTClk >= (ulBaud * UART_CLK_DIVIDER)))
       return 0;
     if(ulBaud == 0)
       return 0;
@@ -274,8 +274,6 @@ UARTConfigSetExpClk(unsigned long ulBase, unsigned long ulUARTClk,
     // Check the arguments.
     //
     ASSERT(UARTBaseValid(ulBase));
-    ASSERT(ulBaud != 0);
-    ASSERT(ulUARTClk >= (ulBaud * UART_CLK_DIVIDER));
 
     //
     // Stop the UART.
