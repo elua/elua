@@ -25,8 +25,8 @@
 //
 //*****************************************************************************
 
-#ifndef __UART_H__
-#define __UART_H__
+#ifndef __USART_H__
+#define __USART_H__
 
 //*****************************************************************************
 //
@@ -187,4 +187,4 @@ extern void UARTRxErrorClear(unsigned long ulBase);
 }
 #endif
 
-#endif //  __UART_H__
+#endif //  __USART_H__
