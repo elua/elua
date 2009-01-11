@@ -17,15 +17,24 @@
 
 #include "lauxlib.h"
 #include "lualib.h"
-
+#include "lrotable.h"
 
 
 #define IO_INPUT	1
 #define IO_OUTPUT	2
+#define IO_STDERR	0
 
+#if LUA_OPTIMIZE_MEMORY != 2
+#define LUA_IO_GETFIELD(f)	lua_rawgeti(L, LUA_ENVIRONINDEX, f)
+#define LUA_IO_SETFIELD(f)  lua_rawseti(L, LUA_ENVIRONINDEX, f)
+#else
+#define LUA_IO_GETFIELD(f)  lua_rawgeti(L, LUA_REGISTRYINDEX, liolib_keys[f])
+#define LUA_IO_SETFIELD(f)  lua_rawseti(L, LUA_REGISTRYINDEX, liolib_keys[f])
+#endif
 
 static const char *const fnames[] = {"input", "output"};
-
+/* "Pseudo-random" keys for the registry */
+static const int liolib_keys[] = {(int)&luaL_callmeta, (int)&luaL_typerror, (int)&luaL_argerror};
 
 static int pushresult (lua_State *L, int i, const char *filename) {
   int en = errno;  /* calls to Lua API may change this value */
@@ -92,6 +101,7 @@ static FILE **newfile (lua_State *L) {
 }
 
 
+#if LUA_OPTIMIZE_MEMORY != 2
 /*
 ** function to (not) close the standard files stdin, stdout, and stderr
 */
@@ -122,18 +132,31 @@ static int io_fclose (lua_State *L) {
   *p = NULL;
   return pushresult(L, ok, NULL);
 }
-
+#endif
 
 static int aux_close (lua_State *L) {
+#if LUA_OPTIMIZE_MEMORY != 2
   lua_getfenv(L, 1);
   lua_getfield(L, -1, "__close");
   return (lua_tocfunction(L, -1))(L);
+#else
+  FILE **p = tofilep(L);
+  if(*p == stdin || *p == stdout || *p == stderr)
+  {
+    lua_pushnil(L);
+    lua_pushliteral(L, "cannot close standard file");
+    return 2;  
+  }
+  int ok = (fclose(*p) == 0);
+  *p = NULL;
+  return pushresult(L, ok, NULL);
+#endif 
 }
 
 
 static int io_close (lua_State *L) {
   if (lua_isnone(L, 1))
-    lua_rawgeti(L, LUA_ENVIRONINDEX, IO_OUTPUT);
+    LUA_IO_GETFIELD(IO_OUTPUT);
   tofile(L);  /* make sure argument is a file */
   return aux_close(L);
 }
@@ -189,7 +212,7 @@ static int io_tmpfile (lua_State *L) {
 
 static FILE *getiofile (lua_State *L, int findex) {
   FILE *f;
-  lua_rawgeti(L, LUA_ENVIRONINDEX, findex);
+  LUA_IO_GETFIELD(findex);
   f = *(FILE **)lua_touserdata(L, -1);
   if (f == NULL)
     luaL_error(L, "standard %s file is closed", fnames[findex - 1]);
@@ -210,10 +233,10 @@ static int g_iofile (lua_State *L, int f, const char *mode) {
       tofile(L);  /* check that it's a valid file handle */
       lua_pushvalue(L, 1);
     }
-    lua_rawseti(L, LUA_ENVIRONINDEX, f);
+    LUA_IO_SETFIELD(f);
   }
   /* return current value */
-  lua_rawgeti(L, LUA_ENVIRONINDEX, f);
+  LUA_IO_GETFIELD(f);
   return 1;
 }
 
@@ -248,7 +271,7 @@ static int f_lines (lua_State *L) {
 static int io_lines (lua_State *L) {
   if (lua_isnoneornil(L, 1)) {  /* no arguments? */
     /* will iterate over default input */
-    lua_rawgeti(L, LUA_ENVIRONINDEX, IO_INPUT);
+    LUA_IO_GETFIELD(IO_INPUT);
     return f_lines(L);
   }
   else {
@@ -473,47 +496,73 @@ static int f_flush (lua_State *L) {
   return pushresult(L, fflush(tofile(L)) == 0, NULL);
 }
 
-
-static const luaL_Reg iolib[] = {
-  {"close", io_close},
-  {"flush", io_flush},
-  {"input", io_input},
-  {"lines", io_lines},
-  {"open", io_open},
-  {"output", io_output},
-  {"popen", io_popen},
-  {"read", io_read},
-  {"tmpfile", io_tmpfile},
-  {"type", io_type},
-  {"write", io_write},
-  {NULL, NULL}
+#define MIN_OPT_LEVEL 2
+#include "lrodefs.h"
+#if LUA_OPTIMIZE_MEMORY == 2
+const LUA_REG_TYPE iolib_funcs[] = {
+#else
+const LUA_REG_TYPE iolib[] = {
+#endif
+  {LSTRKEY("close"), LFUNCVAL(io_close)},
+  {LSTRKEY("flush"), LFUNCVAL(io_flush)},
+  {LSTRKEY("input"), LFUNCVAL(io_input)},
+  {LSTRKEY("lines"), LFUNCVAL(io_lines)},
+  {LSTRKEY("open"), LFUNCVAL(io_open)},
+  {LSTRKEY("output"), LFUNCVAL(io_output)},
+  {LSTRKEY("popen"), LFUNCVAL(io_popen)},
+  {LSTRKEY("read"), LFUNCVAL(io_read)},
+  {LSTRKEY("tmpfile"), LFUNCVAL(io_tmpfile)},
+  {LSTRKEY("type"), LFUNCVAL(io_type)},
+  {LSTRKEY("write"), LFUNCVAL(io_write)},
+  {LNILKEY, LNILVAL}
 };
 
-
-static const luaL_Reg flib[] = {
-  {"close", io_close},
-  {"flush", f_flush},
-  {"lines", f_lines},
-  {"read", f_read},
-  {"seek", f_seek},
-  {"setvbuf", f_setvbuf},
-  {"write", f_write},
-  {"__gc", io_gc},
-  {"__tostring", io_tostring},
+#if LUA_OPTIMIZE_MEMORY == 2
+static int luaL_index(lua_State *L)
+{
+  return luaR_findfunction(L, iolib_funcs);
+}
+  
+const luaL_Reg iolib[] = {
+  {"__index", luaL_index},
   {NULL, NULL}
 };
+#endif
 
+#undef MIN_OPT_LEVEL
+#define MIN_OPT_LEVEL 1
+#include "lrodefs.h"
+const LUA_REG_TYPE flib[] = {
+  {LSTRKEY("close"), LFUNCVAL(io_close)},
+  {LSTRKEY("flush"), LFUNCVAL(f_flush)},
+  {LSTRKEY("lines"), LFUNCVAL(f_lines)},
+  {LSTRKEY("read"), LFUNCVAL(f_read)},
+  {LSTRKEY("seek"), LFUNCVAL(f_seek)},
+  {LSTRKEY("setvbuf"), LFUNCVAL(f_setvbuf)},
+  {LSTRKEY("write"), LFUNCVAL(f_write)},
+  {LSTRKEY("__gc"), LFUNCVAL(io_gc)},
+  {LSTRKEY("__tostring"), LFUNCVAL(io_tostring)},
+#if LUA_OPTIMIZE_MEMORY > 0
+  {LSTRKEY("__index"), LROVAL(flib)},
+#endif
+  {LNILKEY, LNILVAL}
+};
 
 static void createmeta (lua_State *L) {
+#if LUA_OPTIMIZE_MEMORY == 0
   luaL_newmetatable(L, LUA_FILEHANDLE);  /* create metatable for file handles */
   lua_pushvalue(L, -1);  /* push metatable */
   lua_setfield(L, -2, "__index");  /* metatable.__index = metatable */
   luaL_register(L, NULL, flib);  /* file methods */
+#else
+  luaL_rometatable(L, LUA_FILEHANDLE, (void*)flib);  /* create metatable for file handles */
+#endif
 }
 
 
 static void createstdfile (lua_State *L, FILE *f, int k, const char *fname) {
   *newfile(L) = f;
+#if LUA_OPTIMIZE_MEMORY != 2
   if (k > 0) {
     lua_pushvalue(L, -1);
     lua_rawseti(L, LUA_ENVIRONINDEX, k);
@@ -521,33 +570,45 @@ static void createstdfile (lua_State *L, FILE *f, int k, const char *fname) {
   lua_pushvalue(L, -2);  /* copy environment */
   lua_setfenv(L, -2);  /* set it */
   lua_setfield(L, -3, fname);
+#else
+  lua_pushvalue(L, -1);
+  lua_rawseti(L, LUA_REGISTRYINDEX, liolib_keys[k]);
+  lua_setfield(L, -2, fname);
+#endif
 }
 
-
+#if LUA_OPTIMIZE_MEMORY != 2
 static void newfenv (lua_State *L, lua_CFunction cls) {
   lua_createtable(L, 0, 1);
   lua_pushcfunction(L, cls);
   lua_setfield(L, -2, "__close");
 }
-
+#endif
 
 LUALIB_API int luaopen_io (lua_State *L) {
   createmeta(L);
+#if LUA_OPTIMIZE_MEMORY != 2
   /* create (private) environment (with fields IO_INPUT, IO_OUTPUT, __close) */
   newfenv(L, io_fclose);
   lua_replace(L, LUA_ENVIRONINDEX);
   /* open library */
   luaL_register(L, LUA_IOLIBNAME, iolib);
-  /* create (and set) default files */
   newfenv(L, io_noclose);  /* close function for default files */
+#else
+  luaL_register_light(L, LUA_IOLIBNAME, iolib);
+  lua_pushvalue(L, -1);
+  lua_setmetatable(L, -2);
+#endif
+  /* create (and set) default files */
   createstdfile(L, stdin, IO_INPUT, "stdin");
   createstdfile(L, stdout, IO_OUTPUT, "stdout");
-  createstdfile(L, stderr, 0, "stderr");
+  createstdfile(L, stderr, IO_STDERR, "stderr");
+#if LUA_OPTIMIZE_MEMORY != 2
   lua_pop(L, 1);  /* pop environment for default files */
   lua_getfield(L, -1, "popen");
   newfenv(L, io_pclose);  /* create environment for 'popen' */
   lua_setfenv(L, -2);  /* set fenv for 'popen' */
   lua_pop(L, 1);  /* pop 'popen' */
+#endif
   return 1;
 }
-

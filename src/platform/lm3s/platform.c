@@ -37,6 +37,7 @@
 #include "elua_net.h"
 #include "dhcpc.h"
 #include "rit128x96x4.h"
+#include "disp.h"
 
 // UIP sys tick data
 // NOTE: when using virtual timers, SYSTICKHZ and VTMR_FREQ_HZ should have the
@@ -476,44 +477,44 @@ void platform_cpu_disable_interrupts()
 // Initially immplementing the funcionalities offered by the RIT128x96x4
 // OLED display driver.
 
-void platform_disp_init( unsigned long freq ) 
+void lm3s_disp_init( unsigned long freq ) 
 {
   RIT128x96x4Init( freq );
 }
     
-void platform_disp_clear() 
+void lm3s_disp_clear() 
 {  
   RIT128x96x4Clear();
 }
 
-void platform_disp_stringDraw( const char *str, unsigned long x, unsigned long y, unsigned char level ) 
+void lm3s_disp_stringDraw( const char *str, unsigned long x, unsigned long y, unsigned char level ) 
 {
   RIT128x96x4StringDraw( str, x, y, level );
 }
 
-void platform_disp_imageDraw( const unsigned char *img, unsigned long x, unsigned long y, 
+void lm3s_disp_imageDraw( const unsigned char *img, unsigned long x, unsigned long y, 
                               unsigned long width, unsigned long height ) 
 {
   RIT128x96x4ImageDraw( img, x, y, width, height );
 }
 
 
-void platform_disp_enable( unsigned long freq ) 
+void lm3s_disp_enable( unsigned long freq ) 
 {
   RIT128x96x4Enable( freq );
 }
 
-void platform_disp_disable() 
+void lm3s_disp_disable() 
 {
   RIT128x96x4Disable();
 }
 
-void platform_disp_displayOn() 
+void lm3s_disp_displayOn() 
 {
   RIT128x96x4DisplayOn();
 }
 
-void platform_disp_displayOff() 
+void lm3s_disp_displayOff() 
 {
   RIT128x96x4DisplayOff();
 }

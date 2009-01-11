@@ -19,7 +19,7 @@
 </table>
 <br>
 And now let's test CGI. Use the form below to control the on-board LED.<br><br>
-<form method="get" action="http://elua/index.pht" name="led">
+<form method="get" action="/index.pht" name="led">
 <table width="400" border="0" cellpadding="2" cellspacing="2">
 <tbody>
 <tr>

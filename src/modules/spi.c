@@ -5,6 +5,7 @@
 #include "lauxlib.h"
 #include "platform.h"
 #include "auxmods.h"
+#include "lrotable.h"
 
 // Lua: select( id )
 static int spi_select( lua_State* L )
@@ -80,20 +81,29 @@ static int spi_send_recv( lua_State* L )
 }
 
 // Module function map
-static const luaL_reg spi_map[] = 
+#define MIN_OPT_LEVEL 2
+#include "lrodefs.h"
+const LUA_REG_TYPE spi_map[] = 
 {
-  { "setup",  spi_setup },
-  { "select", spi_select },
-  { "unselect", spi_unselect },
-  { "send", spi_send },  
-  { "send_recv", spi_send_recv },    
-  { NULL, NULL }
+  { LSTRKEY( "setup" ),  LFUNCVAL( spi_setup ) },
+  { LSTRKEY( "select" ),  LFUNCVAL( spi_select ) },
+  { LSTRKEY( "unselect" ),  LFUNCVAL( spi_unselect ) },
+  { LSTRKEY( "send" ),  LFUNCVAL( spi_send ) },  
+  { LSTRKEY( "send_recv" ),  LFUNCVAL( spi_send_recv ) },    
+#if LUA_OPTIMIZE_MEMORY > 0
+  { LSTRKEY( "MASTER" ), LNUMVAL( PLATFORM_SPI_MASTER ) } ,
+  { LSTRKEY( "SLAVE" ), LNUMVAL( PLATFORM_SPI_SLAVE ) },
+#endif
+  { LNILKEY, LNILVAL }
 };
 
 LUALIB_API int luaopen_spi( lua_State *L )
 {
-  
+#if LUA_OPTIMIZE_MEMORY > 0
+  return 0;
+#else // #if LUA_OPTIMIZE_MEMORY > 0
   luaL_register( L, AUXLIB_SPI, spi_map );
+  
   // Add the MASTER and SLAVE constants (for spi.setup)
   lua_pushnumber( L, PLATFORM_SPI_MASTER );
   lua_setfield( L, -2, "MASTER" );
@@ -101,4 +111,5 @@ LUALIB_API int luaopen_spi( lua_State *L )
   lua_setfield( L, -2, "SLAVE" );
   
   return 1;
+#endif // #if LUA_OPTIMIZE_MEMORY > 0  
 }

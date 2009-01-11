@@ -5,6 +5,7 @@
 #include "lauxlib.h"
 #include "platform.h"
 #include "auxmods.h"
+#include "lrotable.h"
 
 // Lua: actualbaud = setup( id, baud, databits, parity, stopbits )
 static int uart_setup( lua_State* L )
@@ -74,17 +75,32 @@ static int uart_recv( lua_State* L )
 }
 
 // Module function map
-static const luaL_reg uart_map[] = 
+#define MIN_OPT_LEVEL   2
+#include "lrodefs.h"
+const LUA_REG_TYPE uart_map[] = 
 {
-  { "setup",  uart_setup },
-  { "send", uart_send },
-  { "recv", uart_recv },
-  { "sendstr", uart_sendstr },
-  { NULL, NULL }
+  { LSTRKEY( "setup" ),  LFUNCVAL( uart_setup ) },
+  { LSTRKEY( "send" ), LFUNCVAL( uart_send) },
+  { LSTRKEY( "recv" ), LFUNCVAL( uart_recv ) },
+  { LSTRKEY( "sendstr" ), LFUNCVAL( uart_sendstr ) },
+#if LUA_OPTIMIZE_MEMORY > 0
+  { LSTRKEY( "PAR_EVEN" ), LNUMVAL( PLATFORM_UART_PARITY_EVEN ) },
+  { LSTRKEY( "PAR_ODD" ), LNUMVAL( PLATFORM_UART_PARITY_ODD ) },
+  { LSTRKEY( "PAR_NONE" ), LNUMVAL( PLATFORM_UART_PARITY_NONE ) },
+  { LSTRKEY( "STOP_1" ), LNUMVAL( PLATFORM_UART_STOPBITS_1 ) },
+  { LSTRKEY( "STOP_1_5" ), LNUMVAL( PLATFORM_UART_STOPBITS_1_5 ) },
+  { LSTRKEY( "STOP_2" ), LNUMVAL( PLATFORM_UART_STOPBITS_2 ) },
+  { LSTRKEY( "NO_TIMEOUT" ), LNUMVAL( 0 ) },
+  { LSTRKEY( "INF_TIMEOUT" ), LNUMVAL( PLATFORM_UART_INFINITE_TIMEOUT ) },
+#endif
+  { LNILKEY, LNILVAL }
 };
 
 LUALIB_API int luaopen_uart( lua_State *L )
 {
+#if LUA_OPTIMIZE_MEMORY > 0
+  return 0;
+#else // #if LUA_OPTIMIZE_MEMORY > 0
   luaL_register( L, AUXLIB_UART, uart_map );
   
   // Add the stop bits and parity constants (for uart.setup)
@@ -108,4 +124,5 @@ LUALIB_API int luaopen_uart( lua_State *L )
   lua_setfield( L, -2, "INF_TIMEOUT" );
   
   return 1;
+#endif // #if LUA_OPTIMIZE_MEMORY > 0
 }

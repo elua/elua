@@ -262,14 +262,15 @@ static StkId tryfuncTM (lua_State *L, StkId func) {
 
 
 int luaD_precall (lua_State *L, StkId func, int nresults) {
-  LClosure *cl;
   ptrdiff_t funcr;
-  if (!ttisfunction(func)) /* `func' is not a function? */
+  LClosure *cl = NULL;
+  if (!ttisfunction(func) && !ttislightfunction(func)) /* `func' is not a function? */
     func = tryfuncTM(L, func);  /* check the `function' tag method */
   funcr = savestack(L, func);
-  cl = &clvalue(func)->l;
+  if (ttisfunction(func))
+    cl = &clvalue(func)->l;
   L->ci->savedpc = L->savedpc;
-  if (!cl->isC) {  /* Lua function? prepare its call */
+  if (cl && !cl->isC) {  /* Lua function? prepare its call */
     CallInfo *ci;
     StkId st, base;
     Proto *p = cl->p;
@@ -316,7 +317,10 @@ int luaD_precall (lua_State *L, StkId func, int nresults) {
     if (L->hookmask & LUA_MASKCALL)
       luaD_callhook(L, LUA_HOOKCALL, -1);
     lua_unlock(L);
-    n = (*curr_func(L)->c.f)(L);  /* do the actual call */
+    if (ttisfunction(func))
+      n = (*curr_func(L)->c.f)(L);  /* do the actual call */
+    else
+      n = ((lua_CFunction)fvalue(func))(L);  /* do the actual call */    
     lua_lock(L);
     if (n < 0)  /* yielding? */
       return PCRYIELD;

@@ -17,7 +17,7 @@
 #define BUILD_ROMFS
 #define BUILD_TERM
 #define BUILD_UIP
-//#define BUILD_DHCPC
+#define BUILD_DHCPC
 #define BUILD_DNS
 #define BUILD_CON_GENERIC
 //#define BUILD_CON_TCP
@@ -36,20 +36,23 @@
 // *****************************************************************************
 // Auxiliary libraries that will be compiled for this platform
 
-#define LUA_PLATFORM_LIBS\
-  { AUXLIB_PIO, luaopen_pio },\
-  { AUXLIB_SPI, luaopen_spi },\
-  { AUXLIB_TMR, luaopen_tmr },\
-  { AUXLIB_PD, luaopen_pd },\
-  { AUXLIB_UART, luaopen_uart },\
-  { AUXLIB_TERM, luaopen_term },\
-  { AUXLIB_PWM, luaopen_pwm },\
-  { AUXLIB_PACK, luaopen_pack },\
-  { AUXLIB_BIT, luaopen_bit },\
-  { AUXLIB_NET, luaopen_net },\
-  { AUXLIB_CPU, luaopen_cpu },\
-  { AUXLIB_DISP, luaopen_disp },\
-  { LUA_MATHLIBNAME, luaopen_math }
+#define AUXLIB_DISP   "disp"
+LUALIB_API int ( luaopen_disp )( lua_State* L );
+
+#define LUA_PLATFORM_LIBS_ROM\
+  _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
+  _ROM( AUXLIB_SPI, luaopen_spi, spi_map )\
+  _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
+  _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
+  _ROM( AUXLIB_UART, luaopen_uart, uart_map )\
+  _ROM( AUXLIB_TERM, luaopen_term, term_map )\
+  _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map )\
+  _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
+  _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
+  _ROM( AUXLIB_NET, luaopen_net, net_map )\
+  _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
+  _ROM( AUXLIB_DISP, luaopen_disp, disp_map )\
+  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
   
 // *****************************************************************************
 // Configuration data

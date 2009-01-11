@@ -5,6 +5,7 @@
 #include "lauxlib.h"
 #include "platform.h"
 #include "auxmods.h"
+#include "lrotable.h"
 
 // Lua: realfrequency = setup( id, frequency, duty )
 static int pwm_setup( lua_State* L )
@@ -73,18 +74,19 @@ static int pwm_getclock( lua_State* L )
 }
 
 // Module function map
-static const luaL_reg pwm_map[] = 
+#define MIN_OPT_LEVEL 2
+#include "lrodefs.h"
+const LUA_REG_TYPE pwm_map[] = 
 {
-  { "setup", pwm_setup },
-  { "start", pwm_start },
-  { "stop", pwm_stop },
-  { "setclock", pwm_setclock },
-  { "getclock", pwm_getclock },
-  { NULL, NULL }
+  { LSTRKEY( "setup" ), LFUNCVAL( pwm_setup ) },
+  { LSTRKEY( "start" ), LFUNCVAL( pwm_start ) },
+  { LSTRKEY( "stop" ), LFUNCVAL( pwm_stop ) },
+  { LSTRKEY( "setclock" ), LFUNCVAL( pwm_setclock ) },
+  { LSTRKEY( "getclock" ), LFUNCVAL( pwm_getclock ) },
+  { LNILKEY, LNILVAL }
 };
 
 LUALIB_API int luaopen_pwm( lua_State *L )
 {
-  luaL_register( L, AUXLIB_PWM, pwm_map );
-  return 1;
+  LREGISTER( L, AUXLIB_PWM, pwm_map );
 }

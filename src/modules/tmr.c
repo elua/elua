@@ -7,7 +7,12 @@
 #include "auxmods.h"
 #include "platform_conf.h"
 #include "common.h"
+#include "lrotable.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_VTIMER_NAME_LEN     6
 
 // Helper function for the read/start functions
 static int tmrh_timer_op( lua_State* L, int op )
@@ -115,33 +120,62 @@ static int tmr_getclock( lua_State* L )
   return 1;
 }
 
-// Module function map
-static const luaL_reg tmr_map[] = 
+#if VTMR_NUM_TIMERS > 0
+// __index metafunction for TMR
+// Look for all VIRTx timer identifiers
+static int tmr_mt_index( lua_State* L )
 {
-  { "delay",  tmr_delay },
-  { "read", tmr_read },
-  { "start", tmr_start },
-  { "diff", tmr_diff },  
-  { "mindelay", tmr_mindelay },
-  { "maxdelay", tmr_maxdelay },
-  { "setclock", tmr_setclock },
-  { "getclock", tmr_getclock },
-  { NULL, NULL }
+  const char *key = luaL_checkstring( L ,2 );
+  char* pend;
+  long res;
+  
+  if( strlen( key ) > MAX_VTIMER_NAME_LEN || strlen( key ) < 5 )
+    return 0;
+  if( strncmp( key, "VIRT", 4 ) )
+    return 0;  
+  res = strtol( key + 4, &pend, 10 );
+  if( *pend != '\0' )
+    return 0;
+  if( res >= VTMR_NUM_TIMERS )
+    return 0;
+  lua_pushinteger( L, VTMR_FIRST_ID + res );
+  return 1;
+}
+#endif // #if VTMR_NUM_TIMERS > 0
+
+// Module function map
+#define MIN_OPT_LEVEL 2
+#include "lrodefs.h"
+const LUA_REG_TYPE tmr_map[] = 
+{
+  { LSTRKEY( "delay" ), LFUNCVAL( tmr_delay ) },
+  { LSTRKEY( "read" ), LFUNCVAL( tmr_read ) },
+  { LSTRKEY( "start" ), LFUNCVAL( tmr_start ) },
+  { LSTRKEY( "diff" ), LFUNCVAL( tmr_diff ) },  
+  { LSTRKEY( "mindelay" ), LFUNCVAL( tmr_mindelay ) },
+  { LSTRKEY( "maxdelay" ), LFUNCVAL( tmr_maxdelay ) },
+  { LSTRKEY( "setclock" ), LFUNCVAL( tmr_setclock ) },
+  { LSTRKEY( "getclock" ), LFUNCVAL( tmr_getclock ) },
+#if LUA_OPTIMIZE_MEMORY > 0 && VTMR_NUM_TIMERS > 0
+  { LSTRKEY( "__metatable" ), LROVAL( tmr_map ) },
+#endif
+#if VTMR_NUM_TIMERS > 0  
+  { LSTRKEY( "__index" ), LFUNCVAL( tmr_mt_index ) },
+#endif  
+  { LNILKEY, LNILVAL }
 };
 
 LUALIB_API int luaopen_tmr( lua_State *L )
 {
+#if LUA_OPTIMIZE_MEMORY > 0
+  return 0;
+#else // #if LUA_OPTIMIZE_MEMORY > 0
   luaL_register( L, AUXLIB_TMR, tmr_map );
 #if VTMR_NUM_TIMERS > 0
-  unsigned i;
-  char tname[ 8 ];
-  for( i = 0; i < VTMR_NUM_TIMERS; i ++ )
-  {
-    tname[ 0 ] = tname[ 7 ] = '\0';
-    snprintf( tname, 7, "VIRT%d", i );
-    lua_pushnumber( L, VTMR_FIRST_ID + i );
-    lua_setfield( L, -2, tname );  
-  }
-#endif
+  // Set this table as its own metatable
+  lua_pushvalue( L, -1 );
+  lua_setmetatable( L, -2 );  
+#endif // #if VTMR_NUM_TIMERS > 0
   return 1;
+#endif // #if LUA_OPTIMIZE_MEMORY > 0
 }

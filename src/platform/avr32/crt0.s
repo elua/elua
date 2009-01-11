@@ -49,14 +49,14 @@
 //! \verbatim
 
 
-  // _stext is placed outside the .reset section so that the program entry point
+  // crt0 is placed outside the .reset section so that the program entry point
   // can be changed without affecting the C runtime startup.
   .section  .start, "ax", @progbits
 
 
-  .global _stext
-  .type _stext, @function
-_stext:
+  .global crt0
+  .type crt0, @function
+crt0:
   // Set initial stack pointer.
   lda.w   sp, _sstack
 

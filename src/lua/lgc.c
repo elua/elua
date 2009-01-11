@@ -21,7 +21,7 @@
 #include "lstring.h"
 #include "ltable.h"
 #include "ltm.h"
-
+#include "lrotable.h"
 
 #define GCSTEPSIZE	1024u
 #define GCSWEEPMAX	40
@@ -76,7 +76,7 @@ static void reallymarkobject (global_State *g, GCObject *o) {
     case LUA_TUSERDATA: {
       Table *mt = gco2u(o)->metatable;
       gray2black(o);  /* udata are never gray */
-      if (mt) markobject(g, mt);
+      if (mt && !luaR_isrotable(mt)) markobject(g, mt);
       markobject(g, gco2u(o)->env);
       return;
     }
@@ -160,7 +160,7 @@ static int traversetable (global_State *g, Table *h) {
   int weakkey = 0;
   int weakvalue = 0;
   const TValue *mode;
-  if (h->metatable)
+  if (h->metatable && !luaR_isrotable(h->metatable))
     markobject(g, h->metatable);
   mode = gfasttm(g, h->metatable, TM_MODE);
   if (mode && ttisstring(mode)) {  /* is there a weak mode? */
@@ -493,7 +493,7 @@ void luaC_freeall (lua_State *L) {
 static void markmt (global_State *g) {
   int i;
   for (i=0; i<NUM_TAGS; i++)
-    if (g->mt[i]) markobject(g, g->mt[i]);
+    if (g->mt[i] && !luaR_isrotable(g->mt[i])) markobject(g, g->mt[i]);
 }
 
 

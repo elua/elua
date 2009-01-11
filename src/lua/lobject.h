@@ -74,7 +74,6 @@ typedef struct lua_TValue {
   TValuefields;
 } TValue;
 
-
 /* Macros to test type */
 #define ttisnil(o)	(ttype(o) == LUA_TNIL)
 #define ttisnumber(o)	(ttype(o) == LUA_TNUMBER)
@@ -85,11 +84,15 @@ typedef struct lua_TValue {
 #define ttisuserdata(o)	(ttype(o) == LUA_TUSERDATA)
 #define ttisthread(o)	(ttype(o) == LUA_TTHREAD)
 #define ttislightuserdata(o)	(ttype(o) == LUA_TLIGHTUSERDATA)
+#define ttisrotable(o) (ttype(o) == LUA_TROTABLE)
+#define ttislightfunction(o)  (ttype(o) == LUA_TLIGHTFUNCTION)
 
 /* Macros to access values */
 #define ttype(o)	((o)->tt)
 #define gcvalue(o)	check_exp(iscollectable(o), (o)->value.gc)
 #define pvalue(o)	check_exp(ttislightuserdata(o), (o)->value.p)
+#define rvalue(o)	check_exp(ttisrotable(o), (o)->value.p)
+#define fvalue(o) check_exp(ttislightfunction(o), (o)->value.p)
 #define nvalue(o)	check_exp(ttisnumber(o), (o)->value.n)
 #define rawtsvalue(o)	check_exp(ttisstring(o), &(o)->value.gc->ts)
 #define tsvalue(o)	(&rawtsvalue(o)->tsv)
@@ -121,6 +124,12 @@ typedef struct lua_TValue {
 
 #define setpvalue(obj,x) \
   { TValue *i_o=(obj); i_o->value.p=(x); i_o->tt=LUA_TLIGHTUSERDATA; }
+  
+#define setrvalue(obj,x) \
+  { TValue *i_o=(obj); i_o->value.p=(x); i_o->tt=LUA_TROTABLE; }
+  
+#define setfvalue(obj,x) \
+  { TValue *i_o=(obj); i_o->value.p=(x); i_o->tt=LUA_TLIGHTFUNCTION; }
 
 #define setbvalue(obj,x) \
   { TValue *i_o=(obj); i_o->value.b=(x); i_o->tt=LUA_TBOOLEAN; }
@@ -312,7 +321,7 @@ typedef union Closure {
 } Closure;
 
 
-#define iscfunction(o)	(ttype(o) == LUA_TFUNCTION && clvalue(o)->c.isC)
+#define iscfunction(o)	((ttype(o) == LUA_TFUNCTION && clvalue(o)->c.isC)||(ttype(o)==LUA_TLIGHTFUNCTION))
 #define isLfunction(o)	(ttype(o) == LUA_TFUNCTION && !clvalue(o)->c.isC)
 
 
@@ -346,7 +355,6 @@ typedef struct Table {
   GCObject *gclist;
   int sizearray;  /* size of `array' array */
 } Table;
-
 
 
 /*

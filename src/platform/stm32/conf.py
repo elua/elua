@@ -8,7 +8,7 @@ local_include = local_include + " -Isrc/platform/%s/FWLib/library/inc" % platfor
 fwlib_files = " ".join(glob.glob("src/platform/%s/FWLib/library/src/*.c" % platform))
 #print "FWLib: %s " % fwlib_files 
 
-specific_files = "cortexm3_macro.s stm32f10x_vector.c systick.c platform.c stm32f10x_it.c lcd.c lua_lcd.c lstm32_mod.c"
+specific_files = "cortexm3_macro.s stm32f10x_vector.c systick.c platform.c stm32f10x_it.c lcd.c lua_lcd.c"
 
 ldscript = "stm32.ld"
   

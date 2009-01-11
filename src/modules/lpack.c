@@ -37,6 +37,7 @@
 #include "lualib.h"
 #include "lauxlib.h"
 #include "auxmods.h"
+#include "lrotable.h"
 
 static void badcode(lua_State *L, int c)
 {
@@ -254,15 +255,16 @@ static int l_pack(lua_State *L) 		/** pack(f,...) */
  return 1;
 }
 
-static const luaL_reg pack_map[] =
+#define MIN_OPT_LEVEL 2
+#include "lrodefs.h"
+const LUA_REG_TYPE pack_map[] =
 {
-	{"pack",	l_pack},
-	{"unpack",	l_unpack},
-	{NULL,	NULL}
+	{ LSTRKEY( "pack" ),  LFUNCVAL( l_pack ) },
+	{ LSTRKEY( "unpack" ), LFUNCVAL( l_unpack ) },
+	{ LNILKEY, LNILVAL }
 };
 
 int luaopen_pack( lua_State *L )
 {
-  luaL_register( L, AUXLIB_PACK, pack_map );
-  return 1;  
+  LREGISTER( L, AUXLIB_PACK, pack_map );
 }

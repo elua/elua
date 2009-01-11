@@ -22,6 +22,9 @@
 
 int platform_init()
 {
+   MODE1C_2 = 2;
+   MODE0S_2 = 2;
+                    
   // Initialize CPU
   lpc288x_init();
   

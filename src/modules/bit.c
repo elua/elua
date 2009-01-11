@@ -9,6 +9,7 @@
 #include <limits.h>
 #include "auxmods.h"
 #include "type.h"
+#include "lrotable.h"
 
 /* FIXME: Assume size_t is an unsigned lua_Integer */
 typedef size_t lua_UInteger;
@@ -123,23 +124,24 @@ static int bit_clear( lua_State* L )
   return 1; 
 }
 
-static const struct luaL_reg bitlib[] = {
-  {"bnot",    bit_bnot},
-  {"band",    bit_band},
-  {"bor",     bit_bor},
-  {"bxor",    bit_bxor},
-  {"lshift",  bit_lshift},
-  {"rshift",  bit_rshift},
-  {"arshift", bit_arshift},
-  {"bit",     bit_bit},
-  {"set",     bit_set},
-  {"clear",   bit_clear},
-  {"isset",   bit_isset},
-  {"isclear", bit_isclear},
-  {NULL, NULL}
+#define MIN_OPT_LEVEL 2
+#include "lrodefs.h"
+const LUA_REG_TYPE bit_map[] = {
+  { LSTRKEY( "bnot" ),    LFUNCVAL( bit_bnot ) },
+  { LSTRKEY( "band" ),    LFUNCVAL( bit_band ) },
+  { LSTRKEY( "bor" ),     LFUNCVAL( bit_bor ) },
+  { LSTRKEY( "bxor" ),    LFUNCVAL( bit_bxor ) },
+  { LSTRKEY( "lshift" ),  LFUNCVAL( bit_lshift ) },
+  { LSTRKEY( "rshift" ),  LFUNCVAL( bit_rshift ) },
+  { LSTRKEY( "arshift" ), LFUNCVAL( bit_arshift ) },
+  { LSTRKEY( "bit" ),     LFUNCVAL( bit_bit ) },
+  { LSTRKEY( "set" ),     LFUNCVAL( bit_set ) },
+  { LSTRKEY( "clear" ),   LFUNCVAL( bit_clear ) },
+  { LSTRKEY( "isset" ),   LFUNCVAL( bit_isset ) },
+  { LSTRKEY( "isclear" ), LFUNCVAL( bit_isclear ) },
+  { LNILKEY, LNILVAL}
 };
 
 LUALIB_API int luaopen_bit (lua_State *L) {
-  luaL_register(L, "bit", bitlib);
-  return 1;
+  LREGISTER( L, "bit", bit_map );
 }

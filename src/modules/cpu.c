@@ -5,6 +5,7 @@
 #include "lauxlib.h"
 #include "platform.h"
 #include "auxmods.h"
+#include "lrotable.h"
 #include <string.h> 
 
 #define _C( x ) { #x, x }
@@ -95,11 +96,10 @@ typedef struct
   u32 val;
 } cpu_const_t;
 
+#ifdef PLATFORM_CPU_CONSTANTS
 static const cpu_const_t cpu_constants[] = 
 {
-#ifdef PLATFORM_CPU_CONSTANTS
   PLATFORM_CPU_CONSTANTS,
-#endif
   { NULL, 0 }
 };
 
@@ -119,38 +119,45 @@ static int cpu_mt_index( lua_State *L )
   }
   return 0;
 }
-
-// Metatable data
-static const luaL_reg cpu_mt_map[] =
-{
-  { "__index", cpu_mt_index },
-  { NULL, NULL }
-};
+#endif
 
 // Module function map
-static const luaL_reg cpu_map[] = 
+#define MIN_OPT_LEVEL 2
+#include "lrodefs.h"
+const LUA_REG_TYPE cpu_map[] = 
 {
-  { "w32", cpu_w32 },
-  { "r32", cpu_r32 },
-  { "w16", cpu_w16 },
-  { "r16", cpu_r16 },
-  { "w8", cpu_w8 },
-  { "r8", cpu_r8 },
-  { "cli", cpu_cli },
-  { "sei", cpu_sei },
-  { "clock", cpu_clock },
-  { NULL, NULL }
+  { LSTRKEY( "w32" ), LFUNCVAL( cpu_w32 ) },
+  { LSTRKEY( "r32" ), LFUNCVAL( cpu_r32 ) },
+  { LSTRKEY( "w16" ), LFUNCVAL( cpu_w16 ) },
+  { LSTRKEY( "r16" ), LFUNCVAL( cpu_r16 ) },
+  { LSTRKEY( "w8" ), LFUNCVAL( cpu_w8 ) },
+  { LSTRKEY( "r8" ), LFUNCVAL( cpu_r8 ) },
+  { LSTRKEY( "cli" ), LFUNCVAL( cpu_cli ) },
+  { LSTRKEY( "sei" ), LFUNCVAL( cpu_sei ) },
+  { LSTRKEY( "clock" ), LFUNCVAL( cpu_clock ) },
+#if defined( PLATFORM_CPU_CONSTANTS ) && LUA_OPTIMIZE_MEMORY > 0
+  { LSTRKEY( "__metatable" ), LROVAL( cpu_map ) },
+#endif
+#ifdef PLATFORM_CPU_CONSTANTS
+  { LSTRKEY( "__index" ), LFUNCVAL( cpu_mt_index ) },
+#endif
+  { LNILKEY, LNILVAL }
 };
 
 LUALIB_API int luaopen_cpu( lua_State *L )
 {
+#if LUA_OPTIMIZE_MEMORY > 0
+  return 0;
+#else // #if LUA_OPTIMIZE_MEMORY > 0
   // Register methods
   luaL_register( L, AUXLIB_CPU, cpu_map );
   
-  // Create and set metatable
-  lua_newtable( L );
-  luaL_register( L, NULL, cpu_mt_map );  
-  lua_setmetatable( L, -2 );  
+#ifdef PLATFORM_CPU_CONSTANTS
+  // Set table as its own metatable
+  lua_pushvalue( L, -1 );
+  lua_setmetatable( L, -2 );
+#endif // #ifdef PLATFORM_CPU_CONSTANTS
   
   return 1;
+#endif // #if LUA_OPTIMIZE_MEMORY > 0
 }

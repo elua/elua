@@ -33,7 +33,7 @@
 #include "lobject.h"
 #include "lstate.h"
 #include "ltable.h"
-
+#include "lrotable.h"
 
 /*
 ** max size of array part is 2^MAXBITS
@@ -106,6 +106,8 @@ static Node *mainposition (const Table *t, const TValue *key) {
     case LUA_TBOOLEAN:
       return hashboolean(t, bvalue(key));
     case LUA_TLIGHTUSERDATA:
+    case LUA_TROTABLE:
+    case LUA_TLIGHTFUNCTION:
       return hashpointer(t, pvalue(key));
     default:
       return hashpointer(t, gcvalue(key));
@@ -176,6 +178,12 @@ int luaH_next (lua_State *L, Table *t, StkId key) {
     }
   }
   return 0;  /* no more elements */
+}
+
+
+int luaH_next_ro (lua_State *L, void *t, StkId key) {
+  luaR_next(L, t, key, key+1);
+  return ttisnil(key) ? 0 : 1;
 }
 
 
@@ -448,6 +456,12 @@ const TValue *luaH_getnum (Table *t, int key) {
   }
 }
 
+/* same thing for rotables */
+const TValue *luaH_getnum_ro (void *t, int key) {
+  const TValue *res = luaR_findentry(t, NULL, key, NULL);
+  return res ? res : luaO_nilobject;
+}
+
 
 /*
 ** search function for strings
@@ -460,6 +474,17 @@ const TValue *luaH_getstr (Table *t, TString *key) {
     else n = gnext(n);
   } while (n);
   return luaO_nilobject;
+}
+
+/* same thing for rotables */
+const TValue *luaH_getstr_ro (void *t, TString *key) {
+  char keyname[LUA_MAX_ROTABLE_NAME + 1];
+  const TValue *res;  
+  if (!t)
+    return luaO_nilobject;
+  luaR_getcstr(keyname, key, LUA_MAX_ROTABLE_NAME);   
+  res = luaR_findentry(t, keyname, 0, NULL);
+  return res ? res : luaO_nilobject;
 }
 
 
@@ -485,6 +510,25 @@ const TValue *luaH_get (Table *t, const TValue *key) {
           return gval(n);  /* that's it */
         else n = gnext(n);
       } while (n);
+      return luaO_nilobject;
+    }
+  }
+}
+
+/* same thing for rotables */
+const TValue *luaH_get_ro (void *t, const TValue *key) {
+  switch (ttype(key)) {
+    case LUA_TNIL: return luaO_nilobject;
+    case LUA_TSTRING: return luaH_getstr_ro(t, rawtsvalue(key));
+    case LUA_TNUMBER: {
+      int k;
+      lua_Number n = nvalue(key);
+      lua_number2int(k, n);
+      if (luai_numeq(cast_num(k), nvalue(key))) /* index is int? */
+        return luaH_getnum_ro(t, k);  /* use specialized version */
+      /* else go through */
+    }
+    default: {
       return luaO_nilobject;
     }
   }
@@ -575,7 +619,14 @@ int luaH_getn (Table *t) {
   else return unbound_search(t, j);
 }
 
-
+/* same thing for rotables */
+int luaH_getn_ro (void *t) {
+  int i = 1, len=0;
+  
+  while(luaR_findentry(t, NULL, i ++, NULL))
+    len ++;
+  return len;
+}
 
 #if defined(LUA_DEBUG)
 

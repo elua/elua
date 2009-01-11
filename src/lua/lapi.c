@@ -28,7 +28,7 @@
 #include "ltm.h"
 #include "lundump.h"
 #include "lvm.h"
-
+#include "lrotable.h"
 
 
 const char lua_ident[] =
@@ -61,12 +61,13 @@ static TValue *index2adr (lua_State *L, int idx) {
     case LUA_REGISTRYINDEX: return registry(L);
     case LUA_ENVIRONINDEX: {
       Closure *func = curr_func(L);
-      sethvalue(L, &L->env, func->c.env);
+      sethvalue(L, &L->env, func ? func->c.env : hvalue(gt(L)));
       return &L->env;
     }
     case LUA_GLOBALSINDEX: return gt(L);
     default: {
       Closure *func = curr_func(L);
+      if (!func) return cast(TValue *, luaO_nilobject);
       idx = LUA_GLOBALSINDEX - idx;
       return (idx <= func->c.nupvalues)
                 ? &func->c.upvalue[idx-1]
@@ -81,7 +82,7 @@ static Table *getcurrenv (lua_State *L) {
     return hvalue(gt(L));  /* use global table as environment */
   else {
     Closure *func = curr_func(L);
-    return func->c.env;
+    return func ? func->c.env : hvalue(gt(L));
   }
 }
 
@@ -211,13 +212,17 @@ LUA_API void lua_replace (lua_State *L, int idx) {
   api_checkvalidindex(L, o);
   if (idx == LUA_ENVIRONINDEX) {
     Closure *func = curr_func(L);
-    api_check(L, ttistable(L->top - 1)); 
-    func->c.env = hvalue(L->top - 1);
-    luaC_barrier(L, func, L->top - 1);
+    if (!func)
+      luaG_runerror(L, "attempt to set environment on lightfunction");
+    else {
+      api_check(L, ttistable(L->top - 1)); 
+      func->c.env = hvalue(L->top - 1);
+      luaC_barrier(L, func, L->top - 1);
+    }
   }
   else {
     setobj(L, o, L->top - 1);
-    if (idx < LUA_GLOBALSINDEX)  /* function upvalue? */
+    if (curr_func(L) && idx < LUA_GLOBALSINDEX)  /* function upvalue? */
       luaC_barrier(L, curr_func(L), L->top - 1);
   }
   L->top--;
@@ -364,6 +369,7 @@ LUA_API size_t lua_objlen (lua_State *L, int idx) {
     case LUA_TSTRING: return tsvalue(o)->len;
     case LUA_TUSERDATA: return uvalue(o)->len;
     case LUA_TTABLE: return luaH_getn(hvalue(o));
+    case LUA_TROTABLE: return luaH_getn_ro(rvalue(o));
     case LUA_TNUMBER: {
       size_t l;
       lua_lock(L);  /* `luaV_tostring' may create a new string */
@@ -407,6 +413,9 @@ LUA_API const void *lua_topointer (lua_State *L, int idx) {
     case LUA_TUSERDATA:
     case LUA_TLIGHTUSERDATA:
       return lua_touserdata(L, idx);
+    case LUA_TROTABLE: 
+    case LUA_TLIGHTFUNCTION:
+      return pvalue(o);
     default: return NULL;
   }
 }
@@ -515,6 +524,20 @@ LUA_API void lua_pushlightuserdata (lua_State *L, void *p) {
   lua_unlock(L);
 }
 
+LUA_API void lua_pushrotable (lua_State *L, void *p) {
+  lua_lock(L);
+  setrvalue(L->top, p);
+  api_incr_top(L);
+  lua_unlock(L);
+}
+
+LUA_API void lua_pushlightfunction(lua_State *L, void *p) {
+  lua_lock(L);
+  setfvalue(L->top, p);
+  api_incr_top(L);
+  lua_unlock(L);
+}
+
 
 LUA_API int lua_pushthread (lua_State *L) {
   lua_lock(L);
@@ -556,10 +579,12 @@ LUA_API void lua_getfield (lua_State *L, int idx, const char *k) {
 
 LUA_API void lua_rawget (lua_State *L, int idx) {
   StkId t;
+  const TValue *res;
   lua_lock(L);
   t = index2adr(L, idx);
-  api_check(L, ttistable(t));
-  setobj2s(L, L->top - 1, luaH_get(hvalue(t), L->top - 1));
+  api_check(L, ttistable(t) || ttisrotable(t));
+  res = ttistable(t) ? luaH_get(hvalue(t), L->top - 1) : luaH_get_ro(rvalue(t), L->top - 1);
+  setobj2s(L, L->top - 1, res);    
   lua_unlock(L);
 }
 
@@ -568,8 +593,8 @@ LUA_API void lua_rawgeti (lua_State *L, int idx, int n) {
   StkId o;
   lua_lock(L);
   o = index2adr(L, idx);
-  api_check(L, ttistable(o));
-  setobj2s(L, L->top, luaH_getnum(hvalue(o), n));
+  api_check(L, ttistable(o) || ttisrotable(o));
+  setobj2s(L, L->top, ttistable(o) ? luaH_getnum(hvalue(o), n) : luaH_getnum_ro(rvalue(o), n))
   api_incr_top(L);
   lua_unlock(L);
 }
@@ -597,6 +622,9 @@ LUA_API int lua_getmetatable (lua_State *L, int objindex) {
     case LUA_TUSERDATA:
       mt = uvalue(obj)->metatable;
       break;
+    case LUA_TROTABLE:
+      mt = (Table*)luaR_getmeta(rvalue(obj));
+      break; 
     default:
       mt = G(L)->mt[ttype(obj)];
       break;
@@ -604,7 +632,10 @@ LUA_API int lua_getmetatable (lua_State *L, int objindex) {
   if (mt == NULL)
     res = 0;
   else {
-    sethvalue(L, L->top, mt);
+    if(luaR_isrotable(mt))
+      setrvalue(L->top, mt)
+    else
+      sethvalue(L, L->top, mt)
     api_incr_top(L);
     res = 1;
   }
@@ -697,6 +728,7 @@ LUA_API void lua_rawseti (lua_State *L, int idx, int n) {
 LUA_API int lua_setmetatable (lua_State *L, int objindex) {
   TValue *obj;
   Table *mt;
+  int isrometa = 0;
   lua_lock(L);
   api_checknelems(L, 1);
   obj = index2adr(L, objindex);
@@ -704,19 +736,24 @@ LUA_API int lua_setmetatable (lua_State *L, int objindex) {
   if (ttisnil(L->top - 1))
     mt = NULL;
   else {
-    api_check(L, ttistable(L->top - 1));
-    mt = hvalue(L->top - 1);
+    api_check(L, ttistable(L->top - 1) || ttisrotable(L->top - 1));
+    if (ttistable(L->top - 1))
+      mt = hvalue(L->top - 1);
+    else {
+      mt = (Table*)rvalue(L->top - 1);
+      isrometa = 1;
+    }
   }
   switch (ttype(obj)) {
     case LUA_TTABLE: {
       hvalue(obj)->metatable = mt;
-      if (mt)
+      if (mt && !isrometa)
         luaC_objbarriert(L, hvalue(obj), mt);
       break;
     }
     case LUA_TUSERDATA: {
       uvalue(obj)->metatable = mt;
-      if (mt)
+      if (mt && !isrometa)
         luaC_objbarrier(L, rawuvalue(obj), mt);
       break;
     }
@@ -975,8 +1012,8 @@ LUA_API int lua_next (lua_State *L, int idx) {
   int more;
   lua_lock(L);
   t = index2adr(L, idx);
-  api_check(L, ttistable(t));
-  more = luaH_next(L, hvalue(t), L->top - 1);
+  api_check(L, ttistable(t) || ttisrotable(t));
+  more = ttistable(t) ? luaH_next(L, hvalue(t), L->top - 1) : luaH_next_ro(L, rvalue(t), L->top - 1);
   if (more) {
     api_incr_top(L);
   }

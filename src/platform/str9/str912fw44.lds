@@ -13,6 +13,7 @@ SECTIONS
     {
         . = ALIGN(4);
         _sfixed = .;
+        PROVIDE(stext = .);
         KEEP(*(.vectors))
         *(.text .text.*)        
         *(.rodata .rodata.*)        

@@ -6,10 +6,11 @@
 #include "platform.h"
 #include "auxmods.h"
 #include "modcommon.h"
+#include "lrotable.h"
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
-
+#include "platform_conf.h"
 #include "lcd.h"
 
 #ifdef FORSTM3210E_EVAL
@@ -72,46 +73,47 @@ static int lcd_print(lua_State * L)
 	return 0;
 }
 
-static const eLua_const_userdata_t lcd_constants[] = 
+static int lcd_mt_index( lua_State *L )
 {
-	_ELUA_CTE(Line0),
-	_ELUA_CTE(Line1),
-	_ELUA_CTE(Line2),
-	_ELUA_CTE(Line3),
-	_ELUA_CTE(Line4),
-	_ELUA_CTE(Line5),
-	_ELUA_CTE(Line6),
-	_ELUA_CTE(Line7),
-	_ELUA_CTE(Line8),
-	_ELUA_CTE(Line9),
-	
-	{ NULL, 0 }
-};
-
-static const luaL_reg lcd_map[] =
-{
-	{ "init", lcd_init },
-	{ "setforecolor", lcd_setforecolor },
-	{ "setbackcolor", lcd_setbackcolor },
-	{ "clear", lcd_clear },
-	{ "clearline", lcd_clearline },
-	{ "print", lcd_print },
-
-	{ NULL, NULL }
-};
-
-//LUALIB_API int luaopen_lcd(lua_State * L) __attribute__ ((section (".lua_init")));
-LUALIB_API int luaopen_lcd(lua_State * L)
-{
-	eLua_register(L, "stm3210lcd", lcd_map);
-	eLua_register_const(L, lcd_constants);
-
-	return 1;
+  const char *key = luaL_checkstring( L ,2 );
+  int linedata[] = { Line0, Line1, Line2, Line3, Line4, Line5, Line6, Line7, Line8, Line9 };
+  
+  if( strlen( key ) != 5 || strncmp( key, "Line", 4 ) || !isdigit( key[ 4 ] ) ) 
+    return 0;
+  lua_pushinteger( L, linedata[ key[ 4 ] - '0' ] );
+  return 1;
 }
 
-const luaL_reg lcd_modtab[] __attribute__ ((section (".lua_init"))) = {
-	{ "stm3210lcd", luaopen_lcd }
+#define MIN_OPT_LEVEL 2
+#include "lrodefs.h"
+const LUA_REG_TYPE lcd_map[] =
+{
+	{ LSTRKEY( "init" ), LFUNCVAL( lcd_init ) },
+	{ LSTRKEY( "setforecolor" ), LFUNCVAL( lcd_setforecolor ) },
+	{ LSTRKEY( "setbackcolor" ), LFUNCVAL( lcd_setbackcolor ) },
+	{ LSTRKEY( "clear" ), LFUNCVAL( lcd_clear ) },
+	{ LSTRKEY( "clearline" ), LFUNCVAL( lcd_clearline ) },
+	{ LSTRKEY( "print" ), LFUNCVAL( lcd_print ) },
+#if LUA_OPTIMIZE_MEMORY > 0
+  { LSTRKEY( "__metatable" ), LROVAL( lcd_map ) },
+#endif
+  { LSTRKEY( "__index" ), LFUNCVAL( lcd_mt_index ) },
+	{ LNILKEY, LNILVAL }
 };
 
-#endif
+LUALIB_API int luaopen_lcd(lua_State * L)
+{
+#if LUA_OPTIMIZE_MEMORY > 0
+  return 0;
+#else // #if LUA_OPTIMIZE_MEMORY > 0
+  luaL_register( L, AUXLIB_LCD, lcd_map );
+  
+  // Set this table as its own metatable
+  lua_pushvalue( L, -1 );
+  lua_setmetatable( L, -2 );
+  
+  return 1;
+#endif // #if LUA_OPTIMIZE_MEMORY > 0  
+}
 
+#endif // #ifdef FORSTM3210E_EVAL

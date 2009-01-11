@@ -20,7 +20,7 @@
 
 #include "lauxlib.h"
 #include "lualib.h"
-
+#include "lrotable.h"
 
 /* prefix for open functions in C libraries */
 #define LUA_POF		"luaopen_"
@@ -459,6 +459,12 @@ static int ll_require (lua_State *L) {
       luaL_error(L, "loop or previous error loading module " LUA_QS, name);
     return 1;  /* package is already loaded */
   }
+  /* Is this a readonly table? */
+  void *res = luaR_findglobal(name, strlen(name));
+  if (res) {
+    lua_pushrotable(L, res);
+    return 1;
+  }
   /* else must load it; iterate over available loaders */
   lua_getfield(L, LUA_ENVIRONINDEX, "loaders");
   if (!lua_istable(L, -1))
@@ -543,6 +549,8 @@ static void modinit (lua_State *L, const char *modname) {
 
 static int ll_module (lua_State *L) {
   const char *modname = luaL_checkstring(L, 1);
+  if (luaR_findglobal(modname, strlen(modname)))
+    return 0;
   int loaded = lua_gettop(L) + 1;  /* index of _LOADED table */
   lua_getfield(L, LUA_REGISTRYINDEX, "_LOADED");
   lua_getfield(L, loaded, modname);  /* get _LOADED[modname] */
@@ -623,15 +631,25 @@ static const luaL_Reg ll_funcs[] = {
 static const lua_CFunction loaders[] =
   {loader_preload, loader_Lua, loader_C, loader_Croot, NULL};
 
+#if LUA_OPTIMIZE_MEMORY > 0
+const luaR_entry lmt[] = {
+  {LRO_STRKEY("__gc"), LRO_FUNCVAL(gctm)},
+  {LRO_NILKEY, LRO_NILVAL}
+};
+#endif
 
 LUALIB_API int luaopen_package (lua_State *L) {
   int i;
   /* create new type _LOADLIB */
+#if LUA_OPTIMIZE_MEMORY == 0
   luaL_newmetatable(L, "_LOADLIB");
-  lua_pushcfunction(L, gctm);
+  lua_pushlightfunction(L, gctm);
   lua_setfield(L, -2, "__gc");
+#else
+  luaL_rometatable(L, "_LOADLIB", (void*)lmt);
+#endif
   /* create `package' table */
-  luaL_register(L, LUA_LOADLIBNAME, pk_funcs);
+  luaL_register_light(L, LUA_LOADLIBNAME, pk_funcs);
 #if defined(LUA_COMPAT_LOADLIB) 
   lua_getfield(L, -1, "loadlib");
   lua_setfield(L, LUA_GLOBALSINDEX, "loadlib");

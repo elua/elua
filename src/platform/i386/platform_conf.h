@@ -16,9 +16,9 @@
 // *****************************************************************************
 // Auxiliary libraries that will be compiled for this platform
 
-#define LUA_PLATFORM_LIBS\
-  { AUXLIB_PD, luaopen_pd },\
-  { LUA_MATHLIBNAME, luaopen_math }
+#define LUA_PLATFORM_LIBS_ROM\
+  _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
+  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
   
 #define CON_UART_ID           0
   

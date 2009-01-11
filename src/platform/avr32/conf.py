@@ -11,7 +11,7 @@ ldscript = "src/platform/%s/%s" % ( platform, ldscript )
 # Toolset data
 tools[ 'avr32' ] = {}
 tools[ 'avr32' ][ 'cccom' ] = "avr32-gcc -mpart=uc3a0512 %s %s -ffunction-sections -fdata-sections %s -Wall -c $SOURCE -o $TARGET" % ( opt, local_include, cdefs )
-tools[ 'avr32' ][ 'linkcom' ] = "avr32-gcc -nostartfiles -nostdlib -T %s -Wl,--gc-sections -Wl,-e,_stext -Wl,--allow-multiple-definition -o $TARGET $SOURCES -lc -lgcc -lm %s" % ( ldscript, local_libs )
+tools[ 'avr32' ][ 'linkcom' ] = "avr32-gcc -nostartfiles -nostdlib -T %s -Wl,--gc-sections -Wl,-e,crt0 -Wl,--allow-multiple-definition -o $TARGET $SOURCES -lc -lgcc -lm %s" % ( ldscript, local_libs )
 tools[ 'avr32' ][ 'ascom' ] = "avr32-gcc -x assembler-with-cpp %s -mpart=uc3a0512 %s -Wall -c $SOURCE -o $TARGET" % ( local_include, cdefs )
 
 # Programming function

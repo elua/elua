@@ -7,6 +7,7 @@
 #include "auxmods.h"
 #include "term.h"
 #include "platform_conf.h"
+#include "lrotable.h"
 #include <string.h>
 
 // Lua: clrscr()
@@ -209,45 +210,48 @@ static int term_mt_index( lua_State* L )
 }
 
 // Module function map
-static const luaL_reg term_map[] = 
+#define MIN_OPT_LEVEL 2
+#include "lrodefs.h"
+const LUA_REG_TYPE term_map[] = 
 {
-  { "clrscr", luaterm_clrscr },
-  { "clreol", luaterm_clreol },
-  { "gotoxy", luaterm_gotoxy },
-  { "up", luaterm_up },
-  { "down", luaterm_down },
-  { "left", luaterm_left },
-  { "right", luaterm_right },
-  { "lines", luaterm_lines },
-  { "cols", luaterm_cols },
-  { "put", luaterm_put },
-  { "putstr", luaterm_putstr },
-  { "putxy", luaterm_putxy },
-  { "putstrxy", luaterm_putstrxy },
-  { "cursorx", luaterm_cx },
-  { "cursory", luaterm_cy },
-  { "getch", luaterm_getch },
-  { NULL, NULL }
-};
-
-// Metatable data
-static const luaL_reg term_mt_map[] =
-{
-  { "__index", term_mt_index },
-  { NULL, NULL }
+  { LSTRKEY( "clrscr" ), LFUNCVAL( luaterm_clrscr ) },
+  { LSTRKEY( "clreol" ), LFUNCVAL( luaterm_clreol ) },
+  { LSTRKEY( "gotoxy" ), LFUNCVAL( luaterm_gotoxy ) },
+  { LSTRKEY( "up" ), LFUNCVAL( luaterm_up ) },
+  { LSTRKEY( "down" ), LFUNCVAL( luaterm_down ) },
+  { LSTRKEY( "left" ), LFUNCVAL( luaterm_left ) },
+  { LSTRKEY( "right" ), LFUNCVAL( luaterm_right ) },
+  { LSTRKEY( "lines" ), LFUNCVAL( luaterm_lines ) },
+  { LSTRKEY( "cols" ), LFUNCVAL( luaterm_cols ) },
+  { LSTRKEY( "put" ), LFUNCVAL( luaterm_put ) },
+  { LSTRKEY( "putstr" ), LFUNCVAL( luaterm_putstr ) },
+  { LSTRKEY( "putxy" ), LFUNCVAL( luaterm_putxy ) },
+  { LSTRKEY( "putstrxy" ), LFUNCVAL( luaterm_putstrxy ) },
+  { LSTRKEY( "cursorx" ), LFUNCVAL( luaterm_cx ) },
+  { LSTRKEY( "cursory" ), LFUNCVAL( luaterm_cy ) },
+  { LSTRKEY( "getch" ), LFUNCVAL( luaterm_getch ) },
+#if LUA_OPTIMIZE_MEMORY > 0
+  { LSTRKEY( "__metatable" ), LROVAL( term_map ) },
+  { LSTRKEY( "NOWAIT" ), LNUMVAL( TERM_INPUT_DONT_WAIT ) },
+  { LSTRKEY( "WAIT" ), LNUMVAL( TERM_INPUT_WAIT ) },
+#endif
+  { LSTRKEY( "__index" ), LFUNCVAL( term_mt_index ) },
+  { LNILKEY, LNILVAL }
 };
 
 LUALIB_API int luaopen_term( lua_State* L )
 {
 #ifdef BUILD_TERM
+#if LUA_OPTIMIZE_MEMORY > 0
+  return 0;
+#else // #if LUA_OPTIMIZE_MEMORY > 0
   // Register methods
   luaL_register( L, AUXLIB_TERM, term_map );  
   
-  // Create and set metatable
-  lua_newtable( L );
-  luaL_register( L, NULL, term_mt_map );  
-  lua_setmetatable( L, -2 );
-
+  // Set this table as itw own metatable
+  lua_pushvalue( L, -1 );
+  lua_setmetatable( L, -2 );  
+  
   // Register the constants for "getch"
   lua_pushnumber( L, TERM_INPUT_DONT_WAIT );
   lua_setfield( L, -2, "NOWAIT" );  
@@ -255,6 +259,7 @@ LUALIB_API int luaopen_term( lua_State* L )
   lua_setfield( L, -2, "WAIT" );  
   
   return 1;
+#endif // # if LUA_OPTIMIZE_MEMORY > 0
 #else // #ifdef BUILD_TERM
   return 0;
 #endif // #ifdef BUILD_TERM  

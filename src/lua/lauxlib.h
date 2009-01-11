@@ -40,9 +40,11 @@ typedef struct luaL_Reg {
 
 
 LUALIB_API void (luaI_openlib) (lua_State *L, const char *libname,
-                                const luaL_Reg *l, int nup);
+                                const luaL_Reg *l, int nup, int ftype);
 LUALIB_API void (luaL_register) (lua_State *L, const char *libname,
                                 const luaL_Reg *l);
+LUALIB_API void (luaL_register_light) (lua_State *L, const char *libname,
+                                const luaL_Reg *l);                                
 LUALIB_API int (luaL_getmetafield) (lua_State *L, int obj, const char *e);
 LUALIB_API int (luaL_callmeta) (lua_State *L, int obj, const char *e);
 LUALIB_API int (luaL_typerror) (lua_State *L, int narg, const char *tname);
@@ -61,8 +63,11 @@ LUALIB_API lua_Integer (luaL_optinteger) (lua_State *L, int nArg,
 LUALIB_API void (luaL_checkstack) (lua_State *L, int sz, const char *msg);
 LUALIB_API void (luaL_checktype) (lua_State *L, int narg, int t);
 LUALIB_API void (luaL_checkany) (lua_State *L, int narg);
+LUALIB_API void (luaL_checkanyfunction) (lua_State *L, int narg);
+LUALIB_API void (luaL_checkanytable) (lua_State *L, int narg);
 
 LUALIB_API int   (luaL_newmetatable) (lua_State *L, const char *tname);
+LUALIB_API int   (luaL_rometatable) (lua_State *L, const char* tname, void *p);
 LUALIB_API void *(luaL_checkudata) (lua_State *L, int ud, const char *tname);
 
 LUALIB_API void (luaL_where) (lua_State *L, int lvl);

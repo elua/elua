@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stddef.h>
+#include "lrotable.h"
 
 #include "platform_conf.h"
 #ifdef BUILD_UIP
@@ -184,22 +185,31 @@ static int net_lookup( lua_State* L )
 }
 
 // Module function map
-static const luaL_reg net_map[] = 
+#define MIN_OPT_LEVEL 2
+#include "lrodefs.h"
+const LUA_REG_TYPE net_map[] = 
 {
-  { "accept", net_accept },
-  { "packip", net_packip },
-  { "unpackip", net_unpackip },
-  { "connect", net_connect },
-  { "socket", net_socket },
-  { "close", net_close },
-  { "send", net_send },
-  { "recv", net_recv },
-  { "lookup", net_lookup },
-  { NULL, NULL }
+  { LSTRKEY( "accept" ), LFUNCVAL( net_accept ) },
+  { LSTRKEY( "packip" ), LFUNCVAL( net_packip ) },
+  { LSTRKEY( "unpackip" ), LFUNCVAL( net_unpackip ) },
+  { LSTRKEY( "connect" ), LFUNCVAL( net_connect ) },
+  { LSTRKEY( "socket" ), LFUNCVAL( net_socket ) },
+  { LSTRKEY( "close" ), LFUNCVAL( net_close ) },
+  { LSTRKEY( "send" ), LFUNCVAL( net_send ) },
+  { LSTRKEY( "recv" ), LFUNCVAL( net_recv ) },
+  { LSTRKEY( "lookup" ), LFUNCVAL( net_lookup ) },
+#if LUA_OPTIMIZE_MEMORY > 0
+  { LSTRKEY( "SOCK_STREAM" ), LNUMVAL( ELUA_NET_SOCK_STREAM ) },
+  { LSTRKEY( "SOCK_DGRAM" ), LNUMVAL( ELUA_NET_SOCK_DGRAM ) },
+#endif
+  { LNILKEY, LNILVAL }
 };
 
 LUALIB_API int luaopen_net( lua_State *L )
 {
+#if LUA_OPTIMIZE_MEMORY > 0
+  return 0;
+#else // #if LUA_OPTIMIZE_MEMORY > 0
   luaL_register( L, AUXLIB_NET, net_map );  
 
   // Module constants  
@@ -209,6 +219,7 @@ LUALIB_API int luaopen_net( lua_State *L )
   lua_setfield( L, -2, "SOCK_DGRAM" );  
   
   return 1;
+#endif // #if LUA_OPTIMIZE_MEMORY > 0  
 }
 
 #else // #ifdef BUILD_UIP

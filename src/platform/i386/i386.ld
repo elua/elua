@@ -10,12 +10,13 @@ SECTIONS
     .text 0x100000 :
     {
         code = .; _code = .; __code = .;
+        PROVIDE(stext = .);
         *(.text .text.*)
         *(.rodata .rodata.*)        
         *(.gnu.linkonce.r.*)    
         *(.gnu.linkonce.t.*)                    
         . = ALIGN(4096);
-        etext = .;
+        PROVIDE(etext = .);
     }
 
     .data :

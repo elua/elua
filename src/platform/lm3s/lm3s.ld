@@ -10,6 +10,7 @@ SECTIONS
     {
         . = ALIGN(4);
         _text = .;
+        PROVIDE(stext = .);
         KEEP(*(.isr_vector))
         KEEP(*(.init))
         *(.text .text.*)        

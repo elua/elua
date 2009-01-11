@@ -73,21 +73,11 @@ SECTIONS
 	. = ALIGN(4);
     } >FLASH
  
-    .lua_init :
-    {
-	. = ALIGN(4);
-        _lua_init_start = .;
-	KEEP(*(.lua_init))
-        LONG(0x00000000);
-        LONG(0x00000000);    /* Terminate table */
-        _lua_init_end = .;
-	. = ALIGN(4);
-    } >FLASH  
     /* the program code is stored in the .text section, which goes to Flash */
     .text :
     {
 	    . = ALIGN(4);
-	    
+        PROVIDE(stext = .);	    
         *(.text)                   /* remaining code */
         *(.text.*)                   /* remaining code */
         *(.rodata)                 /* read-only data (constants) */
@@ -96,7 +86,8 @@ SECTIONS
         *(.glue_7t)
 
 	    . = ALIGN(4);
-   	 _etext = .;
+   	  _etext = .;
+     PROVIDE(etext = .);
 	    /* This is used by the startup in order to initialize the .data secion */
    	 _sidata = _etext;
     } >FLASH

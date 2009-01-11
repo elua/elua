@@ -15,7 +15,7 @@
 
 #include "lauxlib.h"
 #include "lualib.h"
-
+#include "lrotable.h"
 
 #undef PI
 #define PI (3.14159265358979323846)
@@ -211,37 +211,45 @@ static int math_randomseed (lua_State *L) {
   return 0;
 }
 
-
-static const luaL_Reg mathlib[] = {
-  {"abs",   math_abs},
-  {"acos",  math_acos},
-  {"asin",  math_asin},
-  {"atan2", math_atan2},
-  {"atan",  math_atan},
-  {"ceil",  math_ceil},
-  {"cosh",   math_cosh},
-  {"cos",   math_cos},
-  {"deg",   math_deg},
-  {"exp",   math_exp},
-  {"floor", math_floor},
-  {"fmod",   math_fmod},
-  {"frexp", math_frexp},
-  {"ldexp", math_ldexp},
-  {"log10", math_log10},
-  {"log",   math_log},
-  {"max",   math_max},
-  {"min",   math_min},
-  {"modf",   math_modf},
-  {"pow",   math_pow},
-  {"rad",   math_rad},
-  {"random",     math_random},
-  {"randomseed", math_randomseed},
-  {"sinh",   math_sinh},
-  {"sin",   math_sin},
-  {"sqrt",  math_sqrt},
-  {"tanh",   math_tanh},
-  {"tan",   math_tan},
-  {NULL, NULL}
+#define MIN_OPT_LEVEL 1
+#include "lrodefs.h"
+const LUA_REG_TYPE math_map[] = {
+  {LSTRKEY("abs"),   LFUNCVAL(math_abs)},
+  {LSTRKEY("acos"),  LFUNCVAL(math_acos)},
+  {LSTRKEY("asin"),  LFUNCVAL(math_asin)},
+  {LSTRKEY("atan2"), LFUNCVAL(math_atan2)},
+  {LSTRKEY("atan"),  LFUNCVAL(math_atan)},
+  {LSTRKEY("ceil"),  LFUNCVAL(math_ceil)},
+  {LSTRKEY("cosh"),  LFUNCVAL(math_cosh)},
+  {LSTRKEY("cos"),   LFUNCVAL(math_cos)},
+  {LSTRKEY("deg"),   LFUNCVAL(math_deg)},
+  {LSTRKEY("exp"),   LFUNCVAL(math_exp)},
+  {LSTRKEY("floor"), LFUNCVAL(math_floor)},
+  {LSTRKEY("fmod"),  LFUNCVAL(math_fmod)},
+#if LUA_OPTIMIZE_MEMORY > 0 && defined(LUA_COMPAT_MOD)
+  {LSTRKEY("mod"),   LFUNCVAL(math_fmod)}, 
+#endif
+  {LSTRKEY("frexp"), LFUNCVAL(math_frexp)},
+  {LSTRKEY("ldexp"), LFUNCVAL(math_ldexp)},
+  {LSTRKEY("log10"), LFUNCVAL(math_log10)},
+  {LSTRKEY("log"),   LFUNCVAL(math_log)},
+  {LSTRKEY("max"),   LFUNCVAL(math_max)},
+  {LSTRKEY("min"),   LFUNCVAL(math_min)},
+  {LSTRKEY("modf"),   LFUNCVAL(math_modf)},
+  {LSTRKEY("pow"),   LFUNCVAL(math_pow)},
+  {LSTRKEY("rad"),   LFUNCVAL(math_rad)},
+  {LSTRKEY("random"),     LFUNCVAL(math_random)},
+  {LSTRKEY("randomseed"), LFUNCVAL(math_randomseed)},
+  {LSTRKEY("sinh"),   LFUNCVAL(math_sinh)},
+  {LSTRKEY("sin"),   LFUNCVAL(math_sin)},
+  {LSTRKEY("sqrt"),  LFUNCVAL(math_sqrt)},
+  {LSTRKEY("tanh"),   LFUNCVAL(math_tanh)},
+  {LSTRKEY("tan"),   LFUNCVAL(math_tan)},
+#if LUA_OPTIMIZE_MEMORY > 0
+  {LSTRKEY("pi"),    LNUMVAL(PI)},
+  {LSTRKEY("huge"),  LNUMVAL(HUGE_VAL)},
+#endif
+  {LNILKEY, LNILVAL}
 };
 
 
@@ -250,7 +258,10 @@ static const luaL_Reg mathlib[] = {
 */
 LUALIB_API int luaopen_math (lua_State *L) {
 #if !defined LUA_NUMBER_INTEGRAL
-  luaL_register(L, LUA_MATHLIBNAME, mathlib);
+#if LUA_OPTIMIZE_MEMORY > 0
+  return 0;
+#else // #if LUA_OPTIMIZE_MEMORY > 0
+  luaL_register(L, LUA_MATHLIBNAME, math_map);
   lua_pushnumber(L, PI);
   lua_setfield(L, -2, "pi");
   lua_pushnumber(L, HUGE_VAL);
@@ -258,8 +269,9 @@ LUALIB_API int luaopen_math (lua_State *L) {
 #if defined(LUA_COMPAT_MOD)
   lua_getfield(L, -1, "fmod");
   lua_setfield(L, -2, "mod");
-  return 1;
 #endif // #if defined(LUA_COMPAT_MOD)
+  return 1;
+#endif // #if LUA_OPTIMIZE_MEMORY > 0
 #else // #if !defined LUA_NUMBER_INTEGRAL
   return 0;
 #endif // #if !defined LUA_NUMBER_INTEGRAL

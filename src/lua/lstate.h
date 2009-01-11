@@ -56,9 +56,9 @@ typedef struct CallInfo {
 
 
 
-#define curr_func(L)	(clvalue(L->ci->func))
-#define ci_func(ci)	(clvalue((ci)->func))
-#define f_isLua(ci)	(!ci_func(ci)->c.isC)
+#define curr_func(L)	(ttisfunction(L->ci->func) ? clvalue(L->ci->func) : NULL)
+#define ci_func(ci)	(ttisfunction((ci)->func) ? clvalue((ci)->func) : NULL)
+#define f_isLua(ci)	(!ttislightfunction((ci)->func) && !ci_func(ci)->c.isC)
 #define isLua(ci)	(ttisfunction((ci)->func) && f_isLua(ci))
 
 
@@ -160,7 +160,6 @@ union GCObject {
 
 /* macro to convert any Lua object into a GCObject */
 #define obj2gco(v)	(cast(GCObject *, (v)))
-
 
 LUAI_FUNC lua_State *luaE_newthread (lua_State *L);
 LUAI_FUNC void luaE_freethread (lua_State *L, lua_State *L1);

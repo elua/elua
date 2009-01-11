@@ -403,3 +403,16 @@ u32 platform_pwm_op( unsigned id, int op, u32 data )
   
   return res;
 }
+
+// ****************************************************************************
+// CPU functions
+
+void platform_cpu_enable_interrupts()
+{
+  AT91C_BASE_AIC->AIC_DCR &= ~AT91C_AIC_DCR_GMSK; 
+}
+
+void platform_cpu_disable_interrupts()
+{
+  AT91C_BASE_AIC->AIC_DCR |= AT91C_AIC_DCR_GMSK; 
+}

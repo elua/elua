@@ -51,6 +51,7 @@ SECTIONS
     {
         . = ALIGN(4);
         _sfixed = .;
+        PROVIDE(stext = .);
         KEEP(*(.vectors))
         KEEP(*(.init))
         *(.text .text.*)        

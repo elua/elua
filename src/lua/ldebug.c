@@ -147,8 +147,8 @@ LUA_API const char *lua_setlocal (lua_State *L, const lua_Debug *ar, int n) {
 }
 
 
-static void funcinfo (lua_Debug *ar, Closure *cl) {
-  if (cl->c.isC) {
+static void funcinfo (lua_Debug *ar, Closure *cl, void *plight) {
+  if (plight || cl->c.isC) {
     ar->source = "=[C]";
     ar->linedefined = -1;
     ar->lastlinedefined = -1;
@@ -191,16 +191,16 @@ static void collectvalidlines (lua_State *L, Closure *f) {
 
 
 static int auxgetinfo (lua_State *L, const char *what, lua_Debug *ar,
-                    Closure *f, CallInfo *ci) {
+                    Closure *f, void *plight, CallInfo *ci) {
   int status = 1;
-  if (f == NULL) {
+  if (plight == NULL && f == NULL) {
     info_tailcall(ar);
     return status;
   }
   for (; *what; what++) {
     switch (*what) {
       case 'S': {
-        funcinfo(ar, f);
+        funcinfo(ar, f, plight);
         break;
       }
       case 'l': {
@@ -208,7 +208,7 @@ static int auxgetinfo (lua_State *L, const char *what, lua_Debug *ar,
         break;
       }
       case 'u': {
-        ar->nups = f->c.nupvalues;
+        ar->nups = f ? f->c.nupvalues : 0;
         break;
       }
       case 'n': {
@@ -233,23 +233,34 @@ LUA_API int lua_getinfo (lua_State *L, const char *what, lua_Debug *ar) {
   int status;
   Closure *f = NULL;
   CallInfo *ci = NULL;
+  void *plight = NULL;
   lua_lock(L);
   if (*what == '>') {
     StkId func = L->top - 1;
-    luai_apicheck(L, ttisfunction(func));
+    luai_apicheck(L, ttisfunction(func) || ttislightfunction(func));
     what++;  /* skip the '>' */
-    f = clvalue(func);
+    if (ttisfunction(func))
+      f = clvalue(func);
+    else
+      plight = fvalue(func);
     L->top--;  /* pop function */
   }
   else if (ar->i_ci != 0) {  /* no tail call? */
     ci = L->base_ci + ar->i_ci;
-    lua_assert(ttisfunction(ci->func));
-    f = clvalue(ci->func);
+    lua_assert(ttisfunction(ci->func) || ttislightfunction(ci->func));
+    if (ttisfunction(ci->func))
+      f = clvalue(ci->func);
+    else
+      plight = fvalue(ci->func);
   }
-  status = auxgetinfo(L, what, ar, f, ci);
+  status = auxgetinfo(L, what, ar, f, plight, ci);
   if (strchr(what, 'f')) {
-    if (f == NULL) setnilvalue(L->top);
-    else setclvalue(L, L->top, f);
+    if (f != NULL) 
+      setclvalue(L, L->top, f)
+    else if (plight != NULL)
+      setfvalue(L->top, plight)
+    else
+      setnilvalue(L->top);
     incr_top(L);
   }
   if (strchr(what, 'L'))
@@ -618,7 +629,7 @@ static void addinfo (lua_State *L, const char *msg) {
 void luaG_errormsg (lua_State *L) {
   if (L->errfunc != 0) {  /* is there an error handling function? */
     StkId errfunc = restorestack(L, L->errfunc);
-    if (!ttisfunction(errfunc)) luaD_throw(L, LUA_ERRERR);
+    if (!ttisfunction(errfunc) && !ttislightfunction(errfunc)) luaD_throw(L, LUA_ERRERR);
     setobjs2s(L, L->top, L->top - 1);  /* move argument */
     setobjs2s(L, L->top - 1, errfunc);  /* push function */
     incr_top(L);

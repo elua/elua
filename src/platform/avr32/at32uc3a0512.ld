@@ -9,7 +9,8 @@ SECTIONS
     .text :
     {
         . = ALIGN(4);
-        _text = .;
+        _stext = .;
+        PROVIDE(stext = .);
         KEEP(*(.start))
         *(.text .text.*)
         *(.rodata .rodata.*)

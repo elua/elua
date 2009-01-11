@@ -3,6 +3,7 @@ target = ARGUMENTS.get( 'target', 'lua' ).lower()
 cputype = ARGUMENTS.get( 'cpu', '' ).upper()
 allocator = ARGUMENTS.get( 'allocator', '' ).lower()
 boardname = ARGUMENTS.get( 'board' , '').upper()
+optram = int( ARGUMENTS.get( 'optram', '1' ) )
 
 # ROMFS file list
 romfs = { 'bisect' : [ 'bisect.lua' ],
@@ -15,7 +16,8 @@ romfs = { 'bisect' : [ 'bisect.lua' ],
           'tvbgone' : [ 'tvbgone.lua', 'codes.bin' ],
           'hello' : [ 'hello.lua' ],
           'info' : [ 'info.lua' ],
-          'morse' : [ 'mose.lua' ]
+          'morse' : [ 'morse.lua' ],
+          'dualpwm' : [ 'dualpwm.lua' ]
         }
 
 # List of platform/CPU combinations
@@ -41,20 +43,6 @@ board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
                'ATEVK1100' : [ 'AT32UC3A0512' ]
             }
 
-# ROMFS file list
-romfs = { 'bisect' : [ 'bisect.lua' ],
-          'hangman' : [ 'hangman.lua' ],
-          'lhttpd' : [ 'index.pht', 'lhttpd.lua', 'test.lua' ],
-          'pong' : [ 'pong.lua', 'LM3S.lua' ],
-          'led' : [ 'led.lua' ],
-          'piano' : [ 'piano.lua' ],
-          'pwmled' : [ 'pwmled.lua' ],
-          'tvbgone' : [ 'tvbgone.lua', 'codes.bin' ],
-          'hello' : [ 'hello.lua' ],
-          'info' : [ 'info.lua' ],
-          'morse' : [ 'morse.lua' ]
-        }
-
 # List of board/romfs data combinations
 file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'info', 'morse' ],
               'EK-LM3S8962' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse' ],
@@ -62,7 +50,7 @@ file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'i
               'STR9-COMSTICK' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
               'PC' : [ 'bisect', 'hello', 'info' ],
               'LPC-H2888' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
-              'MOD711' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
+              'MOD711' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'dualpwm' ],
               'STM3210E-EVAL' : [ 'bisect', 'hello', 'info' ],
               'ATEVK1100' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ]
             }
@@ -149,7 +137,7 @@ if allocator == 'multiple':
 # Lua source files and include path
 lua_files = """lapi.c lcode.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c lobject.c lopcodes.c
    lparser.c lstate.c lstring.c ltable.c ltm.c lundump.c lvm.c lzio.c lauxlib.c lbaselib.c
-   ldblib.c liolib.c lmathlib.c loslib.c ltablib.c lstrlib.c loadlib.c linit.c lua.c"""
+   ldblib.c liolib.c lmathlib.c loslib.c ltablib.c lstrlib.c loadlib.c linit.c lua.c lrotable.c"""
 if target == 'lualong' or target == 'lua':
   lua_full_files = " " + " ".join( [ "src/lua/%s" % name for name in lua_files.split() ] )
   local_include = "-Iinc -Iinc/newlib -Isrc/lua"
@@ -159,6 +147,7 @@ else:
   print "Invalid target", target
   sys.exit( 1 )
 local_include = local_include + " -Isrc/modules -Isrc/platform/%s" % platform
+cdefs = cdefs + " -DLUA_OPTIMIZE_MEMORY=%d" % ( optram != 0 and 2 or 0 )
 
 # Additional libraries
 local_libs = ''
@@ -175,7 +164,7 @@ uip_files = " src/elua_uip.c " + " ".join( [ "src/uip/%s" % name for name in uip
 local_include = local_include + " -Isrc/uip"
 
 # Lua module files
-module_names = "disp.c modcommon.c pio.c spi.c tmr.c pd.c uart.c term.c pwm.c lpack.c bit.c net.c cpu.c"
+module_names = "pio.c spi.c tmr.c pd.c uart.c term.c pwm.c lpack.c bit.c net.c cpu.c"
 module_files = " " + " ".join( [ "src/modules/%s" % name for name in module_names.split() ] )
 
 # Optimizer flags (speed or size)

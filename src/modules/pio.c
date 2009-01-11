@@ -5,6 +5,8 @@
 #include "lauxlib.h"
 #include "platform.h"
 #include "auxmods.h"
+#include "lrotable.h"
+#include "platform_conf.h"
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
@@ -211,27 +213,6 @@ static int pio_pin_nopull( lua_State* L )
   return pioh_set_pins( L, 1, PLATFORM_IO_PIN_NOPULL );
 }
 
-// Module function map
-static const luaL_reg pio_map[] = 
-{
-  { "setpin",  pio_set_pin_state },
-  { "set", pio_set_pin },
-  { "get", pio_get_pin },
-  { "clear", pio_clear_pin },
-  { "input", pio_pin_input },
-  { "output", pio_pin_output },
-  { "setport", pio_set_port },
-  { "getport", pio_get_port },
-  { "port_input", pio_port_input },
-  { "port_output", pio_port_output },
-  { "pullup", pio_pin_pullup },
-  { "pulldown", pio_pin_pulldown },
-  { "nopull", pio_pin_nopull },
-  { "port", pio_port },
-  { "pin", pio_pin },
-  { NULL, NULL }
-};
-
 // __index metafunction for PIO
 // Look for all Px or Px_y keys and return their correct value
 static int pio_mt_index( lua_State* L )
@@ -243,6 +224,8 @@ static int pio_mt_index( lua_State* L )
     return 0;
   if( isupper( key[ 1 ] ) ) // PA, PB, ...
   {
+    if( PIO_PREFIX != 'A' )
+      return 0;
     port = key[ 1 ] - 'A';
     if( key[ 2 ] == '\0' )
       isport = 1;
@@ -252,7 +235,8 @@ static int pio_mt_index( lua_State* L )
   }
   else // P0, P1, ...
   {
-    // P0, P1, ...
+    if( PIO_PREFIX != '0' )
+      return 0;
     if( !strchr( key, '_' ) )   // parse port
     {
       if( sscanf( key + 1, "%d%n", &port, &sz ) != 1  || sz != strlen( key ) - 1 )
@@ -283,21 +267,44 @@ static int pio_mt_index( lua_State* L )
   }
 }
 
-// Metatable data
-static const luaL_reg pio_mt_map[] =
+// Module function map
+#define MIN_OPT_LEVEL 2
+#include "lrodefs.h"
+const LUA_REG_TYPE pio_map[] = 
 {
-  { "__index", pio_mt_index },
-  { NULL, NULL }
+  { LSTRKEY( "setpin" ), LFUNCVAL( pio_set_pin_state ) },
+  { LSTRKEY( "set" ), LFUNCVAL( pio_set_pin ) },
+  { LSTRKEY( "get" ), LFUNCVAL( pio_get_pin ) },
+  { LSTRKEY( "clear" ), LFUNCVAL( pio_clear_pin ) },
+  { LSTRKEY( "input" ), LFUNCVAL( pio_pin_input ) },
+  { LSTRKEY( "output" ), LFUNCVAL( pio_pin_output ) },
+  { LSTRKEY( "setport" ), LFUNCVAL( pio_set_port ) },
+  { LSTRKEY( "getport" ), LFUNCVAL( pio_get_port ) },
+  { LSTRKEY( "port_input" ), LFUNCVAL( pio_port_input ) },
+  { LSTRKEY( "port_output" ), LFUNCVAL( pio_port_output ) },
+  { LSTRKEY( "pullup" ), LFUNCVAL( pio_pin_pullup ) },
+  { LSTRKEY( "pulldown" ), LFUNCVAL( pio_pin_pulldown ) },
+  { LSTRKEY( "nopull" ), LFUNCVAL( pio_pin_nopull ) },
+  { LSTRKEY( "port" ), LFUNCVAL( pio_port ) },
+  { LSTRKEY( "pin" ), LFUNCVAL( pio_pin ) },
+#if LUA_OPTIMIZE_MEMORY > 0
+  { LSTRKEY( "__metatable" ), LROVAL( pio_map ) },
+#endif
+  { LSTRKEY( "__index" ), LFUNCVAL( pio_mt_index ) },
+  { LNILKEY, LNILVAL }
 };
 
 LUALIB_API int luaopen_pio( lua_State *L )
 {
+#if LUA_OPTIMIZE_MEMORY > 0
+  return 0;
+#else // #if LUA_OPTIMIZE_MEMORY > 0
   luaL_register( L, AUXLIB_PIO, pio_map );
   
-  // Create and set metatable
-  lua_newtable( L );
-  luaL_register( L, NULL, pio_mt_map );  
+  // Set this table as its own metatable
+  lua_pushvalue( L, -1 );
   lua_setmetatable( L, -2 );
-
+  
   return 1;
+#endif // #if LUA_OPTIMIZE_MEMORY > 0
 }
