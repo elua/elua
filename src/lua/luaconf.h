@@ -486,14 +486,14 @@
 @@ LUAI_MAXVARS is the maximum number of local variables per function
 @* (must be smaller than 250).
 */
-#define LUAI_MAXVARS		200
+#define LUAI_MAXVARS		25
 
 
 /*
 @@ LUAI_MAXUPVALUES is the maximum number of upvalues per function
 @* (must be smaller than 250).
 */
-#define LUAI_MAXUPVALUES	60
+#define LUAI_MAXUPVALUES	10
 
 
 /*
@@ -696,7 +696,7 @@ union luai_Cast { double l_d; long l_l; };
 @* can do during pattern-matching.
 ** CHANGE it if you need more captures. This limit is arbitrary.
 */
-#define LUA_MAXCAPTURES		32
+#define LUA_MAXCAPTURES		10
 
 
 /*

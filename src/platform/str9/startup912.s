@@ -251,13 +251,8 @@ PLL_LOCK_LOOP:
               sub     r0, r0, #STACK_SIZE_IRQ                  
 
 #    Set up Supervisor Mode and set Supervisor Mode Stack
-              msr     CPSR_c, #Mode_SVC|I_BIT|F_BIT
+              msr     CPSR_c, #Mode_SVC
               mov     r13, r0
-              sub     r0, r0, #STACK_SIZE_SVC
-
-#    Set up User Mode and set User Mode Stack
-              msr     CPSR_c, #Mode_USR   /* Leave interrupts enabled in user mode                 */
-              mov     r13, r0             /* Note: interrupts will not happen until VIC is enabled */
 
 #*************************************************************************
 # Initialise RAM For Compiler Variables
