@@ -132,7 +132,7 @@ void luaV_gettable (lua_State *L, const TValue *t, TValue *key, StkId val) {
       void *h = ttistable(t) ? hvalue(t) : rvalue(t);
       const TValue *res = ttistable(t) ? luaH_get((Table*)h, key) : luaH_get_ro(h, key); /* do a primitive get */
       if (!ttisnil(res) ||  /* result is no nil? */
-          (tm = fasttm(L, ttistable(t) ? ((Table*)h)->metatable : (Table*)h, TM_INDEX)) == NULL) { /* or no TM? */
+          (tm = fasttm(L, ttistable(t) ? ((Table*)h)->metatable : (Table*)luaR_getmeta(h), TM_INDEX)) == NULL) { /* or no TM? */
         setobj2s(L, val, res);
         return;
       }      
