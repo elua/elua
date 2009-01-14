@@ -214,6 +214,7 @@ static int math_randomseed (lua_State *L) {
 #define MIN_OPT_LEVEL 1
 #include "lrodefs.h"
 const LUA_REG_TYPE math_map[] = {
+#ifndef LUA_NUMBER_INTEGRAL
   {LSTRKEY("abs"),   LFUNCVAL(math_abs)},
   {LSTRKEY("acos"),  LFUNCVAL(math_acos)},
   {LSTRKEY("asin"),  LFUNCVAL(math_asin)},
@@ -248,7 +249,8 @@ const LUA_REG_TYPE math_map[] = {
 #if LUA_OPTIMIZE_MEMORY > 0
   {LSTRKEY("pi"),    LNUMVAL(PI)},
   {LSTRKEY("huge"),  LNUMVAL(HUGE_VAL)},
-#endif
+#endif // #if LUA_OPTIMIZE_MEMORY > 0
+#endif // #ifndef LUA_NUMBER_INTEGRAL
   {LNILKEY, LNILVAL}
 };
 
