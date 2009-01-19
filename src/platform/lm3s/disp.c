@@ -18,7 +18,7 @@ static int disp_init(lua_State *L) {
    
 }
 
-//Lua: enable
+//Lua: enable(frequency)
 static int disp_enable(lua_State *L) {
   unsigned long freq;
   
@@ -27,31 +27,31 @@ static int disp_enable(lua_State *L) {
   return 0;
 }
 
-//Lua: disable   
+//Lua: disable()   
 static int disp_disable(lua_State *L) {    
   lm3s_disp_disable();
   return 0; 
 }
    
-//Lua: on
+//Lua: on()
 static int disp_on(lua_State *L) {
   lm3s_disp_displayOn();    
   return 0; 
 }
 
-//Lua: off
+//Lua: off()
 static int disp_off(lua_State *L) {    
   lm3s_disp_displayOff();
   return 0; 
 }
    
-//Lua: clear
+//Lua: clear()
 static int disp_clear(lua_State *L) {    
   lm3s_disp_clear();
   return 0; 
 }
    
-//Lua: strDraw
+//Lua: strDraw(str, x, y, lvl)
 static int disp_stringDraw(lua_State *L) {
   const char *str;
   unsigned long x; 
@@ -66,7 +66,7 @@ static int disp_stringDraw(lua_State *L) {
   return 0; 
 }
    
-//Lua: enable
+// Lua: imageDraw(img, x, y, width, height)
 static int disp_imageDraw(lua_State *L) {    
   const char *img;
   unsigned long x;
