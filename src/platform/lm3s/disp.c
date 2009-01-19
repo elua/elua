@@ -84,11 +84,13 @@ static int disp_imageDraw(lua_State *L) {
 }   
 
 
+
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"  
+
 // Module function map
 const LUA_REG_TYPE disp_map[] =
-{
+{ 
   { LSTRKEY( "init" ),  LFUNCVAL( disp_init ) },
   { LSTRKEY( "enable" ),  LFUNCVAL( disp_enable ) },
   { LSTRKEY( "disable" ), LFUNCVAL( disp_disable ) },
@@ -96,7 +98,7 @@ const LUA_REG_TYPE disp_map[] =
   { LSTRKEY( "off" ), LFUNCVAL( disp_off ) },
   { LSTRKEY( "clear" ), LFUNCVAL( disp_clear ) },
   { LSTRKEY( "stringdraw" ), LFUNCVAL( disp_stringDraw ) },
-  { LSTRKEY( "imgagedraw" ), LFUNCVAL( disp_imageDraw ) },  
+  { LSTRKEY( "imagedraw" ), LFUNCVAL( disp_imageDraw ) },  
   { LNILKEY, LNILVAL }
 };
 
@@ -104,3 +106,4 @@ LUALIB_API int luaopen_disp( lua_State *L )
 {
   LREGISTER( L, AUXLIB_DISP, disp_map );
 }  
+
