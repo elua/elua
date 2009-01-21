@@ -17,7 +17,8 @@ romfs = { 'bisect' : [ 'bisect.lua' ],
           'hello' : [ 'hello.lua' ],
           'info' : [ 'info.lua' ],
           'morse' : [ 'morse.lua' ],
-          'dualpwm' : [ 'dualpwm.lua' ]
+          'dualpwm' : [ 'dualpwm.lua' ],
+          'adcscope' : [ 'adcscope.lua' ]
         }
 
 # List of platform/CPU combinations
@@ -45,8 +46,8 @@ board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
 
 # List of board/romfs data combinations
 file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'info', 'morse' ],
-              'EK-LM3S8962' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse' ],
-              'EK-LM3S6965' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse' ],
+              'EK-LM3S8962' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope' ],
+              'EK-LM3S6965' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope' ],
               'STR9-COMSTICK' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
               'PC' : [ 'bisect', 'hello', 'info' ],
               'LPC-H2888' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
@@ -164,7 +165,7 @@ uip_files = " src/elua_uip.c " + " ".join( [ "src/uip/%s" % name for name in uip
 local_include = local_include + " -Isrc/uip"
 
 # Lua module files
-module_names = "pio.c spi.c tmr.c pd.c uart.c term.c pwm.c lpack.c bit.c net.c cpu.c"
+module_names = "pio.c spi.c tmr.c pd.c uart.c term.c pwm.c lpack.c bit.c net.c cpu.c adc.c"
 module_files = " " + " ".join( [ "src/modules/%s" % name for name in module_names.split() ] )
 
 # Optimizer flags (speed or size)

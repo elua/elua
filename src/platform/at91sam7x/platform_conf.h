@@ -41,7 +41,7 @@
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
-  
+
 // *****************************************************************************
 // Configuration data
 
@@ -59,6 +59,7 @@
 #define NUM_TIMER             2
 #endif
 #define NUM_PWM               4
+#define NUM_ADC               0
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 #define CPU_FREQUENCY         BOARD_MCK
@@ -80,6 +81,6 @@
   #define SRAM_SIZE           0x20000
 #endif
 #define MEM_START_ADDRESS     { ( void* )end }
-#define MEM_END_ADDRESS       { ( void* )( SRAM_ORIGIN + SRAM_SIZE - STACK_SIZE_TOTAL - 1 ) }  
-  
+#define MEM_END_ADDRESS       { ( void* )( SRAM_ORIGIN + SRAM_SIZE - STACK_SIZE_TOTAL - 1 ) }
+
 #endif // #ifndef __PLATFORM_CONF_H__

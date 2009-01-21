@@ -231,6 +231,13 @@ u32 platform_cpu_get_frequency()
 }
 
 // ****************************************************************************
+// ADC functions
+int platform_adc_exists( unsigned id )
+{
+  return id < NUM_ADC;
+}
+
+// ****************************************************************************
 // Allocator support
 
 extern char end[];

@@ -51,6 +51,7 @@ LUALIB_API int ( luaopen_disp )( lua_State* L );
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_NET, luaopen_net, net_map )\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
+  _ROM( AUXLIB_ADC, luaopen_adc, adc_map )\
   _ROM( AUXLIB_DISP, luaopen_disp, disp_map )\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
   
@@ -95,6 +96,10 @@ LUALIB_API int ( luaopen_disp )( lua_State* L );
 #endif
 #define NUM_TIMER             4
 #define NUM_PWM               6
+#define NUM_ADC               4
+
+// ADC Bit Depth for Built-in ADCs
+#define ADC_BIT_RESOLUTION    10
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 #define CPU_FREQUENCY         SysCtlClockGet()

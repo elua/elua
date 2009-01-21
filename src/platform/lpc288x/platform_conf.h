@@ -39,6 +39,7 @@
 #define NUM_UART              1
 #define NUM_TIMER             2
 #define NUM_PWM               0
+#define NUM_ADC               0
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 #define CPU_FREQUENCY         Fcclk
@@ -70,5 +71,5 @@
   _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
-  
+
 #endif // #ifndef __PLATFORM_CONF_H__

@@ -101,6 +101,7 @@ LUALIB_API int ( luaopen_lcd )( lua_State* L );
 #define NUM_UART              4
 #define NUM_TIMER             0
 #define NUM_PWM               0
+#define NUM_ADC               0
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 u32 platform_s_cpu_get_frequency();
@@ -177,5 +178,5 @@ u32 platform_s_cpu_get_frequency();
   _C( INT_UDMA ),\
   _C( INT_UDMAERR )
 #endif
-  
+
 #endif // #ifndef __PLATFORM_CONF_H__

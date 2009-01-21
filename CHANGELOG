@@ -1,11 +1,12 @@
 Trunk Dev  Bogdan Marinescu <bogdanm@eluaproject.net>
            Dado Sutter      <dado@eluaproject.net>
+           James Snyder     <jbsnyder@fanplastic.org>
 
   * Added an ls (or dir) shell command
   * Added support for STM32
   * Examples added pong, (morse on RIT128x96x4 ?, snake ?)
   * Documentation now in PDF format (work in progress)
-  *
+  * added ADC module
   *
   *
 

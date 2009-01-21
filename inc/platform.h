@@ -175,6 +175,16 @@ void platform_cpu_disable_interrupts();
 u32 platform_cpu_get_frequency();
 
 // *****************************************************************************
+// The platform ADC functions
+int platform_adc_exists( unsigned id );
+u16 platform_adc_sample( unsigned id );
+u16 platform_adc_maxval( unsigned id );
+void platform_adc_start( unsigned id );
+int platform_adc_is_done( unsigned id );
+void platform_adc_set_mode( unsigned id, int mode );
+void platform_adc_burst( unsigned id, u16* buf, unsigned count, u32 frequency );
+
+// *****************************************************************************
 // Ethernet specific functions
 
 void platform_eth_send_packet( const void* src, u32 size );

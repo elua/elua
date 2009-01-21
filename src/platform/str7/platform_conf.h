@@ -54,6 +54,7 @@
 #define NUM_UART              4
 #define NUM_TIMER             4
 #define NUM_PWM               3
+#define NUM_ADC               0
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 #define CPU_FREQUENCY         0
@@ -71,6 +72,6 @@
 #define SRAM_ORIGIN           0x20000000
 #define SRAM_SIZE             0x10000
 #define MEM_START_ADDRESS     { ( void* )end }
-#define MEM_END_ADDRESS       { ( void* )( SRAM_ORIGIN + SRAM_SIZE - STACK_SIZE_TOTAL - 1 ) }  
+#define MEM_END_ADDRESS       { ( void* )( SRAM_ORIGIN + SRAM_SIZE - STACK_SIZE_TOTAL - 1 ) }
 
 #endif // #ifndef __PLATFORM_CONF_H__

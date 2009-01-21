@@ -19,9 +19,9 @@
 #define LUA_PLATFORM_LIBS_ROM\
   _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
-  
+
 #define CON_UART_ID           0
-  
+
 // *****************************************************************************
 // Configuration data
 
@@ -34,6 +34,7 @@
 #define NUM_UART              0
 #define NUM_TIMER             0
 #define NUM_PWM               0
+#define NUM_ADC               0
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 #define CPU_FREQUENCY         0
@@ -50,6 +51,6 @@
 // (start address and end address)
 u32 platform_get_lastmem();
 #define MEM_START_ADDRESS     { ( void* )end }
-#define MEM_END_ADDRESS       { ( void* )( platform_get_lastmem() - 16384 - 1 ) }  
-  
+#define MEM_END_ADDRESS       { ( void* )( platform_get_lastmem() - 16384 - 1 ) }
+
 #endif // #ifndef __PLATFORM_CONF_H__
