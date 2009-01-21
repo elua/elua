@@ -1,4 +1,4 @@
-// Module for interfacing wit5~h PIO
+// Module for interfacing with PIO
 
 #include "lua.h"
 #include "lualib.h"
