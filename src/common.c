@@ -1,10 +1,11 @@
-// Common platform functions
+// Common code for all backends
 
 #include "platform.h"
 #include "platform_conf.h"
 #include "type.h"
 #include "genstd.h"
 #include "common.h"
+#include "buf.h"
 #include <stdio.h>
 
 // *****************************************************************************
@@ -65,22 +66,42 @@ int platform_uart_exists( unsigned id )
   return id < NUM_UART;
 }
 
-int platform_uart_recv( unsigned id, unsigned timer_id, int timeout )
+// Helper function for buffers
+static int cmn_recv_helper( unsigned id, s32 timeout )
+{
+#ifdef BUF_ENABLE_UART
+  int res;
+  if( buf_is_enabled( BUF_ID_UART, id ) )
+  {
+    if( timeout == 0 )
+      return buf_get_char( BUF_ID_UART, id );
+    else
+    {
+      while( ( res = buf_get_char( BUF_ID_UART, id ) ) == -1 );
+      return res;
+    }
+  }
+  else
+#endif
+  return platform_s_uart_recv( id, timeout );
+}
+
+int platform_uart_recv( unsigned id, unsigned timer_id, s32 timeout )
 {
   timer_data_type tmr_start, tmr_crt;
   int res;
   
   if( timeout == 0 )
-    return platform_s_uart_recv( id, timer_id, timeout );
+    return cmn_recv_helper( id, timeout );
   else if( timeout == PLATFORM_UART_INFINITE_TIMEOUT )
-    return platform_s_uart_recv( id, timer_id, timeout );
+    return cmn_recv_helper( id, timeout );
   else
   {
     // Receive char with the specified timeout
     tmr_start = platform_timer_op( timer_id, PLATFORM_TIMER_OP_START, 0 );
     while( 1 )
     {
-      if( ( res = platform_s_uart_recv( id, timer_id, 0 ) ) >= 0 )
+      if( ( res = cmn_recv_helper( id, 0 ) ) >= 0 )
         break;
       tmr_crt = platform_timer_op( timer_id, PLATFORM_TIMER_OP_READ, 0 );
       if( platform_timer_get_diff_us( timer_id, tmr_crt, tmr_start ) >= timeout )

@@ -107,7 +107,7 @@ else:
 
 # CPU/allocator mapping (if allocator not specified)
 if allocator == '':
-  if cputype == 'LPC2888':
+  if boardname == 'LPC-H2888' or boardname == 'ATEVK1100':
     allocator = 'multiple'
   else:
     allocator = 'newlib'
@@ -154,7 +154,7 @@ cdefs = cdefs + " -DLUA_OPTIMIZE_MEMORY=%d" % ( optram != 0 and 2 or 0 )
 local_libs = ''
 
 # Application files
-app_files = " src/main.c src/romfs.c src/xmodem.c src/shell.c src/term.c src/dlmalloc.c src/common.c "
+app_files = " src/main.c src/romfs.c src/xmodem.c src/shell.c src/term.c src/dlmalloc.c src/common.c src/buf.c "
 
 # Newlib related files
 newlib_files = " src/newlib/devman.c src/newlib/stubs.c src/newlib/genstd.c src/newlib/stdtcp.c"

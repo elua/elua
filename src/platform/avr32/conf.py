@@ -1,8 +1,9 @@
 # Configuration file for the AVR32 microcontroller
 
-specific_files = "crt0.s trampoline.s platform.c exception.s intc.c pm.c flashc.c pm_conf_clocks.c usart.c gpio.c tc.c"
+specific_files = "crt0.s trampoline.s platform.c exception.s intc.c pm.c flashc.c pm_conf_clocks.c usart.c gpio.c tc.c sdramc.c"
 ldscript = "at32uc3a0512.ld"
-cdefs = cdefs + " -DFORAVR32"
+# [TODO] the next line assumes that the board is an ATEVK1100 (see src/platform/avr32/board.h)
+cdefs = cdefs + " -DFORAVR32 -DBOARD=1"
 
 # Prepend with path
 specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )

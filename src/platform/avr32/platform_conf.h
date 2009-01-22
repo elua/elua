@@ -6,6 +6,7 @@
 #include "auxmods.h"
 #include "board.h"
 #include "stacks.h"
+#include "sdramc.h"
 
 // *****************************************************************************
 // Define here what components you want for this platform
@@ -20,7 +21,7 @@
 // UART/Timer IDs configuration data (used in main.c)
 
 #define CON_UART_ID         0
-#define CON_UART_SPEED      38400
+#define CON_UART_SPEED      115200
 #define XMODEM_TIMER_ID     0
 #define TERM_TIMER_ID       0
 #define TERM_LINES          25
@@ -60,6 +61,12 @@
 #define NUM_PWM               0
 #define NUM_ADC               0
 
+// Enable RX buffering on UART
+#define BUF_ENABLE_UART
+#define CON_BUF_SIZE          BUF_SIZE_128
+// REMEMBER to change next line if buffering is enabled and CON_UART_ID is not 0!
+#define CON_UART_IRQ          AVR32_USART0_IRQ
+
 // CPU frequency (needed by the CPU module, 0 if not used)
 #define CPU_FREQUENCY         REQ_CPU_FREQ
 
@@ -73,8 +80,8 @@
 
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)
-#define MEM_START_ADDRESS     { ( void* )end }
-#define MEM_END_ADDRESS       { ( void* )( 0x10000 - STACK_SIZE_TOTAL - 1 ) }
+#define MEM_START_ADDRESS     { ( void* )end, ( void* )SDRAM }
+#define MEM_END_ADDRESS       { ( void* )( 0x10000 - STACK_SIZE_TOTAL - 1 ), ( void* )( SDRAM + SDRAM_SIZE - 1 ) }
 
 // *****************************************************************************
 // CPU constants that should be exposed to the eLua "cpu" module

@@ -83,7 +83,7 @@
 //! @{
 
 //! Part header file of used SDRAM(s).
-#define SDRAM_PART_HDR  "MT48LC16M16A2TG7E/mt48lc16m16a2tg7e.h"
+#define SDRAM_PART_HDR  "mt48lc16m16a2tg7e.h"
 
 //! Data bus width to use the SDRAM(s) with (16 or 32 bits; always 16 bits on
 //! UC3).

@@ -485,7 +485,7 @@ void platform_uart_send( unsigned id, u8 data )
   USART_SendData(usart[id], data);
 }
 
-int platform_s_uart_recv( unsigned id, unsigned timer_id, int timeout )
+int platform_s_uart_recv( unsigned id, s32 timeout )
 {
   if( timeout == 0 )
   {

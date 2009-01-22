@@ -166,7 +166,6 @@ static void shell_ver( char* args )
   printf( "For more information go to http://www.eluaproject.net\n" );
 }
 
-
 // 'ls' and 'dir' handler
 static void shell_ls( char* args )
 {
@@ -189,8 +188,6 @@ static void shell_ls( char* args )
   printf( "\n\nTotal = %d bytes\n\n", total );
 }
 
-
-
 // Insert shell commands here
 static const SHELL_COMMAND shell_commands[] = 
 {
@@ -203,7 +200,6 @@ static const SHELL_COMMAND shell_commands[] =
   { "dir", shell_ls },
   { NULL, NULL }
 };
-
 
 // Execute the eLua "shell" in an infinite loop
 void shell_start()

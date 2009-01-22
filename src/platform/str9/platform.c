@@ -17,6 +17,7 @@
 #include "91x_tim.h"
 #include "common.h"
 #include "platform_conf.h"
+#include "91x_vic.h"
 
 // We define here the UART used by this porting layer
 #define STR9_UART         UART1
@@ -75,10 +76,13 @@ int platform_init()
   // PIO setup
   for( i = 0; i < 10; i ++ )
     GPIO_DeInit( ( GPIO_TypeDef* )port_data[ i ] );
+    
+  // Initialize VIC
+  VIC_DeInit();
   
   // UART setup (only STR9_UART is used in this example)
   platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
-  
+
   // Initialize timers
   for( i = 0; i < 4; i ++ )
   {
@@ -204,7 +208,7 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   UART_InitStructure.UART_BaudRate = baud;
   UART_InitStructure.UART_HardwareFlowControl = UART_HardwareFlowControl_None;
   UART_InitStructure.UART_Mode = UART_Mode_Tx_Rx;
-  UART_InitStructure.UART_FIFO = UART_FIFO_Enable; //UART_FIFO_Enable;
+  UART_InitStructure.UART_FIFO = UART_FIFO_Enable;
   UART_InitStructure.UART_TxFIFOLevel = UART_FIFOLevel_1_2; /* FIFO size 16 bytes, FIFO level 8 bytes */
   UART_InitStructure.UART_RxFIFOLevel = UART_FIFOLevel_1_2; /* FIFO size 16 bytes, FIFO level 8 bytes */
 
@@ -218,21 +222,22 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
 void platform_uart_send( unsigned id, u8 data )
 {
   id = id;
-  while( UART_GetFlagStatus(STR9_UART, UART_FLAG_TxFIFOFull) == SET );
+//  while( UART_GetFlagStatus( STR9_UART, UART_FLAG_TxFIFOFull ) == SET );
   UART_SendData( STR9_UART, data );
+  while( UART_GetFlagStatus( STR9_UART, UART_FLAG_TxFIFOFull ) != RESET );  
 }
 
-int platform_s_uart_recv( unsigned id, unsigned timer_id, int timeout )
+int platform_s_uart_recv( unsigned id, s32 timeout )
 {
   if( timeout == 0 )
   {
     // Return data only if already available
-    if( UART_GetFlagStatus(STR9_UART, UART_FLAG_RxFIFOEmpty) != SET )
+    if( UART_GetFlagStatus( STR9_UART, UART_FLAG_RxFIFOEmpty ) != SET )
       return UART_ReceiveData( STR9_UART );
     else
       return -1;
   }
-  while( UART_GetFlagStatus(STR9_UART, UART_FLAG_RxFIFOEmpty) == SET );
+  while( UART_GetFlagStatus( STR9_UART, UART_FLAG_RxFIFOEmpty ) == SET );
   return UART_ReceiveData( STR9_UART );
 }
 
@@ -318,4 +323,20 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
       break;
   }
   return res;
+}
+
+// ****************************************************************************
+// CPU functions
+
+extern void enable_ints();
+extern void disable_ints();
+
+void platform_cpu_enable_interrupts()
+{
+  enable_ints();
+}
+
+void platform_cpu_disable_interrupts()
+{
+  disable_ints();
 }

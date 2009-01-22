@@ -61,6 +61,10 @@
 #define NUM_PWM               4
 #define NUM_ADC               0
 
+// Enable RX buffering on UART
+#define BUF_ENABLE_UART
+#define CON_BUF_SIZE          BUF_SIZE_128
+
 // CPU frequency (needed by the CPU module, 0 if not used)
 #define CPU_FREQUENCY         BOARD_MCK
 

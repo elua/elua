@@ -20,6 +20,7 @@
 #include "common.h"
 #include "aic.h"
 #include "platform_conf.h"
+#include "buf.h"
 
 // ****************************************************************************
 // Platform initialization
@@ -41,13 +42,26 @@ static void ISR_Tc2()
 }
 #endif
 
+// Buffered UART support
+#ifdef BUF_ENABLE_UART
+static void uart_rx_handler()
+{
+  int c;
+  AT91S_USART* base = CON_UART_ID == 0 ? AT91C_BASE_US0 : AT91C_BASE_US1;    
+  
+  c = USART_Read( base, 0 );
+  buf_rx_cb( BUF_ID_UART, CON_UART_ID, ( t_buf_data )c );
+  asm( "pop {r0}":: );  
+  asm( "bx  r0":: );  
+}
+#endif
+
 int platform_init()
 {
   int i;
    
   unsigned int mode = AT91C_US_USMODE_NORMAL | AT91C_US_CLKS_CLOCK | AT91C_US_CHRL_8_BITS | 
       AT91C_US_PAR_NONE | AT91C_US_NBSTOP_1_BIT | AT91C_US_CHMODE_NORMAL;
-      
   // Enable the peripherals we use in the PMC
   PMC_EnablePeripheral( AT91C_ID_US0 );  
   PMC_EnablePeripheral( AT91C_ID_US1 );
@@ -62,11 +76,21 @@ int platform_init()
   PIO_Configure(platform_uart_pins[ 0 ], PIO_LISTSIZE(platform_uart_pins[ 0 ]));
     
   // Configure the USART in the desired mode @115200 bauds
-  USART_Configure(AT91C_BASE_US0, mode, CON_UART_SPEED, BOARD_MCK);
-  
+  USART_Configure(AT91C_BASE_US0, mode, CON_UART_SPEED, BOARD_MCK);  
   // Enable receiver & transmitter
   USART_SetTransmitterEnabled(AT91C_BASE_US0, 1);
   USART_SetReceiverEnabled(AT91C_BASE_US0, 1);  
+#if defined( BUF_ENABLE_UART ) && defined( CON_BUF_SIZE )
+  // Enable buffering on the console UART
+  buf_set( BUF_ID_UART, CON_UART_ID, CON_BUF_SIZE );
+  // Set interrupt handler and interrupt flag on UART
+  unsigned uart_id = CON_UART_ID == 0 ? AT91C_ID_US0 : AT91C_ID_US1;
+  AT91S_USART* base = CON_UART_ID == 0 ? AT91C_BASE_US0 : AT91C_BASE_US1;        
+  AIC_DisableIT( uart_id );
+  AIC_ConfigureIT( uart_id, 0, uart_rx_handler );
+  base->US_IER = AT91C_US_RXRDY;
+  AIC_EnableIT( uart_id );  
+#endif  
   
   // Configure the timers
   AT91C_BASE_TCB->TCB_BMR = 0x15;
@@ -224,7 +248,7 @@ void platform_uart_send( unsigned id, u8 data )
   USART_Write( base, data, 0 );
 }
 
-int platform_s_uart_recv( unsigned id, unsigned timer_id, int timeout )
+int platform_s_uart_recv( unsigned id, s32 timeout )
 {
   AT91S_USART* base = id == 0 ? AT91C_BASE_US0 : AT91C_BASE_US1;  
     

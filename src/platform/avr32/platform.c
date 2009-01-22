@@ -13,6 +13,7 @@
 #include "utils.h"
 #include "platform_conf.h"
 #include "common.h"
+#include "buf.h"
 
 // Platform-specific includes
 #include <avr32/io.h>
@@ -24,14 +25,15 @@
 #include "gpio.h"
 #include "tc.h"
 #include "intc.h"
+#include "sdramc.h"
 
 // ****************************************************************************
 // Platform initialization
 
 extern int pm_configure_clocks( pm_freq_param_t *param );
 
+// Virtual timers support
 #if VTMR_NUM_TIMERS > 0
-
 #define VTMR_CH     (2)
 
 __attribute__((__interrupt__)) static void tmr_int_handler()
@@ -42,6 +44,22 @@ __attribute__((__interrupt__)) static void tmr_int_handler()
   cmn_virtual_timer_cb();
 }                                
 #endif
+
+static const u32 uart_base_addr[ NUM_UART ] = { AVR32_USART0_ADDRESS, AVR32_USART1_ADDRESS, AVR32_USART2_ADDRESS, AVR32_USART3_ADDRESS };
+
+// Buffered UART support
+#ifdef BUF_ENABLE_UART
+__attribute__((__interrupt__)) static void uart_rx_handler()
+{
+  int c;
+  volatile avr32_usart_t *pusart = ( volatile avr32_usart_t* )uart_base_addr[ CON_UART_ID ];    
+  
+  usart_read_char( pusart, &c );
+  buf_rx_cb( BUF_ID_UART, CON_UART_ID, ( t_buf_data )c );
+}
+#endif
+
+extern void alloc_init();
 
 int platform_init()
 {
@@ -82,7 +100,7 @@ int platform_init()
          
   Disable_global_interrupt();  
   INTC_init_interrupts();
-  
+    
   // Setup clocks
   if( PM_FREQ_STATUS_FAIL == pm_configure_clocks( &pm_freq_param ) )
     return PLATFORM_ERR;  
@@ -91,9 +109,21 @@ int platform_init()
   // Enable the 32-kHz clock
   pm_enable_clk32_no_wait( &AVR32_PM, AVR32_PM_OSCCTRL32_STARTUP_0_RCOSC );    
   
+  // Initialize external memory
+  sdramc_init( REQ_CPU_FREQ );
+  
   // Setup UART for eLua
   platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );  
-  
+#if defined( BUF_ENABLE_UART ) && defined( CON_BUF_SIZE )
+  // Enable buffering on the console UART
+  buf_set( BUF_ID_UART, CON_UART_ID, CON_BUF_SIZE );
+  // Set interrupt handler and interrupt flag on UART
+  INTC_register_interrupt( &uart_rx_handler, CON_UART_IRQ, AVR32_INTC_INT0 );  
+  volatile avr32_usart_t *pusart = ( volatile avr32_usart_t* )uart_base_addr[ CON_UART_ID ];      
+  pusart->ier = AVR32_USART_IER_RXRDY_MASK;  
+  Enable_global_interrupt();
+#endif
+    
   // Setup timers
   for( i = 0; i < 3; i ++ )
   {
@@ -123,7 +153,7 @@ int platform_init()
   Enable_global_interrupt();
   tc_start( tc, VTMR_CH );  
 #endif
-  
+
   cmn_platform_init();
     
   // All done  
@@ -313,7 +343,7 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 // ****************************************************************************
 // UART functions
 
-static const u32 uart_base_addr[ NUM_UART ] = { AVR32_USART0_ADDRESS, AVR32_USART1_ADDRESS, AVR32_USART2_ADDRESS, AVR32_USART3_ADDRESS };
+
 static const gpio_map_t uart_pins = 
 {
   // UART 0
@@ -368,9 +398,9 @@ void platform_uart_send( unsigned id, u8 data )
   volatile avr32_usart_t *pusart = ( volatile avr32_usart_t* )uart_base_addr[ id ];  
   
   usart_putchar( pusart, data );
-}
+}    
 
-int platform_s_uart_recv( unsigned id, unsigned timer_id, int timeout )
+int platform_s_uart_recv( unsigned id, s32 timeout )
 {
   volatile avr32_usart_t *pusart = ( volatile avr32_usart_t* )uart_base_addr[ id ];  
   int temp;

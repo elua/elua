@@ -24,24 +24,8 @@ static int uart_setup( lua_State* L )
   return 1;
 }
 
-// Lua: send( id, out1, out2, ... )
+// Lua: send( id, string1, string2, ... )
 static int uart_send( lua_State* L )
-{
-  u8 value;
-  int total = lua_gettop( L ), i, id;
-  
-  id = luaL_checkinteger( L, 1 );
-  MOD_CHECK_ID( uart, id );
-  for( i = 2; i <= total; i ++ )
-  {
-    value = luaL_checkinteger( L, i );  
-    platform_uart_send( id, value );
-  }
-  return 0;
-}
-
-// Lua: sendstr( id, string1, string2, ... )
-static int uart_sendstr( lua_State* L )
 {
   int id;
   const char* buf;
@@ -60,15 +44,22 @@ static int uart_sendstr( lua_State* L )
   return 0;
 }
 
-// Lua: data = recv( id, timer_id, timeout )
+// Lua: data = recv( id, [ timer_id, timeout ] )
 static int uart_recv( lua_State* L )
 {
-  int id, timer_id, timeout, res;
+  int id, res;
+  unsigned timer_id = 0;
+  s32 timeout = PLATFORM_UART_INFINITE_TIMEOUT;
   
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( uart, id );
-  timer_id = luaL_checkinteger( L, 2 );
-  timeout = luaL_checkinteger( L, 3 );
+  if( lua_gettop( L ) >= 2 )
+  {
+    timer_id = luaL_checkinteger( L, 2 );
+    timeout = luaL_checkinteger( L, 3 );    
+    if( ( timeout < 0 ) && ( timeout != PLATFORM_UART_INFINITE_TIMEOUT ) )
+      timeout = 0x7FFFFFFF; // force timeout to its maximum value
+  }
   res = platform_uart_recv( id, timer_id, timeout );
   lua_pushinteger( L, res );
   return 1;  
@@ -82,7 +73,6 @@ const LUA_REG_TYPE uart_map[] =
   { LSTRKEY( "setup" ),  LFUNCVAL( uart_setup ) },
   { LSTRKEY( "send" ), LFUNCVAL( uart_send) },
   { LSTRKEY( "recv" ), LFUNCVAL( uart_recv ) },
-  { LSTRKEY( "sendstr" ), LFUNCVAL( uart_sendstr ) },
 #if LUA_OPTIMIZE_MEMORY > 0
   { LSTRKEY( "PAR_EVEN" ), LNUMVAL( PLATFORM_UART_PARITY_EVEN ) },
   { LSTRKEY( "PAR_ODD" ), LNUMVAL( PLATFORM_UART_PARITY_ODD ) },

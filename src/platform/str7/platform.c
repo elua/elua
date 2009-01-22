@@ -180,7 +180,7 @@ void platform_uart_send( unsigned id, u8 data )
   UART_ByteSend( pport, &data );
 }
 
-int platform_s_uart_recv( unsigned id, unsigned timer_id, int timeout )
+int platform_s_uart_recv( unsigned id, s32 timeout )
 {
   UART_TypeDef* pport = ( UART_TypeDef* )uart_periph[ id ];    
   

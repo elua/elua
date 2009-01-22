@@ -13,7 +13,7 @@ Copyright RAISONANCE S.A.S. 2008
 These are used by the startup in order to allocate stacks for the different modes.
 */
 
-__Stack_Size = 1024 ;
+__Stack_Size = 2048 ;
 
 PROVIDE ( _Stack_Size = __Stack_Size ) ;
 
