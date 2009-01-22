@@ -80,7 +80,7 @@ int platform_init()
   pwms_init();
 
   // Setup ADCs
-	adcs_init();
+  adcs_init();
 
   // Setup ethernet (TCP/IP)
   eth_init();
@@ -481,7 +481,8 @@ void platform_cpu_disable_interrupts()
 // *****************************************************************************
 // ADC specific functions
 
-/*int platform_adc_exists( unsigned id ); generic, it will be part of src/common.c */
+const static u32 adc_ctls[] = { ADC_CTL_CH0, ADC_CTL_CH1, ADC_CTL_CH2, ADC_CTL_CH3 };
+
 
 static void adcs_init(unsigned id)
 {
@@ -520,6 +521,7 @@ int platform_adc_is_done( unsigned id ) /* returns 1 if the conversion on the sp
   return !ADCIntStatus(ADC_BASE, id, false);
 }
 
+
 void platform_adc_set_mode( unsigned id, int mode ) /* sets the mode on the specified ADC channel to either "single shot" or "continuous" */
 {
   /* currently mode is ignored... acquisition is currently just single-shot */
@@ -527,11 +529,12 @@ void platform_adc_set_mode( unsigned id, int mode ) /* sets the mode on the spec
   /* Stop sequencer we're going to adjust */
   ADCSequenceDisable(ADC_BASE, id);
 
-  /* Set sequence id to be triggered by processor, with priority 0  */
-  /* Not sure what happens if priority is nonzero, just make priority tied to id number */
+  /* Set sequence id to be triggered by processor, with priority id  */
   ADCSequenceConfigure(ADC_BASE, id, ADC_TRIGGER_PROCESSOR, id);
 
-  ADCSequenceStepConfigure(ADC_BASE, id, 0, ADC_CTL_IE | ADC_CTL_END | ADC_CTL_CH0);
+  /* ADC_CTL_IE causes an interrupt to be fired when this step is complete */
+  /* ADC_CTL_END causes this to be the last step to be taken */
+  ADCSequenceStepConfigure(ADC_BASE, id, 0, ADC_CTL_IE | ADC_CTL_END | adc_ctls[id]);
 }
 
 void platform_adc_burst( unsigned id, u16* buf, unsigned count, u32 frequency ) /* burst conversion: read "count" samples from the ADC channel "id", storing the results in "buf". The samples are read at periodic intervals, the period is given by "frequency". */
