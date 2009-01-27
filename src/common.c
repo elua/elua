@@ -276,3 +276,17 @@ void* platform_get_last_free_ram( unsigned id )
   
   return id >= sizeof( mend ) / sizeof( void* ) ? NULL : mend[ id ];
 }
+
+
+// ****************************************************************************
+// Misc support
+unsigned int intlog2( unsigned int v )
+{
+  unsigned r = 0;
+
+  while (v >>= 1)
+  {
+    r++;
+  }
+  return r;
+}

@@ -10,7 +10,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include "uip_arp.h"
-#include "elua_uip.h" 
+#include "elua_uip.h"
 #include "uip-conf.h"
 #include "platform_conf.h"
 #include "common.h"
@@ -55,7 +55,7 @@ static void pwms_init();
 static void eth_init();
 
 int platform_init()
-{ 
+{
   // Set the clocking to run from PLL
   RCC_Configuration();
 
@@ -81,19 +81,19 @@ int platform_init()
 #endif
 
   // Setup timers
-  //timers_init();        
+  //timers_init();
 
   // Setup PWMs
-  //pwms_init();                 
+  //pwms_init();
 
   // Setup ethernet (TCP/IP)
   //eth_init();
 
   cmn_platform_init();
-  
+
   // All done
   return PLATFORM_OK;
-} 
+}
 
 // ****************************************************************************
 // Clocks
@@ -126,12 +126,12 @@ static void RCC_Configuration(void)
 
     /* Flash 2 wait state */
     FLASH_SetLatency(FLASH_Latency_2);
- 
+
     /* HCLK = SYSCLK */
-    RCC_HCLKConfig(RCC_SYSCLK_Div1); 
-  
+    RCC_HCLKConfig(RCC_SYSCLK_Div1);
+
     /* PCLK2 = HCLK */
-    RCC_PCLK2Config(RCC_HCLK_Div1); 
+    RCC_PCLK2Config(RCC_HCLK_Div1);
 
     /* PCLK1 = HCLK/2 */
     RCC_PCLK1Config(RCC_HCLK_Div2);
@@ -139,7 +139,7 @@ static void RCC_Configuration(void)
     /* PLLCLK = 8MHz * 9 = 72 MHz */
     RCC_PLLConfig(RCC_PLLSource_HSE_Div1, RCC_PLLMul_9);
 
-    /* Enable PLL */ 
+    /* Enable PLL */
     RCC_PLLCmd(ENABLE);
 
     /* Wait till PLL is ready */
@@ -154,8 +154,8 @@ static void RCC_Configuration(void)
     while(RCC_GetSYSCLKSource() != 0x08)
     {
     }
-  } 
- 
+  }
+
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 }
 
@@ -176,15 +176,15 @@ static void NVIC_Configuration(void)
 
   NVIC_DeInit();
 
-#ifdef  VECT_TAB_RAM  
-  /* Set the Vector Table base location at 0x20000000 */ 
-  NVIC_SetVectorTable(NVIC_VectTab_RAM, 0x0); 
+#ifdef  VECT_TAB_RAM
+  /* Set the Vector Table base location at 0x20000000 */
+  NVIC_SetVectorTable(NVIC_VectTab_RAM, 0x0);
 #else  /* VECT_TAB_FLASH  */
-  /* Set the Vector Table base location at 0x08000000 */ 
-  NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0x0);   
-#endif 
+  /* Set the Vector Table base location at 0x08000000 */
+  NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0x0);
+#endif
 
-  /* Configure the NVIC Preemption Priority Bits */  
+  /* Configure the NVIC Preemption Priority Bits */
   NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 
   /* Configure the SysTick handler priority */
@@ -208,11 +208,11 @@ static void pios_init()
   {
     // Enable clock to port.
     RCC_APB2PeriphClockCmd(pio_port_clk[port], ENABLE);
-  
+
     // Default all port pins to input and enable port.
     GPIO_InitStructure.GPIO_Pin  = GPIO_Pin_All;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-  
+
     GPIO_Init(pio_port[port], &GPIO_InitStructure);
   }
 }
@@ -222,69 +222,69 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
   pio_type retval = 1;
   GPIO_InitTypeDef GPIO_InitStructure;
   GPIO_TypeDef * base = pio_port[ port ];
-  
+
   switch( op )
   {
-    case PLATFORM_IO_PORT_SET_VALUE:    
+    case PLATFORM_IO_PORT_SET_VALUE:
       GPIO_Write(base, pinmask);
       break;
-      
+
     case PLATFORM_IO_PIN_SET:
       GPIO_SetBits(base, pinmask);
       break;
-      
+
     case PLATFORM_IO_PIN_CLEAR:
       GPIO_ResetBits(base, pinmask);
       break;
-      
+
     case PLATFORM_IO_PORT_DIR_INPUT:
-      pinmask = GPIO_Pin_All;      
+      pinmask = GPIO_Pin_All;
     case PLATFORM_IO_PIN_DIR_INPUT:
       GPIO_InitStructure.GPIO_Pin  = pinmask;
       GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-    
+
       GPIO_Init(base, &GPIO_InitStructure);
       break;
-      
-    case PLATFORM_IO_PORT_DIR_OUTPUT:      
+
+    case PLATFORM_IO_PORT_DIR_OUTPUT:
       pinmask = GPIO_Pin_All;
     case PLATFORM_IO_PIN_DIR_OUTPUT:
       GPIO_InitStructure.GPIO_Pin   = pinmask;
       GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
       GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    
+
       GPIO_Init(base, &GPIO_InitStructure);
-      break;      
-            
+      break;
+
     case PLATFORM_IO_PORT_GET_VALUE:
       retval = GPIO_ReadInputData(base);
       break;
-      
+
     case PLATFORM_IO_PIN_GET:
       retval = GPIO_ReadInputDataBit(base, pinmask);
       break;
-      
+
     case PLATFORM_IO_PIN_PULLUP:
       GPIO_InitStructure.GPIO_Pin   = pinmask;
       GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IPU;
-    
+
       GPIO_Init(base, &GPIO_InitStructure);
       break;
-    
+
     case PLATFORM_IO_PIN_PULLDOWN:
       GPIO_InitStructure.GPIO_Pin   = pinmask;
       GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IPD;
-    
+
       GPIO_Init(base, &GPIO_InitStructure);
       break;
-      
+
     case PLATFORM_IO_PIN_NOPULL:
       GPIO_InitStructure.GPIO_Pin   = pinmask;
       GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
-    
+
       GPIO_Init(base, &GPIO_InitStructure);
       break;
-      
+
     default:
       retval = 0;
       break;
@@ -325,18 +325,18 @@ int platform_spi_exists( unsigned id )
 u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigned cpha, unsigned databits )
 {
   unsigned protocol;
-  
+
   if( cpol == 0 )
     protocol = cpha ? SSI_FRF_MOTO_MODE_1 : SSI_FRF_MOTO_MODE_0;
   else
     protocol = cpha ? SSI_FRF_MOTO_MODE_3 : SSI_FRF_MOTO_MODE_2;
-  mode = mode == PLATFORM_SPI_MASTER ? SSI_MODE_MASTER : SSI_MODE_SLAVE;  
+  mode = mode == PLATFORM_SPI_MASTER ? SSI_MODE_MASTER : SSI_MODE_SLAVE;
   SSIDisable( spi_base[ id ] );
 
   GPIOPinTypeSSI( spi_gpio_base[ id ], spi_gpio_pins[ id ] );
-  
+
   // FIXME: not sure this is always "right"
-  GPIOPadConfigSet(spi_gpio_base[ id ], spi_gpio_clk_pin[ id ], GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_STD_WPU);    
+  GPIOPadConfigSet(spi_gpio_base[ id ], spi_gpio_clk_pin[ id ], GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_STD_WPU);
 
   SSIConfigSetExpClk( spi_base[ id ], SysCtlClockGet(), protocol, mode, clock, databits );
   SSIEnable( spi_base[ id ] );
@@ -352,7 +352,7 @@ spi_data_type platform_spi_send_recv( unsigned id, spi_data_type data )
 
 void platform_spi_select( unsigned id, int is_select )
 {
-  // This platform doesn't have a hardware SS pin, so there's nothing to do here  
+  // This platform doesn't have a hardware SS pin, so there's nothing to do here
   id = id;
   is_select = is_select;
 }
@@ -390,7 +390,7 @@ static void usart_init(u32 id, USART_InitTypeDef * initVals)
 
   /* Configure USART */
   USART_Init(usart[id], initVals);
-  
+
   /* Enable USART1 Receive and Transmit interrupts */
   //USART_ITConfig(usart[id], USART_IT_RXNE, ENABLE);
   //USART_ITConfig(usart[id], USART_IT_TXE, ENABLE);
@@ -408,7 +408,7 @@ static void uarts_init()
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART4, ENABLE);
-  
+
   // Configure the U(S)ART for 115,200, 8-N-1 operation.
 
   USART_InitStructure.USART_BaudRate = CON_UART_SPEED;
@@ -426,10 +426,10 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   USART_InitTypeDef USART_InitStructure;
 
   USART_InitStructure.USART_BaudRate = baud;
-  
+
   USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
   USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
-    
+
   switch( databits )
   {
     case 5:
@@ -457,7 +457,7 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
     default:
       USART_InitStructure.USART_StopBits = USART_StopBits_2;
       break;
-  }    
+  }
 
   switch (parity)
   {
@@ -471,9 +471,9 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
       USART_InitStructure.USART_Parity = USART_Parity_No;
       break;
   }
-  
+
   usart_init(id, &USART_InitStructure);
-  
+
   return TRUE;
 }
 
@@ -492,18 +492,17 @@ int platform_s_uart_recv( unsigned id, s32 timeout )
     if (USART_GetFlagStatus(usart[id], USART_FLAG_RXNE) == RESET)
       return -1;
     else
-      return USART_ReceiveData(usart[id]);  
+      return USART_ReceiveData(usart[id]);
   }
   // Receive char blocking
   while(USART_GetFlagStatus(usart[id], USART_FLAG_RXNE) == RESET);
-  return USART_ReceiveData(usart[id]);  
+  return USART_ReceiveData(usart[id]);
 }
 #endif
 
 #ifdef STM32_USE_TIMERS
 // ****************************************************************************
 // Timers
-// Same on LM3S8962 and LM3S6965
 
 // All possible LM3S timers defs
 static TIM_TypeDef * timer[] = { TIM2, TIM3, TIM4, TIM5};
@@ -544,9 +543,9 @@ static u32 platform_timer_set_clock(unsigned id, u32 clock)
   clkdiv = ((tmp & 0x8000) ? (tmp + 0x10000) : tmp) >> 16;  // Round up or down and convert back to u32.0
   if (clkdiv > 0x10000)  // Saturate to u16 (+1 for a clkdiv value of 1 is a reg value of 0)
       clkdiv = 0x10000;
-  
+
   TIM_PrescalerConfig(timer[id], clkdiv - 1, TIM_PSCReloadMode_Immediate); // Update timer prescaler immediately
-  
+
   return pclk / clkdiv; // Return actual clock rate used.
 }
 
@@ -554,17 +553,17 @@ void platform_s_timer_delay( unsigned id, u32 delay_us )
 {
   timer_data_type final;
   u32 base = timer_base[ id ];
-  
+
   final = 0xFFFFFFFF - ( ( ( u64 )delay_us * SysCtlClockGet() ) / 1000000 );
   TimerLoadSet( base, TIMER_A, 0xFFFFFFFF );
   while( TimerValueGet( base, TIMER_A ) > final );
 }
-      
+
 u32 platform_s_timer_op( unsigned id, int op, u32 data )
 {
   u32 res = 0;
-  u32 base = timer_base[ id ]; 
-  
+  u32 base = timer_base[ id ];
+
   data = data;
   switch( op )
   {
@@ -572,24 +571,24 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
       res = 0xFFFFFFFF;
       TimerLoadSet( base, TIMER_A, 0xFFFFFFFF );
       break;
-      
+
     case PLATFORM_TIMER_OP_READ:
       res = TimerValueGet( base, TIMER_A );
       break;
-      
+
     case PLATFORM_TIMER_OP_GET_MAX_DELAY:
       res = platform_timer_get_diff_us( id, 0, 0xFFFFFFFF );
       break;
-      
+
     case PLATFORM_TIMER_OP_GET_MIN_DELAY:
       res = platform_timer_get_diff_us( id, 0, 1 );
       break;
-      
+
     case PLATFORM_TIMER_OP_SET_CLOCK:
     case PLATFORM_TIMER_OP_GET_CLOCK:
       res = SysCtlClockGet();
       break;
-      
+
   }
   return res;
 }
@@ -629,7 +628,7 @@ static u32 platform_pwm_get_clock()
 {
   unsigned i;
   u32 clk;
-  
+
   clk = SysCtlPWMClockGet();
   for( i = 0; i < sizeof( pwm_div_ctl ) / sizeof( u32 ); i ++ )
     if( clk == pwm_div_ctl[ i ] )
@@ -642,7 +641,7 @@ static u32 platform_pwm_set_clock( u32 clock )
 {
   unsigned i, min_i;
   u32 sysclk;
-  
+
   sysclk = SysCtlClockGet();
   for( i = min_i = 0; i < sizeof( pwm_div_data ) / sizeof( u8 ); i ++ )
     if( ABSDIFF( clock, sysclk / pwm_div_data[ i ] ) < ABSDIFF( clock, sysclk / pwm_div_data[ min_i ] ) )
@@ -653,14 +652,14 @@ static u32 platform_pwm_set_clock( u32 clock )
 
 int platform_pwm_exists( unsigned id )
 {
-  return id < PLATFORM_NUM_PWMS; 
+  return id < PLATFORM_NUM_PWMS;
 }
 
 u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
 {
   u32 pwmclk = platform_pwm_get_clock();
   u32 period;
-  
+
   // Set pin as PWM
   GPIOPinTypePWM( pwm_ports[ id ], pwm_pins[ id ] );
   // Compute period
@@ -677,28 +676,28 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
 u32 platform_pwm_op( unsigned id, int op, u32 data )
 {
   u32 res = 0;
-  
+
   switch( op )
   {
     case PLATFORM_PWM_OP_SET_CLOCK:
       res = platform_pwm_set_clock( data );
       break;
-            
+
     case PLATFORM_PWM_OP_GET_CLOCK:
       res = platform_pwm_get_clock();
       break;
-      
+
     case PLATFORM_PWM_OP_START:
       PWMOutputState( PWM_BASE, 1 << id, true );
       PWMGenEnable( PWM_BASE, pwm_gens[ id >> 1 ] );
       break;
-      
+
     case PLATFORM_PWM_OP_STOP:
       PWMOutputState( PWM_BASE, 1 << id, false );
       PWMGenDisable( PWM_BASE, pwm_gens[ id >> 1 ] );
       break;
   }
-  
+
   return res;
 }
 #endif
@@ -750,12 +749,12 @@ static void eth_init()
 {
 #ifdef BUILD_UIP
   u32 user0, user1, temp;
-  static struct uip_eth_addr sTempAddr;     
-  
+  static struct uip_eth_addr sTempAddr;
+
   // Enable and reset the controller
   SysCtlPeripheralEnable( SYSCTL_PERIPH_ETH );
   SysCtlPeripheralReset( SYSCTL_PERIPH_ETH );
-  
+
   // Enable Ethernet LEDs
   GPIODirModeSet( GPIO_PORTF_BASE, GPIO_PIN_2 | GPIO_PIN_3, GPIO_DIR_MODE_HW );
   GPIOPadConfigSet( GPIO_PORTF_BASE, GPIO_PIN_2 | GPIO_PIN_3, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD );
@@ -764,13 +763,13 @@ static void eth_init()
   SysTickPeriodSet(SysCtlClockGet() / SYSTICKHZ);
   SysTickEnable();
   SysTickIntEnable();
-  
+
   // Intialize the Ethernet Controller and disable all Ethernet Controller interrupt sources.
   EthernetIntDisable(ETH_BASE, (ETH_INT_PHY | ETH_INT_MDIO | ETH_INT_RXER |
                      ETH_INT_RXOF | ETH_INT_TX | ETH_INT_TXER | ETH_INT_RX));
   temp = EthernetIntStatus(ETH_BASE, false);
-  EthernetIntClear(ETH_BASE, temp);  
-  
+  EthernetIntClear(ETH_BASE, temp);
+
   // Initialize the Ethernet Controller for operation.
   EthernetInitExpClk(ETH_BASE, SysCtlClockGet());
 
@@ -788,7 +787,7 @@ static void eth_init()
   IntEnable(INT_ETH);
 
   // Enable the Ethernet RX Packet interrupt source.
-  EthernetIntEnable(ETH_BASE, ETH_INT_RX);  
+  EthernetIntEnable(ETH_BASE, ETH_INT_RX);
 
   // Enable all processor interrupts.
   IntMasterEnable();
@@ -800,7 +799,7 @@ static void eth_init()
   // non-volatile USER0 and USER1 registers.  These registers can be read
   // using the FlashUserGet function, as illustrated below.
   FlashUserGet(&user0, &user1);
-  
+
   // Convert the 24/24 split MAC address from NV ram into a 32/16 split MAC
   // address needed to program the hardware registers, then program the MAC
   // address into the Ethernet Controller registers.
@@ -809,10 +808,10 @@ static void eth_init()
   sTempAddr.addr[2] = ((user0 >> 16) & 0xff);
   sTempAddr.addr[3] = ((user1 >>  0) & 0xff);
   sTempAddr.addr[4] = ((user1 >>  8) & 0xff);
-  sTempAddr.addr[5] = ((user1 >> 16) & 0xff);  
+  sTempAddr.addr[5] = ((user1 >> 16) & 0xff);
 
   // Program the hardware with it's MAC address (for filtering).
-  EthernetMACAddrSet(ETH_BASE, (unsigned char *)&sTempAddr);  
+  EthernetMACAddrSet(ETH_BASE, (unsigned char *)&sTempAddr);
 
   // Initialize the eLua uIP layer
   elua_uip_init( &sTempAddr );
@@ -824,7 +823,7 @@ static int eth_timer_fired;
 
 void platform_eth_send_packet( const void* src, u32 size )
 {
-  EthernetPacketPut( ETH_BASE, uip_buf, uip_len );    
+  EthernetPacketPut( ETH_BASE, uip_buf, uip_len );
 }
 
 u32 platform_eth_get_packet_nb( void* buf, u32 maxlen )
@@ -834,7 +833,7 @@ u32 platform_eth_get_packet_nb( void* buf, u32 maxlen )
 
 void platform_eth_force_interrupt()
 {
-  HWREG( NVIC_SW_TRIG) |= INT_ETH - 16;  
+  HWREG( NVIC_SW_TRIG) |= INT_ETH - 16;
 }
 
 u32 platform_eth_get_elapsed_time()
@@ -863,12 +862,12 @@ void SysTickHandler(void)
 void EthernetIntHandler()
 {
   u32 temp;
-  
+
   // Read and Clear the interrupt.
   temp = EthernetIntStatus( ETH_BASE, false );
   EthernetIntClear( ETH_BASE, temp );
 
-  // Call the UIP main loop  
+  // Call the UIP main loop
   elua_uip_mainloop();
 }
 

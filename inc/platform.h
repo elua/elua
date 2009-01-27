@@ -53,7 +53,7 @@ enum
   PLATFORM_IO_PORT_SET_VALUE,
   PLATFORM_IO_PORT_GET_VALUE,
   PLATFORM_IO_PORT_DIR_INPUT,
-  PLATFORM_IO_PORT_DIR_OUTPUT  
+  PLATFORM_IO_PORT_DIR_OUTPUT
 };
 
 // The platform I/O functions
@@ -176,13 +176,48 @@ u32 platform_cpu_get_frequency();
 
 // *****************************************************************************
 // The platform ADC functions
+
 int platform_adc_exists( unsigned id );
+
+enum
+{
+  PLATFORM_ADC_CH_SETUP,         // Have we set up the sequence?
+  PLATFORM_ADC_CH_PENDING,       // Is there a pending conversion?
+  PLATFORM_ADC_CH_NONBLOCKING,   // Are we in blocking or non-blocking mode? (0 - blocking, 1 - nonblocking)
+  PLATFORM_ADC_CH_BURST,         // Acquiring in burst mode
+  PLATFORM_ADC_CH_DATA_READY     // Is data ready for this channel
+};
+
+u32 platform_adc_op( unsigned id, int op, u32 data );
+
+enum
+{
+  PLATFORM_ADC_GET_MAXVAL,
+  PLATFORM_ADC_GET_SMOOTHING,
+  PLATFORM_ADC_SET_SMOOTHING
+};
+
 u16 platform_adc_sample( unsigned id );
-u16 platform_adc_maxval( unsigned id );
-void platform_adc_start( unsigned id );
 int platform_adc_is_done( unsigned id );
+
+enum
+{
+  PLATFORM_ADC_BLOCKING,
+  PLATFORM_ADC_NONBLOCKING
+};
+
+// Platform ADC state
+struct platform_adc_state
+{
+  u8              status;
+  u8              burstbuffersz, burstbufferidx;
+  u8              smoothbuffsz, smoothbuffidx;
+  unsigned long   smoothingav, smoothingsum;
+  u16             *burstbuff, *smoothbuff;
+};
+
 void platform_adc_set_mode( unsigned id, int mode );
-void platform_adc_burst( unsigned id, u16* buf, unsigned count, u32 frequency );
+void platform_adc_burst( unsigned id, u16* buf, unsigned count, unsigned timer_id, u32 frequency );
 
 // *****************************************************************************
 // Ethernet specific functions

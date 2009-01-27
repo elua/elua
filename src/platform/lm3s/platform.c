@@ -9,6 +9,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "uip_arp.h"
 #include "elua_uip.h"
 #include "uip-conf.h"
@@ -477,70 +478,233 @@ void platform_cpu_disable_interrupts()
   IntMasterDisable();
 }
 
-
 // *****************************************************************************
-// ADC specific functions
+// ADC specific functions and variables
 
 const static u32 adc_ctls[] = { ADC_CTL_CH0, ADC_CTL_CH1, ADC_CTL_CH2, ADC_CTL_CH3 };
+const static u32 adc_ints[] = { INT_ADC0, INT_ADC1, INT_ADC2, INT_ADC3 };
 
+struct platform_adc_state adc_state[ NUM_ADC ];
 
-static void adcs_init(unsigned id)
+// Handle ADC interrupts
+void ADCIntHandler( void )
 {
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC);
-}
-
-
-u16 platform_adc_sample( unsigned id ) /* sample the specified ADC channel */
-{
-  u16 samplevalue;
-
-  /* Wait for data if not ready */
-  while(!ADCIntStatus(ADC_BASE, id, false))
+  unsigned long samplevalue;
+  unsigned id;
+  
+  // Check each sequence for a pending sample
+  for( id = 0; id < NUM_ADC; id ++ )
   {
+    if( ADCIntStatus(ADC_BASE, id, false) )
+    {      
+      ADCIntClear(ADC_BASE, id);
+      
+      // Get samples
+      ADCSequenceDataGet(ADC_BASE, id, &samplevalue);
+      
+      // Smooth data if needed
+      if ( adc_state[id].smoothbuffsz > 1 )
+      {        
+        if( adc_state[id].smoothbuffidx ==  adc_state[id].smoothbuffsz )
+        {
+          adc_state[id].smoothbuffidx = 0;
+        }
+        
+        // Subtract Oldest Value from Sum
+        adc_state[id].smoothingsum -= adc_state[id].smoothbuff[adc_state[id].smoothbuffidx];
+        
+        // Replace Oldest Value in Buffer
+        adc_state[id].smoothbuff[adc_state[id].smoothbuffidx] = (u16) samplevalue;
+        
+        // Add New Sample to Sum
+        adc_state[id].smoothingsum += adc_state[id].smoothbuff[adc_state[id].smoothbuffidx];
+        
+        
+        adc_state[id].smoothbuffidx++;
+        
+        // Calculate Average
+        if ( (adc_state[id].smoothbuffsz != 0) && \
+             !(adc_state[id].smoothbuffsz & (adc_state[id].smoothbuffsz - 1)) )
+          adc_state[id].smoothingav = adc_state[id].smoothingsum >> intlog2( adc_state[id].smoothbuffsz );
+        else
+          adc_state[id].smoothingav = adc_state[id].smoothingsum / adc_state[id].smoothbuffsz;
+          
+        adc_state[id].burstbuff[0] = (u16) adc_state[id].smoothingav;
+      }
+      else
+        adc_state[id].burstbuff[0] = (u16) samplevalue;
+      
+      // Mark channel as no longer having a fresh sample, close pending state
+      HWREGBITW( &adc_state[id].status, PLATFORM_ADC_CH_DATA_READY ) = 1;
+      HWREGBITW( &adc_state[id].status, PLATFORM_ADC_CH_PENDING ) = 0;
+    }
   }
-
-  /* Get sample, comes back as unsigned long... */
-  ADCSequenceDataGet(ADC_BASE, id, &samplevalue);
-
-  return samplevalue;
 }
 
-void platform_adc_start( unsigned id ) /* starts a conversion on the specified ADC channel and returns immediately */
+static void adcs_init()
 {
-  ADCSequenceEnable(ADC_BASE, id);
-  ADCProcessorTrigger(ADC_BASE, id);
+  unsigned id;
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC);
+
+	for( id = 0; id < NUM_ADC; id ++ )
+	{
+    adc_state[id].status = 0x00;
+
+    adc_state[id].burstbuffersz = 1;
+    adc_state[id].burstbufferidx = 0;
+
+    adc_state[id].smoothbuffsz = 1;
+    adc_state[id].smoothbuffidx = 0;
+    adc_state[id].smoothingav = 0;
+    adc_state[id].smoothingsum = 0;
+
+    adc_state[id].burstbuff = malloc( adc_state[id].burstbuffersz * sizeof( u16 ) );
+    adc_state[id].smoothbuff = malloc( adc_state[id].smoothbuffsz * sizeof( u16 ) );
+	  
+  	// Make sure sequencer is disabled before making changes
+    ADCSequenceDisable( ADC_BASE, id );
+
+    // Conversion initiated on processor trigger
+    ADCSequenceConfigure( ADC_BASE, id, ADC_TRIGGER_PROCESSOR, id ) ;
+
+    // ADC_CTL_IE causes an interrupt to be fired when this step is complete
+    // ADC_CTL_END causes this to be the last step to be taken in the sequence
+    // Samples go into sequencer of the same number as input channel
+   	ADCSequenceStepConfigure( ADC_BASE, id, 0, ADC_CTL_IE | ADC_CTL_END | adc_ctls[id] );
+
+    ADCIntEnable(ADC_BASE, id);
+    IntEnable(adc_ints[id]);
+
+    // Restart Sequencer
+    ADCSequenceEnable( ADC_BASE, id );
+	}
 }
 
-u16 platform_adc_maxval( unsigned id ) /* Returns maximum possible conversion value from ADC */
+u32 platform_adc_op( unsigned id, int op, u32 data )  // Move to common?
 {
-  return pow(2,ADC_BIT_RESOLUTION)-1;
+  // Do we really need 32-bit in and out?
+  u32 res = 0;
+  u8 ctr = 0;
+
+  switch( op )
+  {
+    case PLATFORM_ADC_GET_MAXVAL:
+      res = pow( 2,ADC_BIT_RESOLUTION ) - 1;
+      break;
+
+    case PLATFORM_ADC_GET_SMOOTHING:
+      res = adc_state[id].smoothbuffsz;
+      break;
+
+    case PLATFORM_ADC_SET_SMOOTHING:
+      // If buffer length changes, alloc new buffer, and reset position
+      if( (u16) data !=  adc_state[id].smoothbuffsz )
+      {
+        adc_state[id].smoothbuffsz = (u16) data; 
+        
+        // Free old buffer space
+        free(adc_state[id].smoothbuff); // FIXME? Compiler complains
+        
+        // Reset sum, avg, index location
+        adc_state[id].smoothbuffidx = 0;
+        adc_state[id].smoothingav = 0;
+        adc_state[id].smoothingsum = 0;
+        
+        // Allocate and zero new smoothing buffer
+        if( ( adc_state[id].smoothbuff = malloc( adc_state[id].smoothbuffsz * sizeof( u16 ) ) ) == NULL )
+         {
+           return 1;
+         }
+        
+        for( ctr = 0; ctr < adc_state[id].smoothbuffsz; ctr ++ )
+          adc_state[id].smoothbuff[ctr] = 0;
+      }
+      break;
+  }
+  return res;
 }
 
-int platform_adc_is_done( unsigned id ) /* returns 1 if the conversion on the specified channel ended, 0 otherwise */
+// Get a single sample from the specified ADC channel
+u16 platform_adc_sample( unsigned id ) 
+{   
+  // If no sample is pending or if were configured for burst, set to single-shot
+  if ( HWREGBITW( &adc_state[id].status, PLATFORM_ADC_CH_PENDING ) == 0 || \
+       HWREGBITW( &adc_state[id].status, PLATFORM_ADC_CH_BURST ) == 1)
+  {
+    // Make sure sequencer is disabled before making changes
+    ADCSequenceDisable( ADC_BASE, id );
+
+    // Conversion initiated on processor trigger
+    ADCSequenceConfigure( ADC_BASE, id, ADC_TRIGGER_PROCESSOR, id ) ;
+
+     // Restart Sequencer
+    ADCSequenceEnable( ADC_BASE, id);
+    HWREGBITW( &adc_state[id].status, PLATFORM_ADC_CH_BURST ) = 0;
+  }
+  
+  // Fire Trigger to start sample conversion
+  HWREGBITW( &adc_state[id].status, PLATFORM_ADC_CH_PENDING ) = 1;
+  ADCProcessorTrigger( ADC_BASE, id );
+  
+  // If in blocking mode and sample is pending, wait for ready flag
+  if ( HWREGBITW( &adc_state[id].status, PLATFORM_ADC_CH_NONBLOCKING ) == 0 && \
+       HWREGBITW( &adc_state[id].status, PLATFORM_ADC_CH_PENDING ) == 1 )
+  {
+    while ( HWREGBITW( &adc_state[id].status, PLATFORM_ADC_CH_DATA_READY ) == 0 ) { ; }
+  }
+ 
+  // If non-blocking we return whatever we have in the buffer
+  // Mark sample as old, and return
+  HWREGBITW( &adc_state[id].status, PLATFORM_ADC_CH_DATA_READY ) = 0;
+  return adc_state[id].burstbuff[0];
+}
+
+// returns 1 if the conversion on the specified channel ended, 0 otherwise
+int platform_adc_is_done( unsigned id ) 
+{  
+  return HWREGBITW( &adc_state[id].status, PLATFORM_ADC_CH_DATA_READY );
+}
+
+// sets the mode on the specified ADC channel to either blocking (0) or non-blocking (1)
+void platform_adc_set_mode( unsigned id, int mode ) 
+{  
+  switch( mode )
+  {
+    case PLATFORM_ADC_BLOCKING:
+      HWREGBITW( &adc_state[id].status, PLATFORM_ADC_CH_NONBLOCKING ) = 0;
+      break;
+
+    case PLATFORM_ADC_NONBLOCKING:
+      HWREGBITW( &adc_state[id].status, PLATFORM_ADC_CH_NONBLOCKING ) = 1;
+      break;
+  }
+}
+
+// burst conversion: read "count" samples from the ADC channel "id", storing the results in "buf". The samples are read at periodic intervals, the period is given by "frequency".
+/*  -- not ready yet --
+void platform_adc_burst( unsigned id, u16* buf, unsigned count, unsigned timer_id, u32 frequency )
 {
-  return !ADCIntStatus(ADC_BASE, id, false);
+  if( HWREGBITW( &adc_state[id].status, PLATFORM_ADC_CH_BURST ) == 0 )
+  {
+    // Make sure sequencer is disabled before making changes
+    ADCSequenceDisable( ADC_BASE, id );
+  
+    // Set sequence id to be triggered repeatedly, with priority id
+    ADCSequenceConfigure( ADC_BASE, id, ADC_TRIGGER_TIMER, id ) ;
+  
+    // Restart Sequencer
+    ADCSequenceEnable( ADC_BASE, id );
+    HWREGBITW( &adc_state[id].status, PLATFORM_ADC_CH_BURST ) = 1;
+  }
+  
+  HWREGBITW( &adc_state[id].status, PLATFORM_ADC_CH_PENDING ) = 1;
+
+  // Enable Timer
+  TimerConfigure(timer_base[timer_id], TIMER_CFG_32_BIT_PER);
+  TimerLoadSet(timer_base[timer_id], TIMER_A, SysCtlClockGet() / frequency);
+  TimerControlTrigger(timer_base[timer_id], TIMER_A, true);
 }
-
-
-void platform_adc_set_mode( unsigned id, int mode ) /* sets the mode on the specified ADC channel to either "single shot" or "continuous" */
-{
-  /* currently mode is ignored... acquisition is currently just single-shot */
-
-  /* Stop sequencer we're going to adjust */
-  ADCSequenceDisable(ADC_BASE, id);
-
-  /* Set sequence id to be triggered by processor, with priority id  */
-  ADCSequenceConfigure(ADC_BASE, id, ADC_TRIGGER_PROCESSOR, id);
-
-  /* ADC_CTL_IE causes an interrupt to be fired when this step is complete */
-  /* ADC_CTL_END causes this to be the last step to be taken */
-  ADCSequenceStepConfigure(ADC_BASE, id, 0, ADC_CTL_IE | ADC_CTL_END | adc_ctls[id]);
-}
-
-void platform_adc_burst( unsigned id, u16* buf, unsigned count, u32 frequency ) /* burst conversion: read "count" samples from the ADC channel "id", storing the results in "buf". The samples are read at periodic intervals, the period is given by "frequency". */
-{
-  /* not yet implemented */
-}
+*/
 
 // ****************************************************************************
 // OLED Display specific functions

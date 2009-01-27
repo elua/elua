@@ -12,4 +12,6 @@
 void cmn_platform_init();
 void cmn_virtual_timer_cb();
 
+unsigned int intlog2( unsigned int v );
+
 #endif // #ifndef __COMMON_H__
