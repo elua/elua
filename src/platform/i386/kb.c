@@ -7,10 +7,12 @@
 #include "monitor.h"
 #include "isr.h"
 #include "type.h"
+#include "utils.h"
 
 #define RSHIFT 0x36
 #define LSHIFT 0x2A
-static int shift_pressed;
+#define CTRL   0x1D
+static int shift_pressed, ctrl_pressed;
 
 /* KBDUS means US Keyboard Layout. This is a scancode table
 *  used to layout a standard US keyboard. I have left some
@@ -98,7 +100,7 @@ const unsigned char shift_kbdus[128] =
 };
 
 // Keyboard buffer
-#define KBUF_SIZE     32
+#define KBUF_SIZE     64
 static u8 kb_buffer[ KBUF_SIZE ];
 static u8 r_ptr;
 static volatile u8 w_ptr;
@@ -120,6 +122,8 @@ void keyboard_handler(registers_t regs)
       scancode &= 0x7F;
       if( ( scancode == RSHIFT ) || ( scancode == LSHIFT ) )
         shift_pressed = 0;
+      else if ( scancode == CTRL )
+        ctrl_pressed = 0;
     }
     else
     {
@@ -137,12 +141,20 @@ void keyboard_handler(registers_t regs)
         *  you would add 128 to the scancode when you look for it */
       if( ( scancode == RSHIFT ) || ( scancode == LSHIFT ) )
         shift_pressed = 1;
+      else if( scancode == CTRL )
+        ctrl_pressed = 1;
       else      
       {
         if( ( ( w_ptr + 1 ) % KBUF_SIZE ) != r_ptr )
         {
-          kb_buffer[ w_ptr ] = shift_pressed ? shift_kbdus[scancode] : kbdus[scancode];
-          w_ptr = ( w_ptr + 1 ) % KBUF_SIZE;
+          unsigned char thechar = shift_pressed ? shift_kbdus[scancode] : kbdus[scancode];
+	  if( ctrl_pressed ) // Look for CTRL+Z (EOF)
+	    thechar = ( thechar == 'z' || thechar == 'Z' ) ? STD_CTRLZ_CODE : 0;
+	  if( thechar != 0 )
+	  {
+            kb_buffer[ w_ptr ] = thechar;
+            w_ptr = ( w_ptr + 1 ) % KBUF_SIZE;
+	  }
         }
       }
     }
@@ -164,3 +176,4 @@ int keyboard_getch()
   r_ptr = ( r_ptr + 1 ) % KBUF_SIZE;
   return c; 
 }
+

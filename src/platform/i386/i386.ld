@@ -3,12 +3,12 @@
 /*            Original file taken from Bran's Kernel Development */
 /*            tutorials: http://www.osdever.net/bkerndev/index.php. */
 
-ENTRY(start)
 SECTIONS
 {
 
     .text 0x100000 :
     {
+	KEEP(*(.header))
         code = .; _code = .; __code = .;
         PROVIDE(stext = .);
         *(.text .text.*)

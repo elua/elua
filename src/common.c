@@ -290,3 +290,4 @@ unsigned int intlog2( unsigned int v )
   }
   return r;
 }
+

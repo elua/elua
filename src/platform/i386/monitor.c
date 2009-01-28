@@ -3,6 +3,11 @@
 //             but rewritten for JamesM's kernel tutorials.
 
 #include "monitor.h"
+#include <ctype.h>
+#include <string.h>
+#include <stdio.h>
+#include "term.h"
+#include "util.h"
 
 // The VGA framebuffer starts at 0xB8000.
 u16int *video_memory = (u16int *)0xB8000;
@@ -13,6 +18,8 @@ u8int cursor_y = 0;
 // Updates the hardware cursor.
 static void move_cursor()
 {
+    cursor_y = UMIN( cursor_y, 24 );
+    cursor_x = UMIN( cursor_x, 79 );
     // The screen is 80 characters wide...
     u16int cursorLocation = cursor_y * 80 + cursor_x;
     outb(0x3D4, 14);                  // Tell the VGA board we are setting the high cursor byte.
@@ -51,12 +58,85 @@ static void scroll()
     }
 }
 
+// ANSI 'state machine'
+static int monitor_reading_ansi;
+static int monitor_ansi_count;
+static char monitor_ansi_inbuf[ TERM_MAX_ANSI_SIZE + 1 ];
+
+// ANSI operations and structure data
+enum
+{
+  ANSI_SEQ_CLRSCR,
+  ANSI_SEQ_CLREOL,
+  ANSI_SEQ_GOTOXY,
+  ANSI_SEQ_UP,
+  ANSI_SEQ_DOWN,
+  ANSI_SEQ_RIGHT,
+  ANSI_SEQ_LEFT
+};
+
+typedef struct
+{
+  int op;
+  int p1, p2; 
+} ansi_op;
+
+// Convert an ASCII escape sequence to an operation we can understand
+static int monitor_cvt_escape( const char* inbuf, ansi_op* res )
+{
+  const char *p = inbuf;
+  char last = inbuf[ strlen( inbuf ) - 1 ];
+
+  if( *p++ != '\x1B' )
+    return 0;
+  if( *p++ != '[' )
+    return 0;
+  res->op = res->p1 = res->p2 = 0;
+  switch( last )
+  {
+    case 'J':	// clrscr
+      if( *p != '2' )
+        return 0;
+      res->op = ANSI_SEQ_CLRSCR;
+      break;
+
+    case 'K':	// clreol
+      res->op = ANSI_SEQ_CLREOL;
+      break;
+
+    case 'H':	// gotoxy
+      res->op = ANSI_SEQ_GOTOXY;
+      if( *p != 'H' )
+        sscanf( p, "%d;%d", &res->p1, &res->p2 );
+      break;
+
+    case 'A':	// up
+    case 'B':	// down
+    case 'C':	// right
+    case 'D':	// left
+      res->op = last - 'A' + ANSI_SEQ_UP;
+      sscanf( p, "%d", &res->p1 );
+      break;
+  }
+  return 1;
+}
+
+void monitor_clear();
 // Writes a single character out to the screen.
 void monitor_put(char c)
 {
     // The background colour is black (0), the foreground is white (15).
     u8int backColour = 0;
     u8int foreColour = 15;
+
+    // Take care of the ANSI state machine
+    if( c == '\x1B' )
+    {
+      monitor_reading_ansi = 1;
+      monitor_ansi_count = 0;
+      monitor_ansi_inbuf[ monitor_ansi_count ++ ] = c; 
+      return;
+    }
 
     // The attribute byte is made up of two nibbles - the lower being the 
     // foreground colour, and the upper the background colour.
@@ -65,6 +145,58 @@ void monitor_put(char c)
     // VGA board.
     u16int attribute = attributeByte << 8;
     u16int *location;
+    u8int prev;
+
+    if( monitor_reading_ansi )
+    {
+      monitor_ansi_inbuf[ monitor_ansi_count ++ ] = c;
+      if( isalpha( c ) )
+      {
+        monitor_ansi_inbuf[ monitor_ansi_count ] = '\0';
+	ansi_op op;
+	if( monitor_cvt_escape( monitor_ansi_inbuf, &op ) )
+	{
+	  // Interpret out sequence
+	  switch( op.op )
+	  {
+	    case ANSI_SEQ_CLRSCR:
+	      monitor_clear();
+	      break;
+
+	    case ANSI_SEQ_CLREOL:
+	      prev = cursor_x;
+	      while( cursor_x++ < 80 )
+	      {
+	        location = video_memory + (cursor_y*80 + cursor_x);      
+		*location = ' ' | attribute;
+	      }
+	      cursor_x = prev;
+	      break;
+
+	    case ANSI_SEQ_GOTOXY:
+	      cursor_y = ( u8int )op.p1;
+	      cursor_x = ( u8int )op.p2;
+	      move_cursor();
+	      break;
+
+	    case ANSI_SEQ_UP:
+	    case ANSI_SEQ_LEFT:
+	    case ANSI_SEQ_RIGHT:
+	    case ANSI_SEQ_DOWN:
+              {
+	        int xm = op.op == ANSI_SEQ_LEFT ? -1 : op.op == ANSI_SEQ_RIGHT ? 1 : 0;
+	        int ym = op.op == ANSI_SEQ_UP ? -1 : op.op == ANSI_SEQ_DOWN ? 1 : 0;
+	        cursor_x += xm * op.p1;
+	        cursor_y += ym * op.p1;
+	        move_cursor();
+	        break;
+              }
+           }
+	}
+	monitor_reading_ansi = 0;
+      }
+      return;
+    }
 
     // Handle a backspace, by moving the cursor back one space
     if (c == 0x08 && cursor_x)
@@ -73,10 +205,10 @@ void monitor_put(char c)
     }
 
     // Handle a tab by increasing the cursor's X, but only to a point
-    // where it is divisible by 8.
+    // where it is divisible by 2.
     else if (c == 0x09)
     {
-        cursor_x = (cursor_x+8) & ~(8-1);
+        cursor_x = (cursor_x+2) & ~(2-1);
     }
 
     // Handle carriage return

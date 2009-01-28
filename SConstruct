@@ -18,7 +18,8 @@ romfs = { 'bisect' : [ 'bisect.lua' ],
           'info' : [ 'info.lua' ],
           'morse' : [ 'morse.lua' ],
           'dualpwm' : [ 'dualpwm.lua' ],
-          'adcscope' : [ 'adcscope.lua' ]
+          'adcscope' : [ 'adcscope.lua' ],
+          'life' : [ 'life.lua' ]
         }
 
 # List of platform/CPU combinations
@@ -49,7 +50,7 @@ file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'i
               'EK-LM3S8962' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope' ],
               'EK-LM3S6965' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope' ],
               'STR9-COMSTICK' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
-              'PC' : [ 'bisect', 'hello', 'info' ],
+              'PC' : [ 'bisect', 'hello', 'info', 'life' ],
               'LPC-H2888' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
               'MOD711' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'dualpwm' ],
               'STM3210E-EVAL' : [ 'bisect', 'hello', 'info' ],
@@ -154,7 +155,7 @@ cdefs = cdefs + " -DLUA_OPTIMIZE_MEMORY=%d" % ( optram != 0 and 2 or 0 )
 local_libs = ''
 
 # Application files
-app_files = " src/main.c src/romfs.c src/xmodem.c src/shell.c src/term.c src/dlmalloc.c src/common.c src/buf.c "
+app_files = " src/main.c src/romfs.c src/xmodem.c src/shell.c src/term.c src/common.c src/buf.c src/dlmalloc.c "
 
 # Newlib related files
 newlib_files = " src/newlib/devman.c src/newlib/stubs.c src/newlib/genstd.c src/newlib/stdtcp.c"
