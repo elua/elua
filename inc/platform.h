@@ -178,16 +178,6 @@ u32 platform_cpu_get_frequency();
 // The platform ADC functions
 
 int platform_adc_exists( unsigned id );
-
-enum
-{
-  PLATFORM_ADC_CH_SETUP,         // Have we set up the sequence?
-  PLATFORM_ADC_CH_PENDING,       // Is there a pending conversion?
-  PLATFORM_ADC_CH_NONBLOCKING,   // Are we in blocking or non-blocking mode? (0 - blocking, 1 - nonblocking)
-  PLATFORM_ADC_CH_BURST,         // Acquiring in burst mode
-  PLATFORM_ADC_CH_DATA_READY     // Is data ready for this channel
-};
-
 u32 platform_adc_op( unsigned id, int op, u32 data );
 
 enum
@@ -206,14 +196,20 @@ enum
   PLATFORM_ADC_NONBLOCKING
 };
 
+
 // Platform ADC state
 struct platform_adc_state
 {
-  u8              status;
-  u8              burstbuffersz, burstbufferidx;
-  u8              smoothbuffsz, smoothbuffidx;
-  unsigned long   smoothingav, smoothingsum;
-  u16             *burstbuff, *smoothbuff;
+  volatile u8     op_pending: 1, // Is there a pending conversion?
+                  nonblocking: 1, // Are we in blocking or non-blocking mode? (0 - blocking, 1 - nonblocking)
+                  burst: 1, // Acquiring in burst mode
+                  data_ready: 1, // Is data ready for this channel
+                  smooth_ready: 1; // Has smoothing filter warmed up (i.e. smoothlen samples collected)
+  unsigned        id, timer_id;
+  u8              burstlen, burstidx;
+  u8              smoothlen, smoothidx;
+  unsigned long   smoothavg, smoothsum;
+  u16             sample, *burstbuf, *smoothbuf;
 };
 
 void platform_adc_set_mode( unsigned id, int mode );
