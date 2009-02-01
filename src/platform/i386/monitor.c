@@ -7,7 +7,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "term.h"
-#include "util.h"
+#include "utils.h"
 
 // The VGA framebuffer starts at 0xB8000.
 u16int *video_memory = (u16int *)0xB8000;
