@@ -1,0 +1,6 @@
+pt/gpio_ref.html
+pt/spi_ref.html
+pt/platdependentmodules.html
+pt/uart_ref.html
+pt/api_doc.html
+pt/genericmodules.html

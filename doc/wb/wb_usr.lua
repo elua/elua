@@ -47,23 +47,23 @@ wb_usr.tree =
           folder =
           {
 	          {
-	            name ={ en ="configpin()", pt ="configpin()" },
+	            name ={ en ="configpin", pt ="configpin" },
 	            link ="gpio_ref.html#configpin"
 	          },
 	          {
-	            name ={ en ="setpinvalue()", pt ="setpinvalue()" },
+	            name ={ en ="setpinvalue", pt ="setpinvalue" },
 	            link ="gpio_ref.html#setpinvalue"
 	          },
 	          {
-	            name ={ en ="getpinvalue()", pt ="getpinvalue()" },
+	            name ={ en ="getpinvalue", pt ="getpinvalue" },
 	            link ="gpio_ref.html#getpinvalue"
 	          },
 	          {
-	            name ={ en ="setpinhigh()", pt ="setpinhigh()" },
+	            name ={ en ="setpinhigh", pt ="setpinhigh" },
 	            link ="gpio_ref.html#setpinhigh"
 	          },
 	          {
-	            name ={ en ="setpinlow()", pt ="setpinlow()" },
+	            name ={ en ="setpinlow", pt ="setpinlow" },
 	            link ="gpio_ref.html#setpinlow"
 	          }
           },
@@ -74,15 +74,15 @@ wb_usr.tree =
           folder =
           {
 	          {
-	            name ={ en ="setup()", pt ="setup()" },
+	            name ={ en ="setup", pt ="setup" },
 	            link ="uart_ref.html#setup"
 	          },
 	          {
-	            name ={ en ="send()", pt ="send()" },
+	            name ={ en ="send", pt ="send" },
 	            link ="uart_ref.html#send"
 	          },
 	          {
-	            name ={ en ="recv()", pt ="recv()" },
+	            name ={ en ="recv", pt ="recv" },
 	            link ="uart_ref.html#recv"
 	          }
           },
@@ -93,23 +93,23 @@ wb_usr.tree =
           folder =
           {
 	          {
-	            name ={ en ="setup()", pt ="setup()" },
+	            name ={ en ="setup", pt ="setup" },
 	            link ="spi_ref.html#setup"
 	          },
 	          {
-	            name ={ en ="select()", pt ="select()" },
+	            name ={ en ="select", pt ="select" },
 	            link ="spi_ref.html#select"
 	          },
 	          {
-	            name ={ en ="unselect()", pt ="unselect()" },
+	            name ={ en ="unselect", pt ="unselect" },
 	            link ="spi_ref.html#unselect"
 	          },
 	          {
-	            name ={ en ="send()", pt ="send()" },
+	            name ={ en ="send", pt ="send" },
 	            link ="spi_ref.html#send"
 	          },
 	          {
-	            name ={ en ="sendrecv()", pt ="sendrecv()" },
+	            name ={ en ="sendrecv", pt ="sendrecv" },
 	            link ="spi_ref.html#sendrecv"
 	          }
           },
@@ -126,15 +126,15 @@ wb_usr.tree =
         folder =
         {
           {
-	    name ={ en ="init()", pt ="init()" },
+	    name ={ en ="init", pt ="init" },
 	    link ="disp_ref.html#init"
 	  },
 	  {
-	    name = { en = "enable()", pt = "enable()" },
+	    name = { en = "enable", pt = "enable" },
 	    link = "disp_ref.html#enable"
 	  },
 	  {
-	    name = { en = "disable()", pt = "disable()" },
+	    name = { en = "disable", pt = "disable" },
 	    link = "disp_ref.html#disable"
 	  }
         },
