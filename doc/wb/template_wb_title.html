@@ -1,0 +1,64 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<title>Title</title>
+<base target="wb_cont">
+<style type="text/css">
+td.title {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 16pt;
+  font-weight: bold;
+  color: #FFFFFF;
+  text-align: left;
+  vertical-align: middle;
+}
+td.contact {
+  text-align: center;
+  vertical-align: middle;
+  width: 11em;
+}
+a.contact {
+  font-family: Arial, Helvetica, sans-serif;
+  color: #0962BB;
+  font-size: 9pt;
+  text-decoration: none;
+  font-weight: bold;
+}
+a.contact:hover {
+  text-decoration: underline;
+}
+</style>
+</head>
+
+<body style="background-color: WB_TITLE_BGCOLOR; margin-left: 3px; margin-right: 3px; margin-top: 2px; margin-bottom: 0; background-image: url('wb_img/title_background.png');">
+
+<table style="width: 100%" cellspacing="0" cellpadding="0">
+  <tr>
+    <td style="width: 50px;"><img src="logo.gif"></td>
+    <td class="title">WB_BAR_TITLE</td>
+    <td style="width: 3.5em">
+     <a class="contact" href="ssSearchWB_LNG.html">SimpleSearch</a>
+     </td>
+    <td style="width: 11em">
+      <FORM method=GET action="http://www.google.com/search" style="margin-bottom: 0; margin: 0; text-align: center; ">
+      <input type=hidden name=ie value=UTF-8>
+      <input type=hidden name=oe value=UTF-8>
+      <INPUT TYPE=text name=q size=21 maxlength=255 value=""><br>
+      <A HREF="http://www.google.com/"><IMG SRC="wb_img/google.gif" border="0" ALT="Google"></A>
+      <INPUT type=submit name=btnG VALUE="Search" style="height: 21px; vertical-align: top; font-size: x-small;">
+      <input type=hidden name=domains value="WB_SEARCH_LINK">
+      <input type=hidden name=sitesearch value="WB_SEARCH_LINK" checked>
+      <input type=hidden name=sitesearch value="">
+      </FORM>
+    </td>
+    <td class="contact">
+     <a class="contact" target="_blank" href="WB_COPYRIGHT_LINK">© WB_COPYRIGHT_NAME</a>
+     <br>
+     <a class="contact" href="mailto:WB_CONTACT">(WB_CONTACT)</a>
+     </td>
+  </tr>
+</table>
+
+</body>
+
+</html>
