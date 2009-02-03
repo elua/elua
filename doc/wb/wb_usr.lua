@@ -21,11 +21,11 @@ wb_usr = {
 wb_usr.messages = {
   pt = {
      title = "eLua Doc",
-     bar_title = "eLua Doc"
+     bar_title = "eLua API - Manual de Referência"
   },
   en = {
      title = "eLua Doc",
-     bar_title = "eLua Doc"
+     bar_title = "eLua API Reference Manual"
   }
 } 
 

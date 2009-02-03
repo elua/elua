@@ -1,13 +1,13 @@
 pt/gpio_ref.html
 pt/disp_ref.html
-pt/net_ref.html
+pt/eluaapi.html
 pt/bit_ref.html
 pt/platdependentmodules.html
 pt/uart_ref.html
 pt/pwm_ref.html
-pt/eluamodules.html
-pt/spi_ref.html
 pt/sys_ref.html
+pt/spi_ref.html
+pt/net_ref.html
 pt/term_ref.html
 pt/genericmodules.html
 pt/tmr_ref.html
