@@ -32,7 +32,7 @@ wb_usr.messages = {
 wb_usr.tree =
 {     
   name = { nl= "eLua API" },
-  link = "eluamodules.html", 
+  link = "eluaapi.html", 
   folder =
  {
     {
