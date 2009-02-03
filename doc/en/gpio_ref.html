@@ -12,10 +12,8 @@
 <h3><a name="over">gpio</a></h3><p class="MsoNormal" style="font-family: Verdana;">
  <b>[gpio] pio</b><br>
 </p>
-<p class="MsoNormal" style="font-family: Verdana;">
- &nbsp;
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
+<br>
+<p class="MsoNormal" style="font-family: Verdana;"><a name="setpinvalue"></a>
  [gpio.setpinvalue] pio.setpin( value, Pin1, Pin2 ... ): set the value to all the pins in the list
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
@@ -24,13 +22,13 @@
 <p class="MsoNormal" style="font-family: Verdana;">
  &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;">
+<p class="MsoNormal" style="font-family: Verdana;"><a name="setpinhigh"></a>
  [gpio.setpinhigh] pio.set( Pin1, Pin2, ... ): set the value of all the pins in the list to 1.
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
  &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;">
+<p class="MsoNormal" style="font-family: Verdana;"><a name="getpinvalue"></a>
  [gpio.getpinvalue] Val1, Val2, ... = pio.get( Pin1, Pin2, ... ): reads one or more pins and returns
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
@@ -39,13 +37,13 @@
 <p class="MsoNormal" style="font-family: Verdana;">
  &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;">
+<p class="MsoNormal" style="font-family: Verdana;"><a name="setpinlow"></a>
  [gpio.setpinlow] pio.clear( Pin1, Pin2, ... ): set the value of all the pins in the list to 0.
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
  &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;">
+<p class="MsoNormal" style="font-family: Verdana;"><a name="configpin"></a>
  [gpio.configpin(gpio.DIR, gpio.DIR_INPUT)] pio.input( Pin1, Pin2, ... ): set the specified pin(s) as input(s).
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
@@ -57,7 +55,7 @@
 <p class="MsoNormal" style="font-family: Verdana;">
  &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;">
+<p class="MsoNormal" style="font-family: Verdana;"><a name="setportvalue"></a>
  [gpio.setportvalue] pio.setport( value, Port1, Port2, ... ): set the value of all the ports in the
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
@@ -66,7 +64,7 @@
 <p class="MsoNormal" style="font-family: Verdana;">
  &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;">
+<p class="MsoNormal" style="font-family: Verdana;"><a name="getportvalue"></a>
  [gpio.getportvalue] Val1, Val2, ... = pio.getport( Port1, Port2, ... ): reads one or more ports and
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
@@ -75,7 +73,7 @@
 <p class="MsoNormal" style="font-family: Verdana;">
  &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;"> [gpio.getportname]
+<p class="MsoNormal" style="font-family: Verdana;"><a name="getportname"></a> [gpio.getportname]
 Port = pio.port( code ): return the physical port number associated
 with the given code. For example, "pio.port( pio.P0_20 )" will return
 0.
@@ -83,14 +81,14 @@ with the given code. For example, "pio.port( pio.P0_20 )" will return
 <p class="MsoNormal" style="font-family: Verdana;">
  &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;">
+<p class="MsoNormal" style="font-family: Verdana;"><a name="getpinnumber"></a>
  [gpio.getpinnumber] Pin = pio.pin( code ): return the physical pin number associated with the
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
  given code. For example, "pio.pin( pio.P0_20 )" will return 20.
 </p>
-<br>
-[gpio.togglepin([Pin1], [Pin2], ...)]<br>
+<br><a name="togglepin"></a>
+[gpio.togglepin([Pin1], [Pin2], ...)]<br><br><a name="toogleport"></a>
 [gpio.toggleport([Port1], [Port2], ...)]<br style="font-family: Verdana;">
 <br>
 Another idea (can be added to the above ?)<br>

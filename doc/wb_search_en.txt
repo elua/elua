@@ -1,6 +1,14 @@
 en/gpio_ref.html
-en/spi_ref.html
+en/disp_ref.html
+en/net_ref.html
+en/bit_ref.html
 en/platdependentmodules.html
 en/uart_ref.html
-en/api_doc.html
+en/pwm_ref.html
+en/eluamodules.html
+en/spi_ref.html
+en/sys_ref.html
+en/term_ref.html
 en/genericmodules.html
+en/tmr_ref.html
+en/cpu_ref.html

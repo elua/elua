@@ -1,0 +1,124 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+
+
+
+<meta http-equiv="Content-Language" content="en-us">
+
+<title>Product</title><link rel="stylesheet" type="text/css" href="./style.css"></head>
+<body bgcolor="#ffffff">
+
+<h3><a name="over"></a>pwm</h3><span style="font-weight: bold;"></span><br><p style="margin-bottom: 0in;">
+ <br>
+</p>
+<p style="margin-bottom: 0in;">
+ <font face="Bitstream Vera Sans Mono, sans-serif">It allows Lua to use the PWM blocks on the target CPU.</font>
+</p>
+<p style="margin-bottom: 0in;">
+ <br>
+</p>
+<p style="margin-bottom: 0in;">
+ <font face="Bitstream Vera Sans Mono, sans-serif"><strike><a name="setup"></a>[pwm.setup]</strike>(</font><font face="Bitstream Vera Sans Mono, sans-serif">pwm.setup( id, frequency, Active Cycle ) &nbsp; &nbsp; &nbsp;</font><font face="Bitstream Vera Sans Mono, sans-serif">
+Data = pwm.setup( id, frequency, duty ): sets the PWM block 'id' to
+generate the specified frequency with the specified duty cycle (duty is
+an integer number from 0 to 100, specifying the duty cycle in
+percents). It returns the actual frequency set on the PWM block.</font>
+</p>
+<p style="margin-bottom: 0in;">
+</p>
+<p style="margin-bottom: 0in;">
+ <br>
+</p>
+<p style="margin-bottom: 0in;">
+ Here there is a bigger change on the proposal.
+</p>
+<p style="margin-bottom: 0in;">
+ The Timer Clock and the PWM "frame" frequency would be set up in the same function (.setup)
+</p>
+<p style="margin-bottom: 0in;">
+ The normal control function would only set the active cicle (.setcycle)
+</p>
+<p style="margin-bottom: 0in;">
+ The original .setup function would then be replaced by:
+</p>
+<p style="margin-bottom: 0in;">
+ <br>
+</p>
+<p style="margin-bottom: 0in;">
+ <font face="Bitstream Vera Sans Mono, sans-serif">[pwm.setup( id, tmrclock, pwm_frequency )</font> ]<br>
+</p>
+<p style="margin-bottom: 0in;">
+ <a name="setcycle"></a>[pwm.setcycle( id, active_cycle )]</p><p style="margin-bottom: 0in;"><font face="Bitstream Vera Sans Mono, sans-serif"><a name="start"></a>[pwm.start()]&nbsp;&nbsp; pwm.start( id ): start the PWM block 'id'.</font>
+</p>
+<p style="margin-bottom: 0in;">
+</p>
+<p style="margin-bottom: 0in;">
+ <font face="Bitstream Vera Sans Mono, sans-serif"><a name="stop"></a>[</font><font face="Bitstream Vera Sans Mono, sans-serif">pwm.stop()]&nbsp;&nbsp;&nbsp; </font><font face="Bitstream Vera Sans Mono, sans-serif">pwm.stop( id ): stop the PWM block 'id'.</font>
+</p><br><p style="margin-bottom: 0in;">
+ <font face="Bitstream Vera Sans Mono, sans-serif"><a name="setclock"></a>Data = pwm.setclock( id, clock ): set the base clock of the PWM block 'id' to</font>
+</p>
+<p style="margin-bottom: 0in;">
+ <font face="Bitstream Vera Sans Mono, sans-serif">the given clock. In returns the actual clock set on the PWM block.</font>
+</p>
+<p style="margin-bottom: 0in;">
+ <br>
+</p>
+<p style="margin-bottom: 0in;">
+ <font face="Bitstream Vera Sans Mono, sans-serif">[</font><font face="Bitstream Vera Sans Mono, sans-serif"><strike>pwm.getclock</strike>] </font><font face="Bitstream Vera Sans Mono, sans-serif">Data = pwm.getclock( id ): returns the base clock of the PWM block 'id'.</font>
+</p>
+<p style="margin-bottom: 0in;">
+</p>
+<p style="margin-bottom: 0in;">
+ <br>
+</p>
+<p style="margin-bottom: 0in;"> Is it really necessary to have
+.getclock ?? The clock is set by the same program, is seldom changed
+during operation, ..........
+</p>
+<p style="margin-bottom: 0in;">
+ If really needed, it could be something like pwm.gettimerclock(id) or something (must be discussed.....)
+</p>
+<p style="margin-bottom: 0in;">
+ <br>
+</p>
+
+ <br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<p style="margin-bottom: 0in;">
+ <br>
+</p><big><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br style="font-family: Helvetica,Arial,sans-serif;"><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>
+</big></font><br style="font-family: Helvetica,Arial,sans-serif;"><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>
+</big></font><br style="font-family: Helvetica,Arial,sans-serif;"><span style="font-family: Helvetica,Arial,sans-serif;">
+ &nbsp;
+</span></big>
+
+
+ 
+
+
+
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+
+
+ 
+
+ 
+
+
+ 
+
+ 
+
+
+<br>
+<br style="font-family: Verdana;"></body></html>

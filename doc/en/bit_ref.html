@@ -9,48 +9,36 @@
 <title>Product</title><link rel="stylesheet" type="text/css" href="./style.css"></head>
 <body bgcolor="#ffffff">
 
-<h3><a name="over"></a>bit</h3>This is ugly but acording to Roberto, this is what Lua 5.2+ will have.
-
-<p class="MsoNormal" style="font-family: Verdana;">
- The problem is that <b>not </b>and <b>and</b> are Lua reserved words and cannot be used as table indexes.<br>
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
- We could add .rot and .rotc to these :)
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
- <br>
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
- Res = bit.bnot( value ): unary negation
+<h3><a name="over"></a>bit</h3><p class="MsoNormal" style="font-family: Verdana;"><a name="bnot"></a>Res = bit.bnot( value ): unary negation
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
  &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;">
+<p class="MsoNormal" style="font-family: Verdana;"><a name="band"></a>
  Res = bit.band( v1, v2, ... ): <b>bitwise </b>"and"
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
  &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;">
+<p class="MsoNormal" style="font-family: Verdana;"><a name="bor"></a>
  Res = bit.bor( v1, v2, ... ):&nbsp;<b>bitwise</b><b> </b>"or"
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
  &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;">
+<p class="MsoNormal" style="font-family: Verdana;"><a name="bxor"></a>
  Res = bit.bxor( v1, v2, ... ): <b>bitwise</b><b> </b>"exclusive or"
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
  &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;">
+<p class="MsoNormal" style="font-family: Verdana;"><a name="lshift"></a>
  Res = bit.lshift( value, pos ): shift "value" left "pos" positions.
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
  &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;">
+<p class="MsoNormal" style="font-family: Verdana;"><a name="rshift"></a>
  Res = bit.rshift( value, pos ): shift "value" right "pos" positions. The sign is
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
@@ -59,7 +47,7 @@
 <p class="MsoNormal" style="font-family: Verdana;">
  &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;">
+<p class="MsoNormal" style="font-family: Verdana;"><a name="arshift"></a>
  Res = bit.arshift( value, pos ): shift "value" right "pos" positions. The sign
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
@@ -68,13 +56,13 @@
 <p class="MsoNormal" style="font-family: Verdana;">
  &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;">
+<p class="MsoNormal" style="font-family: Verdana;"><a name="bit"></a>
  Res = bit.bit( bitno ): a shortcut for bit.lshift( 1, bitno )
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
  &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;">
+<p class="MsoNormal" style="font-family: Verdana;"><a name="set"></a>
  Res1, Res2, ... = bit.set( bitno, v1, v2, ... ): set the bit at position "bitno"
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
@@ -83,7 +71,7 @@
 <p class="MsoNormal" style="font-family: Verdana;">
  &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;">
+<p class="MsoNormal" style="font-family: Verdana;"><a name="clear"></a>
  Res1, Res2, ... = bit.clear( bitno, v1, v2, ... ): set the bit at position
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
@@ -92,7 +80,7 @@
 <p class="MsoNormal" style="font-family: Verdana;">
  &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;">
+<p class="MsoNormal" style="font-family: Verdana;"><a name="isset"></a>
  Res = bit.isset( value, bitno ): returns true if bit at position "bitno" in
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
@@ -101,10 +89,11 @@
 <p class="MsoNormal" style="font-family: Verdana;">
  &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;">
+<p class="MsoNormal" style="font-family: Verdana;"><a name="isclear"></a>
  Res = bit.isclear( value, bitno ): returns true if bit at position "bitno" in
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
  &nbsp; "value" is 0, false otherwise.
 </p>
-<br style="font-family: Verdana;"></body></html>
+<br style="font-family: Verdana;">
+<br style="font-family: Verdana;"><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br></body></html>
