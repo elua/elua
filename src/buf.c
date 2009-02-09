@@ -13,6 +13,7 @@
 #include "platform.h"
 #include "utils.h"
 #include <stdlib.h>
+#include <string.h>
 
 // [TODO]? Following code might need a C99 compiler (for 0-sized arrays)
 #ifdef BUF_ENABLE_UART
@@ -21,15 +22,18 @@
   static buf_desc buf_desc_uart[ 0 ];
 #endif
 
+static buf_desc buf_desc_adc [ NUM_ADC ];
+
 // NOTE: the order of descriptors here MUST match the order of the BUF_ID_xx
 // enum in inc/buf.h
 static const buf_desc* buf_desc_array[ BUF_ID_TOTAL ] = 
 {
-  buf_desc_uart
+  buf_desc_uart,
+  buf_desc_adc
 };
 
 // Helper macros
-#define BUF_MOD_INCR( p, m ) p->m = ( p->m + 1 ) & ( ( ( u16 )1 << p->logsize ) - 1 )
+#define BUF_MOD_INCR( p, m ) p->m = ( p->m + p->dsize ) & ( ( ( u16 )1 << ( p->logsize + ( p->dsize - 1 ) ) ) - 1 )
 #define BUF_REALSIZE( p ) ( ( u16 )1 << p->logsize )
 #define BUF_GETPTR( resid, resnum ) buf_desc *pbuf = ( buf_desc* )buf_desc_array[ resid ] + resnum
 
@@ -38,18 +42,23 @@ static const buf_desc* buf_desc_array[ BUF_ID_TOTAL ] =
 #define READ16( p )     p
 #define WRITE16( p, x ) p = x
 
+
+
 // Initialize the buffer of the specified resource
 // resid - resource ID (BUF_ID_UART ...)
 // resnum - resource number (0, 1, 2...)
 // bufsize - new size of the buffer (one of the BUF_SIZE_xxx constants from
+// dsize - number of bytes held by each element
 //   buf.h, or BUF_SIZE_NONE to disable buffering
 // Returns 1 on success, 0 on failure
-int buf_set( unsigned resid, unsigned resnum, u8 logsize )
+int buf_set( unsigned resid, unsigned resnum, u8 logsize, size_t dsize )
 {
   BUF_GETPTR( resid, resnum );
   
   pbuf->logsize = logsize;
-  if( ( pbuf->buf = ( t_buf_data* )realloc( pbuf->buf, BUF_REALSIZE( pbuf ) * sizeof( t_buf_data ) ) ) == NULL )
+  pbuf->dsize = dsize;
+  
+  if( ( pbuf->buf = ( t_buf_data* )realloc( pbuf->buf, BUF_REALSIZE( pbuf ) * pbuf->dsize ) ) == NULL )
   {
     pbuf->logsize = BUF_SIZE_NONE;
     pbuf->rptr = pbuf->wptr = pbuf->count = 0;
@@ -59,22 +68,31 @@ int buf_set( unsigned resid, unsigned resnum, u8 logsize )
   return PLATFORM_OK;
 }
 
-// Callback for RX buffer
+// Write to buffer
 // resid - resource ID (BUF_ID_UART ...)
 // resnum - resource number (0, 1, 2...)
-// data - the new data
-// Returns 1 on success, 0 on failure
+// data - pointer for where data will come from
+// dsize - length of data to get
+// Returns PLATFORM_OK on success, PLATFORM_ERR on failure
 // [TODO] maybe add a buffer overflow flag
-void buf_rx_cb( unsigned resid, unsigned resnum, t_buf_data data )
+int buf_write( unsigned resid, unsigned resnum, t_buf_data *data, size_t dsize )
 {
   BUF_GETPTR( resid, resnum );
-    
-  pbuf->buf[ pbuf->wptr ] = data;
+  
+  // Make sure we only add more of same type
+  if (pbuf->dsize != dsize)
+    return PLATFORM_ERR;
+  
+  memcpy(&pbuf->buf[ pbuf->wptr ], data, dsize);
+  
   BUF_MOD_INCR( pbuf, wptr );
+  
   if( pbuf->count == BUF_REALSIZE( pbuf ) )
     BUF_MOD_INCR( pbuf, rptr );
   else
     pbuf->count ++;
+    
+  return PLATFORM_OK;
 }
 
 // Returns 1 if the specified device is buffered, 0 otherwise
@@ -87,7 +105,7 @@ int buf_is_enabled( unsigned resid, unsigned resnum )
   return pbuf->logsize != BUF_SIZE_NONE;
 }
 
-// Return the size of the buffer 
+// Return the size of the buffer in number
 unsigned buf_get_size( unsigned resid, unsigned resnum )
 {
   BUF_GETPTR( resid, resnum );
@@ -103,20 +121,32 @@ unsigned buf_get_count( unsigned resid, unsigned resnum )
   return READ16( pbuf->count );  
 }
 
-// Returns a char from the RX buffer (-1 if not available)
-int buf_get_char( unsigned resid, unsigned resnum )
+// Get data from buffer of size dsize
+// resid - resource ID (BUF_ID_UART ...)
+// resnum - resource number (0, 1, 2...)
+// data - pointer for where data should go
+// dsize - length of data to get
+// Returns PLATFORM_OK on success, PLATFORM_ERR on failure, 
+//   PLATFORM_UNDERFLOW on buffer empty
+int buf_read( unsigned resid, unsigned resnum, t_buf_data *data, size_t dsize  )
 {
   BUF_GETPTR( resid, resnum );
-  t_buf_data data;
+
+  // Make sure buffer contains right type
+  if (pbuf->dsize != dsize)
+    return PLATFORM_ERR;
   
   if( READ16( pbuf->count ) == 0 )
-    return -1;
-  data = pbuf->buf[ pbuf->rptr ];
+    return PLATFORM_UNDERFLOW;
+    
+  memcpy(data, &pbuf->buf[ pbuf->rptr ], dsize);
+  
   platform_cpu_disable_interrupts();
   pbuf->count --;
   BUF_MOD_INCR( pbuf, rptr );
   platform_cpu_enable_interrupts();
-  return ( int )data;  
+  
+  return PLATFORM_OK;  
 }
 
 #endif // #ifdef BUF_ENALE

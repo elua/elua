@@ -7,13 +7,15 @@
 
 // [TODO] the buffer data type is currently u8, is this OK?
 typedef u8 t_buf_data;
+typedef u16 t_buf_data_u16;
 
 // IDs of "bufferable" devices
 enum
 {
   BUF_ID_UART = 0,
+  BUF_ID_ADC = 1,
   BUF_ID_FIRST = BUF_ID_UART,
-  BUF_ID_LAST = BUF_ID_UART,
+  BUF_ID_LAST = BUF_ID_ADC,
   BUF_ID_TOTAL = BUF_ID_LAST - BUF_ID_FIRST + 1
 };
 
@@ -23,6 +25,7 @@ typedef struct
   u8 logsize;
   volatile u16 wptr, rptr, count;
   t_buf_data *buf;
+  size_t dsize;
 } buf_desc;
 
 // Buffer sizes (there are power of 2 to speed up modulo operations)
@@ -43,12 +46,16 @@ enum
   BUF_SIZE_32768
 };
 
+
+
+
 // Buffer API
-int buf_set( unsigned resid, unsigned resnum, u8 logsize );
+int buf_set(unsigned resid, unsigned resnum, u8 logsize, size_t dsize);
 int buf_is_enabled( unsigned resid, unsigned resnum );
 unsigned buf_get_size( unsigned resid, unsigned resnum );
 unsigned buf_get_count( unsigned resid, unsigned resnum );
-int buf_get_char( unsigned resid, unsigned resnum );
-void buf_rx_cb( unsigned resid, unsigned resnum, t_buf_data data );
+int buf_write( unsigned resid, unsigned resnum, t_buf_data *data, size_t dsize );
+int buf_read( unsigned resid, unsigned resnum, t_buf_data *data, size_t dsize  );
+
 
 #endif

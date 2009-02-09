@@ -50,7 +50,7 @@ static void uart_rx_handler()
   AT91S_USART* base = CON_UART_ID == 0 ? AT91C_BASE_US0 : AT91C_BASE_US1;    
   
   c = USART_Read( base, 0 );
-  buf_rx_cb( BUF_ID_UART, CON_UART_ID, ( t_buf_data )c );
+  buf_write( BUF_ID_UART, CON_UART_ID, ( t_buf_data* )&c, sizeof ( t_buf_data ) );
   asm( "pop {r0}":: );  
   asm( "bx  r0":: );  
 }
@@ -82,7 +82,7 @@ int platform_init()
   USART_SetReceiverEnabled(AT91C_BASE_US0, 1);  
 #if defined( BUF_ENABLE_UART ) && defined( CON_BUF_SIZE )
   // Enable buffering on the console UART
-  buf_set( BUF_ID_UART, CON_UART_ID, CON_BUF_SIZE );
+  buf_set( BUF_ID_UART, CON_UART_ID, CON_BUF_SIZE, sizeof ( t_buf_data ) );
   // Set interrupt handler and interrupt flag on UART
   unsigned uart_id = CON_UART_ID == 0 ? AT91C_ID_US0 : AT91C_ID_US1;
   AT91S_USART* base = CON_UART_ID == 0 ? AT91C_BASE_US0 : AT91C_BASE_US1;        

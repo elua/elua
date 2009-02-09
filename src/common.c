@@ -70,16 +70,21 @@ int platform_uart_exists( unsigned id )
 static int cmn_recv_helper( unsigned id, s32 timeout )
 {
 #ifdef BUF_ENABLE_UART
+  t_buf_data data;
   int res;
+  
   if( buf_is_enabled( BUF_ID_UART, id ) )
   {
     if( timeout == 0 )
-      return buf_get_char( BUF_ID_UART, id );
+    {
+      if ( ( buf_read( BUF_ID_UART, id, &data, sizeof( t_buf_data ) ) ) == PLATFORM_UNDERFLOW )
+        return -1;
+    }
     else
     {
-      while( ( res = buf_get_char( BUF_ID_UART, id ) ) == -1 );
-      return res;
+      while( ( buf_read( BUF_ID_UART, id, &data, sizeof( t_buf_data ) ) ) == PLATFORM_UNDERFLOW );
     }
+    return ( int )data;
   }
   else
 #endif

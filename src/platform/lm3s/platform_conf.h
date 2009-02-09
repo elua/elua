@@ -98,6 +98,10 @@ LUALIB_API int ( luaopen_disp )( lua_State* L );
 #define NUM_PWM               6
 #define NUM_ADC               4
 
+// Enable RX buffering on UART
+#define BUF_ENABLE_UART
+#define CON_BUF_SIZE          BUF_SIZE_128
+
 // ADC Bit Depth for Built-in ADCs
 #define ADC_BIT_RESOLUTION    10
 

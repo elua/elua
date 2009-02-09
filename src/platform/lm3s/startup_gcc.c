@@ -40,8 +40,10 @@ static void IntDefaultHandler(void);
 extern void EthernetIntHandler();
 extern void SysTickIntHandler();
 extern void ADCIntHandler();
+extern void UARTIntHandler();
 
 #include "hw_memmap.h"
+#include "platform_conf.h"
 
 //*****************************************************************************
 //
@@ -82,7 +84,11 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // GPIO Port C
     IntDefaultHandler,                      // GPIO Port D
     IntDefaultHandler,                      // GPIO Port E
-    IntDefaultHandler,                      // UART0 Rx and Tx
+#ifdef BUF_ENABLE_UART
+    UARTIntHandler,                         // UART0 Rx and Tx
+#else
+    IntDefaultHandler,
+#endif
     IntDefaultHandler,                      // UART1 Rx and Tx
     IntDefaultHandler,                      // SSI0 Rx and Tx
     IntDefaultHandler,                      // I2C0 Master and Slave

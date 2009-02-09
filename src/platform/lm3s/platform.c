@@ -38,6 +38,7 @@
 #include "interrupt.h"
 #include "elua_net.h"
 #include "dhcpc.h"
+#include "buf.h"
 #include "rit128x96x4.h"
 #include "disp.h"
 #include "adc.h"
@@ -242,6 +243,23 @@ static const u32 uart_sysctl[] = { SYSCTL_PERIPH_UART0, SYSCTL_PERIPH_UART1, SYS
 static const u32 uart_gpio_base[] = { GPIO_PORTA_BASE, GPIO_PORTD_BASE, GPIO_PORTG_BASE };
 static const u8 uart_gpio_pins[] = { GPIO_PIN_0 | GPIO_PIN_1, GPIO_PIN_2 | GPIO_PIN_3, GPIO_PIN_0 | GPIO_PIN_1 };
 
+#ifdef BUF_ENABLE_UART
+void UARTIntHandler()
+{
+  u32 temp;
+  int c;
+
+  temp = UARTIntStatus(uart_base[ CON_UART_ID ], true);
+  UARTIntClear(uart_base[ CON_UART_ID ], temp);
+  while( UARTCharsAvail( uart_base[ CON_UART_ID ] ) )
+  {
+    c = UARTCharGetNonBlocking( uart_base[ CON_UART_ID ] );
+    buf_write( BUF_ID_UART, CON_UART_ID, ( t_buf_data* )&c, sizeof ( t_buf_data ) );
+  }
+}
+#endif
+
+
 static void uarts_init()
 {
   unsigned i;
@@ -255,6 +273,17 @@ static void uarts_init()
   UARTConfigSetExpClk(UART0_BASE, SysCtlClockGet(), CON_UART_SPEED,
                      (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
                       UART_CONFIG_PAR_NONE));
+                      
+                      
+#if defined( BUF_ENABLE_UART ) && defined( CON_BUF_SIZE )
+  // Enable buffering on the console UART
+  buf_set( BUF_ID_UART, CON_UART_ID, CON_BUF_SIZE, sizeof ( t_buf_data ) );
+  // Set interrupt handler and interrupt flag on UART
+  
+  IntEnable(INT_UART0);
+
+  UARTIntEnable( uart_base[ CON_UART_ID ], UART_INT_RX | UART_INT_RT );
+#endif
 }
 
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )

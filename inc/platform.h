@@ -6,11 +6,12 @@
 #include "devman.h"
 #include "type.h"
 
-// Error codes
+// Error / status codes
 enum
 {
   PLATFORM_ERR,
-  PLATFORM_OK
+  PLATFORM_OK,
+  PLATFORM_UNDERFLOW
 };
 
 // Platform initialization
