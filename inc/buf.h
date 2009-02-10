@@ -25,7 +25,7 @@ typedef struct
   u8 logsize;
   volatile u16 wptr, rptr, count;
   t_buf_data *buf;
-  size_t dsize;
+  u8 logdsize;
 } buf_desc;
 
 // Buffer sizes (there are power of 2 to speed up modulo operations)

@@ -230,4 +230,9 @@ u32 platform_eth_get_elapsed_time();
 void* platform_get_first_free_ram( unsigned id );
 void* platform_get_last_free_ram( unsigned id );
 
+// *****************************************************************************
+// Misc support
+
+unsigned int intlog2( unsigned int v );
+
 #endif

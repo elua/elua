@@ -71,7 +71,6 @@ static int cmn_recv_helper( unsigned id, s32 timeout )
 {
 #ifdef BUF_ENABLE_UART
   t_buf_data data;
-  int res;
   
   if( buf_is_enabled( BUF_ID_UART, id ) )
   {
@@ -295,4 +294,3 @@ unsigned int intlog2( unsigned int v )
   }
   return r;
 }
-

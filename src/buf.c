@@ -22,7 +22,11 @@
   static buf_desc buf_desc_uart[ 0 ];
 #endif
 
-static buf_desc buf_desc_adc [ NUM_ADC ];
+#ifdef BUF_ENABLE_ADC
+  static buf_desc buf_desc_adc [ NUM_ADC ];
+#else
+  static buf_desc buf_desc_adc [ 0 ];
+#endif
 
 // NOTE: the order of descriptors here MUST match the order of the BUF_ID_xx
 // enum in inc/buf.h
@@ -33,8 +37,10 @@ static const buf_desc* buf_desc_array[ BUF_ID_TOTAL ] =
 };
 
 // Helper macros
-#define BUF_MOD_INCR( p, m ) p->m = ( p->m + p->dsize ) & ( ( ( u16 )1 << ( p->logsize + ( p->dsize - 1 ) ) ) - 1 )
-#define BUF_REALSIZE( p ) ( ( u16 )1 << p->logsize )
+#define BUF_MOD_INCR( p, m ) p->m = ( p->m + ( ( u16 )1 << p->logdsize ) ) & ( ( ( u16 )1 << ( p->logsize + p->logdsize) ) - 1 )
+#define BUF_REALSIZE( p ) ( ( u16 )1 << ( p->logsize - p->logdsize ) )
+#define BUF_BYTESIZE( p ) ( ( u16 )1 << p->logsize )
+#define BUF_REALDSIZE( p ) ( ( u16 )1 << p->logdsize )
 #define BUF_GETPTR( resid, resnum ) buf_desc *pbuf = ( buf_desc* )buf_desc_array[ resid ] + resnum
 
 // READ16 and WRITE16 macros are here to ensure _atomic_ reads and writes of 
@@ -42,23 +48,25 @@ static const buf_desc* buf_desc_array[ BUF_ID_TOTAL ] =
 #define READ16( p )     p
 #define WRITE16( p, x ) p = x
 
-
-
 // Initialize the buffer of the specified resource
 // resid - resource ID (BUF_ID_UART ...)
 // resnum - resource number (0, 1, 2...)
 // bufsize - new size of the buffer (one of the BUF_SIZE_xxx constants from
-// dsize - number of bytes held by each element
+// dsize - number of bytes held by each element (must be a power of 2)
 //   buf.h, or BUF_SIZE_NONE to disable buffering
 // Returns 1 on success, 0 on failure
 int buf_set( unsigned resid, unsigned resnum, u8 logsize, size_t dsize )
 {
   BUF_GETPTR( resid, resnum );
   
-  pbuf->logsize = logsize;
-  pbuf->dsize = dsize;
+  // Make sure dsize is a power of 2
+  if ( ( dsize = 0 ) || ( dsize & ( dsize - 1 ) ) )
+    return PLATFORM_ERR; 
   
-  if( ( pbuf->buf = ( t_buf_data* )realloc( pbuf->buf, BUF_REALSIZE( pbuf ) * pbuf->dsize ) ) == NULL )
+  pbuf->logsize = logsize;
+  pbuf->logdsize = intlog2( dsize );
+  
+  if( ( pbuf->buf = ( t_buf_data* )realloc( pbuf->buf, BUF_BYTESIZE( pbuf ) ) ) == NULL )
   {
     pbuf->logsize = BUF_SIZE_NONE;
     pbuf->rptr = pbuf->wptr = pbuf->count = 0;
@@ -80,10 +88,10 @@ int buf_write( unsigned resid, unsigned resnum, t_buf_data *data, size_t dsize )
   BUF_GETPTR( resid, resnum );
   
   // Make sure we only add more of same type
-  if (pbuf->dsize != dsize)
+  if ( dsize != BUF_REALDSIZE( pbuf ) )
     return PLATFORM_ERR;
   
-  memcpy(&pbuf->buf[ pbuf->wptr ], data, dsize);
+  memcpy( &pbuf->buf[ pbuf->wptr ], data, dsize );
   
   BUF_MOD_INCR( pbuf, wptr );
   
@@ -133,13 +141,13 @@ int buf_read( unsigned resid, unsigned resnum, t_buf_data *data, size_t dsize  )
   BUF_GETPTR( resid, resnum );
 
   // Make sure buffer contains right type
-  if (pbuf->dsize != dsize)
+  if ( dsize != BUF_REALDSIZE( pbuf ) )
     return PLATFORM_ERR;
   
   if( READ16( pbuf->count ) == 0 )
     return PLATFORM_UNDERFLOW;
     
-  memcpy(data, &pbuf->buf[ pbuf->rptr ], dsize);
+  memcpy( data, &pbuf->buf[ pbuf->rptr ], dsize );
   
   platform_cpu_disable_interrupts();
   pbuf->count --;
