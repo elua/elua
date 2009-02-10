@@ -395,6 +395,7 @@ DM_DEVICE* std_get_desc()
 
 // ****************************************************************************
 // memcpy is broken on AVR32's Newlib, so impolement a simple version here
+// same goes for strcmp apparently
 #ifdef FORAVR32
 void* memcpy( void *dst, const void* src, size_t len )
 {
@@ -408,4 +409,19 @@ void* memcpy( void *dst, const void* src, size_t len )
   }
   return dst;
 }
+
+int strcmp(const char *s1, const char *s2)
+{
+  while( *s1 == *s2++ ) 
+  {
+    if( *s1++ == '\0' )
+      return 0;
+  }
+  if( *s1 == '\0' ) 
+    return -1;
+  if( *--s2 == '\0' ) 
+    return 1;
+  return ( unsigned char )*s1 - ( unsigned char )*s2;
+}
+
 #endif // #ifdef FORAVR32

@@ -30,13 +30,12 @@ And now let's test CGI. Use the form below to control the on-board LED.<br><br>
 </table>
 </form>
 <?lua
-  local ledpin = pio.PF_0
-  pio.output(ledpin)
+  pio.PF_0_DIR = pio.OUTPUT
   if reqdata['ledon'] then
-    pio.set(ledpin)
+    pio.PF_0 = 1
     print '<br><font color="blue"><b>The LED is now ON</b></font><br>'
   elseif reqdata['ledoff'] then
-    pio.clear(ledpin)
+    pio.PF_0 = 0
     print '<br><font color="blue"><b>The LED is now OFF</b></font><br>'    
   elseif next(reqdata) ~= nil then
     print '<br><font color="red"><b>Invalid CGI request!</b></font><br>'    

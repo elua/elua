@@ -7,7 +7,6 @@
 
 // [TODO] the buffer data type is currently u8, is this OK?
 typedef u8 t_buf_data;
-typedef u16 t_buf_data_u16;
 
 // IDs of "bufferable" devices
 enum

@@ -154,20 +154,22 @@ void luaV_settable (lua_State *L, const TValue *t, TValue *key, StkId val) {
   int loop;
   for (loop = 0; loop < MAXTAGLOOP; loop++) {
     const TValue *tm;
-    if (ttistable(t)) {  /* `t' is a table? */
-      Table *h = hvalue(t);
-      TValue *oldval = luaH_set(L, h, key); /* do a primitive set */
-      if (!ttisnil(oldval) ||  /* result is no nil? */
-          (tm = fasttm(L, h->metatable, TM_NEWINDEX)) == NULL) { /* or no TM? */
-        setobj2t(L, oldval, val);
-        luaC_barriert(L, h, val);
+    if (ttistable(t) || ttisrotable(t)) {  /* `t' is a table? */
+      void *h = ttistable(t) ? hvalue(t) : rvalue(t);
+      TValue *oldval = ttistable(t) ? luaH_set(L, (Table*)h, key) : NULL; /* do a primitive set */
+      if ((oldval && !ttisnil(oldval)) ||  /* result is no nil? */
+          (tm = fasttm(L, ttistable(t) ? ((Table*)h)->metatable : (Table*)luaR_getmeta(h), TM_NEWINDEX)) == NULL) { /* or no TM? */
+        if(oldval) {
+          setobj2t(L, oldval, val);
+          luaC_barriert(L, (Table*)h, val);
+        }
         return;
       }
       /* else will try the tag method */
     }
     else if (ttisnil(tm = luaT_gettmbyobj(L, t, TM_NEWINDEX)))
       luaG_typeerror(L, t, "index");
-    if (ttisfunction(tm)) {
+    if (ttisfunction(tm) || ttislightfunction(tm)) {
       callTM(L, tm, t, key, val);
       return;
     }

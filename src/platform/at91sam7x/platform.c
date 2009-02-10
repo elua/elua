@@ -44,13 +44,13 @@ static void ISR_Tc2()
 
 // Buffered UART support
 #ifdef BUF_ENABLE_UART
+static volatile u32 c;
+static AT91S_USART* pbase = CON_UART_ID == 0 ? AT91C_BASE_US0 : AT91C_BASE_US1;      
 static void uart_rx_handler()
 {
-  int c;
-  AT91S_USART* base = CON_UART_ID == 0 ? AT91C_BASE_US0 : AT91C_BASE_US1;    
-  
-  c = USART_Read( base, 0 );
-  buf_write( BUF_ID_UART, CON_UART_ID, ( t_buf_data* )&c, sizeof ( t_buf_data ) );
+  c = pbase->US_CSR;
+  c = pbase->US_RHR;
+  buf_write( BUF_ID_UART, CON_UART_ID, ( t_buf_data* )&c, sizeof ( char ) );
   asm( "pop {r0}":: );  
   asm( "bx  r0":: );  
 }
@@ -73,22 +73,22 @@ int platform_init()
   PMC_EnablePeripheral( AT91C_ID_PWMC );
   
   // Configure pins
-  PIO_Configure(platform_uart_pins[ 0 ], PIO_LISTSIZE(platform_uart_pins[ 0 ]));
+  PIO_Configure( platform_uart_pins[ CON_UART_ID ], PIO_LISTSIZE( platform_uart_pins[ CON_UART_ID ] ) );
     
   // Configure the USART in the desired mode @115200 bauds
-  USART_Configure(AT91C_BASE_US0, mode, CON_UART_SPEED, BOARD_MCK);  
+  AT91S_USART *pusart = CON_UART_ID == 0 ? AT91C_BASE_US0 : AT91C_BASE_US1;
+  USART_Configure( pusart, mode, CON_UART_SPEED, BOARD_MCK );  
   // Enable receiver & transmitter
-  USART_SetTransmitterEnabled(AT91C_BASE_US0, 1);
-  USART_SetReceiverEnabled(AT91C_BASE_US0, 1);  
+  USART_SetTransmitterEnabled( pusart, 1 );
+  USART_SetReceiverEnabled( pusart, 1 );  
 #if defined( BUF_ENABLE_UART ) && defined( CON_BUF_SIZE )
   // Enable buffering on the console UART
-  buf_set( BUF_ID_UART, CON_UART_ID, CON_BUF_SIZE, sizeof ( t_buf_data ) );
+  buf_set( BUF_ID_UART, CON_UART_ID, CON_BUF_SIZE, sizeof ( char ) );
   // Set interrupt handler and interrupt flag on UART
   unsigned uart_id = CON_UART_ID == 0 ? AT91C_ID_US0 : AT91C_ID_US1;
-  AT91S_USART* base = CON_UART_ID == 0 ? AT91C_BASE_US0 : AT91C_BASE_US1;        
   AIC_DisableIT( uart_id );
   AIC_ConfigureIT( uart_id, 0, uart_rx_handler );
-  base->US_IER = AT91C_US_RXRDY;
+  pusart->US_IER = AT91C_US_RXRDY;
   AIC_EnableIT( uart_id );  
 #endif  
   

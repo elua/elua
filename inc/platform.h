@@ -11,7 +11,7 @@ enum
 {
   PLATFORM_ERR,
   PLATFORM_OK,
-  PLATFORM_UNDERFLOW
+  PLATFORM_UNDERFLOW = -1
 };
 
 // Platform initialization
@@ -33,7 +33,7 @@ typedef u32 pio_code;
 #define PLATFORM_IO_FULL_PORT_MASK            ( 1 << PLATFORM_IO_FULL_PORT_BIT )
 #define PLATFORM_IO_ENCODE( port, pin, full ) ( ( ( port ) << PLATFORM_IO_PINS_BITS ) | ( pin ) | ( ( full ) ? PLATFORM_IO_FULL_PORT_MASK : 0 ) )
 #define PLATFORM_IO_GET_PORT( code )          ( ( ( code ) >> PLATFORM_IO_PINS_BITS ) & ( ( 1 << PLATFORM_IO_PORTS_BITS ) - 1 ) )
-#define PLATFORM_IO_GET_PIN( code )           ( ( code ) & ( ( 1 << PLATFORM_IO_PINS_BITS ) -1 ) )
+#define PLATFORM_IO_GET_PIN( code )           ( ( code ) & ( ( 1 << PLATFORM_IO_PINS_BITS ) - 1 ) )
 #define PLATFORM_IO_IS_PORT( code )           ( ( ( code ) & PLATFORM_IO_FULL_PORT_MASK ) != 0 )
 #define PLATFORM_IO_ALL_PINS                  0xFFFFFFFFUL
 #define PLATFORM_IO_ENC_PORT                  1

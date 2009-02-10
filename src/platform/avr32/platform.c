@@ -52,10 +52,12 @@ static const u32 uart_base_addr[ NUM_UART ] = { AVR32_USART0_ADDRESS, AVR32_USAR
 __attribute__((__interrupt__)) static void uart_rx_handler()
 {
   int c;
+  t_buf_data temp;
   volatile avr32_usart_t *pusart = ( volatile avr32_usart_t* )uart_base_addr[ CON_UART_ID ];    
   
   usart_read_char( pusart, &c );
-  buf_write( BUF_ID_UART, CON_UART_ID, ( t_buf_data* )&c, sizeof ( t_buf_data ) );
+  temp = ( t_buf_data )c;
+  buf_write( BUF_ID_UART, CON_UART_ID, &temp, sizeof ( char ) );
 }
 #endif
 
@@ -116,7 +118,7 @@ int platform_init()
   platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );  
 #if defined( BUF_ENABLE_UART ) && defined( CON_BUF_SIZE )
   // Enable buffering on the console UART
-  buf_set( BUF_ID_UART, CON_UART_ID, CON_BUF_SIZE, sizeof ( t_buf_data ) );
+  buf_set( BUF_ID_UART, CON_UART_ID, CON_BUF_SIZE, sizeof ( char ) );
   // Set interrupt handler and interrupt flag on UART
   INTC_register_interrupt( &uart_rx_handler, CON_UART_IRQ, AVR32_INTC_INT0 );  
   volatile avr32_usart_t *pusart = ( volatile avr32_usart_t* )uart_base_addr[ CON_UART_ID ];      
