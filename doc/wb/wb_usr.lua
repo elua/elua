@@ -87,6 +87,22 @@ wb_usr.tree =
       },
     },
     {
+      name = {en = "Status", pt = "Status" },
+      link = "status.html",
+      folder =
+      {
+        {  name = { en ="News", pt = "Notícias" },
+           link = "news.html",
+        },
+        {  name = { en ="Platforms", pt = "Plataformas" },
+           link = "platforms.html",
+        },
+        {  name = { en ="Roadmap", pt = "Futuro" },
+           link = "roadmap.html",
+        },
+      },
+    },
+    {
       name = { en = "Documentation", pt = "Documentação" },
       link = "doc.html",
       folder = 
