@@ -1,155 +1,177 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
-<html><head>
-<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-
-
-
-<meta http-equiv="Content-Language" content="en-us">
-
-<title>Product</title><link rel="stylesheet" type="text/css" href="./style.css"></head>
-<body bgcolor="#ffffff">
-
-<h3><a name="over"></a>cpu</h3><p class="MsoNormal" style="font-family: Verdana;"><br></p><p style="margin-bottom: 0in;">
-</p>
-<p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif"><a name="write32"></a>write32( address, data ) : write the 32-bit data at the specified address</font>
+<html><head><meta http-equiv="content-type" content="text/html; charset=ISO-8859-1"><meta http-equiv="Content-Language" content="en-us"><title>Product</title><link rel="stylesheet" type="text/css" href="../style.css"></head>
+<body style="background-color: rgb(255, 255, 255);">
+<h3><a name="over"></a>cpu</h3>
+<p class="MsoNormal" style="font-family: Verdana;"><br>
+</p><p style="margin-bottom: 0in;"> </p><font face="Bitstream Vera Sans Mono, sans-serif"><a name="write32"></a>write32( address, data ) : write
+the 32-bit data at the specified address</font><p style="margin-bottom: 0in;">
 </p>
 <p style="margin-bottom: 0in;">
 </p>
-<p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif"><a name="write16"></a>write16( address, data ) : write the 16-bit data at the specified address</font>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="write16"></a>write16( address, data ) : write
+the 16-bit data at the specified address</font>
 </p>
 <p style="margin-bottom: 0in;">
 </p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="write8"></a>write8( address, data ) : write the
+8-bit data at the specified address</font> <br>
+</p>
+<p style="margin-bottom: 0in;"><br>
+</p>
+<br>
+<font face="Bitstream Vera Sans Mono, sans-serif"><a name="read32"></a>Data =&nbsp;read32( address ) :
+reads 32-bit data from the specified address</font>
+<p style="margin-bottom: 0in;"></p>
 <p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif"><a name="write8"></a>write8( address, data ) : write the 8-bit data at the specified address</font> <br></p><p style="margin-bottom: 0in;"><br></p><br><font face="Bitstream Vera Sans Mono, sans-serif"><a name="read32"></a>Data =&nbsp;read32( address ) : reads 32-bit data from the specified address</font><p style="margin-bottom: 0in;">
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="read16"></a>Data = read16( address ) : reads
+16-bit data from the specified address</font>
 </p>
 <p style="margin-bottom: 0in;">
 </p>
-<p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif"><a name="read16"></a>Data = read16( address ) : reads 16-bit data from the specified address</font>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="read8"></a>Data = read8( address ) : reads 8-bit
+data from the specified address</font></p>
+<p style="margin-bottom: 0in;"><br>
 </p>
-<p style="margin-bottom: 0in;">
+<br>
+<p style="margin-bottom: 0in;"><a name="disableinterrupts"></a>
+[cpu.disableinterrupts()]&nbsp;&nbsp; <font face="Bitstream Vera Sans Mono, sans-serif">cli(): disable
+CPU interrupts</font>
 </p>
-<p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif"><a name="read8"></a>Data = read8( address ) : reads 8-bit data from the specified address</font></p><p style="margin-bottom: 0in;"><br></p><br><p style="margin-bottom: 0in;"><a name="disableinterrupts"></a>
- [cpu.disableinterrupts()]&nbsp;&nbsp; <font face="Bitstream Vera Sans Mono, sans-serif">cli(): disable CPU interrupts</font>
+<p style="margin-bottom: 0in;"> <br>
 </p>
-<p style="margin-bottom: 0in;">
- <br>
-</p>
-<p style="margin-bottom: 0in;">
- <br>
+<p style="margin-bottom: 0in;"> <br>
 </p>
 <p style="margin-bottom: 0in;"><a name="enableinterrupts"></a>
- [cpu.enableinterrupts()]&nbsp;&nbsp; <font face="Bitstream Vera Sans Mono, sans-serif">sei(): enable CPU interrupts</font>
+[cpu.enableinterrupts()]&nbsp;&nbsp; <font face="Bitstream Vera Sans Mono, sans-serif">sei(): enable
+CPU interrupts</font>
 </p>
-<p style="margin-bottom: 0in;">
- <br>
-</p>
-<p style="margin-bottom: 0in;">
-</p>
-<p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif"><br>
- </font>
-</p>
-<p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif"><a name="clockfrequency"></a>[cpu.clockfrequency()]&nbsp;&nbsp;&nbsp;&nbsp; Clock = clock(): returns the CPU frequency</font>
-</p>
-<p style="margin-bottom: 0in;">
- <br>
-</p>
-<p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif">Also, you can expose as many CPU constants (for example memory mapped registers)</font>
-</p>
-<p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif">as you want to this module. You might want to use this feature to access some </font>
-</p>
-<p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif">CPU memory areas (as defined in the CPU header files from the CPU support </font>
-</p>
-<p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif">package) directly from Lua. To do this, you'll need to define the </font>
-</p>
-<p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif">PLATFORM_CPU_CONSTANTS macro in the platform's platform_conf.h file </font>
-</p>
-<p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif">(src/platform/&lt;platform name&gt;/platform_conf.h). Include all your constants in a </font>
-</p>
-<p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif">_C( &lt;constant name&gt; ) definition, and then build your project.</font>
-</p>
-<p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif">For example, let's suppose that your CPU's interrupt controler has 3 memory</font>
-</p>
-<p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif">mapped registers: INT_REG_ENABLE, INT_REG_DISABLE and INT_REG_MASK. If you want</font>
-</p>
-<p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif">to access them from Lua, locate the header that defines the values of these</font>
-</p>
-<p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif">registers (I'll assume its name is "cpu.h") and add these lines to the</font>
-</p>
-<p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif">platform_conf.h:</font>
-</p>
-<p style="margin-bottom: 0in;">
- <br>
-</p>
-<p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif">#include "cpu.h"</font>
-</p>
-<p style="margin-bottom: 0in;">
- <br>
-</p>
-<p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif">#define PLATFORM_CPU_CONSTANTS\</font>
-</p>
-<p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif">_C( INT_REG_ENABLE ),\</font>
-</p>
-<p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif">_C( INT_REG_DISABLE ),\</font>
-</p>
-<p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif">_C( INT_REG_MASK )</font>
-</p>
-<p style="margin-bottom: 0in;">
- <br>
-</p>
-<p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif">After this you'll be able to access the regs directly from Lua, like this:</font>
-</p>
-<p style="margin-bottom: 0in;">
- <br>
-</p>
-<p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif">data = cpu.r32( cpu.INT_REG_ENABLE )</font>
-</p>
-<p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif">cpu.w32( cpu.INT_REG_ENABLE, data )</font>
-</p>
-<p style="margin-bottom: 0in;">
- <br>
-</p>
-<p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif">For a "real-life" example, see the src/platform/lm3s/platform_conf.h file.</font>
+<p style="margin-bottom: 0in;"> <br>
 </p>
 <p style="margin-bottom: 0in;">
 </p>
-<p style="margin-bottom: 0in;">
- <font face="Bitstream Vera Sans Mono, sans-serif">[uart.sendstring] uart.sendstr( id, str1, str2, ... ): this is similar to "uart.send", but its parameters are string.&nbsp;</font>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><br>
+</font></p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="clockfrequency"></a>[cpu.clockfrequency()]&nbsp;&nbsp;&nbsp;&nbsp;
+Clock = clock(): returns the CPU frequency</font>
+</p>
+<p style="margin-bottom: 0in;"> <br>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">Also, you can
+expose as many CPU constants (for example memory mapped registers)</font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">as you want to
+this module. You might want to use this feature to access some </font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">CPU memory areas
+(as defined in the CPU header files from the CPU support </font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">package)
+directly from Lua. To do this, you'll need to define the </font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">PLATFORM_CPU_CONSTANTS
+macro in the platform's platform_conf.h file </font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">(src/platform/&lt;platform
+name&gt;/platform_conf.h). Include all your constants in a </font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">_C(
+&lt;constant name&gt; ) definition, and then build your project.</font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">For example,
+let's suppose that your CPU's interrupt controler has 3 memory</font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">mapped
+registers: INT_REG_ENABLE, INT_REG_DISABLE and INT_REG_MASK. If you want</font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">to access them
+from Lua, locate the header that defines the values of these</font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">registers (I'll
+assume its name is "cpu.h") and add these lines to the</font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">platform_conf.h:</font>
+</p>
+<p style="margin-bottom: 0in;"> <br>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">#include "cpu.h"</font>
+</p>
+<p style="margin-bottom: 0in;"> <br>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">#define
+PLATFORM_CPU_CONSTANTS\</font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">_C(
+INT_REG_ENABLE ),\</font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">_C(
+INT_REG_DISABLE ),\</font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">_C( INT_REG_MASK
+)</font>
+</p>
+<p style="margin-bottom: 0in;"> <br>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">After this
+you'll be able to access the regs directly from Lua, like this:</font>
+</p>
+<p style="margin-bottom: 0in;"> <br>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">data = cpu.r32(
+cpu.INT_REG_ENABLE )</font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">cpu.w32(
+cpu.INT_REG_ENABLE, data )</font>
+</p>
+<p style="margin-bottom: 0in;"> <br>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">For a
+"real-life" example, see the src/platform/lm3s/platform_conf.h file.</font>
 </p>
 <p style="margin-bottom: 0in;">
- <br>
 </p>
-<p style="margin-bottom: 0in;">
- <br>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">[uart.sendstring]
+uart.sendstr( id, str1, str2, ... ): this is similar to "uart.send",
+but its parameters are string.&nbsp;</font>
 </p>
-<p style="margin-bottom: 0in;">
- <br>
+<p style="margin-bottom: 0in;"> <br>
 </p>
-
- <br style="font-family: Verdana;"><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br></body></html>
+<p style="margin-bottom: 0in;"> <br>
+</p>
+<p style="margin-bottom: 0in;"> <br>
+</p>
+<br style="font-family: Verdana;">
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+</body></html>

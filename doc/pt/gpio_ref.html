@@ -1,77 +1,79 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
 <html><head>
 <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+<meta http-equiv="Content-Language" content="en-us"><title>Product</title>
 
-
-
-<meta http-equiv="Content-Language" content="en-us">
-
-<title>Product</title><link rel="stylesheet" type="text/css" href="./style.css"></head>
-<body bgcolor="#ffffff">
-
-<h3><a name="over">gpio</a></h3><p class="MsoNormal" style="font-family: Verdana;">
- <b>[gpio] pio</b><br>
+<link rel="stylesheet" type="text/css" href="../style.css">
+</head>
+<body style="background-color: rgb(255, 255, 255);">
+<h3><a name="over">gpio</a></h3>
+<p class="MsoNormal" style="font-family: Verdana;">
+<b>[gpio] pio</b><br>
 </p>
 <br>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="setpinvalue"></a>
- [gpio.setpinvalue] pio.setpin( value, Pin1, Pin2 ... ): set the value to all the pins in the list
+<p class="MsoNormal" style="font-family: Verdana;"><a name="setpinvalue"></a> [gpio.setpinvalue] pio.setpin(
+value, Pin1, Pin2 ... ): set the value to all the pins in the list
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
- &nbsp; to "value" (0 or 1).
+&nbsp; to "value" (0 or 1).
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
- &nbsp;
+&nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="setpinhigh"></a>
- [gpio.setpinhigh] pio.set( Pin1, Pin2, ... ): set the value of all the pins in the list to 1.
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
- &nbsp;
-</p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="getpinvalue"></a>
- [gpio.getpinvalue] Val1, Val2, ... = pio.get( Pin1, Pin2, ... ): reads one or more pins and returns
+<p class="MsoNormal" style="font-family: Verdana;"><a name="setpinhigh"></a> [gpio.setpinhigh] pio.set(
+Pin1, Pin2, ... ): set the value of all the pins in the list to 1.
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
- &nbsp; their values (0 or 1).
+&nbsp;
+</p>
+<p class="MsoNormal" style="font-family: Verdana;"><a name="getpinvalue"></a> [gpio.getpinvalue] Val1, Val2,
+... = pio.get( Pin1, Pin2, ... ): reads one or more pins and returns
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
- &nbsp;
-</p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="setpinlow"></a>
- [gpio.setpinlow] pio.clear( Pin1, Pin2, ... ): set the value of all the pins in the list to 0.
+&nbsp; their values (0 or 1).
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
- &nbsp;
+&nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="configpin"></a>
- [gpio.configpin(gpio.DIR, gpio.DIR_INPUT)] pio.input( Pin1, Pin2, ... ): set the specified pin(s) as input(s).
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
- &nbsp;
+<p class="MsoNormal" style="font-family: Verdana;"><a name="setpinlow"></a> [gpio.setpinlow] pio.clear(
+Pin1, Pin2, ... ): set the value of all the pins in the list to 0.
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
- [gpio.configpin(gpio.DIR, gpio.DIR_OUTPUT)] pio.output( Pin1, Pin2, ... ): set the specified pin(s) as output(s).
+&nbsp;
+</p>
+<p class="MsoNormal" style="font-family: Verdana;"><a name="configpin"></a> [gpio.configpin(gpio.DIR,
+gpio.DIR_INPUT)] pio.input( Pin1, Pin2, ... ): set the specified pin(s)
+as input(s).
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
- &nbsp;
-</p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="setportvalue"></a>
- [gpio.setportvalue] pio.setport( value, Port1, Port2, ... ): set the value of all the ports in the
+&nbsp;
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
- &nbsp; list to "value".
+[gpio.configpin(gpio.DIR, gpio.DIR_OUTPUT)] pio.output( Pin1, Pin2, ...
+): set the specified pin(s) as output(s).
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
- &nbsp;
+&nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="getportvalue"></a>
- [gpio.getportvalue] Val1, Val2, ... = pio.getport( Port1, Port2, ... ): reads one or more ports and
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
- &nbsp; returns their values.
+<p class="MsoNormal" style="font-family: Verdana;"><a name="setportvalue"></a> [gpio.setportvalue]
+pio.setport( value, Port1, Port2, ... ): set the value of all the ports
+in the
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
- &nbsp;
+&nbsp; list to "value".
+</p>
+<p class="MsoNormal" style="font-family: Verdana;">
+&nbsp;
+</p>
+<p class="MsoNormal" style="font-family: Verdana;"><a name="getportvalue"></a> [gpio.getportvalue] Val1,
+Val2, ... = pio.getport( Port1, Port2, ... ): reads one or more ports
+and
+</p>
+<p class="MsoNormal" style="font-family: Verdana;">
+&nbsp; returns their values.
+</p>
+<p class="MsoNormal" style="font-family: Verdana;">
+&nbsp;
 </p>
 <p class="MsoNormal" style="font-family: Verdana;"><a name="getportname"></a> [gpio.getportname]
 Port = pio.port( code ): return the physical port number associated
@@ -79,23 +81,29 @@ with the given code. For example, "pio.port( pio.P0_20 )" will return
 0.
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
- &nbsp;
+&nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="getpinnumber"></a>
- [gpio.getpinnumber] Pin = pio.pin( code ): return the physical pin number associated with the
+<p class="MsoNormal" style="font-family: Verdana;"><a name="getpinnumber"></a> [gpio.getpinnumber] Pin =
+pio.pin( code ): return the physical pin number associated with the
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
- given code. For example, "pio.pin( pio.P0_20 )" will return 20.
+given code. For example, "pio.pin( pio.P0_20 )" will return 20.
 </p>
-<br><a name="togglepin"></a>
-[gpio.togglepin([Pin1], [Pin2], ...)]<br><br><a name="toogleport"></a>
-[gpio.toggleport([Port1], [Port2], ...)]<br style="font-family: Verdana;">
+<br>
+<a name="togglepin"></a>[gpio.togglepin([Pin1],
+[Pin2], ...)]<br>
+<br>
+<a name="toogleport"></a>[gpio.toggleport([Port1],
+[Port2], ...)]<br style="font-family: Verdana;">
 <br>
 Another idea (can be added to the above ?)<br>
 [gpio.configport(gpio.[FUNCTION], gpio.MASK, [MASK])]<br>
 Ex:<br>
-&nbsp; gpio.configpin(gpio.DIR, gpio.DIR_INPUT)&nbsp;&nbsp;&nbsp; (.DIR_OUTPUT)<br>
-&nbsp; gpio.configpin(gpio.PULL, gpio.PULL_UP)&nbsp;&nbsp;&nbsp;&nbsp; (.PULL_DOWN, PULL_NO)<br style="font-family: Verdana;">
+&nbsp; gpio.configpin(gpio.DIR,
+gpio.DIR_INPUT)&nbsp;&nbsp;&nbsp; (.DIR_OUTPUT)<br>
+&nbsp; gpio.configpin(gpio.PULL,
+gpio.PULL_UP)&nbsp;&nbsp;&nbsp;&nbsp; (.PULL_DOWN,
+PULL_NO)<br style="font-family: Verdana;">
 <br>
 <p class="MsoNormal" style="font-family: Verdana;">
 [gpio.configport(gpio.DIR, gpio.DIR_INPUT, [Port1], [Port2], ...)]
@@ -103,7 +111,7 @@ pio.port_input( Port1, Port2, ... ): set the specified port(s) as
 input(s).
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
- &nbsp;
+&nbsp;
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
 [gpio.configport(gpio.DIR, gpio.DIR_OUTPUT, [Port1], [Port2], ...)]
@@ -111,7 +119,7 @@ pio.port_output( Port1, Port2, ... ): set the specified port(s) as
 output(s).
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
- &nbsp;
+&nbsp;
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
 [gpio.configpin(gpio.PULL, gpio.PULL_UP, [Pin1], [Pin2], ...)]
@@ -119,7 +127,7 @@ pio.pullup( Pin1, Pin2, ... ): enable internal pullups on the specified
 pins.Note that some CPUs might not provide this feature.
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
- &nbsp;
+&nbsp;
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
 [gpio.configpin(gpio.PULL, gpio.PULL_DOWN, [Pin1], [Pin2], ...)]
@@ -127,7 +135,7 @@ pio.pulldown( Pin1, Pin2, ... ): enable internal pulldowns on the
 specified pins. Note that some CPUs might not provide this feature.
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
- &nbsp;
+&nbsp;
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
 [gpio.configpin(gpio.PULL, gpio.PULL_NO, [Pin1], [Pin2], ...)]
@@ -135,9 +143,12 @@ pio.nopull( Pin1, Pin2, ... ): disable the pullups/pulldowns on the
 specifiedpins. Note that some CPUs might not provide this feature.
 </p>
 <br>
-<br>What is the real advantage/reason of having a pin "list" on some of
+<br>
+What is the real advantage/reason of having a pin "list" on some of
 these functions ? If we cannot build a table with them, there's really
 no great use of this, as we cannot create the list in run time and some
 other proposed functions solve the problem of avoiding more than one
-call for several pins.<br>A: It IS usefull and sometimes necessary so it will stay.....<br>
-<br></body></html>
+call for several pins.<br>
+A: It IS usefull and sometimes necessary so it will stay.....<br>
+<br>
+</body></html>

@@ -1,70 +1,100 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
 <html><head>
 <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+<meta http-equiv="Content-Language" content="en-us"><title>Product</title>
 
-
-
-<meta http-equiv="Content-Language" content="en-us">
-
-<title>Product</title><link rel="stylesheet" type="text/css" href="./style.css"></head>
-<body bgcolor="#ffffff">
-
-<h3><a name="over"></a>spi</h3><span style="font-weight: bold;"></span><br>
- <big><span style="font-family: Helvetica,Arial,sans-serif;"></span><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big><a name="setup"></a>Actual_clock = spi.setup( id, spi.MASTER | spi.SLAVE, clock, cpol, cpha,</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
-</span><br style="font-family: Helvetica,Arial,sans-serif;"><span style="font-family: Helvetica,Arial,sans-serif;">
- &nbsp; </span><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>databits): set the SPI interface with the given parameters, returns the clock</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
-</span><br style="font-family: Helvetica,Arial,sans-serif;"><span style="font-family: Helvetica,Arial,sans-serif;">
- &nbsp; </span><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>that was set for the interface.</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
-</span><br style="font-family: Helvetica,Arial,sans-serif;"><span style="font-family: Helvetica,Arial,sans-serif;">
- &nbsp;
-</span><br style="font-family: Helvetica,Arial,sans-serif;"><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big><a name="select"></a>spi.select( </big></font><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>id</big></font><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big> ): sets the selected spi as active (sets the SS line of the given interface).</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
-</span><br style="font-family: Helvetica,Arial,sans-serif;"><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>&nbsp;</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
-</span><br style="font-family: Helvetica,Arial,sans-serif;"><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big><a name="unselect"></a>spi.unselect( id ): clears the SS line of the given interface.</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
-</span><br style="font-family: Helvetica,Arial,sans-serif;"><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>&nbsp;</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
-</span><br style="font-family: Helvetica,Arial,sans-serif;"><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big><a name="send"></a>spi.send( id, Data1, Data2, ... ): sends all the data to the specified SPI</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
-</span><br style="font-family: Helvetica,Arial,sans-serif;"><span style="font-family: Helvetica,Arial,sans-serif;">
- &nbsp; </span><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>interface.</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
-</span><br style="font-family: Helvetica,Arial,sans-serif;"><span style="font-family: Helvetica,Arial,sans-serif;">
- &nbsp;
-</span><br style="font-family: Helvetica,Arial,sans-serif;"><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big><a name="sendrecv"></a>[</big></font><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>spi.sendrecv(</big></font><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>id, Out1, Out2, ...</big></font><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>)]&nbsp;&nbsp;&nbsp;&nbsp; </big></font><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>In1, In2, ... = spi.send_recv( id, Out1, Out2, ... ): sends all the "out" bytes</big></font><span style="font-family: Helvetica,Arial,sans-serif;"> </span><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>to the specified SPI interface and returts the data read after each sent byte.</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
-</span><br style="font-family: Helvetica,Arial,sans-serif;"><br style="font-family: Helvetica,Arial,sans-serif;"><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>Returning
+<link rel="stylesheet" type="text/css" href="../style.css">
+</head>
+<body style="background-color: rgb(255, 255, 255);">
+<h3><a name="over"></a>spi</h3>
+<span style="font-weight: bold;"></span><br>
+<big><span style="font-family: Helvetica,Arial,sans-serif;"></span><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big><a name="setup"></a>Actual_clock = spi.setup( id,
+spi.MASTER | spi.SLAVE, clock, cpol, cpha,</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
+</span><br style="font-family: Helvetica,Arial,sans-serif;">
+<span style="font-family: Helvetica,Arial,sans-serif;">
+&nbsp; </span><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>databits):
+set the SPI interface with the given parameters, returns the clock</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
+</span><br style="font-family: Helvetica,Arial,sans-serif;">
+<span style="font-family: Helvetica,Arial,sans-serif;">
+&nbsp; </span><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>that
+was set for the interface.</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
+</span><br style="font-family: Helvetica,Arial,sans-serif;">
+<span style="font-family: Helvetica,Arial,sans-serif;">
+&nbsp;
+</span><br style="font-family: Helvetica,Arial,sans-serif;">
+<font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big><a name="select"></a>spi.select(
+</big></font><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>id</big></font><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>
+): sets the selected spi as active (sets the SS line of the given
+interface).</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
+</span><br style="font-family: Helvetica,Arial,sans-serif;">
+<font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>&nbsp;</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
+</span><br style="font-family: Helvetica,Arial,sans-serif;">
+<font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big><a name="unselect"></a>spi.unselect(
+id ): clears the SS line of the given interface.</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
+</span><br style="font-family: Helvetica,Arial,sans-serif;">
+<font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>&nbsp;</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
+</span><br style="font-family: Helvetica,Arial,sans-serif;">
+<font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big><a name="send"></a>spi.send(
+id, Data1, Data2, ... ): sends all the data to the specified SPI</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
+</span><br style="font-family: Helvetica,Arial,sans-serif;">
+<span style="font-family: Helvetica,Arial,sans-serif;">
+&nbsp; </span><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>interface.</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
+</span><br style="font-family: Helvetica,Arial,sans-serif;">
+<span style="font-family: Helvetica,Arial,sans-serif;">
+&nbsp;
+</span><br style="font-family: Helvetica,Arial,sans-serif;">
+<font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big><a name="sendrecv"></a>[</big></font><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>spi.sendrecv(</big></font><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>id,
+Out1, Out2, ...</big></font><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>)]&nbsp;&nbsp;&nbsp;&nbsp;
+</big></font><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>In1,
+In2, ... = spi.send_recv( id, Out1, Out2, ... ): sends all the "out"
+bytes</big></font><span style="font-family: Helvetica,Arial,sans-serif;"> </span><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>to
+the specified SPI interface and returts the data read after each sent
+byte.</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
+</span><br style="font-family: Helvetica,Arial,sans-serif;">
+<br style="font-family: Helvetica,Arial,sans-serif;">
+<font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>Returning
 several values in this blocking way would not complicate some queued
 send implementations ? (ok, this could be another function :)</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
-</span><br style="font-family: Helvetica,Arial,sans-serif;"><br style="font-family: Helvetica,Arial,sans-serif;"><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>Sending multiple data/chars in a single call and not in
+</span><br style="font-family: Helvetica,Arial,sans-serif;">
+<br style="font-family: Helvetica,Arial,sans-serif;">
+<font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>Sending multiple data/chars in a single
+call and not in
 a table argument does not allow the data to be built in run time
-(without some string massage, of course :)</big></font><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br style="font-family: Helvetica,Arial,sans-serif;"><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>
-</big></font><br style="font-family: Helvetica,Arial,sans-serif;"><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>
-</big></font><br style="font-family: Helvetica,Arial,sans-serif;"><span style="font-family: Helvetica,Arial,sans-serif;">
- &nbsp;
-</span></big>
-
-
- 
-
-
-
-
- 
-
- 
-
- 
-
- 
-
- 
-
-
-
- 
-
- 
-
-
- 
-
- 
-
-
+(without some string massage, of course :)</big></font><br>
 <br>
-<br style="font-family: Verdana;"></body></html>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br style="font-family: Helvetica,Arial,sans-serif;">
+<br style="font-family: Helvetica,Arial,sans-serif;">
+<br style="font-family: Helvetica,Arial,sans-serif;">
+<span style="font-family: Helvetica,Arial,sans-serif;">
+&nbsp;
+</span></big> <br>
+<br style="font-family: Verdana;">
+</body></html>
