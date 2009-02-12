@@ -9,7 +9,7 @@ optram = int( ARGUMENTS.get( 'optram', '1' ) )
 romfs = { 'bisect' : [ 'bisect.lua' ],
           'hangman' : [ 'hangman.lua' ],
           'lhttpd' : [ 'index.pht', 'lhttpd.lua', 'test.lua' ],
-          'pong' : [ 'pong.lua', 'LM3S.lua' ],
+          'pong' : [ 'pong.lua', 'LM3S.lua', 'logo.rit', 'img.rit'],
           'led' : [ 'led.lua' ],
           'piano' : [ 'piano.lua' ],
           'pwmled' : [ 'pwmled.lua' ],

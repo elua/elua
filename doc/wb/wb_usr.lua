@@ -68,8 +68,8 @@ wb_usr.tree =
       },
     },
     {
-      name = {en = "Comunity", pt = "Comunidade" },
-      link = "comunity.html",
+      name = {en = "Community", pt = "Comunidade" },
+      link = "community.html",
       folder =
       {
         {  name = { en ="Lists", pt = "Listas" },
@@ -551,52 +551,70 @@ wb_usr.tree =
       },
     },
     {
-      name = {en = "Downloads", pt = "Downloads" },
+      name = { en = "Downloads", pt = "Downloads" },
       link = "binaries.html",
       folder =
       {
-        name = { en = "Binaries", pt = "Binaries" },
-        link = "binaries.html",
-        folder =
-        { 
-          name = { en = "Luminary Micro", pt = "Luminary Micro" },
-          link = "lm_bin.html",
-        },
         {
-          name = { en = "Atmel", pt = "Atmel" },
-          link = "lm_bin.html",
-        },
-      },
-      { 
-        name = { en = "Source Code", pt = "Fontes" },
-        link = "sources.html",
-        folder = 
+          name = { en = "Binaries", pt = "Binaries" },
+          link = "binaries.html",
+          folder =
+          { 
+            {
+              name = { en = "Atmel", pt = "Atmel" },
+              link = "lm_bin.html",
+            },
+            {
+              name = { en = "Luminary Micro", pt = "Luminary Micro" },
+              link = "lm_bin.html",
+            },
+            {
+              name = { en = "PC i386", pt = "PC i386" },
+              link = "lm_bin.html",
+            },
+            {
+              name = { en = "Phillips", pt = "Phillips" },
+              link = "lm_bin.html",
+            },
+            {
+              name = { en = "ST Micro", pt = "ST Micro" },
+              link = "lm_bin.html",
+            },
+          },
+        },     
         { 
-          name = { en = "v0.6", pt = "v0.6" },
-          link = "sources.html#06"
-        },
-        { 
-          name = { en = "trunk", pt = "trunk" },
-          link = "sources.html#trunk"
-        },
-        { 
-          name = { en = "old versions", pt = "anteriores" },
-          link = "oldversions.html",
+          name = { en = "Source Code", pt = "Fontes" },
+          link = "sources.html",
           folder = 
           {
             { 
-              name = { en = "v0.5", pt = "v0.5" },
-              link = "oldversions.html#05"
+              name = { en = "v0.6", pt = "v0.6" },
+              link = "sources.html#06"
             },
             { 
-              name = { en = "v0.4", pt = "v0.4" },
-              link = "sources.html#04"
+              name = { en = "trunk", pt = "trunk" },
+              link = "sources.html#trunk"
+            }, 
+            { 
+              name = { en = "old versions", pt = "anteriores" },
+              link = "oldversions.html",
+              folder = 
+              {
+                { 
+                  name = { en = "v0.5", pt = "v0.5" },
+                  link = "oldversions.html#05"
+                },
+                { 
+                  name = { en = "v0.4", pt = "v0.4" },
+                  link = "sources.html#04"
+                },
+              },
+              { 
+                name = { en = "Developers", pt = "Desenvolvedores" },
+                link = "developers.html"
+              },
             },
           },
-        },
-        { 
-          name = { en = "Developers", pt = "Desenvolvedores" },
-          link = "developers.html"
         },
       },
     },
