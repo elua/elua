@@ -1,0 +1,119 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+<meta http-equiv="Content-Language" content="en-us"><title>Product</title>
+
+<link rel="stylesheet" type="text/css" href="../style.css"></head>
+<body style="background-color: rgb(255, 255, 255);">
+<h3>Building eLua</h3><br><div class="content">
+
+<p>Up to date documentation of how to build eLua is always included in the <a href="http://www.eluaproject.net/?p=Downloads">eLua distributions</a>, in the docs directory).</p>
+
+<p>For your convenience, the building instructions are also provided on this page.</p>
+
+<h2>Prerequisites</h2>
+
+<p>Before you start, you might want to check if the list of platform modules and 
+eLua components are set according to your needs. See platform_modules
+and elua_components in the distro doc for details. </p>
+
+<h2>Building eLua</h2>
+
+<p>To build <strong>eLua</strong> you'll need:</p>
+
+<ul><li><p>a GCC/Newlib toolchain for your target. Please note that even if
+    you already have a compiled toolchain, the differences in the Newlib configure
+    flags (mainly the --disable-newlib-supplied-syscalls flags) might prevent 
+    eLua for building properly on your machine.</p></li><li><p>Linux. Compiling under windows should be possible, however this isn't tested. 
+    I'm using Ubuntu, so I'm also using "apt-get". If you're using a distro with a 
+    different package manager you'll need to translate the "apt-get" calls to your 
+    specific distribution.</p></li><li><p>python. It should be already installed; if it's not:</p>
+    
+    <p>$ sudo apt-get install python</p></li><li><p>scons. eLua uses scons instead of make and makefiles, because I find scons
+    much more "natural" and easier to use than make. To install it:</p>
+    
+    <p>$ sudo apt-get install scons</p></li><li><p>your toolchain's "bin" directory (this is generally something like 
+    /usr/local/cross-arm/bin, where /usr/local/cross-arm is the directory in which 
+    you installed your toolchain) must be in $PATH. </p></li><li><p>if you're building for the i386 platform, you'll also need "nasm":</p>
+    
+    <p>$ sudo apt-get install nasm</p></li></ul>
+
+<p>For each platform, eLua assumes a certain name for the compiler/linker/assembler
+executable files, as shown below.</p>
+
+<pre><code>================================================================================<br>| Tool       |      Compiler       |         Linker       |      Assembler     |  <br>|------------|---------------------|----------------------|--------------------|  <br>| Platform   |                     |                      |                    |<br>|============|=====================|======================|====================|<br>| ARM (all)  |    arm-elf-gcc      |     arm-elf-gcc      |     arm-elf-gcc    |<br>|============|=====================|======================|====================|<br>| i386       |    i686-elf-gcc     |     i686-elf-gcc     |        nasm        |<br>|============|=====================|======================|====================|<br>| Cortex-M3  |    arm-elf-gcc      |     arm-elf-gcc      |     arm-elf-gcc    |<br>|============|=====================|======================|====================|<br></code></pre>
+
+<p>If your toolchain uses different names, you have to modify the "conf.py" file
+from src/platform/[your platform].</p>
+
+<p>To build, go to the directory where you unpacked your eLua distribution and 
+invoke scons:</p>
+
+<pre><code>$ scons [target=lua | lualong] <br>  [cpu=at91sam7x256 | at91sam7x512 | i386 | str912fw44 | lm3s8962 | <br>        lm3s6965 | lpc2888 | str711fr2 ]<br>  [board=ek-lm3s8962 | ek-lm3s6965 | str9-comstick | sam7-ex256 | lpc-h2888 | <br>        | mod711 | pc]<br>  [cpumode=arm | thumb] <br>  [allocator = newlib | multiple]<br>  [prog]<br></code></pre>
+
+<p>Your build target is specified by two paramters: cpu and board. "cpu" gives the
+name of your CPU, and "board" the name of the board. A board can be associated
+with more than one CPU. This allows the build system to be very flexible. You 
+can use these two options together or separately, as shown below:</p>
+
+<ul><li>cpu=name: build for the specified CPU. A board name will be assigned by the
+    build system automatically.</li><li>board=name: build for the specified board. The CPU name will be inferred by 
+    the build system automatically.</li><li>cpu=name board=name: build for the specified board and CPU.</li></ul>
+
+<p>For board/CPU assignment look at the beginning of the SConstruct file from the 
+base directory, it's self-explanatory.</p>
+
+<p>The other options are as follows:</p>
+
+<ul><li>target=lua | lualong: specify if you want to build full Lua (with floating 
+    point support) or integer only Lua (lualong). The default is "lua".</li><li>cpumode=arm | thumb: for ARM target (not Cortex) this specifies the
+    compilation mode. Its default value is 'thumb' for AT91SAM7X targets and
+    'arm' for STR9 and LPC2888 targets.</li><li>allocator = newlib | multiple: choose between the default newlib allocator
+    (newlib) and the multiple memory spaces allocator (multiple). You should
+    use the 'multiple' allocator only if you need to support multiple memory 
+    spaces, as it's larger that the default Newlib allocator (newlib). For more
+    information about this reffer to platform_interface. The default value
+    is 'newlib' for all CPUs except 'lpc2888', since my lpc-h2888 comes with
+    external SDRAM memory and thus it's an ideal target for 'multiple'.</li><li>prog: by default, the above 'scons' command will build only the 'elf' file.
+    Specify "prog" to build also the platform-specific programming file where
+    appropriate (for example, on a AT91SAM7X256 this results in a .bin file that
+    can be programmed in the CPU). </li></ul>
+
+<p>The output will be a file named elua<em>[target]</em>[cpu].elf (and also another
+file with the same name but ending in .bin if "prog" was specified for platforms
+that need .bin files for programming).
+If you want the equivalent of a "make clean", invoke "scons" as shown above,
+but add a "-c" at the end of the command line. "scons -c" is also recommended 
+after you change the list of modules/components to build for your target (see 
+section "prerequisites" of this document), as scons seems to "overlook" the 
+changes to these files on some occasions.</p>
+
+<p>A few examples:</p>
+
+<p>Clear previously built intermediate files.</p>
+
+<pre><code>$ scons cpu=at91sam7x256 -c <br></code></pre>
+
+<p>Build eLua for the AT91SAM7X256 CPU. The board name is detected as sam7-ex256.</p>
+
+<pre><code>$ scons cpu=at91sam7x256<br></code></pre>
+
+<p>Build eLua for the SAM7-EX256 board. The CPU is detected as AT91SAM7X256.</p>
+
+<pre><code>$ scons board=sam7-ex256<br></code></pre>
+
+<p>Build eLua for the SAM7-EX256 board, but "overwrite" the default CPU. This is 
+useful when you'd like to see how the specified board would behave with a 
+different CPU (in the case of the SAM7-EX256 board it's possible to switch the
+on-board AT91SAM7X256 CPU for an AT91SAM7X512 which has the same pinout but 
+comes with more Flash/RAM memory).</p>
+
+<pre><code>$ scons board=sam7-ex256 cpu=at91sam7x512<br></code></pre>
+
+<p>Build eLua for the lpc2888 CPU. The board name is detected as LPC-H2888. Also,
+the bin file required for target programming is generated.</p>
+
+<pre><code>$ scons cpu=lpc2888 prog <br></code></pre>
+
+
+</div></body></html>

@@ -1,0 +1,163 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+<meta http-equiv="Content-Language" content="en-us"><title>Product</title>
+
+<link rel="stylesheet" type="text/css" href="../style.css"></head>
+<body style="background-color: rgb(255, 255, 255);">
+<h3>Current Project Status</h3><p>As already stated, eLua allows you to run Lua completely on the
+microcontroller. A fast-growing set of complementary modules is also
+provided, with Lua code for using eLua generic peripherals. </p>
+
+<p>The following modules are ready or being implemented:</p>
+
+<ul><li>a (mostly) platform independent peripheral library (I/O, UART, SPI, I2C...)</li><li>a very low footprint embedded flash file system, easy to port to different types  of memory chips and other storage devices</li><li>a small FAT FS layer for SD cards.</li><li>an editor (to edit Lua programs directly via a serial connection or other input devices)</li><li>a minimal "shell" (for file operations, configuration and others)</li><li>network support</li></ul>
+
+<p>Porting eLua to another compatible platform should be as easy and
+painless as possible. Currently this is restricted to platforms for
+which the gcc+newlib combo is available. This might change in the
+future, but please not that this is not a priority of the project at
+this point.</p>
+
+<p>Also, the Lua "core" comes in two flavors: "regular Lua" (using
+floating point as the number type) and "integer Lua" (using "integers"
+as the number type). We'll add more about this in a future tutorial
+about Lua. For now, it's enough to say that "regular Lua" will be able
+to perform floating point operations (but will be slower because the
+floating point operations will be emulated in software on the MCU),
+while "integer Lua" will only be able to perform operations with
+integer numbers (but support for fixed and even floating point can be
+added with separate modules) and thus will be faster.</p>
+
+<h2>Status of ports</h2>
+
+<p>You can see below the status of eLua implementation by platform/module. </p>
+
+<p>Symbol list
+<br></p>
+
+<table class="table_center">
+     <tbody><tr>
+        <th>Symbol</th>
+        <th><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_success.png"></th>
+        <th><img src="http://www.eluaproject.net/img/wiki_elua/yellowled.png"></th>
+        <th><img src="http://www.eluaproject.net/img/wiki_elua/ksame.png"></th>
+        <th><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_fail1.png"></th>
+     </tr>
+     <tr>
+        <td style="color: rgb(255, 102, 0);">Meaning</td>
+        <td>Implemented and tested</td>
+        <td>Implemented, not tested</td>
+        <td>Not yet implemented</td>
+        <td>Not applicable</td>
+     </tr>
+</tbody></table>
+
+<p><br></p>
+
+<p>eLua ports status</p>
+
+<table class="table_center">
+     <tbody><tr>
+        <th>Module</th>
+        <th rowspan="2">PIO</th>
+        <th rowspan="2">SPI</th>
+        <th rowspan="2">UART</th>
+        <th rowspan="2">TMR</th>
+        <th rowspan="2">PWM</th>
+        <th rowspan="2">NET</th>
+        <th rowspan="2">CPU</th> 
+     </tr>
+     <tr>
+        <td style="color: rgb(255, 102, 0);">MCU</td>
+     </tr>
+     <tr>
+        <td style="color: rgb(255, 102, 0);">LM3S8962</td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_success.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/yellowled.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_success.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_success.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_success.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_success.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_success.png"></td>
+     </tr>
+     <tr>
+        <td style="color: rgb(255, 102, 0);">LM3S6965</td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_success.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/yellowled.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_success.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_success.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/yellowled.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/yellowled.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/yellowled.png"></td>
+     </tr>
+     <tr>
+        <td style="color: rgb(255, 102, 0);">i386</td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_fail1.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_fail1.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_fail1.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/ksame.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_fail1.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/ksame.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/ksame.png"></td>
+     </tr>
+     <tr>
+        <td style="color: rgb(255, 102, 0);">AT91SAM7X256</td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_success.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/ksame.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_success.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_success.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_success.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/ksame.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/ksame.png"></td>
+     </tr>
+     <tr>     
+        <td style="color: rgb(255, 102, 0);">AT91SAM7X512</td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/yellowled.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/ksame.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/yellowled.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/yellowled.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/yellowled.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/ksame.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/ksame.png"></td>
+     </tr>
+     <tr>
+        <td style="color: rgb(255, 102, 0);">STR912FW44</td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_success.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/ksame.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_success.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_success.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/ksame.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/ksame.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/ksame.png"></td>
+     </tr>
+     <tr>
+        <td style="color: rgb(255, 102, 0);">LPC2888</td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_success.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/ksame.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_success.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_success.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_fail1.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/ksame.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/ksame.png"></td>
+     </tr>
+     <tr>
+        <td style="color: rgb(255, 102, 0);">STR711FR2</td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_success.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/ksame.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_success.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_success.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/agt_action_success.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/ksame.png"></td>
+        <td><img src="http://www.eluaproject.net/img/wiki_elua/ksame.png"></td>
+     </tr>
+     <tr>
+        <td style="color: rgb(255, 102, 0);">AVR32</td>
+        <td colspan="7">Comming soon</td>
+     </tr>
+     <tr>
+        <td style="color: rgb(255, 102, 0);">STM32</td>
+        <td colspan="7">Comming soon</td>
+     </tr>
+</tbody></table>
+</body></html>

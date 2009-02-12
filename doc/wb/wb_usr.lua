@@ -23,14 +23,17 @@ wb_usr = {
 
 
 -- Page and Bar Titles
-wb_usr.messages = {
-  pt = {
-     title = "eLua Doc",
-     bar_title = "eLua API - Manual de Referência"
+wb_usr.messages = 
+{
+  en = 
+  {
+    title = "eLua Doc",
+    bar_title = "eLua - Embedded Lua"
   },
-  en = {
-     title = "eLua Doc",
-     bar_title = "eLua API Reference Manual"
+  pt = 
+  {
+    title = "eLua Doc",
+    bar_title = "eLua - Embedded Lua"
   }
 } 
 
@@ -57,13 +60,13 @@ wb_usr.tree =
            link = "overview.html#uses",
         },
         {  name = { en ="Authors", pt = "Autores" },
-           link = "authors.html",
+           link = "overview.html#authors",
         },
         {  name = { en ="Contacts", pt = "Contatos" },
-           link = "contacts.html",
+           link = "overview.html#contacts",
         },
         {  name = { en ="Licence", pt = "Licença" },
-           link = "licence.html",
+           link = "overview.html#license",
         },
       },
     },
@@ -73,16 +76,16 @@ wb_usr.tree =
       folder =
       {
         {  name = { en ="Lists", pt = "Listas" },
-           link = "lists.html",
+           link = "community.html#lists",
         },
         {  name = { en ="Credits", pt = "Créditos" },
-           link = "credits.html",
+           link = "community.html#credits",
         },
         {  name = { en ="Galery", pt = "Galeria" },
-           link = "galery.html",
+           link = "community.html#galery",
         },
         {  name = { en ="Projects", pt = "Projetos" },
-           link = "projects.html",
+           link = "community.html#projects",
         },
       },
     },
