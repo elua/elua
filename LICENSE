@@ -1,8 +1,8 @@
 The Lua part of eLua is licensed under the Lua licensing terms, which you can
 find at http://www.lua.org/license.html.
 
-The XMODEM code is adapted from the Procyon AVR library, which is released
-under GPL.
+The XMODEM code is adapted from the FreeBSD at91 library, which was written by
+M. Warner Losh, and is released under the BSD license.
 
 The "pack" module is adapted from the "lpack" module by Luiz Henrique de 
 Figueiredo and it's placed in the public domain.
