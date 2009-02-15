@@ -11,10 +11,13 @@
 wb_usr = {
    langs = {"en","pt" },
    start_size = "200",
-   contact = "dadosutter@eluaproject.net",
-   copyright_link = "http://www.eluaproject.net", 
+--   contact = "dadosutter@eluaproject.net",
+   contact = "",
+--   copyright_link = "http://www.eluaproject.net", 
+   copyright_link = "", 
    search_link = "http://www.eluaproject.net/doc", 
-   copyright_name = "eLua Team",
+--   copyright_name = "eLua Team",
+   copyright_name = "",
    title_bgcolor = "midnightblue",
    file_title = "wb",
    start_open = "1"
@@ -43,29 +46,29 @@ wb_usr.messages =
 wb_usr.tree =
 {
   name = { nl = "eLua" },
-  link = "", 
+  link = "news.html", 
   folder =
   {
     { name = {en = "Overview", pt = "Apresentação" },
       link = "overview.html",
       folder =
       {
-        {  name = { en ="What is", pt = "O que é eLua ?" },
+        {  name = { en = "What is", pt = "O que é eLua ?" },
            link = "overview.html#whatis",
         },
-        {  name = { en ="Audience", pt = "Público alvo" },
+        {  name = { en = "Audience", pt = "Público alvo" },
            link = "overview.html#audience",
         },
-        {  name = { en ="Uses", pt = "Aplicações" },
+        {  name = { en = "Uses", pt = "Aplicações" },
            link = "overview.html#uses",
         },
-        {  name = { en ="Authors", pt = "Autores" },
+        {  name = { en = "Authors", pt = "Autores" },
            link = "overview.html#authors",
         },
-        {  name = { en ="Contacts", pt = "Contatos" },
+        {  name = { en = "Contacts", pt = "Contatos" },
            link = "overview.html#contacts",
         },
-        {  name = { en ="Licence", pt = "Licença" },
+        {  name = { en = "Licence", pt = "Licença" },
            link = "overview.html#license",
         },
       },
@@ -75,18 +78,20 @@ wb_usr.tree =
       link = "community.html",
       folder =
       {
-        {  name = { en ="Lists", pt = "Listas" },
+        {  name = { en = "Lists", pt = "Listas" },
            link = "community.html#lists",
         },
-        {  name = { en ="Credits", pt = "Créditos" },
+        {  name = { en = "Credits", pt = "Créditos" },
            link = "community.html#credits",
         },
-        {  name = { en ="Galery", pt = "Galeria" },
+--[[
+        {  name = { en = "Galery", pt = "Galeria" },
            link = "community.html#galery",
         },
-        {  name = { en ="Projects", pt = "Projetos" },
+        {  name = { en = "Projects", pt = "Projetos" },
            link = "community.html#projects",
         },
+--]]        
       },
     },
     {
@@ -94,22 +99,26 @@ wb_usr.tree =
       link = "status.html",
       folder =
       {
-        {  name = { en ="News", pt = "Notícias" },
+        {  name = { en = "News", pt = "Notícias" },
            link = "news.html",
         },
-        {  name = { en ="Platforms", pt = "Plataformas" },
-           link = "platforms.html",
+        {  name = { en = "Platforms", pt = "Plataformas" },
+           link = "status.html#platforms",
         },
-        {  name = { en ="Roadmap", pt = "Futuro" },
-           link = "roadmap.html",
+        {  name = { en = "Roadmap", pt = "Futuro" },
+           link = "status.html#roadmap",
         },
       },
     },
     {
       name = { en = "Documentation", pt = "Documentação" },
-      link = "doc.html",
+      link = "using.html",
       folder = 
       {
+        {
+          name = { en = "FAQ", pt = "FAQ" },
+          link = "faq.html",
+        },
         {
           name = { en = "Using", pt = "Usando" },
           link = "using.html",
@@ -123,14 +132,35 @@ wb_usr.tree =
           link = "examples.html",
           folder =
           {
-            {  name = { en ="hello.lua", pt = "hello.lua" },
+            {  name = { en = "hello.lua", pt = "hello.lua" },
                link = "examples.html#hello",
             },
-            {  name = { en ="info.lua", pt = "info.lua" },
+            {  name = { en = "info.lua", pt = "info.lua" },
                link = "examples.html#info",
             },
-            {  name = { en ="led.lua", pt = "led.lua" },
+            {  name = { en = "led.lua", pt = "led.lua" },
                link = "examples.html#led",
+            },
+            {  name = { en = "hangman.lua", pt = "hangman.lua" },
+               link = "examples.html#hangman",
+            },
+            {  name = { en = "pwmled.lua", pt = "pwmled.lua" },
+               link = "examples.html#pwmled",
+            },
+            {  name = { en = "tvbgone.lua", pt = "tvbgone.lua" },
+               link = "examples.html#tvbgone",
+            },
+            {  name = { en = "piano.lua", pt = "piano.lua" },
+               link = "examples.html#piano",
+            },
+            {  name = { en = "bisect.lua", pt = "bisect.lua" },
+               link = "examples.html#bisect",
+            },
+            {  name = { en = "morse.lua", pt = "morse.lua" },
+               link = "examples.html#morse",
+            },
+            {  name = { en = "lhttpd.lua", pt = "lhttpd.lua" },
+               link = "examples.html#lhttpd",
             },
           },
         },
@@ -139,34 +169,45 @@ wb_usr.tree =
           link = "tutorials.html",
           folder =
           {
-            {  name = { en ="OpenOCD", pt = "O que é eLua ?" },
-               link = "whatis.html",
+            {  name = { en = "Booting on a PC", pt = "Booting on a PC" },
+               link = "tut_bootpc.html",
             },
-            {  name = { en ="Tut", pt = "O que é eLua ?" },
-               link = "whatis.html",
+            {  name = { en = "Booting from a Pendrive", pt = "Booting from a Pendriv" },
+               link = "tut_bootstick.html",
             },
-            {  name = { en ="Tut", pt = "O que é eLua ?" },
-               link = "whatis.html",
+            {  name = { en = "Toolchain Building", pt = "Toolchain Building" },
+               link = "tchainbuild.html",
+               folder = 
+               {
+                 { name = { en = "ARM7 & ARM9 Toolchains", pt = "ARM 7 & ARM9 Toolchains" },
+                   link = "tc_arm.html",
+                 },
+                 { name = { en = "ARM Cortex-M3", pt = "ARM Cortex-M3" },
+                   link = "tc_cortex.html",
+                 },
+                 { name = { en = "i386", pt = "i386" },
+                   link = "tc_386.html",
+                 },
+               },  
+            },
+            {  name = { en = "Using OpenOCD", pt = "Using OpenOC" },
+               link = "tut_openocd.html",
             },
           },
         },
         {
-          name = { en = "FAQ", pt = "FAQ" },
-          link = "faq.html",
-        },
-        {
           name = {en = "Version History", pt = "Histórico de Versões" },
-          link = "history.html",
+          link = "versionhistory.html",
           folder =
           {
-            {  name = { en ="v 0.4", pt = "v 0.4" },
-               link = "history.html#04",
+            {  name = { en = "v 0.4", pt = "v 0.4" },
+               link = "versionhistory.html#04",
             },
-            {  name = { en ="v 0.5", pt = "v 0.5" },
-               link = "history.html#05",
+            {  name = { en = "v 0.5", pt = "v 0.5" },
+               link = "versionhistory.html#05",
             },
-            {  name = { en ="v 0.6", pt = "v 0.6" },
-               link = "history.html#06",
+            {  name = { en = "v 0.6", pt = "v 0.6" },
+               link = "versionhistory.html#06",
             },
           },
         },
@@ -174,337 +215,337 @@ wb_usr.tree =
     },
     {
       name = { en = "Reference Manual", pt = "Manual de Referência" },
-      link = "refmanual.html",
+      link = "refman.html#genericmodules",
       folder = 
       {
         {
           name = { en = "Generic Modules", pt = "Módulos Genéricos" },
-          link = "genericmodules.html",
+          link = "refman.html#genericmodules",
           folder = 
           {
             {
-              name = { en ="bit", pt = "bit" },
-              link = "bit_ref.html",
+              name = { en = "bit", pt = "bit" },
+              link = "refman.html#bitmodule",
               folder =
               {
                 {
-                  name ={ en ="bnot", pt ="bnot" },
-                  link ="bit_ref.html#bnot"
+                  name ={ en = "bnot", pt = "bnot" },
+                  link = "refman.html#bit_bnot"
                 },
                 {
-                  name ={ en ="band", pt ="band" },
-                  link ="bit_ref.html#band"
+                  name ={ en = "band", pt = "band" },
+                  link = "refman.html#bit_band"
                 },
                 {
-                  name ={ en ="bor", pt ="bor" },
-                  link ="bit_ref.html#bor"
+                  name ={ en = "bor", pt = "bor" },
+                  link = "refman.html#bit_bor"
                 },
                 {
-                  name ={ en ="bxor", pt ="bxor" },
-                  link ="bit_ref.html#bxor"
+                  name ={ en = "bxor", pt = "bxor" },
+                  link = "refman.html#bit_bxor"
                 },
                 {
-                  name ={ en ="lshift", pt ="lshift" },
-                  link ="bit_ref.html#lshift"
+                  name ={ en = "lshift", pt = "lshift" },
+                  link = "refman.html#bit_lshift"
                 },
                 {
-                  name ={ en ="rshift", pt ="rshift" },
-                  link ="bit_ref.html#rshift"
+                  name ={ en = "rshift", pt = "rshift" },
+                  link = "refman.html#bit_rshift"
                 },
                 {
-                  name ={ en ="bit", pt ="bit" },
-                  link ="bit_ref.html#bit"
+                  name ={ en = "bit", pt = "bit" },
+                  link = "refman.html#bit_bit"
                 },
                 {
-                  name ={ en ="set", pt ="set" },
-                  link ="bit_ref.html#set"
+                  name ={ en = "set", pt = "set" },
+                  link = "refman.html#bit_set"
                 },
                 {
-                  name ={ en ="clear", pt ="clear" },
-                  link ="bit_ref.html#clear"
+                  name ={ en = "clear", pt = "clear" },
+                  link = "refman.html#bit_clear"
                 },
                 {
-                  name ={ en ="isset", pt ="isset" },
-                  link ="bit_ref.html#isset"
+                  name ={ en = "isset", pt = "isset" },
+                  link = "refman.html#bit_isset"
                 },
                 {
-                  name ={ en ="isclear", pt ="isclear" },
-                  link ="bit_ref.html#isclear"
+                  name ={ en = "isclear", pt = "isclear" },
+                  link = "refman.html#bit_isclear"
                 },
               },
             },  
             {
               name = { en = "cpu", pt = "cpu" },
-              link = "cpu_ref.html",
+              link = "refman.html#cpumodule",
               folder =
               {
                 {
-                  name ={ en ="write32", pt ="write32" },
-                  link ="cpu_ref.html#write32"
+                  name ={ en = "write32", pt = "write32" },
+                  link = "refman.html#cpu_write32"
                 },
                 {
-                  name ={ en ="write16", pt ="write16" },
-                  link ="cpu_ref.html#write16"
+                  name ={ en = "write16", pt = "write16" },
+                  link = "refman.html#cpu_write16"
                 },
                 {
-                  name ={ en ="write8", pt ="write8" },
-                  link ="cpu_ref.html#write8"
+                  name ={ en = "write8", pt = "write8" },
+                  link = "refman.html#cpu_write8"
                 },
                 {
-                  name ={ en ="reat32", pt ="read32" },
-                  link ="cpu_ref.html#read32"
+                  name ={ en = "reat32", pt = "read32" },
+                  link = "refman.html#cpu_read32"
                 },
                 {
-                  name ={ en ="read16", pt ="read16" },
-                  link ="cpu_ref.html#read16"
+                  name ={ en = "read16", pt = "read16" },
+                  link = "refman.html#cpu_read16"
                 },
                 {
-                  name ={ en ="read8", pt ="read8" },
-                  link ="cpu_ref.html#read8"
+                  name ={ en = "read8", pt = "read8" },
+                  link = "refman.html#cpu_read8"
                 },
                 {
-                  name ={ en ="disableinterrupts", pt ="disableinterrupts" },
-                  link ="cpu_ref.html#disableinterrupts"
+                  name ={ en = "disableinterrupts", pt = "disableinterrupts" },
+                  link = "refman.html#cpu_disableinterrupts"
                 },
                 {
-                  name ={ en ="enableinterrupts", pt ="enableinterrupts" },
-                  link ="cpu_ref.html#enableinterrupts"
+                  name ={ en = "enableinterrupts", pt = "enableinterrupts" },
+                  link = "refman.html#cpu_enableinterrupts"
                 },
                 {
-                  name ={ en ="clockfrequency", pt ="clockfrequency" },
-                  link ="cpu_ref.html#clockfrequency"
+                  name ={ en = "clockfrequency", pt = "clockfrequency" },
+                  link = "refman.html#cpu_clockfrequency"
                 },
               },
             },
             {
-              name = { en ="gpio", pt = "gpio" },
-              link = "gpio_ref.html",
+              name = { en = "gpio", pt = "gpio" },
+              link = "refman.html#gpiomodule",
               folder =
               {
                 {
-                  name ={ en ="configpin", pt ="configpin" },
-                  link ="gpio_ref.html#configpin"
+                  name ={ en = "configpin", pt = "configpin" },
+                  link = "refman.html#gpio_configpin"
                 },
                 {
-                  name ={ en ="setpinvalue", pt ="setpinvalue" },
-                  link ="gpio_ref.html#setpinvalue"
+                  name ={ en = "setpinvalue", pt = "setpinvalue" },
+                  link = "refman.html#gpio_setpinvalue"
                 },
                 {
-                  name ={ en ="getpinvalue", pt ="getpinvalue" },
-                  link ="gpio_ref.html#getpinvalue"
+                  name ={ en = "getpinvalue", pt = "getpinvalue" },
+                  link = "refman.html#gpio_getpinvalue"
                 },
                 {
-                  name ={ en ="setpinhigh", pt ="setpinhigh" },
-                  link ="gpio_ref.html#setpinhigh"
+                  name ={ en = "setpinhigh", pt = "setpinhigh" },
+                  link = "refman.html#gpio_setpinhigh"
                 },
                 {
-                  name ={ en ="setpinlow", pt ="setpinlow" },
-                  link ="gpio_ref.html#setpinlow"
+                  name ={ en = "setpinlow", pt = "setpinlow" },
+                  link = "refman.html#gpio_setpinlow"
                 },
               },
             },  
             {
               name = {en = "net", pt = "net" },
-              link = "net_ref.html",
+              link = "refman.html#netmodule",
               folder =
               {
                 {
-                  name ={ en ="to be added ...", pt ="setup" },
-                  link ="net_ref.html#setup"
+                  name ={ en = "to be added ...", pt = "setup" },
+                  link = "net_ref.html#net_setup"
                 },
               },
             },  
             {
               name = { en = "pwm", pt = "pwm" },
-              link = "pwm_ref.html",
+              link = "refman.html#pwmmodule",
               folder =
               {
                 {
-                  name ={ en ="setup", pt ="setup" },
-                  link ="pwm_ref.html#setup"
+                  name ={ en = "setup", pt = "setup" },
+                  link = "refman.html#pwm_setup"
                 },
                 {
-                  name ={ en ="setcycle", pt ="setcycle" },
-                  link ="pwm_ref.html#setcycle"
+                  name ={ en = "setcycle", pt = "setcycle" },
+                  link = "refman.html#pwm_setcycle"
                 },
                 {
-                  name ={ en ="start", pt ="start" },
-                  link ="pwm_ref.html#start"
+                  name ={ en = "start", pt = "start" },
+                  link = "refman.html#pwm_start"
                 },
                 {
-                  name ={ en ="stop", pt ="stop" },
-                  link ="pwm_ref.html#stop"
+                  name ={ en = "stop", pt = "stop" },
+                  link = "refman.html#pwm_stop"
                 },
                 {
-                  name ={ en ="setclock", pt ="setclock" },
-                  link ="pwm_ref.html#setclock"
+                  name ={ en = "setclock", pt = "setclock" },
+                  link = "refman.html#pwm_setclock"
                 },
                 {
-                  name ={ en ="getclock", pt ="getclock" },
-                  link ="pwm_ref.html#getclock[A"
+                  name ={ en = "getclock", pt = "getclock" },
+                  link = "refman.html#pwm_getclock"
                 },
               },
             },
             {
               name = { en = "spi", pt = "spi" },
-              link = "spi_ref.html",
+              link = "refman.html#spimodules",
               folder =
               {
                 {
-                  name ={ en ="setup", pt ="setup" },
-                  link ="spi_ref.html#setup"
+                  name ={ en = "setup", pt = "setup" },
+                  link = "refman.html#spi_setup"
                 },
                 {
-                  name ={ en ="select", pt ="select" },
-                  link ="spi_ref.html#select"
+                  name ={ en = "select", pt = "select" },
+                  link = "refman.html#spi_select"
                 },
                 {
-                  name ={ en ="unselect", pt ="unselect" },
-                  link ="spi_ref.html#unselect"
+                  name ={ en = "unselect", pt = "unselect" },
+                  link = "refman.html#spi_unselect"
                 },
                 {
-                  name ={ en ="send", pt ="send" },
-                  link ="spi_ref.html#send"
+                  name ={ en = "send", pt = "send" },
+                  link = "refman.html#spi_send"
                 },
                 {
-                  name ={ en ="sendrecv", pt ="sendrecv" },
-                  link ="spi_ref.html#sendrecv"
+                  name ={ en = "sendrecv", pt = "sendrecv" },
+                  link = "refman.html#spi_sendrecv"
                 },
               },
             },
             {
               name = { en = "sys", pt = "sys" },
-              link = "sys_ref.html",
+              link = "refman.html#sysmodule",
               folder =
               {
                 {
-                  name ={ en ="platform", pt ="platform" },
-                  link ="sys_ref.html#platforms"
+                  name ={ en = "platform", pt = "platform" },
+                  link = "refman.html#sys_platforms"
                 },
                 {
-                  name ={ en ="mcu", pt ="mcu" },
-                  link ="sys_ref.html#mcu"
+                  name ={ en = "mcu", pt = "mcu" },
+                  link = "refman.html#sys_mcu"
                 },
                 {
-                  name ={ en ="cpu", pt ="cpu" },
-                  link ="sys_ref.html#cpu"
+                  name ={ en = "cpu", pt = "cpu" },
+                  link = "refman.html#sys_cpu"
                 },
                 {
-                  name ={ en ="board", pt ="board" },
-                  link ="sys_ref.html#board"
+                  name ={ en = "board", pt = "board" },
+                  link = "refman.html#sys_board"
                 },
               },
             },
             {
               name = {en = "term", pt = "term" },
-              link = "term_ref.html",
+              link = "refman.html#termmodule",
               folder =
               {
                 {
-                  name ={ en ="clear", pt ="clear" },
-                  link ="term_ref.html#clear"
+                  name ={ en = "clear", pt = "clear" },
+                  link = "refman.html#term_clear"
                 },
                 {
-                  name ={ en ="cleareol", pt ="cleareol" },
-                  link ="term_ref.html#cleareol"
+                  name ={ en = "cleareol", pt = "cleareol" },
+                  link = "refman.html#term_cleareol"
                 },
                 {
-                  name ={ en ="moveto", pt ="moveto" },
-                  link ="term_ref.html#moveto"
+                  name ={ en = "moveto", pt = "moveto" },
+                  link = "refman.html#term_moveto"
                 },
                 {
-                  name ={ en ="moveup", pt ="moveup" },
-                  link ="term_ref.html#moveup"
+                  name ={ en = "moveup", pt = "moveup" },
+                  link = "refman.html#term_moveup"
                 },
                 {
-                  name ={ en ="movedown", pt ="movedown" },
-                  link ="term_ref.html#movedown"
+                  name ={ en = "movedown", pt = "movedown" },
+                  link = "refman.html#term_movedown"
                 },
                 {
-                  name ={ en ="moveleft", pt ="moveleft" },
-                  link ="term_ref.html#moveleft"
+                  name ={ en = "moveleft", pt = "moveleft" },
+                  link = "refman.html#term_moveleft"
                 },
                 {
-                  name ={ en ="moveright", pt ="moveright" },
-                  link ="term_ref.html#moveright"
+                  name ={ en = "moveright", pt = "moveright" },
+                  link = "refman.html#term_moveright"
                 },
                 {
-                  name ={ en ="getlinecount", pt ="getlinecount" },
-                  link ="term_ref.html#getlinecount"
+                  name ={ en = "getlinecount", pt = "getlinecount" },
+                  link = "refman.html#term_getlinecount"
                 },
                 {
-                  name ={ en ="getcolcount", pt ="getcolcount" },
-                  link ="term_ref.html#getcolcount"
+                  name ={ en = "getcolcount", pt = "getcolcount" },
+                  link = "refman.html#term_getcolcount"
                 },
                 {
-                  name ={ en ="printstr", pt ="printstr" },
-                  link ="term_ref.html#printstr"
+                  name ={ en = "printstr", pt = "printstr" },
+                  link = "refman.html#term_printstr"
                 },
                 {
-                  name ={ en ="getx", pt ="getx" },
-                  link ="term_ref.html#getx"
+                  name ={ en = "getx", pt = "getx" },
+                  link = "refman.html#term_getx"
                 },
                 {
-                  name ={ en ="gety", pt ="gety" },
-                  link ="term_ref.html#gety"
+                  name ={ en = "gety", pt = "gety" },
+                  link = "refman.html#term_gety"
                 },
                 {
-                  name ={ en ="inputchar", pt ="inputchar" },
-                  link ="term_ref.html#inputchar"
+                  name ={ en = "inputchar", pt = "inputchar" },
+                  link = "refman.html#term_inputchar"
                 },
               },
             },  
             {
               name = { en = "tmr", pt = "tmr" },
-              link = "tmr_ref.html",
+              link = "refman.html#tmrmodule",
               folder =
               {
                 {
-                  name ={ en ="delay", pt ="delay" },
-                  link ="tmr_ref.html#delay"
+                  name ={ en = "delay", pt = "delay" },
+                  link = "refman.html#tmr_delay"
                 },
                 {
-                  name ={ en ="read", pt ="read" },
-                  link ="tmr_ref.html#read"
+                  name ={ en = "read", pt = "read" },
+                  link = "refman.html#tmr_read"
                 },
                 {
-                  name ={ en ="start", pt ="start" },
-                  link ="tmr_ref.html#start"
+                  name ={ en = "start", pt = "start" },
+                  link = "refman.html#tmr_start"
                 },
                 {
-                  name ={ en ="diff", pt ="diff" },
-                  link ="tmr_ref.html#diff"
+                  name ={ en = "diff", pt = "diff" },
+                  link = "refman.html#tmr_diff"
                 },
                 {
-                  name ={ en ="mindelay", pt ="mindelay" },
-                  link ="tmr_ref.html#mindelay"
+                  name ={ en = "mindelay", pt = "mindelay" },
+                  link = "refman.html#tmr_mindelay"
                 },
                 {
-                  name ={ en ="maxdelay", pt ="maxdelay" },
-                  link ="tmr_ref.html#maxdelay"
+                  name ={ en = "maxdelay", pt = "maxdelay" },
+                  link = "refman.html#tmr_maxdelay"
                 },
                 {
-                  name ={ en ="setclock", pt ="setclock" },
-                  link ="tmr_ref.html#setclock"
+                  name ={ en = "setclock", pt = "setclock" },
+                  link = "refman.html#tmr_setclock"
                 },
               },
             },
             {
               name = {en = "uart", pt = "uart" },
-              link = "uart_ref.html",
+              link = "refman.html#uartmodule",
               folder =
               {
                 {
-                  name ={ en ="setup", pt ="setup" },
-                  link ="uart_ref.html#setup"
+                  name ={ en = "setup", pt = "setup" },
+                  link = "refman.html#uart_setup"
                 },
                 {
-                  name ={ en ="send", pt ="send" },
-                  link ="uart_ref.html#send"
+                  name ={ en = "send", pt = "send" },
+                  link = "refman.html#uart_send"
                 },
                 {
-                  name ={ en ="recv", pt ="recv" },
-                  link ="uart_ref.html#recv"
+                  name ={ en = "recv", pt = "recv" },
+                  link = "refman.html#uart_recv"
                 },
               },
             },  
@@ -515,37 +556,37 @@ wb_usr.tree =
           link = "platdependentmodules.html",
           folder =
           {
-            {  name = { en ="disp", pt = "disp" },
-               link = "disp_ref.html",
+            {  name = { en = "disp", pt = "disp" },
+               link = "refman.html#dispmodule",
                folder =
                {
                  {
-                   name ={ en ="init", pt ="init" },
-                   link ="disp_ref.html#init"
+                   name ={ en = "init", pt = "init" },
+                   link = "refman.html#disp_init"
                  },
                  {
                    name = { en = "enable", pt = "enable" },
-                   link = "disp_ref.html#enable"
+                   link = "refman.html#disp_enable"
                  },
                  {
                    name = { en = "disable", pt = "disable" },
-                   link = "disp_ref.html#disable"
+                   link = "refman.html#disp_disable"
                  },
                  {
                    name = { en = "on", pt = "on" },
-                   link = "disp_ref.html#on"
+                   link = "refman.html#disp_on"
                  },
                  {
                    name = { en = "off", pt = "off" },
-                   link = "disp_ref.html#off"
+                   link = "refman.html#disp_off"
                  },
                  {
                    name = { en = "print", pt = "print" },
-                   link = "disp_ref.html#print"
+                   link = "refman.html#disp_print"
                  },
                  {
                    name = { en = "draw", pt = "draw" },
-                   link = "disp_ref.html#draw"
+                   link = "refman.html#disp_draw"
                  },
               },   
             },
@@ -555,12 +596,12 @@ wb_usr.tree =
     },
     {
       name = { en = "Downloads", pt = "Downloads" },
-      link = "binaries.html",
+      link = "downloads.html",
       folder =
       {
         {
           name = { en = "Binaries", pt = "Binaries" },
-          link = "binaries.html",
+          link = "dl_binaries.html",
           folder =
           { 
             {
@@ -612,12 +653,12 @@ wb_usr.tree =
                   link = "sources.html#04"
                 },
               },
-              { 
-                name = { en = "Developers", pt = "Desenvolvedores" },
-                link = "developers.html"
-              },
             },
           },
+        },
+        { 
+          name = { en = "Developers", pt = "Desenvolvedores" },
+          link = "developers.html"
         },
       },
     },
