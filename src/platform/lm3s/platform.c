@@ -606,10 +606,11 @@ int platform_adc_sample( unsigned id )
   // If switching from burst, resize & flush buffer
   if ( s->burst == 1 )
   {
-    buf_flush( BUF_ID_ADC, id );
     res = buf_set( BUF_ID_ADC, id, ADC_BUF_SIZE , BUF_DSIZE_U16 );
     if ( res != PLATFORM_OK )
       return res;
+    // Need more general buf resizing... for now flush each time
+    buf_flush( BUF_ID_ADC, id );
     s->burst = 0;
     s->reqsamples = 0;
   }
