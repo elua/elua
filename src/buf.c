@@ -52,20 +52,15 @@ static const buf_desc* buf_desc_array[ BUF_ID_TOTAL ] =
 // resid - resource ID (BUF_ID_UART ...)
 // resnum - resource number (0, 1, 2...)
 // bufsize - new size of the buffer (one of the BUF_SIZE_xxx constants from
-// dsize - number of bytes held by each element (must be a power of 2)
 //   buf.h, or BUF_SIZE_NONE to disable buffering
+// logdsize - log2(bytes) size of elements (from BUF_DSIZE_xxx constants)
 // Returns 1 on success, 0 on failure
-int buf_set( unsigned resid, unsigned resnum, u8 logsize, size_t dsize )
+int buf_set( unsigned resid, unsigned resnum, u8 logsize, u8 logdsize )
 {
   BUF_GETPTR( resid, resnum );
-  u8 prevlogsize = pbuf->logsize;
   
-  // Make sure dsize is a power of 2
-  if ( dsize & ( dsize - 1 ) )
-    return PLATFORM_ERR;
-   
-  pbuf->logdsize = intlog2( dsize );
-  pbuf->logsize = logsize + ( pbuf->logdsize );
+  pbuf->logdsize = logdsize;
+  pbuf->logsize = logsize + logdsize;
   
   if( ( pbuf->buf = ( t_buf_data* )realloc( pbuf->buf, BUF_BYTESIZE( pbuf ) ) ) == NULL )
   {
@@ -90,7 +85,6 @@ void buf_flush( unsigned resid, unsigned resnum )
 // resid - resource ID (BUF_ID_UART ...)
 // resnum - resource number (0, 1, 2...)
 // data - pointer for where data will come from
-// dsize - length of data to get
 // Returns PLATFORM_OK on success, PLATFORM_ERR on failure
 // [TODO] maybe add a buffer overflow flag
 int buf_write( unsigned resid, unsigned resnum, t_buf_data *data )

@@ -28,7 +28,8 @@ u16 adc_get_processed_sample( unsigned id );
 void adc_init_state( unsigned id );
 int adc_update_smoothing( unsigned id, u8 loglen );
 void adc_flush_smoothing( unsigned id );
-u8 adc_samples_requested( unsigned id );
-u8 adc_samples_ready( unsigned id );
+u16 adc_samples_requested( unsigned id );
+u16 adc_samples_available( unsigned id );
+void adc_wait_pending( unsigned id );
 
 #endif

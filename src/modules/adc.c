@@ -15,15 +15,15 @@
 static int adc_sample( lua_State* L )
 {
   unsigned id;
+  int res;
   
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( adc, id );
-  platform_adc_sample( id );
-  if ( adc_samples_ready( id ) >= 1 )
-  {
-    lua_pushinteger( L, adc_get_processed_sample( id ) );
-    return 1;
-  }
+  res = platform_adc_sample( id );
+  
+  if ( res != PLATFORM_OK )
+    return luaL_error( L, "burst failed" );
+  
   return 0;
 }
 
@@ -40,21 +40,14 @@ static int adc_maxval( lua_State* L )
   return 1;
 }
 
-// Lua: isdone( id )
-static int adc_data_ready( lua_State* L )
+// Lua: samplesready( id )
+static int adc_samples_ready( lua_State* L )
 {
   unsigned id;
-  u8 asamp, rsamp;
-  
+    
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( adc, id );
-  asamp = adc_samples_ready( id );
-  rsamp = adc_samples_requested( id );
-  if ( rsamp > 0  && asamp >= rsamp )
-    lua_pushinteger( L, 1 );
-  else
-    lua_pushinteger( L, 0 );
-
+  lua_pushinteger( L, adc_samples_available( id ) );
   return 1;
 }
 
@@ -122,7 +115,7 @@ static int adc_flush( lua_State* L )
 // Lua: burst( id, count, timer_id, frequency )
 static int adc_burst( lua_State* L )
 {
-  unsigned id, timer_id, i, count;
+  unsigned id, timer_id, count;
   u32 frequency;
   int res;
   
@@ -132,51 +125,58 @@ static int adc_burst( lua_State* L )
   timer_id = luaL_checkinteger( L, 3 );
   MOD_CHECK_ID( timer, timer_id );
   frequency = luaL_checkinteger( L, 4 );
+  
+  if  ( ( count == 0 ) || count & ( count - 1 ) )
+    return luaL_error( L, "count must be power of 2 and > 0" );
+  
+  res = platform_adc_burst( id, intlog2( count ), timer_id, frequency );
+  if ( res != PLATFORM_OK )
+    return luaL_error( L, "burst failed" );
+    
+  return 0;
+}
 
-  if ( count == 0 )
-    return 0;
+
+// Lua: getsamples( id, count )
+static int adc_get_samples( lua_State* L )
+{
+  unsigned id, i, count;
+  int total = lua_gettop( L );
+  u16 nsamps;
   
-  if ( count & ( count - 1 ) )
-    return luaL_error( L, "count must be power of 2" );
+  id = luaL_checkinteger( L, 1 );
+  MOD_CHECK_ID( adc, id );
+  nsamps = adc_samples_available( id );
   
-  // If we already have enough data, return it and start next burst
-  if( adc_samples_ready( id ) >= count )
+  if ( total == 2 )
+    count = luaL_checkinteger( L, 2 );
+  else
+    count = nsamps;
+    
+  if ( count == 0 ) { count = nsamps; } // count = 0 means grab all samples
+  
+  adc_wait_pending( id );
+  
+  if ( nsamps > 0 && nsamps >= count )
   {
-    // Push data back to Lua
-    lua_createtable( L, count, 0 );
-    for( i = 0; i < count; i ++ )
+    if ( nsamps == 1 || count == 1 )
     {
       lua_pushinteger( L, adc_get_processed_sample( id ) );
-      lua_rawseti( L, -2, i+1 );
     }
-    
-    res = platform_adc_burst( id, intlog2( count ), timer_id, frequency );
-    if ( res != PLATFORM_OK )
-      return luaL_error( L, "burst failed" );
-    
-    
-    return 1;
-  }
-  else // If no data is available, kick off burst, return data if we have some afterwards
-  {
-    res = platform_adc_burst( id, intlog2( count ), timer_id, frequency );
-    if ( res != PLATFORM_OK )
-      return luaL_error( L, "burst failed" );
-      
-    if( adc_samples_ready( id ) >= count )
+    else
     {
-      // Push data back to Lua
       lua_createtable( L, count, 0 );
       for( i = 0; i < count; i ++ )
       {
         lua_pushinteger( L, adc_get_processed_sample( id ) );
         lua_rawseti( L, -2, i+1 );
       }
-      return 1;
     }
+    return 1;
   }
   return 0;
 }
+
 
 // Module function map
 #define MIN_OPT_LEVEL 2
@@ -185,12 +185,13 @@ const LUA_REG_TYPE adc_map[] =
 {
   { LSTRKEY( "sample" ), LFUNCVAL( adc_sample ) },
   { LSTRKEY( "maxval" ), LFUNCVAL( adc_maxval ) },
-  { LSTRKEY( "dataready" ), LFUNCVAL( adc_data_ready ) },
+  { LSTRKEY( "samplesready" ), LFUNCVAL( adc_samples_ready ) },
   { LSTRKEY( "setmode" ), LFUNCVAL( adc_set_mode ) },
   { LSTRKEY( "setsmoothing" ), LFUNCVAL( adc_set_smoothing ) },
   { LSTRKEY( "getsmoothing" ), LFUNCVAL( adc_get_smoothing ) },
   { LSTRKEY( "burst" ), LFUNCVAL( adc_burst ) },
   { LSTRKEY( "flush" ), LFUNCVAL( adc_flush ) },
+  { LSTRKEY( "getsamples" ), LFUNCVAL( adc_get_samples ) },
   { LNILKEY, LNILVAL }
 };
 
