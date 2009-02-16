@@ -5,8 +5,8 @@ disp.clear()
 
 adc.setsmoothing(1,4)
 adc.setsmoothing(1,16)
-adc.setsmoothing(2,64)
-adc.setsmoothing(3,128)
+adc.setsmoothing(2,32)
+adc.setsmoothing(3,64)
 
 adcvals = {}
 ctr = 0
@@ -28,9 +28,9 @@ while ( true ) do
     disp.stringdraw( outstring, 10, 10, 11 )
     outstring = string.format("ADC1  (16): %04d",adcvals[1])
     disp.stringdraw( outstring, 10, 20, 11 )
-    outstring = string.format("ADC2  (64): %04d",adcvals[2])
+    outstring = string.format("ADC2  (32): %04d",adcvals[2])
     disp.stringdraw( outstring, 10, 30, 11 )
-    outstring = string.format("ADC3 (128): %04d",adcvals[3])
+    outstring = string.format("ADC3  (64): %04d",adcvals[3])
     disp.stringdraw( outstring, 10, 40, 11 )
     outstring = string.format("Tcyc: %06d (us)",dtime)
     disp.stringdraw( outstring, 10, 50, 11 )

@@ -20,6 +20,7 @@
 #define BUILD_DHCPC
 #define BUILD_DNS
 #define BUILD_CON_GENERIC
+#define BUILD_ADC
 //#define BUILD_CON_TCP
 
 // *****************************************************************************
@@ -104,6 +105,8 @@ LUALIB_API int ( luaopen_disp )( lua_State* L );
 
 // ADC Bit Depth for Built-in ADCs
 #define ADC_BIT_RESOLUTION    10
+#define BUF_ENABLE_ADC
+#define ADC_BUF_SIZE          BUF_SIZE_2
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 #define CPU_FREQUENCY         SysCtlClockGet()

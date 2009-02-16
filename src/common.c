@@ -7,6 +7,9 @@
 #include "common.h"
 #include "buf.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include "math.h"
+#include "elua_adc.h"
 
 // *****************************************************************************
 // std functions and platform initialization
@@ -76,12 +79,12 @@ static int cmn_recv_helper( unsigned id, s32 timeout )
   {
     if( timeout == 0 )
     {
-      if ( ( buf_read( BUF_ID_UART, id, &data, sizeof( t_buf_data ) ) ) == PLATFORM_UNDERFLOW )
+      if ( ( buf_read( BUF_ID_UART, id, &data ) ) == PLATFORM_UNDERFLOW )
         return -1;
     }
     else
     {
-      while( ( buf_read( BUF_ID_UART, id, &data, sizeof( t_buf_data ) ) ) == PLATFORM_UNDERFLOW );
+      while( ( buf_read( BUF_ID_UART, id, &data ) ) == PLATFORM_UNDERFLOW );
     }
     return ( int )data;
   }
@@ -257,10 +260,47 @@ u32 platform_cpu_get_frequency()
 
 // ****************************************************************************
 // ADC functions
+
+
+
 int platform_adc_exists( unsigned id )
 {
   return id < NUM_ADC;
 }
+
+#ifdef BUILD_ADC
+
+u32 platform_adc_op( unsigned id, int op, u32 data )
+{  
+  elua_adc_state *s = adc_get_ch_state( id );
+  u32 res = 0;
+
+  switch( op )
+  {
+    case PLATFORM_ADC_GET_MAXVAL:
+      res = pow( 2, ADC_BIT_RESOLUTION ) - 1;
+      break;
+
+    case PLATFORM_ADC_GET_SMOOTHING:
+      res = (u16) 1 << s->logsmoothlen;
+      break;
+
+    case PLATFORM_ADC_SET_SMOOTHING:
+      adc_update_smoothing( id, ( u8 )data );
+      break;
+      
+    case PLATFORM_ADC_SET_NONBLOCKING:
+      s->nonblocking = data;
+      break;
+    
+    case PLATFORM_ADC_FLUSH:
+      adc_flush_smoothing( id );
+      buf_flush( BUF_ID_ADC, id );
+      break;
+  }
+  return res;
+}
+#endif
 
 // ****************************************************************************
 // Allocator support
@@ -293,4 +333,17 @@ unsigned int intlog2( unsigned int v )
     r++;
   }
   return r;
+}
+
+u32 rndpow2( u32 v )
+{
+  v--;
+  v |= v >> 1;
+  v |= v >> 2;
+  v |= v >> 4;
+  v |= v >> 8;
+  v |= v >> 16;
+  v++;
+  
+  return v;
 }

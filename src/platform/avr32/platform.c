@@ -57,7 +57,7 @@ __attribute__((__interrupt__)) static void uart_rx_handler()
   
   usart_read_char( pusart, &c );
   temp = ( t_buf_data )c;
-  buf_write( BUF_ID_UART, CON_UART_ID, &temp, sizeof ( char ) );
+  buf_write( BUF_ID_UART, CON_UART_ID, &temp );
 }
 #endif
 

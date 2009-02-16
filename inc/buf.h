@@ -31,7 +31,10 @@ typedef struct
 enum
 {
   BUF_SIZE_NONE = 0,
-  BUF_SIZE_16 = 4,
+  BUF_SIZE_2,
+  BUF_SIZE_4,
+  BUF_SIZE_8,
+  BUF_SIZE_16,
   BUF_SIZE_32,
   BUF_SIZE_64,
   BUF_SIZE_128,
@@ -46,15 +49,13 @@ enum
 };
 
 
-
-
 // Buffer API
 int buf_set(unsigned resid, unsigned resnum, u8 logsize, size_t dsize);
 int buf_is_enabled( unsigned resid, unsigned resnum );
 unsigned buf_get_size( unsigned resid, unsigned resnum );
 unsigned buf_get_count( unsigned resid, unsigned resnum );
-int buf_write( unsigned resid, unsigned resnum, t_buf_data *data, size_t dsize );
-int buf_read( unsigned resid, unsigned resnum, t_buf_data *data, size_t dsize  );
-
+int buf_write( unsigned resid, unsigned resnum, t_buf_data *data );
+int buf_read( unsigned resid, unsigned resnum, t_buf_data *data );
+void buf_flush( unsigned resid, unsigned resnum );
 
 #endif

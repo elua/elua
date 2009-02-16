@@ -178,43 +178,23 @@ u32 platform_cpu_get_frequency();
 // *****************************************************************************
 // The platform ADC functions
 
-int platform_adc_exists( unsigned id );
-u32 platform_adc_op( unsigned id, int op, u32 data );
-
 enum
 {
   PLATFORM_ADC_GET_MAXVAL,
   PLATFORM_ADC_GET_SMOOTHING,
-  PLATFORM_ADC_SET_SMOOTHING
+  PLATFORM_ADC_SET_SMOOTHING,
+  PLATFORM_ADC_SET_NONBLOCKING,
+  PLATFORM_ADC_FLUSH,
 };
 
-u16 platform_adc_sample( unsigned id );
-int platform_adc_is_done( unsigned id );
+// Functions requiring platform-specific implementation
+void platform_adc_sample( unsigned id );
+void platform_adc_burst( unsigned id, u8 count, unsigned timer_id, u32 frequency );
+void platform_adc_stop( unsigned id );
 
-enum
-{
-  PLATFORM_ADC_BLOCKING,
-  PLATFORM_ADC_NONBLOCKING
-};
-
-
-// Platform ADC state
-struct platform_adc_state
-{
-  volatile u8     op_pending: 1, // Is there a pending conversion?
-                  nonblocking: 1, // Are we in blocking or non-blocking mode? (0 - blocking, 1 - nonblocking)
-                  burst: 1, // Acquiring in burst mode
-                  data_ready: 1, // Is data ready for this channel
-                  smooth_ready: 1; // Has smoothing filter warmed up (i.e. smoothlen samples collected)
-  unsigned        id, timer_id;
-  u8              burstlen, burstidx;
-  u8              smoothlen, smoothidx;
-  unsigned long   smoothavg, smoothsum;
-  u16             sample, *burstbuf, *smoothbuf;
-};
-
-void platform_adc_set_mode( unsigned id, int mode );
-void platform_adc_burst( unsigned id, u16* buf, unsigned count, unsigned timer_id, u32 frequency );
+// ADC Common Functions
+int platform_adc_exists( unsigned id );
+u32 platform_adc_op( unsigned id, int op, u32 data );
 
 // *****************************************************************************
 // Ethernet specific functions
@@ -234,5 +214,6 @@ void* platform_get_last_free_ram( unsigned id );
 // Misc support
 
 unsigned int intlog2( unsigned int v );
+u32 rndpow2( u32 v);
 
 #endif

@@ -6,6 +6,10 @@
 #define BUF_ENABLE
 #endif
 
+#if defined( BUF_ENABLE_ADC )
+#define BUF_ENABLE
+#endif
+
 #ifdef BUF_ENABLE
 
 #include "buf.h"
@@ -33,7 +37,7 @@
 static const buf_desc* buf_desc_array[ BUF_ID_TOTAL ] = 
 {
   buf_desc_uart,
-  buf_desc_adc
+  buf_desc_adc,
 };
 
 // Helper macros
@@ -58,13 +62,14 @@ static const buf_desc* buf_desc_array[ BUF_ID_TOTAL ] =
 int buf_set( unsigned resid, unsigned resnum, u8 logsize, size_t dsize )
 {
   BUF_GETPTR( resid, resnum );
+  u8 prevlogsize = pbuf->logsize;
   
   // Make sure dsize is a power of 2
-  if ( ( dsize = 0 ) || ( dsize & ( dsize - 1 ) ) )
-    return PLATFORM_ERR; 
-  
-  pbuf->logsize = logsize;
+  if ( dsize & ( dsize - 1 ) )
+    return PLATFORM_ERR;
+   
   pbuf->logdsize = intlog2( dsize );
+  pbuf->logsize = logsize + ( pbuf->logdsize );
   
   if( ( pbuf->buf = ( t_buf_data* )realloc( pbuf->buf, BUF_BYTESIZE( pbuf ) ) ) == NULL )
   {
@@ -73,7 +78,19 @@ int buf_set( unsigned resid, unsigned resnum, u8 logsize, size_t dsize )
     if( logsize != BUF_SIZE_NONE )
       return PLATFORM_ERR;
   }
+  
+  if( prevlogsize > pbuf->logsize )
+    pbuf->rptr = pbuf->wptr = pbuf->count = 0;
+  
   return PLATFORM_OK;
+}
+
+// Marks buffer as empty
+void buf_flush( unsigned resid, unsigned resnum )
+{
+  BUF_GETPTR( resid, resnum );
+  
+  pbuf->rptr = pbuf->wptr = pbuf->count = 0;
 }
 
 // Write to buffer
@@ -83,15 +100,11 @@ int buf_set( unsigned resid, unsigned resnum, u8 logsize, size_t dsize )
 // dsize - length of data to get
 // Returns PLATFORM_OK on success, PLATFORM_ERR on failure
 // [TODO] maybe add a buffer overflow flag
-int buf_write( unsigned resid, unsigned resnum, t_buf_data *data, size_t dsize )
+int buf_write( unsigned resid, unsigned resnum, t_buf_data *data )
 {
   BUF_GETPTR( resid, resnum );
-  
-  // Make sure we only add more of same type
-  if ( dsize != BUF_REALDSIZE( pbuf ) )
-    return PLATFORM_ERR;
-  
-  memcpy( &pbuf->buf[ pbuf->wptr ], data, dsize );
+    
+  memcpy( &pbuf->buf[ pbuf->wptr ], data, BUF_REALDSIZE( pbuf ) );
   
   BUF_MOD_INCR( pbuf, wptr );
   
@@ -136,19 +149,15 @@ unsigned buf_get_count( unsigned resid, unsigned resnum )
 // dsize - length of data to get
 // Returns PLATFORM_OK on success, PLATFORM_ERR on failure, 
 //   PLATFORM_UNDERFLOW on buffer empty
-int buf_read( unsigned resid, unsigned resnum, t_buf_data *data, size_t dsize  )
+int buf_read( unsigned resid, unsigned resnum, t_buf_data *data )
 {
   BUF_GETPTR( resid, resnum );
-
-  // Make sure buffer contains right type
-  if ( dsize != BUF_REALDSIZE( pbuf ) )
-    return PLATFORM_ERR;
   
   if( READ16( pbuf->count ) == 0 )
     return PLATFORM_UNDERFLOW;
-    
-  memcpy( data, &pbuf->buf[ pbuf->rptr ], dsize );
-  
+
+  memcpy( data, &pbuf->buf[ pbuf->rptr ], BUF_REALDSIZE( pbuf ) );
+
   platform_cpu_disable_interrupts();
   pbuf->count --;
   BUF_MOD_INCR( pbuf, rptr );

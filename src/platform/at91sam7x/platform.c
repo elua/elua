@@ -50,7 +50,7 @@ static void uart_rx_handler()
 {
   c = pbase->US_CSR;
   c = pbase->US_RHR;
-  buf_write( BUF_ID_UART, CON_UART_ID, ( t_buf_data* )&c, sizeof ( char ) );
+  buf_write( BUF_ID_UART, CON_UART_ID, ( t_buf_data* )&c );
   asm( "pop {r0}":: );  
   asm( "bx  r0":: );  
 }

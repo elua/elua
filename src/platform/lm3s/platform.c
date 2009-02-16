@@ -9,9 +9,9 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include "uip_arp.h"
 #include "elua_uip.h"
+#include "elua_adc.h"
 #include "uip-conf.h"
 #include "platform_conf.h"
 #include "common.h"
@@ -254,7 +254,7 @@ void UARTIntHandler()
   while( UARTCharsAvail( uart_base[ CON_UART_ID ] ) )
   {
     c = UARTCharGetNonBlocking( uart_base[ CON_UART_ID ] );
-    buf_write( BUF_ID_UART, CON_UART_ID, ( t_buf_data* )&c, sizeof ( t_buf_data ) );
+    buf_write( BUF_ID_UART, CON_UART_ID, ( t_buf_data* )&c );
   }
 }
 #endif
@@ -509,125 +509,22 @@ void platform_cpu_disable_interrupts()
 
 // *****************************************************************************
 // ADC specific functions and variables
-// NOTES: HWREGBITW should be replaced with some similar function that will work for other platforms
 
 
 const static u32 adc_ctls[] = { ADC_CTL_CH0, ADC_CTL_CH1, ADC_CTL_CH2, ADC_CTL_CH3 };
 const static u32 adc_ints[] = { INT_ADC0, INT_ADC1, INT_ADC2, INT_ADC3 };
 
-struct platform_adc_state adc_state[ NUM_ADC ];
-
-void platform_adc_stop_burst( struct platform_adc_state *s )
+void platform_adc_stop( unsigned id )
 {
+  elua_adc_state *s = adc_get_ch_state( id );
+  
   ADCSequenceDisable( ADC_BASE, s->id );
-  TimerControlTrigger( timer_base[s->timer_id], TIMER_A, false );
-}
-
-// Initialize Configuration and Buffers
-void adc_init_state( struct platform_adc_state *s, unsigned id )
-{
-  // Initialize Configuration
+  
   s->op_pending = 0;
-  s->nonblocking = 0;
-  s->burst = 0;
-  s->data_ready = 0;
-  s->smooth_ready = 0;
   
-  s->id = id;
-  s->timer_id = 0;
-  s->burstlen = 1;
-  s->burstidx = 0;
-  s->smoothlen = 1;
-  s->smoothidx = 0;
-  s->sample = 0;
-  
-  // Data Configuration
-  s->smoothavg = 0;
-  s->smoothsum = 0;
-  
-  // Buffer initialization
-  s->smoothbuf = malloc( s->smoothlen * sizeof( u16 ) );
-}
-
-int adc_update_smoothing(struct platform_adc_state *s, u8 len)
-{
-  u8 i;
-  
-  if( len !=  s->smoothlen )
+  if ( s->burst )
   {
-    s->smoothlen = len; 
-    
-    // Free old buffer space
-    if ( s->smoothbuf != NULL )
-      free( s->smoothbuf );
-    
-    // Reset sum, avg, index location
-    s->smoothidx = 0;
-    s->smoothavg = 0;
-    s->smoothsum = 0;
-    s->smooth_ready = 0;
-
-    // Allocate and zero new smoothing buffer
-    if( ( s->smoothbuf = malloc( s->smoothlen * sizeof( u16 ) ) ) == NULL )
-    {
-      return 1;
-    }
-    
-    for( i = 0; i < s->smoothlen; i ++ )
-      s->smoothbuf[ i ] = 0;
-  }
-  return 0;
-}
-
-void adc_process_data( struct platform_adc_state *s, u16 samplevalue )
-{
-  // Take just acquired sample and do smoothing / burst buffering
-  if ( s->smoothlen > 1 )
-  {
-    if( s->smoothidx ==  s->smoothlen )
-    {
-      s->smoothidx = 0;
-      s->smooth_ready = 1;
-    }
-  
-    // Subtract Oldest Value from Sum
-    s->smoothsum -= s->smoothbuf[ s->smoothidx ];
-  
-    // Replace Oldest Value in Buffer
-    s->smoothbuf[ s->smoothidx ] = ( u16 ) samplevalue;
-  
-    // Add New Sample to Sum
-    s->smoothsum += s->smoothbuf[ s->smoothidx ];
-  
-    s->smoothidx++;
-  
-    // Calculate Average
-    if ( ( s->smoothlen != 0 ) && !( s->smoothlen & ( s->smoothlen - 1 ) ) )
-      s->smoothavg = s->smoothsum >> intlog2( s->smoothlen );
-    else
-      s->smoothavg = s->smoothsum / s->smoothlen;
-    
-    s->sample = ( u16 ) s->smoothavg;
-  }
-  else
-    s->sample = samplevalue;
-    
-  // Increment buffer position, unless we're waiting on the smoothing filter to warm up
-  if ( ( ( s->smooth_ready == 1 &&  s->smoothlen > 1 ) || s->smoothlen == 1 ) && ( s->burst == 1 )  )
-         s->burstbuf[ s->burstidx++ ] = s->sample;
-
-  // If we have enough samples, clean up / finish
-  if ( s->burstidx ==  s->burstlen  || s->burst == 0 )
-  {
-    s->data_ready = 1;
-    s->op_pending = 0;
-    
-    if ( s->burst == 1 )
-    {
-      // Disable Burst Mode
-      platform_adc_stop_burst( s );
-      s->burst = 0;
-    }
+    TimerControlTrigger( timer_base[s->timer_id], TIMER_A, false );
   }
 }
 
@@ -637,19 +534,35 @@ void ADCIntHandler( void )
   unsigned long rawSample;
   unsigned id;
   
+  platform_cpu_disable_interrupts();
+  
   // Check each sequence for a pending sample
   for( id = 0; id < NUM_ADC; id ++ )
   {
     if( ADCIntStatus(ADC_BASE, id, false) )
-    {      
+    { 
+      elua_adc_state *s = adc_get_ch_state( id );
+      
       // Clear Interrupt & Get Sample
       ADCIntClear(ADC_BASE, id);
       ADCSequenceDataGet(ADC_BASE, id, &rawSample);
       
-      // Process Received Sample
-      adc_process_data(&adc_state[ id ], (u16) rawSample);
+      buf_write( BUF_ID_ADC, id, ( t_buf_data* )&rawSample);
+      
+      // Fill in smoothing buffer until warmed up
+      if ( s->logsmoothlen > 0 && s->smooth_ready == 0)
+        adc_smooth_data( id );
+      
+      // If we have the number of requested samples, stop sampling
+      if ( buf_get_count( BUF_ID_ADC, id ) >= s->reqsamples )
+      {
+        platform_adc_stop( id );
+      } 
+      else if ( s->burst == 0 )
+        ADCProcessorTrigger( ADC_BASE, id );
     }
   }
+  platform_cpu_enable_interrupts();
 }
 
 static void adcs_init()
@@ -661,7 +574,7 @@ static void adcs_init()
 	for( id = 0; id < NUM_ADC; id ++ )
 	{
     // Init ADC State Struct
-    adc_init_state( &adc_state[ id ], id );
+    adc_init_state( id );
 	  
   	// Make sure sequencer is disabled before making changes
     ADCSequenceDisable( ADC_BASE, id );
@@ -680,124 +593,63 @@ static void adcs_init()
 	}
 }
 
-u32 platform_adc_op( unsigned id, int op, u32 data )  // Move to common?
-{
-  // Do we really need 32-bit in and out?
-  u32 res = 0;
-
-  switch( op )
-  {
-    case PLATFORM_ADC_GET_MAXVAL:
-      res = pow( 2,ADC_BIT_RESOLUTION ) - 1;
-      break;
-
-    case PLATFORM_ADC_GET_SMOOTHING:
-      res = adc_state[ id ].smoothlen;
-      break;
-
-    case PLATFORM_ADC_SET_SMOOTHING:
-      // If buffer length changes, alloc new buffer, and reset position
-      adc_update_smoothing( &adc_state[ id ], ( u8 )data );
-      break;
-  }
-  return res;
-}
-
 // Get a single sample from the specified ADC channel
-u16 platform_adc_sample( unsigned id ) 
+void platform_adc_sample( unsigned id ) 
 {   
-  // If no sample is pending or if were configured for burst, set to single-shot
-  if ( adc_state[ id ].op_pending == 0 || adc_state[ id ].burst == 1)
-  {
-    // Make sure sequencer is disabled before making changes
-    ADCSequenceDisable( ADC_BASE, id );
+  elua_adc_state *s = adc_get_ch_state( id );
 
-    // Conversion initiated on processor trigger
-    ADCSequenceConfigure( ADC_BASE, id, ADC_TRIGGER_PROCESSOR, id ) ;
+  s->op_pending = 1;
+  s->burst = 0;
+  s->reqsamples = 1;
+  
+  // Make sure sequencer is disabled before making changes
+  ADCSequenceDisable( ADC_BASE, id );
 
-     // Restart Sequencer
-    ADCSequenceEnable( ADC_BASE, id);
-    
-    adc_state[ id ].burst = 0;
-  }
+  // Conversion will run back-to-back until required samples are acquired
+  ADCSequenceConfigure( ADC_BASE, id, ADC_TRIGGER_PROCESSOR, id ) ;
 
-  // Fire Trigger to start sample conversion
-  adc_state[ id ].op_pending = 1;
+  // Start Sequencer
+  ADCSequenceEnable( ADC_BASE, id );
   ADCProcessorTrigger( ADC_BASE, id );
-  
+
   // If in blocking mode and sample is pending, wait for ready flag
-  if ( adc_state[ id ].nonblocking == 0 && adc_state[ id ].op_pending == 1 )
+  if ( s->nonblocking == 0 && s->op_pending == 1 )
   {
-    while ( adc_state[ id ].data_ready == 0 ) { ; }
-  }
- 
-  // Return last sample and mark used
-  adc_state[ id ].data_ready = 0;
-  return adc_state[ id ].sample;
-}
-
-// returns 1 if the conversion on the specified channel ended, 0 otherwise
-int platform_adc_is_done( unsigned id ) 
-{  
-  return adc_state[ id ].data_ready;
-}
-
-// sets the mode on the specified ADC channel to either blocking (0) or non-blocking (1)
-void platform_adc_set_mode( unsigned id, int mode ) 
-{  
-  switch( mode )
-  {
-    case PLATFORM_ADC_BLOCKING:
-      adc_state[ id ].nonblocking = 0;
-      break;
-
-    case PLATFORM_ADC_NONBLOCKING:
-      adc_state[ id ].nonblocking = 1;
-      break;
+    while ( s->op_pending == 1 ) { ; }
   }
 }
 
-void platform_adc_burst( unsigned id, u16* buf, unsigned count, unsigned timer_id, u32 frequency )
+void platform_adc_burst( unsigned id, u8 count, unsigned timer_id, u32 frequency )
 {
-  if( adc_state[ id ].burst == 0 )
-  {
-    // Make sure sequencer is disabled before making changes
-    ADCSequenceDisable( ADC_BASE, id );
+  elua_adc_state *s = adc_get_ch_state( id );
   
-    // Set sequence id to be triggered repeatedly, with priority id
-    ADCSequenceConfigure( ADC_BASE, id, ADC_TRIGGER_TIMER, id );
+  s->burst = 1;
+  s->timer_id = timer_id;
+  s->op_pending = 1;
+  s->reqsamples = count;
   
-    // Restart Sequencer
-    ADCSequenceEnable( ADC_BASE, id );
-    adc_state[ id ].burst = 1;
-  }
-  
-  // If we have a new buffer, replace the old one
-  // - same buffer a way to get previously requested non-blocking data?
-  //if (adc_state[ id ].burstbuf != buf)
-  //{      
-    adc_state[ id ].burstbuf = buf;
-    adc_state[ id ].burstlen = count;
-    adc_state[ id ].burstidx = 0;
-  //}
+  // Make sure sequencer is disabled before making changes
+  ADCSequenceDisable( ADC_BASE, id );
 
-  adc_state[ id ].timer_id = timer_id;
-  adc_state[ id ].op_pending = 1;
+  // Set sequence id to be triggered repeatedly, with priority id
+  ADCSequenceConfigure( ADC_BASE, id, ADC_TRIGGER_TIMER, id );
+
+  // Restart Sequencer
+  ADCSequenceEnable( ADC_BASE, id );
+  
+  buf_set( BUF_ID_ADC, id, intlog2( count ) , sizeof( u16 ) );
   
   // Setup timer and go
   TimerConfigure(timer_base[timer_id], TIMER_CFG_32_BIT_PER);
   TimerLoadSet(timer_base[timer_id], TIMER_A, SysCtlClockGet() / frequency);
   TimerControlTrigger(timer_base[timer_id], TIMER_A, true);
-  TimerEnable(timer_base[timer_id], TIMER_A); 
+  TimerEnable(timer_base[timer_id], TIMER_A);
   
   // If in blocking mode and sampling task is pending, wait until buffer fills
-  //if ( adc_state[ id ].nonblocking == 0 && adc_state[ id ].op_pending == 1 )
-  //{
-    while ( adc_state[ id ].data_ready == 0 ) { ; }
-    
-    // Mark data as used
-    adc_state[ id ].data_ready = 0;
-  //}
+  if ( s->nonblocking == 0 && s->op_pending == 1 )
+  {
+    while ( s->op_pending == 1 ) { ; }
+  }
 }
 
 // ****************************************************************************
