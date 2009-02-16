@@ -1,7 +1,8 @@
 -------------------------------------------------------------------------------
 -- eLua Documentation Structure Definition
 --
--- This is the configuration file for the WebBook html help generator .
+-- This is the configuration file for the WebBook html help generator.
+-- It is used to generate the menu tree and it's links to the content pages.
 -- More info about WebBook can be found @ http://www.tecgraf.puc-rio.br/webbook
 --
 -------------------------------------------------------------------------------
@@ -13,8 +14,8 @@ wb_usr = {
    start_size = "200",
 --   contact = "dadosutter@eluaproject.net",
    contact = "",
---   copyright_link = "http://www.eluaproject.net", 
-   copyright_link = "", 
+   copyright_link = "http://www.eluaproject.net", 
+--   copyright_link = "", 
    search_link = "http://www.eluaproject.net/doc", 
 --   copyright_name = "eLua Team",
    copyright_name = "",
@@ -553,7 +554,7 @@ wb_usr.tree =
         },
         {
           name = {en = "Platform Dependent Modules", pt = "Dependentes de Plataforma" },
-          link = "platdependentmodules.html",
+          link = "platdepmodules.html",
           folder =
           {
             {  name = { en = "disp", pt = "disp" },
