@@ -19,9 +19,9 @@ else
 end
 
 -- Setup PIO
-pio.dir[ led ] = pio.OUTPUT
-pio.dir[ startpin ], pio.dir[ exitpin  ] = pio.INPUT, pio.INPUT
-pio.pull[ startpin  ], pio.pull[ exitpin ] = pio.PULLUP, pio.PULLUP
+gpio.dir[ led ] = gpio.OUTPUT
+gpio.dir[ startpin ], gpio.dir[ exitpin  ] = gpio.INPUT, gpio.INPUT
+gpio.pull[ startpin  ], gpio.pull[ exitpin ] = gpio.PULLUP, gpio.PULLUP
 
 -- Local variables
 local _, fstr, freq, timesstr, ontime, offtime, runme
@@ -30,14 +30,14 @@ local _, fstr, freq, timesstr, ontime, offtime, runme
 collectgarbage( "stop" )
 runme = true
 while runme do
-  while pio[ startpin ] == 1 do 
-    if pio[ exitpin ] == 0 then
+  while gpio[ startpin ] == 1 do 
+    if gpio[ exitpin ] == 0 then
       runme = false 
       break 
     end
   end
   if not runme then break end
-  pio[ led ] = 1
+  gpio[ led ] = 1
   codes:seek( "set", 0 )
   while true do
     fstr = codes:read( 4 )
@@ -53,7 +53,7 @@ while runme do
       pwm.stop( pwmid )
       if offtime == 0 then break end
       tmr.delay( tmrid, offtime * 10 )
-      if pio[ exitpin ] == 0 then
+      if gpio[ exitpin ] == 0 then
         runme = false
         break 
       end          
@@ -61,7 +61,7 @@ while runme do
     if not runme then break end
     tmr.delay( tmrid, 250000 )
   end
-  pio[ led ] = 0
+  gpio[ led ] = 0
   if not runme then break end  
   tmr.delay( tmrid, 500000 )
 end

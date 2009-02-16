@@ -39,6 +39,9 @@ typedef u32 pio_code;
 #define PLATFORM_IO_ENC_PORT                  1
 #define PLATFORM_IO_ENC_PIN                   0
 
+#define PLATFORM_IO_READ_IN_MASK              0
+#define PLATFORM_IO_READ_OUT_MASK             1
+
 enum
 {
   // Pin operations

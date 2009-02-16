@@ -257,7 +257,7 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
       break;
 
     case PLATFORM_IO_PORT_GET_VALUE:
-      retval = GPIO_ReadInputData(base);
+      retval = pinmask == PLATFORM_IO_READ_IN_MASK ? GPIO_ReadInputData(base) : GPIO_ReadOutputData(base);
       break;
 
     case PLATFORM_IO_PIN_GET:

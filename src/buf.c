@@ -2,11 +2,7 @@
 
 #include "platform_conf.h"
 
-#if defined( BUF_ENABLE_UART )
-#define BUF_ENABLE
-#endif
-
-#if defined( BUF_ENABLE_ADC )
+#if defined( BUF_ENABLE_UART ) || defined( BUF_ENABLE_ADC )
 #define BUF_ENABLE
 #endif
 
@@ -41,7 +37,7 @@ static const buf_desc* buf_desc_array[ BUF_ID_TOTAL ] =
 };
 
 // Helper macros
-#define BUF_MOD_INCR( p, m ) p->m = ( p->m + ( ( u16 )1 << p->logdsize ) ) & ( ( ( u16 )1 << ( p->logsize + p->logdsize) ) - 1 )
+#define BUF_MOD_INCR( p, m ) p->m = ( p->m + ( ( u16 )1 << p->logdsize ) ) & ( ( ( u16 )1 << p->logsize ) - 1 )
 #define BUF_REALSIZE( p ) ( ( u16 )1 << ( p->logsize - p->logdsize ) )
 #define BUF_BYTESIZE( p ) ( ( u16 )1 << p->logsize )
 #define BUF_REALDSIZE( p ) ( ( u16 )1 << p->logdsize )
@@ -163,4 +159,5 @@ int buf_read( unsigned resid, unsigned resnum, t_buf_data *data )
   return PLATFORM_OK;  
 }
 
-#endif // #ifdef BUF_ENALE
+#endif // #ifdef BUF_ENABLE
+

@@ -21,13 +21,13 @@ else
 end
 
 function cycle()
-  if not invert then pio[ ledpin ] = 1 else pio[ ledpin ] = 0 end
+  if not invert then gpio[ ledpin ] = 1 else gpio[ ledpin ] = 0 end
   tmr.delay( 0, 500000 )
-  if not invert then pio[ ledpin ] = 0 else pio[ ledpin ] = 1 end
+  if not invert then gpio[ ledpin ] = 0 else gpio[ ledpin ] = 1 end
   tmr.delay( 0, 500000 )
 end
 
-pio.dir[ ledpin ] = pio.OUTPUT
+gpio.dir[ ledpin ] = gpio.OUTPUT
 print( "Hello from eLua on " .. pd.cpu() )
 print "Watch your LED blinking :)"
 print "Press any key to end this demo.\n"

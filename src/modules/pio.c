@@ -17,68 +17,145 @@
 #define PIO_PULLUP          0
 #define PIO_PULLDOWN        1
 #define PIO_NOPULL          2
+#define PIO_MAX_STRSIZE     16
+#define PIO_MAX_TOKENSIZE   5
+
+// Helper: scan to the next occurence of a given char and return
+// the type found (string or number). The last token, number and
+// type are held in the global variables pio_p_token, pio_p_num
+// and pio_p_type. The function returns the next position in buffer
+// (after delim) or NULL for error or empty string.
+
+#define PIO_SCAN_NUMBER     0
+#define PIO_SCAN_STRING     1
+#define PIO_SCAN_ERROR      2
+
+static char pio_p_token[ PIO_MAX_TOKENSIZE + 1 ];
+static int pio_p_num;
+static int pio_p_type;
+
+const char* pio_scan_next( const char* src, int delim )
+{
+  int isnum = 1, cnt = 0;
+  char *ptoken;
+
+  pio_p_num = 0;
+  ptoken = pio_p_token;
+  pio_p_type = PIO_SCAN_ERROR;
+  while( *src && *src != delim )
+  {
+    *ptoken ++ = *src;
+    if( isnum && isdigit( *src ) )
+      pio_p_num = ( pio_p_num << 3 ) + ( pio_p_num << 1 ) + *src - '0';
+    else
+      isnum = 0;
+    src ++;
+    if( ++cnt > PIO_MAX_TOKENSIZE )
+      return NULL;
+  }
+  *ptoken = '\0';
+  pio_p_type = isnum && cnt > 0 ? PIO_SCAN_NUMBER : PIO_SCAN_STRING;
+  return src;
+}
 
 // Helper: get port and pin number from port string (PA_2, P1_3 ...)
 // Also look for direction specifiers (PA_2_DIR) as well as pull
 // specifiers(P1_3_PULL)
 // Returns PIO_ERROR, PIO_PORT or PIO_PORT_AND_PIN
-// Also returns port and pin number by side effect (and mode)
+// Also returns port number and pin mask by side effect (and mode)
 #define PIO_ERROR         0
 #define PIO_PORT          1
 #define PIO_PORT_AND_PIN  2
 #define PIO_MODE_INOUT    0
 #define PIO_MODE_DIR      1
 #define PIO_MODE_PULL     2
-static int pioh_parse_port( const char* key, int* pport, int *ppin, int* pmode )
+static int pioh_parse_port( const char* key, int* pport, pio_type* ppinmask, int *pspin, int* pmode )
 {
-  int isport = 0, sz;
-  int postsize = 0;
+  int spin = -1, epin = -1, i;
   const char* p;
 
-  *pport = *ppin = -1;
   *pmode = PIO_MODE_INOUT;
-  if( !key || *key != 'P' )
+  if( !key || *key != 'P' || strlen( key ) > PIO_MAX_STRSIZE )
     return PIO_ERROR;
-  // Look for suffix _DIR or _PULL
-  if( strlen( key ) > 4 && !strcmp( key + strlen( key ) - 4, "_DIR" ) )
-  {
-    *pmode = PIO_MODE_DIR;
-    postsize = 4;
-  }
-  else if( strlen( key ) > 5 && !strcmp( key + strlen( key ) - 5, "_PULL" ) )
-  {
-    *pmode = PIO_MODE_PULL;
-    postsize = 5;
-  }
-
-  // Get port and (optionally) pin number
-  if( isupper( key[ 1 ] ) ) // PA, PB, ...
-  {
-    if( PIO_PREFIX != 'A' )
-      return PIO_ERROR;
-    *pport = key[ 1 ] - 'A';
-    if( strlen( key ) == 2 + postsize ) 
-      isport = 1;
-    else if( key[ 2 ] == '_' )      
-      if( sscanf( key + 3, "%d%n", ppin, &sz ) != 1 || sz != strlen( key ) - 3 - postsize )
-        return PIO_ERROR;      
-  }
-  else // P0, P1, ...
+  
+  // Get port first
+  p = pio_scan_next( key + 1, '_' );
+  if( pio_p_type == PIO_SCAN_ERROR )
+    return PIO_ERROR;
+  else if( pio_p_type == PIO_SCAN_NUMBER )
   {
     if( PIO_PREFIX != '0' )
       return PIO_ERROR;
-    p = strchr( key, '_' );
-    if( ( p == NULL ) || ( p == key + strlen( key ) - postsize ) )
-    {
-      if( sscanf( key + 1, "%d%n", pport, &sz ) != 1  || sz != strlen( key ) - 1 - postsize )
-        return PIO_ERROR;
-      isport = 1;
-    }
-    else    // parse port_pin
-      if( sscanf( key + 1, "%d_%d%n", pport, ppin, &sz ) != 2 || sz != strlen( key ) - 1 - postsize )
-        return PIO_ERROR;
+    *pport = pio_p_num;
   }
-  return isport ? PIO_PORT : PIO_PORT_AND_PIN;
+  else
+  {
+    if( PIO_PREFIX != 'A' || strlen( pio_p_token ) != 1 || !isupper( pio_p_token[ 0 ] ) )
+      return PIO_ERROR;
+    *pport = pio_p_token[ 0 ] - 'A';
+  }
+  if( !platform_pio_has_port( *pport ) )
+    return PIO_ERROR;
+  if( *p == '\0' )
+    return PIO_PORT;
+
+  // Scan next three tokens
+  // The first can be either a number or a pull/dir spec
+  // The second can be either a number or a pull/dir spec
+  // The last one can only be a pull/dir spec
+  for( i = 0; i < 3; i ++ )
+  {
+    p = pio_scan_next( p + 1, '_' );
+    if( pio_p_type == PIO_SCAN_ERROR )
+      return PIO_ERROR;
+    else if( pio_p_type == PIO_SCAN_STRING )
+      goto handle_dir_pull;
+    else switch( i ) // token is a number
+    {
+      case 0:
+        spin = pio_p_num;
+        break;
+
+      case 1:
+        epin = pio_p_num;
+        break;
+
+      case 2:
+        return PIO_ERROR;
+    }
+    if( *p == '\0' ) // no more tokens
+      goto finalize;
+  }
+
+  // Handle the "_DIR" and "_PULL" suffixes
+handle_dir_pull:
+  if( !strcmp( pio_p_token, "DIR" ) && *p == '\0' )
+    *pmode = PIO_MODE_DIR;
+  else if( !strcmp( pio_p_token, "PULL" ) && *p == '\0' )
+    *pmode = PIO_MODE_PULL;
+  else
+    return PIO_ERROR;
+
+finalize:
+  // Build mask if needed
+  if( spin != -1 )
+  {
+    if( !platform_pio_has_pin( *pport, spin ) || ( ( epin != -1 ) && !platform_pio_has_pin( *pport, epin ) ) )
+      return PIO_ERROR;
+    *pspin = spin;
+    if( epin == -1 )
+      *ppinmask = 1 << spin;
+    else 
+      if( epin < spin )
+        return PIO_ERROR;
+      else
+        if( epin - spin + 1 == sizeof( pio_type ) << 3 )
+          *ppinmask = PLATFORM_IO_ALL_PINS;
+        else
+          *ppinmask = ( ( 1 << ( epin - spin + 1 ) ) - 1 ) << spin;
+    return PIO_PORT_AND_PIN;
+  }
+  return PIO_PORT;
 }
 
 // __index metafunction for PIO
@@ -86,20 +163,23 @@ static int pioh_parse_port( const char* key, int* pport, int *ppin, int* pmode )
 static int pio_mt_index( lua_State* L )
 {
   const char *key = luaL_checkstring( L, 2 );
-  int port, pin, res, mode;
-  pio_type value;
+  int port, spin, res, mode;
+  pio_type value, pinmask;
 
-  if( ( res = pioh_parse_port( key, &port, &pin, &mode ) == PIO_ERROR ) )
+  if( ( res = pioh_parse_port( key, &port, &pinmask, &spin, &mode ) == PIO_ERROR ) )
     return 0;
-  if( ( ( res == PIO_PORT ) && !platform_pio_has_port( port ) ) ||
-      ( ( res == PIO_PORT_AND_PIN ) && !platform_pio_has_pin( port, pin ) ) )
-    return 0; 
   if( mode != PIO_MODE_INOUT )
     return 0;
   if( res == PIO_PORT )
-    value = platform_pio_op( port, PLATFORM_IO_ALL_PINS, PLATFORM_IO_PORT_GET_VALUE );
+    value = platform_pio_op( port, PLATFORM_IO_READ_IN_MASK, PLATFORM_IO_PORT_GET_VALUE );
   else
-    value = platform_pio_op( port, 1 << pin, PLATFORM_IO_PIN_GET );
+    if( pinmask & ( pinmask - 1 ) )
+    {
+      value = platform_pio_op( port, PLATFORM_IO_READ_IN_MASK, PLATFORM_IO_PORT_GET_VALUE );
+      value = ( value & pinmask ) >> spin;
+    }
+    else
+      value = platform_pio_op( port, pinmask, PLATFORM_IO_PIN_GET );
   lua_pushinteger( L, value );
   return 1;
 }
@@ -111,12 +191,10 @@ static int pio_mt_newindex( lua_State* L )
 {
   const char *key = luaL_checkstring( L, 2 );
   pio_type value = ( pio_type )luaL_checkinteger( L, 3 );
-  int port, pin, res, mode;
+  int port, spin, res, mode;
+  pio_type pinmask, temp;
 
-  if( ( res = pioh_parse_port( key, &port, &pin, &mode ) == PIO_ERROR ) )
-    return 0;
-  if( ( ( res == PIO_PORT ) && !platform_pio_has_port( port ) ) ||
-      ( ( res == PIO_PORT_AND_PIN ) && !platform_pio_has_pin( port, pin ) ) )
+  if( ( res = pioh_parse_port( key, &port, &pinmask, &spin, &mode ) == PIO_ERROR ) )
     return 0;
   switch( mode )
   {
@@ -124,18 +202,22 @@ static int pio_mt_newindex( lua_State* L )
       if( res == PIO_PORT )
         platform_pio_op( port, value, PLATFORM_IO_PORT_SET_VALUE );
       else
-        platform_pio_op( port, 1 << pin, value ? PLATFORM_IO_PIN_SET : PLATFORM_IO_PIN_CLEAR );
+      {
+        temp = platform_pio_op( port, PLATFORM_IO_READ_OUT_MASK, PLATFORM_IO_PORT_GET_VALUE );
+        value = ( temp & ~pinmask ) | ( value << spin );
+        platform_pio_op( port, value, PLATFORM_IO_PORT_SET_VALUE );
+      }
       break;
       
     case PIO_MODE_DIR: // set pin direction
       if( res == PIO_PORT )
         platform_pio_op( port, 0, value == PIO_DIR_INPUT ? PLATFORM_IO_PORT_DIR_INPUT : PLATFORM_IO_PORT_DIR_OUTPUT );
       else
-        platform_pio_op( port, 1 << pin, value == PIO_DIR_INPUT ? PLATFORM_IO_PIN_DIR_INPUT : PLATFORM_IO_PIN_DIR_OUTPUT );
+        platform_pio_op( port, pinmask, value == PIO_DIR_INPUT ? PLATFORM_IO_PIN_DIR_INPUT : PLATFORM_IO_PIN_DIR_OUTPUT );
       break;
 
     case PIO_MODE_PULL: // pullup/pulldown configuration
-      platform_pio_op( port, res == PIO_PORT ? PLATFORM_IO_ALL_PINS : 1 << pin, value ); 
+      platform_pio_op( port, res == PIO_PORT ? PLATFORM_IO_ALL_PINS : pinmask, value ); 
       break;
   }
   return 0;
@@ -147,19 +229,17 @@ static int pio_dir_mt_newindex( lua_State* L )
 {
   const char* key = luaL_checkstring( L, 2 );
   pio_type value = ( pio_type )luaL_checkinteger( L, 3 );
-  int port, pin, res, mode;
+  int port, spin, res, mode;
+  pio_type pinmask;
 
-  if( ( res = pioh_parse_port( key, &port, &pin, &mode ) == PIO_ERROR ) )
-    return 0;
-  if( ( ( res == PIO_PORT ) && !platform_pio_has_port( port ) ) ||
-      ( ( res == PIO_PORT_AND_PIN ) && !platform_pio_has_pin( port, pin ) ) )
+  if( ( res = pioh_parse_port( key, &port, &pinmask, &spin, &mode ) == PIO_ERROR ) )
     return 0;
   if( mode != PIO_MODE_INOUT )
     return 0;
   if( res == PIO_PORT )
     platform_pio_op( port, 0, value == PIO_DIR_INPUT ? PLATFORM_IO_PORT_DIR_INPUT : PLATFORM_IO_PORT_DIR_OUTPUT );
   else
-    platform_pio_op( port, 1 << pin, value == PIO_DIR_INPUT ? PLATFORM_IO_PIN_DIR_INPUT : PLATFORM_IO_PIN_DIR_OUTPUT );
+    platform_pio_op( port, pinmask, value == PIO_DIR_INPUT ? PLATFORM_IO_PIN_DIR_INPUT : PLATFORM_IO_PIN_DIR_OUTPUT );
   return 0;
 }
 
@@ -169,16 +249,14 @@ static int pio_pull_mt_newindex( lua_State* L )
 {
   const char* key = luaL_checkstring( L, 2 );
   pio_type value = ( pio_type )luaL_checkinteger( L, 3 );
-  int port, pin, res, mode;
+  int port, spin, res, mode;
+  pio_type pinmask;
 
-  if( ( res = pioh_parse_port( key, &port, &pin, &mode ) == PIO_ERROR ) )
-    return 0;
-  if( ( ( res == PIO_PORT ) && !platform_pio_has_port( port ) ) ||
-      ( ( res == PIO_PORT_AND_PIN ) && !platform_pio_has_pin( port, pin ) ) )
+  if( ( res = pioh_parse_port( key, &port, &pinmask, &spin, &mode ) == PIO_ERROR ) )
     return 0;
   if( mode != PIO_MODE_INOUT )
     return 0;
-  platform_pio_op( port, res == PIO_PORT ? PLATFORM_IO_ALL_PINS : 1 << pin, value );
+  platform_pio_op( port, res == PIO_PORT ? PLATFORM_IO_ALL_PINS : pinmask, value );
   return 0;
 }
 
