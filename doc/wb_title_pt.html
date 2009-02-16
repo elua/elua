@@ -1,6 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
 <head>
-<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <title>Title</title>
 <base target="wb_cont">
 <style type="text/css">
@@ -15,7 +16,7 @@ td.title {
 td.contact {
   text-align: center;
   vertical-align: middle;
-  width: 11em;
+  /*width: 11em;*/
 }
 a.contact {
   font-family: Arial, Helvetica, sans-serif;
@@ -32,29 +33,33 @@ a.contact:hover {
 
 <body style="background-color: midnightblue; margin-left: 3px; margin-right: 3px; margin-top: 2px; margin-bottom: 0; background-image: url('wb_img/title_background.png');">
 
-<table style="width: 100%" cellspacing="0" cellpadding="0">
+<table border="0" style="width: 100%;" cellspacing="0" cellpadding="0">
   <tr>
-    <td style="width: 50px;"><img src="logo.gif"></td>
-    <td class="title">eLua - Embedded Lua</td>
-    <td style="width: 3.5em">
+    <td valign="center" style="width: 30px;padding:0px 10px 0px 0px;">
+		<img src="wb_img/eLua-logo-80x80.png" border="0">
+	</td>
+    <td valign="center" class="title">eLua - Embedded Lua</td>
+    <!--td style="width: 3.5em">
      <a class="contact" href="ssSearch_pt.html">SimpleSearch</a>
-     </td>
-    <td style="width: 11em">
-      <FORM method=GET action="http://www.google.com/search" style="margin-bottom: 0; margin: 0; text-align: center; ">
-      <input type=hidden name=ie value=UTF-8>
-      <input type=hidden name=oe value=UTF-8>
-      <INPUT TYPE=text name=q size=21 maxlength=255 value=""><br>
-      <A HREF="http://www.google.com/"><IMG SRC="wb_img/google.gif" border="0" ALT="Google"></A>
-      <INPUT type=submit name=btnG VALUE="Search" style="height: 21px; vertical-align: top; font-size: x-small;">
-      <input type=hidden name=domains value="http://www.eluaproject.net/doc">
-      <input type=hidden name=sitesearch value="http://www.eluaproject.net/doc" checked>
-      <input type=hidden name=sitesearch value="">
-      </FORM>
+     </td-->
+    <td style="width: 280px" >
+	  
+ <FORM method=GET action="http://www.google.com/search" style="margin-bottom: 0; margin: 0; text-align: center;font-size:12px;font-family:verdana;">
+      <input type="hidden" name="ie" value="UTF-8" />
+      <input type="hidden" name=oe value="UTF-8" />
+	  
+      <INPUT TYPE="text" name="q" size="21" maxlength="255" value="" />
+      <INPUT type="submit" name="btnG" VALUE="Search" style="height: 21px; vertical-align: top; font-size: x-small;" />
+      <input type="hidden" name="domains" value="http://www.eluaproject.net/doc" />
+      <input type="hidden" name="sitesearch" value="http://www.eluaproject.net/doc" />
+  </FORM>
+  
+
     </td>
     <td class="contact">
-     <a class="contact" target="_blank" href="http://www.eluaproject.net">© </a>
-     <br>
-     <a class="contact" href="mailto:">()</a>
+    	
+     	<br>
+	    
      </td>
   </tr>
 </table>

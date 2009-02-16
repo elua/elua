@@ -12,16 +12,18 @@
 wb_usr = {
    langs = {"en","pt" },
    start_size = "200",
---   contact = "dadosutter@eluaproject.net",
-   contact = "",
-   copyright_link = "http://www.eluaproject.net", 
---   copyright_link = "", 
-   search_link = "http://www.eluaproject.net/doc", 
---   copyright_name = "eLua Team",
-   copyright_name = "",
+   title_bar_height = 80,
+   enable_search = true,
+   --search_label = "Search:",
+   search_link = "http://www.eluaproject.net", 
+   --contact = "dadosutter@eluaproject.net",
+   --copyright_name = "eLua Team",
+   --copyright_link = "http://www.eluaproject.net", 
+   
    title_bgcolor = "midnightblue",
    file_title = "wb",
-   start_open = "1"
+   start_open = "1",
+   logo_image_file = "eLua-logo-80x80.png"
 } 
 
 
@@ -50,17 +52,17 @@ wb_usr.tree =
   link = "news.html", 
   folder =
   {
-    { name = {en = "Overview", pt = "Apresentação" },
+    { name = {en = "Overview", pt = "ApresentaÃ§Ã£o" },
       link = "overview.html",
       folder =
       {
-        {  name = { en = "What is", pt = "O que é eLua ?" },
+        {  name = { en = "What is", pt = "O que Ã© eLua ?" },
            link = "overview.html#whatis",
         },
-        {  name = { en = "Audience", pt = "Público alvo" },
+        {  name = { en = "Audience", pt = "PÃºblico alvo" },
            link = "overview.html#audience",
         },
-        {  name = { en = "Uses", pt = "Aplicações" },
+        {  name = { en = "Uses", pt = "AplicaÃ§Ãµes" },
            link = "overview.html#uses",
         },
         {  name = { en = "Authors", pt = "Autores" },
@@ -69,7 +71,7 @@ wb_usr.tree =
         {  name = { en = "Contacts", pt = "Contatos" },
            link = "overview.html#contacts",
         },
-        {  name = { en = "Licence", pt = "Licença" },
+        {  name = { en = "Licence", pt = "LicenÃ§a" },
            link = "overview.html#license",
         },
       },
@@ -82,7 +84,7 @@ wb_usr.tree =
         {  name = { en = "Lists", pt = "Listas" },
            link = "community.html#lists",
         },
-        {  name = { en = "Credits", pt = "Créditos" },
+        {  name = { en = "Credits", pt = "CrÃ©ditos" },
            link = "community.html#credits",
         },
 --[[
@@ -100,7 +102,7 @@ wb_usr.tree =
       link = "status.html",
       folder =
       {
-        {  name = { en = "News", pt = "Notícias" },
+        {  name = { en = "News", pt = "NotÃ­cias" },
            link = "news.html",
         },
         {  name = { en = "Platforms", pt = "Plataformas" },
@@ -112,7 +114,7 @@ wb_usr.tree =
       },
     },
     {
-      name = { en = "Documentation", pt = "Documentação" },
+      name = { en = "Documentation", pt = "DocumentaÃ§Ã£o" },
       link = "using.html",
       folder = 
       {
@@ -197,7 +199,7 @@ wb_usr.tree =
           },
         },
         {
-          name = {en = "Version History", pt = "Histórico de Versões" },
+          name = {en = "Version History", pt = "HistÃ³rico de VersÃµes" },
           link = "versionhistory.html",
           folder =
           {
@@ -215,12 +217,12 @@ wb_usr.tree =
       },
     },
     {
-      name = { en = "Reference Manual", pt = "Manual de Referência" },
+      name = { en = "Reference Manual", pt = "Manual de ReferÃªncia" },
       link = "refman.html#genericmodules",
       folder = 
       {
         {
-          name = { en = "Generic Modules", pt = "Módulos Genéricos" },
+          name = { en = "Generic Modules", pt = "MÃ³dulos GenÃ©ricos" },
           link = "refman.html#genericmodules",
           folder = 
           {

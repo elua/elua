@@ -39,6 +39,17 @@ function addHtmlFile(v)
 end
 
 -- #####################################################################
+function loadSearch()
+  local searchHTML = readFile("template_wb_search.html")
+ 
+  if(wb_usr.enable_search == true)then
+    searchHTML = string.gsub(searchHTML, "WB_SEARCH_LABEL", wb_usr.search_label or "")
+	searchHTML = string.gsub(searchHTML, "WB_SEARCH_LINK", wb_usr.search_link)
+  else
+   searchHTML = ""
+  end
+  return searchHTML
+end
 
 function writeIndexFile()
   print("Writing \"../index"..lngSuffix..".html\".")
@@ -46,6 +57,7 @@ function writeIndexFile()
   local wb_index = readFile("template_index.html")
   
   wb_index = string.gsub(wb_index, "WB_TITLE", wb_usr.messages[lngIndex].title)
+  wb_index = string.gsub(wb_index, "TITLE_BAR_HEIGHT", wb_usr.title_bar_height or 51)
   wb_index = string.gsub(wb_index, "WB_START_SIZE", wb_usr.start_size)
   wb_index = string.gsub(wb_index, "WB_START_PAGE", lngIndex.."/"..wb_usr.tree.link)
   if (lngCount > 1) then
@@ -63,13 +75,29 @@ function writeTitleFile()
   print("Writing \"../wb_title"..lngSuffix..".html\".")
   
   local wb_title = readFile("template_wb_title.html")
-  
+  if(wb_usr.logo_image_file ~= nil and wb_usr.logo_image_file ~= "")then
+    wb_title = string.gsub(wb_title, "WB_LOGO", [[<img src="wb_img/]]..wb_usr.logo_image_file..[[" border="0">]])
+  else
+  	wb_title = string.gsub(wb_title, "WB_LOGO","")
+  end
+
   wb_title = string.gsub(wb_title, "WB_BAR_TITLE", wb_usr.messages[lngIndex].bar_title)
   wb_title = string.gsub(wb_title, "WB_TITLE_BGCOLOR", wb_usr.title_bgcolor)
-  wb_title = string.gsub(wb_title, "WB_SEARCH_LINK", wb_usr.search_link)
-  wb_title = string.gsub(wb_title, "WB_COPYRIGHT_LINK", wb_usr.copyright_link)
-  wb_title = string.gsub(wb_title, "WB_COPYRIGHT_NAME", wb_usr.copyright_name)
-  wb_title = string.gsub(wb_title, "WB_CONTACT", wb_usr.contact)
+  wb_title = string.gsub(wb_title, "WB_SEARCH_FORM",loadSearch())
+  
+  local copyrightHTML = ""
+  if (wb_usr.copyright_link ~= nil and wb_usr.copyright_name ~= nil and wb_usr.copyright_link ~= "" and wb_usr.copyright_name ~= "")then
+	copyrightHTML = [[<a class="contact" target="_blank" href="WB_COPYRIGHT_LINK">漏 WB_COPYRIGHT_NAME</a>]]
+	copyrightHTML = string.gsub(copyrightHTML, "WB_COPYRIGHT_LINK", wb_usr.copyright_link)
+    copyrightHTML = string.gsub(copyrightHTML, "WB_COPYRIGHT_NAME", wb_usr.copyright_name)
+  end
+  wb_title = string.gsub(wb_title, "WB_COPYRIGHT", copyrightHTML)
+  
+  local contactHTML = ""
+  if wb_usr.contact ~= nil and wb_usr.contact ~= "" then
+	contactHTML = string.gsub([[<a class="contact" href="mailto:WB_CONTACT">(WB_CONTACT)</a>]], "WB_CONTACT", wb_usr.contact)  
+  end
+  wb_title = string.gsub(wb_title, "WB_CONTACT", contactHTML)
   
   if (lngCount > 1) then
     wb_title = string.gsub(wb_title, "WB_LNG", lngSuffix)
@@ -234,18 +262,18 @@ lngMessages =
   },
   exp_all= {
     en= "Expand All Nodes",
-    pt= "Expande Todos os N髎", 
+    pt= "Expande Todos os N贸s", 
     es= "Ensanchar Todos Nodos",
   },
   cont_all= {
     en= "Contract All Nodes",
-    pt= "Contrai Todos os N髎",
+    pt= "Contrai Todos os N贸s",
     es= "Contrato Todos Nodos",
   },
   sync= {
     en= "Sync Tree with Contents",
-    pt= "Sincroniza 羠vore com Conte鷇o",
-    es= "Sincroniza 羠bol con el Contenido",
+    pt= "Sincroniza 脕rvore com Conte煤do",
+    es= "Sincroniza 脕rbol con el Contenido",
   },
   lang= {
     en= "Switch Language",
@@ -254,8 +282,8 @@ lngMessages =
   },
   next= {
     en= "Next Link",
-    pt= "Pr髕imo Link",
-    es= "Pr髕imo Link",
+    pt= "Pr贸ximo Link",
+    es= "Pr贸ximo Link",
   },
   prev= {
     en= "Previous Link",

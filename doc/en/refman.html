@@ -708,7 +708,7 @@ specified UART interface.</font></p>
 </p>
 <h3><a name="platdepmodules"></a>eLua Platform
 Dependent
-Modules</h3><h3><a name="adcmodule"></a>adc</h3><br><a name="adc_sample"></a>adc.sample(channel_id) - returns a single integer value from the ADC<br><br><a name="adc_maxval"></a>adc.maxval(channel_id) - returns largest integer one can expect for this channel on a given platform (based on bit depth)<br><br><a name="adc_dataready"></a>adc.dataready(channel_id)
+Modules</h3><h3><a name="adcmodule"></a>adc</h3>Currently runs on: LM3S <br><br><a name="adc_sample"></a>adc.sample(channel_id) - returns a single integer value from the ADC<br><br><a name="adc_maxval"></a>adc.maxval(channel_id) - returns largest integer one can expect for this channel on a given platform (based on bit depth)<br><br><a name="adc_dataready"></a>adc.dataready(channel_id)
 - if running in non-blocking mode, this will indicate if all of the
 samples requested from the last sample or <br>burst have been acquired and
 are waiting in the buffer<br><br><a name="adc_setmode"></a>adc.setmode(channel_id, mode) - mode: 0
@@ -721,7 +721,7 @@ channel_id, count, timer_id, frequency) - request that (count) samples
 (channel_id), using (timer_id) at (frequency). results are returned as
 a table<br><br>
 <h3><a name="dispmodule"></a>disp</h3>
-<span style="font-weight: bold;"></span><br>
+<span style="font-weight: bold;"></span>Currently runs on: LM3S <br>
 <p class="MsoNormal"><a name="disp_init"></a>
 disp.init </p>
 <p class="MsoNormal"> <br>
