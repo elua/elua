@@ -557,6 +557,40 @@ wb_usr.tree =
           link = "platdepmodules.html",
           folder =
           {
+            {  name = { en = "adc", pt = "adc" },
+               link = "refman.html#adcmodule",
+               folder =
+               {
+                 {
+                   name ={ en = "sample", pt = "sample" },
+                   link = "refman.html#adc_sample"
+                 },
+                 {
+                   name = { en = "maxval", pt = "maxval" },
+                   link = "refman.html#adc_maxval"
+                 },
+                 {
+                   name = { en = "dataready", pt = "dataready" },
+                   link = "refman.html#adc_dataready"
+                 },
+                 {
+                   name = { en = "setmode", pt = "setmode" },
+                   link = "refman.html#adc_setmode"
+                 },
+                 {
+                   name = { en = "setsmoothing", pt = "setsmoothing" },
+                   link = "refman.html#adc_setsmoothing"
+                 },
+                 {
+                   name = { en = "getsmoothing", pt = "getsmoothing" },
+                   link = "refman.html#adc_getsmoothing"
+                 },
+                 {
+                   name = { en = "burst", pt = "burst" },
+                   link = "refman.html#adc_burst"
+                 },
+              },   
+            },
             {  name = { en = "disp", pt = "disp" },
                link = "refman.html#dispmodule",
                folder =

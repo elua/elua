@@ -8,8 +8,7 @@
 <h3>eLua Modules Reference Manual
 </h3>
 <h3><a name="genericmodules"></a>Generic
-Modules</h3>
-<h3><a name="bitmodule"></a>bit</h3>
+Modules</h3><br><h3><a name="bitmodule"></a>bit</h3>
 Bitwise&nbsp;operations in eLua is implemented thru
 the&nbsp;BitLib library, from Reuben Thomas.<br>
 BitLib project is hosted at LuaForge on
@@ -709,7 +708,18 @@ specified UART interface.</font></p>
 </p>
 <h3><a name="platdepmodules"></a>eLua Platform
 Dependent
-Modules</h3>
+Modules</h3><h3><a name="adcmodule"></a>adc</h3><br><a name="adc_sample"></a>adc.sample(channel_id) - returns a single integer value from the ADC<br><br><a name="adc_maxval"></a>adc.maxval(channel_id) - returns largest integer one can expect for this channel on a given platform (based on bit depth)<br><br><a name="adc_dataready"></a>adc.dataready(channel_id)
+- if running in non-blocking mode, this will indicate if all of the
+samples requested from the last sample or <br>burst have been acquired and
+are waiting in the buffer<br><br><a name="adc_setmode"></a>adc.setmode(channel_id, mode) - mode: 0
+sets mode to blocking (sample or burst will wait for requested samples
+to be captured before returning), 1 sets non-blocking<br><br><a name="adc_setsmoothing"></a>adc.setsmoothing(channel_id,
+length) - set the length of the smoothing filter, this must be a power
+of 2, currently between 0 and 128<br><br><a name="adc_getsmoothing"></a>adc.getsmoothing(channel_id) - get the current smoothing length in use<br><br><a name="adc_burst"></a>adc.burst(
+channel_id, count, timer_id, frequency) - request that (count) samples
+(limited to 128 total, also must be a power of 2) be requested from
+(channel_id), using (timer_id) at (frequency). results are returned as
+a table<br><br>
 <h3><a name="dispmodule"></a>disp</h3>
 <span style="font-weight: bold;"></span><br>
 <p class="MsoNormal"><a name="disp_init"></a>
