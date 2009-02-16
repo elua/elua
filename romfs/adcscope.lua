@@ -3,10 +3,12 @@ require("LM3S")
 disp.init(1000000)
 disp.clear()
 
-adc.setsmoothing(1,4)
+adc.setsmoothing(0,4)
 adc.setsmoothing(1,16)
 adc.setsmoothing(2,32)
 adc.setsmoothing(3,64)
+
+disp.stringdraw( "ADC Scope", 10, 10, 11 )
 
 adcvals = {}
 ctr = 0

@@ -79,9 +79,6 @@ int buf_set( unsigned resid, unsigned resnum, u8 logsize, size_t dsize )
       return PLATFORM_ERR;
   }
   
-  if( prevlogsize > pbuf->logsize )
-    pbuf->rptr = pbuf->wptr = pbuf->count = 0;
-  
   return PLATFORM_OK;
 }
 

@@ -594,14 +594,22 @@ static void adcs_init()
 }
 
 // Get a single sample from the specified ADC channel
-void platform_adc_sample( unsigned id ) 
+int platform_adc_sample( unsigned id ) 
 {   
   elua_adc_state *s = adc_get_ch_state( id );
-
-  s->op_pending = 1;
-  s->burst = 0;
-  s->reqsamples = 1;
+  int res;
   
+  res = buf_set( BUF_ID_ADC, id, ADC_BUF_SIZE , sizeof( u16 ) );
+  if ( res != PLATFORM_OK )
+    return res;
+  
+  // Need more general buf resizing... for now flush each time
+  buf_flush( BUF_ID_ADC, id );
+  
+  s->burst = 0;
+  s->op_pending = 1;
+  s->reqsamples = 1;
+
   // Make sure sequencer is disabled before making changes
   ADCSequenceDisable( ADC_BASE, id );
 
@@ -617,17 +625,26 @@ void platform_adc_sample( unsigned id )
   {
     while ( s->op_pending == 1 ) { ; }
   }
+  return PLATFORM_OK;
 }
 
-void platform_adc_burst( unsigned id, u8 count, unsigned timer_id, u32 frequency )
+int platform_adc_burst( unsigned id, u8 logcount, unsigned timer_id, u32 frequency )
 {
   elua_adc_state *s = adc_get_ch_state( id );
+  int res;
   
+  res = buf_set( BUF_ID_ADC, id, logcount , sizeof( u16 ) );
+  if ( res != PLATFORM_OK )
+    return res;
+  
+  // Need more general buf resizing... for now flush each time
+  buf_flush( BUF_ID_ADC, id );
+
   s->burst = 1;
   s->timer_id = timer_id;
   s->op_pending = 1;
-  s->reqsamples = count;
-  
+  s->reqsamples = (u16) 1 << logcount;
+
   // Make sure sequencer is disabled before making changes
   ADCSequenceDisable( ADC_BASE, id );
 
@@ -636,8 +653,6 @@ void platform_adc_burst( unsigned id, u8 count, unsigned timer_id, u32 frequency
 
   // Restart Sequencer
   ADCSequenceEnable( ADC_BASE, id );
-  
-  buf_set( BUF_ID_ADC, id, intlog2( count ) , sizeof( u16 ) );
   
   // Setup timer and go
   TimerConfigure(timer_base[timer_id], TIMER_CFG_32_BIT_PER);
@@ -650,6 +665,7 @@ void platform_adc_burst( unsigned id, u8 count, unsigned timer_id, u32 frequency
   {
     while ( s->op_pending == 1 ) { ; }
   }
+  return PLATFORM_OK;
 }
 
 // ****************************************************************************

@@ -286,7 +286,7 @@ u32 platform_adc_op( unsigned id, int op, u32 data )
       break;
 
     case PLATFORM_ADC_SET_SMOOTHING:
-      adc_update_smoothing( id, ( u8 )data );
+      res = adc_update_smoothing( id, ( u8 )intlog2( ( unsigned ) data ) );
       break;
       
     case PLATFORM_ADC_SET_NONBLOCKING:

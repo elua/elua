@@ -188,8 +188,8 @@ enum
 };
 
 // Functions requiring platform-specific implementation
-void platform_adc_sample( unsigned id );
-void platform_adc_burst( unsigned id, u8 count, unsigned timer_id, u32 frequency );
+int platform_adc_sample( unsigned id );
+int platform_adc_burst( unsigned id, u8 logcount, unsigned timer_id, u32 frequency );
 void platform_adc_stop( unsigned id );
 
 // ADC Common Functions

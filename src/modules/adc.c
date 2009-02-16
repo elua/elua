@@ -77,17 +77,19 @@ static int adc_set_smoothing( lua_State* L )
 
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( adc, id );
+  
+  
   length = luaL_checkinteger( L, 2 );
   if ( !( length & ( length - 1 ) ) )
   {
     res = platform_adc_op( id, PLATFORM_ADC_SET_SMOOTHING, length );
-    if ( res )
+    if ( res == PLATFORM_ERR )
       return luaL_error( L, "Buffer allocation failed." );
     else
       return 0;
   }
   else
-    return luaL_error( L, "Smoothing length must be power of 2" );
+    return luaL_error( L, "length must be power of 2" );
 
 }
 
@@ -120,9 +122,9 @@ static int adc_flush( lua_State* L )
 // Lua: burst( id, count, timer_id, frequency )
 static int adc_burst( lua_State* L )
 {
-  unsigned id, timer_id, i;
-  u8 count;
+  unsigned id, timer_id, i, count;
   u32 frequency;
+  int res;
   
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( adc, id );
@@ -148,13 +150,18 @@ static int adc_burst( lua_State* L )
       lua_rawseti( L, -2, i+1 );
     }
     
-    platform_adc_burst( id, count, timer_id, frequency );
+    res = platform_adc_burst( id, intlog2( count ), timer_id, frequency );
+    if ( res != PLATFORM_OK )
+      return luaL_error( L, "burst failed" );
+    
     
     return 1;
   }
   else // If no data is available, kick off burst, return data if we have some afterwards
   {
-    platform_adc_burst( id, count, timer_id, frequency );
+    res = platform_adc_burst( id, intlog2( count ), timer_id, frequency );
+    if ( res != PLATFORM_OK )
+      return luaL_error( L, "burst failed" );
       
     if( adc_samples_ready( id ) >= count )
     {

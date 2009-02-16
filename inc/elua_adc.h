@@ -14,11 +14,11 @@ typedef struct
   unsigned        id, timer_id;
 
   u8              logsmoothlen;
-  volatile u8     smoothidx;
+  volatile u16    smoothidx;
   volatile u32    smoothsum;
   u16             *smoothbuf;
 
-  volatile u8     reqsamples;
+  volatile u16    reqsamples;
 } elua_adc_state;
 
 
@@ -26,7 +26,7 @@ void adc_smooth_data( unsigned id );
 elua_adc_state *adc_get_ch_state( unsigned id );
 u16 adc_get_processed_sample( unsigned id );
 void adc_init_state( unsigned id );
-int adc_update_smoothing( unsigned id, u8 len );
+int adc_update_smoothing( unsigned id, u8 loglen );
 void adc_flush_smoothing( unsigned id );
 u8 adc_samples_requested( unsigned id );
 u8 adc_samples_ready( unsigned id );
