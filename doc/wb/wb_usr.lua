@@ -62,9 +62,11 @@ wb_usr.tree =
         {  name = { en = "Audience", pt = "Público alvo" },
            link = "overview.html#audience",
         },
+--[[
         {  name = { en = "Uses", pt = "Aplicações" },
            link = "overview.html#uses",
         },
+--]]        
         {  name = { en = "Authors", pt = "Autores" },
            link = "overview.html#authors",
         },
@@ -78,21 +80,21 @@ wb_usr.tree =
     },
     {
       name = {en = "Community", pt = "Comunidade" },
-      link = "community.html",
+      link = "comunity.html",
       folder =
       {
         {  name = { en = "Lists", pt = "Listas" },
-           link = "community.html#lists",
+           link = "comunity.html#lists",
         },
         {  name = { en = "Credits", pt = "Créditos" },
-           link = "community.html#credits",
+           link = "comunity.html#credits",
         },
 --[[
         {  name = { en = "Galery", pt = "Galeria" },
-           link = "community.html#galery",
+           link = "comunity.html#galery",
         },
         {  name = { en = "Projects", pt = "Projetos" },
-           link = "community.html#projects",
+           link = "comunity.html#projects",
         },
 --]]        
       },
@@ -105,7 +107,7 @@ wb_usr.tree =
         {  name = { en = "News", pt = "Notícias" },
            link = "news.html",
         },
-        {  name = { en = "Platforms", pt = "Plataformas" },
+        {  name = { en = "Platforms Supported", pt = "Plataformas Suportadas" },
            link = "status.html#platforms",
         },
         {  name = { en = "Roadmap", pt = "Futuro" },
@@ -568,8 +570,16 @@ wb_usr.tree =
                    link = "refman.html#adc_sample"
                  },
                  {
+                   name ={ en = "getsamples", pt = "getsamples" },
+                   link = "refman.html#adc_getsamples"
+                 },
+                 {
                    name = { en = "maxval", pt = "maxval" },
                    link = "refman.html#adc_maxval"
+                 },
+                 {
+                   name = { en = "samplesready", pt = "samplesready" },
+                   link = "refman.html#adc_samplesready"
                  },
                  {
                    name = { en = "dataready", pt = "dataready" },

@@ -1,12 +1,12 @@
-en/community.html
 en/tutorials.html
 en/building.html
 en/tut_bootstick.html
 en/platdepmodules.html
 en/dl_binaries.html
 en/tut_openocd.html
-en/tc_arm.html
+en/status.html
 en/refman.html
+en/comunity.html
 en/sources.html
 en/tut_bootpc.html
 en/developers.html
@@ -22,5 +22,5 @@ en/net_ref.html
 en/using.html
 en/faq.html
 en/downloads.html
-en/status.html
+en/tc_arm.html
 en/tchainbuild.html

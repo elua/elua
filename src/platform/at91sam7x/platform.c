@@ -83,7 +83,7 @@ int platform_init()
   USART_SetReceiverEnabled( pusart, 1 );  
 #if defined( BUF_ENABLE_UART ) && defined( CON_BUF_SIZE )
   // Enable buffering on the console UART
-  buf_set( BUF_ID_UART, CON_UART_ID, CON_BUF_SIZE, sizeof ( char ) );
+  buf_set( BUF_ID_UART, CON_UART_ID, CON_BUF_SIZE, BUF_DSIZE_U8 );
   // Set interrupt handler and interrupt flag on UART
   unsigned uart_id = CON_UART_ID == 0 ? AT91C_ID_US0 : AT91C_ID_US1;
   AIC_DisableIT( uart_id );

@@ -38,7 +38,7 @@ void adc_init_state( unsigned id )
   s->smoothsum = 0;
   
   // Buffer initialization
-  buf_set( BUF_ID_ADC, id, ADC_BUF_SIZE, sizeof( u16 ) );
+  buf_set( BUF_ID_ADC, id, ADC_BUF_SIZE, BUF_DSIZE_U16 );
 }
 
 int adc_update_smoothing( unsigned id, u8 loglen )
@@ -135,15 +135,26 @@ void adc_flush_smoothing( unsigned id )
   }
 }
 
-u8 adc_samples_requested( unsigned id )
+u16 adc_samples_requested( unsigned id )
 {
   elua_adc_state *s = adc_get_ch_state( id );
   return s->reqsamples;
 }
 
-u8 adc_samples_ready( unsigned id ) 
+u16 adc_samples_available( unsigned id ) 
 {
-  return ( u8 ) buf_get_count( BUF_ID_ADC, id );
+  return ( u16 ) buf_get_count( BUF_ID_ADC, id );
 }
+
+void adc_wait_pending( unsigned id )
+{
+  elua_adc_state *s = adc_get_ch_state( id );
+  
+  if ( s->nonblocking == 0 && s->op_pending == 1 )
+  {
+    while ( s->op_pending == 1 ) { ; }
+  }
+}
+
 
 #endif

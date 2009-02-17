@@ -48,9 +48,17 @@ enum
   BUF_SIZE_32768
 };
 
+enum
+{
+  BUF_DSIZE_U8 = 0,
+  BUF_DSIZE_U16,
+  BUF_DSIZE_U32
+};
+
+
 
 // Buffer API
-int buf_set(unsigned resid, unsigned resnum, u8 logsize, size_t dsize);
+int buf_set(unsigned resid, unsigned resnum, u8 logsize, u8 logdsize);
 int buf_is_enabled( unsigned resid, unsigned resnum );
 unsigned buf_get_size( unsigned resid, unsigned resnum );
 unsigned buf_get_count( unsigned resid, unsigned resnum );

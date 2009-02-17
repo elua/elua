@@ -280,7 +280,7 @@ static void uarts_init()
                       
 #if defined( BUF_ENABLE_UART ) && defined( CON_BUF_SIZE )
   // Enable buffering on the console UART
-  buf_set( BUF_ID_UART, CON_UART_ID, CON_BUF_SIZE, sizeof ( t_buf_data ) );
+  buf_set( BUF_ID_UART, CON_UART_ID, CON_BUF_SIZE, BUF_DSIZE_U8 );
   // Set interrupt handler and interrupt flag on UART
   
   IntEnable(INT_UART0);
@@ -537,9 +537,7 @@ void ADCIntHandler( void )
 {
   unsigned long rawSample;
   unsigned id;
-  
-  platform_cpu_disable_interrupts();
-  
+    
   // Check each sequence for a pending sample
   for( id = 0; id < NUM_ADC; id ++ )
   {
@@ -563,10 +561,13 @@ void ADCIntHandler( void )
         platform_adc_stop( id );
       } 
       else if ( s->burst == 0 )
+      {
+        // Need to manually fire off sample request in single sample mode
         ADCProcessorTrigger( ADC_BASE, id );
+      }
+        
     }
   }
-  platform_cpu_enable_interrupts();
 }
 
 static void adcs_init()
@@ -603,19 +604,23 @@ int platform_adc_sample( unsigned id )
   elua_adc_state *s = adc_get_ch_state( id );
   int res;
   
-  res = buf_set( BUF_ID_ADC, id, ADC_BUF_SIZE , sizeof( u16 ) );
-  if ( res != PLATFORM_OK )
-    return res;
-  
-  // Need more general buf resizing... for now flush each time
-  buf_flush( BUF_ID_ADC, id );
-  
-  s->burst = 0;
-  s->op_pending = 1;
-  s->reqsamples = 1;
-
   // Make sure sequencer is disabled before making changes
   ADCSequenceDisable( ADC_BASE, id );
+  
+  // If switching from burst, resize & flush buffer
+  if ( s->burst == 1 )
+  {
+    res = buf_set( BUF_ID_ADC, id, ADC_BUF_SIZE , BUF_DSIZE_U16 );
+    if ( res != PLATFORM_OK )
+      return res;
+    // Need more general buf resizing... for now flush each time
+    buf_flush( BUF_ID_ADC, id );
+    s->burst = 0;
+    s->reqsamples = 0;
+  }
+  
+  s->op_pending = 1;
+  s->reqsamples += 1;
 
   // Conversion will run back-to-back until required samples are acquired
   ADCSequenceConfigure( ADC_BASE, id, ADC_TRIGGER_PROCESSOR, id ) ;
@@ -624,11 +629,6 @@ int platform_adc_sample( unsigned id )
   ADCSequenceEnable( ADC_BASE, id );
   ADCProcessorTrigger( ADC_BASE, id );
 
-  // If in blocking mode and sample is pending, wait for ready flag
-  if ( s->nonblocking == 0 && s->op_pending == 1 )
-  {
-    while ( s->op_pending == 1 ) { ; }
-  }
   return PLATFORM_OK;
 }
 
@@ -637,20 +637,24 @@ int platform_adc_burst( unsigned id, u8 logcount, unsigned timer_id, u32 frequen
   elua_adc_state *s = adc_get_ch_state( id );
   int res;
   
-  res = buf_set( BUF_ID_ADC, id, logcount , sizeof( u16 ) );
-  if ( res != PLATFORM_OK )
-    return res;
+  // Make sure sequencer is disabled before making changes
+  ADCSequenceDisable( ADC_BASE, id );
   
-  // Need more general buf resizing... for now flush each time
-  buf_flush( BUF_ID_ADC, id );
-
-  s->burst = 1;
+  // If switching from non-burst, resize & flush buffer
+  if (s->burst == 0 || ( (u16) 1 << logcount ) != buf_get_count( BUF_ID_ADC, id ) )
+  {
+    res = buf_set( BUF_ID_ADC, id, logcount, BUF_DSIZE_U16 );
+    if ( res != PLATFORM_OK )
+      return res;
+    // Need more general buf resizing... for now flush each time
+    buf_flush( BUF_ID_ADC, id );
+    s->burst = 1;
+    s->reqsamples = 0;
+  }
+  
   s->timer_id = timer_id;
   s->op_pending = 1;
   s->reqsamples = (u16) 1 << logcount;
-
-  // Make sure sequencer is disabled before making changes
-  ADCSequenceDisable( ADC_BASE, id );
 
   // Set sequence id to be triggered repeatedly, with priority id
   ADCSequenceConfigure( ADC_BASE, id, ADC_TRIGGER_TIMER, id );
@@ -664,11 +668,6 @@ int platform_adc_burst( unsigned id, u8 logcount, unsigned timer_id, u32 frequen
   TimerControlTrigger(timer_base[timer_id], TIMER_A, true);
   TimerEnable(timer_base[timer_id], TIMER_A);
   
-  // If in blocking mode and sampling task is pending, wait until buffer fills
-  if ( s->nonblocking == 0 && s->op_pending == 1 )
-  {
-    while ( s->op_pending == 1 ) { ; }
-  }
   return PLATFORM_OK;
 }
 
