@@ -109,7 +109,7 @@ this time on the PC, and compare the results. Yes, they are identical.</p><p></p
 
 <p><strong>Runs on: EK-LM3S8962, EK-LM3S6965, SAM7-EX256</strong><br>
 This uses the same PWM module for Morse code generation. Just enter a
-text, and listen to it getting Morsed on your board's speaker. The
+text, and listen to it getting Morsed on your board's speaker and on a blinking Led. The
 letters and Morse codes are also shown on the terminal. Use '+' and
 '-'' to change the frequency, up and down arrows to change the speed,
 's' to mute/unmute, and ESC to exit.</p><p></p>
@@ -127,9 +127,9 @@ something from Lua code embedded in a web page, simply use "print" in
 your Lua code). You can also write your pages completely in Lua (again,
 using "print"), the server knows how to handle this too. When is the
 last time you heard about a scripting web server in 256k of Flash/64k
-of RAM? The full list of features is given below:</p>
+of RAM?&nbsp;</p><p>The full list of features is given below:</p>
 
-<ul><li>written completely in Lua</li><li>can handle a single connection at a time (for now)</li><li>can serve text and images (so far)</li><li>gets its files from the ROM file system (this will be extended when more filesystems are added)</li><li>can
+<ul><li>completely written&nbsp;in Lua</li><li>can handle a single connection at a time (for now)</li><li>can serve text and images (so far)</li><li>gets its files from the ROM file system (this will be extended when more filesystems are added)</li><li>can
 execute embedded Lua code and replace it with its output (via "print"
 statements). Embed Lua code in your HTML files between tags, make sure
 your HTML file extension is ".pht", and the server will preprocess it
