@@ -13,7 +13,6 @@ if boardname != 'EAGLE-100':
   cprefix= "arm-elf-"
 else:
   cprefix= "arm-eabi-"
-cprefix= "arm-eabi-"
 
 # Prepend with path
 specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )
