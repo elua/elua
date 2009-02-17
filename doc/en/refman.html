@@ -7,12 +7,12 @@
 <body style="background-color: rgb(255, 255, 255);">
 <h3>eLua Modules Reference Manual
 </h3>
-<h3><a name="genericmodules"></a>Generic
-Modules</h3><br><h3><a name="bitmodule"></a>bit</h3>
+<h2><a name="genericmodules"></a>eLua Generic
+Modules</h2><br><h3><a name="bitmodule"></a>bit</h3>
 Bitwise&nbsp;operations in eLua is implemented thru
 the&nbsp;BitLib library, from Reuben Thomas.<br>
 BitLib project is hosted at LuaForge on
-http://luaforge.net/projects/bitlib<br>
+<a href="http://luaforge.net/projects/bitlib" target="_top">http://luaforge.net/projects/bitlib</a><br>
 <p class="MsoNormal" style="font-family: Verdana;"><a name="bit_bnot"></a>Res = bit.bnot( value )</p>
 <p class="MsoNormal" style="font-family: Verdana;">
 unary negation
@@ -661,67 +661,51 @@ the clock of the given timer.</font>
 <br>
 <br>
 <h3><a name="uartmodule"></a>uart</h3>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="uart_setup"></a>[uart.setup(</font><font face="Bitstream Vera Sans Mono, sans-serif"> id, baud,
+
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="uart_setup"></a><span style="font-weight: bold;">uart.setup(</span></font><font style="font-weight: bold;" face="Bitstream Vera Sans Mono, sans-serif"> id, baud,
 databits, </font>
+</p><p style="margin-bottom: 0in; font-weight: bold;"> <font face="Bitstream Vera Sans Mono, sans-serif">uart.PARITY_EVEN
+| uart.</font><font face="Bitstream Vera Sans Mono, sans-serif">PARITY</font><font face="Bitstream Vera Sans Mono, sans-serif">_ODD | uart.</font><font face="Bitstream Vera Sans Mono, sans-serif">PARITY</font><font face="Bitstream Vera Sans Mono, sans-serif">_NONE, </font>
 </p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">uart.PARITY_EVEN
-|uart.</font><font face="Bitstream Vera Sans Mono, sans-serif">PARITY</font><font face="Bitstream Vera Sans Mono, sans-serif">_ODD | uart.</font><font face="Bitstream Vera Sans Mono, sans-serif">PARITY</font><font face="Bitstream Vera Sans Mono, sans-serif">_NONE, </font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">uart.STOPBITS_1
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><span style="font-weight: bold;">uart.STOPBITS_1
 | uart.STOPBITS_1_5 | uart.STOPBITS_2
-)]&nbsp;&nbsp;&nbsp;&nbsp; Actual_baud = uart.setup(
-id, baud, databits, </font>
+)</span></font></p>
+<p style="margin-bottom: 0in;"><font face="Bitstream Vera Sans Mono, sans-serif"><span style="font-weight: bold;"></span>&nbsp;&nbsp;&nbsp; Set the UART interface with the&nbsp;given
+parameters.</font></p><p style="margin-bottom: 0in;"><font face="Bitstream Vera Sans Mono, sans-serif">&nbsp;&nbsp;&nbsp; Returns the actual baud rate that was set for the UART.</font>
 </p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">uart.PAR_EVEN
-|uart.PAR_ODD | uart.PAR_NONE, </font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">uart.STOP_1 |
-uart.STOP_1_5 | uart.STOP_2 ): set the UART interface with the</font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">given
-parameters, returns the baud rate that was set for the UART.</font>
-</p>
-<p style="margin-bottom: 0in;">
-</p>
+
 <p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><br>
 </font></p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="uart_send"></a>[</font><font face="Bitstream Vera Sans Mono, sans-serif">uart.send] </font><font face="Bitstream Vera Sans Mono, sans-serif">uart.send( id,
-Data1, Data2, ... ): send all the data to the specified UART interface.</font>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="uart_send"></a></font><font face="Bitstream Vera Sans Mono, sans-serif"><span style="font-weight: bold;">uart.send( id,
+Data1, Data2, ... )</span></font></p><p style="margin-bottom: 0in;"><font face="Bitstream Vera Sans Mono, sans-serif"><span style="font-weight: bold;"></span>&nbsp;&nbsp;&nbsp; Send all the data to the specified UART interface.</font>
 </p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">#### Data 1 only
-!?!!<br>
-</font></p>
-<p style="margin-bottom: 0in;">
-</p>
+
+
 <p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><br>
 </font></p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="uart_recv"></a>[</font><font face="Bitstream Vera Sans Mono, sans-serif">uart.recv(</font><font face="Bitstream Vera Sans Mono, sans-serif"> id,
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="uart_recv"></a></font><font face="Bitstream Vera Sans Mono, sans-serif">uart.recv(</font><font face="Bitstream Vera Sans Mono, sans-serif"> id,
 uart.TIMEOUT_NO | <strike>uart.TIMEOUT_INFINITE</strike> |
 timeout )</font><font face="Bitstream Vera Sans Mono, sans-serif">
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </font><font face="Bitstream Vera Sans Mono, sans-serif">Data =
-uart.recv( id, uart.NO_TIMEOUT | uart.INF_TIMEOUT | timeout ): reads a </font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">byte from the
+uart.recv( id, uart.NO_TIMEOUT | uart.INF_TIMEOUT | timeout )</font></p>
+<p style="margin-bottom: 0in;"><font face="Bitstream Vera Sans Mono, sans-serif">&nbsp;&nbsp;&nbsp; Reads a byte from the
 specified UART interface.</font></p>
 <p style="margin-bottom: 0in;"></p>
 <p style="margin-bottom: 0in;">
 </p>
-<h3><a name="platdepmodules"></a>eLua Platform
+<h2><a name="platdepmodules"></a>eLua Platform
 Dependent
-Modules</h3><h3><a name="adcmodule"></a>adc</h3>Currently runs on: LM3S <br><br><a name="adc_sample"></a>adc.sample(channel_id) - generate one processed sample<br><br><a name="adc_getsamples"></a>adc.getsamples(channel_id,
-count) - request (count) samples from the buffer. if singular, an
+Modules</h2><h3><a name="adcmodule"></a>adc&nbsp; -&nbsp;Analog to Digital Conversion Module</h3><span style="font-weight: bold;">Currently runs on:</span> LM3S <br><br>&nbsp;&nbsp;&nbsp; The ADC module handles the Analog to Digital Conversion Peripherals.<br><br><br><a name="adc_sample"></a><span style="font-weight: bold;">adc.sample(channel_id)</span><br>&nbsp;&nbsp;&nbsp; Generate one processed sample.<br><br><a name="adc_getsamples"></a><span style="font-weight: bold;">adc.getsamples(channel_id,
+[count])</span><br>&nbsp;&nbsp;&nbsp; Request&nbsp;<span style="font-style: italic;">count</span> samples from the buffer.<br>&nbsp;&nbsp;&nbsp; if singular, an
 integer is returned. &nbsp;if multiple, a table of integers is returned. &nbsp;If
-count is either zero or omitted, all available samples are returned.<br><br><a name="adc_maxval"></a>adc.maxval(channel_id) - returns largest integer one can expect for this channel on a given platform (based on bit depth)<br><br><a name="adc_samplesready"></a>adc.samplesready(channel_id) - returns number of samples waiting in the buffer<br><br><a name="adc_dataready"></a>adc.dataready(channel_id)
-- if running in non-blocking mode, this will indicate if all of the
+<span style="font-style: italic;">count</span> is either zero or omitted, all available samples are returned.<br><br><a name="adc_maxval"></a><span style="font-weight: bold;">adc.maxval(channel_id)</span><br>&nbsp;&nbsp;&nbsp; Returns the largest integer one can expect fromr this channel on a given platform (based on bit depth).<br><br><a name="adc_samplesready"></a><span style="font-weight: bold;">adc.samplesready(channel_id)<br></span>&nbsp;&nbsp;&nbsp; Returns the number of samples waiting in the buffer.<br><br><a name="adc_dataready"></a><span style="font-weight: bold;">adc.dataready(channel_id)<br></span>&nbsp;&nbsp;&nbsp; If running in non-blocking mode, this will indicate if all of the
 samples requested from the last sample or <br>burst have been acquired and
-are waiting in the buffer<br><br><a name="adc_setmode"></a>adc.setmode(channel_id,
-mode) - mode: 0 sets mode to blocking (getsamples will wait for
-requested samples to be captured before returning), 1 sets non-blocking<br><br><a name="adc_setsmoothing"></a>adc.setsmoothing(channel_id, length) - set the length of the smoothing filter, this must be a power of 2 (maximum = 128)<br><br><a name="adc_getsmoothing"></a>adc.getsmoothing(channel_id) - get the current smoothing length in use<br><br><a name="adc_burst"></a>adc.burst(
-channel_id, count, timer_id, frequency) - request that (count) samples
-(must be greater than zero and a power of 2) be converted from
-(channel_id), using (timer_id) at (frequency)<br><br>
+are waiting in the buffer.<br><br><a name="adc_setmode"></a><span style="font-weight: bold;">adc.setmode(channel_id,
+mode)<br></span>&nbsp;&nbsp;&nbsp; <span style="font-style: italic;">mode</span> 0 sets&nbsp;blocking mode. adc.getsamples will wait for
+requested samples to be captured before returning.<br>&nbsp;&nbsp;&nbsp; <span style="font-style: italic;">mode</span> 1 sets non-blocking mode<br><br><a name="adc_setsmoothing"></a><span style="font-weight: bold;">adc.setsmoothing(channel_id, length)<br></span>&nbsp;&nbsp;&nbsp; Set the length of the smoothing filter.<br>&nbsp;&nbsp;&nbsp; This must be a power of 2 (maximum = 128)<br><br><a name="adc_getsmoothing"></a><span style="font-weight: bold;">adc.getsmoothing(channel_id)<br></span>&nbsp;&nbsp;&nbsp; Get the current smoothing length in use.<br><br><a name="adc_burst"></a><span style="font-weight: bold;">adc.burst(
+channel_id, count, timer_id, frequency)<br></span>&nbsp;&nbsp;&nbsp; Request that&nbsp;<span style="font-style: italic;">count</span> samples&nbsp;be converted from&nbsp;<span style="font-style: italic;">channel_id</span>, using&nbsp;<span style="font-style: italic;">timer_id</span> at&nbsp;<span style="font-style: italic;">frequency.<br></span>&nbsp;&nbsp;&nbsp; <span style="font-style: italic;">count </span>must be greater than zero and a power of 2<br><br>
 <h3><a name="dispmodule"></a>disp</h3>
-<span style="font-weight: bold;"></span>Currently runs on: LM3S <br>
+<span style="font-weight: bold;">Currently runs on:</span> LM3S <br><br>&nbsp;&nbsp;&nbsp; The disp module handles the RIT OLED display usage on Luminary Micro Cortex-M3 boards<br>
 <p class="MsoNormal"><a name="disp_init"></a>
 disp.init </p>
 <p class="MsoNormal"> <br>
