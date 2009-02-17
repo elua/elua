@@ -4,12 +4,12 @@
 #include <string.h>
 #include <errno.h>
 #include "devman.h"
-#include "romfiles.h"
 #include <stdio.h>
 #include "ioctl.h"
 
 #include "platform_conf.h"
 #ifdef BUILD_ROMFS
+#include "romfiles.h"
 
 #define ROMFS_MAX_FDS   4
 #define fsmin( x , y ) ( ( x ) < ( y ) ? ( x ) : ( y ) )

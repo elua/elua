@@ -5,7 +5,6 @@
 #include "type.h"
 #include "devman.h"
 #include "platform.h"
-#include "romfs.h"
 #include "xmodem.h"
 #include "shell.h"
 #include "lua.h"
@@ -14,6 +13,15 @@
 
 // Validate eLua configuratin options
 #include "validate.h"
+
+#include "mmcfs.h"
+#include "romfs.h"
+#if defined(BUILD_MMCFS)
+  #define FS_AUTORUN          "/mmc/autorun.lua"
+#endif
+#if defined(BUILD_ROMFS) && !defined(FS_AUTORUN)
+  #define FS_AUTORUN          "/rom/autorun.lua"
+#endif
 
 extern char etext[];
 
@@ -55,7 +63,7 @@ static int term_in( int mode )
 static int term_translate( u8 data )
 {
   int c;
-  
+
   if( isprint( data ) )
     return data;
   else if( data == 0x1B ) // escape sequence
@@ -75,7 +83,7 @@ static int term_translate( u8 data )
       case 0x43:
         return KC_RIGHT;
       case 0x44:
-        return KC_LEFT;               
+        return KC_LEFT;
     }
   }
   else if( data == 0x0D )
@@ -114,38 +122,43 @@ static int term_translate( u8 data )
 int main( void )
 {
   FILE* fp;
-  
+
   // Initialize platform first
   if( platform_init() != PLATFORM_OK )
   {
     // This should never happen
     while( 1 );
   }
-  
+
   // Initialize device manager
   dm_init();
-  
-  // Register the ROM filesystem
-  dm_register( romfs_init() );  
 
-#ifdef BUILD_XMODEM  
+  // Register the MMC filesystem
+  dm_register( mmcfs_init() );
+
+  // Register the ROM filesystem
+  dm_register( romfs_init() );
+
+#ifdef BUILD_XMODEM
   // Initialize XMODEM
-  xmodem_init( xmodem_send, xmodem_recv );    
+  xmodem_init( xmodem_send, xmodem_recv );
 #endif
 
-#ifdef BUILD_TERM  
+#ifdef BUILD_TERM
   // Initialize terminal
   term_init( TERM_LINES, TERM_COLS, term_out, term_in, term_translate );
 #endif
 
-  // Autorun: if "autorun.lua" is found in the ROM file system, run it first
-  if( ( fp = fopen( "/rom/autorun.lua", "r" ) ) != NULL )
+#ifdef FS_AUTORUN
+  // Autorun: if "autorun.lua" is found in the file system, run it first
+  if( ( fp = fopen( FS_AUTORUN, "r" ) ) != NULL )
   {
     fclose( fp );
-    char* lua_argv[] = { "lua", "/rom/autorun.lua", NULL };
-    lua_main( 2, lua_argv );    
+    char* lua_argv[] = { "lua", FS_AUTORUN, NULL };
+    lua_main( 2, lua_argv );
   }
-  
+#endif
+
   // Run the shell
   if( shell_init() == 0 )
   {

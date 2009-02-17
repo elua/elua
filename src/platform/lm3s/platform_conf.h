@@ -12,9 +12,10 @@
 // *****************************************************************************
 // Define here what components you want for this platform
 
-#define BUILD_XMODEM
+//#define BUILD_XMODEM
 #define BUILD_SHELL
 #define BUILD_ROMFS
+#define BUILD_MMCFS
 #define BUILD_TERM
 #define BUILD_UIP
 #define BUILD_DHCPC
@@ -37,6 +38,9 @@
 // *****************************************************************************
 // Auxiliary libraries that will be compiled for this platform
 
+#if (ELUA_BOARD == EK-LM3S6965) || (ELUA_BOARD == EK-LM3S8962)
+// LM3S board with RIT display
+#define BUILD_DISP_RIT
 #define AUXLIB_DISP   "disp"
 LUALIB_API int ( luaopen_disp )( lua_State* L );
 
@@ -55,6 +59,22 @@ LUALIB_API int ( luaopen_disp )( lua_State* L );
   _ROM( AUXLIB_ADC, luaopen_adc, adc_map )\
   _ROM( AUXLIB_DISP, luaopen_disp, disp_map )\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
+#else
+// LM3S board without RIT display
+#define LUA_PLATFORM_LIBS_ROM\
+  _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
+  _ROM( AUXLIB_SPI, luaopen_spi, spi_map )\
+  _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
+  _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
+  _ROM( AUXLIB_UART, luaopen_uart, uart_map )\
+  _ROM( AUXLIB_TERM, luaopen_term, term_map )\
+  _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
+  _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
+  _ROM( AUXLIB_NET, luaopen_net, net_map )\
+  _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
+  _ROM( AUXLIB_ADC, luaopen_adc, adc_map )\
+  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
+#endif
   
 // *****************************************************************************
 // Configuration data
@@ -115,7 +135,7 @@ LUALIB_API int ( luaopen_disp )( lua_State* L );
 #define PIO_PREFIX            'A'
 // Pins per port configuration:
 // #define PIO_PINS_PER_PORT (n) if each port has the same number of pins, or
-// #define PIO_PIN_ARRAY { n1, n2, ... } to define pins per port in an array 
+// #define PIO_PIN_ARRAY { n1, n2, ... } to define pins per port in an array
 // Use #define PIO_PINS_PER_PORT 0 if this isn't needed
 #define PIO_PIN_ARRAY         { 8, 8, 8, 8, 4, 4, 2 }
 
@@ -178,5 +198,5 @@ LUALIB_API int ( luaopen_disp )( lua_State* L );
   _C( INT_PWM3 ),\
   _C( INT_UDMA ),\
   _C( INT_UDMAERR )
-  
+
 #endif // #ifndef __PLATFORM_CONF_H__

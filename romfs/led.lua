@@ -5,6 +5,8 @@ if pd.board() == "SAM7-EX256" then
   ledpin = "PB_20"
 elseif pd.board() == "EK-LM3S8962" or pd.board() == "EK-LM3S6965" then
   ledpin = "PF_0"
+elseif pd.board() == "EAGLE-100" then
+  ledpin = "PE_1"
 elseif pd.board() == "STR9-COMSTICK" then
   ledpin = "P9_0"
 elseif pd.board() == "LPC-H2888" then

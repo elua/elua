@@ -89,7 +89,7 @@
 
 //## Modified for eLua
 //## Defaults search modules path to our ROM File System
-#define LUA_PATH_DEFAULT "\ROM\?.lua"
+#define LUA_PATH_DEFAULT "\\ROM\\?.lua"
 /*
 ** ## Original LUA_PATH_DEFAULT
 #define LUA_PATH_DEFAULT  \

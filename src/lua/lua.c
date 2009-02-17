@@ -17,7 +17,9 @@
 #include "lauxlib.h"
 #include "lualib.h"
 
-
+#if defined(ELUA_PLATFORM)
+#define main lua_main
+#endif
 
 static lua_State *globalL = NULL;
 
@@ -374,7 +376,7 @@ static int pmain (lua_State *L) {
 }
 
 
-int lua_main (int argc, char **argv) {
+int main (int argc, char **argv) {
   int status;
   struct Smain s;
   lua_State *L = lua_open();  /* create state */

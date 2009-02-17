@@ -7,7 +7,7 @@ if not math then
   return
 end
   
-if pd.board() == "EK-LM3S8962" or pd.board() == "EK-LM3S6965" then
+if pd.board() == "EK-LM3S8962" or pd.board() == "EK-LM3S6965" or pd.board() == "EAGLE-100" then
   pwmid, tmrid = 1, 1
 elseif pd.board() == "SAM7-EX256" then
   pwmid, tmrid = 0, 1

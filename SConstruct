@@ -24,7 +24,7 @@ romfs = { 'bisect' : [ 'bisect.lua' ],
 
 # List of platform/CPU combinations
 cpu_list = { 'at91sam7x' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
-              'lm3s' : [ 'LM3S8962', 'LM3S6965' ],
+              'lm3s' : [ 'LM3S8962', 'LM3S6965', 'LM3S6918' ],
               'str9' : [ 'STR912FW44' ],
               'i386' : [ 'I386' ],
               'lpc288x' : [ 'LPC2888' ],
@@ -37,6 +37,7 @@ cpu_list = { 'at91sam7x' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
 board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
                'EK-LM3S8962' : [ 'LM3S8962' ],
                'EK-LM3S6965' : [ 'LM3S6965' ],
+               'EAGLE-100' : [ 'LM3S6918' ],
                'STR9-COMSTICK' : [ 'STR912FW44' ],
                'PC' : [ 'I386' ],
                'LPC-H2888' : [ 'LPC2888' ],
@@ -49,6 +50,7 @@ board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
 file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'info', 'morse' ],
               'EK-LM3S8962' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope' ],
               'EK-LM3S6965' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope' ],
+              'EAGLE-100' : [ 'led', 'info' ],
               'STR9-COMSTICK' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
               'PC' : [ 'bisect', 'hello', 'info', 'life' ],
               'LPC-H2888' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
@@ -164,6 +166,10 @@ newlib_files = " src/newlib/devman.c src/newlib/stubs.c src/newlib/genstd.c src/
 uip_files = "uip_arp.c uip.c uiplib.c dhcpc.c psock.c resolv.c"
 uip_files = " src/elua_uip.c " + " ".join( [ "src/uip/%s" % name for name in uip_files.split() ] )
 local_include = local_include + " -Isrc/uip"
+
+# FatFs files
+app_files = app_files + "src/mmcfs.c src/fatfs/ff.c "
+local_include = local_include + " -Isrc/fatfs"
 
 # Lua module files
 module_names = "pio.c spi.c tmr.c pd.c uart.c term.c pwm.c lpack.c bit.c net.c cpu.c adc.c"
