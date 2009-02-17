@@ -115,8 +115,7 @@ u16 adc_get_processed_sample( unsigned id )
       return sample;
     }
   }
-  else
-    return 0;
+  return 0;
 }
 
 void adc_flush_smoothing( unsigned id )
