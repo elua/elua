@@ -347,3 +347,4 @@ u32 rndpow2( u32 v )
   
   return v;
 }
+

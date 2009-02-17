@@ -33,3 +33,4 @@ u16 adc_samples_available( unsigned id );
 void adc_wait_pending( unsigned id );
 
 #endif
+
