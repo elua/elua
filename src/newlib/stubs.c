@@ -12,6 +12,7 @@
 #include "platform_conf.h"
 #include "genstd.h"
 #include "utils.h"
+#include "salloc.h"
 
 #ifdef USE_MULTIPLE_ALLOCATOR
 #include "dlmalloc.h"
@@ -344,32 +345,35 @@ struct mallinfo mallinfo()
 #endif
 } 
 
+#if defined( USE_MULTIPLE_ALLOCATOR ) || defined( USE_SIMPLE_ALLOCATOR )
+// Redirect all allocator calls to our dlmalloc/salloc 
+
 #ifdef USE_MULTIPLE_ALLOCATOR
-// Redirect all allocator calls to our dlmalloc
+#define CNAME( func ) dl##func
+#else
+#define CNAME( func ) s##func
+#endif
+
 void* _malloc_r( struct _reent* r, size_t size )
 {
-  return dlmalloc( size );
+  return CNAME( malloc )( size );
 }
 
 void* _calloc_r( struct _reent* r, size_t nelem, size_t elem_size )
 {
-  return dlcalloc( nelem, elem_size );
+  return CNAME( calloc )( nelem, elem_size );
 }
 
 void _free_r( struct _reent* r, void* ptr )
 {
-  dlfree( ptr );
+  CNAME( free )( ptr );
 }
 
 void* _realloc_r( struct _reent* r, void* ptr, size_t size )
 {
-  return dlrealloc( ptr, size );
+  return CNAME( realloc )( ptr, size );
 }
 
-void* _memalign_r( struct _reent* r, size_t align, size_t nbytes )
-{
-  return dlmemalign( align, nbytes );
-}
 #endif // #ifdef USE_MULTIPLE_ALLOCATOR
 
 // *****************************************************************************

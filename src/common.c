@@ -305,20 +305,35 @@ u32 platform_adc_op( unsigned id, int op, u32 data )
 // ****************************************************************************
 // Allocator support
 
+#define MIN_ALIGN         8
+#define MIN_ALIGN_SHIFT   3
+
 extern char end[];
 
 void* platform_get_first_free_ram( unsigned id )
 {
   void* mstart[] = MEM_START_ADDRESS;
-  
-  return id >= sizeof( mstart ) / sizeof( void* ) ? NULL : mstart[ id ];
+  u32 p;
+
+  if( id >= sizeof( mstart ) / sizeof( void* ) )
+    return NULL;
+  p = ( u32 )mstart[ id ];
+  if( p & ( MIN_ALIGN - 1 ) )
+    p = ( ( p >> MIN_ALIGN_SHIFT ) + 1 ) << MIN_ALIGN_SHIFT;
+  return ( void* )p;
 }
 
 void* platform_get_last_free_ram( unsigned id )
 {
   void* mend[] = MEM_END_ADDRESS;
-  
-  return id >= sizeof( mend ) / sizeof( void* ) ? NULL : mend[ id ];
+  u32 p;
+
+  if( id >= sizeof( mend ) / sizeof( void* ) )
+    return NULL;
+  p = ( u32 )mend[ id ];
+  if( p & ( MIN_ALIGN - 1 ) )
+    p = ( ( p >> MIN_ALIGN_SHIFT ) - 1 ) << MIN_ALIGN_SHIFT;
+  return ( void* )p;
 }
 
 

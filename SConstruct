@@ -112,9 +112,9 @@ if allocator == '':
     allocator = 'multiple'
   else:
     allocator = 'newlib'
-elif allocator not in [ 'newlib', 'multiple' ]:
+elif allocator not in [ 'newlib', 'multiple', 'simple' ]:
   print "Unknown allocator", allocator
-  print "Allocator can be either 'newlib' or 'multiple'"
+  print "Allocator can be either 'newlib', 'multiple' or 'simple'"
   sys.exit( -1 )
 
 
@@ -135,6 +135,8 @@ output = 'elua_' + target + '_' + cputype.lower()
 cdefs = '-DELUA_CPU=%s -DELUA_BOARD=%s -DELUA_PLATFORM=%s -D__BUFSIZ__=128' % ( cputype, boardname, platform.upper() )
 if allocator == 'multiple':
   cdefs = cdefs + " -DUSE_MULTIPLE_ALLOCATOR"
+elif allocator == 'simple':
+  cdefs = cdefs + " -DUSE_SIMPLE_ALLOCATOR"
 
 # Lua source files and include path
 lua_files = """lapi.c lcode.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c lobject.c lopcodes.c
@@ -155,7 +157,7 @@ cdefs = cdefs + " -DLUA_OPTIMIZE_MEMORY=%d" % ( optram != 0 and 2 or 0 )
 local_libs = ''
 
 # Application files
-app_files = " src/main.c src/romfs.c src/xmodem.c src/shell.c src/term.c src/common.c src/buf.c src/elua_adc.c src/dlmalloc.c "
+app_files = " src/main.c src/romfs.c src/xmodem.c src/shell.c src/term.c src/common.c src/buf.c src/elua_adc.c src/dlmalloc.c src/salloc.c "
 
 # Newlib related files
 newlib_files = " src/newlib/devman.c src/newlib/stubs.c src/newlib/genstd.c src/newlib/stdtcp.c"
