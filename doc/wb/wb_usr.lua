@@ -11,19 +11,19 @@
 -- General config parameters
 wb_usr = {
    langs = {"en","pt" },
-   start_size = "200",
-   title_bar_height = 80,
-   enable_search = true,
-   --search_label = "Search:",
-   search_link = "http://www.eluaproject.net", 
-   --contact = "dadosutter@eluaproject.net",
-   --copyright_name = "eLua Team",
-   --copyright_link = "http://www.eluaproject.net", 
-   
+   start_size = "200",                            -- Menu tree initial width
+   title_bar_height = 80,                         -- Title bar initial height
    title_bgcolor = "midnightblue",
+   enable_search = true,
+   search_link = "http://www.eluaproject.net", 
+--   search_label = "Search: ",
+--   contact = "eluateam@eluaproject.net",
+--   copyright_name = "eLua Team",
+--   copyright_link = "http://www.eluaproject.net", 
    file_title = "wb",
    start_open = "1",
-   logo_image_file = "eLua-logo-80x80.png"
+   logo_image_file = "eLuaLogo.png"
+-- logo_onclick_link = 
 } 
 
 
@@ -643,12 +643,13 @@ wb_usr.tree =
     },
     {
       name = { en = "Downloads", pt = "Downloads" },
-      link = "downloads.html",
+      link = "dl_binaries.html",
       folder =
       {
         {
           name = { en = "Binaries", pt = "Binaries" },
           link = "dl_binaries.html",
+--[[
           folder =
           { 
             {
@@ -672,41 +673,32 @@ wb_usr.tree =
               link = "lm_bin.html",
             },
           },
+--]]          
         },     
         { 
           name = { en = "Source Code", pt = "Fontes" },
-          link = "sources.html",
+          link = "dl_sources.html",
           folder = 
           {
             { 
-              name = { en = "v0.6", pt = "v0.6" },
-              link = "sources.html#06"
+              name = { en = "Official Releases", pt = "Versões Oficiais[B" },
+              link = "dl_sources.html"
             },
             { 
-              name = { en = "trunk", pt = "trunk" },
-              link = "sources.html#trunk"
+              name = { en = "SVN Public", pt = "SVN Público" },
+              link = "dl_sources.html#svnpublic"
             }, 
             { 
-              name = { en = "old versions", pt = "anteriores" },
-              link = "oldversions.html",
-              folder = 
-              {
-                { 
-                  name = { en = "v0.5", pt = "v0.5" },
-                  link = "oldversions.html#05"
-                },
-                { 
-                  name = { en = "v0.4", pt = "v0.4" },
-                  link = "sources.html#04"
-                },
-              },
+              name = { en = "Developers", pt = "Desenvolvedores" },
+              link = "dl_sources.html#svndev"
             },
           },
         },
         { 
-          name = { en = "Developers", pt = "Desenvolvedores" },
-          link = "developers.html"
+          name = { en = "Old Versions", pt = "Versões Anteriores" },
+          link = "dl_old.html"
         },
+        
       },
     },
   },

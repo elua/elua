@@ -1,14 +1,10 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
-<html><head>
-<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-<meta http-equiv="Content-Language" content="en-us"><title>Product</title>
-
-<link rel="stylesheet" type="text/css" href="../style.css"></head>
+<html><head><meta http-equiv="content-type" content="text/html; charset=ISO-8859-1"><meta http-equiv="Content-Language" content="en-us"><title>Product</title><link rel="stylesheet" type="text/css" href="../style.css"></head>
 <body style="background-color: rgb(255, 255, 255);">
 <h3>eLua Modules Reference Manual
 </h3>
 <h2><a name="genericmodules"></a>eLua Generic
-Modules</h2><br><h3><a name="bitmodule"></a>bit</h3>
+Modules</h2>A Generic eLua Module is a module that can be used equally by a Lua program running on any of the <a href="status.html#platforms">supported eLua platforms</a>.<br>Write your code once and it is already automatically ported to the main platforms of the embedded world.<br><br><h3><a name="bitmodule"></a>bit</h3>
 Bitwise&nbsp;operations in eLua is implemented thru
 the&nbsp;BitLib library, from Reuben Thomas.<br>
 BitLib project is hosted at LuaForge on
@@ -247,12 +243,16 @@ but its parameters are string.&nbsp;</font>
 <p style="margin-bottom: 0in;"> <br>
 </p>
 <p style="margin-bottom: 0in;"> </p>
-<h3><a name="gpiomodule">gpio</a></h3>
+<h3><a name="gpiomodule">pio</a></h3>
 <p class="MsoNormal" style="font-family: Verdana;">
-<b>[gpio] pio</b><br>
+<b>pio</b></p><p class="MsoNormal" style="font-family: Verdana;">Programable Input Output Module</p><p class="MsoNormal" style="font-family: Verdana;">Some notes on PIO:</p><ul><li>pio: only
+some platform have internal pullups for the pio pins, while Cortex is
+the only platform that also provides pulldowns for its pios. However,
+in this case you're safe, as eLua will signal an error if you try to
+execute a pullup operatin on a platform that does not support it.</li></ul><p class="MsoNormal" style="font-family: Verdana;">
 </p>
 <br>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="gpio_setpinvalue"></a> [gpio.setpinvalue] pio.setpin(
+<p class="MsoNormal" style="font-family: Verdana;"><a name="gpio_setpinvalue"></a> [pio.setpinvalue] pio.setpin(
 value, Pin1, Pin2 ... ): set the value to all the pins in the list
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
@@ -261,13 +261,13 @@ value, Pin1, Pin2 ... ): set the value to all the pins in the list
 <p class="MsoNormal" style="font-family: Verdana;">
 &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="gpio_setpinhigh"></a> [gpio.setpinhigh] pio.set(
+<p class="MsoNormal" style="font-family: Verdana;"><a name="gpio_setpinhigh"></a> [pio.setpinhigh] pio.set(
 Pin1, Pin2, ... ): set the value of all the pins in the list to 1.
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
 &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="gpio_getpinvalue"></a> [gpio.getpinvalue] Val1, Val2,
+<p class="MsoNormal" style="font-family: Verdana;"><a name="gpio_getpinvalue"></a> [pio.getpinvalue] Val1, Val2,
 ... = pio.get( Pin1, Pin2, ... ): reads one or more pins and returns
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
@@ -276,27 +276,26 @@ Pin1, Pin2, ... ): set the value of all the pins in the list to 1.
 <p class="MsoNormal" style="font-family: Verdana;">
 &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="gpio_setpinlow"></a> [gpio.setpinlow] pio.clear(
+<p class="MsoNormal" style="font-family: Verdana;"><a name="gpio_setpinlow"></a> [pio.setpinlow] pio.clear(
 Pin1, Pin2, ... ): set the value of all the pins in the list to 0.
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
 &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="gpio_configpin"></a> [gpio.configpin(gpio.DIR,
-gpio.DIR_INPUT)] pio.input( Pin1, Pin2, ... ): set the specified pin(s)
+<p class="MsoNormal" style="font-family: Verdana;"><a name="gpio_configpin"></a> [pio.configpin(pio.DIR, pio.DIR_INPUT)] pio.input( Pin1, Pin2, ... ): set the specified pin(s)
 as input(s).
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
 &nbsp;
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
-[gpio.configpin(gpio.DIR, gpio.DIR_OUTPUT)] pio.output( Pin1, Pin2, ...
+[pio.configpin(pio.DIR, pio.DIR_OUTPUT)] pio.output( Pin1, Pin2, ...
 ): set the specified pin(s) as output(s).
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
 &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="gpio_setportvalue"></a> [gpio.setportvalue]
+<p class="MsoNormal" style="font-family: Verdana;"><a name="gpio_setportvalue"></a> [pio.setportvalue]
 pio.setport( value, Port1, Port2, ... ): set the value of all the ports
 in the
 </p>
@@ -306,7 +305,7 @@ in the
 <p class="MsoNormal" style="font-family: Verdana;">
 &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="gpio_getportvalue"></a> [gpio.getportvalue] Val1,
+<p class="MsoNormal" style="font-family: Verdana;"><a name="gpio_getportvalue"></a> [pio.getportvalue] Val1,
 Val2, ... = pio.getport( Port1, Port2, ... ): reads one or more ports
 and
 </p>
@@ -316,7 +315,7 @@ and
 <p class="MsoNormal" style="font-family: Verdana;">
 &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="gpio_getportname"></a> [gpio.getportname]
+<p class="MsoNormal" style="font-family: Verdana;"><a name="gpio_getportname"></a> [pio.getportname]
 Port = pio.port( code ): return the physical port number associated
 with the given code. For example, "pio.port( pio.P0_20 )" will return
 0.
@@ -324,30 +323,28 @@ with the given code. For example, "pio.port( pio.P0_20 )" will return
 <p class="MsoNormal" style="font-family: Verdana;">
 &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="gpio_getpinnumber"></a> [gpio.getpinnumber] Pin =
+<p class="MsoNormal" style="font-family: Verdana;"><a name="gpio_getpinnumber"></a> [pio.getpinnumber] Pin =
 pio.pin( code ): return the physical pin number associated with the
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
 given code. For example, "pio.pin( pio.P0_20 )" will return 20.
 </p>
 <br>
-<a name="gpio_togglepin"></a>[gpio.togglepin([Pin1],
+<a name="gpio_togglepin"></a>[pio.togglepin([Pin1],
 [Pin2], ...)]<br>
 <br>
-<a name="gpio_toogleport"></a>[gpio.toggleport([Port1],
+<a name="gpio_toogleport"></a>[pio.toggleport([Port1],
 [Port2], ...)]<br style="font-family: Verdana;">
 <br>
 Another idea (can be added to the above ?)<br>
-[gpio.configport(gpio.[FUNCTION], gpio.MASK, [MASK])]<br>
+[pio.configport(pio.[FUNCTION], pio.MASK, [MASK])]<br>
 Ex:<br>
-&nbsp; gpio.configpin(gpio.DIR,
-gpio.DIR_INPUT)&nbsp;&nbsp;&nbsp; (.DIR_OUTPUT)<br>
-&nbsp; gpio.configpin(gpio.PULL,
-gpio.PULL_UP)&nbsp;&nbsp;&nbsp;&nbsp; (.PULL_DOWN,
+&nbsp; pio.configpin(pio.DIR, pio.DIR_INPUT)&nbsp;&nbsp;&nbsp; (.DIR_OUTPUT)<br>
+&nbsp; pio.configpin(pio.PULL, pio.PULL_UP)&nbsp;&nbsp;&nbsp;&nbsp; (.PULL_DOWN,
 PULL_NO)<br style="font-family: Verdana;">
 <br>
 <p class="MsoNormal" style="font-family: Verdana;">
-[gpio.configport(gpio.DIR, gpio.DIR_INPUT, [Port1], [Port2], ...)]
+[pio.configport(pio.DIR, pio.DIR_INPUT, [Port1], [Port2], ...)]
 pio.port_input( Port1, Port2, ... ): set the specified port(s) as
 input(s).
 </p>
@@ -355,7 +352,7 @@ input(s).
 &nbsp;
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
-[gpio.configport(gpio.DIR, gpio.DIR_OUTPUT, [Port1], [Port2], ...)]
+[pio.configport(pio.DIR, pio.DIR_OUTPUT, [Port1], [Port2], ...)]
 pio.port_output( Port1, Port2, ... ): set the specified port(s) as
 output(s).
 </p>
@@ -363,7 +360,7 @@ output(s).
 &nbsp;
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
-[gpio.configpin(gpio.PULL, gpio.PULL_UP, [Pin1], [Pin2], ...)]
+[pio.configpin(pio.PULL, pio.PULL_UP, [Pin1], [Pin2], ...)]
 pio.pullup( Pin1, Pin2, ... ): enable internal pullups on the specified
 pins.Note that some CPUs might not provide this feature.
 </p>
@@ -371,7 +368,7 @@ pins.Note that some CPUs might not provide this feature.
 &nbsp;
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
-[gpio.configpin(gpio.PULL, gpio.PULL_DOWN, [Pin1], [Pin2], ...)]
+[pio.configpin(pio.PULL, pio.PULL_DOWN, [Pin1], [Pin2], ...)]
 pio.pulldown( Pin1, Pin2, ... ): enable internal pulldowns on the
 specified pins. Note that some CPUs might not provide this feature.
 </p>
@@ -379,7 +376,7 @@ specified pins. Note that some CPUs might not provide this feature.
 &nbsp;
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
-[gpio.configpin(gpio.PULL, gpio.PULL_NO, [Pin1], [Pin2], ...)]
+[pio.configpin(pio.PULL, pio.PULL_NO, [Pin1], [Pin2], ...)]
 pio.nopull( Pin1, Pin2, ... ): disable the pullups/pulldowns on the
 specifiedpins. Note that some CPUs might not provide this feature.
 </p>
@@ -588,7 +585,28 @@ c = term.getch( term.WAIT | term.NOWAIT ): returns a char read from the
 execute timer specific operations (delay, read timer value,</font>
 </p>
 <p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">start timer, get
-time difference).</font>
+time difference).</font></p><p style="margin-bottom: 0in;"><font face="Bitstream Vera Sans Mono, sans-serif">Some notes on timers:</font></p><ul><li>timers: from all the platforms on which eLua runs, only
+the Luminary Cortex CPUs has rock solid 32-bit timers. You can do
+pretty much everything you need with them. All the other platforms have
+16-bit timers, which imposes some limits on the range of delays you can
+achieve with them. Make sure to use tmr.mindelay(id) and
+tmr.maxdelay(id) to check the actual resolution of your timers, and
+adapt your code accordingly. To 'compensate' for this, it's not
+possible to change the base timer frequency on the Cortex CPUs, but it
+is possible on most other platforms :) So be sure to also check the
+result of tmr.setclock(id)</li><li>also, when using timers,
+remember that if you're using XMODEM and/or the "term" module, TMR0 is
+used by both of them. So, if you change the TMR0 base clock in your
+code, be sure to restore the original setting before returning to the
+shell. You can change this static timer assignment by modifying
+src/main.c. It might also be possible to change it dynamically in the
+future, although I see little use for this.</li><li>PWM: the
+Cortex CPUs have 6 PWM channels, but channels 0/1, 2/3 and 4/5
+respectively share the same base clock setting. So, when you're
+changing the base clock for channel 1, you're also changing the base
+clock for channel 0; if channel 0 was already running, you won't like
+what will happen next. This time no eLua function can save you, you
+simply need you know your CPU architecture.</li></ul><p style="margin-bottom: 0in;">
 </p>
 <p style="margin-bottom: 0in;"> <br>
 </p>
@@ -695,7 +713,10 @@ specified UART interface.</font></p>
 </p>
 <h2><a name="platdepmodules"></a>eLua Platform
 Dependent
-Modules</h2><h3><a name="adcmodule"></a>adc&nbsp; -&nbsp;Analog to Digital Conversion Module</h3><span style="font-weight: bold;">Currently runs on:</span> LM3S <br><br>&nbsp;&nbsp;&nbsp; The ADC module handles the Analog to Digital Conversion Peripherals.<br><br><br><a name="adc_sample"></a><span style="font-weight: bold;">adc.sample(channel_id)</span><br>&nbsp;&nbsp;&nbsp; Generate one processed sample.<br><br><a name="adc_getsamples"></a><span style="font-weight: bold;">adc.getsamples(channel_id,
+Modules</h2>A Platform Dependent eLua Module is a module that runs only on one or on a few <a href="status.html#platforms">supported eLua platforms</a>.<br>These
+modules make use of specifical devices and features offered by some
+kits and allow eLua aplications to make the best use of the external
+hardware on your platforms.<br><h3><a name="adcmodule"></a>adc&nbsp; -&nbsp;Analog to Digital Conversion Module</h3><span style="font-weight: bold;">Currently runs on:</span> LM3Sxxxx<br><br>&nbsp;&nbsp;&nbsp; The ADC module handles the Analog to Digital Conversion Peripherals.<br><br><br><a name="adc_sample"></a><span style="font-weight: bold;">adc.sample(channel_id)</span><br>&nbsp;&nbsp;&nbsp; Generate one processed sample.<br><br><a name="adc_getsamples"></a><span style="font-weight: bold;">adc.getsamples(channel_id,
 [count])</span><br>&nbsp;&nbsp;&nbsp; Request&nbsp;<span style="font-style: italic;">count</span> samples from the buffer.<br>&nbsp;&nbsp;&nbsp; if singular, an
 integer is returned. &nbsp;if multiple, a table of integers is returned. &nbsp;If
 <span style="font-style: italic;">count</span> is either zero or omitted, all available samples are returned.<br><br><a name="adc_maxval"></a><span style="font-weight: bold;">adc.maxval(channel_id)</span><br>&nbsp;&nbsp;&nbsp; Returns the largest integer one can expect fromr this channel on a given platform (based on bit depth).<br><br><a name="adc_samplesready"></a><span style="font-weight: bold;">adc.samplesready(channel_id)<br></span>&nbsp;&nbsp;&nbsp; Returns the number of samples waiting in the buffer.<br><br><a name="adc_dataready"></a><span style="font-weight: bold;">adc.dataready(channel_id)<br></span>&nbsp;&nbsp;&nbsp; If running in non-blocking mode, this will indicate if all of the
@@ -705,7 +726,7 @@ mode)<br></span>&nbsp;&nbsp;&nbsp; <span style="font-style: italic;">mode</span>
 requested samples to be captured before returning.<br>&nbsp;&nbsp;&nbsp; <span style="font-style: italic;">mode</span> 1 sets non-blocking mode<br><br><a name="adc_setsmoothing"></a><span style="font-weight: bold;">adc.setsmoothing(channel_id, length)<br></span>&nbsp;&nbsp;&nbsp; Set the length of the smoothing filter.<br>&nbsp;&nbsp;&nbsp; This must be a power of 2 (maximum = 128)<br><br><a name="adc_getsmoothing"></a><span style="font-weight: bold;">adc.getsmoothing(channel_id)<br></span>&nbsp;&nbsp;&nbsp; Get the current smoothing length in use.<br><br><a name="adc_burst"></a><span style="font-weight: bold;">adc.burst(
 channel_id, count, timer_id, frequency)<br></span>&nbsp;&nbsp;&nbsp; Request that&nbsp;<span style="font-style: italic;">count</span> samples&nbsp;be converted from&nbsp;<span style="font-style: italic;">channel_id</span>, using&nbsp;<span style="font-style: italic;">timer_id</span> at&nbsp;<span style="font-style: italic;">frequency.<br></span>&nbsp;&nbsp;&nbsp; <span style="font-style: italic;">count </span>must be greater than zero and a power of 2<br><br>
 <h3><a name="dispmodule"></a>disp</h3>
-<span style="font-weight: bold;">Currently runs on:</span> LM3S <br><br>&nbsp;&nbsp;&nbsp; The disp module handles the RIT OLED display usage on Luminary Micro Cortex-M3 boards<br>
+<span style="font-weight: bold;">Currently runs on:</span> LM3S xxxx<br><br>&nbsp;&nbsp;&nbsp; The disp module handles the RIT OLED display usage on Luminary Micro Cortex-M3 boards<br>
 <p class="MsoNormal"><a name="disp_init"></a>
 disp.init </p>
 <p class="MsoNormal"> <br>

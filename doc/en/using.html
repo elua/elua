@@ -5,69 +5,45 @@
 
 <link rel="stylesheet" type="text/css" href="../style.css"></head>
 <body style="background-color: rgb(255, 255, 255);">
-<h3>Using eLua</h3><p> So, you already built and installed eLua, but now you don't know
-what to do with it. It's actually quite easy: all you need is your
-board connected to the computer and a terminal emulation program. If
+<h3>Using eLua</h3><p> So, you already built and installed eLua and now it is time to have fun with it. It's actually quite easy: all you need is your
+board connected to a PC, running a terminal emulation program.<br>If
 you're using Windows, I strongly recommend <a href="http://www.ayera.com/teraterm/">TeraTerm</a>.
-It's a freeware, it's very powerful and also easy to use. On Linux,
-you'll probably be stucked with minicom. It's not exactly intuitive,
-and it runs in text mode, but it's still very powerful, and if you
-google for "minicom tutorial" you'll get the hang of it in no time. Or
-you can try any other terminal emulator, as long as you set it up
-properly (and as long as it gives you the option of transferring files
-via XMODEM, which is what eLua uses at the moment). These are the main
+It's a freeware, it's very powerful and also easy to use. The native Hyper Terminal progam can do too.&nbsp;<br>On
+Linux,
+you'll probably be stucked with minicom. It is not exactly intuitive
+and it runs in text mode, but it's still very powerful. If you
+google for "minicom tutorial" you'll get the hang of it in no time. You
+can try any other terminal emulator, as long as you set it up
+properly and it gives you the option of transferring files
+via XMODEM, which is what eLua uses at the moment. These are the main
 settings you need to look at:</p>
 
-<ul><li>port setup: 115200 baud (38400 for <a href="http://www.eluaproject.net/en/eLua_on_STR7_CPUs">STR7</a>, 8N1(8 data bits, no parity, one stop bit). </li><li>flow control: none</li><li>newline handling: "CR" on receive, "CR+LF" on send (some terminal programs won't give you a choice here).  </li></ul>
+<ul><li>port setup: 115200 baud (38400 for <a href="http://www.eluaproject.net/en/eLua_on_STR7_CPUs">STR7)##</a>, 8N1(8 data bits, no parity, one stop bit). </li><li>hardware flow control: none</li><li>newline handling: "CR" on receive, "CR+LF" on send (some terminal programs won't give you a choice here).  </li></ul>
 
 
 <p>Also, depending on the type of your board, you'll need some way to
-connect the board to a serial port on your PC, or to USB if you're
-using an USB to serial converter. For example, as already explained <a href="http://www.eluaproject.net/en/eLua_on_LM3S_CPUs">here</a>,
-the USB port on the LM3S7862 board is dual, so you can use it as an USB
+connect the board to a serial port on your PC or to USB if you're
+using an USB to serial converter. For example, as already explained <a href="http://www.eluaproject.net/en/eLua_on_LM3S_CPUs">here</a>##,
+the USB port on the LM3Sxxxx boards is dual, so you can use it as an USB
 to serial converter after downloading your firmware, thus you don't
 need any other type of connection. The same is true for the
 STR9-comStick board. On the other hand, for the SAM7-EX256 board you'll
 need to connect a serial cable to the "RS232" connector, provided that
-the jumpers are already set as explained <a href="http://www.eluaproject.net/en/eLua_on_AT91SAM_CPUs">here</a>.</p>
+the jumpers are already set as explained <a href="http://www.eluaproject.net/en/eLua_on_AT91SAM_CPUs">here##</a> and on the MOD711 you will need to add an RS232 converter chip.</p>
 
-<p>After you press the "RESET" button on your board, you should see the
-eLua shell prompt. Up to date documentation of how to use the shell is
-always included in the distribution (docs/the_elua_shell.txt). For your
+<p>After you setup this PC-eLua board connection and press the "RESET" button on your board, you should see the
+eLua shell prompt. For your
 convenience, the shell documentation is also provided on this page.</p>
 
-<h2>The eLua shell</h2>
+<h2><a name="shell"></a></h2><h2>The eLua shell</h2>
 
 <p>After you burn eLua to your board and you connect the board to your terminal
 emulator running on the PC, you'll be greeted with the eLua shell prompt, which
 allows you to:</p>
 
-<ul><li>run 'lua' as you would run it from the Linux or Windows command prompt</li><li>upload a Lua source file via XMODEM and execute in on board</li><li>query the eLua version</li><li>get help on shell usage</li></ul>
+<ul><li>get help on shell usage with the help command</li><li>run the Lua interpreter in interactive mode just like on do on&nbsp;Linux, Windows and MacOS</li><li>run a Lua program from the eLua File System</li><li>upload a Lua source file via XMODEM and execute in on board</li><li>query the eLua version</li><li>list files on eLua File Systems<br></li></ul><p>More details about some of the shell commands are presented below.</p>
 
-<p>To enable the shell, define BUILD_SHELL in your build.h file, and also
-BUILD_XMODEM if you want to use the "recv" command (see below). See 
-docs/elua_components.txt for more details about enabling the shell.</p>
-
-<p>You'll need to configure your terminal emulation program to connect to your eLua
-board. These are the parameters you'll need to set for your serial connection:</p>
-
-<ul><li>speed 115200, 8N1 (8 data bits, no parity, one stop bit)</li><li>no flow control</li><li>newline handling (if available): CR on receive, CR+LF on send</li></ul>
-
-<p>After you setup your terminal program, press the RESET button on the bord.
-When you see the "eLua# " prompt, just enter "help" to see the on-line shell
-help:</p>
-
-<p>eLua# help<br>
-Shell commands:<br>
-&nbsp;&nbsp;help - print this help<br>
-&nbsp;&nbsp;lua [args] - run Lua with the given arguments<br>
-&nbsp;&nbsp;recv - receive a file (XMODEM) and execute it<br>
-&nbsp;&nbsp;ver - print eLua version<br>
-&nbsp;&nbsp;exit - exit from this shelll<br></p>
-
-<p>More details about some of the shell commands are presented below.</p>
-
-<h2>The "recv" command</h2>
+<h2><span style="font-style: italic;"><a name="recvcmd"></a></span>The "recv" command</h2>
 
 <p>To use this, your eLua taret image must be built with support for XMODEM (see 
 docs/elua_components.txt for details). Also, your terminal emulation program must 
@@ -80,10 +56,10 @@ via XMODEM. eLua will receive and execute the file. Don't worry when you see 'C'
 characters suddenly appearing on your terminal after you enter this command, 
 this is how the XMODEM transfer is initiated.</p>
 
-<h2>The "lua" command</h2>
+<h2><a name="luacmd"></a>The "lua" command</h2>
 
-<p>This allows you to start the Lua interpreter with command line parameters, just 
-as you would do from a Linux or Windows command prompt. This command has some
+<p>This allows you to start the Lua interpreter, optionally passing&nbsp;command line parameters, just 
+as you would do from a Linux, Windows or MacOS command prompt. This command has some
 restrictions:</p>
 
 <ul><li>the command line can't be longer than 50 chars</li><li>character escaping is not implemented. For example, the next command won't work
@@ -98,5 +74,5 @@ lua: (command line):1: unexpected symbol near ''<br></p>
 <p>eLua# lua -e 'print("Hello, World")' -i<br>
 Press CTRL+Z to exit Lua<br>
 Lua 5.1.4  Copyright (C) 1994-2008 Lua.org, PUC-Rio
-Hello,World</p>
+Hello,World</p><p></p><p></p><p></p>
 </body></html>
