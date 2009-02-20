@@ -22,7 +22,9 @@ SECTIONS
         *(.gnu.linkonce.r.*)
         . = ALIGN(4);
         _etext = .;
-        PROVIDE(etext = .);        
+        PROVIDE(etext = .);   
+     		_fini = . ;
+				*(.fini)
 
     } >flash
 
@@ -36,7 +38,19 @@ SECTIONS
         . = ALIGN(4);
         _edata = .;
     } >sram
-
+		
+		.ARM.extab :
+		{
+		    *(.ARM.extab*)
+		} >sram
+		
+		__exidx_start = .;
+		.ARM.exidx :
+		{
+		    *(.ARM.exidx*)
+		} >sram
+		__exidx_end = .;
+		
     .bss (NOLOAD) : {
         _bss = .;
         *(.bss .bss.*)

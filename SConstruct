@@ -3,6 +3,7 @@ target = ARGUMENTS.get( 'target', 'lua' ).lower()
 cputype = ARGUMENTS.get( 'cpu', '' ).upper()
 allocator = ARGUMENTS.get( 'allocator', '' ).lower()
 boardname = ARGUMENTS.get( 'board' , '').upper()
+cprefix = ARGUMENTS.get( 'cprefix', '')
 optram = int( ARGUMENTS.get( 'optram', '1' ) )
 
 # ROMFS file list
