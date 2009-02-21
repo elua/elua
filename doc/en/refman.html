@@ -4,7 +4,7 @@
 <h3>eLua Modules Reference Manual
 </h3>
 <h2><a name="genericmodules"></a>eLua Generic
-Modules</h2>A Generic eLua Module is a module that can be used equally by a Lua program running on any of the <a href="status.html#platforms">supported eLua platforms</a>.<br>Write your code once and it is already automatically ported to the main platforms of the embedded world.<br><br><h3><a name="bitmodule"></a>bit</h3>
+Modules</h2>A Generic eLua Module is a module that can be used&nbsp;by a Lua program running on any of the <a href="status.html#platforms">supported eLua platforms</a>.<br>Write your code once and it is already automatically ported to the main platforms of the embedded world.<br><br><br><br><br><br><br><br><br><br><h3><a name="bitmodule"></a>bit</h3>
 Bitwise&nbsp;operations in eLua is implemented thru
 the&nbsp;BitLib library, from Reuben Thomas.<br>
 BitLib project is hosted at LuaForge on
@@ -716,41 +716,91 @@ Dependent
 Modules</h2>A Platform Dependent eLua Module is a module that runs only on one or on a few <a href="status.html#platforms">supported eLua platforms</a>.<br>These
 modules make use of specifical devices and features offered by some
 kits and allow eLua aplications to make the best use of the external
-hardware on your platforms.<br><h3><a name="adcmodule"></a>adc&nbsp; -&nbsp;Analog to Digital Conversion Module</h3><span style="font-weight: bold;">Currently runs on:</span> LM3Sxxxx<br><br>&nbsp;&nbsp;&nbsp; The ADC module handles the Analog to Digital Conversion Peripherals.<br><br><br><a name="adc_sample"></a><span style="font-weight: bold;">adc.sample(channel_id)</span><br>&nbsp;&nbsp;&nbsp; Generate one processed sample.<br><br><a name="adc_getsamples"></a><span style="font-weight: bold;">adc.getsamples(channel_id,
+hardware on your platforms.<br><h3><a name="adcmodule"></a>adc&nbsp; -&nbsp;Analog to Digital Conversion Module</h3><span style="font-weight: bold;">Currently runs on:</span> LM3Sxxxx<br><br>&nbsp;&nbsp;&nbsp; The ADC module handles the Analog to Digital Conversion Peripherals.<br><br><br><a name="adc_sample"></a><span style="font-weight: bold;">adc.sample(channel_id)</span><br>&nbsp;&nbsp;&nbsp; Generate one processed sample.<br><br><br><a name="adc_getsamples"></a><span style="font-weight: bold;">adc.getsamples(channel_id,
 [count])</span><br>&nbsp;&nbsp;&nbsp; Request&nbsp;<span style="font-style: italic;">count</span> samples from the buffer.<br>&nbsp;&nbsp;&nbsp; if singular, an
 integer is returned. &nbsp;if multiple, a table of integers is returned. &nbsp;If
-<span style="font-style: italic;">count</span> is either zero or omitted, all available samples are returned.<br><br><a name="adc_maxval"></a><span style="font-weight: bold;">adc.maxval(channel_id)</span><br>&nbsp;&nbsp;&nbsp; Returns the largest integer one can expect fromr this channel on a given platform (based on bit depth).<br><br><a name="adc_samplesready"></a><span style="font-weight: bold;">adc.samplesready(channel_id)<br></span>&nbsp;&nbsp;&nbsp; Returns the number of samples waiting in the buffer.<br><br><a name="adc_dataready"></a><span style="font-weight: bold;">adc.dataready(channel_id)<br></span>&nbsp;&nbsp;&nbsp; If running in non-blocking mode, this will indicate if all of the
+<span style="font-style: italic;">count</span> is either zero or omitted, all available samples are returned.<br><br><br><a name="adc_maxval"></a><span style="font-weight: bold;">adc.maxval(channel_id)</span><br>&nbsp;&nbsp;&nbsp; Returns the largest integer one can expect fromr this channel on a given platform (based on bit depth).<br><br><br><a name="adc_samplesready"></a><span style="font-weight: bold;">adc.samplesready(channel_id)<br></span>&nbsp;&nbsp;&nbsp; Returns the number of samples waiting in the buffer.<br><br><br><a name="adc_dataready"></a><span style="font-weight: bold;">adc.dataready(channel_id)<br></span>&nbsp;&nbsp;&nbsp; If running in non-blocking mode, this will indicate if all of the
 samples requested from the last sample or <br>burst have been acquired and
-are waiting in the buffer.<br><br><a name="adc_setmode"></a><span style="font-weight: bold;">adc.setmode(channel_id,
+are waiting in the buffer.<br><br><br><a name="adc_setmode"></a><span style="font-weight: bold;">adc.setmode(channel_id,
 mode)<br></span>&nbsp;&nbsp;&nbsp; <span style="font-style: italic;">mode</span> 0 sets&nbsp;blocking mode. adc.getsamples will wait for
-requested samples to be captured before returning.<br>&nbsp;&nbsp;&nbsp; <span style="font-style: italic;">mode</span> 1 sets non-blocking mode<br><br><a name="adc_setsmoothing"></a><span style="font-weight: bold;">adc.setsmoothing(channel_id, length)<br></span>&nbsp;&nbsp;&nbsp; Set the length of the smoothing filter.<br>&nbsp;&nbsp;&nbsp; This must be a power of 2 (maximum = 128)<br><br><a name="adc_getsmoothing"></a><span style="font-weight: bold;">adc.getsmoothing(channel_id)<br></span>&nbsp;&nbsp;&nbsp; Get the current smoothing length in use.<br><br><a name="adc_burst"></a><span style="font-weight: bold;">adc.burst(
-channel_id, count, timer_id, frequency)<br></span>&nbsp;&nbsp;&nbsp; Request that&nbsp;<span style="font-style: italic;">count</span> samples&nbsp;be converted from&nbsp;<span style="font-style: italic;">channel_id</span>, using&nbsp;<span style="font-style: italic;">timer_id</span> at&nbsp;<span style="font-style: italic;">frequency.<br></span>&nbsp;&nbsp;&nbsp; <span style="font-style: italic;">count </span>must be greater than zero and a power of 2<br><br>
+requested samples to be captured before returning.<br>&nbsp;&nbsp;&nbsp; <span style="font-style: italic;">mode</span> 1 sets non-blocking mode<br><br><br><a name="adc_setsmoothing"></a><span style="font-weight: bold;">adc.setsmoothing(channel_id, length)<br></span>&nbsp;&nbsp;&nbsp; Set the length of the smoothing filter.<br>&nbsp;&nbsp;&nbsp; This must be a power of 2 (maximum = 128)<br><br><br><a name="adc_getsmoothing"></a><span style="font-weight: bold;">adc.getsmoothing(channel_id)<br></span>&nbsp;&nbsp;&nbsp; Get the current smoothing length in use.<br><br><br><a name="adc_burst"></a><span style="font-weight: bold;">adc.burst(
+channel_id, count, timer_id, frequency)<br></span>&nbsp;&nbsp;&nbsp; Request that&nbsp;<span style="font-style: italic;">count</span> samples&nbsp;be converted from&nbsp;<span style="font-style: italic;">channel_id</span>, using&nbsp;<span style="font-style: italic;">timer_id</span> at&nbsp;<span style="font-style: italic;">frequency.<br></span>&nbsp;&nbsp;&nbsp; <span style="font-style: italic;">count </span>must be greater than zero and a power of 2<br><br><br>
 <h3><a name="dispmodule"></a>disp</h3>
-<span style="font-weight: bold;">Currently runs on:</span> LM3S xxxx<br><br>&nbsp;&nbsp;&nbsp; The disp module handles the RIT OLED display usage on Luminary Micro Cortex-M3 boards<br>
-<p class="MsoNormal"><a name="disp_init"></a>
-disp.init </p>
-<p class="MsoNormal"> <br>
-</p>
-<p class="MsoNormal"><a name="disp_enable"></a>
-disp.enable </p>
-<p class="MsoNormal"> <br>
+<span style="font-weight: bold;">Currently runs on:</span> LM3Sxxxx<br><br>&nbsp;&nbsp;&nbsp; The disp module handles the RIT OLED display usage on Luminary Micro Cortex-M3 boards<br>
+<p class="MsoNormal"></p><p class="MsoNormal"><a name="disp_init"></a><span style="font-weight: bold;">
+disp.init( freq )</span></p><p class="MsoNormal">freq specifies the SSI Clock Frequency to be used.<br><br>This function initializes the SSI interface to the OLED display and configures the SSD1329 controller on the panel.<br></p><br><p class="MsoNormal"><a name="disp_enable"></a>
+<span style="font-weight: bold;">disp.enable()</span> </p>
+<p class="MsoNormal">Enable the SSI component of the OLED display driver.<br></p><p class="MsoNormal">freq specifies the SSI Clock Frequency to be used.<br>This function initializes the SSI interface to the OLED display.</p><p class="MsoNormal">
 </p>
 <p class="MsoNormal"><a name="disp_disable"></a>
-disp.disable </p>
+<span style="font-weight: bold;">disp.disable()</span> </p>
 <p class="MsoNormal"> <br>
 </p>
-<p class="MsoNormal"> <a name="disp_on"></a>disp.on
+<p class="MsoNormal"> <a name="disp_on"></a><span style="font-weight: bold;">disp.on()</span>
 </p>
-<p class="MsoNormal"> <br>
+<p class="MsoNormal"> &nbsp;Turns on the OLED display.<br>&nbsp;This function will turn on the OLED display, causing it to display the contents of its internal frame buffer.<br><br>
 </p>
 <p class="MsoNormal"><a name="disp_off"></a>
-disp.off<br>
-</p>
-<p class="MsoNormal" style="color: rgb(0, 0, 255);">
-<br>
-</p>
-&nbsp; &nbsp;<a name="disp_print"></a>disp.print<br>
+<span style="font-weight: bold;">disp.off</span>()</p><p class="MsoNormal">Turns off the OLED display<br>This
+function will turn off the OLED display.&nbsp; This will stop the
+scanning of the panel and turn off the on-chip DC-DC converter,
+preventing damage to&nbsp;the panel due to burn-in (it has similar
+characters to a CRT in this&nbsp;respect).<br><br></p>
+<p class="MsoNormal"><a name="disp_clear"></a>
+<span style="font-weight: bold;">disp.clear()</span></p><p class="MsoNormal">Clears the OLED display.<br>This function will clear the display RAM.&nbsp; All pixels in the display will be turned off.<br></p>
+&nbsp; &nbsp;<a name="disp_print"></a><span style="font-weight: bold;">disp.print( str, x, y, gray )</span><br><br>Displays a string on the OLED display.<br><br>Calling Arguments:<br>str is a string to be displayed.<br>x is the horizontal position to display the string, specified in columns from the left edge of the display.<br>y&nbsp;is the vertical position to display the string, specified in rows from the top edge of the display.<br>gray is the 4-bit gray scale (intensity) value to be used for displayed text. <br><br>This
+function will draw a string on the display.&nbsp; Only the ASCII
+characters between 32 (space) and 126 (tilde) are supported;
+other&nbsp;characters will result in random data being draw on the
+display (based on whatever appears before/after the font in
+memory).&nbsp; The font is mono-spaced, so characters such as ``i'' and
+``l'' have more white space around them than characters such as ``m''
+or ``w''.<br>If the drawing of the string reaches the right edge of the
+display, no more characters will be drawn.&nbsp; Therefore, special
+care is not required to avoid supplying a string that is ``too long''
+to display.<br><br>Because the OLED display packs 2 pixels of data in a single byte, the<br>parameter \e ulX must be an even column number (for example, 0, 2, 4, and<br>so on).<br><br>
 <br>
 <p class="MsoNormal"><a name="disp_draw"></a>
-disp.draw </p>
+<span style="font-weight: bold;">disp.draw( img, x, y, withd, height, gray )</span></p><p class="MsoNormal">Displays an image on the OLED display.<br><br>img a pointer to the string data representing a rit format image to display.<br>x&nbsp;is the horizontal position to display the string, specified in columns from the left edge of the display.<br>y&nbsp;is the vertical position to display the string, specified in rows from the top edge of the display.<br>width is the width of the image, specified in columns.<br>height is the height of the image, specified in rows.<br><br>This
+function will display a bitmap graphic on the display.&nbsp; Because of
+the format of the display RAM, the starting column x and the number of
+columns y must be an integer multiple of two.<br>The image data is
+organized with the first row of image data appearing left&nbsp;to
+right, followed immediately by the second row of image data.&nbsp; Each
+byte&nbsp;contains the data for two columns in the current row, with
+the leftmost&nbsp;column being contained in bits 7:4 and the rightmost
+column being contained&nbsp;in bits 3:0.<br>For example, an image six
+columns wide and seven scan lines tall would&nbsp;be arranged as
+follows (showing how the twenty one bytes of the image would appear on
+the display):<br><br>Because the OLED display packs 2 pixels of data in
+a single byte, the parameter x must be an even column number (for
+example, 0, 2, 4, and so on).<span style="font-weight: bold;"></span></p><p class="MsoNormal"><span style="font-family: Courier New;">&nbsp; +-------------------+-------------------+-------------------+</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp;
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte
+0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Byte 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte
+2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp; +---------+---------+---------+---------+---------+---------+</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp; | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp;&nbsp;+---------+---------+---------+---------+---------+---------+</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp;
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte
+3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Byte 4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte
+5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp;&nbsp;+---------+---------+---------+---------+---------+---------+</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp; | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp;&nbsp;+---------+---------+---------+---------+---------+---------+</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp;
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte
+6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Byte 7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte
+8&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp;&nbsp;+---------+---------+---------+---------+---------+---------+</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp; | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp; +---------+---------+---------+---------+---------+---------+</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp;
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte
+9&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Byte 10&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Byte 11&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp; +---------+---------+---------+---------+---------+---------+</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp; | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp; +---------+---------+---------+---------+---------+---------+</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp;
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte 12&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte 13&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte 14&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp;&nbsp;+---------+---------+---------+---------+---------+---------+</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp; | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp; +---------+---------+---------+---------+---------+---------+</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp;
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte 15&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte 16&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte 17&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp;&nbsp;+---------+---------+---------+---------+---------+---------+</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp; | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp;&nbsp;+---------+---------+---------+---------+---------+---------+</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp;
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte 18&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte 19&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte 20&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp; +---------+---------+---------+---------+---------+---------+</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp; | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp; +---------+---------+---------+---------+---------+---------+</span><span style="font-weight: bold;"></span></p><p class="MsoNormal"><span style="font-weight: bold;"></span></p><p class="MsoNormal"><span style="font-weight: bold;"></span> </p>
 </body></html>

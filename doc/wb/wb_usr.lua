@@ -116,6 +116,10 @@ wb_usr.tree =
       },
     },
     {
+      name = { en = "", pt = "" },       -- Horizontal Separator
+      link = ""
+    },
+    {
       name = { en = "Documentation", pt = "Documentação" },
       link = "using.html",
       folder = 
@@ -628,6 +632,10 @@ wb_usr.tree =
                    link = "refman.html#disp_off"
                  },
                  {
+                   name = { en = "clear", pt = "clear" },
+                   link = "refman.html#disp_clear"
+                 },
+                 {
                    name = { en = "print", pt = "print" },
                    link = "refman.html#disp_print"
                  },
@@ -640,6 +648,10 @@ wb_usr.tree =
           },
         },
       },
+    },
+    {
+      name = { en = "", pt = "" },       -- Horizontal Separator
+      link = ""
     },
     {
       name = { en = "Downloads", pt = "Downloads" },
