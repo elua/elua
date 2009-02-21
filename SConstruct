@@ -6,23 +6,6 @@ boardname = ARGUMENTS.get( 'board' , '').upper()
 cprefix = ARGUMENTS.get( 'cprefix', '')
 optram = int( ARGUMENTS.get( 'optram', '1' ) )
 
-# ROMFS file list
-romfs = { 'bisect' : [ 'bisect.lua' ],
-          'hangman' : [ 'hangman.lua' ],
-          'lhttpd' : [ 'index.pht', 'lhttpd.lua', 'test.lua' ],
-          'pong' : [ 'pong.lua', 'LM3S.lua' ],
-          'led' : [ 'led.lua' ],
-          'piano' : [ 'piano.lua' ],
-          'pwmled' : [ 'pwmled.lua' ],
-          'tvbgone' : [ 'tvbgone.lua', 'codes.bin' ],
-          'hello' : [ 'hello.lua' ],
-          'info' : [ 'info.lua' ],
-          'morse' : [ 'morse.lua' ],
-          'dualpwm' : [ 'dualpwm.lua' ],
-          'adcscope' : [ 'adcscope.lua' ],
-          'life' : [ 'life.lua' ]
-        }
-
 # List of platform/CPU combinations
 cpu_list = { 'at91sam7x' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
               'lm3s' : [ 'LM3S8962', 'LM3S6965' ],
@@ -45,6 +28,25 @@ board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
                'STM3210E-EVAL' : [ 'STM32F103ZE' ],
                'ATEVK1100' : [ 'AT32UC3A0512' ]
             }
+
+# ROMFS file list "groups"
+# To include a file in a ROMFS build, include it in a group here and make
+# sure the group is listed on your platform "groups list" right below.
+romfs = { 'bisect' : [ 'bisect.lua' ],
+          'hangman' : [ 'hangman.lua' ],
+          'lhttpd' : [ 'index.pht', 'lhttpd.lua', 'test.lua' ],
+          'pong' : [ 'pong.lua', 'LM3S.lua' ],
+          'led' : [ 'led.lua' ],
+          'piano' : [ 'piano.lua' ],
+          'pwmled' : [ 'pwmled.lua' ],
+          'tvbgone' : [ 'tvbgone.lua', 'codes.bin' ],
+          'hello' : [ 'hello.lua' ],
+          'info' : [ 'info.lua' ],
+          'morse' : [ 'morse.lua' ],
+          'dualpwm' : [ 'dualpwm.lua' ],
+          'adcscope' : [ 'adcscope.lua' ],
+          'life' : [ 'life.lua' ]
+        }
 
 # List of board/romfs data combinations
 file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'info', 'morse' ],

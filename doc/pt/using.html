@@ -1,0 +1,78 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+<meta http-equiv="Content-Language" content="en-us"><title>Product</title>
+
+<link rel="stylesheet" type="text/css" href="../style.css"></head>
+<body style="background-color: rgb(255, 255, 255);">
+<h3>Using eLua</h3><p> So, you already built and installed eLua and now it is time to have fun with it. It's actually quite easy: all you need is your
+board connected to a PC, running a terminal emulation program.<br>If
+you're using Windows, I strongly recommend <a href="http://www.ayera.com/teraterm/">TeraTerm</a>.
+It's a freeware, it's very powerful and also easy to use. The native Hyper Terminal progam can do too.&nbsp;<br>On
+Linux,
+you'll probably be stucked with minicom. It is not exactly intuitive
+and it runs in text mode, but it's still very powerful. If you
+google for "minicom tutorial" you'll get the hang of it in no time. You
+can try any other terminal emulator, as long as you set it up
+properly and it gives you the option of transferring files
+via XMODEM, which is what eLua uses at the moment. These are the main
+settings you need to look at:</p>
+
+<ul><li>port setup: 115200 baud (38400 for <a href="http://www.eluaproject.net/en/eLua_on_STR7_CPUs">STR7)##</a>, 8N1(8 data bits, no parity, one stop bit). </li><li>hardware flow control: none</li><li>newline handling: "CR" on receive, "CR+LF" on send (some terminal programs won't give you a choice here).  </li></ul>
+
+
+<p>Also, depending on the type of your board, you'll need some way to
+connect the board to a serial port on your PC or to USB if you're
+using an USB to serial converter. For example, as already explained <a href="http://www.eluaproject.net/en/eLua_on_LM3S_CPUs">here</a>##,
+the USB port on the LM3Sxxxx boards is dual, so you can use it as an USB
+to serial converter after downloading your firmware, thus you don't
+need any other type of connection. The same is true for the
+STR9-comStick board. On the other hand, for the SAM7-EX256 board you'll
+need to connect a serial cable to the "RS232" connector, provided that
+the jumpers are already set as explained <a href="http://www.eluaproject.net/en/eLua_on_AT91SAM_CPUs">here##</a> and on the MOD711 you will need to add an RS232 converter chip.</p>
+
+<p>After you setup this PC-eLua board connection and press the "RESET" button on your board, you should see the
+eLua shell prompt. For your
+convenience, the shell documentation is also provided on this page.</p>
+
+<h2><a name="shell"></a></h2><h2>The eLua shell</h2>
+
+<p>After you burn eLua to your board and you connect the board to your terminal
+emulator running on the PC, you'll be greeted with the eLua shell prompt, which
+allows you to:</p>
+
+<ul><li>get help on shell usage with the help command</li><li>run the Lua interpreter in interactive mode just like on do on&nbsp;Linux, Windows and MacOS</li><li>run a Lua program from the eLua File System</li><li>upload a Lua source file via XMODEM and execute in on board</li><li>query the eLua version</li><li>list files on eLua File Systems<br></li></ul><p>More details about some of the shell commands are presented below.</p>
+
+<h2><span style="font-style: italic;"><a name="recvcmd"></a></span>The "recv" command</h2>
+
+<p>To use this, your eLua taret image must be built with support for XMODEM (see 
+docs/elua_components.txt for details). Also, your terminal emulation program must 
+support sending files via the XMODEM protocol. Both XMODEM with checksum (the 
+original version) and XMODEM with CRC are supported, but only XMODEM with 128 
+byte packets is allowed (XMODEM with 1K packets won't work).
+To use this feature, enter "recv" at the shell prompt. eLua will respond with 
+"Waiting for file ...". At this point you can send the file to the eLua board 
+via XMODEM. eLua will receive and execute the file. Don't worry when you see 'C'
+characters suddenly appearing on your terminal after you enter this command, 
+this is how the XMODEM transfer is initiated.</p>
+
+<h2><a name="luacmd"></a>The "lua" command</h2>
+
+<p>This allows you to start the Lua interpreter, optionally passing&nbsp;command line parameters, just 
+as you would do from a Linux, Windows or MacOS command prompt. This command has some
+restrictions:</p>
+
+<ul><li>the command line can't be longer than 50 chars</li><li>character escaping is not implemented. For example, the next command won't work
+    because of the ' escape sequences:</li></ul>
+
+<p>eLua# lua -e 'print('Hello, World!')' -i<br>
+Press CTRL+Z to exit Lua<br>
+lua: (command line):1: unexpected symbol near ''<br></p>
+
+<p>However, if you use both '' and "" for string quoting, it will work:</p>
+
+<p>eLua# lua -e 'print("Hello, World")' -i<br>
+Press CTRL+Z to exit Lua<br>
+Lua 5.1.4  Copyright (C) 1994-2008 Lua.org, PUC-Rio
+Hello,World</p><p></p><p></p><p></p>
+</body></html>
