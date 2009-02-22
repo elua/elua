@@ -6,72 +6,176 @@
 <link rel="stylesheet" type="text/css" href="../style.css">
 </head>
 <body style="background-color: rgb(255, 255, 255);">
-<h3>Current&nbsp;Status of Platforms and Modules Supported</h3>
-<p>As already stated, eLua allows you to run Lua completely on
-the
-microcontroller. A fast-growing set of complementary modules is also
-provided, for Lua programming eLua's generic (portable) peripherals. </p>
-<p>The following features are ready or being implemented:</p>
-<ul>
-<li>a (mostly) platform independent peripheral library (PIO,
-UART, PWM, SPI, TMR, ADC, NET, I2C...)</li>
-<li>a very low footprint embedded rom file system, easy to port
-to different types of memory chips and other storage devices</li>
-<li>a small FAT rw file system layer for SD cards.</li>
-<li>an embedded editor, to edit Lua programs directly via a
-serial connection or other input devices</li>
-<li>a minimal "shell" (for file operations, environment
-configuration and other facilities)</li>
-<li>network support</li>
-<li>an embedded http server</li>
-<li>Terminal / Console over Ethernet</li>
-</ul>
-<p>Porting eLua to another compatible platform should be as easy
-and
-painless as possible. Currently this is restricted to platforms for
-which the gcc+newlib combo is available. This might change in the
-future, but please not that this is not a priority of the project at
-this point.</p>
-<p>Also, the Lua "core" comes in two flavors: "regular Lua"
-(using
-floating point as the number type) and "integer Lua" (using integers).
-We'll add more about this in a future tutorial
-about Lua. For now, it's enough to say that "regular Lua" will be able
-to perform floating point operations (but will be slower because the
-floating point operations will be emulated in software on the MCU),
-while "integer Lua" will only be able to perform operations with
-integer numbers (but support for fixed and even floating point can be
-added with separate modules) and thus will be faster.</p>
-<p></p>
-<h3>Symbol Legends</h3>
-
-<table style="width: 325px; height: 169px;" class="table_center">
+<a name="platforms"></a><h3>eLua platforms and modules status</h3>
+<p>The current status of <b>eLua</b> is given by the list of the currently supported platforms, together with a list of modules-per-platform and their development phase. For better formatting, the lists are organized as tables that use the graphical notation given below:
+<table style="width: 325px;" class="table_center">
 <tbody>
 <tr>
 <th style="text-align: center;">Symbol</th>
 <th style="text-align: center;">Meaning</th>
 </tr>
 <tr>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
 <td style="text-align: left;">Implemented and tested</td>
 </tr>
 <tr>
-<td style="text-align: center;"><img src="../wb_img/yellowled.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_tested.png"></td>
 <td style="text-align: left;">Implemented, not tested</td>
 </tr>
 <tr>
-<td style="text-align: center;"><img src="../wb_img/ksame.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
 <td style="text-align: left;">Not yet implemented</td>
 </tr>
 <tr>
-<td style="text-align: center;"><img src="../wb_img/agt_action_fail1.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_applicable.png"></td>
 <td style="text-align: left;">Not applicable</td>
 </tr>
 </tbody>
-</table><br><br>
-<h3>Platforms x Modules Supported</h3>The following table shows the status of <span style="font-weight: bold;">eLua</span>'s modules implementation by
-platform.<br><br>
-<table style="text-align: left;">
+</table>
+</p><br>
+<p>The list of CPUs/boards currently supported by eLua is given below:
+<table style="text-align: left; width: 600px;" class="table_center">
+<tbody>
+<tr>
+  <th style="text-align: left;">CPU</th>
+  <th style="text-align: center;">Architecture</th>
+  <th style="text-align: center;">Platform name</th>
+  <th style="text-align: center;">Supported boards</th>
+  <th style="text-align: center;">Status</th>
+</tr>
+<tr>
+  <td><a href="http://www.luminarymicro.com/products/LM3S8962.html">LM3S8962</a></td>
+  <td>Cortex-M3</td>
+  <td style="color: rgb(255, 102, 0);">lm3s</td>
+  <td><a href="http://www.luminarymicro.com/products/lm3s8962_can_ethernet_evaluation_kit.html">EKx-LM3S8962</a></td>
+  <td><img src="../wb_img/stat_ok.png"></td>
+</tr>
+<tr>
+  <td><a href="http://www.luminarymicro.com/products/lm3s6965.html">LM3S6965</a></td>
+  <td>Cortex-M3</td>
+  <td style="color: rgb(255, 102, 0);">lm3s</td>
+  <td><a href="http://www.luminarymicro.com/products/lm3s6965_ethernet_evaluation_kit.html">EKx-LM3S6965</a></td>
+  <td><img src="../wb_img/stat_ok.png"></td>
+</tr>
+<tr>
+  <td><a href="http://www.atmel.com/dyn/products/Product_card.asp?part_id=3755">AT91SAM7X256</a></td>
+  <td>ARM7TDMI</td>
+  <td style="color: rgb(255, 102, 0);">at91sam7x</td>
+  <td><a href="http://www.olimex.com/dev/sam7-ex256.html">SAM7-EX256</a></td>
+  <td><img src="../wb_img/stat_ok.png"></td>
+</tr>
+<tr>
+  <td><a href="http://www.atmel.com/dyn/products/Product_card.asp?part_id=4104">AT91SAM7X512</a></td>
+  <td>ARM7TDMI</td>
+  <td style="color: rgb(255, 102, 0);">at91sam7x</td>
+  <td>None</td>
+  <td><img src="../wb_img/stat_not_tested.png"></td>
+</tr>
+<tr>
+  <td><a href="http://www.intel.com">i386 (generic)</a></td>
+  <td>x86</td>
+  <td style="color: rgb(255, 102, 0);">i386</td>
+  <td>PCs/emulators</td>
+  <td><img src="../wb_img/stat_ok.png"></td>
+</tr>
+<tr>
+  <td><a href="http://www.st.com/mcu/devicedocs-STR912FAW44-101.html">STR912FAW44</a></td>
+  <td>ARM966E-S</td>
+  <td style="color: rgb(255, 102, 0);">str9</td>
+  <td><a href="http://www.hitex.com/index.php?id=383">STR9-comStick</a></td>
+  <td><img src="../wb_img/stat_ok.png"></td>
+</tr>
+<tr>
+  <td><a href="http://www.standardics.nxp.com/microcontrollers/to/pip/LPC2880FET180.html">LPC2888</a></td>
+  <td>ARM7TDMI</td>
+  <td style="color: rgb(255, 102, 0);">lpc288x</td>
+  <td><a href="http://www.olimex.com/dev/lpc-h2888.html">LPC-H2888</a></td>  
+  <td><img src="../wb_img/stat_ok.png"></td>
+</tr>
+<tr>
+  <td><a href="http://www.st.com/mcu/devicedocs-STR711FR2.html">STR711FR2</a></td>
+  <td>ARM7TDMI</td>
+  <td style="color: rgb(255, 102, 0);">str7</td>
+  <td><a href="http://www.sctec.com.br/content/view/101/30/">MOD711</a></td>
+  <td><img src="../wb_img/stat_ok.png"></td>
+</tr>
+<tr>
+  <td><a href="http://www.atmel.com/dyn/products/product_card.asp?part_id=4117">AC32UC3A0512</a></td>
+  <td>AVR32</td>
+  <td style="color: rgb(255, 102, 0);">avr32</td>
+  <td><a href="http://www.atmel.com/dyn/Products/tools_card.asp?tool_id=4114">ATEVK1100</a></td>
+  <td><img src="../wb_img/stat_ok.png"></td>
+</tr>
+<tr>
+  <td><a href="http://www.st.com/mcu/inchtml-pages-stm32.html">STM32F103ZE</a></td>
+  <td>Cortex-M3</td>
+  <td style="color: rgb(255, 102, 0);">stm32</td>
+  <td><a href="http://www.st.com/mcu/contentid-100-110-STM3210E_EVAL.html">STM3210E-EVAL</a></td>
+  <td><img src="../wb_img/stat_ok.png"></td>
+</tr>
+</tbody>
+</table>
+</p><br>
+<p>The following table shows a list of the generic peripheral modules currently implemented (and planned to be implemented) in <b>eLua</b>.
+<table style="text-align: left; width: 600px;" class="table_center">
+<tbody>
+<tr>
+<th style="text-align: left;">Generic Multi-Platform Peripheral Modules</th>
+<th style="text-align: center;">Status</th>
+</tr>
+<tr>
+<td style="text-align: left;">PIO - Programable Input / Output</td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+</tr>
+<tr>
+<td>TMR - Timers</td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+</tr>
+<tr>
+<td style="text-align: left;">PWM - Pulse Width Modulation</td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+</tr>
+<tr>
+<td style="text-align: left;">UART - Universal Asynchronous Receiver Transmitter</td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+</tr>
+<tr>
+<td style="text-align: left;">SPI - Serial Peripheral Interface</td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+</tr>
+<td style="text-align: left;">NET - TCP/IP networking</td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+</tr>
+<tr>
+<td style="text-align: left;">ADC - Analog to Digital Converter</td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+</tr>
+<tr>
+<td style="text-align: left;">CPU - low level system access</td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+</tr>
+<tr>
+<td style="text-align: left;">CMP - Analog Comparator</td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
+</tr>
+<tr>
+<td style="text-align: left;">I2C bus access module</td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
+</tr>
+<tr>
+<td style="text-align: left;">CNT - Event Counter</td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
+</tr>
+<tr>
+<td style="text-align: left;">CAN - Controller Area Network</td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
+</tr>
+<tr>
+</tbody>
+</table>
+</p><br>
+<p>The relationship between a module and its implementation on a particular platform is given in the next table.
+<table style="text-align: left; width:600px" class="table_center">
 <tbody>
 <tr>
 <th>Module</th>
@@ -87,332 +191,211 @@ platform.<br><br>
 <tr><td style="color: rgb(255, 102, 0);">MCU</td>
 </tr><tr>
 <td style="color: rgb(255, 102, 0);">LM3S8962</td>
-<td style="text-align: center;"><img style="width: 16px; height: 16px;" alt="Implemented" src="../wb_img/agt_action_success.png"></td>
-<td style="text-align: center;"><img style="width: 16px; height: 16px;" alt="Not Tested" src="../wb_img/yellowled.png"></td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-<td style="text-align: center;"><img src="../wb_img/yellowled.png">&nbsp;</td>
+<td style="text-align: center;"><img style="width: 16px; height: 16px;" alt="Implemented" src="../wb_img/stat_ok.png"></td>
+<td style="text-align: center;"><img style="width: 16px; height: 16px;" alt="Not Tested" src="../wb_img/stat_not_tested.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_tested.png"> </td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">LM3S6965</td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-<td style="text-align: center;"><img src="../wb_img/yellowled.png"></td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-<td style="text-align: center;"><img src="../wb_img/yellowled.png"></td>
-<td style="text-align: center;"><img src="../wb_img/yellowled.png"></td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_tested.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_tested.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_tested.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">i386</td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_fail1.png"></td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_fail1.png"></td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_fail1.png"></td>
-<td style="text-align: center;"><img src="../wb_img/ksame.png"></td>
-<td style="text-align: center;"><img style="height: 16px; width: 16px;" alt="Not Implemented" src="../wb_img/agt_action_fail1.png"></td>
-<td style="text-align: center;"><img src="../wb_img/ksame.png"></td>
-<td style="text-align: center;"><img src="../wb_img/ksame.png"></td>
-<td style="text-align: center;"><img style="height: 16px; width: 16px;" alt="Not Implemented" src="../wb_img/agt_action_fail1.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_applicable.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_applicable.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_applicable.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
+<td style="text-align: center;"><img style="height: 16px; width: 16px;" alt="Not Implemented" src="../wb_img/stat_not_applicable.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
+<td style="text-align: center;"><img style="height: 16px; width: 16px;" alt="Not Implemented" src="../wb_img/stat_not_applicable.png"></td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">AT91SAM7X256</td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-<td style="text-align: center;"><img src="../wb_img/ksame.png"></td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-<td style="text-align: center;"><img src="../wb_img/ksame.png"></td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-<td style="text-align: center;"><img src="../wb_img/ksame.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">AT91SAM7X512</td>
-<td style="text-align: center;"><img src="../wb_img/yellowled.png"></td>
-<td style="text-align: center;"><img src="../wb_img/ksame.png"></td>
-<td style="text-align: center;"><img src="../wb_img/yellowled.png"></td>
-<td style="text-align: center;"><img src="../wb_img/yellowled.png"></td>
-<td style="text-align: center;"><img src="../wb_img/yellowled.png"></td>
-<td style="text-align: center;"><img src="../wb_img/ksame.png"></td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-<td style="text-align: center;" valign="undefined"><img src="../wb_img/ksame.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_tested.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_tested.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_tested.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_tested.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+<td style="text-align: center;" valign="undefined"><img src="../wb_img/stat_not_implemented.png"></td>
 </tr>
 <tr>
-<td style="color: rgb(255, 102, 0);">STR912FW44</td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-<td style="text-align: center;"><img src="../wb_img/ksame.png"></td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-<td style="text-align: center;"><img src="../wb_img/ksame.png"></td>
-<td style="text-align: center;"><img src="../wb_img/ksame.png"></td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-<td style="text-align: center;" valign="undefined"><img src="../wb_img/ksame.png"></td>
+<td style="color: rgb(255, 102, 0);">STR912FAW44</td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+<td style="text-align: center;" valign="undefined"><img src="../wb_img/stat_not_implemented.png"></td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">LPC2888</td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-<td style="text-align: center;"><img src="../wb_img/ksame.png"></td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_fail1.png"></td>
-<td style="text-align: center;"><img src="../wb_img/ksame.png"></td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-<td style="text-align: center;" valign="undefined"><img src="../wb_img/ksame.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_applicable.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+<td style="text-align: center;" valign="undefined"><img src="../wb_img/stat_not_implemented.png"></td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">STR711FR2</td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-<td style="text-align: center;"><img src="../wb_img/ksame.png"></td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png">&nbsp;</td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png">&nbsp; </td>
-<td style="text-align: center;"><img src="../wb_img/yellowled.png"></td>
-<td style="text-align: center;">&nbsp;<img style="height: 16px; width: 16px;" alt="Not Implemented" src="../wb_img/agt_action_fail1.png"></td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png">&nbsp;</td>
-<td style="text-align: center;"><img src="../wb_img/ksame.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"> </td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png">  </td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_tested.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_applicable.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"> </td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
 </tr>
 <tr>
-<td style="color: rgb(255, 102, 0);">AVR32</td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-<td style="text-align: center;"><br>
-</td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png">&nbsp;</td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png">&nbsp; </td>
-<td style="text-align: center;"><img src="../wb_img/yellowled.png"></td>
-<td style="text-align: center;">&nbsp;<br>
-</td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png">&nbsp;</td>
-<td style="text-align: center;"><br>
-</td>
+<td style="color: rgb(255, 102, 0);">AT32UC3A0512</td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"> </td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png">  </td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"> </td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
 </tr>
-<tr>
-<td style="color: rgb(255, 102, 0);">STM32</td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-<td style="text-align: center;"><br>
-</td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png">&nbsp;</td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png">&nbsp; </td>
-<td style="text-align: center;"><img src="../wb_img/yellowled.png"></td>
-<td style="text-align: center;"></td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png">&nbsp;</td>
-<td style="text-align: center;"><img src="../wb_img/ksame.png"></td>
+<td style="color: rgb(255, 102, 0);">##STM32F103ZE</td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"> </td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png">  </td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"> </td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
 </tr>
 </tbody>
 </table>
-<br>
-<br>
-<br>
-<br>
-<br>
+</p><br>
+<p>For some platforms, a number of platform dependent modules are implemented (or in the works) and are listed below. To understand the difference between generic modules and platform specific modules, check <a href="">##the eLua architecture page</a>.
+<table style="width: 600px;" class="table_center">
+<tbody>
+<tr>
+<th style="text-align: left;">Platform-Dependent Peripheral Modules</th>
+<th style="text-align: center;">Status</th>
+</tr>
+<tr>
+<td style="text-align: left;">DISP - RIT OLED Display Support for LM3Sxxxx</td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
+</tr>
+</tbody>
+</table>
+</p>
 <h3><a name="roadmap"></a>Status of features
 &amp; roadmap</h3>
 <p>The following table shows the status of some existent and
 planned eLua
-features.&nbsp; </p>
-<p><br>
-</p>
-<table style="text-align: left; width: 672px; height: 691px;" class="table_center">
-<tbody>
-<tr>
+features.
+<table style="text-align: left; width: 600px;" class="table_center">
+<tbody><tr>
 <th style="text-align: left;">eLua Features</th>
 <th style="text-align: center;">Status</th>
 </tr>
 <tr>
-<td style="text-align: left;">Full Lua interpreter
-running on targets</td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
+<td style="text-align: left;">Full Lua interpreter running on target</td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
 </tr>
 <tr>
-<td>Various Lua&nbsp;scripts examples running properly</td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
+<td>Various Lua scripts examples running properly</td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
 </tr>
 <tr>
-<td style="text-align: left;">Choose floating point
-or integer Lua</td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
+<td style="text-align: left;">Choose floating point or integer Lua</td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
 </tr>
 <tr>
-<td style="text-align: left;">XMODEM transfer over
-UART</td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
+<td style="text-align: left;">XMODEM transfer over UART</td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
 </tr>
 <tr>
-<td style="text-align: left;">Embedded ROM (Flash)
-file
-system</td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
+<td style="text-align: left;">Embedded ROM (Flash) file system</td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
 </tr>
 <tr>
-<td style="text-align: left;">Terminal / Console
-over UART or Ethernet</td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
+<td style="text-align: left;">Terminal / Console over UART or Ethernet</td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
 </tr>
 <tr>
 <td style="text-align: left;">eLua command shell</td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
 </tr>
 <tr>
-<td style="text-align: left;">eLua complete
-interrupt support</td>
-<td style="text-align: center;"><img src="../wb_img/ksame.png"></td>
+<td style="text-align: left;">eLua complete interrupt support</td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
 </tr>
 <tr>
-<td style="text-align: left;">eLua "memory limiting"
-mode</td>
-<td style="text-align: center;"><img src="../wb_img/yellowled.png"></td>
+<td style="text-align: left;">eLua LTR (Lua Tiny RAM) patch</td>
+<td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
 </tr>
 <tr>
-<td style="text-align: left;">FAT File System layer
-for mmc/sd cards</td>
-<td style="text-align: center;"><img src="../wb_img/yellowled.png"></td>
+<td style="text-align: left;">FAT File System layer for mmc/sd cards</td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_tested.png"></td>
 </tr>
 <tr>
-<td style="text-align: left;">Embedded R/W file
-system</td>
-<td style="text-align: center;">Partially
-implemented and tested</td>
+<td style="text-align: left;">Minimal R/W file system</font></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
 </tr>
 <tr>
-<td style="text-align: left;">eLua FP module (for
-integer Lua)</td>
-<td style="color: rgb(255, 102, 0); text-align: center;"><img src="../wb_img/ksame.png">
+<td style="text-align: left;">eLua FP module (for integer Lua)</td>
+<td style="color: rgb(255, 102, 0); text-align: center;"><img src="../wb_img/stat_not_implemented.png">
 </td>
 </tr>
 <tr>
 <td style="text-align: left;">Embedded text editor</td>
-<td style="text-align: center;"><img src="../wb_img/ksame.png"></td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
 </tr>
 <tr>
-<td style="text-align: left;">Lua debugging on target</td>
-<td style="text-align: center;"><img src="../wb_img/ksame.png"></td>
+<td style="text-align: left;">Lua debugging (remote/on target)</td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
 </tr>
 <tr>
-<td style="text-align: left;">GUI/IDE interface for
-eLua</td>
-<td style="text-align: center;"><img src="../wb_img/ksame.png"></td>
+<td style="text-align: left;">GUI/IDE interface for eLua</td>
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
 </tr>
 <tr>
-<td style="text-align: left;">GUI eLua build
-configuration tool<br>
+<td style="text-align: left;">GUI eLua build configuration tool<br>
 </td>
-<td style="text-align: center;"><img src="../wb_img/ksame.png">
+<td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png">
 </td>
-</tr><tr><td align="undefined" valign="undefined">Embedded http web server</td><td style="text-align: center;" valign="undefined"><img src="../wb_img/agt_action_success.png"></td></tr>
+</tr>
+<tr>
+<td align="undefined" valign="undefined">Embedded http web server</td>
+<td style="text-align: center;" valign="undefined"><img src="../wb_img/stat_ok.png"></td></tr>
 </tbody>
 </table>
-<br>
-<br>
-<br>
-<table style="text-align: left; width: 677px; height: 403px;" class="table_center">
-<tbody>
-<tr>
-<th style="text-align: left;">Generic Multi-Platform
-Peripheral Modules</th>
-<th style="text-align: center;">Status</th>
-</tr>
-<tr>
-<td style="text-align: left;">PIO - Programable
-Input / Output</td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-</tr>
-<tr>
-<td>TMR - Timers</td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-</tr>
-<tr>
-<td style="text-align: left;">PWM - Pulse Width
-Modulation</td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-</tr>
-<tr>
-<td style="text-align: left;">UART - Universal
-Assincronous Rx Tx</td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-</tr>
-<tr>
-<td style="text-align: left;">SPI - Serial
-Programable Interface</td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-</tr>
-<tr>
-<td style="text-align: left;">CMP -&nbsp; Analog
-Comparator</td>
-<td style="text-align: center;"><img src="../wb_img/yellowled.png"></td>
-</tr>
-<tr>
-<td style="text-align: left;">I2C&nbsp;</td>
-<td style="text-align: center;"><img src="../wb_img/ksame.png"></td>
-</tr>
-<tr>
-<td style="text-align: left;">CNT - Event Counter
-</td>
-<td style="text-align: center;"><img src="../wb_img/yellowled.png"></td>
-</tr>
-<tr>
-<td style="text-align: left;">CAN</td>
-<td style="text-align: center;"><img src="../wb_img/ksame.png"></td>
-</tr>
-<tr>
-<td style="text-align: left;">NET -
-Ethernet&nbsp;module</td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-</tr>
-</tbody>
-</table>
-<br>
-<br>
-<br>
-<table style="width: 681px; height: 68px;" class="table_center">
-<tbody>
-<tr>
-<th style="text-align: left;">Platform-Dependent
-Peripheral Modules</th>
-<th>Status</th>
-</tr>
-<tr>
-<td style="text-align: left;">DISP -&nbsp;RIT
-OLED Display Support for LM3Sxxxx</td>
-<td style="text-align: center;"><img src="../wb_img/agt_action_success.png"></td>
-</tr>
-<tr>
-<td align="undefined" valign="undefined">LM3S
-- Luminary Micro kits onboard devices support (Leds, Buttons, ...)</td>
-<td style="text-align: center;" valign="undefined"><img src="../wb_img/agt_action_success.png"></td>
-</tr>
-</tbody>
-</table>
-<br>
-<br>
-<br>
-<table style="width: 680px; height: 389px;" class="table_center">
-<tbody>
-<tr>
-<th style="text-align: left;">Functional Abstraction
-Auxiliary Modules</th>
-<th>Status</th>
-</tr>
-<tr>
-<td style="text-align: left;">GPS - NMEA0183
-Sentences parsing and command handling</td>
-<td style="text-align: center;"><img src="../wb_img/yellowled.png"></td>
-</tr>
-<tr>
-<td align="undefined" valign="undefined">PID
-- Proportional, Integrative &amp; Derivative Control</td>
-<td style="text-align: center;" valign="undefined"><img src="../wb_img/ksame.png"></td>
-</tr>
-<tr>
-<td align="undefined" valign="undefined">LCD
-- Liquid Crystal Display support</td>
-<td style="text-align: center;" valign="undefined"><img src="../wb_img/ksame.png"></td>
-</tr>
-<tr>
-<td align="undefined" valign="undefined">ROT
-- Rotary Switch &amp; Encoder support</td>
-<td style="text-align: center;" valign="undefined"><img src="../wb_img/ksame.png"></td>
-</tr><tr><td align="undefined" valign="undefined">CHDK - Interfacing with Canon cameras also running Lua under <a href="http://chdk.wikia.com/" target="_top">CHKD</a></td><td style="text-align: center;" valign="undefined"><img src="../wb_img/yellowled.png"></td></tr><tr><td align="undefined" valign="undefined">DISP - External text &amp; graphics displays</td><td style="text-align: center;" valign="undefined"><img src="../wb_img/ksame.png"></td></tr><tr><td align="undefined" valign="undefined">FUZZ - Fuzzy Logic Control</td><td style="text-align: center;" valign="undefined"><img src="../wb_img/ksame.png"></td></tr><tr><td align="undefined" valign="undefined">HUM - Humity Sensors over SPI, UART, I2C, PIO, ....</td><td style="text-align: center;" valign="undefined"><img src="../wb_img/ksame.png"></td></tr><tr><td align="undefined" valign="undefined">TMP - Temperature Sensors over SPI, UART, I2C, PIO, ....</td><td style="text-align: center;" valign="undefined"><img src="../wb_img/ksame.png"></td></tr><tr><td align="undefined" valign="undefined">BAR - Pressure Sensors over SPI, UART, I2C, PIO, ....</td><td style="text-align: center;" valign="undefined"><img src="../wb_img/ksame.png"></td></tr><tr><td align="undefined" valign="undefined">X10 - X10 Protocol support for X10 Devices Mapping &amp; Control</td><td style="text-align: center;" valign="undefined"><img src="../wb_img/ksame.png"></td></tr><tr><td align="undefined" valign="undefined">MCP - Magnetic Compass abstraction</td><td style="text-align: center;" valign="undefined"><img src="../wb_img/ksame.png"></td></tr><tr><td align="undefined" valign="undefined">PS2 - Play Station 2 Joystick interfacing support</td><td style="text-align: center;" valign="undefined"><img src="../wb_img/ksame.png"></td></tr>
-</tbody>
-</table><br><br>If you need a module for a specific device support or logic &amp; modeling abstraction, don't hesitate to suggest it in our <a href="https://lists.berlios.de/mailman/listinfo/elua-dev" target="_top">eLua User's and Developers List</a>. You may have one ready before you would imagine :)<br><br><br><br>
+</p>
 </body></html>

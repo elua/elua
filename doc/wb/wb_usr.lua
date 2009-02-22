@@ -50,6 +50,10 @@ wb_usr.tree =
 {
   name = { nl = "eLua" },
   link = "news.html", 
+  footer = [[
+    <p align="left"><a href="http://www.pax.com/free-counters.html"><img src="http://counter.pax.com/counter/image?counter=ctr-zsg80nnmqt" alt="Free Hit Counter" border="0" /></a></p>
+    <p align="center"><img src="wb_img/surprise.png></p>
+  ]],
   folder =
   {
     { name = {en = "Overview", pt = "Apresentação" },
@@ -58,6 +62,10 @@ wb_usr.tree =
       {
         {  name = { en = "What is", pt = "O que é eLua ?" },
            link = "overview.html#whatis",
+        },
+        {
+          name = { en = "Features", pt = "##Features" },
+          link = "overview.html#features",
         },
         {  name = { en = "Audience", pt = "Público alvo" },
            link = "overview.html#audience",
@@ -73,7 +81,7 @@ wb_usr.tree =
         {  name = { en = "Contacts", pt = "Contatos" },
            link = "overview.html#contacts",
         },
-        {  name = { en = "Licence", pt = "Licença" },
+        {  name = { en = "License", pt = "Licença" },
            link = "overview.html#license",
         },
       },
@@ -85,6 +93,9 @@ wb_usr.tree =
       {
         {  name = { en = "Lists", pt = "Listas" },
            link = "comunity.html#lists",
+        },
+        { name = { en = "Forums", pt = "##Forums" },
+           link = "comunity.html#forums",
         },
         {  name = { en = "Credits", pt = "Créditos" },
            link = "comunity.html#credits",
@@ -100,13 +111,14 @@ wb_usr.tree =
       },
     },
     {
+      name = { en = "News", pt = "Notícias" },
+      link = "news.html",
+    },
+    {
       name = {en = "Status", pt = "Status" },
       link = "status.html",
       folder =
       {
-        {  name = { en = "News", pt = "Notícias" },
-           link = "news.html",
-        },
         {  name = { en = "Platforms Supported", pt = "Plataformas Suportadas" },
            link = "status.html#platforms",
         },

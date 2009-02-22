@@ -245,6 +245,9 @@ function writeTreeFile()
                                
   -- Write Footer                             
   file:write("  </div>\n")
+  if wb_usr.tree.footer then 
+    file:write(wb_usr.tree.footer)
+  end
   file:write("</body>\n")
   file:write("</html>\n")
   
