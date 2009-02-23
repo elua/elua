@@ -89,7 +89,7 @@
 
 //## Modified for eLua
 //## Defaults search modules path to our ROM File System
-#define LUA_PATH_DEFAULT "\ROM\?.lua"
+#define LUA_PATH_DEFAULT "/rom/?.lua"
 /*
 ** ## Original LUA_PATH_DEFAULT
 #define LUA_PATH_DEFAULT  \
@@ -831,7 +831,9 @@ typedef long int32_t;
 /* If you define the next macro you'll get the ability to set rotables as
    metatables for tables/userdata/types (but the VM might run slower)
 */
-#define LUA_META_ROTABLES   
+#ifndef LUA_CROSS_COMPILER
+#define LUA_META_ROTABLES 
+#endif
 
 #if LUA_OPTIMIZE_MEMORY == 2 && LUA_USE_POPEN
 #error "Pipes not supported in aggresive optimization mode (LUA_OPTIMIZE_MEMORY=2)"

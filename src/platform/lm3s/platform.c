@@ -106,7 +106,7 @@ int platform_init()
 
 // ****************************************************************************
 // PIO
-// Same configuration on LM3S8962 and LM3S6965
+// Same configuration on LM3S8962, LM3S6965, LM3S6918 (8 ports)
 
 static const u32 pio_base[] = { GPIO_PORTA_BASE, GPIO_PORTB_BASE, GPIO_PORTC_BASE, GPIO_PORTD_BASE,
                                 GPIO_PORTE_BASE, GPIO_PORTF_BASE, GPIO_PORTG_BASE, GPIO_PORTH_BASE };
@@ -177,7 +177,7 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 
 // ****************************************************************************
 // SPI
-// Same configuration on LM3S8962 and LM3S6965
+// Same configuration on LM3S8962, LM3S6965 and LM3S6918 (2 SPI ports)
 
 // All possible LM3S SPIs defs
 // FIXME this anticipates support for a platform with 2 SPI port
@@ -235,7 +235,7 @@ void platform_spi_select( unsigned id, int is_select )
 
 // ****************************************************************************
 // UART
-// Different configurations for LM3S8962 (2 UARTs) and LM3S6965 (3 UARTs)
+// Different configurations for LM3S8962, LM3S6918 (2 UARTs) and LM3S6965 (3 UARTs)
 
 // All possible LM3S uarts defs
 static const u32 uart_base[] = { UART0_BASE, UART1_BASE, UART2_BASE };
@@ -334,7 +334,7 @@ int platform_s_uart_recv( unsigned id, s32 timeout )
 
 // ****************************************************************************
 // Timers
-// Same on LM3S8962 and LM3S6965
+// Same on LM3S8962, LM3S6965 and LM3S6918 (4 timers)
 
 // All possible LM3S timers defs
 static const u32 timer_base[] = { TIMER0_BASE, TIMER1_BASE, TIMER2_BASE, TIMER3_BASE };
@@ -399,6 +399,7 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
 // ****************************************************************************
 // PWMs
 // Similar on LM3S8962 and LM3S6965
+// LM3S6918 has no PWM
 
 // SYSCTL div data and actual div factors
 const static u32 pwm_div_ctl[] = { SYSCTL_PWMDIV_1, SYSCTL_PWMDIV_2, SYSCTL_PWMDIV_4, SYSCTL_PWMDIV_8, SYSCTL_PWMDIV_16, SYSCTL_PWMDIV_32, SYSCTL_PWMDIV_64 };

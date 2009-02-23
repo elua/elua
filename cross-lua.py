@@ -6,7 +6,7 @@ cdefs = '-DLUA_CROSS_COMPILER'
 # Lua source files and include path
 lua_files = """lapi.c lcode.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c lobject.c lopcodes.c
    lparser.c lstate.c lstring.c ltable.c ltm.c lundump.c lvm.c lzio.c lauxlib.c lbaselib.c
-   ldblib.c liolib.c lmathlib.c loslib.c ltablib.c lstrlib.c loadlib.c linit.c luac.c print.c"""
+   ldblib.c liolib.c lmathlib.c loslib.c ltablib.c lstrlib.c loadlib.c linit.c luac.c print.c lrotable.c"""
 lua_full_files = " " + " ".join( [ "src/lua/%s" % name for name in lua_files.split() ] )
 local_include = "-Isrc/lua"
 
@@ -18,6 +18,5 @@ linkcom = "gcc -o $TARGET $SOURCES -lm"
 comp = Environment( CCCOM = cccom,
                     LINKCOM = linkcom,
                     ENV = os.environ )
-comp.TargetSignatures( 'content' )
-comp.SourceSignatures( 'MD5' )
+Decider( 'MD5' )                  
 Default( comp.Program( output, Split( lua_full_files ) ) )

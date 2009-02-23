@@ -43,7 +43,7 @@ toolchain_list = {
 # (the one that will be used if none is specified)
 platform_list = {  
   'at91sam7x' : { 'cpus' : [ 'AT91SAM7X256', 'AT91SAM7X512' ], 'toolchains' : [ 'arm-gcc', 'arm-gcc-eabi' ] },
-  'lm3s' : { 'cpus' : [ 'LM3S8962', 'LM3S6965' ], 'toolchains' : [ 'arm-gcc', 'arm-gcc-eabi' ] },
+  'lm3s' : { 'cpus' : [ 'LM3S8962', 'LM3S6965', 'LM3S6918' ], 'toolchains' : [ 'arm-gcc', 'arm-gcc-eabi' ] },
   'str9' : { 'cpus' : [ 'STR912FW44' ], 'toolchains' : [ 'arm-gcc', 'arm-gcc-eabi' ] },
   'i386' : { 'cpus' : [ 'I386' ], 'toolchains' : [ 'i686-gcc' ] },
   'lpc288x' : { 'cpus' : [ 'LPC2888' ], 'toolchains' : [ 'arm-gcc', 'arm-gcc-eabi' ] },
@@ -62,7 +62,8 @@ board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
                'MOD711' : [ 'STR711FR2' ],
                'STM3210E-EVAL' : [ 'STM32F103ZE' ],
                'ATEVK1100' : [ 'AT32UC3A0512' ],
-               'ET-STM32' : [ 'STM32F103RE' ]
+               'ET-STM32' : [ 'STM32F103RE' ],
+               'EAGLE-100' : [ 'LM3S6918' ]
             }
 
 # ROMFS file list "groups"
@@ -94,7 +95,8 @@ file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'i
               'MOD711' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'dualpwm' ],
               'STM3210E-EVAL' : [ 'bisect', 'hello', 'info' ],
               'ATEVK1100' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
-              'ET-STM32' : [ 'hello', 'info', 'bisect' ]
+              'ET-STM32' : [ 'hello', 'info', 'bisect' ],
+              'EAGLE-100' : [ 'bisect', 'hangman', 'lhttpd', 'led', 'hello', 'info' ]              
             }
 
 # Variants: board = <boardname>
