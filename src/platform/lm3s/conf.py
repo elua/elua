@@ -2,7 +2,7 @@
 
 specific_files = "startup_gcc.c platform.c usart.c sysctl.c gpio.c ssi.c timer.c pwm.c ethernet.c systick.c flash.c interrupt.c cpu.c adc.c"
 
-if boardname == 'EK-LM3S6965' or boardname == 'EL-LM3S8962':
+if boardname == 'EK-LM3S6965' or boardname == 'EK-LM3S8962':
   specific_files = specific_files + " rit128x96x4.c disp.c"
 
 ldscript = "lm3s.ld"
