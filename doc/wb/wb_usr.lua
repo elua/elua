@@ -51,7 +51,7 @@ wb_usr.tree =
   name = { nl = "eLua" },
   link = "news.html", 
   footer = [[
-    <p align="left"><a href="http://www.pax.com/free-counters.html"><img src="http://counter.pax.com/counter/image?counter=ctr-zsg80nnmqt" alt="Free Hit Counter" border="0" /></a></p>
+    <p style="margin-left: 5px;"><a href="http://www.pax.com/free-counters.html"><img src="http://counter.pax.com/counter/image?counter=ctr-zsg80nnmqt" alt="Free Hit Counter" border="0" /></a></p>
     <p align="center"><img src="wb_img/surprise.png></p>
   ]],
   folder =
