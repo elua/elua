@@ -33,7 +33,7 @@ void SysTick_Config(void)
 *******************************************************************************/
 void Delay(u32 nCount)
 {
-  printf("Delay(%d)\n", nCount);
+  printf("Delay(%u)\n", (unsigned)nCount);
   TimingDelay = nCount;
 
   /* Enable the SysTick Counter */

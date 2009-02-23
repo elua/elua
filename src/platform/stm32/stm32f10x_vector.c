@@ -40,16 +40,15 @@ typedef union { intfunc __fun; void * __ptr; } intvec_elem;
 extern unsigned long _etext;
 /* start address for the initialization values of the .data section. 
 defined in linker script */
-extern unsigned long _sidata;
 
 /* start address for the .data section. defined in linker script */		
-extern unsigned long _sdata;
+extern unsigned long _data;
 
 /* end address for the .data section. defined in linker script */		
 extern unsigned long _edata;
 		
 /* start address for the .bss section. defined in linker script */
-extern unsigned long _sbss;
+extern unsigned long _bss;
 
 /* end address for the .bss section. defined in linker script */			
 extern unsigned long _ebss;	
@@ -194,13 +193,13 @@ unsigned long *pulSrc, *pulDest;
 
 
 /* Copy the data segment initializers from flash to SRAM */
-    pulSrc = &_sidata;
-    for(pulDest = &_sdata; pulDest < &_edata; )
+    pulSrc = &_etext;
+    for(pulDest = &_data; pulDest < &_edata; )
     {
         *(pulDest++) = *(pulSrc++);
     }
 /* Zero fill the bss segment.  */
-    for(pulDest = &_sbss; pulDest < &_ebss; )
+    for(pulDest = &_bss; pulDest < &_ebss; )
     {
         *(pulDest++) = 0;
     }

@@ -5,6 +5,7 @@
 
 #include "auxmods.h"
 #include "type.h"
+#include "stacks.h"
 
 // *****************************************************************************
 // Define here what components you want for this platform
@@ -18,7 +19,6 @@
 //#define BUILD_DNS
 #define BUILD_CON_GENERIC
 //#define BUILD_CON_TCP
-#define EXTENDED_PLATFORM_DATA
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
@@ -34,24 +34,14 @@
 // *****************************************************************************
 // Auxiliary libraries that will be compiled for this platform
 
+#ifdef FORSTM3210E_EVAL
 #define AUXLIB_LCD      "stm3210lcd"
 LUALIB_API int ( luaopen_lcd )( lua_State* L );
-
-#if 0
-#define LUA_PLATFORM_LIBS\
-  { AUXLIB_PIO, luaopen_pio },\
-  { AUXLIB_SPI, luaopen_spi },\
-  { AUXLIB_TMR, luaopen_tmr },\
-  { AUXLIB_PD, luaopen_pd },\
-  { AUXLIB_UART, luaopen_uart },\
-  { AUXLIB_TERM, luaopen_term },\
-  { AUXLIB_PWM, luaopen_pwm },\
-  { AUXLIB_PACK, luaopen_pack },\
-  { AUXLIB_BIT, luaopen_bit },\
-  { AUXLIB_NET, luaopen_net },\
-  { AUXLIB_CPU, luaopen_cpu },\
-  { LUA_MATHLIBNAME, luaopen_math }
+#define LCDLINE  _ROM( AUXLIB_LCD, luaopen_lcd, lcd_map )
 #else
+#define LCDLINE
+#endif
+
 #define LUA_PLATFORM_LIBS_ROM\
   _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
   _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
@@ -60,9 +50,8 @@ LUALIB_API int ( luaopen_lcd )( lua_State* L );
   _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
-  _ROM( AUXLIB_LCD, luaopen_lcd, lcd_map )\
+  LCDLINE\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
-#endif
 
 // *****************************************************************************
 // Configuration data
@@ -117,10 +106,9 @@ u32 platform_s_cpu_get_frequency();
 
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)
-#define STACK_SIZE            256
 #define SRAM_SIZE             ( 64 * 1024 )
 #define MEM_START_ADDRESS     { ( void* )end }
-#define MEM_END_ADDRESS       { ( void* )( SRAM_BASE + SRAM_SIZE - STACK_SIZE - 1 ) }
+#define MEM_END_ADDRESS       { ( void* )( SRAM_BASE + SRAM_SIZE - STACK_SIZE_TOTAL - 1 ) }
 
 // *****************************************************************************
 // CPU constants that should be exposed to the eLua "cpu" module

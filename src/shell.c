@@ -136,7 +136,7 @@ static void shell_recv( char* args )
   while( *p == '\x1A' )
     p --;
   p ++;
-  printf( "done, got %ld bytes\n", p - shell_prog );          
+  printf( "done, got %u bytes\n", ( unsigned )( p - shell_prog ) );          
   
   // Execute
   if( ( L = lua_open() ) == NULL )

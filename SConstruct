@@ -3,19 +3,54 @@ target = ARGUMENTS.get( 'target', 'lua' ).lower()
 cputype = ARGUMENTS.get( 'cpu', '' ).upper()
 allocator = ARGUMENTS.get( 'allocator', '' ).lower()
 boardname = ARGUMENTS.get( 'board' , '').upper()
-cprefix = ARGUMENTS.get( 'cprefix', '')
+toolchain = ARGUMENTS.get( 'toolchain', '')
 optram = int( ARGUMENTS.get( 'optram', '1' ) )
 
-# List of platform/CPU combinations
-cpu_list = { 'at91sam7x' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
-              'lm3s' : [ 'LM3S8962', 'LM3S6965' ],
-              'str9' : [ 'STR912FW44' ],
-              'i386' : [ 'I386' ],
-              'lpc288x' : [ 'LPC2888' ],
-              'str7' : [ 'STR711FR2' ],
-              'stm32' : [ 'STM32F103ZE' ],
-              'avr32' : [ 'AT32UC3A0512' ]
-            }
+# List of toolchains
+toolchain_list = {
+  'arm-gcc' : { 
+    'compile' : 'arm-elf-gcc', 
+    'link' : 'arm-elf-ld', 
+    'asm' : 'arm-elf-as', 
+    'bin' : 'arm-elf-objcopy', 
+    'size' : 'arm-elf-size' 
+  },
+  'arm-gcc-eabi' : { 
+    'compile' : 'arm-none-eabi-gcc', 
+    'link' : 'arm-none-eabi-ld', 
+    'asm' : 'arm-none-eabi-as', 
+    'bin' : 'arm-none-eabi-objcopy', 
+    'size' : 'arm-none-eabi-size' 
+  },
+  'avr32-gcc' : { 
+    'compile' : 'avr32-gcc', 
+    'link' : 'avr32-ld', 
+    'asm' : 'avr32-as', 
+    'bin' : 'avr32-objcopy', 
+    'size' : 'avr32-size' 
+  },
+  'i686-gcc' : { 
+    'compile' : 'i686-elf-gcc', 
+    'link' : 'i686-elf-ld', 
+    'asm' : 'nasm', 
+    'bin' : 'i686-elf-objcopy', 
+    'size' : 'i686-elf-size' 
+  }
+}
+
+# List of platform/CPU/toolchains combinations
+# The first toolchain in the toolchains list is the default one
+# (the one that will be used if none is specified)
+platform_list = {  
+  'at91sam7x' : { 'cpus' : [ 'AT91SAM7X256', 'AT91SAM7X512' ], 'toolchains' : [ 'arm-gcc', 'arm-gcc-eabi' ] },
+  'lm3s' : { 'cpus' : [ 'LM3S8962', 'LM3S6965' ], 'toolchains' : [ 'arm-gcc', 'arm-gcc-eabi' ] },
+  'str9' : { 'cpus' : [ 'STR912FW44' ], 'toolchains' : [ 'arm-gcc', 'arm-gcc-eabi' ] },
+  'i386' : { 'cpus' : [ 'I386' ], 'toolchains' : [ 'i686-gcc' ] },
+  'lpc288x' : { 'cpus' : [ 'LPC2888' ], 'toolchains' : [ 'arm-gcc', 'arm-gcc-eabi' ] },
+  'str7' : { 'cpus' : [ 'STR711FR2' ], 'toolchains' : [ 'arm-gcc', 'arm-gcc-eabi' ] },
+  'stm32' : { 'cpus' : [ 'STM32F103ZE', 'STM32F103RE' ], 'toolchains' : [ 'arm-gcc', 'arm-gcc-eabi' ] },
+  'avr32' : { 'cpus' : [ 'AT32UC3A0512' ], 'toolchains' : [ 'avr32-gcc' ] }
+}
 
 # List of board/CPU combinations
 board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
@@ -26,7 +61,8 @@ board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
                'LPC-H2888' : [ 'LPC2888' ],
                'MOD711' : [ 'STR711FR2' ],
                'STM3210E-EVAL' : [ 'STM32F103ZE' ],
-               'ATEVK1100' : [ 'AT32UC3A0512' ]
+               'ATEVK1100' : [ 'AT32UC3A0512' ],
+               'ET-STM32' : [ 'STM32F103RE' ]
             }
 
 # ROMFS file list "groups"
@@ -57,7 +93,8 @@ file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'i
               'LPC-H2888' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
               'MOD711' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'dualpwm' ],
               'STM3210E-EVAL' : [ 'bisect', 'hello', 'info' ],
-              'ATEVK1100' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ]
+              'ATEVK1100' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
+              'ET-STM32' : [ 'hello', 'info', 'bisect' ]
             }
 
 # Variants: board = <boardname>
@@ -93,21 +130,30 @@ else:
     print "CPU %s not found" % cputype
     sys.exit( -1 )
 
-platform = None
 # Look for the given CPU in the list of platforms
-for p, v in cpu_list.items():
-  if cputype in v:
+platform = None
+for p, v in platform_list.items():
+  if cputype in v[ 'cpus' ]:
     platform = p
     break
 else:
   print "Unknown CPU %s" % cputype
   print "List of accepted CPUs: "
-  for p, v in cpu_list.items():
+  for p, v in platform_list.items():
     print " ", p, "-->",
-    for cpu in v:
+    for cpu in v[ 'cpus' ]:
       print cpu,
     print
   sys.exit( -1 )
+
+# Check the toolchain
+if toolchain != '':
+  if not toolchain in platform_list[ platform ][ 'toolchains' ]:
+    print "Invalid toolchain '%s' for CPU '%s'" % ( toolchain, cputype )
+    sys.exit( -1 )
+else:
+  toolchain = platform_list[ platform ][ 'toolchains' ][ 0 ]
+toolset = toolchain_list[ toolchain ]
 
 # CPU/allocator mapping (if allocator not specified)
 if allocator == '':
@@ -130,7 +176,8 @@ if not GetOption( 'clean' ):
   print "Board:       ", boardname
   print "Platform:    ", platform
   print "Allocator:   ", allocator
-  print "Target:      ", target
+  print "Target:      ", target == 'lua' and 'fplua' or 'target'
+  print "Toolchain:   ", toolchain
   print "*********************************"
   print
 

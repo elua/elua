@@ -31,15 +31,15 @@ ldscript = "src/platform/%s/%s" % ( platform, ldscript )
 
 # Toolset data
 tools[ 'lpc288x' ] = {}
-tools[ 'lpc288x' ][ 'cccom' ] = "arm-elf-gcc -mcpu=arm7tdmi %s %s %s -ffunction-sections -fdata-sections %s -Wall -c $SOURCE -o $TARGET" % ( opt, local_include, modeflag, cdefs )
-tools[ 'lpc288x' ][ 'linkcom' ] = "arm-elf-gcc -mcpu=arm7tdmi -nostartfiles -nostdlib %s -T %s -Wl,--gc-sections -Wl,-e,HardReset -Wl,--allow-multiple-definition -o $TARGET $SOURCES %s -lc -lgcc -lm" % ( modeflag, ldscript, local_libs )
-tools[ 'lpc288x' ][ 'ascom' ] = "arm-elf-gcc -x assembler-with-cpp %s -mcpu=arm7tdmi %s %s -Wall -c $SOURCE -o $TARGET" % ( local_include, modeflag, cdefs )
+tools[ 'lpc288x' ][ 'cccom' ] = "%s -mcpu=arm7tdmi %s %s %s -ffunction-sections -fdata-sections %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], opt, local_include, modeflag, cdefs )
+tools[ 'lpc288x' ][ 'linkcom' ] = "%s -mcpu=arm7tdmi -nostartfiles -nostdlib %s -T %s -Wl,--gc-sections -Wl,-e,HardReset -Wl,--allow-multiple-definition -o $TARGET $SOURCES %s -lc -lgcc -lm" % ( toolset[ 'compile' ], modeflag, ldscript, local_libs )
+tools[ 'lpc288x' ][ 'ascom' ] = "%s -x assembler-with-cpp %s -mcpu=arm7tdmi %s %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], local_include, modeflag, cdefs )
 
 # Programming function for LPC2888
 def progfunc_lpc288x( target, source, env ):
   outname = output + ".elf"
-  os.system( "arm-elf-size %s" % outname )
+  os.system( "%s %s" % ( toolset[ 'size' ], outname ) )
   print "Generating binary image..."
-  os.system( "arm-elf-objcopy -O binary %s %s.bin" % ( outname, output ) )
+  os.system( "%s -O binary %s %s.bin" % ( toolset[ 'bin' ], outname, output ) )
   
 tools[ 'lpc288x' ][ 'progfunc' ] = progfunc_lpc288x

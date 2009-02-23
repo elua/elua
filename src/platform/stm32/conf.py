@@ -23,17 +23,17 @@ cdefs = cdefs + " -Dgcc"
 
 # Toolset data
 tools[ 'stm32' ] = {}
-tools[ 'stm32' ][ 'cccom' ] = "arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb -mlittle-endian %s %s -ffunction-sections -fdata-sections -fno-strict-aliasing %s -Wall -c $SOURCE -o $TARGET" % ( opt, local_include, cdefs )
-#tools[ 'stm32' ][ 'linkcom' ] = "arm-none-eabi-gcc -nostartfiles -nostdlib -T %s -Wl,--gc-sections -Wl,-e,ResetISR -Wl,--allow-multiple-definition -o $TARGET $SOURCES -lc -lgcc -lm %s" % ( ldscript, local_libs )
-tools[ 'stm32' ][ 'linkcom' ] = "arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb -Wl,-T -Xlinker %s -u _start -Wl,-e,Reset_Handler -Wl,-static -Wl,--gc-sections -nostartfiles -nostdlib -Wl,-Map -Xlinker project.map -Wl,--allow-multiple-definition -o $TARGET $SOURCES -lc -lgcc -lm %s" % ( ldscript, local_libs )
-tools[ 'stm32' ][ 'ascom' ] = "arm-none-eabi-gcc -x assembler-with-cpp %s -mcpu=cortex-m3 -mthumb %s -Wall -c $SOURCE -o $TARGET" % ( local_include, cdefs )
+tools[ 'stm32' ][ 'cccom' ] = "%s -mcpu=cortex-m3 -mthumb -mlittle-endian %s %s -ffunction-sections -fdata-sections -fno-strict-aliasing %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], opt, local_include, cdefs )
+tools[ 'stm32' ][ 'linkcom' ] = "%s -mcpu=cortex-m3 -mthumb -Wl,-T -Xlinker %s -u _start -Wl,-e,Reset_Handler -Wl,-static -Wl,--gc-sections -nostartfiles -nostdlib -Wl,-Map -Xlinker project.map -Wl,--allow-multiple-definition -o $TARGET $SOURCES -lc -lgcc -lm %s" % ( toolset[ 'compile' ], ldscript, local_libs )
+tools[ 'stm32' ][ 'ascom' ] = "%s -x assembler-with-cpp %s -mcpu=cortex-m3 -mthumb %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], local_include, cdefs )
 
 # Programming function
 def progfunc_stm32( target, source, env ):
   outname = output + ".elf"
-  os.system( "arm-none-eabi-size %s" % outname )
+  os.system( "%s %s" % ( toolset[ 'size' ], outname ) )
   print "Generating binary image..."
-  os.system( "arm-none-eabi-objcopy -O binary %s %s.bin" % ( outname, output ) )
-  os.system( "arm-none-eabi-objcopy -O ihex %s %s.hex" % ( outname, output ) )
+  os.system( "%s -O binary %s %s.bin" % ( toolset[ 'bin' ], outname, output ) )
+  os.system( "%s -O ihex %s %s.hex" % ( toolset[ 'bin' ], outname, output ) )
   
 tools[ 'stm32' ][ 'progfunc' ] = progfunc_stm32
+

@@ -24,15 +24,15 @@ ldscript = "src/platform/%s/%s" % ( platform, ldscript )
 
 # Toolset data
 tools[ 'str7' ] = {}
-tools[ 'str7' ][ 'cccom' ] = "arm-elf-gcc -mcpu=arm7tdmi %s %s %s -ffunction-sections -fdata-sections %s -Wall -c $SOURCE -o $TARGET" % ( modeflag, opt, local_include, cdefs )
-tools[ 'str7' ][ 'linkcom' ] = "arm-elf-gcc -nostartfiles -nostdlib %s -T %s -Wl,--gc-sections -Wl,-e,entry -Wl,--allow-multiple-definition -o $TARGET $SOURCES %s -lc -lgcc -lm" % ( modeflag, ldscript, local_libs )
-tools[ 'str7' ][ 'ascom' ] = "arm-elf-gcc -x assembler-with-cpp %s -mcpu=arm7tdmi %s %s -Wall -c $SOURCE -o $TARGET" % ( local_include, modeflag, cdefs )
+tools[ 'str7' ][ 'cccom' ] = "%s -mcpu=arm7tdmi %s %s %s -ffunction-sections -fdata-sections %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], modeflag, opt, local_include, cdefs )
+tools[ 'str7' ][ 'linkcom' ] = "%s -nostartfiles -nostdlib %s -T %s -Wl,--gc-sections -Wl,-e,entry -Wl,--allow-multiple-definition -o $TARGET $SOURCES %s -lc -lgcc -lm" % ( toolset[ 'compile' ], modeflag, ldscript, local_libs )
+tools[ 'str7' ][ 'ascom' ] = "%s -x assembler-with-cpp %s -mcpu=arm7tdmi %s %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], local_include, modeflag, cdefs )
 
 # Programming function for LPC2888
 def progfunc_str7( target, source, env ):
   outname = output + ".elf"
-  os.system( "arm-elf-size %s" % outname )
+  os.system( "%s %s" % ( toolset[ 'size' ], outname ) )
   print "Generating binary image..."
-  os.system( "arm-elf-objcopy -O binary %s %s.bin" % ( outname, output ) )
+  os.system( "%s -O binary %s %s.bin" % ( toolset[ 'bin' ], outname, output ) )
   
 tools[ 'str7' ][ 'progfunc' ] = progfunc_str7
