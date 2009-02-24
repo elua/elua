@@ -10,13 +10,13 @@
 
 // Can't define more than one console devices
 #if defined( BUILD_CON_TCP ) && defined( BUILD_CON_GENERIC )
-#error "Can't have two console devices (don't enable BUILD_CON_TCP and BUILD_CON_GENERIC in build.h at the same time)"
+#error "Can't have two console devices (don't enable BUILD_CON_TCP and BUILD_CON_GENERIC in platform_conf.h at the same time)"
 #endif // #if defined( BUILD_CON_TCP ) && defined( BUILD_CON_GENERIC )
 
 // For TCP console we need to enable TCP support
 #ifdef BUILD_CON_TCP
   #ifndef BUILD_UIP
-  #error "BUILD_CON_TCP requires BUILD_UIP to be defined in build.h" 
+  #error "BUILD_CON_TCP requires BUILD_UIP to be defined in platform_conf.h" 
   #endif // #ifndef BUILD_UIP
 #endif // #ifdef BUILD_CON_TCP
 
@@ -24,18 +24,25 @@
 // (they can still function separately over UART, but this doesn't make sense)
 #ifdef BUILD_CON_TCP
   #ifdef BUILD_XMODEM
-  #error "XMODEM doesn't work with TCP console. Disable BUILD_XMODEM in build.h"
+  #error "XMODEM doesn't work with TCP console. Disable BUILD_XMODEM in platform_conf.h"
   #endif // #ifdef BUILD_XMODME
   #ifdef BUILD_TERM
-  #error "ANSI terminal support doesn't work (yet) with TCP console. Disable BUILD_TERM in build.h"
+  #error "ANSI terminal support doesn't work (yet) with TCP console. Disable BUILD_TERM in platform_conf.h"
   #endif // #ifdef BUILD_TERM
 #endif // #ifdef BUILD_CON_TCP
 
 // For DHCP we need to have TCP/IP support
 #ifdef BUILD_DHCPC
   #ifndef BUILD_UIP
-  #error "DHCP client requires TCP/IP support (enable BUILD_UIP in build.h)"
+  #error "DHCP client requires TCP/IP support (enable BUILD_UIP in platform_conf.h)"
   #endif // #ifndef BUILD_UIP
 #endif // #ifdef BUILD_DHCPC
+
+// For DNS we need to have TCP/IP support
+#ifdef BUILD_DNS
+  #ifndef BUILD_UIP
+  #error "DNS resolver requires TCP/IP support (enable BUILD_UIP in platform_conf.h)"
+  #endif // #ifndef BUILD_UIP
+#endif // #ifdef BUILD_DNS
 
 #endif // #ifndef __VALIDATE_H__

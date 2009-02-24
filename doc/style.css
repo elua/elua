@@ -10,13 +10,20 @@ p {
   line-height: 130%;
 }
 h2 {
-  color: #3366cc;
+  border: 1px solid #808080;
+  padding: 4px;
+  background-color: #AAFFCC;
+  font-size: 99%;
+  margin-left: 1em;
 }
 h3 {
   border: 1px solid #808080;
   padding: 6px;
   background-color: #cee7ff;
   color: #5c5c5c;
+}
+table {
+  margin-left: 1em;
 }
 pre {
   border: 1px solid #62a0ff;
@@ -25,13 +32,16 @@ pre {
   font-family: 'Monotype.com',"Courier New",Courier,monospace;
   font-size: 90%;
   line-height: 125%;
-  margin-left: 3em;
-  margin-right: 3em;
+  margin-left: 1em;
+  margin-right: 1em;
 }
 p.info {
   margin-left: 3em;
 }
 ul {
+  margin-left: 2em;
+}
+ol {
   margin-left: 2em;
 }
 h4 {

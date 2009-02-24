@@ -133,20 +133,26 @@ wb_usr.tree =
     },
     {
       name = { en = "Documentation", pt = "Documentação" },
-      link = "using.html",
+      link = "doc.html",
       folder = 
       {
         {
-          name = { en = "FAQ", pt = "FAQ" },
-          link = "faq.html",
+          name = { en = "Building", pt = "Building" },
+          link = "building.html",
+          folder = 
+          {
+            { name = { en = "Toolchains", pt = "##Tools" },
+              link = "toolchains.html",
+            }
+          },
         },
         {
           name = { en = "Using", pt = "Usando" },
           link = "using.html",
         },
         {
-          name = { en = "Building", pt = "Building" },
-          link = "building.html",
+          name = { en = "FAQ", pt = "FAQ" },
+          link = "faq.html",
         },
         {
           name = { en = "Examples", pt = "Exemplos" },

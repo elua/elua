@@ -1,5 +1,6 @@
 en/dl_sources.html
 en/tutorials.html
+en/doc.html
 en/building.html
 en/tut_bootstick.html
 en/platdepmodules.html
@@ -10,13 +11,14 @@ en/refman.html
 en/comunity.html
 en/tut_bootpc.html
 en/news.html
-en/overview.html
+en/using.html
 en/versionhistory.html
+en/toolchains.html
 en/tc_386.html
 en/examples.html
 en/dl_old.html
 en/net_ref.html
-en/using.html
+en/overview.html
 en/faq.html
 en/tc_cortex.html
 en/tc_arm.html
