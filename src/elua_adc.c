@@ -24,10 +24,11 @@ void adc_init_state( unsigned id )
   
   // Initialize Configuration
   s->op_pending = 0;
-  s->nonblocking = 0;
-  s->burst = 0;
+  s->blocking = 1;
+  s->clocked = 0;
   s->smooth_ready = 0;
   s->reqsamples = 0;
+  s->freerunning = 0;
   
   s->id = id;
   s->timer_id = 0;
@@ -145,13 +146,13 @@ u16 adc_samples_available( unsigned id )
   return ( u16 ) buf_get_count( BUF_ID_ADC, id );
 }
 
-void adc_wait_pending( unsigned id )
+void adc_wait_samples( unsigned id, unsigned samples )
 {
   elua_adc_state *s = adc_get_ch_state( id );
   
-  if ( s->nonblocking == 0 && s->op_pending == 1 )
+  if( buf_get_count( BUF_ID_ADC, id ) < samples && s->blocking == 1 )
   {
-    while ( s->op_pending == 1 ) { ; }
+    while( s->op_pending == 1 && buf_get_count( BUF_ID_ADC, id ) < samples ) { ; }
   }
 }
 

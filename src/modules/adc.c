@@ -11,23 +11,7 @@
 
 #ifdef BUILD_ADC
 
-// Lua: sample( id )
-static int adc_sample( lua_State* L )
-{
-  unsigned id;
-  int res;
-  
-  id = luaL_checkinteger( L, 1 );
-  MOD_CHECK_ID( adc, id );
-  res = platform_adc_sample( id );
-  
-  if ( res != PLATFORM_OK )
-    return luaL_error( L, "burst failed" );
-  
-  return 0;
-}
-
-// Lua: maxval( id )
+// Lua: data = maxval( id )
 static int adc_maxval( lua_State* L )
 {
   unsigned id;
@@ -40,8 +24,29 @@ static int adc_maxval( lua_State* L )
   return 1;
 }
 
-// Lua: samplesready( id )
-static int adc_samples_ready( lua_State* L )
+// Lua: realclock = setclock( id, clock, [timer_id] )
+static int adc_setclock( lua_State* L )
+{
+  u32 clock;
+  unsigned id, timer_id = 0;
+  
+  id = luaL_checkinteger( L, 1 );
+  MOD_CHECK_ID( adc, id );
+  clock = luaL_checkinteger( L, 2 );
+  if ( clock > 0 )
+  {
+    timer_id = luaL_checkinteger( L, 3 );
+    MOD_CHECK_ID( timer, timer_id );
+  }
+
+  platform_adc_op( id, PLATFORM_ADC_OP_SET_TIMER, timer_id );
+  clock = platform_adc_op( id, PLATFORM_ADC_OP_SET_CLOCK, clock );
+  lua_pushinteger( L, clock );
+  return 1;
+}
+
+// Lua: data = samplesready( id )
+static int adc_samplesready( lua_State* L )
 {
   unsigned id;
     
@@ -51,20 +56,32 @@ static int adc_samples_ready( lua_State* L )
   return 1;
 }
 
-// Lua: setmode( id, mode )
-static int adc_set_mode( lua_State* L )
+// Lua: setblocking( id, mode )
+static int adc_setblocking( lua_State* L )
 {
   unsigned id, mode;
   
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( adc, id );
   mode = luaL_checkinteger( L, 2 );
-  platform_adc_op( id, PLATFORM_ADC_SET_NONBLOCKING, mode );
+  platform_adc_op( id, PLATFORM_ADC_SET_BLOCKING, mode );
+  return 0;
+}
+
+// Lua: setfreerunning( id, mode )
+static int adc_setfreerunning( lua_State* L )
+{
+  unsigned id, mode;
+  
+  id = luaL_checkinteger( L, 1 );
+  MOD_CHECK_ID( adc, id );
+  mode = luaL_checkinteger( L, 2 );
+  platform_adc_op( id, PLATFORM_ADC_SET_FREERUNNING, mode );
   return 0;
 }
 
 // Lua: setsmoothing( id, length )
-static int adc_set_smoothing( lua_State* L )
+static int adc_setsmoothing( lua_State* L )
 {
   unsigned id, length, res;
 
@@ -87,7 +104,7 @@ static int adc_set_smoothing( lua_State* L )
 }
 
 // Lua: getsmoothing( id )
-static int adc_get_smoothing( lua_State* L )
+static int adc_getsmoothing( lua_State* L )
 {
   unsigned id;
   u32 res;
@@ -112,33 +129,29 @@ static int adc_flush( lua_State* L )
   return 1;
 }
 
-// Lua: burst( id, count, timer_id, frequency )
-static int adc_burst( lua_State* L )
+// Lua: sample( id, count )
+static int adc_sample( lua_State* L )
 {
-  unsigned id, timer_id, count;
-  u32 frequency;
+  unsigned id, count;
   int res;
   
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( adc, id );
   count = luaL_checkinteger( L, 2 );
-  timer_id = luaL_checkinteger( L, 3 );
-  MOD_CHECK_ID( timer, timer_id );
-  frequency = luaL_checkinteger( L, 4 );
   
   if  ( ( count == 0 ) || count & ( count - 1 ) )
     return luaL_error( L, "count must be power of 2 and > 0" );
   
-  res = platform_adc_burst( id, intlog2( count ), timer_id, frequency );
+  res = platform_adc_sample( id, intlog2( count ) );
   if ( res != PLATFORM_OK )
-    return luaL_error( L, "burst failed" );
+    return luaL_error( L, "sampling failed" );
     
   return 0;
 }
 
 
 // Lua: val = getsample( id )
-static int adc_get_sample( lua_State* L )
+static int adc_getsample( lua_State* L )
 {
   unsigned id;
   
@@ -146,7 +159,7 @@ static int adc_get_sample( lua_State* L )
   MOD_CHECK_ID( adc, id );
   
   // Wait for pending sampling events to finish (if blocking)
-  adc_wait_pending( id );
+  adc_wait_samples( id, 1 );
   
   // If we have at least one sample, return it
   if ( adc_samples_available( id ) >= 1 )
@@ -159,7 +172,7 @@ static int adc_get_sample( lua_State* L )
 
 
 // Lua: table_of_vals = getsamples( id, [count] )
-static int adc_get_samples( lua_State* L )
+static int adc_getsamples( lua_State* L )
 {
   unsigned id, i;
   u16 bcnt, count = 0;
@@ -171,7 +184,7 @@ static int adc_get_samples( lua_State* L )
     count = ( u16 )lua_tointeger(L, 2);
 
   // Wait for any pending operations to finish (if blocking)
-  adc_wait_pending( id );
+  adc_wait_samples( id, count );
   
   bcnt = adc_samples_available( id );
   
@@ -200,14 +213,15 @@ const LUA_REG_TYPE adc_map[] =
 {
   { LSTRKEY( "sample" ), LFUNCVAL( adc_sample ) },
   { LSTRKEY( "maxval" ), LFUNCVAL( adc_maxval ) },
-  { LSTRKEY( "samplesready" ), LFUNCVAL( adc_samples_ready ) },
-  { LSTRKEY( "setmode" ), LFUNCVAL( adc_set_mode ) },
-  { LSTRKEY( "setsmoothing" ), LFUNCVAL( adc_set_smoothing ) },
-  { LSTRKEY( "getsmoothing" ), LFUNCVAL( adc_get_smoothing ) },
-  { LSTRKEY( "burst" ), LFUNCVAL( adc_burst ) },
+  { LSTRKEY( "setclock" ), LFUNCVAL( adc_setclock ) },
+  { LSTRKEY( "samplesready" ), LFUNCVAL( adc_samplesready ) },
+  { LSTRKEY( "setblocking" ), LFUNCVAL( adc_setblocking ) },
+  { LSTRKEY( "setsmoothing" ), LFUNCVAL( adc_setsmoothing ) },
+  { LSTRKEY( "setfreerunning" ), LFUNCVAL( adc_setfreerunning ) },
+  { LSTRKEY( "getsmoothing" ), LFUNCVAL( adc_getsmoothing ) },
   { LSTRKEY( "flush" ), LFUNCVAL( adc_flush ) },
-  { LSTRKEY( "getsample" ), LFUNCVAL( adc_get_sample ) },
-  { LSTRKEY( "getsamples" ), LFUNCVAL( adc_get_samples ) },
+  { LSTRKEY( "getsample" ), LFUNCVAL( adc_getsample ) },
+  { LSTRKEY( "getsamples" ), LFUNCVAL( adc_getsamples ) },
   { LNILKEY, LNILVAL }
 };
 

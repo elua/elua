@@ -186,14 +186,17 @@ enum
   PLATFORM_ADC_GET_MAXVAL,
   PLATFORM_ADC_GET_SMOOTHING,
   PLATFORM_ADC_SET_SMOOTHING,
-  PLATFORM_ADC_SET_NONBLOCKING,
+  PLATFORM_ADC_SET_BLOCKING,
+  PLATFORM_ADC_SET_FREERUNNING,
+  PLATFORM_ADC_OP_SET_TIMER,
+  PLATFORM_ADC_OP_SET_CLOCK,
   PLATFORM_ADC_FLUSH,
 };
 
 // Functions requiring platform-specific implementation
-int platform_adc_sample( unsigned id );
-int platform_adc_burst( unsigned id, u8 logcount, unsigned timer_id, u32 frequency );
+int platform_adc_sample( unsigned id, u8 logcount );
 void platform_adc_stop( unsigned id );
+u32 platform_adc_setclock( unsigned id, u32 frequency);
 
 // ADC Common Functions
 int platform_adc_exists( unsigned id );

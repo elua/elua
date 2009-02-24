@@ -289,8 +289,21 @@ u32 platform_adc_op( unsigned id, int op, u32 data )
       res = adc_update_smoothing( id, ( u8 )intlog2( ( unsigned ) data ) );
       break;
       
-    case PLATFORM_ADC_SET_NONBLOCKING:
-      s->nonblocking = data;
+    case PLATFORM_ADC_SET_BLOCKING:
+      s->blocking = data;
+      break;
+      
+    case PLATFORM_ADC_OP_SET_TIMER:
+      platform_adc_stop( id );
+      s->timer_id = data;
+      break;
+    
+    case PLATFORM_ADC_OP_SET_CLOCK:
+      res = platform_adc_setclock( id, data );
+      break;
+      
+    case PLATFORM_ADC_SET_FREERUNNING:
+      s->freerunning = data;
       break;
     
     case PLATFORM_ADC_FLUSH:

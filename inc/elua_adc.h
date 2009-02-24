@@ -7,8 +7,9 @@ typedef struct
 {
   // Status Bit Flags
   volatile u8     op_pending: 1, // Is there a pending conversion?
-                  nonblocking: 1, // Are we in blocking or non-blocking mode? (0 - blocking, 1 - nonblocking)
-                  burst: 1, // Acquiring in burst mode
+                  blocking: 1, // Are we in blocking or non-blocking mode? (0 - blocking, 1 - nonblocking)
+                  freerunning: 1, // If true, we don't stop when we've acquired the requested number of samples
+                  clocked: 1, // Acquiring at fixed rate using a clock
                   smooth_ready: 1; // Has smoothing filter warmed up (i.e. smoothlen samples collected)
                     
   unsigned        id, timer_id;
@@ -30,7 +31,7 @@ int adc_update_smoothing( unsigned id, u8 loglen );
 void adc_flush_smoothing( unsigned id );
 u16 adc_samples_requested( unsigned id );
 u16 adc_samples_available( unsigned id );
-void adc_wait_pending( unsigned id );
+void adc_wait_samples( unsigned id, unsigned samples );
 
 #endif
 

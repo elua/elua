@@ -2,7 +2,7 @@ adcchannels = {0, 1, 2, 3}
 adcsmoothing = {4, 16, 32, 64}
 
 for i, v in ipairs(adcchannels) do
-  adc.setmode(v,0)
+  adc.setblocking(v,1)
   adc.setsmoothing(v,adcsmoothing[i])
 end
 
@@ -30,7 +30,7 @@ while true do
   
   stime = tread(0)
   for i, v in ipairs(adcchannels) do
-    sample(v)
+    sample(v,1)
     adcvals[i] = getsample(v)
   end
   etime = tread(0)
