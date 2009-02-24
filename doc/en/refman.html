@@ -1,13 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
-<html>
-	<head>
+<html><head>
 		<meta http-equiv="content-type" content="text/html; charset=utf-8">
 		<meta http-equiv="Content-Language" content="en-us">
-		<title>
-			Product
-		</title>
-		<link rel="stylesheet" type="text/css" href="../style.css">
-	</head>
+		
+		<title>Product</title><link rel="stylesheet" type="text/css" href="../style.css"></head>
+
 	<body>
 		<h3>
 			eLua Modules Reference Manual
@@ -232,8 +229,12 @@
 			Some notes on PIO:
 		</p>
 		<ul>
-			<li>pio: only some platform have internal pullups for the pio pins, while Cortex is the only platform that also provides pulldowns for its pios. However, in this case you're safe, as eLua will signal an error if you try to execute a pullup operatin on a platform that does not support it.
-			</li>
+			<li>pio:
+only some platform have internal pullups for the pio pins, while Cortex
+is the only platform that also provides pulldowns for its pios.
+However, in this case you're safe, as eLua will signal an error if you
+try to execute a pullup operatin on a platform that does not support
+it. </li>
 		</ul>
 		<p>
 			<br>
@@ -275,8 +276,10 @@
 			returns their values.
 		</p>
 		<p>
-			<a name="gpio_getportname" id="gpio_getportname"></a> [pio.getportname] Port = pio.port( code ): return the physical port number associated with the given code. For example, "pio.port( pio.P0_20 )" will return 0.
-		</p>
+			<a name="gpio_getportname" id="gpio_getportname"></a>
+[pio.getportname] Port = pio.port( code ): return the physical port
+number associated with the given code. For example, "pio.port(
+pio.P0_20 )" will return 0. </p>
 		<p>
 			<a name="gpio_getpinnumber" id="gpio_getpinnumber"></a> [pio.getpinnumber] Pin = pio.pin( code ): return the physical pin number associated with the
 		</p>
@@ -297,20 +300,21 @@
 			<br>
 		</p>
 		<p>
-			[pio.configport(pio.DIR, pio.DIR_INPUT, [Port1], [Port2], ...)] pio.port_input( Port1, Port2, ... ): set the specified port(s) as input(s).
-		</p>
-		<p>
-			[pio.configport(pio.DIR, pio.DIR_OUTPUT, [Port1], [Port2], ...)] pio.port_output( Port1, Port2, ... ): set the specified port(s) as output(s).
-		</p>
-		<p>
-			[pio.configpin(pio.PULL, pio.PULL_UP, [Pin1], [Pin2], ...)] pio.pullup( Pin1, Pin2, ... ): enable internal pullups on the specified pins.Note that some CPUs might not provide this feature.
-		</p>
-		<p>
-			[pio.configpin(pio.PULL, pio.PULL_DOWN, [Pin1], [Pin2], ...)] pio.pulldown( Pin1, Pin2, ... ): enable internal pulldowns on the specified pins. Note that some CPUs might not provide this feature.
-		</p>
-		<p>
-			[pio.configpin(pio.PULL, pio.PULL_NO, [Pin1], [Pin2], ...)] pio.nopull( Pin1, Pin2, ... ): disable the pullups/pulldowns on the specifiedpins. Note that some CPUs might not provide this feature.
-		</p>
+[pio.configport(pio.DIR, pio.DIR_INPUT, [Port1], [Port2], ...)]
+pio.port_input( Port1, Port2, ... ): set the specified port(s) as
+input(s). </p>
+		<p> [pio.configport(pio.DIR, pio.DIR_OUTPUT, [Port1],
+[Port2], ...)] pio.port_output( Port1, Port2, ... ): set the specified
+port(s) as output(s). </p>
+		<p> [pio.configpin(pio.PULL, pio.PULL_UP, [Pin1], [Pin2],
+...)] pio.pullup( Pin1, Pin2, ... ): enable internal pullups on the
+specified pins.Note that some CPUs might not provide this feature. </p>
+		<p> [pio.configpin(pio.PULL, pio.PULL_DOWN, [Pin1], [Pin2],
+...)] pio.pulldown( Pin1, Pin2, ... ): enable internal pulldowns on the
+specified pins. Note that some CPUs might not provide this feature. </p>
+		<p> [pio.configpin(pio.PULL, pio.PULL_NO, [Pin1], [Pin2],
+...)] pio.nopull( Pin1, Pin2, ... ): disable the pullups/pulldowns on
+the specifiedpins. Note that some CPUs might not provide this feature. </p>
 		<p>
 			<br>
 		</p>
@@ -330,8 +334,12 @@
 			It allows Lua to use the PWM blocks on the target CPU.
 		</p>
 		<p>
-			<strike><a name="pwm_setup" id="pwm_setup"></a>[pwm.setup]</strike>(pwm.setup( id, frequency, Active Cycle ) Data = pwm.setup( id, frequency, duty ): sets the PWM block 'id' to generate the specified frequency with the specified duty cycle (duty is an integer number from 0 to 100, specifying the duty cycle in percents). It returns the actual frequency set on the PWM block.
-		</p>
+			<strike><a name="pwm_setup" id="pwm_setup"></a>[pwm.setup]</strike>(pwm.setup(
+id, frequency, Active Cycle ) Data = pwm.setup( id, frequency, duty ):
+sets the PWM block 'id' to generate the specified frequency with the
+specified duty cycle (duty is an integer number from 0 to 100,
+specifying the duty cycle in percents). It returns the actual frequency
+set on the PWM block. </p>
 		<p>
 			Here there is a bigger change on the proposal.
 		</p>
@@ -373,7 +381,7 @@
 		</h3>
 		<p>
 			<br>
-			<big>Actual_clock = spi.setup( id, spi.MASTER | spi.SLAVE, clock, cpol, cpha,<br>
+			Actual_clock = spi.setup( id, spi.MASTER | spi.SLAVE, clock, cpol, cpha,<br>
 			databits): set the SPI interface with the given parameters, returns the clock<br>
 			that was set for the interface.<br>
 			<br>
@@ -384,14 +392,20 @@
 			<a name="spi_send" id="spi_send"></a>spi.send( id, Data1, Data2, ... ): sends all the data to the specified SPI<br>
 			interface.<br>
 			<br>
-			<a name="spi_sendrecv" id="spi_sendrecv"></a>[spi.sendrecv(id, Out1, Out2, ...)] In1, In2, ... = spi.send_recv( id, Out1, Out2, ... ): sends all the "out" bytes to the specified SPI interface and returts the data read after each sent byte.<br>
+			<a name="spi_sendrecv" id="spi_sendrecv"></a>[spi.sendrecv(id,
+Out1, Out2, ...)] In1, In2, ... = spi.send_recv( id, Out1, Out2, ... ):
+sends all the "out" bytes to the specified SPI interface and returts
+the data read after each sent byte.<br>
+			<br> Returning several
+values in this blocking way would not complicate some queued send
+implementations ? (ok, this could be another function :)<br>
 			<br>
-			Returning several values in this blocking way would not complicate some queued send implementations ? (ok, this could be another function :)<br>
+Sending multiple data/chars in a single call and not in a table
+argument does not allow the data to be built in run time (without some
+string massage, of course :)<br>
 			<br>
-			Sending multiple data/chars in a single call and not in a table argument does not allow the data to be built in run time (without some string massage, of course :)<br>
 			<br>
 			<br>
-			<br></big>
 		</p>
 		<h3>
 			<a name="sysmodule" id="sysmodule"></a>sys
@@ -488,12 +502,29 @@
 			Some notes on timers:
 		</p>
 		<ul>
-			<li>timers: from all the platforms on which eLua runs, only the Luminary Cortex CPUs has rock solid 32-bit timers. You can do pretty much everything you need with them. All the other platforms have 16-bit timers, which imposes some limits on the range of delays you can achieve with them. Make sure to use tmr.mindelay(id) and tmr.maxdelay(id) to check the actual resolution of your timers, and adapt your code accordingly. To 'compensate' for this, it's not possible to change the base timer frequency on the Cortex CPUs, but it is possible on most other platforms :) So be sure to also check the result of tmr.setclock(id)
-			</li>
-			<li>also, when using timers, remember that if you're using XMODEM and/or the "term" module, TMR0 is used by both of them. So, if you change the TMR0 base clock in your code, be sure to restore the original setting before returning to the shell. You can change this static timer assignment by modifying src/main.c. It might also be possible to change it dynamically in the future, although I see little use for this.
-			</li>
-			<li>PWM: the Cortex CPUs have 6 PWM channels, but channels 0/1, 2/3 and 4/5 respectively share the same base clock setting. So, when you're changing the base clock for channel 1, you're also changing the base clock for channel 0; if channel 0 was already running, you won't like what will happen next. This time no eLua function can save you, you simply need you know your CPU architecture.
-			</li>
+			<li>timers:
+from all the platforms on which eLua runs, only the Luminary Cortex
+CPUs has rock solid 32-bit timers. You can do pretty much everything
+you need with them. All the other platforms have 16-bit timers, which
+imposes some limits on the range of delays you can achieve with them.
+Make sure to use tmr.mindelay(id) and tmr.maxdelay(id) to check the
+actual resolution of your timers, and adapt your code accordingly. To
+'compensate' for this, it's not possible to change the base timer
+frequency on the Cortex CPUs, but it is possible on most other
+platforms :) So be sure to also check the result of tmr.setclock(id) </li>
+			<li>also, when using timers, remember that if you're
+using XMODEM and/or the "term" module, TMR0 is used by both of them.
+So, if you change the TMR0 base clock in your code, be sure to restore
+the original setting before returning to the shell. You can change this
+static timer assignment by modifying src/main.c. It might also be
+possible to change it dynamically in the future, although I see little
+use for this. </li>
+			<li>PWM: the Cortex CPUs have 6 PWM channels, but
+channels 0/1, 2/3 and 4/5 respectively share the same base clock
+setting. So, when you're changing the base clock for channel 1, you're
+also changing the base clock for channel 0; if channel 0 was already
+running, you won't like what will happen next. This time no eLua
+function can save you, you simply need you know your CPU architecture. </li>
 		</ul>
 		<p>
 			<a name="tmr_delay" id="tmr_delay"></a>tmr.delay( id, delay ): uses timer 'id' to wait for 'delay' us.
@@ -581,7 +612,9 @@
 		</h2>
 		<p>
 			A Platform Dependent eLua Module is a module that runs only on one or on a few <a href="status.html#platforms">supported eLua platforms</a>.<br>
-			These modules make use of specifical devices and features offered by some kits and allow eLua aplications to make the best use of the external hardware on your platforms.<br>
+These modules make use of specifical devices and features offered by
+some kits and allow eLua aplications to make the best use of the
+external hardware on your platforms.<br>
 		</p>
 		<h3>
 			<a name="adcmodule" id="adcmodule"></a>adc - Analog to Digital Conversion Module
@@ -591,40 +624,14 @@
 			<br>
 			The ADC module handles the Analog to Digital Conversion Peripherals.<br>
 			<br>
+			<a name="adc_sample" id="adc_sample"></a><strong>adc.sample(channel_id, count)</strong><br>Request that <em>count</em> samples be converted from <em>channel_id</em>. <em>count</em> must be greater than zero and a power of 2</p><p><a name="adc_flush" id="adc_getsamples"></a><strong>adc.flush(channel_id)</strong><br>Empty sample and smoothing buffers.</p><p><a name="adc_getsample" id="adc_getsamples"></a><strong>adc.getsample(channel_id)</strong><br>
+			Request a single sample from the buffer.</p><p><em></em><a name="adc_getsamples" id="adc_getsamples"></a><strong>adc.getsamples(channel_id, [count])</strong><br>Request <em>count</em> samples from the buffer, in a table. If <em>count</em> is either zero or omitted, all available samples are returned.</p><p><a name="adc_maxval" id="adc_maxval"></a><strong>adc.maxval(channel_id)</strong><br>Returns the largest integer one can expect fromr this channel on a given platform (based on bit depth).</p><p><a name="adc_setclock" id="adc_maxval"></a><strong>adc.setclock(channel_id, frequency, [timer_id])</strong><br>Sets the frequency and clock source for sample collection. If <span style="font-style: italic;">frequency</span> is zero (timer_id not needed), samples on <span style="font-style: italic;">channel_id</span> are collected as fast as possible. &nbsp;If <span style="font-style: italic;">frequency</span> is non-zero,<span style="font-style: italic;"> timer_id</span> is configured to trigger sampling on <span style="font-style: italic;">channel_id</span> at <span style="font-style: italic;">frequency.</span></p><p><a name="adc_samplesready" id="adc_samplesready"></a><strong>adc.samplesready(channel_id)</strong><br>Returns the number of samples waiting in the buffer.</p><p><a name="adc_setfreerunning" id="adc_samplesready"></a><strong>adc.setfreerunning(channel_id, mode)</strong><br><span style="font-style: italic;"><span style="font-style: italic;">mode</span></span> 0 disables freerunning mode (default), <span style="font-style: italic;"><span style="font-style: italic;">mode</span></span>
+1 enables freerunning mode. &nbsp;If enabled and samples are requested,
+sampling will continue after the buffer fills, replacing the oldest
+sample each time a new sample is taken.</p><p><a name="adc_setmode" id="adc_setmode"></a><strong>adc.setblocking(channel_id, mode)<br></strong> <em style="font-style: italic;">mode</em> 1 sets blocking mode (default). adc.getsample(s) will wait for requested samples to be captured before returning.<em> mode</em> 0 sets non-blocking mode<br>
 			<br>
-			<a name="adc_sample" id="adc_sample"></a><strong>adc.sample(channel_id)</strong><br>
-			Generate one processed sample.<br>
-			<br>
-			<br>
-			<a name="adc_getsamples" id="adc_getsamples"></a><strong>adc.getsamples(channel_id, [count])</strong><br>
-			Request <em>count</em> samples from the buffer.<br>
-			if singular, an integer is returned. if multiple, a table of integers is returned. If <em>count</em> is either zero or omitted, all available samples are returned.<br>
-			<br>
-			<br>
-			<a name="adc_maxval" id="adc_maxval"></a><strong>adc.maxval(channel_id)</strong><br>
-			Returns the largest integer one can expect fromr this channel on a given platform (based on bit depth).<br>
-			<br>
-			<br>
-			<a name="adc_samplesready" id="adc_samplesready"></a><strong>adc.samplesready(channel_id)<br></strong> Returns the number of samples waiting in the buffer.<br>
-			<br>
-			<br>
-			<a name="adc_dataready" id="adc_dataready"></a><strong>adc.dataready(channel_id)<br></strong> If running in non-blocking mode, this will indicate if all of the samples requested from the last sample or<br>
-			burst have been acquired and are waiting in the buffer.<br>
-			<br>
-			<br>
-			<a name="adc_setmode" id="adc_setmode"></a><strong>adc.setmode(channel_id, mode)<br></strong> <em>mode</em> 0 sets blocking mode. adc.getsamples will wait for requested samples to be captured before returning.<br>
-			<em>mode</em> 1 sets non-blocking mode<br>
-			<br>
-			<br>
-			<a name="adc_setsmoothing" id="adc_setsmoothing"></a><strong>adc.setsmoothing(channel_id, length)<br></strong> Set the length of the smoothing filter.<br>
-			This must be a power of 2 (maximum = 128)<br>
-			<br>
-			<br>
-			<a name="adc_getsmoothing" id="adc_getsmoothing"></a><strong>adc.getsmoothing(channel_id)<br></strong> Get the current smoothing length in use.<br>
-			<br>
-			<br>
-			<a name="adc_burst" id="adc_burst"></a><strong>adc.burst( channel_id, count, timer_id, frequency)<br></strong> Request that <em>count</em> samples be converted from <em>channel_id</em>, using <em>timer_id</em> at <em>frequency.</em> <em>count</em> must be greater than zero and a power of 2<br>
-			<br>
+			<a name="adc_setsmoothing" id="adc_setsmoothing"></a><strong>adc.setsmoothing(channel_id, length)<br></strong> Set the <span style="font-style: italic;">length</span> of the smoothing filter on <span style="font-style: italic;">channel_id</span>. &nbsp;When greater than 1, and samples are requested, smoothing filter will fill to <span style="font-style: italic;">length</span> with samples, and then put the requested number of samples into the adc buffer.<br>
+			<span style="font-style: italic;">length</span> must be a power of 2 (maximum = 64)</p><p><a name="adc_getsmoothing" id="adc_getsmoothing"></a><strong>adc.getsmoothing(channel_id)<br></strong> Get the current smoothing length in use.<br>
 			<br>
 		</p>
 		<h3>
@@ -672,7 +679,10 @@
 		</p>
 		<p>
 			Turns off the OLED display<br>
-			This function will turn off the OLED display. This will stop the scanning of the panel and turn off the on-chip DC-DC converter, preventing damage to the panel due to burn-in (it has similar characters to a CRT in this respect).<br>
+This function will turn off the OLED display. This will stop the
+scanning of the panel and turn off the on-chip DC-DC converter,
+preventing damage to the panel due to burn-in (it has similar
+characters to a CRT in this respect).<br>
 			<br>
 		</p>
 		<p>
@@ -693,8 +703,15 @@
 			y is the vertical position to display the string, specified in rows from the top edge of the display.<br>
 			gray is the 4-bit gray scale (intensity) value to be used for displayed text.<br>
 			<br>
-			This function will draw a string on the display. Only the ASCII characters between 32 (space) and 126 (tilde) are supported; other characters will result in random data being draw on the display (based on whatever appears before/after the font in memory). The font is mono-spaced, so characters such as ``i'' and ``l'' have more white space around them than characters such as ``m'' or ``w''.<br>
-			If the drawing of the string reaches the right edge of the display, no more characters will be drawn. Therefore, special care is not required to avoid supplying a string that is ``too long'' to display.<br>
+This function will draw a string on the display. Only the ASCII
+characters between 32 (space) and 126 (tilde) are supported; other
+characters will result in random data being draw on the display (based
+on whatever appears before/after the font in memory). The font is
+mono-spaced, so characters such as ``i'' and ``l'' have more white
+space around them than characters such as ``m'' or ``w''.<br>
+If the drawing of the string reaches the right edge of the display, no
+more characters will be drawn. Therefore, special care is not required
+to avoid supplying a string that is ``too long'' to display.<br>
 			<br>
 			Because the OLED display packs 2 pixels of data in a single byte, the<br>
 			parameter \e ulX must be an even column number (for example, 0, 2, 4, and<br>
@@ -714,42 +731,20 @@
 			width is the width of the image, specified in columns.<br>
 			height is the height of the image, specified in rows.<br>
 			<br>
-			This function will display a bitmap graphic on the display. Because of the format of the display RAM, the starting column x and the number of columns y must be an integer multiple of two.<br>
-			The image data is organized with the first row of image data appearing left to right, followed immediately by the second row of image data. Each byte contains the data for two columns in the current row, with the leftmost column being contained in bits 7:4 and the rightmost column being contained in bits 3:0.<br>
-			For example, an image six columns wide and seven scan lines tall would be arranged as follows (showing how the twenty one bytes of the image would appear on the display):<br>
+This function will display a bitmap graphic on the display. Because of
+the format of the display RAM, the starting column x and the number of
+columns y must be an integer multiple of two.<br>
+The image data is organized with the first row of image data appearing
+left to right, followed immediately by the second row of image data.
+Each byte contains the data for two columns in the current row, with
+the leftmost column being contained in bits 7:4 and the rightmost
+column being contained in bits 3:0.<br>
+For example, an image six columns wide and seven scan lines tall would
+be arranged as follows (showing how the twenty one bytes of the image
+would appear on the display):<br>
 			<br>
-			Because the OLED display packs 2 pixels of data in a single byte, the parameter x must be an even column number (for example, 0, 2, 4, and so on).
-		</p>
-		<pre>
-+-------------------+-------------------+-------------------+
-|      Byte 0       |      Byte 1       |      Byte 2       |
-+---------+---------+---------+---------+---------+---------+
-| 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |
-+---------+---------+---------+---------+---------+---------+
-|      Byte 3       |      Byte 4       |      Byte 5       |
-+---------+---------+---------+---------+---------+---------+
-| 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |
-+---------+---------+---------+---------+---------+---------+
-|      Byte 6       |      Byte 7       |      Byte 8       |
-+---------+---------+---------+---------+---------+---------+
-| 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |
-+---------+---------+---------+---------+---------+---------+
-|      Byte 9       |      Byte 10      |      Byte 11      |
-+---------+---------+---------+---------+---------+---------+
-| 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |
-+---------+---------+---------+---------+---------+---------+
-|      Byte 12      |      Byte 13      |      Byte 14      |
-+---------+---------+---------+---------+---------+---------+
-| 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |
-+---------+---------+---------+---------+---------+---------+
-|      Byte 15      |      Byte 16      |      Byte 17      |
-+---------+---------+---------+---------+---------+---------+
-| 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |
-+---------+---------+---------+---------+---------+---------+
-|      Byte 18      |      Byte 19      |      Byte 20      |
-+---------+---------+---------+---------+---------+---------+
-| 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |
-+---------+---------+---------+---------+---------+---------+
-</pre>
-	</body>
-</html>
+Because the OLED display packs 2 pixels of data in a single byte, the
+parameter x must be an even column number (for example, 0, 2, 4, and so
+on). </p>
+		<pre>+-------------------+-------------------+-------------------+<br>|      Byte 0       |      Byte 1       |      Byte 2       |<br>+---------+---------+---------+---------+---------+---------+<br>| 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |<br>+---------+---------+---------+---------+---------+---------+<br>|      Byte 3       |      Byte 4       |      Byte 5       |<br>+---------+---------+---------+---------+---------+---------+<br>| 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |<br>+---------+---------+---------+---------+---------+---------+<br>|      Byte 6       |      Byte 7       |      Byte 8       |<br>+---------+---------+---------+---------+---------+---------+<br>| 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |<br>+---------+---------+---------+---------+---------+---------+<br>|      Byte 9       |      Byte 10      |      Byte 11      |<br>+---------+---------+---------+---------+---------+---------+<br>| 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |<br>+---------+---------+---------+---------+---------+---------+<br>|      Byte 12      |      Byte 13      |      Byte 14      |<br>+---------+---------+---------+---------+---------+---------+<br>| 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |<br>+---------+---------+---------+---------+---------+---------+<br>|      Byte 15      |      Byte 16      |      Byte 17      |<br>+---------+---------+---------+---------+---------+---------+<br>| 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |<br>+---------+---------+---------+---------+---------+---------+<br>|      Byte 18      |      Byte 19      |      Byte 20      |<br>+---------+---------+---------+---------+---------+---------+<br>| 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |<br>+---------+---------+---------+---------+---------+---------+<br></pre>
+	</body></html>
