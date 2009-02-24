@@ -1,806 +1,755 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
-<html><head><meta http-equiv="content-type" content="text/html; charset=ISO-8859-1"><meta http-equiv="Content-Language" content="en-us"><title>Product</title><link rel="stylesheet" type="text/css" href="../style.css"></head>
-<body style="background-color: rgb(255, 255, 255);">
-<h3>eLua Modules Reference Manual
-</h3>
-<h2><a name="genericmodules"></a>eLua Generic
-Modules</h2>A Generic eLua Module is a module that can be used&nbsp;by a Lua program running on any of the <a href="status.html#platforms">supported eLua platforms</a>.<br>Write your code once and it is already automatically ported to the main platforms of the embedded world.<br><br><br><br><br><br><br><br><br><br><h3><a name="bitmodule"></a>bit</h3>
-Bitwise&nbsp;operations in eLua is implemented thru
-the&nbsp;BitLib library, from Reuben Thomas.<br>
-BitLib project is hosted at LuaForge on
-<a href="http://luaforge.net/projects/bitlib" target="_top">http://luaforge.net/projects/bitlib</a><br>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="bit_bnot"></a>Res = bit.bnot( value )</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-unary negation
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-&nbsp;
-</p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="bit_band"></a> Res = bit.band( v1, v2, ... )</p>
-<p class="MsoNormal" style="font-family: Verdana;"><b>bitwise
-</b>"and"
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-&nbsp;
-</p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="bit_bor"></a> Res = bit.bor( v1, v2, ... )</p>
-<p class="MsoNormal" style="font-family: Verdana;"><span style="font-weight: bold;">&nbsp;</span><b class="info" style="font-weight: bold;">bitwise</b><b class="info" style="font-weight: bold;">
-</b><span class="info" style="font-weight: bold;">"or"</span>
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-&nbsp;
-</p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="bit_bxor"></a> Res = bit.bxor( v1, v2, ... )</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-<b>bitwise</b><b> </b>"exclusive or"
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-&nbsp;
-</p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="bit_lshift"></a> Res = bit.lshift( value, pos )</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-shift "value" left "pos" positions.
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-&nbsp;
-</p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="bit_rshift"></a> Res = bit.rshift( value, pos )</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-shift "value" right "pos" positions. The sign is not propagated.
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-&nbsp;
-</p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="bit_arshift"></a> Res = bit.arshift( value, pos )</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-shift "value" right "pos" positions. The sign is propagated
-("arithmetic shift").
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-&nbsp;
-</p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="bit_bit"></a> Res = bit.bit( bitno )</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-a shortcut for bit.lshift( 1, bitno )
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-&nbsp;
-</p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="bit_set"></a> Res1, Res2, ... = bit.set( bitno, v1,
-v2, ... )</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-set the bit at position "bitno" in v1, v2, ... to 1.
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-&nbsp;
-</p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="bit_clear"></a> Res1, Res2, ... = bit.clear( bitno,
-v1, v2, ... )</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-set the bit at position "bitno"in v1, v2, ... to 0.
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-&nbsp;
-</p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="bit_isset"></a> Res = bit.isset( value, bitno )</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-returns true if bit at position "bitno" in "value" is 1, false
-otherwise.
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-&nbsp;
-</p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="bit_isclear"></a> Res = bit.isclear( value, bitno )</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-returns true if bit at position "bitno" in "value" is 0, false
-otherwise.
-</p>
-<br style="font-family: Verdana;">
-<br style="font-family: Verdana;">
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<h3><a name="cpumodule"></a>cpu</h3>
-<p class="MsoNormal" style="font-family: Verdana;"><br>
-</p>
-<p style="margin-bottom: 0in;"> </p>
-<font face="Bitstream Vera Sans Mono, sans-serif"><a name="cpu_write32"></a>write32( address, data ) : write
-the 32-bit data at the specified address</font>
-<p style="margin-bottom: 0in;"></p>
-<p style="margin-bottom: 0in;">
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="cpu_write16"></a>write16( address, data ) : write
-the 16-bit data at the specified address</font>
-</p>
-<p style="margin-bottom: 0in;">
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="cpu_write8"></a>write8( address, data ) : write the
-8-bit data at the specified address</font> <br>
-</p>
-<p style="margin-bottom: 0in;"><br>
-</p>
-<br>
-<font face="Bitstream Vera Sans Mono, sans-serif"><a name="cpu_read32"></a>Data =&nbsp;read32( address ) :
-reads 32-bit data from the specified address</font>
-<p style="margin-bottom: 0in;"></p>
-<p style="margin-bottom: 0in;">
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="cpu_read16"></a>Data = read16( address ) : reads
-16-bit data from the specified address</font>
-</p>
-<p style="margin-bottom: 0in;">
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="cpu_read8"></a>Data = read8( address ) : reads 8-bit
-data from the specified address</font></p>
-<p style="margin-bottom: 0in;"><br>
-</p>
-<br>
-<p style="margin-bottom: 0in;"><a name="cpu_disableinterrupts"></a>
-[cpu.disableinterrupts()]&nbsp;&nbsp; <font face="Bitstream Vera Sans Mono, sans-serif">cli(): disable
-CPU interrupts</font>
-</p>
-<p style="margin-bottom: 0in;"> <br>
-</p>
-<p style="margin-bottom: 0in;"> <br>
-</p>
-<p style="margin-bottom: 0in;"><a name="cpu_enableinterrupts"></a>
-[cpu.enableinterrupts()]&nbsp;&nbsp; <font face="Bitstream Vera Sans Mono, sans-serif">sei(): enable
-CPU interrupts</font>
-</p>
-<p style="margin-bottom: 0in;"> <br>
-</p>
-<p style="margin-bottom: 0in;">
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><br>
-</font></p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="cpu_clockfrequency"></a>[cpu.clockfrequency()]&nbsp;&nbsp;&nbsp;&nbsp;
-Clock = clock(): returns the CPU frequency</font>
-</p>
-<p style="margin-bottom: 0in;"> <br>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">Also, you can
-expose as many CPU constants (for example memory mapped registers)</font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">as you want to
-this module. You might want to use this feature to access some </font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">CPU memory areas
-(as defined in the CPU header files from the CPU support </font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">package)
-directly from Lua. To do this, you'll need to define the </font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">PLATFORM_CPU_CONSTANTS
-macro in the platform's platform_conf.h file </font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">(src/platform/&lt;platform
-name&gt;/platform_conf.h). Include all your constants in a </font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">_C(
-&lt;constant name&gt; ) definition, and then build your project.</font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">For example,
-let's suppose that your CPU's interrupt controler has 3 memory</font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">mapped
-registers: INT_REG_ENABLE, INT_REG_DISABLE and INT_REG_MASK. If you want</font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">to access them
-from Lua, locate the header that defines the values of these</font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">registers (I'll
-assume its name is "cpu.h") and add these lines to the</font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">platform_conf.h:</font>
-</p>
-<p style="margin-bottom: 0in;"> <br>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">#include "cpu.h"</font>
-</p>
-<p style="margin-bottom: 0in;"> <br>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">#define
-PLATFORM_CPU_CONSTANTS\</font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">_C(
-INT_REG_ENABLE ),\</font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">_C(
-INT_REG_DISABLE ),\</font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">_C( INT_REG_MASK
-)</font>
-</p>
-<p style="margin-bottom: 0in;"> <br>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">After this
-you'll be able to access the regs directly from Lua, like this:</font>
-</p>
-<p style="margin-bottom: 0in;"> <br>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">data = cpu.r32(
-cpu.INT_REG_ENABLE )</font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">cpu.w32(
-cpu.INT_REG_ENABLE, data )</font>
-</p>
-<p style="margin-bottom: 0in;"> <br>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">For a
-"real-life" example, see the src/platform/lm3s/platform_conf.h file.</font>
-</p>
-<p style="margin-bottom: 0in;">
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">[uart.sendstring]
-uart.sendstr( id, str1, str2, ... ): this is similar to "uart.send",
-but its parameters are string.&nbsp;</font>
-</p>
-<p style="margin-bottom: 0in;"> <br>
-</p>
-<p style="margin-bottom: 0in;"> </p>
-<h3><a name="gpiomodule">pio</a></h3>
-<p class="MsoNormal" style="font-family: Verdana;">
-<b>pio</b></p><p class="MsoNormal" style="font-family: Verdana;">Programable Input Output Module</p><p class="MsoNormal" style="font-family: Verdana;">Some notes on PIO:</p><ul><li>pio: only
-some platform have internal pullups for the pio pins, while Cortex is
-the only platform that also provides pulldowns for its pios. However,
-in this case you're safe, as eLua will signal an error if you try to
-execute a pullup operatin on a platform that does not support it.</li></ul><p class="MsoNormal" style="font-family: Verdana;">
-</p>
-<br>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="gpio_setpinvalue"></a> [pio.setpinvalue] pio.setpin(
-value, Pin1, Pin2 ... ): set the value to all the pins in the list
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-&nbsp; to "value" (0 or 1).
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-&nbsp;
-</p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="gpio_setpinhigh"></a> [pio.setpinhigh] pio.set(
-Pin1, Pin2, ... ): set the value of all the pins in the list to 1.
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-&nbsp;
-</p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="gpio_getpinvalue"></a> [pio.getpinvalue] Val1, Val2,
-... = pio.get( Pin1, Pin2, ... ): reads one or more pins and returns
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-&nbsp; their values (0 or 1).
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-&nbsp;
-</p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="gpio_setpinlow"></a> [pio.setpinlow] pio.clear(
-Pin1, Pin2, ... ): set the value of all the pins in the list to 0.
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-&nbsp;
-</p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="gpio_configpin"></a> [pio.configpin(pio.DIR, pio.DIR_INPUT)] pio.input( Pin1, Pin2, ... ): set the specified pin(s)
-as input(s).
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-&nbsp;
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-[pio.configpin(pio.DIR, pio.DIR_OUTPUT)] pio.output( Pin1, Pin2, ...
-): set the specified pin(s) as output(s).
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-&nbsp;
-</p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="gpio_setportvalue"></a> [pio.setportvalue]
-pio.setport( value, Port1, Port2, ... ): set the value of all the ports
-in the
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-&nbsp; list to "value".
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-&nbsp;
-</p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="gpio_getportvalue"></a> [pio.getportvalue] Val1,
-Val2, ... = pio.getport( Port1, Port2, ... ): reads one or more ports
-and
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-&nbsp; returns their values.
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-&nbsp;
-</p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="gpio_getportname"></a> [pio.getportname]
-Port = pio.port( code ): return the physical port number associated
-with the given code. For example, "pio.port( pio.P0_20 )" will return
-0.
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-&nbsp;
-</p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="gpio_getpinnumber"></a> [pio.getpinnumber] Pin =
-pio.pin( code ): return the physical pin number associated with the
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-given code. For example, "pio.pin( pio.P0_20 )" will return 20.
-</p>
-<br>
-<a name="gpio_togglepin"></a>[pio.togglepin([Pin1],
-[Pin2], ...)]<br>
-<br>
-<a name="gpio_toogleport"></a>[pio.toggleport([Port1],
-[Port2], ...)]<br style="font-family: Verdana;">
-<br>
-Another idea (can be added to the above ?)<br>
-[pio.configport(pio.[FUNCTION], pio.MASK, [MASK])]<br>
-Ex:<br>
-&nbsp; pio.configpin(pio.DIR, pio.DIR_INPUT)&nbsp;&nbsp;&nbsp; (.DIR_OUTPUT)<br>
-&nbsp; pio.configpin(pio.PULL, pio.PULL_UP)&nbsp;&nbsp;&nbsp;&nbsp; (.PULL_DOWN,
-PULL_NO)<br style="font-family: Verdana;">
-<br>
-<p class="MsoNormal" style="font-family: Verdana;">
-[pio.configport(pio.DIR, pio.DIR_INPUT, [Port1], [Port2], ...)]
-pio.port_input( Port1, Port2, ... ): set the specified port(s) as
-input(s).
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-&nbsp;
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-[pio.configport(pio.DIR, pio.DIR_OUTPUT, [Port1], [Port2], ...)]
-pio.port_output( Port1, Port2, ... ): set the specified port(s) as
-output(s).
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-&nbsp;
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-[pio.configpin(pio.PULL, pio.PULL_UP, [Pin1], [Pin2], ...)]
-pio.pullup( Pin1, Pin2, ... ): enable internal pullups on the specified
-pins.Note that some CPUs might not provide this feature.
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-&nbsp;
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-[pio.configpin(pio.PULL, pio.PULL_DOWN, [Pin1], [Pin2], ...)]
-pio.pulldown( Pin1, Pin2, ... ): enable internal pulldowns on the
-specified pins. Note that some CPUs might not provide this feature.
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-&nbsp;
-</p>
-<p class="MsoNormal" style="font-family: Verdana;">
-[pio.configpin(pio.PULL, pio.PULL_NO, [Pin1], [Pin2], ...)]
-pio.nopull( Pin1, Pin2, ... ): disable the pullups/pulldowns on the
-specifiedpins. Note that some CPUs might not provide this feature.
-</p>
-<br>
-<h3><a name="netmodule"></a>net</h3>
-<br>
-<h3><a name="pwmmodule"></a>pwm</h3>
-<span style="font-weight: bold;"></span><br>
-<p style="margin-bottom: 0in;"> <br>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">It allows Lua to
-use the PWM blocks on the target CPU.</font>
-</p>
-<p style="margin-bottom: 0in;"> <br>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><strike><a name="pwm_setup"></a>[pwm.setup]</strike>(</font><font face="Bitstream Vera Sans Mono, sans-serif">pwm.setup( id,
-frequency, Active Cycle ) &nbsp; &nbsp; &nbsp;</font><font face="Bitstream Vera Sans Mono, sans-serif">
-Data = pwm.setup( id, frequency, duty ): sets the PWM block 'id' to
-generate the specified frequency with the specified duty cycle (duty is
-an integer number from 0 to 100, specifying the duty cycle in
-percents). It returns the actual frequency set on the PWM block.</font>
-</p>
-<p style="margin-bottom: 0in;">
-</p>
-<p style="margin-bottom: 0in;"> <br>
-</p>
-<p style="margin-bottom: 0in;"> Here there is a bigger
-change on the proposal.
-</p>
-<p style="margin-bottom: 0in;"> The Timer Clock and the
-PWM "frame" frequency would be set up in the same function (.setup)
-</p>
-<p style="margin-bottom: 0in;"> The normal control
-function would only set the active cicle (.setcycle)
-</p>
-<p style="margin-bottom: 0in;"> The original .setup
-function would then be replaced by:
-</p>
-<p style="margin-bottom: 0in;"> <br>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">[pwm.setup( id,
-tmrclock, pwm_frequency )</font> ]<br>
-</p>
-<p style="margin-bottom: 0in;"> <a name="pwm_setcycle"></a>[pwm.setcycle(
-id, active_cycle )]</p>
-<p style="margin-bottom: 0in;"><font face="Bitstream Vera Sans Mono, sans-serif"><a name="pwm_start"></a>[pwm.start()]&nbsp;&nbsp;
-pwm.start( id ): start the PWM block 'id'.</font>
-</p>
-<p style="margin-bottom: 0in;">
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="pwm_stop"></a>[</font><font face="Bitstream Vera Sans Mono, sans-serif">pwm.stop()]&nbsp;&nbsp;&nbsp;
-</font><font face="Bitstream Vera Sans Mono, sans-serif">pwm.stop(
-id ): stop the PWM block 'id'.</font>
-</p>
-<br>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="pwm_setclock"></a>Data = pwm.setclock( id, clock ):
-set the base clock of the PWM block 'id' to</font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">the given clock.
-In returns the actual clock set on the PWM block.</font>
-</p>
-<p style="margin-bottom: 0in;"> <br>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">[</font><font face="Bitstream Vera Sans Mono, sans-serif"><strike>pwm.getclock</strike>]
-</font><font face="Bitstream Vera Sans Mono, sans-serif">Data
-= pwm.getclock( id ): returns the base clock of the PWM block 'id'.</font>
-</p>
-<p style="margin-bottom: 0in;">
-</p>
-<p style="margin-bottom: 0in;"> <br>
-</p>
-<h3><a name="spimodule"></a>spi</h3>
-<span style="font-weight: bold;"></span><br>
-<big><span style="font-family: Helvetica,Arial,sans-serif;"></span><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big><a name="spi_setup"></a>Actual_clock = spi.setup( id,
-spi.MASTER | spi.SLAVE, clock, cpol, cpha,</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
-</span><br style="font-family: Helvetica,Arial,sans-serif;">
-<span style="font-family: Helvetica,Arial,sans-serif;">
-&nbsp; </span><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>databits):
-set the SPI interface with the given parameters, returns the clock</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
-</span><br style="font-family: Helvetica,Arial,sans-serif;">
-<span style="font-family: Helvetica,Arial,sans-serif;">
-&nbsp; </span><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>that
-was set for the interface.</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
-</span><br style="font-family: Helvetica,Arial,sans-serif;">
-<span style="font-family: Helvetica,Arial,sans-serif;">
-&nbsp;
-</span><br style="font-family: Helvetica,Arial,sans-serif;">
-<font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big><a name="spi_select"></a>spi.select(
-</big></font><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>id</big></font><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>
-): sets the selected spi as active (sets the SS line of the given
-interface).</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
-</span><br style="font-family: Helvetica,Arial,sans-serif;">
-<font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>&nbsp;</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
-</span><br style="font-family: Helvetica,Arial,sans-serif;">
-<font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big><a name="spi_unselect"></a>spi.unselect(
-id ): clears the SS line of the given interface.</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
-</span><br style="font-family: Helvetica,Arial,sans-serif;">
-<font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>&nbsp;</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
-</span><br style="font-family: Helvetica,Arial,sans-serif;">
-<font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big><a name="spi_send"></a>spi.send(
-id, Data1, Data2, ... ): sends all the data to the specified SPI</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
-</span><br style="font-family: Helvetica,Arial,sans-serif;">
-<span style="font-family: Helvetica,Arial,sans-serif;">
-&nbsp; </span><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>interface.</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
-</span><br style="font-family: Helvetica,Arial,sans-serif;">
-<span style="font-family: Helvetica,Arial,sans-serif;">
-&nbsp;
-</span><br style="font-family: Helvetica,Arial,sans-serif;">
-<font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big><a name="spi_sendrecv"></a>[</big></font><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>spi.sendrecv(</big></font><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>id,
-Out1, Out2, ...</big></font><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>)]&nbsp;&nbsp;&nbsp;&nbsp;
-</big></font><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>In1,
-In2, ... = spi.send_recv( id, Out1, Out2, ... ): sends all the "out"
-bytes</big></font><span style="font-family: Helvetica,Arial,sans-serif;"> </span><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>to
-the specified SPI interface and returts the data read after each sent
-byte.</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
-</span><br style="font-family: Helvetica,Arial,sans-serif;">
-<br style="font-family: Helvetica,Arial,sans-serif;">
-<font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>Returning
-several values in this blocking way would not complicate some queued
-send implementations ? (ok, this could be another function :)</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
-</span><br style="font-family: Helvetica,Arial,sans-serif;">
-<br style="font-family: Helvetica,Arial,sans-serif;">
-<font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>Sending multiple data/chars in a single
-call and not in
-a table argument does not allow the data to be built in run time
-(without some string massage, of course :)</big></font><br>
-<br>
-<br>
-<br>
-</big>
-<h3><a name="sysmodule"></a>sys</h3>
-<br>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="sys_platform"></a>[sys.platform()]&nbsp;&nbsp;&nbsp;
-pd.platform(): returns the platform name (f.e. LM3S)</font>
-</p>
-<p style="margin-bottom: 0in;">
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="sys_mcu"></a>[sys.mcu()]&nbsp;&nbsp;&nbsp;
-pd.cpu(): returns the CPU name (f.e. LM3S8962)</font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="sys_cpu"></a>[sys.cpu()]&nbsp;&nbsp;&nbsp;
-would return ARM Cortex M3 in this case.....</font></p>
-<p style="margin-bottom: 0in;"><font face="Bitstream Vera Sans Mono, sans-serif"><br>
-</font></p>
-<font face="Bitstream Vera Sans Mono, sans-serif">&nbsp;&nbsp;<a name="sys_board"></a>[sys.board()]</font><font face="Bitstream Vera Sans Mono, sans-serif">&nbsp;
-pd.board(): returns the CPU board (f.e. EK-LM3S8962)</font>
-<p style="margin-bottom: 0in;"> <br>
-</p>
-<h3><a name="term_termmodule">term</a></h3>
-&nbsp; &nbsp;Terminal support
-<p> <a name="term_clear"></a>[term.clear]
-term.clrscr(): clear the screen </p>
-<p> &nbsp; <br>
-<a name="term_cleareol"></a>[term.cleareol]
-term.clreol(): clear from the current cursor position to the end of the
-line </p>
-<p> &nbsp; </p>
-<p><a name="term_moveto"></a> [term.moveto]
-term.gotoxy( x, y ): position the cursor at the given coordinates<br>
-</p>
-<br>
-<p><a name="term_moveup"></a> [term.moveup]
-term.up( delta ): move the cursor up "delta" lines </p>
-<p> &nbsp; </p>
-<p><a name="term_movedown"></a> [term.movedown]
-term.down( delta ): move the cursor down "delta" lines </p>
-<p> &nbsp; </p>
-<p><a name="term_moveleft"></a> [term.moveleft]
-term.left( delta ): move the cursor left "delta" lines </p>
-<p> &nbsp; <br>
-<a name="term_moveright"></a>[term.moveright] term.right(
-delta ): move the cursor right "delta" lines </p>
-<p> &nbsp; </p>
-<p><a name="term_getlinecount"></a>
-[term.getlinecount] Lines = term.lines(): returns the number of lines </p>
-<p> &nbsp; </p>
-<p><a name="term_getcolcount"></a>
-[term.getcolcount] Cols = term.cols(): returns the number of columns </p>
-<p> &nbsp; </p>
-<br>
-<p><a name="term_printstr"></a> [term.printstr]
-term.putstr( s1, s2, ... ): writes the specified string(s) to the
-terminal<br>
-</p>
-<p> </p>
-<p> [term.printchar] term.put( c1, c2, ... ): writes the
-specified character(s) to the terminal </p>
-<p>&nbsp; </p>
-<p><a name="term_getx"></a> [term.getx] Cx =
-term.cursorx(): return the cursor X position </p>
-<p> &nbsp; </p>
-<p> <a name="term_gety"></a>[term.gety] Cy =
-term.cursory(): return the cursor Y position </p>
-<p> &nbsp; </p>
-<p> <font size="2"><a name="term_inputchar"></a>[term.inputchar]
-c = term.getch( term.WAIT | term.NOWAIT ): returns a char read from the
-</font> </p>
-<font size="2">&nbsp; terminal.</font>
-<br style="font-family: Verdana;">
-<br>
-<br>
-<h3><a name="tmr_tmrmodule"></a>tmr</h3>
-<span style="font-weight: bold;"></span><big><br>
-</big>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">It allows Lua to
-execute timer specific operations (delay, read timer value,</font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">start timer, get
-time difference).</font></p><p style="margin-bottom: 0in;"><font face="Bitstream Vera Sans Mono, sans-serif">Some notes on timers:</font></p><ul><li>timers: from all the platforms on which eLua runs, only
-the Luminary Cortex CPUs has rock solid 32-bit timers. You can do
-pretty much everything you need with them. All the other platforms have
-16-bit timers, which imposes some limits on the range of delays you can
-achieve with them. Make sure to use tmr.mindelay(id) and
-tmr.maxdelay(id) to check the actual resolution of your timers, and
-adapt your code accordingly. To 'compensate' for this, it's not
-possible to change the base timer frequency on the Cortex CPUs, but it
-is possible on most other platforms :) So be sure to also check the
-result of tmr.setclock(id)</li><li>also, when using timers,
-remember that if you're using XMODEM and/or the "term" module, TMR0 is
-used by both of them. So, if you change the TMR0 base clock in your
-code, be sure to restore the original setting before returning to the
-shell. You can change this static timer assignment by modifying
-src/main.c. It might also be possible to change it dynamically in the
-future, although I see little use for this.</li><li>PWM: the
-Cortex CPUs have 6 PWM channels, but channels 0/1, 2/3 and 4/5
-respectively share the same base clock setting. So, when you're
-changing the base clock for channel 1, you're also changing the base
-clock for channel 0; if channel 0 was already running, you won't like
-what will happen next. This time no eLua function can save you, you
-simply need you know your CPU architecture.</li></ul><p style="margin-bottom: 0in;">
-</p>
-<p style="margin-bottom: 0in;"> <br>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="tmr_delay"></a>tmr.delay( id, delay ): uses timer
-'id' to wait for 'delay' us.</font>
-</p>
-<p style="margin-bottom: 0in;"> <br>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><span style="font-style: italic;"><a name="tmr_read"></a></span>Data
-= tmr.read( id ): reads the value of timer 'id'. The returned value is </font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">platform
-dependent.</font>
-</p>
-<p style="margin-bottom: 0in;">
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><span style="font-style: italic;"><a name="tmr_start"></a></span>Data
-= tmr.start( id ): start the timer 'id', and also returns its value at</font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">the moment of
-start. The returned value is platform dependent.</font>
-</p>
-<p style="margin-bottom: 0in;">
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="tmr_diff"></a>diff
-= tmr.diff( id, end, start ): returns the time difference (in us)
-between</font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">the timer values
-'end' and 'start' (obtained from calling tmr.start or</font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">tmr.read). The
-order of end/start is irrelevant. </font>
-</p>
-<p style="margin-bottom: 0in;">
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="tmr_mindelay"></a>Data = tmr.mindelay( id ): returns
-the minimum delay (in us ) that can be </font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">achieved by
-calling the tmr.delay function. If the return value is 0, the </font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">platform layer
-is capable of executing sub-microsecond delays.</font>
-</p>
-<p style="margin-bottom: 0in;">
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="tmr_maxdelay"></a>Data = tmr.maxdelay( id ): returns
-the maximum delay (in us) that can be</font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">achieved by
-calling the tmr.delay function.</font>
-</p>
-<p style="margin-bottom: 0in;">
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="tmr_setclock"></a>Data = tmr.setclock( id, clock ):
-sets the clock of the given timer. Returns the</font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">actual clock set
-for the timer.</font>
-</p>
-<p style="margin-bottom: 0in;">
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="tmr_getclock"></a>Data = tmr.getclock( id ): return
-the clock of the given timer.</font>
-</p>
-<br>
-<br>
-<br>
-<br>
-<br>
-<h3><a name="uartmodule"></a>uart</h3>
-
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="uart_setup"></a><span style="font-weight: bold;">uart.setup(</span></font><font style="font-weight: bold;" face="Bitstream Vera Sans Mono, sans-serif"> id, baud,
-databits, </font>
-</p><p style="margin-bottom: 0in; font-weight: bold;"> <font face="Bitstream Vera Sans Mono, sans-serif">uart.PARITY_EVEN
-| uart.</font><font face="Bitstream Vera Sans Mono, sans-serif">PARITY</font><font face="Bitstream Vera Sans Mono, sans-serif">_ODD | uart.</font><font face="Bitstream Vera Sans Mono, sans-serif">PARITY</font><font face="Bitstream Vera Sans Mono, sans-serif">_NONE, </font>
-</p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><span style="font-weight: bold;">uart.STOPBITS_1
-| uart.STOPBITS_1_5 | uart.STOPBITS_2
-)</span></font></p>
-<p style="margin-bottom: 0in;"><font face="Bitstream Vera Sans Mono, sans-serif"><span style="font-weight: bold;"></span>&nbsp;&nbsp;&nbsp; Set the UART interface with the&nbsp;given
-parameters.</font></p><p style="margin-bottom: 0in;"><font face="Bitstream Vera Sans Mono, sans-serif">&nbsp;&nbsp;&nbsp; Returns the actual baud rate that was set for the UART.</font>
-</p>
-
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><br>
-</font></p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="uart_send"></a></font><font face="Bitstream Vera Sans Mono, sans-serif"><span style="font-weight: bold;">uart.send( id,
-Data1, Data2, ... )</span></font></p><p style="margin-bottom: 0in;"><font face="Bitstream Vera Sans Mono, sans-serif"><span style="font-weight: bold;"></span>&nbsp;&nbsp;&nbsp; Send all the data to the specified UART interface.</font>
-</p>
-
-
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><br>
-</font></p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="uart_recv"></a></font><font face="Bitstream Vera Sans Mono, sans-serif">uart.recv(</font><font face="Bitstream Vera Sans Mono, sans-serif"> id,
-uart.TIMEOUT_NO | <strike>uart.TIMEOUT_INFINITE</strike> |
-timeout )</font><font face="Bitstream Vera Sans Mono, sans-serif">
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </font><font face="Bitstream Vera Sans Mono, sans-serif">Data =
-uart.recv( id, uart.NO_TIMEOUT | uart.INF_TIMEOUT | timeout )</font></p>
-<p style="margin-bottom: 0in;"><font face="Bitstream Vera Sans Mono, sans-serif">&nbsp;&nbsp;&nbsp; Reads a byte from the
-specified UART interface.</font></p>
-<p style="margin-bottom: 0in;"></p>
-<p style="margin-bottom: 0in;">
-</p>
-<h2><a name="platdepmodules"></a>eLua Platform
-Dependent
-Modules</h2>A Platform Dependent eLua Module is a module that runs only on one or on a few <a href="status.html#platforms">supported eLua platforms</a>.<br>These
-modules make use of specifical devices and features offered by some
-kits and allow eLua aplications to make the best use of the external
-hardware on your platforms.<br><h3><a name="adcmodule"></a>adc&nbsp; -&nbsp;Analog to Digital Conversion Module</h3><span style="font-weight: bold;">Currently runs on:</span> LM3Sxxxx<br><br>&nbsp;&nbsp;&nbsp; The ADC module handles the Analog to Digital Conversion Peripherals.<br><br><br><a name="adc_sample"></a><span style="font-weight: bold;">adc.sample(channel_id)</span><br>&nbsp;&nbsp;&nbsp; Generate one processed sample.<br><br><br><a name="adc_getsamples"></a><span style="font-weight: bold;">adc.getsamples(channel_id,
-[count])</span><br>&nbsp;&nbsp;&nbsp; Request&nbsp;<span style="font-style: italic;">count</span> samples from the buffer.<br>&nbsp;&nbsp;&nbsp; if singular, an
-integer is returned. &nbsp;if multiple, a table of integers is returned. &nbsp;If
-<span style="font-style: italic;">count</span> is either zero or omitted, all available samples are returned.<br><br><br><a name="adc_maxval"></a><span style="font-weight: bold;">adc.maxval(channel_id)</span><br>&nbsp;&nbsp;&nbsp; Returns the largest integer one can expect fromr this channel on a given platform (based on bit depth).<br><br><br><a name="adc_samplesready"></a><span style="font-weight: bold;">adc.samplesready(channel_id)<br></span>&nbsp;&nbsp;&nbsp; Returns the number of samples waiting in the buffer.<br><br><br><a name="adc_dataready"></a><span style="font-weight: bold;">adc.dataready(channel_id)<br></span>&nbsp;&nbsp;&nbsp; If running in non-blocking mode, this will indicate if all of the
-samples requested from the last sample or <br>burst have been acquired and
-are waiting in the buffer.<br><br><br><a name="adc_setmode"></a><span style="font-weight: bold;">adc.setmode(channel_id,
-mode)<br></span>&nbsp;&nbsp;&nbsp; <span style="font-style: italic;">mode</span> 0 sets&nbsp;blocking mode. adc.getsamples will wait for
-requested samples to be captured before returning.<br>&nbsp;&nbsp;&nbsp; <span style="font-style: italic;">mode</span> 1 sets non-blocking mode<br><br><br><a name="adc_setsmoothing"></a><span style="font-weight: bold;">adc.setsmoothing(channel_id, length)<br></span>&nbsp;&nbsp;&nbsp; Set the length of the smoothing filter.<br>&nbsp;&nbsp;&nbsp; This must be a power of 2 (maximum = 128)<br><br><br><a name="adc_getsmoothing"></a><span style="font-weight: bold;">adc.getsmoothing(channel_id)<br></span>&nbsp;&nbsp;&nbsp; Get the current smoothing length in use.<br><br><br><a name="adc_burst"></a><span style="font-weight: bold;">adc.burst(
-channel_id, count, timer_id, frequency)<br></span>&nbsp;&nbsp;&nbsp; Request that&nbsp;<span style="font-style: italic;">count</span> samples&nbsp;be converted from&nbsp;<span style="font-style: italic;">channel_id</span>, using&nbsp;<span style="font-style: italic;">timer_id</span> at&nbsp;<span style="font-style: italic;">frequency.<br></span>&nbsp;&nbsp;&nbsp; <span style="font-style: italic;">count </span>must be greater than zero and a power of 2<br><br><br>
-<h3><a name="dispmodule"></a>disp</h3>
-<span style="font-weight: bold;">Currently runs on:</span> LM3Sxxxx<br><br>&nbsp;&nbsp;&nbsp; The disp module handles the RIT OLED display usage on Luminary Micro Cortex-M3 boards<br>
-<p class="MsoNormal"></p><p class="MsoNormal"><a name="disp_init"></a><span style="font-weight: bold;">
-disp.init( freq )</span></p><p class="MsoNormal">freq specifies the SSI Clock Frequency to be used.<br><br>This function initializes the SSI interface to the OLED display and configures the SSD1329 controller on the panel.<br></p><br><p class="MsoNormal"><a name="disp_enable"></a>
-<span style="font-weight: bold;">disp.enable()</span> </p>
-<p class="MsoNormal">Enable the SSI component of the OLED display driver.<br></p><p class="MsoNormal">freq specifies the SSI Clock Frequency to be used.<br>This function initializes the SSI interface to the OLED display.</p><p class="MsoNormal">
-</p>
-<p class="MsoNormal"><a name="disp_disable"></a>
-<span style="font-weight: bold;">disp.disable()</span> </p>
-<p class="MsoNormal"> <br>
-</p>
-<p class="MsoNormal"> <a name="disp_on"></a><span style="font-weight: bold;">disp.on()</span>
-</p>
-<p class="MsoNormal"> &nbsp;Turns on the OLED display.<br>&nbsp;This function will turn on the OLED display, causing it to display the contents of its internal frame buffer.<br><br>
-</p>
-<p class="MsoNormal"><a name="disp_off"></a>
-<span style="font-weight: bold;">disp.off</span>()</p><p class="MsoNormal">Turns off the OLED display<br>This
-function will turn off the OLED display.&nbsp; This will stop the
-scanning of the panel and turn off the on-chip DC-DC converter,
-preventing damage to&nbsp;the panel due to burn-in (it has similar
-characters to a CRT in this&nbsp;respect).<br><br></p>
-<p class="MsoNormal"><a name="disp_clear"></a>
-<span style="font-weight: bold;">disp.clear()</span></p><p class="MsoNormal">Clears the OLED display.<br>This function will clear the display RAM.&nbsp; All pixels in the display will be turned off.<br></p>
-&nbsp; &nbsp;<a name="disp_print"></a><span style="font-weight: bold;">disp.print( str, x, y, gray )</span><br><br>Displays a string on the OLED display.<br><br>Calling Arguments:<br>str is a string to be displayed.<br>x is the horizontal position to display the string, specified in columns from the left edge of the display.<br>y&nbsp;is the vertical position to display the string, specified in rows from the top edge of the display.<br>gray is the 4-bit gray scale (intensity) value to be used for displayed text. <br><br>This
-function will draw a string on the display.&nbsp; Only the ASCII
-characters between 32 (space) and 126 (tilde) are supported;
-other&nbsp;characters will result in random data being draw on the
-display (based on whatever appears before/after the font in
-memory).&nbsp; The font is mono-spaced, so characters such as ``i'' and
-``l'' have more white space around them than characters such as ``m''
-or ``w''.<br>If the drawing of the string reaches the right edge of the
-display, no more characters will be drawn.&nbsp; Therefore, special
-care is not required to avoid supplying a string that is ``too long''
-to display.<br><br>Because the OLED display packs 2 pixels of data in a single byte, the<br>parameter \e ulX must be an even column number (for example, 0, 2, 4, and<br>so on).<br><br>
-<br>
-<p class="MsoNormal"><a name="disp_draw"></a>
-<span style="font-weight: bold;">disp.draw( img, x, y, withd, height, gray )</span></p><p class="MsoNormal">Displays an image on the OLED display.<br><br>img a pointer to the string data representing a rit format image to display.<br>x&nbsp;is the horizontal position to display the string, specified in columns from the left edge of the display.<br>y&nbsp;is the vertical position to display the string, specified in rows from the top edge of the display.<br>width is the width of the image, specified in columns.<br>height is the height of the image, specified in rows.<br><br>This
-function will display a bitmap graphic on the display.&nbsp; Because of
-the format of the display RAM, the starting column x and the number of
-columns y must be an integer multiple of two.<br>The image data is
-organized with the first row of image data appearing left&nbsp;to
-right, followed immediately by the second row of image data.&nbsp; Each
-byte&nbsp;contains the data for two columns in the current row, with
-the leftmost&nbsp;column being contained in bits 7:4 and the rightmost
-column being contained&nbsp;in bits 3:0.<br>For example, an image six
-columns wide and seven scan lines tall would&nbsp;be arranged as
-follows (showing how the twenty one bytes of the image would appear on
-the display):<br><br>Because the OLED display packs 2 pixels of data in
-a single byte, the parameter x must be an even column number (for
-example, 0, 2, 4, and so on).<span style="font-weight: bold;"></span></p><p class="MsoNormal"><span style="font-family: Courier New;">&nbsp; +-------------------+-------------------+-------------------+</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp;
-|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte
-0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Byte 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte
-2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp; +---------+---------+---------+---------+---------+---------+</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp; | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp;&nbsp;+---------+---------+---------+---------+---------+---------+</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp;
-|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte
-3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Byte 4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte
-5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp;&nbsp;+---------+---------+---------+---------+---------+---------+</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp; | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp;&nbsp;+---------+---------+---------+---------+---------+---------+</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp;
-|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte
-6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Byte 7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte
-8&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp;&nbsp;+---------+---------+---------+---------+---------+---------+</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp; | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp; +---------+---------+---------+---------+---------+---------+</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp;
-|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte
-9&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Byte 10&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Byte 11&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp; +---------+---------+---------+---------+---------+---------+</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp; | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp; +---------+---------+---------+---------+---------+---------+</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp;
-|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte 12&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte 13&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte 14&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp;&nbsp;+---------+---------+---------+---------+---------+---------+</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp; | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp; +---------+---------+---------+---------+---------+---------+</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp;
-|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte 15&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte 16&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte 17&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp;&nbsp;+---------+---------+---------+---------+---------+---------+</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp; | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp;&nbsp;+---------+---------+---------+---------+---------+---------+</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp;
-|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte 18&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte 19&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Byte 20&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp; +---------+---------+---------+---------+---------+---------+</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp; | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">&nbsp; +---------+---------+---------+---------+---------+---------+</span><span style="font-weight: bold;"></span></p><p class="MsoNormal"><span style="font-weight: bold;"></span></p><p class="MsoNormal"><span style="font-weight: bold;"></span> </p>
-</body></html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+		<meta http-equiv="Content-Language" content="en-us">
+		<title>
+			Product
+		</title>
+		<link rel="stylesheet" type="text/css" href="../style.css">
+	</head>
+	<body>
+		<h3>
+			eLua Modules Reference Manual
+		</h3>
+		<h2>
+			<a name="genericmodules" id="genericmodules"></a>eLua Generic Modules
+		</h2>
+		<p>
+			A Generic eLua Module is a module that can be used by a Lua program running on any of the <a href="status.html#platforms">supported eLua platforms</a>.<br>
+			Write your code once and it is already automatically ported to the main platforms of the embedded world.<br>
+			<br>
+			<br>
+			<br>
+			<br>
+			<br>
+			<br>
+			<br>
+			<br>
+			<br>
+		</p>
+		<h3>
+			<a name="bitmodule" id="bitmodule"></a>bit
+		</h3>
+		<p>
+			Bitwise operations in eLua is implemented thru the BitLib library, from Reuben Thomas.<br>
+			BitLib project is hosted at LuaForge on <a href="http://luaforge.net/projects/bitlib" target="_top">http://luaforge.net/projects/bitlib</a><br>
+		</p>
+		<p>
+			<a name="bit_bnot" id="bit_bnot"></a>Res = bit.bnot( value )
+		</p>
+		<p>
+			unary negation
+		</p>
+		<p>
+			<a name="bit_band" id="bit_band"></a> Res = bit.band( v1, v2, ... )
+		</p>
+		<p>
+			<b>bitwise</b> "and"
+		</p>
+		<p>
+			<a name="bit_bor" id="bit_bor"></a> Res = bit.bor( v1, v2, ... )
+		</p>
+		<p>
+			<b class="info">bitwise</b> <span class="info">"or"</span>
+		</p>
+		<p>
+			<a name="bit_bxor" id="bit_bxor"></a> Res = bit.bxor( v1, v2, ... )
+		</p>
+		<p>
+			<b>bitwise</b> "exclusive or"
+		</p>
+		<p>
+			<a name="bit_lshift" id="bit_lshift"></a> Res = bit.lshift( value, pos )
+		</p>
+		<p>
+			shift "value" left "pos" positions.
+		</p>
+		<p>
+			<a name="bit_rshift" id="bit_rshift"></a> Res = bit.rshift( value, pos )
+		</p>
+		<p>
+			shift "value" right "pos" positions. The sign is not propagated.
+		</p>
+		<p>
+			<a name="bit_arshift" id="bit_arshift"></a> Res = bit.arshift( value, pos )
+		</p>
+		<p>
+			shift "value" right "pos" positions. The sign is propagated ("arithmetic shift").
+		</p>
+		<p>
+			<a name="bit_bit" id="bit_bit"></a> Res = bit.bit( bitno )
+		</p>
+		<p>
+			a shortcut for bit.lshift( 1, bitno )
+		</p>
+		<p>
+			<a name="bit_set" id="bit_set"></a> Res1, Res2, ... = bit.set( bitno, v1, v2, ... )
+		</p>
+		<p>
+			set the bit at position "bitno" in v1, v2, ... to 1.
+		</p>
+		<p>
+			<a name="bit_clear" id="bit_clear"></a> Res1, Res2, ... = bit.clear( bitno, v1, v2, ... )
+		</p>
+		<p>
+			set the bit at position "bitno"in v1, v2, ... to 0.
+		</p>
+		<p>
+			<a name="bit_isset" id="bit_isset"></a> Res = bit.isset( value, bitno )
+		</p>
+		<p>
+			returns true if bit at position "bitno" in "value" is 1, false otherwise.
+		</p>
+		<p>
+			<a name="bit_isclear" id="bit_isclear"></a> Res = bit.isclear( value, bitno )
+		</p>
+		<p>
+			returns true if bit at position "bitno" in "value" is 0, false otherwise.
+		</p>
+		<p>
+			<br>
+			<br>
+			<br>
+			<br>
+			<br>
+			<br>
+			<br>
+			<br>
+			<br>
+			<br>
+		</p>
+		<h3>
+			<a name="cpumodule" id="cpumodule"></a>cpu
+		</h3>
+		<p>
+			<a name="cpu_write32" id="cpu_write32"></a>write32( address, data ) : write the 32-bit data at the specified address
+		</p>
+		<p>
+			<a name="cpu_write16" id="cpu_write16"></a>write16( address, data ) : write the 16-bit data at the specified address
+		</p>
+		<p>
+			<a name="cpu_write8" id="cpu_write8"></a>write8( address, data ) : write the 8-bit data at the specified address<br>
+		</p>
+		<p>
+			<br>
+			<a name="cpu_read32" id="cpu_read32"></a>Data = read32( address ) : reads 32-bit data from the specified address
+		</p>
+		<p>
+			<a name="cpu_read16" id="cpu_read16"></a>Data = read16( address ) : reads 16-bit data from the specified address
+		</p>
+		<p>
+			<a name="cpu_read8" id="cpu_read8"></a>Data = read8( address ) : reads 8-bit data from the specified address
+		</p>
+		<p>
+			<br>
+		</p>
+		<p>
+			<a name="cpu_disableinterrupts" id="cpu_disableinterrupts"></a> [cpu.disableinterrupts()] cli(): disable CPU interrupts
+		</p>
+		<p>
+			<a name="cpu_enableinterrupts" id="cpu_enableinterrupts"></a> [cpu.enableinterrupts()] sei(): enable CPU interrupts
+		</p>
+		<p>
+			<a name="cpu_clockfrequency" id="cpu_clockfrequency"></a>[cpu.clockfrequency()] Clock = clock(): returns the CPU frequency
+		</p>
+		<p>
+			Also, you can expose as many CPU constants (for example memory mapped registers)
+		</p>
+		<p>
+			as you want to this module. You might want to use this feature to access some
+		</p>
+		<p>
+			CPU memory areas (as defined in the CPU header files from the CPU support
+		</p>
+		<p>
+			package) directly from Lua. To do this, you'll need to define the
+		</p>
+		<p>
+			PLATFORM_CPU_CONSTANTS macro in the platform's platform_conf.h file
+		</p>
+		<p>
+			(src/platform/&lt;platform name&gt;/platform_conf.h). Include all your constants in a
+		</p>
+		<p>
+			_C( &lt;constant name&gt; ) definition, and then build your project.
+		</p>
+		<p>
+			For example, let's suppose that your CPU's interrupt controler has 3 memory
+		</p>
+		<p>
+			mapped registers: INT_REG_ENABLE, INT_REG_DISABLE and INT_REG_MASK. If you want
+		</p>
+		<p>
+			to access them from Lua, locate the header that defines the values of these
+		</p>
+		<p>
+			registers (I'll assume its name is "cpu.h") and add these lines to the
+		</p>
+		<p>
+			platform_conf.h:
+		</p>
+		<p>
+			#include "cpu.h"
+		</p>
+		<p>
+			#define PLATFORM_CPU_CONSTANTS\
+		</p>
+		<p>
+			_C( INT_REG_ENABLE ),\
+		</p>
+		<p>
+			_C( INT_REG_DISABLE ),\
+		</p>
+		<p>
+			_C( INT_REG_MASK )
+		</p>
+		<p>
+			After this you'll be able to access the regs directly from Lua, like this:
+		</p>
+		<p>
+			data = cpu.r32( cpu.INT_REG_ENABLE )
+		</p>
+		<p>
+			cpu.w32( cpu.INT_REG_ENABLE, data )
+		</p>
+		<p>
+			For a "real-life" example, see the src/platform/lm3s/platform_conf.h file.
+		</p>
+		<p>
+			[uart.sendstring] uart.sendstr( id, str1, str2, ... ): this is similar to "uart.send", but its parameters are string.
+		</p>
+		<h3>
+			<a name="gpiomodule" id="gpiomodule">pio</a>
+		</h3>
+		<p>
+			<b>pio</b>
+		</p>
+		<p>
+			Programable Input Output Module
+		</p>
+		<p>
+			Some notes on PIO:
+		</p>
+		<ul>
+			<li>pio: only some platform have internal pullups for the pio pins, while Cortex is the only platform that also provides pulldowns for its pios. However, in this case you're safe, as eLua will signal an error if you try to execute a pullup operatin on a platform that does not support it.
+			</li>
+		</ul>
+		<p>
+			<br>
+		</p>
+		<p>
+			<a name="gpio_setpinvalue" id="gpio_setpinvalue"></a> [pio.setpinvalue] pio.setpin( value, Pin1, Pin2 ... ): set the value to all the pins in the list
+		</p>
+		<p>
+			to "value" (0 or 1).
+		</p>
+		<p>
+			<a name="gpio_setpinhigh" id="gpio_setpinhigh"></a> [pio.setpinhigh] pio.set( Pin1, Pin2, ... ): set the value of all the pins in the list to 1.
+		</p>
+		<p>
+			<a name="gpio_getpinvalue" id="gpio_getpinvalue"></a> [pio.getpinvalue] Val1, Val2, ... = pio.get( Pin1, Pin2, ... ): reads one or more pins and returns
+		</p>
+		<p>
+			their values (0 or 1).
+		</p>
+		<p>
+			<a name="gpio_setpinlow" id="gpio_setpinlow"></a> [pio.setpinlow] pio.clear( Pin1, Pin2, ... ): set the value of all the pins in the list to 0.
+		</p>
+		<p>
+			<a name="gpio_configpin" id="gpio_configpin"></a> [pio.configpin(pio.DIR, pio.DIR_INPUT)] pio.input( Pin1, Pin2, ... ): set the specified pin(s) as input(s).
+		</p>
+		<p>
+			[pio.configpin(pio.DIR, pio.DIR_OUTPUT)] pio.output( Pin1, Pin2, ... ): set the specified pin(s) as output(s).
+		</p>
+		<p>
+			<a name="gpio_setportvalue" id="gpio_setportvalue"></a> [pio.setportvalue] pio.setport( value, Port1, Port2, ... ): set the value of all the ports in the
+		</p>
+		<p>
+			list to "value".
+		</p>
+		<p>
+			<a name="gpio_getportvalue" id="gpio_getportvalue"></a> [pio.getportvalue] Val1, Val2, ... = pio.getport( Port1, Port2, ... ): reads one or more ports and
+		</p>
+		<p>
+			returns their values.
+		</p>
+		<p>
+			<a name="gpio_getportname" id="gpio_getportname"></a> [pio.getportname] Port = pio.port( code ): return the physical port number associated with the given code. For example, "pio.port( pio.P0_20 )" will return 0.
+		</p>
+		<p>
+			<a name="gpio_getpinnumber" id="gpio_getpinnumber"></a> [pio.getpinnumber] Pin = pio.pin( code ): return the physical pin number associated with the
+		</p>
+		<p>
+			given code. For example, "pio.pin( pio.P0_20 )" will return 20.
+		</p>
+		<p>
+			<br>
+			<a name="gpio_togglepin" id="gpio_togglepin"></a>[pio.togglepin([Pin1], [Pin2], ...)]<br>
+			<br>
+			<a name="gpio_toogleport" id="gpio_toogleport"></a>[pio.toggleport([Port1], [Port2], ...)]<br>
+			<br>
+			Another idea (can be added to the above ?)<br>
+			[pio.configport(pio.[FUNCTION], pio.MASK, [MASK])]<br>
+			Ex:<br>
+			pio.configpin(pio.DIR, pio.DIR_INPUT) (.DIR_OUTPUT)<br>
+			pio.configpin(pio.PULL, pio.PULL_UP) (.PULL_DOWN, PULL_NO)<br>
+			<br>
+		</p>
+		<p>
+			[pio.configport(pio.DIR, pio.DIR_INPUT, [Port1], [Port2], ...)] pio.port_input( Port1, Port2, ... ): set the specified port(s) as input(s).
+		</p>
+		<p>
+			[pio.configport(pio.DIR, pio.DIR_OUTPUT, [Port1], [Port2], ...)] pio.port_output( Port1, Port2, ... ): set the specified port(s) as output(s).
+		</p>
+		<p>
+			[pio.configpin(pio.PULL, pio.PULL_UP, [Pin1], [Pin2], ...)] pio.pullup( Pin1, Pin2, ... ): enable internal pullups on the specified pins.Note that some CPUs might not provide this feature.
+		</p>
+		<p>
+			[pio.configpin(pio.PULL, pio.PULL_DOWN, [Pin1], [Pin2], ...)] pio.pulldown( Pin1, Pin2, ... ): enable internal pulldowns on the specified pins. Note that some CPUs might not provide this feature.
+		</p>
+		<p>
+			[pio.configpin(pio.PULL, pio.PULL_NO, [Pin1], [Pin2], ...)] pio.nopull( Pin1, Pin2, ... ): disable the pullups/pulldowns on the specifiedpins. Note that some CPUs might not provide this feature.
+		</p>
+		<p>
+			<br>
+		</p>
+		<h3>
+			<a name="netmodule" id="netmodule"></a>net
+		</h3>
+		<p>
+			<br>
+		</p>
+		<h3>
+			<a name="pwmmodule" id="pwmmodule"></a>pwm
+		</h3>
+		<p>
+			<br>
+		</p>
+		<p>
+			It allows Lua to use the PWM blocks on the target CPU.
+		</p>
+		<p>
+			<strike><a name="pwm_setup" id="pwm_setup"></a>[pwm.setup]</strike>(pwm.setup( id, frequency, Active Cycle ) Data = pwm.setup( id, frequency, duty ): sets the PWM block 'id' to generate the specified frequency with the specified duty cycle (duty is an integer number from 0 to 100, specifying the duty cycle in percents). It returns the actual frequency set on the PWM block.
+		</p>
+		<p>
+			Here there is a bigger change on the proposal.
+		</p>
+		<p>
+			The Timer Clock and the PWM "frame" frequency would be set up in the same function (.setup)
+		</p>
+		<p>
+			The normal control function would only set the active cicle (.setcycle)
+		</p>
+		<p>
+			The original .setup function would then be replaced by:
+		</p>
+		<p>
+			[pwm.setup( id, tmrclock, pwm_frequency ) ]<br>
+		</p>
+		<p>
+			<a name="pwm_setcycle" id="pwm_setcycle"></a>[pwm.setcycle( id, active_cycle )]
+		</p>
+		<p>
+			<a name="pwm_start" id="pwm_start"></a>[pwm.start()] pwm.start( id ): start the PWM block 'id'.
+		</p>
+		<p>
+			<a name="pwm_stop" id="pwm_stop"></a>[pwm.stop()] pwm.stop( id ): stop the PWM block 'id'.
+		</p>
+		<p>
+			<br>
+		</p>
+		<p>
+			<a name="pwm_setclock" id="pwm_setclock"></a>Data = pwm.setclock( id, clock ): set the base clock of the PWM block 'id' to
+		</p>
+		<p>
+			the given clock. In returns the actual clock set on the PWM block.
+		</p>
+		<p>
+			[<strike>pwm.getclock</strike>] Data = pwm.getclock( id ): returns the base clock of the PWM block 'id'.
+		</p>
+		<h3>
+			<a name="spimodule" id="spimodule"></a>spi
+		</h3>
+		<p>
+			<br>
+			<big>Actual_clock = spi.setup( id, spi.MASTER | spi.SLAVE, clock, cpol, cpha,<br>
+			databits): set the SPI interface with the given parameters, returns the clock<br>
+			that was set for the interface.<br>
+			<br>
+			<a name="spi_select" id="spi_select"></a>spi.select( id ): sets the selected spi as active (sets the SS line of the given interface).<br>
+			<br>
+			<a name="spi_unselect" id="spi_unselect"></a>spi.unselect( id ): clears the SS line of the given interface.<br>
+			<br>
+			<a name="spi_send" id="spi_send"></a>spi.send( id, Data1, Data2, ... ): sends all the data to the specified SPI<br>
+			interface.<br>
+			<br>
+			<a name="spi_sendrecv" id="spi_sendrecv"></a>[spi.sendrecv(id, Out1, Out2, ...)] In1, In2, ... = spi.send_recv( id, Out1, Out2, ... ): sends all the "out" bytes to the specified SPI interface and returts the data read after each sent byte.<br>
+			<br>
+			Returning several values in this blocking way would not complicate some queued send implementations ? (ok, this could be another function :)<br>
+			<br>
+			Sending multiple data/chars in a single call and not in a table argument does not allow the data to be built in run time (without some string massage, of course :)<br>
+			<br>
+			<br>
+			<br></big>
+		</p>
+		<h3>
+			<a name="sysmodule" id="sysmodule"></a>sys
+		</h3>
+		<p>
+			<br>
+		</p>
+		<p>
+			<a name="sys_platform" id="sys_platform"></a>[sys.platform()] pd.platform(): returns the platform name (f.e. LM3S)
+		</p>
+		<p>
+			<a name="sys_mcu" id="sys_mcu"></a>[sys.mcu()] pd.cpu(): returns the CPU name (f.e. LM3S8962)
+		</p>
+		<p>
+			<a name="sys_cpu" id="sys_cpu"></a>[sys.cpu()] would return ARM Cortex M3 in this case.....
+		</p>
+		<p>
+			<a name="sys_board" id="sys_board"></a>[sys.board()] pd.board(): returns the CPU board (f.e. EK-LM3S8962)
+		</p>
+		<h3>
+			<a name="term_termmodule" id="term_termmodule">term</a>
+		</h3>
+		<p>
+			Terminal support
+		</p>
+		<p>
+			<a name="term_clear" id="term_clear"></a>[term.clear] term.clrscr(): clear the screen
+		</p>
+		<p>
+			<br>
+			<a name="term_cleareol" id="term_cleareol"></a>[term.cleareol] term.clreol(): clear from the current cursor position to the end of the line
+		</p>
+		<p>
+			<a name="term_moveto" id="term_moveto"></a> [term.moveto] term.gotoxy( x, y ): position the cursor at the given coordinates<br>
+		</p>
+		<p>
+			<br>
+		</p>
+		<p>
+			<a name="term_moveup" id="term_moveup"></a> [term.moveup] term.up( delta ): move the cursor up "delta" lines
+		</p>
+		<p>
+			<a name="term_movedown" id="term_movedown"></a> [term.movedown] term.down( delta ): move the cursor down "delta" lines
+		</p>
+		<p>
+			<a name="term_moveleft" id="term_moveleft"></a> [term.moveleft] term.left( delta ): move the cursor left "delta" lines
+		</p>
+		<p>
+			<br>
+			<a name="term_moveright" id="term_moveright"></a>[term.moveright] term.right( delta ): move the cursor right "delta" lines
+		</p>
+		<p>
+			<a name="term_getlinecount" id="term_getlinecount"></a> [term.getlinecount] Lines = term.lines(): returns the number of lines
+		</p>
+		<p>
+			<a name="term_getcolcount" id="term_getcolcount"></a> [term.getcolcount] Cols = term.cols(): returns the number of columns
+		</p>
+		<p>
+			<br>
+		</p>
+		<p>
+			<a name="term_printstr" id="term_printstr"></a> [term.printstr] term.putstr( s1, s2, ... ): writes the specified string(s) to the terminal<br>
+		</p>
+		<p>
+			[term.printchar] term.put( c1, c2, ... ): writes the specified character(s) to the terminal
+		</p>
+		<p>
+			<a name="term_getx" id="term_getx"></a> [term.getx] Cx = term.cursorx(): return the cursor X position
+		</p>
+		<p>
+			<a name="term_gety" id="term_gety"></a>[term.gety] Cy = term.cursory(): return the cursor Y position
+		</p>
+		<p>
+			<a name="term_inputchar" id="term_inputchar"></a>[term.inputchar] c = term.getch( term.WAIT | term.NOWAIT ): returns a char read from the
+		</p>
+		<p>
+			terminal.<br>
+			<br>
+			<br>
+		</p>
+		<h3>
+			<a name="tmr_tmrmodule" id="tmr_tmrmodule"></a>tmr
+		</h3>
+		<p>
+			<big><br></big>
+		</p>
+		<p>
+			It allows Lua to execute timer specific operations (delay, read timer value,
+		</p>
+		<p>
+			start timer, get time difference).
+		</p>
+		<p>
+			Some notes on timers:
+		</p>
+		<ul>
+			<li>timers: from all the platforms on which eLua runs, only the Luminary Cortex CPUs has rock solid 32-bit timers. You can do pretty much everything you need with them. All the other platforms have 16-bit timers, which imposes some limits on the range of delays you can achieve with them. Make sure to use tmr.mindelay(id) and tmr.maxdelay(id) to check the actual resolution of your timers, and adapt your code accordingly. To 'compensate' for this, it's not possible to change the base timer frequency on the Cortex CPUs, but it is possible on most other platforms :) So be sure to also check the result of tmr.setclock(id)
+			</li>
+			<li>also, when using timers, remember that if you're using XMODEM and/or the "term" module, TMR0 is used by both of them. So, if you change the TMR0 base clock in your code, be sure to restore the original setting before returning to the shell. You can change this static timer assignment by modifying src/main.c. It might also be possible to change it dynamically in the future, although I see little use for this.
+			</li>
+			<li>PWM: the Cortex CPUs have 6 PWM channels, but channels 0/1, 2/3 and 4/5 respectively share the same base clock setting. So, when you're changing the base clock for channel 1, you're also changing the base clock for channel 0; if channel 0 was already running, you won't like what will happen next. This time no eLua function can save you, you simply need you know your CPU architecture.
+			</li>
+		</ul>
+		<p>
+			<a name="tmr_delay" id="tmr_delay"></a>tmr.delay( id, delay ): uses timer 'id' to wait for 'delay' us.
+		</p>
+		<p>
+			<a name="tmr_read" id="tmr_read"></a>Data = tmr.read( id ): reads the value of timer 'id'. The returned value is
+		</p>
+		<p>
+			platform dependent.
+		</p>
+		<p>
+			<a name="tmr_start" id="tmr_start"></a>Data = tmr.start( id ): start the timer 'id', and also returns its value at
+		</p>
+		<p>
+			the moment of start. The returned value is platform dependent.
+		</p>
+		<p>
+			<a name="tmr_diff" id="tmr_diff"></a>diff = tmr.diff( id, end, start ): returns the time difference (in us) between
+		</p>
+		<p>
+			the timer values 'end' and 'start' (obtained from calling tmr.start or
+		</p>
+		<p>
+			tmr.read). The order of end/start is irrelevant.
+		</p>
+		<p>
+			<a name="tmr_mindelay" id="tmr_mindelay"></a>Data = tmr.mindelay( id ): returns the minimum delay (in us ) that can be
+		</p>
+		<p>
+			achieved by calling the tmr.delay function. If the return value is 0, the
+		</p>
+		<p>
+			platform layer is capable of executing sub-microsecond delays.
+		</p>
+		<p>
+			<a name="tmr_maxdelay" id="tmr_maxdelay"></a>Data = tmr.maxdelay( id ): returns the maximum delay (in us) that can be
+		</p>
+		<p>
+			achieved by calling the tmr.delay function.
+		</p>
+		<p>
+			<a name="tmr_setclock" id="tmr_setclock"></a>Data = tmr.setclock( id, clock ): sets the clock of the given timer. Returns the
+		</p>
+		<p>
+			actual clock set for the timer.
+		</p>
+		<p>
+			<a name="tmr_getclock" id="tmr_getclock"></a>Data = tmr.getclock( id ): return the clock of the given timer.
+		</p>
+		<p>
+			<br>
+			<br>
+			<br>
+			<br>
+			<br>
+		</p>
+		<h3>
+			<a name="uartmodule" id="uartmodule"></a>uart
+		</h3>
+		<p>
+			<a name="uart_setup" id="uart_setup"></a><strong>uart.setup( id, baud, databits,<br>
+			uart.PARITY_EVEN | uart.PARITY_ODD | uart.PARITY_NONE,<br>
+			uart.STOPBITS_1 | uart.STOPBITS_1_5 | uart.STOPBITS_2 )</strong>
+		</p>
+		<p>
+			Set the UART interface with the given parameters.
+		</p>
+		<p>
+			Returns the actual baud rate that was set for the UART.
+		</p>
+		<p>
+			<a name="uart_send" id="uart_send"></a><strong>uart.send( id, Data1, Data2, ... )</strong>
+		</p>
+		<p>
+			Send all the data to the specified UART interface.
+		</p>
+		<p>
+			<a name="uart_recv" id="uart_recv"></a>uart.recv( id, uart.TIMEOUT_NO | <strike>uart.TIMEOUT_INFINITE</strike> | timeout ) Data = uart.recv( id, uart.NO_TIMEOUT | uart.INF_TIMEOUT | timeout )
+		</p>
+		<p>
+			Reads a byte from the specified UART interface.
+		</p>
+		<h2>
+			<a name="platdepmodules" id="platdepmodules"></a>eLua Platform Dependent Modules
+		</h2>
+		<p>
+			A Platform Dependent eLua Module is a module that runs only on one or on a few <a href="status.html#platforms">supported eLua platforms</a>.<br>
+			These modules make use of specifical devices and features offered by some kits and allow eLua aplications to make the best use of the external hardware on your platforms.<br>
+		</p>
+		<h3>
+			<a name="adcmodule" id="adcmodule"></a>adc - Analog to Digital Conversion Module
+		</h3>
+		<p>
+			<strong>Currently runs on:</strong> LM3Sxxxx<br>
+			<br>
+			The ADC module handles the Analog to Digital Conversion Peripherals.<br>
+			<br>
+			<br>
+			<a name="adc_sample" id="adc_sample"></a><strong>adc.sample(channel_id)</strong><br>
+			Generate one processed sample.<br>
+			<br>
+			<br>
+			<a name="adc_getsamples" id="adc_getsamples"></a><strong>adc.getsamples(channel_id, [count])</strong><br>
+			Request <em>count</em> samples from the buffer.<br>
+			if singular, an integer is returned. if multiple, a table of integers is returned. If <em>count</em> is either zero or omitted, all available samples are returned.<br>
+			<br>
+			<br>
+			<a name="adc_maxval" id="adc_maxval"></a><strong>adc.maxval(channel_id)</strong><br>
+			Returns the largest integer one can expect fromr this channel on a given platform (based on bit depth).<br>
+			<br>
+			<br>
+			<a name="adc_samplesready" id="adc_samplesready"></a><strong>adc.samplesready(channel_id)<br></strong> Returns the number of samples waiting in the buffer.<br>
+			<br>
+			<br>
+			<a name="adc_dataready" id="adc_dataready"></a><strong>adc.dataready(channel_id)<br></strong> If running in non-blocking mode, this will indicate if all of the samples requested from the last sample or<br>
+			burst have been acquired and are waiting in the buffer.<br>
+			<br>
+			<br>
+			<a name="adc_setmode" id="adc_setmode"></a><strong>adc.setmode(channel_id, mode)<br></strong> <em>mode</em> 0 sets blocking mode. adc.getsamples will wait for requested samples to be captured before returning.<br>
+			<em>mode</em> 1 sets non-blocking mode<br>
+			<br>
+			<br>
+			<a name="adc_setsmoothing" id="adc_setsmoothing"></a><strong>adc.setsmoothing(channel_id, length)<br></strong> Set the length of the smoothing filter.<br>
+			This must be a power of 2 (maximum = 128)<br>
+			<br>
+			<br>
+			<a name="adc_getsmoothing" id="adc_getsmoothing"></a><strong>adc.getsmoothing(channel_id)<br></strong> Get the current smoothing length in use.<br>
+			<br>
+			<br>
+			<a name="adc_burst" id="adc_burst"></a><strong>adc.burst( channel_id, count, timer_id, frequency)<br></strong> Request that <em>count</em> samples be converted from <em>channel_id</em>, using <em>timer_id</em> at <em>frequency.</em> <em>count</em> must be greater than zero and a power of 2<br>
+			<br>
+			<br>
+		</p>
+		<h3>
+			<a name="dispmodule" id="dispmodule"></a>disp
+		</h3>
+		<p>
+			<strong>Currently runs on:</strong> LM3Sxxxx<br>
+			<br>
+			The disp module handles the RIT OLED display usage on Luminary Micro Cortex-M3 boards<br>
+		</p>
+		<p>
+			<a name="disp_init" id="disp_init"></a> <strong>disp.init( freq )</strong>
+		</p>
+		<p>
+			<em>freq</em> specifies the SSI Clock Frequency to be used.<br>
+			<br>
+			This function initializes the SSI interface to the OLED display and configures the SSD1329 controller on the panel.<br>
+		</p>
+		<p>
+			<br>
+		</p>
+		<p>
+			<a name="disp_enable" id="disp_enable"></a> <strong>disp.enable()</strong>
+		</p>
+		<p>
+			Enable the SSI component of the OLED display driver.<br>
+		</p>
+		<p>
+			<em>freq</em> specifies the SSI Clock Frequency to be used.<br>
+			This function initializes the SSI interface to the OLED display.
+		</p>
+		<p>
+			<a name="disp_disable" id="disp_disable"></a> <strong>disp.disable()</strong>
+		</p>
+		<p>
+			<a name="disp_on" id="disp_on"></a><strong>disp.on()</strong>
+		</p>
+		<p>
+			Turns on the OLED display.<br>
+			This function will turn on the OLED display, causing it to display the contents of its internal frame buffer.<br>
+			<br>
+		</p>
+		<p>
+			<a name="disp_off" id="disp_off"></a> <strong>disp.off</strong>()
+		</p>
+		<p>
+			Turns off the OLED display<br>
+			This function will turn off the OLED display. This will stop the scanning of the panel and turn off the on-chip DC-DC converter, preventing damage to the panel due to burn-in (it has similar characters to a CRT in this respect).<br>
+			<br>
+		</p>
+		<p>
+			<a name="disp_clear" id="disp_clear"></a> <strong>disp.clear()</strong>
+		</p>
+		<p>
+			Clears the OLED display.<br>
+			This function will clear the display RAM. All pixels in the display will be turned off.<br>
+		</p>
+		<p>
+			<a name="disp_print" id="disp_print"></a><strong>disp.print( str, x, y, gray )</strong><br>
+			<br>
+			Displays a string on the OLED display.<br>
+			<br>
+			Calling Arguments:<br>
+			str is a string to be displayed.<br>
+			x is the horizontal position to display the string, specified in columns from the left edge of the display.<br>
+			y is the vertical position to display the string, specified in rows from the top edge of the display.<br>
+			gray is the 4-bit gray scale (intensity) value to be used for displayed text.<br>
+			<br>
+			This function will draw a string on the display. Only the ASCII characters between 32 (space) and 126 (tilde) are supported; other characters will result in random data being draw on the display (based on whatever appears before/after the font in memory). The font is mono-spaced, so characters such as ``i'' and ``l'' have more white space around them than characters such as ``m'' or ``w''.<br>
+			If the drawing of the string reaches the right edge of the display, no more characters will be drawn. Therefore, special care is not required to avoid supplying a string that is ``too long'' to display.<br>
+			<br>
+			Because the OLED display packs 2 pixels of data in a single byte, the<br>
+			parameter \e ulX must be an even column number (for example, 0, 2, 4, and<br>
+			so on).<br>
+			<br>
+			<br>
+		</p>
+		<p>
+			<a name="disp_draw" id="disp_draw"></a> <strong>disp.draw( img, x, y, withd, height, gray )</strong>
+		</p>
+		<p>
+			Displays an image on the OLED display.<br>
+			<br>
+			img a pointer to the string data representing a rit format image to display.<br>
+			x is the horizontal position to display the string, specified in columns from the left edge of the display.<br>
+			y is the vertical position to display the string, specified in rows from the top edge of the display.<br>
+			width is the width of the image, specified in columns.<br>
+			height is the height of the image, specified in rows.<br>
+			<br>
+			This function will display a bitmap graphic on the display. Because of the format of the display RAM, the starting column x and the number of columns y must be an integer multiple of two.<br>
+			The image data is organized with the first row of image data appearing left to right, followed immediately by the second row of image data. Each byte contains the data for two columns in the current row, with the leftmost column being contained in bits 7:4 and the rightmost column being contained in bits 3:0.<br>
+			For example, an image six columns wide and seven scan lines tall would be arranged as follows (showing how the twenty one bytes of the image would appear on the display):<br>
+			<br>
+			Because the OLED display packs 2 pixels of data in a single byte, the parameter x must be an even column number (for example, 0, 2, 4, and so on).
+		</p>
+		<pre>
++-------------------+-------------------+-------------------+
+|      Byte 0       |      Byte 1       |      Byte 2       |
++---------+---------+---------+---------+---------+---------+
+| 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |
++---------+---------+---------+---------+---------+---------+
+|      Byte 3       |      Byte 4       |      Byte 5       |
++---------+---------+---------+---------+---------+---------+
+| 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |
++---------+---------+---------+---------+---------+---------+
+|      Byte 6       |      Byte 7       |      Byte 8       |
++---------+---------+---------+---------+---------+---------+
+| 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |
++---------+---------+---------+---------+---------+---------+
+|      Byte 9       |      Byte 10      |      Byte 11      |
++---------+---------+---------+---------+---------+---------+
+| 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |
++---------+---------+---------+---------+---------+---------+
+|      Byte 12      |      Byte 13      |      Byte 14      |
++---------+---------+---------+---------+---------+---------+
+| 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |
++---------+---------+---------+---------+---------+---------+
+|      Byte 15      |      Byte 16      |      Byte 17      |
++---------+---------+---------+---------+---------+---------+
+| 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |
++---------+---------+---------+---------+---------+---------+
+|      Byte 18      |      Byte 19      |      Byte 20      |
++---------+---------+---------+---------+---------+---------+
+| 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 | 7 6 5 4 | 3 2 1 0 |
++---------+---------+---------+---------+---------+---------+
+</pre>
+	</body>
+</html>
