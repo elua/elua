@@ -42,7 +42,7 @@ toolchain_list = {
 # The first toolchain in the toolchains list is the default one
 # (the one that will be used if none is specified)
 platform_list = {  
-  'at91sam7x' : { 'cpus' : [ 'AT91SAM7X256', 'AT91SAM7X512' ], 'toolchains' : [ 'arm-gcc', 'codesourcery' },
+  'at91sam7x' : { 'cpus' : [ 'AT91SAM7X256', 'AT91SAM7X512' ], 'toolchains' : [ 'arm-gcc', 'codesourcery' ] },
   'lm3s' : { 'cpus' : [ 'LM3S8962', 'LM3S6965', 'LM3S6918' ], 'toolchains' : [ 'arm-gcc', 'codesourcery' ] },
   'str9' : { 'cpus' : [ 'STR912FW44' ], 'toolchains' : [ 'arm-gcc', 'codesourcery' ] },
   'i386' : { 'cpus' : [ 'I386' ], 'toolchains' : [ 'i686-gcc' ] },
