@@ -6,6 +6,13 @@ if boardname == 'EK-LM3S6965' or boardname == 'EK-LM3S8962':
   specific_files = specific_files + " rit128x96x4.c disp.c"
   cdefs = cdefs + " -DENABLE_DISP"
 
+# The default for the Eagle 100 board is to start the image at 0x2000,
+# so that the built in Ethernet boot loader can be used to upload it
+if boardname == 'EAGLE-100':
+  linkopts = "-Wl,-Ttext,0x2000"
+else:
+  linkopts = ""
+
 ldscript = "lm3s.ld"
 
 # Prepend with path
@@ -17,7 +24,7 @@ cdefs = cdefs + " -DFOR" + cputype + " -Dgcc"
 # Toolset data
 tools[ 'lm3s' ] = {}
 tools[ 'lm3s' ][ 'cccom' ] = "%s -mcpu=cortex-m3 -mthumb  %s %s -ffunction-sections -fdata-sections %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], opt, local_include, cdefs )
-tools[ 'lm3s' ][ 'linkcom' ] = "%s -mthumb -mcpu=cortex-m3 -nostartfiles -T %s -Wl,--gc-sections -Wl,-e,ResetISR -Wl,--allow-multiple-definition -o $TARGET $SOURCES -lm %s" % ( toolset[ 'compile' ], ldscript, local_libs )
+tools[ 'lm3s' ][ 'linkcom' ] = "%s -mthumb -mcpu=cortex-m3 -nostartfiles -T %s %s -Wl,--gc-sections -Wl,-e,ResetISR -Wl,--allow-multiple-definition -o $TARGET $SOURCES -lm %s" % ( toolset[ 'compile' ], ldscript, linkopts, local_libs )
 tools[ 'lm3s' ][ 'ascom' ] = "%s -x assembler-with-cpp %s -mcpu=cortex-m3 -mthumb %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], local_include, cdefs )
 
 # Programming function

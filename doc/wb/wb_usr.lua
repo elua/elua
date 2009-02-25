@@ -143,7 +143,38 @@ wb_usr.tree =
           {
             { name = { en = "Toolchains", pt = "##Tools" },
               link = "toolchains.html",
-            }
+            },
+          },
+        },
+        {
+          name = { en = "Installing", pt = "##Installing" },
+          link = "installing.html",
+          folder = 
+          {
+            {  name = { en = "AT91SAM7X", pt = "AT91SAM7X" },
+               link = "installing_at91sam7x.html",
+            },
+            {   name = { en = "LM3S", pt = "LM3S" },
+               link = "installing_lm3s.html",
+            },
+            {  name = { en = "AVR32", pt = "AVR32" },
+               link = "installing_avr32.html",
+            },
+            {  name = { en = "LPC288x", pt = "LPC288x" },
+               link = "installing_lpc2888.html",
+            },
+            {  name = { en = "STR7", pt = "STR7" },
+               link = "installing_str7.html",
+            },
+            {  name = { en = "STR9", pt = "STR9" },
+               link = "installing_str9.html",
+            },
+            {  name = { en = "STM32", pt = "STM32" },
+               link = "installing_stm32.html",
+            },
+            { name = { en = "i386", pt = "i386" },
+               link = "installing_i386.html"
+            },
           },
         },
         {

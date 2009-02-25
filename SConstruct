@@ -44,7 +44,7 @@ toolchain_list = {
 platform_list = {  
   'at91sam7x' : { 'cpus' : [ 'AT91SAM7X256', 'AT91SAM7X512' ], 'toolchains' : [ 'arm-gcc', 'codesourcery' ] },
   'lm3s' : { 'cpus' : [ 'LM3S8962', 'LM3S6965', 'LM3S6918' ], 'toolchains' : [ 'arm-gcc', 'codesourcery' ] },
-  'str9' : { 'cpus' : [ 'STR912FW44' ], 'toolchains' : [ 'arm-gcc', 'codesourcery' ] },
+  'str9' : { 'cpus' : [ 'STR912FAW44' ], 'toolchains' : [ 'arm-gcc', 'codesourcery' ] },
   'i386' : { 'cpus' : [ 'I386' ], 'toolchains' : [ 'i686-gcc' ] },
   'lpc288x' : { 'cpus' : [ 'LPC2888' ], 'toolchains' : [ 'arm-gcc', 'codesourcery' ] },
   'str7' : { 'cpus' : [ 'STR711FR2' ], 'toolchains' : [ 'arm-gcc', 'codesourcery' ] },
@@ -56,7 +56,7 @@ platform_list = {
 board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
                'EK-LM3S8962' : [ 'LM3S8962' ],
                'EK-LM3S6965' : [ 'LM3S6965' ],
-               'STR9-COMSTICK' : [ 'STR912FW44' ],
+               'STR9-COMSTICK' : [ 'STR912FAW44' ],
                'PC' : [ 'I386' ],
                'LPC-H2888' : [ 'LPC2888' ],
                'MOD711' : [ 'STR711FR2' ],
