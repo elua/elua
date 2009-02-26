@@ -103,7 +103,7 @@ u16 adc_get_processed_sample( unsigned id )
       if ( s->reqsamples > 0)
         s->reqsamples -- ;
       
-      return (u16) s->smoothsum >> s->logsmoothlen;
+      return (u16) ( s->smoothsum >> s->logsmoothlen );
       
     }
     else if ( s->logsmoothlen == 0 )

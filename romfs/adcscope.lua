@@ -1,5 +1,5 @@
 adcchannels = {0, 1, 2, 3}
-adcsmoothing = {4, 16, 32, 64}
+adcsmoothing = {4, 16, 64, 128}
 
 for i, v in ipairs(adcchannels) do
   adc.setblocking(v,1)
