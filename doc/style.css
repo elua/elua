@@ -34,6 +34,7 @@ pre {
   line-height: 125%;
   margin-left: 1em;
   margin-right: 1em;
+  overflow: auto;
 }
 p.info {
   margin-left: 3em;
