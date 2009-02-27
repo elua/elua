@@ -9,30 +9,40 @@
 <p><strong>eLua</strong>
 stands for <strong>Embedded Lua</strong> and the project
 aims to offer the full set of features of the&nbsp;<a href="http://www.lua.org">Lua Programming Language</a> to the embedded world. </p><p><span style="font-weight: bold;">eLua</span>
-is not a stripped down set fo Lua; much on the contrary, it strives to offer the same features as the desktop version of Lua, but introducing specific features for embedded use.
+is not a stripped down set of Lua; much on the contrary, it strives to
+offer the same features as the desktop version of Lua, but introducing
+specific features for embedded use.
 Besides offering different flavors of the full Lua implementation
-(like the possiblity of choosing between an integer-only and a floating point implementation),
-a lot of work was (and will be) done in the direction of making Lua more "embedded-friendly" by augmenting the core language with features that allow lower memory requirements.</p>
+(like the possiblity of choosing between an integer-only and a floating
+point numbers implementation),
+a lot of work was (and will be) done in the direction of making Lua
+more "embedded-friendly" by augmenting the core language with features
+that allow lower memory requirements.</p>
 <p>Lua is the perfect example of a
 minimal, yet fully
 functional language. Although generally advertised as a "scripting
 language" (and used accordingly especially in the game industry), it is
 also fully capable of running stand-alone programs. Its limited
 resource requirements make it suitable to a lot of microcontroller
-families. The intrinsic high portability of the original Lua code (which is ANSI C and runs virtually on every platform for which an ANSI C compiler is available) combined with the highly portable software architecture of <b>eLua</b> allow for easy porting of the project to a large variety or architectures. The peripheral access libraries exported by <b>eLua</b> are also portable by design, so one could run a Lua program (without or with very few modifications) on every <span style="font-weight: bold;">eLua</span> supported platform (the <a href="status.html">project roadmap</a> shows a constantly growing list of platforms on which <b>eLua</b> is supported). <b>eLua</b> inherits the minimalistic and functional design of Lua, staying in line with the well known <b>KISS</b> (<i>Keep It Small and Simple</i>) philosophy.</p>
+families. The intrinsic high portability of the original Lua code
+(which is ANSI C and runs virtually on every platform for which an ANSI
+C compiler is available) combined with the highly portable software
+architecture of <b>eLua</b> allow for easy porting of the project to a large variety or architectures. The peripheral access libraries exported by <b>eLua</b> are also portable by design, so one could run a Lua program (without or with very few modifications) on every <span style="font-weight: bold;">eLua</span> supported platform (the <a href="status.html">project status &amp; roadmap</a> shows a constantly growing list of platforms on which <b>eLua</b> is supported). <b>eLua</b> inherits the minimalistic and functional design of Lua, staying in line with the well known <b>KISS</b> (<i>Keep It Small and Simple</i>) philosophy.</p>
 <p>The aim of the project is to have a fully functional Lua development
 environment <strong>on the microcontroller itself</strong>,
-without the need to install a specific development environment&nbsp;on the PC side. This includes the ability to both edit and debug programs directly on target.
+without the need to install a specific development environment&nbsp;on
+the PC side. This includes the ability to both edit and debug programs
+directly on target.
 Initially, a PC will still be needed in order to edit the Lua programs
 for the microcontroller. But as the project evolves this requirement
 will be relaxed, as a basic editor (also residing on the
 microcontroller) will be usable with a variety of input/output devices.</p>
-<p>We can't end this short presentation without presenting our project motto: no matter what you do with <b>eLua</b>, always remember to have fun with it :)</p>
+<p>We can't end this short presentation without presenting our project motto: No matter what you do with <b>eLua</b>, always remember to have fun with it :)</p>
 <a name="features"></a><h3>Features</h3>
 <p>As already stated, <b>eLua</b> allows you to run Lua completely on
 the
 target microcontroller. A fast-growing set of complementary modules is also
-provided, for Lua programming eLua's generic (portable) peripherals. </p>
+provided, for Lua programming <strong>eLua</strong>'s generic (portable) peripherals. </p>
 <p>The following important features are ready or being implemented:</p>
 <ul>
 <li>a flexible, configurable build system.</li>
@@ -47,9 +57,9 @@ UART, PWM, SPI, TMR, ADC, NET, I2C...)</li>
 <li>an embedded http server</li>
 <li>Terminal / Console over Ethernet</li>
 <li>debugging (directly on the MCU or remotely with the PC).
-</ul></p>
-<p>For more information about the functionality (implemented and planned) in eLua check <a href="status.html">the status page</a>.</p>
-<p>Porting eLua to another compatible platform should be as easy
+</li></ul>
+<p>For more information about the functionality (implemented and planned) in <strong>eLua</strong> check <a href="status.html">the status page</a>.</p>
+<p>Porting <strong>eLua</strong> to another compatible platform should be as easy
 and
 painless as possible. Currently this is restricted to platforms for
 which the gcc+newlib combo is available. This restriction will disappeaer in the near future, as <b>eLua</b> will have its own libc and thus it will be available on a much
@@ -71,8 +81,13 @@ that want to extend their programs with the Lua library facilities and
 portable features.</p><p><span style="font-weight: bold;">eLua</span>
 allows embedded-oriented programmers to use the simplicity and
 power of the Lua programming language and to hide the low-level
-complexities and platform/architecture-dependent features. With <b>eLua</b>, the programmer can focus on the actual implementation of his program, without having to worry about accessing the low-level peripheral configuration and data registers, as the platform libraries already take care of this. This increases productivity and eliminates the often frustrating task of dealing with platform-specific drivers. </p>
-<p>The list below summarizes <b>eLua</b>'s target audience:<br><ul><li>Embedded developers that are looking for a fast, easy to use and powerful way of coding.</li><li>First-time
+complexities and platform/architecture-dependent features. With <b>eLua</b>,
+the programmer can focus on the actual implementation of his program,
+without having to worry about accessing the low-level peripheral
+configuration and data registers, as the platform libraries already
+take care of this. This increases productivity and eliminates the often
+frustrating task of dealing with platform-specific drivers. </p>
+<p>The list below summarizes <b>eLua</b>'s target audience:<br></p><ul><li>Embedded developers that are looking for a fast, easy to use and powerful way of coding.</li><li>First-time
 embedded programmers (or simply first time programmers)&nbsp; that are
 looking for an easy way to "dive" into the embedded programming world.
 eLua is a great learning tool.</li><li>People that aren't really
@@ -82,7 +97,7 @@ developers that need powerful meta-language mecanisms for complex code
 algorithms and data description.</li><li>Field
 engineers that can go their customer site and debug an eLua module on
 site, without any preparation at all, since the whole development
-environment resides on chip already.</li></ul></p><a name="authors"></a>
+environment resides on chip already.</li></ul><a name="authors"></a>
 <h3>Authors</h3>
 <p><strong>eLua</strong> is a joint project of <strong><a href="#contacts">Bogdan Marinescu</a></strong>,
 a software developer from Bucharest (Romania) and <strong><a href="#contacts">Dado Sutter</a></strong>,
@@ -105,17 +120,9 @@ Page</a></p>
 <h3>License</h3>
 <div class="content">
 <p><strong>eLua</strong> is Open Source and is freely
-distributed under the GPL (migrating to BSD soon) licence.</p>
+distributed under the MIT licence.</p>
 <p>The Lua code (with all the <b>eLua</b> specific changes) is included in the source tree and is, of course, licensed under the same MIT license that Lua uses.</p>
-<p>There are other components with different licenses in <b>eLua</b>, see the file <b>COPYING</b> in the source distribution for details.</p>
-<p>The terms of each of these licences can be viewed on their own
-pages at:</p>
-<p><a target="_top" href="http://en.wikipedia.org/wiki/GNU_General_Public_License">GPL
-Licence</a></p>
-<p><a target="_top" href="http://en.wikipedia.org/wiki/BSD_license#Terms">BSD
-Licence</a></p>
-<p><a target="_top" href="http://en.wikipedia.org/wiki/MIT_License">MIT
-Licence</a></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p><a href="http://en.wikipedia.org/wiki/MIT_License"></a></p>
+<p>There may be other components with different licenses in <b>eLua</b>, see the file <b>COPYING</b> in the source distribution for details.</p>
+<p>The terms of the MIT License can be viewed on Wikipedia at: <a href="http://en.wikipedia.org/wiki/MIT_License" target="_top">http://en.wikipedia.org/wiki/MIT_License</a></p><br><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p><a href="http://en.wikipedia.org/wiki/MIT_License"></a></p>
 </div>
 </body></html>
-
