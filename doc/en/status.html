@@ -3,12 +3,15 @@
 <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
 <meta http-equiv="Content-Language" content="en-us"><title>Product</title>
 
-<link rel="stylesheet" type="text/css" href="../style.css">
-</head>
+<link rel="stylesheet" type="text/css" href="../style.css"></head>
 <body style="background-color: rgb(255, 255, 255);">
 <a name="platforms"></a><h3>eLua platforms and modules status</h3>
-<p>The current status of <b>eLua</b> is given by the list of the currently supported platforms, together with a list of modules-per-platform and their development phase. For better formatting, the lists are organized as tables that use the graphical notation given below:
-<table style="width: 325px;" class="table_center">
+<p>The current status of <b>eLua</b> is given by the list of the
+currently supported platforms, together with a list of
+modules-per-platform and their development phase. For better
+formatting, the lists are organized as tables that use the graphical
+notation given below:
+</p><table style="width: 325px;" class="table_center">
 <tbody>
 <tr>
 <th style="text-align: center;">Symbol</th>
@@ -32,9 +35,9 @@
 </tr>
 </tbody>
 </table>
-</p><br>
+<br>
 <p>The list of CPUs/boards currently supported by <b>eLua</b> is given below:
-<table style="text-align: left; width: 620px;" class="table_center">
+</p><table style="text-align: left; width: 620px;" class="table_center">
 <tbody>
 <tr>
   <th style="text-align: left;">CPU</th>
@@ -122,9 +125,9 @@
 </tr>
 </tbody>
 </table>
-</p><br>
+<br>
 <p>The following table shows a list of the generic modules currently implemented (and planned to be implemented) in <b>eLua</b>.
-<table style="text-align: left; width: 620px;" class="table_center">
+</p><table style="text-align: left; width: 620px;" class="table_center">
 <tbody>
 <tr>
 <th style="text-align: left;">Name</th> 
@@ -156,7 +159,7 @@
 <td>Serial Peripheral Interface</td>
 <td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
 </tr>
-<td style="color: rgb(255, 102, 0);">net</td>
+<tr><td style="color: rgb(255, 102, 0);">net</td>
 <td>TCP/IP networking</td>
 <td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
 </tr>
@@ -212,9 +215,9 @@
 </tr>
 </tbody>
 </table>
-</p><br>
+<br>
 <p>The relationship between a module and its implementation on a particular platform is given in the next table.
-<table style="text-align: left; width:620px" class="table_center">
+</p><table style="text-align: left; width: 620px;" class="table_center">
 <tbody>
 <tr>
 <th>Module</th>
@@ -390,7 +393,7 @@
 <td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
 
 </tr>
-<td style="color: rgb(255, 102, 0);">##STM32F103ZE</td>
+<tr><td style="color: rgb(255, 102, 0);">##STM32F103ZE</td>
 <td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
 <td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
 <td style="text-align: center;"><img src="../wb_img/stat_ok.png"> </td>
@@ -407,28 +410,31 @@
 </tr>
 </tbody>
 </table>
-</p><br>
-<p>For some platforms, a number of platform dependent modules are implemented (or in the works) and are listed below. To understand the difference between generic modules and platform specific modules, check <a href="">##the eLua architecture page</a>.
-<table style="width: 620px;" class="table_center">
+<br>
+<p>For some platforms, a number of platform dependent modules are
+implemented (or in the works) and are listed below. To understand the
+difference between generic modules and platform specific modules, check
+<a href="">##the eLua architecture page</a>.
+</p><table style="width: 620px;" class="table_center">
 <tbody>
 <tr>
-  <th style="text-align: left; ">Name</th>
+  <th style="text-align: left;">Name</th>
   <th style="text-align: center;">Description</th>
   <th style="text-align: center;">Boards</th>
   <th style="text-align: center;">Status</th>
 </tr>
 <tr>
-  <td style="color: rgb(255, 102, 0)">disp</td>
+  <td style="color: rgb(255, 102, 0);">disp</td>
   <td>OLED display support</td>
   <td>EKx-LM3S8962<br>EKx-LM3S6965</td>
   <td><img src="../wb_img/stat_ok.png"></td>
 </tr>
 </tbody>
 </table>
-</p>
+
 <h3><a name="roadmap"></a>Status of features and roadmap</h3>
 <p>The following table shows the status of some existent and planned <b>eLua</b> features.
-<table style="text-align: left; width: 620px;" class="table_center">
+</p><table style="text-align: left; width: 620px;" class="table_center">
 <tbody><tr>
 <th style="text-align: left;">eLua Features</th>
 <th style="text-align: center;">Status</th>
@@ -466,7 +472,7 @@
 <td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
 </tr>
 <tr>
-<td style="text-align: left;">eLua LTR (Lua Tiny RAM) patch</td>
+<td style="text-align: left;">eLua LTR (Lua Tiny RAM) patch &nbsp;##a link to a small description...</td>
 <td style="text-align: center;"><img src="../wb_img/stat_ok.png"></td>
 </tr>
 <tr>
@@ -474,7 +480,7 @@
 <td style="text-align: center;"><img src="../wb_img/stat_not_tested.png"></td>
 </tr>
 <tr>
-<td style="text-align: left;">Minimal R/W file system</font></td>
+<td style="text-align: left;">Minimal R/W file system</td>
 <td style="text-align: center;"><img src="../wb_img/stat_not_implemented.png"></td>
 </tr>
 <tr>
@@ -502,6 +508,6 @@
 <td align="undefined" valign="undefined">Embedded HTTP web server</td>
 <td style="text-align: center;" valign="undefined"><img src="../wb_img/stat_ok.png"></td></tr>
 </tbody>
-</table>
-</p>
+</table><br><br>
+
 </body></html>
