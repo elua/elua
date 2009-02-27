@@ -67,8 +67,9 @@ board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
             }
 
 # ROMFS file list "groups"
-# To include a file in a ROMFS build, include it in a group here and make
-# sure the group is listed on your platform "groups list" right below.
+# To include a file in a ROMFS build, include it in a group here (or create one
+# if you need) and make sure the group is included on your platform's file_list
+# definition (right after this).
 romfs = { 'bisect' : [ 'bisect.lua' ],
           'hangman' : [ 'hangman.lua' ],
           'lhttpd' : [ 'index.pht', 'lhttpd.lua', 'test.lua' ],

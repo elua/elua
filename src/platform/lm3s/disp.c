@@ -1,4 +1,6 @@
-// Module for interfacing with Lua DISP code
+// eLua Module for LM3S RIT OLED Display Support
+// disp is a platform-dependent (LM3S) module, that binds to Lua the basic API
+// from Luminary Micro
 
 #include "lua.h"
 #include "lualib.h"
@@ -97,8 +99,8 @@ const LUA_REG_TYPE disp_map[] =
   { LSTRKEY( "on" ), LFUNCVAL( disp_on ) },    
   { LSTRKEY( "off" ), LFUNCVAL( disp_off ) },
   { LSTRKEY( "clear" ), LFUNCVAL( disp_clear ) },
-  { LSTRKEY( "stringdraw" ), LFUNCVAL( disp_stringDraw ) },
-  { LSTRKEY( "imagedraw" ), LFUNCVAL( disp_imageDraw ) },  
+  { LSTRKEY( "print" ), LFUNCVAL( disp_stringDraw ) },
+  { LSTRKEY( "draw" ), LFUNCVAL( disp_imageDraw ) },  
   { LNILKEY, LNILVAL }
 };
 
