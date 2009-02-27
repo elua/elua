@@ -611,7 +611,7 @@ wb_usr.tree =
         },
         {
           name = {en = "Platform Dependent Modules", pt = "Dependentes de Plataforma" },
-          link = "platdepmodules.html",
+          link = "refman.html#platdepmodules",
           folder =
           {
             {  name = { en = "adc", pt = "adc" },

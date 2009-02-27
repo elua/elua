@@ -1,6 +1,5 @@
 pt/building.html
-pt/tut_bootstick.html
-pt/platdepmodules.html
+pt/net_ref.html
 pt/dl_binaries.html
 pt/tc_arm.html
 pt/comunity.html
@@ -26,7 +25,7 @@ pt/versionhistory.html
 pt/toolchains.html
 pt/dl_old.html
 pt/examples.html
-pt/net_ref.html
+pt/tut_bootstick.html
 pt/installing_str9.html
 pt/installing_stm32.html
 pt/status.html

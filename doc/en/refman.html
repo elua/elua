@@ -4,8 +4,7 @@
 		<meta http-equiv="Content-Language" content="en-us">
 		
 		<title>Product</title><link rel="stylesheet" type="text/css" href="../style.css"></head>
-
-	<body>
+<body>
 		<h3>
 			eLua Modules Reference Manual
 		</h3>
@@ -640,9 +639,7 @@ sample each time a new sample is taken.</p><p><a name="adc_setmode" id="adc_setm
 		<p>
 			<strong>Currently runs on:</strong> LM3Sxxxx<br>
 			<br>
-			The disp module handles the RIT OLED display usage on Luminary Micro Cortex-M3 boards<br>
-		</p>
-		<p>
+			The disp module handles the RIT OLED display usage on Luminary Micro Cortex-M3 boards</p><p><span style="color: red; font-weight: bold;">## Following functions may change to merge init/on/enable and off/disable</span></p><p>
 			<a name="disp_init" id="disp_init"></a> <strong>disp.init( freq )</strong>
 		</p>
 		<p>
@@ -664,7 +661,7 @@ sample each time a new sample is taken.</p><p><a name="adc_setmode" id="adc_setm
 			This function initializes the SSI interface to the OLED display.
 		</p>
 		<p>
-			<a name="disp_disable" id="disp_disable"></a> <strong>disp.disable()</strong>
+			<a name="disp_disable" id="disp_disable"></a> <strong>disp.disable()</strong></p><p>Disable the SSI component of the OLED display driver and frees the SPI channel for other uses.</p><p>
 		</p>
 		<p>
 			<a name="disp_on" id="disp_on"></a><strong>disp.on()</strong>
@@ -686,16 +683,12 @@ characters to a CRT in this respect).<br>
 			<br>
 		</p>
 		<p>
-			<a name="disp_clear" id="disp_clear"></a> <strong>disp.clear()</strong>
-		</p>
-		<p>
-			Clears the OLED display.<br>
-			This function will clear the display RAM. All pixels in the display will be turned off.<br>
+			<a name="disp_clear" id="disp_clear"></a> <strong>disp.clear()</strong></p><p>Clears the OLED display.<br>This function will clear the display RAM. All pixels in the display will be turned off.</p><p><br>
 		</p>
 		<p>
 			<a name="disp_print" id="disp_print"></a><strong>disp.print( str, x, y, gray )</strong><br>
 			<br>
-			Displays a string on the OLED display.<br>
+			Writes a string on the OLED display.<br>
 			<br>
 			Calling Arguments:<br>
 			str is a string to be displayed.<br>
@@ -714,13 +707,13 @@ more characters will be drawn. Therefore, special care is not required
 to avoid supplying a string that is ``too long'' to display.<br>
 			<br>
 			Because the OLED display packs 2 pixels of data in a single byte, the<br>
-			parameter \e ulX must be an even column number (for example, 0, 2, 4, and<br>
+			parameter x must be an even column number (for example, 0, 2, 4, and<br>
 			so on).<br>
 			<br>
 			<br>
 		</p>
 		<p>
-			<a name="disp_draw" id="disp_draw"></a> <strong>disp.draw( img, x, y, withd, height, gray )</strong>
+			<a name="disp_draw" id="disp_draw"></a> <strong>disp.draw( img, x, y, width, height, gray )</strong>
 		</p>
 		<p>
 			Displays an image on the OLED display.<br>
