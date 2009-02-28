@@ -6,11 +6,12 @@
 #include "auxmods.h"
 #include "type.h"
 #include "stacks.h"
+#include "stm32f10x_lib.h"
 
 // *****************************************************************************
 // Define here what components you want for this platform
 
-//#define BUILD_XMODEM
+#define BUILD_XMODEM
 #define BUILD_SHELL
 #define BUILD_ROMFS
 #define BUILD_TERM
@@ -50,6 +51,7 @@ LUALIB_API int ( luaopen_lcd )( lua_State* L );
   _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
+  _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
   LCDLINE\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
 
@@ -87,8 +89,8 @@ LUALIB_API int ( luaopen_lcd )( lua_State* L );
 // Number of resources (0 if not available/not implemented)
 #define NUM_PIO               7
 #define NUM_SPI               0
-#define NUM_UART              4
-#define NUM_TIMER             0
+#define NUM_UART              5
+#define NUM_TIMER             6
 #define NUM_PWM               0
 #define NUM_ADC               0
 
@@ -102,7 +104,7 @@ u32 platform_s_cpu_get_frequency();
 // #define PIO_PINS_PER_PORT (n) if each port has the same number of pins, or
 // #define PIO_PIN_ARRAY { n1, n2, ... } to define pins per port in an array
 // Use #define PIO_PINS_PER_PORT 0 if this isn't needed
-#define PIO_PIN_ARRAY         { 16, 16, 16, 16, 16, 16, 16 }
+#define PIO_PINS_PER_PORT     16
 
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)
@@ -110,61 +112,5 @@ u32 platform_s_cpu_get_frequency();
 #define MEM_START_ADDRESS     { ( void* )end }
 #define MEM_END_ADDRESS       { ( void* )( SRAM_BASE + SRAM_SIZE - STACK_SIZE_TOTAL - 1 ) }
 
-// *****************************************************************************
-// CPU constants that should be exposed to the eLua "cpu" module
-
-#include "stm32f10x_gpio.h"
-
-#if 0
-#define PLATFORM_CPU_CONSTANTS\
-  _C( INT_GPIOA ),\
-  _C( INT_GPIOB ),\
-  _C( INT_GPIOC ),\
-  _C( INT_GPIOD ),\
-  _C( INT_GPIOE ),\
-  _C( INT_UART0 ),\
-  _C( INT_UART1 ),\
-  _C( INT_SSI0 ),\
-  _C( INT_I2C0 ),\
-  _C( INT_PWM_FAULT ),\
-  _C( INT_PWM0 ),\
-  _C( INT_PWM1 ),\
-  _C( INT_PWM2 ),\
-  _C( INT_QEI0 ),\
-  _C( INT_ADC0 ),\
-  _C( INT_ADC1 ),\
-  _C( INT_ADC2 ),\
-  _C( INT_ADC3 ),\
-  _C( INT_WATCHDOG ),\
-  _C( INT_TIMER0A ),\
-  _C( INT_TIMER0B ),\
-  _C( INT_TIMER1A ),\
-  _C( INT_TIMER1B ),\
-  _C( INT_TIMER2A ),\
-  _C( INT_TIMER2B ),\
-  _C( INT_COMP0 ),\
-  _C( INT_COMP1 ),\
-  _C( INT_COMP2 ),\
-  _C( INT_SYSCTL ),\
-  _C( INT_FLASH ),\
-  _C( INT_GPIOF ),\
-  _C( INT_GPIOG ),\
-  _C( INT_GPIOH ),\
-  _C( INT_UART2 ),\
-  _C( INT_SSI1 ),\
-  _C( INT_TIMER3A ),\
-  _C( INT_TIMER3B ),\
-  _C( INT_I2C1 ),\
-  _C( INT_QEI1 ),\
-  _C( INT_CAN0 ),\
-  _C( INT_CAN1 ),\
-  _C( INT_CAN2 ),\
-  _C( INT_ETH ),\
-  _C( INT_HIBERNATE ),\
-  _C( INT_USB0 ),\
-  _C( INT_PWM3 ),\
-  _C( INT_UDMA ),\
-  _C( INT_UDMAERR )
-#endif
-
 #endif // #ifndef __PLATFORM_CONF_H__
+

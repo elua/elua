@@ -38,23 +38,23 @@
 #include "platform_conf.h"
 #ifdef BUILD_XMODEM
 
-#define PACKET_SIZE    128
+#define PXM_ACKET_SIZE    128
 static p_xm_send_func xmodem_out_func;
 static p_xm_recv_func xmodem_in_func;
 
 // Line control codes
-#define SOH  0x01
-#define ACK  0x06
-#define NAK  0x15
-#define CAN  0x18
-#define EOT  0x04
+#define XM_SOH  0x01
+#define XM_ACK  0x06
+#define XM_NAK  0x15
+#define XM_CAN  0x18
+#define XM_EOT  0x04
 
 // Arguments to xmodem_flush
 #define XMODEM_FLUSH_ONLY       0
-#define XMODEM_FLUSH_AND_CAN    1
+#define XMODEM_FLUSH_AND_XM_CAN    1
 
 // Delay in "flush packet" mode
-#define XMODEM_PACKET_DELAY     10000UL
+#define XMODEM_PXM_ACKET_DELAY     10000UL
 
 void xmodem_init( p_xm_send_func send_func, p_xm_recv_func recv_func )
 {
@@ -65,12 +65,12 @@ void xmodem_init( p_xm_send_func send_func, p_xm_recv_func recv_func )
 // Utility function: flush the receive buffer
 static void xmodem_flush( int how )
 {
-  while( xmodem_in_func( XMODEM_PACKET_DELAY ) != -1 );
-  if( how == XMODEM_FLUSH_AND_CAN )
+  while( xmodem_in_func( XMODEM_PXM_ACKET_DELAY ) != -1 );
+  if( how == XMODEM_FLUSH_AND_XM_CAN )
   {
-    xmodem_out_func( CAN );
-    xmodem_out_func( CAN );
-    xmodem_out_func( CAN );
+    xmodem_out_func( XM_CAN );
+    xmodem_out_func( XM_CAN );
+    xmodem_out_func( XM_CAN );
   }
 }
 
@@ -82,7 +82,7 @@ static int xmodem_get_record( unsigned char blocknum, unsigned char *pbuf )
   int ch;
   
   // Read packet
-  for( j = 0; j < PACKET_SIZE + 4; j ++ )
+  for( j = 0; j < PXM_ACKET_SIZE + 4; j ++ )
   {
     if( ( ch = xmodem_in_func( XMODEM_TIMEOUT ) ) == -1 )
       goto err;
@@ -95,7 +95,7 @@ static int xmodem_get_record( unsigned char blocknum, unsigned char *pbuf )
   if( *pbuf ++ != ( unsigned char )~blocknum )
     goto err;
   // Check CRC
-  for( size = chk = 0; size < PACKET_SIZE; size++, pbuf ++ ) 
+  for( size = chk = 0; size < PXM_ACKET_SIZE; size++, pbuf ++ ) 
   {
     chk = chk ^ *pbuf << 8;
     for( j = 0; j < 8; j ++ ) 
@@ -114,7 +114,7 @@ static int xmodem_get_record( unsigned char blocknum, unsigned char *pbuf )
   return 1;
   
 err:
-  xmodem_out_func( NAK );
+  xmodem_out_func( XM_NAK );
   return 0;
 }
 
@@ -124,7 +124,7 @@ err:
 long xmodem_receive( char **dest )
 {
   int starting = 1, ch;
-  unsigned char packnum = 1, buf[ PACKET_SIZE + 4 ];
+  unsigned char packnum = 1, buf[ PXM_ACKET_SIZE + 4 ];
   unsigned retries = XMODEM_RETRY_LIMIT;
   u32 limit = XMODEM_INITIAL_BUFFER_SIZE, size = 0;
   void *p;
@@ -133,19 +133,19 @@ long xmodem_receive( char **dest )
   {
     if( starting )
       xmodem_out_func( 'C' );
-    if( ( ( ch = xmodem_in_func( XMODEM_TIMEOUT ) ) == -1 ) || ( ch != SOH && ch != EOT && ch != CAN ) )
+    if( ( ( ch = xmodem_in_func( XMODEM_TIMEOUT ) ) == -1 ) || ( ch != XM_SOH && ch != XM_EOT && ch != XM_CAN ) )
       continue;
-    if( ch == EOT ) 
+    if( ch == XM_EOT ) 
     {
       // End of transmission
-      xmodem_out_func( ACK );
+      xmodem_out_func( XM_ACK );
       xmodem_flush( XMODEM_FLUSH_ONLY );
       return size;
     }
-    else if( ch == CAN )
+    else if( ch == XM_CAN )
     {
       // The remote part ended the transmission
-      xmodem_out_func( ACK );
+      xmodem_out_func( XM_ACK );
       xmodem_flush( XMODEM_FLUSH_ONLY );
       return XMODEM_ERROR_REMOTECANCEL;      
     }
@@ -159,25 +159,25 @@ long xmodem_receive( char **dest )
     packnum ++;
       
     // Got a valid packet
-    if( size + PACKET_SIZE > limit )
+    if( size + PXM_ACKET_SIZE > limit )
     {
       limit += XMODEM_INCREMENT_AMMOUNT;
       if( ( p = realloc( *dest, limit ) ) == NULL )
       {
         // Not enough memory, force cancel and return
-        xmodem_flush( XMODEM_FLUSH_AND_CAN );
+        xmodem_flush( XMODEM_FLUSH_AND_XM_CAN );
         return XMODEM_ERROR_OUTOFMEM;
       }
       *dest = ( char* )p;
     }    
     // Acknowledge and consume packet
-    xmodem_out_func( ACK );
-    memcpy( *dest + size, buf + 2, PACKET_SIZE );
-    size += PACKET_SIZE;
+    xmodem_out_func( XM_ACK );
+    memcpy( *dest + size, buf + 2, PXM_ACKET_SIZE );
+    size += PXM_ACKET_SIZE;
   }
   
   // Exceeded retry count
-  xmodem_flush( XMODEM_FLUSH_AND_CAN );
+  xmodem_flush( XMODEM_FLUSH_AND_XM_CAN );
   return XMODEM_ERROR_RETRYEXCEED;
 }
 
