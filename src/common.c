@@ -281,10 +281,6 @@ u32 platform_adc_op( unsigned id, int op, u32 data )
       res = pow( 2, ADC_BIT_RESOLUTION ) - 1;
       break;
 
-    case PLATFORM_ADC_GET_SMOOTHING:
-      res = (u16) 1 << s->logsmoothlen;
-      break;
-
     case PLATFORM_ADC_SET_SMOOTHING:
       res = adc_update_smoothing( id, ( u8 )intlog2( ( unsigned ) data ) );
       break;
@@ -293,6 +289,10 @@ u32 platform_adc_op( unsigned id, int op, u32 data )
       s->blocking = data;
       break;
       
+    case PLATFORM_ADC_IS_DONE:
+      res = ( s->op_pending == 0 );
+      break;
+    
     case PLATFORM_ADC_OP_SET_TIMER:
       platform_adc_stop( id );
       s->timer_id = data;
@@ -361,18 +361,5 @@ unsigned int intlog2( unsigned int v )
     r++;
   }
   return r;
-}
-
-u32 rndpow2( u32 v )
-{
-  v--;
-  v |= v >> 1;
-  v |= v >> 2;
-  v |= v >> 4;
-  v |= v >> 8;
-  v |= v >> 16;
-  v++;
-  
-  return v;
 }
 

@@ -184,17 +184,18 @@ u32 platform_cpu_get_frequency();
 enum
 {
   PLATFORM_ADC_GET_MAXVAL,
-  PLATFORM_ADC_GET_SMOOTHING,
   PLATFORM_ADC_SET_SMOOTHING,
   PLATFORM_ADC_SET_BLOCKING,
   PLATFORM_ADC_SET_FREERUNNING,
+  PLATFORM_ADC_IS_DONE,
   PLATFORM_ADC_OP_SET_TIMER,
   PLATFORM_ADC_OP_SET_CLOCK,
   PLATFORM_ADC_FLUSH,
 };
 
 // Functions requiring platform-specific implementation
-int platform_adc_sample( unsigned id, u8 logcount );
+int platform_adc_primechannel( unsigned id, u8 logcount );
+int platform_adc_startchannel( unsigned id );
 void platform_adc_stop( unsigned id );
 u32 platform_adc_setclock( unsigned id, u32 frequency);
 
@@ -215,11 +216,5 @@ u32 platform_eth_get_elapsed_time();
 
 void* platform_get_first_free_ram( unsigned id );
 void* platform_get_last_free_ram( unsigned id );
-
-// *****************************************************************************
-// Misc support
-
-unsigned int intlog2( unsigned int v );
-u32 rndpow2( u32 v);
 
 #endif

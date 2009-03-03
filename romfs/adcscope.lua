@@ -29,8 +29,8 @@ while true do
   ctr = ctr + 1
   
   stime = tread(0)
+  sample(adcchannels, 1)
   for i, v in ipairs(adcchannels) do
-    sample(v,1)
     adcvals[i] = getsample(v)
   end
   etime = tread(0)

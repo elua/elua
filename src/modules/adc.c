@@ -4,6 +4,7 @@
 #include "lualib.h"
 #include "lauxlib.h"
 #include "platform.h"
+#include "common.h"
 #include "auxmods.h"
 #include "lrotable.h"
 #include "platform_conf.h"
@@ -45,14 +46,27 @@ static int adc_setclock( lua_State* L )
   return 1;
 }
 
-// Lua: data = samplesready( id )
-static int adc_samplesready( lua_State* L )
+// Lua: data = isdone( id )
+static int adc_isdone( lua_State* L )
 {
   unsigned id;
     
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( adc, id );
-  lua_pushinteger( L, adc_samples_available( id ) );
+  lua_pushinteger( L, platform_adc_op( id, PLATFORM_ADC_IS_DONE, 0 ) );
+  return 1;
+}
+
+// Lua: flush( id )
+static int adc_flush( lua_State* L )
+{
+  unsigned id;
+  u32 res;
+  
+  id = luaL_checkinteger( L, 1 );
+  MOD_CHECK_ID( adc, id );
+  res = platform_adc_op( id, PLATFORM_ADC_FLUSH, 0 );
+  lua_pushinteger( L, res );
   return 1;
 }
 
@@ -65,18 +79,6 @@ static int adc_setblocking( lua_State* L )
   MOD_CHECK_ID( adc, id );
   mode = luaL_checkinteger( L, 2 );
   platform_adc_op( id, PLATFORM_ADC_SET_BLOCKING, mode );
-  return 0;
-}
-
-// Lua: setfreerunning( id, mode )
-static int adc_setfreerunning( lua_State* L )
-{
-  unsigned id, mode;
-  
-  id = luaL_checkinteger( L, 1 );
-  MOD_CHECK_ID( adc, id );
-  mode = luaL_checkinteger( L, 2 );
-  platform_adc_op( id, PLATFORM_ADC_SET_FREERUNNING, mode );
   return 0;
 }
 
@@ -103,49 +105,51 @@ static int adc_setsmoothing( lua_State* L )
 
 }
 
-// Lua: getsmoothing( id )
-static int adc_getsmoothing( lua_State* L )
-{
-  unsigned id;
-  u32 res;
-  
-  id = luaL_checkinteger( L, 1 );
-  MOD_CHECK_ID( adc, id );
-  res = platform_adc_op( id, PLATFORM_ADC_GET_SMOOTHING, 0 );
-  lua_pushinteger( L, res );
-  return 1;
-}
-
-// Lua: flush( id )
-static int adc_flush( lua_State* L )
-{
-  unsigned id;
-  u32 res;
-  
-  id = luaL_checkinteger( L, 1 );
-  MOD_CHECK_ID( adc, id );
-  res = platform_adc_op( id, PLATFORM_ADC_FLUSH, 0 );
-  lua_pushinteger( L, res );
-  return 1;
-}
-
 // Lua: sample( id, count )
 static int adc_sample( lua_State* L )
 {
-  unsigned id, count;
-  int res;
+  unsigned id, count, nchans = 1;
+  int res, i;  
   
-  id = luaL_checkinteger( L, 1 );
-  MOD_CHECK_ID( adc, id );
   count = luaL_checkinteger( L, 2 );
-  
   if  ( ( count == 0 ) || count & ( count - 1 ) )
     return luaL_error( L, "count must be power of 2 and > 0" );
   
-  res = platform_adc_sample( id, intlog2( count ) );
-  if ( res != PLATFORM_OK )
-    return luaL_error( L, "sampling failed" );
+  // If first parameter is a table, extract channel list
+  if ( lua_istable( L, 1 ) == 1 )
+  {
+    nchans = lua_objlen(L, 1);
     
+    // Get/check list of channels and setup
+    for( i = 0; i < nchans; i++ )
+    {
+      lua_rawgeti( L, 1, i+1 );
+      id = luaL_checkinteger( L, -1 );
+      MOD_CHECK_ID( adc, id );
+      
+      res = platform_adc_primechannel( id, intlog2( count ) );
+      if ( res != PLATFORM_OK )
+        return luaL_error( L, "sampling setup failed" );
+    }
+    // Initiate sampling
+    for( i = -1; i >= -nchans; i-- )
+      platform_adc_startchannel( luaL_checkinteger( L, i ) );
+  }
+  else if ( lua_isnumber( L, 1 ) == 1 )
+  {
+    id = luaL_checkinteger( L, 1 );
+    MOD_CHECK_ID( adc, id );
+    
+    res = platform_adc_primechannel( id, intlog2( count ) );
+    if ( res != PLATFORM_OK )
+      return luaL_error( L, "sampling setup failed" );
+    
+    platform_adc_startchannel( id );
+  }
+  else
+  {
+    return luaL_error( L, "invalid channel selection" );
+  }
   return 0;
 }
 
@@ -214,14 +218,13 @@ const LUA_REG_TYPE adc_map[] =
   { LSTRKEY( "sample" ), LFUNCVAL( adc_sample ) },
   { LSTRKEY( "maxval" ), LFUNCVAL( adc_maxval ) },
   { LSTRKEY( "setclock" ), LFUNCVAL( adc_setclock ) },
-  { LSTRKEY( "samplesready" ), LFUNCVAL( adc_samplesready ) },
+  { LSTRKEY( "isdone" ), LFUNCVAL( adc_isdone ) },
   { LSTRKEY( "setblocking" ), LFUNCVAL( adc_setblocking ) },
   { LSTRKEY( "setsmoothing" ), LFUNCVAL( adc_setsmoothing ) },
-  { LSTRKEY( "setfreerunning" ), LFUNCVAL( adc_setfreerunning ) },
-  { LSTRKEY( "getsmoothing" ), LFUNCVAL( adc_getsmoothing ) },
   { LSTRKEY( "flush" ), LFUNCVAL( adc_flush ) },
   { LSTRKEY( "getsample" ), LFUNCVAL( adc_getsample ) },
   { LSTRKEY( "getsamples" ), LFUNCVAL( adc_getsamples ) },
+//  { LSTRKEY( "putsamples" ), LFUNCVAL( adc_putsamples ) },
   { LNILKEY, LNILVAL }
 };
 

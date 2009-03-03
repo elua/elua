@@ -518,15 +518,8 @@ const static u32 adc_ints[] = { INT_ADC0, INT_ADC1, INT_ADC2, INT_ADC3 };
 void platform_adc_stop( unsigned id )
 {
   elua_adc_state *s = adc_get_ch_state( id );
-  
   ADCSequenceDisable( ADC_BASE, s->id );
-  
   s->op_pending = 0;
-  
-  if ( s->clocked )
-  {
-    TimerControlTrigger( timer_base[s->timer_id], TIMER_A, false );
-  }
 }
 
 // Handle ADC interrupts
@@ -589,7 +582,6 @@ static void adcs_init()
 u32 platform_adc_setclock( unsigned id, u32 frequency)
 {
   elua_adc_state *s = adc_get_ch_state( id );
-  u32 res = frequency;
   
   // Make sure sequencer is disabled before making changes
   ADCSequenceDisable( ADC_BASE, id );
@@ -602,7 +594,6 @@ u32 platform_adc_setclock( unsigned id, u32 frequency)
     // Set up timer trigger
     TimerConfigure(timer_base[s->timer_id], TIMER_CFG_32_BIT_PER);
     TimerLoadSet(timer_base[s->timer_id], TIMER_A, SysCtlClockGet() / frequency);
-    TimerControlTrigger(timer_base[s->timer_id], TIMER_A, true);
     s->clocked = 1;
     frequency = SysCtlClockGet() / TimerLoadGet(timer_base[s->timer_id], TIMER_A);
   }
@@ -619,11 +610,11 @@ u32 platform_adc_setclock( unsigned id, u32 frequency)
   return frequency;
 }
 
-int platform_adc_sample( unsigned id, u8 logcount )
+int platform_adc_primechannel( unsigned id, u8 logcount )
 {
   elua_adc_state *s = adc_get_ch_state( id );
   int res;
-
+  
   ADCSequenceDisable( ADC_BASE, id );
   
   if( ( (u16) 1 << logcount ) > buf_get_size( BUF_ID_ADC, id ) )
@@ -639,9 +630,17 @@ int platform_adc_sample( unsigned id, u8 logcount )
   
   // Enable Sequence
   ADCSequenceEnable( ADC_BASE, id );
+    
+  return PLATFORM_OK;
+}
+
+int platform_adc_startchannel( unsigned id )
+{
+  elua_adc_state *s = adc_get_ch_state( id );
 
   if( s->clocked == 1 )
   {
+    TimerControlTrigger(timer_base[s->timer_id], TIMER_A, true);
     TimerEnable(timer_base[s->timer_id], TIMER_A);
   }
   else

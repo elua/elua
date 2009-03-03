@@ -42,7 +42,10 @@ void adc_init_state( unsigned id )
   buf_set( BUF_ID_ADC, id, ADC_BUF_SIZE, BUF_DSIZE_U16 );
 }
 
-int adc_update_smoothing( unsigned id, u8 loglen )
+// Update smoothing buffer length
+// If new length differs from existing length, attempt to resize, then
+// re-initialize buffer so that it is ready for new data.
+int adc_update_smoothing( unsigned id, u8 loglen ) 
 {
   elua_adc_state *s = adc_get_ch_state( id );
   
@@ -65,6 +68,9 @@ int adc_update_smoothing( unsigned id, u8 loglen )
   return PLATFORM_OK;
 }
 
+// Load oldest sample from the buffer, replace oldest value in smoothing ring
+// buffer with this new sample.  Subtract previous oldest sample value from
+// sum and add new sample to sum.
 void adc_smooth_data( unsigned id )
 {
   elua_adc_state *s = adc_get_ch_state( id );
@@ -89,6 +95,20 @@ void adc_smooth_data( unsigned id )
   s->smoothidx++;
 }
 
+// Get samples from the buffer
+// If samples are available and...
+//  Smoothing is enabled
+//    If smoothing is warmed up, put oldest buffer sample into smoothing
+//    buffer and return result of this sample averaged with length-1
+//    previous samples which had been loaded into the smoothing buffer.
+//    Decrements count of requested samples.
+//
+//  Smoothing is off
+//    Return results directly from the buffer. Decrements count of requested
+//    samples.
+//
+// If samples are not available...
+//  return 0
 u16 adc_get_processed_sample( unsigned id )
 {
   elua_adc_state *s = adc_get_ch_state( id );
@@ -119,10 +139,11 @@ u16 adc_get_processed_sample( unsigned id )
   return 0;
 }
 
+// Zero out and reset smoothing buffer
 void adc_flush_smoothing( unsigned id )
 {
   elua_adc_state *s = adc_get_ch_state( id );
-  u8 i;
+  u16 i;
   
   s->smoothidx = 0;
   s->smoothsum = 0;
@@ -135,17 +156,21 @@ void adc_flush_smoothing( unsigned id )
   }
 }
 
+// Number of samples requested that have not yet been removed from the buffer
 u16 adc_samples_requested( unsigned id )
 {
   elua_adc_state *s = adc_get_ch_state( id );
   return s->reqsamples;
 }
 
+// Return count of available samples in the buffer
 u16 adc_samples_available( unsigned id ) 
 {
   return ( u16 ) buf_get_count( BUF_ID_ADC, id );
 }
 
+// If blocking is enabled, wait until we have enough samples or the current
+//  sampling event has finished
 void adc_wait_samples( unsigned id, unsigned samples )
 {
   elua_adc_state *s = adc_get_ch_state( id );
