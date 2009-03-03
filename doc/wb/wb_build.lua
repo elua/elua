@@ -76,7 +76,7 @@ function writeTitleFile()
   
   local wb_title = readFile("template_wb_title.html")
   if(wb_usr.logo_image_file ~= nil and wb_usr.logo_image_file ~= "")then
-    wb_title = string.gsub(wb_title, "WB_LOGO", [[<A href="http://www.safesol.ro/index_en.html" target="_blank"><img src="wb_img/]]..wb_usr.logo_image_file..[[" border="0"></A>]])
+    wb_title = string.gsub(wb_title, "WB_LOGO", [[<A href="]]..wb_usr.logo_onclick_link..[["><img src="wb_img/]]..wb_usr.logo_image_file..[[" border="0"></A>]])
   else
   	wb_title = string.gsub(wb_title, "WB_LOGO","")
   end
