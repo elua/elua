@@ -372,6 +372,7 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
   {
     case PLATFORM_TIMER_OP_START:
       res = 0xFFFFFFFF;
+      TimerControlTrigger(base, TIMER_A, false);
       TimerLoadSet( base, TIMER_A, 0xFFFFFFFF );
       break;
 
@@ -515,6 +516,11 @@ void platform_cpu_disable_interrupts()
 const static u32 adc_ctls[] = { ADC_CTL_CH0, ADC_CTL_CH1, ADC_CTL_CH2, ADC_CTL_CH3 };
 const static u32 adc_ints[] = { INT_ADC0, INT_ADC1, INT_ADC2, INT_ADC3 };
 
+int platform_adc_check_timer_id( unsigned id, unsigned timer_id )
+{
+  return ( ( timer_id >= ADC_TIMER_FIRST_ID ) && ( timer_id < ( ADC_TIMER_FIRST_ID + ADC_NUM_TIMERS ) ) );
+}
+
 void platform_adc_stop( unsigned id )
 {
   elua_adc_state *s = adc_get_ch_state( id );
@@ -592,7 +598,6 @@ u32 platform_adc_setclock( unsigned id, u32 frequency)
     ADCSequenceConfigure( ADC_BASE, id, ADC_TRIGGER_TIMER, id );
 
     // Set up timer trigger
-    TimerConfigure(timer_base[s->timer_id], TIMER_CFG_32_BIT_PER);
     TimerLoadSet(timer_base[s->timer_id], TIMER_A, SysCtlClockGet() / frequency);
     s->clocked = 1;
     frequency = SysCtlClockGet() / TimerLoadGet(timer_base[s->timer_id], TIMER_A);

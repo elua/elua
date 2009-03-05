@@ -48,4 +48,8 @@ LUALIB_API int ( luaopen_adc )( lua_State *L );
   if( !platform_ ## mod ## _exists( id ) )\
     return luaL_error( L, #mod" %d does not exist", ( unsigned )id )
 
+#define MOD_CHECK_RES_ID( mod, id, resmod, resid )\
+  if( !platform_ ## mod ## _check_ ## resmod ## _id( id, resid ) )\
+    return luaL_error( L, #resmod" %d not valid with " #mod " %d", ( unsigned )resid, ( unsigned )id )
+    
 #endif

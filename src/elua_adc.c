@@ -43,29 +43,37 @@ void adc_init_state( unsigned id )
 }
 
 // Update smoothing buffer length
-// If new length differs from existing length, attempt to resize, then
-// re-initialize buffer so that it is ready for new data.
+// If new length differs from existing length and no operations are pending, attempt to resize
+// Whether size is new or not, re-initialize buffers so that they are ready for new data.
 int adc_update_smoothing( unsigned id, u8 loglen ) 
 {
   elua_adc_state *s = adc_get_ch_state( id );
   
-  if( loglen != s->logsmoothlen )
+  // Only attempt resize if samples aren't currently being collected
+  if ( s->op_pending == 0 )
   {
-    s->logsmoothlen = loglen;
-    
-    // Allocate and zero new smoothing buffer
-    if( ( s->smoothbuf = ( u16* )realloc( s->smoothbuf, ( SMOOTH_REALSIZE( s ) ) * sizeof( u16 ) ) ) == NULL )
+    if( loglen != s->logsmoothlen )
     {
-      s->logsmoothlen = 0;
-      s->smoothidx = s->smooth_ready = s->smoothsum = 0;
-      if( loglen != 0 )
-        return PLATFORM_ERR;
+      s->logsmoothlen = loglen;
+    
+      // Allocate and zero new smoothing buffer
+      if( ( s->smoothbuf = ( u16* )realloc( s->smoothbuf, ( SMOOTH_REALSIZE( s ) ) * sizeof( u16 ) ) ) == NULL )
+      {
+        s->logsmoothlen = 0;
+        s->smoothidx = s->smooth_ready = s->smoothsum = 0;
+        if( loglen != 0 )
+          return PLATFORM_ERR;
+      }
     }
-
-    // Zero out and mark as empty
+  
+    // Even if buffer isn't actually reconfigured, flush contents
     adc_flush_smoothing( id );
+    buf_flush( BUF_ID_ADC, id );
+  
+    return PLATFORM_OK;
   }
-  return PLATFORM_OK;
+  else
+    return PLATFORM_ERR;
 }
 
 // Load oldest sample from the buffer, replace oldest value in smoothing ring
@@ -180,7 +188,6 @@ void adc_wait_samples( unsigned id, unsigned samples )
     while( s->op_pending == 1 && buf_get_count( BUF_ID_ADC, id ) < samples ) { ; }
   }
 }
-
 
 #endif
 

@@ -118,10 +118,15 @@ LUALIB_API int ( luaopen_disp )( lua_State* L );
 #define BUF_ENABLE_UART
 #define CON_BUF_SIZE          BUF_SIZE_128
 
-// ADC Bit Depth for Built-in ADCs
+// ADC Configuration Params
 #define ADC_BIT_RESOLUTION    10
 #define BUF_ENABLE_ADC
 #define ADC_BUF_SIZE          BUF_SIZE_2
+
+// These should be adjusted to support multiple ADC devices
+#define ADC_TIMER_FIRST_ID    0
+#define ADC_NUM_TIMERS        NUM_TIMER  
+
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 #define CPU_FREQUENCY         SysCtlClockGet()

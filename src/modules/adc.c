@@ -38,6 +38,7 @@ static int adc_setclock( lua_State* L )
   {
     timer_id = luaL_checkinteger( L, 3 );
     MOD_CHECK_ID( timer, timer_id );
+    MOD_CHECK_RES_ID( adc, id, timer, timer_id );
   }
 
   platform_adc_op( id, PLATFORM_ADC_OP_SET_TIMER, timer_id );
@@ -90,7 +91,6 @@ static int adc_setsmoothing( lua_State* L )
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( adc, id );
   
-  
   length = luaL_checkinteger( L, 2 );
   if ( !( length & ( length - 1 ) ) )
   {
@@ -102,7 +102,6 @@ static int adc_setsmoothing( lua_State* L )
   }
   else
     return luaL_error( L, "length must be power of 2" );
-
 }
 
 // Lua: sample( id, count )

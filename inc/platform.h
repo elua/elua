@@ -201,6 +201,7 @@ u32 platform_adc_setclock( unsigned id, u32 frequency);
 
 // ADC Common Functions
 int platform_adc_exists( unsigned id );
+int platform_adc_check_timer_id( unsigned id, unsigned timer_id );
 u32 platform_adc_op( unsigned id, int op, u32 data );
 
 // *****************************************************************************

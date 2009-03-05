@@ -3,6 +3,7 @@ adcsmoothing = {4, 16, 64, 128}
 
 for i, v in ipairs(adcchannels) do
   adc.setblocking(v,1)
+  adc.setclock(v,0)
   adc.setsmoothing(v,adcsmoothing[i])
 end
 
