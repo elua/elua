@@ -162,7 +162,7 @@ static int adc_getsample( lua_State* L )
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( adc, id );
   
-  // Wait for pending sampling events to finish (if blocking)
+  // Wait for samples (if blocking)
   adc_wait_samples( id, 1 );
   
   // If we have at least one sample, return it
@@ -187,7 +187,7 @@ static int adc_getsamples( lua_State* L )
   if ( lua_isnumber(L, 2) == 1 )
     count = ( u16 )lua_tointeger(L, 2);
 
-  // Wait for any pending operations to finish (if blocking)
+  // Wait for samples (if blocking)
   adc_wait_samples( id, count );
   
   bcnt = adc_samples_available( id );

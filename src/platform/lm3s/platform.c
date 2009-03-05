@@ -637,7 +637,7 @@ int platform_adc_prepchannel( unsigned id, u8 logcount )
 int platform_adc_startchannel( unsigned id )
 {
   elua_adc_state *s = adc_get_ch_state( id );
-
+  
   if( s->clocked == 1 )
   {
     TimerControlTrigger(timer_base[s->timer_id], TIMER_A, true);
@@ -647,7 +647,7 @@ int platform_adc_startchannel( unsigned id )
   {
     ADCProcessorTrigger( ADC_BASE, id );
   }
-  
+
   return PLATFORM_OK;
 }
 
