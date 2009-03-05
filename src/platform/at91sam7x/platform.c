@@ -22,6 +22,17 @@
 #include "platform_conf.h"
 #include "buf.h"
 
+// "Stubs" used for our interrupt handlers
+// Just a trick to avoid interworking and some other complications
+
+#define INT_STUB( func )\
+  asm volatile(\
+  "push {lr}\n\t"\
+  "bl   " #func "\n\t"\
+  "pop  {r0}\n\t"\
+  "bx   r0\n\t"\
+ )\
+
 // ****************************************************************************
 // Platform initialization
 
@@ -33,12 +44,15 @@ static const Pin platform_uart_pins[ 2 ][ 2 ] =
 static const AT91S_TC* timer_base[] = { AT91C_BASE_TC0, AT91C_BASE_TC1, AT91C_BASE_TC2 };
 
 #if VTMR_NUM_TIMERS > 0
-static void ISR_Tc2()
+void __isr_tc2_helper()
 {
   cmn_virtual_timer_cb();
   AT91C_BASE_TC2->TC_SR;
-  asm( "pop {r0}":: );  
-  asm( "bx  r0":: );
+}
+
+static void __attribute__((naked)) ISR_Tc2()
+{
+  INT_STUB( __isr_tc2_helper );
 }
 #endif
 
@@ -46,13 +60,16 @@ static void ISR_Tc2()
 #ifdef BUF_ENABLE_UART
 static volatile u32 c;
 static AT91S_USART* pbase = CON_UART_ID == 0 ? AT91C_BASE_US0 : AT91C_BASE_US1;      
-static void uart_rx_handler()
+void __uart_rx_handler_helper()
 {
   c = pbase->US_CSR;
   c = pbase->US_RHR;
   buf_write( BUF_ID_UART, CON_UART_ID, ( t_buf_data* )&c );
-  asm( "pop {r0}":: );  
-  asm( "bx  r0":: );  
+}
+
+static void __attribute__((naked)) uart_rx_handler()
+{
+  INT_STUB( __uart_rx_handler_helper );
 }
 #endif
 

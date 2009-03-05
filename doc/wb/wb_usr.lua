@@ -22,8 +22,8 @@ wb_usr = {
 --   copyright_link = "http://www.eluaproject.net", 
    file_title = "wb",
    start_open = "1",
-   logo_image_file = "eLuaLogo.png"
--- logo_onclick_link = 
+   logo_image_file = "eLuaLogo.png",
+   logo_onclick_link = ""
 } 
 
 
@@ -52,7 +52,6 @@ wb_usr.tree =
   link = "news.html", 
   footer = [[
     <p style="margin-left: 5px;"><a href="http://www.pax.com/free-counters.html"><img src="http://counter.pax.com/counter/image?counter=ctr-zsg80nnmqt" alt="Free Hit Counter" border="0" /></a></p>
-    <p align="center"><img src="wb_img/surprise.png></p>
   ]],
   folder =
   {
@@ -180,6 +179,22 @@ wb_usr.tree =
         {
           name = { en = "Using", pt = "Usando" },
           link = "using.html",
+          folder = 
+          {
+            { name = { en = "Over UART", pt = "##Over UART" },
+              link = "using.html#uart",
+            },
+            { name = { en = "Over TCP/IP", pt = "##Over TCP/IP" },
+              link = "using.html#tcpip",
+            },
+            { name = { en = "The shell", pt = "##The shell" },
+              link = "using.html#shell",
+            },
+            {
+              name = { en = "Cross-compiling", pt = "##Cross-compiling" },
+              link = "using.html#cross",
+            },
+          },
         },
         {
           name = { en = "FAQ", pt = "FAQ" },
