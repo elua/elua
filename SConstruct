@@ -15,6 +15,13 @@ toolchain_list = {
     'bin' : 'arm-elf-objcopy', 
     'size' : 'arm-elf-size' 
   },
+  'devkitarm' : {
+    'compile' : 'arm-eabi-gcc',
+    'link' : 'arm-eabi-ld',
+    'asm' : 'arm-eabi-as',
+    'bin' : 'arm-eabi-objcopy',
+    'size' : 'arm-eabi-size'
+  },
   'codesourcery' : { 
     'compile' : 'arm-none-eabi-gcc', 
     'link' : 'arm-none-eabi-ld', 
@@ -42,13 +49,13 @@ toolchain_list = {
 # The first toolchain in the toolchains list is the default one
 # (the one that will be used if none is specified)
 platform_list = {  
-  'at91sam7x' : { 'cpus' : [ 'AT91SAM7X256', 'AT91SAM7X512' ], 'toolchains' : [ 'arm-gcc', 'codesourcery' ] },
-  'lm3s' : { 'cpus' : [ 'LM3S8962', 'LM3S6965', 'LM3S6918' ], 'toolchains' : [ 'arm-gcc', 'codesourcery' ] },
-  'str9' : { 'cpus' : [ 'STR912FAW44' ], 'toolchains' : [ 'arm-gcc', 'codesourcery' ] },
+  'at91sam7x' : { 'cpus' : [ 'AT91SAM7X256', 'AT91SAM7X512' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm' ] },
+  'lm3s' : { 'cpus' : [ 'LM3S8962', 'LM3S6965', 'LM3S6918' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm' ] },
+  'str9' : { 'cpus' : [ 'STR912FAW44' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm' ] },
   'i386' : { 'cpus' : [ 'I386' ], 'toolchains' : [ 'i686-gcc' ] },
-  'lpc288x' : { 'cpus' : [ 'LPC2888' ], 'toolchains' : [ 'arm-gcc', 'codesourcery' ] },
-  'str7' : { 'cpus' : [ 'STR711FR2' ], 'toolchains' : [ 'arm-gcc', 'codesourcery' ] },
-  'stm32' : { 'cpus' : [ 'STM32F103ZE', 'STM32F103RE' ], 'toolchains' : [ 'arm-gcc', 'codesourcery' ] },
+  'lpc288x' : { 'cpus' : [ 'LPC2888' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm' ] },
+  'str7' : { 'cpus' : [ 'STR711FR2' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm' ] },
+  'stm32' : { 'cpus' : [ 'STM32F103ZE', 'STM32F103RE' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm' ] },
   'avr32' : { 'cpus' : [ 'AT32UC3A0512' ], 'toolchains' : [ 'avr32-gcc' ] }
 }
 
