@@ -610,7 +610,7 @@ u32 platform_adc_setclock( unsigned id, u32 frequency)
   return frequency;
 }
 
-int platform_adc_primechannel( unsigned id, u8 logcount )
+int platform_adc_prepchannel( unsigned id, u8 logcount )
 {
   elua_adc_state *s = adc_get_ch_state( id );
   int res;

@@ -194,7 +194,7 @@ enum
 };
 
 // Functions requiring platform-specific implementation
-int platform_adc_primechannel( unsigned id, u8 logcount );
+int platform_adc_prepchannel( unsigned id, u8 logcount );
 int platform_adc_startchannel( unsigned id );
 void platform_adc_stop( unsigned id );
 u32 platform_adc_setclock( unsigned id, u32 frequency);

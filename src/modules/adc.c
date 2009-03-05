@@ -127,7 +127,7 @@ static int adc_sample( lua_State* L )
       id = luaL_checkinteger( L, -1 );
       MOD_CHECK_ID( adc, id );
       
-      res = platform_adc_primechannel( id, intlog2( count ) );
+      res = platform_adc_prepchannel( id, intlog2( count ) );
       if ( res != PLATFORM_OK )
         return luaL_error( L, "sampling setup failed" );
     }
@@ -140,7 +140,7 @@ static int adc_sample( lua_State* L )
     id = luaL_checkinteger( L, 1 );
     MOD_CHECK_ID( adc, id );
     
-    res = platform_adc_primechannel( id, intlog2( count ) );
+    res = platform_adc_prepchannel( id, intlog2( count ) );
     if ( res != PLATFORM_OK )
       return luaL_error( L, "sampling setup failed" );
     
