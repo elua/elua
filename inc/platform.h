@@ -190,7 +190,6 @@ enum
   PLATFORM_ADC_IS_DONE,
   PLATFORM_ADC_OP_SET_TIMER,
   PLATFORM_ADC_OP_SET_CLOCK,
-  PLATFORM_ADC_FLUSH,
 };
 
 // Functions requiring platform-specific implementation

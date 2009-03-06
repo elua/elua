@@ -40,6 +40,9 @@ void adc_init_state( unsigned id )
   
   // Buffer initialization
   buf_set( BUF_ID_ADC, id, ADC_BUF_SIZE, BUF_DSIZE_U16 );
+  
+  // Set to run as fast as possible
+  platform_adc_setclock( id, 0 );
 }
 
 // Update smoothing buffer length
@@ -120,7 +123,7 @@ void adc_smooth_data( unsigned id )
 u16 adc_get_processed_sample( unsigned id )
 {
   elua_adc_state *s = adc_get_ch_state( id );
-  u16 sample;
+  u16 sample = 0;
 
   if ( buf_get_count( BUF_ID_ADC, id ) > 0 )
   {
@@ -131,8 +134,7 @@ u16 adc_get_processed_sample( unsigned id )
       if ( s->reqsamples > 0)
         s->reqsamples -- ;
       
-      return (u16) ( s->smoothsum >> s->logsmoothlen );
-      
+      sample = (u16) ( s->smoothsum >> s->logsmoothlen );
     }
     else if ( s->logsmoothlen == 0 )
     {
@@ -140,11 +142,9 @@ u16 adc_get_processed_sample( unsigned id )
 
       if ( s->reqsamples > 0)
         s->reqsamples -- ;
-
-      return sample;
     }
   }
-  return 0;
+  return sample;
 }
 
 // Zero out and reset smoothing buffer

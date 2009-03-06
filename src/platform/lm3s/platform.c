@@ -578,8 +578,6 @@ static void adcs_init()
     // Init ADC State Struct
     adc_init_state( id );
 	  
-    platform_adc_setclock( id, 0 );
-
     ADCIntEnable(ADC_BASE, id);
     IntEnable(adc_ints[id]);
 	}

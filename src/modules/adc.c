@@ -58,19 +58,6 @@ static int adc_isdone( lua_State* L )
   return 1;
 }
 
-// Lua: flush( id )
-static int adc_flush( lua_State* L )
-{
-  unsigned id;
-  u32 res;
-  
-  id = luaL_checkinteger( L, 1 );
-  MOD_CHECK_ID( adc, id );
-  res = platform_adc_op( id, PLATFORM_ADC_FLUSH, 0 );
-  lua_pushinteger( L, res );
-  return 1;
-}
-
 // Lua: setblocking( id, mode )
 static int adc_setblocking( lua_State* L )
 {
@@ -220,7 +207,6 @@ const LUA_REG_TYPE adc_map[] =
   { LSTRKEY( "isdone" ), LFUNCVAL( adc_isdone ) },
   { LSTRKEY( "setblocking" ), LFUNCVAL( adc_setblocking ) },
   { LSTRKEY( "setsmoothing" ), LFUNCVAL( adc_setsmoothing ) },
-  { LSTRKEY( "flush" ), LFUNCVAL( adc_flush ) },
   { LSTRKEY( "getsample" ), LFUNCVAL( adc_getsample ) },
   { LSTRKEY( "getsamples" ), LFUNCVAL( adc_getsamples ) },
 //  { LSTRKEY( "putsamples" ), LFUNCVAL( adc_putsamples ) },

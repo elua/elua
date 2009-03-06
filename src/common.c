@@ -305,11 +305,6 @@ u32 platform_adc_op( unsigned id, int op, u32 data )
     case PLATFORM_ADC_SET_FREERUNNING:
       s->freerunning = data;
       break;
-    
-    case PLATFORM_ADC_FLUSH:
-      adc_flush_smoothing( id );
-      buf_flush( BUF_ID_ADC, id );
-      break;
   }
   return res;
 }
