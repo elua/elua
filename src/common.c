@@ -308,7 +308,7 @@ u32 platform_adc_op( unsigned id, int op, u32 data )
   }
   return res;
 }
-#endif
+#endif // #ifdef BUILD_ADC
 
 // ****************************************************************************
 // Allocator support

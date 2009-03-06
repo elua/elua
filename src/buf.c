@@ -155,7 +155,7 @@ int buf_read( unsigned resid, unsigned resnum, t_buf_data *data )
   BUF_MOD_INCR( pbuf, rptr );
   platform_cpu_enable_interrupts();
   
-  return PLATFORM_OK;  
+  return PLATFORM_OK;
 }
 
 #endif // #ifdef BUF_ENABLE

@@ -6,6 +6,7 @@
 #include "elua_adc.h"
 #include "platform.h"
 #include <stdlib.h>
+#include "utils.h"
 
 #define SMOOTH_REALSIZE( s ) ( ( u16 )1 << ( s->logsmoothlen ) )
 
@@ -46,37 +47,39 @@ void adc_init_state( unsigned id )
 }
 
 // Update smoothing buffer length
-// If new length differs from existing length and no operations are pending, attempt to resize
-// Whether size is new or not, re-initialize buffers so that they are ready for new data.
+// If operations are pending, stop them. If new length differs from 
+// existing length, attempt to resize. Whether size is new or not, 
+// re-initialize buffers so that they are ready for new data.
 int adc_update_smoothing( unsigned id, u8 loglen ) 
 {
   elua_adc_state *s = adc_get_ch_state( id );
   
-  // Only attempt resize if samples aren't currently being collected
-  if ( s->op_pending == 0 )
+  // Stop sampling if still running
+  if ( s->op_pending == 1 )
   {
-    if( loglen != s->logsmoothlen )
-    {
-      s->logsmoothlen = loglen;
-    
-      // Allocate and zero new smoothing buffer
-      if( ( s->smoothbuf = ( u16* )realloc( s->smoothbuf, ( SMOOTH_REALSIZE( s ) ) * sizeof( u16 ) ) ) == NULL )
-      {
-        s->logsmoothlen = 0;
-        s->smoothidx = s->smooth_ready = s->smoothsum = 0;
-        if( loglen != 0 )
-          return PLATFORM_ERR;
-      }
-    }
-  
-    // Even if buffer isn't actually reconfigured, flush contents
-    adc_flush_smoothing( id );
-    buf_flush( BUF_ID_ADC, id );
-  
-    return PLATFORM_OK;
+    platform_adc_stop( id );
   }
-  else
-    return PLATFORM_ERR;
+  
+  // Update smoothing length if necessary
+  if( loglen != s->logsmoothlen )
+  {
+    s->logsmoothlen = loglen;
+  
+    // Allocate and zero new smoothing buffer
+    if( ( s->smoothbuf = ( u16* )realloc( s->smoothbuf, ( SMOOTH_REALSIZE( s ) ) * sizeof( u16 ) ) ) == NULL )
+    {
+      s->logsmoothlen = 0;
+      s->smoothidx = s->smooth_ready = s->smoothsum = 0;
+      if( loglen != 0 )
+        return PLATFORM_ERR;
+    }
+  }
+
+  // Even if buffer isn't actually reconfigured, flush contents
+  adc_flush_smoothing( id );
+  buf_flush( BUF_ID_ADC, id );
+
+  return PLATFORM_OK;
 }
 
 // Load oldest sample from the buffer, replace oldest value in smoothing ring
@@ -151,7 +154,7 @@ u16 adc_get_processed_sample( unsigned id )
 void adc_flush_smoothing( unsigned id )
 {
   elua_adc_state *s = adc_get_ch_state( id );
-  u16 i;
+  u16 i = 0;
   
   s->smoothidx = 0;
   s->smoothsum = 0;
@@ -159,8 +162,7 @@ void adc_flush_smoothing( unsigned id )
   
   if ( s->logsmoothlen > 0 )
   {
-    for( i = 0; i < ( SMOOTH_REALSIZE( s ) ); i ++ )
-      s->smoothbuf[ i ] = 0;
+    DUFF_DEVICE_8( SMOOTH_REALSIZE( s ),  s->smoothbuf[ i++ ] = 0 );
   }
 }
 
