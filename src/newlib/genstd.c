@@ -55,12 +55,15 @@ static _ssize_t std_read( struct _reent *r, int fd, void* vptr, size_t len )
       }      
       continue;
     }
-    if( !isprint( c ) && c != '\n' && c != STD_CTRLZ_CODE )
+    if( !isprint( c ) && c != '\n' && c != '\r' && c != STD_CTRLZ_CODE )
       continue;
     if( c == STD_CTRLZ_CODE )
       return 0;
-    else
-      std_send_char_func( DM_STDOUT_NUM, c );
+#ifdef CON_CR_TO_LF
+    if ( c == '\r' )
+      c = '\n';
+#endif    
+    std_send_char_func( DM_STDOUT_NUM, c );
     ptr[ i ] = c;
     if( c == '\n' )
     {
