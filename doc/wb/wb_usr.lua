@@ -190,8 +190,7 @@ wb_usr.tree =
             { name = { en = "The shell", pt = "##The shell" },
               link = "using.html#shell",
             },
-            {
-              name = { en = "Cross-compiling", pt = "##Cross-compiling" },
+            { name = { en = "Cross-compiling", pt = "##Cross-compiling" },
               link = "using.html#cross",
             },
           },
@@ -199,6 +198,30 @@ wb_usr.tree =
         {
           name = { en = "FAQ", pt = "FAQ" },
           link = "faq.html",
+        },
+        { name = { en = "Architecture", pt = "##Architecture" },
+          link = "arch.html",
+          folder = 
+          {
+            { name = { en = "Overview", pt = "##Overview" },
+              link = "arch_overview.html",
+            },
+            { name = { en = "Platform interface", pt = "##Platform interface" },
+              link = "arch_platform.html",
+            },
+            { name = { en = "ROM file system", pt = "##ROM file system" },
+              link = "arch_romfs.html",
+            },
+            { name = { en = "Adding a new port", pt = "##Adding a new port" },
+              link = "arch_newport.html",
+            },
+            { name = { en = "Modules and LTR", pt = "##Module and LTR" },
+              link = "arch_ltr.html",
+            },
+            { name = { en = "eLua coding style", pt = "##eLua coding style" },
+              link = "arch_coding.html",
+            },
+          }
         },
         {
           name = { en = "Examples", pt = "Exemplos" },

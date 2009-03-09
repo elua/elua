@@ -1,0 +1,93 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+<meta http-equiv="Content-Language" content="en-us"><title>eLua architecture overview</title>
+
+<link rel="stylesheet" type="text/css" href="../style.css"></head>
+<body style="background-color: rgb(255, 255, 255);">
+<h3>eLua architecture overview</h3>
+<p>The overall logical structure of <b>eLua</b> is shown in the image below:</p>
+<map name="arch">
+<area href="arch_overview.html#common" title="Commond code" shape=rect coords="0, 402, 537, 540">
+<area href="arch_overview.html#platform" title="Platform interface" shape=rect coords="0, 198, 537, 336">
+<area href="arch_overview.html#platforms" title="Platforms" shape=rect coords="9, 0, 537, 132">
+</map>
+<p align="center"><img src="../wb_img/elua_arch.png" usemap="#arch" border=0></img></p>
+<p>As can be seen from this image, <b>eLua</b> tries to be as portable as possible between different architectures by using a few simple design
+rules:
+<ul>
+  <li>all code that is platform-independent is <b>common code</b> and it should be written in ANSI C as much as possible, this makes it highly portable
+  among different architectures and compilers, just like Lua itself. </li>
+  <li>all the code that can't possibly be generic (mostly peripheral and CPU specific code) must still be made as portable as possible by using a common
+  interface that must be implemented by all platforms on which <b>eLua</b> runs. This interface is called <b>platform interface</b> and is discussed in
+  detail <a href="arch_platform.html">here</a> (but please see also <a href="arch_overview.html#platform">"The platform interface"</a> 
+  paragraph in this document).</li>
+  <li>all platforms (and their peripherals) are not created equal and vary greatly in capabilities. As already mentioned, the platform interface tries
+  to group only common attributes of different platforms. If one needs to access the specific functionality on a given platform (like the loopback support
+  mentioned before) it can do so by using a <b>platform module</b>. These are of course platform specific, and their goal is to fill the gap between the
+  platform interface and the full set of features provided by a platform.</li>
+</ul></p>
+<a name="common"><h2>Generic code</h2></a>
+<p>The following gives an incomplete set of items that can be classified as <b>common code</b>:
+  <ul>
+    <li>the Lua code itself (obviously) plus the <a href="arch_ltr.html">LTR patch</a>.</li>
+    <li>all the <b>components</b> in <b>eLua</b> (like the ROM file system, the XMODEM receive code, the <b>eLua</b> shell, the TCP/IP stack and others).
+    </li>
+    <li>all the <b>generic modules</b>, which are Lua modules used to expose the functionality of the platform to Lua.</li>
+    <li>generic <b>peripheral support code</b>, like the ADC support code (<i>src/common/elua_adc.c</i>) that is <b>independent</b> of the actual ADC
+      hardware.
+    <li>libc code (for example allocators and Newlib stubs).
+  </ul></p>
+<p>This should give you a pretty good idea about what "common code" means in this context. Note that the generic code layer should be as "greedy" as 
+possible; that is, it should absorb as much common code as possible. For example:
+<ul>
+  <li>if you want to add a new file system to <b>eLua</b>, this should definitely be generic code. It's likely that this kind of code will have
+  dependencies related to the physical medium on which this file system resides. If you're lucky, you can solve these dependencies using only the functions 
+  defined in the <a href="elua_platform.html">platform interface</a> (this would make sense if you're using a SD card controlled over SPI, since the 
+  platform interface already has a SPI layer). If not, you should group the platform specific functions in a separate interface that will be implemented by
+  all platform that want to use your new file system. This gives the code maximum portability.</li>
+  <li>if you want to add a driver for a specific ADC chip that works over SPI, the same observations apply: write it as common code as much as you can,
+  and use the <a href="elua_platform.html">platform interface</a> for the specific SPI functions you need.</li>
+</ul></p>
+<p>When designing and implementing a new component, keep in mind other <b>eLua</b> design goal: <b>flexibility</b>. The user should be able to 
+  select which components are part of its <b>eLua</b> binary image (as described <a href="building.html">here</a>), and the implementation should take
+  this into consideration. The same thing holds for the generic modules: the user must have a way to choose the set of modules he needs.</p>
+<p>For maximum portability, make your code work in a variety of scenarios if possible (and if that makes sense from a practical point of view). 
+  Take for example the code for stdio/stdout/stderr handling (<i>src/newlib/genstd.c</i>): it acknowledges the fact that a terminal can be implemented 
+  over a large variety of physical transports (RS-232 for PC, SPI for a separate LCD/keyboard board, a radio link and so on) so it uses callbacks for its 
+  send/receive functions. The impact on speed and resource consumption is minimum, but it matters a lot in the portability department.</p>
+<a name="platform"><h2>Platform interface</h2></a>
+<p>Used properly, the platform interface allows writing extremely portable code over a large variety of different platforms, both from C and from Lua. 
+  An important property of the platform interface is that it tries to group only <b>common</b> attributes of different platforms (as much as possible). 
+  For example, if a platform supported by <b>eLua</b> has an UART that can work in loopback mode, but the others don't, loopback support won't be included 
+  in the platform interface.</p>
+<p>A special emphasis on the platform interface usage: remember to use it not only for Lua, but also for C. The platform interface is mainly used by the 
+  generic modules to allow Lua code to access platform peripherals, but this isn't its only use. It can (and it should) also be used by C code that wants 
+  to implement a generic module and neeeds access to peripherals. An example was given in the previous section: implementing a new file system.</p>
+<p>The platform interface definition is always in the <i>inc/platform.h</i> header file.</p>
+<a name="platforms"><h2>Platforms</h2></a>
+<p>All the platforms that run <b>eLua</b> (and that implement the platform interface) are implemened in this conceptual layer.</p>
+<p>A platform implementation can (and generally will) contain specific peripheral drivers, many times taken directly from the platform's CPU support
+   package. These drivers are used to implement the platform interface. Note that:
+<ul>
+  <li>a platform implementation doesn't need to implement <b>all</b> the platform interface functions, just the ones it needs. As explained 
+  <a href="building.html">here</a>, the user must have full control over what's getting built into this <b>eLua</b> image. If you don't need the SPI
+  module, for example, you don't need to implement its platform interface.</li>
+  <li>a part of the platform interface is implemented (at least partially) in a file that is common for all the platforms (<i>src/common.c</i>). It
+  eases the implmentation of some modules (such as the timer module) and also implements common features that are tied to the platform interface,
+  but have a common behaviour on all platforms (for example virtual timers, see <a href="">##here</a> for details). You probably won't need to modify 
+  if you're writing platform specific code, but it's best to keep in mind what it does.</li>
+</ul></p>
+<p>A platform implementation might also contain one or more <b>platform dependent modules</b>. As already exaplained, their purpose is to allow Lua
+  to use the full potential of the platform peripherals, not only the functionality covered by the platform interface, as well as functionality that
+  is so specific to the platform that it's not even covered by the platform interface. By convention, all the platform dependent modules should be 
+  grouped inside a single module that has the same name as the platform itself. If the platform dependent module augments the functionality of a 
+  module already found in the platform interface, it should have the same name, otherwise it should be given a different, but meaningful name. For example:
+<ul>
+  <li>if implementing new functionality on the UART module of the LM3S platform, the corresponding module should be called <b>lm3s.uart</b>.</li>
+  <li>if implementing a peripheral driver that for some reason should be specific to the platform on the LPC2888 platform, for example its dual audio
+  DAC, give it a meaningful name, for example <b>lpc288x.audiodac</b>.</li>
+</ul></p>
+<p>By convention, all the code for platform <i>name</i> (including peripheral drivers) should reside in <i>src/platform/&lt;name&gt;</i>. Also, the 
+  platform interface should be implemented in a file called <i>platform.c</i>, thus its path should be <i>src/platform/&lt;name&gt;/platform.c</i>.
+</body></html>
