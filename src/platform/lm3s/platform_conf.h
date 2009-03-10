@@ -33,7 +33,6 @@
 #define TERM_LINES            25
 #define TERM_COLS             80
 #define TERM_TIMEOUT          100000
-//#define CON_CR_TO_LF
 
 // *****************************************************************************
 // Auxiliary libraries that will be compiled for this platform

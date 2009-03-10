@@ -20,9 +20,9 @@ static void uart_send( int fd, char c )
   platform_uart_send( CON_UART_ID, c );
 }
 
-static int uart_recv()
+static int uart_recv( s32 to )
 {
-  return platform_uart_recv( CON_UART_ID, 0, PLATFORM_UART_INFINITE_TIMEOUT );
+  return platform_uart_recv( CON_UART_ID, TERM_TIMER_ID, to );
 }
 
 void cmn_platform_init()

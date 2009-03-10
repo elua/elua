@@ -22,9 +22,12 @@ static void scr_write( int fd, char c )
   monitor_put( c );
 }
 
-static int kb_read()
+static int kb_read( s32 to )
 {
-  return keyboard_getch();
+  if( to != STD_INFINITE_TIMEOUT )
+    return -1;
+  else
+    return keyboard_getch();
 }
 
 // ****************************************************************************
