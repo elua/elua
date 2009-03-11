@@ -91,25 +91,25 @@ restrictions:</p>
 
 <ul><li>the command line can't be longer than 50 chars</li>
 <li>character escaping is not implemented. For example, the next command won't work
-    because of the ' escape sequences:</li>
+    because of the ' (simple quotes) escape sequences:
 
-<p><pre><code>eLua# lua -e 'print('Hello, World!')' -i<br>
+<p><pre><code>eLua# lua -e 'print(\'Hello, World!\')' -i<br>
 Press CTRL+Z to exit Lua<br>
 lua: (command line):1: unexpected symbol near ''</code></pre></p>
 
-<p>However, if you use both '' and "" for string quoting, it will work:</p>
+<p>However, if you use both '' (simple quotes) and "" (double quotes) for string quotin , it will work:</p>
 
-<p><pre><code>eLua# lua -e 'print("Hello, World")' -i<br>
-Press CTRL+Z to exit Lua<br>
+<p><pre><code>eLua# lua -e 'print("Hello, World")' -i
+Press CTRL+Z to exit Lua
 Lua 5.1.4  Copyright (C) 1994-2008 Lua.org, PUC-Rio
-Hello,World</code></pre></p></ul>
+Hello,World</code></pre></p></li></ul>
 <p>If you want to execute a file from the <a href="">##ROM file system</a>, remember to prefix it with <i>/rom</i>. For example, to execute <b>hello.lua</b>, do this:</p>
 <p><pre><code>$ lua /rom/hello.lua</code></pre></p>
 <h2>ls or dir</h2>
 <p>Shows a list of all the files in the filesystems used by <b>eLua</b> (currently only the ROM file system), as well as their size and the total size of the given file system.</p>
 <h2>exit</h2>
 <p>Exits the shell. This only makes sense if <b>eLua</b> is compiled with terminal support over TCP/IP , as it closes the telnet session to the <b>eLua</b> board. Otherwise it just
-  terminates the shell and blocks forever until you reset your board.
+  terminates the shell and blocks forever until you reset your board.</p>
 <a name="cross"><h3>Cross-compiling your eLua programs</h3></a>
 <p><i>Cross-compilation</i> is the process of compiling a program on one hardware platform for a 
 different hardware platform. For example, the process of compiling the <b>eLua</b> binary image on
@@ -126,7 +126,7 @@ board you have some important advantages:
   might be able to overcome this by compiling the Lua program on the PC and 
   running the bytecode instead. Also, compiling large Lua programs on your
   <b>eLua</b> board can lead to stack overflows, which in turn leads to very
-  hard to find errors.
+  hard to find errors.</li>
 </ul></p>
 <p>In order to use cross-compilation, the two Lua targets (in this case your desktop PC and your <b>eLua</b> board) must be compatible
 (they should have the same data types, with the same size and the same memory
@@ -204,7 +204,7 @@ Available options are:
 You can omit the <i>-s</i> (strip) parameter from compilation, but this will result in larger bytecode files (as the debug information is not stripped if you don't use <i>-s</i>).</p>
 <p>You can use your bytecode file in two ways:</p>
 <ul>
-  <li>upload it to <a href="">##the ROM file system</a> and execute it from there.</li>
+  <li>write it to <a href="arch_romfs.html">the ROM file system</a> and execute it from there.</li>
   <li>use the <i>recv</i> command from <a href="using.html#shell">the shell</a> to upload it to the board using a serial connection.</li>
 </ul>
 <p>
