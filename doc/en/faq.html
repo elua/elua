@@ -23,6 +23,8 @@ It is assumed that you already know what <b>eLua</b>, so here's a list of questi
   <li><a href="faq.html#bytecode">I know that Lua can be compiled to bytecode, so I compiled one of the eLua examples with luac and tried to run it on 
   my eLua board, but it didn't work. Is this a bug in eLua?</li>
   <li><a href="faq.html#outofmemory">I get "out of memory" errors when I run my Lua programs, what should I do?</li>
+  <li><a href="faq.html#rotables">I enabled the LTR patch, but now all my module tables (math, io, string, spi and so on) are read only. Do I have to
+  disable LTR if I want write access to these modules?</a>
 </ul>
 <hr>
 
@@ -123,7 +125,7 @@ prove just fine. It largely depends on your needs.</p>
 <p>There are a number of things you can try to overcome this:</p>
 <ul>
   <li><b>enable the LTR patch</b>: you can get very significant improvements if you enable the LTR patch in your <b>eLua</b> image. See 
-  <a href="">##here</a> for more details about LTR, and <a href="building.html">here</a> for instructions about enabling LTR.</li>
+  <a href="arch_ltr.html">here</a> for more details about LTR, and <a href="building.html">here</a> for instructions about enabling LTR.</li>
   <li><b>precompile your source to bytecode</b>: if you use bytecode instead of source code Lua won't need to compile your source, so you save some RAM.</li>
   <li><b>try to avoid using too many strings</b>: strings are immutable in Lua. That means that a statement like <i>s = s .. "\n"</i> (where s is a string) 
   will create a new string each time it's called. If this happens a lot (for example in a loop), your memory will quickly run out because of all the
@@ -132,4 +134,17 @@ prove just fine. It largely depends on your needs.</p>
   <li><b>control Lua's garbage collection manually</b>: if you're still running out of memory, try calling <i>collectgarbage('collect')</i> from your code, 
   which will force a garbage collection and thus might free some memory.</li>
 </ul>
+
+<a name="rotables"><h2>I enabled the LTR patch, but now all my module tables (math, io, string, spi and so on) are read only. Do I have to
+  disable LTR if I want write access to these modules?</h2></a>
+<p>You don't really have to disable LTR to get write access to your rotables, you can use some simple Lua "tricks" instead. Let's suppose that you need
+  write access to the <b>math</b> module. With LTR enabled, <b>math</b> is a rotable, so you can't change its keys/values. But you can use metatables
+  to overcome this limitation:</p>
+<p><pre><code>local oldmath = math
+math = { __index = oldmath }
+setmetatable( math, math )
+</code></pre></p>
+<p>This way you can use <i>math</i> in "write mode" now (since it is a regular table), but you can still access the keys from the original <i>math</i>
+  rotable. Of course, if you need write access to <b>all</b> your modules (or to most of them) it makes more sense to disable LTR instead, but from our 
+  observations this doesn't happen in practice.</p>
 </body></html>

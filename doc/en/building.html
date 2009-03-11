@@ -150,7 +150,17 @@ RAM) but will also completely remove the possibility of using that
 module from <b>eLua</b>.</p>
 <p>The modules included in the build are specified by the
 LUA_PLATFORM_LIBS_ROM macro. An example is given below: </p>
-<pre><code>#define LUA_PLATFORM_LIBS_ROM\<br> _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\<br> _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\<br> _ROM( AUXLIB_PD, luaopen_pd, pd_map )\<br> _ROM( AUXLIB_UART, luaopen_uart, uart_map )\<br> _ROM( AUXLIB_TERM, luaopen_term, term_map )\<br> _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map )\<br> _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\<br> _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\<br> _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\<br> _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )</code></pre>
+<pre><code>#define LUA_PLATFORM_LIBS_ROM\
+  _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
+  _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
+  _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
+  _ROM( AUXLIB_UART, luaopen_uart, uart_map )\
+  _ROM( AUXLIB_TERM, luaopen_term, term_map )\
+  _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map )\
+  _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
+  _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
+  _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
+   ROM( LUA_MATHLIBNAME, luaopen_math, math_map )</code></pre>
 <p>Each module is defined by a <b>_ROM( module_name,
 module_init_function, module_map_array )</b> macro, where:
 </p>
@@ -165,7 +175,7 @@ functions and constants exported by a module</li>
 <p>Please note that this notation is specific to LTR (the <b>L</b>ua
 <b>T</b>iny <b>R</b>AM patch) and it's not the
 only way to specify the list of modules included in the build (although
-it is the most common one). Check the <a href="">##LTR
+it is the most common one). Check the <a href="arch_ltr.html#config">LTR
 section</a> for more information about LTR.</p>
 <p>For the full list of modules that can be enabled or disabled
 via <i>platform_conf.h</i> check <a href="">##the
@@ -304,7 +314,7 @@ very resource-constrained systems.
 this specifies the name of the toolchain used to build the image. See <a href="toolchains.html#configuration">this link</a> for
 details.</li>
 <li><b>optram=0 | 1</b>: enables of disables the
-LTR patch, see the <a href="">##LTR documentation</a>
+LTR patch, see the <a href="arch_ltr.html">LTR documentation</a>
 for more details. The default is 1, which enables the LTR patch.</li>
 <li><b>prog</b>: by default, the above 'scons'
 command will build only the 'elf' (executable) file. Specify "prog" to
