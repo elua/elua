@@ -6,7 +6,7 @@
 
 #include "lua.h"
 
-#define AUXLIB_PIO      "gpio"
+#define AUXLIB_PIO      "pio"
 LUALIB_API int ( luaopen_pio )( lua_State *L );
 
 #define AUXLIB_SPI      "spi"

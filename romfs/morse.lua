@@ -57,11 +57,11 @@ local function play(m)
   if m == ' ' then
     tmr.delay(tmrid, 2 * dotDelay)
   else
-    gpio[ledpin] = 1
+    pio[ledpin] = 1
     pwm.start(pwmid)
     tmr.delay(tmrid, m == '.' and dotDelay or 3 * dotDelay)
     pwm.stop(pwmid)
-    gpio[ledpin] = 0
+    pio[ledpin] = 0
     tmr.delay(tmrid, dotDelay)
   end
 end
@@ -91,7 +91,7 @@ local function HandleKbd(k)
 end
 
 ------------ Main Program ------------
-gpio.dir[ledpin] = gpio.OUTPUT
+pio.dir[ledpin] = pio.OUTPUT
 pwm.setup( pwmid, playFreq, 50 )
 
 while true do

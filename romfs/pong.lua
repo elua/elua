@@ -1,8 +1,3 @@
---[[ To Do
-  External Loop to play again, w/ UI msg
-  Function lm3s_init will become a separate module, require()d here
---]]
-
 require("LM3S")
 
 function drawPaddle( y, color )
