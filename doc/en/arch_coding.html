@@ -118,6 +118,26 @@ else if( key == KEY_CODE_NONE )
 else
   sys_error();</code></pre></p>
 You can see in this example an accepted violation of the "one statement per line" rule: it's OK to write "else if (newcondition)" on the same line.</li>
+
+<li>use specific data types as much as possible. In this context, <b>specific data types</b> reffers to generic types that have the same size on all 
+  platforms. They are defined by each platform in turn and their meaning is given below:
+  <ul>
+    <li><b>s8</b>: signed 8-bit integer</li>
+    <li><b>u8</b>: unsigned 8-bit integer</li>
+    <li><b>s16</b>: signed 16-bit integer</li>
+    <li><b>u16</b>: unsigned 16-bit integer</li>
+    <li><b>s32</b>: signed 32-bit integer</li>
+    <li><b>u32</b>: unsigned 32-bit integer</li>
+    <li><b>s64</b>: signed 64-bit integer</li>
+    <li><b>u64</b>: unsigned 64-bit integer</li>
+  </ul>
+  By writing your code to take advantage of these specific data types you ensure high portability of the code amongst different hardware platforms. Don't
+  overuse this rule though. For example, a <b>for</b> loop has generally an <b>int</b> index, which is perfectly fine. But when you specify a timeout that
+  must fit in 32 bits, definitely declare it as <b>u32 to</b> instead of <b>unsigned int to</b>.
+</li>
+
+<li><b>endianness</b>: remember that <b>eLua</b> runs on both little endian and big endian architectures, and write your code accordingly.</li>
+
 <li><b>comments</b>: we generally favour C++ style comments (//), but it's perfectly OK to use C style (/**/) comments. Automatic documentation generators like Doxygen aren't encouraged, since 
   they tend to make the programmer overdocument the code to the point where it becomes hard to read because of the documentation alone. Ideally, you'd neither overdocument, nor 
   underdocument your code; just document it as much as you think it's needed, without getting into too much details, but also without omitting important information. In particular, DON'T do this:
@@ -140,6 +160,7 @@ int sum( int n1, int n2 )
 int uart_receive( unsigned limit )...
 unsigned uart_send( const char *buf, unsigned size )...</code></pre></p>
 </li>
+
 </ol></p>
 <p>Also, if you're using 3rd party code (from a library/support package for example) making it follow the above rules is nice, but not mandatory. Focus on functionality and writing your own code properly, and come back to indent other people's code when you really don't have anything better to do with your time.</p>
 </body></html>

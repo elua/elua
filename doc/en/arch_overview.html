@@ -5,7 +5,7 @@
 
 <link rel="stylesheet" type="text/css" href="../style.css"></head>
 <body style="background-color: rgb(255, 255, 255);">
-<h3>eLua architecture overview</h3>
+<a name="structure"><h3>eLua architecture overview</h3></a>
 <p>The overall logical structure of <b>eLua</b> is shown in the image below:</p>
 <map name="arch">
 <area href="arch_overview.html#common" title="Commond code" shape=rect coords="0, 402, 537, 540">
@@ -27,7 +27,7 @@ rules:
   mentioned before) it can do so by using a <b>platform module</b>. These are of course platform specific, and their goal is to fill the gap between the
   platform interface and the full set of features provided by a platform.</li>
 </ul></p>
-<a name="common"><h2>Generic code</h2></a>
+<a name="common"><h3>Common (generic) code</h3></a>
 <p>The following gives an incomplete set of items that can be classified as <b>common code</b>:
   <ul>
     <li>the Lua code itself (obviously) plus the <a href="arch_ltr.html">LTR patch</a>.</li>
@@ -56,7 +56,7 @@ possible; that is, it should absorb as much common code as possible. For example
   Take for example the code for stdio/stdout/stderr handling (<i>src/newlib/genstd.c</i>): it acknowledges the fact that a terminal can be implemented 
   over a large variety of physical transports (RS-232 for PC, SPI for a separate LCD/keyboard board, a radio link and so on) so it uses callbacks for its 
   send/receive functions. The impact on speed and resource consumption is minimum, but it matters a lot in the portability department.</p>
-<a name="platform"><h2>Platform interface</h2></a>
+<a name="platform"><h3>Platform interface</h3></a>
 <p>Used properly, the platform interface allows writing extremely portable code over a large variety of different platforms, both from C and from Lua. 
   An important property of the platform interface is that it tries to group only <b>common</b> attributes of different platforms (as much as possible). 
   For example, if a platform supported by <b>eLua</b> has an UART that can work in loopback mode, but the others don't, loopback support won't be included 
@@ -65,7 +65,7 @@ possible; that is, it should absorb as much common code as possible. For example
   generic modules to allow Lua code to access platform peripherals, but this isn't its only use. It can (and it should) also be used by C code that wants 
   to implement a generic module and neeeds access to peripherals. An example was given in the previous section: implementing a new file system.</p>
 <p>The platform interface definition is always in the <i>inc/platform.h</i> header file.</p>
-<a name="platforms"><h2>Platforms</h2></a>
+<a name="platforms"><h3>Platforms and ports</h3></a>
 <p>All the platforms that run <b>eLua</b> (and that implement the platform interface) are implemened in this conceptual layer.</p>
 <p>A platform implementation can (and generally will) contain specific peripheral drivers, many times taken directly from the platform's CPU support
    package. These drivers are used to implement the platform interface. Note that:
@@ -90,4 +90,17 @@ possible; that is, it should absorb as much common code as possible. For example
 </ul></p>
 <p>By convention, all the code for platform <i>name</i> (including peripheral drivers) should reside in <i>src/platform/&lt;name&gt;</i>. Also, the 
   platform interface should be implemented in a file called <i>platform.c</i>, thus its path should be <i>src/platform/&lt;name&gt;/platform.c</i>.
+<a name="boot"><h3>eLua boot process</h3></a>
+<p>This is what happens when you power up your <b>eLua</b> board:
+<ol>
+  <li>the platform initialization code is executed. This is the code that does very low level platform setup (if needed), copies ROM to RAM, zeroes out
+  the BSS section, sets up the stack pointer and jumps to <b>main</b>.</li>
+  <li>the first thing <b>main</b> does is call the platform specific initialization function (<b>platform_init</b>). <b>platform_init</b> must fully
+  initialize the platform and return a result to main, that can be either <b>PLATFORM_OK</b> if the initialization succeded or <b>PLATFORM_ERR</b>
+  otherwise. If <b>PLATFORM_ERR</b> is returned, <b>main</b> blocks immediately in an infinite loop.</li>
+  <li><b>main</b> then initializes the rest of the system: the ROM file system, XMODEM, and term.</li>
+  <li>if <b>/rom/autorun.lua</b> (which is a file called <b>autorun.lua</b> in the <a href="arch_romfs.html">ROM file system"</a>) is found, it is
+  executed. If it returns after execution, or if it isn't found, the boot process continues with the next step.</li>
+  <li>if the <a href="using.html#shell">shell</a> was compiled in the image, it is started, otherwise a standard Lua interpreter is started.</li>
+</ol>
 </body></html>
