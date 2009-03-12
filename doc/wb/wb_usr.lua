@@ -219,7 +219,7 @@ wb_usr.tree =
                 { name = { en = "Platforms/ports", pt = "##Platforms/ports" },
                   link = "arch_overview.html#platforms",
                 },
-                { name = { en = "eLua boot process", pt = "##eLua boot process" },
+                { name = { en = "Booting eLua", pt = "##eLua boot process" },
                   link = "arch_overview.html#boot",
                 },
               },

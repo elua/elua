@@ -6,7 +6,7 @@
 <link rel="stylesheet" type="text/css" href="../style.css"></head>
 <body style="background-color: rgb(255, 255, 255);">
 <h3>Porting eLua</h3>
-<p>So, you realized how cool <b>eLua</b> is :), and you'd like to give it a try. Unfortunately, <b>eLua</b> doesn't have a port on your CPU of choice.
+<p>So, you realized how cool <b>eLua</b> is :), and you'd like to give it a try. Unfortunately, <b>eLua</b> doesn't have a port on your CPU or board of choice.
   The solution is simple: write the port yourself. This might seem as a daunting task at first, but it's actually easier than it sounds. <b>eLua</b> was
   designed to make the task of implementing new ports as easy and intuitive as possible. This section gives an overview of the porting process. It's not
   an exhaustive guide, but it should be enough to point you in the right direction. Before diving into this, it's highly recommended that you take a look
@@ -18,81 +18,71 @@
   of program memory and 32k of RAM for a complete <b>eLua</b> image, and 128k of program memory for a basic image. It's possible to run <b>eLua</b> in
   less than 32k of RAM (especially when <a href="arch_ltr.html">LTR</a> is enabled), but you'll probably run out of memory fast.
   64k of RAM (or more) is recommended.</li>
-  <li><a target="_blank" href="http://sourceware.org/newlib">Newlib</a> can be compiled for your CPU. <b>eLua</b> depends on Newlib currently
+  <li><a target="_blank" href="http://sourceware.org/newlib">Newlib</a> is available for your CPU. <b>eLua</b> depends on Newlib currently
   (although this limitation will be eliminated in a future version), so if Newlib is not available for your CPU, you're out of luck. </li>
   <li>you have a C compiler for your target. Ideally you'd use GCC, but if this isn't possible other compilers might work as well. Keep in mind that
   <a href="arch_ltr.html">LTR</a> needs a C99 C compiler (or at least a partially C99 compliant C compiler than supports C99-style union initialization). 
   </li>
+  <li>you have a platform library (it usually comes from the CPU manufacturer) that you can use to implement (at least part of) the platform interface.
+  It's also highly recommended to gain at least a basic understanding of your platform, it will help a lot while writing the port.</li>
 </ul></p>
 <p>If all of the above are true, you should continue reading this document to bring your port to life. If not, we're sorry, but (at least at this point)
-<b>eLua</b> can't be ported to your CPU.</p>
-<h3>Overall structure of a port</h3>
-<p><b>eLua</b> uses the notion of <b>platform</b> to denote a group of <b>CPUs</b> that share the same core structure, although their specific silicon
-  implementation might differ in terms of intergrated peripherals, internal memory and other such attributes. An <b>eLua</b> port implements one or 
-  more CPUs from a given platform. For example, the <b>lm3s port</b> of <b>eLua</b> runs on LM3S8962, LM3S6965 and LM3S6918 CPUs, all of them part of the 
-  <b>lm3s</b> platform (reffer to <a href="status.html">the status page</a> for a full list of platforms and CPUs on which <b>eLua</b> runs). </p>
-<p>All the source files specific to a platform/port reside in a subdirectory of <i>src/platform</i> that has the same name as the platform (for <b>lm3s</b>
-  it would be <i>src/platform/lm3s</i>, for example). Each such platform-specific subdirectory must contain at least these files:</p>
-<ul>
-  <li><b>type.h</b>: this defines the "specific data types", which are integer types with a specific size (see <a href="arch_coding.html">coding style</a> 
-      for details. An example from the <b>i386</b> platform:
-<p><pre><code>typedef unsigned char u8;
-typedef signed char s8;
-typedef unsigned short u16;
-typedef signed short s16;
-typedef unsigned long u32;
-typedef signed long s32;
-typedef unsigned long long u64;
-typedef signed long long s64;</code></pre></p>
+<b>eLua</b> can't be ported to your CPU. If, on the other hand, you're good to go, please take a bit of time and read 
+  <a href="arch_overview.html#platforms">this section</a> first, as it details the structure of a port and might simplify your work quite a bit.</p>
+<h3>Adding a new board</h3>
+<p>If all you need is to add a new board that uses a CPU already supported by <b>eLua</b> (check <a href="status.html">here</a> for a complete list), it's
+fairly easy to accomplish this:
+<ol>
+  <li>choose a good name for your board :)</li>
+  <li>edit <b>SConstruct</b> and add your board to the <b>board_list</b> dictionary, specifying its CPU. A part of the definition of <b>board_list</b> is given below:
+<p><pre><code># List of board/CPU combinations
+board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
+               'EK-LM3S8962' : [ 'LM3S8962' ],
+               'EK-LM3S6965' : [ 'LM3S6965' ],
+               ..............................
+            }</code></pre></p>
   </li>
-  <li><b>conf.py</b>: this is the platform specific build configuration file, used by the <a href="building.html">build system</a> for a number of purposes:
-<ul>
-    <li>to get the list of platform-specific files that will be compiled in the <b>eLua</b> image. They are exported in the <i>specific_files</i> string,
-      separated by spaces, and must be prepended with the relative path to the platform subdirectory. An example from the <b>i386</b> platform:
-<p><pre><code>specific_files = "boot.s common.c descriptor_tables.c gdt.s interrupt.s isr.c kb.c  monitor.c timer.c platform.c"
-# Prepend with path
-specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )</code></pre></p>
-    </li>
-    <li>to get the full command lines of the different toolchain utilities (linker, assembler, compiler) used to compile <b>eLua</b>. They must be declared
-      inside the <i>tools</i> variable, in a separate dictinoary which key is the same as the platform name, and with specific names for each tool in turn:
-      <b>cccom</b> for the compiler, <b>linkcom</b> for the linker and <b>ascom</b> for the assembler.
-      For example, this is how the <i>tools</i> variable is defined for the <b>i386</b> platform:
- <p><pre><code># Toolset data
- tools[ 'i386' ] = {}
- tools[ 'i386' ][ 'cccom' ] = "%s %s %s -march=i386 -mfpmath=387 -m32 -ffunction-sections -fdata-sections -fno-builtin -fno-stack-protector %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], opt, local_include, cdefs )
- tools[ 'i386' ][ 'linkcom' ] = "%s -nostartfiles -nostdlib -march=i386 -mfpmath=387 -m32 -T %s -Wl,--gc-sections -Wl,-e,start -Wl,--allow-multiple-definition -o $TARGET $SOURCES -lc -lgcc -lm %s" % ( toolset[ 'compile' ], ldscript, local_libs )
- tools[ 'i386' ][ 'ascom' ] = "%s -felf $SOURCE" % toolset[ 'asm' ]</code></pre></p>     
-  Note how the definition of <b>tools</b> uses the definition of <b>toolset</b>, a dictionary with the names of the tools in the current toolchain. This
-  is also part of the <b>eLua</b> build system and is documented <a href="toolchains.html">here</a>.</li>
-  <li>to get the name of a <b>programmning function</b> which receives the name of the <b>eLua</b> executable file (the result of the build step) and 
-  produces a file suitable for programming on the corresponding hardware platform. The name of this function should also be set in the <i>tools</i> 
-  dictionary, as shown below (example taken from the <b>str7</b> platform):
- <p><pre><code># Programming function for STR7
- def progfunc_str7( target, source, env ):
-   outname = output + ".elf"
-   os.system( "%s %s" % ( toolset[ 'size' ], outname ) )
-   print "Generating binary image..."
-   os.system( "%s -O binary %s %s.bin" % ( toolset[ 'bin' ], outname, output ) )
-           
-   tools[ 'str7' ][ 'progfunc' ] = progfunc_str7</code></pre></p> 
-  Note, once again, how this function uses the same <i>toolset</i> variable mentioned in the previous paragraph.
+  <li>also edit the <b>file_list</b> dictionary in <b>SConstruct</b> to specify the list of ROMFS files that will be compiled for your board (see the 
+  <a href="arch_romfs.html">ROMFS section</a> for details). A part of the definition of <b>file_list</b> is given below:
+<p><pre><code># List of board/romfs data combinations
+file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'info', 'morse' ],
+              'EK-LM3S8962' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope' ],
+              'EK-LM3S6965' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope' ],
+              ...............................
+            }</code></pre></p></li>
+  <li>if your board has external memory, you'll probably want to use the "multiple" allocator by default to take advantage of that (see <a href="building.html">building</a>)
+  for details. If so, you need to modify the CPU/allocator mapping code from <b>SConstruct</b>:
+<p><pre><code># CPU/allocator mapping (if allocator not specified)
+if allocator == '':
+  if <b>boardname == 'LPC-H2888'</b> or <b>boardname == 'ATEVK1100'</b>:
+    allocator = 'multiple'
+  else:
+    allocator = 'newlib'
+elif allocator not in [ 'newlib', 'multiple', 'simple' ]:
+  print "Unknown allocator", allocator
+  print "Allocator can be either 'newlib', 'multiple' or 'simple'"
+  sys.exit( -1 )
+</code></pre></p>
   </li>
-  </ul>
-  </li>
-<li><b>stacks.h</b>: by convention, the stack(s) size(s) used in the system are declared in this file. An example taken from the <b>at91sam7x</b> platform is given below:
-<p><pre><code>#define  STACK_SIZE_USR   2048
-#define  STACK_SIZE_IRQ   64
-#define  STACK_SIZE_TOTAL ( STACK_SIZE_USR + STACK_SIZE_IRQ )</code></pre></p></li>
-<li><b>platform.c</b>: by convention, the <a href="">##platform interface</a> is implemented in this file. It also contains the platform-specific
-  initialization function (<i>platform_init</i>, see the description of the <a href="elua_arch.html#boot">eLua boot process</a> for details).</li>
-<li><b>platform_conf.h</b>
-</ul><p>
-<p>
-</p>
-<h3>Prerequisites</h3>
-<p>The very first thing to do before starting a new port is to verify if you can use one of the already existing <b>platforms</b>. A <b>platform</b> groups
-  CPUs that share the same core structure, although their specific silicon implementation might differ in terms of integrated peripherals, internal memory,
-  package size and other such attributes. For a list of ports currently supported by <b>eLua</b> check the <a href="status.html">status page</a>. If you
-  find 
-</p>
+  <li>customize the <b>eLua</b> image for this new board. You can use the variable <b>boardname</b> in <b>conf.py</b> to define new preprocessor macros specifically for your board
+  (that you can use later in <b>platform_conf.h</b>, for example), or to include or exclude certain files from the build, or change the build flags and so on. An example taken from 
+  the <b>lm3s</b> port is given below (part of <b>conf.py</b>):
+<p><pre><code>if boardname == 'EK-LM3S6965' or boardname == 'EK-LM3S8962':
+  specific_files = specific_files + " rit128x96x4.c disp.c"
+  cdefs = cdefs + " -DENABLE_DISP"
+
+# The default for the Eagle 100 board is to start the image at 0x2000,
+# so that the built in Ethernet boot loader can be used to upload it
+if boardname == 'EAGLE-100':
+  linkopts = "-Wl,-Ttext,0x2000"
+else:
+  linkopts = ""
+</code></pre></p>
+</li>
+</ol></p>
+<p>After you edit all the relevant source files, all you have to do is to execute "scons board=&lt;boardname;&gt;" and you'll have <b>eLua</b> compiled for your board.</p>
+<h3>Adding a new CPU</h3>
+##TODO
+<h3>Adding a new platform</h3>
+##TODO
 </body></html>

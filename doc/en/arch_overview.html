@@ -13,7 +13,11 @@
 <area href="arch_overview.html#platforms" title="Platforms" shape=rect coords="9, 0, 537, 132">
 </map>
 <p align="center"><img src="../wb_img/elua_arch.png" usemap="#arch" border=0></img></p>
-<p>As can be seen from this image, <b>eLua</b> tries to be as portable as possible between different architectures by using a few simple design
+<p><b>eLua</b> uses the notion of <b>platform</b> to denote a group of <b>CPUs</b> that share the same core structure, although their specific silicon
+  implementation might differ in terms of intergrated peripherals, internal memory and other such attributes. An <b>eLua</b> port implements one or 
+  more CPUs from a given platform. For example, the <b>lm3s port</b> of <b>eLua</b> runs on LM3S8962, LM3S6965 and LM3S6918 CPUs, all of them part of the 
+  <b>lm3s</b> platform. Refer to <a href="status.html">the status page</a> for a full list of platforms and CPUs on which <b>eLua</b> runs.</p>
+<p>As can be seen from this image, <b>eLua</b> tries to be as portable as possible between different platforms by using a few simple design
 rules:
 <ul>
   <li>all code that is platform-independent is <b>common code</b> and it should be written in ANSI C as much as possible, this makes it highly portable
@@ -54,8 +58,9 @@ possible; that is, it should absorb as much common code as possible. For example
   this into consideration. The same thing holds for the generic modules: the user must have a way to choose the set of modules he needs.</p>
 <p>For maximum portability, make your code work in a variety of scenarios if possible (and if that makes sense from a practical point of view). 
   Take for example the code for stdio/stdout/stderr handling (<i>src/newlib/genstd.c</i>): it acknowledges the fact that a terminal can be implemented 
-  over a large variety of physical transports (RS-232 for PC, SPI for a separate LCD/keyboard board, a radio link and so on) so it uses callbacks for its 
-  send/receive functions. The impact on speed and resource consumption is minimum, but it matters a lot in the portability department.</p>
+  over a large variety of physical transports (RS-232 for PC, SPI for a separate LCD/keyboard board, a radio link and so on) so it uses pointers for its 
+  send/receive functions (see <a href="arch_con_term.html">this link</a> for more details). The impact on speed and resource consumption is minimum, but 
+  it matters a lot in the portability department.</p>
 <a name="platform"><h3>Platform interface</h3></a>
 <p>Used properly, the platform interface allows writing extremely portable code over a large variety of different platforms, both from C and from Lua. 
   An important property of the platform interface is that it tries to group only <b>common</b> attributes of different platforms (as much as possible). 
@@ -64,13 +69,15 @@ possible; that is, it should absorb as much common code as possible. For example
 <p>A special emphasis on the platform interface usage: remember to use it not only for Lua, but also for C. The platform interface is mainly used by the 
   generic modules to allow Lua code to access platform peripherals, but this isn't its only use. It can (and it should) also be used by C code that wants 
   to implement a generic module and neeeds access to peripherals. An example was given in the previous section: implementing a new file system.</p>
-<p>The platform interface definition is always in the <i>inc/platform.h</i> header file.</p>
+<p>The platform interface definition is always in the <i>inc/platform.h</i> header file. For a full description of its functions, check
+  <a href="arch_platform.html">the platform interface documentation.</a></p>
 <a name="platforms"><h3>Platforms and ports</h3></a>
-<p>All the platforms that run <b>eLua</b> (and that implement the platform interface) are implemened in this conceptual layer.</p>
-<p>A platform implementation can (and generally will) contain specific peripheral drivers, many times taken directly from the platform's CPU support
+<p>All the platforms that run <b>eLua</b> (and that implement the platform interface) are implemened in this conceptual layer. A <b>port</b> is a full
+  <b>eLua</b> implementation on a given platform. The two terms can generally be used interchangeably.</p>
+<p>A port can (and generally will) contain specific peripheral drivers, many times taken directly from the platform's CPU support
    package. These drivers are used to implement the platform interface. Note that:
 <ul>
-  <li>a platform implementation doesn't need to implement <b>all</b> the platform interface functions, just the ones it needs. As explained 
+  <li>a port isn't required to implement <b>all</b> the platform interface functions, just the ones it needs. As explained 
   <a href="building.html">here</a>, the user must have full control over what's getting built into this <b>eLua</b> image. If you don't need the SPI
   module, for example, you don't need to implement its platform interface.</li>
   <li>a part of the platform interface is implemented (at least partially) in a file that is common for all the platforms (<i>src/common.c</i>). It
@@ -88,8 +95,110 @@ possible; that is, it should absorb as much common code as possible. For example
   <li>if implementing a peripheral driver that for some reason should be specific to the platform on the LPC2888 platform, for example its dual audio
   DAC, give it a meaningful name, for example <b>lpc288x.audiodac</b>.</li>
 </ul></p>
-<p>By convention, all the code for platform <i>name</i> (including peripheral drivers) should reside in <i>src/platform/&lt;name&gt;</i>. Also, the 
-  platform interface should be implemented in a file called <i>platform.c</i>, thus its path should be <i>src/platform/&lt;name&gt;/platform.c</i>.
+<h2>Structure of a port</h2>
+<p>All the code for platform <i>name</i> (including peripheral drivers) must reside in a directory called <i>src/platform/&lt;name&gt;</i> (for example
+<i>src/platform/lm3s</i> for the <i>lm3s</i> platform). Each such platform-specific subdirectory must contain at least these files:</p>
+<ul>
+  <li><b>type.h</b>: this defines the "specific data types", which are integer types with a specific size (see <a href="arch_coding.html">coding style</a> 
+      for details. An example from the <b>i386</b> platform:
+<p><pre><code>typedef unsigned char u8;
+typedef signed char s8;
+typedef unsigned short u16;
+typedef signed short s16;
+typedef unsigned long u32;
+typedef signed long s32;
+typedef unsigned long long u64;
+typedef signed long long s64;</code></pre></p>
+  </li>
+  <li><b>conf.py</b>: this is the platform specific build configuration file, used by the <a href="building.html">build system</a> for a number of purposes:
+<ul>
+    <li>to get the list of platform-specific files that will be compiled in the <b>eLua</b> image. They are exported in the <i>specific_files</i> string,
+      separated by spaces, and must be prepended with the relative path to the platform subdirectory. An example from the <b>i386</b> platform:
+<p><pre><code>specific_files = "boot.s common.c descriptor_tables.c gdt.s interrupt.s isr.c kb.c  monitor.c timer.c platform.c"
+# Prepend with path
+specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )</code></pre></p>
+    </li>
+    <li>to get the full command lines of the different toolchain utilities (linker, assembler, compiler) used to compile <b>eLua</b>. They must be declared
+      inside the <i>tools</i> variable, in a separate dictinoary which key is the same as the platform name, and with specific names for each tool in turn:
+      <b>cccom</b> for the compiler, <b>linkcom</b> for the linker and <b>ascom</b> for the assembler.
+      For example, this is how the <i>tools</i> variable is defined for the <b>i386</b> platform:
+ <p><pre><code># Toolset data
+ tools[ 'i386' ] = {}
+ tools[ 'i386' ][ 'cccom' ] = "%s %s %s -march=i386 -mfpmath=387 -m32 -ffunction-sections -fdata-sections -fno-builtin -fno-stack-protector %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], opt, local_include, cdefs )
+ tools[ 'i386' ][ 'linkcom' ] = "%s -nostartfiles -nostdlib -march=i386 -mfpmath=387 -m32 -T %s -Wl,--gc-sections -Wl,-e,start -Wl,--allow-multiple-definition -o $TARGET $SOURCES -lc -lgcc -lm %s" % ( toolset[ 'compile' ], ldscript, local_libs )
+ tools[ 'i386' ][ 'ascom' ] = "%s -felf $SOURCE" % toolset[ 'asm' ]</code></pre></p>     
+  Note how the definition of <b>tools</b> uses the definition of <b>toolset</b>, a dictionary with the names of the tools in the current toolchain. This
+  is also part of the <b>eLua</b> build system and is documented <a href="toolchains.html">here</a>.</li>
+  <li>to get the name of a <b>programmning function</b> which receives the name of the <b>eLua</b> executable file (the result of the build step) and 
+  produces a file suitable for programming on the corresponding hardware platform. The name of this function should also be set in the <i>tools</i> 
+  dictionary, as shown below (example taken from the <b>str7</b> platform):
+ <p><pre><code># Programming function for STR7
+ def progfunc_str7( target, source, env ):
+   outname = output + ".elf"
+   os.system( "%s %s" % ( toolset[ 'size' ], outname ) )
+   print "Generating binary image..."
+   os.system( "%s -O binary %s %s.bin" % ( toolset[ 'bin' ], outname, output ) )
+           
+   tools[ 'str7' ][ 'progfunc' ] = progfunc_str7</code></pre></p> 
+  Note, once again, how this function uses the same <i>toolset</i> variable mentioned in the previous paragraph.
+  </li>
+  </ul>
+  </li>
+<li><b>stacks.h</b>: by convention, the stack(s) size(s) used in the system are declared in this file. An example taken from the <b>at91sam7x</b> platform is given below:
+<p><pre><code>#define  STACK_SIZE_USR   2048
+#define  STACK_SIZE_IRQ   64
+#define  STACK_SIZE_TOTAL ( STACK_SIZE_USR + STACK_SIZE_IRQ )</code></pre></p></li>
+<li><b>platform.c</b>: by convention, the <a href="arch_platform.html">platform interface</a> is implemented in this file. It also contains the platform-specific
+  initialization function (<i>platform_init</i>, see the description of the <a href="elua_arch.html#boot">eLua boot process</a> for details).</li>
+<li><b>platform_conf.h</b>: this is the platform configuration file, used to give information about both the platform itself and the build configuration for the 
+  platform. This is what you can set inside <b>platform_conf.h</b>:
+<ul>
+  <li>the list of <b>components</b> that will be part of the build (see <a href="building.html">building eLua</a> for details).</li>
+  <li>the list of <b>modules</b> that will be part of the build (see <a href="building.html">building eLua</a> and <a href="arch_ltr.html#config">LTR configuration</a>
+     for details.</li>
+  <li>the <b>static configuration data</b> (see <a href="building.html">building eLua</a> for details).</li>
+  <li>the <b>number of peripherals</b> on your CPU. See an example below (taken from <b>lm3s</b>) that also shows how to differentiate between different CPUs that belong to the same 
+  platform; the <b>FORxxxx</b> macros are defined in <b>conf.py</b>):
+<p><pre><code></code>// Number of resources (0 if not available/not implemented)
+#define NUM_PIO               7
+#define NUM_SPI               1
+#ifdef FORLM3S6965
+  #define NUM_UART            3
+#else
+  #define NUM_UART            2
+#endif
+#define NUM_TIMER             4
+#ifndef FORLM3S6918
+  #define NUM_PWM             6
+#else
+  #define NUM_PWM             0
+#endif  
+#define NUM_ADC               4</pre></p></li>
+  <li><b>specific peripheral configuration</b>: this includes (but it not limited to) enabling buffering on UART, enabling and setting up virtual timers, setting PIO configuration and so on.
+  All these parameters are described in detail in the <a href="arch_platform.html">platform interface section</a>.
+  <li><b>memory configuration</b>: describes the regions of free RAM in the system, which will be later used by the standard system allocator (malloc/realloc/free). Two macros
+  (<b>MEM_START_ADDRESS</b> and <b>MEM_END_ADDRESS</b>) define two arrays with the beginning and the end of all the free RAM memory in the system. If your board has external RAM memory, you 
+  should define it here. If not, you can only use the internal memory, and you'll generally need to use the linker-defined symbol <b>end</b> to find out where your free memory starts. Following 
+  is an example from the <b>ATEVK1100</b> (AVR32) board that has both on-chip and external RAM:
+<p><pre><code>// Allocator data: define your free memory zones here in two arrays
+// (start address and end address)
+#define MEM_START_ADDRESS     { ( void* )end, ( void* )SDRAM }
+#define MEM_END_ADDRESS       { ( void* )( 0x10000 - STACK_SIZE_TOTAL - 1 ), ( void* )( SDRAM + SDRAM_SIZE - 1 ) }
+</code></pre></p>
+  </li>
+</ul>
+  If you want to take a look at a real life example of a <b>platform_conf.h</b> file, see for example <i>src/platform/lm3s/platform_conf.h</i>.
+</li>
+</ul></p>
+<p>Besides the required files, the most common scenario is to include other platform specific files in your port:
+<ul>
+  <li><b>a "startup sequence"</b>, generally written in assembler, that does very low level
+  intialization, sets the stack pointer, zeroes the BSS section, copies ROM to 
+  RAM for the DATA section, and then jumps to main.</li>
+  <li>a <b>linker command file</b>.
+  <li>the <b>CPU support package</b> generally comes from the CPU manufacturer, and includes code
+  for accessing peripherals, configuring the core, setting up interrupts and so on.</li>
+</ul></p>
 <a name="boot"><h3>eLua boot process</h3></a>
 <p>This is what happens when you power up your <b>eLua</b> board:
 <ol>
@@ -99,7 +208,7 @@ possible; that is, it should absorb as much common code as possible. For example
   initialize the platform and return a result to main, that can be either <b>PLATFORM_OK</b> if the initialization succeded or <b>PLATFORM_ERR</b>
   otherwise. If <b>PLATFORM_ERR</b> is returned, <b>main</b> blocks immediately in an infinite loop.</li>
   <li><b>main</b> then initializes the rest of the system: the ROM file system, XMODEM, and term.</li>
-  <li>if <b>/rom/autorun.lua</b> (which is a file called <b>autorun.lua</b> in the <a href="arch_romfs.html">ROM file system"</a>) is found, it is
+  <li>if <b>/rom/autorun.lua</b> (which is a file called <b>autorun.lua</b> in the <a href="arch_romfs.html">ROM file system</a>) is found, it is
   executed. If it returns after execution, or if it isn't found, the boot process continues with the next step.</li>
   <li>if the <a href="using.html#shell">shell</a> was compiled in the image, it is started, otherwise a standard Lua interpreter is started.</li>
 </ol>
