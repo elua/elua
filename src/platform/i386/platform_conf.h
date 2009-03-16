@@ -5,6 +5,7 @@
 
 #include "auxmods.h"
 #include "type.h"
+#include "stacks.h"
 
 // *****************************************************************************
 // Define here what components you want for this platform
@@ -51,6 +52,6 @@
 // (start address and end address)
 u32 platform_get_lastmem();
 #define MEM_START_ADDRESS     { ( void* )end }
-#define MEM_END_ADDRESS       { ( void* )( platform_get_lastmem() - 16384 - 1 ) }
+#define MEM_END_ADDRESS       { ( void* )( platform_get_lastmem() - STACK_SIZE_TOTAL - 1 ) }
 
 #endif // #ifndef __PLATFORM_CONF_H__

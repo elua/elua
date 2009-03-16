@@ -58,12 +58,25 @@ To use it, you need to edit a single configuration file (<i>platform_conf.h</i>)
 located in the platform specific directory (<i>src/platform/&lt;platform
 name&gt;/platform_conf.h)</i>. The configuration parameters
 are described in detail in the next paragraphs.</p>
-<h2>Configuring components</h2>
+<a name="components"><h2>Configuring components</h2></a>
 <p>A <b>component</b> is a feature that can be
 enabled to add functionality to <b>eLua</b> itself,
 without modifying its API (which is the part that the programmer uses
-to write <b>eLua</b> programs). The components that can be
-configured in <b>eLua</b> are:
+to write <b>eLua</b> programs). An example of component configuration from
+<i>platform_conf.h</i> is given below:
+<p><pre><code>// *****************************************************************************
+// Define here what components you want for this platform
+
+#define BUILD_XMODEM
+#define BUILD_SHELL
+#define BUILD_ROMFS
+#define BUILD_TERM
+#define BUILD_UIP
+#define BUILD_DHCPC
+#define BUILD_DNS
+#define BUILD_CON_GENERIC
+#define BUILD_ADC</code></pre></p>
+<p>The components that can be configured in <b>eLua</b> are:
 </p>
 <table class="table_center">
 <tbody>
@@ -77,27 +90,44 @@ configured in <b>eLua</b> are:
 enabled, you can use the "recv" command from the shell to receive a Lua
 file (either source code or precompiled byte code) and run in on the
 target. Works only over RS-232 connections (although in theory it's
-possible to make it work over any kind of transport).</td>
+possible to make it work over any kind of transport).
+To enable:
+<p><pre><code>#define BUILD_XMODEM</code></pre></p>
+<a href="building.html#static">Static configuration data dependencies:</a> <b>CON_UART_ID, CON_UART_SPEED, CON_TIMER_ID</b>
+</td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">BUILD_SHELL</td>
-<td>This build the <b>eLua</b> shell (see <a href="using.html">Using eLua</a> for details on the
+<td>This build the <b>eLua</b> shell (see <a href="using.html">using eLua</a> for details on the
 shell). If the shell is not enabled, the code looks for a file called <i>/rom/autorun.lua</i>
 and executes it. If this file is not found, a regular Lua intepreter is
-started on the target.</td>
+started on the target.<br>
+To enable the shell over a serial connection:
+<p><pre><code>#define BUILD_SHELL
+#define BUILD_CON_GENERIC</code></pre></p>
+To enable the shell over a TCP/IP connection:
+<p><pre><code>#define BUILD_SHELL
+#define BUILD_CON_TCP</code></pre></p>
+</td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">BUILD_ROMFS</td>
 <td>Enable the <b>eLua</b> read-only
 filesystem. See the <a href="arch_romfs.html">ROMFS
-documentation</a> for details about using the ROM file system.</td>
+documentation</a> for details about using the ROM file system.
+To enable:
+<p><pre><code>#define BUILD_ROMFS</code></pre></p></td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">BUILD_TERM</td>
 <td>Enable ANSI terminal support. It allows <b>eLua</b>
-to interact with terminals that support ANSI escape sequences.
+to interact with terminals that support ANSI escape sequences (more details <a href="arch_con_term.html">here</a>).
 Currently it works only over RS-232 connections, although this is not a
-strict requirement. You need to enable this if you want to use the <a href="m_term.html">##term module</a>.</td>
+strict requirement. You need to enable this if you want to use the <a href="m_term.html">##term module</a>.
+To enable:
+<p><pre><code>#define BUILD_TERM</code></pre></p>
+<a href="building.html#static">Static configuration data dependencies:</a> <b>CON_UART_ID, CON_UART_SPEED, CON_TIMER_ID, TERM_LINES, TERM_COLS, 
+  TERM_TIMEOUT</b></td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">BUILD_UIP</td>
@@ -105,39 +135,62 @@ strict requirement. You need to enable this if you want to use the <a href="m_te
 this if you want to use the <a href="m_net.html">##net
 module</a>. Also, your platform must implement the uIP support
 functions (see the <a href="platform_interface.html">##platform
-interface</a> documentation for details).</td>
+interface</a> documentation for details).
+To enable:
+<p><pre><code>#define BUILD_UIP</code></pre></p>
+<a href="building.html#static">Static configuration data dependencies:</a> <b>ELUA_CONF_IPADDR0..3, ELUA_CONF_NETMASK0..3, ELUA_CONF_DEFGW0..3,
+ ELUA_CONF_DNS0..3</b>
+</td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">BUILD_DHCPC</td>
 <td>If BUILD_UIP is enabled, you can enable this to include
-a DHCP client in the TCP/IP networking subsystem.</td>
+a DHCP client in the TCP/IP networking subsystem.
+To enable:
+<p><pre><code>#define BUILD_UIP
+#define BUILD_DHCPC</code></pre></p>
+</td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">BUILD_DNS</td>
 <td>If BUILD_UIP is enabled, you can enable this to include
-a minimal DNS resolver in the TCP/IP networking subsystem.</td>
+a minimal DNS resolver in the TCP/IP networking subsystem.
+To enable:
+<p><pre><code>#define BUILD_UIP
+#define BUILD_DNS</code></pre></p>
+</td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">BUILD_CON_GENERIC</td>
-<td>Generic console support. Enables console access
+<td>Generic console support (details <a href="arch_con_term.html">here</a>). Enables console access
 (stdio/stdout/stderr) via a serial transport (currently RS-232, but
 others can be supported). Enable this if you want to use console
 input/output over your RS-232 connection. Don't enable this if you need
-console input/ouput over Ethernet (see the next option). </td>
+console input/ouput over Ethernet (see the next option).
+To enable:
+<p><pre><code>#define BUILD_CON_GENERIC</code></pre></p>
+<a href="building.html#static">Static configuration data dependencies:</a> <b>CON_UART_ID, CON_UART_SPEED, CON_TIMER_ID</b></td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">BUILD_CON_TCP</td>
-<td>Console input/output over TCP/IP connections only. Use
+<td>Console input/output over TCP/IP connections only (details <a href="arch_con_term.html">here</a>). Use
 this if you want to use your <b>eLua</b> board over a
 telnet session. Don't enable this if you need console input/output over
-serial transports (see the previous option).</td>
+serial transports (see the previous option).
+To enable:
+<p><pre><code>#define BUILD_UIP
+#define BUILD_CON_TCP</code></pre></p>
+</td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">BUILD_ADC</td>
 <td>Generic ADC support code. You need to enable this if
 you want to use the <a href="m_adc.html">##adc</a>
 module, or simply the ADC functions from the platform interface. You
-don't need it if you're not planning to use the ADC.</td>
+don't need it if you're not planning to use the ADC.
+To enable:
+<p><pre><code>#define ##BUILD_ADC</code></pre></p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -180,7 +233,7 @@ section</a> for more information about LTR.</p>
 <p>For the full list of modules that can be enabled or disabled
 via <i>platform_conf.h</i> check <a href="">##the
 eLua reference manual</a>.</p>
-<h2>Static configuration data</h2>
+<a name="static"><h2>Static configuration data</h2></a>
 <p>"Static configuration" reffers to the compile-time
 configuration. Static configuration parameters are hard-coded in the
 firmware image and can't be changed at run-time. The table below lists
@@ -193,28 +246,18 @@ the static configuration parameters and their semantics.
 <th style="text-align: center;">Meaning</th>
 </tr>
 <tr>
-<td style="color: rgb(255, 102, 0);">CON_UART_ID<br>
-CON_UART_SPEED</td>
+<td style="color: rgb(255, 102, 0);">CON_UART_ID<br>CON_UART_SPEED<br>CON_TIMER_ID<br></td>
 <td>Used to configure console input/output over UART. The
 specified UART id will be used for console input/output, at the
 specified speed. The data format is always 8N1 (8 data bits, no parity,
-1 stop bits) at this point.</td>
+1 stop bits) at this point. The specified timer ID will be used for the console subsystem. These
+variables are also used by the XMODEM and TERM implementations.</td>
 </tr>
 <tr>
-<td style="color: rgb(255, 102, 0);">XMODEM_TIMER_ID</td>
-<td>Defines the id of the timer used by XMODEM to handle
-timeouts (if XMODEM is enabled in the build). At this point, the XMODEM
-subsystem uses the same UART id as the one specified by CON_UART_ID.</td>
-</tr>
-<tr>
-<td style="color: rgb(255, 102, 0);">TERM_TIMER_ID<br>
-TERM_LINES<br>
-TERM_COLS<br>
-TERM_TIMEOUT<br>
+<td style="color: rgb(255, 102, 0);">TERM_LINES<br>TERM_COLS<br>TERM_TIMEOUT<br>
 </td>
 <td>Used to configure the ANSI terminal support (if enabled
-in the build). Used to specify (respectively): the timer id used by the
-"term" implementation to handle timeouts, the number of lines and
+in the build). Used to specify (respectively): the number of lines and
 columns of the ANSI terminal, and the ANSI input timeout (used as a
 inter-char timeout when a key sends more than one code to the ANSI
 subsystem, for example the up, down, left and right keys on a PC
@@ -249,7 +292,7 @@ name&gt;</i>). For example:
 <pre><code>#define PLATFORM_CPU_CONSTANTS\<br> _C( INT_GPIOA ),\<br> _C( INT_GPIOB ),\<br> _C( INT_GPIOC ),\<br> _C( INT_GPIOD ),\<br> _C( INT_GPIOE )<br></code></pre>
 After compilation, you can access these constants using <i>cpu.INT_GPIOx</i>.
 Note that the implementation of this feature needs virtually no RAM at
-all, so you can define as many constants as you want here. </td>
+all, so you can define as many constants as you want here. ##TODO: ADC!!</td>
 </tr>
 </tbody>
 </table>

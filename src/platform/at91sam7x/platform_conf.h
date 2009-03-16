@@ -21,8 +21,7 @@
 
 #define CON_UART_ID           0
 #define CON_UART_SPEED        115200
-#define XMODEM_TIMER_ID       0
-#define TERM_TIMER_ID         0
+#define CON_TIMER_ID          0
 #define TERM_LINES            25
 #define TERM_COLS             80
 #define TERM_TIMEOUT          100000

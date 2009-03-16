@@ -29,7 +29,7 @@ static void xmodem_send( u8 data )
 
 static int xmodem_recv( u32 timeout )
 {
-  return platform_uart_recv( CON_UART_ID, XMODEM_TIMER_ID, timeout );
+  return platform_uart_recv( CON_UART_ID, CON_TIMER_ID, timeout );
 }
 
 #endif // #ifdef BUILD_XMODEM
@@ -47,9 +47,9 @@ static void term_out( u8 data )
 static int term_in( int mode )
 {
   if( mode == TERM_INPUT_DONT_WAIT )
-    return platform_uart_recv( CON_UART_ID, TERM_TIMER_ID, 0 );
+    return platform_uart_recv( CON_UART_ID, CON_TIMER_ID, 0 );
   else
-    return platform_uart_recv( CON_UART_ID, TERM_TIMER_ID, PLATFORM_UART_INFINITE_TIMEOUT );
+    return platform_uart_recv( CON_UART_ID, CON_TIMER_ID, PLATFORM_UART_INFINITE_TIMEOUT );
 }
 
 static int term_translate( u8 data )
@@ -62,9 +62,9 @@ static int term_translate( u8 data )
   {
     // If we don't get a second char, we got a simple "ESC", so return KC_ESC
     // If we get a second char it must be '[', the next one is relevant for us
-    if( platform_uart_recv( CON_UART_ID, TERM_TIMER_ID, TERM_TIMEOUT ) == -1 )
+    if( platform_uart_recv( CON_UART_ID, CON_TIMER_ID, TERM_TIMEOUT ) == -1 )
       return KC_ESC;
-    if( ( c = platform_uart_recv( CON_UART_ID, TERM_TIMER_ID, TERM_TIMEOUT ) ) == -1 )
+    if( ( c = platform_uart_recv( CON_UART_ID, CON_TIMER_ID, TERM_TIMEOUT ) ) == -1 )
       return KC_UNKNOWN;
     switch( c )
     {
@@ -81,7 +81,7 @@ static int term_translate( u8 data )
   else if( data == 0x0D )
   {
     // CR/LF sequence, read the second char (LF) if applicable
-    platform_uart_recv( CON_UART_ID, TERM_TIMER_ID, TERM_TIMEOUT );
+    platform_uart_recv( CON_UART_ID, CON_TIMER_ID, TERM_TIMEOUT );
     return KC_ENTER;
   }
   else
