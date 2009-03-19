@@ -189,6 +189,9 @@ specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in spe
 </ul>
   If you want to take a look at a real life example of a <b>platform_conf.h</b> file, see for example <i>src/platform/lm3s/platform_conf.h</i>.
 </li>
+  <li><b>networking configuration</b>: if you need TCP/IP on your board, you need to add networking support to <b>eLua</b> (see <a href="building.html">
+  building</a> for a list of configuration options related to TCP/IP). You also need to have another file, called <b>uip-conf.h</b> that configures uIP
+  (the TCP/IP stack in <b>eLua</b>) for your specific architecture. See <a href="arch_tcpip.html">TCP/IP in eLua</a> for details.</li>
 </ul></p>
 <p>Besides the required files, the most common scenario is to include other platform specific files in your port:
 <ul>

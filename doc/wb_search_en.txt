@@ -4,6 +4,7 @@ en/dl_binaries.html
 en/arch_overview.html
 en/status.html
 en/arch_con_term.html
+en/arch_tcpip.html
 en/installing_lm3s.html
 en/tut_bootpc.html
 en/news.html
@@ -17,10 +18,10 @@ en/tutorials.html
 en/arch_coding.html
 en/tut_openocd.html
 en/refman.html
-en/doc.html
+en/arch_newport.html
 en/arch_romfs.html
 en/net_ref.html
-en/arch_newport.html
+en/tchainbuild.html
 en/arch_ltr.html
 en/installing_avr32.html
 en/installing_str7.html
@@ -32,10 +33,10 @@ en/versionhistory.html
 en/toolchains.html
 en/dl_old.html
 en/examples.html
-en/tchainbuild.html
-en/comunity.html
+en/doc.html
+en/arch.html
 en/installing_str9.html
 en/installing_stm32.html
-en/arch.html
+en/comunity.html
 en/installing_i386.html
 en/overview.html
