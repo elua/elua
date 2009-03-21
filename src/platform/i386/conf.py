@@ -9,7 +9,7 @@ ldscript = "src/platform/%s/%s" % ( platform, ldscript )
 
 # Toolset data
 tools[ 'i386' ] = {}
-tools[ 'i386' ][ 'cccom' ] = "%s %s %s -march=i386 -mfpmath=387 -m32 -ffunction-sections -fdata-sections -fno-builtin -fno-stack-protector %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], opt, local_include, cdefs )
+tools[ 'i386' ][ 'cccom' ] = "%s %s $_CPPINCFLAGS -march=i386 -mfpmath=387 -m32 -ffunction-sections -fdata-sections -fno-builtin -fno-stack-protector %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], opt, cdefs )
 tools[ 'i386' ][ 'linkcom' ] = "%s -nostartfiles -nostdlib -march=i386 -mfpmath=387 -m32 -T %s -Wl,--gc-sections -Wl,-e,start -Wl,--allow-multiple-definition -o $TARGET $SOURCES -lc -lgcc -lm %s" % ( toolset[ 'compile' ], ldscript, local_libs )
 tools[ 'i386' ][ 'ascom' ] = "%s -felf $SOURCE" % toolset[ 'asm' ]
 

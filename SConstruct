@@ -94,20 +94,21 @@ romfs = { 'bisect' : [ 'bisect.lua' ],
           'morse' : [ 'morse.lua' ],
           'dualpwm' : [ 'dualpwm.lua' ],
           'adcscope' : [ 'adcscope.lua' ],
+          'adcpoll' : [ 'adcpoll.lua' ],
           'life' : [ 'life.lua' ]
         }
 
 # List of board/romfs data combinations
 file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'info', 'morse' ],
-              'EK-LM3S8962' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope' ],
-              'EK-LM3S6965' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope' ],
+              'EK-LM3S8962' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope','adcpoll' ],
+              'EK-LM3S6965' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope','adcpoll' ],
               'STR9-COMSTICK' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
               'PC' : [ 'bisect', 'hello', 'info', 'life' ],
               'LPC-H2888' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
               'MOD711' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'dualpwm' ],
               'STM3210E-EVAL' : [ 'bisect', 'hello', 'info' ],
               'ATEVK1100' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
-              'ET-STM32' : [ 'hello', 'hangman', 'info', 'bisect' ],
+              'ET-STM32' : [ 'hello', 'hangman', 'info', 'bisect','adcscope','adcpoll' ],
               'EAGLE-100' : [ 'bisect', 'hangman', 'lhttpd', 'led', 'hello', 'info' ]              
             }
 
@@ -208,13 +209,14 @@ lua_files = """lapi.c lcode.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c
    ldblib.c liolib.c lmathlib.c loslib.c ltablib.c lstrlib.c loadlib.c linit.c lua.c lrotable.c"""
 if target == 'lualong' or target == 'lua':
   lua_full_files = " " + " ".join( [ "src/lua/%s" % name for name in lua_files.split() ] )
-  local_include = "-Iinc -Iinc/newlib -Isrc/lua"
+  local_include = ['inc', 'inc/newlib', 'src/lua']
   if target == 'lualong':
     cdefs = cdefs + ' -DLUA_NUMBER_INTEGRAL'
 else:
   print "Invalid target", target
   sys.exit( 1 )
-local_include = local_include + " -Isrc/modules -Isrc/platform/%s" % platform
+
+local_include += ['src/modules', 'src/platform/%s' % platform]
 cdefs = cdefs + " -DLUA_OPTIMIZE_MEMORY=%d" % ( optram != 0 and 2 or 0 )
 
 # Additional libraries
@@ -229,7 +231,7 @@ newlib_files = " src/newlib/devman.c src/newlib/stubs.c src/newlib/genstd.c src/
 # UIP files
 uip_files = "uip_arp.c uip.c uiplib.c dhcpc.c psock.c resolv.c"
 uip_files = " src/elua_uip.c " + " ".join( [ "src/uip/%s" % name for name in uip_files.split() ] )
-local_include = local_include + " -Isrc/uip"
+local_include += ['src/uip']
 
 # Lua module files
 module_names = "pio.c spi.c tmr.c pd.c uart.c term.c pwm.c lpack.c bit.c net.c cpu.c adc.c"
@@ -266,10 +268,11 @@ comp = Environment( CCCOM = tools[ platform ][ 'cccom' ],
                     LINKCOM = tools[ platform ][ 'linkcom' ],
                     OBJSUFFIX = ".o",
                     PROGSUFFIX = ".elf",
+                    CPPPATH = local_include,
                     ENV = os.environ )
 # comp.TargetSignatures( 'content' )
 # comp.SourceSignatures( 'MD5' )
-Default( comp.Program( output, Split( source_files ) ) )
+Default( comp.Program( target = output, source = Split( source_files ) ) )
 Decider( 'MD5' )
 
 # Programming target

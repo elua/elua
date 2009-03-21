@@ -64,7 +64,7 @@ typedef struct
                            ((MODE) == ADC_Mode_SlowInterl) || \
                            ((MODE) == ADC_Mode_AlterTrig))
 
-/* ADC extrenal trigger sources for regular channels conversion --------------*/
+/* ADC external trigger sources for regular channels conversion --------------*/
 /* for ADC1 and ADC2 */
 #define ADC_ExternalTrigConv_T1_CC1                ((u32)0x00000000)
 #define ADC_ExternalTrigConv_T1_CC2                ((u32)0x00020000)

@@ -113,24 +113,23 @@ static int adc_sample( lua_State* L )
       id = luaL_checkinteger( L, -1 );
       MOD_CHECK_ID( adc, id );
       
-      res = platform_adc_prepchannel( id, intlog2( count ) );
+      res = adc_setup_channel( id, intlog2( count ) );
       if ( res != PLATFORM_OK )
         return luaL_error( L, "sampling setup failed" );
     }
     // Initiate sampling
-    for( i = -1; i >= -nchans; i-- )
-      platform_adc_startchannel( luaL_checkinteger( L, i ) );
+    platform_adc_start_sequence();
   }
   else if ( lua_isnumber( L, 1 ) == 1 )
   {
     id = luaL_checkinteger( L, 1 );
     MOD_CHECK_ID( adc, id );
     
-    res = platform_adc_prepchannel( id, intlog2( count ) );
+    res = adc_setup_channel( id, intlog2( count ) );
     if ( res != PLATFORM_OK )
       return luaL_error( L, "sampling setup failed" );
     
-    platform_adc_startchannel( id );
+    platform_adc_start_sequence();
   }
   else
   {

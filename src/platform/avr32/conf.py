@@ -11,9 +11,9 @@ ldscript = "src/platform/%s/%s" % ( platform, ldscript )
 
 # Toolset data
 tools[ 'avr32' ] = {}
-tools[ 'avr32' ][ 'cccom' ] = "%s -mpart=uc3a0512 %s %s -ffunction-sections -fdata-sections %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], opt, local_include, cdefs )
+tools[ 'avr32' ][ 'cccom' ] = "%s -mpart=uc3a0512 %s $_CPPINCFLAGS -ffunction-sections -fdata-sections %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], opt, cdefs )
 tools[ 'avr32' ][ 'linkcom' ] = "%s -nostartfiles -nostdlib -T %s -Wl,--gc-sections -Wl,-e,crt0 -Wl,--allow-multiple-definition -o $TARGET $SOURCES -lc -lgcc -lm %s" % ( toolset[ 'compile' ], ldscript, local_libs )
-tools[ 'avr32' ][ 'ascom' ] = "%s -x assembler-with-cpp %s -mpart=uc3a0512 %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], local_include, cdefs )
+tools[ 'avr32' ][ 'ascom' ] = "%s -x assembler-with-cpp $_CPPINCFLAGS -mpart=uc3a0512 %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], cdefs )
 
 # Programming function
 def progfunc_avr32( target, source, env ):

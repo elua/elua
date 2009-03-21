@@ -24,9 +24,9 @@ ldscript = "src/platform/%s/%s" % ( platform, ldscript )
 
 # Toolset data
 tools[ 'str7' ] = {}
-tools[ 'str7' ][ 'cccom' ] = "%s -mcpu=arm7tdmi %s %s %s -ffunction-sections -fdata-sections %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], modeflag, opt, local_include, cdefs )
+tools[ 'str7' ][ 'cccom' ] = "%s -mcpu=arm7tdmi %s %s $_CPPINCFLAGS -ffunction-sections -fdata-sections %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], modeflag, opt, cdefs )
 tools[ 'str7' ][ 'linkcom' ] = "%s -nostartfiles -nostdlib %s -T %s -Wl,--gc-sections -Wl,-e,entry -Wl,--allow-multiple-definition -o $TARGET $SOURCES %s -lc -lgcc -lm" % ( toolset[ 'compile' ], modeflag, ldscript, local_libs )
-tools[ 'str7' ][ 'ascom' ] = "%s -x assembler-with-cpp %s -mcpu=arm7tdmi %s %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], local_include, modeflag, cdefs )
+tools[ 'str7' ][ 'ascom' ] = "%s -x assembler-with-cpp $_CPPINCFLAGS -mcpu=arm7tdmi %s %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], modeflag, cdefs )
 
 # Programming function for LPC2888
 def progfunc_str7( target, source, env ):

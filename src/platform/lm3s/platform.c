@@ -523,134 +523,159 @@ int platform_adc_check_timer_id( unsigned id, unsigned timer_id )
 
 void platform_adc_stop( unsigned id )
 {
-  elua_adc_state *s = adc_get_ch_state( id );
-  ADCSequenceDisable( ADC_BASE, s->id );
+  elua_adc_ch_state *s = adc_get_ch_state( id );
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  
   s->op_pending = 0;
+  INACTIVATE_CHANNEL(d, id);
+  
+  // If there are no more active channels, stop the sequencer
+  if( d->ch_active == 0 )
+  {
+    ADCSequenceDisable( ADC_BASE, d->seq_id );
+    d->running = 0;
+  }
 }
 
 // Handle ADC interrupts
 void ADCIntHandler( void )
 {
-  unsigned long rawSample;
-  unsigned id;
-    
-  // Check each sequence for a pending sample
-  for( id = 0; id < NUM_ADC; id ++ )
+  u32 tmpbuff[ NUM_ADC ];
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  elua_adc_ch_state *s;
+
+  ADCIntClear( ADC_BASE, d->seq_id );
+  ADCSequenceDataGet( ADC_BASE, d->seq_id, tmpbuff );
+  
+  d->seq_ctr = 0;
+  
+  // Update smoothing and/or write to buffer if needed
+  while( d->seq_ctr < d->seq_len )
   {
-    // Check if current sequence/channel is one that has had an interrupt fire
-    if( ADCIntStatus(ADC_BASE, id, false) )
-    { 
-      elua_adc_state *s = adc_get_ch_state( id );
-      
-      // Clear Interrupt & Get Sample
-      ADCIntClear(ADC_BASE, id);
-      ADCSequenceDataGet(ADC_BASE, id, &rawSample);
-      
-      // Write sample to buffer
-      buf_write( BUF_ID_ADC, id, ( t_buf_data* )&rawSample);
-      
-      // Fill in smoothing buffer until warmed up
-      if ( s->logsmoothlen > 0 && s->smooth_ready == 0)
-        adc_smooth_data( id );
-      
-      // If we have the number of requested samples, stop sampling
-      if ( buf_get_count( BUF_ID_ADC, id ) >= s->reqsamples && s->freerunning == 0 )
-      {
-        platform_adc_stop( id );
-      } 
-      else if ( s->clocked == 0 )
-      {
-        // Need to manually fire off sample request in single sample mode
-        ADCProcessorTrigger( ADC_BASE, id );
-      } 
-    }
+    s = d->ch_state[ d->seq_ctr ];
+    d->sample_buf[ d->seq_ctr ] = ( u16 )tmpbuff[ d->seq_ctr ];
+    
+    // Fill in smoothing buffer until warmed up
+    if ( s->logsmoothlen > 0 && s->smooth_ready == 0)
+      adc_smooth_data( s->id );
+#if defined( BUF_ENABLE_ADC )
+    else
+      buf_write( BUF_ID_ADC, s->id, ( t_buf_data* )s->value_ptr );
+#endif
+
+    // If we have the number of requested samples, stop sampling
+    if ( adc_samples_available( s->id ) >= s->reqsamples && s->freerunning == 0 )
+      platform_adc_stop( s->id );
+    
+    d->seq_ctr++;
+  }
+  d->seq_ctr = 0;
+  
+  // Only attempt to refresh sequence order if still running
+  // This allows us to "cache" an old sequence if all channels
+  // finish at the same time
+  if ( d->running == 1 )
+    adc_update_dev_sequence( 0 );
+  
+  if ( d->clocked == 0 && d->running == 1 )
+  {
+    // Need to manually fire off sample request in single sample mode
+    ADCProcessorTrigger( ADC_BASE, d->seq_id );
   }
 }
 
 static void adcs_init()
 {
   unsigned id;
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
   
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC);
-
+	
+	// Try ramping up max sampling rate
+  SysCtlADCSpeedSet(SYSCTL_ADCSPEED_500KSPS);
+  SysCtlADCSpeedSet(SYSCTL_ADCSPEED_1MSPS);
+  
 	for( id = 0; id < NUM_ADC; id ++ )
 	{
-    // Init ADC State Struct
-    adc_init_state( id );
-	  
-    ADCIntEnable(ADC_BASE, id);
-    IntEnable(adc_ints[id]);
+    adc_init_ch_state( id );
 	}
+	
+  // Perform sequencer setup
+  platform_adc_setclock( 0, 0 );
+	ADCIntEnable( ADC_BASE, d->seq_id );
+  IntEnable( adc_ints[ d->seq_id ] );
 }
 
-u32 platform_adc_setclock( unsigned id, u32 frequency)
+u32 platform_adc_setclock( unsigned id, u32 frequency )
 {
-  elua_adc_state *s = adc_get_ch_state( id );
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
   
   // Make sure sequencer is disabled before making changes
-  ADCSequenceDisable( ADC_BASE, id );
+  ADCSequenceDisable( ADC_BASE, d->seq_id );
   
   if ( frequency > 0 )
   {
+    d->clocked = 1;
     // Set sequence id to be triggered repeatedly, with priority id
-    ADCSequenceConfigure( ADC_BASE, id, ADC_TRIGGER_TIMER, id );
+    ADCSequenceConfigure( ADC_BASE, d->seq_id, ADC_TRIGGER_TIMER, d->seq_id );
 
     // Set up timer trigger
-    TimerLoadSet(timer_base[s->timer_id], TIMER_A, SysCtlClockGet() / frequency);
-    s->clocked = 1;
-    frequency = SysCtlClockGet() / TimerLoadGet(timer_base[s->timer_id], TIMER_A);
+    TimerLoadSet( timer_base[ d->timer_id ], TIMER_A, SysCtlClockGet() / frequency );
+    frequency = SysCtlClockGet() / TimerLoadGet( timer_base[ d->timer_id ], TIMER_A );
   }
   else
   {
+    d->clocked = 0;
     // Conversion will run back-to-back until required samples are acquired
-    ADCSequenceConfigure( ADC_BASE, id, ADC_TRIGGER_PROCESSOR, id ) ;
-    s->clocked = 0;
+    ADCSequenceConfigure( ADC_BASE, d->seq_id, ADC_TRIGGER_PROCESSOR, d->seq_id ) ;
   }
-  
-  // Samples go into sequencer of the same number as input channel
-  ADCSequenceStepConfigure( ADC_BASE, id, 0, ADC_CTL_IE | ADC_CTL_END | adc_ctls[id] );
-  
+    
   return frequency;
 }
-
-int platform_adc_prepchannel( unsigned id, u8 logcount )
-{
-  elua_adc_state *s = adc_get_ch_state( id );
-  int res;
+int platform_adc_update_sequence( )
+{  
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
   
-  ADCSequenceDisable( ADC_BASE, id );
+  ADCSequenceDisable( ADC_BASE, d->seq_id );
   
-  if( ( (u16) 1 << logcount ) > buf_get_size( BUF_ID_ADC, id ) )
-  {   
-    res = buf_set( BUF_ID_ADC, id, logcount, BUF_DSIZE_U16 );
-    if ( res != PLATFORM_OK )
-      return res;
-    buf_flush( BUF_ID_ADC, id );
+  // NOTE: seq ctr should have an incrementer that will wrap appropriately..
+  d->seq_ctr = 0; 
+  while( d->seq_ctr < d->seq_len-1 )
+  {
+    ADCSequenceStepConfigure( ADC_BASE, d->seq_id, d->seq_ctr, adc_ctls[ d->ch_state[ d->seq_ctr ]->id ] );
+    d->seq_ctr++;
   }
+  ADCSequenceStepConfigure( ADC_BASE, d->seq_id, d->seq_ctr, ADC_CTL_IE | ADC_CTL_END | adc_ctls[ d->ch_state[ d->seq_ctr ]->id ] );
+  d->seq_ctr = 0;
   
-  s->op_pending = 1;
-  s->reqsamples = (u16) 1 << logcount;
-  
-  // Enable Sequence
-  ADCSequenceEnable( ADC_BASE, id );
-    
+  ADCSequenceEnable( ADC_BASE, d->seq_id );
+      
   return PLATFORM_OK;
 }
 
-int platform_adc_startchannel( unsigned id )
-{
-  elua_adc_state *s = adc_get_ch_state( id );
-  
-  if( s->clocked == 1 )
-  {
-    TimerControlTrigger(timer_base[s->timer_id], TIMER_A, true);
-    TimerEnable(timer_base[s->timer_id], TIMER_A);
-  }
-  else
-  {
-    ADCProcessorTrigger( ADC_BASE, id );
-  }
 
+int platform_adc_start_sequence()
+{ 
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  
+  if( d->running != 1 )
+  {
+    adc_update_dev_sequence( 0 );
+
+    ADCSequenceEnable( ADC_BASE, d->seq_id );
+    d->running = 1;
+
+    if( d->clocked == 1 )
+    {
+      TimerControlTrigger(timer_base[d->timer_id], TIMER_A, true);
+      TimerEnable(timer_base[d->timer_id], TIMER_A);
+    }
+    else
+    {
+      ADCProcessorTrigger( ADC_BASE, d->seq_id );
+    }
+  }
+  
   return PLATFORM_OK;
 }
 

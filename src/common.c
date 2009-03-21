@@ -272,7 +272,8 @@ int platform_adc_exists( unsigned id )
 
 u32 platform_adc_op( unsigned id, int op, u32 data )
 {  
-  elua_adc_state *s = adc_get_ch_state( id );
+  elua_adc_ch_state *s = adc_get_ch_state( id );
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
   u32 res = 0;
 
   switch( op )
@@ -294,8 +295,10 @@ u32 platform_adc_op( unsigned id, int op, u32 data )
       break;
     
     case PLATFORM_ADC_OP_SET_TIMER:
+      if ( d->timer_id != data )
+        d->running = 0;
       platform_adc_stop( id );
-      s->timer_id = data;
+      d->timer_id = data;
       break;
     
     case PLATFORM_ADC_OP_SET_CLOCK:

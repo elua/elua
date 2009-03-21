@@ -1,5 +1,12 @@
-adcchannels = {0, 1, 2, 3}
-adcsmoothing = {4, 16, 64, 128}
+if pd.board() == "ET-STM32" then
+  adcchannels = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}
+  adcsmoothing = {4, 4, 4, 4, 16, 16, 16, 16, 32, 32, 32, 32, 64, 128, 64, 128}
+  numiter = 50
+else
+  adcchannels = {0,1,2,3}
+  adcsmoothing = {4, 16, 64, 128}
+  numiter = 200
+end
 
 for i, v in ipairs(adcchannels) do
   adc.setblocking(v,1)
@@ -27,28 +34,24 @@ local i, v
 tmr.start(0)
 
 while true do
-  ctr = ctr + 1
-  
   stime = tread(0)
-  sample(adcchannels, 1)
-  for i, v in ipairs(adcchannels) do
-    adcvals[i] = getsample(v)
+  for j=1,numiter do 
+    sample(adcchannels, 1)
+    for i, v in ipairs(adcchannels) do
+      adcvals[i] = getsample(v)
+    end
   end
   etime = tread(0)
-  dtime = tmr.diff(0,etime,stime)
+  dtime = tmr.diff(0,etime,stime)/numiter
   
-  if ( ctr == 100 ) then
-    ctr = 0
-    term.gotoxy(1,4)
-    for i, v in ipairs(adcchannels) do
-      term.putstr(string.format("ADC%d (%03d): %04d\n", v, adcsmoothing[i],adcvals[i]))
-      term.gotoxy(1,i+4)
-    end
-    term.putstr(string.format("Tcyc: %06d (us)\n",dtime))
-    
-    key = term.getch( term.NOWAIT )
-    if key == term.KC_ESC then break end
+  term.gotoxy(1,4)
+  for i, v in ipairs(adcchannels) do
+    term.putstr(string.format("ADC%d (%03d): %04d\n", v, adcsmoothing[i],adcvals[i]))
+    term.gotoxy(1,i+4)
   end
+  term.putstr(string.format("Tcyc: %06d (us)\n",dtime))
+  
+  key = term.getch( term.NOWAIT )
   if key == term.KC_ESC then break end
 end
 

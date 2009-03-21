@@ -30,9 +30,9 @@ ldscript = "src/platform/%s/%s" % ( platform, ldscript )
 
 # Toolset data
 tools[ 'at91sam7x' ] = {}
-tools[ 'at91sam7x' ][ 'cccom' ] = "%s -mcpu=arm7tdmi %s %s %s -ffunction-sections -fdata-sections %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], modeflag, opt, local_include, cdefs )
+tools[ 'at91sam7x' ][ 'cccom' ] = "%s -mcpu=arm7tdmi %s %s $_CPPINCFLAGS -ffunction-sections -fdata-sections %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], modeflag, opt, cdefs )
 tools[ 'at91sam7x' ][ 'linkcom' ] = "%s -nostartfiles -nostdlib %s -T %s -Wl,--gc-sections -Wl,-e,entry -Wl,--allow-multiple-definition -o $TARGET $SOURCES %s -lc -lgcc -lm" % ( toolset[ 'compile' ], modeflag, ldscript, local_libs )
-tools[ 'at91sam7x' ][ 'ascom' ] = "%s -x assembler-with-cpp %s -mcpu=arm7tdmi %s %s -D__ASSEMBLY__ -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], local_include, modeflag, cdefs )
+tools[ 'at91sam7x' ][ 'ascom' ] = "%s -x assembler-with-cpp $_CPPINCFLAGS -mcpu=arm7tdmi %s %s -D__ASSEMBLY__ -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], modeflag, cdefs )
 
 # Programming function for LPC2888
 def progfunc_at91sam7x( target, source, env ):

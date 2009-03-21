@@ -23,9 +23,9 @@ cdefs = cdefs + " -DFOR" + cputype + " -Dgcc"
 
 # Toolset data
 tools[ 'lm3s' ] = {}
-tools[ 'lm3s' ][ 'cccom' ] = "%s -mcpu=cortex-m3 -mthumb  %s %s -ffunction-sections -fdata-sections %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], opt, local_include, cdefs )
+tools[ 'lm3s' ][ 'cccom' ] = "%s -mcpu=cortex-m3 -mthumb %s $_CPPINCFLAGS -ffunction-sections -fdata-sections %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], opt, cdefs )
 tools[ 'lm3s' ][ 'linkcom' ] = "%s -mthumb -mcpu=cortex-m3 -nostartfiles -T %s %s -Wl,--gc-sections -Wl,-e,ResetISR -Wl,--allow-multiple-definition -o $TARGET $SOURCES -lm %s" % ( toolset[ 'compile' ], ldscript, linkopts, local_libs )
-tools[ 'lm3s' ][ 'ascom' ] = "%s -x assembler-with-cpp %s -mcpu=cortex-m3 -mthumb %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], local_include, cdefs )
+tools[ 'lm3s' ][ 'ascom' ] = "%s -x assembler-with-cpp $_CPPINCFLAGS -mcpu=cortex-m3 -mthumb %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ],  cdefs )
 
 # Programming function
 def progfunc_lm3s( target, source, env ):

@@ -19,6 +19,7 @@
 //#define BUILD_DHCPC
 //#define BUILD_DNS
 #define BUILD_CON_GENERIC
+#define BUILD_ADC
 //#define BUILD_CON_TCP
 
 // *****************************************************************************
@@ -51,6 +52,7 @@ LUALIB_API int ( luaopen_lcd )( lua_State* L );
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
   _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
+  _ROM( AUXLIB_ADC, luaopen_adc, adc_map )\
   LCDLINE\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
 
@@ -91,7 +93,17 @@ LUALIB_API int ( luaopen_lcd )( lua_State* L );
 #define NUM_UART              5
 #define NUM_TIMER             6
 #define NUM_PWM               0
-#define NUM_ADC               0
+#define NUM_ADC               16
+
+// ADC Configuration Params
+#define ADC_BIT_RESOLUTION    12
+#define BUF_ENABLE_ADC
+#define ADC_BUF_SIZE          BUF_SIZE_2
+
+// These should be adjusted to support multiple ADC devices
+#define ADC_TIMER_FIRST_ID    0
+#define ADC_NUM_TIMERS        4
+
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 u32 platform_s_cpu_get_frequency();

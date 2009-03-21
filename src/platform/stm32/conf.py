@@ -3,7 +3,7 @@ import fnmatch
 import glob
 import os
 
-local_include = local_include + " -Isrc/platform/%s/FWLib/library/inc" % platform
+local_include +=  ['src/platform/%s/FWLib/library/inc' % platform]
 
 fwlib_files = " ".join(glob.glob("src/platform/%s/FWLib/library/src/*.c" % platform))
 #print "FWLib: %s " % fwlib_files 
@@ -23,9 +23,9 @@ cdefs = cdefs + " -Dgcc"
 
 # Toolset data
 tools[ 'stm32' ] = {}
-tools[ 'stm32' ][ 'cccom' ] = "%s -mcpu=cortex-m3 -mthumb -mlittle-endian %s %s -ffunction-sections -fdata-sections -fno-strict-aliasing %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], opt, local_include, cdefs )
+tools[ 'stm32' ][ 'cccom' ] = "%s -mcpu=cortex-m3 -mthumb -mlittle-endian %s $_CPPINCFLAGS -ffunction-sections -fdata-sections -fno-strict-aliasing %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], opt, cdefs )
 tools[ 'stm32' ][ 'linkcom' ] = "%s -mcpu=cortex-m3 -mthumb -Wl,-T -Xlinker %s -u _start -Wl,-e,Reset_Handler -Wl,-static -Wl,--gc-sections -nostartfiles -nostdlib -Wl,--allow-multiple-definition -o $TARGET $SOURCES -lc -lgcc -lm %s" % ( toolset[ 'compile' ], ldscript, local_libs )
-tools[ 'stm32' ][ 'ascom' ] = "%s -x assembler-with-cpp %s -mcpu=cortex-m3 -mthumb %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], local_include, cdefs )
+tools[ 'stm32' ][ 'ascom' ] = "%s -x assembler-with-cpp $_CPPINCFLAGS -mcpu=cortex-m3 -mthumb %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], cdefs )
 
 # Programming function
 def progfunc_stm32( target, source, env ):

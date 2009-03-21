@@ -11,39 +11,125 @@
 #define SMOOTH_REALSIZE( s ) ( ( u16 )1 << ( s->logsmoothlen ) )
 
 // Primary set of pointers to channel states
-elua_adc_state adc_state[ NUM_ADC ];
+elua_adc_ch_state adc_ch_state[ NUM_ADC ];
+elua_adc_dev_state  adc_dev_state;
 
-elua_adc_state *adc_get_ch_state( unsigned id )
+elua_adc_ch_state *adc_get_ch_state( unsigned id )
 {
-  return &adc_state[ id ];
+  return &adc_ch_state[ id ];
+}
+
+elua_adc_dev_state *adc_get_dev_state( unsigned dev_id )
+{
+  return &adc_dev_state;
+}
+
+// Rewrite
+void adc_update_dev_sequence( unsigned dev_id  )
+{
+  elua_adc_dev_state *d = adc_get_dev_state( dev_id );
+  elua_adc_ch_state *s;
+  unsigned id;
+  
+  if( d->ch_active != d->last_ch_active || d->force_reseq == 1 )
+  {
+    platform_cpu_disable_interrupts();
+    // Update channel sequence
+    d->seq_ctr = 0;
+    for( id = 0; id < NUM_ADC; id ++ )
+  	{
+  	  if ( ( d->ch_active & ( ( u32 )1 << ( id ) ) ) > 0 )
+  	  {
+  	    s = adc_get_ch_state( id );
+        d->ch_state[ d->seq_ctr ] = s;
+        s->value_ptr = &( d->sample_buf[ d->seq_ctr ] );
+        d->seq_ctr++;
+  	  }
+    }
+    d->seq_len = d->seq_ctr;
+
+    // Null out remainder of sequence
+    while( d->seq_ctr < NUM_ADC )
+      d->ch_state[ d->seq_ctr++ ] = NULL;
+
+    d->seq_ctr = 0;
+
+    // Sync up hardware
+    platform_adc_update_sequence();
+    
+    d->last_ch_active = d->ch_active;
+    d->seq_ctr = 0;
+    d->force_reseq = 0;
+    platform_cpu_enable_interrupts();
+  }
+}
+
+int adc_setup_channel( unsigned id, u8 logcount )
+{
+  elua_adc_ch_state *s = adc_get_ch_state( id );
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  int res;
+  
+  platform_cpu_disable_interrupts();
+  if( ( (u16) 1 << logcount ) != buf_get_size( BUF_ID_ADC, id ) )
+  {   
+    res = buf_set( BUF_ID_ADC, id, logcount, BUF_DSIZE_U16 );
+    if ( res != PLATFORM_OK )
+      return res;
+    buf_flush( BUF_ID_ADC, id );
+  }
+  
+  s->reqsamples = (u16) 1 << logcount;
+  s->op_pending = 1;
+  
+  ACTIVATE_CHANNEL( d, id );
+  platform_cpu_enable_interrupts();
+  
+  return PLATFORM_OK;
 }
 
 // Initialize Configuration and Buffers
-void adc_init_state( unsigned id )
+void adc_init_ch_state( unsigned id )
 {
-  elua_adc_state *s = adc_get_ch_state( id );
+  elua_adc_ch_state *s = adc_get_ch_state( id );
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  
+  // point to channel on device, mark as not active
+  
+  INACTIVATE_CHANNEL(d, id);
   
   // Initialize Configuration
   s->op_pending = 0;
   s->blocking = 1;
-  s->clocked = 0;
   s->smooth_ready = 0;
   s->reqsamples = 0;
   s->freerunning = 0;
   
   s->id = id;
-  s->timer_id = 0;
   s->logsmoothlen = 0;
   s->smoothidx = 0;
   
   // Data Configuration
   s->smoothsum = 0;
-  
+
+#if defined( BUF_ENABLE_ADC )  
   // Buffer initialization
   buf_set( BUF_ID_ADC, id, ADC_BUF_SIZE, BUF_DSIZE_U16 );
-  
+#endif
+
   // Set to run as fast as possible
   platform_adc_setclock( id, 0 );
+}
+
+void adc_init_dev_state( unsigned dev_id )
+{
+  elua_adc_dev_state *d = adc_get_dev_state( dev_id );
+	d->seq_id = 0;
+  d->running = 0;
+  d->ch_active = 0;
+  d->last_ch_active = 0;
+  d->force_reseq = 0;
+  d->skip_cycle = 0;
 }
 
 // Update smoothing buffer length
@@ -52,7 +138,7 @@ void adc_init_state( unsigned id )
 // re-initialize buffers so that they are ready for new data.
 int adc_update_smoothing( unsigned id, u8 loglen ) 
 {
-  elua_adc_state *s = adc_get_ch_state( id );
+  elua_adc_ch_state *s = adc_get_ch_state( id );
   
   // Stop sampling if still running
   if ( s->op_pending == 1 )
@@ -77,7 +163,10 @@ int adc_update_smoothing( unsigned id, u8 loglen )
 
   // Even if buffer isn't actually reconfigured, flush contents
   adc_flush_smoothing( id );
+
+#if defined( BUF_ENABLE_ADC )
   buf_flush( BUF_ID_ADC, id );
+#endif
 
   return PLATFORM_OK;
 }
@@ -87,7 +176,7 @@ int adc_update_smoothing( unsigned id, u8 loglen )
 // sum and add new sample to sum.
 void adc_smooth_data( unsigned id )
 {
-  elua_adc_state *s = adc_get_ch_state( id );
+  elua_adc_ch_state *s = adc_get_ch_state( id );
   u16 sample;
   
   if( s->smoothidx == SMOOTH_REALSIZE( s ) )
@@ -100,7 +189,14 @@ void adc_smooth_data( unsigned id )
   s->smoothsum -= s->smoothbuf[ s->smoothidx ];
 
   // Replace Oldest Value in Buffer
-  buf_read( BUF_ID_ADC, id, ( t_buf_data* )&sample );
+#if defined( BUF_ENABLE_ADC )
+  if ( s->smooth_ready == 1 )
+    buf_read( BUF_ID_ADC, id, ( t_buf_data* )&sample );
+  else
+    sample = *( s->value_ptr );
+#else
+  sample = *( s->value_ptr );
+#endif
   s->smoothbuf[ s->smoothidx ] = sample;
 
   // Add New Sample to Sum
@@ -125,10 +221,10 @@ void adc_smooth_data( unsigned id )
 //  return 0
 u16 adc_get_processed_sample( unsigned id )
 {
-  elua_adc_state *s = adc_get_ch_state( id );
+  elua_adc_ch_state *s = adc_get_ch_state( id );
   u16 sample = 0;
 
-  if ( buf_get_count( BUF_ID_ADC, id ) > 0 )
+  if ( adc_samples_available( id ) > 0 )
   {
     if ( ( s->logsmoothlen > 0)  && ( s->smooth_ready == 1 ) )
     {
@@ -141,8 +237,11 @@ u16 adc_get_processed_sample( unsigned id )
     }
     else if ( s->logsmoothlen == 0 )
     {
+#if defined( BUF_ENABLE_ADC )
       buf_read( BUF_ID_ADC, id, ( t_buf_data* )&sample );
-
+#else
+      sample = *( s->value_ptr );
+#endif
       if ( s->reqsamples > 0)
         s->reqsamples -- ;
     }
@@ -153,7 +252,7 @@ u16 adc_get_processed_sample( unsigned id )
 // Zero out and reset smoothing buffer
 void adc_flush_smoothing( unsigned id )
 {
-  elua_adc_state *s = adc_get_ch_state( id );
+  elua_adc_ch_state *s = adc_get_ch_state( id );
   u16 i = 0;
   
   s->smoothidx = 0;
@@ -169,25 +268,29 @@ void adc_flush_smoothing( unsigned id )
 // Number of samples requested that have not yet been removed from the buffer
 u16 adc_samples_requested( unsigned id )
 {
-  elua_adc_state *s = adc_get_ch_state( id );
+  elua_adc_ch_state *s = adc_get_ch_state( id );
   return s->reqsamples;
 }
 
 // Return count of available samples in the buffer
 u16 adc_samples_available( unsigned id ) 
 {
+#if defined( BUF_ENABLE_ADC )
   return ( u16 ) buf_get_count( BUF_ID_ADC, id );
+#else
+  return 1; // FIXME: should keep track of whether single sample is fresh
+#endif
 }
 
 // If blocking is enabled, wait until we have enough samples or the current
 //  sampling event has finished
 void adc_wait_samples( unsigned id, unsigned samples )
 {
-  elua_adc_state *s = adc_get_ch_state( id );
+  elua_adc_ch_state *s = adc_get_ch_state( id );
   
-  if( buf_get_count( BUF_ID_ADC, id ) < samples && s->blocking == 1 )
+  if( adc_samples_available( id ) < samples && s->blocking == 1 )
   {
-    while( s->op_pending == 1 && buf_get_count( BUF_ID_ADC, id ) < samples ) { ; }
+    while( s->op_pending == 1 && adc_samples_available( id ) < samples ) { ; }
   }
 }
 

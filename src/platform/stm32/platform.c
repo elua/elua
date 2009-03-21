@@ -11,9 +11,11 @@
 #include <stdio.h>
 #include "uip_arp.h"
 #include "elua_uip.h"
+#include "elua_adc.h"
 #include "uip-conf.h"
 #include "platform_conf.h"
 #include "common.h"
+#include "buf.h"
 
 // Platform specific includes
 #include "stm32f10x_lib.h"
@@ -24,6 +26,7 @@
 #include "stm32f10x_nvic.h"
 #include "stm32f10x_dbgmcu.h"
 #include "stm32f10x_gpio.h"
+#include "stm32f10x_adc.h"
 #include "stm32f10x_pwr.h"
 #include "stm32f10x_usart.h"
 #include "stm32f10x_spi.h"
@@ -48,6 +51,7 @@ static void NVIC_Configuration(void);
 static void timers_init();
 static void uarts_init();
 static void pios_init();
+static void adcs_init();
 
 int platform_init()
 {
@@ -68,6 +72,9 @@ int platform_init()
   
   // Setup timers
   timers_init();
+  
+  // Setup ADCs
+  adcs_init();
 
   cmn_platform_init();
 
@@ -150,6 +157,9 @@ static void RCC_Configuration(void)
 * Output         : None
 * Return         : None
 *******************************************************************************/
+
+NVIC_InitTypeDef nvic_init_structure;
+
 static void NVIC_Configuration(void)
 {
   NVIC_DeInit();
@@ -167,6 +177,14 @@ static void NVIC_Configuration(void)
 
   /* Configure the SysTick handler priority */
   NVIC_SystemHandlerPriorityConfig(SystemHandler_SysTick, 0, 0);
+
+#ifdef BUILD_ADC  
+  nvic_init_structure.NVIC_IRQChannel = DMA1_Channel1_IRQChannel; 
+  nvic_init_structure.NVIC_IRQChannelPreemptionPriority = 1; 
+  nvic_init_structure.NVIC_IRQChannelSubPriority = 3; 
+  nvic_init_structure.NVIC_IRQChannelCmd = DISABLE; 
+  NVIC_Init(&nvic_init_structure);
+#endif
 }
 
 // ****************************************************************************
@@ -450,8 +468,16 @@ static u32 timer_get_clock( unsigned id )
 
 static u32 timer_set_clock( unsigned id, u32 clock )
 {
+  TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
   TIM_TypeDef *ptimer = timer[ id ];
   u16 pre;
+  
+  TIM_TimeBaseStructure.TIM_Period = 0xFFFF;
+  TIM_TimeBaseStructure.TIM_Prescaler = TIM_GET_BASE_CLK( id ) / TIM_STARTUP_CLOCK;
+  TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+  TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+  TIM_TimeBaseStructure.TIM_RepetitionCounter = 0x0000;
+  TIM_TimeBaseInit( timer[ id ], &TIM_TimeBaseStructure );
   
   pre = TIM_GET_BASE_CLK( id ) / clock;
   TIM_PrescalerConfig( ptimer, pre, TIM_PSCReloadMode_Immediate );
@@ -510,15 +536,15 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
 
 // *****************************************************************************
 // CPU specific functions
-
+ 
 void platform_cpu_enable_interrupts()
 {
-  //IntMasterEnable();
+  void NVIC_RESETPRIMASK(void); // enable interrupts
 }
 
 void platform_cpu_disable_interrupts()
 {
-  //IntMasterDisable();
+  void NVIC_SETPRIMASK(void); // disable interrupts
 }
 
 u32 platform_s_cpu_get_frequency()
@@ -526,3 +552,254 @@ u32 platform_s_cpu_get_frequency()
   return HCLK;
 }
 
+// *****************************************************************************
+// ADC specific functions and variables
+
+#define ADC1_DR_Address ((u32)ADC1_BASE + 0x4C)
+
+static ADC_TypeDef *const adc[] = { ADC1, ADC2, ADC3 };
+static const u32 adc_timer[] = { ADC_ExternalTrigConv_T1_CC1, ADC_ExternalTrigConv_T2_CC2, ADC_ExternalTrigConv_T3_TRGO, ADC_ExternalTrigConv_T4_CC4 };
+
+ADC_InitTypeDef adc_init_struct;
+DMA_InitTypeDef dma_init_struct;
+
+int platform_adc_check_timer_id( unsigned id, unsigned timer_id )
+{
+  // NOTE: We only allow timer 2 at the moment, for the sake of implementation simplicity
+  return ( timer_id == 2 );
+}
+
+void platform_adc_stop( unsigned id )
+{
+  elua_adc_ch_state *s = adc_get_ch_state( id );
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  
+  s->op_pending = 0;
+  INACTIVATE_CHANNEL( d, id );
+
+  // If there are no more active channels, stop the sequencer
+  if( d->ch_active == 0 )
+  {
+    // Ensure that no external triggers are firing
+    ADC_ExternalTrigConvCmd( adc[ d->seq_id ], DISABLE );
+    
+    // Also ensure that DMA interrupt won't fire ( this shouldn't really be necessary )
+    nvic_init_structure.NVIC_IRQChannelCmd = DISABLE; 
+    NVIC_Init(&nvic_init_structure);
+    
+    d->running = 0;
+  }
+}
+
+int platform_adc_update_sequence( )
+{  
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  
+  // NOTE: this shutdown/startup stuff may or may not be absolutely necessary
+  //       it is here to deal with the situation that a dma conversion has
+  //       already started and should be reset.
+  ADC_ExternalTrigConvCmd( adc[ d->seq_id ], DISABLE );
+  
+  // Stop in-progress adc dma transfers
+  // Later de/reinitialization should flush out synchronization problems
+  ADC_DMACmd( adc[ d->seq_id ], DISABLE );
+  
+  // Bring down adc, update setup, bring back up
+  ADC_Cmd( adc[ d->seq_id ], DISABLE );
+  ADC_DeInit( adc[ d->seq_id ] );
+  
+  d->seq_ctr = 0; 
+  while( d->seq_ctr < d->seq_len )
+  {
+    ADC_RegularChannelConfig( adc[ d->seq_id ], d->ch_state[ d->seq_ctr ]->id, d->seq_ctr+1, ADC_SampleTime_1Cycles5 );
+    d->seq_ctr++;
+  }
+  d->seq_ctr = 0;
+  
+  adc_init_struct.ADC_NbrOfChannel = d->seq_len;
+  ADC_Init( adc[ d->seq_id ], &adc_init_struct );
+  ADC_Cmd( adc[ d->seq_id ], ENABLE );
+  
+  // Bring down adc dma, update setup, bring back up
+  DMA_Cmd( DMA1_Channel1, DISABLE );
+  DMA_DeInit( DMA1_Channel1 );
+  dma_init_struct.DMA_BufferSize = d->seq_len;
+  dma_init_struct.DMA_MemoryBaseAddr = (u32)d->sample_buf;
+  DMA_Init( DMA1_Channel1, &dma_init_struct );
+  DMA_Cmd( DMA1_Channel1, ENABLE );
+  
+  ADC_DMACmd( adc[ d->seq_id ], ENABLE );
+  DMA_ITConfig( DMA1_Channel1, DMA1_IT_TC1 , ENABLE ); 
+  
+  if ( d->clocked == 1 && d->running == 1 )
+    ADC_ExternalTrigConvCmd( adc[ d->seq_id ], ENABLE );
+  
+  return PLATFORM_OK;
+}
+
+void DMA1_Channel1_IRQHandler(void) 
+{
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  elua_adc_ch_state *s;
+  
+  DMA_ClearITPendingBit( DMA1_IT_TC1 );
+  
+  d->seq_ctr = 0;
+  while( d->seq_ctr < d->seq_len )
+  {
+    s = d->ch_state[ d->seq_ctr ];
+    
+    // Fill in smoothing buffer until warmed up
+    if ( s->logsmoothlen > 0 && s->smooth_ready == 0)
+      adc_smooth_data( s->id );
+#if defined( BUF_ENABLE_ADC )
+    else
+      buf_write( BUF_ID_ADC, s->id, ( t_buf_data* )s->value_ptr );
+#endif
+
+    // If we have the number of requested samples, stop sampling
+    if ( adc_samples_available( s->id ) >= s->reqsamples && s->freerunning == 0 )
+      platform_adc_stop( s->id );
+
+    d->seq_ctr++;
+  }
+  d->seq_ctr = 0;
+
+  if( d->running == 1 )
+    adc_update_dev_sequence( 0 );
+  
+  if ( d->clocked == 0 && d->running == 1 )
+    ADC_SoftwareStartConvCmd( adc[ d->seq_id ], ENABLE );
+}
+
+static void adcs_init()
+{
+  unsigned id;
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  
+  for( id = 0; id < NUM_ADC; id ++ )
+    adc_init_ch_state( id );
+	
+  RCC_APB2PeriphClockCmd( RCC_APB2Periph_ADC1, ENABLE );
+  RCC_ADCCLKConfig( RCC_PCLK2_Div8 );
+  
+  ADC_DeInit( adc[ d->seq_id ] );
+  ADC_StructInit( &adc_init_struct );
+  
+  // Universal Converter Setup
+  adc_init_struct.ADC_Mode = ADC_Mode_Independent;
+  adc_init_struct.ADC_ScanConvMode = ENABLE;
+  adc_init_struct.ADC_ContinuousConvMode = DISABLE;
+  adc_init_struct.ADC_ExternalTrigConv = ADC_ExternalTrigConv_None;
+  adc_init_struct.ADC_DataAlign = ADC_DataAlign_Right;
+  adc_init_struct.ADC_NbrOfChannel = 1;
+  
+  // Apply default config
+  ADC_Init( adc[ d->seq_id ], &adc_init_struct );
+  ADC_ExternalTrigConvCmd( adc[ d->seq_id ], DISABLE );
+    
+  // Enable ADC
+  ADC_Cmd( adc[ d->seq_id ], ENABLE );  
+  
+  // Reset/Perform ADC Calibration
+  ADC_ResetCalibration( adc[ d->seq_id ] );
+  while( ADC_GetResetCalibrationStatus( adc[ d->seq_id ] ) );
+  ADC_StartCalibration( adc[ d->seq_id ] );
+  while( ADC_GetCalibrationStatus( adc[ d->seq_id ] ) );
+  
+  // Set up DMA to handle samples
+  RCC_AHBPeriphClockCmd( RCC_AHBPeriph_DMA1, ENABLE );
+  
+  DMA_DeInit( DMA1_Channel1 );
+  dma_init_struct.DMA_PeripheralBaseAddr = ADC1_DR_Address;
+  dma_init_struct.DMA_MemoryBaseAddr = (u32)d->sample_buf;
+  dma_init_struct.DMA_DIR = DMA_DIR_PeripheralSRC;
+  dma_init_struct.DMA_BufferSize = 1;
+  dma_init_struct.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+  dma_init_struct.DMA_MemoryInc = DMA_MemoryInc_Enable;
+  dma_init_struct.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
+  dma_init_struct.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
+  dma_init_struct.DMA_Mode = DMA_Mode_Circular;
+  dma_init_struct.DMA_Priority = DMA_Priority_Low;
+  dma_init_struct.DMA_M2M = DMA_M2M_Disable;
+  DMA_Init( DMA1_Channel1, &dma_init_struct );
+  
+  ADC_DMACmd(ADC1, ENABLE );
+  
+  DMA_Cmd( DMA1_Channel1, ENABLE );
+  DMA_ITConfig( DMA1_Channel1, DMA1_IT_TC1 , ENABLE ); 
+  
+  platform_adc_setclock( 0, 0 );
+}
+
+u32 platform_adc_setclock( unsigned id, u32 frequency )
+{
+  TIM_TimeBaseInitTypeDef timer_base_struct;
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  
+  unsigned period, prescaler;
+  
+  // Make sure sequencer is disabled before making changes
+  ADC_ExternalTrigConvCmd( adc[ d->seq_id ], DISABLE );
+  
+  if ( frequency > 0 )
+  {
+    d->clocked = 1;
+    // Attach timer to converter
+    adc_init_struct.ADC_ExternalTrigConv = adc_timer[ d->timer_id ];
+    
+    period = TIM_GET_BASE_CLK( id ) / frequency;
+    
+    prescaler = (period / 0x10000) + 1;
+  	period /= prescaler;
+
+  	timer_base_struct.TIM_Period = period - 1;
+  	timer_base_struct.TIM_Prescaler = (2 * prescaler) - 1;
+  	timer_base_struct.TIM_ClockDivision = TIM_CKD_DIV1;
+  	timer_base_struct.TIM_CounterMode = TIM_CounterMode_Down;
+  	TIM_TimeBaseInit( timer[ d->timer_id ], &timer_base_struct );
+    
+    frequency = 2 * ( TIM_GET_BASE_CLK( id ) / ( TIM_GetPrescaler( timer[ d->timer_id ] ) + 1 ) ) / period;
+    
+    // Set up output compare for timer
+    TIM_SelectOutputTrigger(timer[ d->timer_id ], TIM_TRGOSource_Update);
+  }
+  else
+  {
+    d->clocked = 0;
+    
+    // Switch to Software-only Trigger
+    adc_init_struct.ADC_ExternalTrigConv = ADC_ExternalTrigConv_None;   
+  }
+  
+  // Apply config
+  ADC_Init( adc[ d->seq_id ], &adc_init_struct );
+  
+  return frequency;
+}
+
+int platform_adc_start_sequence( )
+{ 
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  
+  // Only force update and initiate if we weren't already running
+  // changes will get picked up during next interrupt cycle
+  if ( d->running != 1 )
+  {
+    adc_update_dev_sequence( 0 );
+    
+    d->running = 1;
+    
+    DMA_ClearITPendingBit( DMA1_IT_TC1 );
+
+    nvic_init_structure.NVIC_IRQChannelCmd = ENABLE; 
+    NVIC_Init(&nvic_init_structure);
+
+    if( d->clocked == 1 )
+      ADC_ExternalTrigConvCmd( adc[ d->seq_id ], ENABLE );
+    else
+      ADC_SoftwareStartConvCmd( adc[ d->seq_id ], ENABLE );
+  }
+
+  return PLATFORM_OK;
+}

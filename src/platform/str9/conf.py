@@ -26,9 +26,9 @@ ldscript = "src/platform/%s/%s" % ( platform, ldscript )
 
 # Toolset data
 tools[ 'str9' ] = {}
-tools[ 'str9' ][ 'cccom' ] = "%s -mcpu=arm966e-s -mfpu=fpa %s %s %s -ffunction-sections -fdata-sections %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile'], opt, local_include, modeflag, cdefs )
+tools[ 'str9' ][ 'cccom' ] = "%s -mcpu=arm966e-s -mfpu=fpa %s $_CPPINCFLAGS %s -ffunction-sections -fdata-sections %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile'], opt, modeflag, cdefs )
 tools[ 'str9' ][ 'linkcom' ] = "%s -mcpu=arm966e-s -mfpu=fpa -nostartfiles -nostdlib %s -T %s -Wl,--gc-sections -Wl,-e,_startup -Wl,--allow-multiple-definition -o $TARGET $SOURCES %s -lc -lgcc -lm" % ( toolset[ 'compile' ], modeflag, ldscript, local_libs )
-tools[ 'str9' ][ 'ascom' ] = "%s -x assembler-with-cpp %s -mcpu=arm966e-s -mfpu=fpa %s %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], local_include, modeflag, cdefs )
+tools[ 'str9' ][ 'ascom' ] = "%s -x assembler-with-cpp $_CPPINCFLAGS -mcpu=arm966e-s -mfpu=fpa %s %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], modeflag, cdefs )
 
 # Programming function for LPC2888
 def progfunc_str9( target, source, env ):
