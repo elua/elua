@@ -1,6 +1,7 @@
 // Platform-dependent functions
 
 #include "platform.h"
+#include "platform_conf.h"
 #include "type.h"
 #include "devman.h"
 #include "genstd.h"
@@ -8,11 +9,55 @@
 #include <errno.h>
 #include <string.h>
 #include <ctype.h>
+#include "term.h"
 
 // Platform specific includes
 #include "monitor.h"
 #include "descriptor_tables.h"
 #include "kb.h"
+
+// ****************************************************************************
+// Terminal support code
+
+#ifdef BUILD_TERM
+
+static void i386_term_out( u8 data )
+{
+  monitor_put( data );
+}
+
+static int i386_term_in( int mode )
+{
+  if( mode == TERM_INPUT_DONT_WAIT )
+    return -1;
+  else
+    return keyboard_getch();
+}
+
+static int i386_term_translate( int data )
+{
+  int newdata = data;
+
+  if( data == 0 )
+    return KC_UNKNOWN;
+  else switch( data )
+  {
+    case '\n':
+      newdata = KC_ENTER;
+      break;
+
+    case '\t':
+      newdata = KC_TAB;
+      break;
+
+    case '\b':
+      newdata = KC_BACKSPACE;
+      break;
+  }
+  return newdata;
+}
+
+#endif // #ifdef BUILD_TERM
 
 // *****************************************************************************
 // std functions
@@ -24,10 +69,15 @@ static void scr_write( int fd, char c )
 
 static int kb_read( s32 to )
 {
+  int res;
+
   if( to != STD_INFINITE_TIMEOUT )
     return -1;
   else
-    return keyboard_getch();
+  {
+    while( ( res = keyboard_getch() ) >= TERM_FIRST_KEY );
+    return res;
+  }
 }
 
 // ****************************************************************************
@@ -78,7 +128,12 @@ int platform_init()
   // Set the send/recv functions                          
   std_set_send_func( scr_write );
   std_set_get_func( kb_read );       
-  
+
+  // Set term functions
+#ifdef BUILD_TERM  
+  term_init( TERM_LINES, TERM_COLS, i386_term_out, i386_term_in, i386_term_translate );
+#endif
+ 
   // All done
   return PLATFORM_OK;
 }

@@ -26,7 +26,7 @@ table {
   margin-left: 1em;
 }
 pre {
-  border: 1px solid #62a0ff;
+  border: 1px dashed #62a0ff;
   padding: 4px;
   background-color: #cee7ff;
   font-family: 'Monotype.com',"Courier New",Courier,monospace;

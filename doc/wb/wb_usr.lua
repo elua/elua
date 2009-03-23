@@ -85,6 +85,68 @@ wb_usr.tree =
         },
       },
     },
+
+    {
+      name = { en = "Downloads", pt = "Downloads" },
+      link = "dl_binaries.html",
+      folder =
+      {
+        {
+          name = { en = "Binaries", pt = "Binaries" },
+          link = "dl_binaries.html",
+--[[
+          folder =
+          { 
+            {
+              name = { en = "Atmel", pt = "Atmel" },
+              link = "lm_bin.html",
+            },
+            {
+              name = { en = "Luminary Micro", pt = "Luminary Micro" },
+              link = "lm_bin.html",
+            },
+            {
+              name = { en = "PC i386", pt = "PC i386" },
+              link = "lm_bin.html",
+            },
+            {
+              name = { en = "Phillips", pt = "Phillips" },
+              link = "lm_bin.html",
+            },
+            {
+              name = { en = "ST Micro", pt = "ST Micro" },
+              link = "lm_bin.html",
+            },
+          },
+--]]          
+        },     
+        { 
+          name = { en = "Source Code", pt = "Fontes" },
+          link = "dl_sources.html",
+          folder = 
+          {
+            { 
+              name = { en = "Official Releases", pt = "Versões Oficiais[B" },
+              link = "dl_sources.html"
+            },
+            { 
+              name = { en = "SVN Public", pt = "SVN Público" },
+              link = "dl_sources.html#svnpublic"
+            }, 
+            { 
+              name = { en = "Developers", pt = "Desenvolvedores" },
+              link = "dl_sources.html#svndev"
+            },
+          },
+        },
+        { 
+          name = { en = "Old Versions", pt = "Versões Anteriores" },
+          link = "dl_old.html"
+        },
+        
+      },
+    },
+
     {
       name = {en = "Community", pt = "Comunidade" },
       link = "comunity.html",
@@ -250,39 +312,6 @@ wb_usr.tree =
         {
           name = { en = "Examples", pt = "Exemplos" },
           link = "examples.html",
-          folder =
-          {
-            {  name = { en = "hello.lua", pt = "hello.lua" },
-               link = "examples.html#hello",
-            },
-            {  name = { en = "info.lua", pt = "info.lua" },
-               link = "examples.html#info",
-            },
-            {  name = { en = "led.lua", pt = "led.lua" },
-               link = "examples.html#led",
-            },
-            {  name = { en = "hangman.lua", pt = "hangman.lua" },
-               link = "examples.html#hangman",
-            },
-            {  name = { en = "pwmled.lua", pt = "pwmled.lua" },
-               link = "examples.html#pwmled",
-            },
-            {  name = { en = "tvbgone.lua", pt = "tvbgone.lua" },
-               link = "examples.html#tvbgone",
-            },
-            {  name = { en = "piano.lua", pt = "piano.lua" },
-               link = "examples.html#piano",
-            },
-            {  name = { en = "bisect.lua", pt = "bisect.lua" },
-               link = "examples.html#bisect",
-            },
-            {  name = { en = "morse.lua", pt = "morse.lua" },
-               link = "examples.html#morse",
-            },
-            {  name = { en = "lhttpd.lua", pt = "lhttpd.lua" },
-               link = "examples.html#lhttpd",
-            },
-          },
         },
         {
           name = { en = "Tutorials", pt = "Tutoriais" },
@@ -318,18 +347,6 @@ wb_usr.tree =
         {
           name = {en = "Version History", pt = "Histórico de Versões" },
           link = "versionhistory.html",
-          folder =
-          {
-            {  name = { en = "v 0.4", pt = "v 0.4" },
-               link = "versionhistory.html#04",
-            },
-            {  name = { en = "v 0.5", pt = "v 0.5" },
-               link = "versionhistory.html#05",
-            },
-            {  name = { en = "v 0.6", pt = "v 0.6" },
-               link = "versionhistory.html#06",
-            },
-          },
         },
       },
     },
@@ -758,70 +775,6 @@ wb_usr.tree =
             },
           },
         },
-      },
-    },
-    {
-      name = { en = "", pt = "" },       -- Horizontal Separator
-      link = ""
-    },
-    {
-      name = { en = "Downloads", pt = "Downloads" },
-      link = "dl_binaries.html",
-      folder =
-      {
-        {
-          name = { en = "Binaries", pt = "Binaries" },
-          link = "dl_binaries.html",
---[[
-          folder =
-          { 
-            {
-              name = { en = "Atmel", pt = "Atmel" },
-              link = "lm_bin.html",
-            },
-            {
-              name = { en = "Luminary Micro", pt = "Luminary Micro" },
-              link = "lm_bin.html",
-            },
-            {
-              name = { en = "PC i386", pt = "PC i386" },
-              link = "lm_bin.html",
-            },
-            {
-              name = { en = "Phillips", pt = "Phillips" },
-              link = "lm_bin.html",
-            },
-            {
-              name = { en = "ST Micro", pt = "ST Micro" },
-              link = "lm_bin.html",
-            },
-          },
---]]          
-        },     
-        { 
-          name = { en = "Source Code", pt = "Fontes" },
-          link = "dl_sources.html",
-          folder = 
-          {
-            { 
-              name = { en = "Official Releases", pt = "Versões Oficiais[B" },
-              link = "dl_sources.html"
-            },
-            { 
-              name = { en = "SVN Public", pt = "SVN Público" },
-              link = "dl_sources.html#svnpublic"
-            }, 
-            { 
-              name = { en = "Developers", pt = "Desenvolvedores" },
-              link = "dl_sources.html#svndev"
-            },
-          },
-        },
-        { 
-          name = { en = "Old Versions", pt = "Versões Anteriores" },
-          link = "dl_old.html"
-        },
-        
       },
     },
   },

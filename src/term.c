@@ -141,7 +141,7 @@ int term_getch( int mode )
   if( ( ch = term_in( mode ) ) == -1 )
     return -1;
   else
-    return term_translate( ( u8 )ch );
+    return term_translate( ch );
 }
 
 void term_init( unsigned lines, unsigned cols, p_term_out term_out_func, 

@@ -13,15 +13,22 @@
 #define BUILD_SHELL
 #define BUILD_ROMFS
 #define BUILD_CON_GENERIC
+#define BUILD_TERM
+
+#define TERM_LINES    25
+#define TERM_COLS     80
 
 // *****************************************************************************
 // Auxiliary libraries that will be compiled for this platform
 
 #define LUA_PLATFORM_LIBS_ROM\
   _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
-  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
+  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
+  _ROM( AUXLIB_TERM, luaopen_term, term_map )
 
+// Bogus defines for common.c
 #define CON_UART_ID           0
+#define CON_TIMER_ID          0
 
 // *****************************************************************************
 // Configuration data
