@@ -12,6 +12,7 @@
 #include "math.h"
 #include "elua_adc.h"
 #include "term.h"
+#include "xmodem.h"
 
 // ****************************************************************************
 // XMODEM support code

@@ -126,8 +126,7 @@ Currently it works only over RS-232 connections, although this is not a
 strict requirement. You need to enable this if you want to use the <a href="m_term.html">##term module</a>.
 To enable:
 <p><pre><code>#define BUILD_TERM</code></pre></p>
-<a href="building.html#static">Static configuration data dependencies:</a> <b>CON_UART_ID, CON_UART_SPEED, CON_TIMER_ID, TERM_LINES, TERM_COLS, 
-  TERM_TIMEOUT</b></td>
+<a href="building.html#static">Static configuration data dependencies:</a> <b>CON_UART_ID, CON_UART_SPEED, CON_TIMER_ID, TERM_LINES, TERM_COLS</b></td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">BUILD_UIP</td>
@@ -254,14 +253,11 @@ specified speed. The data format is always 8N1 (8 data bits, no parity,
 variables are also used by the XMODEM and TERM implementations.</td>
 </tr>
 <tr>
-<td style="color: rgb(255, 102, 0);">TERM_LINES<br>TERM_COLS<br>TERM_TIMEOUT<br>
+<td style="color: rgb(255, 102, 0);">TERM_LINES<br>TERM_COLS<br>
 </td>
 <td>Used to configure the ANSI terminal support (if enabled
-in the build). Used to specify (respectively): the number of lines and
-columns of the ANSI terminal, and the ANSI input timeout (used as a
-inter-char timeout when a key sends more than one code to the ANSI
-subsystem, for example the up, down, left and right keys on a PC
-keyboard).</td>
+in the build). Used to specify (respectively) the number of lines and
+columns of the ANSI terminal.</td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">ELUA_CONF_IPADDR0..3<br>

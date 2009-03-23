@@ -23,7 +23,6 @@
 #define CON_TIMER_ID          0
 #define TERM_LINES            25
 #define TERM_COLS             80
-#define TERM_TIMEOUT          100000
 
 // *****************************************************************************
 // Auxiliary libraries that will be compiled for this platform
