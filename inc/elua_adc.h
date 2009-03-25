@@ -11,7 +11,8 @@ typedef struct
   volatile u8     op_pending: 1, // Is there a pending conversion?
                   blocking: 1, // Are we in blocking or non-blocking mode? (0 - blocking, 1 - nonblocking)
                   freerunning: 1, // If true, we don't stop when we've acquired the requested number of samples
-                  smooth_ready: 1; // Has smoothing filter warmed up (i.e. smoothlen samples collected)
+                  smooth_ready: 1, // Has smoothing filter warmed up (i.e. smoothlen samples collected)
+                  value_fresh: 1; // Whether the value pointed to by value_ptr is fresh
                     
   unsigned        id;
 

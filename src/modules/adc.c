@@ -159,7 +159,7 @@ static int adc_getsample( lua_State* L )
   return 0;
 }
 
-
+#if defined( BUF_ENABLE_ADC )
 // Lua: table_of_vals = getsamples( id, [count] )
 static int adc_getsamples( lua_State* L )
 {
@@ -193,7 +193,7 @@ static int adc_getsamples( lua_State* L )
   }
   return 1;
 }
-
+#endif
 
 // Module function map
 #define MIN_OPT_LEVEL 2
@@ -207,8 +207,10 @@ const LUA_REG_TYPE adc_map[] =
   { LSTRKEY( "setblocking" ), LFUNCVAL( adc_setblocking ) },
   { LSTRKEY( "setsmoothing" ), LFUNCVAL( adc_setsmoothing ) },
   { LSTRKEY( "getsample" ), LFUNCVAL( adc_getsample ) },
+#if defined( BUF_ENABLE_ADC )
   { LSTRKEY( "getsamples" ), LFUNCVAL( adc_getsamples ) },
 //  { LSTRKEY( "putsamples" ), LFUNCVAL( adc_putsamples ) },
+#endif
   { LNILKEY, LNILVAL }
 };
 

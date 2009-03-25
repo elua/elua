@@ -554,13 +554,17 @@ void ADCIntHandler( void )
   {
     s = d->ch_state[ d->seq_ctr ];
     d->sample_buf[ d->seq_ctr ] = ( u16 )tmpbuff[ d->seq_ctr ];
+    s->value_fresh = 1; // Mark sample as fresh
     
     // Fill in smoothing buffer until warmed up
     if ( s->logsmoothlen > 0 && s->smooth_ready == 0)
       adc_smooth_data( s->id );
 #if defined( BUF_ENABLE_ADC )
     else
+    {
       buf_write( BUF_ID_ADC, s->id, ( t_buf_data* )s->value_ptr );
+      s->value_fresh = 0;
+    }
 #endif
 
     // If we have the number of requested samples, stop sampling

@@ -69,8 +69,9 @@ int adc_setup_channel( unsigned id, u8 logcount )
 {
   elua_adc_ch_state *s = adc_get_ch_state( id );
   elua_adc_dev_state *d = adc_get_dev_state( 0 );
+#if defined( BUF_ENABLE_ADC )
   int res;
-  
+
   platform_cpu_disable_interrupts();
   if( ( (u16) 1 << logcount ) != buf_get_size( BUF_ID_ADC, id ) )
   {   
@@ -79,7 +80,8 @@ int adc_setup_channel( unsigned id, u8 logcount )
       return res;
     buf_flush( BUF_ID_ADC, id );
   }
-  
+#endif
+
   s->reqsamples = (u16) 1 << logcount;
   s->op_pending = 1;
   
@@ -192,9 +194,13 @@ void adc_smooth_data( unsigned id )
   if ( s->smooth_ready == 1 )
     buf_read( BUF_ID_ADC, id, ( t_buf_data* )&sample );
   else
+  {
     sample = *( s->value_ptr );
+    s->value_fresh = 0;
+  }
 #else
   sample = *( s->value_ptr );
+  s->value_fresh = 0;
 #endif
   s->smoothbuf[ s->smoothidx ] = sample;
 
@@ -237,9 +243,16 @@ u16 adc_get_processed_sample( unsigned id )
     else if ( s->logsmoothlen == 0 )
     {
 #if defined( BUF_ENABLE_ADC )
-      buf_read( BUF_ID_ADC, id, ( t_buf_data* )&sample );
+      if( adc_samples_available( id ) == 1 )
+      {
+        sample = *( s->value_ptr ); // Don't hit buffer if only one sample is available
+        s->value_fresh = 0;
+      }
+      else
+        buf_read( BUF_ID_ADC, id, ( t_buf_data* )&sample );
 #else
       sample = *( s->value_ptr );
+      s->value_fresh = 0;
 #endif
       if ( s->reqsamples > 0)
         s->reqsamples -- ;
@@ -272,10 +285,13 @@ u16 adc_samples_requested( unsigned id )
 // Return count of available samples in the buffer
 u16 adc_samples_available( unsigned id ) 
 {
+elua_adc_ch_state *s = adc_get_ch_state( id );
+
 #if defined( BUF_ENABLE_ADC )
-  return ( u16 ) buf_get_count( BUF_ID_ADC, id );
+  u16 buffer_count = ( u16 )buf_get_count( BUF_ID_ADC, id );
+  return ( ( buffer_count == 0 ) ? s->value_fresh : buffer_count );
 #else
-  return 1; // FIXME: should keep track of whether single sample is fresh
+  return s->value_fresh;
 #endif
 }
 
