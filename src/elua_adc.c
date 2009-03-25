@@ -64,6 +64,7 @@ void adc_update_dev_sequence( unsigned dev_id  )
   }
 }
 
+// Set up channel in preparation for sample acquisition
 int adc_setup_channel( unsigned id, u8 logcount )
 {
   elua_adc_ch_state *s = adc_get_ch_state( id );
@@ -88,13 +89,11 @@ int adc_setup_channel( unsigned id, u8 logcount )
   return PLATFORM_OK;
 }
 
-// Initialize Configuration and Buffers
+// Initialize channel configuration and buffers
 void adc_init_ch_state( unsigned id )
 {
   elua_adc_ch_state *s = adc_get_ch_state( id );
   elua_adc_dev_state *d = adc_get_dev_state( 0 );
-  
-  // point to channel on device, mark as not active
   
   INACTIVATE_CHANNEL(d, id);
   
@@ -260,9 +259,7 @@ void adc_flush_smoothing( unsigned id )
   s->smooth_ready = 0;
   
   if ( s->logsmoothlen > 0 )
-  {
     DUFF_DEVICE_8( SMOOTH_REALSIZE( s ),  s->smoothbuf[ i++ ] = 0 );
-  }
 }
 
 // Number of samples requested that have not yet been removed from the buffer
@@ -289,9 +286,8 @@ void adc_wait_samples( unsigned id, unsigned samples )
   elua_adc_ch_state *s = adc_get_ch_state( id );
   
   if( adc_samples_available( id ) < samples && s->blocking == 1 )
-  {
-    while( s->op_pending == 1 && adc_samples_available( id ) < samples ) { ; }
-  }
+    while( s->op_pending == 1 && adc_samples_available( id ) < samples );
+
 }
 
 #endif
