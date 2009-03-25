@@ -1,18 +1,18 @@
 
 if pd.board() == "ET-STM32" then
   timer = 2
-  adcchannels = {0,1,2,3}
-  adcsmoothing = {4, 16, 32, 64}
+  adcchannels = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}
+  adcsmoothing = {4, 4, 4, 4, 16, 16, 16, 16, 32, 32, 32, 32, 64, 128, 64, 128}
 else
   timer = 0
   adcchannels = {0,1,2,3}
-  adcsmoothing = {4, 16, 32, 64}
+  adcsmoothing = {4, 64, 32, 16}
 end
 
 for i, v in ipairs(adcchannels) do
   adc.setblocking(v,0)
   adc.setsmoothing(v,adcsmoothing[i])
-  adc.setclock(v, 30 ,timer)
+  adc.setclock(v, 50 ,timer)
 end
 
 adc.sample(adcchannels,128)
@@ -26,9 +26,6 @@ term.putstr(" CH   SLEN   RES")
 term.gotoxy(1,#adcchannels+5)
 term.putstr("Press ESC to exit.")
 
-local adcvals = {}
-local ctr = 0
-local key
 local sample = adc.sample
 local getsample = adc.getsample
 local samplesready = adc.samplesready
@@ -42,7 +39,7 @@ while true do
     	term.gotoxy(1,i+3)
     	term.putstr(string.format("ADC%d (%03d): %04d\n", v, adcsmoothing[i], tsample))
     end
-    if adc.isdone(v) == 1 then adc.sample(adcchannels,128) end
+    if adc.isdone(v) == 1 then adc.sample(v,128) end
   end
   key = term.getch( term.NOWAIT )
   if key == term.KC_ESC then break end

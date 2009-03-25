@@ -24,17 +24,15 @@ term.gotoxy(1,#adcchannels+6)
 term.putstr("Press ESC to exit.")
 
 local adcvals = {}
-local ctr = 0
 local key, stime, etime, dtime
 local sample = adc.sample
 local getsample = adc.getsample
 local tread = tmr.read
+local tstart = tmr.start
 local i, v
 
-tmr.start(0)
-
 while true do
-  stime = tread(0)
+  stime = tstart(0)
   for j=1,numiter do 
     sample(adcchannels, 1)
     for i, v in ipairs(adcchannels) do
@@ -46,7 +44,7 @@ while true do
   
   term.gotoxy(1,4)
   for i, v in ipairs(adcchannels) do
-    term.putstr(string.format("ADC%d (%03d): %04d\n", v, adcsmoothing[i],adcvals[i]))
+    term.putstr(string.format("ADC%02d (%03d): %04d\n", v, adcsmoothing[i],adcvals[i]))
     term.gotoxy(1,i+4)
   end
   term.putstr(string.format("Tcyc: %06d (us)\n",dtime))
