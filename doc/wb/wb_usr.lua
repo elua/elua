@@ -188,6 +188,12 @@ wb_usr.tree =
         },
       },
     },
+
+    {
+      name = {en = "Version History", pt = "Histórico de Versões" },
+      link = "versionhistory.html",
+    },
+
     {
       name = { en = "", pt = "" },       -- Horizontal Separator
       link = ""
@@ -248,6 +254,9 @@ wb_usr.tree =
             },
             { name = { en = "Over TCP/IP", pt = "##Over TCP/IP" },
               link = "using.html#tcpip",
+            },
+            { name = { en = "On PC", pt = "##On PC" },
+              link = "using.html#pc",
             },
             { name = { en = "The shell", pt = "##The shell" },
               link = "using.html#shell",
@@ -313,43 +322,42 @@ wb_usr.tree =
           name = { en = "Examples", pt = "Exemplos" },
           link = "examples.html",
         },
-        {
-          name = { en = "Tutorials", pt = "Tutoriais" },
-          link = "tutorials.html",
-          folder =
-          {
-            {  name = { en = "Booting on a PC", pt = "Booting on a PC" },
-               link = "tut_bootpc.html",
-            },
-            {  name = { en = "Booting from a Pendrive", pt = "Booting from a Pendriv" },
-               link = "tut_bootstick.html",
-            },
-            {  name = { en = "Toolchain Building", pt = "Toolchain Building" },
-               link = "tchainbuild.html",
-               folder = 
-               {
-                 { name = { en = "ARM7 & ARM9 Toolchains", pt = "ARM 7 & ARM9 Toolchains" },
-                   link = "tc_arm.html",
-                 },
-                 { name = { en = "ARM Cortex-M3", pt = "ARM Cortex-M3" },
-                   link = "tc_cortex.html",
-                 },
-                 { name = { en = "i386", pt = "i386" },
-                   link = "tc_386.html",
-                 },
-               },  
-            },
-            {  name = { en = "Using OpenOCD", pt = "Using OpenOC" },
-               link = "tut_openocd.html",
-            },
-          },
+      },
+    },
+
+    {
+      name = { en = "Tutorials", pt = "Tutoriais" },
+      link = "tutorials.html",
+      folder =
+      {
+        {  name = { en = "Booting on a PC", pt = "Booting on a PC" },
+           link = "tut_bootpc.html",
         },
-        {
-          name = {en = "Version History", pt = "Histórico de Versões" },
-          link = "versionhistory.html",
+        {  name = { en = "Booting from a Pendrive", pt = "Booting from a Pendriv" },
+           link = "tut_bootstick.html",
+        },
+        {  name = { en = "Toolchain Building", pt = "Toolchain Building" },
+           link = "tchainbuild.html",
+           folder = 
+           {
+             { name = { en = "ARM7 & ARM9 Toolchains", pt = "ARM 7 & ARM9 Toolchains" },
+               link = "tc_arm.html",
+             },
+             { name = { en = "ARM Cortex-M3", pt = "ARM Cortex-M3" },
+               link = "tc_cortex.html",
+             },
+             { name = { en = "i386", pt = "i386" },
+               link = "tc_386.html",
+             },
+           },  
+        },
+        {  name = { en = "Using OpenOCD", pt = "Using OpenOC" },
+           link = "tut_openocd.html",
         },
       },
     },
+
+
     {
       name = { en = "Reference Manual", pt = "Manual de Referência" },
       link = "refman.html#genericmodules",

@@ -48,9 +48,15 @@ There's no universal rule here, it all depends on your board.
 </p>
 <p>If you're under Windows, make sure you're using a proper telnet client, which basically means "just about everything <b>but</b> the build-in telnet client".
    <a target="_blank" href="http://www.chiark.greenend.org.uk/~sgtatham/putty/">PuTTY</a> is a very good and popular choice.</p>
+
+<a name="pc"><h3>Using standalone eLua on PC</h3></a>
+<p>If you build <b>eLua</b> for the i386 platform, you can boot your PC directly in <b>eLua</b>! No underlying OS, nothing but plain <b>eLua</b>. It won't have any actual peripherals to 
+access, but it can use the <b>term</b> module to run <i>hangman.lua</i> and <i>life.lua</i>, as well as other samples, which makes it a nice demo :) Follow <a href="installing_i386.html">
+this link</a> for specific informations about the i386 port. </p>
+
 <a name="shell"><h3><a name="shell"></a>The eLua shell</h3></a>
-<p>No matter what's your physical connection (serial or TCP/IP), after you setup the PC-eLua board connection (and press the "RESET" button on your board or simply press ENTER if you're using 
-  the serial connection), you should see the <b>eLua</b> shell prompt (if you enabled the shell in your build, as described <a href="building.html">here</a>). The shell is a simple
+<p>No matter what's your physical connection (serial, TCP/IP or you PC's monitor after booting <b>eLua</b>), after you setup the PC-<b>eLua</b> board connection (if applicable) and press 
+  the "RESET" button on your board or simply press ENTER if you're using the serial connection, you should see the <b>eLua</b> shell prompt (if you enabled the shell in your build, as described <a href="building.html">here</a>). The shell is a simple
   interactive command interpreter that allows you to:
 <ul>
   <li>get help on shell usage with the help command</li>
