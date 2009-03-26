@@ -654,7 +654,7 @@ void DMA1_Channel1_IRQHandler(void)
     if ( s->logsmoothlen > 0 && s->smooth_ready == 0)
       adc_smooth_data( s->id );
 #if defined( BUF_ENABLE_ADC )
-    else
+    else if ( s->reqsamples > 1 )
     {
       buf_write( BUF_ID_ADC, s->id, ( t_buf_data* )s->value_ptr );
       s->value_fresh = 0;

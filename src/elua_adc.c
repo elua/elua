@@ -43,6 +43,7 @@ void adc_update_dev_sequence( unsigned dev_id  )
   	    s = adc_get_ch_state( id );
         d->ch_state[ d->seq_ctr ] = s;
         s->value_ptr = &( d->sample_buf[ d->seq_ctr ] );
+        s->value_fresh = 0;
         d->seq_ctr++;
   	  }
     }
@@ -191,13 +192,13 @@ void adc_smooth_data( unsigned id )
 
   // Replace Oldest Value in Buffer
 #if defined( BUF_ENABLE_ADC )
-  if ( s->smooth_ready == 1 )
-    buf_read( BUF_ID_ADC, id, ( t_buf_data* )&sample );
-  else
+  if ( s->value_fresh == 1 )
   {
     sample = *( s->value_ptr );
     s->value_fresh = 0;
   }
+  else
+    buf_read( BUF_ID_ADC, id, ( t_buf_data* )&sample );
 #else
   sample = *( s->value_ptr );
   s->value_fresh = 0;
@@ -243,9 +244,9 @@ u16 adc_get_processed_sample( unsigned id )
     else if ( s->logsmoothlen == 0 )
     {
 #if defined( BUF_ENABLE_ADC )
-      if( adc_samples_available( id ) == 1 )
+      if( s->value_fresh == 1 )
       {
-        sample = *( s->value_ptr ); // Don't hit buffer if only one sample is available
+        sample = *( s->value_ptr );
         s->value_fresh = 0;
       }
       else
@@ -303,7 +304,6 @@ void adc_wait_samples( unsigned id, unsigned samples )
   
   if( adc_samples_available( id ) < samples && s->blocking == 1 )
     while( s->op_pending == 1 && adc_samples_available( id ) < samples );
-
 }
 
 #endif
