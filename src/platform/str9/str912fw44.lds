@@ -13,6 +13,7 @@ SECTIONS
     {
         . = ALIGN(4);
         _sfixed = .;
+        KEEP(*(.vectors))
         *(.text .text.*)        
         *(.rodata .rodata.*)        
         *(.gnu.linkonce.t.*)

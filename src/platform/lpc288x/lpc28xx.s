@@ -159,9 +159,11 @@
 @ Area Definition and Entry Point
 @ Startup Code must be linked first at Address at which it expects to run.
 
-            .section .text
             .arm
+            .align 4
             .global HardReset
+
+            .section  .vectors, "a"
 
 HardReset:
 
@@ -195,6 +197,8 @@ IRQ_Handler:    B       IRQ_Handler
 
 @ ==============================================================================
 @ Reset handler
+
+            .text
                         
 Reset_Handler:   
 
