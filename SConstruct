@@ -272,6 +272,7 @@ comp = Environment( CCCOM = tools[ platform ][ 'cccom' ],
                     ENV = os.environ )
 # comp.TargetSignatures( 'content' )
 # comp.SourceSignatures( 'MD5' )
+comp[ 'INCPREFIX' ] = "-I"
 Default( comp.Program( target = output, source = Split( source_files ) ) )
 Decider( 'MD5' )
 
