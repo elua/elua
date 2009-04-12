@@ -12,7 +12,7 @@ end
 for i, v in ipairs(adcchannels) do
   adc.setblocking(v,0)
   adc.setsmoothing(v,adcsmoothing[i])
-  adc.setclock(v, 50 ,timer)
+  adc.setclock(v, 4 ,timer)
 end
 
 adc.sample(adcchannels,128)
@@ -37,7 +37,7 @@ while true do
     tsample = getsample(v)
     if not (tsample == nil) then
     	term.gotoxy(1,i+3)
-    	term.putstr(string.format("ADC%d (%03d): %04d\n", v, adcsmoothing[i], tsample))
+    	term.putstr(string.format("ADC%02d (%03d): %04d\n", v, adcsmoothing[i], tsample))
     end
     if adc.isdone(v) == 1 then adc.sample(v,128) end
   end
