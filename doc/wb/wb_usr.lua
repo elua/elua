@@ -88,62 +88,54 @@ wb_usr.tree =
 
     {
       name = { en = "Downloads", pt = "Downloads" },
-      link = "dl_binaries.html",
+      link = "downloads.html",
       folder =
       {
         {
           name = { en = "Binaries", pt = "Binaries" },
-          link = "dl_binaries.html",
---[[
-          folder =
-          { 
-            {
-              name = { en = "Atmel", pt = "Atmel" },
-              link = "lm_bin.html",
-            },
-            {
-              name = { en = "Luminary Micro", pt = "Luminary Micro" },
-              link = "lm_bin.html",
-            },
-            {
-              name = { en = "PC i386", pt = "PC i386" },
-              link = "lm_bin.html",
-            },
-            {
-              name = { en = "Phillips", pt = "Phillips" },
-              link = "lm_bin.html",
-            },
-            {
-              name = { en = "ST Micro", pt = "ST Micro" },
-              link = "lm_bin.html",
-            },
-          },
---]]          
+          link = "downloads.html#binaries",
         },     
         { 
           name = { en = "Source Code", pt = "Fontes" },
-          link = "dl_sources.html",
+          link = "downloads.html#source",
           folder = 
           {
             { 
               name = { en = "Official Releases", pt = "Versões Oficiais[B" },
-              link = "dl_sources.html"
+              link = "downloads.html#official"
             },
             { 
               name = { en = "SVN Public", pt = "SVN Público" },
-              link = "dl_sources.html#svnpublic"
+              link = "downloads.html#svnpublic"
             }, 
             { 
               name = { en = "Developers", pt = "Desenvolvedores" },
-              link = "dl_sources.html#svndev"
+              link = "downloads.html#svndev"
             },
           },
         },
         { 
           name = { en = "Old Versions", pt = "Versões Anteriores" },
-          link = "dl_old.html"
+          link = "dl_old.html",
+          folder = 
+          {
+            { name = { en = "0.4.1", pt = "0.4.1" },
+              link = "dl_old.html#v041"
+            },
+            { name = { en = "0.4", pt = "0.4" },
+              link = "dl_old.html#v04"
+            },
+            { name = { en = "0.3", pt = "0.3" },
+              link = "dl_old.html#v03"
+            },
+            { name = { en = "0.2", pt = "0.2" },
+              link = "dl_old.html#v02"
+            },
+            { name = { en = "0.1", pt = "0.1" },
+              link = "dl_old.html#v01"
+            },
+          },
         },
-        
       },
     },
 
