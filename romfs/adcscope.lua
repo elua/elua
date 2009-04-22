@@ -26,7 +26,7 @@ term.putstr("Press ESC to exit.")
 local adcvals = {}
 local key, stime, etime, dtime
 local sample = adc.sample
-local getsample = adc.getsample
+local insertsamples = adc.insertsamples
 local tread = tmr.read
 local tstart = tmr.start
 local i, v
@@ -36,7 +36,7 @@ while true do
   for j=1,numiter do 
     sample(adcchannels, 1)
     for i, v in ipairs(adcchannels) do
-      adcvals[i] = getsample(v)
+      insertsamples(v,adcvals,i,1)
     end
   end
   etime = tread(0)
