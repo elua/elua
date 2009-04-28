@@ -24,7 +24,7 @@ elua_adc_dev_state *adc_get_dev_state( unsigned dev_id )
   return &adc_dev_state;
 }
 
-// Rewrite
+// Rewrite revice sequence
 void adc_update_dev_sequence( unsigned dev_id  )
 {
   elua_adc_dev_state *d = adc_get_dev_state( dev_id );
@@ -297,13 +297,16 @@ elua_adc_ch_state *s = adc_get_ch_state( id );
 }
 
 // If blocking is enabled, wait until we have enough samples or the current
-//  sampling event has finished
-void adc_wait_samples( unsigned id, unsigned samples )
+//  sampling event has finished, returns number of available samples when
+//  function does exit
+u16 adc_wait_samples( unsigned id, unsigned samples )
 {
   elua_adc_ch_state *s = adc_get_ch_state( id );
   
   if( adc_samples_available( id ) < samples && s->blocking == 1 )
     while( s->op_pending == 1 && adc_samples_available( id ) < samples );
+    
+  return adc_samples_available( id );
 }
 
 #endif

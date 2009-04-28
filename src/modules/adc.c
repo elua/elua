@@ -147,11 +147,8 @@ static int adc_getsample( lua_State* L )
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( adc, id );
   
-  // Wait for samples (if blocking)
-  adc_wait_samples( id, 1 );
-  
   // If we have at least one sample, return it
-  if ( adc_samples_available( id ) >= 1 )
+  if ( adc_wait_samples( id, 1 ) >= 1 )
   {
     lua_pushinteger( L, adc_get_processed_sample( id ) );
     return 1;
@@ -171,11 +168,8 @@ static int adc_getsamples( lua_State* L )
 
   if ( lua_isnumber(L, 2) == 1 )
     count = ( u16 )lua_tointeger(L, 2);
-
-  // Wait for samples (if blocking)
-  adc_wait_samples( id, count );
   
-  bcnt = adc_samples_available( id );
+  bcnt = adc_wait_samples( id, count );
   
   // If count is zero, grab all samples
   if ( count == 0 )
@@ -191,7 +185,42 @@ static int adc_getsamples( lua_State* L )
     lua_pushinteger( L, adc_get_processed_sample( id ) );
     lua_rawseti( L, -2, i );
   }
-  return 1;
+  return 0;
+}
+
+
+// Lua: insertsamples(id, table, idx, count)
+static int adc_insertsamples( lua_State* L )
+{
+  unsigned id, i, startidx;
+  u16 bcnt, count, zcount;
+  
+  id = luaL_checkinteger( L, 1 );
+  MOD_CHECK_ID( adc, id );
+  
+  luaL_checktype(L, 2, LUA_TTABLE);
+  
+  startidx = luaL_checkinteger( L, 3 );
+	if  ( startidx <= 0 )
+    return luaL_error( L, "idx must be > 0" );
+
+  count = luaL_checkinteger(L, 4 );
+	if  ( count == 0 )
+    return luaL_error( L, "count must be > 0" );
+  
+  bcnt = adc_wait_samples( id, count );
+  
+  for( i = startidx; i < ( count + startidx ); i ++ )
+  {
+		if ( i < bcnt + startidx )
+    	lua_pushinteger( L, adc_get_processed_sample( id ) );
+		else
+			lua_pushnil( L ); // nil-out values where we don't have enough samples
+		
+    lua_rawseti( L, 2, i );
+  }
+  
+  return 0;
 }
 #endif
 
@@ -209,7 +238,7 @@ const LUA_REG_TYPE adc_map[] =
   { LSTRKEY( "getsample" ), LFUNCVAL( adc_getsample ) },
 #if defined( BUF_ENABLE_ADC )
   { LSTRKEY( "getsamples" ), LFUNCVAL( adc_getsamples ) },
-//  { LSTRKEY( "putsamples" ), LFUNCVAL( adc_putsamples ) },
+  { LSTRKEY( "insertsamples" ), LFUNCVAL( adc_insertsamples ) },
 #endif
   { LNILKEY, LNILVAL }
 };
