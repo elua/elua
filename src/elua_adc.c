@@ -24,7 +24,7 @@ elua_adc_dev_state *adc_get_dev_state( unsigned dev_id )
   return &adc_dev_state;
 }
 
-// Rewrite
+// Rewrite revice sequence
 void adc_update_dev_sequence( unsigned dev_id  )
 {
   elua_adc_dev_state *d = adc_get_dev_state( dev_id );

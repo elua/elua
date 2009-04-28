@@ -193,7 +193,7 @@ static int adc_getsamples( lua_State* L )
 static int adc_insertsamples( lua_State* L )
 {
   unsigned id, i, startidx;
-  u16 bcnt, count;
+  u16 bcnt, count, zcount;
   
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( adc, id );
@@ -201,16 +201,22 @@ static int adc_insertsamples( lua_State* L )
   luaL_checktype(L, 2, LUA_TTABLE);
   
   startidx = luaL_checkinteger( L, 3 );
+	if  ( startidx <= 0 )
+    return luaL_error( L, "idx must be > 0" );
+
   count = luaL_checkinteger(L, 4 );
+	if  ( count == 0 )
+    return luaL_error( L, "count must be > 0" );
   
   bcnt = adc_wait_samples( id, count );
   
-  if ( count > bcnt )
-    count = bcnt;
-  
   for( i = startidx; i < ( count + startidx ); i ++ )
   {
-    lua_pushinteger( L, adc_get_processed_sample( id ) );
+		if ( i < bcnt + startidx )
+    	lua_pushinteger( L, adc_get_processed_sample( id ) );
+		else
+			lua_pushnil( L ); // nil-out values where we don't have enough samples
+		
     lua_rawseti( L, 2, i );
   }
   
