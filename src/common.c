@@ -274,7 +274,7 @@ void cmn_virtual_timer_cb()
 int platform_timer_exists( unsigned id )
 {
 #if VTMR_NUM_TIMERS > 0
-  if( TIMER_IS_VIRTUAL( id ) )
+  if( id >= VTMR_FIRST_ID )
     return TIMER_IS_VIRTUAL( id );
   else
 #endif

@@ -29,14 +29,17 @@ This part of the platform interface deals with PIO (Programmable Input Output) o
 };</code></pre></p></a>
 <p>These are the operations that can be executed by the PIO subsystem on both ports and pins. They are given as arguments to the <a href="#platform_pio_op">platform_pio_op</a> function 
 shown below. ##TODO: document read in/read out if we keep that</p>
+
 <p><pre><code>typedef u32 pio_type;</code></pre></p>
 This is the type used for the actual I/O operations. Currently defined as an unsigned 32-bit type, thus no port can have more than 32 pins. If this happens, it should be possible to split it
 in two or more parts and adding the new parts as "virtual ports" (logical ports that don't have a direct hardware equivalent). The "virtual port" technique is used in the AVR32 backend.</p>
+
 <h3>Functions</h3>
 <p><pre><code>int platform_pio_has_port( unsigned port );</code></pre></p>
-<p>Returns 1 if the platform has the hardware port received as an argument, 0 otherwise. Implemented in <i>src/common.c</i>, it uses the <b>NUM_PIO</b> macro that must be defined in the
+<p>Returns 1 if the platform has the hardware port sepcified as argument, 0 otherwise. Implemented in <i>src/common.c</i>, it uses the <b>NUM_PIO</b> macro that must be defined in the
 platform's <b>platform_conf.h</b> file (see <a href="arch_overview.html#platforms">here</a> for details). For example:</p>
-<p><code>#define NUM_PIO   4      <b>// The platform has 4 hardware ports</b></code></p>
+<p><code>#define NUM_PIO   4      <b>// The platform has 4 hardware PIO ports</b></code></p>
+
 <p><pre><code>int platform_pio_has_pin( unsigned port, unsigned pin );</code></pre></p>
 <p>Returns 1 if the platform has the hardware port and pin specified as arguments, 0 otherwise. Implemented in <i>src/common.c</i>, it uses the <b>NUM_PIO</b> macro to check the validity
 of the port and the <b>PIO_PINS_PER_PORT</b> or <b>PIO_PIN_ARRAY</b> macros to check the validity of the pin. The macros must be defined in the platform's <b>platform_conf.h</b> file
@@ -47,6 +50,7 @@ of the port and the <b>PIO_PINS_PER_PORT</b> or <b>PIO_PIN_ARRAY</b> macros to c
   <li>use <b>PIO_PIN_ARRAY</b> when different ports of the MCU have different number of pins. For example:
     <p><code>#define PIO_PIN_ARRAY { 4, 4, 2, 6 } <b>// Port 0 has 4 pins, port 1 has 4 pins, port 2 has 2 pins, port 3 has 6 pins</b></code></p></li>
 </ul></p>
+
 <p><pre><code>const char* platform_pio_get_prefix( unsigned port );</code></pre></p>
 <p>Get the port prefix. Used to establish if the port notation uses numbers (P0, P1, P2...) or letters (PA, PB, PC...). Implemented in <i>src/common.c</i> is uses the <b>PIO_PREFIX</b> macro
 that must be defined in the platform's <b>platform_conf.h</b> file (see <a href="arch_overview.html#platforms">here</a> for details). The value of this macro can be either '0' (for

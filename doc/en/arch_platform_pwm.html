@@ -1,0 +1,45 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+<meta http-equiv="Content-Language" content="en-us"><title>eLua platform interface - PWM</title>
+
+<link rel="stylesheet" type="text/css" href="../style.css"></head>
+<body style="background-color: rgb(255, 255, 255);">
+<h3>Overview</h3>
+<p>
+This part of the platform interface groups functions related to the PWM channel(s) of the MCU.
+</p>
+<h3>Data structures, constants and types</h3>
+<a name="opval"><p><pre><code>// PWM operations
+enum
+{
+  PLATFORM_PWM_OP_START,
+  PLATFORM_PWM_OP_STOP,
+  PLATFORM_PWM_OP_SET_CLOCK,
+  PLATFORM_PWM_OP_GET_CLOCK
+};</code></pre></p></a>
+<p>This enum lists all the operations that can be executed on a given PWM channel.</p>
+
+</p>
+<h3>Functions</h3>
+<a name="platform_pwm_setup"><p><pre><code>int platform_pwm_exists( unsigned id );</code></pre></p></a>
+<p>Returns 1 if the platform has the PWM channel specified as argument, 0 otherwise. Implemented in <i>src/common.c</i>, it uses the <b>NUM_PWM</b> macro that must be defined in the
+platform's <b>platform_conf.h</b> file (see <a href="arch_overview.html#platforms">here</a> for details). For example:</p>
+<p><code>#define NUM_PWM   4      <b>// The platform has 4 PWM channels</b></code></p>
+
+<p><pre><code>u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty );</code></pre></p>
+<p>Set up the PWM channel <b>id</b> to run at the given <b>frequency</b> (in hertz) with the specified <b>duty</b> cycle (specified as percent from 0 to 100). The function returns the
+actual frequency set on the PWM channel, which might differ from <b>frequency</b> depending on the hardware. Also, some platforms don't allow the full range of 0%-100% duty cycle.</p>
+
+<p><pre><code>u32 platform_pwm_op( unsigned id, int op, u32 data );</code></pre></p>
+<p>Executes <b>op</b> on the given PWM <b>id</b>. <b>op</b> can take any value from <a href="#opval">this enum</a>, as follows:
+<ul>
+  <li><b>PLATFORM_PWM_OP_START</b>: starts PWM generation on the specified channel. The return value is irrelevant.</li>
+  <li><b>PLATFORM_PWM_OP_STOP</b>: stops PWM generation on the specified channel. The return value is irrelevant.</li>  
+  <li><b>PLATFORM_PWM_OP_SET_CLOCK</b>: sets the <b>base</b> clock of the specified PWM channel  which will be used to generate the frequencies requested by 
+      <a href="#platform_pwm_setup">platform_pwm_setup</a>) to <b>data</b> (in hertz). Returns the actual base clock set on the PWM channel, which might differ from <b>data</b>
+      depending on the hardware.</li>
+  <li><b>PLATFORM_PWM_OP_GET_CLOCK</b>: returns the <b>base</b> clock of the specified PWM channel.</li>
+</ul></p>
+
+</body></html>
