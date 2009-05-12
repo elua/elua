@@ -8,14 +8,8 @@
 
 extern int host_errno;
 
-#define EOF (-1)
-#define STDIN_FILENO 0
-#define STDOUT_FILENO 1
-
 ssize_t host_read( int fd, void * buf, size_t count);
 ssize_t host_write( int fd, const void * buf, size_t count);
-int host_putchar(int c);
-int host_getchar();
 
 #define PROT_READ 0x1   /* Page can be read.  */
 #define PROT_WRITE  0x2   /* Page can be written.  */
@@ -30,5 +24,7 @@ int host_getchar();
 #define MAP_FAILED (void *)(-1)
 
 void *host_mmap2(void *addr, size_t length, int prot, int flags, int fd, off_t pgoffset);
+void host_exit(int status);
 
 #endif // _HOST_H
+

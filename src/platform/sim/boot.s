@@ -5,11 +5,6 @@
 
 [BITS 32]                       ; All instructions should be 32-bit.
 
-[EXTERN code]                   ; Start of the '.text' section.
-[EXTERN bss]                    ; Start of the .bss section.
-[EXTERN end]                    ; End of the last loadable section.
-[SECTION .header]
-
 [GLOBAL start]                  ; Kernel entry point.
 [EXTERN main]                   ; This is the entry point of our C code
 [EXTERN platform_ll_init]       ; Low level initializatin function

@@ -12,10 +12,7 @@
 #include "term.h"
 
 // Platform specific includes
-#include "monitor.h"
-#include "descriptor_tables.h"
-#include "kb.h"
-#include "host.h"
+#include "hostif.h"
 
 // ****************************************************************************
 // Terminal support code
@@ -24,7 +21,7 @@
 
 static void i386_term_out( u8 data )
 {
-  monitor_put( data );
+  hostif_put( data );
 }
 
 static int i386_term_in( int mode )
@@ -32,7 +29,7 @@ static int i386_term_in( int mode )
   if( mode == TERM_INPUT_DONT_WAIT )
     return -1;
   else
-    return keyboard_getch();
+    return hostif_getch();
 }
 
 static int i386_term_translate( int data )
@@ -54,6 +51,10 @@ static int i386_term_translate( int data )
     case '\b':
       newdata = KC_BACKSPACE;
       break;
+
+    case 0x1B:
+      newdata = KC_ESC;
+      break;
   }
   return newdata;
 }
@@ -65,7 +66,7 @@ static int i386_term_translate( int data )
 static void scr_write( int fd, char c )
 {
   fd = fd;
-  monitor_put( c );
+  hostif_put( c );
 }
 
 static int kb_read( s32 to )
@@ -76,7 +77,7 @@ static int kb_read( s32 to )
     return -1;
   else
   {
-    while( ( res = keyboard_getch() ) >= TERM_FIRST_KEY );
+    while( ( res = hostif_getch() ) >= TERM_FIRST_KEY );
     return res;
   }
 }
@@ -89,34 +90,19 @@ void *memory_end_address = 0;
 
 void platform_ll_init()
 {
-#if 0
-  // Initialise all the ISRs and segmentation
-  init_descriptor_tables();
-#endif
-    
-  // Initialise the screen (by clearing it)
-  monitor_clear();        
-
 	// Initialise heap memory region.
-	memory_start_address =
-		host_mmap2(0, MEM_LENGTH, (PROT_READ|PROT_WRITE), (MAP_PRIVATE|MAP_ANONYMOUS), -1, 0);
+	memory_start_address = hostif_getmem( MEM_LENGTH ); 
 	memory_end_address = memory_start_address + MEM_LENGTH;
 }
 
 int platform_init()
 { 
-#if 0
-  // We can start interrupts now
-  asm volatile("sti");    
-  
-  // And install the keyboard handler
-  keyboard_install();
-#endif
-
-	if(memory_start_address == MAP_FAILED) {
-    monitor_write( "platform_init(): mmap failed\n" );
+	if( memory_start_address == NULL ) 
+  {
+    hostif_write( "platform_init(): mmap failed\n" );
 		return PLATFORM_ERR;
 	}
+
   // Set the std input/output functions
   // Set the send/recv functions                          
   std_set_send_func( scr_write );
@@ -126,6 +112,9 @@ int platform_init()
 #ifdef BUILD_TERM  
   term_init( TERM_LINES, TERM_COLS, i386_term_out, i386_term_in, i386_term_translate );
 #endif
+
+  term_clrscr();
+  term_gotoxy( 1, 1 );
  
   // All done
   return PLATFORM_OK;
@@ -160,12 +149,3 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
   return 0;
 }
 
-// ****************************************************************************
-// Allocator support
-
-#if 0
-u32 platform_get_lastmem()
-{
-  return lastmem;
-}
-#endif

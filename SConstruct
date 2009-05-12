@@ -57,7 +57,7 @@ platform_list = {
   'lm3s' : { 'cpus' : [ 'LM3S8962', 'LM3S6965', 'LM3S6918' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
   'str9' : { 'cpus' : [ 'STR912FAW44' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
   'i386' : { 'cpus' : [ 'I386' ], 'toolchains' : [ 'i686-gcc' ] },
-  'linux' : { 'cpus' : [ 'LINUX' ], 'toolchains' : [ 'i686-gcc' ] },
+  'sim' : { 'cpus' : [ 'LINUX' ], 'toolchains' : [ 'i686-gcc' ] },
   'lpc288x' : { 'cpus' : [ 'LPC2888' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
   'str7' : { 'cpus' : [ 'STR711FR2' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
   'stm32' : { 'cpus' : [ 'STM32F103ZE', 'STM32F103RE' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
@@ -70,7 +70,7 @@ board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
                'EK-LM3S6965' : [ 'LM3S6965' ],
                'STR9-COMSTICK' : [ 'STR912FAW44' ],
                'PC' : [ 'I386' ],
-               'LINUX' : [ 'LINUX' ],
+               'SIM' : [ 'LINUX' ],
                'LPC-H2888' : [ 'LPC2888' ],
                'MOD711' : [ 'STR711FR2' ],
                'STM3210E-EVAL' : [ 'STM32F103ZE' ],
@@ -106,7 +106,7 @@ file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'i
               'EK-LM3S6965' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope','adcpoll' ],
               'STR9-COMSTICK' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
               'PC' : [ 'bisect', 'hello', 'info', 'life', 'hangman' ],
-              'LINUX' : [ 'bisect', 'hello', 'info', 'life', 'hangman' ],
+              'SIM' : [ 'bisect', 'hello', 'info', 'life', 'hangman' ],
               'LPC-H2888' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
               'MOD711' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'dualpwm' ],
               'STM3210E-EVAL' : [ 'bisect', 'hello', 'info' ],
@@ -205,6 +205,10 @@ if allocator == 'multiple':
   cdefs = cdefs + " -DUSE_MULTIPLE_ALLOCATOR"
 elif allocator == 'simple':
   cdefs = cdefs + " -DUSE_SIMPLE_ALLOCATOR"
+
+# Special macro definitions for the SYM target
+if platform == 'sim':
+  cdefs = cdefs + " -DELUA_SIMULATOR -DELUA_SIM_%s" % cputype
 
 # Lua source files and include path
 lua_files = """lapi.c lcode.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c lobject.c lopcodes.c

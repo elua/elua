@@ -11,6 +11,9 @@
 #include "lua.h"
 #include "term.h"
 #include "platform_conf.h"
+#ifdef ELUA_SIMULATOR
+#include "hostif.h"
+#endif
 
 // Validate eLua configuratin options
 #include "validate.h"
@@ -56,5 +59,11 @@ int main( void )
   else
     shell_start();
 
+#ifdef ELUA_SIMULATOR
+  hostif_exit(0);
+  return 0;
+#else
   while( 1 );
+#endif
 }
+

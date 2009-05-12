@@ -1,8 +1,9 @@
 #include "host.h"
 
 #define __NR_read     3
-#define __NR_write      4
+#define __NR_write    4
 #define __NR_mmap2    192
+#define __NR_exit     1
 
 int host_errno = 0;
 
@@ -13,6 +14,17 @@ int host_errno = 0;
 	} \
 	return (type) (res); \
 } while(0)
+
+#define _syscall1(type,name,type1,arg1) \
+type host_##name(type1 arg1) \
+{ \
+long __res; \
+__asm__ volatile ("int $0x80" \
+        : "=a" (__res) \
+        : "0" (__NR_##name),"b" ((long)(arg1))); \
+__syscall_return(type,__res); \
+}
+
 
 #define _syscall3(type,name,type1,arg1,type2,arg2,type3,arg3) \
 type host_##name(type1 arg1,type2 arg2,type3 arg3) \
@@ -41,37 +53,5 @@ __asm__ volatile ("push %%ebp ; movl %%eax,%%ebp ; movl %1,%%eax ; int $0x80 ; p
 _syscall3(ssize_t, read, int, fd, void *, buf, size_t, count);
 _syscall3(ssize_t, write, int, fd, const void *, buf, size_t, count);
 _syscall6(void *,mmap2, void *,addr, size_t, length, int, prot, int, flags, int, fd, off_t, offset);
-
-#if 0
-void *host_mmap2(void *addr, size_t length, int prot, int flags, int fd, off_t pgoffset) {
-	long res;
-	__asm__ __volatile__ (
-		"  push %%ebp\n"
-		"  movl %%eax, %%ebp\n"
-		"  movl %1, %%eax\n"
-  	"  int  $0x80\n"
-  	"  pop %%ebp\n"
-		: "=a" (res)
-		: "i" (__NR_mmap2), "b" (addr), "c" (length), "d" (prot), "S" (flags),
-		"D" (fd), "0" (pgoffset)
-	);
-	return (void *)res;
-}
-#endif
-
-int host_putchar(int c) {
-	unsigned char ch = (unsigned char)c;
-	if(host_write(STDOUT_FILENO, &ch, 1) != 1) {
-		return EOF;
-	}
-	return (int)ch;
-}
-
-int host_getchar() {
-	unsigned char ch = 0;
-	if(host_read(STDIN_FILENO, &ch, 1) != 1) {
-		return EOF;
-	}
-	return (int)ch;
-}
+_syscall1(void, exit, int, status);
 
