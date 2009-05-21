@@ -13,6 +13,7 @@ en/installing_lpc2888.html
 en/overview.html
 en/tc_386.html
 en/tc_cortex.html
+en/arch_platform_ll.html
 en/faq.html
 en/net_ref.html
 en/refman.html
@@ -24,7 +25,7 @@ en/tchainbuild.html
 en/tut_bootpc.html
 en/tut_openocd.html
 en/arch.html
-en/arch_platform_uart.html
+en/arch_platform_spi.html
 en/arch_coding.html
 en/arch_romfs.html
 en/arch_con_term.html
@@ -41,7 +42,7 @@ en/toolchains.html
 en/dl_old.html
 en/examples.html
 en/arch_platform_timers.html
-en/arch_platform_spi.html
+en/arch_platform_uart.html
 en/installing_str9.html
 en/installing_stm32.html
 en/downloads.html
