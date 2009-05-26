@@ -1,15 +1,20 @@
 -- eLua platform interface - PWM
 
--- Title
-title = "eLua platform interface - PWM"
-
--- Overview
-overview = "This part of the platform interface groups functions related to the PWM channel(s) of the MCU."
-
--- Data structures, constants and types
-structures = 
+data_en = 
 {
-  { text = [[// PWM operations
+  -- Title
+  title = "eLua platform interface - PWM",
+
+  -- Menu name
+  menu_name = "PWM",
+
+  -- Overview
+  overview = "This part of the platform interface groups functions related to the PWM channel(s) of the MCU.",
+
+  -- Data structures, constants and types
+  structures = 
+  {
+    { text = [[// PWM operations
 enum
 {
   PLATFORM_PWM_OP_START,
@@ -17,58 +22,58 @@ enum
   PLATFORM_PWM_OP_SET_CLOCK,
   PLATFORM_PWM_OP_GET_CLOCK
 } ]],
-    link = "opval",
-    desc = "This enum lists all the operations that can be executed on a given PWM channel."
-  },
-}
-
--- Functions
-funcs = 
-{
-  { sig = "int platform_pwm_exists( unsigned id );",
-    desc = [[Checks if the platform has the PWM channel specified as argument. Implemented in %src/common.c%, it uses the $NUM_PWM$ macro that must be defined in the
-platform's $platform_conf.h$ file (see @arch_overview.html#platforms@here@ for details). For example:</p>
-~#define NUM_PWM   4      $// The platform has 4 PWM channels$~<p> ]],
-    args = 
-    {
-      { name = "id", desc = "PWM channel ID" },
+      name = "PWM operations",
+      desc = "This enum lists all the operations that can be executed on a given PWM channel."
     },
-    ret = "1 if the specified PWM channel exists, 0 otherwise"
   },
 
-  { sig = "u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty );",
-    link = "platform_pwm_setup",
-    desc = "Sets up a PWM channel",
-    args = 
-    {
-      { name = "id", desc = "PWM channel ID" },
-      { name = "frequency", desc = "PWM channel frequency (in hertz)" },
-      { name = "duty", desc = "PWM channel duty cycle, specified as percent (from 0 to 100). Note that some platform don't allow the full 0%-100% duty cycle" }
+  -- Functions
+  funcs = 
+  {
+    { sig = "int #platform_pwm_exists#( unsigned id );",
+      desc = [[Checks if the platform has the PWM channel specified as argument. Implemented in %src/common.c%, it uses the $NUM_PWM$ macro that must be defined in the
+  platform's $platform_conf.h$ file (see @arch_overview.html#platforms@here@ for details). For example:</p>
+  ~#define NUM_PWM   4      $// The platform has 4 PWM channels$~<p> ]],
+      args = 
+      {
+        { name = "id", desc = "PWM channel ID" },
+      },
+      ret = "1 if the specified PWM channel exists, 0 otherwise"
     },
-    ret = "The actual frequency set on the PWM channel, which might differ from the $frequency$ parameter, depeding on the hardware",
-  },
 
-  { sig = "u32 platform_pwm_op( unsigned id, int op, u32 data );",
-    desc = "Executes an operation on the a PWM channel",
-    args = 
-    {
-      { name = "id", desc = "PWM channel ID" },
-      { name = "op", desc = [[the operation that must be executed. It can take any value from @#opval@this enum@, as follows:
-<ul>
-  <li>$PLATFORM_PWM_OP_START$: starts PWM generation on the specified channel.</li>
-  <li>$PLATFORM_PWM_OP_STOP$: stops PWM generation on the specified channel.</li>  
-  <li>$PLATFORM_PWM_OP_SET_CLOCK$: sets the $base$ clock of the specified PWM channel (which will be used to generate the frequencies requested by 
-      @#platform_pwm_setup@platform_pwm_setup@) to $data$ hertz.</li>
-  <li>$PLATFORM_PWM_OP_GET_CLOCK$: get the $base$ clock of the specified PWM channel.</liA>
-</ul>]],},
-      { name = "data", desc = "When used with $op$ == $PLATFORM_PWM_OP_SET_CLOCK$ it is used to specify the value of the base clock. Not used with other operations."}
+    { sig = "u32 #platform_pwm_setup#( unsigned id, u32 frequency, unsigned duty );",
+      desc = "Sets up a PWM channel",
+      args = 
+      {
+        { name = "id", desc = "PWM channel ID" },
+        { name = "frequency", desc = "PWM channel frequency (in hertz)" },
+        { name = "duty", desc = "PWM channel duty cycle, specified as percent (from 0 to 100). Note that some platform don't allow the full 0%-100% duty cycle" }
+      },
+      ret = "The actual frequency set on the PWM channel, which might differ from the $frequency$ parameter, depeding on the hardware",
     },
-    ret = 
-    {
-      "the actual value of the base clock when $op$ == $PLATFORM_PWM_OP_SET_CLOCK$, which might be different than $data$ depending on the hardware",
-      "the value of the base clock when $op$ == $PLATFORM_PWM_OP_GET_CLOCK$",
-      "irellevant for other operations"
-    }  
+
+    { sig = "u32 #platform_pwm_op#( unsigned id, int op, u32 data );",
+      desc = "Executes an operation on a PWM channel",
+      args = 
+      {
+        { name = "id", desc = "PWM channel ID" },
+        { name = "op", desc = [[the operation that must be executed. It can take any value from @#pwm_operations@this enum@, as follows:
+  <ul>
+    <li>$PLATFORM_PWM_OP_START$: starts PWM generation on the specified channel.</li>
+    <li>$PLATFORM_PWM_OP_STOP$: stops PWM generation on the specified channel.</li>  
+    <li>$PLATFORM_PWM_OP_SET_CLOCK$: sets the $base$ clock of the specified PWM channel (which will be used to generate the frequencies requested by 
+        @#platform_pwm_setup@platform_pwm_setup@) to $data$ hertz.</li>
+    <li>$PLATFORM_PWM_OP_GET_CLOCK$: get the $base$ clock of the specified PWM channel.</liA>
+  </ul>]],},
+        { name = "data", desc = "When used with $op$ == $PLATFORM_PWM_OP_SET_CLOCK$ it is used to specify the value of the base clock. Not used with other operations."}
+      },
+      ret = 
+      {
+        "the actual value of the base clock when $op$ == $PLATFORM_PWM_OP_SET_CLOCK$, which might be different than $data$ depending on the hardware",
+        "the value of the base clock when $op$ == $PLATFORM_PWM_OP_GET_CLOCK$",
+        "irellevant for other operations"
+      }  
+    }
   }
 }
 

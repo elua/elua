@@ -1,37 +1,52 @@
 -- eLua platform interface - name
 
--- Title
-title = "eLua platform interface - name"
-
--- Overview
-overview = [[
-]]
-
--- Data structures, constants and types
-structures = 
+data_en = 
 {
-  { text = [[ ]],
-    desc = [[ ]]
-  },
-}
 
--- Functions
-funcs = 
-{
-  { sig = "",
-    link = "",
-    desc = [[ ]],
-    args = 
-    {
-      { name = "", desc = "" },
-      { name = "", desc = "" }
+  -- Title
+  title = "eLua platform interface - name",
+
+  -- Menu name
+  menu_name = "name"
+
+  -- Overview
+  overview = [[
+  ]],
+
+  -- Data structures, constants and types
+  structures = 
+  {
+    { text = [[ ]],
+      name = "", 
+      desc = [[ ]]
     },
-    ret = 
-    {
-       "",
-       [[ ]],
-    }, 
   },
 
+  -- Functions
+  funcs = 
+  {
+    { sig = "void #functionname#( void )",
+      desc = [[ ]],
+      args = 
+      {
+        { name = "", desc = "" },
+        { name = "", desc = "" }
+      },
+      ret = 
+      {
+         "",
+         [[ ]],
+      }, 
+    },
+
+  },
+
+  -- Aux data
+  auxdata = 
+  {
+    { title = "",
+      desc = [[]]
+    }
+  }
 }
 

@@ -1,24 +1,40 @@
 #!/bin/bash
+# Builds a full documentation package in the "dist/" directory
+
+# Delete and recreate directory
+rm -rf dist
+mkdir dist
 
 # Build platform docs
-for f in arch_platform/arch_platform_*.lua
+lua builddoc.lua
+cd wb
+lua wb_build.lua
+cd ..
+
+# Copy the required files to the dist/ directory
+for lang in en pt
 do
-  fname=$(basename $f)
-  if [ $fname == "arch_platform_template.lua" ]
-  then
-    echo "Skipping $fname"
-    echo
-    continue
-  fi
-  newfname=$(echo $fname | sed "s/\.lua/\.html/")
-  lua builddoc.lua $f
-  if [ $? -eq 0 ]
-  then
-    mv arch_platform/$newfname en/
-    echo "DONE processing $f"
-  else
-   echo "**** Building $f failed"
-  fi
-  echo
+  cp -R $lang/ dist/
 done
+cp -R wb_img dist/
+for f in wb*.html style.css index*.html
+do
+  echo Copying $f...
+  cp $f dist/
+done
+
+# Remove all version data from dist
+find dist/ -name ".svn" | xargs rm -rf
+
+# Remove unneeded files from base dir
+for lang in en pt
+do
+  rm $lang/arch_platform_*.html
+done
+rm wb/wb_usr.lua
+
+# All done
+echo
+echo "DONE! Enjoy your documentation in dist/ :)"
+
 
