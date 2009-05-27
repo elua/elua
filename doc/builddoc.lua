@@ -1,8 +1,14 @@
 -- eLua doc builder tool 
 
--- List here all the components of the platform interface
-local arch_platform_components = { "ll", "pio", "spi", "uart", "timers", "pwm", "cpu", "eth" }
--- local arch_platform_components = { "cpu" }
+-- List here all the sections for which we're generating the documentation
+local doc_sections = { "arch_platform", "refman_gen" }
+
+-- List here all the components of each section
+local components = 
+{ 
+  arch_platform = { "ll", "pio", "spi", "uart", "timers", "pwm", "cpu", "eth" },
+  refman_gen = { "cpu" }
+}
 
 -- List here all languages for the documentation (make sure to keep English ("en") the first one)
 local languages = { "en", "pt" }
@@ -10,7 +16,6 @@ local languages = { "en", "pt" }
 local overview_tr = { en = "Overview", pt = "##Overview" }
 local structures_tr = { en = "Data structures", pt = "##Data structures" }
 local functions_tr = { en = "Functions", pt = "##Functions" }
-local pi_tr = { en = "Platform interface", pt = "##Platform interface" }
 
 -- Format a name to a link by changing all the spaces to "_" and
 -- making all letters lowercase
@@ -245,9 +250,9 @@ local function alllangs( getstr )
   return str .. " }"
 end
 
--- Transform the data from the wb dictionary (in 'fulldata') for module 'modname' to a wb string
-local function wb2str( fulldata, modname )
-  local relfname = "arch_platform_" .. modname .. ".html"
+-- Transform the data from the wb dictionary (in 'fulldata') for module 'modname' to a wb string, for section 'sect'
+local function wb2str( fulldata, modname, sect )
+  local relfname = sect .. "_" .. modname .. ".html"
   local res = fulldata[ modname ]
   local wbstr = string.format( '    { %s,\n      link = "%s",\n      folder =\n      {\n', alllangs( function( x ) return res[ x ].wb.name end ), relfname )
 
@@ -294,12 +299,6 @@ if not wbf then
 end
 local wbdata = wbf:read( "*a" )
 wbf:close()
--- Check that our template has the required pattern
-local pattern = "%$%$ARCH_PLATFORM%$%$"
-if not wbdata:find( pattern ) then
-  print( string.format( "$$arch_platform$$ not found in wb_usr_template.lua", modname ) )
-  return 1
-end
 -- Open the actual wb_usr.lua in write mode
 local realwbf = io.open( realwbloc, "wb" )
 if not realwbf then
@@ -307,44 +306,55 @@ if not realwbf then
   return 1
 end
 
--- Generate documentation for each module in turn
-local fulldata = {}
-for _, modname in pairs( arch_platform_components ) do
-  local descfname = string.format( "arch_platform/arch_platform_%s.lua", modname )
-  local res, err = build_file( descfname )
-  if res then
-    fulldata[ modname ] = res
-    -- Write doc for each language
-    for _, lang in pairs( languages ) do
-      local fname = string.format( "%s/arch_platform_%s.html", lang, modname )
-      local f = io.open( fname, "wb" )
-      if not f then
-        print( string.format( "Unable to open %s for writing", fname ) )
-        return 1
-      else
-        f:write( res[ lang ].page )
-        f:close()
-        print( ( "Wrote %s" ):format( fname ) )
-      end
-    end
-  else
-    print( string.format( "Error processing module '%s': %s", modname, err ) )
+-- Generate documentation for each section in part
+for _, section in pairs( doc_sections ) do 
+
+  -- Check for pattern in wb_usr_template.lua
+  local pattern = "%$%$" .. section:upper() .. "%$%$"
+  if not wbdata:find( pattern ) then
+    print( string.format( "$$%s$$ not found in wb_usr_template.lua", section:upper(), modname ) )
     return 1
   end
-  print ""
-end 
 
--- Now it's finally time to get our wb/wb_usr.lua
-local fullwb = ''
-for _, modname in pairs( arch_platform_components ) do
-  local wbstr = wb2str( fulldata, modname )
-  fullwb = fullwb .. wbstr
+  -- Generate documentation for each module in turn
+  local fulldata = {}
+  for _, modname in pairs( components[ section ] ) do
+    local descfname = string.format( "luadoc/%s_%s.lua", section, modname )
+    local res, err = build_file( descfname )
+    if res then
+      fulldata[ modname ] = res
+      -- Write doc for each language
+      for _, lang in pairs( languages ) do
+        local fname = string.format( "%s/%s_%s.html", lang, section, modname )
+        local f = io.open( fname, "wb" )
+        if not f then
+          print( string.format( "Unable to open %s for writing", fname ) )
+          return 1
+        else
+          f:write( res[ lang ].page )
+          f:close()
+          print( ( "Wrote %s" ):format( fname ) )
+        end
+      end
+    else
+      print( string.format( "Error processing module '%s': %s", modname, err ) )
+      return 1
+    end
+    print ""
+  end 
+
+  -- Now it's finally time to get our wb/wb_usr.lua
+  local fullwb = ''
+  for _, modname in pairs( components[ section ] ) do
+    local wbstr = wb2str( fulldata, modname, section )
+    fullwb = fullwb .. wbstr
+  end
+
+  -- Substitute our pattern and write everything back to disk
+  wbdata = wbdata:gsub( pattern, fullwb )
 end
--- Add beginning and end to fullwb
-fullwb = string.format( '{ %s,\n  link = "arch_platform.html",\n  folder = \n  {\n%s  }\n}\n', alllangs( function( x ) return pi_tr[ x ] end ), fullwb )
 
--- Substitute our pattern and write everything back to disk
-wbdata = wbdata:gsub( pattern, fullwb )
+-- Write wb_usr.lua to disk (finally)
 realwbf:write( wbdata )
 realwbf:close()
 
