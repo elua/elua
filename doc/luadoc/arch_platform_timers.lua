@@ -42,10 +42,7 @@ enum
       desc = [[Checks if the platform has the timer specified as argument. Implemented in %src/common.c%, it uses the $NUM_TIMER$ macro that must be defined in the
   platform's $platform_conf.h$ file (see @arch_overview.html#platforms@here@ for details) and the virtual timer configuration (@#virtual@here@ for details). For example:</p>
   ~#define NUM_TIMER   2      $// The platform has 2 hardware timers$~<p>]],
-      args = 
-      {
-        { name = "id", desc = "the timer ID" },
-      },
+      args = "$id$ - the timer ID",
       ret = "1 if the timer exists, 0 otherwise"
     },
 
@@ -60,8 +57,8 @@ enum
   the timer base clock.]],
       args = 
       {
-        { name = "id", desc = "the timer ID" },
-        { name = "delay_us", desc = "the delay time (in microseconds)" }
+        "$id$ - the timer ID",
+        "$delay_us$ - the delay time (in microseconds)"
       }
     },
 
@@ -70,8 +67,8 @@ enum
   and it must never handle virtual timer IDs, only hardware timer IDs. It has the same @#limitations@limitations@ as @#platform_timer_delay@platform_timer_delay@.]],
       args = 
       {
-        { name = "id", desc = "the timer ID" },
-        { name = "delay_us", desc = "the delay time (in microseconds)" }
+        "$id$ - the timer ID",
+        "$delay_us$ - the delay time (in microseconds)"
       }
     },
 
@@ -81,8 +78,8 @@ enum
   timer IDs.]],
       args = 
       {
-        { name = "id", desc = "the timer ID" },
-        { name = "op", desc = [[the operation. $op$ can take any value from the @#timer_operations@this enum@, as follows:
+        "$id$ - the timer ID",
+        [[$op$ - the operation. $op$ can take any value from the @#timer_operations@this enum@, as follows:
   <ul>
     <li>$PLATFORM_TIMER_OP_START$: start the specified timer by setting its counter register to a predefined value.</li>
     <li>$PLATFORM_TIMER_OP_READ$: get the value of the specified timer's counter register.</li> 
@@ -90,8 +87,8 @@ enum
     <li>$PLATFORM_TIMER_GET_CLOCK$: get the clock of the specified timer.</li>  
     <li>$PLATFORM_TIMER_OP_GET_MAX_DELAY$: get the maximum achievable timeout on the specified timer (in us).</li>  
     <li>$PLATFORM_TIMER_OP_GET_MIN_DELAY$: get the minimum achievable timeout on the specified timer (in us).</li>
-  </ul>]] },
-        { name = "data", desc = "used to specify the timer clock value when $op = PLATFORM_TIMER_SET_CLOCK$, ignored otherwise" },
+  </ul>]],
+        "$data$ - used to specify the timer clock value when $op = PLATFORM_TIMER_SET_CLOCK$, ignored otherwise",
       },
       ret = 
       {
@@ -109,8 +106,8 @@ enum
   never handle virtual timer IDs, only hardware timer IDs.]],
       args = 
       {
-        { name = "id", desc = "the timer ID" },
-        { name = "op", desc = [[the operation. $op$ can take any value from the @#opval@this enum@, as follows:
+        "$id$ - the timer ID",
+        [[$op$ - the operation. $op$ can take any value from the @#opval@this enum@, as follows:
   <ul>
     <li>$PLATFORM_TIMER_OP_START$: start the specified timer by setting its counter register to a predefined value.</li>
     <li>$PLATFORM_TIMER_OP_READ$: get the value of the specified timer's counter register.</li> 
@@ -118,8 +115,8 @@ enum
     <li>$PLATFORM_TIMER_GET_CLOCK$: get the clock of the specified timer.</li>  
     <li>$PLATFORM_TIMER_OP_GET_MAX_DELAY$: get the maximum achievable timeout on the specified timer (in us).</li>  
     <li>$PLATFORM_TIMER_OP_GET_MIN_DELAY$: get the minimum achievable timeout on the specified timer (in us).</li>
-  </ul>]] },
-        { name = "data", desc = "used to specify the timer clock value when $op = PLATFORM_TIMER_SET_CLOCK$, ignored otherwise" },
+  </ul>]],
+        "$data$ - used to specify the timer clock value when $op = PLATFORM_TIMER_SET_CLOCK$, ignored otherwise",
       },
       ret = 
       {
@@ -136,9 +133,9 @@ enum
       desc = [[Return the time difference (in us) betweeen two timer values. This function is generic for all platforms, thus it is implemented in %src/common.c%.]],
       args = 
       {
-        { name = "id", desc = "the timer ID" },
-        { name = "end", desc = "the first timer value" },
-        { name = "start", desc = "the second timer value" },
+        "$id$ - the timer ID",
+        "$end$ - the first timer value",
+        "$start$ - the second timer value",
       },
       ret = "the time difference (in microseconds)"
     }

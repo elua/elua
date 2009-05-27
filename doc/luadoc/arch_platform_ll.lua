@@ -65,10 +65,7 @@ enum
   free RAM in the system. For internal RAM, this is generally handled by a linker exported symbol (named $end$ in many eLua ports) which 
   points to the firs RAM address after all the constant and non-constant program data. An example is given below:</p>
   ~#define MEM_START_ADDRESS     { ( void* )end }~<p>]],
-      args = 
-      {
-        { name = "id", desc = "the identifier of the RAM area" },
-      },
+      args = "$id$ - the identifier of the RAM area",
       ret = "the start address of the given memory area",   
     },
 
@@ -80,10 +77,7 @@ enum
   free RAM in the system. For internal RAM, this is generally set as the last RAM memory address minus the size of the system stack(s). An example is 
   given below:</p>
   ~#define MEM_END_ADDRESS       { ( void* )( SRAM_BASE + 0x10000 - STACK_SIZE_TOTAL - 1 ) }~<p>]],
-      args = 
-      {
-        { name = "id", desc = "the identifier of the RAM area" },
-      },
+      args = "$id$ - the identifier of the RAM area",
       ret = "the end address of the given memory area",   
     },
 

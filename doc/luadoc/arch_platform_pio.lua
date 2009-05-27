@@ -50,10 +50,7 @@ data_en =
       desc = [[Checks if the platform has the hardware port specified as argument. Implemented in %src/common.c%, it uses the $NUM_PIO$ macro that must be defined in the
   platform's $platform_conf.h$ file (see @arch_overview.html#platforms@here@ for details). For example:</p>
   ~#define NUM_PIO   4      $// The platform has 4 hardware PIO ports$~<p> ]],
-      args = 
-      {
-        { name = "port", desc = "the port ID" },
-      },
+      args = "$port$ - the port ID",
       ret = "1 if the port exists, 0 otherwise",
     },
 
@@ -69,8 +66,8 @@ data_en =
   </ul>]],
       args = 
       {
-        { name = "port", desc = "the port ID" },
-        { name = "pin", desc = "the pin number" },
+        "$port$ - the port ID",
+        "$pin$ - the pin number"
       },
       ret = "1 if the pin exists, 0 otherwise",
     },
@@ -80,10 +77,7 @@ data_en =
   $PIO_PREFIX$ macro that must be defined in the platform's $platform_conf.h$ file (see @arch_overview.html#platforms@here@ for details). The value of this macro can be either '0' (for
   numeric notation) or 'A' (for letter notation). For example:
   ~#define PIO_PREFIX    'A'   $// Use PA, PB, PC ... for port notation$~<p>]],
-      args = 
-      {
-        { name = "port", desc = "the port ID" }
-      },
+      args = "$port$ - the port ID",
       ret = "the port prefix (either '0' or 'A')",  
     },
 
@@ -92,14 +86,14 @@ data_en =
       desc = "This is the function that does the actual I/O work. It is implemented in the platform's own porting layer (%platform.c%, see @arch_overview.html#ports@here@ for more details).",
       args = 
       {
-        { name = "port", desc = "the port number" },
-        { name = "pinmask", desc = [[has different meanings:
+        "$port$ - the port number",
+        [[$pinmask$ - has different meanings:
   <ul>
     <li>for $pin operations$ it is the mask of pins in the operation. Each pin on which the function action is executed is encoded with an 1 in the corresponding bit position 
         of the pinmask.</li>
     <li>for $port operations$ it is only meaningful for $PLATFORM_IO_PORT_SET_VALUE$ and in this case it specifies the new value of the port.</li>
-  </ul>]]},
-       { name = "op", desc = "specifies the I/O operations, as specified @#pio_operations@here@." },
+  </ul>]],
+       "$op$ - specifies the I/O operations, as specified @#pio_operations@here@."
       },
      ret = 
      {

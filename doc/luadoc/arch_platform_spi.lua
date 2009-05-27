@@ -42,10 +42,7 @@ data_en =
       desc = [[Checks if the platform has the hardware SPI specified as argument. Implemented in %src/common.c%, it uses the $NUM_SPI$ macro that must be defined in the
   platform's $platform_conf.h$ file (see @arch_overview.html#platforms@here@ for details). For example:</p>
   ~#define NUM_SPI   1      $// The platform has 1 SPI interface$~</p> ]],
-      args = 
-      {
-        { name = "id", desc = "SPI interface ID" },
-      },
+      args = "$id$ - SPI interface ID",
       ret = "1 if the SPI interface exists, 0 otherwise"
     },
 
@@ -53,12 +50,12 @@ data_en =
       desc = [[This function is used to initialize the parameters of the SPI interface. <br><font color="red">$NOTE$</font>: currently, only master SPI mode is implemented in eLua.]],
       args = 
       {
-        { name = "id", desc = "SPI interface ID" },
-        { name = "mode", desc = "SPI port mode ($PLATFORM_SPI_MASTER$ or $PLATFORM_SPI_SLAVE$, see @#spi_mode@here@." },
-        { name = "clock", desc = "clock speed for the SPI interface in master mode." },
-        { name = "cpol", desc = "SPI clock polarity" },
-        { name = "cpha", desc = "SPI clock phase" },
-        { name = "databits", desc = "length of the SPI data word in bits (usually 8, but configurable on some platforms)." }
+        "$id$ - SPI interface ID",
+        "$mode$ - SPI port mode ($PLATFORM_SPI_MASTER$ or $PLATFORM_SPI_SLAVE$, see @#spi_mode@here@.",
+        "$clock$ - clock speed for the SPI interface in master mode.",
+        "$cpol$ - SPI clock polarity",
+        "$cpha$ - SPI clock phase",
+        "$databits$ - length of the SPI data word in bits (usually 8, but configurable on some platforms)."
       },
       ret = "the actual clock set for the SPI interface. Depending on the hardware, this may have a different value than the $clock$ argument."
     },
@@ -67,8 +64,8 @@ data_en =
        desc = "Executes a SPI read/write cycle",
        args = 
        {
-         { name = "id", desc = "SPI interface ID" },
-         { name = "data", desc = "data to be sent to the SPI interface" },
+         "$id$ - SPI interface ID",
+         "$data$ - data to be sent to the SPI interface",
        },
        ret = "data read from the SPI interface"
     },
@@ -78,8 +75,8 @@ data_en =
   does not exist in hardware this function does nothing.]],
       args =
       {
-        { name = "id", desc = "SPI interface ID." },
-        { name = "is_select", desc = "$PLATFORM_SPI_SELECT_ON$ to select, $PLATFORM_SPI_SELECT_OFF$ to deselect , see @#chip_select@here@." }
+        "$id$ - SPI interface ID.",
+        "$is_select$ - $PLATFORM_SPI_SELECT_ON$ to select, $PLATFORM_SPI_SELECT_OFF$ to deselect , see @#chip_select@here@." 
       },
     }
   }
