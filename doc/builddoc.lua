@@ -7,7 +7,7 @@ local doc_sections = { "arch_platform", "refman_gen" }
 local components = 
 { 
   arch_platform = { "ll", "pio", "spi", "uart", "timers", "pwm", "cpu", "eth" },
-  refman_gen = { "cpu" }
+  refman_gen = { "bit", "pd", "cpu", "pack" }
 }
 
 -- List here all languages for the documentation (make sure to keep English ("en") the first one)
@@ -40,6 +40,8 @@ end
 - the string "eLua" becomes <b>eLua</b>
 - strings between two tildas (~~) get special code-like formatting
 - newlines are changed to ' ' if 'keepnl' isn't true
+- '&' is translated to its corresponding HTML code.
+- '<<' and '>>" are also translated to the corresponding HTML codes (note the repetition).
 --]]
 local function format_string( str, keepnl )
   -- replace double "special chars" with "temps" for later use
@@ -49,23 +51,36 @@ local function format_string( str, keepnl )
   str = str:gsub( "%^%^", "\004" )
   str = str:gsub( "~~", "\005" )
 
+   -- Translate 'special' HTML chars to their equivalents
+  local tr_table = 
+  {
+    [ "%&" ] = "&amp;",
+  }
+  for char, rep in pairs( tr_table ) do
+    str = str:gsub( char, rep )
+  end
+
+  -- some double chars are replaced directly with their HTML codes
+  str = str:gsub( "<<", "&lt;" )
+  str = str:gsub( ">>", "&gt;" )
+
   -- replace eLua with <b>eLua</b>
   str = str:gsub( "eLua", "<b>eLua</b>" )
 
   -- $string$ becomes <b>string></b>
-  str = str:gsub( "%$([^%s][^%$]+)%$", "<b>%1</b>" )
+  str = str:gsub( "%$([^%s%$][^%$]*)%$", "<b>%1</b>" )
 
   -- %string% becomes <i>string</i>
-  str = str:gsub( "%%([^%s][^%%]+)%%", "<i>%1</i>" )
+  str = str:gsub( "%%([^%s%%][^%%]*)%%", "<i>%1</i>" )
 
   -- @ref@text@ becomes <a href="ref">text</a>
-  str = str:gsub( "@([^%s][^@]+)@([^%s][^@]+)@", '<a href="%1">%2</a>' )
+  str = str:gsub( "@([^%s@][^@]*)@([^%s@][^@]*)@", '<a href="%1">%2</a>' )
 
   -- ^ref^text^ becomes <a target="_blank" href="ref">text</a>
-  str = str:gsub( "%^([^%s][^%^]+)%^([^%s][^%^]+)%^", '<a target="_blank" href="%1">%2</a>' )
+  str = str:gsub( "%^([^%s%^][^%^]*)%^([^%s%^][^%^]*)%^", '<a target="_blank" href="%1">%2</a>' )
 
   -- strings between two tildas (~~) get special code-like formatting
-  str = str:gsub( "~([^%s][^~]+)~", function( x )
+  str = str:gsub( "~([^%s~][^~]*)~", function( x )
     x = x:gsub( "\n", "<br>" )
     x = x:gsub( "%s%s+", function( x ) return ( "&nbsp;" ):rep( #x ) end )
     return "<p><code>" .. x .. "</code></p>"
