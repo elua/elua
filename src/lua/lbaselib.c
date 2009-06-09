@@ -18,6 +18,9 @@
 
 #include "lauxlib.h"
 #include "lualib.h"
+#ifndef COCO_DISABLE
+#include "lcoco.h"
+#endif
 #include "lrotable.h"
 
 
@@ -563,7 +566,6 @@ static int auxresume (lua_State *L, lua_State *co, int narg) {
     return -1;  /* error flag */
   }
   lua_xmove(L, co, narg);
-  lua_setlevel(L, co);
   status = lua_resume(co, narg);
   if (status == 0 || status == LUA_YIELD) {
     int nres = lua_gettop(co);
@@ -612,10 +614,27 @@ static int luaB_auxwrap (lua_State *L) {
 }
 
 
+#ifndef COCO_DISABLE
+static int luaB_cstacksize (lua_State *L)
+{
+  lua_pushinteger(L, luaCOCO_cstacksize(luaL_optint(L, 1, -1)));
+  return 1;
+}
+#endif
+
+
 static int luaB_cocreate (lua_State *L) {
+#ifdef COCO_DISABLE
   lua_State *NL = lua_newthread(L);
   luaL_argcheck(L, lua_isfunction(L, 1) && !lua_iscfunction(L, 1), 1,
     "Lua function expected");
+#else
+  int cstacksize = luaL_optint(L, 2, 0);
+  lua_State *NL = lua_newcthread(L, cstacksize);
+  luaL_argcheck(L, lua_isfunction(L, 1) &&
+                   (cstacksize >= 0 ? 1 : !lua_iscfunction(L, 1)),
+                1, "Lua function expected");
+#endif
   lua_pushvalue(L, 1);  /* move function to top */
   lua_xmove(L, NL, 1);  /* move function from L to NL */
   return 1;
@@ -650,6 +669,9 @@ const LUA_REG_TYPE co_funcs[] = {
   {LSTRKEY("status"), LFUNCVAL(luaB_costatus)},
   {LSTRKEY("wrap"), LFUNCVAL(luaB_cowrap)},
   {LSTRKEY("yield"), LFUNCVAL(luaB_yield)},
+#ifndef COCO_DISABLE
+  {LSTRKEY("cstacksize"), LFUNCVAL(luaB_cstacksize)},
+#endif
   {LNILKEY, LNILVAL}
 };
 
@@ -697,6 +719,11 @@ LUALIB_API int luaopen_base (lua_State *L) {
   luaL_register(L, LUA_COLIBNAME, co_funcs);
   return 2;
 #else
+  #ifndef COCO_DISABLE
+  lua_pushboolean(L, 1); 
+  lua_setfield(L, -2, "coco");
+  return 2;
+  #endif
   return 1;
 #endif
 }
