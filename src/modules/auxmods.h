@@ -42,6 +42,9 @@ LUALIB_API int ( luaopen_cpu )( lua_State* L );
 #define AUXLIB_ADC      "adc"
 LUALIB_API int ( luaopen_adc )( lua_State *L );
 
+#define AUXLIB_LUARPC   "rpc"
+LUALIB_API int ( luaopen_luarpc )( lua_State *L );
+
 // Helper macros
 
 #define MOD_CHECK_ID( mod, id )\
