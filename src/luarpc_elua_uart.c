@@ -38,8 +38,9 @@ void transport_accept (Transport *tpt, Transport *atpt)
 	atpt->fd = tpt->fd;
 }
 
-/* Read & Write to Transport */
-void transport_read_buffer_low (Transport *tpt, u8 *buffer, int length)
+
+
+void transport_read_buffer (Transport *tpt, u8 *buffer, int length)
 {
 	int n = 0;
 	int c;
@@ -52,6 +53,7 @@ void transport_read_buffer_low (Transport *tpt, u8 *buffer, int length)
 				
     if( c < 0 )
 		{
+		  uart_timeout = 1000000;
 			e.errnum = ERR_NODATA;
 			e.type = nonfatal;
 			Throw( e );
@@ -62,60 +64,23 @@ void transport_read_buffer_low (Transport *tpt, u8 *buffer, int length)
 			n++;
 		}
   }
-}
-
-void transport_read_buffer (Transport *tpt, u8 *buffer, int length)
-{
-	u8 tmp;
-	struct exception e;
-	TRANSPORT_VERIFY_OPEN;
-	
-	/* Read Header */
-	transport_read_buffer_low( tpt, &tmp, 1);
-	if ( tmp != HEAD_BYTE )
-	{
-		uart_timeout = 1000000;
-		e.errnum = ERR_PROTOCOL;
-		e.type = nonfatal;
-		Throw( e );
-	}
-	
-	/* Read Data */
-	transport_read_buffer_low( tpt, buffer, length);
-	
-	/* Read Trailer */
-	transport_read_buffer_low( tpt, &tmp, 1);
-	if ( tmp != TAIL_BYTE )
-	{
-		uart_timeout = 1000000;
-		e.errnum = ERR_PROTOCOL;
-		e.type = nonfatal;
-		Throw( e );
-	}
 	
 	uart_timeout = PLATFORM_UART_INFINITE_TIMEOUT;
 }
 
 void transport_write_buffer_low (Transport *tpt, const u8 *buffer, int length)
 {
-	int i;
-	for( i = 0; i < length; i ++ )
-    platform_uart_send( CON_UART_ID, buffer[ i ] );
+
 }
 
 void transport_write_buffer( Transport *tpt, const u8 *buffer, int length )
 {
-	u8 tmp;
+	int i;
 	struct exception e;
 	TRANSPORT_VERIFY_OPEN;
 	
-	tmp = HEAD_BYTE;
-	transport_write_buffer_low( tpt, (const u8 *)&tmp, 1 );
-	
-	transport_write_buffer_low( tpt, buffer, length );
-	
-	tmp = TAIL_BYTE;
-	transport_write_buffer_low( tpt, (const u8 *)&tmp, 1 );
+	for( i = 0; i < length; i ++ )
+    platform_uart_send( CON_UART_ID, buffer[ i ] );
 }
 
 /* Check if data is available on connection without reading:
