@@ -170,12 +170,12 @@ static void DumpString(const TString* s, DumpState* D)
 {
  if (s==NULL || getstr(s)==NULL)
  {
-  int32_t size=0;
+  strsize_t size=0;
   DumpSize(size,D);
  }
  else
  {
-  int32_t size=s->tsv.len+1;		/* include trailing '\0' */
+  strsize_t size=s->tsv.len+1;		/* include trailing '\0' */
   DumpSize(size,D);
   DumpBlock(getstr(s),size,D);
  }

@@ -26,6 +26,8 @@ typedef struct {
  Mbuffer* b;
  const char* name;
  int swap;
+ int numsize;
+ int toflt;
 } LoadState;
 
 #ifdef LUAC_TRUST_BINARIES
@@ -112,7 +114,37 @@ static int LoadInt(LoadState* S)
 static lua_Number LoadNumber(LoadState* S)
 {
  lua_Number x;
- LoadVar(S,x);
+ if(S->toflt)
+ {
+  switch(S->numsize)
+  {
+   case 1: {
+    int8_t y;
+    LoadVar(S,y);
+    x = (lua_Number)y;
+   } break;
+   case 2: {
+    int16_t y;
+    LoadVar(S,y);
+    x = (lua_Number)y;
+   } break;
+   case 4: {
+    int32_t y;
+    LoadVar(S,y);
+    x = (lua_Number)y;
+   } break;
+   case 8: {
+    int64_t y;
+    LoadVar(S,y);
+    x = (lua_Number)y;
+   } break;
+   default: lua_assert(0);
+  }
+ }
+ else
+ {
+  LoadVar(S,x); /* should probably handle more cases for float here... */
+ }
  return x;
 }
 
@@ -227,9 +259,13 @@ static void LoadHeader(LoadState* S)
 {
  char h[LUAC_HEADERSIZE];
  char s[LUAC_HEADERSIZE];
+ int intck = (((lua_Number)0.5)==0); /* 0=float, 1=int */
  luaU_header(h);
  LoadBlock(S,s,LUAC_HEADERSIZE);
  S->swap=(s[6]!=h[6]); s[6]=h[6];
+ S->numsize=h[10]=s[10];
+ S->toflt=(s[11]>intck);
+ if(S->toflt) s[11]=h[11];
  IF (memcmp(h,s,LUAC_HEADERSIZE)!=0, "bad header");
 }
 
