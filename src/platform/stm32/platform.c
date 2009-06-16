@@ -16,6 +16,7 @@
 #include "platform_conf.h"
 #include "common.h"
 #include "buf.h"
+#include "utils.h"
 
 // Platform specific includes
 #include "stm32f10x_lib.h"
@@ -52,6 +53,7 @@ static void timers_init();
 static void uarts_init();
 static void pios_init();
 static void adcs_init();
+static void cans_init();
 
 int platform_init()
 {
@@ -285,6 +287,172 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
       break;
   }
   return retval;
+}
+
+// ****************************************************************************
+// CAN
+// TODO: Many things
+
+void cans_init( void )
+{
+  GPIO_InitTypeDef GPIO_InitStructure;
+
+  /* CAN Periph clock enable */
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_CAN, ENABLE);
+
+  /* Configure CAN pin: RX */
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
+  
+  /* Configure CAN pin: TX */
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
+}
+
+u32 platform_can_setup( unsigned id, u32 baud )
+{
+  CAN_InitTypeDef        CAN_InitStructure;
+  CAN_FilterInitTypeDef  CAN_FilterInitStructure;
+
+  /* CAN register init */
+  CAN_DeInit();
+  CAN_StructInit(&CAN_InitStructure);
+
+  /* CAN cell init */
+  CAN_InitStructure.CAN_TTCM=DISABLE;
+  CAN_InitStructure.CAN_ABOM=DISABLE;
+  CAN_InitStructure.CAN_AWUM=DISABLE;
+  CAN_InitStructure.CAN_NART=DISABLE;
+  CAN_InitStructure.CAN_RFLM=DISABLE;
+  CAN_InitStructure.CAN_TXFP=DISABLE;
+  CAN_InitStructure.CAN_Mode=CAN_Mode_LoopBack;
+  CAN_InitStructure.CAN_SJW=CAN_SJW_1tq;
+  CAN_InitStructure.CAN_BS1=CAN_BS1_4tq;
+  CAN_InitStructure.CAN_BS2=CAN_BS2_3tq;
+  CAN_InitStructure.CAN_Prescaler=0;
+  CAN_Init(&CAN_InitStructure);
+
+  /* CAN filter init */
+  CAN_FilterInitStructure.CAN_FilterNumber=0;
+  CAN_FilterInitStructure.CAN_FilterMode=CAN_FilterMode_IdMask;
+  CAN_FilterInitStructure.CAN_FilterScale=CAN_FilterScale_32bit;
+  CAN_FilterInitStructure.CAN_FilterIdHigh=0x0000;
+  CAN_FilterInitStructure.CAN_FilterIdLow=0x0000;
+  CAN_FilterInitStructure.CAN_FilterMaskIdHigh=0x0000;
+  CAN_FilterInitStructure.CAN_FilterMaskIdLow=0x0000;
+  CAN_FilterInitStructure.CAN_FilterFIFOAssignment=CAN_FIFO0;
+  CAN_FilterInitStructure.CAN_FilterActivation=ENABLE;
+  CAN_FilterInit(&CAN_FilterInitStructure);
+  
+  return baud;
+}
+/*
+u32 platform_can_op( unsigned id, int op, u32 data )
+{
+  u32 res = 0;
+  TIM_TypeDef *ptimer = timer[ id ];
+  volatile unsigned dummy;
+
+  data = data;
+  switch( op )
+  {
+    case PLATFORM_TIMER_OP_READ:
+      res = TIM_GetCounter( ptimer );
+      break;
+  }
+  return res;
+}
+*/
+
+void platform_can_send_message( unsigned id, u32 canid, u8 idtype, u8 len, u8 *data )
+{
+  CanTxMsg TxMessage;
+  const char *s = ( const char * )data;
+  char *d;
+  
+  switch( idtype )
+  {
+    case 0: /* Standard ID Type  */
+      TxMessage.IDE = CAN_ID_STD;
+      TxMessage.StdId = canid;
+      break;
+    case 1: /* Extended ID Type */
+      TxMessage.IDE=CAN_ID_EXT;
+      TxMessage.ExtId = canid;
+  }
+  
+  TxMessage.RTR=CAN_RTR_DATA;
+  TxMessage.DLC=len;
+  
+  d = ( char* )TxMessage.Data;
+  DUFF_DEVICE_8( len,  *d++ = *s++ );
+  
+  CAN_Transmit(&TxMessage);
+}
+
+void USB_LP_CAN_RX0_IRQHandler(void)
+{
+/*
+  CanRxMsg RxMessage;
+
+  RxMessage.StdId=0x00;
+  RxMessage.ExtId=0x00;
+  RxMessage.IDE=0;
+  RxMessage.DLC=0;
+  RxMessage.FMI=0;
+  RxMessage.Data[0]=0x00;
+  RxMessage.Data[1]=0x00;
+
+  CAN_Receive(CAN_FIFO0, &RxMessage);
+
+  if((RxMessage.ExtId==0x1234) && (RxMessage.IDE==CAN_ID_EXT)
+     && (RxMessage.DLC==2) && ((RxMessage.Data[1]|RxMessage.Data[0]<<8)==0xDECA))
+  {
+    ret = 1; 
+  }
+  else
+  {
+    ret = 0; 
+  }*/
+}
+
+void platform_can_receive_message( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )
+{
+  CanRxMsg RxMessage;
+  const char *s;
+  char *d;
+  u32 i;
+  
+  while((CAN_MessagePending(CAN_FIFO0) < 1) && (i != 0xFF))
+  {
+   i++;
+  }
+  
+  RxMessage.StdId=0x00;
+  RxMessage.IDE=CAN_ID_STD;
+  RxMessage.DLC=0;
+  RxMessage.Data[0]=0x00;
+  RxMessage.Data[1]=0x00;
+  CAN_Receive(CAN_FIFO0, &RxMessage);
+  
+  if( RxMessage.IDE == CAN_ID_STD )
+  {
+    *canid = ( u32 )RxMessage.StdId;
+    *idtype = 0;
+  }
+  else
+  {
+    *canid = ( u32 )RxMessage.ExtId;
+    *idtype = 1;
+  }
+  
+  *len = RxMessage.DLC;
+  
+  s = ( const char * )RxMessage.Data;
+  d = ( char* )data;
+  DUFF_DEVICE_8( RxMessage.DLC,  *d++ = *s++ );
 }
 
 // ****************************************************************************
