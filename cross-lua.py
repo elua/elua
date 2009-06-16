@@ -11,7 +11,7 @@ lua_full_files = " " + " ".join( [ "src/lua/%s" % name for name in lua_files.spl
 local_include = "-Isrc/lua"
 
 # Compiler/linker options
-cccom = "gcc -O3 %s -Wall %s -c $SOURCE -o $TARGET" % ( local_include, cdefs )
+cccom = "gcc -g %s -Wall %s -c $SOURCE -o $TARGET" % ( local_include, cdefs )
 linkcom = "gcc -o $TARGET $SOURCES -lm"
 
 # Env for building the program

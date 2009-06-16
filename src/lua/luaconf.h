@@ -152,7 +152,8 @@
 
 /* Changed to long for use with integral Lua numbers. */
 #if !defined LUA_NUMBER_INTEGRAL
-#define LUA_INTEGER ptrdiff_t
+/*#define LUA_INTEGER ptrdiff_t */
+#define LUA_INTEGER int
 #else
 #define LUA_INTEGER	long
 #endif
