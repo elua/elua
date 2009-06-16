@@ -45,6 +45,12 @@ static void error(LoadState* S, const char* why)
 #define LoadVar(S,x)		LoadMem(S,&x,1,sizeof(x))
 #define LoadVector(S,b,n,size)	LoadMem(S,b,n,size)
 
+static void LoadBlock(LoadState* S, void* b, size_t size)
+{
+ size_t r=luaZ_read(S->Z,b,size);
+ IF (r!=0, "unexpected end");
+}
+
 static void LoadMem (LoadState* S, void* b, int n, size_t size)
 {
   LoadBlock(S,b,n*size);
@@ -88,14 +94,6 @@ static void LoadMem (LoadState* S, void* b, int n, size_t size)
   }
 }
 
-
-
-static void LoadBlock(LoadState* S, void* b, size_t size)
-{
- size_t r=luaZ_read(S->Z,b,size);
- IF (r!=0, "unexpected end");
-}
-
 static int LoadChar(LoadState* S)
 {
  char x;
@@ -120,7 +118,7 @@ static lua_Number LoadNumber(LoadState* S)
 
 static TString* LoadString(LoadState* S)
 {
- size_t size;
+ int32_t size;
  LoadVar(S,size);
  if (size==0)
   return NULL;
@@ -266,7 +264,7 @@ void luaU_header (char* h)
  *h++=(char)LUAC_FORMAT;
  *h++=(char)*(char*)&x;				/* endianness */
  *h++=(char)sizeof(int);
- *h++=(char)sizeof(size_t);
+ *h++=(char)sizeof(int32_t);
  *h++=(char)sizeof(Instruction);
  *h++=(char)sizeof(lua_Number);
  *h++=(char)(((lua_Number)0.5)==0);		/* is lua_Number integral? */
