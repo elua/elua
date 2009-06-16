@@ -25,6 +25,7 @@ typedef struct {
  ZIO* Z;
  Mbuffer* b;
  const char* name;
+ int swap;
 } LoadState;
 
 #ifdef LUAC_TRUST_BINARIES
