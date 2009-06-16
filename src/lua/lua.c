@@ -373,8 +373,11 @@ static int pmain (lua_State *L) {
   return 0;
 }
 
-
+#ifdef LUA_CROSS_COMPILER
+int main (int argc, char **argv) {
+#else
 int lua_main (int argc, char **argv) {
+#endif
   int status;
   struct Smain s;
   lua_State *L = lua_open();  /* create state */
