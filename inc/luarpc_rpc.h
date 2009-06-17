@@ -1,13 +1,14 @@
 #include "cexcept.h"
+#include <stdint.h>
 
-#ifdef LUA_CROSS_COMPILER
+#ifdef LUA_REMOTE
 /* signed and unsigned 8, 16 and 32 bit types */
-typedef unsigned char u8;
-typedef unsigned short u16;
-typedef unsigned int u32;
-typedef signed char s8;
-typedef signed short s16;
-typedef signed int s32;
+typedef uint8_t u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+typedef int8_t s8;
+typedef int16_t s16;
+typedef int32_t s32;
 
 #define LUARPC_ENABLE_SERIAL
 #define BUILD_LUARPC

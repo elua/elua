@@ -35,7 +35,7 @@ print(slave.collectgarbage("count"))
 adc = slave.adc
 
 adc.setblocking(0,1)
-adc.setclock(0, 10 ,2)
+adc.setclock(0, 64 ,2)
 
 adc.sample(0,128)
 print(slave.collectgarbage("count"))

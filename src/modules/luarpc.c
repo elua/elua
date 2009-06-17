@@ -77,6 +77,7 @@ static const char * errorString (int n)
   case ERR_DATALINK: return "transmission error at data link level";
   case ERR_NODATA: return "no data received when attempting to read";
   case ERR_BADFNAME: return "function name is too long";
+  case RPC_UNSUPPORTED_CMD: return "an unsupported action was requested";
   default: return transport_strerror (n);
   }
 }
@@ -249,6 +250,12 @@ enum
   RPC_CMD_GET,
   RPC_CMD_CON,
   RPC_CMD_NEWINDEX
+};
+
+enum
+{
+  RPC_READY = 64,
+  RPC_UNSUPPORTED_CMD
 };
 
 enum { RPC_PROTOCOL_VERSION = 3 };
@@ -637,10 +644,18 @@ static int helper_get(lua_State *L, Helper *helper )
   
   Try
   {
-    int len;        
+    int len;
+    u8 cmdresp;
     /* write function name */
     len = strlen( helper->funcname );
     transport_write_u8( tpt, RPC_CMD_GET );
+    cmdresp = transport_read_u8( tpt );
+    if ( cmdresp != RPC_READY )
+    {
+  		e.errnum = cmdresp;
+  		e.type = nonfatal;
+  		Throw( e );
+    }
     helper_remote_index( helper );
 
     /* read variable back */
@@ -699,6 +714,7 @@ static int helper_call (lua_State *L)
     {
       int i,len,n;
       u32 nret,ret_code;
+      u8 cmdresp;
 
       /* first read out any pending return values for old async calls */
       for (; h->handle->read_reply_count > 0; h->handle->read_reply_count--) {
@@ -729,6 +745,13 @@ static int helper_call (lua_State *L)
 
       /* write function name */
       transport_write_u8( tpt, RPC_CMD_CALL );
+      cmdresp = transport_read_u8( tpt );
+      if ( cmdresp != RPC_READY )
+      {
+    		e.errnum = cmdresp;
+    		e.type = nonfatal;
+    		Throw( e );
+      }
       helper_remote_index( h );
 
       /* write number of arguments */
@@ -814,10 +837,18 @@ static int helper_newindex( lua_State *L )
   Try
   {
     int len;
+    u8 cmdresp;
         
     /* write function name */
     len = strlen( h->funcname );
     transport_write_u8( tpt, RPC_CMD_NEWINDEX );
+    cmdresp = transport_read_u8( tpt );
+    if ( cmdresp != RPC_READY )
+    {
+  		e.errnum = cmdresp;
+  		e.type = nonfatal;
+  		Throw( e );
+    }
     helper_remote_index( h );
 
     write_variable( tpt, L, lua_gettop( L ) - 1 );
@@ -898,13 +929,11 @@ static ServerHandle *server_handle_create( lua_State *L )
   return h;
 }
 
-
 static void server_handle_shutdown( ServerHandle *h )
 {
   transport_close( &h->ltpt );
   transport_close( &h->atpt );
 }
-
 
 static void server_handle_destroy( ServerHandle *h )
 {
@@ -1247,9 +1276,11 @@ static void rpc_dispatch_helper( lua_State *L, ServerHandle *handle )
         switch ( transport_read_u8( &handle->atpt ) )
         {
           case RPC_CMD_CALL:
+            transport_write_u8( &handle->atpt, RPC_READY );
             read_cmd_call( &handle->atpt, L );
             break;
           case RPC_CMD_GET:
+            transport_write_u8( &handle->atpt, RPC_READY );
             read_cmd_get( &handle->atpt, L );
             break;
           case RPC_CMD_CON: /*  @@@ allow client to "reconnect", should support better mechanism */
@@ -1257,9 +1288,11 @@ static void rpc_dispatch_helper( lua_State *L, ServerHandle *handle )
             write_header( &handle->atpt );
             break;
           case RPC_CMD_NEWINDEX:
+            transport_write_u8( &handle->atpt, RPC_READY );
             read_cmd_newindex( &handle->atpt, L );
             break;
           default:
+            transport_write_u8(&handle->atpt, RPC_UNSUPPORTED_CMD );
             e.type = nonfatal;
             e.errnum = ERR_COMMAND;
             Throw( e );

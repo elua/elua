@@ -373,7 +373,7 @@ static int pmain (lua_State *L) {
   return 0;
 }
 
-#ifdef LUA_CROSS_COMPILER
+#ifdef LUA_REMOTE
 int main (int argc, char **argv) {
 #else
 int lua_main (int argc, char **argv) {
