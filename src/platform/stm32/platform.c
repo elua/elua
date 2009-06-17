@@ -159,11 +159,13 @@ static void RCC_Configuration(void)
 * Output         : None
 * Return         : None
 *******************************************************************************/
-
-NVIC_InitTypeDef nvic_init_structure;
+/* This struct is used for later reconfiguration of ADC interrupt */
+NVIC_InitTypeDef nvic_init_structure_adc;
 
 static void NVIC_Configuration(void)
 {
+  NVIC_InitTypeDef nvic_init_structure;
+  
   NVIC_DeInit();
 
 #ifdef  VECT_TAB_RAM
@@ -181,11 +183,11 @@ static void NVIC_Configuration(void)
   NVIC_SystemHandlerPriorityConfig(SystemHandler_SysTick, 0, 0);
 
 #ifdef BUILD_ADC  
-  nvic_init_structure.NVIC_IRQChannel = DMA1_Channel1_IRQChannel; 
-  nvic_init_structure.NVIC_IRQChannelPreemptionPriority = 1; 
-  nvic_init_structure.NVIC_IRQChannelSubPriority = 3; 
-  nvic_init_structure.NVIC_IRQChannelCmd = DISABLE; 
-  NVIC_Init(&nvic_init_structure);
+  nvic_init_structure_adc.NVIC_IRQChannel = DMA1_Channel1_IRQChannel; 
+  nvic_init_structure_adc.NVIC_IRQChannelPreemptionPriority = 1; 
+  nvic_init_structure_adc.NVIC_IRQChannelSubPriority = 3; 
+  nvic_init_structure_adc.NVIC_IRQChannelCmd = DISABLE; 
+  NVIC_Init(&nvic_init_structure_adc);
 #endif
 
 #if defined( BUF_ENABLE_UART ) && defined( CON_BUF_SIZE )
@@ -782,8 +784,8 @@ void platform_adc_stop( unsigned id )
     ADC_ExternalTrigConvCmd( adc[ d->seq_id ], DISABLE );
     
     // Also ensure that DMA interrupt won't fire ( this shouldn't really be necessary )
-    nvic_init_structure.NVIC_IRQChannelCmd = DISABLE; 
-    NVIC_Init(&nvic_init_structure);
+    nvic_init_structure_adc.NVIC_IRQChannelCmd = DISABLE; 
+    NVIC_Init(&nvic_init_structure_adc);
     
     d->running = 0;
   }
@@ -994,8 +996,8 @@ int platform_adc_start_sequence( )
     
     DMA_ClearITPendingBit( DMA1_IT_TC1 );
 
-    nvic_init_structure.NVIC_IRQChannelCmd = ENABLE; 
-    NVIC_Init(&nvic_init_structure);
+    nvic_init_structure_adc.NVIC_IRQChannelCmd = ENABLE; 
+    NVIC_Init(&nvic_init_structure_adc);
 
     if( d->clocked == 1 )
       ADC_ExternalTrigConvCmd( adc[ d->seq_id ], ENABLE );

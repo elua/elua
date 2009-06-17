@@ -32,18 +32,19 @@ assert(test_local.sval == slave.test:get().sval, "table field not equivalent")
 slave.collectgarbage("collect")
 print(slave.collectgarbage("count"))
 
--- adc = slave.adc
--- 
--- adc.setblocking(0,1)
--- adc.setclock(0, 10 ,2)
--- 
--- adc.sample(0,128)
--- while 1 do
--- 	retsamp = adc.getsample(0)
--- 	if not (retsamp == nil) then
--- 		print(retsamp)
--- 	else
--- 		print(slave.collectgarbage("count"))
--- 		adc.sample(0,128)
--- 	end
--- end
+adc = slave.adc
+
+adc.setblocking(0,1)
+adc.setclock(0, 10 ,2)
+
+adc.sample(0,128)
+print(slave.collectgarbage("count"))
+while 1 do
+	retsamp = adc.getsample(0)
+	if not (retsamp == nil) then
+		print(retsamp)
+	else
+		print(slave.collectgarbage("count"))
+		adc.sample(0,128)
+	end
+end
