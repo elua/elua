@@ -65,6 +65,36 @@ static void rpcdebug (const char *msg, ...)
   abort();
 }
 
+/* enums for variable types, commands, and status codes */
+
+enum {
+  RPC_NIL=0,
+  RPC_NUMBER,
+  RPC_BOOLEAN,
+  RPC_STRING,
+  RPC_TABLE,
+  RPC_TABLE_END,
+  RPC_FUNCTION,
+  RPC_FUNCTION_END
+};
+
+enum
+{
+  RPC_CMD_CALL = 1,
+  RPC_CMD_GET,
+  RPC_CMD_CON,
+  RPC_CMD_NEWINDEX
+};
+
+enum
+{
+  RPC_READY = 64,
+  RPC_UNSUPPORTED_CMD
+};
+
+enum { RPC_PROTOCOL_VERSION = 3 };
+
+
 /* return a string representation of an error number */
 
 static const char * errorString (int n)
@@ -233,32 +263,7 @@ static int ismetatable_type( lua_State *L, int ud, const char *tname )
  * wrapped in a Try block.
  */
 
-enum {
-  RPC_NIL=0,
-  RPC_NUMBER,
-  RPC_BOOLEAN,
-  RPC_STRING,
-  RPC_TABLE,
-  RPC_TABLE_END,
-  RPC_FUNCTION,
-  RPC_FUNCTION_END
-};
 
-enum
-{
-  RPC_CMD_CALL = 1,
-  RPC_CMD_GET,
-  RPC_CMD_CON,
-  RPC_CMD_NEWINDEX
-};
-
-enum
-{
-  RPC_READY = 64,
-  RPC_UNSUPPORTED_CMD
-};
-
-enum { RPC_PROTOCOL_VERSION = 3 };
 
 /* write a table at the given index in the stack. the index must be absolute
  * (i.e. positive).

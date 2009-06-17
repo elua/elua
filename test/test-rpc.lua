@@ -7,6 +7,11 @@ rpc.on_error (error_handler);
 slave,err = rpc.connect ("/dev/tty.usbserial-ftCYPMYJ");
 --slave,err = rpc.connect ("/dev/ttys0");
 
+print("Platform: " .. slave.pd.platform())
+print("CPU: " .. slave.pd.cpu())
+print("Board: " .. slave.pd.board())
+print("CPU Clock: " .. slave.cpu.clock()/1000000 .. " MHz")
+
 function mirror( input ) return input end
 function squareval(x) return x^2 end
 test_local = {1, 2, 3, 3.143, "234"}
