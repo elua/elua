@@ -187,6 +187,14 @@ static void NVIC_Configuration(void)
   nvic_init_structure.NVIC_IRQChannelCmd = DISABLE; 
   NVIC_Init(&nvic_init_structure);
 #endif
+
+#if defined( BUF_ENABLE_UART ) && defined( CON_BUF_SIZE )
+  /* Enable the USART1 Interrupt */
+  nvic_init_structure.NVIC_IRQChannel = USART1_IRQChannel;
+  nvic_init_structure.NVIC_IRQChannelSubPriority = 0;
+  nvic_init_structure.NVIC_IRQChannelCmd = ENABLE;
+  NVIC_Init(&nvic_init_structure);
+#endif
 }
 
 // ****************************************************************************
@@ -466,6 +474,22 @@ static GPIO_TypeDef *const usart_gpio_tx_port[] = { GPIOA, GPIOA, GPIOB, GPIOC, 
 static const u16 usart_gpio_rx_pin[] = { GPIO_Pin_10, GPIO_Pin_3, GPIO_Pin_11, GPIO_Pin_11, GPIO_Pin_2 };
 static const u16 usart_gpio_tx_pin[] = { GPIO_Pin_9, GPIO_Pin_2, GPIO_Pin_10, GPIO_Pin_10, GPIO_Pin_12 };
 
+#ifdef BUF_ENABLE_UART
+void USART1_IRQHandler(void)
+{
+  int c;
+
+  if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
+  {
+    /* Read one byte from the receive data register */
+    c = USART_ReceiveData(USART1);
+    buf_write( BUF_ID_UART, CON_UART_ID, ( t_buf_data* )&c );
+  }
+}
+#endif
+
+
+
 static void usart_init(u32 id, USART_InitTypeDef * initVals)
 {
   /* Configure USART IO */
@@ -484,10 +508,12 @@ static void usart_init(u32 id, USART_InitTypeDef * initVals)
 
   /* Configure USART */
   USART_Init(usart[id], initVals);
-
+  
+#if defined( BUF_ENABLE_UART ) && defined( CON_BUF_SIZE )
   /* Enable USART1 Receive and Transmit interrupts */
-  //USART_ITConfig(usart[id], USART_IT_RXNE, ENABLE);
+  USART_ITConfig(usart[id], USART_IT_RXNE, ENABLE);
   //USART_ITConfig(usart[id], USART_IT_TXE, ENABLE);
+#endif
 
   /* Enable USART */
   USART_Cmd(usart[id], ENABLE);
@@ -504,7 +530,6 @@ static void uarts_init()
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART4, ENABLE);
 
   // Configure the U(S)ART
-
   USART_InitStructure.USART_BaudRate = CON_UART_SPEED;
   USART_InitStructure.USART_WordLength = USART_WordLength_8b;
   USART_InitStructure.USART_StopBits = USART_StopBits_1;
@@ -512,7 +537,12 @@ static void uarts_init()
   USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
   USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
 
+#if defined( BUF_ENABLE_UART ) && defined( CON_BUF_SIZE )
+  buf_set( BUF_ID_UART, CON_UART_ID, CON_BUF_SIZE, BUF_DSIZE_U8 );
+#endif
+
   usart_init(CON_UART_ID, &USART_InitStructure);
+
 }
 
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )

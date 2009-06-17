@@ -387,7 +387,9 @@ void USB_HP_CAN_TX_IRQHandler(void)
 * Output         : None
 * Return         : None
 *******************************************************************************/
-extern void USB_LP_CAN_RX0_IRQHandler(void);
+void USB_LP_CAN_RX0_IRQHandler(void)
+{
+}
 
 /*******************************************************************************
 * Function Name  : CAN_RX1_IRQHandler
@@ -574,9 +576,8 @@ void SPI2_IRQHandler(void)
 * Output         : None
 * Return         : None
 *******************************************************************************/
-void USART1_IRQHandler(void)
-{
-}
+extern void USART1_IRQHandler(void);
+
 
 /*******************************************************************************
 * Function Name  : USART2_IRQHandler
