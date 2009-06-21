@@ -105,6 +105,12 @@ typedef struct _Transport Transport;
 struct _Transport 
 {
   int fd;      /* INVALID_TRANSPORT if socket is closed */
+  u8     loc_little: 1, // Local is little endian?
+         loc_armflt: 1, // local float representation is arm float?
+         loc_intnum: 1, // Local is integer only?
+         net_little: 1, // Network is little endian?
+         net_intnum: 1; // Network is integer only?
+  u8     lnum_bytes;
 };
 
 #define LUARPC_MODE "elua"
@@ -115,7 +121,7 @@ struct _Handle
   Transport tpt;      /* the handle socket */
   int error_handler;    /* function reference */
   int async;      /* nonzero if async mode being used */
-  int read_reply_count;   /* number of async call return values to read */
+  int read_reply_count;   /* number of async call return values to read */  
 };
 
 

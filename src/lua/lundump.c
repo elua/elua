@@ -262,9 +262,9 @@ static void LoadHeader(LoadState* S)
  int intck = (((lua_Number)0.5)==0); /* 0=float, 1=int */
  luaU_header(h);
  LoadBlock(S,s,LUAC_HEADERSIZE);
- S->swap=(s[6]!=h[6]); s[6]=h[6];
- S->numsize=h[10]=s[10];
- S->toflt=(s[11]>intck);
+ S->swap=(s[6]!=h[6]); s[6]=h[6]; /* Check if byte-swapping is needed  */
+ S->numsize=h[10]=s[10]; /* length of lua_Number */
+ S->toflt=(s[11]>intck); /* check if conversion from int lua_Number to flt is needed */
  if(S->toflt) s[11]=h[11];
  IF (memcmp(h,s,LUAC_HEADERSIZE)!=0, "bad header");
 }

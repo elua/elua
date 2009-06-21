@@ -22,6 +22,7 @@
 
 #include "luarpc_rpc.h"
 
+
 #ifdef BUILD_LUARPC
 
 /* Support for Compiling with rotables */
@@ -153,65 +154,132 @@ static void transport_write_u8( Transport *tpt, u8 x )
   transport_write_buffer (tpt,&x,1);
 }
 
+static void swap_bytes( char *number, size_t numbersize )
+{
+ int i;
+ for (i=0; i<numbersize/2; i++)
+ {
+  char temp = number[i];
+  number[i] = number[numbersize-1-i];
+  number[numbersize-1-i] = temp;
+ }
+}
+
+union u32_bytes {
+  u32 i;
+  u8 b[4];
+};
 
 /* read a u32 from the transport */
-
 static u32 transport_read_u32( Transport *tpt )
 {
-  u8 b[4];
-  u32 i;
+  union u32_bytes ub;
   struct exception e;
   TRANSPORT_VERIFY_OPEN;
-  transport_read_buffer ( tpt, b, 4 );
-  i = ( b[ 0 ] << 24 ) | (b[ 1 ] << 16 ) | ( b[ 2 ] << 8) | b[ 3 ];
-  return i;
+  transport_read_buffer ( tpt, ub.b, 4 );
+  if( tpt->net_little != tpt->loc_little )
+    swap_bytes( (char *)ub.b, 4 );
+  return ub.i;
 }
 
 
 /* write a u32 to the transport */
-
 static void transport_write_u32 (Transport *tpt, u32 x)
 {
-  u8 b[4];
+  union u32_bytes ub;
   struct exception e;
   TRANSPORT_VERIFY_OPEN;
-  b[0] = x >> 24;
-  b[1] = x >> 16;
-  b[2] = x >> 8;
-  b[3] = x;
-  transport_write_buffer( tpt, b, 4 );
+  ub.i = x;
+  if( tpt->net_little != tpt->loc_little )
+    swap_bytes( (char *)ub.b, 4 );
+  transport_write_buffer( tpt, ub.b, 4 );
 }
-
-
-/* Represent doubles as byte string */
-union DoubleBytes {
-  double d;
-  u8 b[ sizeof( double ) ];
-};
 
 /* read a double from the transport */
 
-static double transport_read_double (Transport *tpt)
+static lua_Number transport_read_number (Transport *tpt)
 {
-  union DoubleBytes double_bytes;
+  lua_Number x;
+  u8 b[ tpt->lnum_bytes ];
   struct exception e;
   TRANSPORT_VERIFY_OPEN;
-  /* @@@ handle endianness */
-  transport_read_buffer ( tpt,double_bytes.b, sizeof( double ) );
-  return double_bytes.d;
+  transport_read_buffer ( tpt, b, tpt->lnum_bytes );
+  
+  if( tpt->net_little != tpt->loc_little )
+    swap_bytes( ( char * )b, tpt->lnum_bytes );
+  
+  if( tpt->net_intnum != tpt->loc_intnum )
+  {
+    switch( tpt->lnum_bytes )
+    {
+      case 1: {
+        int8_t y = *( int8_t * )b;
+        x = ( lua_Number )y;
+      } break;
+       case 2: {
+        int16_t y = *( int16_t * )b;
+        x = ( lua_Number )y;
+      } break;
+      case 4: {
+        int32_t y = *( int32_t * )b;
+        x = ( lua_Number )y;
+      } break;
+      case 8: {
+        int64_t y = *( int64_t * )b;
+        x = ( lua_Number )y;
+      } break;
+      default: lua_assert(0);
+    }
+  }
+  else
+    x = ( lua_Number ) *( lua_Number * )b;
+    
+  return x;
 }
 
 
 /* write a double to the transport */
 
-static void transport_write_double (Transport *tpt, double x)
+static void transport_write_number (Transport *tpt, lua_Number x)
 {
-  union DoubleBytes double_bytes;
   struct exception e;
   TRANSPORT_VERIFY_OPEN;
-  /* @@@ handle endianness */
-  double_bytes.d = x;
-  transport_write_buffer( tpt,double_bytes.b, sizeof( double ) );
+   
+  if( tpt->net_intnum != tpt->loc_intnum )
+  {
+    switch( tpt->lnum_bytes )
+    {
+      case 1: {
+        int8_t y = ( int8_t )x;
+        transport_write_buffer( tpt, (char *)&y, 1 );
+      } break;
+      case 2: {
+        int16_t y = ( int16_t )x;
+        if( tpt->net_little != tpt->loc_little )
+          swap_bytes( ( char * )&y, 2 );
+        transport_write_buffer( tpt, (char *)&y, 2 );
+      } break;
+      case 4: {
+        int32_t y = ( int32_t )x;
+        if( tpt->net_little != tpt->loc_little )
+          swap_bytes( ( char * )&y, 4 );
+        transport_write_buffer( tpt, (char *)&y, 4 );
+      } break;
+      case 8: {
+        int64_t y = ( int64_t )x;
+        if( tpt->net_little != tpt->loc_little )
+          swap_bytes( ( char * )&y, 8 );
+        transport_write_buffer( tpt, (char *)&y, 8 );
+      } break;
+      default: lua_assert(0);
+    }
+  }
+  else
+  {
+    if( tpt->net_little != tpt->loc_little )
+       swap_bytes( ( char * )&x, 8 );
+    transport_write_buffer( tpt, ( char * )&x, 8 );
+  }
 }
 
 
@@ -321,7 +389,7 @@ static void write_variable( Transport *tpt, lua_State *L, int var_index )
   {
     case LUA_TNUMBER:
       transport_write_u8( tpt, RPC_NUMBER );
-      transport_write_double( tpt, lua_tonumber( L, var_index ) );
+      transport_write_number( tpt, lua_tonumber( L, var_index ) );
       break;
 
     case LUA_TSTRING:
@@ -428,7 +496,7 @@ static int read_variable( Transport *tpt, lua_State *L )
       break;
 
     case RPC_NUMBER:
-      lua_pushnumber( L, transport_read_double( tpt ) );
+      lua_pushnumber( L, transport_read_number( tpt ) );
       break;
 
     case RPC_STRING:
@@ -470,9 +538,15 @@ static int read_variable( Transport *tpt, lua_State *L )
 /* functions for sending and receving headers
  */
 
-static void write_header( Transport *tpt )
+static void client_negotiate( Transport *tpt )
 {
-  char header[ 5 ];
+  struct exception e;
+  char header[ 8 ];
+  int x = 1;
+
+  tpt->loc_little = (char)*(char*)&x;
+  tpt->lnum_bytes = (char)sizeof(lua_Number);
+  tpt->loc_intnum = (char)(((lua_Number)0.5)==0);
 
   /* write the protocol header */
   header[0] = 'L';
@@ -480,14 +554,40 @@ static void write_header( Transport *tpt )
   header[2] = 'P';
   header[3] = 'C';
   header[4] = RPC_PROTOCOL_VERSION;
-
+  header[5] = tpt->loc_little;
+  header[6] = tpt->lnum_bytes;
+  header[7] = tpt->loc_intnum;
   transport_write_string( tpt, header, sizeof( header ) );
+  
+  
+  /* read response with wire configuration */
+  transport_read_string( tpt, header, sizeof( header ) );
+  if( header[0] != 'L' ||
+      header[1] != 'R' ||
+      header[2] != 'P' ||
+      header[3] != 'C' ||
+      header[4] != RPC_PROTOCOL_VERSION )
+  {
+    e.errnum = ERR_PROTOCOL;
+    e.type = nonfatal;
+    Throw( e );
+  }
+  
+  tpt->net_little = header[5];
+  tpt->lnum_bytes = header[6];
+  tpt->net_intnum = header[7];
 }
 
-static void read_header( Transport *tpt )
+static void server_negotiate( Transport *tpt )
 {
   struct exception e;
-  char header[ 5 ];
+  char header[ 8 ];
+  int x = 1;
+  
+  tpt->net_little = tpt->loc_little = (char)*(char*)&x;
+  tpt->lnum_bytes = (char)sizeof(lua_Number);
+  tpt->net_intnum = tpt->loc_intnum = (char)(((lua_Number)0.5)==0);
+  
   
   /* check that the header is ok */
   transport_read_string( tpt, header, sizeof( header ) );
@@ -501,6 +601,22 @@ static void read_header( Transport *tpt )
     e.type = nonfatal;
     Throw( e );
   }
+  
+  /*  check if endianness differs, if so use big endian order  */
+  if( header[ 5 ] != tpt->loc_little )
+    header[ 5 ] = tpt->net_little = 0;
+    
+  /* set number precision to lowest common denominator */
+  if( header[ 6 ] > tpt->lnum_bytes )
+    header[ 6 ] = tpt->lnum_bytes;
+  if( header[ 6 ] < tpt->lnum_bytes )
+    tpt->lnum_bytes = header[ 6 ];
+  
+  /* if lua_Number is integer on either side, use integer */
+  if( header[ 7 ] != tpt->loc_intnum )
+    header[ 7 ] = tpt->net_intnum = 1;
+    
+  transport_write_string( tpt, header, sizeof( header ) );
 }
 
 /****************************************************************************/
@@ -964,8 +1080,7 @@ static int rpc_connect( lua_State *L )
     transport_open_connection( L, handle );
     
     transport_write_u8( &handle->tpt, RPC_CMD_CON );
-    write_header( &handle->tpt );
-    read_header( &handle->tpt );
+    client_negotiate( &handle->tpt );
   }
   Catch( e )
   {     
@@ -1289,8 +1404,7 @@ static void rpc_dispatch_helper( lua_State *L, ServerHandle *handle )
             read_cmd_get( &handle->atpt, L );
             break;
           case RPC_CMD_CON: /*  @@@ allow client to "reconnect", should support better mechanism */
-            read_header( &handle->atpt );
-            write_header( &handle->atpt );
+            server_negotiate( &handle->atpt );
             break;
           case RPC_CMD_NEWINDEX:
             transport_write_u8( &handle->atpt, RPC_READY );
@@ -1341,8 +1455,7 @@ static void rpc_dispatch_helper( lua_State *L, ServerHandle *handle )
       switch ( transport_read_u8( &handle->atpt ) )
       {
         case RPC_CMD_CON:
-          read_header( &handle->atpt );
-          write_header( &handle->atpt );
+          server_negotiate( &handle->atpt );
           break;
         default: /* connection must be established to issue any other commands */
           e.type = nonfatal;
