@@ -359,14 +359,30 @@ static int writer( lua_State *L, const void* b, size_t size, void* B ) {
   return 0;
 }
 
+#include "lundump.h"
+#include "ldo.h"
+
 static void write_function( Transport *tpt, lua_State *L, int var_index )
 {
+  TValue *o;
   luaL_Buffer b;
+  DumpTargetInfo target;
+  
+  int test=1;
+  target.little_endian=tpt->net_little;
+  target.sizeof_int=sizeof(int);
+  target.sizeof_strsize_t=sizeof(strsize_t);
+  target.sizeof_lua_Number=tpt->lnum_bytes;
+  target.lua_Number_integral=tpt->net_intnum;
+  target.is_arm_fpa=0;
   
   /* push function onto stack, serialize to string */
   lua_pushvalue( L, var_index );
   luaL_buffinit( L, &b );
-  lua_dump( L, writer, &b ); /* deal with errors thrown at this level? */
+  lua_lock(L);
+  o = L->top - 1;
+  luaU_dump_crosscompile(L,clvalue(o)->l.p,writer,&b,0,target);
+  lua_unlock(L);
   /* put string representation on stack and send it */
   luaL_pushresult( &b );
   write_variable( tpt, L, lua_gettop( L ) );
@@ -374,7 +390,6 @@ static void write_function( Transport *tpt, lua_State *L, int var_index )
   /* Remove function & dumped string from stack*/
   lua_pop( L, 2 );
 }
-
 
 
 /* write a variable at the given index in the stack. the index must be absolute

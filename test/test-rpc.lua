@@ -1,5 +1,6 @@
 function error_handler (message)
 	io.write ("MY ERROR: " .. message .. "\n");
+	slave,err = rpc.connect ("/dev/tty.usbserial-ftCYPMYJ");
 end
 
 rpc.on_error (error_handler);
@@ -14,7 +15,7 @@ print("CPU Clock: " .. slave.cpu.clock()/1000000 .. " MHz")
 
 function mirror( input ) return input end
 function squareval(x) return x^2 end
-test_local = {1, 2, 3, 3.143, "234"}
+test_local = {1, 2, 3, 4, "234"}
 test_local.sval = 23
 
 slave.mirror = mirror
