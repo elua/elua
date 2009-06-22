@@ -109,6 +109,7 @@ static const char * errorString (int n)
   case ERR_NODATA: return "no data received when attempting to read";
   case ERR_BADFNAME: return "function name is too long";
   case RPC_UNSUPPORTED_CMD: return "an unsupported action was requested";
+	case ERR_HEADER: return "header exchanged failed";
   default: return transport_strerror (n);
   }
 }
@@ -251,13 +252,13 @@ static void transport_write_number (Transport *tpt, lua_Number x)
     {
       case 1: {
         int8_t y = ( int8_t )x;
-        transport_write_buffer( tpt, (char *)&y, 1 );
+        transport_write_buffer( tpt, ( char * )&y, 1 );
       } break;
       case 2: {
         int16_t y = ( int16_t )x;
         if( tpt->net_little != tpt->loc_little )
           swap_bytes( ( char * )&y, 2 );
-        transport_write_buffer( tpt, (char *)&y, 2 );
+        transport_write_buffer( tpt, ( char * )&y, 2 );
       } break;
       case 4: {
         int32_t y = ( int32_t )x;
@@ -368,7 +369,6 @@ static void write_function( Transport *tpt, lua_State *L, int var_index )
   luaL_Buffer b;
   DumpTargetInfo target;
   
-  int test=1;
   target.little_endian=tpt->net_little;
   target.sizeof_int=sizeof(int);
   target.sizeof_strsize_t=sizeof(strsize_t);
@@ -539,7 +539,7 @@ static int read_variable( Transport *tpt, lua_State *L )
       return 0;
 
     default:
-      e.errnum = ERR_PROTOCOL;
+      e.errnum = type;
       e.type = fatal;
       Throw( e );
   }
@@ -583,7 +583,7 @@ static void client_negotiate( Transport *tpt )
       header[3] != 'C' ||
       header[4] != RPC_PROTOCOL_VERSION )
   {
-    e.errnum = ERR_PROTOCOL;
+    e.errnum = ERR_HEADER;
     e.type = nonfatal;
     Throw( e );
   }
@@ -612,7 +612,7 @@ static void server_negotiate( Transport *tpt )
       header[3] != 'C' ||
       header[4] != RPC_PROTOCOL_VERSION )
   {
-    e.errnum = ERR_PROTOCOL;
+    e.errnum = ERR_HEADER;
     e.type = nonfatal;
     Throw( e );
   }
@@ -848,7 +848,7 @@ static int helper_call (lua_State *L)
   {
     Try
     {
-      int i,len,n;
+      int i,n;
       u32 nret,ret_code;
       u8 cmdresp;
 

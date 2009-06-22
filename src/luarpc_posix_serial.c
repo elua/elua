@@ -60,7 +60,7 @@ void transport_open( Transport *tpt, const char *path )
   options.c_cflag     |= CS8;
   
   options.c_cc[VMIN]  = 0;
-  options.c_cc[VTIME] = 10;
+  options.c_cc[VTIME] = 100;
 
 	tcsetattr(tpt->fd, TCSANOW, &options);
 	fcntl(tpt->fd, F_SETFL, 0);

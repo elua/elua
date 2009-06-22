@@ -82,7 +82,8 @@ enum {
 	ERR_NODATA	 = MAXINT - 103,
 	ERR_BADFNAME = MAXINT - 104,
 	ERR_DATALINK = MAXINT - 105,
-	ERR_COMMAND  = MAXINT - 106
+	ERR_COMMAND  = MAXINT - 106,
+	ERR_HEADER   = MAXINT - 107
 };
 
 enum exception_type { done, nonfatal, fatal };
