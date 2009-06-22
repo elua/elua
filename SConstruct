@@ -230,7 +230,7 @@ cdefs = cdefs + " -DLUA_OPTIMIZE_MEMORY=%d" % ( optram != 0 and 2 or 0 )
 local_libs = ''
 
 # Application files
-app_files = " src/main.c src/romfs.c src/xmodem.c src/shell.c src/term.c src/common.c src/buf.c src/elua_adc.c src/dlmalloc.c src/salloc.c "
+app_files = " src/main.c src/romfs.c src/xmodem.c src/shell.c src/term.c src/common.c src/buf.c src/elua_adc.c src/dlmalloc.c src/salloc.c src/luarpc_elua_uart.c "
 
 # Newlib related files
 newlib_files = " src/newlib/devman.c src/newlib/stubs.c src/newlib/genstd.c src/newlib/stdtcp.c"
@@ -241,7 +241,7 @@ uip_files = " src/elua_uip.c " + " ".join( [ "src/uip/%s" % name for name in uip
 local_include += ['src/uip']
 
 # Lua module files
-module_names = "pio.c spi.c tmr.c pd.c uart.c term.c pwm.c lpack.c bit.c net.c cpu.c adc.c"
+module_names = "pio.c spi.c tmr.c pd.c uart.c term.c pwm.c lpack.c bit.c net.c cpu.c adc.c luarpc.c"
 module_files = " " + " ".join( [ "src/modules/%s" % name for name in module_names.split() ] )
 
 # Optimizer flags (speed or size)

@@ -19,6 +19,12 @@
 #include "platform_conf.h"
 #endif
 
+#ifdef LUA_REMOTE
+#include "auxmods.h"
+#define LUA_PLATFORM_LIBS_ROM \
+  _ROM( AUXLIB_LUARPC, luaopen_luarpc, rpc_map )
+#endif
+
 static const luaL_Reg lualibs[] = {
   {"", luaopen_base},
   {LUA_LOADLIBNAME, luaopen_package},

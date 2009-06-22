@@ -16,6 +16,7 @@
 #include "platform_conf.h"
 #include "common.h"
 #include "buf.h"
+#include "utils.h"
 
 // Platform specific includes
 #include "stm32f10x_lib.h"
@@ -52,6 +53,7 @@ static void timers_init();
 static void uarts_init();
 static void pios_init();
 static void adcs_init();
+static void cans_init();
 
 int platform_init()
 {
@@ -157,11 +159,13 @@ static void RCC_Configuration(void)
 * Output         : None
 * Return         : None
 *******************************************************************************/
-
-NVIC_InitTypeDef nvic_init_structure;
+/* This struct is used for later reconfiguration of ADC interrupt */
+NVIC_InitTypeDef nvic_init_structure_adc;
 
 static void NVIC_Configuration(void)
 {
+  NVIC_InitTypeDef nvic_init_structure;
+  
   NVIC_DeInit();
 
 #ifdef  VECT_TAB_RAM
@@ -179,10 +183,18 @@ static void NVIC_Configuration(void)
   NVIC_SystemHandlerPriorityConfig(SystemHandler_SysTick, 0, 0);
 
 #ifdef BUILD_ADC  
-  nvic_init_structure.NVIC_IRQChannel = DMA1_Channel1_IRQChannel; 
-  nvic_init_structure.NVIC_IRQChannelPreemptionPriority = 1; 
-  nvic_init_structure.NVIC_IRQChannelSubPriority = 3; 
-  nvic_init_structure.NVIC_IRQChannelCmd = DISABLE; 
+  nvic_init_structure_adc.NVIC_IRQChannel = DMA1_Channel1_IRQChannel; 
+  nvic_init_structure_adc.NVIC_IRQChannelPreemptionPriority = 1; 
+  nvic_init_structure_adc.NVIC_IRQChannelSubPriority = 3; 
+  nvic_init_structure_adc.NVIC_IRQChannelCmd = DISABLE; 
+  NVIC_Init(&nvic_init_structure_adc);
+#endif
+
+#if defined( BUF_ENABLE_UART ) && defined( CON_BUF_SIZE )
+  /* Enable the USART1 Interrupt */
+  nvic_init_structure.NVIC_IRQChannel = USART1_IRQChannel;
+  nvic_init_structure.NVIC_IRQChannelSubPriority = 0;
+  nvic_init_structure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&nvic_init_structure);
 #endif
 }
@@ -288,6 +300,172 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 }
 
 // ****************************************************************************
+// CAN
+// TODO: Many things
+
+void cans_init( void )
+{
+  GPIO_InitTypeDef GPIO_InitStructure;
+
+  /* CAN Periph clock enable */
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_CAN, ENABLE);
+
+  /* Configure CAN pin: RX */
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
+  
+  /* Configure CAN pin: TX */
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
+}
+
+u32 platform_can_setup( unsigned id, u32 baud )
+{
+  CAN_InitTypeDef        CAN_InitStructure;
+  CAN_FilterInitTypeDef  CAN_FilterInitStructure;
+
+  /* CAN register init */
+  CAN_DeInit();
+  CAN_StructInit(&CAN_InitStructure);
+
+  /* CAN cell init */
+  CAN_InitStructure.CAN_TTCM=DISABLE;
+  CAN_InitStructure.CAN_ABOM=DISABLE;
+  CAN_InitStructure.CAN_AWUM=DISABLE;
+  CAN_InitStructure.CAN_NART=DISABLE;
+  CAN_InitStructure.CAN_RFLM=DISABLE;
+  CAN_InitStructure.CAN_TXFP=DISABLE;
+  CAN_InitStructure.CAN_Mode=CAN_Mode_LoopBack;
+  CAN_InitStructure.CAN_SJW=CAN_SJW_1tq;
+  CAN_InitStructure.CAN_BS1=CAN_BS1_4tq;
+  CAN_InitStructure.CAN_BS2=CAN_BS2_3tq;
+  CAN_InitStructure.CAN_Prescaler=0;
+  CAN_Init(&CAN_InitStructure);
+
+  /* CAN filter init */
+  CAN_FilterInitStructure.CAN_FilterNumber=0;
+  CAN_FilterInitStructure.CAN_FilterMode=CAN_FilterMode_IdMask;
+  CAN_FilterInitStructure.CAN_FilterScale=CAN_FilterScale_32bit;
+  CAN_FilterInitStructure.CAN_FilterIdHigh=0x0000;
+  CAN_FilterInitStructure.CAN_FilterIdLow=0x0000;
+  CAN_FilterInitStructure.CAN_FilterMaskIdHigh=0x0000;
+  CAN_FilterInitStructure.CAN_FilterMaskIdLow=0x0000;
+  CAN_FilterInitStructure.CAN_FilterFIFOAssignment=CAN_FIFO0;
+  CAN_FilterInitStructure.CAN_FilterActivation=ENABLE;
+  CAN_FilterInit(&CAN_FilterInitStructure);
+  
+  return baud;
+}
+/*
+u32 platform_can_op( unsigned id, int op, u32 data )
+{
+  u32 res = 0;
+  TIM_TypeDef *ptimer = timer[ id ];
+  volatile unsigned dummy;
+
+  data = data;
+  switch( op )
+  {
+    case PLATFORM_TIMER_OP_READ:
+      res = TIM_GetCounter( ptimer );
+      break;
+  }
+  return res;
+}
+*/
+
+void platform_can_send_message( unsigned id, u32 canid, u8 idtype, u8 len, u8 *data )
+{
+  CanTxMsg TxMessage;
+  const char *s = ( const char * )data;
+  char *d;
+  
+  switch( idtype )
+  {
+    case 0: /* Standard ID Type  */
+      TxMessage.IDE = CAN_ID_STD;
+      TxMessage.StdId = canid;
+      break;
+    case 1: /* Extended ID Type */
+      TxMessage.IDE=CAN_ID_EXT;
+      TxMessage.ExtId = canid;
+  }
+  
+  TxMessage.RTR=CAN_RTR_DATA;
+  TxMessage.DLC=len;
+  
+  d = ( char* )TxMessage.Data;
+  DUFF_DEVICE_8( len,  *d++ = *s++ );
+  
+  CAN_Transmit(&TxMessage);
+}
+
+void USB_LP_CAN_RX0_IRQHandler(void)
+{
+/*
+  CanRxMsg RxMessage;
+
+  RxMessage.StdId=0x00;
+  RxMessage.ExtId=0x00;
+  RxMessage.IDE=0;
+  RxMessage.DLC=0;
+  RxMessage.FMI=0;
+  RxMessage.Data[0]=0x00;
+  RxMessage.Data[1]=0x00;
+
+  CAN_Receive(CAN_FIFO0, &RxMessage);
+
+  if((RxMessage.ExtId==0x1234) && (RxMessage.IDE==CAN_ID_EXT)
+     && (RxMessage.DLC==2) && ((RxMessage.Data[1]|RxMessage.Data[0]<<8)==0xDECA))
+  {
+    ret = 1; 
+  }
+  else
+  {
+    ret = 0; 
+  }*/
+}
+
+void platform_can_receive_message( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )
+{
+  CanRxMsg RxMessage;
+  const char *s;
+  char *d;
+  u32 i;
+  
+  while((CAN_MessagePending(CAN_FIFO0) < 1) && (i != 0xFF))
+  {
+   i++;
+  }
+  
+  RxMessage.StdId=0x00;
+  RxMessage.IDE=CAN_ID_STD;
+  RxMessage.DLC=0;
+  RxMessage.Data[0]=0x00;
+  RxMessage.Data[1]=0x00;
+  CAN_Receive(CAN_FIFO0, &RxMessage);
+  
+  if( RxMessage.IDE == CAN_ID_STD )
+  {
+    *canid = ( u32 )RxMessage.StdId;
+    *idtype = 0;
+  }
+  else
+  {
+    *canid = ( u32 )RxMessage.ExtId;
+    *idtype = 1;
+  }
+  
+  *len = RxMessage.DLC;
+  
+  s = ( const char * )RxMessage.Data;
+  d = ( char* )data;
+  DUFF_DEVICE_8( RxMessage.DLC,  *d++ = *s++ );
+}
+
+// ****************************************************************************
 // UART
 // TODO: Support timeouts.
 
@@ -297,6 +475,22 @@ static GPIO_TypeDef *const usart_gpio_rx_port[] = { GPIOA, GPIOA, GPIOB, GPIOC, 
 static GPIO_TypeDef *const usart_gpio_tx_port[] = { GPIOA, GPIOA, GPIOB, GPIOC, GPIOC };
 static const u16 usart_gpio_rx_pin[] = { GPIO_Pin_10, GPIO_Pin_3, GPIO_Pin_11, GPIO_Pin_11, GPIO_Pin_2 };
 static const u16 usart_gpio_tx_pin[] = { GPIO_Pin_9, GPIO_Pin_2, GPIO_Pin_10, GPIO_Pin_10, GPIO_Pin_12 };
+
+#ifdef BUF_ENABLE_UART
+void USART1_IRQHandler(void)
+{
+  int c;
+
+  if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
+  {
+    /* Read one byte from the receive data register */
+    c = USART_ReceiveData(USART1);
+    buf_write( BUF_ID_UART, CON_UART_ID, ( t_buf_data* )&c );
+  }
+}
+#endif
+
+
 
 static void usart_init(u32 id, USART_InitTypeDef * initVals)
 {
@@ -316,10 +510,12 @@ static void usart_init(u32 id, USART_InitTypeDef * initVals)
 
   /* Configure USART */
   USART_Init(usart[id], initVals);
-
+  
+#if defined( BUF_ENABLE_UART ) && defined( CON_BUF_SIZE )
   /* Enable USART1 Receive and Transmit interrupts */
-  //USART_ITConfig(usart[id], USART_IT_RXNE, ENABLE);
+  USART_ITConfig(usart[id], USART_IT_RXNE, ENABLE);
   //USART_ITConfig(usart[id], USART_IT_TXE, ENABLE);
+#endif
 
   /* Enable USART */
   USART_Cmd(usart[id], ENABLE);
@@ -336,7 +532,6 @@ static void uarts_init()
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART4, ENABLE);
 
   // Configure the U(S)ART
-
   USART_InitStructure.USART_BaudRate = CON_UART_SPEED;
   USART_InitStructure.USART_WordLength = USART_WordLength_8b;
   USART_InitStructure.USART_StopBits = USART_StopBits_1;
@@ -344,7 +539,12 @@ static void uarts_init()
   USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
   USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
 
+#if defined( BUF_ENABLE_UART ) && defined( CON_BUF_SIZE )
+  buf_set( BUF_ID_UART, CON_UART_ID, CON_BUF_SIZE, BUF_DSIZE_U8 );
+#endif
+
   usart_init(CON_UART_ID, &USART_InitStructure);
+
 }
 
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )
@@ -584,8 +784,8 @@ void platform_adc_stop( unsigned id )
     ADC_ExternalTrigConvCmd( adc[ d->seq_id ], DISABLE );
     
     // Also ensure that DMA interrupt won't fire ( this shouldn't really be necessary )
-    nvic_init_structure.NVIC_IRQChannelCmd = DISABLE; 
-    NVIC_Init(&nvic_init_structure);
+    nvic_init_structure_adc.NVIC_IRQChannelCmd = DISABLE; 
+    NVIC_Init(&nvic_init_structure_adc);
     
     d->running = 0;
   }
@@ -796,8 +996,8 @@ int platform_adc_start_sequence( )
     
     DMA_ClearITPendingBit( DMA1_IT_TC1 );
 
-    nvic_init_structure.NVIC_IRQChannelCmd = ENABLE; 
-    NVIC_Init(&nvic_init_structure);
+    nvic_init_structure_adc.NVIC_IRQChannelCmd = ENABLE; 
+    NVIC_Init(&nvic_init_structure_adc);
 
     if( d->clocked == 1 )
       ADC_ExternalTrigConvCmd( adc[ d->seq_id ], ENABLE );

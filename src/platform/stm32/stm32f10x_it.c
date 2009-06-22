@@ -576,9 +576,8 @@ void SPI2_IRQHandler(void)
 * Output         : None
 * Return         : None
 *******************************************************************************/
-void USART1_IRQHandler(void)
-{
-}
+extern void USART1_IRQHandler(void);
+
 
 /*******************************************************************************
 * Function Name  : USART2_IRQHandler
