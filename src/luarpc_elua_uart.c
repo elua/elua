@@ -53,7 +53,7 @@ void transport_read_buffer (Transport *tpt, u8 *buffer, int length)
 				
     if( c < 0 )
 		{
-		  uart_timeout = 1000000;
+		  uart_timeout = 1000000; /*  Reset and use timeout of 1s */
 			e.errnum = ERR_NODATA;
 			e.type = nonfatal;
 			Throw( e );
@@ -63,14 +63,11 @@ void transport_read_buffer (Transport *tpt, u8 *buffer, int length)
 			buffer[ n ] = ( u8 ) c;
 			n++;
 		}
+		/* After getting one char of a read, remainder should follow within a timeout of 0.1 sec */
+		uart_timeout = 100000;
   }
 	
 	uart_timeout = PLATFORM_UART_INFINITE_TIMEOUT;
-}
-
-void transport_write_buffer_low (Transport *tpt, const u8 *buffer, int length)
-{
-
 }
 
 void transport_write_buffer( Transport *tpt, const u8 *buffer, int length )
@@ -87,7 +84,7 @@ void transport_write_buffer( Transport *tpt, const u8 *buffer, int length )
  		- 1 = data available, 0 = no data available */
 int transport_readable (Transport *tpt)
 {
-	return 1;
+	return 1; /* no really easy way to check this unless platform support is added */
 }
 
 /* Check if transport is open:

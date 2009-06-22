@@ -162,6 +162,7 @@ struct _ServerHandle {
 /* Arg & Error Checking Provided to Transport Mechanisms */
 int check_num_args (lua_State *L, int desired_n);
 void deal_with_error (lua_State *L, Handle *h, const char *error_string);
+void my_lua_error( lua_State *L, const char *errmsg );
 
 /* TRANSPORT API */
 

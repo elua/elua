@@ -90,7 +90,8 @@ enum
 enum
 {
   RPC_READY = 64,
-  RPC_UNSUPPORTED_CMD
+  RPC_UNSUPPORTED_CMD,
+  RPC_DONE
 };
 
 enum { RPC_PROTOCOL_VERSION = 3 };
@@ -152,23 +153,23 @@ static void transport_write_u8( Transport *tpt, u8 x )
 {
   struct exception e;
   TRANSPORT_VERIFY_OPEN;
-  transport_write_buffer (tpt,&x,1);
+  transport_write_buffer( tpt, &x, 1 );
 }
 
 static void swap_bytes( char *number, size_t numbersize )
 {
- int i;
- for (i=0; i<numbersize/2; i++)
- {
-  char temp = number[i];
-  number[i] = number[numbersize-1-i];
-  number[numbersize-1-i] = temp;
- }
+  int i;
+  for (i=0; i<numbersize/2; i++)
+  {
+    char temp = number[i];
+    number[i] = number[numbersize-1-i];
+    number[numbersize-1-i] = temp;
+  }
 }
 
 union u32_bytes {
-  u32 i;
-  u8 b[4];
+  uint32_t i;
+  uint8_t  b[ 4 ];
 };
 
 /* read a u32 from the transport */
@@ -185,20 +186,20 @@ static u32 transport_read_u32( Transport *tpt )
 
 
 /* write a u32 to the transport */
-static void transport_write_u32 (Transport *tpt, u32 x)
+static void transport_write_u32( Transport *tpt, u32 x )
 {
   union u32_bytes ub;
   struct exception e;
   TRANSPORT_VERIFY_OPEN;
-  ub.i = x;
+  ub.i = ( uint32_t )x;
   if( tpt->net_little != tpt->loc_little )
-    swap_bytes( (char *)ub.b, 4 );
+    swap_bytes( ( char * )ub.b, 4 );
   transport_write_buffer( tpt, ub.b, 4 );
 }
 
 /* read a double from the transport */
 
-static lua_Number transport_read_number (Transport *tpt)
+static lua_Number transport_read_number( Transport *tpt )
 {
   lua_Number x;
   u8 b[ tpt->lnum_bytes ];
@@ -246,7 +247,7 @@ static void transport_write_number (Transport *tpt, lua_Number x)
   struct exception e;
   TRANSPORT_VERIFY_OPEN;
    
-  if( tpt->net_intnum != tpt->loc_intnum )
+  if( tpt->net_intnum )
   {
     switch( tpt->lnum_bytes )
     {
@@ -771,6 +772,21 @@ static void helper_remote_index( Helper *helper )
   transport_write_string( tpt, helper->funcname, strlen( helper->funcname ) );
 }
 
+static void helper_wait_ready( Transport *tpt, u8 cmd )
+{
+  struct exception e;
+  u8 cmdresp;
+
+  transport_write_u8( tpt, cmd );
+  cmdresp = transport_read_u8( tpt );
+  if( cmdresp != RPC_READY )
+  {
+		e.errnum = ERR_PROTOCOL;
+		e.type = nonfatal;
+		Throw( e );
+  }
+
+}
 
 static int helper_get(lua_State *L, Helper *helper )
 {
@@ -784,17 +800,9 @@ static int helper_get(lua_State *L, Helper *helper )
     u8 cmdresp;
     /* write function name */
     len = strlen( helper->funcname );
-    transport_write_u8( tpt, RPC_CMD_GET );
-    cmdresp = transport_read_u8( tpt );
-    if ( cmdresp != RPC_READY )
-    {
-  		e.errnum = cmdresp;
-  		e.type = nonfatal;
-  		Throw( e );
-    }
+    helper_wait_ready( tpt, RPC_CMD_GET );
     helper_remote_index( helper );
-
-    /* read variable back */
+    
     read_variable( tpt, L );
 
     freturn = 1;
@@ -824,6 +832,37 @@ static int helper_get(lua_State *L, Helper *helper )
 }
 
 
+// static int helper_async( lua_State *L )
+// {
+//     /* first read out any pending return values for old async calls */
+//     for (; h->handle->read_reply_count > 0; h->handle->read_reply_count--) {
+//       ret_code = transport_read_u8 (tpt);   /* return code */
+//       if( ret_code == 0 )
+//       {
+//         /* read return arguments, ignore everything we read */
+//         nret = transport_read_u32( tpt );
+//       
+//         for (i=0; i < ( ( int ) nret ); i++)
+//           read_variable (tpt,L);
+//       
+//         lua_pop (L,nret);
+//       }
+//       else
+//       {
+//         /* read error and handle it */
+//         u32 code = transport_read_u32( tpt );
+//         u32 len = transport_read_u32( tpt );
+//         char *err_string = ( char * )alloca( len + 1 );
+//         transport_read_string( tpt, err_string, len );
+//         err_string[ len ] = 0;
+// 
+//         deal_with_error( L, h->handle, err_string );
+//         freturn = 0;
+//       }
+//     }
+// }
+
+
 static int helper_call (lua_State *L)
 {
   struct exception e;
@@ -837,8 +876,7 @@ static int helper_call (lua_State *L)
   h = ( Helper * )lua_touserdata( L, 1 );
   tpt = &h->handle->tpt;
   
-  
-  /* @@@ ugly way to capture get calls, should find another way */
+  /* capture special calls, otherwise execute normal remote call */
   if( strcmp("get", h->funcname ) == 0 )
   {
     helper_get( L, h->parent );
@@ -852,42 +890,8 @@ static int helper_call (lua_State *L)
       u32 nret,ret_code;
       u8 cmdresp;
 
-      /* first read out any pending return values for old async calls */
-      for (; h->handle->read_reply_count > 0; h->handle->read_reply_count--) {
-        ret_code = transport_read_u8 (tpt);   /* return code */
-        if( ret_code == 0 )
-        {
-          /* read return arguments, ignore everything we read */
-          nret = transport_read_u32( tpt );
-        
-          for (i=0; i < ( ( int ) nret ); i++)
-            read_variable (tpt,L);
-        
-          lua_pop (L,nret);
-        }
-        else
-        {
-          /* read error and handle it */
-          u32 code = transport_read_u32( tpt );
-          u32 len = transport_read_u32( tpt );
-          char *err_string = ( char * )alloca( len + 1 );
-          transport_read_string( tpt, err_string, len );
-          err_string[ len ] = 0;
-
-          deal_with_error( L, h->handle, err_string );
-          freturn = 0;
-        }
-      }
-
       /* write function name */
-      transport_write_u8( tpt, RPC_CMD_CALL );
-      cmdresp = transport_read_u8( tpt );
-      if ( cmdresp != RPC_READY )
-      {
-    		e.errnum = cmdresp;
-    		e.type = nonfatal;
-    		Throw( e );
-      }
+      helper_wait_ready( tpt, RPC_CMD_CALL );
       helper_remote_index( h );
 
       /* write number of arguments */
@@ -913,7 +917,7 @@ static int helper_call (lua_State *L)
         /* read return arguments */
         nret = transport_read_u32( tpt );
       
-        for ( i = 0; i < ( (int ) nret ); i ++ )
+        for ( i = 0; i < ( ( int ) nret ); i ++ )
           read_variable( tpt, L );
       
         freturn = ( int )nret;
@@ -956,11 +960,11 @@ static int helper_call (lua_State *L)
   return freturn;
 }
 
-
 static int helper_newindex( lua_State *L )
 {
   struct exception e;
   int freturn = 0;
+  int ret_code;
   Helper *h;
   Transport *tpt;
   MYASSERT( lua_isuserdata( L, -3 ) && ismetatable_type( L, -3, "rpc.helper" ) );
@@ -977,18 +981,24 @@ static int helper_newindex( lua_State *L )
         
     /* write function name */
     len = strlen( h->funcname );
-    transport_write_u8( tpt, RPC_CMD_NEWINDEX );
-    cmdresp = transport_read_u8( tpt );
-    if ( cmdresp != RPC_READY )
-    {
-  		e.errnum = cmdresp;
-  		e.type = nonfatal;
-  		Throw( e );
-    }
+    helper_wait_ready( tpt, RPC_CMD_NEWINDEX );
     helper_remote_index( h );
 
     write_variable( tpt, L, lua_gettop( L ) - 1 );
     write_variable( tpt, L, lua_gettop( L ) );
+
+    ret_code = transport_read_u8( tpt );
+    if( ret_code != 0 )
+    {
+      /* read error and handle it */
+      u32 code = transport_read_u32( tpt );
+      u32 len = transport_read_u32( tpt );
+      char *err_string = ( char * )alloca( len + 1 );
+      transport_read_string( tpt, err_string, len );
+      err_string[ len ] = 0;
+
+      deal_with_error( L, h->handle, err_string );
+    }
 
     freturn = 0;
   }
@@ -1313,9 +1323,20 @@ static void read_cmd_newindex( Transport *tpt, lua_State *L )
     read_variable( tpt, L ); /* value */  
     lua_setglobal( L, lua_tostring( L, -2 ) );
   }
+  /* Write out 0 to indicate no error and that we're done */
+  transport_write_u8( tpt, 0 );
   
-
-
+  /*if ( error_code ) // Add some error handling later
+  {
+    size_t len;
+    const char *errmsg;
+    errmsg = lua_tolstring (L, -1, &len);
+    transport_write_u8( tpt, 1 );
+    transport_write_u32( tpt, error_code );
+    transport_write_u32( tpt, len );
+    transport_write_string( tpt, errmsg, len );
+  }*/
+  
   /* empty the stack */
   lua_settop ( L, 0 );
 }
