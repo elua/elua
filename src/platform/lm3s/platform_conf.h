@@ -21,6 +21,7 @@
 #define BUILD_DNS
 #define BUILD_CON_GENERIC
 #define BUILD_ADC
+#define BUILD_LUARPC
 //#define BUILD_CON_TCP
 
 // *****************************************************************************
@@ -68,6 +69,7 @@ LUALIB_API int ( luaopen_disp )( lua_State* L );
   NETLINE\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
   _ROM( AUXLIB_ADC, luaopen_adc, adc_map )\
+  _ROM( AUXLIB_LUARPC, luaopen_luarpc, rpc_map )\
   DISPLINE\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
   
