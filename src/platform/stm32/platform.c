@@ -51,6 +51,7 @@ static void NVIC_Configuration(void);
 
 static void timers_init();
 static void uarts_init();
+static void spis_init();
 static void pios_init();
 static void adcs_init();
 static void cans_init();
@@ -71,6 +72,9 @@ int platform_init()
 
   // Setup UARTs
   uarts_init();
+  
+  // Setup SPIs
+  spis_init();
   
   // Setup timers
   timers_init();
@@ -464,6 +468,72 @@ void platform_can_receive_message( unsigned id, u32 *canid, u8 *idtype, u8 *len,
   d = ( char* )data;
   DUFF_DEVICE_8( RxMessage.DLC,  *d++ = *s++ );
 }
+
+// ****************************************************************************
+// SPI
+// NOTE: Only configuring 2 SPI peripherals, since the third one shares pins with JTAG
+
+static SPI_TypeDef *const spi[]  = { SPI1, SPI2 };
+static const u16 spi_prescaler[] = { SPI_BaudRatePrescaler_2, SPI_BaudRatePrescaler_4, SPI_BaudRatePrescaler_8, 
+                                     SPI_BaudRatePrescaler_16, SPI_BaudRatePrescaler_32, SPI_BaudRatePrescaler_64,
+                                     SPI_BaudRatePrescaler_128, SPI_BaudRatePrescaler_256 };
+                                     
+static const u16 spi_gpio_pins[] = { GPIO_Pin_5  | GPIO_Pin_6  | GPIO_Pin_7,
+                                     GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15 };
+//                                   SCK           MISO          MOSI
+static GPIO_TypeDef *const spi_gpio_port[] = { GPIOA, GPIOB };
+
+static void spis_init()
+{
+  // Enable Clocks
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);
+}
+
+#define SPI_GET_BASE_CLK( id ) ( ( id ) == 2 ? ( HCLK / PCLK2_DIV ) : ( HCLK / PCLK1_DIV ) )
+
+u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigned cpha, unsigned databits )
+{
+  SPI_InitTypeDef SPI_InitStructure;
+  GPIO_InitTypeDef GPIO_InitStructure;
+  u8 prescaler_idx = intlog2( ( unsigned ) ( SPI_GET_BASE_CLK( id ) / clock ) ) - 1;
+  
+  /* Configure SPI pins */
+  GPIO_InitStructure.GPIO_Pin = spi_gpio_pins[ id ];
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+  GPIO_Init(spi_gpio_port[ id ], &GPIO_InitStructure);
+  
+  /* Take down, then reconfigure SPI peripheral */
+  SPI_Cmd( spi[ id ], DISABLE );
+  SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
+  SPI_InitStructure.SPI_Mode = mode ? SPI_Mode_Master : SPI_Mode_Slave;
+  SPI_InitStructure.SPI_DataSize = ( databits == 16 ) ? SPI_DataSize_16b : SPI_DataSize_8b; // not ideal, but defaults to sane 8-bits
+  SPI_InitStructure.SPI_CPOL = cpol ? SPI_CPOL_High : SPI_CPOL_Low;
+  SPI_InitStructure.SPI_CPHA = cpha ? SPI_CPHA_1Edge : SPI_CPHA_2Edge;
+  SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;
+  SPI_InitStructure.SPI_BaudRatePrescaler = spi_prescaler[ prescaler_idx ];
+  SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
+  SPI_InitStructure.SPI_CRCPolynomial = 7;
+  SPI_Init( spi[ id ], &SPI_InitStructure );
+  SPI_Cmd( spi[ id ], ENABLE );
+  
+  return ( SPI_GET_BASE_CLK( id ) / ( ( u16 )2 << ( prescaler_idx ) ) );
+}
+
+spi_data_type platform_spi_send_recv( unsigned id, spi_data_type data )
+{
+  SPI_I2S_SendData( spi[ id ], data );
+  return SPI_I2S_ReceiveData( spi[ id ] );
+}
+
+void platform_spi_select( unsigned id, int is_select )
+{
+  // This platform doesn't have a hardware SS pin, so there's nothing to do here
+  id = id;
+  is_select = is_select;
+}
+
 
 // ****************************************************************************
 // UART

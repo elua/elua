@@ -45,6 +45,7 @@ LUALIB_API int ( luaopen_lcd )( lua_State* L );
 
 #define LUA_PLATFORM_LIBS_ROM\
   _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
+  _ROM( AUXLIB_SPI, luaopen_spi, spi_map )\
   _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
   _ROM( AUXLIB_UART, luaopen_uart, uart_map )\
   _ROM( AUXLIB_TERM, luaopen_term, term_map )\
@@ -90,7 +91,7 @@ LUALIB_API int ( luaopen_lcd )( lua_State* L );
 
 // Number of resources (0 if not available/not implemented)
 #define NUM_PIO               7
-#define NUM_SPI               0
+#define NUM_SPI               2
 #define NUM_UART              5
 #define NUM_TIMER             6
 #define NUM_PWM               0
