@@ -110,7 +110,7 @@ static const char * errorString (int n)
   case ERR_NODATA: return "no data received when attempting to read";
   case ERR_BADFNAME: return "function name is too long";
   case RPC_UNSUPPORTED_CMD: return "an unsupported action was requested";
-	case ERR_HEADER: return "header exchanged failed";
+  case ERR_HEADER: return "header exchanged failed";
   default: return transport_strerror (n);
   }
 }
@@ -197,7 +197,7 @@ static void transport_write_u32( Transport *tpt, u32 x )
   transport_write_buffer( tpt, ub.b, 4 );
 }
 
-/* read a double from the transport */
+/* read a lua number from the transport */
 
 static lua_Number transport_read_number( Transport *tpt )
 {
@@ -240,8 +240,7 @@ static lua_Number transport_read_number( Transport *tpt )
 }
 
 
-/* write a double to the transport */
-
+/* write a lua number to the transport */
 static void transport_write_number (Transport *tpt, lua_Number x)
 {
   struct exception e;
@@ -332,8 +331,6 @@ static int ismetatable_type( lua_State *L, int ud, const char *tname )
  * functions which may throw exceptions, so calls to these functions must be
  * wrapped in a Try block.
  */
-
-
 
 /* write a table at the given index in the stack. the index must be absolute
  * (i.e. positive).
@@ -458,7 +455,6 @@ static void write_variable( Transport *tpt, lua_State *L, int var_index )
 
 
 /* read a table and push in onto the stack */
-
 static void read_table( Transport *tpt, lua_State *L )
 {
   int table_index;
@@ -730,7 +726,7 @@ static int handle_newindex( lua_State *L )
     my_lua_error( L, "function name is too long" );
   
   h = helper_create( L, ( Handle * )lua_touserdata( L, 1 ), "" );
-	lua_replace(L, 1);
+  lua_replace(L, 1);
 
   helper_newindex( L );
 
@@ -781,9 +777,9 @@ static void helper_wait_ready( Transport *tpt, u8 cmd )
   cmdresp = transport_read_u8( tpt );
   if( cmdresp != RPC_READY )
   {
-		e.errnum = ERR_PROTOCOL;
-		e.type = nonfatal;
-		Throw( e );
+    e.errnum = ERR_PROTOCOL;
+    e.type = nonfatal;
+    Throw( e );
   }
 
 }

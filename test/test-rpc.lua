@@ -19,7 +19,6 @@ test_local.sval = 23
 
 slave.mirror = mirror
 
--- print(slave.mirror:get())
 -- reflect parameters off mirror
 -- also requires that function serialization works
 assert(slave.mirror(42) == 42, "integer return failed")
