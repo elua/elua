@@ -490,13 +490,13 @@ static void spis_init()
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);
 }
 
-#define SPI_GET_BASE_CLK( id ) ( ( id ) == 1 ? ( HCLK / PCLK2_DIV ) : ( HCLK / PCLK1_DIV ) )
+#define SPI_GET_BASE_CLK( id ) ( ( id ) == 0 ? ( HCLK / PCLK2_DIV ) : ( HCLK / PCLK1_DIV ) )
 
 u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigned cpha, unsigned databits )
 {
   SPI_InitTypeDef SPI_InitStructure;
   GPIO_InitTypeDef GPIO_InitStructure;
-  u8 prescaler_idx = intlog2( ( unsigned ) ( SPI_GET_BASE_CLK( id ) / clock ) ) - 2;
+  u8 prescaler_idx = intlog2( ( unsigned ) ( SPI_GET_BASE_CLK( id ) / clock ) );
   if ( prescaler_idx < 0 )
     prescaler_idx = 0;
   if ( prescaler_idx > 7 )
@@ -522,7 +522,7 @@ u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigne
   SPI_Init( spi[ id ], &SPI_InitStructure );
   SPI_Cmd( spi[ id ], ENABLE );
   
-  return ( SPI_GET_BASE_CLK( id ) / ( ( u16 )2 << ( prescaler_idx ) ) );
+  return ( SPI_GET_BASE_CLK( id ) / ( ( ( u16 )2 << ( prescaler_idx ) ) ) );
 }
 
 spi_data_type platform_spi_send_recv( unsigned id, spi_data_type data )
