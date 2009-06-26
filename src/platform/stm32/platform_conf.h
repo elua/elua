@@ -54,6 +54,7 @@ LUALIB_API int ( luaopen_lcd )( lua_State* L );
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
   _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
   _ROM( AUXLIB_ADC, luaopen_adc, adc_map )\
+  _ROM( AUXLIB_CAN, luaopen_can, can_map )\
 	_ROM( AUXLIB_LUARPC, luaopen_luarpc, rpc_map )\
   LCDLINE\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
@@ -96,6 +97,7 @@ LUALIB_API int ( luaopen_lcd )( lua_State* L );
 #define NUM_TIMER             6
 #define NUM_PWM               0
 #define NUM_ADC               16
+#define NUM_CAN               1
 
 // Enable RX buffering on UART
 #define BUF_ENABLE_UART

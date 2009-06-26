@@ -342,6 +342,14 @@ u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_typ
 }
 
 // ****************************************************************************
+// CAN functions
+
+int platform_can_exists( unsigned id )
+{
+  return id < NUM_CAN;
+}
+
+// ****************************************************************************
 // SPI functions
 
 int platform_spi_exists( unsigned id )
@@ -367,8 +375,6 @@ u32 platform_cpu_get_frequency()
 
 // ****************************************************************************
 // ADC functions
-
-
 
 int platform_adc_exists( unsigned id )
 {

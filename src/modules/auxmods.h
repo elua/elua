@@ -12,6 +12,9 @@ LUALIB_API int ( luaopen_pio )( lua_State *L );
 #define AUXLIB_SPI      "spi"
 LUALIB_API int ( luaopen_spi )( lua_State *L );
 
+#define AUXLIB_CAN      "can"
+LUALIB_API int ( luaopen_can )( lua_State *L );
+
 #define AUXLIB_TMR      "tmr"
 LUALIB_API int ( luaopen_tmr )( lua_State *L );
 

@@ -81,6 +81,9 @@ int platform_init()
   
   // Setup ADCs
   adcs_init();
+  
+  // Setup CANs
+  cans_init();
 
   cmn_platform_init();
 
@@ -309,28 +312,30 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 
 void cans_init( void )
 {
-  GPIO_InitTypeDef GPIO_InitStructure;
-
   /* CAN Periph clock enable */
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_CAN, ENABLE);
-
-  /* Configure CAN pin: RX */
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
-  GPIO_Init(GPIOB, &GPIO_InitStructure);
-  
-  /* Configure CAN pin: TX */
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-  GPIO_Init(GPIOB, &GPIO_InitStructure);
 }
 
-u32 platform_can_setup( unsigned id, u32 baud )
+u32 platform_can_setup( unsigned id, u32 clock )
 {
   CAN_InitTypeDef        CAN_InitStructure;
   CAN_FilterInitTypeDef  CAN_FilterInitStructure;
+  GPIO_InitTypeDef GPIO_InitStructure;
 
-  /* CAN register init */
+  // Configure IO Pins -- This is for STM32F103RE
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+  GPIO_Init( GPIOB, &GPIO_InitStructure );
+  
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_Init( GPIOB, &GPIO_InitStructure );
+  
+  GPIO_PinRemapConfig( GPIO_Remap1_CAN, ENABLE );
+
+
+  /* Deinitialize CAN Peripheral */
   CAN_DeInit();
   CAN_StructInit(&CAN_InitStructure);
 
@@ -341,11 +346,11 @@ u32 platform_can_setup( unsigned id, u32 baud )
   CAN_InitStructure.CAN_NART=DISABLE;
   CAN_InitStructure.CAN_RFLM=DISABLE;
   CAN_InitStructure.CAN_TXFP=DISABLE;
-  CAN_InitStructure.CAN_Mode=CAN_Mode_LoopBack;
+  CAN_InitStructure.CAN_Mode=CAN_Mode_Normal;
   CAN_InitStructure.CAN_SJW=CAN_SJW_1tq;
-  CAN_InitStructure.CAN_BS1=CAN_BS1_4tq;
-  CAN_InitStructure.CAN_BS2=CAN_BS2_3tq;
-  CAN_InitStructure.CAN_Prescaler=0;
+  CAN_InitStructure.CAN_BS1=CAN_BS1_3tq;
+  CAN_InitStructure.CAN_BS2=CAN_BS2_5tq;
+  CAN_InitStructure.CAN_Prescaler=4; // @@@ This should actually be configured!
   CAN_Init(&CAN_InitStructure);
 
   /* CAN filter init */
@@ -360,7 +365,7 @@ u32 platform_can_setup( unsigned id, u32 baud )
   CAN_FilterInitStructure.CAN_FilterActivation=ENABLE;
   CAN_FilterInit(&CAN_FilterInitStructure);
   
-  return baud;
+  return clock;
 }
 /*
 u32 platform_can_op( unsigned id, int op, u32 data )
@@ -380,10 +385,10 @@ u32 platform_can_op( unsigned id, int op, u32 data )
 }
 */
 
-void platform_can_send_message( unsigned id, u32 canid, u8 idtype, u8 len, u8 *data )
+void platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *data )
 {
   CanTxMsg TxMessage;
-  const char *s = ( const char * )data;
+  const char *s = ( char * )data;
   char *d;
   
   switch( idtype )
@@ -395,15 +400,16 @@ void platform_can_send_message( unsigned id, u32 canid, u8 idtype, u8 len, u8 *d
     case 1: /* Extended ID Type */
       TxMessage.IDE=CAN_ID_EXT;
       TxMessage.ExtId = canid;
+      break;
   }
   
   TxMessage.RTR=CAN_RTR_DATA;
   TxMessage.DLC=len;
   
-  d = ( char* )TxMessage.Data;
+  d = ( char * )TxMessage.Data;
   DUFF_DEVICE_8( len,  *d++ = *s++ );
   
-  CAN_Transmit(&TxMessage);
+  CAN_Transmit( &TxMessage );
 }
 
 void USB_LP_CAN_RX0_IRQHandler(void)
@@ -432,18 +438,16 @@ void USB_LP_CAN_RX0_IRQHandler(void)
   }*/
 }
 
-void platform_can_receive_message( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )
+void platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )
 {
   CanRxMsg RxMessage;
   const char *s;
   char *d;
-  u32 i;
+  u32 i = 0;
   
-  while((CAN_MessagePending(CAN_FIFO0) < 1) && (i != 0xFF))
-  {
-   i++;
-  }
-  
+  // Check up to 256 times for message
+  while( ( CAN_MessagePending(CAN_FIFO0) < 1 ) && ( i++ != 0xFF ) );
+    
   RxMessage.StdId=0x00;
   RxMessage.IDE=CAN_ID_STD;
   RxMessage.DLC=0;

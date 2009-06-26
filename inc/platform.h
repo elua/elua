@@ -67,6 +67,17 @@ int platform_pio_has_pin( unsigned port, unsigned pin );
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op );
 
 // *****************************************************************************
+// CAN subsection
+
+// Maximum length for any CAN message
+#define PLATFORM_CAN_MAXLEN                   8
+
+int platform_can_exists( unsigned id );
+u32 platform_can_setup( unsigned id, u32 clock );
+void platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *data );
+void platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data );
+
+// *****************************************************************************
 // SPI subsection
 
 // There are 4 "virtual" SPI ports (SPI0...SPI3).
