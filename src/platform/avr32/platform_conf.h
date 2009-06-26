@@ -58,6 +58,7 @@
 #endif
 #define NUM_PWM               0
 #define NUM_ADC               0
+#define NUM_CAN               0
 
 // Enable RX buffering on UART
 #define BUF_ENABLE_UART

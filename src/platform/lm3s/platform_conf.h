@@ -119,6 +119,7 @@ LUALIB_API int ( luaopen_disp )( lua_State* L );
   #define NUM_PWM             0
 #endif  
 #define NUM_ADC               4
+#define NUM_CAN               0
 
 // Enable RX buffering on UART
 //#define BUF_ENABLE_UART

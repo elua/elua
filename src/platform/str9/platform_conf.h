@@ -39,6 +39,7 @@
 #define NUM_TIMER             4
 #define NUM_PWM               0
 #define NUM_ADC               0
+#define NUM_CAN               0
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 u32 SCU_GetMCLKFreqValue();
