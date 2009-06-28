@@ -20,7 +20,7 @@ term.gotoxy(1,1)
 term.putstr("ADC Status:")
 term.gotoxy(1,3)
 term.putstr(" CH   SLEN   RES")
-term.gotoxy(1,#adcchannels+6)
+term.gotoxy(1,#adcchannels+7)
 term.putstr("Press ESC to exit.")
 
 local adcvals = {}
@@ -48,7 +48,9 @@ while true do
     term.gotoxy(1,i+4)
   end
   term.putstr(string.format("Tcyc: %06d (us)\n",dtime))
-  
+	term.gotoxy(1,#adcchannels+5)
+	term.putstr(string.format("Mem:  %03.2f (kB)\n",collectgarbage("count")))
+
   key = term.getch( term.NOWAIT )
   if key == term.KC_ESC then break end
 end
