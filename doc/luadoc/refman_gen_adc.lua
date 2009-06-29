@@ -45,7 +45,7 @@ data_en =
       args = 
       {
         "$id$ - ADC channel ID.",
-        "$table$ - table to write samples to. Values at $idx$ to $idx$ + $count$ will be overwritten with samples.",
+        "$table$ - table to write samples to. Values at $table$[$idx$] to $table$[$idx$ + $count$ -1] will be overwritten with samples.",
         "$idx$ - first index to use for writing samples",
         "$count$ - number of samples to return. If not enough samples are available (after blocking, if enabled) nil is written to indexes that would have received samples."
       }
