@@ -6,7 +6,7 @@ local doc_sections = { "arch_platform", "refman_gen" }
 -- List here all the components of each section
 local components = 
 { 
-  arch_platform = { "ll", "pio", "spi", "uart", "timers", "pwm", "cpu", "eth" },
+  arch_platform = { "ll", "pio", "spi", "uart", "timers", "pwm", "cpu", "eth", "adc" },
   refman_gen = { "bit", "pd", "cpu", "pack" }
 }
 
