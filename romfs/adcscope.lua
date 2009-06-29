@@ -27,7 +27,7 @@ term.putstr(" CH   SLEN   RES")
 term.gotoxy(1,#adcchannels+7)
 term.putstr("Press ESC to exit.")
 
--- use some locals for speed
+-- Use some locals for speed
 local adcvals = {}
 local key, stime, etime, dtime, i, v
 local sample = adc.sample
