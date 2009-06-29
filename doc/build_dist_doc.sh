@@ -7,6 +7,10 @@ mkdir dist
 
 # Build platform docs
 lua builddoc.lua
+if [ $? -ne 0 ]
+then
+  exit
+fi
 cd wb
 lua wb_build.lua
 cd ..
@@ -27,15 +31,21 @@ cp dist/index_en.html dist/index.html
 # Remove all version data from dist
 find dist/ -name ".svn" | xargs rm -rf
 
-# Remove unneeded files from base dir
-echo
-echo "Cleaning up..."
-for lang in en pt
-do
-  rm -f $lang/arch_platform_*.html
-done
-rm -f index_*.html wb/wb_usr.lua ssSearch*.html wb_bar_*.html
-rm -f wb_search*.txt wb_title*.html wb_tree*.html
+if [ "$1" != "noclean" ]
+then
+  # Remove unneeded files from base dir
+  echo
+  echo "Cleaning up..."
+  for lang in en pt
+  do
+    rm -f $lang/arch_platform_*.html
+  done
+  rm -f index_*.html wb/wb_usr.lua ssSearch*.html wb_bar_*.html
+  rm -f wb_search*.txt wb_title*.html wb_tree*.html
+else
+  echo
+  echo "NOT cleaning base directory!"
+fi
 
 # All done
 echo
