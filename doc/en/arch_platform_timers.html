@@ -1,0 +1,111 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+<meta http-equiv="Content-Language" content="en-us"><title>eLua platform interface - timers</title>
+
+<link rel="stylesheet" type="text/css" href="../style.css"></head>
+<body style="background-color: rgb(255, 255, 255);">
+<h3>Overview</h3>
+<p>
+This part of the platform interface groups functions related to the timers of the MCU. It also makes provisions for using <b>virtual timers</b> on any platform, see <a href="#virtual">
+this section</a> for details and kKeep in mind that in the following paragraphs an <b>id</b> can reffer to either a hardware timer or a virtual timer.
+</p>
+<h3>Data structures, constants and types</h3>
+<p><pre><code>typedef u32 timer_data_type;</code></pre></p>
+<p>This defines the data type used to specify delays and time intervals (which are always specifide in <b>microseconds</b>).</p>
+
+<a name="opval"><p><pre><code>// Timer operations
+enum
+{
+  PLATFORM_TIMER_OP_START,
+  PLATFORM_TIMER_OP_READ,
+  PLATFORM_TIMER_OP_SET_CLOCK,
+  PLATFORM_TIMER_OP_GET_CLOCK,
+  PLATFORM_TIMER_OP_GET_MAX_DELAY,
+  PLATFORM_TIMER_OP_GET_MIN_DELAY
+};</code></pre></p></a>
+<p>This enum lists all the operations that can be executed on a given timer.</p>
+
+<h3>Functions</h3>
+<p><pre><code>int platform_timer_exists( unsigned id );</code></pre></p>
+<p>Returns 1 if the platform has the timer specified as argument, 0 otherwise. Implemented in <i>src/common.c</i>, it uses the <b>NUM_TIMER</b> macro that must be defined in the
+platform's <b>platform_conf.h</b> file (see <a href="arch_overview.html#platforms">here</a> for details) and the virtual timer configuration (see <a href="#virtual">here</a> for details). 
+For example:</p>
+<p><code>#define NUM_TIMER   2      <b>// The platform has 2 hardware timers</b></code></p>
+
+<p><pre><code>void platform_timer_delay( unsigned id, u32 delay_us );</code></pre></p>
+<p>Waits for <b>delay_us</b> microseconds on timer <b>id</b>, then returns. This function is "split" in two parts: a platform-independent part implemented in <i>src/common.c</i> (that
+handles virtual timers) and a platform-dependent part that must be implemented by each platform in a function named <b>platform_s_timer_delay</b> (see below). This function handles both
+hardware timer IDs and virtual timer IDs.<br>
+<b>IMPORTANT NOTE</b>: the real delay after executing this is a function of a number of variables, most notably the base clock of the timer and the size of the timer counter register
+(32 bits on some platforms, 16 bits on most platforms, other values are less common). To ensure that the delay you're requesting is achievable, use 
+<a href="#platform_timer_op">platform_timer_op</a> with <b>platform_timer_op_get_max_delay</b> and <b>platform_timer_op_get_min_delay</b> to obtain the maximum and the minimum 
+achievable wait times on your timer, respectively. Even if your delay is within these limits, the <b>precision</b> of this function still varies a lot, mainly as a function of 
+the timer base clock.</p>
+
+<p><pre><code>void platform_s_timer_delay( unsigned id, u32 delay_us );</code></pre></p>
+<p>This function is identical in functionality to the one above (<b>platform_timer_delay</b>), but this is the function that must actually be implemented by a platform port, and it must never
+handle virtual timer IDs, only hardware timer IDs.</p>
+
+<a name="platform_timer_op"><p><pre><code>u32 platform_timer_op( unsigned id, int op, u32 data );</code></pre></p></a>
+<p>Executes operation <b>op</b> on timer <b>id</b>. <b>op</b> can take any value from <a href="#opval">this enum</a>, as follows:
+<ul>
+  <li><b>PLATFORM_TIMER_OP_START</b>: start the specified timeri by setting it to a predefined value which is returned.</li>
+  <li><b>PLATFORM_TIMER_OP_READ</b>: read the value of the specified timer and return it.</li>  
+  <li><b>PLATFORM_TIMER_SET_CLOCK</b>: set the clock of the specified timer to <b>data</b> (in hertz). Returns the actual clock set on the timer, which might be different than <b>data</b>,
+      depending on the hardware. You can never set the clock of a virtual timer, which is set at compile time (intervals</li>  
+  <li><b>PLATFORM_TIMER_GET_CLOCK</b>: return the clock of the specified timer.</li>  
+  <li><b>PLATFORM_TIMER_OP_GET_MAX_DELAY</b>: return the maximum achievable timeout on the specified timer (in us).</li>  
+  <li><b>PLATFORM_TIMER_OP_GET_MIN_DELAY</b>: return the minimum achievable timeout on the specified timer (in us).</li>
+</ul></p>
+<p>This function is "split" in two parts: a platform-independent part implemented in <i>src/common.c</i> (that handles virtual timers) and a platform-dependent part that must be implemented 
+by each platform in a function named <b>platform_s_timer_op</b> (see below). This function handles both hardware timer IDs and virtual timer IDs.</p>
+
+<p><pre><code>u32 platform_s_timer_op( unsigned id, int op, u32 data );</code></pre></p>
+<p>This function is identical in functionality to the one above (<b>platform_timer_op</b>), but this is the function that must actually be implemented by a platform port, and it must never
+handle virtual timer IDs, only hardware timer IDs.</p>
+
+<p><pre><code>u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_type start );</code></pre></p>
+<p>Return the time difference (in us) betweeen the <b>end</b> and <b>start</b> timer values of timer <b>id</b>. This function is generic for all platforms, thus it is implemented in
+<i>src/common.c</i>.</p>
+
+<a name="virtual"><h3>Virtual timers</h3></a>
+<p><b>Virtual timers</b> were added to <b>eLua</b> to overcome some limitations:
+<ul>
+  <li>there are generally few hardware timers available, some of which might be dedicated (thus not usable directly by <b>eLua</b>).</li>
+  <li>many times it is difficult to share a hardware timer between different parts of an application because of conflicting requirements. Generally it's not possible to have timers that can
+      achieve long delays and high accuracy at the same time (this is especially true for systems that have 16 bit or even smaller timers).</li>
+</ul></p>
+<p>In this respect, <b>virtual timers</b> are a set of timers that share a single hardware timer. It is possible, in this way, to have a hardware timer that can implement 4, 8 or more hardware
+timers. There are a few drawbacks to this approach:
+<ul>
+  <li>the hardware timer used to implement the virtual timers must generally be dedicated. In fact in cat be still used in "read only mode", which means that the only operations that can
+      be executed on it are <b>PLATFORM_TIMER_OP_READ</b>, <b>PLATFORM_TIMER_GET_CLOCK</b>, <b>PLATFORM_TIMER_OP_GET_MAX_DELAY</b> and <b>PLATFORM_TIMER_OP_GET_MIN_DELAY</b>. However,
+      since the "read only mode" is not enforced by the code, it is advisable to treat this timer as a dedicated resource and thus make it invisible to <b>eLua</b> by not associating it with 
+      an ID.</li>
+  <li>the number of virtual timers and their base frequency are fixed at compile time.</li>
+  <li>virtual timers are generally used for large delays with low accuracy, since their base frequency should be fairly low (see below).</li>
+</ul></p>
+<p>To <b>enable</b> virtual timers:
+<ol>
+  <li>edit <b>platform_conf.h</b> (see <a href="arch_overview.html#platforms">here</a> for details) and set <b>VTMR_NUM_TIMERS</b> to the number of desired virtual timers and 
+     <b>VTMR_FREQ_HZ</b> to the base frequency of the virtual timers (in hertz).For example:
+     <p><code>
+  #define VTMR_NUM_TIMERS       4 // we need 4 virtual timers<br>
+  #define VTMR_FREQ_HZ          4 // the base clock for the virtual timers is 4Hz</code></p></li>
+  <li>in your platform port setup a hardware timer to fire an interrupt at <b>VTMR_FREQ_HZ</b> and call the <b>cmn_virtual_timer_cb</b> function (defined in <i>src/common.c</i>) in the 
+     timer interrupt handler. For example, if the the interrupt handler is called <b>timer_int_handler</b>, do this:
+     <p><code>void timer_int_handler( void )<br>
+  {<br>
+    &nbsp;&nbsp;// add code to clear the timer interrupt flag here if needed<br>
+    &nbsp;&nbsp;cmn_virtual_timer_cb();<br>
+  }<br>
+</li>
+</ol></p>
+<p>Note that because of step 2 above you are limited by practical constraints on the value of <b>VTMR_FREQ_HZ</b>. If set too high, the timer interrupt will fire too often, thus taking too much
+CPU time. The maximum value depends largely on the hardware and the desired behaviour of the virtual timers, but in practice values larger than 10 might visibly change the behaviour of your 
+system.</p>
+<p>To <b>use</b> a virtua timers, identify it with the constant <b>VTMR_FIRST_ID</b> (defined in <i>inc/common.h</i>) plus an offset. For example, <b>VTMR_FIRST_ID+0</b> (or simply
+<b>VTMR_FIRST_ID</b>) is the ID of the first virtual timer in the system, and <b>VTMR_FIRST_ID+2</b> is the ID of the third virtual timer in the system.</p>
+</body></html>
+
