@@ -22,19 +22,22 @@ do
   echo Copying $f...
   cp $f dist/
 done
+cp dist/index_en.html dist/index.html
 
 # Remove all version data from dist
 find dist/ -name ".svn" | xargs rm -rf
 
 # Remove unneeded files from base dir
+echo
+echo "Cleaning up..."
 for lang in en pt
 do
-  rm $lang/arch_platform_*.html
+  rm -f $lang/arch_platform_*.html
 done
-rm wb/wb_usr.lua
+rm -f index_*.html wb/wb_usr.lua ssSearch*.html wb_bar_*.html
+rm -f wb_search*.txt wb_title*.html wb_tree*.html
 
 # All done
 echo
 echo "DONE! Enjoy your documentation in dist/ :)"
-
 
