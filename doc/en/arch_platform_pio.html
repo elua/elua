@@ -1,0 +1,75 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+<meta http-equiv="Content-Language" content="en-us"><title>eLua platform interface - PIO</title>
+
+<link rel="stylesheet" type="text/css" href="../style.css"></head>
+<body style="background-color: rgb(255, 255, 255);">
+<h3>Overview</h3>
+<p>
+This part of the platform interface deals with PIO (Programmable Input Output) operations, thus letting the user access the low level input/output facilities of the host MCU.
+</p>
+<h3>Data structures, constants and types</h3>
+<a name="enumop"<p><pre><code>enum
+{
+  // Pin operations
+  PLATFORM_IO_PIN_SET,                  <b>// Set the pin to 1</b>
+  PLATFORM_IO_PIN_CLEAR,                <b>// Clear the pin (set it to 0)</b>
+  PLATFORM_IO_PIN_GET,                  <b>// Get the value of the pin</b>
+  PLATFORM_IO_PIN_DIR_INPUT,            <b>// Make the pin an input</b>
+  PLATFORM_IO_PIN_DIR_OUTPUT,           <b>// Make the pin an output</b>
+  PLATFORM_IO_PIN_PULLUP,               <b>// Activate the pullup on the pin</b>
+  PLATFORM_IO_PIN_PULLDOWN,             <b>// Activate the pulldown on the pin</b>
+  PLATFORM_IO_PIN_NOPULL,               <b>// Disable all pullups/pulldowns on the pin</b>
+  // Port operations
+  PLATFORM_IO_PORT_SET_VALUE,           <b>// Set port value</b>
+  PLATFORM_IO_PORT_GET_VALUE,           <b>// Get port value</b>
+  PLATFORM_IO_PORT_DIR_INPUT,           <b>// Set port as input</b>
+  PLATFORM_IO_PORT_DIR_OUTPUT           <b>// Set port as output</b>
+};</code></pre></p></a>
+<p>These are the operations that can be executed by the PIO subsystem on both ports and pins. They are given as arguments to the <a href="#platform_pio_op">platform_pio_op</a> function 
+shown below. ##TODO: document read in/read out if we keep that</p>
+<p><pre><code>typedef u32 pio_type;</code></pre></p>
+This is the type used for the actual I/O operations. Currently defined as an unsigned 32-bit type, thus no port can have more than 32 pins. If this happens, it should be possible to split it
+in two or more parts and adding the new parts as "virtual ports" (logical ports that don't have a direct hardware equivalent). The "virtual port" technique is used in the AVR32 backend.</p>
+<h3>Functions</h3>
+<p><pre><code>int platform_pio_has_port( unsigned port );</code></pre></p>
+<p>Returns 1 if the platform has the hardware port received as an argument, 0 otherwise. Implemented in <i>src/common.c</i>, it uses the <b>NUM_PIO</b> macro that must be defined in the
+platform's <b>platform_conf.h</b> file (see <a href="arch_overview.html#platforms">here</a> for details). For example:</p>
+<p><code>#define NUM_PIO   4      <b>// The platform has 4 hardware ports</b></code></p>
+<p><pre><code>int platform_pio_has_pin( unsigned port, unsigned pin );</code></pre></p>
+<p>Returns 1 if the platform has the hardware port and pin specified as arguments, 0 otherwise. Implemented in <i>src/common.c</i>, it uses the <b>NUM_PIO</b> macro to check the validity
+of the port and the <b>PIO_PINS_PER_PORT</b> or <b>PIO_PIN_ARRAY</b> macros to check the validity of the pin. The macros must be defined in the platform's <b>platform_conf.h</b> file
+(see <a href="arch_overview.html#platforms">here</a> for details).
+<ul>
+  <li>use <b>PIO_PINS_PER_PORT</b> when all the ports of the MCU have the same number of pins. For example:
+    <p><code>#define PIO_PINS_PER_PORT   8   <b>// Each port has 8 pins</b></code></p></li>
+  <li>use <b>PIO_PIN_ARRAY</b> when different ports of the MCU have different number of pins. For example:
+    <p><code>#define PIO_PIN_ARRAY { 4, 4, 2, 6 } <b>// Port 0 has 4 pins, port 1 has 4 pins, port 2 has 2 pins, port 3 has 6 pins</b></code></p></li>
+</ul></p>
+<p><pre><code>const char* platform_pio_get_prefix( unsigned port );</code></pre></p>
+<p>Get the port prefix. Used to establish if the port notation uses numbers (P0, P1, P2...) or letters (PA, PB, PC...). Implemented in <i>src/common.c</i> is uses the <b>PIO_PREFIX</b> macro
+that must be defined in the platform's <b>platform_conf.h</b> file (see <a href="arch_overview.html#platforms">here</a> for details). The value of this macro can be either '0' (for
+numeric notation) or 'A' (for letter notation)For example:</p>
+<p><code>#define PIO_PREFIX   'A'   <b> // Use PA, PB, PC ... for port notation </b></code></p>
+<a name="platform_pio_op"><p><pre><code>pio_type platform_pio_op( unsigned port, pio_type pinmask, int op );</code></pre></p></a>
+<p>This is the function that does the actual I/O work. 
+<ul>
+  <li><b>port</b> is the port number.</li>
+  <li><b>pinmask</b> has different meanings: 
+    <ul>
+      <li>for <b>pin operations</b> it is the mask of pins in the operation. Each pin on which the function action is executed is encoded with an 1 in the corresponding bit position 
+          of the pinmask.</li>
+      <li>for <b>port operations</b> it is only meaningful for <b>PLATFORM_IO_PORT_SET_VALUE</b> and in this case it specifies the new value of the port.</li>
+    </ul>
+  <li><b>op</b>: the opertion, as specified by <a href="#enumop">this enum</a>.</li>
+</ul></p>
+<p>This function returns:
+<ul>
+  <li>an actual value for <b>PLATFORM_IO_PIN_GET</b> (0 or 1) and <b>PLATFORM_IO_PORT_GET</b> (the value of the port).</li>
+  <li>an error flag for all the other operations: 1 if the operation succeeded, 0 otherwise. For example, a platform that doesn't have pulldowns on its ports will always return a 0
+      when caled with the <b>PLATFORM_IO_PIN_PULLDOWN</b> operation.</li>
+</ul></p>
+<p>This function is implemented in the platform's own porting layer (<i>platform.c</i>, see <a href="arch_overview.html#ports">here</a> for more details).</p>
+</body></html>
+
