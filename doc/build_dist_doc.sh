@@ -39,6 +39,7 @@ then
   for lang in en pt
   do
     rm -f $lang/arch_platform_*.html
+    rm -f $lang/refman_gen_*.html
   done
   rm -f index_*.html wb/wb_usr.lua ssSearch*.html wb_bar_*.html
   rm -f wb_search*.txt wb_title*.html wb_tree*.html

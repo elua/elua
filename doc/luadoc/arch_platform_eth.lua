@@ -18,7 +18,7 @@ data_en =
   incoming packets) and a timer interrupt (timers are used internally by uIP). However, the uIP main loop is only called from the Ethernet interrupt handler
   in eLua, so in order to acknowledge the timer interrupt (as well as to provide some optimizations) a function that "forces" an Ethernet interrupt
   must also be provided by the platform interface (see @#platform_eth_force_interrupt@here@ for details).</p>
-  <p>To put everything together, part of the Ethernet platform interface for the $m3s$ platform is given below:</p>
+  <p>To put everything together, part of the Ethernet platform interface for the $lm3s$ platform is given below:</p>
   ~u32 platform_eth_get_elapsed_time()
   {
     if( eth_timer_fired )

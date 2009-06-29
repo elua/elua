@@ -362,7 +362,7 @@ wb_usr.tree =
           name = { en = "Generic Modules", pt = "Módulos Genéricos" },
           link = "refman_gen.html",
           folder = {
-            $$REFMAN_GEN$$,        
+            $$REFMAN_GEN$$        
           },
         },
         {
