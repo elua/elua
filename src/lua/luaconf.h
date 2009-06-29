@@ -313,7 +313,7 @@
 ** mean larger pauses which mean slower collection.) You can also change
 ** this value dynamically.
 */
-#define LUAI_GCPAUSE	110  /* 110% (wait memory to double before next GC) */
+#define LUAI_GCPAUSE	110  /* 110% (wait memory to grow 10% before next gc) */
 
 
 /*
