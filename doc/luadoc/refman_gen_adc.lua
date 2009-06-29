@@ -19,7 +19,7 @@ data_en =
       desc = "Request sample conversions.",
       args = 
       {
-        "$id$ - ADC channel ID.",
+        "$id$ - ADC channel ID. Optionally, this may be a table containing a list of channel IDs (i.e.: {0, 2, 3}), allowing synchronization of acquisition. NOTE: This acceptance of mixed types is only for the sample function.",
         "$count$ - number of samples to acquire."
       }
     },
@@ -29,7 +29,7 @@ data_en =
       {
         "$id$ - ADC channel ID."
       },
-      ret = "$sample$ - numeric value of conversion"
+      ret = "$sample$ - numeric value of conversion, or nil if sample was not available."
     },
     { sig = "samples = #adc.getsamples#( id, count )",
       desc = "Get multiple converted samples.",
@@ -45,7 +45,7 @@ data_en =
       args = 
       {
         "$id$ - ADC channel ID.",
-        "$table$ - table to write samples to. Values at $table$[$idx$] to $table$[$idx$ + $count$ -1] will be overwritten with samples.",
+        "$table$ - table to write samples to. Values at $table$[$idx$] to $table$[$idx$ + $count$ -1] will be overwritten with samples (or nil if not enough samples are available).",
         "$idx$ - first index to use for writing samples",
         "$count$ - number of samples to return. If not enough samples are available (after blocking, if enabled) remaining values will be nil."
       }
@@ -64,7 +64,7 @@ data_en =
       {
         "$id$ - ADC channel ID.",
         "$clock$ - frequency to acquire samples at in Hz (number of samples per second), 0 to acquire as fast as possible.",
-        "$timer_id$ - Timer channel ID to use to control ADC conversion."
+        "$timer_id$ - Timer channel ID to use to control ADC conversion. Note: At this time, a timer selection will apply to all channels on a given ADC peripheral."
       },
       ret = "$clock$ - actual acquisition frequency to be used"
     },

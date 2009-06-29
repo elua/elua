@@ -26,7 +26,9 @@ term.putstr(" CH   SLEN   RES")
 term.gotoxy(1,#adcchannels+5)
 term.putstr("Press ESC to exit.")
 
--- 
+-- start sampling on all channels at the same time 
+adc.sample(adcchannels,128) 
+
 while true do
   for i, v in ipairs(adcchannels) do
     -- If samples are not being collected, start
