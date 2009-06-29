@@ -7,7 +7,7 @@ data_en =
   title = "eLua reference manual - ADC",
 
   -- Menu name
-  menu_name = "ADC",
+  menu_name = "adc",
 
   -- Overview
   overview = [[This module contains functions that access analog to digital converter (ADC) peripherals. ]],
@@ -38,7 +38,7 @@ data_en =
         "$id$ - ADC channel ID.",
         "$count$ - optional parameter to indicate number of samples to return. If not included, all available samples are returned."
       },
-      ret = "$samples$ - table containing integer conversion values"
+      ret = "$samples$ - table containing integer conversion values. If not enough samples are available, remaining indices will be nil."
     },
     { sig = "#adc.insertsamples#( id, table, idx, count )",
       desc = "Write multiple samples to a table.",
@@ -47,7 +47,7 @@ data_en =
         "$id$ - ADC channel ID.",
         "$table$ - table to write samples to. Values at $table$[$idx$] to $table$[$idx$ + $count$ -1] will be overwritten with samples.",
         "$idx$ - first index to use for writing samples",
-        "$count$ - number of samples to return. If not enough samples are available (after blocking, if enabled) nil is written to indexes that would have received samples."
+        "$count$ - number of samples to return. If not enough samples are available (after blocking, if enabled) remaining values will be nil."
       }
     },
     { sig = "maxval = #adc.maxval#( id )",
