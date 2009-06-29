@@ -352,6 +352,7 @@ int platform_can_exists( unsigned id )
 // ****************************************************************************
 // SPI functions
 
+
 int platform_spi_exists( unsigned id )
 {
   return id < NUM_SPI;
