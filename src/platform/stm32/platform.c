@@ -316,11 +316,26 @@ void cans_init( void )
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_CAN, ENABLE);
 }
 
+/*       BS1 BS2 SJW Pre
+1M:      5   3   1   4
+500k:    7   4   1   6
+250k:    9   8   1   8
+125k:    9   8   1   16
+100k:    9   8   1   20 */
+
+#define CAN_BAUD_COUNT 5
+static const u8 can_baud_bs1[]    = { CAN_BS1_9tq, CAN_BS1_9tq, CAN_BS1_9tq, CAN_BS1_7tq, CAN_BS1_5tq };
+static const u8 can_baud_bs2[]    = { CAN_BS1_8tq, CAN_BS1_8tq, CAN_BS1_8tq, CAN_BS1_4tq, CAN_BS1_3tq };
+static const u8 can_baud_sjw[]    = { CAN_SJW_1tq, CAN_SJW_1tq, CAN_SJW_1tq, CAN_SJW_1tq, CAN_SJW_1tq };
+static const u8 can_baud_pre[]    = { 20, 16, 8, 6, 4 };
+static const u32 can_baud_rate[]  = { 100000, 125000, 250000, 500000, 1000000 };
+
 u32 platform_can_setup( unsigned id, u32 clock )
 {
   CAN_InitTypeDef        CAN_InitStructure;
   CAN_FilterInitTypeDef  CAN_FilterInitStructure;
   GPIO_InitTypeDef GPIO_InitStructure;
+  int cbaudidx = -1;
 
   // Configure IO Pins -- This is for STM32F103RE
   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
@@ -334,6 +349,17 @@ u32 platform_can_setup( unsigned id, u32 clock )
   
   GPIO_PinRemapConfig( GPIO_Remap1_CAN, ENABLE );
 
+  // Select baud rate up to requested rate, except for below min, where min is selected
+  if ( clock >= can_baud_rate[ CAN_BAUD_COUNT - 1 ] ) // round down to peak rate if >= peak rate
+    cbaudidx = CAN_BAUD_COUNT - 1;
+  else
+  {
+    for( cbaudidx = 0; cbaudidx < CAN_BAUD_COUNT - 1; cbaudidx ++ )
+    {
+      if( clock < can_baud_rate[ cbaudidx + 1 ] ) // take current idx if next is too large
+        break;
+    }
+  }
 
   /* Deinitialize CAN Peripheral */
   CAN_DeInit();
@@ -347,11 +373,11 @@ u32 platform_can_setup( unsigned id, u32 clock )
   CAN_InitStructure.CAN_RFLM=DISABLE;
   CAN_InitStructure.CAN_TXFP=DISABLE;
   CAN_InitStructure.CAN_Mode=CAN_Mode_Normal;
-  CAN_InitStructure.CAN_SJW=CAN_SJW_1tq;
-  CAN_InitStructure.CAN_BS1=CAN_BS1_3tq;
-  CAN_InitStructure.CAN_BS2=CAN_BS2_5tq;
-  CAN_InitStructure.CAN_Prescaler=4; // @@@ This should actually be configured!
-  CAN_Init(&CAN_InitStructure);
+  CAN_InitStructure.CAN_SJW=can_baud_sjw[ cbaudidx ];
+  CAN_InitStructure.CAN_BS1=can_baud_bs1[ cbaudidx ];
+  CAN_InitStructure.CAN_BS2=can_baud_bs2[ cbaudidx ];
+  CAN_InitStructure.CAN_Prescaler=can_baud_pre[ cbaudidx ];
+  CAN_Init( &CAN_InitStructure );
 
   /* CAN filter init */
   CAN_FilterInitStructure.CAN_FilterNumber=0;
@@ -365,7 +391,7 @@ u32 platform_can_setup( unsigned id, u32 clock )
   CAN_FilterInitStructure.CAN_FilterActivation=ENABLE;
   CAN_FilterInit(&CAN_FilterInitStructure);
   
-  return clock;
+  return can_baud_rate[ cbaudidx ];
 }
 /*
 u32 platform_can_op( unsigned id, int op, u32 data )
