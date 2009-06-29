@@ -1,65 +1,54 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
 <html><head>
 <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-<meta http-equiv="Content-Language" content="en-us"><title>Product</title>
+<meta http-equiv="Content-Language" content="en-us"><title>Exemplos de eLua</title>
 
 <link rel="stylesheet" type="text/css" href="../style.css"></head>
 <body style="background-color: rgb(255, 255, 255);">
-<h3>Lua Code Examples</h3>eLua distros come bundled with nice and fun
-(yes! we have games too! :) Lua programs examples in the File System.
-They are also included in the eLua
-source code distribution, under the /romfs subdirectory. <br>Lua example programs for eLua are also presented and commented here. <br>As previously explained, you can run them directly from eLua's file
-system or you can use the eLua shell and send them via XMODEM, as
-described <a href="using.html#shell">here</a>.<br><br>
+<h3>Exemplos de código Lua</h3>Distribuições eLua trazem ótimos e interessantes (claro! tem jogos também! :) exemplos de programas em Lua.
+Eles estão incluídos também na distribuição que vem com os códigos fontes, no subdiretório /romfs. <br>Programas Lua para eLua são mostrados e comentados aqui também. <br>Como já foi dito, você pode rodá-los a partir do sistema de arquivos de eLua ou pode usar o shell de eLua e enviá-los através do XMODEM, como or you can use the eLua shell and send them via XMODEM, as
+descrito <a href="using.html#shell">aqui</a>.<br><br>
 
-<h3><a name="hello"></a>hello.lua: the ubiquitous "Hello, World!"</h3>
+<h3><a name="hello"></a>hello.lua: o obíquo "Hello, World!"</h3>
 
-<p><strong>Runs on:&nbsp;</strong><br>All Targets</p><p><strong></strong>
+<p><strong>Roda em:&nbsp;</strong><br>Todas as arquiteturas</p><p><strong></strong>
 
-<strong>Description:<br></strong>To call this a "program" is a gross overstatement, but it's a
-tradition, so we respect it :) It just prints "Hello, World!" on the terminal and
-returns to the shell. Download it only if you feel too lazy to fire up
-the lua interpreter inside eLua and write it yourself :)</p><p><strong>Commented Source Code:</strong><br></p><p>print("Hello World")</p>
+<strong>Descrição:<br></strong>Chamar isto de um "programa" é um grande exagero, mas já é uma
+tradição, logo, vamos mantê-la :) Este programa imprime "Hello, World!" em um terminal e
+retorna para o shell. Baixe-o somente se sentir-se muito incomodado em executar o interpretador Lua inserido em eLua e digitá-lo você mesmo :)</p><p><strong>Código fonte comentado:</strong><br></p><p>print("Hello World")</p>
 
-<h2><br></h2><h3><a name="info"></a>info.lua: getting the platform data</h3>
+<h2><br></h2><h3><a name="info"></a>info.lua: Obtendo os dados sobre a plataforma</h3>
 
-<p><strong>Runs on:&nbsp;</strong><br>All targets except i386</p><p><strong>Description:<br></strong>
-This isn't really more advanced than "Hello, World!", but it does show
-an eLua specific module: the platform data module (pd). You can read
-more about the platform modules in the eLua source distribution
-(docs/platform_modules.txt). The program will display the platform
-name, the CPU name, the board name and the CPU clock and then will exit
-to the shell.</p><p><strong>Commented Source Code:</strong></p><p><span style="font-family: Courier New;">-- Uses module pd to access platform data and print it on the Terminal</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">print( "I'm running on platform " .. pd.platform() ) &nbsp;</span><br style="font-family: Courier New;"><span style="font-family: Courier New;">print( "The CPU is a " .. pd.cpu() )</span><br style="font-family: Courier New;"><span style="font-family: Courier New;"><span>print( "The board name is " .. pd.board(</span>) )</span><br></p><p></p>
+<p><strong>Roda em:&nbsp;</strong><br>Todas as arquiteturas</p><p><strong>Descrição:<br></strong>
+Este programa não é muito mais complicado do que o "Hello, World!", porém ele mostra um módulo específico de eLua: o módulo "platform data" (pd). Você pode ler
+mais sobre os módulos "platform" na distribuição do código fonte 
+(docs/platform_modules.txt). O programa mostrará o nome da plataforma, o nome da CPU, o nome da placa e o clock da CPU e então finaliza e volta para o shell.</p><p><strong>Código fonte comentado:</strong></p><p><span>-- Usa o módulo pd para ter acesso aos dados da plataforma e mostrá-lo no Terminal </span><br><span>print( "Estou usando a platforma " .. pd.platform() ) &nbsp;</span><br><span>print( "A CPU é uma " .. pd.cpu() )</span><br><span><span>print( "A placa é uma " .. pd.board(</span>) )</span><br></p><p></p>
 
-<h3><a name="led"></a>led.lua: the old LED blinker, the new eLua way</h3>
+<h3><a name="led"></a>led.lua: o velho LED que pisca, jeito novo de fazer com eLua</h3>
 
-<p><strong>Runs on: </strong><br>All targets except i386</p><p><strong>Description:<br></strong><strong></strong>
-Now we get to do something "more embedded": blink a LED. The code ilustrates a few interesting eLua features:</p>
+<p><strong>Roda em: </strong><br>Todas as arquiteturas exceto i386</p><p><strong>Descrição:<br></strong><strong></strong>
+Agora temos que fazer algo com "cara" de embarcado: piscar um LED. O código a seguir ilustra alguns recursos interessantes de eLua:</p>
 
-<ul><li><p>cross platform code: the code assigns a different pin
-to the LED starting from the board name. You can see how the platform
-data module makes it very easy to write such portable code.</p></li><li><p>uart, pio, tmr, pd modules: they are all used here.</p></li></ul>
+<ul><li><p>código portátil entre plataformas: o código atribue um pino diferente
+para o LED começando pelo nome da placa. Você pode ver como o módulo de dados da plataforma torna a portabilidade do código muito fácil.</p></li><li><p>uart, pio, tmr, pd modules: todas eles são usados aqui.</p></li></ul>
 
-<p>Watch it blink, then press any key to return to the eLua shell.</p><p><strong>Commented Source Code:</strong></p>
+<p>Observe ele piscando, então pressione qualquer tecla para voltar ao shell de eLua.</p><p><strong>Código fonte comentado:</strong></p>
 
-<h3><a name="hangman"></a>hangman.lua: taking advantage of your terminal</h3>
+<h3><a name="hangman"></a>hangman.lua: tirando vantagem de seu terminal</h3>
 
-<p><strong>Runs on:&nbsp;</strong><br>All Targets except i386</p><strong></strong>
+<p><strong>Roda em:&nbsp;</strong><br>Todas as arquiteturas exceto i386</p><strong></strong>
 
-<strong></strong><p><strong>Description:<br></strong>By far the geekiest example from the eLua distribution (or would it be morse.lua? :), it makes use of
-the term module (docs/terminal_support.txt) to let the user play a
-BSD-like "hangman" directly in his terminal emulator. Run the example
-and enjoy. Currently it has a very small list of words, as this was
-written mainly as a proof of eLua's capabilities, but it's very easy to
-add new words/replace the existing ones. A screenshot can be seen <a href="http://elua.berlios.de/other/elua_hangman.png">here</a>.</p><p></p>
+<strong></strong><p><strong>Descrição:<br></strong>Muito longe de ser o melhor exemplo da distribuição eLua (ou poderia ser o morse.lua? :), ele faz uso do 
+módulo term (docs/terminal_support.txt) para deixar o usuário jogar como no 
+BSD "hangman" diretamente no seu emulador de terminal. Rode o exemplo 
+e aproveite. Atualmente existe uma pequena lista de palavras, pois este programa foi escrito principalmente com o propósito de testar a capacidade de eLua, mas é muito fácil
+acrescentar e substituir palavras na lista atual. Uma tela de exemplo pode ser vista <a href="http://elua.berlios.de/other/elua_hangman.png">aqui</a>.</p><p></p>
 
-<h3><a name="pwmled"></a>pwmled.lua: LED blinker, advanced class</h3><p><strong>Runs on:&nbsp;</strong><br>EK-LM3S8962,&nbsp;EK-LM3S6965</p><strong></strong>
+<h3><a name="pwmled"></a>pwmled.lua: Piscador de LED, classe avançada</h3><p><strong>Roda em:&nbsp;</strong><br>EK-LM3S8962,&nbsp;EK-LM3S6965</p><strong></strong>
 
-<strong></strong><p><strong>Description:<br></strong>
-This uses the PWM module to fade the on-board LED in and out, in an
-infinite loop. Not much to say here, the code is very simple, yet the
-results are quite spectacular. Press any key to end the sample and
-return to the shell.</p><p></p>
+<strong></strong><p><strong>Descrição:<br></strong>
+Este programa usa o módulo PWM para acender/apagar a luz do LED gradualmente, indefinidamente. Nada mais a dizer aqui, o código é bem simples, ainda que os
+resultados sejam bem interessantes. Presione qualquer tecla para finalizar o programa e retornar ao shell.</p><p></p>
 
 <h3><a name="tvbgone"></a>tvbgone.lua: yes, eLua can do real time!</h3>
 

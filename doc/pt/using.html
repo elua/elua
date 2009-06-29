@@ -1,78 +1,193 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
 <html><head>
 <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-<meta http-equiv="Content-Language" content="en-us"><title>Product</title>
+<meta http-equiv="Content-Language" content="en-us"><title>Usando eLua</title>
 
 <link rel="stylesheet" type="text/css" href="../style.css"></head>
 <body style="background-color: rgb(255, 255, 255);">
-<h3>Using eLua</h3><p> So, you already built and installed eLua and now it is time to have fun with it. It's actually quite easy: all you need is your
-board connected to a PC, running a terminal emulation program.<br>If
-you're using Windows, I strongly recommend <a href="http://www.ayera.com/teraterm/">TeraTerm</a>.
-It's a freeware, it's very powerful and also easy to use. The native Hyper Terminal progam can do too.&nbsp;<br>On
+<h3>Usando eLua</h3><p> Bem, voc&ecirc; j&aacute; <a href="building.html">construiu</a> e <a href="installing.html">instalou</a> <b>eLua</b>, e agora est&aacute; na hora (finalmente) da curtir eLua :) 
+  Voc&ecirc; pode compilar <b>eLua</b> utilizando tanto uma conex&atilde;o serial (UART, longe de ser a mais comum) como uma conex&atilde;o TCP/IP (neste caso, ainda em testes, mas funcionando muito bem), logo existem dois cen&aacute;rios para esta situa&ccedil;&atilde;o (veja tamb&eacute;m <a href="building.html">building eLua</a> para mais detalhes de como escolher entre console serial ou TCP/IP).</p>
+<a name="uart"><h3>Usando eLua com uma conex&atilde;o serial</h3></a>
+<p>Tudo o que voc&ecirc; precisa para usar <b>eLua</b> com uma conex&atilde;o serial &eacute; de sua placa <b>eLua</b> conectada a um PC rodando um programa emulador de terminal.<br>Se
+voc&ecirc; est&aacute; usando o Windows, recomendo o <a target="_blank"  href="http://www.ayera.com/teraterm/">TeraTerm</a>.
+&Eacute; gratuito, possui muitos recursos e &eacute; f&aacute;cil de usar. O pr&eacute;-instalado Hyper Terminal tamb&eacute;m pode ser usado, por&eacute;m d&ecirc; uma chance ao TeraTerm, pois ele &eacute; muito melhor do que o HyperTerm IMO.<br>Se voc&ecirc; usa o 
 Linux,
-you'll probably be stucked with minicom. It is not exactly intuitive
-and it runs in text mode, but it's still very powerful. If you
-google for "minicom tutorial" you'll get the hang of it in no time. You
-can try any other terminal emulator, as long as you set it up
-properly and it gives you the option of transferring files
-via XMODEM, which is what eLua uses at the moment. These are the main
-settings you need to look at:</p>
+ir&aacute; provavelmente se deparar com o minicom a qualque momento. Ele n&atilde;o &eacute; muito intuitivo e roda em modo texto, mas possui bastante recursos. Se voc&ecirc;
+pesquisar no google por "minicom tutorial", poder&aacute; aprender rapidamente como instal&aacute;-lo e utiliz&aacute;-lo. Voc&ecirc
+pode tentar outros emuladores, desde que configure-o  
+adequadamente e que ele permite que voc&ecirc; fa&ccedil;a transfer&ecirc;ncia de arquivos 
+via XMODEM, que no momento &eacute; o processo que <b>eLua</b> utiliza. Estes s&aacute;o os principais 
+par&acirc;metros a serem configurados:</p>
 
-<ul><li>port setup: 115200 baud (38400 for <a href="http://www.eluaproject.net/en/eLua_on_STR7_CPUs">STR7)##</a>, 8N1(8 data bits, no parity, one stop bit). </li><li>hardware flow control: none</li><li>newline handling: "CR" on receive, "CR+LF" on send (some terminal programs won't give you a choice here).  </li></ul>
+<ul><li>configura&ccedil;&aacute;o da porta: 115200 baud (38400 para o <a href="installing_str7.html">STR7)</a>, 8N1(8 bits de dados, sem paridade, um stop bit). </li><li>controle de fluxo do hardware: nenhum</li><li>como interpretar uma nova linha: "CR" na recep&ccedil;&atilde;o, "CR+LF" no envio (alguns emuladores n&atilde;o permitem essa op&ccedil;&atilde;o).  </li></ul>
 
 
-<p>Also, depending on the type of your board, you'll need some way to
-connect the board to a serial port on your PC or to USB if you're
-using an USB to serial converter. For example, as already explained <a href="http://www.eluaproject.net/en/eLua_on_LM3S_CPUs">here</a>##,
-the USB port on the LM3Sxxxx boards is dual, so you can use it as an USB
-to serial converter after downloading your firmware, thus you don't
-need any other type of connection. The same is true for the
-STR9-comStick board. On the other hand, for the SAM7-EX256 board you'll
-need to connect a serial cable to the "RS232" connector, provided that
-the jumpers are already set as explained <a href="http://www.eluaproject.net/en/eLua_on_AT91SAM_CPUs">here##</a> and on the MOD711 you will need to add an RS232 converter chip.</p>
+<p>Al&eacute;m disso, dependendo do tipo da sua placa, voc&ecirc ir&aacute; precisar conect&aacute;-la a uma porta serial do seu PC ou a uma porta USB, caso esteja usando um conversor USB/Serial. Por exemplo, como j&aacute; foi explicado <a href="installing_lm3s.html">aqui</a>,
+a porta USB nas placas LM3Sxxxx possui duas conex&otilde;es, portanto voc&ecirc; pode us&aacute;-la como um conversor de USB para serial depois de atualizar o firmware, sendo assim, voc&ecirc; n&atilde;o precisa de nenhum outro tipo de conex&atilde;o. O mesmo acontece com a placa STR9-comStick. Entretanto, para a placa SAM7-EX256 voc&ecirc; precisar&aacute; conectar um cabo serial ao conector "RS232", desde que
+os jumpers j&aacute; estejam configurados como explicado <a href="installing_at91sam7x.html">aqui</a> e para a placa MOD711 voc&ecirc; precisar&aacute; acrescentar um chip conversor RS232.
+N&atilde;o existe uma &uacute;nica regra, tudo depende do mod&ecirc;lo da sua placa.
+</p>
+<a name="tcpip"><h3>Usando eLua com uma conex&atilde;o TCP/IP</h3></a>
+<p>As coisas ficam bem mais f&aacute;ceis se voc&ecirc; decidir usar uma conex&atilde;o TCP/IP:
+<ul>
+  <li>certifique-se que voc&ecirc; conhece o endere&ccedil;o de sua placa. Se voc&ecirc; habilitou IP est&aacute;tico (veja <a href="building.html">construindo</a>). lembre-se qual o IP escolhido; caso esteja usando DHCP, seu servidor DHCP deve ter inclu&iacute;do o endere&ccedil;o de sua placa <b>eLua</b> como seu DNS. O nome da placa sempre &eacute; "elua", logo caso voc&ecirc; execute um "ping elua" a partir do shell poder&aacute; verificar se a placa est&aacute; ativa.</li>
+  <li>um telnet para o endere&ccedil;o da placa (ou simplesmente "telnet elua" com DHCP ativo), e voc&ecirc; ser&aacute; recebido pelo shell prompt da placa (se o shell estiver ativo, leia o pr&oacute;ximo par&aacute;grafo para mais detalhes). 
+  &Eacute; importante salientar, que a placa <b>eLua</b> s&oacute; poder&aacute; estar conectada a uma sess&atilde;o telnet ativa a cada instante.</li>
+</ul>
+</p>
+<p>Se voc&ecirc; est&aacute rodando Windows, certifique-se que esteja utilizando um telnet adequado, o que significa na pr&aacute;tica "tudo menos o telnet nativo".
+   <a target="_blank" href="http://www.chiark.greenend.org.uk/~sgtatham/putty/">PuTTY</a> &eacute; muito popular e uma boa op&ccedil;&atilde;o.</p>
 
-<p>After you setup this PC-eLua board connection and press the "RESET" button on your board, you should see the
-eLua shell prompt. For your
-convenience, the shell documentation is also provided on this page.</p>
+<a name="pc"><h3>Usando eLua "standalone" em seu PC</h3></a>
+<p>Se voc&ecirc; construiu <b>eLua</b> para a plataforma i386, poder&aacute dar boot direto pela placa <b>eLua</b>! Sem sistema operacional controlando o seu computador, somente  <b>eLua</b> puro. N&atilde;o haver&aacute; nenhum perif&eacute;rico para ter acesso, mas podemos usar o m&oacute;dulo term para executar o <i>hangman.lua</i> e o <i>life.lua</i>, bem como outros exemplos, o que o torna uma boa demonstra&ccedil;&atilde;o :) Siga <a href="installing_i386.html">
+este link</a> para obter informa&ccedil;&otilde;es espec&iacute;ficas sobre a plataforma i386. </p>
 
-<h2><a name="shell"></a></h2><h2>The eLua shell</h2>
+<a name="shell"><h3><a name="shell"></a>O shell eLua</h3></a>
+<p>N&atilde;o importa como voc&ecirc; est&aacute; conectado fisicamente (serial, TCP/IP ou pelo seu monitor de v&iacute;deo do PC ap&oacute;s o boot com <b>eLua</b>), depois que voc&ecirc; configurar a conex&atilde;o PC-placa <b>elua</b> (se aplic&aacute;vel) e pressionar o bot&atilde;o "RESET" de sua placa ou simplesmente pressionar ENTER se voc&ecirc estiver usando uma conex&atilde;o serial, voc&ecirc deve ver o shell prompt de <b>eLua</b> (se na constru&ccedil;&atilde;o de eLua, o shell prompt foi habilitado como descrito <a href="building.html">aqui</a>). O shell &eacute; um simples interpretador de comandos interativo que permite:
+<ul>
+  <li>fornece uma ajuda para o uso do interpretador com o comando help</li>
+  <li>roda o interpretador Lua no modo interativo da mesma forma que fazemos em nosso computador</li>
+  <li>roda programas Lua a partir do sistema de arquivo eLua</li>
+  <li>transfere arquivo fonte via XMODEM e execute-o</li>
+  <li>mostra a vers&atilde;o de eLua</li>
+  <li>lista arquivos eLua</li>
+</ul></p>
+<p>Segue abaixo uma descri&ccedil;&atilde;o detalhada de todos os comandos.</p>
 
-<p>After you burn eLua to your board and you connect the board to your terminal
-emulator running on the PC, you'll be greeted with the eLua shell prompt, which
-allows you to:</p>
+<h2>help</h2>
+<p>Mostra uma lista de todos os comandos dispon&iacute;veis.</p>
+<h2>ver</h2>
+<p>Mostra a vers&atilde;o da imagem de <b>eLua</b> instalada na placa. Atualmente, a vers&atilde;o &eacute; somente incrementada por atualiza&ccedil;&otilde;es oficiais, logo se &eacute; liberada uma vers&atilde;o intermedi&aacute;ria, esta n&atilde;o interfere no n&uacute;mero da vers&atilde;o.</p>
+<h2>recv</h2>
 
-<ul><li>get help on shell usage with the help command</li><li>run the Lua interpreter in interactive mode just like on do on&nbsp;Linux, Windows and MacOS</li><li>run a Lua program from the eLua File System</li><li>upload a Lua source file via XMODEM and execute in on board</li><li>query the eLua version</li><li>list files on eLua File Systems<br></li></ul><p>More details about some of the shell commands are presented below.</p>
+<p>Permite que voc&ecirc; receba um arquivo eLua (tanto arquivos fontes quanto compilados) via
+XMODEM e execute-o em sua placa. Para usar este comando, &eacute; necess&aacute;rio que a imagem do seu <b>eLua</b> tenha sido configurada para suportar XMODEM 
+(veja <a href="building.html">construindo</a> para mais detalhes). Al&eacute;m disso, o seu programa emulador de terminal deve suportar o envio de arquivos via protocolo XMODEM. Ambos XMODEM com  checksum e XMODEM com CRC s&atilde;o suportados, no entanto s&oacute; &eacute; aceito o XMODEM com pacotes de 128 
+bytes (XMODEM com pacotes de 1K n&atilde;o funciona).
+Para usar esse recurso, digite "recv" no prompt do shell. eLua responder&aacute; com 
+"Waiting for file ...". Neste momento, voc&ecirc; poder&aacute; enviar o arquivo para a placa eLua 
+via XMODEM. eLua receber&aacute; e executar&aacute; o arquivo. N&atilde;o se preocupe quando ver o 
+caracter 'C' aparecendo em seu terminal depois de entrar como esse comando, 
+pois essa &eacute; a forma como o XMODEM &eacute; inicializado.<br>
+Como o XMODEM &eacute; um protocolo que se utiliza de comunica&ccedil;&atilde;o serial, este comando n&atilde;o est&aacute; dispon&iacute;vel caso voc&ecirc; esteja usando uma conex&atilde;o TCP/IP.<br>
+Caso voc&ecirc; esteja querendo enviar arquivos bin&aacute;rios j&aacute; compilados ao inv&eacute;s de c&oacute;digo fonte para <b>eLua</b>, veja antes <a href="using.html#cross">essa sess&atilde;o</a>.
+</p>
 
-<h2><span style="font-style: italic;"><a name="recvcmd"></a></span>The "recv" command</h2>
+<h2>lua</h2>
 
-<p>To use this, your eLua taret image must be built with support for XMODEM (see 
-docs/elua_components.txt for details). Also, your terminal emulation program must 
-support sending files via the XMODEM protocol. Both XMODEM with checksum (the 
-original version) and XMODEM with CRC are supported, but only XMODEM with 128 
-byte packets is allowed (XMODEM with 1K packets won't work).
-To use this feature, enter "recv" at the shell prompt. eLua will respond with 
-"Waiting for file ...". At this point you can send the file to the eLua board 
-via XMODEM. eLua will receive and execute the file. Don't worry when you see 'C'
-characters suddenly appearing on your terminal after you enter this command, 
-this is how the XMODEM transfer is initiated.</p>
+<p>Esse comando inicia a interpretador Lua, aceitando opcionalmente par&acirc;metros na linha de comando, exatamente 
+como se voc&ecirc; estivesse em seu computador. O comando possui algumas restri&ccedil;&otilde;es:</p>
 
-<h2><a name="luacmd"></a>The "lua" command</h2>
+<ul><li>No m&aacute;ximo 50 caracteres para o tamanho da linha de comando</li>
+<li>a sequ&ecirc;ncia 'ESC` n&atilde;o foi implemantada. Por exemplo, o seguinte comando n&atilde;o funcionar&aacute;
+    devido a sequ&ecirc;ncia 'ESC' com ' ('aspas simples') somente:
 
-<p>This allows you to start the Lua interpreter, optionally passing&nbsp;command line parameters, just 
-as you would do from a Linux, Windows or MacOS command prompt. This command has some
-restrictions:</p>
-
-<ul><li>the command line can't be longer than 50 chars</li><li>character escaping is not implemented. For example, the next command won't work
-    because of the ' escape sequences:</li></ul>
-
-<p>eLua# lua -e 'print('Hello, World!')' -i<br>
+<p><pre><code>eLua# lua -e 'print(\'Hello, World!\')' -i<br>
 Press CTRL+Z to exit Lua<br>
-lua: (command line):1: unexpected symbol near ''<br></p>
+lua: (command line):1: unexpected symbol near ''</code></pre></p>
 
-<p>However, if you use both '' and "" for string quoting, it will work:</p>
+<p>Entretanto, se voc&ecirc; usar ambas ' ('aspas simples') e " ("aspas duplas"), ent&atilde;o funcionar&aacute;:</p>
 
-<p>eLua# lua -e 'print("Hello, World")' -i<br>
-Press CTRL+Z to exit Lua<br>
+<p><pre><code>eLua# lua -e 'print("Hello, World")' -i
+Press CTRL+Z to exit Lua
 Lua 5.1.4  Copyright (C) 1994-2008 Lua.org, PUC-Rio
-Hello,World</p><p></p><p></p><p></p>
+Hello,World</code></pre></p></li></ul>
+<p>Caso voc&ecirc; queira executar um arquivo a partir do <a href="">##ROM file system</a>, n&atilde;o se esque&ccedil;a de colocar antes do nome do arquivo o prefixo  <i>/rom</i>. Por exemplo, para executar o arquivo <b>hello.lua</b>, digite o seguinte:</p>
+<p><pre><code>$ lua /rom/hello.lua</code></pre></p>
+<h2>ls or dir</h2>
+<p>Lista todos os arquivos do sistema de arquivos utilizado por <b>eLua</b> (atualmente armazenado em ROM), bem como o total ocupado e o espa&ccedil;o total do sistema de arquivos.</p>
+<h2>exit</h2>
+<p>Sai do shell. Esse comando s&oacute; faz sentido, caso voc&ecirc; tenha compilado <b>eLua</b> para conex&atilde;o sobre TCP/IP, j&aacute; que a sess&atilde;o telnet &eacute encerrada com a placa <b>eLua</b>. Caso contr&aacute;rio o comando simplesmente encerra 
+  o shell e trava at&eacute; voc&ecirc; resetar sua placa.</p>
+<a name="cross"><h3>Cross-compilation: compilando seus programas eLua para uma plataforma diferente</h3></a>
+<p><i>Cross-compilation</i> &eacute; o processo de compila&ccedil;&atilde;o de um programa em uma platforma com obejtivo de ser 
+utilzado em uma outra plataforma. Por exemplo, o processo de compila&ccedil;&atilde;o para gerar uma imagem bin&aacute;ria de <b>eLua</b> em
+seu PC para uso na sua placa <b>eLua</b> &eacute; o que chamamos de "cross-compiling". Lua pode ser compilada dessa forma tamb&eacute;m. Ao compilar Lua usando esse procedimento
+ voc&ecirc; tem algumas vantagens importantes:
+<ul>
+<li><b>volocidade</b>: o compilador Lua na placa <b>eLua</b> n&atilde;o precisa compilar o c&oacute;digo fonte Lua
+  , simplesmente executa o c&oacute;digo bin&aacute;rio.</li>
+<li><b>mem&oacute;ria</b>: caso voc&ecirc; esteja executando diretamente um c&oacute;digo bin&aacute;rio, nenhuma mem&oacute;ria a mais 
+  &eacute; "gasta" em placa <b>eLua</b> para compila&ccedil;&atilde;o  do c&oacute;digo Lua para bytecode.
+  Muitas vezes isso &eacute; a "salva&ccedil;&atilde;o". Caso voc&ecirc; esteja tentando executar c&oacute;digo Lua direto de sua placa e recebendo a mensagem de erro "not enough memory", 
+  pode mudar esse resultado compilando o programa Lua em seu PC e depois 
+  executando o arquivo gerado. Al&eacute; disso, compilar programas Lua muito grandes em sua placa 
+  <b>eLua</b> pode acarretar estouro de pilha, o que normalmente nos leva a erros dif&iacute;ceis de serem encontrados.</li>
+</ul></p>
+<p>Para usar "cross-compilation", as duas plataformas Lua (neste caso seu PC e sua placa  <b>eLua</b>) devem ser compat&iacute;veis
+(devem ter os mesmos tipos de dados, com os mesmos tamanhos e a mesma representa&ccedil&atilde;o de mem&oacute;ria).
+ Isto n&atilde;o &eacute; verdadeiro sempre. Por exemplo, alguns toolchains gcc para arquitetura ARM usam como padr&atilde;o uma representa&ccedil;&atilde;o muito espec&iacute;fica para n&uacute;meros com dupla precis&atilde;o (conhecida como formato FPA), tornando dessa forma, os arquivos bytecode gerados no PC com um compilador Lua in&uacute;teis para as placas ARM. Outros toolchains n&atilde;o possuem esse problema. Outras arquiteturas (como a AVR32) s&atilde;o "big endian", ao contr&aacute;rio da plataforma Intel para PCs que &eacute; "little endian".<br>
+Para resolver esses tipos de problemas, um patch para "Lua cross-compilation" foi enviado para a lista de e-mails de Lua
+a pouco tempo atr&aacute;s, e foi bastante modificado como parte do projeto <b>eLua</b>
+ para funcionar com a arquitetura ARM. Aqui est&aacute; como us&aacute;-lo (as instru&ccedil;&otilde;es abaixo foram testadas em Linux, n&atilde;o em Windows, mesmo assim, elas devem funcionar tamb&eacute;m no Windows com pouco ou quase nenhum esfor&ccedil;o):
+<ul>
+<li>primeiro, certifique-se que seu PC j&aacute; esteja com todos os arquivos necess&aacute;rios para a constru&ccedil;&atilde;o de um <b>eLua</b> (gcc,
+  binutils, libc, headers...). Voc&ecirc; precisar&aacute; tamb&eacute;m do scons. A boa not&iacute;cia &eacute; que voc&ecirc; j&aacute; deve ter o scon instalado em seu sistema, 
+j&aacute; que, caso contr&aacute; voc&ecirc n&atilde;o seria capaz nem mesmo de construir <b>eLua</b> (veja <a href="building.html">construindo</a> para instru&ccedil;&otildees mais detalhadas).</li>
+<li>a partir do diret&oacute;rio base de <b>eLua</b>, digite o seguinte comando:</li>
+  <p><pre><code>$ scons -f cross-lua.py</code></pre></p></ul>
+<p>Esse comando gera um arquivo chamado <i>luac</i> no mesmo. &Eacute; quase a mesma coisa que no compilador comum, mas possui alguns poucos argumentos para lidar com as diferen&ccedil;as entre as diversas arquiteturas (mostradas abaixo em negrito):</p>
+<p><pre><code>usage: ./luac [options] [filenames].
+Available options are:
+-        process stdin
+-l       list
+-o name  output to file 'name' (default is "luac.out")
+-p       parse only
+-s       strip debug information
+-v       show version information
+<b>-cci bits       cross-compile with given integer size
+-ccn type bits  cross-compile with given lua_Number type and size
+-cce endian     cross-compile with given endianness ('big' or 'little')</b>
+--       stop handling options</code></pre></p>
+<p>Tudo que deve ser feito agora &eacute; usar a tabela abaixo para identificar qual os par&acirc;metros certos para serem utilizados no cross-compiler:</p>
+</p><table style="text-align: left;" class="table_center">
+<tbody>
+<tr>
+  <th style="text-align: left;">tipo da imagem de eLua</th>
+  <th style="text-align: center;">Arquitetura</th>
+  <th style="text-align: center;">Compilador</th>
+  <th style="text-align: center;">Comando</th>
+</tr>
+<tr>
+  <td>Ponto Flutuante (lua)</td>
+  <td>ARM7TDMI<br>Cortex-M3<br>ARM966E-S</td>
+  <td><a href="toolchains.html">arm-gcc</a>
+  <td><code>./luac -ccn float_arm 64 -cce little -o &lt;script.luac&gt; -s &lt;script.lua&gt;</code></td>
+</tr>
+<tr>
+  <td>Ponto Flutuante (lua)</td>
+  <td>ARM7TDMI<br>Cortex-M3<br>ARM966E-S</td>
+  <td><a href="toolchains.html">codesourcery</a>
+  <td><code>./luac -ccn float 64 -cce little -o &lt;script.luac&gt; -s &lt;script.lua&gt;</code></td>
+</tr>
+<tr>
+  <td>Inteiro (lualong)</td>
+  <td>ARM7TDMI<br>Cortex-M3<br>ARM966E-S</td>
+  <td><a href="toolchains.html">arm-gcc<br>codesourcery</a>
+  <td><code>./luac -ccn int 32 -cce little -o &lt;script.luac&gt; -s &lt;script.lua&gt;</code></td>
+</tr>
+<tr>
+  <td>Ponto Flutuante (lua)</td>
+  <td>AVR32</td>
+  <td><a href="toolchains.html">avr32-gcc</a>
+  <td><code>./luac -ccn float 64 -cce big -o &lt;script.luac&gt; -s &lt;script.lua&gt;</code></td>
+</tr>
+<tr>
+  <td>Inteiro (lualong)</td>
+  <td>AVR32</td>
+  <td><a href="toolchains.html">avr32-gcc</a>
+  <td><code>./luac -ccn int 32 -cce big -o &lt;script.luac&gt; -s &lt;script.lua&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<p>(observe que se por alguma raz&atilde;o voc&ecirc; precisa de um cross-compile <b>eLua</b> para x86, poder&aacute; usar o pr&oacute;prio compilador Lua).<br>
+Voc&ecirc; pode omitir o par&acirc;metro <i>-s</i> (de strip) da compila&ccedil;&atilde;o, mas isso resultar&aacute; em arquivos bin&aacute;rios maiores (quando n&atilde;o se usa o par&acirc;metro <i>-s</i>, a informa&ccedil;&atilde;o de debug n&atilde;o &eacute; removida do arquivo gerado).</p>
+<p>Voc&ecirc; pode usar o arquivo gerado de duas formas:</p>
+<ul>
+  <li>grav&aacute;-lo em uma <a href="arch_romfs.html">ROM do sistema de sua placa</a> e execut&aacute;-lo a partir da&iacute;.</li>
+  <li>usar o comando <i>recv</i> a partir <a href="using.html#shell">do shell</a> para envi&aacute;-lo para a placa usando uma conex&atilde;o serial.</li>
+</ul>
+<p>
+</p>
 </body></html>
+
