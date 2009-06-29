@@ -62,8 +62,8 @@ data_en =
       desc = "Sends an Ethernet packet to the network",
       args = 
       {
-        { name = "src", desc = "start address of the Ethernet packet" },
-        { name = "size", desc = "size of the Ethernet packet" }
+        "$src$ - start address of the Ethernet packet",
+        "$size$ - size of the Ethernet packet"
       },
     },
 
@@ -71,13 +71,10 @@ data_en =
       desc = "Non-blocking read of an Ethernet packet from the network",
       args = 
       {
-        { name = "buf", desc = "start address of the receive buffer" },
-        { name = "maxlen", desc = "maximum length of the Ethernet packet" },
+        "$buf$ - start address of the receive buffer",
+        "$maxlen$ - maximum length of the Ethernet packet",
       },
-      ret = 
-      {
-        "the size of the read packet or 0 if no packet is available"
-      }
+      ret = "the size of the read packet or 0 if no packet is available"
     },
 
     { sig = "void #platform_eth_force_interrupt#();",

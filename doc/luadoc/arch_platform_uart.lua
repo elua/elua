@@ -50,10 +50,7 @@ enum
       desc = [[Checks if the platform has the hardware UART specified as argument. Implemented in %src/common.c%, it uses the $NUM_UART$ macro that must be defined in the
   platform's $platform_conf.h$ file (see @arch_overview.html#platforms@here@ for details). For example:</p>
   ~#define NUM_UART   2      $// The platform has 2 UART interfaces$~<p>]],
-      args = 
-      {
-        { name = "id", desc = "UART interface ID" },
-      },
+      args = "$id$ - UART interface ID",
       ret = "1 if the specified UART exists, 0 otherwise"
     },
 
@@ -61,12 +58,12 @@ enum
       desc = "This function is used to initialize the parameters of the UART interface.",
       args = 
       {
-        { name = "id", desc = "UART interface ID." },
-        { name = "baud", desc = "baud rate." },
-        { name = "databits", desc = "number of databits (maximum 8)." },
-        { name = "parity", desc = "parity type (can be either $PLATFORM_UART_PARITY_EVEN$, $PLATFORM_UART_PARITY_ODD$ or $PLATFORM_UART_PARITY_NONE$, see @#uart_parity@here@)." },
-        { name = "stopbits", desc = [[number of stop bits (can be either $PLATFORM_UART_STOPBITS_1$, $PLATFORM_UART_STOPBITS_1_5$ or $PLATFORM_UART_STOPBITS_2$, see
-           @#uart_stop_bits@here@).]] },
+        "$id$ - UART interface ID.",
+        "$baud$ - baud rate.",
+        "$databits$ - number of databits (maximum 8).",
+        "$parity$ - parity type (can be either $PLATFORM_UART_PARITY_EVEN$, $PLATFORM_UART_PARITY_ODD$ or $PLATFORM_UART_PARITY_NONE$, see @#uart_parity@here@).",
+        [[$stopbits$ - number of stop bits (can be either $PLATFORM_UART_STOPBITS_1$, $PLATFORM_UART_STOPBITS_1_5$ or $PLATFORM_UART_STOPBITS_2$, see
+           @#uart_stop_bits@here@).]],
       },
       ret = "the actual baud rate. Depending on the hardware, this may have a different value than the $baud$ argument.",
     },
@@ -75,8 +72,8 @@ enum
       desc = "Send data to an UART interface.",
       args = 
       {
-        { name = "id", desc = "UART interface ID." },
-        { name = "data", desc = "data to be sent." },
+        "$id$ - UART interface ID.",
+        "$data$ - data to be sent.",
       },
     },
 
@@ -87,15 +84,15 @@ enum
   platform in a function named @#platform_s_uart_recv@platform_s_uart_recv@.]],
       args = 
       {
-        { name = "id", desc = "UART interface ID." },
-        { name = "timer_id", desc = "the ID of the timer used in this operation (see @arch_platform_timers.html@here@ for details). See also the description of the $timeout$ argument." },
-        { name = "timeout", desc = [[specifies a timeout for the receive operation as follows:
+        "$id$ - UART interface ID.",
+        "$timer_id$ - the ID of the timer used in this operation (see @arch_platform_timers.html@here@ for details). See also the description of the $timeout$ argument.",
+        [[$timeout$ - specifies a timeout for the receive operation as follows:
   <ul>
     <li>$timeout &gt; 0$: the timer with the specified $timer_id$ will be used to timeout the receive operation after $timeout$ microseconds.</li>
     <li>$timeout = 0$: the function returns immediately regardless of data being available or not. $timer_id$ is ignored.</li>
     <li>$timeout$ = @#uart_timeout@PLATFORM_UART_INFINITE_TIMEOUT@: the function waits indefinitely for UART data to be available and returns it. In this mode the function doesn't 
         time out, so $timer_id$ is ignored.</li>
-  </ul>]] },
+  </ul>]],
       },
       ret = 
       {
@@ -111,12 +108,12 @@ enum
   (thus being easier to implement by each platform in part). In particular, it never needs to deal with the $timeout &gt; 0$ case, which is handled by @#platform_uart_recv@platform_uart_recv@.]],
        args = 
       {
-        { name = "id", desc = "UART interface ID." },
-        { name = "timeout", desc = [[specifies a timeout for the receive operation as follows:
+        "$id$ - UART interface ID.",
+        [[$timeout$ - specifies a timeout for the receive operation as follows:
   <ul>
     <li>$timeout = 0$: the function returns immediately regardless of data being available or not.</li>
     <li>$timeout$ = @#uart_timeout@PLATFORM_UART_INFINITE_TIMEOUT@: the function waits indefinitely for UART data to be available and returns it.</li>
-  </ul>]] },
+  </ul>]],
       },
       ret = 
       {

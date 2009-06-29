@@ -42,17 +42,14 @@ $_C$. For example, to get the constants listed above declare your $PLATFORM_CPU_
       desc = "Writes a 32-bit word to memory.",
       args = 
       {
-        { name = "address", desc = "the memory address." },
-        { name = "data", desc = "the 32-bit data to write." }
+        "$address$ - the memory address.",
+        "$data$ - the 32-bit data to write."
       },
     },
 
     { sig = "data = #cpu.r32#( address )",
       desc = "Read a 32-bit word from memory.",
-      args = 
-      {
-        { name = "address", desc = "the memory address." }
-      },
+      args = "$address$ - the memory address.",
       ret = "$data$ - the 32-bit word read from memory."
     },
 
@@ -60,17 +57,14 @@ $_C$. For example, to get the constants listed above declare your $PLATFORM_CPU_
       desc = "Writes a 16-bit word to memory.",
       args =
       {
-        { name = "address", desc = "the memory address." },
-        { name = "data", desc = "the 16-bit data to write." }
+        "$address$ - the memory address.",
+        "$data$ - the 16-bit data to write."
       },
     },
 
     { sig = "data = #cpu.r16#( address )",
       desc = "Reads a 16-bit word from memory.",
-      args =
-      {
-        { name = "address", desc = "the memory address." }
-      },
+      args = "$address$ - the memory address.",
       ret = "$data$ - the 16-bit word read from memory."
     },
 
@@ -78,17 +72,14 @@ $_C$. For example, to get the constants listed above declare your $PLATFORM_CPU_
       desc = "Writes a byte to memory.",
       args =
       {
-        { name = "address", desc = "the memory address." },
-        { name = "data", desc = "the byte to write." }
+        "$address$ - the memory address.",
+        "$data$ - the byte to write."
       }
     },
 
     { sig = "data = #cpu.r8#( address )",
       desc = "Reads a byte from memory.",
-      args = 
-      {
-        { name = "address", desc = "the memory address" }
-      },
+      args = "$address$ - the memory address",
       ret = "$data$ - the byte read from memory."
     },
 

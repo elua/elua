@@ -198,15 +198,12 @@ local function build_file( fname )
       page = page .. "<p><b>Arguments</b>: "
       if f.args then
         local a = f.args
-        if #a == 1 then
-          local t = a[ 1 ]
-          page = page .. "<b>" .. t.name .. "</b> - " .. format_string( t.desc )
+        if type( a ) == "string" or ( type( a ) == "table" and #a == 1 ) then
+          local text = type( a ) == "string" and a or a[ 1 ]
+          page = page .. format_string( text )
         else
           page = page .. "\n<ul>\n"
-          for i = 1, #a do
-            local t = a[ i ]
-            page = page .. "  <li><b>" .. t.name .. "</b> - " .. format_string( t.desc) .. "</li>\n"
-          end
+          for i = 1, #a do page = page .. "  <li>" .. format_string( a[ i ] ) .. "</li>\n" end
           page = page .. "</ul>"
         end
       else

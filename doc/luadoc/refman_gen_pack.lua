@@ -106,10 +106,10 @@ data specifier is applied to a single variable that must be packed/unpacked. The
       desc = "Packs variables in a string.",
       args = 
       {
-        { name = "format", desc = "format specifier (as described @#overview@here@)." },
-        { name = "val1", desc = "first variable to pack." },
-        { name = "val2", desc = "second variable to pack." },
-        { name = "valn", desc = "nth variable to pack." },
+        "$format$ - format specifier (as described @#overview@here@).",
+        "$val1$ - first variable to pack.",
+        "$val2$ - second variable to pack.",
+        "$valn$ - nth variable to pack.",
       },
       ret = "$packed$ - a string containing the packed representation of all variables according to the format."
     },
@@ -118,9 +118,9 @@ data specifier is applied to a single variable that must be packed/unpacked. The
       desc = "Unpacks a string",
       args = 
       {
-        { name = "string", desc = "the string to unpack." },
-        { name = "format", desc = "format specifier (as described @#overview@here@)." },
-        { name = "init", desc = "$(optional)$ marks where in $string$ the unpacking should start (1 if not specified)." }
+        "$string$ - the string to unpack.",
+        "$format$ - format specifier (as described @#overview@here@).",
+        "$init$ - $(optional)$ marks where in $string$ the unpacking should start (1 if not specified)."
       },
       ret = 
       {
