@@ -1535,12 +1535,19 @@ static int rpc_dispatch( lua_State *L )
 
 static int rpc_server( lua_State *L )
 {
+  int shref;
   ServerHandle *handle = rpc_listen_helper( L );
+  
+  /* hack to anchor handle in registry */
+  /* @@@ this should be replaced when we create a system for multiple connections */
+  /* @@@   such a mechanism would likely likely create a table for multiple connections that we could service in an event loop */
+  shref = luaL_ref( L, LUA_REGISTRYINDEX );
+  lua_rawgeti(L, LUA_REGISTRYINDEX, shref );
+  
   while ( transport_is_open( &handle->ltpt ) )
     rpc_dispatch_helper( L, handle );
-  
-  printf( "LT: %d, AT: %d\n", handle->ltpt.fd, handle->atpt.fd );
-  
+    
+  luaL_unref( L, LUA_REGISTRYINDEX, shref );
   server_handle_destroy( handle );
   return 0;
 }

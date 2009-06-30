@@ -1,7 +1,7 @@
 import os, sys 
 
 output = 'lua'
-cdefs = '-DLUA_CROSS_COMPILER -DLUA_REMOTE'
+cdefs = '-DLUA_CROSS_COMPILER -DLUA_REMOTE -DLUA_USE_READLINE'
 
 # Lua source files and include path
 lua_files = """lapi.c lcode.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c lobject.c lopcodes.c
@@ -13,7 +13,7 @@ local_include = "-Isrc/lua -Iinc -Isrc/modules"
 
 # Compiler/linker options
 cccom = "gcc -g %s -Wall %s -c $SOURCE -o $TARGET" % ( local_include, cdefs )
-linkcom = "gcc -o $TARGET $SOURCES -lm"
+linkcom = "gcc -o $TARGET $SOURCES -lm -lreadline"
 
 # Env for building the program
 comp = Environment( CCCOM = cccom,

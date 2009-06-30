@@ -4,8 +4,8 @@ end
 
 rpc.on_error (error_handler);
 
--- slave,err = rpc.connect ("/dev/tty.usbserial-ftCYPMYJ");
-slave,err = rpc.connect("/dev/tty.usbserial-04110857B")
+slave,err = rpc.connect ("/dev/tty.usbserial-ftCYPMYJ");
+-- slave,err = rpc.connect("/dev/tty.usbserial-04110857B")
 --slave,err = rpc.connect ("/dev/ttys0");
 
 print("Platform: " .. slave.pd.platform())
