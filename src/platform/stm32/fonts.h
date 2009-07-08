@@ -18,7 +18,7 @@
 #define __FONTS_H
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f10x_lib.h"
+#include "stm32f10x.h"
 
 /* Exported types ------------------------------------------------------------*/
      /* ASCII Table: each character is 16 column (16dots large) 

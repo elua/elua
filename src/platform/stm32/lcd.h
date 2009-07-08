@@ -19,7 +19,7 @@
 #define __LCD_H
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f10x_lib.h"
+#include "stm32f10x.h"
 
 extern void Delay(u32 nCount);
 

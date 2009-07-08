@@ -22,6 +22,7 @@ SECTIONS
         *(.gnu.linkonce.r.*)
         . = ALIGN(4);
         _etext = .;
+		_sidata = _etext;
         PROVIDE(etext = .);   
      		_fini = . ;
 				*(.fini)
@@ -31,7 +32,7 @@ SECTIONS
     .data : AT (_etext)
     {
         . = ALIGN(4);
-        _data = .;
+        _sdata = .;
         *(.ramfunc .ramfunc.* .fastrun .fastrun.*)
         *(.data .data.*)
         *(.gnu.linkonce.d.*)
@@ -52,7 +53,9 @@ SECTIONS
 		__exidx_end = .;
 		
     .bss (NOLOAD) : {
-        _bss = .;
+		. = ALIGN(4);
+        /* This is used by the startup in order to initialize the .bss secion */
+        _sbss = .;
         *(.bss .bss.*)
         *(.gnu.linkonce.b.*)
         *(COMMON)

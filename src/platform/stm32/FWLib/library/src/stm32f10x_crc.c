@@ -1,114 +1,163 @@
-/******************** (C) COPYRIGHT 2008 STMicroelectronics ********************
-* File Name          : stm32f10x_crc.c
-* Author             : MCD Application Team
-* Version            : V2.0.3
-* Date               : 09/22/2008
-* Description        : This file provides all the CRC firmware functions.
-********************************************************************************
-* THE PRESENT FIRMWARE WHICH IS FOR GUIDANCE ONLY AIMS AT PROVIDING CUSTOMERS
-* WITH CODING INFORMATION REGARDING THEIR PRODUCTS IN ORDER FOR THEM TO SAVE TIME.
-* AS A RESULT, STMICROELECTRONICS SHALL NOT BE HELD LIABLE FOR ANY DIRECT,
-* INDIRECT OR CONSEQUENTIAL DAMAGES WITH RESPECT TO ANY CLAIMS ARISING FROM THE
-* CONTENT OF SUCH FIRMWARE AND/OR THE USE MADE BY CUSTOMERS OF THE CODING
-* INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
-*******************************************************************************/
+/**
+  ******************************************************************************
+  * @file    stm32f10x_crc.c
+  * @author  MCD Application Team
+  * @version V3.1.0
+  * @date    06/19/2009
+  * @brief   This file provides all the CRC firmware functions.
+  ******************************************************************************
+  * @copy
+  *
+  * THE PRESENT FIRMWARE WHICH IS FOR GUIDANCE ONLY AIMS AT PROVIDING CUSTOMERS
+  * WITH CODING INFORMATION REGARDING THEIR PRODUCTS IN ORDER FOR THEM TO SAVE
+  * TIME. AS A RESULT, STMICROELECTRONICS SHALL NOT BE HELD LIABLE FOR ANY
+  * DIRECT, INDIRECT OR CONSEQUENTIAL DAMAGES WITH RESPECT TO ANY CLAIMS ARISING
+  * FROM THE CONTENT OF SUCH FIRMWARE AND/OR THE USE MADE BY CUSTOMERS OF THE
+  * CODING INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
+  *
+  * <h2><center>&copy; COPYRIGHT 2009 STMicroelectronics</center></h2>
+  */ 
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x_crc.h"
 
-/* Private typedef -----------------------------------------------------------*/
-/* Private define ------------------------------------------------------------*/
+/** @addtogroup STM32F10x_StdPeriph_Driver
+  * @{
+  */
+
+/** @defgroup CRC 
+  * @brief CRC driver modules
+  * @{
+  */
+
+/** @defgroup CRC_Private_TypesDefinitions
+  * @{
+  */
+
+/**
+  * @}
+  */
+
+/** @defgroup CRC_Private_Defines
+  * @{
+  */
 
 /* CR register bit mask */
-#define CR_RESET_Set    ((u32)0x00000001)
 
-/* Private macro -------------------------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
-/* Private function prototypes -----------------------------------------------*/
-/* Private functions ---------------------------------------------------------*/
+#define CR_RESET_Set    ((uint32_t)0x00000001)
 
-/*******************************************************************************
-* Function Name  : CRC_ResetDR
-* Description    : Resets the CRC Data register (DR).
-* Input          : None
-* Output         : None
-* Return         : None
-*******************************************************************************/
+/**
+  * @}
+  */
+
+/** @defgroup CRC_Private_Macros
+  * @{
+  */
+
+/**
+  * @}
+  */
+
+/** @defgroup CRC_Private_Variables
+  * @{
+  */
+
+/**
+  * @}
+  */
+
+/** @defgroup CRC_Private_FunctionPrototypes
+  * @{
+  */
+
+/**
+  * @}
+  */
+
+/** @defgroup CRC_Private_Functions
+  * @{
+  */
+
+/**
+  * @brief  Resets the CRC Data register (DR).
+  * @param  None
+  * @retval None
+  */
 void CRC_ResetDR(void)
 {
   /* Reset CRC generator */
   CRC->CR = CR_RESET_Set;
 }
 
-/*******************************************************************************
-* Function Name  : CRC_CalcCRC
-* Description    : Computes the 32-bit CRC of a given data word(32-bit).
-* Input          : - Data: data word(32-bit) to compute its CRC
-* Output         : None
-* Return         : 32-bit CRC
-*******************************************************************************/
-u32 CRC_CalcCRC(u32 Data)
+/**
+  * @brief  Computes the 32-bit CRC of a given data word(32-bit).
+  * @param  Data: data word(32-bit) to compute its CRC
+  * @retval 32-bit CRC
+  */
+uint32_t CRC_CalcCRC(uint32_t Data)
 {
   CRC->DR = Data;
   
   return (CRC->DR);
 }
 
-/*******************************************************************************
-* Function Name  : CRC_CalcBlockCRC
-* Description    : Computes the 32-bit CRC of a given buffer of data word(32-bit).
-* Input          : - pBuffer: pointer to the buffer containing the data to be 
-*                    computed
-*                  - BufferLength: length of the buffer to be computed					
-* Output         : None
-* Return         : 32-bit CRC
-*******************************************************************************/
-u32 CRC_CalcBlockCRC(u32 pBuffer[], u32 BufferLength)
+/**
+  * @brief  Computes the 32-bit CRC of a given buffer of data word(32-bit).
+  * @param  pBuffer: pointer to the buffer containing the data to be computed
+  * @param  BufferLength: length of the buffer to be computed					
+  * @retval 32-bit CRC
+  */
+uint32_t CRC_CalcBlockCRC(uint32_t pBuffer[], uint32_t BufferLength)
 {
-  u32 index = 0;
+  uint32_t index = 0;
   
   for(index = 0; index < BufferLength; index++)
   {
     CRC->DR = pBuffer[index];
   }
-
   return (CRC->DR);
 }
 
-/*******************************************************************************
-* Function Name  : CRC_GetCRC
-* Description    : Returns the current CRC value.
-* Input          : None
-* Output         : None
-* Return         : 32-bit CRC
-*******************************************************************************/
-u32 CRC_GetCRC(void)
+/**
+  * @brief  Returns the current CRC value.
+  * @param  None
+  * @retval 32-bit CRC
+  */
+uint32_t CRC_GetCRC(void)
 {
   return (CRC->DR);
 }
 
-/*******************************************************************************
-* Function Name  : CRC_SetIDRegister
-* Description    : Stores a 8-bit data in the Independent Data(ID) register.
-* Input          : - IDValue: 8-bit value to be stored in the ID register 					
-* Output         : None
-* Return         : None
-*******************************************************************************/
-void CRC_SetIDRegister(u8 IDValue)
+/**
+  * @brief  Stores a 8-bit data in the Independent Data(ID) register.
+  * @param  IDValue: 8-bit value to be stored in the ID register 					
+  * @retval None
+  */
+void CRC_SetIDRegister(uint8_t IDValue)
 {
   CRC->IDR = IDValue;
 }
 
-/*******************************************************************************
-* Function Name  : CRC_GetIDRegister
-* Description    : Returns the 8-bit data stored in the Independent Data(ID) register
-* Input          : None
-* Output         : None
-* Return         : 8-bit value of the ID register 
-*******************************************************************************/
-u8 CRC_GetIDRegister(void)
+/**
+  * @brief  Returns the 8-bit data stored in the Independent Data(ID) register
+  * @param  None
+  * @retval 8-bit value of the ID register 
+  */
+uint8_t CRC_GetIDRegister(void)
 {
   return (CRC->IDR);
 }
 
-/******************* (C) COPYRIGHT 2008 STMicroelectronics *****END OF FILE****/
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
+
+/******************* (C) COPYRIGHT 2009 STMicroelectronics *****END OF FILE****/

@@ -19,22 +19,7 @@
 #include "utils.h"
 
 // Platform specific includes
-#include "stm32f10x_lib.h"
-#include "stm32f10x_map.h"
-#include "stm32f10x_type.h"
-#include "stm32f10x_tim.h"
-#include "stm32f10x_rcc.h"
-#include "stm32f10x_nvic.h"
-#include "stm32f10x_dbgmcu.h"
-#include "stm32f10x_gpio.h"
-#include "stm32f10x_adc.h"
-#include "stm32f10x_pwr.h"
-#include "stm32f10x_usart.h"
-#include "stm32f10x_spi.h"
-#include "stm32f10x_systick.h"
-#include "stm32f10x_flash.h"
-#include "stm32f10x_conf.h"
-#include "systick.h"
+#include "stm32f10x.h"
 
 // Clock data
 // IMPORTANT: if you change these, make sure to modify RCC_Configuration() too!
@@ -50,6 +35,7 @@ static void RCC_Configuration(void);
 static void NVIC_Configuration(void);
 
 static void timers_init();
+static void pwms_init();
 static void uarts_init();
 static void spis_init();
 static void pios_init();
@@ -65,7 +51,7 @@ int platform_init()
   NVIC_Configuration();
 
   // Enable SysTick timer.
-  SysTick_Config();
+  SysTick_Config(720000);
 
   // Setup PIO
   pios_init();
@@ -78,6 +64,9 @@ int platform_init()
   
   // Setup timers
   timers_init();
+  
+  // Setup PWMs
+  pwms_init();
   
   // Setup ADCs
   adcs_init();
@@ -105,52 +94,7 @@ int platform_init()
 *******************************************************************************/
 static void RCC_Configuration(void)
 {
-  ErrorStatus HSEStartUpStatus;
-  /* RCC system reset(for debug purpose) */
-  RCC_DeInit();
-
-  /* Enable HSE */
-  RCC_HSEConfig(RCC_HSE_ON);
-
-  /* Wait till HSE is ready */
-  HSEStartUpStatus = RCC_WaitForHSEStartUp();
-
-  if(HSEStartUpStatus == SUCCESS)
-  {
-    /* Enable Prefetch Buffer */
-    FLASH_PrefetchBufferCmd(FLASH_PrefetchBuffer_Enable);
-
-    /* Flash 2 wait state */
-    FLASH_SetLatency(FLASH_Latency_2);
-
-    /* HCLK = SYSCLK */
-    RCC_HCLKConfig(RCC_SYSCLK_Div1);
-
-    /* PCLK2 = HCLK */
-    RCC_PCLK2Config(RCC_HCLK_Div1);
-
-    /* PCLK1 = HCLK/2 */
-    RCC_PCLK1Config(RCC_HCLK_Div2);
-
-    /* PLLCLK = 8MHz * 9 = 72 MHz */
-    RCC_PLLConfig(RCC_PLLSource_HSE_Div1, RCC_PLLMul_9);
-
-    /* Enable PLL */
-    RCC_PLLCmd(ENABLE);
-
-    /* Wait till PLL is ready */
-    while(RCC_GetFlagStatus(RCC_FLAG_PLLRDY) == RESET)
-    {
-    }
-
-    /* Select PLL as system clock source */
-    RCC_SYSCLKConfig(RCC_SYSCLKSource_PLLCLK);
-
-    /* Wait till PLL is used as system clock source */
-    while(RCC_GetSYSCLKSource() != 0x08)
-    {
-    }
-  }
+  SystemInit();
 
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 }
@@ -173,7 +117,6 @@ static void NVIC_Configuration(void)
 {
   NVIC_InitTypeDef nvic_init_structure;
   
-  NVIC_DeInit();
 
 #ifdef  VECT_TAB_RAM
   /* Set the Vector Table base location at 0x20000000 */
@@ -186,11 +129,8 @@ static void NVIC_Configuration(void)
   /* Configure the NVIC Preemption Priority Bits */
   NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 
-  /* Configure the SysTick handler priority */
-  NVIC_SystemHandlerPriorityConfig(SystemHandler_SysTick, 0, 0);
-
 #ifdef BUILD_ADC  
-  nvic_init_structure_adc.NVIC_IRQChannel = DMA1_Channel1_IRQChannel; 
+  nvic_init_structure_adc.NVIC_IRQChannel = DMA1_Channel1_IRQn; 
   nvic_init_structure_adc.NVIC_IRQChannelPreemptionPriority = 1; 
   nvic_init_structure_adc.NVIC_IRQChannelSubPriority = 3; 
   nvic_init_structure_adc.NVIC_IRQChannelCmd = DISABLE; 
@@ -199,7 +139,7 @@ static void NVIC_Configuration(void)
 
 #if defined( BUF_ENABLE_UART ) && defined( CON_BUF_SIZE )
   /* Enable the USART1 Interrupt */
-  nvic_init_structure.NVIC_IRQChannel = USART1_IRQChannel;
+  nvic_init_structure.NVIC_IRQChannel = USART1_IRQn;
   nvic_init_structure.NVIC_IRQChannelSubPriority = 0;
   nvic_init_structure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&nvic_init_structure);
@@ -313,7 +253,7 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 void cans_init( void )
 {
   /* CAN Periph clock enable */
-  RCC_APB1PeriphClockCmd(RCC_APB1Periph_CAN, ENABLE);
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_CAN1, ENABLE);
 }
 
 /*       BS1 BS2 SJW Pre
@@ -347,7 +287,7 @@ u32 platform_can_setup( unsigned id, u32 clock )
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_Init( GPIOB, &GPIO_InitStructure );
   
-  GPIO_PinRemapConfig( GPIO_Remap1_CAN, ENABLE );
+  GPIO_PinRemapConfig( GPIO_Remap1_CAN1, ENABLE );
 
   // Select baud rate up to requested rate, except for below min, where min is selected
   if ( clock >= can_baud_rate[ CAN_BAUD_COUNT - 1 ] ) // round down to peak rate if >= peak rate
@@ -362,8 +302,8 @@ u32 platform_can_setup( unsigned id, u32 clock )
   }
 
   /* Deinitialize CAN Peripheral */
-  CAN_DeInit();
-  CAN_StructInit(&CAN_InitStructure);
+  CAN_DeInit( CAN1 );
+  CAN_StructInit( &CAN_InitStructure );
 
   /* CAN cell init */
   CAN_InitStructure.CAN_TTCM=DISABLE;
@@ -377,7 +317,7 @@ u32 platform_can_setup( unsigned id, u32 clock )
   CAN_InitStructure.CAN_BS1=can_baud_bs1[ cbaudidx ];
   CAN_InitStructure.CAN_BS2=can_baud_bs2[ cbaudidx ];
   CAN_InitStructure.CAN_Prescaler=can_baud_pre[ cbaudidx ];
-  CAN_Init( &CAN_InitStructure );
+  CAN_Init( CAN1, &CAN_InitStructure );
 
   /* CAN filter init */
   CAN_FilterInitStructure.CAN_FilterNumber=0;
@@ -435,7 +375,7 @@ void platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *dat
   d = ( char * )TxMessage.Data;
   DUFF_DEVICE_8( len,  *d++ = *s++ );
   
-  CAN_Transmit( &TxMessage );
+  CAN_Transmit( CAN1, &TxMessage );
 }
 
 void USB_LP_CAN_RX0_IRQHandler(void)
@@ -472,14 +412,14 @@ void platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )
   u32 i = 0;
   
   // Check up to 256 times for message
-  while( ( CAN_MessagePending(CAN_FIFO0) < 1 ) && ( i++ != 0xFF ) );
+  while( ( CAN_MessagePending(CAN1, CAN_FIFO0) < 1 ) && ( i++ != 0xFF ) );
     
   RxMessage.StdId=0x00;
   RxMessage.IDE=CAN_ID_STD;
   RxMessage.DLC=0;
   RxMessage.Data[0]=0x00;
   RxMessage.Data[1]=0x00;
-  CAN_Receive(CAN_FIFO0, &RxMessage);
+  CAN_Receive(CAN1, CAN_FIFO0, &RxMessage);
   
   if( RxMessage.IDE == CAN_ID_STD )
   {
@@ -759,7 +699,6 @@ static void timers_init()
     TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
     TIM_TimeBaseStructure.TIM_RepetitionCounter = 0x0000;
     TIM_TimeBaseInit( timer[ i ], &TIM_TimeBaseStructure );
-    TIM_Cmd( timer[ i ], ENABLE );
   }
 }
 
@@ -811,6 +750,7 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
   {
     case PLATFORM_TIMER_OP_START:
       TIM_SetCounter( ptimer, 0 );
+      TIM_Cmd( ptimer, ENABLE );
       for( dummy = 0; dummy < 200; dummy ++ );
       break;
 
@@ -837,6 +777,133 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
   }
   return res;
 }
+
+
+// ****************************************************************************
+// PWMs
+// Using Timer 8 (5 in eLua)
+
+#define PWM_TIMER_ID 5
+
+static const u16 pwm_gpio_pins[] = { GPIO_Pin_6, GPIO_Pin_7, GPIO_Pin_8, GPIO_Pin_9 };
+
+static void pwms_init()
+{
+  // 
+}
+
+// Helper function: return the PWM clock
+// NOTE: Can't find a function to query for the period set for the timer, therefore using the struct.
+//       This may require adjustment if driver libraries are updated.
+static u32 platform_pwm_get_clock()
+{
+  return ( platform_s_timer_op( PWM_TIMER_ID, PLATFORM_TIMER_OP_GET_CLOCK, 0 ) / ( timer[ PWM_TIMER_ID ]->ARR + 1 ) );
+}
+
+// Helper function: set the PWM clock
+static u32 platform_pwm_set_clock( u32 clock )
+{
+  TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
+  TIM_TypeDef* ptimer = timer[ PWM_TIMER_ID ];
+  
+  /* Time base configuration */
+  TIM_TimeBaseStructure.TIM_Period = 999;  //(TIM_GET_BASE_CLK( PWM_TIMER_ID ) / clock) - 1;
+  TIM_TimeBaseStructure.TIM_Prescaler = 0;
+  TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+  TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Down;
+  TIM_TimeBaseStructure.TIM_RepetitionCounter = 0x0000;
+  TIM_TimeBaseInit( ptimer, &TIM_TimeBaseStructure );
+    
+  return ( TIM_GET_BASE_CLK( PWM_TIMER_ID ) / ( TIM_TimeBaseStructure.TIM_Period + 1 ) ) ;
+}
+
+u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
+{
+  TIM_OCInitTypeDef  TIM_OCInitStructure;
+  TIM_TypeDef* ptimer = timer[ PWM_TIMER_ID ];
+  TIM_BDTRInitTypeDef TIM_BDTRInitStructure;
+  u32 clock;
+  
+  TIM_Cmd(ptimer, DISABLE);
+  
+  clock = platform_pwm_set_clock( frequency );
+  
+  TIM_Cmd( ptimer, ENABLE );
+  
+  // Set up PIO for output
+  platform_pio_op( 2, pwm_gpio_pins[ id ], PLATFORM_IO_PIN_DIR_OUTPUT );
+  
+  /* PWM Mode configuration */  
+  TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
+  TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+  TIM_OCInitStructure.TIM_OutputNState = TIM_OutputNState_Disable;
+  TIM_OCInitStructure.TIM_Pulse = 125; //( u16 )( duty / 100 * ( timer[ PWM_TIMER_ID ]->ARR + 1 ) )
+  TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
+  TIM_OCInitStructure.TIM_OCIdleState = TIM_OCIdleState_Set;
+  
+  switch ( id )
+  {
+    case 0:
+      TIM_OC1Init( ptimer, &TIM_OCInitStructure );
+      TIM_OC1PreloadConfig( ptimer, TIM_OCPreload_Enable );
+      clock = 0;
+      break;
+    case 1:
+      TIM_OC2Init( ptimer, &TIM_OCInitStructure );
+      TIM_OC2PreloadConfig( ptimer, TIM_OCPreload_Enable );
+      clock = 1;
+      break;
+    case 2:
+      TIM_OC3Init( ptimer, &TIM_OCInitStructure );
+      TIM_OC3PreloadConfig( ptimer, TIM_OCPreload_Enable );
+      clock = 2;
+      break;
+    case 3:
+      TIM_OC4Init( ptimer, &TIM_OCInitStructure );
+      TIM_OC4PreloadConfig( ptimer, TIM_OCPreload_Enable ) ;
+      clock = 3;
+      break;
+    default:
+      return 4;
+  }
+    
+  TIM_ARRPreloadConfig( ptimer, ENABLE );
+
+  TIM_SelectOCxM( ptimer, TIM_Channel_1, TIM_OCMode_PWM1 );
+
+  TIM_CtrlPWMOutputs(ptimer, ENABLE);  
+  ptimer->EGR |= TIM_EventSource_Update;
+      
+  return clock;
+}
+
+u32 platform_pwm_op( unsigned id, int op, u32 data )
+{
+  u32 res = 0;
+
+  switch( op )
+  {
+    case PLATFORM_PWM_OP_SET_CLOCK:
+      res = platform_pwm_set_clock( data );
+      break;
+
+    case PLATFORM_PWM_OP_GET_CLOCK:
+      res = platform_pwm_get_clock();
+      break;
+
+    case PLATFORM_PWM_OP_START:
+      timer[ PWM_TIMER_ID ]->CCER |= ( ( u16 )1 << 4*id );
+      break;
+
+    case PLATFORM_PWM_OP_STOP:
+      timer[ PWM_TIMER_ID ]->CCER &= ~( ( u16 )1 << 4*id );
+      break;
+  }
+
+  return res;
+}
+
+
 
 // *****************************************************************************
 // CPU specific functions
