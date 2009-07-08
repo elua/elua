@@ -98,7 +98,7 @@ static void RCC_Configuration(void)
   
   RCC_PCLK1Config(RCC_HCLK_Div2);
 
-  //RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 }
 
 // ****************************************************************************
@@ -675,7 +675,7 @@ int platform_s_uart_recv( unsigned id, s32 timeout )
 // Timers
 
 // We leave out TIM6/TIM for now, as they are dedicated
-static TIM_TypeDef * const timer[] = { TIM1, TIM2, TIM3, TIM4, TIM5, TIM8 };
+static TIM_TypeDef * const timer[] = { TIM1, TIM2, TIM3, TIM4, TIM5 };
 #define TIM_GET_BASE_CLK( id ) ( ( id ) == 0 || ( id ) == 5 ? ( HCLK / PCLK2_DIV ) : ( HCLK / PCLK1_DIV ) )
 #define TIM_STARTUP_CLOCK       50000
 
@@ -693,7 +693,7 @@ static void timers_init()
 
 
   // Configure timers
-  for( i = 0; i < NUM_TIMER - 1; i ++ )
+  for( i = 0; i < NUM_TIMER; i ++ )
   {
     TIM_TimeBaseStructure.TIM_Period = 0xFFFF;
     TIM_TimeBaseStructure.TIM_Prescaler = TIM_GET_BASE_CLK( i ) / TIM_STARTUP_CLOCK;
@@ -786,6 +786,7 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
 // Using Timer 8 (5 in eLua)
 
 #define PWM_TIMER_ID 5
+#define PWM_TIMER_NAME TIM8
 
 static const u16 pwm_gpio_pins[] = { GPIO_Pin_6, GPIO_Pin_7, GPIO_Pin_8, GPIO_Pin_9 };
 
@@ -800,17 +801,17 @@ static void pwms_init()
 //       This may require adjustment if driver libraries are updated.
 static u32 platform_pwm_get_clock()
 {
-  return ( platform_s_timer_op( PWM_TIMER_ID, PLATFORM_TIMER_OP_GET_CLOCK, 0 ) / ( timer[ PWM_TIMER_ID ]->ARR + 1 ) );
+  return ( ( TIM_GET_BASE_CLK( PWM_TIMER_ID ) / ( TIM_GetPrescaler( PWM_TIMER_NAME ) + 1 ) ) / ( PWM_TIMER_NAME->ARR + 1 ) );
 }
 
 // Helper function: set the PWM clock
 static u32 platform_pwm_set_clock( u32 clock )
 {
   TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
-  TIM_TypeDef* ptimer = timer[ PWM_TIMER_ID ];
+  TIM_TypeDef* ptimer = PWM_TIMER_NAME;
   
   /* Time base configuration */
-  TIM_TimeBaseStructure.TIM_Period = 999;  //(TIM_GET_BASE_CLK( PWM_TIMER_ID ) / clock) - 1;
+  TIM_TimeBaseStructure.TIM_Period = ( TIM_GET_BASE_CLK( PWM_TIMER_ID ) / clock ) - 1;
   TIM_TimeBaseStructure.TIM_Prescaler = 0;
   TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
   TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
@@ -823,23 +824,27 @@ static u32 platform_pwm_set_clock( u32 clock )
 u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
 {
   TIM_OCInitTypeDef  TIM_OCInitStructure;
-  TIM_TypeDef* ptimer = timer[ PWM_TIMER_ID ];
+  TIM_TypeDef* ptimer = TIM8;
+  GPIO_InitTypeDef GPIO_InitStructure;
   u32 clock;
   
-  TIM_Cmd(ptimer, DISABLE);
+  TIM_Cmd( ptimer, DISABLE);
   TIM_SetCounter( ptimer, 0 );
   
-  // Set up PIO for output
-  platform_pio_op( 2, pwm_gpio_pins[ id ], PLATFORM_IO_PIN_DIR_OUTPUT );
+  /* Configure USART Tx Pin as alternate function push-pull */
+  GPIO_InitStructure.GPIO_Pin = pwm_gpio_pins[ id ];
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+  GPIO_Init(GPIOC, &GPIO_InitStructure);
   
   clock = platform_pwm_set_clock( frequency );
   TIM_ARRPreloadConfig( ptimer, ENABLE );
   
   /* PWM Mode configuration */  
   TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
-  TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+  TIM_OCInitStructure.TIM_OutputState = ( PWM_TIMER_NAME->CCER & ( ( u16 )1 << 4*id ) ) ? TIM_OutputState_Enable : TIM_OutputState_Disable;
   TIM_OCInitStructure.TIM_OutputNState = TIM_OutputNState_Disable;
-  TIM_OCInitStructure.TIM_Pulse = 125; //( u16 )( duty / 100 * ( timer[ PWM_TIMER_ID ]->ARR + 1 ) )
+  TIM_OCInitStructure.TIM_Pulse = ( u16 )( duty * ( PWM_TIMER_NAME->ARR + 1 ) / 100 );
   TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
   TIM_OCInitStructure.TIM_OCIdleState = TIM_OCIdleState_Set;
   
@@ -864,8 +869,7 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
     default:
       return 0;
   }
-    
-
+  
   TIM_CtrlPWMOutputs(ptimer, ENABLE);  
   
   TIM_Cmd( ptimer, ENABLE );
@@ -888,11 +892,11 @@ u32 platform_pwm_op( unsigned id, int op, u32 data )
       break;
 
     case PLATFORM_PWM_OP_START:
-      timer[ PWM_TIMER_ID ]->CCER |= ( ( u16 )1 << 4*id );
+      PWM_TIMER_NAME->CCER |= ( ( u16 )1 << 4*id );
       break;
 
     case PLATFORM_PWM_OP_STOP:
-      timer[ PWM_TIMER_ID ]->CCER &= ~( ( u16 )1 << 4*id );
+      PWM_TIMER_NAME->CCER &= ~( ( u16 )1 << 4*id );
       break;
   }
 

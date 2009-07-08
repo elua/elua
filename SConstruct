@@ -111,7 +111,7 @@ file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'i
               'MOD711' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'dualpwm' ],
               'STM3210E-EVAL' : [ 'bisect', 'hello', 'info' ],
               'ATEVK1100' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
-              'ET-STM32' : [ 'hello', 'hangman', 'info', 'bisect','adcscope','adcpoll' ],
+              'ET-STM32' : [ 'hello', 'hangman', 'info', 'bisect','adcscope','adcpoll', 'dualpwm', 'pwmled' ],
               'EAGLE-100' : [ 'bisect', 'hangman', 'lhttpd', 'led', 'hello', 'info' ]              
             }
 
