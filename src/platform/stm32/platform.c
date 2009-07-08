@@ -95,8 +95,10 @@ int platform_init()
 static void RCC_Configuration(void)
 {
   SystemInit();
+  
+  RCC_PCLK1Config(RCC_HCLK_Div2);
 
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
+  //RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 }
 
 // ****************************************************************************
@@ -688,10 +690,10 @@ static void timers_init()
   RCC_APB1PeriphClockCmd( RCC_APB1Periph_TIM3, ENABLE );
   RCC_APB1PeriphClockCmd( RCC_APB1Periph_TIM4, ENABLE );
   RCC_APB1PeriphClockCmd( RCC_APB1Periph_TIM5, ENABLE );
-  RCC_APB2PeriphClockCmd( RCC_APB2Periph_TIM8, ENABLE );  
+
 
   // Configure timers
-  for( i = 0; i < NUM_TIMER; i ++ )
+  for( i = 0; i < NUM_TIMER - 1; i ++ )
   {
     TIM_TimeBaseStructure.TIM_Period = 0xFFFF;
     TIM_TimeBaseStructure.TIM_Prescaler = TIM_GET_BASE_CLK( i ) / TIM_STARTUP_CLOCK;
@@ -789,6 +791,7 @@ static const u16 pwm_gpio_pins[] = { GPIO_Pin_6, GPIO_Pin_7, GPIO_Pin_8, GPIO_Pi
 
 static void pwms_init()
 {
+  RCC_APB2PeriphClockCmd( RCC_APB2Periph_TIM8, ENABLE );  
   // 
 }
 
@@ -810,7 +813,7 @@ static u32 platform_pwm_set_clock( u32 clock )
   TIM_TimeBaseStructure.TIM_Period = 999;  //(TIM_GET_BASE_CLK( PWM_TIMER_ID ) / clock) - 1;
   TIM_TimeBaseStructure.TIM_Prescaler = 0;
   TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
-  TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Down;
+  TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
   TIM_TimeBaseStructure.TIM_RepetitionCounter = 0x0000;
   TIM_TimeBaseInit( ptimer, &TIM_TimeBaseStructure );
     
@@ -821,17 +824,16 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
 {
   TIM_OCInitTypeDef  TIM_OCInitStructure;
   TIM_TypeDef* ptimer = timer[ PWM_TIMER_ID ];
-  TIM_BDTRInitTypeDef TIM_BDTRInitStructure;
   u32 clock;
   
   TIM_Cmd(ptimer, DISABLE);
-  
-  clock = platform_pwm_set_clock( frequency );
-  
-  TIM_Cmd( ptimer, ENABLE );
+  TIM_SetCounter( ptimer, 0 );
   
   // Set up PIO for output
   platform_pio_op( 2, pwm_gpio_pins[ id ], PLATFORM_IO_PIN_DIR_OUTPUT );
+  
+  clock = platform_pwm_set_clock( frequency );
+  TIM_ARRPreloadConfig( ptimer, ENABLE );
   
   /* PWM Mode configuration */  
   TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
@@ -846,34 +848,28 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
     case 0:
       TIM_OC1Init( ptimer, &TIM_OCInitStructure );
       TIM_OC1PreloadConfig( ptimer, TIM_OCPreload_Enable );
-      clock = 0;
       break;
     case 1:
       TIM_OC2Init( ptimer, &TIM_OCInitStructure );
       TIM_OC2PreloadConfig( ptimer, TIM_OCPreload_Enable );
-      clock = 1;
       break;
     case 2:
       TIM_OC3Init( ptimer, &TIM_OCInitStructure );
       TIM_OC3PreloadConfig( ptimer, TIM_OCPreload_Enable );
-      clock = 2;
       break;
     case 3:
       TIM_OC4Init( ptimer, &TIM_OCInitStructure );
       TIM_OC4PreloadConfig( ptimer, TIM_OCPreload_Enable ) ;
-      clock = 3;
       break;
     default:
-      return 4;
+      return 0;
   }
     
-  TIM_ARRPreloadConfig( ptimer, ENABLE );
-
-  TIM_SelectOCxM( ptimer, TIM_Channel_1, TIM_OCMode_PWM1 );
 
   TIM_CtrlPWMOutputs(ptimer, ENABLE);  
-  ptimer->EGR |= TIM_EventSource_Update;
-      
+  
+  TIM_Cmd( ptimer, ENABLE );
+  
   return clock;
 }
 
