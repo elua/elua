@@ -7,7 +7,7 @@ local doc_sections = { "arch_platform", "refman_gen" }
 local components = 
 { 
   arch_platform = { "ll", "pio", "spi", "uart", "timers", "pwm", "cpu", "eth", "adc" },
-  refman_gen = { "bit", "pd", "cpu", "pack", "adc" }
+  refman_gen = { "bit", "pd", "cpu", "pack", "pwm", "adc" }
 }
 
 -- List here all languages for the documentation (make sure to keep English ("en") the first one)
