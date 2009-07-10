@@ -723,6 +723,7 @@ static u32 timer_set_clock( unsigned id, u32 clock )
   TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
   TIM_TimeBaseStructure.TIM_RepetitionCounter = 0x0000;
   TIM_TimeBaseInit( timer[ id ], &TIM_TimeBaseStructure );
+  TIM_Cmd( ptimer, ENABLE );
   
   pre = TIM_GET_BASE_CLK( id ) / clock;
   TIM_PrescalerConfig( ptimer, pre, TIM_PSCReloadMode_Immediate );
@@ -752,7 +753,6 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
   {
     case PLATFORM_TIMER_OP_START:
       TIM_SetCounter( ptimer, 0 );
-      TIM_Cmd( ptimer, ENABLE );
       for( dummy = 0; dummy < 200; dummy ++ );
       break;
 
