@@ -26,35 +26,35 @@ local offsets = { a = 0, w = 1, s = 2, d = 3, r = 4, f = 5, t = 6, g = 7, h = 8,
   
 -- Write the curent octave
 function show_octave()
-  term.putstrxy( 2, 4, "Oct: " .. tostring( oct ) .. "(+/-)" )
-  term.gotoxy( 2, 19 )  
+  term.print( 2, 4, "Oct: " .. tostring( oct ) .. "(+/-)" )
+  term.moveto( 2, 19 )  
 end
 
 -- Write the current pause between notes
 function show_pause()
-  term.gotoxy( 2, 5 )
+  term.moveto( 2, 5 )
   term.clreol()
-  term.putstrxy( 2, 5, "Pause between notes: " .. tostring( pause ) .. "ms (</>)" )
-  term.gotoxy( 2, 19 )  
+  term.print( 2, 5, "Pause between notes: " .. tostring( pause ) .. "ms (</>)" )
+  term.moveto( 2, 19 )  
 end
 
 -- Show the main interface
 function show_all()
-  term.putstrxy( 2, 2, "eLua piano demo" )  
+  term.print( 2, 2, "eLua piano demo" )  
   show_octave()
   show_pause()
-  term.putstrxy( 4,  7, " w   r  t   u  i  o   [  ]  " )
-  term.putstrxy( 4,  8, " |   |  |   |  |  |   |  |  " )
-  term.putstrxy( 4,  9, " A#  C# D#  F# G# A#  C# D# " )
-  term.putstrxy( 4, 10, "A  BC  D  EF  G  A  BC  D  E" )
-  term.putstrxy( 4, 11, "|  ||  |  ||  |  |  ||  |  |" )
-  term.putstrxy( 4, 12, "a  sd  f  gh  j  k  l;  '  \\" )  
-  term.putstrxy( 2, 14, "Use above keys to play notes." )
-  term.putstrxy( 2, 15, "+/- to change octave." )
-  term.putstrxy( 2, 16, "</> to change pause between notes." )
-  term.putstrxy( 2, 17, "Space to stop playing." ) 
-  term.putstrxy( 2, 18, "ESC to exit." ) 
-  term.gotoxy( 2, 19 )
+  term.print( 4,  7, " w   r  t   u  i  o   [  ]  " )
+  term.print( 4,  8, " |   |  |   |  |  |   |  |  " )
+  term.print( 4,  9, " A#  C# D#  F# G# A#  C# D# " )
+  term.print( 4, 10, "A  BC  D  EF  G  A  BC  D  E" )
+  term.print( 4, 11, "|  ||  |  ||  |  |  ||  |  |" )
+  term.print( 4, 12, "a  sd  f  gh  j  k  l;  '  \\" )  
+  term.print( 2, 14, "Use above keys to play notes." )
+  term.print( 2, 15, "+/- to change octave." )
+  term.print( 2, 16, "</> to change pause between notes." )
+  term.print( 2, 17, "Space to stop playing." ) 
+  term.print( 2, 18, "ESC to exit." ) 
+  term.moveto( 2, 19 )
 end
 
 -- Conversion of note to frequency
@@ -67,7 +67,7 @@ term.clrscr()
 pwm.setclock( pwmid, 1000000 )
 show_all()
 while true do
-  local key = term.getch( term.WAIT )
+  local key = term.getchar()
   if key == term.KC_ESC then break end
   local res, strkey = pcall( string.char, key )
   if res then     
@@ -99,4 +99,4 @@ end
 
 pwm.stop( pwmid )
 term.clrscr()
-term.gotoxy( 1, 1 )
+term.moveto( 1, 1 )
