@@ -19,12 +19,9 @@ end
 
 -- Draw static text on terminal
 term.clrscr()
-term.gotoxy(1,1)
-term.putstr("ADC Status:")
-term.gotoxy(1,3)
-term.putstr(" CH   SLEN   RES")
-term.gotoxy(1,#adcchannels+5)
-term.putstr("Press ESC to exit.")
+term.print(1,1,"ADC Status:")
+term.print(1,3," CH   SLEN   RES")
+term.print(1,#adcchannels+5,"Press ESC to exit.")
 
 -- start sampling on all channels at the same time 
 adc.sample(adcchannels,128) 
@@ -39,15 +36,14 @@ while true do
     
     -- If we have a new sample, then update display
     if not (tsample == nil) then 
-    	term.gotoxy(1,i+3)
-    	term.putstr(string.format("ADC%02d (%03d): %04d\n", v, adcsmoothing[i], tsample))
+    	term.print(1,i+3,string.format("ADC%02d (%03d): %04d\n", v, adcsmoothing[i], tsample))
     end
   end
   
   -- Exit if user hits Escape
-  key = term.getch( term.NOWAIT )
+  key = term.getchar( term.NOWAIT )
   if key == term.KC_ESC then break end 
 end
 
 term.clrscr()
-term.gotoxy(1, 1)
+term.moveto(1, 1)

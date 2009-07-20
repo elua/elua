@@ -6,13 +6,9 @@ rm -rf dist
 mkdir dist
 
 # Build platform docs
-lua builddoc.lua
-if [ $? -ne 0 ]
-then
-  exit
-fi
+lua builddoc.lua || exit 1
 cd wb
-lua wb_build.lua
+lua wb_build.lua || exit 1
 cd ..
 
 # Copy the required files to the dist/ directory

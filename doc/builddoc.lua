@@ -7,7 +7,7 @@ local doc_sections = { "arch_platform", "refman_gen" }
 local components = 
 { 
   arch_platform = { "ll", "pio", "spi", "uart", "timers", "pwm", "cpu", "eth", "adc" },
-  refman_gen = { "bit", "pd", "cpu", "pack", "adc" }
+  refman_gen = { "bit", "pd", "cpu", "pack", "adc", "term" }
 }
 
 -- List here all languages for the documentation (make sure to keep English ("en") the first one)
@@ -16,6 +16,14 @@ local languages = { "en", "pt" }
 local overview_tr = { en = "Overview", pt = "##Overview" }
 local structures_tr = { en = "Data structures", pt = "##Data structures" }
 local functions_tr = { en = "Functions", pt = "##Functions" }
+
+-- Paragraph indentation flag
+local p_indent = false
+
+-- Return a proper <p> tag based on the p_indent flag
+local function get_p()
+  return p_indent and '<p class="doc">' and '<p>'
+end
 
 -- Format a name to a link by changing all the spaces to "_" and
 -- making all letters lowercase
@@ -86,6 +94,10 @@ local function format_string( str, keepnl )
     return "<p><code>" .. x .. "</code></p>"
   end )
   str = str:gsub( "~~", "~" )
+
+  if p_indent then
+    str = str:gsub( "<p>", '<p class="doc">' )
+  end
 
   -- other "\n" chars should dissapear now
   if not keepnl then  str = str:gsub( "\n", " " ) end
@@ -167,7 +179,9 @@ local function build_file( fname )
         page = page .. "<p><pre><code>" .. format_string( s.text, true ) .. "</code></pre></p>"
         page = page .. "</a>"
         -- description
-        page = page .. "\n<p>" .. format_string( s.desc ) .. "</p>\n\n"
+        p_indent = true
+        page = page .. "\n<p class=\"doc\">" .. format_string( s.desc ) .. "</p>\n\n"
+        p_indent = false
       end 
     end
 
@@ -193,9 +207,10 @@ local function build_file( fname )
       page = page .. "<p><pre><code>" .. f.sig:gsub( '#', '' ) .. "</code></pre></p>"
       page = page .. "</a>"
       -- description
-      page = page .. "\n<p>" .. format_string( f.desc ) .. "</p>\n"
+      p_indent = true
+      page = page .. "\n<p class=\"doc\">" .. format_string( f.desc ) .. "</p>\n"
       -- arguments
-      page = page .. "<p><b>Arguments</b>: "
+      page = page .. "<p class=\"doc\"><b>Arguments</b>: "
       if f.args then
         local a = f.args
         if type( a ) == "string" or ( type( a ) == "table" and #a == 1 ) then
@@ -211,7 +226,7 @@ local function build_file( fname )
       end
       page = page .. "</p>\n"
       -- return value
-      page = page .. "<p><b>Returns</b>: "
+      page = page .. "<p class=\"doc\"><b>Returns</b>: "
       if f.ret then
         local r = f.ret
         if type( r ) == "string" or ( type( r ) == "table" and #r == 1 ) then
@@ -226,6 +241,7 @@ local function build_file( fname )
         page = page .. "nothing"
       end
       page = page .. "</p>\n\n"
+      p_indent = false
     end
 
     -- aux data (if any)

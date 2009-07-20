@@ -1,9 +1,9 @@
 require("LM3S")
 
 function drawPaddle( y, color )
-  disp.stringdraw("|", 0, y,   color)
-  disp.stringdraw("|", 0, y+4, color)
-  disp.stringdraw("|", 0, y+8, color)
+  disp.print("|", 0, y,   color)
+  disp.print("|", 0, y+4, color)
+  disp.print("|", 0, y+8, color)
 end
 
 function updateBallPos()
@@ -14,9 +14,9 @@ function updateBallPos()
   if(( by >= 89 ) or ( by <= 0 )) then
     dy = -dy;
   end
-  disp.stringdraw( ball, bx, by, 0 )
+  disp.print( ball, bx, by, 0 )
   bx, by = ( bx + dx ), ( by + dy );
-  disp.stringdraw( ball, bx, by, 15 )
+  disp.print( ball, bx, by, 15 )
 end
 
 function updatePaddlePos()
@@ -41,9 +41,9 @@ end
 disp.init(1000000)
 
 term.clrscr()
-term.gotoxy( 5, 1 )
+term.moveto( 5, 1 )
 print( "Welcome to eLua Pong on a RIT display" )
-disp.stringdraw( "eLua Pong", 30, 40, 11 )
+disp.print( "eLua Pong", 30, 40, 11 )
 tmr.delay ( 0, 2000000 )
 
 highscore = 0
@@ -98,7 +98,7 @@ while (true) do
         change = 0
     end
     
-    disp.stringdraw( tostring( dscore ), 118, 0, 6 )
+    disp.print( tostring( dscore ), 118, 0, 6 )
     
   end
   
@@ -107,10 +107,10 @@ while (true) do
   end
 
   disp.clear()
-  disp.stringdraw( "Game Over :(", 30, 20, 11 )
-  disp.stringdraw( "Your score was " .. tostring( score ), 15, 40, 11 )
-  disp.stringdraw( "High score: " .. tostring( highscore ), 15, 50, 11 )
-  disp.stringdraw( "SELECT to restart", 6, 70, 11 )
+  disp.print( "Game Over :(", 30, 20, 11 )
+  disp.print( "Your score was " .. tostring( score ), 15, 40, 11 )
+  disp.print( "High score: " .. tostring( highscore ), 15, 50, 11 )
+  disp.print( "SELECT to restart", 6, 70, 11 )
   for i=0, 500000 do
     if LM3S.btnpressed( LM3S.BTN_SELECT ) then
       play = true

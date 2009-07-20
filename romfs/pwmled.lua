@@ -1,7 +1,7 @@
 -- Control LED intensity with PWM
 
 local pwmid, tmrid, ledpin
-if pd.board() == 'EK-LM3S8962' or pd.board() == 'EK-LM3S6965' then
+if pd.board() == 'EK-LM3S8962' or pd.board() == 'EK-LM3S6965' or pd.board() == 'ET-STM32' then
   pwmid, tmrid = 0, 1
   pwm.setclock( pwmid, 25000000 )
 else
@@ -12,6 +12,7 @@ end
 print "Control LED with PWM (fade up/down)"
 print "Press any key to exit"
 local crtduty, incr = 10, 5
+tmr.start( tmrid )
 pwm.setup( pwmid, 50000, crtduty )
 pwm.start( pwmid )
 while uart.recv( 0, 0, 0 ) < 0 do

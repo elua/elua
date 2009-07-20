@@ -53,7 +53,7 @@ local Morse = {
 ------------ Auxiliar Functions ------------
 
 local function play(m)
-  term.putstr(m)
+  term.print(m)
   if m == ' ' then
     tmr.delay(tmrid, 2 * dotDelay)
   else
@@ -96,19 +96,19 @@ pwm.setup( pwmid, playFreq, 50 )
 
 while true do
   term.clrscr()
-  term.gotoxy(0, 0)
+  term.moveto(1, 1)
   print("Welcome to eLua Morse Playing on " .. pd.cpu())
   io.write("Enter phrase (empty phrase to exit): ")
   local msg, enabled = io.read(), true
   if #msg == 0 then break end
 
-  term.putstr('   ')
-  while term.getch(term.NOWAIT) ~= -1 do end        -- flush
+  term.print('   ')
+  while term.getchar(term.NOWAIT) ~= -1 do end        -- flush
 
   while enabled do                                  -- Main Loop
     for i = 1, #msg do                              -- msg loop
       local ch = msg:sub(i, i):upper()
-      term.putstr(ch)                               -- show what will be played
+      term.print(ch)                               -- show what will be played
       if ch ~= ' ' and Morse[ch] then
         for j = 1, #Morse[ch] do                    -- Morse symbol loop
           play(Morse[ch]:sub(j,j))                  -- play each morse symbol
@@ -117,7 +117,7 @@ while true do
         play(' ') play(' ')                         -- Between words
       end
       play(' ')                                     -- Extra between words & lett
-      key = term.getch(term.NOWAIT)                 -- Handle UI actions
+      key = term.getchar(term.NOWAIT)                 -- Handle UI actions
       if key ~= -1 then
         if HandleKbd(key) then
           enabled = false

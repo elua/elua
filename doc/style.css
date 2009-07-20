@@ -12,7 +12,7 @@ p {
 h2 {
   border: 1px solid #808080;
   padding: 4px;
-  background-color: #aaffcc;
+  background-color: #a0ffa0;
   font-size: 99%;
   margin-left: 1em;
 }
@@ -26,9 +26,9 @@ table {
   margin-left: 1em;
 }
 pre {
-  border: 1px dashed #62a0ff;
+  border: 1px dashed #ffcc33;
   padding: 4px;
-  background-color: #cee7ff;
+  background-color: #ffff99;
   font-family: 'Monotype.com',"Courier New",Courier,monospace;
   font-size: 90%;
   line-height: 125%;
@@ -38,6 +38,9 @@ pre {
 }
 p.info {
   margin-left: 3em;
+}
+p.doc {
+  margin-left: 2em;
 }
 ul {
   margin-left: 2em;

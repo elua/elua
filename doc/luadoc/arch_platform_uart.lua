@@ -88,7 +88,7 @@ enum
         "$timer_id$ - the ID of the timer used in this operation (see @arch_platform_timers.html@here@ for details). See also the description of the $timeout$ argument.",
         [[$timeout$ - specifies a timeout for the receive operation as follows:
   <ul>
-    <li>$timeout &gt; 0$: the timer with the specified $timer_id$ will be used to timeout the receive operation after $timeout$ microseconds.</li>
+    <li>$timeout > 0$: the timer with the specified $timer_id$ will be used to timeout the receive operation after $timeout$ microseconds.</li>
     <li>$timeout = 0$: the function returns immediately regardless of data being available or not. $timer_id$ is ignored.</li>
     <li>$timeout$ = @#uart_timeout@PLATFORM_UART_INFINITE_TIMEOUT@: the function waits indefinitely for UART data to be available and returns it. In this mode the function doesn't 
         time out, so $timer_id$ is ignored.</li>
@@ -96,7 +96,7 @@ enum
       },
       ret = 
       {
-        "if $timeout &gt; 0$ and data from the UART is available in $timeout$ microseconds of less it is returned, otherwise -1 is returned",
+        "if $timeout > 0$ and data from the UART is available in $timeout$ microseconds of less it is returned, otherwise -1 is returned",
         "if $timeout = 0$ and data from the UART is available when the function is called it is returned, otherwise -1 is returned",
         "if $timeout$ = @#uart_timeout@PLATFORM_UART_INIFINITE_TIMEOUT@ it returns the data read from the UART after it becomes available"
       }

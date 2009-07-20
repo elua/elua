@@ -29,8 +29,8 @@ data_en =
       desc = [[ ]],
       args = 
       {
-        { name = "", desc = "" },
-        { name = "", desc = "" }
+        "$name$ - desc",
+        "$name$ - desc",
       },
       ret = 
       {

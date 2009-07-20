@@ -20,12 +20,9 @@ end
 
 -- Draw static text on terminal
 term.clrscr()
-term.gotoxy(1,1)
-term.putstr("ADC Status:")
-term.gotoxy(1,3)
-term.putstr(" CH   SLEN   RES")
-term.gotoxy(1,#adcchannels+7)
-term.putstr("Press ESC to exit.")
+term.print(1,1,"ADC Status:")
+term.print(1,3," CH   SLEN   RES")
+term.print(1,#adcchannels+7,"Press ESC to exit.")
 
 -- Use some locals for speed
 local adcvals = {}
@@ -47,20 +44,19 @@ while true do
   dtime = tmr.diff(0,etime,stime)/numiter -- compute average acquisition time per cycle
   
   -- draw last acquired samples on the console
-  term.gotoxy(1,4)
+  term.moveto(1,4)
   for i, v in ipairs(adcchannels) do
-    term.putstr(string.format("ADC%02d (%03d): %04d\n", v, adcsmoothing[i],adcvals[i]))
-    term.gotoxy(1,i+4)
+    term.print(string.format("ADC%02d (%03d): %04d\n", v, adcsmoothing[i],adcvals[i]))
+    term.moveto(1,i+4)
   end
   
   -- draw acquisition statistics
-  term.putstr(string.format("Tcyc: %06d (us)\n",dtime))
-	term.gotoxy(1,#adcchannels+5)
-	term.putstr(string.format("Mem:  %03.2f (kB)\n",collectgarbage("count")))
+  term.print(string.format("Tcyc: %06d (us)\n",dtime))
+	term.print(1,#adcchannels+5,string.format("Mem:  %03.2f (kB)\n",collectgarbage("count")))
 
-  key = term.getch( term.NOWAIT )
+  key = term.getchar( term.NOWAIT )
   if key == term.KC_ESC then break end -- exit if user hits Escape
 end
 
 term.clrscr()
-term.gotoxy( 1 , 1 )
+term.moveto( 1 , 1 )
