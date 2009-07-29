@@ -12,16 +12,16 @@ local pwmid, tmrid
 if pd.board() == 'EK-LM3S8962' or pd.board() == 'EK-LM3S6965' then
   pwmid, tmrid = 2, 1
   pwm.setclock( pwmid, 25000000 )
-  led, startpin, exitpin = "PF_0", "PF_1", "PE_1"
+  led, startpin, exitpin = pio.PF_0, pio.PF_1, pio.PE_1
 else
   print( pd.board() .. " not supported with this example" )
   return
 end
 
 -- Setup PIO
-pio.dir[ led ] = pio.OUTPUT
-pio.dir[ startpin ], pio.dir[ exitpin  ] = pio.INPUT, pio.INPUT
-pio.pull[ startpin  ], pio.pull[ exitpin ] = pio.PULLUP, pio.PULLUP
+pio.pin.setdir( pio.OUTPUT, led )
+pio.pin.setdir( pio.INPUT, startpin, exitpin )
+pio.pin.setpull( pio.PULLUP, startpin, exitpin )
 
 -- Local variables
 local _, fstr, freq, timesstr, ontime, offtime, runme
@@ -30,14 +30,14 @@ local _, fstr, freq, timesstr, ontime, offtime, runme
 collectgarbage( "stop" )
 runme = true
 while runme do
-  while pio[ startpin ] == 1 do 
-    if pio[ exitpin ] == 0 then
+  while pio.pin.getval( startpin )  == 1 do 
+    if pio.pin.getval( exitpin ) == 0 then
       runme = false 
       break 
     end
   end
   if not runme then break end
-  pio[ led ] = 1
+  pio.pin.sethigh( led )
   codes:seek( "set", 0 )
   while true do
     fstr = codes:read( 4 )
@@ -53,7 +53,7 @@ while runme do
       pwm.stop( pwmid )
       if offtime == 0 then break end
       tmr.delay( tmrid, offtime * 10 )
-      if pio[ exitpin ] == 0 then
+      if pio.pin.getval( exitpin ) == 0 then
         runme = false
         break 
       end          
@@ -61,7 +61,7 @@ while runme do
     if not runme then break end
     tmr.delay( tmrid, 250000 )
   end
-  pio[ led ] = 0
+  pio.pin.setlow( led )
   if not runme then break end  
   tmr.delay( tmrid, 500000 )
 end
