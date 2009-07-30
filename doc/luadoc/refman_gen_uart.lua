@@ -1,4 +1,4 @@
--- eLua reference manual - term module
+-- eLua reference manual - uart module
 
 data_en = 
 {
@@ -29,14 +29,14 @@ data_en =
       ret = "The actual baud rate set on the serial port. Depending on the hardware, this might have a different value than the $baud$ parameter"
     },
 
-    { sig = "#uart.write#( id, str1, [str2, ..., strn] )",
-      desc = "Write one or more strings to the serial port",
+    { sig = "#uart.write#( id, data1, [data2], ..., [datan] )",
+      desc = [[Write one or more strings or numbers to the serial port. If writing a number, its value must be between 0 and 255.]],
       args = 
       {
-        "$id$ - the ID of the serial port",
-        "$str1$ - the first string to write",
-        "$str2 (optional)$ - the second string to write",
-        "$strn (optional)$ - the %n%-th string to write"
+        "$id$ - the ID of the serial port.",
+        "$data1$ - the first string/number to write.",
+        "$data2 (optional)$ - the second string/number to write.",
+        "$datan (optional)$ - the %n%-th string/number to write."
       }
     },
 
