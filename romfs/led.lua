@@ -34,7 +34,7 @@ print( "Hello from eLua on " .. pd.cpu() )
 print "Watch your LED blinking :)"
 print "Press any key to end this demo.\n"
 
-while uart.recv( uartid, 0, 0 ) < 0 do
+while uart.getchar( uartid, 0 ) == "" do
   cycle()
 end
 

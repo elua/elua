@@ -15,7 +15,7 @@ local crtduty, incr = 10, 5
 tmr.start( tmrid )
 pwm.setup( pwmid, 50000, crtduty )
 pwm.start( pwmid )
-while uart.recv( 0, 0, 0 ) < 0 do
+while uart.getchar( 0, 0 ) == "" do
   if crtduty == 95 or crtduty == 5 then
     incr = -incr
   end
