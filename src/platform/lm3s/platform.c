@@ -39,9 +39,7 @@
 #include "elua_net.h"
 #include "dhcpc.h"
 #include "buf.h"
-#ifdef ENABLE_DISP
 #include "rit128x96x4.h"
-#endif
 #include "disp.h"
 #include "adc.h"
 
@@ -686,7 +684,6 @@ int platform_adc_start_sequence()
   return PLATFORM_OK;
 }
 
-#ifdef ENABLE_DISP
 // ****************************************************************************
 // OLED Display specific functions
 //
@@ -734,7 +731,6 @@ void lm3s_disp_displayOff()
 {
   RIT128x96x4DisplayOff();
 }
-#endif
 
 // ****************************************************************************
 // Ethernet functions
