@@ -39,7 +39,7 @@
 #include "elua_net.h"
 #include "dhcpc.h"
 #include "buf.h"
-#ifdef BUILD_DISP_RIT
+#ifdef ENABLE_DISP
 #include "rit128x96x4.h"
 #endif
 #include "disp.h"
@@ -237,12 +237,7 @@ void platform_spi_select( unsigned id, int is_select )
 
 // ****************************************************************************
 // UART
-<<<<<<< HEAD:src/platform/lm3s/platform.c
-// LM3S8962, LM3S6918 (2 UARTs)
-// LM3S6965 (3 UARTs)
-=======
 // Different configurations for LM3S8962, LM3S6918 (2 UARTs) and LM3S6965 (3 UARTs)
->>>>>>> remotes/trunk:src/platform/lm3s/platform.c
 
 // All possible LM3S uarts defs
 static const u32 uart_base[] = { UART0_BASE, UART1_BASE, UART2_BASE };
@@ -341,11 +336,7 @@ int platform_s_uart_recv( unsigned id, s32 timeout )
 
 // ****************************************************************************
 // Timers
-<<<<<<< HEAD:src/platform/lm3s/platform.c
-// LM3S8962, LM3S6965, LM3S6918 (4 timers)
-=======
 // Same on LM3S8962, LM3S6965 and LM3S6918 (4 timers)
->>>>>>> remotes/trunk:src/platform/lm3s/platform.c
 
 // All possible LM3S timers defs
 static const u32 timer_base[] = { TIMER0_BASE, TIMER1_BASE, TIMER2_BASE, TIMER3_BASE };
@@ -410,13 +401,8 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
 
 // ****************************************************************************
 // PWMs
-<<<<<<< HEAD:src/platform/lm3s/platform.c
-// LM3S8962, LM3S6965 (6 PWM ports)
-// LM3S6918 (0 PWM ports)
-=======
 // Similar on LM3S8962 and LM3S6965
 // LM3S6918 has no PWM
->>>>>>> remotes/trunk:src/platform/lm3s/platform.c
 
 // SYSCTL div data and actual div factors
 const static u32 pwm_div_ctl[] = { SYSCTL_PWMDIV_1, SYSCTL_PWMDIV_2, SYSCTL_PWMDIV_4, SYSCTL_PWMDIV_8, SYSCTL_PWMDIV_16, SYSCTL_PWMDIV_32, SYSCTL_PWMDIV_64 };
@@ -700,7 +686,7 @@ int platform_adc_start_sequence()
   return PLATFORM_OK;
 }
 
-#ifdef BUILD_DISP_RIT
+#ifdef ENABLE_DISP
 // ****************************************************************************
 // OLED Display specific functions
 //

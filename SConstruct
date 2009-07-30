@@ -267,7 +267,7 @@ local_include += ['src/uip']
 
 # FatFs files
 app_files = app_files + "src/mmcfs.c src/fatfs/ff.c "
-local_include = local_include + " -Isrc/fatfs"
+local_include += ['src/fatfs']
 
 # Lua module files
 module_names = "pio.c spi.c tmr.c pd.c uart.c term.c pwm.c lpack.c bit.c net.c cpu.c adc.c can.c luarpc.c"
