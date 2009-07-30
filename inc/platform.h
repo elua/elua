@@ -67,6 +67,17 @@ int platform_pio_has_pin( unsigned port, unsigned pin );
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op );
 
 // *****************************************************************************
+// CAN subsection
+
+// Maximum length for any CAN message
+#define PLATFORM_CAN_MAXLEN                   8
+
+int platform_can_exists( unsigned id );
+u32 platform_can_setup( unsigned id, u32 clock );
+void platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *data );
+void platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data );
+
+// *****************************************************************************
 // SPI subsection
 
 // There are 4 "virtual" SPI ports (SPI0...SPI3).
@@ -184,19 +195,23 @@ u32 platform_cpu_get_frequency();
 enum
 {
   PLATFORM_ADC_GET_MAXVAL,
-  PLATFORM_ADC_GET_SMOOTHING,
   PLATFORM_ADC_SET_SMOOTHING,
-  PLATFORM_ADC_SET_NONBLOCKING,
-  PLATFORM_ADC_FLUSH,
+  PLATFORM_ADC_SET_BLOCKING,
+  PLATFORM_ADC_SET_FREERUNNING,
+  PLATFORM_ADC_IS_DONE,
+  PLATFORM_ADC_OP_SET_TIMER,
+  PLATFORM_ADC_OP_SET_CLOCK,
 };
 
 // Functions requiring platform-specific implementation
-int platform_adc_sample( unsigned id );
-int platform_adc_burst( unsigned id, u8 logcount, unsigned timer_id, u32 frequency );
+int platform_adc_update_sequence(  );
+int platform_adc_start_sequence(  );
 void platform_adc_stop( unsigned id );
+u32 platform_adc_setclock( unsigned id, u32 frequency);
 
 // ADC Common Functions
 int platform_adc_exists( unsigned id );
+int platform_adc_check_timer_id( unsigned id, unsigned timer_id );
 u32 platform_adc_op( unsigned id, int op, u32 data );
 
 // *****************************************************************************
@@ -212,11 +227,5 @@ u32 platform_eth_get_elapsed_time();
 
 void* platform_get_first_free_ram( unsigned id );
 void* platform_get_last_free_ram( unsigned id );
-
-// *****************************************************************************
-// Misc support
-
-unsigned int intlog2( unsigned int v );
-u32 rndpow2( u32 v);
 
 #endif

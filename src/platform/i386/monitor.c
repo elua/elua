@@ -94,26 +94,26 @@ static int monitor_cvt_escape( const char* inbuf, ansi_op* res )
   res->op = res->p1 = res->p2 = 0;
   switch( last )
   {
-    case 'J':	// clrscr
+    case 'J': // clrscr
       if( *p != '2' )
         return 0;
       res->op = ANSI_SEQ_CLRSCR;
       break;
 
-    case 'K':	// clreol
+    case 'K': // clreol
       res->op = ANSI_SEQ_CLREOL;
       break;
 
-    case 'H':	// gotoxy
+    case 'H': // gotoxy
       res->op = ANSI_SEQ_GOTOXY;
       if( *p != 'H' )
         sscanf( p, "%d;%d", &res->p1, &res->p2 );
       break;
 
-    case 'A':	// up
-    case 'B':	// down
-    case 'C':	// right
-    case 'D':	// left
+    case 'A': // up
+    case 'B': // down
+    case 'C': // right
+    case 'D': // left
       res->op = last - 'A' + ANSI_SEQ_UP;
       sscanf( p, "%d", &res->p1 );
       break;
@@ -153,47 +153,47 @@ void monitor_put(char c)
       if( isalpha( c ) )
       {
         monitor_ansi_inbuf[ monitor_ansi_count ] = '\0';
-	ansi_op op;
-	if( monitor_cvt_escape( monitor_ansi_inbuf, &op ) )
-	{
-	  // Interpret out sequence
-	  switch( op.op )
-	  {
-	    case ANSI_SEQ_CLRSCR:
-	      monitor_clear();
-	      break;
+        ansi_op op;
+        if( monitor_cvt_escape( monitor_ansi_inbuf, &op ) )
+        {
+          // Interpret out sequence
+          switch( op.op )
+          {
+            case ANSI_SEQ_CLRSCR:
+              monitor_clear();
+              break;
 
-	    case ANSI_SEQ_CLREOL:
-	      prev = cursor_x;
-	      while( cursor_x++ < 80 )
-	      {
-	        location = video_memory + (cursor_y*80 + cursor_x);      
-		*location = ' ' | attribute;
-	      }
-	      cursor_x = prev;
-	      break;
-
-	    case ANSI_SEQ_GOTOXY:
-	      cursor_y = ( u8int )op.p1;
-	      cursor_x = ( u8int )op.p2;
-	      move_cursor();
-	      break;
-
-	    case ANSI_SEQ_UP:
-	    case ANSI_SEQ_LEFT:
-	    case ANSI_SEQ_RIGHT:
-	    case ANSI_SEQ_DOWN:
+            case ANSI_SEQ_CLREOL:
+              prev = cursor_x;
+              while( cursor_x++ < 80 )
               {
-	        int xm = op.op == ANSI_SEQ_LEFT ? -1 : op.op == ANSI_SEQ_RIGHT ? 1 : 0;
-	        int ym = op.op == ANSI_SEQ_UP ? -1 : op.op == ANSI_SEQ_DOWN ? 1 : 0;
-	        cursor_x += xm * op.p1;
-	        cursor_y += ym * op.p1;
-	        move_cursor();
-	        break;
+                location = video_memory + (cursor_y*80 + cursor_x);      
+                *location = ' ' | attribute;
+              }
+              cursor_x = prev;
+              break;
+
+            case ANSI_SEQ_GOTOXY:
+              cursor_y = ( u8int )op.p1 - 1;
+              cursor_x = ( u8int )op.p2 - 1;
+              move_cursor();
+              break;
+
+            case ANSI_SEQ_UP:
+            case ANSI_SEQ_LEFT:
+            case ANSI_SEQ_RIGHT:
+            case ANSI_SEQ_DOWN:
+              {
+                int xm = op.op == ANSI_SEQ_LEFT ? -1 : op.op == ANSI_SEQ_RIGHT ? 1 : 0;
+                int ym = op.op == ANSI_SEQ_UP ? -1 : op.op == ANSI_SEQ_DOWN ? 1 : 0;
+                cursor_x += xm * op.p1;
+                cursor_y += ym * op.p1;
+                move_cursor();
+                break;
               }
            }
-	}
-	monitor_reading_ansi = 0;
+        }
+        monitor_reading_ansi = 0;
       }
       return;
     }

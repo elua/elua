@@ -1,0 +1,62 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+<meta http-equiv="Content-Language" content="en-us"><title>The ROM file system</title>
+
+<link rel="stylesheet" type="text/css" href="../style.css"></head>
+<body style="background-color: rgb(255, 255, 255);">
+<h3>The ROM file system</h3>
+<p>The ROM file system (ROMFS) is a small, read-only file system built for <b>eLua</b>. It is integrated with the C
+  library, so you can use standard POSIX calls (fopen/fread/fwrite...) to access it. It is also accessible directly from Lua via the <b>io</b> module.
+  The files in the file system are part of the <b>eLua</b> binary image, thus they can't be modified after the image is
+  built. For the seame reason, you can't add/delete files after the image is built. ROMFS doesn't support directories.</p>
+<p>ROMFS is integrated with <a href="building.html">the build system</a> for maximum flexibility on various platforms. As a result, you can select the ROMFS contents for each board on which 
+  <b>eLua</b> runs. Moreover, you can specify what <b>applications</b> (instead of individual files) go to the file system, as a real application might need more than a single Lua program 
+  to run (for example a HTTP page with all its dependencies).</p>
+<h2>Using ROMFS</h2>
+<p>To use ROMFS, you have to copy the required files to the <i>romfs/</i> directory. Keep in mind that the maximum file name of a ROMFS file is 14 characters, including the dot between the file 
+  name and its extension. Make sure that the file names from <i>romfs/</i> follow this rule. Then edit the main build script (<b>SConstruct</b>) to add a new application/modify an existing one.
+  All the applications that can be included in ROMFS are defined in the <b>romfs</b> array in <b>SConstruct</b>. Each application in the <b>romfs</b> array lists its files, as shown below 
+  (note that <b>ltthpd</b>, <b>tvbgone</b> and <b>pong</b> applications require more than one file in order to run):</p>
+<p><pre><code>romfs = { 
+    'bisect' : [ 'bisect.lua' ],
+    'hangman' : [ 'hangman.lua' ],
+    'lhttpd' : [ 'index.pht', 'lhttpd.lua', 'test.lua' ],
+    'pong' : [ 'pong.lua', 'LM3S.lua' ],
+    'led' : [ 'led.lua' ],
+    'piano' : [ 'piano.lua' ],
+    'pwmled' : [ 'pwmled.lua' ],
+    'tvbgone' : [ 'tvbgone.lua', 'codes.bin' ],
+    'hello' : [ 'hello.lua' ],
+    'info' : [ 'info.lua' ],
+    'morse' : [ 'morse.lua' ],
+    'dualpwm' : [ 'dualpwm.lua' ],
+    'adcscope' : [ 'adcscope.lua' ],
+    'life' : [ 'life.lua' ]
+}</code></pre></p>
+<p>After this, you need to decide the application-to-board mapping. This is defined in another array in <b>SConsctruct</b>, named <b>file_list</b>. The definition of this array is shown below,
+  the format is self-explanatory:</p>
+<p><pre><code>file_list = { 
+    'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'info', 'morse' ],
+    'EK-LM3S8962' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope' ],
+    'EK-LM3S6965' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope' ],
+    'STR9-COMSTICK' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
+    'PC' : [ 'bisect', 'hello', 'info', 'life' ],
+    'LPC-H2888' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
+    'MOD711' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'dualpwm' ],
+    'STM3210E-EVAL' : [ 'bisect', 'hello', 'info' ],
+    'ATEVK1100' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
+    'ET-STM32' : [ 'hello', 'hangman', 'info', 'bisect' ],
+    'EAGLE-100' : [ 'bisect', 'hangman', 'lhttpd', 'led', 'hello', 'info' ]              
+}
+</code></pre></p>
+<p>What's left to do is <a href="building.html">biuld eLua</a>. As part of the build process, <b>mkfs.py</b> will be called, which will read the contents of the <i>romfs/</i> directory and 
+  output a C header file that contains a binary description of the file system. To use ROMFS from C code, whevener you want to access a file, prefix its name with <b>/rom/</b>. For example, 
+  if you want to open the <b>a.txt</b> file in ROMFS, you should call fopen like this:</p>
+<p><pre><code>f = fopen( "/rom/a.txt", "rb" )</code></pre></p>
+<p>If you want to execute one file from the ROM file system with Lua, simply do this from the shell:</p>
+ <p><pre><code>eLua# lua /rom/bisect.lua</code></pre></p>
+<p>Or directly from Lua:</p>
+ <p><pre><code>&gt; dofile "/rom/bisect.lua"</code></pre></p>
+</body></html>
+

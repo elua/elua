@@ -5,6 +5,7 @@
 
 #include "auxmods.h"
 #include "type.h"
+#include "stacks.h"
 
 // *****************************************************************************
 // Define here what components you want for this platform
@@ -12,15 +13,22 @@
 #define BUILD_SHELL
 #define BUILD_ROMFS
 #define BUILD_CON_GENERIC
+#define BUILD_TERM
+
+#define TERM_LINES    25
+#define TERM_COLS     80
 
 // *****************************************************************************
 // Auxiliary libraries that will be compiled for this platform
 
 #define LUA_PLATFORM_LIBS_ROM\
   _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
-  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
+  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
+  _ROM( AUXLIB_TERM, luaopen_term, term_map )
 
+// Bogus defines for common.c
 #define CON_UART_ID           0
+#define CON_TIMER_ID          0
 
 // *****************************************************************************
 // Configuration data
@@ -35,6 +43,7 @@
 #define NUM_TIMER             0
 #define NUM_PWM               0
 #define NUM_ADC               0
+#define NUM_CAN               0
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 #define CPU_FREQUENCY         0
@@ -51,6 +60,6 @@
 // (start address and end address)
 u32 platform_get_lastmem();
 #define MEM_START_ADDRESS     { ( void* )end }
-#define MEM_END_ADDRESS       { ( void* )( platform_get_lastmem() - 16384 - 1 ) }
+#define MEM_END_ADDRESS       { ( void* )( platform_get_lastmem() - STACK_SIZE_TOTAL - 1 ) }
 
 #endif // #ifndef __PLATFORM_CONF_H__

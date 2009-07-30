@@ -8,293 +8,343 @@
 #include "lrotable.h"
 #include "platform_conf.h"
 #include <stdio.h>
-#include <ctype.h>
 #include <string.h>
+#include <ctype.h>
 
-// PIO constants
+// PIO public constants
 #define PIO_DIR_OUTPUT      0
 #define PIO_DIR_INPUT       1
-#define PIO_PULLUP          0
-#define PIO_PULLDOWN        1
-#define PIO_NOPULL          2
-#define PIO_MAX_STRSIZE     16
-#define PIO_MAX_TOKENSIZE   5
 
-// Helper: scan to the next occurence of a given char and return
-// the type found (string or number). The last token, number and
-// type are held in the global variables pio_p_token, pio_p_num
-// and pio_p_type. The function returns the next position in buffer
-// (after delim) or NULL for error or empty string.
+// PIO private constants
+#define PIO_PORT_OP         0
+#define PIO_PIN_OP          1
 
-#define PIO_SCAN_NUMBER     0
-#define PIO_SCAN_STRING     1
-#define PIO_SCAN_ERROR      2
+// Local operation masks for all the ports
+static pio_type pio_masks[ PLATFORM_IO_PORTS ];
 
-static char pio_p_token[ PIO_MAX_TOKENSIZE + 1 ];
-static int pio_p_num;
-static int pio_p_type;
+// ****************************************************************************
+// Generic helper functions
 
-const char* pio_scan_next( const char* src, int delim )
+// Helper function: clear all masks
+static void pioh_clear_masks()
 {
-  int isnum = 1, cnt = 0;
-  char *ptoken;
-
-  pio_p_num = 0;
-  ptoken = pio_p_token;
-  pio_p_type = PIO_SCAN_ERROR;
-  while( *src && *src != delim )
-  {
-    *ptoken ++ = *src;
-    if( isnum && isdigit( *src ) )
-      pio_p_num = ( pio_p_num << 3 ) + ( pio_p_num << 1 ) + *src - '0';
-    else
-      isnum = 0;
-    src ++;
-    if( ++cnt > PIO_MAX_TOKENSIZE )
-      return NULL;
-  }
-  *ptoken = '\0';
-  pio_p_type = isnum && cnt > 0 ? PIO_SCAN_NUMBER : PIO_SCAN_STRING;
-  return src;
-}
-
-// Helper: get port and pin number from port string (PA_2, P1_3 ...)
-// Also look for direction specifiers (PA_2_DIR) as well as pull
-// specifiers(P1_3_PULL)
-// Returns PIO_ERROR, PIO_PORT or PIO_PORT_AND_PIN
-// Also returns port number and pin mask by side effect (and mode)
-#define PIO_ERROR         0
-#define PIO_PORT          1
-#define PIO_PORT_AND_PIN  2
-#define PIO_MODE_INOUT    0
-#define PIO_MODE_DIR      1
-#define PIO_MODE_PULL     2
-static int pioh_parse_port( const char* key, int* pport, pio_type* ppinmask, int *pspin, int* pmode )
-{
-  int spin = -1, epin = -1, i;
-  const char* p;
-
-  *pmode = PIO_MODE_INOUT;
-  if( !key || *key != 'P' || strlen( key ) > PIO_MAX_STRSIZE )
-    return PIO_ERROR;
+  int i;
   
-  // Get port first
-  p = pio_scan_next( key + 1, '_' );
-  if( pio_p_type == PIO_SCAN_ERROR )
-    return PIO_ERROR;
-  else if( pio_p_type == PIO_SCAN_NUMBER )
-  {
-    if( PIO_PREFIX != '0' )
-      return PIO_ERROR;
-    *pport = pio_p_num;
-  }
-  else
-  {
-    if( PIO_PREFIX != 'A' || strlen( pio_p_token ) != 1 || !isupper( pio_p_token[ 0 ] ) )
-      return PIO_ERROR;
-    *pport = pio_p_token[ 0 ] - 'A';
-  }
-  if( !platform_pio_has_port( *pport ) )
-    return PIO_ERROR;
-  if( *p == '\0' )
-    return PIO_PORT;
-
-  // Scan next three tokens
-  // The first can be either a number or a pull/dir spec
-  // The second can be either a number or a pull/dir spec
-  // The last one can only be a pull/dir spec
-  for( i = 0; i < 3; i ++ )
-  {
-    p = pio_scan_next( p + 1, '_' );
-    if( pio_p_type == PIO_SCAN_ERROR )
-      return PIO_ERROR;
-    else if( pio_p_type == PIO_SCAN_STRING )
-      goto handle_dir_pull;
-    else switch( i ) // token is a number
-    {
-      case 0:
-        spin = pio_p_num;
-        break;
-
-      case 1:
-        epin = pio_p_num;
-        break;
-
-      case 2:
-        return PIO_ERROR;
-    }
-    if( *p == '\0' ) // no more tokens
-      goto finalize;
-  }
-
-  // Handle the "_DIR" and "_PULL" suffixes
-handle_dir_pull:
-  if( !strcmp( pio_p_token, "DIR" ) && *p == '\0' )
-    *pmode = PIO_MODE_DIR;
-  else if( !strcmp( pio_p_token, "PULL" ) && *p == '\0' )
-    *pmode = PIO_MODE_PULL;
-  else
-    return PIO_ERROR;
-
-finalize:
-  // Build mask if needed
-  if( spin != -1 )
-  {
-    if( !platform_pio_has_pin( *pport, spin ) || ( ( epin != -1 ) && !platform_pio_has_pin( *pport, epin ) ) )
-      return PIO_ERROR;
-    *pspin = spin;
-    if( epin == -1 )
-      *ppinmask = 1 << spin;
-    else 
-      if( epin < spin )
-        return PIO_ERROR;
-      else
-        if( epin - spin + 1 == sizeof( pio_type ) << 3 )
-          *ppinmask = PLATFORM_IO_ALL_PINS;
-        else
-          *ppinmask = ( ( 1 << ( epin - spin + 1 ) ) - 1 ) << spin;
-    return PIO_PORT_AND_PIN;
-  }
-  return PIO_PORT;
+  for( i = 0; i < PLATFORM_IO_PORTS; i ++ )
+    pio_masks[ i ] = 0;
 }
 
-// __index metafunction for PIO
-// Return the value read from the given port/pin (nothing for error)
+// Helper function: pin operations
+// Gets the stack index of the first pin and the operation
+static int pioh_set_pins( lua_State* L, int stackidx, int op )
+{
+  int total = lua_gettop( L );
+  int i, v, port, pin;
+  
+  pioh_clear_masks();
+  
+  // Get all masks
+  for( i = stackidx; i <= total; i ++ )
+  {
+    v = luaL_checkinteger( L, i );
+    port = PLATFORM_IO_GET_PORT( v );
+    pin = PLATFORM_IO_GET_PIN( v );
+    if( PLATFORM_IO_IS_PORT( v ) || !platform_pio_has_port( port ) || !platform_pio_has_pin( port, pin ) )
+      return luaL_error( L, "invalid pin" );
+    pio_masks[ port ] |= 1 << pin;
+  }
+  
+  // Ask platform to execute the given operation
+  for( i = 0; i < PLATFORM_IO_PORTS; i ++ )
+    if( pio_masks[ i ] )
+      if( !platform_pio_op( i, pio_masks[ i ], op ) )
+        return luaL_error( L, "invalid PIO operation" );
+  return 0;
+}
+
+// Helper function: port operations
+// Gets the stack index of the first port and the operation (also the mask)
+static int pioh_set_ports( lua_State* L, int stackidx, int op, pio_type mask )
+{
+  int total = lua_gettop( L );
+  int i, v, port;
+  
+  pioh_clear_masks();
+  
+  // Get all masks
+  for( i = stackidx; i <= total; i ++ )
+  {
+    v = luaL_checkinteger( L, i );
+    port = PLATFORM_IO_GET_PORT( v );
+    if( !PLATFORM_IO_IS_PORT( v ) || !platform_pio_has_port( port ) )
+      return luaL_error( L, "invalid port" );
+    pio_masks[ port ] = mask;
+  }
+  
+  // Ask platform to execute the given operation
+  for( i = 0; i < PLATFORM_IO_PORTS; i ++ )
+    if( pio_masks[ i ] )
+      if( !platform_pio_op( i, pio_masks[ i ], op ) )
+        return luaL_error( L, "invalid PIO operation" );
+  return 0;
+}
+
+// ****************************************************************************
+// Pin/port helper functions
+
+static int pio_gen_setdir( lua_State *L, int optype )
+{
+  int op = luaL_checkinteger( L, 1 );
+
+  if( op == PIO_DIR_INPUT )
+    op = optype == PIO_PIN_OP ? PLATFORM_IO_PIN_DIR_INPUT : PLATFORM_IO_PORT_DIR_INPUT;
+  else if( op == PIO_DIR_OUTPUT )
+    op = optype == PIO_PIN_OP ? PLATFORM_IO_PIN_DIR_OUTPUT : PLATFORM_IO_PORT_DIR_OUTPUT;
+  else
+    return luaL_error( L, "invalid direction" );
+  if( optype == PIO_PIN_OP )
+    pioh_set_pins( L, 2, op );
+  else
+    pioh_set_ports( L, 2, op, PLATFORM_IO_ALL_PINS );
+  return 0;
+}
+
+static int pio_gen_setpull( lua_State *L, int optype )
+{
+  int op = luaL_checkinteger( L, 1 );
+
+  if( ( op != PLATFORM_IO_PIN_PULLUP ) &&
+      ( op != PLATFORM_IO_PIN_PULLDOWN ) &&
+      ( op != PLATFORM_IO_PIN_NOPULL ) )
+    return luaL_error( L, "invalid pull type" );
+  if( optype == PIO_PIN_OP )
+    pioh_set_pins( L, 2, op );
+  else
+    pioh_set_ports( L, 2, op, PLATFORM_IO_ALL_PINS );
+  return 0;
+}
+
+static int pio_gen_setval( lua_State *L, int optype, pio_type val, int stackidx )
+{
+  if( ( optype == PIO_PIN_OP ) && ( val != 1 ) && ( val != 0 ) ) 
+    return luaL_error( L, "invalid pin value" );
+  if( optype == PIO_PIN_OP )
+    pioh_set_pins( L, stackidx, val == 1 ? PLATFORM_IO_PIN_SET : PLATFORM_IO_PIN_CLEAR );
+  else
+    pioh_set_ports( L, stackidx, PLATFORM_IO_PORT_SET_VALUE, val );
+  return 0;
+}
+
+// ****************************************************************************
+// Pin operations
+
+// Lua: pio.pin.setdir( pio.INPUT | pio.OUTPUT, pin1, pin2, ..., pinn )
+static int pio_pin_setdir( lua_State *L )
+{
+  return pio_gen_setdir( L, PIO_PIN_OP );
+}
+
+// Lua: pio.pin.setpull( pio.PULLUP | pio.PULLDOWN | pio.NOPULL, pin1, pin2, ..., pinn )
+static int pio_pin_setpull( lua_State *L )
+{
+  return pio_gen_setpull( L, PIO_PIN_OP );
+}
+
+// Lua: pio.pin.setval( 0|1, pin1, pin2, ..., pinn )
+static int pio_pin_setval( lua_State *L )
+{
+  pio_type val = ( pio_type )luaL_checkinteger( L, 1 );
+
+  return pio_gen_setval( L, PIO_PIN_OP, val, 2 );
+}
+
+// Lua: pio.pin.sethigh( pin1, pin2, ..., pinn )
+static int pio_pin_sethigh( lua_State *L )
+{
+  return pio_gen_setval( L, PIO_PIN_OP, 1, 1 );
+}
+
+// Lua: pio.pin.setlow( pin1, pin2, ..., pinn )
+static int pio_pin_setlow( lua_State *L )
+{
+  return pio_gen_setval( L, PIO_PIN_OP, 0, 1 );
+}
+
+// Lua: pin1, pin2, ..., pinn = pio.pin.getval( pin1, pin2, ..., pinn )
+static int pio_pin_getval( lua_State *L )
+{
+  pio_type value;
+  int v, i, port, pin;
+  int total = lua_gettop( L );
+  
+  for( i = 1; i <= total; i ++ )
+  {
+    v = luaL_checkinteger( L, i );  
+    port = PLATFORM_IO_GET_PORT( v );
+    pin = PLATFORM_IO_GET_PIN( v );
+    if( PLATFORM_IO_IS_PORT( v ) || !platform_pio_has_port( port ) || !platform_pio_has_pin( port, pin ) )
+      return luaL_error( L, "invalid pin" );
+    else
+    {
+      value = platform_pio_op( port, 1 << pin, PLATFORM_IO_PIN_GET );
+      lua_pushinteger( L, value );
+    }
+  }
+  return total;
+}
+
+// ****************************************************************************
+// Port operations
+
+// Lua: pio.port.setdir( pio.INPUT | pio.OUTPUT, port1, port2, ..., portn )
+static int pio_port_setdir( lua_State *L )
+{
+  return pio_gen_setdir( L, PIO_PORT_OP );
+}
+
+// Lua: pio.port.setpull( pio.PULLUP | pio.PULLDOWN | pio.NOPULL, port1, port2, ..., portn )
+static int pio_port_setpull( lua_State *L )
+{
+  return pio_gen_setpull( L, PIO_PORT_OP );
+}
+
+// Lua: pio.port.setval( value, port1, port2, ..., portn )
+static int pio_port_setval( lua_State *L )
+{
+  pio_type val = ( pio_type )luaL_checkinteger( L, 1 );
+
+  return pio_gen_setval( L, PIO_PORT_OP, val, 2 );
+}
+
+// Lua: pio.port.sethigh( port1, port2, ..., portn )
+static int pio_port_sethigh( lua_State *L )
+{
+  return pio_gen_setval( L, PIO_PORT_OP, PLATFORM_IO_ALL_PINS, 1 );
+}
+
+// Lua: pio.port.setlow( port1, port2, ..., portn )
+static int pio_port_setlow( lua_State *L )
+{
+  return pio_gen_setval( L, PIO_PORT_OP, 0, 1 );
+}
+
+// Lua: val1, val2, ..., valn = pio.port.getval( port1, port2, ..., portn )
+static int pio_port_getval( lua_State *L )
+{
+  pio_type value;
+  int v, i, port;
+  int total = lua_gettop( L );
+  
+  for( i = 1; i <= total; i ++ )
+  {
+    v = luaL_checkinteger( L, i );  
+    port = PLATFORM_IO_GET_PORT( v );
+    if( !PLATFORM_IO_IS_PORT( v ) || !platform_pio_has_port( port ) )
+      return luaL_error( L, "invalid port" );
+    else
+    {
+      value = platform_pio_op( port, PLATFORM_IO_ALL_PINS, PLATFORM_IO_PORT_GET_VALUE );
+      lua_pushinteger( L, value );
+    }
+  }
+  return total;
+}
+
+// ****************************************************************************
+// The __index metamethod will return pin/port numeric identifiers
+
 static int pio_mt_index( lua_State* L )
 {
-  const char *key = luaL_checkstring( L, 2 );
-  int port, spin, res, mode;
-  pio_type value, pinmask;
-
-  if( ( res = pioh_parse_port( key, &port, &pinmask, &spin, &mode ) == PIO_ERROR ) )
+  const char *key = luaL_checkstring( L ,2 );
+  int port = 0xFFFF, pin = 0xFFFF, isport = 0, sz;
+  
+  if( !key || *key != 'P' )
     return 0;
-  if( mode != PIO_MODE_INOUT )
-    return 0;
-  if( res == PIO_PORT )
-    value = platform_pio_op( port, PLATFORM_IO_READ_IN_MASK, PLATFORM_IO_PORT_GET_VALUE );
-  else
-    if( pinmask & ( pinmask - 1 ) )
-    {
-      value = platform_pio_op( port, PLATFORM_IO_READ_IN_MASK, PLATFORM_IO_PORT_GET_VALUE );
-      value = ( value & pinmask ) >> spin;
-    }
-    else
-      value = platform_pio_op( port, pinmask, PLATFORM_IO_PIN_GET );
-  lua_pushinteger( L, value );
-  return 1;
-}
-
-// __newindex metafunction for PIO
-// Set the given value to the give port/pin, or the direction of the pin, or
-// the pullup/pulldown configuration
-static int pio_mt_newindex( lua_State* L )
-{
-  const char *key = luaL_checkstring( L, 2 );
-  pio_type value = ( pio_type )luaL_checkinteger( L, 3 );
-  int port, spin, res, mode;
-  pio_type pinmask, temp;
-
-  if( ( res = pioh_parse_port( key, &port, &pinmask, &spin, &mode ) == PIO_ERROR ) )
-    return 0;
-  switch( mode )
+  if( isupper( key[ 1 ] ) ) // PA, PB, ...
   {
-    case PIO_MODE_INOUT: // set port/pin value
-      if( res == PIO_PORT )
-        platform_pio_op( port, value, PLATFORM_IO_PORT_SET_VALUE );
-      else
-      {
-        temp = platform_pio_op( port, PLATFORM_IO_READ_OUT_MASK, PLATFORM_IO_PORT_GET_VALUE );
-        value = ( temp & ~pinmask ) | ( value << spin );
-        platform_pio_op( port, value, PLATFORM_IO_PORT_SET_VALUE );
-      }
-      break;
-      
-    case PIO_MODE_DIR: // set pin direction
-      if( res == PIO_PORT )
-        platform_pio_op( port, 0, value == PIO_DIR_INPUT ? PLATFORM_IO_PORT_DIR_INPUT : PLATFORM_IO_PORT_DIR_OUTPUT );
-      else
-        platform_pio_op( port, pinmask, value == PIO_DIR_INPUT ? PLATFORM_IO_PIN_DIR_INPUT : PLATFORM_IO_PIN_DIR_OUTPUT );
-      break;
-
-    case PIO_MODE_PULL: // pullup/pulldown configuration
-      platform_pio_op( port, res == PIO_PORT ? PLATFORM_IO_ALL_PINS : pinmask, value ); 
-      break;
+    if( PIO_PREFIX != 'A' )
+      return 0;
+    port = key[ 1 ] - 'A';
+    if( key[ 2 ] == '\0' )
+      isport = 1;
+    else if( key[ 2 ] == '_' )      
+      if( sscanf( key + 3, "%d%n", &pin, &sz ) != 1 || sz != strlen( key ) - 3 )
+        return 0;      
   }
-  return 0;
-}
-
-// __newindex metafunction for pio.dir
-// Set the direction of the given ports/pins
-static int pio_dir_mt_newindex( lua_State* L )
-{
-  const char* key = luaL_checkstring( L, 2 );
-  pio_type value = ( pio_type )luaL_checkinteger( L, 3 );
-  int port, spin, res, mode;
-  pio_type pinmask;
-
-  if( ( res = pioh_parse_port( key, &port, &pinmask, &spin, &mode ) == PIO_ERROR ) )
-    return 0;
-  if( mode != PIO_MODE_INOUT )
-    return 0;
-  if( res == PIO_PORT )
-    platform_pio_op( port, 0, value == PIO_DIR_INPUT ? PLATFORM_IO_PORT_DIR_INPUT : PLATFORM_IO_PORT_DIR_OUTPUT );
+  else // P0, P1, ...
+  {
+    if( PIO_PREFIX != '0' )
+      return 0;
+    if( !strchr( key, '_' ) )   // parse port
+    {
+      if( sscanf( key + 1, "%d%n", &port, &sz ) != 1  || sz != strlen( key ) - 1 )
+        return 0;
+      isport = 1;
+    }
+    else    // parse port_pin
+      if( sscanf( key + 1, "%d_%d%n", &port, &pin, &sz ) != 2 || sz != strlen( key ) - 1 )
+        return 0;
+  }
+  sz = -1;
+  if( isport )
+  {
+    if( platform_pio_has_port( port ) )
+      sz = PLATFORM_IO_ENCODE( port, 0, 1 );
+  }
   else
-    platform_pio_op( port, pinmask, value == PIO_DIR_INPUT ? PLATFORM_IO_PIN_DIR_INPUT : PLATFORM_IO_PIN_DIR_OUTPUT );
-  return 0;
+  {
+    if( platform_pio_has_port( port ) && platform_pio_has_pin( port, pin ) )
+      sz = PLATFORM_IO_ENCODE( port, pin, 0 );
+  }
+  if( sz == -1 )
+    return 0;
+  else
+  {
+    lua_pushinteger( L, sz );
+    return 1;
+  }
 }
 
-// __newindex metafunction for pio.pull
-// Set the pull type (pullup, pulldown, nopin) to the given ports/pins
-static int pio_pull_mt_newindex( lua_State* L )
-{
-  const char* key = luaL_checkstring( L, 2 );
-  pio_type value = ( pio_type )luaL_checkinteger( L, 3 );
-  int port, spin, res, mode;
-  pio_type pinmask;
+// ****************************************************************************
+// Pin function map
 
-  if( ( res = pioh_parse_port( key, &port, &pinmask, &spin, &mode ) == PIO_ERROR ) )
-    return 0;
-  if( mode != PIO_MODE_INOUT )
-    return 0;
-  platform_pio_op( port, res == PIO_PORT ? PLATFORM_IO_ALL_PINS : pinmask, value );
-  return 0;
-}
-
-// Module function map
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
-static const LUA_REG_TYPE pio_dir_map[] =
+static const LUA_REG_TYPE pio_pin_map[] =
 {
-#if LUA_OPTIMIZE_MEMORY > 0
-  { LSTRKEY( "__metatable" ), LROVAL( pio_dir_map ) },
-#endif
-  { LSTRKEY( "__newindex" ), LFUNCVAL( pio_dir_mt_newindex ) },
+  { LSTRKEY( "setdir" ), LFUNCVAL ( pio_pin_setdir ) },
+  { LSTRKEY( "setpull" ), LFUNCVAL( pio_pin_setpull ) },
+  { LSTRKEY( "setval" ), LFUNCVAL( pio_pin_setval ) },
+  { LSTRKEY( "sethigh" ), LFUNCVAL( pio_pin_sethigh ) },
+  { LSTRKEY( "setlow" ), LFUNCVAL( pio_pin_setlow ) },
+  { LSTRKEY( "getval" ), LFUNCVAL( pio_pin_getval ) },
   { LNILKEY, LNILVAL }
 };
 
-static const LUA_REG_TYPE pio_pull_map[] =
+static const LUA_REG_TYPE pio_port_map[] =
 {
-#if LUA_OPTIMIZE_MEMORY > 0
-  { LSTRKEY( "__metatable" ), LROVAL( pio_pull_map ) },
-#endif
-  { LSTRKEY( "__newindex" ), LFUNCVAL( pio_pull_mt_newindex ) },
+  { LSTRKEY( "setdir" ), LFUNCVAL ( pio_port_setdir ) },
+  { LSTRKEY( "setpull" ), LFUNCVAL( pio_port_setpull ) },
+  { LSTRKEY( "setval" ), LFUNCVAL( pio_port_setval ) },
+  { LSTRKEY( "sethigh" ), LFUNCVAL( pio_port_sethigh ) },
+  { LSTRKEY( "setlow" ), LFUNCVAL( pio_port_setlow ) },
+  { LSTRKEY( "getval" ), LFUNCVAL( pio_port_getval ) },
   { LNILKEY, LNILVAL }
 };
 
-const LUA_REG_TYPE pio_map[] = 
+const LUA_REG_TYPE pio_map[] =
 {
 #if LUA_OPTIMIZE_MEMORY > 0
-  { LSTRKEY( "__metatable" ), LROVAL( pio_map ) },
+  { LSTRKEY( "pin" ), LROVAL( pio_pin_map ) },
+  { LSTRKEY( "port" ), LROVAL( pio_port_map ) },
   { LSTRKEY( "INPUT" ), LNUMVAL( PIO_DIR_INPUT ) },
   { LSTRKEY( "OUTPUT" ), LNUMVAL( PIO_DIR_OUTPUT ) },
   { LSTRKEY( "PULLUP" ), LNUMVAL( PLATFORM_IO_PIN_PULLUP ) },
   { LSTRKEY( "PULLDOWN" ), LNUMVAL( PLATFORM_IO_PIN_PULLDOWN ) },
   { LSTRKEY( "NOPULL" ), LNUMVAL( PLATFORM_IO_PIN_NOPULL ) },
-  { LSTRKEY( "dir" ), LROVAL( pio_dir_map ) },
-  { LSTRKEY( "pull" ), LROVAL( pio_pull_map ) },
+  { LSTRKEY( "__metatable" ), LROVAL( pio_map ) },
 #endif
   { LSTRKEY( "__index" ), LFUNCVAL( pio_mt_index ) },
-  { LSTRKEY( "__newindex" ), LFUNCVAL( pio_mt_newindex ) },
   { LNILKEY, LNILVAL }
 };
 
@@ -304,35 +354,26 @@ LUALIB_API int luaopen_pio( lua_State *L )
   return 0;
 #else // #if LUA_OPTIMIZE_MEMORY > 0
   luaL_register( L, AUXLIB_PIO, pio_map );
+
+  // Set it as its own metatable
+  lua_pushvalue( L, -1 );
+  lua_setmetatable( L, -2 );
   
-  // Set this table as its own metatable
-  lua_pushvalue( L, -1 );
-  lua_setmetatable( L, -2 );
-
   // Set constants for direction/pullups
-  lua_pushnumber( L, PIO_DIR_INPUT );
-  lua_setfield( L, -2, "INPUT" );
-  lua_pushnumber( L, PIO_DIR_OUTPUT );
-  lua_setfield( L, -2, "OUTPUT" );
-  lua_pushnumber( L, PLATFORM_IO_PIN_PULLUP );
-  lua_setfield( L, -2, "PULLUP" );
-  lua_pushnumber( L, PLATFORM_IO_PIN_PULLDOWN );
-  lua_setfield( L, -2, "PULLDOWN" );
-  lua_pushnumber( L, PLATFORM_IO_PIN_NOPULL );
-  lua_setfield( L, -2, "NOPULL" );
+  MOD_REG_NUMBER( L, "INPUT", PIO_DIR_INPUT );
+  MOD_REG_NUMBER( L, "OUTPUT", PIO_DIR_OUTPUT );
+  MOD_REG_NUMBER( L, "PULLUP", PLATFORM_IO_PIN_PULLUP );
+  MOD_REG_NUMBER( L, "PULLDOWN", PLATFORM_IO_PIN_PULLDOWN );
+  MOD_REG_NUMBER( L, "NOPULL", PLATFORM_IO_PIN_NOPULL );
 
-  // Setup the new tables (dir and pull) inside pio
+  // Setup the new tables (pin and port) inside pio
   lua_newtable( L );
-  luaL_register( L, NULL, pio_dir_map );
-  lua_pushvalue( L, -1 );
-  lua_setmetatable( L, -2 );
-  lua_setfield( L, -2, "dir" );
+  luaL_register( L, NULL, pio_pin_map );
+  lua_setfield( L, -2, "pin" );
 
   lua_newtable( L );
-  luaL_register( L, NULL, pio_pull_map );
-  lua_pushvalue( L, -1 );
-  lua_setmetatable( L, -2 );
-  lua_setfield( L, -2, "pull" );
+  luaL_register( L, NULL, pio_port_map );
+  lua_setfield( L, -2, "port" );
 
   return 1;
 #endif // #if LUA_OPTIMIZE_MEMORY > 0

@@ -1,98 +1,98 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
 <html><head>
 <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-<meta http-equiv="Content-Language" content="en-us"><title>Product</title>
+<meta http-equiv="Content-Language" content="en-us"><title>Produto</title>
 
 <link rel="stylesheet" type="text/css" href="../style.css">
 </head>
 <body style="background-color: rgb(255, 255, 255);">
 <h3><a name="over"></a>bit</h3>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="bnot"></a>Res = bit.bnot( value ): unary
-negation
+<p class="MsoNormal" style="font-family: Verdana;"><a name="bnot"></a>Res = bit.bnot( value ): 
+nega&ccedil;&atilde;o
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
 &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="band"></a> Res = bit.band( v1, v2, ... ): <b>bitwise
+<p class="MsoNormal" style="font-family: Verdana;"><a name="band"></a> Res = bit.band( v1, v2, ... ): <b>opera&ccedil;&atilde;o bin&aacute;ria
 </b>"and"
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
 &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="bor"></a> Res = bit.bor( v1, v2, ... ):&nbsp;<b>bitwise</b><b>
+<p class="MsoNormal" style="font-family: Verdana;"><a name="bor"></a> Res = bit.bor( v1, v2, ... ):&nbsp;<b>opera&ccedil;&atilde;o bin&aacute;ria</b><b>
 </b>"or"
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
 &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="bxor"></a> Res = bit.bxor( v1, v2, ... ): <b>bitwise</b><b>
+<p class="MsoNormal" style="font-family: Verdana;"><a name="bxor"></a> Res = bit.bxor( v1, v2, ... ): <b>opera&ccedil;&atilde;o bin&aacute;ria</b><b>
 </b>"exclusive or"
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
 &nbsp;
 </p>
 <p class="MsoNormal" style="font-family: Verdana;"><a name="lshift"></a> Res = bit.lshift( value, pos ):
-shift "value" left "pos" positions.
+desloca "value" em "pos" posi&ccedil;&otilde;es a esquerda.
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
 &nbsp;
 </p>
 <p class="MsoNormal" style="font-family: Verdana;"><a name="rshift"></a> Res = bit.rshift( value, pos ):
-shift "value" right "pos" positions. The sign is
+desloca "value" em "pos" posi&ccedil;&otilde;es a direita. O sinal n&atilde;o
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
-&nbsp; not propagated.
+&nbsp; &eacute; propagado.
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
 &nbsp;
 </p>
 <p class="MsoNormal" style="font-family: Verdana;"><a name="arshift"></a> Res = bit.arshift( value, pos ):
-shift "value" right "pos" positions. The sign
+desloca "value" em "pos" posi&ccedil;&otilde;es a direita. O sinal
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
-&nbsp; is propagated ("arithmetic shift").
+&nbsp; &eacute; propagado ("arithmetic shift").
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
 &nbsp;
 </p>
-<p class="MsoNormal" style="font-family: Verdana;"><a name="bit"></a> Res = bit.bit( bitno ): a shortcut for
+<p class="MsoNormal" style="font-family: Verdana;"><a name="bit"></a> Res = bit.bit( bitno ): um atalho para
 bit.lshift( 1, bitno )
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
 &nbsp;
 </p>
 <p class="MsoNormal" style="font-family: Verdana;"><a name="set"></a> Res1, Res2, ... = bit.set( bitno, v1,
-v2, ... ): set the bit at position "bitno"
+v2, ... ): configura o bit na posi&ccedil;&atilde;o "bitno"
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
-&nbsp; in v1, v2, ... to 1.
+&nbsp; em v1, v2, ... to 1.
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
 &nbsp;
 </p>
 <p class="MsoNormal" style="font-family: Verdana;"><a name="clear"></a> Res1, Res2, ... = bit.clear( bitno,
-v1, v2, ... ): set the bit at position
+v1, v2, ... ): configura o bit na posi&ccedil;&atilde;o
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
-&nbsp; "bitno"in v1, v2, ... to 0.
+&nbsp; "bitno" em v1, v2, ... para 0.
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
 &nbsp;
 </p>
 <p class="MsoNormal" style="font-family: Verdana;"><a name="isset"></a> Res = bit.isset( value, bitno ):
-returns true if bit at position "bitno" in
+retorna verdadeiro se o bit na posi&ccedil;&atildeo "bitno" em
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
-&nbsp; "value" is 1, false otherwise.
+&nbsp; "value" &eacute; igual a 1, caso contr&aacute;rio retorna falso.
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
 &nbsp;
 </p>
 <p class="MsoNormal" style="font-family: Verdana;"><a name="isclear"></a> Res = bit.isclear( value, bitno ):
-returns true if bit at position "bitno" in
+retorna verdadeiro se o bit na posi&ccedil;&atilde;o "bitno" em
 </p>
 <p class="MsoNormal" style="font-family: Verdana;">
-&nbsp; "value" is 0, false otherwise.
+&nbsp; "value" &eacute; igual a 0,  caso contr&aacute;rio retorna falso.
 </p>
 <br style="font-family: Verdana;">
 <br style="font-family: Verdana;">

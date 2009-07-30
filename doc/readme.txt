@@ -1,17 +1,13 @@
    This document describes the eLua documentation structure, formats and the
 tools used to maintain it.
 
-## Temporary note: 
-## - This is the new doc structure proposed for eLua, still
-## under evaluation but probably replacing soon the single manual format.
-## - The /doc directory will soon replace the current /docs
-
    eLua documentation is created and maintained offline, in HTML format and
 integrated with the same version control system used for eLua Source Code. 
 This allows the same content to be deployed both online, published on the
 site, and offline, included in our releases.
    All the content pages are created and edited offline, using any HTML
 editor. We're currently using KompoZer and opened to new sugestions :)
+
    The "doc site" structure is created by a help doc generator tool called
 WebBook, created at Tecgraf/PUC-Rio. WebBook is Open Source and Free
 Software, 100% written in Lua and it's usage is described in

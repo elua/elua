@@ -3,9 +3,86 @@ target = ARGUMENTS.get( 'target', 'lua' ).lower()
 cputype = ARGUMENTS.get( 'cpu', '' ).upper()
 allocator = ARGUMENTS.get( 'allocator', '' ).lower()
 boardname = ARGUMENTS.get( 'board' , '').upper()
+toolchain = ARGUMENTS.get( 'toolchain', '')
 optram = int( ARGUMENTS.get( 'optram', '1' ) )
 
-# ROMFS file list
+# List of toolchains
+toolchain_list = {
+  'arm-gcc' : { 
+    'compile' : 'arm-elf-gcc', 
+    'link' : 'arm-elf-ld', 
+    'asm' : 'arm-elf-as', 
+    'bin' : 'arm-elf-objcopy', 
+    'size' : 'arm-elf-size' 
+  },
+  'arm-eabi-gcc' : {
+    'compile' : 'arm-eabi-gcc',
+    'link' : 'arm-eabi-ld',
+    'asm' : 'arm-eabi-as',
+    'bin' : 'arm-eabi-objcopy',
+    'size' : 'arm-eabi-size'
+  },
+  'codesourcery' : { 
+    'compile' : 'arm-none-eabi-gcc', 
+    'link' : 'arm-none-eabi-ld', 
+    'asm' : 'arm-none-eabi-as', 
+    'bin' : 'arm-none-eabi-objcopy', 
+    'size' : 'arm-none-eabi-size' 
+  },
+  'avr32-gcc' : { 
+    'compile' : 'avr32-gcc', 
+    'link' : 'avr32-ld', 
+    'asm' : 'avr32-as', 
+    'bin' : 'avr32-objcopy', 
+    'size' : 'avr32-size' 
+  },
+  'i686-gcc' : { 
+    'compile' : 'i686-elf-gcc', 
+    'link' : 'i686-elf-ld', 
+    'asm' : 'nasm', 
+    'bin' : 'i686-elf-objcopy', 
+    'size' : 'i686-elf-size' 
+  }
+}
+
+# Toolchain Aliases
+toolchain_list['devkitarm'] = toolchain_list['arm-eabi-gcc']
+
+
+# List of platform/CPU/toolchains combinations
+# The first toolchain in the toolchains list is the default one
+# (the one that will be used if none is specified)
+platform_list = {  
+  'at91sam7x' : { 'cpus' : [ 'AT91SAM7X256', 'AT91SAM7X512' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
+  'lm3s' : { 'cpus' : [ 'LM3S8962', 'LM3S6965', 'LM3S6918' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
+  'str9' : { 'cpus' : [ 'STR912FAW44' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
+  'i386' : { 'cpus' : [ 'I386' ], 'toolchains' : [ 'i686-gcc' ] },
+  'sim' : { 'cpus' : [ 'LINUX' ], 'toolchains' : [ 'i686-gcc' ] },
+  'lpc288x' : { 'cpus' : [ 'LPC2888' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
+  'str7' : { 'cpus' : [ 'STR711FR2' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
+  'stm32' : { 'cpus' : [ 'STM32F103ZE', 'STM32F103RE' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
+  'avr32' : { 'cpus' : [ 'AT32UC3A0512' ], 'toolchains' : [ 'avr32-gcc' ] }
+}
+
+# List of board/CPU combinations
+board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
+               'EK-LM3S8962' : [ 'LM3S8962' ],
+               'EK-LM3S6965' : [ 'LM3S6965' ],
+               'STR9-COMSTICK' : [ 'STR912FAW44' ],
+               'PC' : [ 'I386' ],
+               'SIM' : [ 'LINUX' ],
+               'LPC-H2888' : [ 'LPC2888' ],
+               'MOD711' : [ 'STR711FR2' ],
+               'STM3210E-EVAL' : [ 'STM32F103ZE' ],
+               'ATEVK1100' : [ 'AT32UC3A0512' ],
+               'ET-STM32' : [ 'STM32F103RE' ],
+               'EAGLE-100' : [ 'LM3S6918' ]
+            }
+
+# ROMFS file list "groups"
+# To include a file in a ROMFS build, include it in a group here (or create one
+# if you need) and make sure the group is included on your platform's file_list
+# definition (right after this).
 romfs = { 'bisect' : [ 'bisect.lua' ],
           'hangman' : [ 'hangman.lua' ],
           'lhttpd' : [ 'index.pht', 'lhttpd.lua', 'test.lua' ],
@@ -19,6 +96,7 @@ romfs = { 'bisect' : [ 'bisect.lua' ],
           'morse' : [ 'morse.lua' ],
           'dualpwm' : [ 'dualpwm.lua' ],
           'adcscope' : [ 'adcscope.lua' ],
+          'adcpoll' : [ 'adcpoll.lua' ],
           'life' : [ 'life.lua' ]
         }
 
@@ -52,11 +130,14 @@ file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'i
               'EK-LM3S6965' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope' ],
               'EAGLE-100' : [ 'led', 'info' ],
               'STR9-COMSTICK' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
-              'PC' : [ 'bisect', 'hello', 'info', 'life' ],
+              'PC' : [ 'bisect', 'hello', 'info', 'life', 'hangman' ],
+              'SIM' : [ 'bisect', 'hello', 'info', 'life', 'hangman' ],
               'LPC-H2888' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
               'MOD711' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'dualpwm' ],
               'STM3210E-EVAL' : [ 'bisect', 'hello', 'info' ],
-              'ATEVK1100' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ]
+              'ATEVK1100' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
+              'ET-STM32' : [ 'hello', 'hangman', 'info', 'bisect','adcscope','adcpoll', 'dualpwm', 'pwmled' ],
+              'EAGLE-100' : [ 'bisect', 'hangman', 'lhttpd', 'led', 'hello', 'info' ]              
             }
 
 # Variants: board = <boardname>
@@ -92,21 +173,30 @@ else:
     print "CPU %s not found" % cputype
     sys.exit( -1 )
 
-platform = None
 # Look for the given CPU in the list of platforms
-for p, v in cpu_list.items():
-  if cputype in v:
+platform = None
+for p, v in platform_list.items():
+  if cputype in v[ 'cpus' ]:
     platform = p
     break
 else:
   print "Unknown CPU %s" % cputype
   print "List of accepted CPUs: "
-  for p, v in cpu_list.items():
+  for p, v in platform_list.items():
     print " ", p, "-->",
-    for cpu in v:
+    for cpu in v[ 'cpus' ]:
       print cpu,
     print
   sys.exit( -1 )
+
+# Check the toolchain
+if toolchain != '':
+  if not toolchain in platform_list[ platform ][ 'toolchains' ]:
+    print "Invalid toolchain '%s' for CPU '%s'" % ( toolchain, cputype )
+    sys.exit( -1 )
+else:
+  toolchain = platform_list[ platform ][ 'toolchains' ][ 0 ]
+toolset = toolchain_list[ toolchain ]
 
 # CPU/allocator mapping (if allocator not specified)
 if allocator == '':
@@ -114,9 +204,9 @@ if allocator == '':
     allocator = 'multiple'
   else:
     allocator = 'newlib'
-elif allocator not in [ 'newlib', 'multiple' ]:
+elif allocator not in [ 'newlib', 'multiple', 'simple' ]:
   print "Unknown allocator", allocator
-  print "Allocator can be either 'newlib' or 'multiple'"
+  print "Allocator can be either 'newlib', 'multiple' or 'simple'"
   sys.exit( -1 )
 
 
@@ -129,7 +219,8 @@ if not GetOption( 'clean' ):
   print "Board:       ", boardname
   print "Platform:    ", platform
   print "Allocator:   ", allocator
-  print "Target:      ", target
+  print "Target:      ", target == 'lua' and 'fplua' or 'target'
+  print "Toolchain:   ", toolchain
   print "*********************************"
   print
 
@@ -137,6 +228,12 @@ output = 'elua_' + target + '_' + cputype.lower()
 cdefs = '-DELUA_CPU=%s -DELUA_BOARD=%s -DELUA_PLATFORM=%s -D__BUFSIZ__=128' % ( cputype, boardname, platform.upper() )
 if allocator == 'multiple':
   cdefs = cdefs + " -DUSE_MULTIPLE_ALLOCATOR"
+elif allocator == 'simple':
+  cdefs = cdefs + " -DUSE_SIMPLE_ALLOCATOR"
+
+# Special macro definitions for the SYM target
+if platform == 'sim':
+  cdefs = cdefs + " -DELUA_SIMULATOR -DELUA_SIM_%s" % cputype
 
 # Lua source files and include path
 lua_files = """lapi.c lcode.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c lobject.c lopcodes.c
@@ -144,20 +241,21 @@ lua_files = """lapi.c lcode.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c
    ldblib.c liolib.c lmathlib.c loslib.c ltablib.c lstrlib.c loadlib.c linit.c lua.c lrotable.c"""
 if target == 'lualong' or target == 'lua':
   lua_full_files = " " + " ".join( [ "src/lua/%s" % name for name in lua_files.split() ] )
-  local_include = "-Iinc -Iinc/newlib -Isrc/lua"
+  local_include = ['inc', 'inc/newlib', 'src/lua']
   if target == 'lualong':
     cdefs = cdefs + ' -DLUA_NUMBER_INTEGRAL'
 else:
   print "Invalid target", target
   sys.exit( 1 )
-local_include = local_include + " -Isrc/modules -Isrc/platform/%s" % platform
+
+local_include += ['src/modules', 'src/platform/%s' % platform]
 cdefs = cdefs + " -DLUA_OPTIMIZE_MEMORY=%d" % ( optram != 0 and 2 or 0 )
 
 # Additional libraries
 local_libs = ''
 
 # Application files
-app_files = " src/main.c src/romfs.c src/xmodem.c src/shell.c src/term.c src/common.c src/buf.c src/elua_adc.c src/dlmalloc.c "
+app_files = " src/main.c src/romfs.c src/xmodem.c src/shell.c src/term.c src/common.c src/buf.c src/elua_adc.c src/dlmalloc.c src/salloc.c src/luarpc_elua_uart.c "
 
 # Newlib related files
 newlib_files = " src/newlib/devman.c src/newlib/stubs.c src/newlib/genstd.c src/newlib/stdtcp.c"
@@ -165,14 +263,14 @@ newlib_files = " src/newlib/devman.c src/newlib/stubs.c src/newlib/genstd.c src/
 # UIP files
 uip_files = "uip_arp.c uip.c uiplib.c dhcpc.c psock.c resolv.c"
 uip_files = " src/elua_uip.c " + " ".join( [ "src/uip/%s" % name for name in uip_files.split() ] )
-local_include = local_include + " -Isrc/uip"
+local_include += ['src/uip']
 
 # FatFs files
 app_files = app_files + "src/mmcfs.c src/fatfs/ff.c "
 local_include = local_include + " -Isrc/fatfs"
 
 # Lua module files
-module_names = "pio.c spi.c tmr.c pd.c uart.c term.c pwm.c lpack.c bit.c net.c cpu.c adc.c"
+module_names = "pio.c spi.c tmr.c pd.c uart.c term.c pwm.c lpack.c bit.c net.c cpu.c adc.c can.c luarpc.c"
 module_files = " " + " ".join( [ "src/modules/%s" % name for name in module_names.split() ] )
 
 # Optimizer flags (speed or size)
@@ -206,10 +304,12 @@ comp = Environment( CCCOM = tools[ platform ][ 'cccom' ],
                     LINKCOM = tools[ platform ][ 'linkcom' ],
                     OBJSUFFIX = ".o",
                     PROGSUFFIX = ".elf",
+                    CPPPATH = local_include,
                     ENV = os.environ )
 # comp.TargetSignatures( 'content' )
 # comp.SourceSignatures( 'MD5' )
-Default( comp.Program( output, Split( source_files ) ) )
+comp[ 'INCPREFIX' ] = "-I"
+Default( comp.Program( target = output, source = Split( source_files ) ) )
 Decider( 'MD5' )
 
 # Programming target

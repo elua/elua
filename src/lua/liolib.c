@@ -30,11 +30,13 @@
 #else
 #define LUA_IO_GETFIELD(f)  lua_rawgeti(L, LUA_REGISTRYINDEX, liolib_keys[f])
 #define LUA_IO_SETFIELD(f)  lua_rawseti(L, LUA_REGISTRYINDEX, liolib_keys[f])
+
+/* "Pseudo-random" keys for the registry */
+static const int liolib_keys[] = {(int)&luaL_callmeta, (int)&luaL_typerror, (int)&luaL_argerror};
 #endif
 
 static const char *const fnames[] = {"input", "output"};
-/* "Pseudo-random" keys for the registry */
-static const int liolib_keys[] = {(int)&luaL_callmeta, (int)&luaL_typerror, (int)&luaL_argerror};
+
 
 static int pushresult (lua_State *L, int i, const char *filename) {
   int en = errno;  /* calls to Lua API may change this value */

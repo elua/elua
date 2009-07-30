@@ -13,7 +13,7 @@ typedef void ( *p_term_out )( u8 );
 // Terminal input function
 typedef int ( *p_term_in )( int );
 // Terminal translate input function
-typedef int ( *p_term_translate )( u8 );
+typedef int ( *p_term_translate )( int );
 
 // Terminal input mode (parameter of p_term_in and term_getch())
 #define TERM_INPUT_DONT_WAIT      0

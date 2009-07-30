@@ -8,8 +8,105 @@
 #include "buf.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include "math.h"
 #include "elua_adc.h"
+#include "term.h"
+#include "xmodem.h"
+
+// ****************************************************************************
+// XMODEM support code
+
+#ifdef BUILD_XMODEM
+
+static void xmodem_send( u8 data )
+{
+  platform_uart_send( CON_UART_ID, data );
+}
+
+static int xmodem_recv( u32 timeout )
+{
+  return platform_uart_recv( CON_UART_ID, CON_TIMER_ID, timeout );
+}
+
+#endif // #ifdef BUILD_XMODEM
+
+// ****************************************************************************
+// Terminal support code
+
+#ifdef BUILD_TERM
+
+#define TERM_TIMEOUT    100000 
+
+static void term_out( u8 data )
+{
+  platform_uart_send( CON_UART_ID, data );
+}
+
+static int term_in( int mode )
+{
+  if( mode == TERM_INPUT_DONT_WAIT )
+    return platform_uart_recv( CON_UART_ID, CON_TIMER_ID, 0 );
+  else
+    return platform_uart_recv( CON_UART_ID, CON_TIMER_ID, PLATFORM_UART_INFINITE_TIMEOUT );
+}
+
+static int term_translate( int data )
+{
+  int c;
+  
+  if( isprint( data ) )
+    return data;
+  else if( data == 0x1B ) // escape sequence
+  {
+    // If we don't get a second char, we got a simple "ESC", so return KC_ESC
+    // If we get a second char it must be '[', the next one is relevant for us
+    if( platform_uart_recv( CON_UART_ID, CON_TIMER_ID, TERM_TIMEOUT ) == -1 )
+      return KC_ESC;
+    if( ( c = platform_uart_recv( CON_UART_ID, CON_TIMER_ID, TERM_TIMEOUT ) ) == -1 )
+      return KC_UNKNOWN;
+    switch( c )
+    {
+      case 0x41:
+        return KC_UP;
+      case 0x42:
+        return KC_DOWN;
+      case 0x43:
+        return KC_RIGHT;
+      case 0x44:
+        return KC_LEFT;               
+    }
+  }
+  else if( data == 0x0D )
+  {
+    // CR/LF sequence, read the second char (LF) if applicable
+    platform_uart_recv( CON_UART_ID, CON_TIMER_ID, TERM_TIMEOUT );
+    return KC_ENTER;
+  }
+  else
+  {
+    switch( data )
+    {
+      case 0x09:
+        return KC_TAB;
+      case 0x16:
+        return KC_PAGEDOWN;
+      case 0x15:
+        return KC_PAGEUP;
+      case 0x05:
+        return KC_END;
+      case 0x01:
+        return KC_HOME;
+      case 0x7F:
+      case 0x08:
+        return KC_BACKSPACE;
+    }
+  }
+  return KC_UNKNOWN;
+}
+
+#endif // #ifdef BUILD_TERM
+
 
 // *****************************************************************************
 // std functions and platform initialization
@@ -20,9 +117,9 @@ static void uart_send( int fd, char c )
   platform_uart_send( CON_UART_ID, c );
 }
 
-static int uart_recv()
+static int uart_recv( s32 to )
 {
-  return platform_uart_recv( CON_UART_ID, 0, PLATFORM_UART_INFINITE_TIMEOUT );
+  return platform_uart_recv( CON_UART_ID, CON_TIMER_ID, to );
 }
 
 void cmn_platform_init()
@@ -30,6 +127,16 @@ void cmn_platform_init()
   // Set the send/recv functions                          
   std_set_send_func( uart_send );
   std_set_get_func( uart_recv );  
+
+#ifdef BUILD_XMODEM  
+  // Initialize XMODEM
+  xmodem_init( xmodem_send, xmodem_recv );    
+#endif
+
+#ifdef BUILD_TERM  
+  // Initialize terminal
+  term_init( TERM_LINES, TERM_COLS, term_out, term_in, term_translate );
+#endif
 }
 
 // ****************************************************************************
@@ -167,7 +274,7 @@ void cmn_virtual_timer_cb()
 int platform_timer_exists( unsigned id )
 {
 #if VTMR_NUM_TIMERS > 0
-  if( TIMER_IS_VIRTUAL( id ) )
+  if( id >= VTMR_FIRST_ID )
     return TIMER_IS_VIRTUAL( id );
   else
 #endif
@@ -235,7 +342,16 @@ u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_typ
 }
 
 // ****************************************************************************
+// CAN functions
+
+int platform_can_exists( unsigned id )
+{
+  return id < NUM_CAN;
+}
+
+// ****************************************************************************
 // SPI functions
+
 
 int platform_spi_exists( unsigned id )
 {
@@ -261,8 +377,6 @@ u32 platform_cpu_get_frequency()
 // ****************************************************************************
 // ADC functions
 
-
-
 int platform_adc_exists( unsigned id )
 {
   return id < NUM_ADC;
@@ -272,7 +386,8 @@ int platform_adc_exists( unsigned id )
 
 u32 platform_adc_op( unsigned id, int op, u32 data )
 {  
-  elua_adc_state *s = adc_get_ch_state( id );
+  elua_adc_ch_state *s = adc_get_ch_state( id );
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
   u32 res = 0;
 
   switch( op )
@@ -281,46 +396,70 @@ u32 platform_adc_op( unsigned id, int op, u32 data )
       res = pow( 2, ADC_BIT_RESOLUTION ) - 1;
       break;
 
-    case PLATFORM_ADC_GET_SMOOTHING:
-      res = (u16) 1 << s->logsmoothlen;
-      break;
-
     case PLATFORM_ADC_SET_SMOOTHING:
       res = adc_update_smoothing( id, ( u8 )intlog2( ( unsigned ) data ) );
       break;
       
-    case PLATFORM_ADC_SET_NONBLOCKING:
-      s->nonblocking = data;
+    case PLATFORM_ADC_SET_BLOCKING:
+      s->blocking = data;
+      break;
+      
+    case PLATFORM_ADC_IS_DONE:
+      res = ( s->op_pending == 0 );
       break;
     
-    case PLATFORM_ADC_FLUSH:
-      adc_flush_smoothing( id );
-      buf_flush( BUF_ID_ADC, id );
+    case PLATFORM_ADC_OP_SET_TIMER:
+      if ( d->timer_id != data )
+        d->running = 0;
+      platform_adc_stop( id );
+      d->timer_id = data;
+      break;
+    
+    case PLATFORM_ADC_OP_SET_CLOCK:
+      res = platform_adc_setclock( id, data );
+      break;
+      
+    case PLATFORM_ADC_SET_FREERUNNING:
+      s->freerunning = data;
       break;
   }
   return res;
 }
-#endif
+#endif // #ifdef BUILD_ADC
 
 // ****************************************************************************
 // Allocator support
+
+#define MIN_ALIGN         8
+#define MIN_ALIGN_SHIFT   3
 
 extern char end[];
 
 void* platform_get_first_free_ram( unsigned id )
 {
   void* mstart[] = MEM_START_ADDRESS;
-  
-  return id >= sizeof( mstart ) / sizeof( void* ) ? NULL : mstart[ id ];
+  u32 p;
+
+  if( id >= sizeof( mstart ) / sizeof( void* ) )
+    return NULL;
+  p = ( u32 )mstart[ id ];
+  if( p & ( MIN_ALIGN - 1 ) )
+    p = ( ( p >> MIN_ALIGN_SHIFT ) + 1 ) << MIN_ALIGN_SHIFT;
+  return ( void* )p;
 }
 
 void* platform_get_last_free_ram( unsigned id )
 {
   void* mend[] = MEM_END_ADDRESS;
-  
-  return id >= sizeof( mend ) / sizeof( void* ) ? NULL : mend[ id ];
-}
+  u32 p;
 
+  if( id >= sizeof( mend ) / sizeof( void* ) )
+    return NULL;
+  p = ( u32 )mend[ id ];
+  if( p & ( MIN_ALIGN - 1 ) )
+    p = ( ( p >> MIN_ALIGN_SHIFT ) - 1 ) << MIN_ALIGN_SHIFT;
+  return ( void* )p;
+}
 
 // ****************************************************************************
 // Misc support
@@ -335,15 +474,3 @@ unsigned int intlog2( unsigned int v )
   return r;
 }
 
-u32 rndpow2( u32 v )
-{
-  v--;
-  v |= v >> 1;
-  v |= v >> 2;
-  v |= v >> 4;
-  v |= v >> 8;
-  v |= v >> 16;
-  v++;
-  
-  return v;
-}

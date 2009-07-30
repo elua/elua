@@ -6,11 +6,14 @@
 
 #include "lua.h"
 
-#define AUXLIB_PIO      "gpio"
+#define AUXLIB_PIO      "pio"
 LUALIB_API int ( luaopen_pio )( lua_State *L );
 
 #define AUXLIB_SPI      "spi"
 LUALIB_API int ( luaopen_spi )( lua_State *L );
+
+#define AUXLIB_CAN      "can"
+LUALIB_API int ( luaopen_can )( lua_State *L );
 
 #define AUXLIB_TMR      "tmr"
 LUALIB_API int ( luaopen_tmr )( lua_State *L );
@@ -42,10 +45,21 @@ LUALIB_API int ( luaopen_cpu )( lua_State* L );
 #define AUXLIB_ADC      "adc"
 LUALIB_API int ( luaopen_adc )( lua_State *L );
 
+#define AUXLIB_LUARPC   "rpc"
+LUALIB_API int ( luaopen_luarpc )( lua_State *L );
+
 // Helper macros
 
 #define MOD_CHECK_ID( mod, id )\
   if( !platform_ ## mod ## _exists( id ) )\
     return luaL_error( L, #mod" %d does not exist", ( unsigned )id )
 
+#define MOD_CHECK_RES_ID( mod, id, resmod, resid )\
+  if( !platform_ ## mod ## _check_ ## resmod ## _id( id, resid ) )\
+    return luaL_error( L, #resmod" %d not valid with " #mod " %d", ( unsigned )resid, ( unsigned )id )
+
+#define MOD_REG_NUMBER( L, name, val )\
+  lua_pushnumber( L, val );\
+  lua_setfield( L, -2, name )
+    
 #endif

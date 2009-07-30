@@ -1,130 +1,132 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
 <html><head>
 <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-<meta http-equiv="Content-Language" content="en-us"><title>Product</title>
+<meta http-equiv="Content-Language" content="en-us"><title>eLua examples</title>
 
 <link rel="stylesheet" type="text/css" href="../style.css"></head>
 <body style="background-color: rgb(255, 255, 255);">
-<h3>Lua Code Examples</h3>OK, so you built eLua, and even burnt it to your board, but now
-you'd like to see some example programs. They are included in the eLua
-source distribution (see the <a href="http://www.eluaproject.net/en/Downloads">download page</a>
-for details), under the romfs/ subdirectory (which also means that they
-are built into the eLua image and can be run directly, see
-docs/the_rom_file_system.txt for details). Alternatively you can get
-them by using the <a href="http://svn.berlios.de/wsvn/elua/trunk/romfs/#_trunk_romfs_">BerliOS web SVN</a>
-interface.
-As previously explained, you can run them directly from the ROM file
-system, or you can use the eLua shell and send them via XMODEM, as
-described <a href="http://www.eluaproject.net/en/Using_eLua">here</a>.<br><br>
+<h3>Lua Code Examples</h3>
+<p><b>eLua</b> distros come bundled with nice and fun
+(yes! we have games too! :) Lua programs examples in the File System. They are also included in the <b>eLua</b>
+source code distribution, under the <i>/romfs</i> subdirectory. As previously explained, you can run them directly from <b>eLua</b>'s file
+system or you can use the eLua shell and send them via XMODEM, as
+described <a href="using.html#shell">here</a>.</p>
 
-<h3><a name="hello"></a>hello.lua: the ubiquitous "Hello, World!"</h3>
-
-<p><strong>Runs on: all targets</strong><br>
-To call this a "program" is a gross overstatement, but it's a
-tradition, so we respect it :) It just prints "Hello, World!" and
-returns to the shell. Download it only if you feel too lazy to fire up
+<h3>hello.lua: the ubiquitous "Hello, World!"</h3>
+<p><strong>Runs on: </strong>all targets</p>
+<p><strong>Description: </strong>to call this a "program" is a gross overstatement, but it's a
+tradition, so we respect it :) It just prints "Hello, World!" on the terminal and
+returns to the shell. Run it from the file system only if you feel too lazy to fire up
 the lua interpreter inside eLua and write it yourself :)</p>
 
-<h2><br></h2><h3><a name="info"></a>info.lua: getting the platform data</h3>
-
-<p><strong>Runs on: all targets except i386</strong><br>
-This isn't really more advanced than "Hello, World!", but it does show
-an eLua specific module: the platform data module (pd). You can read
-more about the platform modules in the eLua source distribution
-(docs/platform_modules.txt). The program will display the platform
+<h3>info.lua: getting the platform data</h3>
+<p><strong>Runs on: </strong>all targets</p>
+<p><strong>Description: </strong>this isn't really more advanced than "Hello, World!", but it does show
+an <b>eLua</b> specific module: the platform data module (<b>pd</b>). You can read
+more about the platform modules <a href="">##here</a>. The program will display the platform
 name, the CPU name, the board name and the CPU clock and then will exit
-to the shell.</p><p></p>
+to the shell.</p>
+<h3>led.lua: the old LED blinker, the new eLua way</h3>
 
-<h3><a name="led"></a>led.lua: the old LED blinker, the new eLua way</h3>
-
-<p><strong>Runs on: all targets except i386</strong><br>
-Now we get to do something "more embedded": blink a LED. The code ilustrates a few interesting eLua features:</p>
-
-<ul><li><p>cross platform code: the code assigns a different pin
+<p><strong>Runs on: </strong> all targets except i386</p>
+<p><strong>Description: </strong> now we get to do something "more embedded": blink a LED. The code illustrates a few interesting <b>eLua</b> features:
+<ul><li><b>cross platform code</b>: the code assigns a different pin
 to the LED starting from the board name. You can see how the platform
-data module makes it very easy to write such portable code.</p></li><li><p>uart, pio, tmr, pd modules: they are all used here.</p></li></ul>
+data module makes it very easy to write such portable code.</li>
+<li><b>uart, pio, tmr, pd modules</b>: they are all used here.</li></ul></p>
+<p>Watch it blink, then press any key to return to the eLua shell.</p>
 
-<p>Watch it blink, then press any key to return to the eLua shell.</p><p></p>
-
-<h3><a name="hangman"></a>hangman.lua: taking advantage of your terminal</h3>
-
-<p><strong>Runs on: all targets except i386</strong><br>
-By far the geekiest example from the eLua distribution, it makes use of
-the term module (docs/terminal_support.txt) to let the user play a
-BSD-like "hangman" directly in his terminal emulator. Run the example
+<h3>hangman.lua: taking advantage of your terminal</h3>
+<p><strong>Runs on: </strong>all targets</p>
+<p><strong>Description: </strong>the geekiest example from the <b>eLua</b> distribution (or would it be morse.lua? :), it makes use of
+the <a href="">##term module</a> to let the user play a BSD-like "hangman" directly in his terminal emulator. Run the example
 and enjoy. Currently it has a very small list of words, as this was
 written mainly as a proof of eLua's capabilities, but it's very easy to
-add new words/replace the existing ones. A screenshot can be seen <a href="http://elua.berlios.de/other/elua_hangman.png">here</a>.</p><p></p>
+add new words/replace the existing ones. A screenshot can be seen <a href="">##here</a>.</p>
 
-<h3><a name="pwmled"></a>pwmled.lua: LED blinker, advanced class</h3>
-
-<p><strong>Runs on: EK-LM3S8962 and EK-LM3S6965</strong><br>
-This uses the PWM module to fade the on-board LED in and out, in an
+<h3>pwmled.lua: LED blinker, advanced class</h3>
+<p><strong>Runs on: </strong>EK-LM3S8962, EK-LM3S6965</p>
+<p><strong>Description: </strong>this uses the PWM module to fade the on-board LED in and out, in an
 infinite loop. Not much to say here, the code is very simple, yet the
 results are quite spectacular. Press any key to end the sample and
-return to the shell.</p><p></p>
+return to the shell.</p>
 
-<h3><a name="tvbgone"></a>tvbgone.lua: yes, eLua can do real time!</h3>
+<h3>dualpwm.lua: because a single LED is just not enough</h3>
+<p><strong>Runs on: </strong>MOD711</p>
+<p><strong>Description: </strong>My <a target="_blank" href="http://www.sctec.com.br/content/view/101/30/">MOD711 board</a> needed a
+"motherboard" for a few components (mainly the RS232-TTL level converter and a reset button) so I also added two LEDs to it, connected
+to two different PWM channels. With this program, the two LEDs fade at the same type, but in different directions.</p>
 
-<p><strong>Runs on: EK-LM3S8962 and EK-LM3S6965</strong><br>
-This is more complex, but also very important for eLua, because it
+<h3>pong.lua: eLua meets a classic</h3>
+<p><strong>Runs on: </strong>EK-LM3S8962, EK-LM3S6965</p>
+<p><strong>Description: </strong>a very simple, incomplete implementation of the famous <a target="_blank" href="http://en.wikipedia.org/wiki/Pong">pong</a>
+game. It uses the display and keys on the EK-LM3S8962 or EK-LM3S6965 boards. It uses a platform dependent module (<b>disp</b>) and also shows how
+<b>require</b> can be used from <b>eLua</b>.You can set different game speeds. Enjoy! :)</p>
+
+<h3>tvbgone.lua: yes, eLua can do real time!</h3>
+<p><strong>Runs on: </strong>EK-LM3S8962, EK-LM3S6965</p>
+<p><strong>Description: </strong>this is more complex, but also very important for <b>eLua</b>, because it
 proves that real time applications (with relatively strict timing
-requirements) can run from eLua directly. It's the famous TV-B-Gone
-project adapted from <a href="http://www.ladyada.net/make/tvbgone/">LadyAda's kit</a>.
+requirements) can run from <b>eLua</b> directly. It's the famous TV-B-Gone
+project adapted from <a target="_blank" href="http://www.ladyada.net/make/tvbgone/">LadyAda's kit</a>.
 If you're not familiar with TV-B-Gone, it knows how to do one thing
 very well: power off your TV :) Basically it contains a lot of remote
 control codes (for a lot of TVs) that are continously sent via an IR
-LED. This code uses the PWM module (new in eLua 0.4) and it also does
+LED. This code uses the PWM module (new in <b>eLua</b> 0.4) and it also does
 file I/O from Lua, since the remote control codes are kept in a
 separate file (which is also part of the ROM file system). To read the
 binary file, the "pack" module (also new in 0.4) is used. To ensure
 that we don't get any unexpected delays, the Lua garbage collector is
 turned off. Take a look at this sample, it's both a very good proof of
-the capabilities of eLua and a good learning resource. To use it on any
-of the Cortex boards (EK-LM3S8962 or EK-LM3S6965) connect an IR LED
+the capabilities of eLua and a good learning resource.<br>
+To use it on EK-LM3S8962 or EK-LM3S6965 connect an IR LED
 with a resistor between the "PWM2" and "GND" pins of the extension
 connector. Get close to your TV and press the "select" button on your
 board to start sending the IR codes. The on-board LED stays lit while
 the codes are transmitted and shuts off afterwards. Press the "down"
-button on your board to exit the application and return to the shell.</p><p></p>
+button on your board to exit the application and return to the shell.</p>
 
-<h3><a name="piano"></a>piano.lua: because PWM is great</h3>
-
-<p><strong>Runs on: EK-LM3S8962, EK-LM3S6965, SAM7-EX256</strong><br>
-Yet another use for the PWM module, this sample can be used to "play"
+<h3>piano.lua: because PWM is great</h3>
+<p><strong>Runs on: </strong>EK-LM3S8962, EK-LM3S6965, SAM7-EX256</p>
+<p><strong>Description: </strong>yet another use for the PWM module, this sample can be used to "play"
 notes via the on-board speaker using the PC keyboard. The on-screen
 keyboard shows what keys you must press for different notes, and you
-can set your octave and inter-note delay. Press ESC to end your eLua
-musical session :) A screenshot can be seen <a href="http://elua.berlios.de/other/elua_piano.png">here</a>.</p><p></p>
+can set your octave and inter-note delay. Press ESC to end your <b>eLua</b>
+musical session :) A screenshot can be seen <a href="##">here</a>.</p>
 
-<h3><a name="bisect"></a>bisect.lua: floating point at its best</h3>
-
-<p><strong>Runs on: all targets</strong><br>
-This is taken directly from the official Lua distribution, and it's
-here to show that eLua can do floating point just like on a desktop
+<h3>bisect.lua: floating point at its best</h3>
+<p><strong>Runs on: </strong>all targets</p>
+<p><strong>Description: </strong>this is taken directly from the official Lua distribution, and it's
+here to show that <b>eLua</b> can do floating point just like on a desktop
 machine, albeit slower. Run it on your target, then run it again, but
-this time on the PC, and compare the results. Yes, they are identical.</p><p></p>
+this time on the PC, and compare the results. Yes, they are identical.</p>
 
-<h3><a name="morse"></a>morse.lua: because PWM is great, part II</h3>
+<h3>life.lua: the game of life</h3>
+<p><strong>Runs on: </strong>i386</p>
+<p><strong>Description: </strong>another example taken directly from the Lua distribution, this time
+the well known <a target="_blank" href="http://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">game of life</a>.
+Start it and enjoy. Only included on i386 by default because it's faster on i386, but it can run on other
+platform too (although it requires quite a bit of memory, which is not a problem for boards with external
+memory). </p>
 
-<p><strong>Runs on: EK-LM3S8962, EK-LM3S6965, SAM7-EX256</strong><br>
-This uses the same PWM module for Morse code generation. Just enter a
+<h3>morse.lua: because PWM is great, part II</h3>
+<p><strong>Runs on: </strong> EK-LM3S8962, EK-LM3S6965, SAM7-EX256</p>
+<p><strong>Description: </strong>this uses the same PWM module for Morse code generation. Just enter a
 text, and listen to it getting Morsed on your board's speaker and on a blinking Led. The
 letters and Morse codes are also shown on the terminal. Use '+' and
 '-'' to change the frequency, up and down arrows to change the speed,
-'s' to mute/unmute, and ESC to exit.</p><p></p>
+'s' to mute/unmute, and ESC to exit.</p>
 
-<h3><a name="lhttpd"></a>lhttpd.lua: only with (e)Lua ...</h3>
-
-<p><strong>Runs on: EK-LM3S8962, EK-LM3S6965</strong><br>
-This is one of those things that can show the real potential of a
-language (and hopefully the real potential of eLua in this case). As
-you have probably guessed by now, it's a web server written in Lua.
-Except it's much more than this: it's a scripting web server! That's
+<h3>lhttpd.lua: only with (e)Lua ...</h3>
+<p><strong>Runs on: </strong>EK-LM3S8962, EK-LM3S6965</p>
+<p><strong>Description: </strong>this is one of those things that can show the real potential of a
+language (and hopefully the real potential of <b>eLua</b> in this case). As
+you have probably guessed by now, it's a web server&nbsp;written in Lua.
+Except that it is much more than this: it's a <b>scripting web server!</b> That's
 right, you can embed parts of Lua code into your pages, and the server
-will parse them and replace the Lua code with its output (to output
+will parse them and replace the Lua code with its output. To output
 something from Lua code embedded in a web page, simply use "print" in
-your Lua code). You can also write your pages completely in Lua (again,
+your Lua code. You can also write your pages completely in Lua (again,
 using "print"), the server knows how to handle this too. When is the
 last time you heard about a scripting web server in 256k of Flash/64k
 of RAM?&nbsp;</p><p>The full list of features is given below:</p>
@@ -138,6 +140,18 @@ and replace the Lua code with its output</li><li>if a file with
 it and sends its output (via "print" statements)</li></ul>
 
 <p>This is still work in progress, but it already works quite well.
-Take a look at romfs/index.pht and romfs/test.lua from the source
+Take a look at <i>romfs/index.pht</i> and <i>romfs/test.lua</i> from the source
 distribution for an example of how to include Lua code in your HTML
-files.</p><p></p><p></p><p></p></body></html>
+files.</p>
+
+<h3>adcscope.lua: ADCs and eLua, part I</h3>
+<p><b>Runs on: </b>##TODO</p>
+<p><b>Description: </b>##TODO
+</p>
+
+
+<h3>adcpoll.lua: ADCs and eLua, part II</h3>
+<p><b>Runs on: </b>##TODO</p>
+<p><b>Description: </b>##TODO
+</p>
+</body></html>

@@ -89,13 +89,14 @@
 
 //## Modified for eLua
 //## Defaults search modules path to our ROM File System
+
+#ifndef LUA_REMOTE
 #define LUA_PATH_DEFAULT "\\ROM\\?.lua"
-/*
-** ## Original LUA_PATH_DEFAULT
+#else
 #define LUA_PATH_DEFAULT  \
 		".\\?.lua;"  LUA_LDIR"?.lua;"  LUA_LDIR"?\\init.lua;" \
 		             LUA_CDIR"?.lua;"  LUA_CDIR"?\\init.lua"
-*/		             
+#endif	             
 #define LUA_CPATH_DEFAULT \
 	".\\?.dll;"  LUA_CDIR"?.dll;" LUA_CDIR"loadall.dll"
 
@@ -103,12 +104,15 @@
 #define LUA_ROOT	"/usr/local/"
 #define LUA_LDIR	LUA_ROOT "share/lua/5.1/"
 #define LUA_CDIR	LUA_ROOT "lib/lua/5.1/"
+
+#ifndef LUA_REMOTE
 #define LUA_PATH_DEFAULT  "/rom/?.lua"
-/*
+#else
+
 #define LUA_PATH_DEFAULT  \
 		"./?.lua;"  LUA_LDIR"?.lua;"  LUA_LDIR"?/init.lua;" \
 		            LUA_CDIR"?.lua;"  LUA_CDIR"?/init.lua"
-*/
+#endif
 #define LUA_CPATH_DEFAULT \
 	"./?.so;"  LUA_CDIR"?.so;" LUA_CDIR"loadall.so"
 #endif
@@ -313,7 +317,7 @@
 ** mean larger pauses which mean slower collection.) You can also change
 ** this value dynamically.
 */
-#define LUAI_GCPAUSE	200  /* 200% (wait memory to double before next GC) */
+#define LUAI_GCPAUSE	110  /* 110% (wait memory to grow 10% before next gc) */
 
 
 /*
@@ -831,7 +835,9 @@ typedef long int32_t;
 /* If you define the next macro you'll get the ability to set rotables as
    metatables for tables/userdata/types (but the VM might run slower)
 */
-#define LUA_META_ROTABLES   
+#ifndef LUA_CROSS_COMPILER
+#define LUA_META_ROTABLES 
+#endif
 
 #if LUA_OPTIMIZE_MEMORY == 2 && LUA_USE_POPEN
 #error "Pipes not supported in aggresive optimization mode (LUA_OPTIMIZE_MEMORY=2)"

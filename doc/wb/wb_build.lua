@@ -76,7 +76,7 @@ function writeTitleFile()
   
   local wb_title = readFile("template_wb_title.html")
   if(wb_usr.logo_image_file ~= nil and wb_usr.logo_image_file ~= "")then
-    wb_title = string.gsub(wb_title, "WB_LOGO", [[<img src="wb_img/]]..wb_usr.logo_image_file..[[" border="0">]])
+    wb_title = string.gsub(wb_title, "WB_LOGO", [[<A href="]]..wb_usr.logo_onclick_link..[[" target="blank"><img src="wb_img/]]..wb_usr.logo_image_file..[[" border="0"></A>]])
   else
   	wb_title = string.gsub(wb_title, "WB_LOGO","")
   end
@@ -245,6 +245,9 @@ function writeTreeFile()
                                
   -- Write Footer                             
   file:write("  </div>\n")
+  if wb_usr.tree.footer then 
+    file:write(wb_usr.tree.footer)
+  end
   file:write("</body>\n")
   file:write("</html>\n")
   

@@ -90,8 +90,10 @@ void buf_flush( unsigned resid, unsigned resnum )
 int buf_write( unsigned resid, unsigned resnum, t_buf_data *data )
 {
   BUF_GETPTR( resid, resnum );
-    
-  memcpy( &pbuf->buf[ pbuf->wptr ], data, BUF_REALDSIZE( pbuf ) );
+  const char* s = ( const char* )data;
+  char* d = ( char* )( pbuf->buf + pbuf->wptr );
+  
+  DUFF_DEVICE_8( BUF_REALDSIZE( pbuf ),  *d++ = *s++ );
   
   BUF_MOD_INCR( pbuf, wptr );
   
@@ -143,14 +145,17 @@ int buf_read( unsigned resid, unsigned resnum, t_buf_data *data )
   if( READ16( pbuf->count ) == 0 )
     return PLATFORM_UNDERFLOW;
 
-  memcpy( data, &pbuf->buf[ pbuf->rptr ], BUF_REALDSIZE( pbuf ) );
+  const char* s = ( const char* )( pbuf->buf + pbuf->rptr );
+  char* d = ( char* )data;
+  
+  DUFF_DEVICE_8( BUF_REALDSIZE( pbuf ),  *d++ = *s++ );
 
   platform_cpu_disable_interrupts();
   pbuf->count --;
   BUF_MOD_INCR( pbuf, rptr );
   platform_cpu_enable_interrupts();
   
-  return PLATFORM_OK;  
+  return PLATFORM_OK;
 }
 
 #endif // #ifdef BUF_ENABLE

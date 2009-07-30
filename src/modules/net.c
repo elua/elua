@@ -140,7 +140,6 @@ static int net_unpackip( lua_State *L )
     return luaL_error( L, "invalid format" );                                      
 }
 
-static luaL_Buffer net_recv_buff;
 // Lua: res, err = recv( sock, maxsize, [ timer_id, timeout ] ) or
 //      res, err = recv( sock, "*l", [ timer_id, timeout ] )
 static int net_recv( lua_State *L )
@@ -150,7 +149,8 @@ static int net_recv( lua_State *L )
   s16 lastchar = ELUA_NET_NO_LASTCHAR;
   unsigned timer_id = 0;
   u32 timeout = 0;
-  
+  luaL_Buffer net_recv_buff;
+
   if( lua_isnumber( L, 2 ) ) // invocation with maxsize
     maxsize = ( elua_net_size )luaL_checkinteger( L, 2 );
   else // invocation with line mode

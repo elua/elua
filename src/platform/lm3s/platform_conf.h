@@ -22,6 +22,7 @@
 #define BUILD_DNS
 #define BUILD_CON_GENERIC
 #define BUILD_ADC
+#define BUILD_LUARPC
 //#define BUILD_CON_TCP
 
 // *****************************************************************************
@@ -29,20 +30,32 @@
 
 #define CON_UART_ID           0
 #define CON_UART_SPEED        115200
-#define XMODEM_TIMER_ID       0
-#define TERM_TIMER_ID         0
+#define CON_TIMER_ID          0
 #define TERM_LINES            25
 #define TERM_COLS             80
-#define TERM_TIMEOUT          100000
 
 // *****************************************************************************
 // Auxiliary libraries that will be compiled for this platform
 
-#if (ELUA_BOARD == EK-LM3S6965) || (ELUA_BOARD == EK-LM3S8962)
-// LM3S board with RIT display
-#define BUILD_DISP_RIT
+#ifdef ENABLE_DISP
 #define AUXLIB_DISP   "disp"
 LUALIB_API int ( luaopen_disp )( lua_State* L );
+#define DISPLINE _ROM( AUXLIB_DISP, luaopen_disp, disp_map )
+#else
+#define DISPLINE
+#endif
+
+#ifdef FORLM3S6918
+#define PWMLINE
+#else
+#define PWMLINE  _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map )
+#endif
+
+#ifdef BUILD_UIP
+#define NETLINE  _ROM( AUXLIB_NET, luaopen_net, net_map )
+#else
+#define NETLINE
+#endif
 
 #define LUA_PLATFORM_LIBS_ROM\
   _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
@@ -50,14 +63,15 @@ LUALIB_API int ( luaopen_disp )( lua_State* L );
   _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
   _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
   _ROM( AUXLIB_UART, luaopen_uart, uart_map )\
+  PWMLINE\
   _ROM( AUXLIB_TERM, luaopen_term, term_map )\
-  _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map )\
   _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
-  _ROM( AUXLIB_NET, luaopen_net, net_map )\
+  NETLINE\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
   _ROM( AUXLIB_ADC, luaopen_adc, adc_map )\
-  _ROM( AUXLIB_DISP, luaopen_disp, disp_map )\
+  _ROM( AUXLIB_LUARPC, luaopen_luarpc, rpc_map )\
+  DISPLINE\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
 #else
 // LM3S board without RIT display
@@ -110,23 +124,33 @@ LUALIB_API int ( luaopen_disp )( lua_State* L );
 // Number of resources (0 if not available/not implemented)
 #define NUM_PIO               7
 #define NUM_SPI               1
-#ifdef FORLM3S8962
-  #define NUM_UART            2
-#else
+#ifdef FORLM3S6965
   #define NUM_UART            3
+#else
+  #define NUM_UART            2
 #endif
 #define NUM_TIMER             4
-#define NUM_PWM               6
+#ifndef FORLM3S6918
+  #define NUM_PWM             6
+#else
+  #define NUM_PWM             0
+#endif  
 #define NUM_ADC               4
+#define NUM_CAN               0
 
 // Enable RX buffering on UART
-#define BUF_ENABLE_UART
-#define CON_BUF_SIZE          BUF_SIZE_128
+//#define BUF_ENABLE_UART
+//#define CON_BUF_SIZE          BUF_SIZE_128
 
-// ADC Bit Depth for Built-in ADCs
+// ADC Configuration Params
 #define ADC_BIT_RESOLUTION    10
 #define BUF_ENABLE_ADC
 #define ADC_BUF_SIZE          BUF_SIZE_2
+
+// These should be adjusted to support multiple ADC devices
+#define ADC_TIMER_FIRST_ID    0
+#define ADC_NUM_TIMERS        NUM_TIMER  
+
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 #define CPU_FREQUENCY         SysCtlClockGet()

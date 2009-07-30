@@ -1,7 +1,7 @@
 #ifndef __TYPE_H__
 #define __TYPE_H__
 
-#include "stm32f10x_type.h"
+#include "stm32f10x.h"
 
 #ifndef NULL
 #define NULL    ((void *)0)

@@ -1,0 +1,269 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+<meta http-equiv="Content-Language" content="en-us"><title>Modules and LTR</title>
+
+<link rel="stylesheet" type="text/css" href="../style.css"></head>
+<body style="background-color: rgb(255, 255, 255);">
+<h3>Modules and LTR</h3>
+<p>LTR (Lua Tiny RAM) is a Lua patch (written specifically for <b>eLua</b> by Bogdan Marinescu) that significantly decreases the RAM usage of Lua scripts,
+  thus making it possible to run large Lua programs on systems with limited RAM. This section gives a full description of LTR. If you're writing <b>eLua</b>
+  modules, this page will certainly be of interest to you, as it shows how to interact with LTR in a portable and easy to configure way.</p>
+<h2>Motivation</h2>
+<p>The main thing that drove me to write this patch is the relatively high Lua memory consumption at startup (obtained by running 
+  <i>lua -e "print(collectgarbage'count')"</i>). It's about 17k for regular Lua 5.1.4, and more than 25k for some of eLua's platforms. These figures are 
+  mainly a result of registering many different modules to Lua. Each time you register a module (via luaL_register) you create a new table and populate 
+  it with the module's methods. But a table is a read/write datatype, so luaL_register is quite inefficient if you don't plan to do any write operations 
+  on that table later (adding new elements or manipulating existing ones). I found that I almost never have to do any such operations on a module's 
+  table after it was created, I just query it for its elements. So, from the perspective of someone worried about memory usage, I'd rather have a 
+  different type of table in this case, one that wouldn't need any RAM at all, since it would be read only, so it could reside entirely in ROM.</p>
+  <p>There's one more thing related to this context: Lua's functions. While Lua does have the concept of C functions, they still require data structures 
+  that need to be allocated (see lua_pushcclosure in lapi.c for details), as they can have upvalues or environments. Once again, this isn't something I 
+  use often with eLua. Most of the times my functions (especially the ones exported by a C module) are very simple, and they don't need upvalues or 
+  environments at all. In conclusion, having a "simpler" function type would improve memory usage.
+</p>
+<h2>Details</h2>
+<p>The patch adds two new data types to Lua. Both or them are based on the lightuserdata type already found in Lua, and they share the same basic 
+  attributes: they don't need to be dynamically allocated (as they're just pointers on steroids) and they're compared in the same way lightuserdatas 
+  are compared (by value). And of course, they are not collectable, so the garbage collector won't have anything to do with them. The new types are:
+<ol>
+<li><b>lightfunctions</b>: these are "simple" functions, in the sense that they can't have upvalues or environments. They are just pointers to regular 
+  C functions. Other than that, you can use them from Lua just as you'd use any other function.</li>
+
+<li><b>rotables</b>: these are read-only tables, but unlike the read-only tables that one can already implement in Lua with metamethods, they have a 
+  very specific property: they don't need any RAM at all. They are fully constant, so they can be read directly from ROM. They have a number of 
+  special features and limitations when compared with a regular table:
+<ul>
+  <li>rotables can only contain values of type "lightfunction", lua_Number or pointers to other rotables.</li>
+  <li>you can't add/delete/modify elements from rotables (obviously). However, rotables will honour the "__newindex" metamethod.</li>
+  <li>you can use rotables as metatables for both "regular" tables and for Lua types (via debug.setmetatable)</li>
+  <li>a rotable can have another rotable (or tself) as a metatable</li>
+  <li>you can iterate over rotables with pairs/ipairs/next just as you do with "regular" tables.</li>
+</ul></li></ol></p>
+<p>Just as with lightuserdata, you can only create lightfunctions and rotables from C code, never from Lua itself.<p>
+<h2>Testing</h2>
+<p>I tested my patch with the (<a target="_blank" href="http://lua-users.org/lists/lua-l/2006-03/msg00723.html">Lua 5.1 test suite</a>). The test suite 
+  was an excellent testing tool. I thought I had the patch ready until I found the test suite and ran it. After another week of work, I had something 
+  that could be called functional :)</p>
+<p>I tested everything via "make generic", which is how I always build Lua for my embedded environments. This means (among other things) that I didn't 
+test pipes and dynamic module loading, although I don't see why they wouldn't work.</p>
+<p>I never tested the patch in a multithreaded environment with more threads running different lua_States. I never even used regular Lua like this, 
+so I can't make asumptions about how my patch would behave in a multithreaded environment. It doesn't use any global or static variables, but you 
+might encounter other problems with it.</p>
+<h2>Results</h2>
+<p>The table below summarizes the RAM usage in KBytes (as obtained by running <i>lua -e "print(collectgarbage'count')"</i> from the <b>eLua</b> shell). 
+  <b>OPT=0</b> is LTR's "compatibility mode" (basically this means that the patch is disabled, so you're running plain Lua) and <b>OPT=2</b> is the 
+  patch in action.</p>
+<table style="width: 325px;" class="table_center">
+<tbody>
+<tr>
+<th style="text-align: left;">Platform</th>
+<th style="text-align: center;">OPT=0</th>
+<th style="text-align: center;">OPT=2</th>
+</tr>
+<tr>
+  <td>AVR32</td>
+  <td style="text-align: center;">23.75</td>
+  <td style="text-align: center;">5.42</td>
+</tr>
+<tr>
+  <td>AT91SAM7X</td>
+  <td style="text-align: center;">25.16</td>
+  <td style="text-align: center;">5.42</td>
+</tr>
+<tr>
+  <td>STR7</td>
+  <td style="text-align: center;">24.92</td>
+  <td style="text-align: center;">5.42</td>
+</tr>
+<tr>
+  <td>STR9</td>
+  <td style="text-align: center;">22.23</td>
+  <td style="text-align: center;">5.42</td>
+</tr>
+<tr>
+  <td>LPC2888</td>
+  <td style="text-align: center;">22.23</td>
+  <td style="text-align: center;">5.42</td>
+</tr>
+<tr>
+  <td>i386</td>
+  <td style="text-align: center;">16.90</td>
+  <td style="text-align: center;">5.42</td>
+</tr>
+<tr>
+  <td>LM3S</td>
+  <td style="text-align: center;">27.14</td>
+  <td style="text-align: center;">5.42</td>
+</tr>
+</tbody>
+</table>
+</p>
+<p>As you can see, the differences are significant, and (more important) it doesn't matter how many modules you load in <b>eLua</b>, the RAM consumption
+   doesn't modify.</p>
+<p>Currently, there aren't any performane measurements related to LTR. It's clear from the implementation that the patch slows down the virtual machine, 
+   but a precise performance penalty figure is not known. Experience suggests that the peformance penalty is minimal, and it certainly can't be observed 
+   with "regular" (non-computationally intensive) Lua programs.</p>
+<h2>How to enable LTR</h2>
+<p>Enabling LTR is very easy: all you need to do is specify the <b>opt=1</b> as a paramater to scons when bulding <b>eLua</b>, as explained
+   <a href="building.html">here</a>. You don't even to specify this explicitly, as LTR is enabled by default for all <b>eLua</b> targets.</p>
+<p>When <b>optram</b> is 0, LTR is not active. In this mode the patch just tries to keep the modified version as close as possible to the unpatched version 
+  in terms of speed and functionality. You might want to use this if you want full Lua compatibility (although this is rarely an issue in practice),
+  or need to overcome the read-only limitations of rotables (but check <a href="faq.html#rotables">this</a> first). If your program behaves weird and you
+  suspect that LTR might be the cause of your problems, recompiling with <b>optram=0</b> is a quick way to eliminate or confirm your suspicions.</p>
+<p>When <b>optram</b> is 1 (default), all the LTR optimizations are enabled. The implementation of the Lua standard libraries is modified to take advantage
+   of the new datatypes. In particular, the IO library is modified to use the registry instead of environments, thus making it more resource-friendly, 
+   the side effect  being that this mode doesn't support pipes in the <b>io</b> module (which isn't an issue for <b>eLua</b>). 
+   It also leaves the <b>_G</b> (globals) table with a single method (<i>__index</i>) and sets it as its own metatable, so all accesses to globals are
+   now sligthly slower because of the <i>__index</i> metamethod call.</p>
+<h2>Writing LTR-compatible modules</h2>
+<p>The LTR patch introduces a specific method for writing modules in such a way that they're fully compatible with both <b>optram=0</b> and <b>optram=1</b>.
+   If you're writing a new <b>eLua</b> module you should use this method, as it keeps code coherency. </p>
+<p>We'll show this method using a simple example. Let's assume that you want to register a simple module called "mod" that has a single function named "f". 
+  For regular Lua, you'd do something like this:</p>
+<p><pre><code>static const luaL_reg mod_map[] =
+{
+  { "f", f_implementation },
+  { NULL, NULL }
+};
+
+LUALIB_API int luaopen_mod( lua_State *L )
+{
+  luaL_register( L, "mod", mod_map );
+  return 1;
+}</code></pre></p>
+<p>For the rotables implementation, however, you'd need to define the same thing like this:<p>
+
+<p><pre><code>const luaR_entry mod_map[] = <font color="red">// note: no static this time</font>
+{
+  { LRO_STRKEY( "f" ), LRO_FUNCVAL( f_implementation ) },
+  { LRO_NILKEY, LRO_NILVAL }
+};
+
+<font color="red">// note: in this case the "luaopen_mod" function isn't really needed anymore</font>
+LUALIB_API int luaopen_mod( lua_State *L )
+{
+  return 0;
+}</code></pre></p>
+
+<p>A few points about the rotables example above:
+<ul>
+  <li>a rotable needs a "map" (mod_map) array much like a regular module, but you need to define that array with special macros:
+  <ul>
+    <li><b>for keys</b>: <b>LRO_STRKEY("str")</b> defines a string key, <b>LRO_NUMKEY(n)</b> defines an integer key, and <b>LRO_NILKEY</b> defines a NULL 
+       (empty) key</li>
+    <li><b>for values</b>: <b>LRO_FUNCVAL(f)</b> defines a lightfunction value, <b>LRO_NUMVAL(f)</b> defines a number value, <b>LRO_RO(p)</b> defines a 
+       rotable value (p is the pointer to the rotable) and <b>LRO_NILVAL</b> defines a NULL (empty) value.</li>
+  </ul>
+  <li>all the "global" rotables in the system (the ones that must be visible from <b>_G</b>, like the rotables of all the modules exported to Lua) must be 
+  included in a special array, called <b>lua_rotable</b> (defined in <i>linit.c</i>). Simply including the rotable's definition array (mod_map in this case)
+  in the lua_rotable array makes it visible globally, thus you don't need to call any kind of register function. This is why <b>luaopen_mod</b> now returns
+  0.</li>
+</ul></p>
+<p>The two forms above (for regular tables and for rotables) are clearly different, but we want to keep them both to be able to work at both <b>optram=0</b>
+  and <b>optram=2</b>. You can use #ifdefs to differentiate between the two cases in different optimization levels, but this becomes really annoying after 
+  a (short) while. This is why I added another file called <b>lrodefs.h</b> (<i>src/lua</i>) that can be used to give an "universal" definition to our map 
+  arrays. Here's how our example looks after rewriting it to take advantage of <b>lrodefs.h</b>:</p>
+<p><pre><code><font color="red">#define MIN_OPT_LEVEL  2 // the minimum optimization level at which we use rotables</font>
+#include "lrodefs.h"
+const <font color="red"> LUA_REG_TYPE</font> mod_map[] = <font color="red">// note: no more luaL_reg or luaR_entry</font>
+{
+  { LSTRKEY( "f" ), LFUNCVAL( f_implementation ) },
+  { LNILKEY, LNILVAL }
+};
+// <font color="red">note: no more LRO_something, just Lsomething (for example LRO_STRKEY becomes LSTRKEY)</font>
+
+LUALIB_API int luaopen_mod( lua_State *L )
+{
+  <font color="red">LREGISTER</font>( L, "mod", mod_map ); // <font color="red">note: no more luaL_register, no "return 1"</font>
+}</code></pre></p>
+<p>Now, if <b>LUA_OPTIMIZE_MEMORY</b> (a macro defined by the system as 0 when <b>optram=0</b> and as 2 when <b>optram=1</b>) is less than 
+  <b>MIN_OPT_LEVEL</b>, the above definition will compile in its "regular table" format. If <b>LUA_OPTIMIZE_MEMORY</b> is 2, it compiles to the 
+  rotables format. Problem solved :) <b>LREGISTER</b> will also take care of calling <b>luaL_register</b> and return 1 when <b>optram=0</b> and do 
+  absolutely nothing when <b>optram=1</b>. You can see more examples of this in any module from <i>src/modules</i>, and you're encouraged to do so,
+  as this is only a very basic example; <i>src/modules</i> contains real life examples that can serve as a good basis for a new module.</p>
+<p>As you know by now, rotables can have metatables, and also you can set a rotable as a metatable for a regular table. If a rotable must have a 
+  metatable, it needs a "__metatable" field to point to its metatable (which is also a rotable, not necessarily another rotable) and the usual 
+  metatable functions. For example, let's make our <b>mod</b> rotable its own metatable and declare an <b>__index</b> function. Moreover, let's do 
+  this for both <b>optram=0</b> and <b>optram=1</b>.</p>
+<p><pre><code>static int mod_mt_index( lua_State *L ) 
+{
+  return 0;
+}
+
+#define MIN_OPT_LEVEL  2 // the minimum optimization level at which we use rotables
+#include "lrodefs.h"
+const LUA_REG_TYPE mod_map[] =
+{
+  { LSTRKEY( "f" ), LFUNCVAL( f_implementation ) },
+<font color="red">#if LUA_OPTIMIZE_MEMORY &gt; 0
+  { LSTRKEY( "__metatable" ), LROVAL( mod_map ) },
+#endif</font>
+  { LSTRKEY( "__index" ), LFUNCVAL( mod_mt_index) },
+  { LNILKEY, LNILVAL };
+};
+	  
+LUALIB_API int luaopen_mod( lua_State *L )
+{
+#if LUA_OPTIMIZE_MEMORY &gt; 0
+  return 0;
+#else
+  luaL_register( L, "mod", mod_map );
+	      
+  <font color="red">// Set "mod" as its own metatable
+  lua_pushvalue( L, -1 );
+  lua_setmetatable( L, -2 );</font>
+		    
+ return 1;
+ #endif
+}</code></pre></p>
+<p>If you want to register a module using a regular Lua table, but use lightfunctions instead of regular functions, use <i>luaL_register_light</i> instead
+  of <i>luaL_register</i> (same syntax). </p>
+<p>More important things to keep in mind when working with LTR:
+<ul>
+  <li>currently, <b>MIN_OPT_LEVEL</b> should be always set to 2</li>
+  <li>you need a C99-compatible compiler to use LTR (because of the compile-time explicit union initialization that's needed to declare const rotables). 
+  Fortunately this isn't a issue right now, as all current eLua targets use GCC and GCC knows how to handle this.</li>
+  <li>your linker command file should export two symbols: <b>stext</b> and <b>etext</b>. They should be declared before and after the .rodata* section 
+  placement (generally you'd declare stext at the beginning of .text definition and etext and the end of .text definition, see for example 
+  <i>src/lua/at91sam7x256/flash256.lds</i>). These are needed by the patch to differentiate between a regular table and a rotable (although this is likely
+  to change in a future version of the patch.</li>
+  <li><b><font color="red">remember to declare all you rotable's definition array as 'const'!!</font></b> Forgetting to do so will not only increase 
+  memory usage, it will also make the patch not functional, because of the way it recognizes rotables (see above).</li>
+</ul></p>
+<a name="config"><h2>LTR and module configuration at build time</h2></a>
+<p>With unpatched Lua, you can specify what modules to be part of the Lua image by modifying <i>src/lua/linit.c</i>. In the particular case of <b>eLua</b>
+  one had to declare a list of the modules that must be compiled in <i>src/platform/&lt;name&gt;/platform_conf.h</i> like this:</p>
+<p><pre><code>#define LUA_PLATFORM_LIBS\
+  { AUXLIB_PIO, luaopen_pio },\
+  { AUXLIB_TMR, luaopen_tmr },\
+  { AUXLIB_PD, luaopen_pd },\
+  { AUXLIB_UART, luaopen_uart },\
+  { AUXLIB_TERM, luaopen_term },\
+  { AUXLIB_PWM, luaopen_pwm },\
+  { AUXLIB_PACK, luaopen_pack },\
+  { AUXLIB_BIT, luaopen_bit },\
+  { LUA_MATHLIBNAME, luaopen_math }
+</code></pre></p> 
+  Things are a bit more complex with LTR, but not by much. The list of modules that must be compiled is declared via a preprocessor macro in 
+  <i>src/platform/&lt;name&gt;/platform_conf.h</i> and it looks like this:</p>
+<p><pre><code>#define LUA_PLATFORM_LIBS_ROM\
+  _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
+  _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
+  _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
+  _ROM( AUXLIB_UART, luaopen_uart, uart_map )\
+  _ROM( AUXLIB_TERM, luaopen_term, term_map )\
+  _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map )\
+  _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
+  _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
+  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )</code></pre></p>
+<p>(<b>IMPORTANT NOTE</b>: the fact that there are no commas between two different _ROM declarations (as seen above) is NOT an error; 
+  on the contrary, this is very much intended. Try using commas and you'll get in trouble very soon :) ).</p>
+<p>Note the 3rd parameter of the <b>_ROM</b> macro, which is the name of the definition array for the (ro)table. That's it. The code in linit.c will take 
+  care of everything else, including initializing the list of modules in LUA_PLATFORM_LIBS_ROM with regular tables instead of rotables at <b>optram=0</b> 
+  (to maintain compatilibity with regular Lua). You can also have a list of modules that you want to use with regular tables no matter what the 
+  optimization level is. In that case, list it in the <b>LUA_PLATFORM_LIBS_REG</b> macro via the old syntax for <b>LUA_PLATFORM_LIBS</b>, as shown
+  above (the regular Lua syntax for defining a module to be registered with luaL_register). If you want this module to use lightfunctions instead of 
+  regular functions (at <b>optram=1</b>), use <i>luaL_register_light</i> instead of <i>luaL_register</i>.
+</p>
+</body></html>

@@ -27,6 +27,8 @@ SECTIONS
         . = ALIGN(4);
         _efixed = .;
         PROVIDE(etext = .);        
+         _fini = .;
+        *(.fini)
     } >flash
 
     .relocate : AT (_efixed)
@@ -39,6 +41,18 @@ SECTIONS
         . = ALIGN(4);
         _erelocate = .;
     } >sram
+
+     .ARM.extab :
+    {
+        *(.ARM.extab*)
+    } >sram
+
+    __exidx_start = .;
+    .ARM.exidx :
+    {
+        *(.ARM.exidx*)
+    } >sram
+     __exidx_end = .;
 
     .bss (NOLOAD) : {
         _szero = .;

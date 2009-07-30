@@ -20,11 +20,9 @@
 
 #define CON_UART_ID           1
 #define CON_UART_SPEED        38400
-#define XMODEM_TIMER_ID       0
-#define TERM_TIMER_ID         0
+#define CON_TIMER_ID          0
 #define TERM_LINES            25
 #define TERM_COLS             80
-#define TERM_TIMEOUT          100000
 
 // *****************************************************************************
 // Auxiliary libraries that will be compiled for this platform
@@ -55,6 +53,7 @@
 #define NUM_TIMER             4
 #define NUM_PWM               3
 #define NUM_ADC               0
+#define NUM_CAN               0
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 #define CPU_FREQUENCY         0

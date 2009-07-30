@@ -376,7 +376,11 @@ static int pmain (lua_State *L) {
 }
 
 
+#ifdef LUA_REMOTE
 int main (int argc, char **argv) {
+#else
+int lua_main (int argc, char **argv) {
+#endif
   int status;
   struct Smain s;
   lua_State *L = lua_open();  /* create state */

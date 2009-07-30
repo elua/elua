@@ -1,7 +1,138 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
 <html><head>
 <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-<meta http-equiv="Content-Language" content="en-us"><title>Product</title>
+<meta http-equiv="Content-Language" content="en-us"><title>eLua downloads</title>
 
-<link rel="stylesheet" type="text/css" href="../style.css"></head>
-<body style="background-color: rgb(255, 255, 255);"><h3><a name="title" href="http://www.eluaproject.net/en/Booting_eLua_from_a_stick"></a><span class="info">Downloads</span></h3><br></body></html>
+<link rel="stylesheet" type="text/css" href="../style.css">
+</head>
+<body style="background-color: rgb(255, 255, 255);">
+<h3>Downloading eLua</h3>
+<p>You have a few options for downloading <b>eLua</b>:
+<ul>
+  <li>download a binary <b>eLua</b> image for your platform of choice. Binary images are provided with each official release. This is generally the best option if you have a bord that's officially
+  supported by <b>eLua</b> (see <a href="status.html">here</a> for details) and you want to have <b>eLua</b> up and running on your board as quickly as possible.</li>
+  <li>download the source code. You can either download the source code of an official release or get the "bleeding edge" version from the SVN repository. Download the source code instead of a
+  binary image if you need to make adjustments to the source code to support your board, or if you want to customize the <b>eLua</b> image, or if you simply want to take a look at what 
+  happens behind the <i>eLua# </i> prompt :)</li>
+</ul></p>
+<h3><a name="binaries">Binary images</a></h3>
+<p>Pre-built images of <b>eLua</b> can be downloaded for each official release. Only the latest official <b>eLua</b> release is covered in this paragraph; if you want to download a pre-built
+image from an older release (although this isn't generally advisable), check <a href="dl_old.html">this page</a>. Choose the corresponding image file from the table below, flash it into your
+board, connect a serial terminal (or Ethernet if you board supports) and enjoy <b>eLua</b>. Also note that <b>eLua binaries</b>, like the <a href="#source">source code distribution</a>,
+include some example programs in it's file system, so you can run and play them (yes! we have games too! :), following the instructions in our <a href="using.html">Using eLua</a> page. The
+available example programs are described in our <a href="examples.html">examples page</a>.</p>
+<p>If you need a customized binary image for an already supported platform (for example with an autorun program, with some code of yours in the File System, with your LAN IP settings) and the
+<a href="building.html">instructions for building eLua</a> didn't work for you, feel free to <a href="overview.html#contacts">write us</a> explaining what you need. We may find some time to
+build one for you and eventually make it available here too.</p>
+<p>To understand what's in a file name (for example <i>elua_lualong_lm3s8962.bin</i>) check our <a href="building.html">building eLua</a> page.
+<!-- [NEWVER] -->
+<table class="table_center">
+<tbody>
+<tr>
+<th>Version</th>
+<th>MCU</th>
+<th>Board</th>
+<th>Lua number type</th>
+<th>Image file</th>
+</tr>
+<tr>
+<td>0.5</td>
+<td><a target="_blank" href="http://www.atmel.com/dyn/products/Product_card.asp?part_id=3755">AT91SAM7X256</a></td>
+<td><a target="_blank" href="http://www.olimex.com/dev/sam7-ex256.html">SAM7-EX256</a></td>
+<td>double</td>
+<td><a target="_blank" href="http://prdownload.berlios.de/elua/elua0.5_lua_at91sam7x256.bin">elua0.5_lua_at91sam7x256.bin</a></td>
+</tr>
+<tr>
+<td>0.5</td>
+<td><a target="_blank" href="http://www.atmel.com/dyn/products/Product_card.asp?part_id=4104">AT91SAM7X512</a></td>
+<td>None</td>
+<td>double</td>
+<td><a target="_blank" href="http://prdownload.berlios.de/elua/elua0.5_lua_at91sam7x512.bin">elua0.5_lua_at91sam7x512.bin</a></td>
+</tr>
+<tr>
+<td>0.5</td>
+<td><a target="_blank" href="http://www.intel.com">i386 (generic)</a><br>
+<td>PCs/emulators</td>
+<td>double</td>
+<td><a target="_blank" href="http://prdownload.berlios.de/elua/elua0.5_lua_i386.elf">elua0.5_lua_i386.elf</a></td>
+</tr>
+<tr>
+<td>0.5</td>
+<td><a target="_blank" href="http://www.luminarymicro.com/products/lm3s6965.html">LM3S6965</a></td>
+<td><a target="_blank" href="http://www.luminarymicro.com/products/lm3s6965_ethernet_evaluation_kit.html">EKx-LM3S6965</a></td>
+<td>double</td>
+<td><a target="_blank" href="http://prdownload.berlios.de/elua/elua0.5_lua_lm3s6965.bin">elua0.5_lua_lm3s6965.bin</a></td>
+</tr>
+<tr>
+<td>0.5</td>
+<td><a target="_blank" href="http://www.luminarymicro.com/products/LM3S8962.html">LM3S8962</a></td>
+<td><a target="_blank" href="http://www.luminarymicro.com/products/lm3s8962_can_ethernet_evaluation_kit.html">EKx-LM3S8962</a></td>
+<td>double</td>
+<td><a target="_blank" href="http://prdownload.berlios.de/elua/elua0.5_lua_lm3s8962.bin">elua0.5_lua_lm3s8962.bin</a></td>
+</tr>
+<tr>
+<td>0.5</td>
+<td><a target="_blank" href="http://www.standardics.nxp.com/microcontrollers/to/pip/LPC2880FET180.html">LPC2888</a></td>
+<td><a target="_blank" href="http://www.olimex.com/dev/lpc-h2888.html">LPC-H2888</a></td>
+<td>double</td>
+<td><a target="_blank" href="http://prdownload.berlios.de/elua/elua0.5_lua_lpc2888.bin">elua0.5_lua_lpc2888.bin</a></td>
+</tr>
+<tr>
+<td>0.5</td>
+<td><a target="_blank" href="http://www.st.com/mcu/devicedocs-STR711FR2.html">STR711FR2</a></td>
+<td><a target="_blank" href="http://www.sctec.com.br/content/view/101/30/">MOD711</a></td>
+<td>double</td>
+<td><a target="_blank" href="http://prdownload.berlios.de/elua/elua0.5_lua_str711fr2.bin">elua0.5_lua_str711fr2.bin</a></td>
+</tr>
+<tr>
+<td>0.5</td>
+<td><a target="_blank" href="http://www.st.com/mcu/devicedocs-STR912FAW44-101.html">STR912FAW44</a></td>
+<td><a target="_blank" href="http://www.hitex.com/index.php?id=383">STR9-comStick</a></td>
+<td>double</td>
+<td><a target="_blank" href="http://prdownload.berlios.de/elua/elua0.5_lua_str912fw44.bin">elua0.5_lua_str912fw44.bin</a></td>
+</tr>
+</tbody>
+</table></p>
+<p><b>NOTE:</b> <i>Lua number type</i> reffers to the built Lua interpreter number type, float or integer, as explained in the <a href="building.html">building eLua</a> page.</p>
+<h3><a name="source">Source code</a></h3>
+<p>If all you want is to take a quick peek at <b>eLua</b>'s source code, but you don't need to download it, it's probably enough to use the 
+<a target="_blank" href="http://svn.berlios.de/wsvn/elua">BerliOS WebSVN interface</a>. You can browse through the complete source of <b>eLua</b> using this method.<br>
+If you need to download the source code of <b>eLua</b> you can either:
+<ul>
+  <li>download the source code archive of an official release</li>
+  <li>checkout the latest (bleeding edge) source code from the SVN repository in read-only mode (anonymous) mode</li>
+  <li>checkout the latest (bleeding edge) source code from the SVN repository in read-write mode (for developers)</li>
+</ul></p>
+<a name="official"><h2>Source code archives</h2></a>
+<p>Check the table below for the download link of the source code associated with the latest official release of <b>eLua</b>. If you want to get the source
+code of an older version, check out <a href="dl_old.html">this page</a>.
+<!-- [NEWVER] -->
+<table class="table_center">
+<tbody>
+<tr>
+<th>Version</th>
+<th>Source code archive</th>
+</tr>
+<tr>
+<td>0.5</td>
+<td><a target="_blank" href="http://prdownload.berlios.de/elua/elua-0.5.tgz">eLua 0.5</a></td>
+</tr>
+</tbody></table></p>
+<a name="svnpublic"><h2>SVN public repository (anonymous)</h2></a>
+<p>If you'd rather have the very last development ("bleeding edge") version, just check it out from our Subversion Repository:</p>
+<p><pre>$ svn checkout svn://svn.berlios.de/elua/trunk</pre></p>
+<p>Once checked out, the repository can be easily updated by the svn client command:</p>
+<p><pre>$ svn update</pre></p>
+<a name="svndev"><h2>SVN public repository (r/w, for developers)</h2></a>
+<p>Follow the steps below if you need write access to the <b>eLua</b> repository:
+<ul>
+  <li>if you don't have an account on <a target="_blank" href="http://developer.berlios.de/">developer.berlios.de</a>, create one.</li>
+  <li><a href="overview.html#contacts">contact us</a> specifying your BerliOS ID and we'll give you write access to the repository.</li>
+</ul></p>
+<p>Then checkout the repository:</p>
+<p><pre>$ export SVN_SSH='ssh -l &lt;yourberliosid&gt;
+$ svn checkout svn+ssh://svn.berlios.de/svnroot/repos/elua/trunk</pre></p>
+<p>Once checked out, the repository can be easily updated:</p>
+<p><pre>$ svn update</pre></p>
+
+</body></html>

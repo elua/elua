@@ -11,34 +11,21 @@
 #include <stdio.h>
 #include "uip_arp.h"
 #include "elua_uip.h"
+#include "elua_adc.h"
 #include "uip-conf.h"
 #include "platform_conf.h"
 #include "common.h"
+#include "buf.h"
+#include "utils.h"
 
 // Platform specific includes
-#include "stm32f10x_lib.h"
-#include "stm32f10x_map.h"
-#include "stm32f10x_type.h"
-#include "stm32f10x_tim.h"
-#include "stm32f10x_rcc.h"
-#include "stm32f10x_nvic.h"
-#include "stm32f10x_dbgmcu.h"
-#include "stm32f10x_gpio.h"
-#include "stm32f10x_pwr.h"
-#include "stm32f10x_usart.h"
-#include "stm32f10x_spi.h"
-#include "stm32f10x_systick.h"
-#include "stm32f10x_flash.h"
+#include "stm32f10x.h"
 
-#include "systick.h"
-
-#define STM32_USE_PIO
-#define STM32_USE_USART
-
-void exit(int ret)
-{
-  while(1);
-}
+// Clock data
+// IMPORTANT: if you change these, make sure to modify RCC_Configuration() too!
+#define HCLK        ( HSE_Value * 9 )
+#define PCLK1_DIV   2
+#define PCLK2_DIV   1
 
 // ****************************************************************************
 // Platform initialization
@@ -48,11 +35,12 @@ static void RCC_Configuration(void);
 static void NVIC_Configuration(void);
 
 static void timers_init();
+static void pwms_init();
 static void uarts_init();
 static void spis_init();
 static void pios_init();
-static void pwms_init();
-static void eth_init();
+static void adcs_init();
+static void cans_init();
 
 int platform_init()
 {
@@ -63,31 +51,28 @@ int platform_init()
   NVIC_Configuration();
 
   // Enable SysTick timer.
-  SysTick_Config();
+  SysTick_Config(720000);
 
-#ifdef STM32_USE_PIO
   // Setup PIO
   pios_init();
-#endif
 
-#ifdef STM32_USE_SPI
-  // Setup SPIs
-  //spis_init();
-#endif
-
-#ifdef STM32_USE_USART
   // Setup UARTs
   uarts_init();
-#endif
-
+  
+  // Setup SPIs
+  spis_init();
+  
   // Setup timers
-  //timers_init();
-
+  timers_init();
+  
   // Setup PWMs
-  //pwms_init();
-
-  // Setup ethernet (TCP/IP)
-  //eth_init();
+  pwms_init();
+  
+  // Setup ADCs
+  adcs_init();
+  
+  // Setup CANs
+  cans_init();
 
   cmn_platform_init();
 
@@ -109,52 +94,9 @@ int platform_init()
 *******************************************************************************/
 static void RCC_Configuration(void)
 {
-  ErrorStatus HSEStartUpStatus;
-  /* RCC system reset(for debug purpose) */
-  RCC_DeInit();
-
-  /* Enable HSE */
-  RCC_HSEConfig(RCC_HSE_ON);
-
-  /* Wait till HSE is ready */
-  HSEStartUpStatus = RCC_WaitForHSEStartUp();
-
-  if(HSEStartUpStatus == SUCCESS)
-  {
-    /* Enable Prefetch Buffer */
-    FLASH_PrefetchBufferCmd(FLASH_PrefetchBuffer_Enable);
-
-    /* Flash 2 wait state */
-    FLASH_SetLatency(FLASH_Latency_2);
-
-    /* HCLK = SYSCLK */
-    RCC_HCLKConfig(RCC_SYSCLK_Div1);
-
-    /* PCLK2 = HCLK */
-    RCC_PCLK2Config(RCC_HCLK_Div1);
-
-    /* PCLK1 = HCLK/2 */
-    RCC_PCLK1Config(RCC_HCLK_Div2);
-
-    /* PLLCLK = 8MHz * 9 = 72 MHz */
-    RCC_PLLConfig(RCC_PLLSource_HSE_Div1, RCC_PLLMul_9);
-
-    /* Enable PLL */
-    RCC_PLLCmd(ENABLE);
-
-    /* Wait till PLL is ready */
-    while(RCC_GetFlagStatus(RCC_FLAG_PLLRDY) == RESET)
-    {
-    }
-
-    /* Select PLL as system clock source */
-    RCC_SYSCLKConfig(RCC_SYSCLKSource_PLLCLK);
-
-    /* Wait till PLL is used as system clock source */
-    while(RCC_GetSYSCLKSource() != 0x08)
-    {
-    }
-  }
+  SystemInit();
+  
+  RCC_PCLK1Config(RCC_HCLK_Div2);
 
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 }
@@ -170,11 +112,13 @@ static void RCC_Configuration(void)
 * Output         : None
 * Return         : None
 *******************************************************************************/
+/* This struct is used for later reconfiguration of ADC interrupt */
+NVIC_InitTypeDef nvic_init_structure_adc;
+
 static void NVIC_Configuration(void)
 {
-  NVIC_InitTypeDef NVIC_InitStructure;
-
-  NVIC_DeInit();
+  NVIC_InitTypeDef nvic_init_structure;
+  
 
 #ifdef  VECT_TAB_RAM
   /* Set the Vector Table base location at 0x20000000 */
@@ -187,15 +131,27 @@ static void NVIC_Configuration(void)
   /* Configure the NVIC Preemption Priority Bits */
   NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 
-  /* Configure the SysTick handler priority */
-  NVIC_SystemHandlerPriorityConfig(SystemHandler_SysTick, 0, 0);
+#ifdef BUILD_ADC  
+  nvic_init_structure_adc.NVIC_IRQChannel = DMA1_Channel1_IRQn; 
+  nvic_init_structure_adc.NVIC_IRQChannelPreemptionPriority = 1; 
+  nvic_init_structure_adc.NVIC_IRQChannelSubPriority = 3; 
+  nvic_init_structure_adc.NVIC_IRQChannelCmd = DISABLE; 
+  NVIC_Init(&nvic_init_structure_adc);
+#endif
+
+#if defined( BUF_ENABLE_UART ) && defined( CON_BUF_SIZE )
+  /* Enable the USART1 Interrupt */
+  nvic_init_structure.NVIC_IRQChannel = USART1_IRQn;
+  nvic_init_structure.NVIC_IRQChannelSubPriority = 0;
+  nvic_init_structure.NVIC_IRQChannelCmd = ENABLE;
+  NVIC_Init(&nvic_init_structure);
+#endif
 }
 
 // ****************************************************************************
 // PIO
 // This is pretty much common code to all STM32 devices.
 // todo: Needs updates to support different processor lines.
-#ifdef STM32_USE_PIO
 static GPIO_TypeDef * const pio_port[] = { GPIOA, GPIOB, GPIOC, GPIOD, GPIOE, GPIOF, GPIOG };
 static const u32 pio_port_clk[]        = { RCC_APB2Periph_GPIOA, RCC_APB2Periph_GPIOB, RCC_APB2Periph_GPIOC, RCC_APB2Periph_GPIOD, RCC_APB2Periph_GPIOE, RCC_APB2Periph_GPIOF, RCC_APB2Periph_GPIOG };
 
@@ -291,63 +247,260 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
   }
   return retval;
 }
-#endif
 
-#ifdef STM32_USE_SPI
+// ****************************************************************************
+// CAN
+// TODO: Many things
+
+void cans_init( void )
+{
+  /* CAN Periph clock enable */
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_CAN1, ENABLE);
+}
+
+/*       BS1 BS2 SJW Pre
+1M:      5   3   1   4
+500k:    7   4   1   6
+250k:    9   8   1   8
+125k:    9   8   1   16
+100k:    9   8   1   20 */
+
+#define CAN_BAUD_COUNT 5
+static const u8 can_baud_bs1[]    = { CAN_BS1_9tq, CAN_BS1_9tq, CAN_BS1_9tq, CAN_BS1_7tq, CAN_BS1_5tq };
+static const u8 can_baud_bs2[]    = { CAN_BS1_8tq, CAN_BS1_8tq, CAN_BS1_8tq, CAN_BS1_4tq, CAN_BS1_3tq };
+static const u8 can_baud_sjw[]    = { CAN_SJW_1tq, CAN_SJW_1tq, CAN_SJW_1tq, CAN_SJW_1tq, CAN_SJW_1tq };
+static const u8 can_baud_pre[]    = { 20, 16, 8, 6, 4 };
+static const u32 can_baud_rate[]  = { 100000, 125000, 250000, 500000, 1000000 };
+
+u32 platform_can_setup( unsigned id, u32 clock )
+{
+  CAN_InitTypeDef        CAN_InitStructure;
+  CAN_FilterInitTypeDef  CAN_FilterInitStructure;
+  GPIO_InitTypeDef GPIO_InitStructure;
+  int cbaudidx = -1;
+
+  // Configure IO Pins -- This is for STM32F103RE
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+  GPIO_Init( GPIOB, &GPIO_InitStructure );
+  
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_Init( GPIOB, &GPIO_InitStructure );
+  
+  GPIO_PinRemapConfig( GPIO_Remap1_CAN1, ENABLE );
+
+  // Select baud rate up to requested rate, except for below min, where min is selected
+  if ( clock >= can_baud_rate[ CAN_BAUD_COUNT - 1 ] ) // round down to peak rate if >= peak rate
+    cbaudidx = CAN_BAUD_COUNT - 1;
+  else
+  {
+    for( cbaudidx = 0; cbaudidx < CAN_BAUD_COUNT - 1; cbaudidx ++ )
+    {
+      if( clock < can_baud_rate[ cbaudidx + 1 ] ) // take current idx if next is too large
+        break;
+    }
+  }
+
+  /* Deinitialize CAN Peripheral */
+  CAN_DeInit( CAN1 );
+  CAN_StructInit( &CAN_InitStructure );
+
+  /* CAN cell init */
+  CAN_InitStructure.CAN_TTCM=DISABLE;
+  CAN_InitStructure.CAN_ABOM=DISABLE;
+  CAN_InitStructure.CAN_AWUM=DISABLE;
+  CAN_InitStructure.CAN_NART=DISABLE;
+  CAN_InitStructure.CAN_RFLM=DISABLE;
+  CAN_InitStructure.CAN_TXFP=DISABLE;
+  CAN_InitStructure.CAN_Mode=CAN_Mode_Normal;
+  CAN_InitStructure.CAN_SJW=can_baud_sjw[ cbaudidx ];
+  CAN_InitStructure.CAN_BS1=can_baud_bs1[ cbaudidx ];
+  CAN_InitStructure.CAN_BS2=can_baud_bs2[ cbaudidx ];
+  CAN_InitStructure.CAN_Prescaler=can_baud_pre[ cbaudidx ];
+  CAN_Init( CAN1, &CAN_InitStructure );
+
+  /* CAN filter init */
+  CAN_FilterInitStructure.CAN_FilterNumber=0;
+  CAN_FilterInitStructure.CAN_FilterMode=CAN_FilterMode_IdMask;
+  CAN_FilterInitStructure.CAN_FilterScale=CAN_FilterScale_32bit;
+  CAN_FilterInitStructure.CAN_FilterIdHigh=0x0000;
+  CAN_FilterInitStructure.CAN_FilterIdLow=0x0000;
+  CAN_FilterInitStructure.CAN_FilterMaskIdHigh=0x0000;
+  CAN_FilterInitStructure.CAN_FilterMaskIdLow=0x0000;
+  CAN_FilterInitStructure.CAN_FilterFIFOAssignment=CAN_FIFO0;
+  CAN_FilterInitStructure.CAN_FilterActivation=ENABLE;
+  CAN_FilterInit(&CAN_FilterInitStructure);
+  
+  return can_baud_rate[ cbaudidx ];
+}
+/*
+u32 platform_can_op( unsigned id, int op, u32 data )
+{
+  u32 res = 0;
+  TIM_TypeDef *ptimer = timer[ id ];
+  volatile unsigned dummy;
+
+  data = data;
+  switch( op )
+  {
+    case PLATFORM_TIMER_OP_READ:
+      res = TIM_GetCounter( ptimer );
+      break;
+  }
+  return res;
+}
+*/
+
+void platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *data )
+{
+  CanTxMsg TxMessage;
+  const char *s = ( char * )data;
+  char *d;
+  
+  switch( idtype )
+  {
+    case 0: /* Standard ID Type  */
+      TxMessage.IDE = CAN_ID_STD;
+      TxMessage.StdId = canid;
+      break;
+    case 1: /* Extended ID Type */
+      TxMessage.IDE=CAN_ID_EXT;
+      TxMessage.ExtId = canid;
+      break;
+  }
+  
+  TxMessage.RTR=CAN_RTR_DATA;
+  TxMessage.DLC=len;
+  
+  d = ( char * )TxMessage.Data;
+  DUFF_DEVICE_8( len,  *d++ = *s++ );
+  
+  CAN_Transmit( CAN1, &TxMessage );
+}
+
+void USB_LP_CAN_RX0_IRQHandler(void)
+{
+/*
+  CanRxMsg RxMessage;
+
+  RxMessage.StdId=0x00;
+  RxMessage.ExtId=0x00;
+  RxMessage.IDE=0;
+  RxMessage.DLC=0;
+  RxMessage.FMI=0;
+  RxMessage.Data[0]=0x00;
+  RxMessage.Data[1]=0x00;
+
+  CAN_Receive(CAN_FIFO0, &RxMessage);
+
+  if((RxMessage.ExtId==0x1234) && (RxMessage.IDE==CAN_ID_EXT)
+     && (RxMessage.DLC==2) && ((RxMessage.Data[1]|RxMessage.Data[0]<<8)==0xDECA))
+  {
+    ret = 1; 
+  }
+  else
+  {
+    ret = 0; 
+  }*/
+}
+
+void platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )
+{
+  CanRxMsg RxMessage;
+  const char *s;
+  char *d;
+  u32 i = 0;
+  
+  // Check up to 256 times for message
+  while( ( CAN_MessagePending(CAN1, CAN_FIFO0) < 1 ) && ( i++ != 0xFF ) );
+    
+  RxMessage.StdId=0x00;
+  RxMessage.IDE=CAN_ID_STD;
+  RxMessage.DLC=0;
+  RxMessage.Data[0]=0x00;
+  RxMessage.Data[1]=0x00;
+  CAN_Receive(CAN1, CAN_FIFO0, &RxMessage);
+  
+  if( RxMessage.IDE == CAN_ID_STD )
+  {
+    *canid = ( u32 )RxMessage.StdId;
+    *idtype = 0;
+  }
+  else
+  {
+    *canid = ( u32 )RxMessage.ExtId;
+    *idtype = 1;
+  }
+  
+  *len = RxMessage.DLC;
+  
+  s = ( const char * )RxMessage.Data;
+  d = ( char* )data;
+  DUFF_DEVICE_8( RxMessage.DLC,  *d++ = *s++ );
+}
+
 // ****************************************************************************
 // SPI
-// TODO: Just about everything.
+// NOTE: Only configuring 2 SPI peripherals, since the third one shares pins with JTAG
 
-static const u32 spi_base[] = { SSI0_BASE, SSI1_BASE };
-static const u32 spi_sysctl[] = { SYSCTL_PERIPH_SSI0, SYSCTL_PERIPH_SSI1 };
-static const u32 spi_gpio_base[] = { GPIO_PORTA_BASE | GPIO_PORTE_BASE };
-static const u8 spi_gpio_pins[] = { GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5,
-                                    GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 };
-//                                  SSIxClk      SSIxFss      SSIxRx       SSIxTx
-static const u8 spi_gpio_clk_pin[] = { GPIO_PIN_2, GPIO_PIN_0 };
-#define SPIS_COUNT 		1
+static SPI_TypeDef *const spi[]  = { SPI1, SPI2 };
+static const u16 spi_prescaler[] = { SPI_BaudRatePrescaler_2, SPI_BaudRatePrescaler_4, SPI_BaudRatePrescaler_8, 
+                                     SPI_BaudRatePrescaler_16, SPI_BaudRatePrescaler_32, SPI_BaudRatePrescaler_64,
+                                     SPI_BaudRatePrescaler_128, SPI_BaudRatePrescaler_256 };
+                                     
+static const u16 spi_gpio_pins[] = { GPIO_Pin_5  | GPIO_Pin_6  | GPIO_Pin_7,
+                                     GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15 };
+//                                   SCK           MISO          MOSI
+static GPIO_TypeDef *const spi_gpio_port[] = { GPIOA, GPIOB };
 
 static void spis_init()
 {
-  unsigned i;
-
-  for( i = 0; i < SPIS_COUNT; i ++ )
-  {
-    SysCtlPeripheralEnable(spi_sysctl[ i ]);
-  }
+  // Enable Clocks
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);
 }
 
-int platform_spi_exists( unsigned id )
-{
-  return id < SPIS_COUNT;
-}
+#define SPI_GET_BASE_CLK( id ) ( ( id ) == 0 ? ( HCLK / PCLK2_DIV ) : ( HCLK / PCLK1_DIV ) )
 
 u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigned cpha, unsigned databits )
 {
-  unsigned protocol;
-
-  if( cpol == 0 )
-    protocol = cpha ? SSI_FRF_MOTO_MODE_1 : SSI_FRF_MOTO_MODE_0;
-  else
-    protocol = cpha ? SSI_FRF_MOTO_MODE_3 : SSI_FRF_MOTO_MODE_2;
-  mode = mode == PLATFORM_SPI_MASTER ? SSI_MODE_MASTER : SSI_MODE_SLAVE;
-  SSIDisable( spi_base[ id ] );
-
-  GPIOPinTypeSSI( spi_gpio_base[ id ], spi_gpio_pins[ id ] );
-
-  // FIXME: not sure this is always "right"
-  GPIOPadConfigSet(spi_gpio_base[ id ], spi_gpio_clk_pin[ id ], GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_STD_WPU);
-
-  SSIConfigSetExpClk( spi_base[ id ], SysCtlClockGet(), protocol, mode, clock, databits );
-  SSIEnable( spi_base[ id ] );
-  return clock;
+  SPI_InitTypeDef SPI_InitStructure;
+  GPIO_InitTypeDef GPIO_InitStructure;
+  u8 prescaler_idx = intlog2( ( unsigned ) ( SPI_GET_BASE_CLK( id ) / clock ) );
+  if ( prescaler_idx < 0 )
+    prescaler_idx = 0;
+  if ( prescaler_idx > 7 )
+    prescaler_idx = 7;
+  
+  /* Configure SPI pins */
+  GPIO_InitStructure.GPIO_Pin = spi_gpio_pins[ id ];
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+  GPIO_Init(spi_gpio_port[ id ], &GPIO_InitStructure);
+  
+  /* Take down, then reconfigure SPI peripheral */
+  SPI_Cmd( spi[ id ], DISABLE );
+  SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
+  SPI_InitStructure.SPI_Mode = mode ? SPI_Mode_Master : SPI_Mode_Slave;
+  SPI_InitStructure.SPI_DataSize = ( databits == 16 ) ? SPI_DataSize_16b : SPI_DataSize_8b; // not ideal, but defaults to sane 8-bits
+  SPI_InitStructure.SPI_CPOL = cpol ? SPI_CPOL_High : SPI_CPOL_Low;
+  SPI_InitStructure.SPI_CPHA = cpha ? SPI_CPHA_1Edge : SPI_CPHA_2Edge;
+  SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;
+  SPI_InitStructure.SPI_BaudRatePrescaler = spi_prescaler[ prescaler_idx ];
+  SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
+  SPI_InitStructure.SPI_CRCPolynomial = 7;
+  SPI_Init( spi[ id ], &SPI_InitStructure );
+  SPI_Cmd( spi[ id ], ENABLE );
+  
+  return ( SPI_GET_BASE_CLK( id ) / ( ( ( u16 )2 << ( prescaler_idx ) ) ) );
 }
 
 spi_data_type platform_spi_send_recv( unsigned id, spi_data_type data )
 {
-  SSIDataPut( spi_base[ id ], data );
-  SSIDataGet( spi_base[ id ], &data );
-  return data;
+  SPI_I2S_SendData( spi[ id ], data );
+  return SPI_I2S_ReceiveData( spi[ id ] );
 }
 
 void platform_spi_select( unsigned id, int is_select )
@@ -356,21 +509,34 @@ void platform_spi_select( unsigned id, int is_select )
   id = id;
   is_select = is_select;
 }
-#endif
 
-#ifdef STM32_USE_USART
+
 // ****************************************************************************
 // UART
 // TODO: Support timeouts.
 
 // All possible STM32 uarts defs
-static USART_TypeDef * usart[] =          { USART1, USART2, USART3, UART4 };
-static GPIO_TypeDef * usart_gpio_port[] = { GPIOA, GPIOA, GPIOB, GPIOC };
-static const u16 usart_gpio_tx_pin[] = { GPIO_Pin_9, GPIO_Pin_2, GPIO_Pin_10, GPIO_Pin_10 };
-static const u16 usart_gpio_rx_pin[] = { GPIO_Pin_10, GPIO_Pin_3, GPIO_Pin_11, GPIO_Pin_11 };
-//static const u32 uart_sysctl[] = { SYSCTL_PERIPH_UART0, SYSCTL_PERIPH_UART1, SYSCTL_PERIPH_UART2 };
-//static const u32 uart_gpio_base[] = { _BASE, GPIO_PORTD_BASE, GPIO_PORTG_BASE };
-//static const u8 uart_gpio_pins[] = { GPIO_PIN_0 | GPIO_PIN_1, GPIO_PIN_2 | GPIO_PIN_3, GPIO_PIN_0 | GPIO_PIN_1 };
+static USART_TypeDef *const usart[] =          { USART1, USART2, USART3, UART4, UART5 };
+static GPIO_TypeDef *const usart_gpio_rx_port[] = { GPIOA, GPIOA, GPIOB, GPIOC, GPIOD };
+static GPIO_TypeDef *const usart_gpio_tx_port[] = { GPIOA, GPIOA, GPIOB, GPIOC, GPIOC };
+static const u16 usart_gpio_rx_pin[] = { GPIO_Pin_10, GPIO_Pin_3, GPIO_Pin_11, GPIO_Pin_11, GPIO_Pin_2 };
+static const u16 usart_gpio_tx_pin[] = { GPIO_Pin_9, GPIO_Pin_2, GPIO_Pin_10, GPIO_Pin_10, GPIO_Pin_12 };
+
+#ifdef BUF_ENABLE_UART
+void USART1_IRQHandler(void)
+{
+  int c;
+
+  if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
+  {
+    /* Read one byte from the receive data register */
+    c = USART_ReceiveData(USART1);
+    buf_write( BUF_ID_UART, CON_UART_ID, ( t_buf_data* )&c );
+  }
+}
+#endif
+
+
 
 static void usart_init(u32 id, USART_InitTypeDef * initVals)
 {
@@ -381,21 +547,23 @@ static void usart_init(u32 id, USART_InitTypeDef * initVals)
   GPIO_InitStructure.GPIO_Pin = usart_gpio_tx_pin[id];
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-  GPIO_Init(usart_gpio_port[id], &GPIO_InitStructure);
+  GPIO_Init(usart_gpio_tx_port[id], &GPIO_InitStructure);
 
   /* Configure USART Rx Pin as input floating */
   GPIO_InitStructure.GPIO_Pin = usart_gpio_rx_pin[id];
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-  GPIO_Init(usart_gpio_port[id], &GPIO_InitStructure);
+  GPIO_Init(usart_gpio_rx_port[id], &GPIO_InitStructure);
 
   /* Configure USART */
   USART_Init(usart[id], initVals);
-
+  
+#if defined( BUF_ENABLE_UART ) && defined( CON_BUF_SIZE )
   /* Enable USART1 Receive and Transmit interrupts */
-  //USART_ITConfig(usart[id], USART_IT_RXNE, ENABLE);
+  USART_ITConfig(usart[id], USART_IT_RXNE, ENABLE);
   //USART_ITConfig(usart[id], USART_IT_TXE, ENABLE);
+#endif
 
-  /* Enable the USART1 */
+  /* Enable USART */
   USART_Cmd(usart[id], ENABLE);
 }
 
@@ -409,8 +577,7 @@ static void uarts_init()
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART4, ENABLE);
 
-  // Configure the U(S)ART for 115,200, 8-N-1 operation.
-
+  // Configure the U(S)ART
   USART_InitStructure.USART_BaudRate = CON_UART_SPEED;
   USART_InitStructure.USART_WordLength = USART_WordLength_8b;
   USART_InitStructure.USART_StopBits = USART_StopBits_1;
@@ -418,7 +585,12 @@ static void uarts_init()
   USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
   USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
 
+#if defined( BUF_ENABLE_UART ) && defined( CON_BUF_SIZE )
+  buf_set( BUF_ID_UART, CON_UART_ID, CON_BUF_SIZE, BUF_DSIZE_U8 );
+#endif
+
   usart_init(CON_UART_ID, &USART_InitStructure);
+
 }
 
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )
@@ -498,86 +670,98 @@ int platform_s_uart_recv( unsigned id, s32 timeout )
   while(USART_GetFlagStatus(usart[id], USART_FLAG_RXNE) == RESET);
   return USART_ReceiveData(usart[id]);
 }
-#endif
 
-#ifdef STM32_USE_TIMERS
 // ****************************************************************************
 // Timers
 
-// All possible LM3S timers defs
-static TIM_TypeDef * timer[] = { TIM2, TIM3, TIM4, TIM5};
+// We leave out TIM6/TIM for now, as they are dedicated
+static TIM_TypeDef * const timer[] = { TIM1, TIM2, TIM3, TIM4, TIM5 };
+#define TIM_GET_BASE_CLK( id ) ( ( id ) == 0 || ( id ) == 5 ? ( HCLK / PCLK2_DIV ) : ( HCLK / PCLK1_DIV ) )
+#define TIM_STARTUP_CLOCK       50000
 
 static void timers_init()
 {
-#if 0
+  TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
   unsigned i;
 
+  // Enable clocks.
+  RCC_APB2PeriphClockCmd( RCC_APB2Periph_TIM1, ENABLE );  
+  RCC_APB1PeriphClockCmd( RCC_APB1Periph_TIM2, ENABLE );
+  RCC_APB1PeriphClockCmd( RCC_APB1Periph_TIM3, ENABLE );
+  RCC_APB1PeriphClockCmd( RCC_APB1Periph_TIM4, ENABLE );
+  RCC_APB1PeriphClockCmd( RCC_APB1Periph_TIM5, ENABLE );
+
+
+  // Configure timers
   for( i = 0; i < NUM_TIMER; i ++ )
   {
-	SysCtlPeripheralEnable(timer_sysctl[ i ]);
-    TimerConfigure(timer_base[ i ], TIMER_CFG_32_BIT_PER);
-    TimerEnable(timer_base[ i ], TIMER_A);
+    TIM_TimeBaseStructure.TIM_Period = 0xFFFF;
+    TIM_TimeBaseStructure.TIM_Prescaler = TIM_GET_BASE_CLK( i ) / TIM_STARTUP_CLOCK;
+    TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+    TIM_TimeBaseStructure.TIM_RepetitionCounter = 0x0000;
+    TIM_TimeBaseInit( timer[ i ], &TIM_TimeBaseStructure );
   }
-#endif
 }
 
-static u32 platform_timer_get_clock(unsigned id)
+static u32 timer_get_clock( unsigned id )
 {
-  RCC_ClocksTypeDef Clocks;
+  TIM_TypeDef* ptimer = timer[ id ];
 
-  RCC_GetClocksFreq(&Clocks);
-
-  return Clocks.PCLK1_Frequency / (TIM_GetPrescaler(timer[id]) + 1)
+  return TIM_GET_BASE_CLK( id ) / ( TIM_GetPrescaler( ptimer ) + 1 );
 }
 
-static u32 platform_timer_set_clock(unsigned id, u32 clock)
+static u32 timer_set_clock( unsigned id, u32 clock )
 {
-  RCC_ClocksTypeDef Clocks;
-  u32 pclk, clkdiv;
-  u64 tmp;
-
-  RCC_GetClocksFreq(&Clocks);
-
-  pclk   = Clocks.PCLK1_Frequency; // Get peripheral bus clock frequency.
-  tmp    = ((u64)pclk << 16) / clock; // Convert to u32.16 fixed point and calculate prescaler divisor
-  clkdiv = ((tmp & 0x8000) ? (tmp + 0x10000) : tmp) >> 16;  // Round up or down and convert back to u32.0
-  if (clkdiv > 0x10000)  // Saturate to u16 (+1 for a clkdiv value of 1 is a reg value of 0)
-      clkdiv = 0x10000;
-
-  TIM_PrescalerConfig(timer[id], clkdiv - 1, TIM_PSCReloadMode_Immediate); // Update timer prescaler immediately
-
-  return pclk / clkdiv; // Return actual clock rate used.
+  TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+  TIM_TypeDef *ptimer = timer[ id ];
+  u16 pre;
+  
+  TIM_TimeBaseStructure.TIM_Period = 0xFFFF;
+  TIM_TimeBaseStructure.TIM_Prescaler = TIM_GET_BASE_CLK( id ) / TIM_STARTUP_CLOCK;
+  TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+  TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+  TIM_TimeBaseStructure.TIM_RepetitionCounter = 0x0000;
+  TIM_TimeBaseInit( timer[ id ], &TIM_TimeBaseStructure );
+  TIM_Cmd( ptimer, ENABLE );
+  
+  pre = TIM_GET_BASE_CLK( id ) / clock;
+  TIM_PrescalerConfig( ptimer, pre, TIM_PSCReloadMode_Immediate );
+  return TIM_GET_BASE_CLK( id ) / pre;
 }
 
 void platform_s_timer_delay( unsigned id, u32 delay_us )
 {
+  TIM_TypeDef *ptimer = timer[ id ];
+  volatile unsigned dummy;
   timer_data_type final;
-  u32 base = timer_base[ id ];
 
-  final = 0xFFFFFFFF - ( ( ( u64 )delay_us * SysCtlClockGet() ) / 1000000 );
-  TimerLoadSet( base, TIMER_A, 0xFFFFFFFF );
-  while( TimerValueGet( base, TIMER_A ) > final );
+  final = ( ( u64 )delay_us * timer_get_clock( id ) ) / 1000000;
+  TIM_SetCounter( ptimer, 0 );
+  for( dummy = 0; dummy < 200; dummy ++ );
+  while( TIM_GetCounter( ptimer ) < final );
 }
 
 u32 platform_s_timer_op( unsigned id, int op, u32 data )
 {
   u32 res = 0;
-  u32 base = timer_base[ id ];
+  TIM_TypeDef *ptimer = timer[ id ];
+  volatile unsigned dummy;
 
   data = data;
   switch( op )
   {
     case PLATFORM_TIMER_OP_START:
-      res = 0xFFFFFFFF;
-      TimerLoadSet( base, TIMER_A, 0xFFFFFFFF );
+      TIM_SetCounter( ptimer, 0 );
+      for( dummy = 0; dummy < 200; dummy ++ );
       break;
 
     case PLATFORM_TIMER_OP_READ:
-      res = TimerValueGet( base, TIMER_A );
+      res = TIM_GetCounter( ptimer );
       break;
 
     case PLATFORM_TIMER_OP_GET_MAX_DELAY:
-      res = platform_timer_get_diff_us( id, 0, 0xFFFFFFFF );
+      res = platform_timer_get_diff_us( id, 0, 0xFFFF );
       break;
 
     case PLATFORM_TIMER_OP_GET_MIN_DELAY:
@@ -585,92 +769,112 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
       break;
 
     case PLATFORM_TIMER_OP_SET_CLOCK:
+      res = timer_set_clock( id, data );
+      break;
+
     case PLATFORM_TIMER_OP_GET_CLOCK:
-      res = SysCtlClockGet();
+      res = timer_get_clock( id );
       break;
 
   }
   return res;
 }
-#else
-u32 platform_s_timer_op( unsigned id, int op, u32 data )
-{
-  return 0;
-}
-#endif
 
-#ifdef STM32_USE_PWM
+
 // ****************************************************************************
 // PWMs
-// TODO: Everything.
+// Using Timer 8 (5 in eLua)
 
-#define PLATFORM_NUM_PWMS               6
+#define PWM_TIMER_ID 5
+#define PWM_TIMER_NAME TIM8
 
-// SYSCTL div data and actual div factors
-const static u32 pwm_div_ctl[] = { SYSCTL_PWMDIV_1, SYSCTL_PWMDIV_2, SYSCTL_PWMDIV_4, SYSCTL_PWMDIV_8, SYSCTL_PWMDIV_16, SYSCTL_PWMDIV_32, SYSCTL_PWMDIV_64 };
-const static u8 pwm_div_data[] = { 1, 2, 4, 8, 16, 32, 64 };
-// Port/pin information for all channels
-const static u32 pwm_ports[] =  { GPIO_PORTF_BASE, GPIO_PORTG_BASE, GPIO_PORTB_BASE, GPIO_PORTB_BASE, GPIO_PORTE_BASE, GPIO_PORTE_BASE };
-const static u8 pwm_pins[] = { GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1 };
-// PWM generators
-const static u16 pwm_gens[] = { PWM_GEN_0, PWM_GEN_1, PWM_GEN_2 };
-// PWM outputs
-const static u16 pwm_outs[] = { PWM_OUT_0, PWM_OUT_1, PWM_OUT_2, PWM_OUT_3, PWM_OUT_4, PWM_OUT_5 };
+static const u16 pwm_gpio_pins[] = { GPIO_Pin_6, GPIO_Pin_7, GPIO_Pin_8, GPIO_Pin_9 };
 
 static void pwms_init()
 {
-  SysCtlPeripheralEnable( SYSCTL_PERIPH_PWM );
-  SysCtlPWMClockSet( SYSCTL_PWMDIV_1 );
+  RCC_APB2PeriphClockCmd( RCC_APB2Periph_TIM8, ENABLE );  
+  // 
 }
 
 // Helper function: return the PWM clock
+// NOTE: Can't find a function to query for the period set for the timer, therefore using the struct.
+//       This may require adjustment if driver libraries are updated.
 static u32 platform_pwm_get_clock()
 {
-  unsigned i;
-  u32 clk;
-
-  clk = SysCtlPWMClockGet();
-  for( i = 0; i < sizeof( pwm_div_ctl ) / sizeof( u32 ); i ++ )
-    if( clk == pwm_div_ctl[ i ] )
-      break;
-  return SysCtlClockGet() / pwm_div_data[ i ];
+  return ( ( TIM_GET_BASE_CLK( PWM_TIMER_ID ) / ( TIM_GetPrescaler( PWM_TIMER_NAME ) + 1 ) ) / ( PWM_TIMER_NAME->ARR + 1 ) );
 }
 
 // Helper function: set the PWM clock
 static u32 platform_pwm_set_clock( u32 clock )
 {
-  unsigned i, min_i;
-  u32 sysclk;
-
-  sysclk = SysCtlClockGet();
-  for( i = min_i = 0; i < sizeof( pwm_div_data ) / sizeof( u8 ); i ++ )
-    if( ABSDIFF( clock, sysclk / pwm_div_data[ i ] ) < ABSDIFF( clock, sysclk / pwm_div_data[ min_i ] ) )
-      min_i = i;
-  SysCtlPWMClockSet( pwm_div_ctl[ min_i ] );
-  return sysclk / pwm_div_data[ min_i ];
-}
-
-int platform_pwm_exists( unsigned id )
-{
-  return id < PLATFORM_NUM_PWMS;
+  TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
+  TIM_TypeDef* ptimer = PWM_TIMER_NAME;
+  
+  /* Time base configuration */
+  TIM_TimeBaseStructure.TIM_Period = ( TIM_GET_BASE_CLK( PWM_TIMER_ID ) / clock ) - 1;
+  TIM_TimeBaseStructure.TIM_Prescaler = 0;
+  TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+  TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+  TIM_TimeBaseStructure.TIM_RepetitionCounter = 0x0000;
+  TIM_TimeBaseInit( ptimer, &TIM_TimeBaseStructure );
+    
+  return ( TIM_GET_BASE_CLK( PWM_TIMER_ID ) / ( TIM_TimeBaseStructure.TIM_Period + 1 ) ) ;
 }
 
 u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
 {
-  u32 pwmclk = platform_pwm_get_clock();
-  u32 period;
-
-  // Set pin as PWM
-  GPIOPinTypePWM( pwm_ports[ id ], pwm_pins[ id ] );
-  // Compute period
-  period = pwmclk / frequency;
-  // Set the period
-  PWMGenConfigure( PWM_BASE, pwm_gens[ id >> 1 ], PWM_GEN_MODE_UP_DOWN | PWM_GEN_MODE_NO_SYNC );
-  PWMGenPeriodSet( PWM_BASE, pwm_gens[ id >> 1 ], period );
-  // Set duty cycle
-  PWMPulseWidthSet( PWM_BASE, pwm_outs[ id ], ( period * duty ) / 100 );
-  // Return actual frequency
-  return pwmclk / period;
+  TIM_OCInitTypeDef  TIM_OCInitStructure;
+  TIM_TypeDef* ptimer = TIM8;
+  GPIO_InitTypeDef GPIO_InitStructure;
+  u32 clock;
+  
+  TIM_Cmd( ptimer, DISABLE);
+  TIM_SetCounter( ptimer, 0 );
+  
+  /* Configure USART Tx Pin as alternate function push-pull */
+  GPIO_InitStructure.GPIO_Pin = pwm_gpio_pins[ id ];
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+  GPIO_Init(GPIOC, &GPIO_InitStructure);
+  
+  clock = platform_pwm_set_clock( frequency );
+  TIM_ARRPreloadConfig( ptimer, ENABLE );
+  
+  /* PWM Mode configuration */  
+  TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
+  TIM_OCInitStructure.TIM_OutputState = ( PWM_TIMER_NAME->CCER & ( ( u16 )1 << 4*id ) ) ? TIM_OutputState_Enable : TIM_OutputState_Disable;
+  TIM_OCInitStructure.TIM_OutputNState = TIM_OutputNState_Disable;
+  TIM_OCInitStructure.TIM_Pulse = ( u16 )( duty * ( PWM_TIMER_NAME->ARR + 1 ) / 100 );
+  TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
+  TIM_OCInitStructure.TIM_OCIdleState = TIM_OCIdleState_Set;
+  
+  switch ( id )
+  {
+    case 0:
+      TIM_OC1Init( ptimer, &TIM_OCInitStructure );
+      TIM_OC1PreloadConfig( ptimer, TIM_OCPreload_Enable );
+      break;
+    case 1:
+      TIM_OC2Init( ptimer, &TIM_OCInitStructure );
+      TIM_OC2PreloadConfig( ptimer, TIM_OCPreload_Enable );
+      break;
+    case 2:
+      TIM_OC3Init( ptimer, &TIM_OCInitStructure );
+      TIM_OC3PreloadConfig( ptimer, TIM_OCPreload_Enable );
+      break;
+    case 3:
+      TIM_OC4Init( ptimer, &TIM_OCInitStructure );
+      TIM_OC4PreloadConfig( ptimer, TIM_OCPreload_Enable ) ;
+      break;
+    default:
+      return 0;
+  }
+  
+  TIM_CtrlPWMOutputs(ptimer, ENABLE);  
+  
+  TIM_Cmd( ptimer, ENABLE );
+  
+  return clock;
 }
 
 u32 platform_pwm_op( unsigned id, int op, u32 data )
@@ -688,198 +892,289 @@ u32 platform_pwm_op( unsigned id, int op, u32 data )
       break;
 
     case PLATFORM_PWM_OP_START:
-      PWMOutputState( PWM_BASE, 1 << id, true );
-      PWMGenEnable( PWM_BASE, pwm_gens[ id >> 1 ] );
+      PWM_TIMER_NAME->CCER |= ( ( u16 )1 << 4*id );
       break;
 
     case PLATFORM_PWM_OP_STOP:
-      PWMOutputState( PWM_BASE, 1 << id, false );
-      PWMGenDisable( PWM_BASE, pwm_gens[ id >> 1 ] );
+      PWM_TIMER_NAME->CCER &= ~( ( u16 )1 << 4*id );
       break;
   }
 
   return res;
 }
-#endif
+
+
 
 // *****************************************************************************
 // CPU specific functions
-
+ 
 void platform_cpu_enable_interrupts()
 {
-  //IntMasterEnable();
+  void NVIC_RESETPRIMASK(void); // enable interrupts
 }
 
 void platform_cpu_disable_interrupts()
 {
-  //IntMasterDisable();
+  void NVIC_SETPRIMASK(void); // disable interrupts
 }
 
 u32 platform_s_cpu_get_frequency()
 {
-  RCC_ClocksTypeDef clocks;
-
-  RCC_GetClocksFreq(&clocks);
-
-  return clocks.HCLK_Frequency;
+  return HCLK;
 }
 
-u32 platform_pclk1_get_frequency()
+// *****************************************************************************
+// ADC specific functions and variables
+
+#define ADC1_DR_Address ((u32)ADC1_BASE + 0x4C)
+
+static ADC_TypeDef *const adc[] = { ADC1, ADC2, ADC3 };
+static const u32 adc_timer[] = { ADC_ExternalTrigConv_T1_CC1, ADC_ExternalTrigConv_T2_CC2, ADC_ExternalTrigConv_T3_TRGO, ADC_ExternalTrigConv_T4_CC4 };
+
+ADC_InitTypeDef adc_init_struct;
+DMA_InitTypeDef dma_init_struct;
+
+int platform_adc_check_timer_id( unsigned id, unsigned timer_id )
 {
-  RCC_ClocksTypeDef clocks;
-
-  RCC_GetClocksFreq(&clocks);
-
-  return clocks.PCLK1_Frequency;
+  // NOTE: We only allow timer 2 at the moment, for the sake of implementation simplicity
+  return ( timer_id == 2 );
 }
 
-u32 platform_pclk2_get_frequency()
+void platform_adc_stop( unsigned id )
 {
-  RCC_ClocksTypeDef clocks;
+  elua_adc_ch_state *s = adc_get_ch_state( id );
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  
+  s->op_pending = 0;
+  INACTIVATE_CHANNEL( d, id );
 
-  RCC_GetClocksFreq(&clocks);
-
-  return clocks.PCLK2_Frequency;
-}
-
-// ****************************************************************************
-// Ethernet functions
-
-static void eth_init()
-{
-#ifdef BUILD_UIP
-  u32 user0, user1, temp;
-  static struct uip_eth_addr sTempAddr;
-
-  // Enable and reset the controller
-  SysCtlPeripheralEnable( SYSCTL_PERIPH_ETH );
-  SysCtlPeripheralReset( SYSCTL_PERIPH_ETH );
-
-  // Enable Ethernet LEDs
-  GPIODirModeSet( GPIO_PORTF_BASE, GPIO_PIN_2 | GPIO_PIN_3, GPIO_DIR_MODE_HW );
-  GPIOPadConfigSet( GPIO_PORTF_BASE, GPIO_PIN_2 | GPIO_PIN_3, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD );
-
-  // Configure SysTick for a periodic interrupt.
-  SysTickPeriodSet(SysCtlClockGet() / SYSTICKHZ);
-  SysTickEnable();
-  SysTickIntEnable();
-
-  // Intialize the Ethernet Controller and disable all Ethernet Controller interrupt sources.
-  EthernetIntDisable(ETH_BASE, (ETH_INT_PHY | ETH_INT_MDIO | ETH_INT_RXER |
-                     ETH_INT_RXOF | ETH_INT_TX | ETH_INT_TXER | ETH_INT_RX));
-  temp = EthernetIntStatus(ETH_BASE, false);
-  EthernetIntClear(ETH_BASE, temp);
-
-  // Initialize the Ethernet Controller for operation.
-  EthernetInitExpClk(ETH_BASE, SysCtlClockGet());
-
-  // Configure the Ethernet Controller for normal operation.
-  // - Full Duplex
-  // - TX CRC Auto Generation
-  // - TX Padding Enabled
-  EthernetConfigSet(ETH_BASE, (ETH_CFG_TX_DPLXEN | ETH_CFG_TX_CRCEN |
-                               ETH_CFG_TX_PADEN));
-
-  // Enable the Ethernet Controller.
-  EthernetEnable(ETH_BASE);
-
-  // Enable the Ethernet interrupt.
-  IntEnable(INT_ETH);
-
-  // Enable the Ethernet RX Packet interrupt source.
-  EthernetIntEnable(ETH_BASE, ETH_INT_RX);
-
-  // Enable all processor interrupts.
-  IntMasterEnable();
-
-  // Configure the hardware MAC address for Ethernet Controller filtering of
-  // incoming packets.
-  //
-  // For the Ethernet Eval Kits, the MAC address will be stored in the
-  // non-volatile USER0 and USER1 registers.  These registers can be read
-  // using the FlashUserGet function, as illustrated below.
-  FlashUserGet(&user0, &user1);
-
-  // Convert the 24/24 split MAC address from NV ram into a 32/16 split MAC
-  // address needed to program the hardware registers, then program the MAC
-  // address into the Ethernet Controller registers.
-  sTempAddr.addr[0] = ((user0 >>  0) & 0xff);
-  sTempAddr.addr[1] = ((user0 >>  8) & 0xff);
-  sTempAddr.addr[2] = ((user0 >> 16) & 0xff);
-  sTempAddr.addr[3] = ((user1 >>  0) & 0xff);
-  sTempAddr.addr[4] = ((user1 >>  8) & 0xff);
-  sTempAddr.addr[5] = ((user1 >> 16) & 0xff);
-
-  // Program the hardware with it's MAC address (for filtering).
-  EthernetMACAddrSet(ETH_BASE, (unsigned char *)&sTempAddr);
-
-  // Initialize the eLua uIP layer
-  elua_uip_init( &sTempAddr );
-#endif
-}
-
-#ifdef BUILD_UIP
-static int eth_timer_fired;
-
-void platform_eth_send_packet( const void* src, u32 size )
-{
-  EthernetPacketPut( ETH_BASE, uip_buf, uip_len );
-}
-
-u32 platform_eth_get_packet_nb( void* buf, u32 maxlen )
-{
-  return EthernetPacketGetNonBlocking( ETH_BASE, uip_buf, sizeof( uip_buf ) );
-}
-
-void platform_eth_force_interrupt()
-{
-  HWREG( NVIC_SW_TRIG) |= INT_ETH - 16;
-}
-
-u32 platform_eth_get_elapsed_time()
-{
-  if( eth_timer_fired )
+  // If there are no more active channels, stop the sequencer
+  if( d->ch_active == 0 )
   {
-    eth_timer_fired = 0;
-    return SYSTICKMS;
+    // Ensure that no external triggers are firing
+    ADC_ExternalTrigConvCmd( adc[ d->seq_id ], DISABLE );
+    
+    // Also ensure that DMA interrupt won't fire ( this shouldn't really be necessary )
+    nvic_init_structure_adc.NVIC_IRQChannelCmd = DISABLE; 
+    NVIC_Init(&nvic_init_structure_adc);
+    
+    d->running = 0;
+  }
+}
+
+int platform_adc_update_sequence( )
+{  
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  
+  // NOTE: this shutdown/startup stuff may or may not be absolutely necessary
+  //       it is here to deal with the situation that a dma conversion has
+  //       already started and should be reset.
+  ADC_ExternalTrigConvCmd( adc[ d->seq_id ], DISABLE );
+  
+  // Stop in-progress adc dma transfers
+  // Later de/reinitialization should flush out synchronization problems
+  ADC_DMACmd( adc[ d->seq_id ], DISABLE );
+  
+  // Bring down adc, update setup, bring back up
+  ADC_Cmd( adc[ d->seq_id ], DISABLE );
+  ADC_DeInit( adc[ d->seq_id ] );
+  
+  d->seq_ctr = 0; 
+  while( d->seq_ctr < d->seq_len )
+  {
+    ADC_RegularChannelConfig( adc[ d->seq_id ], d->ch_state[ d->seq_ctr ]->id, d->seq_ctr+1, ADC_SampleTime_1Cycles5 );
+    d->seq_ctr++;
+  }
+  d->seq_ctr = 0;
+  
+  adc_init_struct.ADC_NbrOfChannel = d->seq_len;
+  ADC_Init( adc[ d->seq_id ], &adc_init_struct );
+  ADC_Cmd( adc[ d->seq_id ], ENABLE );
+  
+  // Bring down adc dma, update setup, bring back up
+  DMA_Cmd( DMA1_Channel1, DISABLE );
+  DMA_DeInit( DMA1_Channel1 );
+  dma_init_struct.DMA_BufferSize = d->seq_len;
+  dma_init_struct.DMA_MemoryBaseAddr = (u32)d->sample_buf;
+  DMA_Init( DMA1_Channel1, &dma_init_struct );
+  DMA_Cmd( DMA1_Channel1, ENABLE );
+  
+  ADC_DMACmd( adc[ d->seq_id ], ENABLE );
+  DMA_ITConfig( DMA1_Channel1, DMA1_IT_TC1 , ENABLE ); 
+  
+  if ( d->clocked == 1 && d->running == 1 )
+    ADC_ExternalTrigConvCmd( adc[ d->seq_id ], ENABLE );
+  
+  return PLATFORM_OK;
+}
+
+void DMA1_Channel1_IRQHandler(void) 
+{
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  elua_adc_ch_state *s;
+  
+  DMA_ClearITPendingBit( DMA1_IT_TC1 );
+  
+  d->seq_ctr = 0;
+  while( d->seq_ctr < d->seq_len )
+  {
+    s = d->ch_state[ d->seq_ctr ];
+    s->value_fresh = 1;
+    
+    // Fill in smoothing buffer until warmed up
+    if ( s->logsmoothlen > 0 && s->smooth_ready == 0)
+      adc_smooth_data( s->id );
+#if defined( BUF_ENABLE_ADC )
+    else if ( s->reqsamples > 1 )
+    {
+      buf_write( BUF_ID_ADC, s->id, ( t_buf_data* )s->value_ptr );
+      s->value_fresh = 0;
+    }
+#endif
+
+    // If we have the number of requested samples, stop sampling
+    if ( adc_samples_available( s->id ) >= s->reqsamples && s->freerunning == 0 )
+      platform_adc_stop( s->id );
+
+    d->seq_ctr++;
+  }
+  d->seq_ctr = 0;
+
+  if( d->running == 1 )
+    adc_update_dev_sequence( 0 );
+  
+  if ( d->clocked == 0 && d->running == 1 )
+    ADC_SoftwareStartConvCmd( adc[ d->seq_id ], ENABLE );
+}
+
+static void adcs_init()
+{
+  unsigned id;
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  
+  for( id = 0; id < NUM_ADC; id ++ )
+    adc_init_ch_state( id );
+	
+  RCC_APB2PeriphClockCmd( RCC_APB2Periph_ADC1, ENABLE );
+  RCC_ADCCLKConfig( RCC_PCLK2_Div8 );
+  
+  ADC_DeInit( adc[ d->seq_id ] );
+  ADC_StructInit( &adc_init_struct );
+  
+  // Universal Converter Setup
+  adc_init_struct.ADC_Mode = ADC_Mode_Independent;
+  adc_init_struct.ADC_ScanConvMode = ENABLE;
+  adc_init_struct.ADC_ContinuousConvMode = DISABLE;
+  adc_init_struct.ADC_ExternalTrigConv = ADC_ExternalTrigConv_None;
+  adc_init_struct.ADC_DataAlign = ADC_DataAlign_Right;
+  adc_init_struct.ADC_NbrOfChannel = 1;
+  
+  // Apply default config
+  ADC_Init( adc[ d->seq_id ], &adc_init_struct );
+  ADC_ExternalTrigConvCmd( adc[ d->seq_id ], DISABLE );
+    
+  // Enable ADC
+  ADC_Cmd( adc[ d->seq_id ], ENABLE );  
+  
+  // Reset/Perform ADC Calibration
+  ADC_ResetCalibration( adc[ d->seq_id ] );
+  while( ADC_GetResetCalibrationStatus( adc[ d->seq_id ] ) );
+  ADC_StartCalibration( adc[ d->seq_id ] );
+  while( ADC_GetCalibrationStatus( adc[ d->seq_id ] ) );
+  
+  // Set up DMA to handle samples
+  RCC_AHBPeriphClockCmd( RCC_AHBPeriph_DMA1, ENABLE );
+  
+  DMA_DeInit( DMA1_Channel1 );
+  dma_init_struct.DMA_PeripheralBaseAddr = ADC1_DR_Address;
+  dma_init_struct.DMA_MemoryBaseAddr = (u32)d->sample_buf;
+  dma_init_struct.DMA_DIR = DMA_DIR_PeripheralSRC;
+  dma_init_struct.DMA_BufferSize = 1;
+  dma_init_struct.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+  dma_init_struct.DMA_MemoryInc = DMA_MemoryInc_Enable;
+  dma_init_struct.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
+  dma_init_struct.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
+  dma_init_struct.DMA_Mode = DMA_Mode_Circular;
+  dma_init_struct.DMA_Priority = DMA_Priority_Low;
+  dma_init_struct.DMA_M2M = DMA_M2M_Disable;
+  DMA_Init( DMA1_Channel1, &dma_init_struct );
+  
+  ADC_DMACmd(ADC1, ENABLE );
+  
+  DMA_Cmd( DMA1_Channel1, ENABLE );
+  DMA_ITConfig( DMA1_Channel1, DMA1_IT_TC1 , ENABLE ); 
+  
+  platform_adc_setclock( 0, 0 );
+}
+
+u32 platform_adc_setclock( unsigned id, u32 frequency )
+{
+  TIM_TimeBaseInitTypeDef timer_base_struct;
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  
+  unsigned period, prescaler;
+  
+  // Make sure sequencer is disabled before making changes
+  ADC_ExternalTrigConvCmd( adc[ d->seq_id ], DISABLE );
+  
+  if ( frequency > 0 )
+  {
+    d->clocked = 1;
+    // Attach timer to converter
+    adc_init_struct.ADC_ExternalTrigConv = adc_timer[ d->timer_id ];
+    
+    period = TIM_GET_BASE_CLK( id ) / frequency;
+    
+    prescaler = (period / 0x10000) + 1;
+  	period /= prescaler;
+
+  	timer_base_struct.TIM_Period = period - 1;
+  	timer_base_struct.TIM_Prescaler = (2 * prescaler) - 1;
+  	timer_base_struct.TIM_ClockDivision = TIM_CKD_DIV1;
+  	timer_base_struct.TIM_CounterMode = TIM_CounterMode_Down;
+  	TIM_TimeBaseInit( timer[ d->timer_id ], &timer_base_struct );
+    
+    frequency = 2 * ( TIM_GET_BASE_CLK( id ) / ( TIM_GetPrescaler( timer[ d->timer_id ] ) + 1 ) ) / period;
+    
+    // Set up output compare for timer
+    TIM_SelectOutputTrigger(timer[ d->timer_id ], TIM_TRGOSource_Update);
   }
   else
-    return 0;
+  {
+    d->clocked = 0;
+    
+    // Switch to Software-only Trigger
+    adc_init_struct.ADC_ExternalTrigConv = ADC_ExternalTrigConv_None;   
+  }
+  
+  // Apply config
+  ADC_Init( adc[ d->seq_id ], &adc_init_struct );
+  
+  return frequency;
 }
 
-#if 0
-void SysTickHandler(void)
-{
-  // Indicate that a SysTick interrupt has occurred.
-  eth_timer_fired = 1;
+int platform_adc_start_sequence( )
+{ 
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  
+  // Only force update and initiate if we weren't already running
+  // changes will get picked up during next interrupt cycle
+  if ( d->running != 1 )
+  {
+    adc_update_dev_sequence( 0 );
+    
+    d->running = 1;
+    
+    DMA_ClearITPendingBit( DMA1_IT_TC1 );
 
-  // Generate a fake Ethernet interrupt.  This will perform the actual work
-  // of incrementing the timers and taking the appropriate actions.
-  platform_eth_force_interrupt();
+    nvic_init_structure_adc.NVIC_IRQChannelCmd = ENABLE; 
+    NVIC_Init(&nvic_init_structure_adc);
+
+    if( d->clocked == 1 )
+      ADC_ExternalTrigConvCmd( adc[ d->seq_id ], ENABLE );
+    else
+      ADC_SoftwareStartConvCmd( adc[ d->seq_id ], ENABLE );
+  }
+
+  return PLATFORM_OK;
 }
-#endif
-
-void EthernetIntHandler()
-{
-  u32 temp;
-
-  // Read and Clear the interrupt.
-  temp = EthernetIntStatus( ETH_BASE, false );
-  EthernetIntClear( ETH_BASE, temp );
-
-  // Call the UIP main loop
-  elua_uip_mainloop();
-}
-
-#else  // #ifdef ELUA_UIP
-
-#if 0
-void SysTickHandler()
-{
-}
-#endif
-
-void EthernetIntHandler()
-{
-}
-#endif // #ifdef ELUA_UIP

@@ -5,11 +5,13 @@
 
 #include "auxmods.h"
 #include "type.h"
+#include "stacks.h"
+#include "stm32f10x.h"
 
 // *****************************************************************************
 // Define here what components you want for this platform
 
-//#define BUILD_XMODEM
+#define BUILD_XMODEM
 #define BUILD_SHELL
 #define BUILD_ROMFS
 #define BUILD_TERM
@@ -17,53 +19,47 @@
 //#define BUILD_DHCPC
 //#define BUILD_DNS
 #define BUILD_CON_GENERIC
+#define BUILD_ADC
+#define BUILD_LUARPC
 //#define BUILD_CON_TCP
-#define EXTENDED_PLATFORM_DATA
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 
 #define CON_UART_ID           0
 #define CON_UART_SPEED        115200
-#define XMODEM_TIMER_ID       0
-#define TERM_TIMER_ID         0
+#define CON_TIMER_ID          0
 #define TERM_LINES            25
 #define TERM_COLS             80
-#define TERM_TIMEOUT          100000
 
 // *****************************************************************************
 // Auxiliary libraries that will be compiled for this platform
 
+#ifdef FORSTM3210E_EVAL
 #define AUXLIB_LCD      "stm3210lcd"
 LUALIB_API int ( luaopen_lcd )( lua_State* L );
-
-#if 0
-#define LUA_PLATFORM_LIBS\
-  { AUXLIB_PIO, luaopen_pio },\
-  { AUXLIB_SPI, luaopen_spi },\
-  { AUXLIB_TMR, luaopen_tmr },\
-  { AUXLIB_PD, luaopen_pd },\
-  { AUXLIB_UART, luaopen_uart },\
-  { AUXLIB_TERM, luaopen_term },\
-  { AUXLIB_PWM, luaopen_pwm },\
-  { AUXLIB_PACK, luaopen_pack },\
-  { AUXLIB_BIT, luaopen_bit },\
-  { AUXLIB_NET, luaopen_net },\
-  { AUXLIB_CPU, luaopen_cpu },\
-  { LUA_MATHLIBNAME, luaopen_math }
+#define LCDLINE  _ROM( AUXLIB_LCD, luaopen_lcd, lcd_map )
 #else
+#define LCDLINE
+#endif
+
 #define LUA_PLATFORM_LIBS_ROM\
   _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
+  _ROM( AUXLIB_SPI, luaopen_spi, spi_map )\
   _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
   _ROM( AUXLIB_UART, luaopen_uart, uart_map )\
   _ROM( AUXLIB_TERM, luaopen_term, term_map )\
   _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
-  _ROM( AUXLIB_LCD, luaopen_lcd, lcd_map )\
+  _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
+  _ROM( AUXLIB_ADC, luaopen_adc, adc_map )\
+  _ROM( AUXLIB_CAN, luaopen_can, can_map )\
+  _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map )\
+	_ROM( AUXLIB_LUARPC, luaopen_luarpc, rpc_map )\
+  LCDLINE\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
-#endif
-
+	
 // *****************************************************************************
 // Configuration data
 
@@ -97,11 +93,26 @@ LUALIB_API int ( luaopen_lcd )( lua_State* L );
 
 // Number of resources (0 if not available/not implemented)
 #define NUM_PIO               7
-#define NUM_SPI               0
-#define NUM_UART              4
-#define NUM_TIMER             0
-#define NUM_PWM               0
-#define NUM_ADC               0
+#define NUM_SPI               2
+#define NUM_UART              5
+#define NUM_TIMER             5
+#define NUM_PWM               4
+#define NUM_ADC               16
+#define NUM_CAN               1
+
+// Enable RX buffering on UART
+#define BUF_ENABLE_UART
+#define CON_BUF_SIZE          BUF_SIZE_128
+
+// ADC Configuration Params
+#define ADC_BIT_RESOLUTION    12
+#define BUF_ENABLE_ADC
+#define ADC_BUF_SIZE          BUF_SIZE_2
+
+// These should be adjusted to support multiple ADC devices
+#define ADC_TIMER_FIRST_ID    0
+#define ADC_NUM_TIMERS        4
+
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 u32 platform_s_cpu_get_frequency();
@@ -113,70 +124,13 @@ u32 platform_s_cpu_get_frequency();
 // #define PIO_PINS_PER_PORT (n) if each port has the same number of pins, or
 // #define PIO_PIN_ARRAY { n1, n2, ... } to define pins per port in an array
 // Use #define PIO_PINS_PER_PORT 0 if this isn't needed
-#define PIO_PIN_ARRAY         { 16, 16, 16, 16, 16, 16, 16 }
+#define PIO_PINS_PER_PORT     16
 
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)
-#define STACK_SIZE            256
 #define SRAM_SIZE             ( 64 * 1024 )
 #define MEM_START_ADDRESS     { ( void* )end }
-#define MEM_END_ADDRESS       { ( void* )( SRAM_BASE + SRAM_SIZE - STACK_SIZE - 1 ) }
-
-// *****************************************************************************
-// CPU constants that should be exposed to the eLua "cpu" module
-
-#include "stm32f10x_gpio.h"
-
-#if 0
-#define PLATFORM_CPU_CONSTANTS\
-  _C( INT_GPIOA ),\
-  _C( INT_GPIOB ),\
-  _C( INT_GPIOC ),\
-  _C( INT_GPIOD ),\
-  _C( INT_GPIOE ),\
-  _C( INT_UART0 ),\
-  _C( INT_UART1 ),\
-  _C( INT_SSI0 ),\
-  _C( INT_I2C0 ),\
-  _C( INT_PWM_FAULT ),\
-  _C( INT_PWM0 ),\
-  _C( INT_PWM1 ),\
-  _C( INT_PWM2 ),\
-  _C( INT_QEI0 ),\
-  _C( INT_ADC0 ),\
-  _C( INT_ADC1 ),\
-  _C( INT_ADC2 ),\
-  _C( INT_ADC3 ),\
-  _C( INT_WATCHDOG ),\
-  _C( INT_TIMER0A ),\
-  _C( INT_TIMER0B ),\
-  _C( INT_TIMER1A ),\
-  _C( INT_TIMER1B ),\
-  _C( INT_TIMER2A ),\
-  _C( INT_TIMER2B ),\
-  _C( INT_COMP0 ),\
-  _C( INT_COMP1 ),\
-  _C( INT_COMP2 ),\
-  _C( INT_SYSCTL ),\
-  _C( INT_FLASH ),\
-  _C( INT_GPIOF ),\
-  _C( INT_GPIOG ),\
-  _C( INT_GPIOH ),\
-  _C( INT_UART2 ),\
-  _C( INT_SSI1 ),\
-  _C( INT_TIMER3A ),\
-  _C( INT_TIMER3B ),\
-  _C( INT_I2C1 ),\
-  _C( INT_QEI1 ),\
-  _C( INT_CAN0 ),\
-  _C( INT_CAN1 ),\
-  _C( INT_CAN2 ),\
-  _C( INT_ETH ),\
-  _C( INT_HIBERNATE ),\
-  _C( INT_USB0 ),\
-  _C( INT_PWM3 ),\
-  _C( INT_UDMA ),\
-  _C( INT_UDMAERR )
-#endif
+#define MEM_END_ADDRESS       { ( void* )( SRAM_BASE + SRAM_SIZE - STACK_SIZE_TOTAL - 1 ) }
 
 #endif // #ifndef __PLATFORM_CONF_H__
+
