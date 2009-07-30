@@ -20,7 +20,7 @@ pwm.setup( pwmid2, 50000, 100 - crtduty )
 pwm.start( pwmid1 )
 pwm.start( pwmid2 )
 
-while uart.recv( 1, 0, 0 ) < 0 do
+while uart.getchar( 1, 0 ) == "" do
   if crtduty == 95 or crtduty == 5 then
     incr = -incr
   end

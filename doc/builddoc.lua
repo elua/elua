@@ -7,7 +7,7 @@ local doc_sections = { "arch_platform", "refman_gen" }
 local components = 
 { 
   arch_platform = { "ll", "pio", "spi", "uart", "timers", "pwm", "cpu", "eth", "adc" },
-  refman_gen = { "bit", "pd", "cpu", "pack", "adc", "term", "pio" }
+  refman_gen = { "bit", "pd", "cpu", "pack", "adc", "term", "pio", "uart" }
 }
 
 -- List here all languages for the documentation (make sure to keep English ("en") the first one)
@@ -22,7 +22,7 @@ local p_indent = false
 
 -- Return a proper <p> tag based on the p_indent flag
 local function get_p()
-  return p_indent and '<p class="doc">' and '<p>'
+  return p_indent and '<p class="doc">' or '<p>'
 end
 
 -- Format a name to a link by changing all the spaces to "_" and
@@ -37,6 +37,12 @@ end
 local function namefromsig( str )
   local _, _, name = str:find( "#(.*)#" )
   return name
+end
+
+-- Adds a "." to the end of the string if it's not already present
+local function dot( str )
+  -- return str:sub( -1 ) == "." and str or str .. "."
+  return str
 end
 
 --[[ Process the given string as follows:
@@ -208,21 +214,21 @@ local function build_file( fname )
       page = page .. "</a>"
       -- description
       p_indent = true
-      page = page .. "\n<p class=\"doc\">" .. format_string( f.desc ) .. "</p>\n"
+      page = page .. "\n<p class=\"doc\">" .. dot( format_string( f.desc ) ) .. "</p>\n"
       -- arguments
       page = page .. "<p class=\"doc\"><b>Arguments</b>: "
       if f.args then
         local a = f.args
         if type( a ) == "string" or ( type( a ) == "table" and #a == 1 ) then
           local text = type( a ) == "string" and a or a[ 1 ]
-          page = page .. format_string( text )
+          page = page .. dot( format_string( text ) )
         else
           page = page .. "\n<ul>\n"
-          for i = 1, #a do page = page .. "  <li>" .. format_string( a[ i ] ) .. "</li>\n" end
+          for i = 1, #a do page = page .. "  <li>" .. dot( format_string( a[ i ] ) ) .. "</li>\n" end
           page = page .. "</ul>"
         end
       else
-        page = page .. "none"
+        page = page .. "none."
       end
       page = page .. "</p>\n"
       -- return value
@@ -231,14 +237,14 @@ local function build_file( fname )
         local r = f.ret
         if type( r ) == "string" or ( type( r ) == "table" and #r == 1 ) then
           local text = type( r ) == "string" and r or r[ 1 ]
-          page = page .. format_string( text )
+          page = page .. dot( format_string( text ) )
         else
           page = page .. "\n<ul>\n"
-          for i = 1, #r do page = page .. "  <li>" .. format_string( r[ i ] ) .. "</li>\n" end
+          for i = 1, #r do page = page .. "  <li>" .. dot( format_string( r[ i ] ) ) .. "</li>\n" end
           page = page .. "</ul>"
         end
       else
-        page = page .. "nothing"
+        page = page .. "nothing."
       end
       page = page .. "</p>\n\n"
       p_indent = false
