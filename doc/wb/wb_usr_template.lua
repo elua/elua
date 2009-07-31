@@ -34,12 +34,12 @@ wb_usr.messages =
   en = 
   {
     title = "eLua Doc",
-    bar_title = "eLua - Embedded Lua"
+    bar_title = "Embedded Lua"
   },
   pt = 
   {
     title = "eLua Doc",
-    bar_title = "eLua - Embedded Lua"
+    bar_title = "Embedded Lua"
   }
 } 
 
