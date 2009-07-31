@@ -50,7 +50,7 @@ enum
       desc = [[Waits on a timer, then returns. This function is "split" in two parts: a platform-independent part implemented in %src/common.c% (that
   handles virtual timers) and a platform-dependent part that must be implemented by each platform in a function named @#platform_s_timer_delay@platform_s_timer_delay@. This function handles both
   hardware timer IDs and virtual timer IDs.<br>
-  <font color="red"><a name="limitations">$IMPORTANT NOTE$</font></a>: the real delay after executing this functions depends a number of variables, most notably the base clock of the timer 
+  <font color="red"><a name="limitations">$IMPORTANT NOTE$</font></a>: the real delay after executing this functions depends on a number of variables, most notably the base clock of the timer 
   and the size of the timer counter register (32 bits on some platforms, 16 bits on most platforms, other values are less common). To ensure that the delay you're requesting is achievable, use 
   @#platform_timer_op@platform_timer_op@ with $PLATFORM_TIMER_OP_GET_MAX_DELAY$ and $PLATFORM_TIMER_OP_GET_MIN_DELAY$ to obtain the maximum and the minimum 
   achievable wait times on your timer, respectively. Even if your delay is within these limits, the $precision$ of this function still varies a lot, mainly as a function of 
