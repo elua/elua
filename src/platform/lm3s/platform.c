@@ -27,7 +27,7 @@
 #include "gpio.h"
 #include "interrupt.h"
 #include "sysctl.h"
-#include "usart.h"
+#include "uart.h"
 #include "ssi.h"
 #include "timer.h"
 #include "pwm.h"
@@ -341,7 +341,9 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   else
     config |= UART_CONFIG_PAR_NONE;
 
-  return UARTConfigSetExpClk(uart_base[ id ], SysCtlClockGet(), baud, config);
+  UARTConfigSetExpClk( uart_base[ id ], SysCtlClockGet(), baud, config );
+  UARTConfigGetExpClk( uart_base[ id ], SysCtlClockGet(), &baud, &config );
+  return baud;
 }
 
 void platform_uart_send( unsigned id, u8 data )

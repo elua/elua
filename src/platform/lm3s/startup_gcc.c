@@ -196,7 +196,7 @@ ResetISR(void)
 #include "gpio.h"
 #include "interrupt.h"
 #include "sysctl.h"
-#include "usart.h"
+#include "uart.h"
 
 //*****************************************************************************
 //
