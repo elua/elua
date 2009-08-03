@@ -2,7 +2,7 @@
 //
 // hw_timer.h - Defines and macros used when accessing the timer.
 //
-// Copyright (c) 2005-2008 Luminary Micro, Inc.  All rights reserved.
+// Copyright (c) 2005-2009 Luminary Micro, Inc.  All rights reserved.
 // Software License Agreement
 // 
 // Luminary Micro, Inc. (LMI) is supplying this software for use solely and
@@ -21,7 +21,7 @@
 // LMI SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
 // CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
 // 
-// This is part of revision 3740 of the Stellaris Firmware Development Package.
+// This is part of revision 4781 of the Stellaris Firmware Development Package.
 //
 //*****************************************************************************
 
@@ -51,6 +51,8 @@
 #define TIMER_O_TBPMR           0x00000044  // TimerB prescale match register
 #define TIMER_O_TAR             0x00000048  // TimerA register
 #define TIMER_O_TBR             0x0000004C  // TimerB register
+#define TIMER_O_TAV             0x00000050  // GPTM Timer A Value
+#define TIMER_O_TBV             0x00000054  // GPTM Timer B Value
 
 //*****************************************************************************
 //
@@ -90,9 +92,13 @@
 // The following are defines for the bit fields in the TIMER_IMR register.
 //
 //*****************************************************************************
+#define TIMER_IMR_TBMIM         0x00000800  // GPTM Timer B Mode Match
+                                            // Interrupt Mask.
 #define TIMER_IMR_CBEIM         0x00000400  // CaptureB event interrupt mask
 #define TIMER_IMR_CBMIM         0x00000200  // CaptureB match interrupt mask
 #define TIMER_IMR_TBTOIM        0x00000100  // TimerB time out interrupt mask
+#define TIMER_IMR_TAMIM         0x00000010  // GPTM Timer A Mode Match
+                                            // Interrupt Mask.
 #define TIMER_IMR_RTCIM         0x00000008  // RTC interrupt mask
 #define TIMER_IMR_CAEIM         0x00000004  // CaptureA event interrupt mask
 #define TIMER_IMR_CAMIM         0x00000002  // CaptureA match interrupt mask
@@ -103,9 +109,13 @@
 // The following are defines for the bit fields in the TIMER_RIS register.
 //
 //*****************************************************************************
+#define TIMER_RIS_TBMRIS        0x00000800  // GPTM Timer B Mode Match Raw
+                                            // Interrupt.
 #define TIMER_RIS_CBERIS        0x00000400  // CaptureB event raw int status
 #define TIMER_RIS_CBMRIS        0x00000200  // CaptureB match raw int status
 #define TIMER_RIS_TBTORIS       0x00000100  // TimerB time out raw int status
+#define TIMER_RIS_TAMRIS        0x00000010  // GPTM Timer A Mode Match Raw
+                                            // Interrupt.
 #define TIMER_RIS_RTCRIS        0x00000008  // RTC raw int status
 #define TIMER_RIS_CAERIS        0x00000004  // CaptureA event raw int status
 #define TIMER_RIS_CAMRIS        0x00000002  // CaptureA match raw int status
@@ -116,9 +126,13 @@
 // The following are defines for the bit fields in the TIMER_ICR register.
 //
 //*****************************************************************************
+#define TIMER_ICR_TBMCINT       0x00000800  // GPTM Timer B Mode Match
+                                            // Interrupt Clear.
 #define TIMER_ICR_CBECINT       0x00000400  // CaptureB event interrupt clear
 #define TIMER_ICR_CBMCINT       0x00000200  // CaptureB match interrupt clear
 #define TIMER_ICR_TBTOCINT      0x00000100  // TimerB time out interrupt clear
+#define TIMER_ICR_TAMCINT       0x00000010  // GPTM Timer A Mode Match
+                                            // Interrupt Clear.
 #define TIMER_ICR_RTCCINT       0x00000008  // RTC interrupt clear
 #define TIMER_ICR_CAECINT       0x00000004  // CaptureA event interrupt clear
 #define TIMER_ICR_CAMCINT       0x00000002  // CaptureA match interrupt clear
@@ -186,6 +200,11 @@
 // The following are defines for the bit fields in the TIMER_O_TAMR register.
 //
 //*****************************************************************************
+#define TIMER_TAMR_TASNAPS      0x00000080  // GPTM Timer A Snap-Shot Mode.
+#define TIMER_TAMR_TAWOT        0x00000040  // GPTM Timer A Wait-on-Trigger.
+#define TIMER_TAMR_TAMIE        0x00000020  // GPTM Timer A Match Interrupt
+                                            // Enable.
+#define TIMER_TAMR_TACDIR       0x00000010  // GPTM Timer A Count Direction.
 #define TIMER_TAMR_TAAMS        0x00000008  // GPTM TimerA Alternate Mode
                                             // Select.
 #define TIMER_TAMR_TACMR        0x00000004  // GPTM TimerA Capture Mode.
@@ -199,6 +218,11 @@
 // The following are defines for the bit fields in the TIMER_O_TBMR register.
 //
 //*****************************************************************************
+#define TIMER_TBMR_TBSNAPS      0x00000080  // GPTM Timer B Snap-Shot Mode.
+#define TIMER_TBMR_TBWOT        0x00000040  // GPTM Timer B Wait-on-Trigger.
+#define TIMER_TBMR_TBMIE        0x00000020  // GPTM Timer B Match Interrupt
+                                            // Enable.
+#define TIMER_TBMR_TBCDIR       0x00000010  // GPTM Timer B Count Direction.
 #define TIMER_TBMR_TBAMS        0x00000008  // GPTM TimerB Alternate Mode
                                             // Select.
 #define TIMER_TBMR_TBCMR        0x00000004  // GPTM TimerB Capture Mode.
@@ -212,11 +236,15 @@
 // The following are defines for the bit fields in the TIMER_O_MIS register.
 //
 //*****************************************************************************
+#define TIMER_MIS_TBMMIS        0x00000800  // GPTM Timer B Mode Match Masked
+                                            // Interrupt.
 #define TIMER_MIS_CBEMIS        0x00000400  // GPTM CaptureB Event Masked
                                             // Interrupt.
 #define TIMER_MIS_CBMMIS        0x00000200  // GPTM CaptureB Match Masked
                                             // Interrupt.
 #define TIMER_MIS_TBTOMIS       0x00000100  // GPTM TimerB Time-Out Masked
+                                            // Interrupt.
+#define TIMER_MIS_TAMMIS        0x00000010  // GPTM Timer A Mode Match Masked
                                             // Interrupt.
 #define TIMER_MIS_RTCMIS        0x00000008  // GPTM RTC Masked Interrupt.
 #define TIMER_MIS_CAEMIS        0x00000004  // GPTM CaptureA Event Masked
@@ -257,6 +285,24 @@
 //*****************************************************************************
 #define TIMER_TBPMR_TBPSMR_M    0x000000FF  // GPTM TimerB Prescale Match.
 #define TIMER_TBPMR_TBPSMR_S    0
+
+//*****************************************************************************
+//
+// The following are defines for the bit fields in the TIMER_O_TAV register.
+//
+//*****************************************************************************
+#define TIMER_TAV_TAVH_M        0xFFFF0000  // GPTM Timer A Value High.
+#define TIMER_TAV_TAVL_M        0x0000FFFF  // GPTM Timer A Register Low.
+#define TIMER_TAV_TAVH_S        16
+#define TIMER_TAV_TAVL_S        0
+
+//*****************************************************************************
+//
+// The following are defines for the bit fields in the TIMER_O_TBV register.
+//
+//*****************************************************************************
+#define TIMER_TBV_TBVL_M        0x0000FFFF  // GPTM Timer B Register.
+#define TIMER_TBV_TBVL_S        0
 
 //*****************************************************************************
 //

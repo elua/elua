@@ -2,7 +2,7 @@
 //
 // hw_pwm.h - Defines and Macros for Pulse Width Modulation (PWM) ports
 //
-// Copyright (c) 2005-2008 Luminary Micro, Inc.  All rights reserved.
+// Copyright (c) 2005-2009 Luminary Micro, Inc.  All rights reserved.
 // Software License Agreement
 // 
 // Luminary Micro, Inc. (LMI) is supplying this software for use solely and
@@ -21,7 +21,7 @@
 // LMI SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
 // CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
 // 
-// This is part of revision 3740 of the Stellaris Firmware Development Package.
+// This is part of revision 4781 of the Stellaris Firmware Development Package.
 //
 //*****************************************************************************
 
@@ -59,6 +59,7 @@
 #define PWM_O_0_DBFALL          0x00000070  // PWM0 Dead-Band
                                             // Falling-Edge-Delay
 #define PWM_O_0_FLTSRC0         0x00000074  // PWM0 Fault Source 0
+#define PWM_O_0_FLTSRC1         0x00000078  // PWM0 Fault Source 1
 #define PWM_O_0_MINFLTPER       0x0000007C  // PWM0 Minimum Fault Period
 #define PWM_O_1_CTL             0x00000080  // PWM1 Control
 #define PWM_O_1_INTEN           0x00000084  // PWM1 Interrupt Enable
@@ -75,6 +76,7 @@
 #define PWM_O_1_DBFALL          0x000000B0  // PWM1 Dead-Band
                                             // Falling-Edge-Delay
 #define PWM_O_1_FLTSRC0         0x000000B4  // PWM1 Fault Source 0
+#define PWM_O_1_FLTSRC1         0x000000B8  // PWM1 Fault Source 1
 #define PWM_O_1_MINFLTPER       0x000000BC  // PWM1 Minimum Fault Period
 #define PWM_O_2_CTL             0x000000C0  // PWM2 Control
 #define PWM_O_2_INTEN           0x000000C4  // PWM2 InterruptEnable
@@ -91,6 +93,7 @@
 #define PWM_O_2_DBFALL          0x000000F0  // PWM2 Dead-Band
                                             // Falling-Edge-Delay
 #define PWM_O_2_FLTSRC0         0x000000F4  // PWM2 Fault Source 0
+#define PWM_O_2_FLTSRC1         0x000000F8  // PWM2 Fault Source 1
 #define PWM_O_2_MINFLTPER       0x000000FC  // PWM2 Minimum Fault Period
 #define PWM_O_3_CTL             0x00000100  // PWM3 Control
 #define PWM_O_3_INTEN           0x00000104  // PWM3 Interrupt and Trigger
@@ -108,15 +111,20 @@
 #define PWM_O_3_DBFALL          0x00000130  // PWM3 Dead-Band
                                             // Falling-Edge-Delay
 #define PWM_O_3_FLTSRC0         0x00000134  // PWM3 Fault Source 0
+#define PWM_O_3_FLTSRC1         0x00000138  // PWM3 Fault Source 1
 #define PWM_O_3_MINFLTPER       0x0000013C  // PWM3 Minimum Fault Period
 #define PWM_O_0_FLTSEN          0x00000800  // PWM0 Fault Pin Logic Sense
 #define PWM_O_0_FLTSTAT0        0x00000804  // PWM0 Fault Status 0
+#define PWM_O_0_FLTSTAT1        0x00000808  // PWM0 Fault Status 1
 #define PWM_O_1_FLTSEN          0x00000880  // PWM1 Fault Pin Logic Sense
 #define PWM_O_1_FLTSTAT0        0x00000884  // PWM1 Fault Status 0
+#define PWM_O_1_FLTSTAT1        0x00000888  // PWM1 Fault Status 1
 #define PWM_O_2_FLTSEN          0x00000900  // PWM2 Fault Pin Logic Sense
 #define PWM_O_2_FLTSTAT0        0x00000904  // PWM2 Fault Status 0
+#define PWM_O_2_FLTSTAT1        0x00000908  // PWM2 Fault Status 1
 #define PWM_O_3_FLTSEN          0x00000980  // PWM3 Fault Pin Logic Sense
 #define PWM_O_3_FLTSTAT0        0x00000984  // PWM3 Fault Status 0
+#define PWM_O_3_FLTSTAT1        0x00000988  // PWM3 Fault Status 1
 
 //*****************************************************************************
 //
@@ -212,6 +220,7 @@
 #define PWM_O_X_DBRISE          0x0000002C  // Gen DB Rising Edge Delay Reg
 #define PWM_O_X_DBFALL          0x00000030  // Gen DB Falling Edge Delay Reg
 #define PWM_O_X_FLTSRC0         0x00000034  // Fault pin, comparator condition
+#define PWM_O_X_FLTSRC1         0x00000038  // Digital comparator condition
 #define PWM_O_X_MINFLTPER       0x0000003C  // Fault minimum period extension
 #define PWM_GEN_0_OFFSET        0x00000040  // PWM0 base
 #define PWM_GEN_1_OFFSET        0x00000080  // PWM1 base
@@ -261,6 +270,7 @@
 //*****************************************************************************
 #define PWM_O_X_FLTSEN          0x00000000  // Fault logic sense
 #define PWM_O_X_FLTSTAT0        0x00000004  // Pin and comparator status
+#define PWM_O_X_FLTSTAT1        0x00000008  // Digital comparator status
 #define PWM_EXT_0_OFFSET        0x00000800  // PWM0 extended base
 #define PWM_EXT_1_OFFSET        0x00000880  // PWM1 extended base
 #define PWM_EXT_2_OFFSET        0x00000900  // PWM2 extended base
@@ -552,6 +562,36 @@
 #define PWM_X_FLTSTAT0_FAULT2   0x00000004  // Fault Input 2.
 #define PWM_X_FLTSTAT0_FAULT1   0x00000002  // Fault Input 1.
 #define PWM_X_FLTSTAT0_FAULT0   0x00000001  // Fault Input 0.
+
+//*****************************************************************************
+//
+// The following are defines for the bit fields in the PWM_O_X_FLTSRC1
+// register.
+//
+//*****************************************************************************
+#define PWM_X_FLTSRC1_DCMP7     0x00000080  // Digital Comparator 7.
+#define PWM_X_FLTSRC1_DCMP6     0x00000040  // Digital Comparator 6.
+#define PWM_X_FLTSRC1_DCMP5     0x00000020  // Digital Comparator 5.
+#define PWM_X_FLTSRC1_DCMP4     0x00000010  // Digital Comparator 4.
+#define PWM_X_FLTSRC1_DCMP3     0x00000008  // Digital Comparator 3.
+#define PWM_X_FLTSRC1_DCMP2     0x00000004  // Digital Comparator 2.
+#define PWM_X_FLTSRC1_DCMP1     0x00000002  // Digital Comparator 1.
+#define PWM_X_FLTSRC1_DCMP0     0x00000001  // Digital Comparator 0.
+
+//*****************************************************************************
+//
+// The following are defines for the bit fields in the PWM_O_X_FLTSTAT1
+// register.
+//
+//*****************************************************************************
+#define PWM_X_FLTSTAT1_DCMP7    0x00000080  // Digital Comparator 7 Trigger.
+#define PWM_X_FLTSTAT1_DCMP6    0x00000040  // Digital Comparator 6 Trigger.
+#define PWM_X_FLTSTAT1_DCMP5    0x00000020  // Digital Comparator 5 Trigger.
+#define PWM_X_FLTSTAT1_DCMP4    0x00000010  // Digital Comparator 4 Trigger.
+#define PWM_X_FLTSTAT1_DCMP3    0x00000008  // Digital Comparator 3 Trigger.
+#define PWM_X_FLTSTAT1_DCMP2    0x00000004  // Digital Comparator 2 Trigger.
+#define PWM_X_FLTSTAT1_DCMP1    0x00000002  // Digital Comparator 1 Trigger.
+#define PWM_X_FLTSTAT1_DCMP0    0x00000001  // Digital Comparator 0 Trigger.
 
 //*****************************************************************************
 //

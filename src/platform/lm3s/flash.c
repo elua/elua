@@ -2,7 +2,7 @@
 //
 // flash.c - Driver for programming the on-chip flash.
 //
-// Copyright (c) 2005-2008 Luminary Micro, Inc.  All rights reserved.
+// Copyright (c) 2005-2009 Luminary Micro, Inc.  All rights reserved.
 // Software License Agreement
 // 
 // Luminary Micro, Inc. (LMI) is supplying this software for use solely and
@@ -21,7 +21,7 @@
 // LMI SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
 // CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
 // 
-// This is part of revision 3740 of the Stellaris Peripheral Driver Library.
+// This is part of revision 4781 of the Stellaris Peripheral Driver Library.
 //
 //*****************************************************************************
 
@@ -34,7 +34,6 @@
 
 #include "hw_flash.h"
 #include "hw_ints.h"
-#include "hw_memmap.h"
 #include "hw_sysctl.h"
 #include "hw_types.h"
 #include "debug.h"
@@ -210,30 +209,75 @@ FlashProgram(unsigned long *pulData, unsigned long ulAddress,
     HWREG(FLASH_FCMISC) = FLASH_FCMISC_AMISC;
 
     //
-    // Loop over the words to be programmed.
+    // See if this device has a write buffer.
     //
-    while(ulCount)
+    if(HWREG(SYSCTL_NVMSTAT) & SYSCTL_NVMSTAT_FWB)
     {
         //
-        // Program the next word.
+        // Loop over the words to be programmed.
         //
-        HWREG(FLASH_FMA) = ulAddress;
-        HWREG(FLASH_FMD) = *pulData;
-        HWREG(FLASH_FMC) = FLASH_FMC_WRKEY | FLASH_FMC_WRITE;
-
-        //
-        // Wait until the word has been programmed.
-        //
-        while(HWREG(FLASH_FMC) & FLASH_FMC_WRITE)
+        while(ulCount)
         {
-        }
+            //
+            // Set the address of this block of words.
+            //
+            HWREG(FLASH_FMA) = ulAddress & ~(0x7f);
 
+            //
+            // Loop over the words in this 32-word block.
+            //
+            while(((ulAddress & 0x7c) || (HWREG(FLASH_FWBVAL) == 0)) &&
+                  (ulCount != 0))
+            {
+                //
+                // Write this word into the write buffer.
+                //
+                HWREG(FLASH_FWBN + (ulAddress & 0x7c)) = *pulData++;
+                ulAddress += 4;
+                ulCount -= 4;
+            }
+
+            //
+            // Program the contents of the write buffer into flash.
+            //
+            HWREG(FLASH_FMC2) = FLASH_FMC2_WRKEY | FLASH_FMC2_WRBUF;
+
+            //
+            // Wait until the write buffer has been programmed.
+            //
+            while(HWREG(FLASH_FMC2) & FLASH_FMC2_WRBUF)
+            {
+            }
+        }
+    }
+    else
+    {
         //
-        // Increment to the next word.
+        // Loop over the words to be programmed.
         //
-        pulData++;
-        ulAddress += 4;
-        ulCount -= 4;
+        while(ulCount)
+        {
+            //
+            // Program the next word.
+            //
+            HWREG(FLASH_FMA) = ulAddress;
+            HWREG(FLASH_FMD) = *pulData;
+            HWREG(FLASH_FMC) = FLASH_FMC_WRKEY | FLASH_FMC_WRITE;
+
+            //
+            // Wait until the word has been programmed.
+            //
+            while(HWREG(FLASH_FMC) & FLASH_FMC_WRITE)
+            {
+            }
+
+            //
+            // Increment to the next word.
+            //
+            pulData++;
+            ulAddress += 4;
+            ulCount -= 4;
+        }
     }
 
     //
@@ -313,7 +357,7 @@ FlashProtectGet(unsigned long ulAddress)
         //
         // This block is marked as execute only (that is, it can not be erased
         // or programmed, and the only reads allowed are via the instruction
-        // fecth interface).
+        // fetch interface).
         //
         case 0:
         case 1:

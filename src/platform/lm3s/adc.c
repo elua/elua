@@ -2,7 +2,7 @@
 //
 // adc.c - Driver for the ADC.
 //
-// Copyright (c) 2005-2008 Luminary Micro, Inc.  All rights reserved.
+// Copyright (c) 2005-2009 Luminary Micro, Inc.  All rights reserved.
 // Software License Agreement
 // 
 // Luminary Micro, Inc. (LMI) is supplying this software for use solely and
@@ -21,7 +21,7 @@
 // LMI SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
 // CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
 // 
-// This is part of revision 3740 of the Stellaris Peripheral Driver Library.
+// This is part of revision 4781 of the Stellaris Peripheral Driver Library.
 //
 //*****************************************************************************
 
@@ -52,6 +52,8 @@
 #define ADC_SSCTL               (ADC_O_SSCTL0 - ADC_O_SSMUX0)
 #define ADC_SSFIFO              (ADC_O_SSFIFO0 - ADC_O_SSMUX0)
 #define ADC_SSFSTAT             (ADC_O_SSFSTAT0 - ADC_O_SSMUX0)
+#define ADC_SSOP                (ADC_O_SSOP0 - ADC_O_SSMUX0)
+#define ADC_SSDC                (ADC_O_SSDC0 - ADC_O_SSMUX0)
 
 //*****************************************************************************
 //
@@ -91,7 +93,7 @@ ADCIntRegister(unsigned long ulBase, unsigned long ulSequenceNum,
     //
     // Check the arguments.
     //
-    ASSERT(ulBase == ADC_BASE);
+    ASSERT((ulBase == ADC0_BASE) || (ulBase == ADC1_BASE));
     ASSERT(ulSequenceNum < 4);
 
     //
@@ -135,7 +137,7 @@ ADCIntUnregister(unsigned long ulBase, unsigned long ulSequenceNum)
     //
     // Check the arguments.
     //
-    ASSERT(ulBase == ADC_BASE);
+    ASSERT((ulBase == ADC0_BASE) || (ulBase == ADC1_BASE));
     ASSERT(ulSequenceNum < 4);
 
     //
@@ -172,7 +174,7 @@ ADCIntDisable(unsigned long ulBase, unsigned long ulSequenceNum)
     //
     // Check the arguments.
     //
-    ASSERT(ulBase == ADC_BASE);
+    ASSERT((ulBase == ADC0_BASE) || (ulBase == ADC1_BASE));
     ASSERT(ulSequenceNum < 4);
 
     //
@@ -201,7 +203,7 @@ ADCIntEnable(unsigned long ulBase, unsigned long ulSequenceNum)
     //
     // Check the arguments.
     //
-    ASSERT(ulBase == ADC_BASE);
+    ASSERT((ulBase == ADC0_BASE) || (ulBase == ADC1_BASE));
     ASSERT(ulSequenceNum < 4);
 
     //
@@ -235,10 +237,12 @@ unsigned long
 ADCIntStatus(unsigned long ulBase, unsigned long ulSequenceNum,
              tBoolean bMasked)
 {
+    unsigned long ulTemp;
+
     //
     // Check the arguments.
     //
-    ASSERT(ulBase == ADC_BASE);
+    ASSERT((ulBase == ADC0_BASE) || (ulBase == ADC1_BASE));
     ASSERT(ulSequenceNum < 4);
 
     //
@@ -247,12 +251,27 @@ ADCIntStatus(unsigned long ulBase, unsigned long ulSequenceNum,
     //
     if(bMasked)
     {
-        return(HWREG(ulBase + ADC_O_ISC) & (1 << ulSequenceNum));
+        ulTemp = HWREG(ulBase + ADC_O_ISC) & (0x10001 << ulSequenceNum);
     }
     else
     {
-        return(HWREG(ulBase + ADC_O_RIS) & (1 << ulSequenceNum));
+        ulTemp = HWREG(ulBase + ADC_O_RIS) & (0x10000 | (1 << ulSequenceNum));
+
+        //
+        // If the Digital Comparator status bit is set, reflect it to the 
+        // appropriate sequence bit.
+        //
+        if(ulTemp & 0x10000)
+        {
+            ulTemp |= 0xF0000;
+            ulTemp &= ~(0x10000 << ulSequenceNum);
+        }
     }
+
+    //
+    // Return the interrupt status
+    //
+    return(ulTemp);
 }
 
 //*****************************************************************************
@@ -284,7 +303,7 @@ ADCIntClear(unsigned long ulBase, unsigned long ulSequenceNum)
     //
     // Check the arugments.
     //
-    ASSERT(ulBase == ADC_BASE);
+    ASSERT((ulBase == ADC0_BASE) || (ulBase == ADC1_BASE));
     ASSERT(ulSequenceNum < 4);
 
     //
@@ -312,7 +331,7 @@ ADCSequenceEnable(unsigned long ulBase, unsigned long ulSequenceNum)
     //
     // Check the arugments.
     //
-    ASSERT(ulBase == ADC_BASE);
+    ASSERT((ulBase == ADC0_BASE) || (ulBase == ADC1_BASE));
     ASSERT(ulSequenceNum < 4);
 
     //
@@ -340,7 +359,7 @@ ADCSequenceDisable(unsigned long ulBase, unsigned long ulSequenceNum)
     //
     // Check the arugments.
     //
-    ASSERT(ulBase == ADC_BASE);
+    ASSERT((ulBase == ADC0_BASE) || (ulBase == ADC1_BASE));
     ASSERT(ulSequenceNum < 4);
 
     //
@@ -409,7 +428,7 @@ ADCSequenceConfigure(unsigned long ulBase, unsigned long ulSequenceNum,
     //
     // Check the arugments.
     //
-    ASSERT(ulBase == ADC_BASE);
+    ASSERT((ulBase == ADC0_BASE) || (ulBase == ADC1_BASE));
     ASSERT(ulSequenceNum < 4);
     ASSERT((ulTrigger == ADC_TRIGGER_PROCESSOR) ||
            (ulTrigger == ADC_TRIGGER_COMP0) ||
@@ -452,18 +471,29 @@ ADCSequenceConfigure(unsigned long ulBase, unsigned long ulSequenceNum,
 //! \param ulStep is the step to be configured.
 //! \param ulConfig is the configuration of this step; must be a logical OR of
 //! \b ADC_CTL_TS, \b ADC_CTL_IE, \b ADC_CTL_END, \b ADC_CTL_D, and one of the
-//! input channel selects (\b ADC_CTL_CH0 through \b ADC_CTL_CH7).
+//! input channel selects (\b ADC_CTL_CH0 through \b ADC_CTL_CH15).  For parts
+//! with the Digital Comparator feature, the follow values may also be OR'd
+//! into the \e ulConfig value to enable the Digital Comparater feature:
+//! \b ADC_CTL_CE and one of the comparater selects (\b ADC_CTL_CMP0 through
+//! \b ADC_CTL_CMP7).
 //!
 //! This function will set the configuration of the ADC for one step of a
 //! sample sequence.  The ADC can be configured for single-ended or
 //! differential operation (the \b ADC_CTL_D bit selects differential
 //! operation when set), the channel to be sampled can be chosen (the
-//! \b ADC_CTL_CH0 through \b ADC_CTL_CH7 values), and the internal temperature
-//! sensor can be selected (the \b ADC_CTL_TS bit).  Additionally, this step
-//! can be defined as the last in the sequence (the \b ADC_CTL_END bit) and it
-//! can be configured to cause an interrupt when the step is complete (the
-//! \b ADC_CTL_IE bit).  The configuration is used by the ADC at the
-//! appropriate time when the trigger for this sequence occurs.
+//! \b ADC_CTL_CH0 through \b ADC_CTL_CH15 values), and the internal
+//! temperature sensor can be selected (the \b ADC_CTL_TS bit).  Additionally,
+//! this step can be defined as the last in the sequence (the \b ADC_CTL_END
+//! bit) and it can be configured to cause an interrupt when the step is
+//! complete (the \b ADC_CTL_IE bit).  If the Digital Comparators are present
+//! on the device, this step may also be configured send the ADC sample to
+//! the selected comparator (the \b ADC_CTL_CMP0 through \b ADC_CTL_CMP7
+//! values) by using the \b ADC_CTL_CE bit.  The configuration is used by the
+//! ADC at the appropriate time when the trigger for this sequence occurs.
+//!
+//! \note If the Digitial Comparator is present and enabled using the
+//! \b ADC_CTL_CE bit, the ADC sample will NOT be written into the ADC
+//! sequence data FIFO.
 //!
 //! The \e ulStep parameter determines the order in which the samples are
 //! captured by the ADC when the trigger occurs.  It can range from zero to
@@ -488,10 +518,12 @@ void
 ADCSequenceStepConfigure(unsigned long ulBase, unsigned long ulSequenceNum,
                          unsigned long ulStep, unsigned long ulConfig)
 {
+    unsigned long ulTemp;
+
     //
     // Check the arugments.
     //
-    ASSERT(ulBase == ADC_BASE);
+    ASSERT((ulBase == ADC0_BASE) || (ulBase == ADC1_BASE));
     ASSERT(ulSequenceNum < 4);
     ASSERT(((ulSequenceNum == 0) && (ulStep < 8)) ||
            ((ulSequenceNum == 1) && (ulStep < 4)) ||
@@ -521,6 +553,37 @@ ADCSequenceStepConfigure(unsigned long ulBase, unsigned long ulSequenceNum,
     HWREG(ulBase + ADC_SSCTL) = ((HWREG(ulBase + ADC_SSCTL) &
                                   ~(0x0000000f << ulStep)) |
                                  (((ulConfig & 0xf0) >> 4) << ulStep));
+
+    //
+    // Enable Digital Comparator if specified in the ulConfig bit-fields.
+    //
+    if(ulConfig & 0x000F0000)
+    {
+        //
+        // Program the comparator for the specified step.
+        //
+        ulTemp = HWREG(ulBase + ADC_SSDC);
+        ulTemp &= ~(0xF << ulStep);
+        ulTemp |= (((ulConfig & 0x00070000) >> 16) << ulStep);
+        HWREG(ulBase + ADC_SSDC) = ulTemp;
+
+        //
+        // Enable the comparator.
+        //
+        ulTemp = HWREG(ulBase + ADC_SSOP);
+        ulTemp |= (1 << ulStep);
+        HWREG(ulBase + ADC_SSOP) = ulTemp;
+    }
+
+    //
+    // Disable Digital Comparator if not specified.
+    //
+    else
+    {
+        ulTemp = HWREG(ulBase + ADC_SSOP);
+        ulTemp &= ~(1 << ulStep);
+        HWREG(ulBase + ADC_SSOP) = ulTemp;
+    }
 }
 
 //*****************************************************************************
@@ -544,7 +607,7 @@ ADCSequenceOverflow(unsigned long ulBase, unsigned long ulSequenceNum)
     //
     // Check the arguments.
     //
-    ASSERT(ulBase == ADC_BASE);
+    ASSERT((ulBase == ADC0_BASE) || (ulBase == ADC1_BASE));
     ASSERT(ulSequenceNum < 4);
 
     //
@@ -573,7 +636,7 @@ ADCSequenceOverflowClear(unsigned long ulBase, unsigned long ulSequenceNum)
     //
     // Check the arguments.
     //
-    ASSERT(ulBase == ADC_BASE);
+    ASSERT((ulBase == ADC0_BASE) || (ulBase == ADC1_BASE));
     ASSERT(ulSequenceNum < 4);
 
     //
@@ -602,7 +665,7 @@ ADCSequenceUnderflow(unsigned long ulBase, unsigned long ulSequenceNum)
     //
     // Check the arguments.
     //
-    ASSERT(ulBase == ADC_BASE);
+    ASSERT((ulBase == ADC0_BASE) || (ulBase == ADC1_BASE));
     ASSERT(ulSequenceNum < 4);
 
     //
@@ -631,7 +694,7 @@ ADCSequenceUnderflowClear(unsigned long ulBase, unsigned long ulSequenceNum)
     //
     // Check the arguments.
     //
-    ASSERT(ulBase == ADC_BASE);
+    ASSERT((ulBase == ADC0_BASE) || (ulBase == ADC1_BASE));
     ASSERT(ulSequenceNum < 4);
 
     //
@@ -667,7 +730,7 @@ ADCSequenceDataGet(unsigned long ulBase, unsigned long ulSequenceNum,
     //
     // Check the arguments.
     //
-    ASSERT(ulBase == ADC_BASE);
+    ASSERT((ulBase == ADC0_BASE) || (ulBase == ADC1_BASE));
     ASSERT(ulSequenceNum < 4);
 
     //
@@ -717,7 +780,7 @@ ADCProcessorTrigger(unsigned long ulBase, unsigned long ulSequenceNum)
     //
     // Check the arguments.
     //
-    ASSERT(ulBase == ADC_BASE);
+    ASSERT((ulBase == ADC0_BASE) || (ulBase == ADC1_BASE));
     ASSERT(ulSequenceNum < 4);
 
     //
@@ -759,7 +822,7 @@ ADCSoftwareOversampleConfigure(unsigned long ulBase,
     //
     // Check the arguments.
     //
-    ASSERT(ulBase == ADC_BASE);
+    ASSERT((ulBase == ADC0_BASE) || (ulBase == ADC1_BASE));
     ASSERT(ulSequenceNum < 3);
     ASSERT(((ulFactor == 2) || (ulFactor == 4) || (ulFactor == 8)) &&
            ((ulSequenceNum == 0) || (ulFactor != 8)));
@@ -803,7 +866,7 @@ ADCSoftwareOversampleStepConfigure(unsigned long ulBase,
     //
     // Check the arguments.
     //
-    ASSERT(ulBase == ADC_BASE);
+    ASSERT((ulBase == ADC0_BASE) || (ulBase == ADC1_BASE));
     ASSERT(ulSequenceNum < 3);
     ASSERT(((ulSequenceNum == 0) &&
             (ulStep < (8 >> g_pucOversampleFactor[ulSequenceNum]))) ||
@@ -881,7 +944,7 @@ ADCSoftwareOversampleDataGet(unsigned long ulBase, unsigned long ulSequenceNum,
     //
     // Check the arguments.
     //
-    ASSERT(ulBase == ADC_BASE);
+    ASSERT((ulBase == ADC0_BASE) || (ulBase == ADC1_BASE));
     ASSERT(ulSequenceNum < 3);
     ASSERT(((ulSequenceNum == 0) &&
             (ulCount < (8 >> g_pucOversampleFactor[ulSequenceNum]))) ||
@@ -953,7 +1016,7 @@ ADCHardwareOversampleConfigure(unsigned long ulBase, unsigned long ulFactor)
     //
     // Check the arguments.
     //
-    ASSERT(ulBase == ADC_BASE);
+    ASSERT((ulBase == ADC0_BASE) || (ulBase == ADC1_BASE));
     ASSERT(((ulFactor == 0) || (ulFactor == 2) || (ulFactor == 4) ||
            (ulFactor == 8) || (ulFactor == 16) || (ulFactor == 32) ||
            (ulFactor == 64)));
@@ -969,6 +1032,281 @@ ADCHardwareOversampleConfigure(unsigned long ulBase, unsigned long ulFactor)
     // Write the shift factor to the ADC to configure the hardware oversampler.
     //
     HWREG(ulBase + ADC_O_SAC) = ulValue;
+}
+
+//*****************************************************************************
+//
+//! Configures an ADC Digital Comparator.
+//!
+//! \param ulBase is the base address of the ADC module.
+//! \param ulComp is the index of the comparator to configure.
+//! \param ulConfig is the configuration of the comparator.
+//!
+//! This function will configure a comparator.  The \e ulConfig parameter is
+//! the result of a logical OR operation between the \b ADC_COMP_TRIG_xxx, and
+//! \b ADC_COMP_INT_xxx values.
+//!
+//! The \b ADC_COMP_TRIG_xxx term can take on the following values:
+//!
+//! - \b ADC_COMP_TRIG_NONE to never trigger PWM fault condition.
+//! - \b ADC_COMP_TRIG_LOW_ALWAYS to always trigger PWM fault condition when
+//! ADC output is in the low-band.
+//! - \b ADC_COMP_TRIG_LOW_ONCE to trigger PWM fault condition once when ADC
+//! output transitions into the low-band.
+//! - \b ADC_COMP_TRIG_LOW_HALWAYS to always trigger PWM fault condition when
+//! ADC output is in the low-band only if ADC output has been in the high-band
+//! since the last trigger output.
+//! - \b ADC_COMP_TRIG_LOW_HONCE to trigger PWM fault condition once when ADC
+//! output transitions into low-band only if ADC output has been in the
+//! high-band since the last trigger output.
+//! - \b ADC_COMP_TRIG_MID_ALWAYS to always trigger PWM fault condition when
+//! ADC output is in the mid-band.
+//! - \b ADC_COMP_TRIG_MID_ONCE to trigger PWM fault condition once when ADC
+//! output transitions into the mid-band.
+//! - \b ADC_COMP_TRIG_HIGH_ALWAYS to always trigger PWM fault condition when
+//! ADC output is in the high-band.
+//! - \b ADC_COMP_TRIG_HIGH_ONCE to trigger PWM fault condition once when ADC
+//! output transitions into the high-band.
+//! - \b ADC_COMP_TRIG_HIGH_HALWAYS to always trigger PWM fault condition when
+//! ADC output is in the high-band only if ADC output has been in the low-band
+//! since the last trigger output.
+//! - \b ADC_COMP_TRIG_HIGH_HONCE to trigger PWM fault condition once when ADC
+//! output transitions into high-band only if ADC output has been in the
+//! low-band since the last trigger output.
+//!
+//! The \b ADC_COMP_INT_xxx term can take on the following values:
+//!
+//! - \b ADC_COMP_INT_NONE to never generate ADC interrupt.
+//! - \b ADC_COMP_INT_LOW_ALWAYS to always generate ADC interrupt when ADC
+//! output is in the low-band.
+//! - \b ADC_COMP_INT_LOW_ONCE to generate ADC interrupt once when ADC output
+//! transitions into the low-band.
+//! - \b ADC_COMP__INT_LOW_HALWAYS to always generate ADC interrupt when ADC
+//! output is in the low-band only if ADC output has been in the high-band
+//! since the last trigger output.
+//! - \b ADC_COMP_INT_LOW_HONCE to generate ADC interrupt once when ADC output
+//! transitions into low-band only if ADC output has been in the high-band
+//! since the last trigger output.
+//! - \b ADC_COMP_INT_MID_ALWAYS to always generate ADC interrupt when ADC
+//! output is in the mid-band.
+//! - \b ADC_COMP_INT_MID_ONCE to generate ADC interrupt once when ADC output
+//! transitions into the mid-band.
+//! - \b ADC_COMP_INT_HIGH_ALWAYS to always generate ADC interrupt when ADC
+//! output is in the high-band.
+//! - \b ADC_COMP_INT_HIGH_ONCE to generate ADC interrupt once when ADC output
+//! transitions into the high-band.
+//! - \b ADC_COMP_INT_HIGH_HALWAYS to always generate ADC interrupt when ADC
+//! output is in the high-band only if ADC output has been in the low-band
+//! since the last trigger output.
+//! - \b ADC_COMP_INT_HIGH_HONCE to generate ADC interrupt once when ADC output
+//! transitions into high-band only if ADC output has been in the low-band
+//! since the last trigger output.
+//!
+//! \return None.
+//
+//*****************************************************************************
+void
+ADCComparatorConfigure(unsigned long ulBase, unsigned long ulComp,
+                       unsigned long ulConfig)
+{
+    //
+    // Check the arguments.
+    //
+    ASSERT((ulBase == ADC0_BASE) || (ulBase == ADC1_BASE));
+    ASSERT(ulComp < 8);
+
+    //
+    // Save the new setting.
+    //
+    HWREG(ulBase + ADC_O_DCCTL0 + (ulComp * 4)) = ulConfig;
+}
+
+//*****************************************************************************
+//
+//! Define the ADC Digital Comparator Regions.
+//!
+//! \param ulBase is the base address of the ADC module.
+//! \param ulComp is the index of the comparator to configure.
+//! \param ulLowRef is the reference point for the low/mid band threshold.
+//! \param ulHighRef is the reference point for the mid/high band threshold.
+//!
+//! The ADC Digital Comparator operation is based on three ADC value regions:
+//! - \b low-band is defined as any ADC value less than or equal to the
+//! \e ulLowRef value.
+//! - \b mid-band is defined as any ADC value greater than the \e ulLowRef
+//! value but less than or equal to the \e ulHighRef value.
+//! - \b high-band is defined as any ADC value greater than the \e ulHighRef
+//! value.
+//!
+//! \return None.
+//
+//*****************************************************************************
+void
+ADCComparatorRegionSet(unsigned long ulBase, unsigned long ulComp,
+                       unsigned long ulLowRef, unsigned long ulHighRef)
+{
+    //
+    // Check the arguments.
+    //
+    ASSERT((ulBase == ADC0_BASE) || (ulBase == ADC1_BASE));
+    ASSERT(ulComp < 8);
+    ASSERT((ulLowRef < 1024) && (ulLowRef <= ulHighRef));
+    ASSERT(ulHighRef < 1024);
+
+    //
+    // Save the new region settings.
+    //
+    HWREG(ulBase + ADC_O_DCCMP0 + (ulComp * 4)) = (ulHighRef << 16) | ulLowRef;
+}
+
+//*****************************************************************************
+//
+//! Resets the current ADC Digital Comparator conditions.
+//!
+//! \param ulBase is the base address of the ADC module.
+//! \param ulComp is the index of the comparator.
+//! \param bTrigger is the flag to indicate reset of Trigger conditions.
+//! \param bInterrupt is the flag to indicate reset of Interrupt conditions.
+//!
+//! Because the Digital Comparator uses current and previous ADC values, this
+//! function is provide to allow the comparator to be reset to its initial
+//! value to prevent stale data from being used when a sequence is enabled.
+//!
+//! \return None.
+//
+//*****************************************************************************
+void
+ADCComparatorReset(unsigned long ulBase, unsigned long ulComp,
+                   tBoolean bTrigger, tBoolean bInterrupt)
+{
+    unsigned long ulTemp = 0;
+
+    //
+    // Check the arguments.
+    //
+    ASSERT((ulBase == ADC0_BASE) || (ulBase == ADC1_BASE));
+    ASSERT(ulComp < 8);
+
+    //
+    // Set the appropriate bits to reset the trigger and/or interrupt
+    // comparator conditions.
+    //
+    if(bTrigger)
+    {
+        ulTemp |= (1 << (16 + ulComp));
+    }
+    if(bInterrupt)
+    {
+        ulTemp |= (1 << ulComp);
+    }
+
+    HWREG(ulBase + ADC_O_DCRIC) = ulTemp;
+}
+
+//*****************************************************************************
+//
+//! Disables a sample sequence comparator interrupt.
+//!
+//! \param ulBase is the base address of the ADC module.
+//! \param ulSequenceNum is the sample sequence number.
+//!
+//! This function disables the requested sample sequence comparator interrupt.
+//!
+//! \return None.
+//
+//*****************************************************************************
+void
+ADCComparatorIntDisable(unsigned long ulBase, unsigned long ulSequenceNum)
+{
+    //
+    // Check the arguments.
+    //
+    ASSERT((ulBase == ADC0_BASE) || (ulBase == ADC1_BASE));
+    ASSERT(ulSequenceNum < 4);
+
+    //
+    // Disable this sample sequence comparator interrupt.
+    //
+    HWREG(ulBase + ADC_O_IM) &= ~(0x10000 << ulSequenceNum);
+}
+
+//*****************************************************************************
+//
+//! Enables a sample sequence comparator interrupt.
+//!
+//! \param ulBase is the base address of the ADC module.
+//! \param ulSequenceNum is the sample sequence number.
+//!
+//! This function enables the requested sample sequence comparator interrupt.
+//!
+//! \return None.
+//
+//*****************************************************************************
+void
+ADCComparatorIntEnable(unsigned long ulBase, unsigned long ulSequenceNum)
+{
+    //
+    // Check the arguments.
+    //
+    ASSERT((ulBase == ADC0_BASE) || (ulBase == ADC1_BASE));
+    ASSERT(ulSequenceNum < 4);
+
+    //
+    // Enable this sample sequence interrupt.
+    //
+    HWREG(ulBase + ADC_O_IM) |= 0x10000 << ulSequenceNum;
+}
+
+//*****************************************************************************
+//
+//! Gets the current comparator interrupt status.
+//!
+//! \param ulBase is the base address of the ADC module.
+//!
+//! This returns the Digitial Comparator interrupt status bits.  This status
+//! is sequence agnostic.
+//!
+//! \return The current comparator interrupt status.
+//
+//*****************************************************************************
+unsigned long
+ADCComparatorIntStatus(unsigned long ulBase)
+{
+    //
+    // Check the arguments.
+    //
+    ASSERT((ulBase == ADC0_BASE) || (ulBase == ADC1_BASE));
+
+    //
+    // Return the digitial comparator interrupt status.
+    //
+    return(HWREG(ulBase + ADC_O_DCISC));
+}
+
+//*****************************************************************************
+//
+//! Clears sample sequence comparator interrupt source.
+//!
+//! \param ulBase is the base address of the ADC module.
+//! \param ulStatus is the bit-mapped interrupts status to clear.
+//!
+//! The specified interrupt status is cleared.
+//!
+//! \return None.
+//
+//*****************************************************************************
+void
+ADCComparatorIntClear(unsigned long ulBase, unsigned long ulStatus)
+{
+    //
+    // Check the arugments.
+    //
+    ASSERT((ulBase == ADC0_BASE) || (ulBase == ADC1_BASE));
+
+    //
+    // Clear the interrupt.
+    //
+    HWREG(ulBase + ADC_O_DCISC) = ulStatus;
 }
 
 //*****************************************************************************

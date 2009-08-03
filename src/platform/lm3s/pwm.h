@@ -2,7 +2,7 @@
 //
 // pwm.h - API function protoypes for Pulse Width Modulation (PWM) ports
 //
-// Copyright (c) 2005-2008 Luminary Micro, Inc.  All rights reserved.
+// Copyright (c) 2005-2009 Luminary Micro, Inc.  All rights reserved.
 // Software License Agreement
 // 
 // Luminary Micro, Inc. (LMI) is supplying this software for use solely and
@@ -21,7 +21,7 @@
 // LMI SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
 // CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
 // 
-// This is part of revision 3740 of the Stellaris Peripheral Driver Library.
+// This is part of revision 4781 of the Stellaris Peripheral Driver Library.
 //
 //*****************************************************************************
 
@@ -163,7 +163,7 @@ extern "C"
 //*****************************************************************************
 //
 // Defines to identify each of the possible fault trigger conditions in
-// PWM_FAULT_GROUP_0
+// PWM_FAULT_GROUP_0.
 //
 //*****************************************************************************
 #define PWM_FAULT_GROUP_0       0
@@ -175,6 +175,14 @@ extern "C"
 #define PWM_FAULT_ACMP0         0x00010000
 #define PWM_FAULT_ACMP1         0x00020000
 #define PWM_FAULT_ACMP2         0x00040000
+
+//*****************************************************************************
+//
+// Defines to identify each of the possible fault trigger conditions in
+// PWM_FAULT_GROUP_1.
+//
+//*****************************************************************************
+#define PWM_FAULT_GROUP_1       1
 
 //*****************************************************************************
 //

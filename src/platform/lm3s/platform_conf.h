@@ -105,7 +105,11 @@ LUALIB_API int ( luaopen_disp )( lua_State* L );
 #define VTMR_FREQ_HZ          4
 
 // Number of resources (0 if not available/not implemented)
-#define NUM_PIO               7
+#ifdef FORLM3S9B92
+  #define NUM_PIO             8
+#else
+  #define NUM_PIO             7
+#endif
 #define NUM_SPI               1
 #ifdef FORLM3S6965
   #define NUM_UART            3

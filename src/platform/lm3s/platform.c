@@ -43,6 +43,16 @@
 #include "disp.h"
 #include "adc.h"
 
+#ifdef FORLM3S9B92
+  #include "lm3s9b92.h"
+#elif FORLM3S8962
+  #include "lm3s8962.h"
+#elif FORLM3S6965
+  #include "lm3s6965.h"
+#elif FORLM3S6918
+  #include "lm3s6918.h"
+#endif
+
 // UIP sys tick data
 // NOTE: when using virtual timers, SYSTICKHZ and VTMR_FREQ_HZ should have the
 // same value, as they're served by the same timer (the systick)
@@ -107,11 +117,27 @@ int platform_init()
 // ****************************************************************************
 // PIO
 // Same configuration on LM3S8962, LM3S6965, LM3S6918 (8 ports)
+// 9B92 has 9 ports (Port J in addition to A-H)
+#ifdef FORLM3S9B92
+  static const u32 pio_base[] = { GPIO_PORTA_BASE, GPIO_PORTB_BASE, GPIO_PORTC_BASE, GPIO_PORTD_BASE,
+                                  GPIO_PORTE_BASE, GPIO_PORTF_BASE, GPIO_PORTG_BASE, GPIO_PORTH_BASE, 
+                                  GPIO_PORTJ_BASE };
+                                  
+  static const u32 pio_sysctl[] = { SYSCTL_PERIPH_GPIOA, SYSCTL_PERIPH_GPIOB, SYSCTL_PERIPH_GPIOC, SYSCTL_PERIPH_GPIOD,
+                                    SYSCTL_PERIPH_GPIOE, SYSCTL_PERIPH_GPIOF, SYSCTL_PERIPH_GPIOG, SYSCTL_PERIPH_GPIOH,
+                                    SYSCTL_PERIPH_GPIOJ };
+#else
+  static const u32 pio_base[] = { GPIO_PORTA_BASE, GPIO_PORTB_BASE, GPIO_PORTC_BASE, GPIO_PORTD_BASE,
+                                  GPIO_PORTE_BASE, GPIO_PORTF_BASE, GPIO_PORTG_BASE, GPIO_PORTH_BASE };
+  
+  static const u32 pio_sysctl[] = { SYSCTL_PERIPH_GPIOA, SYSCTL_PERIPH_GPIOB, SYSCTL_PERIPH_GPIOC, SYSCTL_PERIPH_GPIOD,
+                                    SYSCTL_PERIPH_GPIOE, SYSCTL_PERIPH_GPIOF, SYSCTL_PERIPH_GPIOG, SYSCTL_PERIPH_GPIOH };
+#endif
 
-static const u32 pio_base[] = { GPIO_PORTA_BASE, GPIO_PORTB_BASE, GPIO_PORTC_BASE, GPIO_PORTD_BASE,
-                                GPIO_PORTE_BASE, GPIO_PORTF_BASE, GPIO_PORTG_BASE, GPIO_PORTH_BASE };
-static const u32 pio_sysctl[] = { SYSCTL_PERIPH_GPIOA, SYSCTL_PERIPH_GPIOB, SYSCTL_PERIPH_GPIOC, SYSCTL_PERIPH_GPIOD,
-                                  SYSCTL_PERIPH_GPIOE, SYSCTL_PERIPH_GPIOF, SYSCTL_PERIPH_GPIOG, SYSCTL_PERIPH_GPIOH };
+
+
+
+
 
 static void pios_init()
 {
@@ -177,7 +203,7 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 
 // ****************************************************************************
 // SPI
-// Same configuration on LM3S8962, LM3S6965 and LM3S6918 (2 SPI ports)
+// Same configuration on LM3S8962, LM3S6965, LM3S6918 and LM3S9B92 (2 SPI ports)
 
 // All possible LM3S SPIs defs
 // FIXME this anticipates support for a platform with 2 SPI port
@@ -235,7 +261,7 @@ void platform_spi_select( unsigned id, int is_select )
 
 // ****************************************************************************
 // UART
-// Different configurations for LM3S8962, LM3S6918 (2 UARTs) and LM3S6965 (3 UARTs)
+// Different configurations for LM3S8962, LM3S6918 (2 UARTs) and LM3S6965, LM3S9B92 (3 UARTs)
 
 // All possible LM3S uarts defs
 static const u32 uart_base[] = { UART0_BASE, UART1_BASE, UART2_BASE };
@@ -334,7 +360,7 @@ int platform_s_uart_recv( unsigned id, s32 timeout )
 
 // ****************************************************************************
 // Timers
-// Same on LM3S8962, LM3S6965 and LM3S6918 (4 timers)
+// Same on LM3S8962, LM3S6965, LM3S6918 and LM3S9B92 (4 timers)
 
 // All possible LM3S timers defs
 static const u32 timer_base[] = { TIMER0_BASE, TIMER1_BASE, TIMER2_BASE, TIMER3_BASE };
@@ -408,12 +434,21 @@ const static u8 pwm_div_data[] = { 1, 2, 4, 8, 16, 32, 64 };
 // Port/pin information for all channels
 #ifdef FORLM3S6965
   const static u32 pwm_ports[] =  { GPIO_PORTF_BASE, GPIO_PORTD_BASE, GPIO_PORTB_BASE, GPIO_PORTB_BASE, GPIO_PORTE_BASE, GPIO_PORTE_BASE };
+#elif FORLM3S9B92
+  const static u32 pwm_ports[] =  { GPIO_PORTD_BASE, GPIO_PORTD_BASE, GPIO_PORTB_BASE, GPIO_PORTB_BASE, GPIO_PORTE_BASE, GPIO_PORTE_BASE };
+  // GPIOPCTL probably needs modification to do PWM for 2&3, Digital Function 2
 #else
   const static u32 pwm_ports[] =  { GPIO_PORTF_BASE, GPIO_PORTG_BASE, GPIO_PORTB_BASE, GPIO_PORTB_BASE, GPIO_PORTE_BASE, GPIO_PORTE_BASE };
 #endif
 const static u8 pwm_pins[] = { GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1 };
+
 // PWM generators
-const static u16 pwm_gens[] = { PWM_GEN_0, PWM_GEN_1, PWM_GEN_2 };
+#ifdef FORLM3S9B92
+  const static u16 pwm_gens[] = { PWM_GEN_0, PWM_GEN_1, PWM_GEN_2, PWM_GEN_3 };
+#else
+  const static u16 pwm_gens[] = { PWM_GEN_0, PWM_GEN_1, PWM_GEN_2 };
+#endif
+
 // PWM outputs
 const static u16 pwm_outs[] = { PWM_OUT_0, PWM_OUT_1, PWM_OUT_2, PWM_OUT_3, PWM_OUT_4, PWM_OUT_5 };
 
