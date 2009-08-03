@@ -559,6 +559,20 @@ void platform_cpu_disable_interrupts()
 // *****************************************************************************
 // ADC specific functions and variables
 
+// Pin configuration if necessary
+#ifdef FORLM3S9B92
+  const static u32 adc_ports[] =  { GPIO_PORTE_BASE, GPIO_PORTE_BASE, GPIO_PORTE_BASE, GPIO_PORTE_BASE,
+                                    GPIO_PORTD_BASE, GPIO_PORTD_BASE, GPIO_PORTD_BASE, GPIO_PORTD_BASE,
+                                    GPIO_PORTE_BASE, GPIO_PORTE_BASE, GPIO_PORTB_BASE, GPIO_PORTB_BASE,
+                                    GPIO_PORTD_BASE, GPIO_PORTD_BASE, GPIO_PORTD_BASE, GPIO_PORTD_BASE };
+                                    
+  const static u8 adc_pins[] =    { GPIO_PIN_7, GPIO_PIN_6, GPIO_PIN_5, GPIO_PIN_4,
+                                    GPIO_PIN_7, GPIO_PIN_6, GPIO_PIN_5, GPIO_PIN_4,
+                                    GPIO_PIN_3, GPIO_PIN_2, GPIO_PIN_4, GPIO_PIN_5,
+                                    GPIO_PIN_3, GPIO_PIN_2, GPIO_PIN_1, GPIO_PIN_0 };
+                                    
+  #define ADC_PIN_CONFIG
+#endif
 
 const static u32 adc_ctls[] = { ADC_CTL_CH0, ADC_CTL_CH1, ADC_CTL_CH2, ADC_CTL_CH3 };
 const static u32 adc_ints[] = { INT_ADC0, INT_ADC1, INT_ADC2, INT_ADC3 };
@@ -648,9 +662,7 @@ static void adcs_init()
   MAP_SysCtlADCSpeedSet(SYSCTL_ADCSPEED_1MSPS);
   
 	for( id = 0; id < NUM_ADC; id ++ )
-	{
     adc_init_ch_state( id );
-	}
 	
   // Perform sequencer setup
   platform_adc_setclock( 0, 0 );
@@ -684,6 +696,8 @@ u32 platform_adc_setclock( unsigned id, u32 frequency )
     
   return frequency;
 }
+
+
 int platform_adc_update_sequence( )
 {  
   elua_adc_dev_state *d = adc_get_dev_state( 0 );
@@ -695,9 +709,15 @@ int platform_adc_update_sequence( )
   while( d->seq_ctr < d->seq_len-1 )
   {
     MAP_ADCSequenceStepConfigure( ADC_BASE, d->seq_id, d->seq_ctr, adc_ctls[ d->ch_state[ d->seq_ctr ]->id ] );
+#ifdef ADC_PIN_CONFIG
+    MAP_GPIOPinTypeADC( adc_ports[ d->ch_state[ d->seq_ctr ]->id ], adc_pins[ d->ch_state[ d->seq_ctr ]->id ] );
+#endif
     d->seq_ctr++;
   }
   MAP_ADCSequenceStepConfigure( ADC_BASE, d->seq_id, d->seq_ctr, ADC_CTL_IE | ADC_CTL_END | adc_ctls[ d->ch_state[ d->seq_ctr ]->id ] );
+#ifdef ADC_PIN_CONFIG
+  MAP_GPIOPinTypeADC( adc_ports[ d->ch_state[ d->seq_ctr ]->id ], adc_pins[ d->ch_state[ d->seq_ctr ]->id ] );
+#endif
   d->seq_ctr = 0;
   
   MAP_ADCSequenceEnable( ADC_BASE, d->seq_id );
