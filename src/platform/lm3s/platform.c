@@ -23,6 +23,7 @@
 #include "hw_types.h"
 #include "hw_pwm.h"
 #include "hw_nvic.h"
+#include "hw_ethernet.h"
 #include "debug.h"
 #include "gpio.h"
 #include "interrupt.h"
@@ -812,6 +813,11 @@ static void eth_init()
   MAP_SysCtlPeripheralEnable( SYSCTL_PERIPH_ETH );
   MAP_SysCtlPeripheralReset( SYSCTL_PERIPH_ETH );
 
+#ifdef FORLM3S9B92
+  GPIOPinConfigure(GPIO_PF2_LED1);
+  GPIOPinConfigure(GPIO_PF3_LED0);
+#endif
+
   // Enable Ethernet LEDs
   MAP_GPIODirModeSet( GPIO_PORTF_BASE, GPIO_PIN_2 | GPIO_PIN_3, GPIO_DIR_MODE_HW );
   MAP_GPIOPadConfigSet( GPIO_PORTF_BASE, GPIO_PIN_2 | GPIO_PIN_3, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD );
@@ -834,8 +840,7 @@ static void eth_init()
   // - Full Duplex
   // - TX CRC Auto Generation
   // - TX Padding Enabled
-  MAP_EthernetConfigSet(ETH_BASE, (ETH_CFG_TX_DPLXEN | ETH_CFG_TX_CRCEN |
-                               ETH_CFG_TX_PADEN));
+  MAP_EthernetConfigSet(ETH_BASE, (ETH_CFG_TX_DPLXEN | ETH_CFG_TX_CRCEN | ETH_CFG_TX_PADEN));
 
   // Enable the Ethernet Controller.
   MAP_EthernetEnable(ETH_BASE);
