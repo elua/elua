@@ -74,7 +74,11 @@ static void adcs_init();
 int platform_init()
 {
   // Set the clocking to run from PLL
+#ifdef FORLM3S9B92
+  SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_16MHZ);
+#else
   SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_8MHZ);
+#endif
 
   // Setup PIO
   pios_init();

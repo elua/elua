@@ -13,7 +13,10 @@ if boardname == 'EAGLE-100':
 else:
   linkopts = ""
 
-ldscript = "lm3s.ld"
+if boardname == 'EK-LM3S9B92':
+  ldscript = "lm3s-9b92.ld"
+else:
+  ldscript = "lm3s.ld"
 
 # Prepend with path
 specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )

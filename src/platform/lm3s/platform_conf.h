@@ -106,12 +106,14 @@ LUALIB_API int ( luaopen_disp )( lua_State* L );
 
 // Number of resources (0 if not available/not implemented)
 #ifdef FORLM3S9B92
-  #define NUM_PIO             8
+  #define NUM_PIO             7
 #else
   #define NUM_PIO             7
 #endif
 #define NUM_SPI               1
 #ifdef FORLM3S6965
+  #define NUM_UART            3
+#elif FORLM3S9B92
   #define NUM_UART            3
 #else
   #define NUM_UART            2
@@ -148,12 +150,21 @@ LUALIB_API int ( luaopen_disp )( lua_State* L );
 // #define PIO_PINS_PER_PORT (n) if each port has the same number of pins, or
 // #define PIO_PIN_ARRAY { n1, n2, ... } to define pins per port in an array 
 // Use #define PIO_PINS_PER_PORT 0 if this isn't needed
-#define PIO_PIN_ARRAY         { 8, 8, 8, 8, 4, 4, 2 }
+#ifdef FORLM3S9B92
+  #define PIO_PIN_ARRAY         { 8, 8, 8, 8, 8, 6, 8, 8, 8 }
+#else
+  #define PIO_PIN_ARRAY         { 8, 8, 8, 8, 4, 4, 2 }
+#endif
+//                                A, B, C, D, E, F, G, H, J
 
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)
 #define MEM_START_ADDRESS     { ( void* )end }
-#define MEM_END_ADDRESS       { ( void* )( SRAM_BASE + 0x10000 - STACK_SIZE_TOTAL - 1 ) }
+#ifdef FORLM3S9B92
+  #define MEM_END_ADDRESS       { ( void* )( SRAM_BASE + 0x10000 - STACK_SIZE_TOTAL - 1 ) }
+#else
+  #define MEM_END_ADDRESS       { ( void* )( SRAM_BASE + 0x18000 - STACK_SIZE_TOTAL - 1 ) }
+#endif
 
 // *****************************************************************************
 // CPU constants that should be exposed to the eLua "cpu" module
