@@ -46,8 +46,7 @@
 
 #ifdef FORLM3S9B92
   #define TARGET_IS_TEMPEST_RB1
-  #include "rom.h"
-  #include "rom_map.h"
+
   #include "lm3s9b92.h"
 #elif FORLM3S8962
   #include "lm3s8962.h"
@@ -56,6 +55,9 @@
 #elif FORLM3S6918
   #include "lm3s6918.h"
 #endif
+
+#include "rom.h"
+#include "rom_map.h"
 
 // UIP sys tick data
 // NOTE: when using virtual timers, SYSTICKHZ and VTMR_FREQ_HZ should have the
