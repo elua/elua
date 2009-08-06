@@ -65,7 +65,7 @@ $timeout$ is neither $uart.NO_TIMEOUT$, nor $uart.INF_TIMEOUT$).]]
   <li>$'*n'$ - read an integer. The integer can optionally have a sign. Reading continues until the first non-digit character is detected or a timeout occurs. This is the only case in which $read$ returns a number instead of an integer.</li>
   <li>$'*s'$ - read until a spacing character (like a space or a TAB) is found (the spacing character is not returned) or a timeout occurs.</li>
   <li>$a positive number$ - read at most this many characters before returning (reading can stop earlier if a timeout occurs).</li>
-</ul></p>]],
+</ul></p><p>]],
         [[$timeout (optional)$ - timeout of the receive operation, can be either $uart.NO_TIMEOUT$ or 0 for non-blocking operation, $uart.INF_TIMEOUT$ for 
 blocking operation, or a positive number that specifies the inter-char timeout in microseconds (in this case, the $timer_id$ parameter is also required). The default value of this argument is $uart.INF_TIMEOUT$]],
         [[$timer_id (optional)$ - the ID of the timer for the receive operation, needed if the $timeout$ parameter specifies an actual timeout (that is,
