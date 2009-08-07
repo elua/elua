@@ -367,88 +367,14 @@ wb_usr.tree =
         },
         {
           name = {en = "Platform Dependent Modules", pt = "Dependentes de Plataforma" },
-          link = "refman.html#platdepmodules",
+          link = "refman_dep.html",
           folder =
           {
-            {  name = { en = "adc", pt = "adc" },
-               link = "refman.html#adcmodule",
-               folder =
-               {
-                 {
-                   name ={ en = "sample", pt = "sample" },
-                   link = "refman.html#adc_sample"
-                 },
-                 {
-                   name ={ en = "getsamples", pt = "getsamples" },
-                   link = "refman.html#adc_getsamples"
-                 },
-                 {
-                   name = { en = "maxval", pt = "maxval" },
-                   link = "refman.html#adc_maxval"
-                 },
-                 {
-                   name = { en = "samplesready", pt = "samplesready" },
-                   link = "refman.html#adc_samplesready"
-                 },
-                 {
-                   name = { en = "dataready", pt = "dataready" },
-                   link = "refman.html#adc_dataready"
-                 },
-                 {
-                   name = { en = "setmode", pt = "setmode" },
-                   link = "refman.html#adc_setmode"
-                 },
-                 {
-                   name = { en = "setsmoothing", pt = "setsmoothing" },
-                   link = "refman.html#adc_setsmoothing"
-                 },
-                 {
-                   name = { en = "getsmoothing", pt = "getsmoothing" },
-                   link = "refman.html#adc_getsmoothing"
-                 },
-                 {
-                   name = { en = "burst", pt = "burst" },
-                   link = "refman.html#adc_burst"
-                 },
-              },   
-            },
-            {  name = { en = "disp", pt = "disp" },
-               link = "refman.html#dispmodule",
-               folder =
-               {
-                 {
-                   name ={ en = "init", pt = "init" },
-                   link = "refman.html#disp_init"
-                 },
-                 {
-                   name = { en = "enable", pt = "enable" },
-                   link = "refman.html#disp_enable"
-                 },
-                 {
-                   name = { en = "disable", pt = "disable" },
-                   link = "refman.html#disp_disable"
-                 },
-                 {
-                   name = { en = "on", pt = "on" },
-                   link = "refman.html#disp_on"
-                 },
-                 {
-                   name = { en = "off", pt = "off" },
-                   link = "refman.html#disp_off"
-                 },
-                 {
-                   name = { en = "clear", pt = "clear" },
-                   link = "refman.html#disp_clear"
-                 },
-                 {
-                   name = { en = "print", pt = "print" },
-                   link = "refman.html#disp_print"
-                 },
-                 {
-                   name = { en = "draw", pt = "draw" },
-                   link = "refman.html#disp_draw"
-                 },
-              },   
+            {  name = { en = "lm3s", pt = "lm3s" },
+               link = "modules_lm3s.html",
+               folder = {
+                 $$REFMAN_PS_LM3S$$
+               },   
             },
           },
         },

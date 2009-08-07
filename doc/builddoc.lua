@@ -1,13 +1,14 @@
 -- eLua doc builder tool 
 
 -- List here all the sections for which we're generating the documentation
-local doc_sections = { "arch_platform", "refman_gen" }
+local doc_sections = { "arch_platform", "refman_gen", "refman_ps_lm3s" }
 
 -- List here all the components of each section
 local components = 
 { 
   arch_platform = { "ll", "pio", "spi", "uart", "timers", "pwm", "cpu", "eth", "adc" },
-  refman_gen = { "bit", "pd", "cpu", "pack", "adc", "term", "pio", "uart", "spi", "tmr", "pwm", "net" }
+  refman_gen = { "bit", "pd", "cpu", "pack", "adc", "term", "pio", "uart", "spi", "tmr", "pwm", "net" },
+  refman_ps_lm3s = { "disp" }
 }
 
 -- List here all languages for the documentation (make sure to keep English ("en") the first one)
