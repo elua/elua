@@ -16,6 +16,9 @@
 #include "platform_conf.h"
 #include "common.h"
 #include "math.h"
+#include "lua.h"
+#include "lauxlib.h"
+#include "lrotable.h"
 
 // Platform specific includes
 #include "hw_ints.h"
@@ -145,11 +148,6 @@ int platform_init()
                                     SYSCTL_PERIPH_GPIOE, SYSCTL_PERIPH_GPIOF, SYSCTL_PERIPH_GPIOG, SYSCTL_PERIPH_GPIOH };
 #endif
 
-
-
-
-
-
 static void pios_init()
 {
   unsigned i;
@@ -240,9 +238,9 @@ u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigne
   unsigned protocol;
 
   if( cpol == 0 )
-    protocol == cpha ? SSI_FRF_MOTO_MODE_1 : SSI_FRF_MOTO_MODE_0;
+    protocol = cpha ? SSI_FRF_MOTO_MODE_1 : SSI_FRF_MOTO_MODE_0;
   else
-    protocol == cpha ? SSI_FRF_MOTO_MODE_3 : SSI_FRF_MOTO_MODE_2;
+    protocol = cpha ? SSI_FRF_MOTO_MODE_3 : SSI_FRF_MOTO_MODE_2;
   mode = mode == PLATFORM_SPI_MASTER ? SSI_MODE_MASTER : SSI_MODE_SLAVE;
   MAP_SSIDisable( spi_base[ id ] );
 
@@ -945,3 +943,46 @@ void EthernetIntHandler()
 {
 }
 #endif // #ifdef ELUA_UIP
+
+// ****************************************************************************
+// Platform specific modules go here
+
+#ifdef ENABLE_DISP
+
+#define MIN_OPT_LEVEL 2
+#include "lrodefs.h"
+extern const LUA_REG_TYPE disp_map[];
+
+const LUA_REG_TYPE platform_map[] =
+{
+#if LUA_OPTIMIZE_MEMORY > 0
+  { LSTRKEY( "disp" ), LROVAL( disp_map ) },
+#endif
+  { LNILKEY, LNILVAL }
+};
+
+LUALIB_API int luaopen_platform( lua_State *L )
+{
+#if LUA_OPTIMIZE_MEMORY > 0
+  return 0;
+#else // #if LUA_OPTIMIZE_MEMORY > 0
+  luaL_register( L, PS_LIB_TABLE_NAME, luaopen_platform );
+
+  // Setup the new tables (pin and port) inside pio
+  lua_newtable( L );
+  luaL_register( L, NULL, disp_map );
+  lua_setfield( L, -2, "disp" );
+
+  return 1;
+#endif // #if LUA_OPTIMIZE_MEMORY > 0
+}
+
+#else // #ifdef ENABLE_DISP
+
+LUALIB_API int luaopen_platform( lua_State *L )
+{
+  return 0;
+}
+
+#endif // #ifdef ENABLE_DISP
+

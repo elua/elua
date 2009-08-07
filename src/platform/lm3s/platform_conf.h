@@ -36,13 +36,8 @@
 // *****************************************************************************
 // Auxiliary libraries that will be compiled for this platform
 
-#ifdef ENABLE_DISP
-#define AUXLIB_DISP   "disp"
-LUALIB_API int ( luaopen_disp )( lua_State* L );
-#define DISPLINE _ROM( AUXLIB_DISP, luaopen_disp, disp_map )
-#else
-#define DISPLINE
-#endif
+// The name of the platform specific libs table
+#define PS_LIB_TABLE_NAME   "lm3s"
 
 #ifdef FORLM3S6918
 #define PWMLINE
@@ -70,9 +65,9 @@ LUALIB_API int ( luaopen_disp )( lua_State* L );
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
   _ROM( AUXLIB_ADC, luaopen_adc, adc_map )\
   _ROM( AUXLIB_LUARPC, luaopen_luarpc, rpc_map )\
-  DISPLINE\
-  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
-  
+  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
+  _ROM( PS_LIB_TABLE_NAME, luaopen_platform, platform_map )
+
 // *****************************************************************************
 // Configuration data
 
