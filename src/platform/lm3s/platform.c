@@ -221,7 +221,7 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 //  PIN info extracted from LM3S6950 and 5769 datasheets
 static const u32 spi_base[] = { SSI0_BASE, SSI1_BASE };
 static const u32 spi_sysctl[] = { SYSCTL_PERIPH_SSI0, SYSCTL_PERIPH_SSI1 };
-static const u32 spi_gpio_base[] = { GPIO_PORTA_BASE | GPIO_PORTE_BASE };
+static const u32 spi_gpio_base[] = { GPIO_PORTA_BASE, GPIO_PORTE_BASE };
 static const u8 spi_gpio_pins[] = { GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5,
                                     GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 };
 //                                  SSIxClk      SSIxFss      SSIxRx       SSIxTx
@@ -240,16 +240,16 @@ u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigne
   unsigned protocol;
 
   if( cpol == 0 )
-    protocol = cpha ? SSI_FRF_MOTO_MODE_1 : SSI_FRF_MOTO_MODE_0;
+    protocol == cpha ? SSI_FRF_MOTO_MODE_1 : SSI_FRF_MOTO_MODE_0;
   else
-    protocol = cpha ? SSI_FRF_MOTO_MODE_3 : SSI_FRF_MOTO_MODE_2;
+    protocol == cpha ? SSI_FRF_MOTO_MODE_3 : SSI_FRF_MOTO_MODE_2;
   mode = mode == PLATFORM_SPI_MASTER ? SSI_MODE_MASTER : SSI_MODE_SLAVE;
   MAP_SSIDisable( spi_base[ id ] );
 
   MAP_GPIOPinTypeSSI( spi_gpio_base[ id ], spi_gpio_pins[ id ] );
 
   // FIXME: not sure this is always "right"
-  MAP_GPIOPadConfigSet(spi_gpio_base[ id ], spi_gpio_clk_pin[ id ], GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_STD_WPU);
+  // MAP_GPIOPadConfigSet(spi_gpio_base[ id ], spi_gpio_clk_pin[ id ], GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_STD_WPU);
 
   MAP_SSIConfigSetExpClk( spi_base[ id ], MAP_SysCtlClockGet(), protocol, mode, clock, databits );
   MAP_SSIEnable( spi_base[ id ] );
