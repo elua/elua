@@ -65,6 +65,7 @@ LUALIB_API int ( luaopen_disp )( lua_State* L );
   _ROM( AUXLIB_TERM, luaopen_term, term_map )\
   _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
+  _ROM( AUXLIB_BITARRAY, luaopen_bitarray, bitarray_map )\
   NETLINE\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
   _ROM( AUXLIB_ADC, luaopen_adc, adc_map )\

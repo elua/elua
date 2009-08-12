@@ -32,7 +32,7 @@ static const luaL_Reg lualibs[] = {
 #ifdef LUA_PLATFORM_LIBS_REG
   LUA_PLATFORM_LIBS_REG,
 #endif 
-#if defined(LUA_PLATFORM_LIBS_ROM) && LUA_OPTIMIZE_MEMORY != 2
+#if defined(LUA_PLATFORM_LIBS_ROM)
 #define _ROM( name, openf, table ) { name, openf },
   LUA_PLATFORM_LIBS_ROM
 #endif
