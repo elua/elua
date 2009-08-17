@@ -20,6 +20,16 @@
 
 extern char etext[];
 
+
+void boot_remote( void )
+{
+  lua_State *L = lua_open();
+  luaL_openlibs(L);  /* open libraries */
+  lua_getglobal( L, "rpc" );
+  lua_getfield( L, -1, "server" );
+  lua_pcall( L, 0, 0, 0 );
+}
+
 // ****************************************************************************
 //  Program entry point
 
@@ -48,6 +58,10 @@ int main( void )
     lua_main( 2, lua_argv );    
   }
   
+#ifdef ELUA_BOOT_REMOTE
+  boot_remote();
+#else
+  
   // Run the shell
   if( shell_init() == 0 )
   {
@@ -58,6 +72,7 @@ int main( void )
   }
   else
     shell_start();
+#endif // #ifdef ELUA_BOOT_REMOTE
 
 #ifdef ELUA_SIMULATOR
   hostif_exit(0);
@@ -66,4 +81,3 @@ int main( void )
   while( 1 );
 #endif
 }
-

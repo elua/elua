@@ -5,6 +5,7 @@ allocator = ARGUMENTS.get( 'allocator', '' ).lower()
 boardname = ARGUMENTS.get( 'board' , '').upper()
 toolchain = ARGUMENTS.get( 'toolchain', '')
 optram = int( ARGUMENTS.get( 'optram', '1' ) )
+boot = ARGUMENTS.get( 'boot', '').lower()
 
 # List of toolchains
 toolchain_list = {
@@ -186,6 +187,14 @@ elif allocator not in [ 'newlib', 'multiple', 'simple' ]:
   print "Allocator can be either 'newlib', 'multiple' or 'simple'"
   sys.exit( -1 )
 
+# Check boot mode selection
+if boot == '':
+  boot = 'standard'
+elif boot not in ['standard', 'luaremote']:
+  print "Unknown boot mode: ", boot
+  print "Boot mode can be either 'standard' or 'luaremote'"
+  sys.exit( -1 );
+
 
 # User report
 if not GetOption( 'clean' ):
@@ -196,6 +205,7 @@ if not GetOption( 'clean' ):
   print "Board:       ", boardname
   print "Platform:    ", platform
   print "Allocator:   ", allocator
+  print "Boot Mode:   ", boot
   print "Target:      ", target == 'lua' and 'fplua' or 'target'
   print "Toolchain:   ", toolchain
   print "*********************************"
@@ -207,6 +217,9 @@ if allocator == 'multiple':
   cdefs = cdefs + " -DUSE_MULTIPLE_ALLOCATOR"
 elif allocator == 'simple':
   cdefs = cdefs + " -DUSE_SIMPLE_ALLOCATOR"
+
+if boot == 'luaremote':
+  cdefs += " -DELUA_BOOT_REMOTE"
 
 # Special macro definitions for the SYM target
 if platform == 'sim':
