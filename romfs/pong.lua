@@ -1,5 +1,7 @@
 require("LM3S")
 
+local disp = lm3s.disp
+
 function drawPaddle( y, color )
   disp.print("|", 0, y,   color)
   disp.print("|", 0, y+4, color)
