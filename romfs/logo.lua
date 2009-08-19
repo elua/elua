@@ -1,3 +1,5 @@
+local disp = lm3s.disp
+
 disp.init( 1000000 )
 disp.clear()
 

@@ -1,4 +1,4 @@
-// Module that implements a fixed size bit array
+  // Module that implements a fixed size bit array
 
 #include "lua.h"
 #include "lualib.h"
@@ -327,8 +327,7 @@ LUALIB_API int luaopen_bitarray( lua_State* L )
 #else // #if LUA_OPTIMIZE_MEMORY > 0
   luaL_newmetatable( L, META_NAME );
   luaL_register( L, NULL, bitarray_mt_map );
-  luaL_register( L, AUXLIB_
-  BITARRAY, bitarray_map );  
+  luaL_register( L, AUXLIB_BITARRAY, bitarray_map );  
   return 1;
 #endif // #if LUA_OPTIMIZE_MEMORY > 0  
 }

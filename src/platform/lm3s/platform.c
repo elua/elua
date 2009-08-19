@@ -16,6 +16,9 @@
 #include "platform_conf.h"
 #include "common.h"
 #include "math.h"
+#include "lua.h"
+#include "lauxlib.h"
+#include "lrotable.h"
 
 // Platform specific includes
 #include "hw_ints.h"
@@ -873,3 +876,46 @@ void EthernetIntHandler()
 {
 }
 #endif // #ifdef ELUA_UIP
+
+// ****************************************************************************
+// Platform specific modules go here
+
+#ifdef ENABLE_DISP
+
+#define MIN_OPT_LEVEL 2
+#include "lrodefs.h"
+extern const LUA_REG_TYPE disp_map[];
+
+const LUA_REG_TYPE platform_map[] =
+{
+#if LUA_OPTIMIZE_MEMORY > 0
+  { LSTRKEY( "disp" ), LROVAL( disp_map ) },
+#endif
+  { LNILKEY, LNILVAL }
+};
+
+LUALIB_API int luaopen_platform( lua_State *L )
+{
+#if LUA_OPTIMIZE_MEMORY > 0
+  return 0;
+#else // #if LUA_OPTIMIZE_MEMORY > 0
+  luaL_register( L, PS_LIB_TABLE_NAME, luaopen_platform );
+
+  // Setup the new tables (pin and port) inside pio
+  lua_newtable( L );
+  luaL_register( L, NULL, disp_map );
+  lua_setfield( L, -2, "disp" );
+
+  return 1;
+#endif // #if LUA_OPTIMIZE_MEMORY > 0
+}
+
+#else // #ifdef ENABLE_DISP
+
+LUALIB_API int luaopen_platform( lua_State *L )
+{
+  return 0;
+}
+
+#endif // #ifdef ENABLE_DISP
+
