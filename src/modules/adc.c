@@ -193,7 +193,7 @@ static int adc_getsamples( lua_State* L )
 static int adc_insertsamples( lua_State* L )
 {
   unsigned id, i, startidx;
-  u16 bcnt, count, zcount;
+  u16 bcnt, count;
   
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( adc, id );

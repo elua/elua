@@ -9,6 +9,8 @@
 #include "xmodem.h"
 #include "shell.h"
 #include "lua.h"
+#include "lauxlib.h"
+#include "lualib.h"
 #include "term.h"
 #include "platform_conf.h"
 #ifdef ELUA_SIMULATOR
