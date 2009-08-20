@@ -36,7 +36,9 @@
 // Auxiliary libraries that will be compiled for this platform
 
 // The name of the platform specific libs table
+#ifdef ENABLE_DISP
 #define PS_LIB_TABLE_NAME   "lm3s"
+#endif
 
 #ifdef FORLM3S6918
 #define PWMLINE
@@ -48,6 +50,12 @@
 #define NETLINE  _ROM( AUXLIB_NET, luaopen_net, net_map )
 #else
 #define NETLINE
+#endif
+
+#ifdef PS_LIB_TABLE_NAME
+#define PLATLINE _ROM( PS_LIB_TABLE_NAME, luaopen_platform, platform_map )
+#else
+#define PLATLINE
 #endif
 
 #define LUA_PLATFORM_LIBS_ROM\
@@ -65,7 +73,7 @@
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
   _ROM( AUXLIB_ADC, luaopen_adc, adc_map )\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
-  _ROM( PS_LIB_TABLE_NAME, luaopen_platform, platform_map )
+  PLATLINE
 
 // *****************************************************************************
 // Configuration data
