@@ -156,12 +156,12 @@ static void transport_write_u8( Transport *tpt, u8 x )
   transport_write_buffer( tpt, &x, 1 );
 }
 
-static void swap_bytes( char *number, size_t numbersize )
+static void swap_bytes( u8 *number, size_t numbersize )
 {
   int i;
   for ( i = 0 ; i < numbersize / 2 ; i ++ )
   {
-    char temp = number[ i ];
+    u8 temp = number[ i ];
     number[ i ] = number[ numbersize - 1 - i ];
     number[ numbersize - 1 - i ] = temp;
   }
@@ -180,7 +180,7 @@ static u32 transport_read_u32( Transport *tpt )
   TRANSPORT_VERIFY_OPEN;
   transport_read_buffer ( tpt, ub.b, 4 );
   if( tpt->net_little != tpt->loc_little )
-    swap_bytes( ( char * )ub.b, 4 );
+    swap_bytes( ( u8 * )ub.b, 4 );
   return ub.i;
 }
 
@@ -193,7 +193,7 @@ static void transport_write_u32( Transport *tpt, u32 x )
   TRANSPORT_VERIFY_OPEN;
   ub.i = ( uint32_t )x;
   if( tpt->net_little != tpt->loc_little )
-    swap_bytes( ( char * )ub.b, 4 );
+    swap_bytes( ( u8 * )ub.b, 4 );
   transport_write_buffer( tpt, ub.b, 4 );
 }
 
@@ -208,7 +208,7 @@ static lua_Number transport_read_number( Transport *tpt )
   transport_read_buffer ( tpt, b, tpt->lnum_bytes );
   
   if( tpt->net_little != tpt->loc_little )
-    swap_bytes( ( char * )b, tpt->lnum_bytes );
+    swap_bytes( ( u8 * )b, tpt->lnum_bytes );
   
   if( tpt->net_intnum != tpt->loc_intnum )
   {
@@ -252,25 +252,25 @@ static void transport_write_number (Transport *tpt, lua_Number x)
     {
       case 1: {
         int8_t y = ( int8_t )x;
-        transport_write_buffer( tpt, ( char * )&y, 1 );
+        transport_write_buffer( tpt, ( u8 * )&y, 1 );
       } break;
       case 2: {
         int16_t y = ( int16_t )x;
         if( tpt->net_little != tpt->loc_little )
-          swap_bytes( ( char * )&y, 2 );
-        transport_write_buffer( tpt, ( char * )&y, 2 );
+          swap_bytes( ( u8 * )&y, 2 );
+        transport_write_buffer( tpt, ( u8 * )&y, 2 );
       } break;
       case 4: {
         int32_t y = ( int32_t )x;
         if( tpt->net_little != tpt->loc_little )
-          swap_bytes( ( char * )&y, 4 );
-        transport_write_buffer( tpt, (char *)&y, 4 );
+          swap_bytes( ( u8 * )&y, 4 );
+        transport_write_buffer( tpt,( u8 * )&y, 4 );
       } break;
       case 8: {
         int64_t y = ( int64_t )x;
         if( tpt->net_little != tpt->loc_little )
-          swap_bytes( ( char * )&y, 8 );
-        transport_write_buffer( tpt, (char *)&y, 8 );
+          swap_bytes( ( u8 * )&y, 8 );
+        transport_write_buffer( tpt, ( u8 * )&y, 8 );
       } break;
       default: lua_assert(0);
     }
@@ -278,8 +278,8 @@ static void transport_write_number (Transport *tpt, lua_Number x)
   else
   {
     if( tpt->net_little != tpt->loc_little )
-       swap_bytes( ( char * )&x, 8 );
-    transport_write_buffer( tpt, ( char * )&x, 8 );
+       swap_bytes( ( u8 * )&x, 8 );
+    transport_write_buffer( tpt, ( u8 * )&x, 8 );
   }
 }
 
@@ -757,7 +757,7 @@ static void helper_remote_index( Helper *helper )
   
   transport_write_u32( tpt, len );
   /* replay helper key names */     
-  if( helper->nparents > 0)
+  if( helper->nparents > 0 )
   {
     for( i = 0 ; i < helper->nparents ; i ++ )
     {
@@ -793,7 +793,6 @@ static int helper_get(lua_State *L, Helper *helper )
   Try
   {
     int len;
-    u8 cmdresp;
     /* write function name */
     len = strlen( helper->funcname );
     helper_wait_ready( tpt, RPC_CMD_GET );
@@ -884,7 +883,6 @@ static int helper_call (lua_State *L)
     {
       int i,n;
       u32 nret,ret_code;
-      u8 cmdresp;
 
       /* write function name */
       helper_wait_ready( tpt, RPC_CMD_CALL );
@@ -908,7 +906,7 @@ static int helper_call (lua_State *L)
       /* read return code */
       ret_code = transport_read_u8( tpt );
 
-      if ( ret_code== 0 )
+      if ( ret_code == 0 )
       {
         /* read return arguments */
         nret = transport_read_u32( tpt );
@@ -921,7 +919,7 @@ static int helper_call (lua_State *L)
       else
       {
         /* read error and handle it */
-        u32 code = transport_read_u32( tpt );
+        transport_read_u32( tpt ); // read code (not being used here)
         u32 len = transport_read_u32( tpt );
         char *err_string = ( char * )alloca( len + 1 );
         transport_read_string( tpt, err_string, len );
@@ -973,7 +971,6 @@ static int helper_newindex( lua_State *L )
   Try
   {
     int len;
-    u8 cmdresp;
         
     /* write function name */
     len = strlen( h->funcname );
@@ -987,7 +984,7 @@ static int helper_newindex( lua_State *L )
     if( ret_code != 0 )
     {
       /* read error and handle it */
-      u32 code = transport_read_u32( tpt );
+      transport_read_u32( tpt ); // Read code (not using here)
       u32 len = transport_read_u32( tpt );
       char *err_string = ( char * )alloca( len + 1 );
       transport_read_string( tpt, err_string, len );
