@@ -37,7 +37,10 @@
 // Auxiliary libraries that will be compiled for this platform
 
 // The name of the platform specific libs table
+// FIXME: should handle partial or no inclusion of platform specific modules per conf.py
+#ifdef ENABLE_DISP
 #define PS_LIB_TABLE_NAME   "lm3s"
+#endif
 
 #ifdef FORLM3S6918
 #define PWMLINE
@@ -49,6 +52,12 @@
 #define NETLINE  _ROM( AUXLIB_NET, luaopen_net, net_map )
 #else
 #define NETLINE
+#endif
+
+#ifdef PS_LIB_TABLE_NAME
+#define PLATLINE _ROM( PS_LIB_TABLE_NAME, luaopen_platform, platform_map )
+#else
+#define PLATLINE
 #endif
 
 #define LUA_PLATFORM_LIBS_ROM\
@@ -67,7 +76,7 @@
   _ROM( AUXLIB_ADC, luaopen_adc, adc_map )\
   _ROM( AUXLIB_LUARPC, luaopen_luarpc, rpc_map )\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
-  _ROM( PS_LIB_TABLE_NAME, luaopen_platform, platform_map )
+  PLATLINE
 
 // *****************************************************************************
 // Configuration data
@@ -157,9 +166,9 @@
 // (start address and end address)
 #define MEM_START_ADDRESS     { ( void* )end }
 #ifdef FORLM3S9B92
-  #define MEM_END_ADDRESS       { ( void* )( SRAM_BASE + 0x10000 - STACK_SIZE_TOTAL - 1 ) }
-#else
   #define MEM_END_ADDRESS       { ( void* )( SRAM_BASE + 0x18000 - STACK_SIZE_TOTAL - 1 ) }
+#else
+  #define MEM_END_ADDRESS       { ( void* )( SRAM_BASE + 0x10000 - STACK_SIZE_TOTAL - 1 ) }
 #endif
 
 // *****************************************************************************

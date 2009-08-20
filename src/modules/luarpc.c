@@ -159,11 +159,11 @@ static void transport_write_u8( Transport *tpt, u8 x )
 static void swap_bytes( char *number, size_t numbersize )
 {
   int i;
-  for (i=0; i<numbersize/2; i++)
+  for ( i = 0 ; i < numbersize / 2 ; i ++ )
   {
-    char temp = number[i];
-    number[i] = number[numbersize-1-i];
-    number[numbersize-1-i] = temp;
+    char temp = number[ i ];
+    number[ i ] = number[ numbersize - 1 - i ];
+    number[ numbersize - 1 - i ] = temp;
   }
 }
 
@@ -180,7 +180,7 @@ static u32 transport_read_u32( Transport *tpt )
   TRANSPORT_VERIFY_OPEN;
   transport_read_buffer ( tpt, ub.b, 4 );
   if( tpt->net_little != tpt->loc_little )
-    swap_bytes( (char *)ub.b, 4 );
+    swap_bytes( ( char * )ub.b, 4 );
   return ub.i;
 }
 
