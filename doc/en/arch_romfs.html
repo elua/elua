@@ -1,10 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
-<html><head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/> 
-<meta http-equiv="Content-Language" content="en-us"><title>The ROM file system</title>
-
-<link rel="stylesheet" type="text/css" href="../style.css"></head>
-<body style="background-color: rgb(255, 255, 255);">
+$$HEADER$$
 <h3>The ROM file system</h3>
 <p>The ROM file system (ROMFS) is a small, read-only file system built for <b>eLua</b>. It is integrated with the C
   library, so you can use standard POSIX calls (fopen/fread/fwrite...) to access it. It is also accessible directly from Lua via the <b>io</b> module.
@@ -58,5 +52,5 @@
  <p><pre><code>eLua# lua /rom/bisect.lua</code></pre></p>
 <p>Or directly from Lua:</p>
  <p><pre><code>&gt; dofile "/rom/bisect.lua"</code></pre></p>
-</body></html>
+$$FOOTER$$
 

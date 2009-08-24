@@ -1,0 +1,157 @@
+/*******************************************************************************
+ * Generic styling
+ ******************************************************************************/
+
+body {  
+  padding: 0;
+  margin: 0;
+  font-family: tahoma,verdana,arial,helvetica,geneva,sans-serif;
+  background-color: #ffffff;  
+}
+
+pre {
+  border: 1px dashed #ffbb22;
+  padding: 4px;
+  background-color: #ffddaa;
+  font-family: 'Monotype.com',"Courier New",Courier,monospace;
+  font-size: 90%;
+  line-height: 125%;
+  margin-left: 1em;
+  overflow: auto;
+}
+
+/*******************************************************************************
+ * Main layout
+ ******************************************************************************/
+
+/* Assume a logo size of 80x80 pixels! */
+#logo {
+  background-image: url(images/title_background.png);
+  background-repeat: repeat-y;
+  height: 84px;
+  margin: 0;
+  padding: 0; 
+  width: 100%; 
+}
+
+#nav {
+ float: left;
+ width: 170px;
+ margin-left: 8px;
+ padding-top: 5px;
+}
+
+#content {
+ padding-top: 10px;
+ margin: 0 8px 8px 181px;
+}
+
+/*******************************************************************************
+ * Logo styling
+ ******************************************************************************/
+ 
+#logo h6.selected {
+  margin: 2px 4px 2px 4px;
+  padding: 2px;
+  background-color: blue;
+  color: white;
+}
+
+#logo h6 {
+  margin: 2px 4px 2px 4px;
+  padding: 2px;
+  background-color: white;
+  color: blue;
+}
+
+#logo a {
+  text-decoration: none;
+  padding: 2px 4px 2px 4px;
+}
+
+#logo a.lang:hover {
+  text-decoration: none;
+  background-color: blue;
+  color: white;
+}
+
+/*******************************************************************************
+ * Content styling
+ ******************************************************************************/
+
+#content p {
+  line-height: 120%;
+  padding-left: 1em;
+}
+
+#content h2 {
+  border: 1px solid #808080;
+  padding: 4px;
+  background-color: #a0ffa0;
+  font-size: 99%;
+  margin-left: 1em;
+}
+
+#content h3 {
+  border: 1px solid #808080;
+  padding: 5px;
+  background-color: #cee7ff;
+  color: #5c5c5c;
+  margin: 0;
+}
+
+#content table {
+  margin-left: 1em;
+}
+
+#content p.info {
+  margin-left: 3em;
+}
+
+#content p.doc {
+  margin-left: 2em;
+}
+
+#content ul {
+  padding-left: 1em;
+  margin-left: 40px;
+}
+
+#content ol {
+  margin-left: 2em;
+}
+
+#content h4 {
+  margin-left: 2em;
+}
+
+#content table {
+  border-collapse: collapse;
+}
+#content td {
+  border: 1px solid #808080;
+  padding: 5px;
+}
+#content th {
+  border: 2px solid #808080;
+  padding: 5px;
+  background-color: #c0c0c0;
+}
+
+/*******************************************************************************
+ * Table types
+ ******************************************************************************/
+ 
+table.invisible {
+  border: 0px solid black;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 4px;
+}
+
+table.invisible td {
+  text-align: center;
+  border: 0px solid black;
+}
+

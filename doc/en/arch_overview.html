@@ -1,10 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
-<html><head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/> 
-<meta http-equiv="Content-Language" content="en-us"><title>eLua architecture overview</title>
-
-<link rel="stylesheet" type="text/css" href="../style.css"></head>
-<body style="background-color: rgb(255, 255, 255);">
+$$HEADER$$
 <a name="structure"><h3>eLua architecture overview</h3></a>
 <p>The overall logical structure of <b>eLua</b> is shown in the image below:</p>
 <map name="arch">
@@ -12,7 +6,7 @@
 <area href="arch_overview.html#platform" title="Platform interface" shape=rect coords="0, 198, 537, 336">
 <area href="arch_overview.html#platforms" title="Platforms" shape=rect coords="9, 0, 537, 132">
 </map>
-<p align="center"><img src="../wb_img/elua_arch.png" usemap="#arch" border=0></img></p>
+<p align="center"><img src="../images/elua_arch.png" usemap="#arch" border=0></img></p>
 <p><b>eLua</b> uses the notion of <b>platform</b> to denote a group of <b>CPUs</b> that share the same core structure, although their specific silicon
   implementation might differ in terms of intergrated peripherals, internal memory and other such attributes. An <b>eLua</b> port implements one or 
   more CPUs from a given platform. For example, the <b>lm3s port</b> of <b>eLua</b> runs on LM3S8962, LM3S6965 and LM3S6918 CPUs, all of them part of the 
@@ -215,4 +209,5 @@ specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in spe
   executed. If it returns after execution, or if it isn't found, the boot process continues with the next step.</li>
   <li>if the <a href="using.html#shell">shell</a> was compiled in the image, it is started, otherwise a standard Lua interpreter is started.</li>
 </ol>
-</body></html>
+$$FOOTER$$
+

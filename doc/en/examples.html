@@ -1,10 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
-<html><head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/> 
-<meta http-equiv="Content-Language" content="en-us"><title>eLua examples</title>
-
-<link rel="stylesheet" type="text/css" href="../style.css"></head>
-<body style="background-color: rgb(255, 255, 255);">
+$$HEADER$$
 <h3>Lua Code Examples</h3>
 <p><b>eLua</b> distros come bundled with nice and fun
 (yes! we have games too! :) Lua programs examples in the File System. They are also included in the <b>eLua</b>
@@ -29,11 +23,11 @@ to the shell.</p>
 <h3>led.lua: the old LED blinker, the new eLua way</h3>
 
 <p><strong>Runs on: </strong> all targets except i386</p>
-<p><strong>Description: </strong> now we get to do something "more embedded": blink a LED. The code illustrates a few interesting <b>eLua</b> features:
+<p><strong>Description: </strong> now we get to do something "more embedded": blink a LED. The code illustrates a few interesting <b>eLua</b> features:</p>
 <ul><li><b>cross platform code</b>: the code assigns a different pin
 to the LED starting from the board name. You can see how the platform
 data module makes it very easy to write such portable code.</li>
-<li><b>uart, pio, tmr, pd modules</b>: they are all used here.</li></ul></p>
+<li><b>uart, pio, tmr, pd modules</b>: they are all used here.</li></ul>
 <p>Watch it blink, then press any key to return to the eLua shell.</p>
 
 <h3>hangman.lua: taking advantage of your terminal</h3>
@@ -53,13 +47,13 @@ return to the shell.</p>
 
 <h3>dualpwm.lua: because a single LED is just not enough</h3>
 <p><strong>Runs on: </strong>MOD711</p>
-<p><strong>Description: </strong>My <a target="_blank" href="http://www.sctec.com.br/content/view/101/30/">MOD711 board</a> needed a
+<p><strong>Description: </strong>My <a href="http://www.sctec.com.br/content/view/101/30/">MOD711 board</a> needed a
 "motherboard" for a few components (mainly the RS232-TTL level converter and a reset button) so I also added two LEDs to it, connected
 to two different PWM channels. With this program, the two LEDs fade at the same type, but in different directions.</p>
 
 <h3>pong.lua: eLua meets a classic</h3>
 <p><strong>Runs on: </strong>EK-LM3S8962, EK-LM3S6965</p>
-<p><strong>Description: </strong>a very simple, incomplete implementation of the famous <a target="_blank" href="http://en.wikipedia.org/wiki/Pong">pong</a>
+<p><strong>Description: </strong>a very simple, incomplete implementation of the famous <a href="http://en.wikipedia.org/wiki/Pong">pong</a>
 game. It uses the display and keys on the EK-LM3S8962 or EK-LM3S6965 boards. It uses a platform dependent module (<b>disp</b>) and also shows how
 <b>require</b> can be used from <b>eLua</b>.You can set different game speeds. Enjoy! :)</p>
 
@@ -68,7 +62,7 @@ game. It uses the display and keys on the EK-LM3S8962 or EK-LM3S6965 boards. It 
 <p><strong>Description: </strong>this is more complex, but also very important for <b>eLua</b>, because it
 proves that real time applications (with relatively strict timing
 requirements) can run from <b>eLua</b> directly. It's the famous TV-B-Gone
-project adapted from <a target="_blank" href="http://www.ladyada.net/make/tvbgone/">LadyAda's kit</a>.
+project adapted from <a href="http://www.ladyada.net/make/tvbgone/">LadyAda's kit</a>.
 If you're not familiar with TV-B-Gone, it knows how to do one thing
 very well: power off your TV :) Basically it contains a lot of remote
 control codes (for a lot of TVs) that are continously sent via an IR
@@ -104,7 +98,7 @@ this time on the PC, and compare the results. Yes, they are identical.</p>
 <h3>life.lua: the game of life</h3>
 <p><strong>Runs on: </strong>i386</p>
 <p><strong>Description: </strong>another example taken directly from the Lua distribution, this time
-the well known <a target="_blank" href="http://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">game of life</a>.
+the well known <a href="http://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">game of life</a>.
 Start it and enjoy. Only included on i386 by default because it's faster on i386, but it can run on other
 platform too (although it requires quite a bit of memory, which is not a problem for boards with external
 memory). </p>
@@ -154,4 +148,5 @@ files.</p>
 <p><b>Runs on: </b>##TODO</p>
 <p><b>Description: </b>##TODO
 </p>
-</body></html>
+$$FOOTER$$
+

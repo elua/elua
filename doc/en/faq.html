@@ -1,40 +1,35 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
-<html><head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/> 
-<meta http-equiv="Content-Language" content="en-us"><title>eLua FAQ</title>
-
-<link rel="stylesheet" type="text/css" href="../style.css"></head>
-<body style="background-color: rgb(255, 255, 255);">
+$$HEADER$$
 <h3>eLua Frequently Asked Questions</h3><p>Welcome to the official <b>eLua</b> FAQ! 
 It is assumed that you already know what <b>eLua</b>, so here's a list of questions (and their answers) that you might find useful.</p>
 
 <ul>
-  <li><a href="faq.html#learnlua">How can I learn Lua? Is it hard?</a></li>
-  <li><a href="faq.html#helpelua">How can I help eLua?</a>
-  <li><a href="faq.html#comercial">Can I use eLua in my commercial, closed source project?</a>
-  <li><a href="faq.html#fast">Is eLua fast enough?</a>
-  <li><a href="faq.html#minimum">What are the minimum requirements for eLua?</a></li>
-  <li><a href="faq.html#portability">Since I'm using the Lua platform modules (uart, spi, pwm, tmr...), can I trust my peripheral code to run the 
+  <li><a href="#learnlua">How can I learn Lua? Is it hard?</a></li>
+  <li><a href="#helpelua">How can I help eLua?</a></li>
+  <li><a href="#comercial">Can I use eLua in my commercial, closed source project?</a></li>
+  <li><a href="#fast">Is eLua fast enough?</a></li>
+  <li><a href="#minimum">What are the minimum requirements for eLua?</a></li>
+  <li><a href="#portability">Since I'm using the Lua platform modules (uart, spi, pwm, tmr...), can I trust my peripheral code to run the 
   same on all my platforms?</a></li>
-  <li><a href="faq.html#luaversions">What's the deal with floating-point Lua and integer only Lua?</a></li>
-  <li><a href="faq.html#windows">All your tutorials give instructions on how to compile eLua under Linux, yet you seem to use a lot of Windows tools. 
-  How come?</a>
-  <li><a href="faq.html#cygwin">Will you ever post instructions about how to compile toolchains under Cygwin in Windows?</a></li>
-  <li><a href="faq.html#bytecode">I know that Lua can be compiled to bytecode, so I compiled one of the eLua examples with luac and tried to run it on 
-  my eLua board, but it didn't work. Is this a bug in eLua?</li>
-  <li><a href="faq.html#outofmemory">I get "out of memory" errors when I run my Lua programs, what should I do?</li>
-  <li><a href="faq.html#rotables">I enabled the LTR patch, but now all my module tables (math, io, string, spi and so on) are read only. Do I have to
-  disable LTR if I want write access to these modules?</a>
+  <li><a href="#luaversions">What's the deal with floating-point Lua and integer only Lua?</a></li>
+  <li><a href="#windows">All your tutorials give instructions on how to compile eLua under Linux, yet you seem to use a lot of Windows tools. 
+  How come?</a></li>
+  <li><a href="#cygwin">Will you ever post instructions about how to compile toolchains under Cygwin in Windows?</a></li>
+  <li><a href="#bytecode">I know that Lua can be compiled to bytecode, so I compiled one of the eLua examples with luac and tried to run it on 
+  my eLua board, but it didn't work. Is this a bug in eLua?</a></li>
+  <li><a href="#outofmemory">I get "out of memory" errors when I run my Lua programs, what should I do?</a></li>
+  <li><a href="#rotables">I enabled the LTR patch, but now all my module tables (math, io, string, spi and so on) are read only. Do I have to
+  disable LTR if I want write access to these modules?</a></li>
 </ul>
-<hr>
+
+<hr />
 
 <a name="learnlua"><h2>How can I learn Lua? Is it hard?</h2></a>
 <p>Lua is a minimalistic language (yet very powerful) which is quite easy to learn. Once you understand the basic concepts you'll find yourself writing 
-  Lua programs in notime. The main resource is the <a target="_blank" href="http://www.lua.org/">Lua homepage</a>. In the 
-  <a target="_blank" href="http://www.lua.org/docs.html">documentation page</a> you'll find the reference manual and the first version of the excellent
+  Lua programs in notime. The main resource is the <a href="http://www.lua.org/">Lua homepage</a>. In the 
+  <a href="http://www.lua.org/docs.html">documentation page</a> you'll find the reference manual and the first version of the excellent
   "Programming in Lua" book. I recommend purchasing the second version of this book, since it's likely that this is all you'll ever need to learn
-  Lua. Another very good resource is the <a target="_blank" href="http://lua-users.org/wiki/">Lua wiki</a>. If you need more help, check the 
-  <a target="_blank" href="http://www.lua.org/community.html">community page</a>. Lua has a very friendly and active community.</p>
+  Lua. Another very good resource is the <a href="http://lua-users.org/wiki/">Lua wiki</a>. If you need more help, check the 
+  <a href="http://www.lua.org/community.html">community page</a>. Lua has a very friendly and active community.</p>
 
 <a name="helpelua"><h2>How can I help eLua?</h2></a>
 <p><b>eLua</b> has many ambitious goals, so it would be great to have more people working on it. Take a look at the 
@@ -49,7 +44,7 @@ It is assumed that you already know what <b>eLua</b>, so here's a list of questi
    distributed under GPL, which restricted its usage to open source applications only. Be careful though, <b>eLua</b> includes some 3rd party libraries,
    each with its own licensing terms that might be more restrictive than MIT. See <a href="overview.html#license">the eLua license</a> for details.</p> 
 
-<a name="fast"></a><h2>Is eLua fast enough?</h2></a>
+<a name="fast"><h2>Is eLua fast enough?</h2></a>
 <p>This pretty much depends on what you expect. If you expect your Lua code to run as fast as your compiled C code, this won't happen, simply because C 
   is a compiled language, while Lua is an interpreted language. That said, you'll be happy to know that Lua is one of the fastest interpreted languages 
   out there. If you really need both high speed and Lua, you can write your speed critical code sections in C and export them as a Lua module. 
@@ -105,8 +100,8 @@ prove just fine. It largely depends on your needs.</p>
 <a name="windows"><h2>All your tutorials give instructions on how to compile eLua under Linux, yet you seem to use a lot of Windows tools. How come?</h2></a>
 <p>It's true that we do all the <b>eLua</b> development under Linux, since we find Linux an environment much more suited for development. At the same
   time it's true that most of the tools that come with my development boards run under Windows. So we choose to use the best of both world: Bogdan runs 
-  Linux under a <a target="_blank" href="http://www.virtualbox.org">VirtualBox</a> emulator, and does verything else under Windows. Dado does everything on 
-  Linux and runs Windows under <a href="http://www.vmware.com" target="_blank">VMWare</a>. Both options are nice if you master your environment. To make 
+  Linux under a <a href="http://www.virtualbox.org">VirtualBox</a> emulator, and does verything else under Windows. Dado does everything on 
+  Linux and runs Windows under <a href="http://www.vmware.com">VMWare</a>. Both options are nice if you master your environment. To make 
   everything even more flexible, Bogdan keeps his VirtualBox Ubuntu image on an external WD passport disk that he can carry with him wherever he goes, 
   so he can work on eLua whenever he has a bit of spare time :)</p>
 
@@ -130,7 +125,7 @@ prove just fine. It largely depends on your needs.</p>
   <li><b>try to avoid using too many strings</b>: strings are immutable in Lua. That means that a statement like <i>s = s .. "\n"</i> (where s is a string) 
   will create a new string each time it's called. If this happens a lot (for example in a loop), your memory will quickly run out because of all the
   strings. If you really need to do frequent string operations, put them in a table and then use 
-  <a target="_blank" href="http://www.lua.org/manual/5.1/manual.html#5.5">table.concat</a> to make a string from your table.</li>
+  <a href="http://www.lua.org/manual/5.1/manual.html#5.5">table.concat</a> to make a string from your table.</li>
   <li><b>control Lua's garbage collection manually</b>: if you're still running out of memory, try calling <i>collectgarbage('collect')</i> from your code, 
   which will force a garbage collection and thus might free some memory.</li>
 </ul>
@@ -140,11 +135,12 @@ prove just fine. It largely depends on your needs.</p>
 <p>You don't really have to disable LTR to get write access to your rotables, you can use some simple Lua "tricks" instead. Let's suppose that you need
   write access to the <b>math</b> module. With LTR enabled, <b>math</b> is a rotable, so you can't change its keys/values. But you can use metatables
   to overcome this limitation:</p>
-<p><pre><code>local oldmath = math
+<pre><code>local oldmath = math
 math = { __index = oldmath }
 setmetatable( math, math )
-</code></pre></p>
+</code></pre>
 <p>This way you can use <i>math</i> in "write mode" now (since it is a regular table), but you can still access the keys from the original <i>math</i>
   rotable. Of course, if you need write access to <b>all</b> your modules (or to most of them) it makes more sense to disable LTR instead, but from our 
   observations this doesn't happen in practice.</p>
-</body></html>
+$$FOOTER$$
+

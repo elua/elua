@@ -1,10 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
-<html><head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/> 
-<meta http-equiv="Content-Language" content="en-us"><title>Modules and LTR</title>
-
-<link rel="stylesheet" type="text/css" href="../style.css"></head>
-<body style="background-color: rgb(255, 255, 255);">
+$$HEADER$$
 <h3>Modules and LTR</h3>
 <p>LTR (Lua Tiny RAM) is a Lua patch (written specifically for <b>eLua</b> by Bogdan Marinescu) that significantly decreases the RAM usage of Lua scripts,
   thus making it possible to run large Lua programs on systems with limited RAM. This section gives a full description of LTR. If you're writing <b>eLua</b>
@@ -266,4 +260,5 @@ LUALIB_API int luaopen_mod( lua_State *L )
   above (the regular Lua syntax for defining a module to be registered with luaL_register). If you want this module to use lightfunctions instead of 
   regular functions (at <b>optram=1</b>), use <i>luaL_register_light</i> instead of <i>luaL_register</i>.
 </p>
-</body></html>
+$$FOOTER$$
+
