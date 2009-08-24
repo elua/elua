@@ -42,9 +42,8 @@ function getstr( str, lang )
   if not res then
     res = where[ 1 ]
     if not warned[ str ] then
-      warned[ str ] = true
-    else
       print( string.format( "*** WARNING: translation for '%s' in language '%s' not found!", str, lang ) )
+      warned[ str ] = true
     end
   end
   return res
@@ -523,3 +522,4 @@ end
 regular_print()
 print "done"
 
+print( string.format( "\nEnjoy your documentation in %s :)", destdir ) )
