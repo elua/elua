@@ -90,7 +90,7 @@ local function format_string( str, keepnl )
   str = str:gsub( "eLua", "<b>eLua</b>" )
 
   -- $string$ becomes <b>string></b>
-  str = str:gsub( "%$i(.-)%$", "<b>%1</b>" )
+  str = str:gsub( "%$(.-)%$", "<b>%1</b>" )
 
   -- %string% becomes <i>string</i>
   str = str:gsub( "%%(.-)%%", "<i>%1</i>" )

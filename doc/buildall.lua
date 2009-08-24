@@ -13,16 +13,7 @@ for k, v in ipairs( languages ) do
 end
 
 -------------------------------------------------------------------------------
--- Menu is defined by a { name, link, submenu, title } array
--- 'name' is actually another array keeping names for all languages, in the same
--- order as defined in the "languages" table above
--- The submenu part is optional
--- 'title' is the title of the HTML page associated with the menu entry (specified
--- as an array in different langauges, just like 'name'). If not given, it's the same 
--- as 'name'
--- Arrays without a link correspond to menu separators
--- Arrays withtout a name are "hidden items": they are part of the template to HTML
--- generation process, but they don't appear in the menu. These entries NEED A TITLE FIELD!
+-- Indexes into our menu table (defined in docdata.lua)
 name_idx, link_idx, submenu_idx , title_idx = 1, 2, 3, 4
 
 -------------------------------------------------------------------------------

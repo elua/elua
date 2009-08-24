@@ -1,5 +1,26 @@
 -- Documentation structure is defined here
 
+--[[
+The menu is defined by an array of { name, link, submenu, title } arrays
+
+'name' can be another array keeping names for all languages, in the same order 
+as defined in the "languages" from 'buildall.lua'. If 'name' is a string instead
+of a table, it will be used in all languages.
+
+'link' is the relative link corresponding to the menu entry.
+
+'submenu' is optional. If specified, it is an array of arrays, just like the main
+menu.
+
+'title' is the title of the HTML page associated with the menu entry (specified as 
+an array in different languages or as a string, just like 'name'). If not given, 
+it's the same as 'name'.
+
+If 'link' is nil, the entry defines a menu separator.
+If 'name' is nil, the entry defines a "hidden menu item": they are part of the template to HTML
+generation process, but they don't appear in the menu. These entries NEED A LINK
+AND TITLE FIELDS! See the definition of 'forum.html' below for an example of such item.
+--]]
 local menu =
 {
   -- "Overview"
@@ -114,7 +135,7 @@ local menu =
   -- Platform interface (automatically generated)
   { "Platform interface", "arch_platform.html", "arch_platform" },
 
-  -- Other [TODO] WRITE THE arch_platform_other.html file
+  -- Other WRITE THE arch_platform_other.html file
   { "Other", "#", 
     {
       { "ROM file system", "arch_romfs.html" },
@@ -140,10 +161,9 @@ local menu =
   }
 }
 
--- Translations for different words neede by the generator
+-- Translations for different strings needed by the generator
 -- The order of languages is the same as the one defines in the languages array 
 -- defined at the beginning of buildall.lua
-
 local translations = 
 {
   { "Overview" },
