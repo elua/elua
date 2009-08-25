@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- eLua doc builder module (for the luadoc/ directory)
+-- eLua doc builder module (for the eluadoc/ directory)
 
 module( ..., package.seeall )
 
@@ -329,7 +329,7 @@ local function gen_menu( fulldata, component, sect )
 end
 
 -------------------------------------------------------------------------------
--- Generate documentation from luadoc for all languages
+-- Generate documentation from eluadoc for all languages
 
 function gen_html_doc()
   local menu, genfiles = {}, {}
@@ -341,7 +341,7 @@ function gen_html_doc()
     local ms = menu[ section ]
     -- First generate HTML documentation
     for _, modname in pairs( components[ section ] ) do
-      local descfname = string.format( "luadoc/%s_%s.lua", section, modname )
+      local descfname = string.format( "eluadoc/%s_%s.lua", section, modname )
       local res, err = build_file( descfname )
       if res then
         fulldata[ modname ] = res
