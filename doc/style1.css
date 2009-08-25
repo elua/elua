@@ -155,3 +155,30 @@ table.invisible td {
   border: 0px solid black;
 }
 
+/*******************************************************************************
+ * Other styles
+ ******************************************************************************/
+
+.docdiv {
+  padding-left: 1em;
+}
+
+.docdiv pre {
+  margin-left: 0;
+}
+
+.code {
+  border: 0;
+  padding: 4px;
+  background-color: white;
+  font-family: "Courier New",Courier,monospace;
+  font-size: 90%;
+  padding-left: 1em;
+  overflow: auto;
+}
+
+.warning {
+  color: red;
+  font-weight: bold;
+}
+

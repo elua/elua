@@ -118,6 +118,22 @@ local menu =
   -- "FAQ"
   { "FAQ", "faq.html" },
 
+  -- "Tutorials"
+  { "Tutorials", "tutorials.html",
+    {
+      { "Booting on a PC", "tut_bootpc.html" },
+      { "Booting from an USB stick", "tut_bootstick.html" },
+      { "Building toolchains", "tchainbuild.html",
+        {
+          { "ARM7 and ARM9", "tc_arm.html" },
+          { "Cortex-M3", "tc_cortex.html" },
+          { "i386", "tc_386.html" }
+        }
+      },
+      { "Using OpenOCD", "tut_openocd.html" }
+    }
+  },
+
   -- "eLua internals" (menu separator)
   { "eLua internals" },
 

@@ -237,10 +237,11 @@ local function gen_html_nav( parentid, lang, is_offline )
   local menudata = ""
   local lidx = langidx[ lang ]
   for i = 1, #themenu do
+    local styledef =  i == #themenu and ' style="border-bottom-width: 0"' or ""
     local link = themenu[ i ][ link_idx ]
     local name = get_menu_name( themenu[ i ], lang )
     if not link then
-      htmlstr = htmlstr .. string.format('      <li class="sep">%s</li>\n', name )
+      htmlstr = htmlstr .. string.format('      <li class="sep"%s>%s</li>\n', styledef, name )
     else
       local relname = string.gsub( string.gsub( string.format( "s_%d_%s", i, string.lower( get_base_link( link ) ) ), "%s", "_" ), "%.html", "" )
       -- If we have a submenu, update the HTML menu content part
@@ -256,13 +257,13 @@ local function gen_html_nav( parentid, lang, is_offline )
         if i == parentid then
           -- If this is the parent, use a special style for it (<a class="current"> or <li class="current">, depending on the item type)
           if themenu[ i ][ submenu_idx ] then
-            htmlstr = htmlstr .. string.format('      <li><a class="current" href="%s" rel="%s">%s</a></li>\n', get_link( lang, link ), relname, name )
+            htmlstr = htmlstr .. string.format('      <li><a class="current" href="%s" rel="%s"%s>%s</a></li>\n', get_link( lang, link ), relname, styledef, name )
           else
-            htmlstr = htmlstr .. string.format('      <li class="current">%s</li>\n', name )
+            htmlstr = htmlstr .. string.format('      <li class="current"%s>%s</li>\n', styledef, name )
           end
         else
           local submenustr = themenu[ i ][ submenu_idx ] and string.format( ' rel="%s"', relname ) or ""
-          htmlstr = htmlstr .. string.format('      <li><a href="%s"%s>%s</a></li>\n', get_link( lang, link ), submenustr, name )
+          htmlstr = htmlstr .. string.format('      <li><a href="%s"%s%s>%s</a></li>\n', get_link( lang, link ), submenustr, styledef, name )
         end
       end
     end
@@ -365,9 +366,11 @@ local function gen_html_page( fname, lang )
 
   -- Anticipate some common errors and fix them directly
   orig = orig:gsub( "<br>", "<br />" )
-  orig = orig:gsub( '(<a name=["\'].-["\']>)(.-)</a>%s-\n', function( anchor, data )
+  orig = orig:gsub( '(<a name=["\'][^\'"]-["\']>)([^\n]-)</a>%s-\n', function( anchor, data )
     return anchor:gsub( ">", " />" ) .. data .. "\n"
   end )
+  orig = orig:gsub( '<p><pre><code>(.-)</code></pre></p>', "<pre><code>%1</code></pre>" )
+  orig = orig:gsub( 'target="_blank"', "" )
 
   -- Generate actual data
   local header = string.format( [[
@@ -423,14 +426,16 @@ end
 
 -- Argument check
 local args = { ... }
+local destdir
 if #args ~= 1 then
-  print "Usage: buildall <dest_dir>"
-  return
+  print "Using 'dist/' as the destination directory"
+  destdir = "dist"
+else
+  destdir = args[ 1 ]
 end
 
 -- Read the documentation data
 themenu, translations, fixed = dofile( "docdata.lua" )
-print( themenu, translation, fixed )
 if not themenu or not translations or not fixed then
   print "docdata.lua doesn't return the proper data, aborting."
   return
@@ -454,7 +459,6 @@ print( "done" )
 
 -- If the destination directory doesn't exist, create it
 -- If it exists, remove it
-local destdir = args[ 1 ]
 local attr = lfs.attributes( destdir )
 if not attr then
   if not lfs.mkdir( destdir ) then
@@ -483,7 +487,7 @@ for _, lang in ipairs( languages ) do
     print( string.format( "Processing %s %s...", fname, entry.item[ name_idx ] and "" or "(hidden entry)" ) )
     local res, err = gen_html_page( fname, lang )
     if not res then
-      print( err )
+      print( "***" .. err )
     else
       local g = io.open( string.format( "%s/%s_%s", destdir, lang, fname ), "wb" )
       if not g then

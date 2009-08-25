@@ -15,7 +15,7 @@ manner. It is based on the ^http://www.tecgraf.puc-rio.br/~~lhf/ftp/lua/#lpack^l
 <p>Both methods of this module (@#pack@pack@ and @#unpack@unpack@) use a $format string$ to describe how to pack/unpack the data. The format string contains one or more $data specifiers$, each
 data specifier is applied to a single variable that must be packed/unpacked. The data specifier has the following general format:</p>
 ~[endianness]<<format specifier>>[count]~
-<p>where:
+<p>where:</p>
 <ul>
   <li>$endianness$ is an optional endian flags that specifies how the numbers that are to be packed/unpacked are stored in memory. It can be either:
   <ol>
@@ -24,7 +24,7 @@ data specifier is applied to a single variable that must be packed/unpacked. The
     <li>$'='$ for native endian (the platform's endian order, default).</li>
   </ol></li>
   <li>$format specifier$ describes what kind of variable will be packed/unpacked. $The format specifier is case-sensitive$. The possible values of this parameter are summarized in the table below:
-  <p><table class="table_center">
+  <table class="table_center" style="margin-top: 4px; margin-bottom: 4px;">
   <tbody>
   <tr>
     <th>Format specifier</th>
@@ -94,10 +94,11 @@ data specifier is applied to a single variable that must be packed/unpacked. The
     <td>'L'   </td>
     <td>unsigned long</td>
   </tr>  
-  </table><br></p></li>
+  </tbody>
+  </table></li>
   <li>$count$ is an optional counter for the $format specifier$. For example, $i5$ instructs the code to pack/unpack 5 integer variables, as opposed to $i$ that specifies a
   single integer variable.</li>
-</ul></p>]],
+</ul><p>]],
 
   -- Functions
   funcs = 

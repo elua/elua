@@ -30,7 +30,7 @@ $_C$. For example, to get the constants listed above declare your $PLATFORM_CPU_
   _C( INT_GPIOA ),\
   _C( INT_GPIOB ),\
   .................
-  _C( INT_UDMA )~<p>
+  _C( INT_UDMA )~
 <p>It's worth to note that adding more constants does not increas RAM usage, only Flash usage, so you can expose as much constants as you need without worrying about RAM consumption.]]
     },
   },

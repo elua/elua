@@ -11,7 +11,7 @@ data_en =
 
   -- Overview
   overview = [[This module contains functions for accessing the SPI interfaces of the eLua CPU.</p>
-  <p><font color="red"><b>IMPORTANT</b></font>: right now, only master SPI mode is implemented in eLua.]],
+  <p><span class="warning">IMPORTANT</span>: right now, only master SPI mode is implemented in eLua.]],
 
   -- Functions
   funcs = 

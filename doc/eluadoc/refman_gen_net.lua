@@ -12,9 +12,9 @@ data_en =
   -- Overview
   overview = [[This module contains functions for accessing a TCP/IP network from eLua. It can be enabled only if networking support is also enabled
   (see @building.html@building@ for details).</p>
-  <p><font color="red"><b>NOTE:</b></font> TCP/IP support is $experimental$ in eLua. While functional, it's still slow and suffers from a number of
+  <p><span class="warning">NOTE:</span> TCP/IP support is $experimental$ in eLua. While functional, it's still slow and suffers from a number of
   other issues. It will most likely change a lot in the future, so expect major changes to this module as well.</p>
-  <p><font color="red"><b>NOTE:</b></font> currently, only TCP sockets are supported by eLua.]],
+  <p><span class="warning">NOTE:</span> currently, only TCP sockets are supported by eLua.]],
 
   -- Structures
   structures =
@@ -83,7 +83,7 @@ argument. The IP is given as a string.]],
 
     { sig = "socket = #net.socket#( type )",
       desc = "Create a socket for TCP/IP communication.",
-      args = [[$type$ - can be either $net.SOCK_STREAM$ for TCP sockets or $net.SOCK_DGRAM$ for UDP sockets (<font color="red"><b>not yet supported</b></font>).]],
+      args = [[$type$ - can be either $net.SOCK_STREAM$ for TCP sockets or $net.SOCK_DGRAM$ for UDP sockets (<span class="warning">not yet supported</span>).]],
       ret = "The socket that will be used in subsequent operations."
     },
 
@@ -141,12 +141,11 @@ be specified.]]
       args = 
       {
         "$sock$ - the socket.",
-        [[$format$ - how to read the data. This can be either:</p>
-<p>
+        [[$format$ - how to read the data. This can be either:
 <ul>
   <li>$"*l"$: read a line (until the next '\n' character).</li>
   <li>$an integer$: read up to that many bytes.</li>
-</ul></p><p>]],
+</ul>]],
         [[$timer_id (optional)$ - the timer ID of the timer used to timeout the recv function after a specified time. If this is specified, $timeout$ must also
 be specified.]],
         [[$timeout (optional)$ - the timeout after which the recv function returns if no connection was requested. If this is specified, $timer_id$ must also

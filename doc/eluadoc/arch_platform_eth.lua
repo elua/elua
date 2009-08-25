@@ -9,7 +9,7 @@ data_en =
   menu_name = "Ethernet",
 
   -- Overview
-  overview = [[<font color="red">$NOTE$: TCP/IP support is experimental in eLua. Although functional, it's quite incomplete at the moment.</font></p>
+  overview = [[<span style="color: red;">$NOTE$: TCP/IP support is experimental in eLua. Although functional, it's quite incomplete at the moment.</span></p>
   <p>This part of the platform interface groups functions related to accessing the Ethernet interface (internal or external) of the CPU. Note that unlike the
   other parts of the platform interface this one is dedicated for TCP/IP support and thus it does not correspond directly to an eLua module, although
   the @##@net module@ is implemented with functions that rely on this part of the platform interface. Currently only

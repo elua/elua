@@ -86,11 +86,11 @@ data_en =
 
     { sig = "ch = #term.getchar#( [ mode ] )",
       desc = "Read a char (a key press) from the terminal",
-      args = [[$mode (optional)$ - terminal input mode. It can be either:
+      args = [[$mode (optional)$ - terminal input mode. It can be either:</p>
   <ul>
     <li>$term.WAIT$ - wait for a key to be pressed, then return it. This is the default behaviour if $mode$ is not specified. </li>
     <li>$term.NOWAIT$ - if a key was pressed on the terminal return it, otherwise return -1.</li>
-  </ul>]],
+  </ul><p>]],
       ret = [[The char read from a terminal or -1 if no char is available. The 'char' can be an actual ASCII char, or a 'pseudo-char' which encodes special keys on
   the keyboard. The list of the special chars and their meaning is given in the table below:</p>
 <table style="text-align: left; margin-left: 2em;">
@@ -107,6 +107,7 @@ data_en =
   <td>$KC_DOWN$</td>
   <td>the DOWN key on the terminal</td>
 </tr>
+<tr>
   <td>$KC_LEFT$</td>
   <td>the LEFT key on the terminal</td>
 </tr>

@@ -1,29 +1,23 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
-<html><head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/> 
-<meta http-equiv="Content-Language" content="en-us"><title>Using OpenOCD</title>
-
-<link rel="stylesheet" type="text/css" href="../style.css"></head>
-<body style="background-color: rgb(255, 255, 255);">
+$$HEADER$$
 <h3>Using OpenOCD</h3>
-<p>This section presents <a target="_blank" href="http://openocd.berlios.de">OpenOCD</a>, a tool used to program <b>eLua</b> on some of its targets. 
+<p>This section presents <a  href="http://openocd.berlios.de">OpenOCD</a>, a tool used to program <b>eLua</b> on some of its targets. 
 If you'd rather skip the long and boring OpenOCD introduction and
-skip directly to the OpenOCD script downloads, use the links below.
+skip directly to the OpenOCD script downloads, use the links below.</p>
 
 <ul>
   <li><a href="#str9files">Configuration files for STR9-comStick</a></li>
   <li><a href="#lpc2888files">Configuration files for LPC2888</a></li>
   <li><a href="#str7files">Configuration files for STR7</a></li>
-</ul></p>
+</ul>
 
 <h2>About OpenOCD</h2>
 
-<p><a target="_blank" href="http://openocd.berlios.de">OpenOCD</a> is an open source tool that can be used to connect to a CPU's 
-<a target="_blank" href="http://en.wikipedia.org/wiki/JTAG">JTAG</a>
+<p><a  href="http://openocd.berlios.de">OpenOCD</a> is an open source tool that can be used to connect to a CPU's 
+<a  href="http://en.wikipedia.org/wiki/JTAG">JTAG</a>
 interface. Using OpenOCD and a physical JTAG connection allows you to
 burn the on-chip flash memory of your CPU (or to load your code
 directly to RAM), to read the internal CPU memory (Flash/RAM) and to
-use <a target="_blank" href="http://sourceware.org/gdb/">gdb</a> or other debuggers to debug your code.
+use <a  href="http://sourceware.org/gdb/">gdb</a> or other debuggers to debug your code.
 Needless to say, this is a very handy tool (and especially handy if
 your CPU happens to be built around an ARM core, since in this case you
 can be almost certain that it has a JTAG interface that you can use).
@@ -41,7 +35,7 @@ a different firmware burning tool when available, and resort to OpenOCD
 only for targets that lack a proper firmware burning tool. If you need
 to debug your code, however, you probably want to use OpenOCD, since
 the alternatives aren't cheap.
-To summarize, you can forget about OpenOCD when:
+To summarize, you can forget about OpenOCD when:</p>
 
 <ul>
   <li>your CPU manufacturer provides a special tool for
@@ -53,15 +47,15 @@ and turning it on and off from different parts of your code until you
 figure out exactly what's the problem can work wonders. I can't
 remember when was the last time I used gdb for debugging, since "LED
 debugging" was all I needed. </li>
-</ul></p>
+</ul>
 
-<p>On the other hand, you should probably use OpenOCD when:
+<p>On the other hand, you should probably use OpenOCD when:</p>
 
 <ul>
   <li>your CPU manufacturer doesn't provide a special tool for firmware burning (or it does, but it's not what you need).</li>
   <li>you're using Linux, MacOS or another OS that is not supported by the firmware burning tool.</li>
   <li>you need to do some serious debugging in order to understand what's wrong with your application.</li>
-</ul></p>
+</ul>
 
 <p>If you decided that you don't need OpenOCD after all, now it's a
 good time to navigate away from this page and save yourself from some
@@ -73,9 +67,9 @@ Because of this, I won't be covering debugging with OpenOCD here, just
 firmware burning. And, before we begin, please read and understand the
 next paragraph.</p>
 
-<h2>Disclaimer</h2>
+<h2 style="background-color: orangered;">Disclaimer</h2>
 
-<p><b>Using OpenOCD improperly may force your CPU to behave
+<p>Using OpenOCD improperly may force your CPU to behave
 unexpectedly. While physically damaging your CPU as a result of using
 OpenOCD is very hard to accomplish, you might end up with a locked
 chip, or you might erase a memory area that was not supposed to be
@@ -84,18 +78,19 @@ rendering it unusable). If you modify the configuration scripts that
 I'm going to provide, make sure that you know what you're doing. Also,
 I'm not at all an OpenOCD expert, so my configuration scripts might
 have errors, even though I tested them. In short, this tutorial comes
-without any guarantees whatsoever.</b></p>
+without any guarantees whatsoever.</p>
+
 <h2>Getting OpenOCD</h2>
 
 <p>If you're on Windows, the best way to get OpenOCD already compiled and ready to run is to 
-visit the <a target="_blank" href="http://www.yagarto.de/">Yagarto home page</a>.
+visit the <a  href="http://www.yagarto.de/">Yagarto home page</a>.
 They provide a very nice OpenOCD installer, and they seem to keep up
 with OpenOCD progress (the versions on the Yagarto site are not
 "bleeding edge", but there are quite fresh nevertheless). If you're on
 Linux, you can always use apt-get or your distribution-specific package
 manager:</p>
 
-<p><pre><code>$ sudo apt-get install openocd<br></code></pre></p>
+<pre><code>$ sudo apt-get install openocd</code></pre>
 
 <p>There is a catch here though: the OpenOCD version that I get from
 apt-get is dated 2007-09-05, while the Yagarto OpenOCD version is from
@@ -105,9 +100,9 @@ instructions are relevant to the Yagarto version. As mentioned in the
 introduction, the meaning and parameters of different commands might
 change between OpenOCD version, so if you want to use the Yagarto
 version on your non Windows system, you'll have to build it from source
-(see below).<br>
-The main resource on how to build OpenOCD from source is the <a target="_blank" href="http://openfacts.berlios.de/index-en.phtml?title=Building_OpenOCD">OpenOCD build page</a> 
-from the OpenOCD wiki. Also, a very good tutorial can be found <a target="_blank" href="http://forum.sparkfun.com/viewtopic.php?t=11221">here</a>.
+(see below).</p>
+<p>The main resource on how to build OpenOCD from source is the <a  href="http://openfacts.berlios.de/index-en.phtml?title=Building_OpenOCD">OpenOCD build page</a> 
+from the OpenOCD wiki. Also, a very good tutorial can be found <a  href="http://forum.sparkfun.com/viewtopic.php?t=11221">here</a>.
 I'm not going to provide step by step build instructions, since the two
 links that I mentioned cover this very well, and the build process is
 relatively straightforward. However, since both tutorials describe how
@@ -115,11 +110,11 @@ to build the bleeding edge version of OpenOCD, you'll need a slight
 modification do build the Yagarto version instead. The modification is
 in the SVN checkout step. Replace this step:</p>
 
-<p><pre><code>$ svn checkout svn://svn.berlios.de/openocd/trunk<br></code></pre></p>
+<pre><code>$ svn checkout svn://svn.berlios.de/openocd/trunk</code></pre>
 
 <p>with this step ('717' is the SVN revision of the Yagarto OpenOCD build):</p>
 
-<p><pre><code>$ svn checkout <b>-r 717</b> svn://svn.berlios.de/openocd/trunk<br></code></pre></p>
+<pre><code>$ svn checkout <b>-r 717</b> svn://svn.berlios.de/openocd/trunk</code></pre>
 
 
 <p>Follow the rest of the build instructions, and in the end you should have a working OpenOCD.</p>
@@ -131,13 +126,13 @@ is supported by OpenOCD, I recommend getting the latest sources (as
 described in the previous section) and listing the
 trunk/src/target/target directory:</p>
 
-<p><pre><code>$ ls trunk/src/target/target
+<pre><code>$ ls trunk/src/target/target
 at91eb40a.cfg
 at91r40008.cfg
 ....
 str9comstick.cfg
 ....
-</code></pre></p>
+</code></pre>
 
 
 <p>If this listing has something that looks like your CPU name, you're lucky. OpenOCD has support for LPC from NXP, AT91SAM cfrom Atmel, STR7/STR9 from ST, and many others.</p>
@@ -153,27 +148,27 @@ str9comstick.cfg
 </ul>
 
 <p>In some cases, your CPU board might provide a built in JTAG adapter. For example, 
-my <a target="_blank" href="http://www.luminarymicro.com/products/lm3s8962_can_ethernet_evaluation_kit.html">LM3S8962</a>
+my <a  href="http://www.luminarymicro.com/products/lm3s8962_can_ethernet_evaluation_kit.html">LM3S8962</a>
 board provides both an USB-to-JTAG and an USB-to-serial converter built
 on board, switching between them automagically. The same is true for my
-<a target="_blank" href="http://www.hitex.com/index.php?id=383">STR9-comStick</a>. 
-On the other hand, my <a target="_blank" href="http://www.olimex.com/dev/sam7-ex256.html">SAM7-EX256</a> board has only a JTAG connector, I need a separate JTAG adapter to connect to it. 
-I'm using <a target="_blank" href="http://www.olimex.com/dev/arm-usb-tiny.html">ARM-USB-TINY</a> from Olimex, but there are other affordable USB-to-JTAG adapters out there, 
-like the <a target="_blank" href="http://www.amontec.com/jtagkey-tiny.shtml">Amontec JTAGKey-Tiny</a>. Not to mention that you can 
-<a target="_blank" href="http://www.hs-augsburg.de/%7Ehhoegl/proj/usbjtag/usbjtag.html">build your own</a>. Although USB is my interface of choice, you'll find JTAG adapters for
+<a  href="http://www.hitex.com/index.php?id=383">STR9-comStick</a>. 
+On the other hand, my <a  href="http://www.olimex.com/dev/sam7-ex256.html">SAM7-EX256</a> board has only a JTAG connector, I need a separate JTAG adapter to connect to it. 
+I'm using <a  href="http://www.olimex.com/dev/arm-usb-tiny.html">ARM-USB-TINY</a> from Olimex, but there are other affordable USB-to-JTAG adapters out there, 
+like the <a  href="http://www.amontec.com/jtagkey-tiny.shtml">Amontec JTAGKey-Tiny</a>. Not to mention that you can 
+<a  href="http://www.hs-augsburg.de/%7Ehhoegl/proj/usbjtag/usbjtag.html">build your own</a>. Although USB is my interface of choice, you'll find JTAG adapters for
 PC LPT ports too. The good news is that once you buy a JTAG adapter,
 chances are that it will work with many boards with different CPUs,
 since the JTAG connector layout is standardized and the JTAG adapters
-are generally able to work with different voltages.<br>
-To actually use OpenOCD, the next thing you'll need is a configuration file. The
+are generally able to work with different voltages.</p>
+<p>To actually use OpenOCD, the next thing you'll need is a configuration file. The
 configuration file is the one that lets OpenOCD know about your setup,
-such as:
+such as:</p>
 <ul>
   <li>the kind of JTAG interface that you're using.</li>
   <li>the actual hardware platform you're using (ATM7TDMI, ARM966 and so on).</li>
   <li>the memory configuration of your CPU (flash banks).</li>
   <li>the script used to program the flash memory.</li>
-</ul></p>
+</ul>
 
 
 <p>Presenting a list of all the possible configuration options and
@@ -185,25 +180,25 @@ worry, I'll provide full download links for this file later on). First
 we need to tell OpenOCD that we're using a the STR9-comStick
 USB-to-JTAG adapter:</p>
 
-<p><pre><code>interface ft2232
+<pre><code>interface ft2232
 ft2232_device_desc "STR9-comStick A"
 ft2232_layout comstick
 ft2232_vid_pid 0x0640 0x002C
 jtag_speed 4
 jtag_nsrst_delay 100
 jtag_ntrst_delay 100
-</code></pre></p>
+</code></pre>
 
 
 <p>Also, OpenOCD needs to know what's our target and its memory layout:</p>
 
-<p><pre><code>target arm966e little run_and_init 1 arm966e
+<pre><code>target arm966e little run_and_init 1 arm966e
 run_and_halt_time 0 50
 
 working_area 0 0x50000000 32768 nobackup
 
 flash bank str9x 0x00000000 0x00080000 0 0 0
-flash bank str9x 0x00080000 0x00008000 0 0 0</code></pre></p>
+flash bank str9x 0x00080000 0x00008000 0 0 0</code></pre>
 
 
 <p>This tells OpenOCD that our target is an ARM966-E running in little
@@ -213,30 +208,30 @@ it's 0x8000 bytes in size. Finally, OpenOCD must know what's the name
 of our script file (this is the file that is used to pysically program
 the CPU memory):</p>
 
-<p><pre><code>#Script used for FLASH programming
-target_script 0 reset str91x_flashprogram.script</code></pre></p>
+<pre><code>#Script used for FLASH programming
+target_script 0 reset str91x_flashprogram.script</code></pre>
 
 
 <p>The contents of the str91x_flashprogram.script is very target-dependent:</p>
 
-<p><pre><code>wait_halt
+<pre><code>wait_halt
 str9x flash_config 0 4 2 0 0x80000
 flash protect 0 0 7 off
 flash erase_sector 0 0 7
 flash write_bank 0 main.bin 0
 reset run
 sleep 10
-shutdown</code></pre></p>
+shutdown</code></pre>
 
 
 <p>I'm not even going to attempt to explain this one :) Basically it
 unprotects the flash, erases it, writes the contents of "main.bin" to
 flash, and then resets the CPU. If you need to flash a file with a
 different name, the only thing you need to modify is the "main.bin" in
-the "flash write_bank" line.<br>
-To use all this, you need to tell OpenOCD to use our configuration file:</p>
+the "flash write_bank" line.</p>
+<p>To use all this, you need to tell OpenOCD to use our configuration file:</p>
 
-<p><pre><code>openocd-ftd2xx -f comstick.cfg<br></code></pre></p>
+<pre><code>openocd-ftd2xx -f comstick.cfg</code></pre>
 
 
 <p>(<b>note</b>: under Windows, the OpenOCD executable name is often
@@ -244,29 +239,27 @@ To use all this, you need to tell OpenOCD to use our configuration file:</p>
 the actualy name with your executable).</p>
 <p>That's it for your OpenOCD crash course. I realise that there's much
 more to learn, so here's a list of links with much better information
-on the subject:
+on the subject:</p>
 
 <ul>
-  <li><a target="_blank" href="http://www.hs-augsburg.de/%7Ehhoegl/proj/openocd/oocd-quickref.pdf">OpenOCD quick reference</a> card. (slightly outdated)</li>
-  <li><a target="_blank" href="http://openfacts.berlios.de/index-en.phtml?title=OpenOCD_scripts">OpenOCD configuration examples</a> from the official OpenOCD wiki.</li>
-  <li>An excellent page about using <a target="_blank" href="http://www.siwawi.arubi.uni-kl.de/avr_projects/arm_projects/openocd_intro/index.html">OpenOCD with ARM controllers</a>, with lots 
+  <li><a  href="http://www.hs-augsburg.de/%7Ehhoegl/proj/openocd/oocd-quickref.pdf">OpenOCD quick reference</a> card. (slightly outdated)</li>
+  <li><a  href="http://openfacts.berlios.de/index-en.phtml?title=OpenOCD_scripts">OpenOCD configuration examples</a> from the official OpenOCD wiki.</li>
+  <li>An excellent page about using <a  href="http://www.siwawi.arubi.uni-kl.de/avr_projects/arm_projects/openocd_intro/index.html">OpenOCD with ARM controllers</a>, with lots 
   of real life examples.</li>
-  <li>An interesting <a target="_blank" href="http://forum.sparkfun.com/viewtopic.php?p=42079">topic on the SparkFun forum</a> about STR9 and OpenOCD.</li>
-</ul></p>
+  <li>An interesting <a  href="http://forum.sparkfun.com/viewtopic.php?p=42079">topic on the SparkFun forum</a> about STR9 and OpenOCD.</li>
+</ul>
 
 
-<p><a name="str9files"></a></p>
-<h2>##Configuration files for STR9-comStick</h2>
+<a name="str9files" /><h2>##Configuration files for STR9-comStick</h2>
 
 <p>Download them below:</p>
 
-<p><a href="http://elua.berlios.de/other/comstick.cfg">comstick.cfg</a></p>
-
-<p><a href="http://elua.berlios.de/other/str91x_flashprogram.script">str91x_flashprogram.script</a></p>
-
-<p><a href="http://elua.berlios.de/other/comrst.cfg">comrst.cfg</a></p>
-
-<p><a href="http://elua.berlios.de/other/str91x_reset.script">str91x_reset.script</a></p>
+<ul>
+  <li><a href="http://elua.berlios.de/other/comstick.cfg">comstick.cfg</a></li>
+  <li><a href="http://elua.berlios.de/other/str91x_flashprogram.script">str91x_flashprogram.script</a></li>
+  <li><a href="http://elua.berlios.de/other/comrst.cfg">comrst.cfg</a></li>
+  <li><a href="http://elua.berlios.de/other/str91x_reset.script">str91x_reset.script</a></li>
+</ul>
 
 <p>The <b>comstick.cfg</b> configuration file is for prorgramming the
 STR9-comStick. <b>comrst.cfg</b> is for resetting it. The comStick has a very
@@ -279,12 +272,11 @@ generic or it's only relevant to my particular comStick. I suspect that
 the CPU RESET line isn't properly handled by the on-board USB-to-JTAG
 converter, and the only solution I have for this is to execute this
 script everytime you power the board and everytime you need to do a
-RESET.<br>
-Also, be sure to modify <b>str91x_flashprogram.script</b> if your image name is
+RESET.</p>
+<p>Also, be sure to modify <b>str91x_flashprogram.script</b> if your image name is
 not <b>main.bin</b></p>
 
-<p><a name="lpc2888files"></a></p>
-<h2>##Configuration files for LPC2888</h2>
+<a name="lpc2888files" /><h2>##Configuration files for LPC2888</h2>
 
 <p>LPC2888 is quite a different animal. I couldn't find any "official"
 LPC2888 configuration file for OpenOCD, so I had to learn how to write
@@ -301,41 +293,41 @@ to the chip:</p>
 corresponding line (<i>flash write_bank 0 main.bin 0</i>), then invoke openocd
 like this:</p>
 
-<p><pre><code>openocd -f lpc2888.cfg<br></code></pre></p>
+<pre><code>openocd -f lpc2888.cfg</code></pre>
 
 
-<p>I'm using <a target="_blank" href="http://www.olimex.com/dev/arm-usb-tiny.html">ARM-USB-TINY</a>
+<p>I'm using <a  href="http://www.olimex.com/dev/arm-usb-tiny.html">ARM-USB-TINY</a>
 from Olimex, but it should be easy to use the script with any other
 JTAG adapter (don't forget to change the script to match your adapter).</p>
 
-<h2><a name="str7files">##Configuration files for STR711FR2 (STR7 from ST)</a></h2>
+<a name="str7files" /><h2>#Configuration files for STR711FR2 (STR7 from ST)</h2>
 
 <p>Download them below:</p>
 
-<p><a href="http://elua.berlios.de/other/str7prg.cfg">str7prg.cfg</a></p>
-
-<p><a href="http://elua.berlios.de/other/str7_flashprogram.script">str7_flashprogram.script</a></p>
-
-<p><a href="http://elua.berlios.de/other/str7rst.cfg">str7rst.cfg</a></p>
-
-<p><a href="http://elua.berlios.de/other/str7_reset.script">str7_reset.script</a></p>
+<ul>
+  <li><a href="http://elua.berlios.de/other/str7prg.cfg">str7prg.cfg</a></li>
+  <li><a href="http://elua.berlios.de/other/str7_flashprogram.script">str7_flashprogram.script</a></li>
+  <li><a href="http://elua.berlios.de/other/str7rst.cfg">str7rst.cfg</a></li>
+  <li><a href="http://elua.berlios.de/other/str7_reset.script">str7_reset.script</a></li>
+</ul>
 
 <p>For STR7 I'm using the Yagarto OpenOCD build for Windows (repository
 version 717, as described at the beginning of this tutorial). The
 <b>str7prg.cfg</b> configuration file is for prorgramming the STR9-comStick.
 <b>str7rst.cfg</b> is for resetting it (you probably won't need this one). I'm using a STR711FR2 heard board from
-<a target="_blank" href="http://www.sctec.com.br/content/view/101/30/">ScTec</a> to
+<a  href="http://www.sctec.com.br/content/view/101/30/">ScTec</a> to
 which I attached a few LEDs and a MAX3232 TTL to RS232 converter for
 the serial communication. The board comes with its own JTAG adadpter,
 but it uses a parallel interface, and since my computer doesn't have
-one, I used the <a target="_blank" href="http://www.olimex.com/dev/arm-usb-tiny.html">ARM-USB-TINY</a> from Olimex. To use them, invoke the OpenOCD executable like this:</p>
+one, I used the <a  href="http://www.olimex.com/dev/arm-usb-tiny.html">ARM-USB-TINY</a> from Olimex. To use them, invoke the OpenOCD executable like this:</p>
 
-<p><pre><code>openocd-ftd2xx -f str7prg.cfg<br></code></pre></p>
+<pre><code>openocd-ftd2xx -f str7prg.cfg</code></pre>
 
 
 <p>(<b>note</b>: under Windows, the OpenOCD executable name is often
 "openocd-ftd2xx". Under Linux it's simply "openocd". Replace it with
-the actualy name with your executable).<br>
-Also, be sure to modify <b>str7_flashprogram.script</b> if your image name is
+the actualy name with your executable).</p>
+<p>Also, be sure to modify <b>str7_flashprogram.script</b> if your image name is
 not <b>main.bin</b></p>
-</body></html>
+$$FOOTER$$
+

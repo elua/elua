@@ -50,7 +50,7 @@ enum
       desc = [[Waits on a timer, then returns. This function is "split" in two parts: a platform-independent part implemented in %src/common.c% (that
   handles virtual timers) and a platform-dependent part that must be implemented by each platform in a function named @#platform_s_timer_delay@platform_s_timer_delay@. This function handles both
   hardware timer IDs and virtual timer IDs.<br>
-  <font color="red"><a name="limitations">$IMPORTANT NOTE$</font></a>: the real delay after executing this functions depends on a number of variables, most notably the base clock of the timer 
+  <a name="limitations" /><span class="warning">IMPORTANT NOTE</span>: the real delay after executing this functions depends on a number of variables, most notably the base clock of the timer 
   and the size of the timer counter register (32 bits on some platforms, 16 bits on most platforms, other values are less common). To ensure that the delay you're requesting is achievable, use 
   @#platform_timer_op@platform_timer_op@ with $PLATFORM_TIMER_OP_GET_MAX_DELAY$ and $PLATFORM_TIMER_OP_GET_MIN_DELAY$ to obtain the maximum and the minimum 
   achievable wait times on your timer, respectively. Even if your delay is within these limits, the $precision$ of this function still varies a lot, mainly as a function of 
@@ -145,14 +145,14 @@ enum
   {
     { title = "Virtual timers",
       desc = 
-  [[$Virtual timers$ were added to eLua to overcome some limitations:
+  [[$Virtual timers$ were added to eLua to overcome some limitations:</p>
   <ul>
     <li>there are generally few hardware timers available, some of which might be dedicated (thus not usable directly by eLua).</li>
     <li>many times it is difficult to share a hardware timer between different parts of an application because of conflicting requirements. Generally it's not possible to have timers that can
         achieve long delays and high accuracy at the same time (this is especially true for systems that have 16 bit or even smaller timers).</li>
-  </ul></p>
+  </ul>
   <p>In this respect, $virtual timers$ are a set of timers that share a single hardware timer. It is possible, in this way, to have a hardware timer that can implement 4, 8 or more hardware
-  timers. There are a few drawbacks to this approach:
+  timers. There are a few drawbacks to this approach:</p>
   <ul>
     <li>the hardware timer used to implement the virtual timers must generally be dedicated. In fact in cat be still used in "read only mode", which means that the only operations that can
         be executed on it are $PLATFORM_TIMER_OP_READ$, $PLATFORM_TIMER_GET_CLOCK$, $PLATFORM_TIMER_OP_GET_MAX_DELAY$ and $PLATFORM_TIMER_OP_GET_MIN_DELAY$. However,
@@ -160,8 +160,8 @@ enum
         an ID.</li>
     <li>the number of virtual timers and their base frequency are fixed at compile time.</li>
     <li>virtual timers are generally used for large delays with low accuracy, since their base frequency should be fairly low (see below).</li>
-  </ul></p>
-  <p>To $enable$ virtual timers:
+  </ul>
+  <p>To $enable$ virtual timers:</p>
   <ol>
     <li>edit $platform_conf.h$ (see @arch_overview.html#platforms@here@ for details) and set $VTMR_NUM_TIMERS$ to the number of desired virtual timers and 
        $VTMR_FREQ_HZ$ to the base frequency of the virtual timers (in hertz). For example:
@@ -174,12 +174,12 @@ enum
   // add code to clear the timer interrupt flag here if needed
   cmn_virtual_timer_cb();
 }~</li>
-  </ol></p>
+  </ol>
   <p>Note that because of step 2 above you are limited by practical constraints on the value of $VTMR_FREQ_HZ$. If set too high, the timer interrupt will fire too often, thus taking too much
   CPU time. The maximum value depends largely on the hardware and the desired behaviour of the virtual timers, but in practice values larger than 10 might visibly change the behaviour of your 
   system.</p>
   <p>To $use$ a virtual timer, identify it with the constant $VTMR_FIRST_ID$ (defined in %inc/common.h%) plus an offset. For example, $VTMR_FIRST_ID+0$ (or simply
-  $VTMR_FIRST_ID$) is the ID of the first virtual timer in the system, and $VTMR_FIRST_ID+2$ is the ID of the third virtual timer in the system.</p>
+  $VTMR_FIRST_ID$) is the ID of the first virtual timer in the system, and $VTMR_FIRST_ID+2$ is the ID of the third virtual timer in the system.
   ]]
     }
   }

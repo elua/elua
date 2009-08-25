@@ -57,13 +57,13 @@ data_en =
     { sig = "int #platform_pio_has_pin#( unsigned port, unsigned pin );",
       desc = [[Checks if the platform has the hardware port and pin specified as arguments. Implemented in %src/common.c%, it uses the $NUM_PIO$ macro to check the validity
   of the port and the $PIO_PINS_PER_PORT$ or $PIO_PIN_ARRAY$ macros to check the validity of the pin. The macros must be defined in the platform's $platform_conf.h$ file
-  (see @arch_overview.html#platforms@here@ for details).
+  (see @arch_overview.html#platforms@here@ for details).</p>
   <ul>
     <li>use $PIO_PINS_PER_PORT$ when all the ports of the MCU have the same number of pins. For example:
       ~#define PIO_PINS_PER_PORT    8   $// Each port has 8 pins$~</li>
     <li>use $PIO_PIN_ARRAY$ when different ports of the MCU have different number of pins. For example:
       ~#define PIO_PIN_ARRAY    { 4, 4, 2, 6 } $// Port 0 has 4 pins, port 1 has 4 pins, port 2 has 2 pins, port 3 has 6 pins$~</li>
-  </ul>]],
+  </ul><p>]],
       args = 
       {
         "$port$ - the port ID",
@@ -75,7 +75,7 @@ data_en =
     { sig = "const char* #platform_pio_get_prefix#( unsigned port );",
       desc = [[Get the port prefix. Used to establish if the port notation uses numbers (P0, P1, P2...) or letters (PA, PB, PC...). Implemented in %src/common.c%, it uses the 
   $PIO_PREFIX$ macro that must be defined in the platform's $platform_conf.h$ file (see @arch_overview.html#platforms@here@ for details). The value of this macro can be either '0' (for
-  numeric notation) or 'A' (for letter notation). For example:
+  numeric notation) or 'A' (for letter notation). For example:</p>
   ~#define PIO_PREFIX    'A'   $// Use PA, PB, PC ... for port notation$~<p>]],
       args = "$port$ - the port ID",
       ret = "the port prefix (either '0' or 'A')",  

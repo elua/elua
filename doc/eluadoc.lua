@@ -20,18 +20,7 @@ local components =
 }
 
 -------------------------------------------------------------------------------
--- Local variables
-
--- Paragraph indentation flag
-local p_indent = false
-
--------------------------------------------------------------------------------
 -- Generic helpers and doc text formatting functions
-
--- Return a proper <p> tag based on the p_indent flag
-local function get_p()
-  return p_indent and '<p class="doc">' or '<p>'
-end
 
 -- Format a name to a link by changing all the spaces to "_" and
 -- making all letters lowercase
@@ -99,19 +88,12 @@ local function format_string( str, keepnl )
   str = str:gsub( "@(.-)@(.-)@", '<a href="%1">%2</a>' )
 
   -- ^ref^text^ becomes <a href="ref">text</a>
-  str = str:gsub( "%^(.-)%^(.-*)%^", '<a href="%1">%2</a>' )
+  str = str:gsub( "%^(.-)%^(.-)%^", '<a href="%1">%2</a>' )
 
   -- strings between two tildas (~~) get special code-like formatting
-  str = str:gsub( "~(.-)~", function( x )
-    x = x:gsub( "\n", "<br />" )
-    x = x:gsub( "%s%s+", function( x ) return ( "&nbsp;" ):rep( #x ) end )
-    return "<p><code>" .. x .. "</code></p>"
-  end )
+  -- must keep '\n', so replace it with "temps" for now
+  str = str:gsub( "~(.-)~", function( data ) return '<pre class="code">' .. data:gsub( "\n", "\006" ) .. "</pre>" end )
   str = str:gsub( "~~", "~" )
-
-  if p_indent then
-    str = str:gsub( "<p>", '<p class="doc">' )
-  end
 
   -- other "\n" chars should dissapear now
   if not keepnl then  str = str:gsub( "\n", " " ) end
@@ -122,6 +104,7 @@ local function format_string( str, keepnl )
   str = str:gsub( "\003", "@" )
   str = str:gsub( "\004", "%^" )
   str = str:gsub( "\005", "~" )
+  str = str:gsub( "\006", "\n" )
 
   -- all done
   return str
@@ -170,13 +153,13 @@ local function build_file( fname )
     if not r.overview then
       return false, "overview not found"
     end
-    page = page .. '<a name="overview"><h3>Overview</h3></a>\n<p>' .. format_string( r.overview ) .. "</p>\n\n"
+    page = page .. '<a name="overview" /><h3>Overview</h3>\n<p>' .. format_string( r.overview ) .. "</p>\n\n"
 
     -- process structures if needed
     if r.structures then
       local structures = r.structures
       menu.structs = {}
-      page = page .. '<a name="structures"><h3>Data structures, constants and types</h3></a>\n'
+      page = page .. '<a name="structures" /><h3>Data structures, constants and types</h3>\n'
       for i = 1, #structures do
         local s = structures[ i ]
         menu.structs[ #menu.structs + 1 ] = s.name
@@ -184,13 +167,10 @@ local function build_file( fname )
           return false, "structure without text, desc or name fields"
         end
         -- text/name. The link name is ALWAYS the one in ENGLISH.
-        page = page .. string.format( '<a name="%s">', name2link( res.en.menu.structs[ i ] ) )
-        page = page .. "<pre><code>" .. format_string( s.text, true ) .. "</code></pre>"
-        page = page .. "</a>"
+        page = page .. string.format( '<a name="%s" />', name2link( res.en.menu.structs[ i ] ) )
+        page = page .. "<pre><code>" .. format_string( s.text, true ) .. "</code></pre>\n"
         -- description
-        p_indent = true
-        page = page .. "\n<p class=\"doc\">" .. format_string( s.desc ) .. "</p>\n\n"
-        p_indent = false
+        page = page .. '<div class="docdiv">\n<p>' .. format_string( s.desc ) .. "</p>\n</div>\n\n"
       end 
     end
 
@@ -199,7 +179,7 @@ local function build_file( fname )
       return false, "funcs not found"
     end
     local funcs = r.funcs
-    page = page .. '<a name="funcs"><h3>Functions</h3></a>\n'
+    page = page .. '<a name="funcs" /><h3>Functions</h3>\n<div class="docdiv">\n'
     menu.funcs = {}
     for i = 1, #funcs do
       local f = funcs[ i ]
@@ -212,46 +192,44 @@ local function build_file( fname )
       end
       menu.funcs[ #menu.funcs + 1 ] = funcname
       -- signature
-      page = page .. string.format( '<a name="%s">', funcname )
+      page = page .. string.format( '<a name="%s" />', funcname )
       page = page .. "<pre><code>" .. f.sig:gsub( '#', '' ) .. "</code></pre>"
-      page = page .. "</a>"
       -- description
-      p_indent = true
-      page = page .. "\n<p class=\"doc\">" .. dot( format_string( f.desc ) ) .. "</p>\n"
+      page = page .. "\n<p>" .. dot( format_string( f.desc ) ) .. "</p>\n"
       -- arguments
-      page = page .. "<p class=\"doc\"><b>Arguments</b>: "
+      page = page .. "<p><b>Arguments</b>: "
       if f.args then
         local a = f.args
         if type( a ) == "string" or ( type( a ) == "table" and #a == 1 ) then
           local text = type( a ) == "string" and a or a[ 1 ]
-          page = page .. dot( format_string( text ) )
+          page = page .. dot( format_string( text ) ) .. "</p>"
         else
-          page = page .. "\n<ul>\n"
+          page = page .. "</p>\n<ul>\n"
           for i = 1, #a do page = page .. "  <li>" .. dot( format_string( a[ i ] ) ) .. "</li>\n" end
           page = page .. "</ul>"
         end
       else
-        page = page .. "none."
+        page = page .. "none.</p>"
       end
-      page = page .. "</p>\n"
+      page = page .. "\n"
       -- return value
-      page = page .. "<p class=\"doc\"><b>Returns</b>: "
+      page = page .. "<p><b>Returns</b>: "
       if f.ret then
         local r = f.ret
         if type( r ) == "string" or ( type( r ) == "table" and #r == 1 ) then
           local text = type( r ) == "string" and r or r[ 1 ]
-          page = page .. dot( format_string( text ) )
+          page = page .. dot( format_string( text ) ) .. "</p>"
         else
-          page = page .. "\n<ul>\n"
+          page = page .. "</p>\n<ul>\n"
           for i = 1, #r do page = page .. "  <li>" .. dot( format_string( r[ i ] ) ) .. "</li>\n" end
           page = page .. "</ul>"
         end
       else
-        page = page .. "nothing."
+        page = page .. "nothing.</p>"
       end
-      page = page .. "</p>\n\n"
-      p_indent = false
+      page = page .. "\n\n"
     end
+    page = page .. "</div>\n"
 
     -- aux data (if any)
     if r.auxdata then
@@ -264,17 +242,19 @@ local function build_file( fname )
           return false, "auxdata without title or desc"
         end
         -- the link name is ALWAYS the one in ENGLISH
-        page = page .. string.format( '<a name="%s">', name2link( res.en.menu.auxdata[ i ] ) )
+        page = page .. string.format( '<a name="%s" />', name2link( res.en.menu.auxdata[ i ] ) )
         page = page .. "<h3>" .. a.title .. "</h3>"
-        page = page .. "</a>"
         page = page .. "\n<p>" .. format_string( a.desc ) .. "</p>\n\n"
       end
     end
 
     -- footer
     page = page .. "$$FOOTER$$\n"
+    -- Cleanup: remove "<p></p>" (which might appear due to formatting)
+    page = page:gsub( "<p>%s-</p>", "" )
     res[ lang ].page = page
   end
+
   return res
 end
 

@@ -60,7 +60,7 @@ enum
     <li>$PLATFORM_PWM_OP_STOP$: stops PWM generation on the specified channel.</li>  
     <li>$PLATFORM_PWM_OP_SET_CLOCK$: sets the $base$ clock of the specified PWM channel (which will be used to generate the frequencies requested by 
         @#platform_pwm_setup@platform_pwm_setup@) to $data$ hertz.</li>
-    <li>$PLATFORM_PWM_OP_GET_CLOCK$: get the $base$ clock of the specified PWM channel.</liA>
+    <li>$PLATFORM_PWM_OP_GET_CLOCK$: get the $base$ clock of the specified PWM channel.</li>
   </ul>]],
         "$data$ - when used with $op$ == $PLATFORM_PWM_OP_SET_CLOCK$ it is used to specify the value of the base clock. Not used with other operations."
       },

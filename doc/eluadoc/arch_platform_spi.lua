@@ -41,13 +41,13 @@ data_en =
     { sig = "int #platform_spi_exists#( unsigned id );",
       desc = [[Checks if the platform has the hardware SPI specified as argument. Implemented in %src/common.c%, it uses the $NUM_SPI$ macro that must be defined in the
   platform's $platform_conf.h$ file (see @arch_overview.html#platforms@here@ for details). For example:</p>
-  ~#define NUM_SPI   1      $// The platform has 1 SPI interface$~</p> ]],
+  ~#define NUM_SPI   1      $// The platform has 1 SPI interface$~<p> ]],
       args = "$id$ - SPI interface ID",
       ret = "1 if the SPI interface exists, 0 otherwise"
     },
 
     { sig = "u32 #platform_spi_setup#( unsigned id, int mode, u32 clock, unsigned cpol, unsigned cpha, unsigned databits );",
-      desc = [[This function is used to initialize the parameters of the SPI interface. <br><font color="red">$NOTE$</font>: currently, only master SPI mode is implemented in eLua.]],
+      desc = [[This function is used to initialize the parameters of the SPI interface. <span class="warning">NOTE</span>: currently, only master SPI mode is implemented in eLua.]],
       args = 
       {
         "$id$ - SPI interface ID",
