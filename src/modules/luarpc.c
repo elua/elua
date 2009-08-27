@@ -5,6 +5,14 @@
 * see the file LICENSE that comes with this distribution.                    *
 *****************************************************************************/
 
+// Modifications by James Snyder - jbsnyder@fanplastic.org
+//  - more generic backend interface to accomodate different link types
+//  - integration with eLua (including support for rotables)
+//  - extensions of remote global table as local table metaphor
+//    - methods to allow remote assignment, getting remote values
+//    - accessing and calling types nested multiple levels deep on tables now works
+//  - port from Lua 4.x to 5.x
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -18,7 +26,10 @@
 #include "platform.h"
 #include "platform_conf.h"
 #endif
+
+#ifdef LUA_OPTIMIZE_MEMORY
 #include "lrotable.h"
+#endif
 
 #include "luarpc_rpc.h"
 
@@ -102,16 +113,14 @@ enum { RPC_PROTOCOL_VERSION = 3 };
 static const char * errorString (int n)
 {
   switch (n) {
-  case ERR_EOF: return "connection closed unexpectedly (\"end of file\")";
-  case ERR_CLOSED: return "operation requested on a closed transport";
-  case ERR_PROTOCOL: return "error in the received LuaRPC protocol";
-  case ERR_COMMAND: return "undefined RPC command";
-  case ERR_DATALINK: return "transmission error at data link level";
-  case ERR_NODATA: return "no data received when attempting to read";
-  case ERR_BADFNAME: return "function name is too long";
-  case RPC_UNSUPPORTED_CMD: return "an unsupported action was requested";
-  case ERR_HEADER: return "header exchanged failed";
-  default: return transport_strerror (n);
+    case ERR_EOF: return "connection closed unexpectedly";
+    case ERR_CLOSED: return "operation requested on closed transport";
+    case ERR_PROTOCOL: return "error in the received protocol";
+    case ERR_COMMAND: return "undefined command";
+    case ERR_NODATA: return "no data received when attempting to read";
+    case RPC_UNSUPPORTED_CMD: return "unsupported protocol command";
+    case ERR_HEADER: return "header exchanged failed";
+    default: return transport_strerror( n );
   }
 }
 
@@ -303,8 +312,8 @@ int check_num_args( lua_State *L, int desired_n )
   int n = lua_gettop( L );   /* number of arguments on stack */
   if ( n != desired_n )
   {
-    char s[ 100 ]; /* @@@ can we cut this down? */
-    sprintf( s, "must have %d argument%c", desired_n,
+    char *s = ( char * )alloca( 30 );
+    snprintf( s, 30, "must have %d argument%c", desired_n,
        ( desired_n == 1 ) ? '\0' : 's' );
     my_lua_error( L, s );
   }
@@ -439,15 +448,15 @@ static void write_variable( Transport *tpt, lua_State *L, int var_index )
       break;
 
     case LUA_TUSERDATA:
-      my_lua_error( L, "can't pass user data to a remote function" );
+      my_lua_error( L, "userdata transmission unsupported" );
       break;
 
     case LUA_TTHREAD:
-      my_lua_error( L, "can't pass threads to a remote function" );
+      my_lua_error( L, "thread transmission unsupported" );
       break;
 
     case LUA_TLIGHTUSERDATA:
-      my_lua_error( L, "can't pass light user data to a remote function" );
+      my_lua_error( L, "light userdata transmission unsupported" );
       break;
   }
   MYASSERT( lua_gettop( L ) == stack_at_start );
@@ -808,7 +817,7 @@ static int helper_get(lua_State *L, Helper *helper )
     {
       case fatal:
         if ( e.errnum == ERR_CLOSED )
-          my_lua_error( L, "can't refer to a remote function after the handle has been closed" );
+          my_lua_error( L, "handle is closed" );
         deal_with_error( L, helper->handle, errorString( e.errnum ) );
         transport_close( tpt );
         break;
@@ -935,7 +944,7 @@ static int helper_call (lua_State *L)
       {
         case fatal:
           if ( e.errnum == ERR_CLOSED )
-            my_lua_error( L, "can't refer to a remote function after the handle has been closed" );
+            my_lua_error( L, "handle is closed" );
           deal_with_error( L, h->handle, errorString( e.errnum ) );
           transport_close( tpt );
           break;
@@ -1001,7 +1010,7 @@ static int helper_newindex( lua_State *L )
     {
       case fatal:
         if ( e.errnum == ERR_CLOSED )
-          my_lua_error( L, "can't refer to a remote function after the handle has been closed" );
+          my_lua_error( L, "handle is closed" );
         deal_with_error( L, h->handle, errorString( e.errnum ) );
         transport_close( tpt );
         break;
@@ -1042,10 +1051,10 @@ static int helper_index (lua_State *L)
   MYASSERT( lua_isuserdata( L, 1 ) && ismetatable_type( L, 1, "rpc.helper" ) );
 
   if( lua_type( L, 2 ) != LUA_TSTRING )
-    my_lua_error( L, "can't index a handle with a non-string" );
+    my_lua_error( L, "can't index handle with non-string" );
   s = lua_tostring( L, 2 );
   if ( strlen( s ) > NUM_FUNCNAME_CHARS - 1 )
-    my_lua_error( L, "function name is too long" );
+    my_lua_error( L, "function name too long" );
   
   h = helper_append( L, ( Helper * )lua_touserdata( L, 1 ), s );
 
@@ -1152,7 +1161,7 @@ static int rpc_async (lua_State *L)
   check_num_args( L, 2 );
 
   if ( !lua_isuserdata( L, 1 ) || !ismetatable_type( L, 1, "rpc.handle" ) )
-    my_lua_error( L, "first argument must be an RPC client handle" );
+    my_lua_error( L, "first argument must be client handle" );
 
   handle = ( Handle * )lua_touserdata( L, 1 );
 
@@ -1380,7 +1389,7 @@ static int rpc_peek( lua_State *L )
 
   check_num_args( L, 1 );
   if ( !( lua_isuserdata( L, 1 ) && ismetatable_type( L, 1, "rpc.server_handle" ) ) )
-    my_lua_error( L, "argument must be an RPC server handle" );
+    my_lua_error( L, "argument must be server handle" );
 
   handle = ( ServerHandle * )lua_touserdata( L, 1 );
 
@@ -1519,7 +1528,7 @@ static int rpc_dispatch( lua_State *L )
   check_num_args( L, 1 );
 
   if ( ! ( lua_isuserdata( L, 1 ) && ismetatable_type( L, 1, "rpc.server_handle" ) ) )
-    my_lua_error( L, "argument must be an RPC server handle" );
+    my_lua_error( L, "argument must be server handle" );
 
   handle = ( ServerHandle * )lua_touserdata( L, 1 );
 
