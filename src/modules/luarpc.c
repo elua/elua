@@ -118,7 +118,6 @@ static const char * errorString (int n)
     case ERR_PROTOCOL: return "error in the received protocol";
     case ERR_COMMAND: return "undefined command";
     case ERR_NODATA: return "no data received when attempting to read";
-    case RPC_UNSUPPORTED_CMD: return "unsupported protocol command";
     case ERR_HEADER: return "header exchanged failed";
     default: return transport_strerror( n );
   }
@@ -1145,7 +1144,7 @@ static int rpc_close( lua_State *L )
     }
   }
 
-  my_lua_error(L,"argument must be an RPC handle");
+  my_lua_error(L,"argument must be handle");
   return 0;
 }
 
@@ -1376,7 +1375,7 @@ static int rpc_listen( lua_State *L )
 
   handle = rpc_listen_helper( L );
   if ( handle == 0 )
-    printf( "Bad Handle!" );
+    printf( "bad Handle" );
     
   return 1;
 }
