@@ -19,7 +19,7 @@ $$HEADER$$
 <h2>Details</h2>
 <p>The patch adds two new data types to Lua. Both or them are based on the lightuserdata type already found in Lua, and they share the same basic 
   attributes: they don't need to be dynamically allocated (as they're just pointers on steroids) and they're compared in the same way lightuserdatas 
-  are compared (by value). And of course, they are not collectable, so the garbage collector won't have anything to do with them. The new types are:
+  are compared (by value). And of course, they are not collectable, so the garbage collector won't have anything to do with them. The new types are:</p>
 <ol>
 <li><b>lightfunctions</b>: these are "simple" functions, in the sense that they can't have upvalues or environments. They are just pointers to regular 
   C functions. Other than that, you can use them from Lua just as you'd use any other function.</li>
@@ -33,8 +33,8 @@ $$HEADER$$
   <li>you can use rotables as metatables for both "regular" tables and for Lua types (via debug.setmetatable)</li>
   <li>a rotable can have another rotable (or tself) as a metatable</li>
   <li>you can iterate over rotables with pairs/ipairs/next just as you do with "regular" tables.</li>
-</ul></li></ol></p>
-<p>Just as with lightuserdata, you can only create lightfunctions and rotables from C code, never from Lua itself.<p>
+</ul></li></ol>
+<p>Just as with lightuserdata, you can only create lightfunctions and rotables from C code, never from Lua itself.</p>
 <h2>Testing</h2>
 <p>I tested my patch with the (<a target="_blank" href="http://lua-users.org/lists/lua-l/2006-03/msg00723.html">Lua 5.1 test suite</a>). The test suite 
   was an excellent testing tool. I thought I had the patch ready until I found the test suite and ran it. After another week of work, I had something 
@@ -92,7 +92,7 @@ might encounter other problems with it.</p>
 </tr>
 </tbody>
 </table>
-</p>
+
 <p>As you can see, the differences are significant, and (more important) it doesn't matter how many modules you load in <b>eLua</b>, the RAM consumption
    doesn't modify.</p>
 <p>Currently, there aren't any performane measurements related to LTR. It's clear from the implementation that the patch slows down the virtual machine, 
@@ -126,21 +126,21 @@ LUALIB_API int luaopen_mod( lua_State *L )
   luaL_register( L, "mod", mod_map );
   return 1;
 }</code></pre></p>
-<p>For the rotables implementation, however, you'd need to define the same thing like this:<p>
+<p>For the rotables implementation, however, you'd need to define the same thing like this:</p>
 
-<p><pre><code>const luaR_entry mod_map[] = <font color="red">// note: no static this time</font>
+<pre><code>const luaR_entry mod_map[] = <span class="warning">// note: no static this time</span>
 {
   { LRO_STRKEY( "f" ), LRO_FUNCVAL( f_implementation ) },
   { LRO_NILKEY, LRO_NILVAL }
 };
 
-<font color="red">// note: in this case the "luaopen_mod" function isn't really needed anymore</font>
+<span class="warning">// note: in this case the "luaopen_mod" function isn't really needed anymore</span>
 LUALIB_API int luaopen_mod( lua_State *L )
 {
   return 0;
-}</code></pre></p>
+}</code></pre>
 
-<p>A few points about the rotables example above:
+<p>A few points about the rotables example above:</p>
 <ul>
   <li>a rotable needs a "map" (mod_map) array much like a regular module, but you need to define that array with special macros:
   <ul>
@@ -148,29 +148,29 @@ LUALIB_API int luaopen_mod( lua_State *L )
        (empty) key</li>
     <li><b>for values</b>: <b>LRO_FUNCVAL(f)</b> defines a lightfunction value, <b>LRO_NUMVAL(f)</b> defines a number value, <b>LRO_RO(p)</b> defines a 
        rotable value (p is the pointer to the rotable) and <b>LRO_NILVAL</b> defines a NULL (empty) value.</li>
-  </ul>
+  </ul></li>
   <li>all the "global" rotables in the system (the ones that must be visible from <b>_G</b>, like the rotables of all the modules exported to Lua) must be 
   included in a special array, called <b>lua_rotable</b> (defined in <i>linit.c</i>). Simply including the rotable's definition array (mod_map in this case)
   in the lua_rotable array makes it visible globally, thus you don't need to call any kind of register function. This is why <b>luaopen_mod</b> now returns
   0.</li>
-</ul></p>
+</ul>
 <p>The two forms above (for regular tables and for rotables) are clearly different, but we want to keep them both to be able to work at both <b>optram=0</b>
   and <b>optram=2</b>. You can use #ifdefs to differentiate between the two cases in different optimization levels, but this becomes really annoying after 
   a (short) while. This is why I added another file called <b>lrodefs.h</b> (<i>src/lua</i>) that can be used to give an "universal" definition to our map 
   arrays. Here's how our example looks after rewriting it to take advantage of <b>lrodefs.h</b>:</p>
-<p><pre><code><font color="red">#define MIN_OPT_LEVEL  2 // the minimum optimization level at which we use rotables</font>
+<pre><code><span class="warning">#define MIN_OPT_LEVEL  2 // the minimum optimization level at which we use rotables</span>
 #include "lrodefs.h"
-const <font color="red"> LUA_REG_TYPE</font> mod_map[] = <font color="red">// note: no more luaL_reg or luaR_entry</font>
+const <span class="warning"> LUA_REG_TYPE</span> mod_map[] = <span class="warning">// note: no more luaL_reg or luaR_entry</span>
 {
   { LSTRKEY( "f" ), LFUNCVAL( f_implementation ) },
   { LNILKEY, LNILVAL }
 };
-// <font color="red">note: no more LRO_something, just Lsomething (for example LRO_STRKEY becomes LSTRKEY)</font>
+// <span class="warning">note: no more LRO_something, just Lsomething (for example LRO_STRKEY becomes LSTRKEY)</span>
 
 LUALIB_API int luaopen_mod( lua_State *L )
 {
-  <font color="red">LREGISTER</font>( L, "mod", mod_map ); // <font color="red">note: no more luaL_register, no "return 1"</font>
-}</code></pre></p>
+  <span class="warning">LREGISTER</span>( L, "mod", mod_map ); // <span class="warning">note: no more luaL_register, no "return 1"</span>
+}</code></pre>
 <p>Now, if <b>LUA_OPTIMIZE_MEMORY</b> (a macro defined by the system as 0 when <b>optram=0</b> and as 2 when <b>optram=1</b>) is less than 
   <b>MIN_OPT_LEVEL</b>, the above definition will compile in its "regular table" format. If <b>LUA_OPTIMIZE_MEMORY</b> is 2, it compiles to the 
   rotables format. Problem solved :) <b>LREGISTER</b> will also take care of calling <b>luaL_register</b> and return 1 when <b>optram=0</b> and do 
@@ -180,7 +180,7 @@ LUALIB_API int luaopen_mod( lua_State *L )
   metatable, it needs a "__metatable" field to point to its metatable (which is also a rotable, not necessarily another rotable) and the usual 
   metatable functions. For example, let's make our <b>mod</b> rotable its own metatable and declare an <b>__index</b> function. Moreover, let's do 
   this for both <b>optram=0</b> and <b>optram=1</b>.</p>
-<p><pre><code>static int mod_mt_index( lua_State *L ) 
+<pre><code>static int mod_mt_index( lua_State *L ) 
 {
   return 0;
 }
@@ -190,9 +190,9 @@ LUALIB_API int luaopen_mod( lua_State *L )
 const LUA_REG_TYPE mod_map[] =
 {
   { LSTRKEY( "f" ), LFUNCVAL( f_implementation ) },
-<font color="red">#if LUA_OPTIMIZE_MEMORY &gt; 0
+<span class="warning">#if LUA_OPTIMIZE_MEMORY &gt; 0
   { LSTRKEY( "__metatable" ), LROVAL( mod_map ) },
-#endif</font>
+#endif</span>
   { LSTRKEY( "__index" ), LFUNCVAL( mod_mt_index) },
   { LNILKEY, LNILVAL };
 };
@@ -204,16 +204,16 @@ LUALIB_API int luaopen_mod( lua_State *L )
 #else
   luaL_register( L, "mod", mod_map );
 	      
-  <font color="red">// Set "mod" as its own metatable
+  <span class="warning">// Set "mod" as its own metatable
   lua_pushvalue( L, -1 );
-  lua_setmetatable( L, -2 );</font>
+  lua_setmetatable( L, -2 );</span>
 		    
  return 1;
  #endif
-}</code></pre></p>
+}</code></pre>
 <p>If you want to register a module using a regular Lua table, but use lightfunctions instead of regular functions, use <i>luaL_register_light</i> instead
   of <i>luaL_register</i> (same syntax). </p>
-<p>More important things to keep in mind when working with LTR:
+<p>More important things to keep in mind when working with LTR:</p>
 <ul>
   <li>currently, <b>MIN_OPT_LEVEL</b> should be always set to 2</li>
   <li>you need a C99-compatible compiler to use LTR (because of the compile-time explicit union initialization that's needed to declare const rotables). 
@@ -222,13 +222,13 @@ LUALIB_API int luaopen_mod( lua_State *L )
   placement (generally you'd declare stext at the beginning of .text definition and etext and the end of .text definition, see for example 
   <i>src/lua/at91sam7x256/flash256.lds</i>). These are needed by the patch to differentiate between a regular table and a rotable (although this is likely
   to change in a future version of the patch.</li>
-  <li><b><font color="red">remember to declare all you rotable's definition array as 'const'!!</font></b> Forgetting to do so will not only increase 
+  <li><span class="warning">remember to declare all you rotable's definition array as 'const'!!</span> Forgetting to do so will not only increase 
   memory usage, it will also make the patch not functional, because of the way it recognizes rotables (see above).</li>
-</ul></p>
-<a name="config"><h2>LTR and module configuration at build time</h2></a>
+</ul>
+<a name="config" /><h2>LTR and module configuration at build time</h2>
 <p>With unpatched Lua, you can specify what modules to be part of the Lua image by modifying <i>src/lua/linit.c</i>. In the particular case of <b>eLua</b>
   one had to declare a list of the modules that must be compiled in <i>src/platform/&lt;name&gt;/platform_conf.h</i> like this:</p>
-<p><pre><code>#define LUA_PLATFORM_LIBS\
+<pre><code>#define LUA_PLATFORM_LIBS\
   { AUXLIB_PIO, luaopen_pio },\
   { AUXLIB_TMR, luaopen_tmr },\
   { AUXLIB_PD, luaopen_pd },\
@@ -238,10 +238,10 @@ LUALIB_API int luaopen_mod( lua_State *L )
   { AUXLIB_PACK, luaopen_pack },\
   { AUXLIB_BIT, luaopen_bit },\
   { LUA_MATHLIBNAME, luaopen_math }
-</code></pre></p> 
-  Things are a bit more complex with LTR, but not by much. The list of modules that must be compiled is declared via a preprocessor macro in 
+</code></pre>
+  <p>Things are a bit more complex with LTR, but not by much. The list of modules that must be compiled is declared via a preprocessor macro in 
   <i>src/platform/&lt;name&gt;/platform_conf.h</i> and it looks like this:</p>
-<p><pre><code>#define LUA_PLATFORM_LIBS_ROM\
+<pre><code>#define LUA_PLATFORM_LIBS_ROM\
   _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
   _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
   _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
@@ -250,7 +250,7 @@ LUALIB_API int luaopen_mod( lua_State *L )
   _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map )\
   _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
-  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )</code></pre></p>
+  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )</code></pre>
 <p>(<b>IMPORTANT NOTE</b>: the fact that there are no commas between two different _ROM declarations (as seen above) is NOT an error; 
   on the contrary, this is very much intended. Try using commas and you'll get in trouble very soon :) ).</p>
 <p>Note the 3rd parameter of the <b>_ROM</b> macro, which is the name of the definition array for the (ro)table. That's it. The code in linit.c will take 
