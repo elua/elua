@@ -11,7 +11,7 @@ data_en =
 
   -- Overview
   overview = [[This module contains functions that access analog to digital converter (ADC) peripherals.</p>
-  <p>Getting samples from an ADC channel is a two part process involving requesting conversions (using adc.sample), and extraction of conversion results from a conversion buffer (using adc.getsample, adc.getsamples or adc.insertsamples).  Various configuration parameters are available to set conversion rate, how results are extracted from the buffer and how these results are processed prior to extraction.</p>
+  <p>When utilizing this module, acquiring ADC data is a two step process: requesting sample conversions (using $adc.sample$) and extraction of conversion results from a conversion buffer (using $adc.getsample$, $adc.getsamples$ or $adc.insertsamples$). Various configuration parameters are available to set conversion rate, how results are extracted from the buffer and how these results are processed prior to extraction.</p>
   <p>This module can be utilized if the device in use has a supported ADC peripheral (see @status.html@status@ for details) and if ADC functionality is enabled at build time (see @building.html@building@).]],
 
   -- Functions
@@ -53,7 +53,7 @@ data_en =
       }
     },
     { sig = "maxval = #adc.maxval#( id )",
-      desc = "Get the maximum value that can be returned on a given channel.  This integer value corresponds to the maximum voltage supported by the channel.",
+      desc = "Get the maximum value (corresponding to the maximum voltage) that can be returned on a given channel.",
       args = 
       {
         "$id$ - ADC channel ID."
