@@ -29,7 +29,7 @@ data_en =
         "$value$ - the value to test.",
         "$position$ - bit position to test."
       },
-      ret = "$flag$ - 1 if the bit at the given position is 1, 0 otherwise."
+      ret = "$number$ - 1 if the bit at the given position is 1, 0 otherwise."
     },
 
     { sig = "flag = #bit.isclear#( value, position )",
@@ -39,7 +39,7 @@ data_en =
         "$value$ - the value to test.",
         "$position$ - bit position to test."
       },
-      ret = "$flag$ - 1 if the bit at the given position is 0, 0 othewise."
+      ret = "$number$ - 1 if the bit at the given position is 0, 0 othewise."
     },
 
     { sig = "number = #bit.set#( value, pos1, pos2, ..., posn )",

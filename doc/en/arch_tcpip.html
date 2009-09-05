@@ -1,8 +1,9 @@
 $$HEADER$$
+<head><meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>    
 <h3>TCP/IP in eLua <span class="warning">(WIP)</span></h3>
 <p><b>eLua</b>'s TCP/IP support was designed with flexibility and ease of use in mind. It
 might not provide all the functions of a "full-fledged" TCP/IP stack, but it's 
-still fully functional and probably easier to use than a "regular" (POSIX) TCP/IP
+still fully functional, has a much smaller footprint and is probably easier to use than a "regular" (POSIX) TCP/IP
 stack. These are the services provided by the TCP/IP stack:</p>
 <ul>
   <li>a set of functions for network access (defined in inc/elua_net.h)</li>
@@ -11,6 +12,7 @@ stack. These are the services provided by the TCP/IP stack:</p>
   <li>a module (<a href="m_net.html">net</a>) which can be used from Lua to access the network functions</li>
   <li>a Telnet miniclient, which is used to support the eLua shell via TCP/IP instead of serial connections.</li>
 </ul>
+<br />
 
 <h2>TCP/IP configuration</h2>
 <p>To configure the TCP/IP subsystem, <i>edit src/platform/&lt;name&gt;platform_conf.h</i> and:</p>
@@ -49,6 +51,7 @@ you have a list of parameters that you might want to change:</p>
   <li><b>ELUA_DHCP_TIMER_ID</b>: the timer ID used for the TCP/IP subsystem. Note that this should be a dedicated timer, not available to the rest 
     of the system (or available in "read-only" mode).</li>
 </ul>
+<br />
 
 <h2>TCP/IP implementation internals</h2>
 <p>The TCP/IP support was designed in such a way that it doesn't require a specific
@@ -71,12 +74,12 @@ sequential approach of "regular" TCP/IP stacks. It provides a "protosocket"
 library that can be used to write uIP applications in a more "traditional" way,
 but it's quite restrictive. So, to use it with <b>eLua</b>, a translation layer was
 needed. It is implemented in <i>src/elua_uip.c</i>, and its sole purpose is to "adapt"
-the uIP stack to the <b>eLua model</b>: implement the functions in <i>inc/elua_net.h</i> and
+the uIP stack to the <b>eLua</b> model: implement the functions in <i>inc/elua_net.h</i> and
 you're ready to use the stack. In this case the "adaption layer" is quite large
 because of uIP's callback-based design.</p>
 
 <p>To make the uIP implementation as platform-independent as possible, a special
-<a href="">##networking layer</a> is added to the <a href="arch.platform.html">platform interface</a>. 
+<a href="">##networking layer</a> is added to the <a href="arch_platform.html">platform interface</a>. 
 There are only 4 functions that must be implemented by a backend
 to use the networking layer. They might change as more TCP/IP stacks are added
 to eLua, but probably the networking layer won't get much bigger than it is now.<br>

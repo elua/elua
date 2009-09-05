@@ -24,7 +24,7 @@ data_en =
 
     { sig = "u32 #platform_cpu_get_frequency#();",
       desc = "Get the CPU frequency.",
-      ret = "the CPU $core$ frequency (in hertz)."
+      ret = "the CPU $core$ frequency (in Hertz)."
     },
   }
 }

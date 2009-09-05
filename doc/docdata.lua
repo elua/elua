@@ -1,9 +1,9 @@
--- Documentation structure is defined here
+-- eLua Documentation structure is defined here
 
 --[[
 The menu is defined by an array of { name, link, submenu, title } arrays
 
-'name' can be another array keeping names for all languages, in the same order 
+'name' can be another array. Names must be the same for all languages, in the same order 
 as defined in the "languages" from 'buildall.lua'. If 'name' is a string instead
 of a table, it will be used in all languages.
 
@@ -23,6 +23,9 @@ AND TITLE FIELDS! See the definition of 'forum.html' below for an example of suc
 --]]
 local menu =
 {
+  -- "eLua project" (menu separator)
+  { "eLua project" },
+
   -- "Overview"
   { "Overview", "overview.html", 
     {
@@ -35,34 +38,12 @@ local menu =
     }
   },
 
-  -- "Downloads"
-  { "Downloads", "downloads.html", 
-    {
-      { "Binaries", "downloads.html#binaries" },
-      { "Source code", "downloads.html#source", 
-        {
-          { "Official releases", "downloads.html#official" },
-          { "Bleeding edge (SVN)", "downloads.html#svnpublic" },
-          { "Developers", "downloads.html#svndev" },
-        }
-      },
-      { "Old versions", "dl_old.html", 
-        {
-          { "0.4.1", "dl_old.html#v041" },
-          { "0.4", "dl_old.html#v04" },
-          { "0.3", "dl_old.html#v03" },
-          { "0.2", "dl_old.html#v02" },
-          { "0.1", "dl_old.html#v01" }
-        }
-      },
-    }
-  },
-
   -- "Community"
   { "Community", "comunity.html", 
     {
       { "Lists", "comunity.html#lists" },
       { "Forums", "comunity.html#forums" },
+--      { "User's Wiki", "comunity.html#userswiki" },      
       { "Credits", "comunity.html#credits" },
       { nil, "forum.html", nil, "Forum" } -- "hidden" entry (doesn't appear in the menu)
     }
@@ -79,59 +60,69 @@ local menu =
     }
   },
 
-  -- "Version history"
-  { "Version history", "versionhistory.html" },
-
-  -- "Getting started"
-  { "Getting started", "doc.html", 
+ -- "Using eLua" -- Menu Separator
+  { "Using eLua" },
+  { "Overview", "doc.html" },
+  { "Installing", "installing.html", 
     {
-      { "Building", "building.html", 
-        {
-          { "Toolchains", "toolchains.html" }
-        }
-      },
-      { "Installing", "installing.html", 
-        {
-          { "AT91SAM7x", "installing_at91sam7x.html" },
-          { "LM3S", "installing_lm3s.html" },
-          { "AVR32", "installing_avr32.html" },
-          { "LPC2888", "installing_lpc2888.html" },
-          { "STR7", "installing_str7.html" },
-          { "STR9", "installing_str9.html" },
-          { "STM32", "installing_stm32.html" },
-          { "i386", "installing_i386.html" }
-        }
-      },
-      { "Using", "using.html", 
-        {
-          { "Over UART", "using.html#uart" },
-          { "Over TCP/IP", "using.html#tcpip" },
-          { "On PC", "using.html#pc" },
-          { "The shell", "using.html#shell" },
-          { "Cross-compiling", "using.html#cross" }
-        }
-      },
-      { "Examples", "examples.html" }
+      { "AT91SAM7x", "installing_at91sam7x.html" },
+      { "AVR32", "installing_avr32.html" },
+      { "i386", "installing_i386.html" },
+      { "LM3S", "installing_lm3s.html" },
+      { "LPC2888", "installing_lpc2888.html" },
+      { "STR7", "installing_str7.html" },
+      { "STR9", "installing_str9.html" },
+      { "STM32", "installing_stm32.html" },
     },
   },
-
-  -- "FAQ"
+  { "Downloads", "downloads.html", 
+    {
+      { "Binaries", "downloads.html#binaries" },
+      { "Source code", "downloads.html#source", 
+        {
+          { "Official releases", "downloads.html#official" },
+          { "Bleeding edge (SVN)", "downloads.html#svnpublic" },
+          { "Developers", "downloads.html#svndev" },
+        }
+      },
+      { "Old versions", "dl_old.html", 
+        {
+          { "0.4.1", "dl_old.html#v041" },
+          { "0.4", "dl_old.html#v04" },
+          { "0.3", "dl_old.html#v03" },
+          { "0.2", "dl_old.html#v02" },
+          { "0.1", "dl_old.html#v01" },
+          { "Version history", "versionhistory.html" },
+        }
+      },
+    },
+  },
+  { "Using", "using.html", 
+    {
+      { "Over UART", "using.html#uart" },
+      { "Over TCP/IP", "using.html#tcpip" },
+      { "On PC", "using.html#pc" },
+      { "The shell", "using.html#shell" },
+      { "Cross-compiling", "using.html#cross" },
+    },
+  },
+  { "Code Examples", "examples.html" },
   { "FAQ", "faq.html" },
-
-  -- "Tutorials"
   { "Tutorials", "tutorials.html",
     {
       { "Booting on a PC", "tut_bootpc.html" },
-      { "Booting from an USB stick", "tut_bootstick.html" },
+      { "Booting from a PenDrive", "tut_bootstick.html" },
+      { "Using OpenOCD", "tut_openocd.html" },
+      { "Building eLua", "building.html" },
+      { "eLua Toolchains", "toolchains.html" },
       { "Building toolchains", "tchainbuild.html",
         {
           { "ARM7 and ARM9", "tc_arm.html" },
-          { "Cortex-M3", "tc_cortex.html" },
+          { "ARM Cortex-M3", "tc_cortex.html" },
           { "i386", "tc_386.html" }
-        }
+        },
       },
-      { "Using OpenOCD", "tut_openocd.html" }
-    }
+    },
   },
 
   -- "eLua internals" (menu separator)
@@ -176,6 +167,7 @@ local menu =
     }
   }
 }
+
 
 -- Translations for different strings needed by the generator
 -- The order of languages is the same as the one defines in the languages array 
