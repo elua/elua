@@ -312,7 +312,7 @@ int check_num_args( lua_State *L, int desired_n )
   if ( n != desired_n )
   {
     char *s = ( char * )alloca( 30 );
-    snprintf( s, 30, "must have %d argument%c", desired_n,
+    snprintf( s, 30, "must have %d arg%c", desired_n,
        ( desired_n == 1 ) ? '\0' : 's' );
     my_lua_error( L, s );
   }
@@ -1144,7 +1144,7 @@ static int rpc_close( lua_State *L )
     }
   }
 
-  my_lua_error(L,"argument must be handle");
+  my_lua_error(L,"arg must be handle");
   return 0;
 }
 
@@ -1160,7 +1160,7 @@ static int rpc_async (lua_State *L)
   check_num_args( L, 2 );
 
   if ( !lua_isuserdata( L, 1 ) || !ismetatable_type( L, 1, "rpc.handle" ) )
-    my_lua_error( L, "first argument must be client handle" );
+    my_lua_error( L, "first arg must be client handle" );
 
   handle = ( Handle * )lua_touserdata( L, 1 );
 
@@ -1388,7 +1388,7 @@ static int rpc_peek( lua_State *L )
 
   check_num_args( L, 1 );
   if ( !( lua_isuserdata( L, 1 ) && ismetatable_type( L, 1, "rpc.server_handle" ) ) )
-    my_lua_error( L, "argument must be server handle" );
+    my_lua_error( L, "arg must be server handle" );
 
   handle = ( ServerHandle * )lua_touserdata( L, 1 );
 
@@ -1527,7 +1527,7 @@ static int rpc_dispatch( lua_State *L )
   check_num_args( L, 1 );
 
   if ( ! ( lua_isuserdata( L, 1 ) && ismetatable_type( L, 1, "rpc.server_handle" ) ) )
-    my_lua_error( L, "argument must be server handle" );
+    my_lua_error( L, "arg must be server handle" );
 
   handle = ( ServerHandle * )lua_touserdata( L, 1 );
 
@@ -1577,7 +1577,7 @@ static int rpc_on_error( lua_State *L )
   else if ( lua_isnil( L, 1 ) )
     { ;; }
   else
-    my_lua_error( L, "bad arguments" );
+    my_lua_error( L, "bad args" );
 
   /* @@@ add option for handle */
   /* Handle *h = (Handle*) lua_touserdata (L,1); */

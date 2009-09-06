@@ -263,6 +263,8 @@ module_files = " " + " ".join( [ "src/modules/%s" % name for name in module_name
 # Optimizer flags (speed or size)
 #opt = "-O3"
 opt = "-Os -fomit-frame-pointer"
+#opt += " -ffreestanding"
+
 
 # Toolset data (filled by each platform in part)
 tools = {}
