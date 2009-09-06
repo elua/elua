@@ -24,7 +24,7 @@ It is assumed that you already know what <b>eLua</b> is, so here's a list of que
 
 <hr />
 
-<a name="learnlua"><h2>How can I learn Lua? Is it hard?</h2></a>
+<a name="learnlua" /><h2>How can I learn Lua? Is it hard?</h2></a>
 <p>Lua is a minimalistic language (yet very powerful) which is quite easy to learn. Once you understand the basic concepts you'll find yourself writing 
   Lua programs in notime. The main resource is the <a href="http://www.lua.org/">Lua homepage</a>. In the 
   <a href="http://www.lua.org/docs.html">documentation page</a> you'll find the reference manual and the first version of the excellent
@@ -32,7 +32,7 @@ It is assumed that you already know what <b>eLua</b> is, so here's a list of que
   Lua. Another very good resource is the <a href="http://lua-users.org/wiki/">Lua wiki</a>. If you need more help, check the 
   <a href="http://www.lua.org/community.html">community page</a>. Lua has a very friendly and active community.</p>
 
-<a name="helpelua"><h2>How can I help eLua?</h2></a>
+<a name="helpelua" /><h2>How can I help eLua?</h2></a>
 <p><b>eLua</b> has many ambitious goals, so it would be great to have more people working on it. Take a look at the 
   <a href="status.html#roadmap">roadmap page</a>, and if you see something there that you'd like to work on, don't hesitate to 
   <a href="overview.html#contacts">contact us</a>. Also, if you'd like to make a donation to the project (money, or maybe a development board) 
@@ -40,22 +40,25 @@ It is assumed that you already know what <b>eLua</b> is, so here's a list of que
   incomplete feature. Or if you just thought about a cool feature that you'd like to see in <b>eLua</b>.
   If so, feel free to <a href="overview.html#contacts">contact us</a>.</p>
 
-<a name="comercial"><h2>Can I use eLua in my commercial, closed source project?</h2></a>
-<p>Starting with version 0.6, <b>eLua</b> distributed under a MIT license, so you can use it in your close source projects. Prior to this it was 
-   distributed under GPL, which restricted its usage to open source applications only. Be careful though, <b>eLua</b> includes some 3rd party libraries,
+<a name="comercial" /><h2>Can I use eLua in my commercial, closed source project?</h2></a>
+<p>Starting with version 0.6, <b>eLua</b> is distributed under a MIT license, so you can use it in your close source projects. Prior to this it was 
+   distributed under GPL, which restricted its usage to open source applications. Be careful though, <b>eLua</b> includes some
+   (few) 3rd party libraries,
    each with its own licensing terms that might be more restrictive than MIT. See <a href="overview.html#license">the eLua license</a> for details.</p> 
 
-<a name="fast"><h2>Is eLua fast enough?</h2></a>
+<a name="fast" /><h2>Is eLua fast enough?</h2></a>
 <p>This pretty much depends on what you expect. If you expect your Lua code to run as fast as your compiled C code, this won't happen, simply because C 
   is a compiled language, while Lua is an interpreted language. That said, you'll be happy to know that Lua is one of the fastest interpreted languages 
-  out there. If you really need both high speed and Lua, you can write your speed critical code sections in C and export them as a Lua module. 
-  This way you get the best of both worlds. We don't have any official benchmarks about Lua speed on embedded devices, but you might want to check the 
-  TV-B-Gone example on the <a href="examples.html">##examples page</a>.TV-B-Gone is a "software remote control" application coded directly in <b>eLua</b>. 
+  out there. If you really need both high speed and Lua, you can (very
+  easially in eLua) write your speed critical code sections in C and export them as a Lua module. 
+  This way you get the best of both worlds.<br />
+   We don't have any official benchmarks about Lua speed on embedded devices, but you might want to check the 
+  TV-B-Gone example on the <a href="examples.html">examples page</a>.TV-B-Gone is a "software remote control" application coded directly in <b>eLua</b>. 
   If you're familiar with the remote control protocols, you'll know that this kind of application is quite "real time", and delays in the order of 
   milliseconds or even less can make your software remote control fail. Yet this sample runs without problems on a 50MHz Cortex (Thumb2) CPU. This should 
   give you a fairly intuitive view on the speed of eLua.</p>
 
-<a name="minimum"><h2>What are the minimum requirements for eLua?</h2></a>
+<a name="minimum" /><h2>What are the minimum requirements for eLua?</h2></a>
 <p>It's hard to give a precise answer to this. As a general rule for
 a 32-bit CPU, we recommend at least 256k of Flash (program memory) and
 at least 64k of RAM. However, this isn't a strict requirement. A
@@ -63,7 +66,7 @@ stripped down, integer-only version of eLua can definetely fit in 128k
 of Flash, and depending on your type of application, 32k of RAM might
 prove just fine. It largely depends on your needs.</p>
 
-<a name="portability"><h2>Since I'm using the Lua platform modules (uart, spi, pwm, tmr...), can I trust my peripheral code to run the same on all my
+<a name="portability" /><h2>Since I'm using the Lua platform modules (uart, spi, pwm, tmr...), can I trust my peripheral code to run the same on all my
   platforms?</h2></a>
 <p>Unfortunately, no. While <b>eLua</b> makes it possible to have a common code on different platforms using the <a href="">##platform interface</a>,
   it can't possibly provide the same functionality on all platforms, since all MCUs are not created equal. It is very recommended 
@@ -90,7 +93,7 @@ prove just fine. It largely depends on your needs.</p>
 </ul>
 <p>The lesson here is clear: understand your platform first!</p>
 
-<a name="luaversions"><h2>What's the deal with floating-point Lua and integer only Lua?</h2></a>
+<a name="luaversions" /><h2>What's the deal with floating-point Lua and integer only Lua?</h2></a>
 <p>Lua is build around a number type. Every number in Lua will have this type. By default, this number type is a double. This means that even if your 
   program only does integer operations, they will still be treated as doubles. On embedded platforms this is a problem, since the floating point 
   operations are generally emulated in software, thus they are very slow. This is why <b>eLua</b> gives you "integer only Lua": a Lua with the default 
@@ -98,7 +101,7 @@ prove just fine. It largely depends on your needs.</p>
   printf/scanf and friends, which has quite a strong impact on the code size) and increased speed. The downside is that you'll loose the ability to do 
   any floating point operations (although a separate module that will partially overcome this limitation will be provided in the future).</p>
 
-<a name="windows"><h2>All your tutorials give instructions on how to compile eLua under Linux, yet you seem to use a lot of Windows tools. How come?</h2></a>
+<a name="windows" /><h2>All your tutorials give instructions on how to compile eLua under Linux, yet you seem to use a lot of Windows tools. How come?</h2></a>
 <p>It's true that we do all the <b>eLua</b> development under Linux, since we find Linux an environment much more suited for development. At the same
   time it's true that most of the tools that come with my development boards run under Windows. So we choose to use the best of both world: Bogdan runs 
   Linux under a <a href="http://www.virtualbox.org">VirtualBox</a> emulator, and does verything else under Windows. Dado does everything on 
@@ -106,18 +109,18 @@ prove just fine. It largely depends on your needs.</p>
   everything even more flexible, Bogdan keeps his VirtualBox Ubuntu image on an external WD passport disk that he can carry with him wherever he goes, 
   so he can work on eLua whenever he has a bit of spare time :)</p>
 
-<a name="cygwin"><h2>Will you ever post instructions about how to compile toolchains under Cygwin in Windows?</h2></a>
+<a name="cygwin" /><h2>Will you ever post instructions about how to compile toolchains under Cygwin in Windows?</h2></a>
 <p>Bogdan: If I ever have way too much spare time on my hands, yes. Otherwise, no. There are many reasons for this. As I already mentioned, I favour Linux 
   over Windows when it comes to developing applications. Also, I noticed that the GNU based toolchains are noticeable slower on Cygwin than on Linux, so 
   experimenting with them can prove frustrating. Also, compiling under Linux and Cygwin should be quite similar,so try starting from my Linux based 
   tutorials, they might work as well on Cygwin.</p>
 
-<a name="bytecode"><h2>I know that Lua can be compiled to bytecode, so I compiled one of the eLua examples with luac and tried to run it on my eLua
+<a name="bytecode" /><h2>I know that Lua can be compiled to bytecode, so I compiled one of the eLua examples with luac and tried to run it on my eLua
   board, but it didn't work. Is this a bug in eLua?</h2></a>
 <p>This is not a bug in <b>eLua</b>, it's a bit more subtle than that. See <a href="using.html#cross">the cross-compile section</a> for a full discussion
   about this problem and its fix.</p>
 
-<a name="outofmemory"><h2>I get "out of memory" errors when I run my Lua programs, what should I do?</h2></a>
+<a name="outofmemory" /><h2>I get "out of memory" errors when I run my Lua programs, what should I do?</h2></a>
 <p>There are a number of things you can try to overcome this:</p>
 <ul>
   <li><b>enable the LTR patch</b>: you can get very significant improvements if you enable the LTR patch in your <b>eLua</b> image. See 
@@ -131,7 +134,7 @@ prove just fine. It largely depends on your needs.</p>
   which will force a garbage collection and thus might free some memory.</li>
 </ul>
 
-<a name="rotables"><h2>I enabled the LTR patch, but now all my module tables (math, io, string, spi and so on) are read only. Do I have to
+<a name="rotables" /><h2>I enabled the LTR patch, but now all my module tables (math, io, string, spi and so on) are read only. Do I have to
   disable LTR if I want write access to these modules?</h2></a>
 <p>You don't really have to disable LTR to get write access to your rotables, you can use some simple Lua "tricks" instead. Let's suppose that you need
   write access to the <b>math</b> module. With LTR enabled, <b>math</b> is a rotable, so you can't change its keys/values. But you can use metatables
