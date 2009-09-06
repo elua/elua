@@ -311,7 +311,7 @@ int check_num_args( lua_State *L, int desired_n )
   int n = lua_gettop( L );   /* number of arguments on stack */
   if ( n != desired_n )
   {
-    char *s = ( char * )alloca( 30 );
+    char s[ 30 ];
     snprintf( s, 30, "must have %d arg%c", desired_n,
        ( desired_n == 1 ) ? '\0' : 's' );
     my_lua_error( L, s );
@@ -699,7 +699,6 @@ static Helper *helper_create( lua_State *L, Handle *handle, const char *funcname
 static int handle_index (lua_State *L)
 {
   const char *s;
-  Helper *h;
 
   MYASSERT( lua_gettop( L ) == 2 );
   MYASSERT( lua_isuserdata( L, 1 ) && ismetatable_type( L, 1, "rpc.handle" ) );
@@ -710,7 +709,7 @@ static int handle_index (lua_State *L)
   if ( strlen( s ) > NUM_FUNCNAME_CHARS - 1 )
     my_lua_error( L, "function name is too long" );
     
-  h = helper_create( L, ( Handle * )lua_touserdata( L, 1 ), s );
+  helper_create( L, ( Handle * )lua_touserdata( L, 1 ), s );
 
   /* return the helper object */
   return 1;
@@ -722,7 +721,6 @@ static int helper_newindex( lua_State *L );
 static int handle_newindex( lua_State *L )
 {
   const char *s;
-  Helper *h;
 
   MYASSERT( lua_gettop( L ) == 3 );
   MYASSERT( lua_isuserdata( L, 1 ) && ismetatable_type( L, 1, "rpc.handle" ) );
@@ -733,7 +731,7 @@ static int handle_newindex( lua_State *L )
   if ( strlen( s ) > NUM_FUNCNAME_CHARS - 1 )
     my_lua_error( L, "function name is too long" );
   
-  h = helper_create( L, ( Handle * )lua_touserdata( L, 1 ), "" );
+  helper_create( L, ( Handle * )lua_touserdata( L, 1 ), "" );
   lua_replace(L, 1);
 
   helper_newindex( L );
@@ -750,7 +748,7 @@ static void helper_remote_index( Helper *helper )
   
   /* get length of name & make stack of helpers */
   len = strlen( helper->funcname );
-  if( helper->nparents > 0 )
+  if( helper->nparents > 0 ) // If helper has parents, build string to remote index
   {
     hstack = ( Helper ** )alloca( sizeof( Helper * ) * helper->nparents );
     hstack[ helper->nparents - 1 ] = helper->parent;
@@ -761,18 +759,19 @@ static void helper_remote_index( Helper *helper )
       hstack[ i - 1 ] = hstack[ i ]->parent;
       len += strlen( hstack[ i ]->funcname ) + 1;
     }
-  }
-  
-  transport_write_u32( tpt, len );
-  /* replay helper key names */     
-  if( helper->nparents > 0 )
-  {
+	
+	transport_write_u32( tpt, len );
+
+	/* replay helper key names */     
     for( i = 0 ; i < helper->nparents ; i ++ )
     {
      transport_write_string( tpt, hstack[ i ]->funcname, strlen( hstack[ i ]->funcname ) );
      transport_write_string( tpt, ".", 1 ); 
     }
   }
+  else // If helper has no parents, just use length of global
+	  transport_write_u32( tpt, len );
+
   transport_write_string( tpt, helper->funcname, strlen( helper->funcname ) );
 }
 
@@ -800,9 +799,6 @@ static int helper_get(lua_State *L, Helper *helper )
   
   Try
   {
-    int len;
-    /* write function name */
-    len = strlen( helper->funcname );
     helper_wait_ready( tpt, RPC_CMD_GET );
     helper_remote_index( helper );
     
@@ -905,11 +901,11 @@ static int helper_call (lua_State *L)
         write_variable( tpt, L, i );
 
       /* if we're in async mode, we're done */
-      if ( h->handle->async )
+      /*if ( h->handle->async )
       {
         h->handle->read_reply_count++;
         freturn = 0;
-      }
+      }*/
 
       /* read return code */
       ret_code = transport_read_u8( tpt );
@@ -977,11 +973,8 @@ static int helper_newindex( lua_State *L )
   tpt = &h->handle->tpt;
   
   Try
-  {
-    int len;
-        
+  {  
     /* write function name */
-    len = strlen( h->funcname );
     helper_wait_ready( tpt, RPC_CMD_NEWINDEX );
     helper_remote_index( h );
 
@@ -1044,7 +1037,6 @@ static Helper *helper_append( lua_State *L, Helper *helper, const char *funcname
 static int helper_index (lua_State *L)
 {
   const char *s;
-  Helper *h;
 
   MYASSERT( lua_gettop( L ) == 2 );
   MYASSERT( lua_isuserdata( L, 1 ) && ismetatable_type( L, 1, "rpc.helper" ) );
@@ -1055,7 +1047,7 @@ static int helper_index (lua_State *L)
   if ( strlen( s ) > NUM_FUNCNAME_CHARS - 1 )
     my_lua_error( L, "function name too long" );
   
-  h = helper_append( L, ( Helper * )lua_touserdata( L, 1 ), s );
+  helper_append( L, ( Helper * )lua_touserdata( L, 1 ), s );
 
   return 1;
 }
@@ -1271,7 +1263,7 @@ static void read_cmd_get( Transport *tpt, lua_State *L )
 
   /* get function */
   /* @@@ perhaps handle more like variables instead of using a long string? */
-  /* @@@ also strtok is not thread safe */
+  /* @@@ also strtok is not reentrant, strtok_r would be, if needed */
   token = strtok( funcname, "." );
   lua_getglobal( L, token );
   token = strtok( NULL, "." );
@@ -1588,8 +1580,6 @@ static int rpc_on_error( lua_State *L )
 
 /****************************************************************************/
 /* register RPC functions */
-
-
 
 #ifndef LUARPC_STANDALONE
 

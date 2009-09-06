@@ -145,10 +145,6 @@ struct _ServerHandle {
 
 #define INVALID_TRANSPORT (-1)
 
-#define HEAD_BYTE (0x7e)
-
-#define TAIL_BYTE (0x7f)
-
 #define TRANSPORT_VERIFY_OPEN \
 	if (tpt->fd == INVALID_TRANSPORT) \
 	{ \
