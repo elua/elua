@@ -43,6 +43,11 @@
 #define LUA_ISCALLABLE(state, idx) lua_isfunction( state, idx )
 #endif
 
+/* Prototypes for Local Functions  */
+LUALIB_API int luaopen_luarpc(lua_State *L);
+Handle *handle_create( lua_State *L );
+
+
 struct exception_context the_exception_context[ 1 ];
 
 static void errorMessage (const char *msg, va_list ap)
