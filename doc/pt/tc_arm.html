@@ -1,47 +1,25 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
-<html><head>
-<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-<meta http-equiv="Content-Language" content="en-us"><title>Product</title>
-
+$$HEADER$$
 <link rel="stylesheet" type="text/css" href="../style.css"></head>
-<body style="background-color: rgb(255, 255, 255);"><h3><a name="title" href="http://www.eluaproject.net/en/Building_GCC_for_ARM" class="local">Building GCC for ARM</a></h3>
+<body style="background-color: rgb(255, 255, 255);"><h3><a name="title" href="http://www.eluaproject.net/en/Building_GCC_for_ARM" class="local">Criando uma GCC para ARM</a></h3>
       
       <div class="content">
 
-<p> This tutorial explains how you can create a GCC+Newlib toolchain
-that can be used to compile programs for the ARM architecture, thus
-making it possible to compile programs for the large number of ARM CPUs
-out there. You'll need such a toolchain if you want to compile eLua for
-ARM CPUs. This tutorial is similar to many others you'll find on the
-Internet (particulary the one from <a href="http://www.gnuarm.com/">gnuarm</a>, on which it's based), but it's a bit more detailed and shows some "tricks" you can use when compiling Newlib.</p>
+<p> Esse tutorial explica como criar um toolchain com GCC+Newlib para ser usado na compila&ccedil;&atilde;o de programas usando a arquitetura ARM, tornando assim poss&iacute;vel a compila&ccedil;&atilde;o de programas para um grande n&uacute;mero de CPUs com arquitetura ARM. Voc&ecirc; precisar&aacute; desse recurso se pretende compilar eLua para as CPUs com arquitetura ARM. Esse tutorial &eacute; semelhante a muitos outros encontrados na Internet (particularmente o <a href="http://www.gnuarm.com/">gnuarm</a>, que serviu de base para esse tutorial), no entanto, este possui um maior detalhamento e mostra alguns "dicas" que voc&ecirc; poder&aacute; utilizar quando estiver compilando a Newlib.</p>
 
-<p><strong>DISCLAIMER: I'm by no means a specialist in the
-GCC/newlib/binutils compilation process. I'm sure that there are better
-ways to accomplish what I'm describing here, however I just wanted a
-quick and dirty way to build a toolchain, I have no intention in
-becoming too intimate with the build process. If you think that what I
-did is wrong, innacurate, or simply outrageously ugly, feel free to <a href="http://www.eluaproject.net/en/Contact">contact me</a> and I'll make the necessary corrections. And of course, this tutorial comes without any guarantees whatsoever.</strong></p>
+<p><strong>AVISO: Eu n&atilde;o sou um especialista no processo de montagem de CGC/newlib/binutils. Tenho certeza de que existem melhores formas de realizar o que estou descrevendo aqui, no entanto, apresento apenas uma maneira r&aacute;pida de construir um toolchain, n&atilde;o tenho nenhuma inten&ccedil;&atilde;o de me aprofundar no processo de montagem. Se voc&ecirc; encontrar algum erro, por favor entre em <a href="http://www.eluaproject.net/en/Contact">contato comigo</a> e farei as corre&ccedil;&otilde;es necess&aacute;rias. Acrescento ainda, que esse tutorial n&atilde;o possui nenhum tipo de garantia.</strong></p>
 
-<h2>Prerequisites</h2>
-<p>To build your toolchain you'll need:</p>
+<h2>Pr&eacute;-requisitos</h2>
+<p>Para construir seu toolchain voc&ecirc; precisar&aacute; de:</p>
 
-<ul><li>a computer running Linux: I use Ubuntu 8.04, but any Linux
-will do as long as you know how to find the equivalent of "apt-get" for
-your distribution. I won't be going into details about this, google it
-and you'll sure find what you need. It is also assumed that the Linux
-system already has a "basic" native toolchain installed (gcc/make and
-related).This is true for Ubuntu after installation. Again, you might
-need to check your specific distribution.</li><li>GNU binutils: get it from <a href="http://ftp.gnu.org/gnu/binutils/">here</a>.
-At the moment of writing this, the latest versions is 2.18, which for
-some weird reason refuses to compile on my system, so I'm using 2.17
-instead.</li><li>GCC: version 4.3.0 or newer is recommended. As
-I'm writing this, the latest GCC version is 4.3.1 which I'll be using
-for this tutorial. Download it from <a href="http://gcc.gnu.org/mirrors.html">here</a> after choosing a suitable mirror.</li><li>Newlib: as I'm writing this, the latest official Newlib version is 1.16.0. Download it from the <a href="ftp://sources.redhat.com/pub/newlib/index.html">Newlib FTP directory</a>.</li><li>Also,
-the tutorial assumes that you're using bash as your shell. If you use
-something else, you might need to adjust some shell-specific commands. </li></ul>
+<ul>
+<li>Um computador rodando Linux: Eu uso Ubuntu 8.04, mas qualquer Linux ir&aacute; fazer, desde que voc&ecirc; saiba como encontrar o equivalente do "apt-get" para a sua distribui&ccedil;&atilde;o. N&atilde;o entrarei em detalhes sobre isso, pesquise no Google e voc&ecirc; encontrar&aacute; o que precisa. Assumimos tamb&eacute;m que o Linux j&aacute; tem uma "base" nativa toolchain instalada (gcc/make e afins). Isto &eacute; verdadeiro para o Ubuntu depois da instala&ccedil;&atilde;o. No entanto, voc&ecirc; precisa verificar a sua distribui&ccedil;&atilde;o espec&iacute;fica.</li>
+<li>GNU binutils: fa&ccedil;a o download <a href="http://ftp.gnu.org/gnu/binutils/">aqui</a>. No momento em que elaborava este tutorial, as vers&otilde;es mais recentes eram 2.18, que por algum motivo desconhecido n&atilde;o compilava no meu sistema, por isso estou usando a vers&atilde;o 2,17.</li>
+<li>GCC: vers&atilde;o 4.3.0 ou superior &eacute; recomendada. No momento em que escrevia este tutorial, a vers&atilde;o mais recente era a 4.3.1, a qual usarei para este tutorial. Fa&ccedil;a o download <a href="http://gcc.gnu.org/mirrors.html">aqui</a> depois de escolher um bom servidor de mirror.</li>
+<li>Newlib: enquanto preparava este tutorial, a vers&atilde;o mais recentes era a 1.16.0. Fa&ccedil;a o download do <a href="ftp://sources.redhat.com/pub/newlib/index.html">diret&oacute;rio FTP Newlib</a>.</li>
+<li>Al&eacute;m disso, o tutorial assume que voc&ecirc; esteja usando o bash como seu shell. Se voc&ecirc; usar qualquer outra coisa, talvez voc&ecirc; precise ajustar alguns comandos do shell espec&iacute;fico.</li>
+</ul>
 
-
-<p>Also, you need some support programs/libraries in order to compile the toolchain. To install them:</p>
+<p>Voc&ecirc; ainda precisar&aacute; de outros programas e bibliotecas a fim de montar o toolchain. Para instal&aacute;-los:</p>
 
 <p><br></p>
 
@@ -52,10 +30,7 @@ something else, you might need to adjust some shell-specific commands. </li></ul
 </tbody></table>
 
 
-<p>Next, decide where you want to install your toolchain. They
-generally go in /usr/local/, so I'm going to assume
-/usr/local/cross-arm for this tutorial. To save yourself some typing,
-set this path into a shell variable:</p>
+<p>Em seguida, defina onde pretende instalar o seu toolchain. Eles geralmente s&atilde;o instalados no diret&oacute;rio /usr/local/, logo, assumiremos o diret&oacute;rio /usr/local/cross-arm para este tutorial. Para agilizar a digita&ccedil;&atilde;o, defina este caminho como padr&atilde;o na vari&aacute;vel de ambiente:</p>
 
 <p><br></p>
 
@@ -66,8 +41,8 @@ set this path into a shell variable:</p>
 </tbody></table>
 
 
-<h2>&#8250; Step 1: binutils</h2>
-<p>This is the easiest step: unpack, configure, build.</p>
+<h2>&#8250; Passo 1: binutils</h2>
+<p>Este &eacute; o passo mais f&aacute;cil: descompactar, configurar, compilar.</p>
 
 <p><br></p>
 
@@ -127,17 +102,11 @@ set this path into a shell variable:</p>
 </tbody></table>   
 
 
-<p>Now you have your ARM "binutils" (assembler, linker, disassembler ...) in your PATH.</p>
+<p>Agora voc&ecirc; tem os "binutils" da CPU ARM(assembler, linker, disassembler ...) em seu PATH.</p>
 
-<h2>Step 2: basic GCC</h2>
+<h2>Passo 2: basic GCC</h2>
 
-<p>In this step we build a "basic" GCC (that is, a GCC without any
-support libs, which we'll use in order to build all the libraries for
-our target). But first we need to make a slight modification in the
-configuration files. Out of the box, the GCC 4.3.1/newlib combo won't
-compile properly, giving a very weird "Link tests are not allowed after
-GCC_NO_EXECUTABLES" error. After a bit of googling, I found the
-solution for this:</p>
+<p>Nesta etapa vamos montar uma "base" GCC (ou seja, uma GCC sem nenhuma lib, a qual usaremos, a fim de criar todas as bibliotecas para o nosso objetivo). Mas primeiro temos que fazer uma r&aacute;pida modifica&ccedil;&atilde;o nos arquivos de configura&ccedil;&atilde;o. Fora desse ambiente, o pacote GCC 4.3.1/newlib n&atilde;o compilar&aacute; corretamente, dando um erro muito estranho "Link tests are not allowed after GCCNOEXECUTABLES". Ap&oacute;s uma procura no google, encontrei a solu&ccedil;&atilde;o para isso:</p>
 
 <p><br></p>
 
@@ -154,13 +123,11 @@ solution for this:</p>
 </tbody></table>
 
 
-<p> I'm using "joe" here as it's my favourite Linux text mode editor,
-you can use any other text editor. Now find the line which says
-"AC_LIBTOOL_DLOPEN" and comment it out by adding a "#" before it:</p>
+<p> Estou usando "joe" aqui, como meu editor de texto Linux favorito, voc&ecirc; pode usar qualquer outro editor de texto. Agora encontre a linha que tenha o string "AC_LIBTOOL_DLOPEN" e adicione um "#" no inicio da linha:</p>
 
 <p><code># AC_LIBTOOL_DLOPEN</code></p>
 
-<p>Save the modified file and exit the text editor</p>
+<p>Salve o arquivo alterado e saia do editor. </p>
 
 <p><br>    </p>
 
@@ -175,7 +142,7 @@ you can use any other text editor. Now find the line which says
 
 
 
-<p>Great, now we know it will compile, so let's do it:</p>
+<p>&Oacute;timo, agora sabemos que podemos compilar, ent&atilde;o vamos em frente:</p>
 
 <p><br></p>
 
@@ -203,10 +170,7 @@ you can use any other text editor. Now find the line which says
 
 
 
-<p>On my system, the last line above (sudo make install-gcc) terminated
-with errors, because it was unable to find our newly compiled binutils.
-If this happens for any kind of "make install" command, this is a quick
-way to solve it:</p>
+<p>No meu sistema, a &uacute;ltima linha acima (sudo make install-gcc) termina com erros, devido a impossibilidade de encontrar a binutils recentemente compilada. Se isso acontece para qualquer tipo de comando "make install", aqui est&aacute; uma maneira r&aacute;pida de resolver isso:</p>
 
 <p style="text-align: left;"><br></p><div style="text-align: left;">
 
@@ -228,13 +192,9 @@ way to solve it:</p>
 
 
 
-<h2>Step 3: Newlib</h2>
+<h2>Passo 3: Newlib</h2>
 
-<p>Once again, Newlib is as easy as unpack, configure, build. But I
-wanted my library to be as small as possible (as opposed to as fast as
-possible) and I only wanted to keep what's needed from it in the final
-executable, so I added the "-ffunction-sections -fdata-sections" flags
-to allow the linker to perform dead code stripping:</p>
+<p>Mais uma vez, este etapa &eacute; t&atilde;o f&aacute;cil quanto descompactar, configurar, compilar. Mas eu preciso que a minha biblioteca seja do menor tamanho poss&iacute;vel (em contraposi&ccedil;&atilde;o, t&atilde;o r&aacute;pida quanto poss&iacute;vel) e eu s&oacute; queria manter o que &eacute; necess&aacute;rio no execut&aacute;vel, por isso, acrescentei os flags "-ffunction-sections -fdata-sections" para permitir que o linker execute "dead code stripping":</p>
 
 <p><br></p>
 
@@ -270,21 +230,20 @@ CFLAGS_FOR_TARGET="-ffunction-sections -fdata-sections
 
 
 
-<p>Some notes about the flags used in the above sequence:</p>
+<p>Algumas observa&ccedil;&otilde;es sobre os flags usados na sequ&ecirc;ncia acima:</p>
 
-<ul><li><code>--disable-newlib-supplied-syscalls</code>: this deserves a page of its own, but I won't cover it here. For an explanation, see for example <a href="http://openhardware.net/Embedded_ARM/NewLib_Stubs/">this page</a></li><li><code>-DPREFER_SIZE_OVER_SPEED -D__OPTIMIZE_SIZE__</code>: compile Newlib for size, not for speed (these are Newlib specific).</li><li><code>-Os -fomit-frame-pointer</code>: tell GCC to optimize for size, not for speed.</li><li><code>-D__BUFSIZ__=256</code>:
-again Newlib specific, this is the buffer size allocated by default for
-files opened via fopen(). The default is 1024, which I find too much
-for an eLua, so I'm using 256 here. Of course, you can change this
-value.</li></ul>
+<ul>
+<li><code>--disable-newlib-supplied-syscalls</code>: isto merece uma p&aacute;gina pr&oacute;pria, mas n&atilde;o vou faz&ecirc;-lo aqui. Para uma explica&ccedil;&atilde;o, por exemplo, ver <a href="http://openhardware.net/Embedded_ARM/NewLib_Stubs/">esta p&aacute;gina</a></li>
+<li><code>-DPREFER_SIZE_OVER_SPEED -D__OPTIMIZE_SIZE__</code>: compila Newlib otimizando o tamanho, n&atilde;o a performance (estes s&atilde;o espec&iacute;ficos da Newlib).</li>
+<li><code>-Os -fomit-frame-pointer</code>: indica para GCC otimizar o tamnho, n&atilde;o a velocidade.</li>
+<li><code>-D__BUFSIZ__=256</code>:
+novamente espec&iacute;fico da Newlib, este &eacute; o tamanho default do buffer alocado para arquivos abertos via fopen(). O padr&atilde;o &eacute; 1024, cujo tamanho considerei muito para eLua, logo estou usando 256 aqui. Certamente, voc&ecirc; pode mudar este valor.</li>
+</ul>
 
 
-<h2>Step 4: full GCC</h2>
+<h2>Passo 4: full GCC</h2>
 
-<p>Finally, in the last step of our tutorial, we complete the GCC
-build. In this stage, a number of compiler support libraries are built
-(most notably libgcc.a). Fortunately this is simpler that the Newlib
-compilation step:</p>
+<p>Finalmente, no &uacute;ltimo passo deste tutorial, completamos a constru&ccedil;&atilde;o do GCC. Nesta etapa, v&aacute;rias bibliotecas de suporte do compilador s&atilde;o montadas (sendo a mais importante a libgcc.a). Felizmente este &aacute; o mais simples dos passos de compila&ccedil;&atilde;o da NewLib:</p>
 
 
 <p><br></p>
@@ -303,8 +262,9 @@ compilation step:</p>
 
 
 
-<h2>Step 5: all done!</h2>
+<h2>Passo 5: Tudo pronto!</h2>
 
-<p>Now you can finally enjoy your ARM toolchain, and compile eLua with it :)
-If you need further clarification, or if the above instructions didn't work for you, feel free to <a href="http://www.eluaproject.net/en/Contact">contact me</a>.</p>
-</div></body></html>
+<p>
+Agora voc&ecirc; pode finalmente desfrutar do seu toolchain para ARM, e compile eLua com ele :) Se voc&ecirc; precisar de mais explica&ccedil;&otilde;es, ou se as instru&ccedil;&otilde;es acima n&atilde;o funcionaram para voc&ecirc;, sinta-se a vontade para entrar em <a href="http://www.eluaproject.net/en/Contact">contato comigo.</a>.</p>
+</div>
+$$FOOTER$$

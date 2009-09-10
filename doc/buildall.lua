@@ -4,7 +4,7 @@ require "eluadoc"
 -- Languages in the system
 -- NOTE: "en" must ALWAYS be the first entry in this array!
 -- NOTE: all languages must be given in lowercase only!
-languages = { "en" }
+languages = { "en", "pt" }
 
 -- Reverse lookup (language to idx) dictionary
 local langidx = {}

@@ -174,12 +174,12 @@ local menu =
 -- defined at the beginning of buildall.lua
 local translations = 
 {
-  { "Overview" },
-  { "Data structures" },
-  { "Functions" },
-  { "eLua - embedded Lua" },
-  { "Search" },
-  { "Language" }
+  { "Overview", "Apresentação" },
+  { "Data structures", "Estrutura" },
+  { "Functions", "Funções" },
+  { "eLua - embedded Lua", "eLua - Embedded Lua" },
+  { "Search", "Pesquisar" },
+  { "Language", "Língua" }
 }
 
 -- The "fixed part" are the files/directory that must be present in our final
