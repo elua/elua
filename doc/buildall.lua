@@ -285,7 +285,7 @@ end
 -------------------------------------------------------------------------------
 -- Build the logo for a given language
 
-local function gen_logo( lang )
+local function gen_logo( fname, lang )
   local numl = #languages
   local langdata = ''
   for i = 1, numl do
@@ -294,7 +294,7 @@ local function gen_logo( lang )
     if lang:lower() == crtlang:lower() then 
       langdata = langdata .. string.format('          <td align="center"><h6 class="selected">%s</h6></td>\n', hlang )
     else
-      langdata = langdata .. string.format('          <td align="center"><h6><a href="%s_index.html" class="lang">%s</a></h6></td>\n', crtlang:lower(), hlang )
+      langdata = langdata .. string.format('          <td align="center"><h6><a href="%s_%s" class="lang">%s</a></h6></td>\n', crtlang:lower(), fname, hlang )
     end
   end
 return string.format( [[
@@ -389,7 +389,7 @@ local function gen_html_page( fname, lang )
 
 <body>
 ]], get_menu_title( item, lang ) )
-  header = header .. gen_logo( lang ) .. "\n"
+  header = header .. gen_logo( fname, lang ) .. "\n"
   local menuitems, menudata = gen_html_nav( parentid, lang )
   header = header .. menuitems .. '<div id="content">\n'
   local footer = string.format( [[
