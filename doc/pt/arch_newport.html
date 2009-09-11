@@ -1,0 +1,137 @@
+$$HEADER$$
+<h3>Porting eLua</h3>
+<p>So, you realized how cool <b>eLua</b> is :), and you'd like to give it a try. Unfortunately, <b>eLua</b> doesn't have a port on your CPU or board of choice.
+  The solution is simple: write the port yourself. This might seem as a daunting task at first, but it's actually easier than it sounds. <b>eLua</b> was
+  designed to make the task of implementing new ports as easy and intuitive as possible. This section gives an overview of the porting process. It's not
+  an exhaustive guide, but it should be enough to point you in the right direction. Before diving into this, it's highly recommended that you take a look
+  at the <a href="elua_arch.html">eLua architecture page</a>. </p>
+<h3>Prerequisites</h3>
+<p>Before starting to work on the port, make sure that:</p>
+<ul>
+  <li>your CPU has enough resources to run <b>eLua</b>. A very rough estimation (based on ARM Thumb code only) is that you'd need at least 256k
+  of program memory and 32k of RAM for a complete <b>eLua</b> image, and 128k of program memory for a basic image. It's possible to run <b>eLua</b> in
+  less than 32k of RAM (especially when <a href="arch_ltr.html">LTR</a> is enabled), but you'll probably run out of memory fast.
+  64k of RAM (or more) is recommended.</li>
+  <li><a target="_blank" href="http://sourceware.org/newlib">Newlib</a> is available for your CPU. <b>eLua</b> depends on Newlib currently
+  (although this limitation will be eliminated in a future version), so if Newlib is not available for your CPU, you're out of luck. </li>
+  <li>you have a C compiler for your target. Ideally you'd use GCC, but if this isn't possible other compilers might work as well. Keep in mind that
+  <a href="arch_ltr.html">LTR</a> needs a C99 C compiler (or at least a partially C99 compliant C compiler than supports C99-style union initialization). 
+  </li>
+  <li>you have a platform library (it usually comes from the CPU manufacturer) that you can use to implement (at least part of) the platform interface.
+  It's also highly recommended to gain at least a basic understanding of your platform, it will help a lot while writing the port.</li>
+</ul>
+<p>If all of the above are true, you should continue reading this document to bring your port to life. If not, we're sorry, but (at least at this point)
+<b>eLua</b> can't be ported to your CPU. If, on the other hand, you're good to go, please take a bit of time and read 
+  <a href="arch_overview.html#platforms">this section</a> first, as it details the structure of a port and might simplify your work quite a bit.</p>
+<a name="newboard" /><h3>Adding a new board</h3>
+<p>If all you need is to add a new board that uses a CPU already supported by <b>eLua</b> (check <a href="status.html">here</a> for a complete list), it's
+fairly easy to accomplish this:</p>
+<ol>
+  <li>choose a good name for your board :)</li>
+  <li>edit <b>SConstruct</b> and add your board to the <b>board_list</b> dictionary, specifying its CPU. A part of the definition of <b>board_list</b> is given below:
+<p><pre><code># List of board/CPU combinations
+board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
+               'EK-LM3S8962' : [ 'LM3S8962' ],
+               'EK-LM3S6965' : [ 'LM3S6965' ],
+               ..............................
+            }</code></pre></p>
+  </li>
+  <li>also edit the <b>file_list</b> dictionary in <b>SConstruct</b> to specify the list of ROMFS files that will be compiled for your board (see the 
+  <a href="arch_romfs.html">ROMFS section</a> for details). A part of the definition of <b>file_list</b> is given below:
+<pre><code># List of board/romfs data combinations
+file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'info', 'morse' ],
+              'EK-LM3S8962' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope' ],
+              'EK-LM3S6965' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope' ],
+              ...............................
+            }</code></pre></li>
+  <li>if your board has external memory, you'll probably want to use the "multiple" allocator by default to take advantage of that (see <a href="building.html">building</a>)
+  for details. If so, you need to modify the CPU/allocator mapping code from <b>SConstruct</b>:
+<pre><code># CPU/allocator mapping (if allocator not specified)
+if allocator == '':
+  if <b>boardname == 'LPC-H2888'</b> or <b>boardname == 'ATEVK1100'</b>:
+    allocator = 'multiple'
+  else:
+    allocator = 'newlib'
+elif allocator not in [ 'newlib', 'multiple', 'simple' ]:
+  print "Unknown allocator", allocator
+  print "Allocator can be either 'newlib', 'multiple' or 'simple'"
+  sys.exit( -1 )
+</code></pre>
+  </li>
+  <li>customize the <b>eLua</b> image for this new board. You can use the variable <b>boardname</b> in <b>conf.py</b> to define new preprocessor macros specifically for your board
+  (that you can use later in <b>platform_conf.h</b>, for example), or to include or exclude certain files from the build, or change the build flags and so on. An example taken from 
+  the <b>lm3s</b> port is given below (part of <b>conf.py</b>):
+<pre><code>if boardname == 'EK-LM3S6965' or boardname == 'EK-LM3S8962':
+  specific_files = specific_files + " rit128x96x4.c disp.c"
+  cdefs = cdefs + " -DENABLE_DISP"
+
+# The default for the Eagle 100 board is to start the image at 0x2000,
+# so that the built in Ethernet boot loader can be used to upload it
+if boardname == 'EAGLE-100':
+  linkopts = "-Wl,-Ttext,0x2000"
+else:
+  linkopts = ""
+</code></pre>
+</li>
+</ol>
+<p>After you edit all the relevant source files, all you have to do is to execute <i>scons board=&lt;boardname&gt;</i> and you'll have <b>eLua</b> compiled for your board.</p>
+<a name="newcpu" /><h3>Adding a new CPU</h3>
+<p>If you want to add a new CPU to <b>eLua</b> and the new CPU happens to be supported by a platform on which <b>eLua</b> already runs (see <a href="status.html">here</a> for a full
+list), your task is still quite easy. Follow the steps below:</p>
+<ol>
+  <li>edit <b>SConstruct</b> and add your new CPU to the <b>platform_list</b> dictionary. Use the "official" name of the CPU (as it appears in its datasheet). An example is given below:
+<pre><code># List of platform/CPU/toolchains combinations
+# The first toolchain in the toolchains list is the default one
+# (the one that will be used if none is specified)
+platform_list = {
+  'at91sam7x' : { 'cpus' : [ 'AT91SAM7X256', 'AT91SAM7X512' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
+  'lm3s' : { 'cpus' : [ 'LM3S8962', 'LM3S6965', 'LM3S6918' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
+  'str9' : { 'cpus' : [ 'STR912FAW44' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
+  ..................
+}</code></pre></li>
+  <li>you also need to add a new board to <b>eLua</b> (which makes sense, since you're most likely going to run <b>eLua</b> on a board built around the CPU 
+  of your choice, not only on the CPU itself). So follow the instruction from the <a href="arch_newport.html#newboard">previous paragraph</a> to add
+  your new board.</li>
+  <li>customize the <b>eLua</b> image for this new CPU. You can use the variable <b>cputype</b> in <b>conf.py</b> to define new preprocessor macros specifically for your CPU
+  (that you can use later in <b>platform_conf.h</b>, for example), or to include or exclude certain files from the build, or change the build flags and so on. An example taken from 
+  the <b>at91sam7x</b> port is given below (part of <b>conf.py</b>):
+<pre><code>if cputype == 'AT91SAM7X256':
+  ldscript = "flash256.lds"
+  cdefs = cdefs + " -Dat91sam7x256"
+elif cputype == 'AT91SAM7X512':
+  ldscript = "flash512.lds"
+  cdefs = cdefs + " -Dat91sam7x512"
+else:
+  print "Invalid AT91SAM7X CPU %s" % cputype
+  sys.exit( -1 ) </code></pre></li>
+</ol>
+<p>After you edit all the relevant source files, all you have to do is to execute <i>scons board=&lt;boardname&gt;</i> and you'll have <b>eLua</b> compiled for your board (and implicitly for
+  your new CPU).</p>
+<a name="newplatform" /><h3>Adding a new platform</h3>
+<p>If you want to add a new CPU to <b>eLua</b> and the new CPU is not supported by a platform on which <b>eLua</b> already runs (see <a href="status.html">here</a> for a full list), you have to
+go the whole way and add a completely new platform to <b>eLua</b>. This is certainly more difficult than the previous cases, but still not that hard. Remember to start small (implement only
+minimal support at first) and don't write everything from scratch, start from an already existing platform implementation and work your way up from there. The <b>i386</b> port is the simplest, 
+but also a bit different from the embedded ports. Another port that is quite simple at this point is the <b>lpc2888</b> port, you might take a look at that too. After you "get a feeling" of
+how a port should look like, and after you read about the architecture of <b>eLua</b> and the structure of a port <a href="arch_overview.html">here</a>, follow the steps below:</p>
+<ol>
+  <li>choose the name of your new platform. It should be an easy, descriptive name. For example, all the CPUs from the LM3S series are grouped inside a platform called <b>lm3s</b>.</li>
+  <li>create the <i>src/platform/&lt;name&gt;</i> directory, and add all your platform-specific files here. Check <a href="arch_overview.html#platforms">here</a> for specific details.</li>
+  <li>use the instructions from the <a href="arch_newport.html#newcpu">previous paragraph</a> to add your new CPU and board to <b>eLua</b>.</li>
+  <li>implement as much as you need from the <a href="arch_platform.html">platform interface</a>.</li>
+  <li>if your new platform uses a toolchain that wasn't previously configured in <b>eLua</b>, add it now (see <a href="toolchains.html">here</a> for more details about toolchains).</li>
+  <li>let <b>SConstruct</b> know about your new platform by modifying the <b>platform_list</b> variable to add information about the CPU(s) available for your platform and about its toolchains. 
+An example is given below:
+<pre><code># List of platform/CPU/toolchains combinations
+# The first toolchain in the toolchains list is the default one
+# (the one that will be used if none is specified)
+platform_list = {
+  'at91sam7x' : { 'cpus' : [ 'AT91SAM7X256', 'AT91SAM7X512' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
+  'lm3s' : { 'cpus' : [ 'LM3S8962', 'LM3S6965', 'LM3S6918' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
+  'str9' : { 'cpus' : [ 'STR912FAW44' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
+  ..................
+}</code></pre></li>
+</ol>
+<p>After you edit all the relevant source files, all you have to do is to execute <i>scons board=&lt;boardname&gt;</i> and you'll have <b>eLua</b> compiled for your board (and implicitly for
+  your new CPU).</p>
+$$FOOTER$$
+

@@ -24,46 +24,46 @@ AND TITLE FIELDS! See the definition of 'forum.html' below for an example of suc
 local menu =
 {
   -- "eLua project" (menu separator)
-  { "eLua project" },
+  { { "eLua project", "Projeto eLua" } },
 
   -- "Overview"
-  { "Overview", "overview.html", 
+  { { "Overview", "Apresentação" }, "overview.html", 
     {
-      { "About", "overview.html#whatis" },
-      { "Features", "overview.html#features" },
-      { "Audience", "overview.html#audience" },
-      { "Authors", "overview.html#authors" },
-      { "Contacts", "overview.html#contacts" },
-      { "License", "overview.html#license" }
+      { { "About", "eLua" }, "overview.html#whatis" },
+      { { "Features", "Características" }, "overview.html#features" },
+      { { "Audience", "Público Alvo" }, "overview.html#audience" },
+      { { "Authors", "Autores" }, "overview.html#authors" },
+      { { "Contacts","Contatos" }, "overview.html#contacts" },
+      { { "License", "Licença" },"overview.html#license" }
     }
   },
 
   -- "Community"
-  { "Community", "comunity.html", 
+  { { "Community", "Comunidade" }, "comunity.html", 
     {
-      { "Lists", "comunity.html#lists" },
+      { { "Lists", "Listas de Discussão" }, "comunity.html#lists" },
       { "Forums", "comunity.html#forums" },
 --      { "User's Wiki", "comunity.html#userswiki" },      
-      { "Credits", "comunity.html#credits" },
+      { { "Credits", "Créditos" }, "comunity.html#credits" },
       { nil, "forum.html", nil, "Forum" } -- "hidden" entry (doesn't appear in the menu)
     }
   },
 
   -- "News"
-  { "News", "news.html" },
+  { { "News", "Notícias" }, "news.html" },
 
   -- "Status"
   { "Status", "status.html", 
     {
-      { "Supported platforms", "status.html#platforms" },
-      { "Roadmap", "status.html#roadmap" }
+      { { "Supported platforms", "Plataformas Suportadas" }, "status.html#platforms" },
+      { { "Roadmap", "Planejamento Futuro" }, "status.html#roadmap" }
     }
   },
 
  -- "Using eLua" -- Menu Separator
-  { "Using eLua" },
-  { "Overview", "doc.html" },
-  { "Installing", "installing.html", 
+  { { "Using eLua", "Usando eLua"}, nil },
+  { { "Overview", "Visão Geral" }, "doc.html" },
+  { { "Installing", "Instalações" }, "installing.html", 
     {
       { "AT91SAM7x", "installing_at91sam7x.html" },
       { "AVR32", "installing_avr32.html" },
@@ -77,45 +77,45 @@ local menu =
   },
   { "Downloads", "downloads.html", 
     {
-      { "Binaries", "downloads.html#binaries" },
-      { "Source code", "downloads.html#source", 
+      { { "Binaries", "Binários" }, "downloads.html#binaries" },
+      { { "Source code", "Código Fonte" }, "downloads.html#source", 
         {
-          { "Official releases", "downloads.html#official" },
+          { { "Official releases", "Versões Oficiais" }, "downloads.html#official" },
           { "Bleeding edge (SVN)", "downloads.html#svnpublic" },
-          { "Developers", "downloads.html#svndev" },
+          { { "Developers", "Desenvolvedores" }, "downloads.html#svndev" },
         }
       },
-      { "Old versions", "dl_old.html", 
+      { { "Old versions", "Versões Anteriores" }, "dl_old.html", 
         {
           { "0.4.1", "dl_old.html#v041" },
           { "0.4", "dl_old.html#v04" },
           { "0.3", "dl_old.html#v03" },
           { "0.2", "dl_old.html#v02" },
           { "0.1", "dl_old.html#v01" },
-          { "Version history", "versionhistory.html" },
+          { { "Version history", "Histórico das Versões" }, "versionhistory.html" },
         }
       },
     },
   },
-  { "Using", "using.html", 
+  { { "Using", "Usando eLua" }, "using.html", 
     {
-      { "Over UART", "using.html#uart" },
-      { "Over TCP/IP", "using.html#tcpip" },
-      { "On PC", "using.html#pc" },
-      { "The shell", "using.html#shell" },
+      { { "Over UART", "Console via UART" }, "using.html#uart" },
+      { { "Over TCP/IP", "Console via TCP/IP" }, "using.html#tcpip" },
+      { { "On PC", "Num PC" }, "using.html#pc" },
+      { { "The shell", "O Shell" }, "using.html#shell" },
       { "Cross-compiling", "using.html#cross" },
     },
   },
-  { "Code Examples", "examples.html" },
-  { "FAQ", "faq.html" },
-  { "Tutorials", "tutorials.html",
+  { { "Code Examples", "Exemplos de Código" }, "examples.html" },
+  { { "FAQ", "Perguntas Frequêntes" }, "faq.html" },
+  { { "Tutorials", "Tutoriais" }, "tutorials.html",
     {
-      { "Booting on a PC", "tut_bootpc.html" },
-      { "Booting from a PenDrive", "tut_bootstick.html" },
-      { "Using OpenOCD", "tut_openocd.html" },
-      { "Building eLua", "building.html" },
-      { "eLua Toolchains", "toolchains.html" },
-      { "Building toolchains", "tchainbuild.html",
+      { { "Booting on a PC", "Bootando num PC" }, "tut_bootpc.html" },
+      { { "Booting from a PenDrive", "Bootando de um Pen-Drive" }, "tut_bootstick.html" },
+      { { "Using OpenOCD", "Usando OpenOCD" }, "tut_openocd.html" },
+      { { "Building eLua", "Build de eLua" }, "building.html" },
+      { { "eLua Toolchains", "Toolchains para eLua" }, "toolchains.html" },
+      { { "Building toolchains", "Build de Toolchains" }, "tchainbuild.html",
         {
           { "ARM7 and ARM9", "tc_arm.html" },
           { "ARM Cortex-M3", "tc_cortex.html" },
@@ -126,42 +126,42 @@ local menu =
   },
 
   -- "eLua internals" (menu separator)
-  { "eLua internals" },
+  { { "eLua internals", "Arquitetura de eLua" } },
 
   -- "Overview"
-  { "Overview", "arch_overview.html", 
+  { { "Overview", "Visão Geral" }, "arch_overview.html", 
     {
-      { "Structure", "arch_overview.html#structure" },
-      { "Commond code", "arch_overview.html#common" },
-      { "Platform interface", "arch_overview.html#platform" },
-      { "Platforms/ports", "arch_overview.html#platforms" },
-      { "Booting eLua", "arch_overview.html#boot" }
+      { { "Structure", "Estrutura" }, "arch_overview.html#structure" },
+      { { "Commond code", "Código Básico" }, "arch_overview.html#common" },
+      { { "Interface Architecture", "Interfaceamento" }, "arch_overview.html#platform" },
+      { { "Platforms/ports", "Portabilização" }, "arch_overview.html#platforms" },
+      { { "Booting eLua", "O Boot de eLua" }, "arch_overview.html#boot" }
     }
   },
 
   -- Platform interface (automatically generated)
-  { "Platform interface", "arch_platform.html", "arch_platform" },
+  { { "Platform interface", "Interfaceando com Plataformas" }, "arch_platform.html", "arch_platform" },
 
   -- Other WRITE THE arch_platform_other.html file
-  { "Other", "#", 
+  { { "Some more Info", "Informações Adicionais" }, "#", 
     {
-      { "ROM file system", "arch_romfs.html" },
-      { "Adding a new port", "arch_newport.html" },
-      { "Modules and LTR", "arch_ltr.html" },
-      { "Consoles and terminals", "arch_con_term.html" },
-      { "TCP/IP in eLua", "arch_tcpip.html" },
-      { "eLua coding style", "arch_coding.html" }
+      { { "ROM file system", "O ROM File System" }, "arch_romfs.html" },
+      { { "Adding a new port", "Portando eLua" }, "arch_newport.html" },
+      { { "Modules and LTR", "Modulos e LTR" }, "arch_ltr.html" },
+      { { "Consoles and terminals", "Consoles e Terminais" }, "arch_con_term.html" },
+      { { "TCP/IP in eLua", "TCP/IP em eLua" }, "arch_tcpip.html" },
+      { { "eLua coding style", "Regras de Codificação" }, "arch_coding.html" }
     }
   },
 
   -- "Reference manual" (menu separator)
-  { "Reference manual" },
+  { { "Reference manual", "Manual de Referência" } },
 
   -- "Generic modules" (automatically generated)
-  { "Generic modules", "refman_gen.html", "refman_gen" },
+  { { "Generic modules", "Módulos Genéricos" }, "refman_gen.html", "refman_gen" },
 
   -- "Platform modules"
-  { "Platform modules", "refman_dep.html", 
+  { { "Platform modules", "Módulos dependentes de Plataformas" }, "refman_dep.html", 
     {
       { "lm3s", "modules_lm3s.html", "refman_ps_lm3s" }
     }
