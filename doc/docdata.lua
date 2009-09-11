@@ -41,7 +41,6 @@ local menu =
   -- "Community"
   { { "Community", "Comunidade" }, "comunity.html", 
     {
-      { { "News", "Notícias" }, "news.html" },
       { { "Lists", "Listas de Discussão" }, "comunity.html#lists" },
       { "Forums", "comunity.html#forums" },
 --      { "User's Wiki", "comunity.html#userswiki" },      
@@ -49,6 +48,9 @@ local menu =
       { nil, "forum.html", nil, "Forum" } -- "hidden" entry (doesn't appear in the menu)
     }
   },
+
+  -- News
+  { { "News", "Notícias" }, "news.html" },
 
   -- "Status"
   { "Status", "status.html", 
@@ -143,7 +145,7 @@ local menu =
   },
 
   -- Platform interface (automatically generated)
-  { { "Platform interface", "Interfaceando com Plataformas" }, "arch_platform.html", "arch_platform" },
+  { { "Platform interface", "Interfaceamento" }, "arch_platform.html", "arch_platform" },
 
   -- Other WRITE THE arch_platform_other.html file
   { { "Some more Info", "Informações Adicionais" }, "#", 
