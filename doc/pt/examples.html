@@ -1,49 +1,49 @@
 $$HEADER$$
 <link rel="stylesheet" type="text/css" href="../style.css"></head>
 <body style="background-color: rgb(255, 255, 255);">
-<h3>Exemplos de cÛdigo Lua</h3>DistribuiÁıes eLua trazem Ûtimos e interessantes (claro! tem jogos tambÈm! :) exemplos de programas em Lua.
-Eles est„o incluÌdos tambÈm na distribuiÁ„o que vem com os cÛdigos fontes, no subdiretÛrio /romfs. <br>Programas Lua para eLua s„o mostrados e comentados aqui tambÈm. <br>Como j· foi dito, vocÍ pode rod·-los a partir do sistema de arquivos de eLua ou pode usar o shell de eLua e envi·-los atravÈs do XMODEM, como or you can use the eLua shell and send them via XMODEM, as
+<h3>Exemplos de c√≥digo Lua</h3>Distribui√ß√µes eLua trazem √≥timos e interessantes (claro! tem jogos tamb√©m! :) exemplos de programas em Lua.
+Eles est√£o inclu√≠dos tamb√©m na distribui√ß√£o que vem com os c√≥digos fontes, no subdiret√≥rio /romfs. <br>Programas Lua para eLua s√£o mostrados e comentados aqui tamb√©m. <br>Como j√° foi dito, voc√™ pode rod√°-los a partir do sistema de arquivos de eLua ou pode usar o shell de eLua e envi√°-los atrav√©s do XMODEM, como or you can use the eLua shell and send them via XMODEM, as
 descrito <a href="using.html#shell">aqui</a>.<br><br>
 
-<h3><a name="hello"></a>hello.lua: o obÌquo "Hello, World!"</h3>
+<h3><a name="hello"></a>hello.lua: o ob√≠quo "Hello, World!"</h3>
 
 <p><strong>Roda em:&nbsp;</strong><br>Todas as arquiteturas</p><p><strong></strong>
 
-<strong>DescriÁ„o:<br></strong>Chamar isto de um "programa" È um grande exagero, mas j· È uma
-tradiÁ„o, logo, vamos mantÍ-la :) Este programa imprime "Hello, World!" em um terminal e
-retorna para o shell. Baixe-o somente se sentir-se muito incomodado em executar o interpretador Lua inserido em eLua e digit·-lo vocÍ mesmo :)</p><p><strong>CÛdigo fonte comentado:</strong><br></p><p>print("Hello World")</p>
+<strong>Descri√ß√£o:<br></strong>Chamar isto de um "programa" √© um grande exagero, mas j√° √© uma
+tradi√ß√£o, logo, vamos mant√™-la :) Este programa imprime "Hello, World!" em um terminal e
+retorna para o shell. Baixe-o somente se sentir-se muito incomodado em executar o interpretador Lua inserido em eLua e digit√°-lo voc√™ mesmo :)</p><p><strong>C√≥digo fonte comentado:</strong><br></p><p>print("Hello World")</p>
 
 <h2><br></h2><h3><a name="info"></a>info.lua: Obtendo os dados sobre a plataforma</h3>
 
-<p><strong>Roda em:&nbsp;</strong><br>Todas as arquiteturas</p><p><strong>DescriÁ„o:<br></strong>
-Este programa n„o È muito mais complicado do que o "Hello, World!", porÈm ele mostra um mÛdulo especÌfico de eLua: o mÛdulo "platform data" (pd). VocÍ pode ler
-mais sobre os mÛdulos "platform" na distribuiÁ„o do cÛdigo fonte 
-(docs/platform_modules.txt). O programa mostrar· o nome da plataforma, o nome da CPU, o nome da placa e o clock da CPU e ent„o finaliza e volta para o shell.</p><p><strong>CÛdigo fonte comentado:</strong></p><p><span>-- Usa o mÛdulo pd para ter acesso aos dados da plataforma e mostr·-lo no Terminal </span><br><span>print( "Estou usando a platforma " .. pd.platform() ) &nbsp;</span><br><span>print( "A CPU È uma " .. pd.cpu() )</span><br><span><span>print( "A placa È uma " .. pd.board(</span>) )</span><br></p><p></p>
+<p><strong>Roda em:&nbsp;</strong><br>Todas as arquiteturas</p><p><strong>Descri√ß√£o:<br></strong>
+Este programa n√£o √© muito mais complicado do que o "Hello, World!", por√©m ele mostra um m√≥dulo espec√≠fico de eLua: o m√≥dulo "platform data" (pd). Voc√™ pode ler
+mais sobre os m√≥dulos "platform" na distribui√ß√£o do c√≥digo fonte 
+(docs/platform_modules.txt). O programa mostrar√° o nome da plataforma, o nome da CPU, o nome da placa e o clock da CPU e ent√£o finaliza e volta para o shell.</p><p><strong>C√≥digo fonte comentado:</strong></p><p><span>-- Usa o m√≥dulo pd para ter acesso aos dados da plataforma e mostr√°-lo no Terminal </span><br><span>print( "Estou usando a platforma " .. pd.platform() ) &nbsp;</span><br><span>print( "A CPU √© uma " .. pd.cpu() )</span><br><span><span>print( "A placa √© uma " .. pd.board(</span>) )</span><br></p><p></p>
 
 <h3><a name="led"></a>led.lua: o velho LED que pisca, jeito novo de fazer com eLua</h3>
 
-<p><strong>Roda em: </strong><br>Todas as arquiteturas exceto i386</p><p><strong>DescriÁ„o:<br></strong><strong></strong>
-Agora temos que fazer algo com "cara" de embarcado: piscar um LED. O cÛdigo a seguir ilustra alguns recursos interessantes de eLua:</p>
+<p><strong>Roda em: </strong><br>Todas as arquiteturas exceto i386</p><p><strong>Descri√ß√£o:<br></strong><strong></strong>
+Agora temos que fazer algo com "cara" de embarcado: piscar um LED. O c√≥digo a seguir ilustra alguns recursos interessantes de eLua:</p>
 
-<ul><li><p>cÛdigo port·til entre plataformas: o cÛdigo atribue um pino diferente
-para o LED comeÁando pelo nome da placa. VocÍ pode ver como o mÛdulo de dados da plataforma torna a portabilidade do cÛdigo muito f·cil.</p></li><li><p>uart, pio, tmr, pd modules: todas eles s„o usados aqui.</p></li></ul>
+<ul><li><p>c√≥digo port√°til entre plataformas: o c√≥digo atribue um pino diferente
+para o LED come√ßando pelo nome da placa. Voc√™ pode ver como o m√≥dulo de dados da plataforma torna a portabilidade do c√≥digo muito f√°cil.</p></li><li><p>uart, pio, tmr, pd modules: todas eles s√£o usados aqui.</p></li></ul>
 
-<p>Observe ele piscando, ent„o pressione qualquer tecla para voltar ao shell de eLua.</p><p><strong>CÛdigo fonte comentado:</strong></p>
+<p>Observe ele piscando, ent√£o pressione qualquer tecla para voltar ao shell de eLua.</p><p><strong>C√≥digo fonte comentado:</strong></p>
 
 <h3><a name="hangman"></a>hangman.lua: tirando vantagem de seu terminal</h3>
 
 <p><strong>Roda em:&nbsp;</strong><br>Todas as arquiteturas exceto i386</p><strong></strong>
 
-<strong></strong><p><strong>DescriÁ„o:<br></strong>Muito longe de ser o melhor exemplo da distribuiÁ„o eLua (ou poderia ser o morse.lua? :), ele faz uso do 
-mÛdulo term (docs/terminal_support.txt) para deixar o usu·rio jogar como no 
+<strong></strong><p><strong>Descri√ß√£o:<br></strong>Muito longe de ser o melhor exemplo da distribui√ß√£o eLua (ou poderia ser o morse.lua? :), ele faz uso do 
+m√≥dulo term (docs/terminal_support.txt) para deixar o usu√°rio jogar como no 
 BSD "hangman" diretamente no seu emulador de terminal. Rode o exemplo 
-e aproveite. Atualmente existe uma pequena lista de palavras, pois este programa foi escrito principalmente com o propÛsito de testar a capacidade de eLua, mas È muito f·cil
+e aproveite. Atualmente existe uma pequena lista de palavras, pois este programa foi escrito principalmente com o prop√≥sito de testar a capacidade de eLua, mas √© muito f√°cil
 acrescentar e substituir palavras na lista atual. Uma tela de exemplo pode ser vista <a href="http://elua.berlios.de/other/elua_hangman.png">aqui</a>.</p><p></p>
 
-<h3><a name="pwmled"></a>pwmled.lua: Piscador de LED, classe avanÁada</h3><p><strong>Roda em:&nbsp;</strong><br>EK-LM3S8962,&nbsp;EK-LM3S6965</p><strong></strong>
+<h3><a name="pwmled"></a>pwmled.lua: Piscador de LED, classe avan√ßada</h3><p><strong>Roda em:&nbsp;</strong><br>EK-LM3S8962,&nbsp;EK-LM3S6965</p><strong></strong>
 
-<strong></strong><p><strong>DescriÁ„o:<br></strong>
-Este programa usa o mÛdulo PWM para acender/apagar a luz do LED gradualmente, indefinidamente. Nada mais a dizer aqui, o cÛdigo È bem simples, ainda que os
+<strong></strong><p><strong>Descri√ß√£o:<br></strong>
+Este programa usa o m√≥dulo PWM para acender/apagar a luz do LED gradualmente, indefinidamente. Nada mais a dizer aqui, o c√≥digo √© bem simples, ainda que os
 resultados sejam bem interessantes. Presione qualquer tecla para finalizar o programa e retornar ao shell.</p><p></p>
 
 <h3><a name="tvbgone"></a>tvbgone.lua: yes, eLua can do real time!</h3>
