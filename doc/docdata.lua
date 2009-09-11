@@ -41,6 +41,7 @@ local menu =
   -- "Community"
   { { "Community", "Comunidade" }, "comunity.html", 
     {
+      { { "News", "Notícias" }, "news.html" },
       { { "Lists", "Listas de Discussão" }, "comunity.html#lists" },
       { "Forums", "comunity.html#forums" },
 --      { "User's Wiki", "comunity.html#userswiki" },      
@@ -48,9 +49,6 @@ local menu =
       { nil, "forum.html", nil, "Forum" } -- "hidden" entry (doesn't appear in the menu)
     }
   },
-
-  -- "News"
-  { { "News", "Notícias" }, "news.html" },
 
   -- "Status"
   { "Status", "status.html", 
@@ -62,8 +60,9 @@ local menu =
 
  -- "Using eLua" -- Menu Separator
   { { "Using eLua", "Usando eLua"}, nil },
-  { { "Overview", "Visão Geral" }, "doc.html" },
-  { { "Installing", "Instalações" }, "installing.html", 
+
+--  { { "Overview", "Visão Geral" }, "doc.html" },  ####### Aparently not necessary and taking noble main menu space
+  { { "Platforms", "Plataformas" }, "installing.html", 
     {
       { "AT91SAM7x", "installing_at91sam7x.html" },
       { "AVR32", "installing_avr32.html" },
@@ -75,7 +74,7 @@ local menu =
       { "STM32", "installing_stm32.html" },
     },
   },
-  { "Downloads", "downloads.html", 
+  { "Downloads", "downloads.html",    -- ### How come it opens downloads.html without specifying here ? :) Nice but unclear.
     {
       { { "Binaries", "Binários" }, "downloads.html#binaries" },
       { { "Source code", "Código Fonte" }, "downloads.html#source", 
@@ -97,34 +96,38 @@ local menu =
       },
     },
   },
-  { { "Using", "Usando eLua" }, "using.html", 
+  { { "Help", "Ajuda" }, "help_using.html", 
     {
-      { { "Over UART", "Console via UART" }, "using.html#uart" },
-      { { "Over TCP/IP", "Console via TCP/IP" }, "using.html#tcpip" },
-      { { "On PC", "Num PC" }, "using.html#pc" },
-      { { "The shell", "O Shell" }, "using.html#shell" },
-      { "Cross-compiling", "using.html#cross" },
-    },
-  },
-  { { "Code Examples", "Exemplos de Código" }, "examples.html" },
-  { { "FAQ", "Perguntas Frequêntes" }, "faq.html" },
-  { { "Tutorials", "Tutoriais" }, "tutorials.html",
-    {
-      { { "Booting on a PC", "Bootando num PC" }, "tut_bootpc.html" },
-      { { "Booting from a PenDrive", "Bootando de um Pen-Drive" }, "tut_bootstick.html" },
-      { { "Using OpenOCD", "Usando OpenOCD" }, "tut_openocd.html" },
-      { { "Building eLua", "Build de eLua" }, "building.html" },
-      { { "eLua Toolchains", "Toolchains para eLua" }, "toolchains.html" },
-      { { "Building toolchains", "Build de Toolchains" }, "tchainbuild.html",
+      { { "Using", "Usando eLua" }, "using.html", 
         {
-          { "ARM7 and ARM9", "tc_arm.html" },
-          { "ARM Cortex-M3", "tc_cortex.html" },
-          { "i386", "tc_386.html" }
+          { { "Over UART", "Console via UART" }, "using.html#uart" },
+          { { "Over TCP/IP", "Console via TCP/IP" }, "using.html#tcpip" },
+          { { "On PC", "Num PC" }, "using.html#pc" },
+          { { "The shell", "O Shell" }, "using.html#shell" },
+          { "Cross-compiling", "using.html#cross" },
+        },
+      },
+      { { "Code Examples", "Exemplos de Código" }, "examples.html" },
+      { { "FAQ", "Perguntas Frequêntes" }, "faq.html" },
+      { { "Tutorials", "Tutoriais" }, "tutorials.html",
+        {
+          { { "Booting on a PC", "Bootando num PC" }, "tut_bootpc.html" },
+          { { "Booting from a PenDrive", "Bootando de um Pen-Drive" }, "tut_bootstick.html" },
+          { { "Using OpenOCD", "Usando OpenOCD" }, "tut_openocd.html" },
+          { { "Building eLua", "Build de eLua" }, "building.html" },
+          { { "eLua Toolchains", "Toolchains para eLua" }, "toolchains.html" },
+          { { "Building toolchains", "Build de Toolchains" }, "tchainbuild.html",
+            {
+              { "ARM7 and ARM9", "tc_arm.html" },
+              { "ARM Cortex-M3", "tc_cortex.html" },
+              { "i386", "tc_386.html" }
+            },
+          },
         },
       },
     },
   },
-
+  
   -- "eLua internals" (menu separator)
   { { "eLua internals", "Arquitetura de eLua" } },
 
