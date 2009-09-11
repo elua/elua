@@ -29,7 +29,7 @@ local menu =
   -- "Overview"
   { { "Overview", "Apresentação" }, "overview.html", 
     {
-      { { "About", "eLua" }, "overview.html#whatis" },
+      { { "About", "O que é eLua ?" }, "overview.html#whatis" },
       { { "Features", "Características" }, "overview.html#features" },
       { { "Audience", "Público Alvo" }, "overview.html#audience" },
       { { "Authors", "Autores" }, "overview.html#authors" },
@@ -161,7 +161,7 @@ local menu =
   { { "Generic modules", "Módulos Genéricos" }, "refman_gen.html", "refman_gen" },
 
   -- "Platform modules"
-  { { "Platform modules", "Módulos dependentes de Plataformas" }, "refman_dep.html", 
+  { { "Platform modules", "Módulos Específicos" }, "refman_dep.html", 
     {
       { "lm3s", "modules_lm3s.html", "refman_ps_lm3s" }
     }
@@ -179,7 +179,7 @@ local translations =
   { "Functions", "Funções" },
   { "eLua - embedded Lua", "eLua - Embedded Lua" },
   { "Search", "Pesquisar" },
-  { "Language", "Língua" }
+  { "Language", "Idioma" }
 }
 
 -- The "fixed part" are the files/directory that must be present in our final
