@@ -98,7 +98,7 @@ local menu =
       },
     },
   },
-  { { "Help", "Ajuda" }, "help_using.html", 
+  { { "Help", "Ajuda" }, "using.html", 
     {
       { { "Using", "Usando eLua" }, "using.html", 
         {
