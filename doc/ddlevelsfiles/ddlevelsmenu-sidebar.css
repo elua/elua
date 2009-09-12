@@ -74,8 +74,10 @@ color: #00014e;
 }
 
 .markermenu ul li a:hover, .markermenu ul li a.selected{
-color: white;
-background-color: black;
+/* color: white; */
+/* background-color: black; */
+background: #FFCC33;
+color: 00014e;
 }
 
 /* ######### Customized Drop Down ULs CSS (inherits from ddlevelsmenu-base.css) ######### */
