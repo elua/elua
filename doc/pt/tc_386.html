@@ -1,12 +1,5 @@
 $$HEADER$$
-<link rel="stylesheet" type="text/css" href="../style.css"></head>
-<body style="background-color: rgb(255, 255, 255);"><h3><a name="title" href="http://www.eluaproject.net/en/Building_GCC_for_i386" class="local">Construindo uma GCC para o i386</a></h3>
-      
-      <div class="content">
-
 <p>Inicialmente, a id&eacute;ia de um "i386" cross "compiler" em Linux parece estranha. Afinal, voc&ecirc; j&aacute; roda Linux numa plataforma compat&iacute;vel com i386. Por&eacute;m, o compilador as vezes segue certos caminhos misteriosos junto com o sistema operacional onde este est&aacute; rodando (veja por exemplo <a href="http://wiki.osdev.org/GCC_Cross-Compiler">esta p&aacute;gina</a> para alguns sintomas poss&iacute;veis). E ainda, voc&ecirc; deseja usar uma NewLib, e n&atilde;o uma Libc, e ainda adaptar o m&aacute;ximo poss&iacute;vel o seu ambiente &agrave;s suas necessidades. Portanto, este tutorial ir&aacute; mostr&aacute;-lo como fazer isso.</p>
-
-
 <p><strong>AVISO: N&atilde;o sou um especialista no processo de constru&ccedil;&atilde;o de uma GCC/newlib/binutils. Tenho certeza de que existem melhores formas de realizar o que estou descrevendo aqui, no entanto, apresento apenas uma maneira r&aacute;pida de construir um toolchain, n&atilde;o tenho nenhuma inten&ccedil;&atilde;o de me aprofundar neste processo. Se voc&ecirc; acha que, o que fiz aqui est&aacute; errado, impreciso ou, simplesmente, escandalosamente feio, n&atilde;o hesite em <a href="http://www.giga.puc-rio.br/cgi-bin/elua.cgi?p=Contact">contactar-me</a> e farei as corre&ccedil;&otilde;es necess&aacute;rias. E claro, este tutorial &eacute; fornecido sem qualquer tipo de garantia.</strong></p>
 
 <h2>&#8250; Pr&eacute;-requisitos</h2>
@@ -238,5 +231,4 @@ CFLAGS_FOR_TARGET="-ffunction-sections
 
 <p>Finalmente, voc&ecirc; poder&aacute; usar o seu toolchain para i386, e compilar eLua com ele :)  Ap&oacute;s completar os passos acima, voc&ecirc; ser&aacute; capaz de dar  boot em eLua direto do seu PC, como descrito <a href="http://www.giga.puc-rio.br/cgi-bin/elua.cgi?p=Booting_your_PC_in_eLua">aqui</a>, e n&atilde;o precisar&aacute; fazer o download do arquivo ELF da p&aacute;gina do projeto eLua, j&aacute; que voc&ecirc; o gerou usando sua pr&oacute;pria toolchain!
 Se voc&ecirc; precisar de mais explica&ccedil;&otilde;es ou se as instru&ccedil;&otilde;es acima n&atilde;o funcionaram para voc&ecirc;, sinta-se a vontade para <a href="http://www.giga.puc-rio.br/cgi-bin/elua.cgi?p=Contact">contactar-me</a>.</p>
-</div>
 $$FOOTER$$

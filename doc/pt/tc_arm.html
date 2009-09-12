@@ -1,9 +1,4 @@
 $$HEADER$$
-<link rel="stylesheet" type="text/css" href="../style.css"></head>
-<body style="background-color: rgb(255, 255, 255);"><h3><a name="title" href="http://www.eluaproject.net/en/Building_GCC_for_ARM" class="local">Criando uma GCC para ARM</a></h3>
-      
-      <div class="content">
-
 <p> Esse tutorial explica como criar um toolchain com GCC+Newlib para ser usado na compila&ccedil;&atilde;o de programas usando a arquitetura ARM, tornando assim poss&iacute;vel a compila&ccedil;&atilde;o de programas para um grande n&uacute;mero de CPUs com arquitetura ARM. Voc&ecirc; precisar&aacute; desse recurso se pretende compilar eLua para as CPUs com arquitetura ARM. Esse tutorial &eacute; semelhante a muitos outros encontrados na Internet (particularmente o <a href="http://www.gnuarm.com/">gnuarm</a>, que serviu de base para esse tutorial), no entanto, este possui um maior detalhamento e mostra alguns "dicas" que voc&ecirc; poder&aacute; utilizar quando estiver compilando a Newlib.</p>
 
 <p><strong>AVISO: Eu n&atilde;o sou um especialista no processo de montagem de CGC/newlib/binutils. Tenho certeza de que existem melhores formas de realizar o que estou descrevendo aqui, no entanto, apresento apenas uma maneira r&aacute;pida de construir um toolchain, n&atilde;o tenho nenhuma inten&ccedil;&atilde;o de me aprofundar no processo de montagem. Se voc&ecirc; encontrar algum erro, por favor entre em <a href="http://www.eluaproject.net/en/Contact">contato comigo</a> e farei as corre&ccedil;&otilde;es necess&aacute;rias. Acrescento ainda, que esse tutorial n&atilde;o possui nenhum tipo de garantia.</strong></p>
@@ -172,9 +167,8 @@ $$HEADER$$
 
 <p>No meu sistema, a &uacute;ltima linha acima (sudo make install-gcc) termina com erros, devido a impossibilidade de encontrar a binutils recentemente compilada. Se isso acontece para qualquer tipo de comando "make install", aqui est&aacute; uma maneira r&aacute;pida de resolver isso:</p>
 
-<p style="text-align: left;"><br></p><div style="text-align: left;">
-
-</div><table class="table_cod">
+<p style="text-align: left;"><br></p><div style="text-align: left;"></div>
+<table class="table_cod">
      <tbody><tr align="left">
         <th>$ sudo -s -H</th>
      </tr>
@@ -266,5 +260,4 @@ novamente espec&iacute;fico da Newlib, este &eacute; o tamanho default do buffer
 
 <p>
 Agora voc&ecirc; pode finalmente desfrutar do seu toolchain para ARM, e compile eLua com ele :) Se voc&ecirc; precisar de mais explica&ccedil;&otilde;es, ou se as instru&ccedil;&otilde;es acima n&atilde;o funcionaram para voc&ecirc;, sinta-se a vontade para entrar em <a href="http://www.eluaproject.net/en/Contact">contato comigo.</a>.</p>
-</div>
 $$FOOTER$$

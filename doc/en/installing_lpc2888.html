@@ -26,7 +26,7 @@ $$HEADER$$
  <h3>Burning <b>eLua</b> to the LPC2888 using the DFU tool from NXP</h3>
  <p>The DFU flashing application doesn't work directly on the .bin files you get after building <b>eLua</b>, you need to run them though NXP's "hostcrypt" program (which is part of the LPC2888 DFU package). After you have your <b>eLua</b> .bin file,
  do this from a Windows command prompt (make sure that hostcryptv2.exe is in the path):</p>
- <div class="code"><pre>C:&gt; hostcryptv2 elua_lua_lpc2888.bin elua.ebn -K0 -F0</pre></div>
+ <pre>C:&gt; hostcryptv2 elua_lua_lpc2888.bin elua.ebn -K0 -F0</pre>
  <p>As a result, you'll have a new file (<i>elua.ebn</i>). Now boot your chip in DFU firmware upgrade mode (see above) and use the DFU utility (<i>MassDFUApplication.exe</i>) to load <i>elua.ebn</i> into your chip (the instructions on
  using MassDFUApplication are in a PDF file that's included in the LPC2888 DFU package). Reset the board and enjoy.
  </p>
