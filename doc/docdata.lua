@@ -160,7 +160,7 @@ local menu =
   },
 
   -- "Reference manual" (menu separator)
-  { { "Reference manual", "Manual de Referência" } },
+  { { "Reference Manual", "Manual de Referência" } },
 
   -- "Generic modules" (automatically generated)
   { { "Generic modules", "Módulos Genéricos" }, "refman_gen.html", "refman_gen" },
