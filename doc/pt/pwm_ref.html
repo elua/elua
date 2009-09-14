@@ -6,32 +6,32 @@
 <p style="margin-bottom: 0in;"> <br>
 </p>
 <p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">Permite que Lua use
-os blocos PWM para a CPU em quest&atilde;o.</font>
+os blocos PWM para a CPU em questão.</font>
 </p>
 <p style="margin-bottom: 0in;"> <br>
 </p>
 <p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><strike><a name="setup"></a>[pwm.setup]</strike>(</font><font face="Bitstream Vera Sans Mono, sans-serif">pwm.setup( id,
-frequency, Active Cycle ) &nbsp; &nbsp; &nbsp;</font><font face="Bitstream Vera Sans Mono, sans-serif">
+frequency, Active Cycle )      </font><font face="Bitstream Vera Sans Mono, sans-serif">
 Data = pwm.setup( id, frequency, duty ): configura o 'id' do bloco PWM para
-gerar a frequ&ecirc;ncia especificada com o ciclo 'duty' especificado (duty &eacute;
-um n&uacute;mero inteiro entre 0 e 100, indicando o percentual a ser
-utilizado). Ela retorna a frequ&ecirc;ncia real configurada no bloco PWM.</font>
+gerar a frequência especificada com o ciclo 'duty' especificado (duty é
+um número inteiro entre 0 e 100, indicando o percentual a ser
+utilizado). Ela retorna a frequência real configurada no bloco PWM.</font>
 </p>
 <p style="margin-bottom: 0in;">
 </p>
 <p style="margin-bottom: 0in;"> <br>
 </p>
 <p style="margin-bottom: 0in;"> Aqui existe uma enorme
-mudan&ccedil;a na proposta.
+mudança na proposta.
 </p>
-<p style="margin-bottom: 0in;"> O Timer Clock e a frequ&ecirc;ncia
-PWM "frame" seriam configurados na mesma fun&ccedil;&atilde;o (.setup)
+<p style="margin-bottom: 0in;"> O Timer Clock e a frequência
+PWM "frame" seriam configurados na mesma função (.setup)
 </p>
-<p style="margin-bottom: 0in;"> A fun&ccedil;&atilde;o normal de
+<p style="margin-bottom: 0in;"> A função normal de
 controle configuraria somente o ciclo ativo (.setcycle)
 </p>
-<p style="margin-bottom: 0in;"> A fun&ccedil;&atilde;o original .setup
-seria substitu&iacute;da por:
+<p style="margin-bottom: 0in;"> A função original .setup
+seria substituída por:
 </p>
 <p style="margin-bottom: 0in;"> <br>
 </p>
@@ -40,12 +40,12 @@ tmrclock, pwm_frequency )</font> ]<br>
 </p>
 <p style="margin-bottom: 0in;"> <a name="setcycle"></a>[pwm.setcycle(
 id, active_cycle )]</p>
-<p style="margin-bottom: 0in;"><font face="Bitstream Vera Sans Mono, sans-serif"><a name="start"></a>[pwm.start()]&nbsp;&nbsp;
+<p style="margin-bottom: 0in;"><font face="Bitstream Vera Sans Mono, sans-serif"><a name="start"></a>[pwm.start()]  
 pwm.start( id ): inicia o 'id' do bloco PWM.</font>
 </p>
 <p style="margin-bottom: 0in;">
 </p>
-<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="stop"></a>[</font><font face="Bitstream Vera Sans Mono, sans-serif">pwm.stop()]&nbsp;&nbsp;&nbsp;
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="stop"></a>[</font><font face="Bitstream Vera Sans Mono, sans-serif">pwm.stop()]   
 </font><font face="Bitstream Vera Sans Mono, sans-serif">pwm.stop(
 id ): finaliza o 'id' do bloco PWM.</font>
 </p>
@@ -66,12 +66,12 @@ Retorna o clock corrente do bloco PWM.</font>
 </p>
 <p style="margin-bottom: 0in;"> <br>
 </p>
-<p style="margin-bottom: 0in;"> Realmente &eacute; necess&aacute;rio
+<p style="margin-bottom: 0in;"> Realmente é necessário
 existir
-.getclock ?? O clock &eacute configurado pelo mesmo programa, &eacute; alterado repentinamente
-durante a opera&ccedil;&atilde;o, ..........
+.getclock ?? O clock &eacute configurado pelo mesmo programa, é alterado repentinamente
+durante a operação, ..........
 </p>
-<p style="margin-bottom: 0in;"> Caso fosse realmente necess&aacute;rio, poderia ser
+<p style="margin-bottom: 0in;"> Caso fosse realmente necessário, poderia ser
 algo como pwm.gettimerclock(id) ou quem sabe (isso deve ser mais
 discutido.....)
 </p>
@@ -124,7 +124,7 @@ discutido.....)
 <br style="font-family: Helvetica,Arial,sans-serif;">
 <br style="font-family: Helvetica,Arial,sans-serif;">
 <span style="font-family: Helvetica,Arial,sans-serif;">
-&nbsp;
+ 
 </span></big> <br>
 <br style="font-family: Verdana;">
 </body></html>

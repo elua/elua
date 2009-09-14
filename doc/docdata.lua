@@ -182,7 +182,7 @@ local translations =
   { "Overview", "Apresentação" },
   { "Data structures", "Estrutura" },
   { "Functions", "Funções" },
-  { "eLua - embedded Lua", "eLua - Embedded Lua" },
+  { "eLua - Embedded Lua", "eLua - Embedded Lua" },
   { "Search", "Pesquisar" },
   { "Language", "Idioma" }
 }

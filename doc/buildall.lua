@@ -329,7 +329,7 @@ return string.format( [[
   </table>
 </div>
 </form>
-]], getstr( "eLua - embedded Lua", lang ), numl + 1, getstr( "Search", lang ), getstr( "Language", lang ), langdata:sub( 1, -2 ) )
+]], getstr( "eLua - Embedded Lua", lang ), numl + 1, getstr( "Search", lang ), getstr( "Language", lang ), langdata:sub( 1, -2 ) )
 end
 
 -------------------------------------------------------------------------------
