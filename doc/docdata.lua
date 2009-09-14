@@ -137,7 +137,7 @@ local menu =
   { { "Overview", "Visão Geral" }, "arch_overview.html", 
     {
       { { "Structure", "Estrutura" }, "arch_overview.html#structure" },
-      { { "Commond code", "Código Básico" }, "arch_overview.html#common" },
+      { { "Common code", "Código Básico" }, "arch_overview.html#common" },
       { { "Interface Architecture", "Interfaceamento" }, "arch_overview.html#platform" },
       { { "Platforms/ports", "Portabilização" }, "arch_overview.html#platforms" },
       { { "Booting eLua", "O Boot de eLua" }, "arch_overview.html#boot" }

@@ -1,27 +1,25 @@
 $$HEADER$$
-<link rel="stylesheet" type="text/css" href="../style.css"></link></head>
-<body style="background-color: rgb(255, 255, 255);">
-<h3>Estilo de codifica&ccedil;&atilde;o em eLua</h3>
-<p>Esta se&ccedil;&atilde;o tem o objetivo de apresentar o estilo de codifica&ccedil;&atilde;o em <b>eLua</b> que deve ser seguido por todo desenvolvedor. Segue abaixo as regras de codifica&ccedil;&atilde;o <b>eLua</b>:
+<h3>Estilo de codificação em eLua</h3>
+<p>Esta seção tem o objetivo de apresentar o estilo de codificação em <b>eLua</b> que deve ser seguido por todo desenvolvedor. Segue abaixo as regras de codificação <b>eLua</b>:
 <ol>
-  <li>Deve-se formatar o texto adequadamente. Exemplos ("por favor, preste aten&ccedil;&atilde;o nas regras de espa&ccedil;amento, pois resumem-se em acrescentar espa&ccedil;os em tudo, com o objetivo de tornar mais f&aacute;cil a leitura do c&oacute;digo"):
+  <li>Deve-se formatar o texto adequadamente. Exemplos ("por favor, preste atenção nas regras de espaçamento, pois resumem-se em acrescentar espaços em tudo, com o objetivo de tornar mais f&aacute;cil a leitura do código"):
   <p><pre><code>i = 3 (not i=3)
 a = ( a + 5 ) / 3
-for( i = 0; i &lt; 10; i ++ ) ...
-if( ( i == 5 ) &amp;&amp; ( a == 10 ) ) ...
+for( i = 0; i < 10; i++ ) ...
+if( ( i == 5 ) && ( a == 10 ) ) ...
 unsigned i = ( unsigned )p;
 void func( int arg1, const char* arg2 ) ...</code></pre></p></li>
-  <li><b>Indenta&ccedil;&atilde;o</b>: Use dois espa&ccedil;os para toda identa&ccedil;&atilde;o. Novamente, <b>ESPA&Ccedil;OS</b>. <b>N&Atilde;O USE TABS</b>; isto &eacute; importante (e felizmente f&aacute;cil de lembrar :) ). 
-  Existem muitos exemplos onde tabs estragam completamente a clareza do c&oacute;digo fonte. A maioria dos editores de texto t&ecirc;m a op&ccedil;&atilde;o de "inser&ccedil;&atilde;o de tabs ao inv&eacute;s de espa&ccedil;os";
+  <li><b>Indentação</b>: Use dois espaços para toda identação. Novamente, <b>ESPAÇOS</b>. <b>N&Atilde;O USE TABS</b>; isto é importante (e felizmente f&aacute;cil de lembrar :) ). 
+  Existem muitos exemplos onde tabs estragam completamente a clareza do código fonte. A maioria dos editores de texto t&ecirc;m a opção de "inserção de tabs ao invés de espaços";
   utilize-a e configure o tamanho do TAB para 2.<br>
-  Al&eacute;m disso, idente "{" e "}" sobre suas pr&oacute;rias linhas:
+  Além disso, idente "{" e "}" sobre suas prórias linhas:
   <p><pre><code>if( i == 2 )
 {
-  // algum c&oacute;digo aqui
+  // algum código aqui
 }
 else
 {
-  // mais algum c&oacute;digo aqui
+  // mais algum código aqui
 }</code></pre></p>
 
       Ou:
@@ -30,27 +28,27 @@ else
   // function code
 }</code></pre></p>
 
-Sempre que poss&iacute;vel, n&atilde;o cerque um comando com {}. Por exemplo, fa&ccedil;a isso:
+Sempre que possível, não cerque um comando com {}. Por exemplo, faça isso:
 
 <p><pre><code>if( i == 2 )
   return;</code></pre></p>
           
-          ao inv&eacute;s disso:
+          ao invés disso:
 <p><pre><code>if( i == 2 )
 {
   return;
 }</code></pre></p>
 
-Al&eacute;m disso, siga a regra de "um comando por linha". Em outras palavras, n&atilde;o fa&ccedil;a isso:
+Além disso, siga a regra de "um comando por linha". Em outras palavras, não faça isso:
 
 <p><pre><code>if( i == 2 ) return;</code></pre></p>
 
-ao inv&eacute; disso, fa&ccedil;a:
+ao invé disso, faça:
 
 <p><pre><code>if( i == 2 )
   return;</code></pre></p>
 
-Observe que o c&oacute;digo <b>eLua</b> n&atilde;o usa espa&ccedil;o entre o nome da fun&ccedil;&atilde;o e sua lista de par&acirc;metros quando de sua chamada/defini&ccedil;&atilde;o (como no c&oacute;digo Lua, por exemplo). So do this:
+Observe que o código <b>eLua</b> não usa espaço entre o nome da função e sua lista de parâmetros quando de sua chamada/definição (como no código Lua, por exemplo). So do this:
 
 <p><pre><code>void f( int i )
 {
