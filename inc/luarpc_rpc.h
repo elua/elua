@@ -52,7 +52,6 @@ typedef int32_t s32;
 #define DOGCC(x) /* */
 #endif
 
-
 /* assertions */
 
 #ifndef NDEBUG
@@ -76,12 +75,13 @@ typedef int32_t s32;
  */
 
 enum {
-  ERR_EOF      = MAXINT - 100,  /* reached end of file on transport */
-  ERR_CLOSED   = MAXINT - 101,  /* attempted operation on closed transport */
-  ERR_PROTOCOL = MAXINT - 102,  /* some error in the received protocol */
-	ERR_NODATA	 = MAXINT - 103,
-	ERR_COMMAND  = MAXINT - 106,
-	ERR_HEADER   = MAXINT - 107
+  ERR_EOF       = MAXINT - 100,  /* reached end of file on transport */
+  ERR_CLOSED    = MAXINT - 101,  /* attempted operation on closed transport */
+  ERR_PROTOCOL  = MAXINT - 102,  /* some error in the received protocol */
+  ERR_NODATA    = MAXINT - 103,
+  ERR_COMMAND   = MAXINT - 106,
+  ERR_HEADER    = MAXINT - 107,
+  ERR_LONGFNAME = MAXINT - 108
 };
 
 enum exception_type { done, nonfatal, fatal };

@@ -38,30 +38,29 @@
 
 /* Support for Compiling with rotables */
 #ifdef LUA_OPTIMIZE_MEMORY
-#define LUA_ISCALLABLE(state, idx) ( lua_isfunction( state, idx ) || lua_islightfunction( state, idx ) )
+#define LUA_ISCALLABLE( state, idx ) ( lua_isfunction( state, idx ) || lua_islightfunction( state, idx ) )
 #else
-#define LUA_ISCALLABLE(state, idx) lua_isfunction( state, idx )
+#define LUA_ISCALLABLE( state, idx ) lua_isfunction( state, idx )
 #endif
 
 /* Prototypes for Local Functions  */
-LUALIB_API int luaopen_luarpc(lua_State *L);
+LUALIB_API int luaopen_luarpc( lua_State *L );
 Handle *handle_create( lua_State *L );
 
 
 struct exception_context the_exception_context[ 1 ];
 
-static void errorMessage (const char *msg, va_list ap)
+static void errorMessage( const char *msg, va_list ap )
 {
-  fflush (stdout);
-  fflush (stderr);
-  fprintf (stderr,"\nError: ");
-  vfprintf (stderr,msg,ap);
-  fprintf (stderr,"\n\n");
-  fflush (stderr);
+  fflush( stdout );
+  fflush( stderr );
+  fprintf( stderr,"\nError: " );
+  vfprintf( stderr,msg,ap );
+  fprintf( stderr,"\n\n" );
+  fflush( stderr );
 }
 
-
-DOGCC(static void panic (const char *msg, ...)
+DOGCC(static void panic( const char *msg, ... )
       __attribute__ ((noreturn,unused));)
 static void panic (const char *msg, ...)
 {
@@ -72,7 +71,7 @@ static void panic (const char *msg, ...)
 }
 
 
-DOGCC(static void rpcdebug (const char *msg, ...)
+DOGCC(static void rpcdebug( const char *msg, ... )
       __attribute__ ((noreturn,unused));)
 static void rpcdebug (const char *msg, ...)
 {
@@ -115,7 +114,7 @@ enum { RPC_PROTOCOL_VERSION = 3 };
 
 /* return a string representation of an error number */
 
-static const char * errorString (int n)
+static const char * errorString( int n )
 {
   switch (n) {
     case ERR_EOF: return "connection closed unexpectedly";
@@ -124,6 +123,7 @@ static const char * errorString (int n)
     case ERR_COMMAND: return "undefined command";
     case ERR_NODATA: return "no data received when attempting to read";
     case ERR_HEADER: return "header exchanged failed";
+    case ERR_LONGFNAME: return "function name too long";
     default: return transport_strerror( n );
   }
 }
@@ -169,12 +169,12 @@ static void transport_write_u8( Transport *tpt, u8 x )
   transport_write_buffer( tpt, &x, 1 );
 }
 
-static void swap_bytes( u8 *number, size_t numbersize )
+static void swap_bytes( uint8_t *number, size_t numbersize )
 {
   int i;
   for ( i = 0 ; i < numbersize / 2 ; i ++ )
   {
-    u8 temp = number[ i ];
+    uint8_t temp = number[ i ];
     number[ i ] = number[ numbersize - 1 - i ];
     number[ numbersize - 1 - i ] = temp;
   }
@@ -193,7 +193,7 @@ static u32 transport_read_u32( Transport *tpt )
   TRANSPORT_VERIFY_OPEN;
   transport_read_buffer ( tpt, ub.b, 4 );
   if( tpt->net_little != tpt->loc_little )
-    swap_bytes( ( u8 * )ub.b, 4 );
+    swap_bytes( ( uint8_t * )ub.b, 4 );
   return ub.i;
 }
 
@@ -206,7 +206,7 @@ static void transport_write_u32( Transport *tpt, u32 x )
   TRANSPORT_VERIFY_OPEN;
   ub.i = ( uint32_t )x;
   if( tpt->net_little != tpt->loc_little )
-    swap_bytes( ( u8 * )ub.b, 4 );
+    swap_bytes( ( uint8_t * )ub.b, 4 );
   transport_write_buffer( tpt, ub.b, 4 );
 }
 
@@ -221,7 +221,7 @@ static lua_Number transport_read_number( Transport *tpt )
   transport_read_buffer ( tpt, b, tpt->lnum_bytes );
   
   if( tpt->net_little != tpt->loc_little )
-    swap_bytes( ( u8 * )b, tpt->lnum_bytes );
+    swap_bytes( ( uint8_t * )b, tpt->lnum_bytes );
   
   if( tpt->net_intnum != tpt->loc_intnum )
   {
@@ -243,7 +243,7 @@ static lua_Number transport_read_number( Transport *tpt )
         int64_t y = *( int64_t * )b;
         x = ( lua_Number )y;
       } break;
-      default: lua_assert(0);
+      default: lua_assert( 0 );
     }
   }
   else
@@ -254,7 +254,7 @@ static lua_Number transport_read_number( Transport *tpt )
 
 
 /* write a lua number to the transport */
-static void transport_write_number (Transport *tpt, lua_Number x)
+static void transport_write_number( Transport *tpt, lua_Number x )
 {
   struct exception e;
   TRANSPORT_VERIFY_OPEN;
@@ -270,19 +270,19 @@ static void transport_write_number (Transport *tpt, lua_Number x)
       case 2: {
         int16_t y = ( int16_t )x;
         if( tpt->net_little != tpt->loc_little )
-          swap_bytes( ( u8 * )&y, 2 );
+          swap_bytes( ( uint8_t * )&y, 2 );
         transport_write_buffer( tpt, ( u8 * )&y, 2 );
       } break;
       case 4: {
         int32_t y = ( int32_t )x;
         if( tpt->net_little != tpt->loc_little )
-          swap_bytes( ( u8 * )&y, 4 );
+          swap_bytes( ( uint8_t * )&y, 4 );
         transport_write_buffer( tpt,( u8 * )&y, 4 );
       } break;
       case 8: {
         int64_t y = ( int64_t )x;
         if( tpt->net_little != tpt->loc_little )
-          swap_bytes( ( u8 * )&y, 8 );
+          swap_bytes( ( uint8_t * )&y, 8 );
         transport_write_buffer( tpt, ( u8 * )&y, 8 );
       } break;
       default: lua_assert(0);
@@ -291,7 +291,7 @@ static void transport_write_number (Transport *tpt, lua_Number x)
   else
   {
     if( tpt->net_little != tpt->loc_little )
-       swap_bytes( ( u8 * )&x, 8 );
+       swap_bytes( ( uint8_t * )&x, 8 );
     transport_write_buffer( tpt, ( u8 * )&x, 8 );
   }
 }
@@ -712,7 +712,7 @@ static int handle_index (lua_State *L)
     my_lua_error( L, "can't index a handle with a non-string" );
   s = lua_tostring( L, 2 );
   if ( strlen( s ) > NUM_FUNCNAME_CHARS - 1 )
-    my_lua_error( L, "function name is too long" );
+    my_lua_error( L, errorString( ERR_LONGFNAME ) );
     
   helper_create( L, ( Handle * )lua_touserdata( L, 1 ), s );
 
@@ -731,10 +731,10 @@ static int handle_newindex( lua_State *L )
   MYASSERT( lua_isuserdata( L, 1 ) && ismetatable_type( L, 1, "rpc.handle" ) );
 
   if( lua_type( L, 2 ) != LUA_TSTRING )
-    my_lua_error( L, "can't index a handle with a non-string" );
+    my_lua_error( L, "can't index handle with a non-string" );
   s = lua_tostring( L, 2 );
   if ( strlen( s ) > NUM_FUNCNAME_CHARS - 1 )
-    my_lua_error( L, "function name is too long" );
+    my_lua_error( L, errorString( ERR_LONGFNAME ) );
   
   helper_create( L, ( Handle * )lua_touserdata( L, 1 ), "" );
   lua_replace(L, 1);
@@ -817,7 +817,7 @@ static int helper_get(lua_State *L, Helper *helper )
     {
       case fatal:
         if ( e.errnum == ERR_CLOSED )
-          my_lua_error( L, "handle is closed" );
+          my_lua_error( L, errorString( e.errnum ) );
         deal_with_error( L, helper->handle, errorString( e.errnum ) );
         transport_close( tpt );
         break;
@@ -1050,7 +1050,7 @@ static int helper_index (lua_State *L)
     my_lua_error( L, "can't index handle with non-string" );
   s = lua_tostring( L, 2 );
   if ( strlen( s ) > NUM_FUNCNAME_CHARS - 1 )
-    my_lua_error( L, "function name too long" );
+    my_lua_error( L, errorString( ERR_LONGFNAME ) );
   
   helper_append( L, ( Helper * )lua_touserdata( L, 1 ), s );
 
