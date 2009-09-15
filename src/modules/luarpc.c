@@ -815,7 +815,7 @@ static int helper_get(lua_State *L, Helper *helper )
   {
     switch( e.type )
     {
-      deal_with_error( L, h->handle, errorString( e.errnum ) );
+        deal_with_error( L, helper->handle, errorString( e.errnum ) );
       case nonfatal:
         lua_pushnil( L );
         return 1;
@@ -936,7 +936,7 @@ static int helper_call (lua_State *L)
     {
       switch( e.type )
       {
-        deal_with_error( L, h->handle, errorString( e.errnum ) );
+          deal_with_error( L, h->handle, errorString( e.errnum ) );
         case nonfatal:
           lua_pushnil( L );
           return 1;
@@ -993,7 +993,7 @@ static int helper_newindex( lua_State *L )
   {
     switch( e.type )
     {
-      deal_with_error( L, h->handle, errorString( e.errnum ) );
+        deal_with_error( L, h->handle, errorString( e.errnum ) );
       case nonfatal:
         lua_pushnil( L );
         return 1;
