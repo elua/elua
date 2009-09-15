@@ -815,21 +815,15 @@ static int helper_get(lua_State *L, Helper *helper )
   {
     switch( e.type )
     {
-      case fatal:
-        if ( e.errnum == ERR_CLOSED )
-          my_lua_error( L, errorString( e.errnum ) );
-        deal_with_error( L, helper->handle, errorString( e.errnum ) );
-        transport_close( tpt );
-        break;
+      deal_with_error( L, h->handle, errorString( e.errnum ) );
       case nonfatal:
-        deal_with_error( L, helper->handle, errorString( e.errnum ) );
         lua_pushnil( L );
         return 1;
         break;
-      default:
-        deal_with_error( L, helper->handle, errorString( e.errnum ) );
+      case fatal:
         transport_close( tpt );
         break;
+      default: lua_assert( 0 );
     }
   }
   return freturn;
@@ -942,21 +936,15 @@ static int helper_call (lua_State *L)
     {
       switch( e.type )
       {
-        case fatal:
-          if ( e.errnum == ERR_CLOSED )
-            my_lua_error( L, "handle is closed" );
-          deal_with_error( L, h->handle, errorString( e.errnum ) );
-          transport_close( tpt );
-          break;
+        deal_with_error( L, h->handle, errorString( e.errnum ) );
         case nonfatal:
-          deal_with_error( L, h->handle, errorString( e.errnum ) );
           lua_pushnil( L );
           return 1;
           break;
-        default:
-          deal_with_error( L, h->handle, errorString( e.errnum ) );
+        case fatal:
           transport_close( tpt );
           break;
+        default: lua_assert( 0 );
       }
     }
   }
@@ -1005,21 +993,15 @@ static int helper_newindex( lua_State *L )
   {
     switch( e.type )
     {
-      case fatal:
-        if ( e.errnum == ERR_CLOSED )
-          my_lua_error( L, "handle is closed" );
-        deal_with_error( L, h->handle, errorString( e.errnum ) );
-        transport_close( tpt );
-        break;
+      deal_with_error( L, h->handle, errorString( e.errnum ) );
       case nonfatal:
-        deal_with_error( L, h->handle, errorString( e.errnum ) );
         lua_pushnil( L );
         return 1;
         break;
-      default:
-        deal_with_error( L, h->handle, errorString( e.errnum ) );
+      case fatal:
         transport_close( tpt );
         break;
+      default: lua_assert( 0 );
     }
   }
   return freturn;
