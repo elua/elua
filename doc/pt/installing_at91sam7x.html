@@ -1,47 +1,46 @@
 $$HEADER$$
-<h3>Using <b>eLua</b> with the AT91SAM7X CPUs from Atmel</h3>
- <p><a href="http://www.atmel.com">Atmel</a> is a company that doesn't need any kind of introduction :) Their huge product range include some quite nice ARM7TDMI core implementations.
- Among them are the <a href="http://www.atmel.com/dyn/products/Product_card.asp?part_id=3755">AT91SAM7X256</a> and
- <a href="http://www.atmel.com/dyn/products/Product_card.asp?part_id=4104">AT91SAM7X512</a> CPUs. The only difference between them is the ammount of internal memory (256k Flash+64k RAM for
- AT91SAM7X256 vs. 512k Flash+128k RAM for AT91SAM7X512). Loaded with peripherals, and accompanied by a good support package, they make a perfect host for <b>eLua</b>. For this tutorial
- I'm going to use the <a href="http://www.olimex.com/dev/sam7-ex256.html">SAM7-EX256</a> development board from <a href="http://www.olimex.com">Olimex</a>. It's quite a 
- decent board, and also reasonably priced, although it lacks a proper documentation package in my oppinion. It is equipped with an AT91SAM7X256 CPU. As much as I'd like to get
- my hands on a board with a AT91SAM7X512 CPU, this didn't happen so far, so I'm going to stick with AT91SAM7X256. Of course, you can still try this tutorial if you have
- a different AT91SAM7X256 development board. Plus, the instructions should be quite similar for AT91SAM7X512 CPUs.
- </p>
- <h3> Prerequisites</h3> 
- <p>Before you'll be able to use <b>eLua</b> on the AT91SAM7X256 CPU, make sure that:</p>
+<h3>Usando <b>eLua</b> com as CPUs AT91SAM7X da Atmel</h3>
+
+<p>A <a href="http://www.atmel.com">Atmel</a> é uma empresa que não precisa de nenhum tipo de apresentação:) 
+Sua enorme variedade de produtos, inclui algumas implementações do núcleo do ARM7TDMI. 
+Entre elas estão as CPUs <a href="http://www.atmel.com/dyn/products/Product_card.asp?part_id=3755">AT91SAM7X256</a> 
+e <a href="http://www.atmel.com/dyn/products/Product_card.asp?part_id=4104">AT91SAM7X512</a>. 
+A única diferença entre elas é a quantidade de memória interna (256k Flash RAM + 64k para a AT91SAM7X256 e 512k Flash RAM + 128k para a AT91SAM7X512). 
+Com muitos periféricos e acompanhada por um aplicativo de apoio ao
+desenvolvimento, elas oferecem um ótimo hardware para <b>eLua</b>. 
+Para este tutorial, vamos usar a placa de desenvolvimento <a href="http://www.olimex.com/dev/sam7-ex256.html">SAM7-EX256</a> 
+da <a href="http://www.olimex.com">Olimex</a>. 
+Em nossa opinião, está é realmente uma boa placa, com um preço razoável, mas que carece de um pacote de documentação
+adequada. 
+É equipada com uma CPU AT91SAM7X256. Gostaria muito de colocar as mãos numa placa com a CPU AT91SAM7X512, como isso ainda não aconteceu, vou ficar com a AT91SAM7X256
+por enquanto :)
+Certamente você ainda poderá usar este tutorial com uma placa diferente da AT91SAM7X256. 
+Além disso, as instruções devem ser bastante semelhantes para CPUs AT91SAM7X512.</p>
+ <h3>Pré-requisitos</h3> 
+ <p>Antes de você usar <b>eLua</b> com a CPU AT91SAM7X256, certifique-se que:</p>
  <ul>
- <li>you're using Windows. This isn't actually a strict requirement, it just makes life a bit easier. As the Atmel CPU is supported by the <a href="http://openocd.berlios.de/web/">OpenOCD</a> package, programming it from Linux is definitely possible, as OpenOCD runs equally well on Windows and Linux. However, since I'm forced to use Windows anyway because of the restrictions of
- some of my other development boards, I'm going to take advantage of this and cover the Atmel programming tool instead of OpenOCD. The advantage is that you don't need a JTAG "dongle"
- to program your board (which would be the case if you were using OpenOCD). The disadvantage, of course, is that the Atmel tool runs only on Windows. Plus, I personally find OpenOCD 
- tedious to use. If you still want to use it though, you might want to check the forementioned <a href="http://www.olimex.com/dev/sam7-ex256.html">Olimex page</a>, they have some OpenOCD related links there.
- That said, from now on I'm going to assume that you use Windows. I'm using XP, Vista should work too.</li>
- <li>you have installed the <a href="http://www.atmel.com/dyn/products/tools_card.asp?tool_id=3883">AT91 In-system Programmer (ISP)</a> package from Atmel.</li>
- <li>you already have your <b>eLua</b> image for the AT91SAM7X256 CPU (<a href="building.html">built</a> or <a href="downloads.html">downloaded</a>).</li>
+ <li>esteja usando Linux ou Windows. Na realidade não é um pré-requisito, só faz com que a vida fique mais fácil. Já que a CPU é suportada pelo aplicativo <a href="http://openocd.berlios.de/web/">OpenOCD</a>, programá-la com o Linux é perfeitamente possível, já que o OpenOCD roda tanto no Windows quanto no Linux. No entanto, devido a restrições de algumas das minhas placas de desenvolvimento, aproveito a situação e fico com a ferramenta de programação da Atmel, ao invés do OpenOCD. A vantagem é que você não precisa de um JTAG "dongle" para programar sua placa (que seria o caso se você estivesse usando o OpenOCD). A desvantagem, claro, é que a ferramenta Atmel é executada apenas no Windows. Além disso, eu pessoalmente acho o OpenOCD tedioso. Mesmo assim, se você ainda quiser usá-lo, veja a <a href="http://www.olimex.com/dev/sam7-ex256.html">página da Olimex</a>, existem alguns links relacionados ao OpenOCD. Dito isto, a partir de agora assumo que você está usando o Windows. Uso o XP, o Vista deve funcionar também.</li>
+ <li>o aplicativo <a href="http://www.atmel.com/dyn/products/tools_card.asp?tool_id=3883">AT91 In-system Programmer (ISP)</a> da Atmel.</li>
+ <li>você já tem sua imagem de <b>eLua</b> para a CPU AT91SAM7X256 CPU (<a href="building.html">gerada</a> ou <a href="downloads.html">baixada</a>).</li>
  </ul>
- <h3>Programming eLua on the SAM7-EX256 board</h3>
- <p>This involves some jumper tricks, but it's still easy enough to do. We'll need to play with four jumpers: the "USB/EXT" jumper (located to the right of the USB connector 
- from the bottom left part of the board in its close proximity), the "ERASE" jumper (located at the right of the "UEXT" header connector in the top-left 
- part of the board, right ahead the quartz), and the block of two jumpers located right under the "RS232" connector on the board (the one that is adjacent to the Ethernet connector on its right side,
- <b>NOT</b> the one labeled "CAN" that is closer to the right edge of the board). </p>
+ <h3>Programando eLua na placa SAM7-EX256</h3>
+<p>Isto envolve alguns truques com jumpers, mas ainda assim, é muito fácil de fazer. Usaremos quatro jumpers: o jumper "USB/EXT" (localizado à direita do conector USB na parte inferior esquerda da placa), o jumper "ERASE" (localizado no lado direito do conector "cabeçalho Uext" na parte superior esquerda da mesa, em frente a quartzo), e uma dupla de jumpers "RS232" (localizados ao lado do conector Ethernet em seu lado direito, e <b>NÃO</b> a um chamado "CAN", que está mais próximo da borda direita da placa).</p>
  <ul>
- <li>connect your board to your PC using a suitable USB cable.</li> 
- <li>if you have a terminal emulation program connected to the board, close it (or at least disconnect it from its port).</li>
- <li>make sure that the the block of two jumpers mentioned before is set to positions "RXD0" and "TXD0" respectively, <b>NOT</b> "DRXD" and "DTXD".</li>
- <li>make sure that the "USB/EXT" connector is set to "USB" (position 1-2) and that the "ERASE" jumper is disconnected.</li>
- <li>connect the "ERASE" jumper and wait one second or more.</li>
- <li>disconnect the "USB/EXT" jumper completely, then disconnect the "ERASE" jumper too.</li>
- <li>connect the "USB/EXT" jumper back in the "USB" position (1-2).</li>
- <li>fire up the Atmel programming tool. If you haven't installed your board yet, you'll be asked to do so at this point.</li>
- <li>select "\usb\ARMx" as the connection (for me it's \usb\ARM0) and "AT91SAM7X256-EK" as the board.</li>
- <li>select the "Flash" tab from the middle tab of the window.</li>
- <li>in the "Send file name" box select your <b>eLua</b> bin file that you got from the compilation step and then press "Send File".</li>
- <li>wait for the file to be sent and answer "No" to the "Lock region(s)" dialog.</li>
- <li>in the window section below ("Scripts") select "Boot from Flash (GPNVM2)" then press "Execute".</li>
- <li>exit the application.</li>
+  <li>Ligue sua placa a um PC usando um cabo USB.</li>
+  <li>Se você tem um programa de emulação de terminal conectado à placa, feche-o (ou, pelo menos, desconecte-o da porta).</li>
+  <li>Certifique-se que o conjumto de dois jumpers mencionados antes estão configurados nas  posições "RXD0" e "TXD0", respectivamente, não "DRXD" e "DTXD".</li>
+  <li>Certifique-se que o conector "USB/EXT" esteja configurado como "USB" (posição 1-2) e que o jumper "ERASE" está desconectado.</li>
+  <li>Ligue o jumper "ERASE" e esperar um segundo ou mais.</li>
+  <li>Desligue o jumper "USB/EXT" completamente, em seguida, desligue o jumper "ERASE" também.</li>
+  <li>Ligue o jumper "USB/EXT" novamente na posição "USB" (1-2).</li>
+  <li>Inicie a aplicação da Atmel. Caso, você não tinha instalado a sua placa ainda, você será solicitado a fazê-lo neste momento.</li>
+  <li>Selecione "\usb\ARMx", como sua conexão (para mim é \usb\ARM0) e "AT91SAM7X256-EK", como a placa.</li>
+  <li>Selecione a guia "Flash" do meio da janela.</li>
+  <li>No campo "Send File Name" selecione o arquivo binário de <b>eLua</b> (.bin), que você gerou a partir da compilação e clique no botão "Send File".</li>
+  <li>Aguarde o arquivo ser enviado e responda "No" para a solicitação de "Lock region(s)".</li>
+  <li>Abaixo de ("Scripts"), selecione o "Boot from Flash (GPNVM2)" e pressione "Execute".</li>
+  <li>Saia da aplicação.</li>
  </ul>
- <p>That's it! A bit tricky, but <b>eLua</b> is now programmed in the CPU, so you can start your terminal emulator and enjoy it, as described in <a href="using.html">using eLua</a>. 
- </p>
+ <p>Pronto! Um pouco complicado, mas <b>eLua</b> está agora programada na CPU, agora você pode iniciar o seu emulador de terminal e se divertir, conforme descrito em <a href="using.html">usandp eLua</a>.</p>
 $$FOOTER$$
 

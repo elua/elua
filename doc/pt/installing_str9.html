@@ -1,25 +1,18 @@
 $$HEADER$$
-<h3>Installing <b>eLua</b> on the STR9 CPU family from ST</h3>
- <p>Among the ARM based MCUs available today, the <a href="http://www.st.com/mcu/inchtml-pages-str9.html">STR9</a> CPUs from <a href="http://www.st.com">ST</a> stand up because of a few unique features.
- First, their core is an ARM966-E, as opposed to the very popular ARM7TDMI core. This, together with some cleverly chosen on-chip hardware blocks, allows the CPU to run at 96MHz, which is very fast for a 
- general purpose MCU. The particular CPU I'm using (STR912FAW44) ) also has 512k of flash (and another bank of 32k flash) and 96k of internal RAM, so you won't be running out of memory anytime soon. It is accompanied by a very good support library, 
- and ST provides a lot of nice tools for STR9, including a graphical tool that you can use to configure the chip exactly how you want. When I wrote to ST about <b>eLua</b>, they
- agreed to send me a <a href="http://www.hitex.com/str9-comstick/">STR9-comStick</a> board to run <b>eLua</b> on it. Thank you very much for your help, once again. This is the board that I'm going to
- use through this tutorial.</p>
- <h3>Prerequisites</h3> 
- <p>Before you'll be able to use <b>eLua</b> on the STR912FAW44 CPU, make sure that:</p>
+<h3>Instalando <b>eLua</b> na família de CPUs STR9 da ST</h3>
+ <p>Entre os MCUs baseados em ARM disponíveis atualmente, as CPUs <a href="http://www.st.com/mcu/inchtml-pages-str9.html">STR9</a> da <a href="http://www.st.com">ST</a> continua em alta devido a algumas características únicas. Primeiro, seu núcleo é um ARM966-E, e não o popular núcleo ARM7TDMI. Isto, juntamente com alguns blocos de hardware habilmente escolhidos e embutidos no chip, permitem que a CPU rode a 96MHz, o que é muito rápido para um MCU de propósito geral. A CPU que estou usando (uma STR912FAW44) também tem 512K de flash (e um outro banco de 32K de flash) e 96k de memória RAM interna, assim você não vai ficar sem memória tão cedo. É acompanhada de uma biblioteca de apoio muito boa, e a ST fornece uma série de boas ferramentas para a STR9, incluindo uma ferramenta gráfica que você pode usar para configurar o chip, exatamente como você deseja. Quando eu escrevi para a ST sobre a <b>eLua</b>, eles concordaram em me enviar uma <a href="http://www.hitex.com/str9-comstick/">STR9-comStick</a> para rodar <b>eLua</b> nela. Muito obrigado pela ajuda de voces, mais uma vez. Esta é a placa que eu vou usar neste tutorial.</p>
+ <h3>Pré-requisitos</h3> 
+ <p>Antes de você começar a usar <b>eLua</b> na CPU STR912FAW44, certifique-se
+ de que:</p>
  <ul>
- <li>you're using Linux, Windows, or any other OS that has support for <a href="http://openocd.berlios.de/web/">OpenOCD</a>. You might have a look at my <a href="tut_openocd.html">OpenOCD tutorial</a> before continuing.</li>
- <li>if you're on Windows, you have installed the STR9-comStick support package from the accompanying CD.</li>
- <li>you already have your <b>eLua</b> image for the STR912FAW44 CPU (<a href="building.html">built</a> or <a href="downloads.html">downloaded</a>).</li>
+ <li>você está usando Linux, Windows, ou qualquer outro sistema operacional que tem suporte para <a href="http://openocd.berlios.de/web/">OpenOCD</a>. Você pode dar uma olhada no meu tutorial <a href="tut_openocd.html">OpenOCD tutorial</a> antes de continuar.</li>
+ <li>se você estiver usando Windows, instalou o pacote de apoio STR9-comStick a partir do CD que acompanha a placa..</li>
+ <li>você já tem o arquivo com a imagem de <b>eLua</b> para a CPU STR912FAW44 (<a href="building.html">gerado</a> ou <a href="downloads.html">baixado</a>).</li>
  </ul>
- <h3>Burning <b>eLua</b> to the STR9-comStick</h3>
- <p>You need OpenOCD to do this. Just follow the instructions from my <a href="tut_openocd.html">OpenOCD tutorial </a>. On the tutorial page you'll also find links to the OpenOCD
- configuration files that I'm using for burning <b>eLua</b> to the comstick.</p>
- <p><b>IMPORTANT NOTE</b>: for some very strage reasons (probably related to the on-board USB to JTAG converter) my comstick does NOT start to execute the code from its internal flash after being
- powered up via the USB cable (faulty reset sequence?). To overcome this, you'll find a special OpenOCD configuration file on my <a href="tut_openocd.html">OpenOCD tutorial</a> page. It is called <i>comrst.cfg</i>,
- and you can use it to reset your comstick after it is powered up.</p>
- <p>That's it! <b>eLua</b> is now programmed in the CPU, so you can start your terminal emulator and enjoy it, as described in <a href="using.html">using eLua</a>.
+ <h3>Gravando <b>eLua</b> na STR9-comStick</h3>
+ <p>Você precisa OpenOCD para fazer isso. Basta seguir as instruções do meu <a href="tut_openocd.html">tutorial OpenOCD</a>. Na página do tutorial você também encontrará links para os arquivos de configuração do OpenOCD que estou usando para gravar <b>eLua</b> no comStick.</p>
+ <p><b>NOTA IMPORTANTE:</b> devido a algumas razões desconhecidas (talvez relacionados com o conversor USB/JTAG on-board) meu comStick não inicia a execução do código da memória flash interna, depois de ter sido ligado via cabo USB (sequência de reset com defeito?). Para superarmos isso, acesse um arquivo de configuração especial do OpenOCD na minha <a href="tut_openocd.html">página do tutorial</a>. Chama-se comrst.cfg, e você poderá usá-lo para reiniciar a sua comStick depois que ela for ligada.</p>
+ <p>É isso! <b>eLua</b> está gravado na CPU, inicie agora o seu emulador de terminal e divirta-se, como descrito em <a href="using.html">usando eLua</a>.
 </p>
 $$FOOTER$$
 
