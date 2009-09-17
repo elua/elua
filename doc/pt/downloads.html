@@ -1,35 +1,25 @@
 $$HEADER$$
-<h3>Downloading eLua</h3>
-<p>You have a few options for downloading <b>eLua</b>:</p>
+<h3>Baixando eLua</h3>
+<p>Existem algumas opções para você fazer o download de <b>eLua</b>:</p>
 <ul>
-  <li>download a binary <b>eLua</b> image for your platform of choice. Binary images are provided with each official release
-  and also for some specific applications (ie: games). This is generally the best option if you have a bord that's officially
-  supported by <b>eLua</b> (see <a href="status.html">here</a> for details) and you want to have <b>eLua</b> up and running on your board as quickly as possible.</li>
-  <li>download the source code to build <b>eLua</b> yourself. You can either download the source code of an official release or get the "bleeding edge" version from the SVN repository. Download the source code instead of a
-  binary image if you need to make adjustments to the source code to support your board, or if you want to customize the <b>eLua</b> image, or if you simply want to take a look at what 
-  happens behind the <i>eLua# </i> prompt :)</li>
+  <li>download do arquivo de imagem binário de <b>eLua</b> para a sua plataforma escolhida. Imagens binárias são fornecidas a cada lançamento de versão oficial e também para algumas aplicações específicas (ex: jogos). Esta é geralmente a melhor opção caso você tenha uma placa que é oficialmente suportada por <b>eLua</b> (veja <a href="status.html">aqui</a> para mais detalhes) e você quer ter <b>eLua</b> instalada e funcionando em sua placa o mais rápido possível.</li>
+  <li>download do código-fonte para a geração de <b>eLua</b>. Você pode tanto baixar o código fonte de uma versão oficial ou obter uma novíssima versão do repositório SVN. Baixe o código fonte em vez de uma imagem binária, caso você precise fazer ajustes no código fonte para suportar sua placa, ou se você quiser personalizar a imagem de <b>eLua</b>, ou ainda se você simplesmente quer dar uma olhada no que acontece por trás do prompt <i>eLua# </i> :)</li>
 </ul>
 <br />
 <br />
-<a name="binaries" /><h3>Binary images</h3>
-<p>Pre-built images of <b>eLua</b> can be downloaded for each official release. Only the latest official <b>eLua</b> release is covered in this paragraph; if you want to download a pre-built
-image from an older release (although this isn't generally advisable), check <a href="dl_old.html">this page</a>. Choose the corresponding image file from the table below, flash it into your
-board, connect a serial terminal (or Ethernet if you board supports) and enjoy <b>eLua</b>. Also note that <b>eLua binaries</b>, like the <a href="#source">source code distribution</a>,
-include some example programs in it's file system, so you can run and play them (yes! we have games too! :), following the instructions in our <a href="using.html">Using eLua</a> page. The
-available example programs are described in our <a href="examples.html">examples page</a>.</p>><br />
-<p>If you need a customized binary image for an already supported platform (for example with an autorun program, with some code of yours in the file system, with your LAN IP settings) and the
-<a href="building.html">instructions for building eLua</a> didn't work for you, feel free to <a href="overview.html#contacts">write us</a> explaining what you need. We may find some time to
-build one for you and eventually make it available here too.</p><br />
-<p>To understand what's in a file name (for example <i>elua_lualong_lm3s8962.bin</i>) check our <a href="building.html">building eLua</a> page.</p>
+<a name="binaries" /><h3>Imagens Binárias</h3>
+<p>Podem ser baixadas imagens binárias de <b>eLua</b> de cada lançamento oficial. Aqui abordaremos somente a última versão oficial de <b>eLua</b>, mas caso você queira baixar uma imagem de uma versão mais antiga (embora isso não seja aconselhável), visite <a href="dl_old.html">esta página</a>. Escolha o arquivo imagem correspondente na tabela abaixo, grave-o em sua placa, ligue um terminal serial (ou ethernet se sua placa aceitar) e aproveite <b>eLua</b>. Observe que tanto os <b>arquivos binários</b> quanto a distribuição do código fonte de <b>eLua</b>, incluem alguns programas de exemplos, sendo assim, você poderá rodar e jogar (sim, existem jogos também!:), seguindo as instruções na nossa página <a href="using.html">Usando eLua</a>. Os programas de exemplos disponíveis estão descritos na nossa <a href="examples.html">página de exemplos</a>.</p><br />
+<p>Se você precisa de uma imagem binária personalizada para uma plataforma já suportada (por exemplo, com um programa de execução automática, com algum código específico criado por você já incluído no sistema, com as configurações da sua rede IP) e as <a href="building.html">instruções para a geração eLua</a> não servem para você, sinta-se a vontade para <a href="overview.html#contacts">escrever-nos</a> explicando o que você precisa exatamente. Assim, tentaremos encontrar algum tempo para gerar uma imagem para você e, eventualmente, também disponibilizá-la aqui.</p><br />
+<p>Para entender como é feita a formação de um nome de arquivo (por exemplo <i>elua_lualong_lm3s8962.bin</i>) consulte nossa página <a href="building.html">Gerando eLua</a>.</p>
 <!-- [NEWVER] -->
 <table class="table_center">
 <tbody>
 <tr>
-<th>Version</th>
+<th>Versão</th>
 <th>MCU</th>
-<th>Board</th>
-<th>Lua number type</th>
-<th>Image file</th>
+<th>Placa</th>
+<th>Tipo Num. Lua</th>
+<th>arquivo imagem</th>
 </tr>
 <tr>
 <td>0.5</td>
@@ -41,14 +31,14 @@ build one for you and eventually make it available here too.</p><br />
 <tr>
 <td>0.5</td>
 <td><a href="http://www.atmel.com/dyn/products/Product_card.asp?part_id=4104">AT91SAM7X512</a></td>
-<td>None</td>
+<td>Nenhum</td>
 <td>double</td>
 <td><a href="http://prdownload.berlios.de/elua/elua0.5_lua_at91sam7x512.bin">elua0.5_lua_at91sam7x512.bin</a></td>
 </tr>
 <tr>
 <td>0.5</td>
-<td><a href="http://www.intel.com">i386 (generic)</a></td>
-<td>PCs/emulators</td>
+<td><a href="http://www.intel.com">i386 (genérico)</a></td>
+<td>PCs/emuladores</td>
 <td>double</td>
 <td><a href="http://prdownload.berlios.de/elua/elua0.5_lua_i386.elf">elua0.5_lua_i386.elf</a></td>
 </tr>
@@ -89,29 +79,26 @@ build one for you and eventually make it available here too.</p><br />
 </tr>
 </tbody>
 </table>
-<p><b>NOTE:</b> <i>Lua number type</i> reffers to the built Lua interpreter number type, float or integer, as explained in the <a href="building.html">building eLua</a> page.</p>
+<p><b>NOTA:</b> <i>Tipo numérico de Lua</i> refere-se ao tipo numérico do interpretador Lua gerado, ponto-flutuante ou inteiro, como já explicado na página <a href="building.html">Gerando eLua</a>.</p>
 <br />
 <br />
-<a name="source" /><h3>Source code</h3>
-<p>If all you want is to take a quick peek at <b>eLua</b>'s source code, but you don't need to download it, it's probably enough to use the 
-<a href="http://svn.berlios.de/wsvn/elua">BerliOS WebSVN interface</a>. You can browse through the complete source of <b>eLua</b> using this method.<br />
-If you need to download the source code of <b>eLua</b> you can either:</p>
+<a name="source" /><h3>Código Fonte</h3>
+<p>Mas se tudo o que você quer, é dar uma espiada no código-fonte de <b>eLua</b>, então não é preciso baixá-lo, veja a <a href="http://svn.berlios.de/wsvn/elua">interface BerliOS WebSVN</a>. Você pode dessa maneira navegar através do fonte completo de <b>eLua</b>. Se realmente você precisa baixar o código fonte de <b>eLua</b>, poderá tanto:</p>
 <ul>
-  <li>download the source code archive of an official release</li>
-  <li>checkout the latest (bleeding edge) source code from the SVN repository in read-only mode (anonymous) mode</li>
-  <li>checkout the latest (bleeding edge) source code from the SVN repository in read-write mode (for developers)</li>
+  <li>Baixar o código-fonte de uma versão oficial</li>
+  <li>Baixar o código-fonte do repositório SVN no modo só de leitura (modo anônimo)</li>
+  <li>Baixar o código-fonte do repositório SVN no modo de gravação (para desenvolvedores)</li>
 </ul>
 <br />
 <br />
-<a name="official" /><h2>Source code archives</h2>
-<p>Check the table below for the download link of the source code associated with the latest official release of <b>eLua</b>. If you want to get the source
-code of an older version, check out <a href="dl_old.html">this page</a>.</p>
+<a name="official" /><h2>Arquivos do código fonte</h2>
+<p>Verifique na tabela abaixo o link de download do código-fonte associado com a última versão oficial de <b>eLua</b>. Se você deseja obter o código fonte de uma versão mais antiga, confira <a href="dl_old.html">esta página</a>.</p>
 <!-- [NEWVER] -->
 <table class="table_center">
 <tbody>
 <tr>
 <th>Version</th>
-<th>Source code archive</th>
+<th>Arquivos do código fonte</th>
 </tr>
 <tr>
 <td>0.5</td>
@@ -120,26 +107,25 @@ code of an older version, check out <a href="dl_old.html">this page</a>.</p>
 </tbody></table>
 <br />
 <br />
-<a name="svnpublic" /><h2>SVN public repository (anonymous read-only mode)</h2>
-<p>If you'd rather have the very last development ("bleeding edge") version, just check it out from our Subversion Repository:</p>
+<a name="svnpublic" /><h2>Repositório público SVN (modo anônimo somente-leitura)</h2>
+<p>Caso você prefira a última versão em desenvolvimento ("novíssima"), basta verificar em nosso repositório Subversion da seguinte maneira:</p>
 <pre>$ svn checkout svn://svn.berlios.de/elua/trunk</pre>
-<p>Once checked out, the repository can be easily updated by the svn client command:</p>
+<p>Uma vez feita a verificação, o repositório pode ser facilmente atualizado através do comando:</p>
 <pre>$ svn update</pre>
 <br />
 <br />
-<a name="svndev" /><h2>SVN public repository (authenticated login r/w mode, for developers)</h2>
-<p>Follow the steps below if you need write access to the <b>eLua</b> repository:</p>
+<a name="svndev" /><h2>Repositório público SVN (modo de gravação com login de autenticação, para desenvolvedores)</h2>
+<p>Siga os passos abaixo, caso você precise de acesso de gravação para o repositório <b>eLua</b>:</p>
 <ul>
-  <li>if you don't have an account on <a href="http://developer.berlios.de/">developer.berlios.de</a>
-  and you plan to contribute with code for the project, please create one.</li>
-  <li><a href="overview.html#contacts">contact us</a> specifying your BerliOS ID and we'll give you write
-  (commit) access to the subversion repository.</li>
+  <li>Crie uma conta de acesso ao <a href="http://developer.berlios.de/">developer.berlios.de</a>
+  caso você planeje contribuir com código para o projeto.</li>
+  <li><a href="overview.html#contacts">Entre em contato conosco</a> para identificar o seu ID e lhe daremos acesso de gravação
+  (commit) ao repositório subversion.</li>
 </ul>
-<p>Then checkout the repository:</p>
+<p>Então, faça uma verificação no repositório:</p>
 <pre>$ export SVN_SSH='ssh -l &lt;yourberliosid&gt;'
 $ svn checkout svn+ssh://svn.berlios.de/svnroot/repos/elua/trunk</pre>
-<p>Once checked out, the repository can be easily updated:</p>
+<p>Uma vêz feito, o repositório poderá ser facilmente atualizado com:</p>
 <pre>$ svn update</pre>
-
 $$FOOTER$$
 

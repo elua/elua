@@ -109,7 +109,7 @@ local menu =
           { "Cross-compiling", "using.html#cross" },
         },
       },
-      { { "Code Examples", "Exemplos de Código" }, "examples.html" },
+      { { "Code examples", "Exemplos de Código" }, "examples.html" },
       { { "FAQ", "Perguntas Frequêntes" }, "faq.html" },
       { { "Tutorials", "Tutoriais" }, "tutorials.html",
         {
@@ -117,7 +117,7 @@ local menu =
           { { "Booting from a PenDrive", "Bootando de um Pen-Drive" }, "tut_bootstick.html" },
           { { "Using OpenOCD", "Usando OpenOCD" }, "tut_openocd.html" },
           { { "Building eLua", "Build de eLua" }, "building.html" },
-          { { "eLua Toolchains", "Toolchains para eLua" }, "toolchains.html" },
+          { { "eLua toolchains", "Toolchains para eLua" }, "toolchains.html" },
           { { "Building toolchains", "Build de Toolchains" }, "tchainbuild.html",
             {
               { "ARM7 and ARM9", "tc_arm.html" },
@@ -138,7 +138,7 @@ local menu =
     {
       { { "Structure", "Estrutura" }, "arch_overview.html#structure" },
       { { "Common code", "Código Básico" }, "arch_overview.html#common" },
-      { { "Interface Architecture", "Interfaceamento" }, "arch_overview.html#platform" },
+      { { "Interface architecture", "Interfaceamento" }, "arch_overview.html#platform" },
       { { "Platforms/ports", "Portabilização" }, "arch_overview.html#platforms" },
       { { "Booting eLua", "O Boot de eLua" }, "arch_overview.html#boot" }
     }
@@ -148,7 +148,7 @@ local menu =
   { { "Platform interface", "Interfaceamento" }, "arch_platform.html", "arch_platform" },
 
   -- Other WRITE THE arch_platform_other.html file
-  { { "Some more Info", "Informações Adicionais" }, "#", 
+  { { "More information", "Informações Adicionais" }, "#", 
     {
       { { "ROM file system", "O ROM File System" }, "arch_romfs.html" },
       { { "Adding a new port", "Portando eLua" }, "arch_newport.html" },
