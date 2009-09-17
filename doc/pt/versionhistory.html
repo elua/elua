@@ -1,85 +1,84 @@
 $$HEADER$$
-<h3>eLua version history</h3>
-<p>A tabela abaixo apresenta o histórico de todas as versões oficiais
-lançadas pelo projeto <b>eLua</b>.
-</p>
-
+<h3>Histórico das Versões de eLua</h3>
+<p>A tabela abaixo apresenta a histórico de todas as versões oficiais de <b>eLua</b> (em ordem inversa, da mais recente à mais antiga)..</p>
 <table style="text-align: left" class="table_center">
 <tbody>
 <tr>
-<th style="text-align: left;">Version</th> 
-<th style="text-align: center;">Release date</th>
-<th style="text-align: center;">Description</th>
+<th style="text-align: left;">Versão</th> 
+<th style="text-align: center;">Lançada em</th>
+<th style="text-align: center;">Descrição</th>
 </tr>
 <tr>
   <td align="center" style="color: rgb(255, 102, 0);">0.5</td>
   <td align="center">01.11.2008</td>
   <td><ul>
-  <li>Added support for STR7 CPUs from ST</li>
-  <li>Added TCP/IP support using the uIP stack</li>
-  <li>Added support for console and shell over TCP/IP besides the previous serial link</li>
-  <li>Added the "net" module (eLua's interface to TCP/IP functions)</li>
-  <li>Added the "cpu" module (eLua's interface to the target CPU)</li>
-  <li>New samples: morse.lua (Morse code encoder), lhttpd.lua (Lua scripting HTTP server)</li>
-  <li>Added support for cross-compiling Lua code (compile on PC, run on target)</li>
-  <li>XMODEM can now receive Lua bytecode in addition to Lua source code</li>
-  <li>The XMODEM buffer is now dynamic (grows as needed) instead of fixed size</li>
-  <li>Project documentation updated</li>
+  <li>Adicionado suporte para CPUs STR7 da ST</li>
+  <li>Adicionado Suporte TCP/IP usando a pilha uIP</li>
+  <li>Adicionado suporte para a console e o shell sobre TCP/IP, além da já existente conexão serial</li>
+  <li>Adicionado o módulo "net" (interface de eLua para funções TCP/IP)</li>
+  <li>Adicionado o módulo CPU " (interface de eLua para a CPU corrente)</li>
+  <li>Novos exemplos: morse.lua (codificador de código Morse), lhttpd.lua (servidor HTTP em Lua)</li>
+  <li>Adicionado suporte para cross-compilar de código Lua (compile no PC e execute na sua placa)</li>
+  <li>A partir de agora, o protocolo XMODEM pode receber bytecode Lua além de código fonte Lua</li>
+  <li>O buffer do XMODEM agora é dinâmico (cresce conforme necessário) em vez de ter um tamanho fixo</li>
+  <li>A documentação do projeto foi atualizada</li>
 </ul></td>
 </tr>
 <tr>
   <td align="center" style="color: rgb(255, 102, 0);">0.4.1</td>
   <td align="center">10.09.2008</td>
   <td><ul>
-  <li>changed from Lua version 5.1.3 to Lua version 5.1.4</li>
-  <li>Changed the file system structure; now you can build both Lua versions (floating point and int only) from the same directory</li>
-  <li>Made the math library configurable using the existent 'platform libraries' mechanism</li>
-  <li>The "os" and "package" modules are no longer loaded by Lua, since they can't be used anyway. Because of this, the code size of eLua was reduced.</li>
-  <li>Project documentation updated</li>
+
+
+  <li>alterada a versão de Lua de 5.1.3 para 5.1.4</li>
+  <li>alterada a estrutura do sistema de arquivos, agora você pode gerar as duas versões de Lua (ponto flutuante e inteiro) a partir do mesmo diretório</li>
+  <li>biblioteca matemática configurável usando o mecanismo já existente das "bibliotecas da plataforma"</li>
+  <li>Os módulos "os" e "package" não são mais carregados por Lua, já que não podem ser mais utilizados. Devido a isso, o tamanho do código de eLua foi reduzido.</li>
+  <li>A documentação do projeto foi atualizada</li>
 </ul></td>
 </tr>
 <tr>
   <td align="center" style="color: rgb(255, 102, 0);">0.4</td>
   <td align="center">02.09.2008</td>
   <td><ul>
-  <li>Added support for LPC2888 (preliminary)</li>
-  <li>Added PWM module</li>
-  <li>New samples: TV-B-Gone (power off your TV), piano (play piano from your PC keyboard), pwmled (fade led on/off), all based on the new PWM module</li>
-  <li>Added support for multiple memory spaces (this can be used to take advantage of both the internal CPU RAM and external RAM chips on boards that have external RAM)</li>
-  <li>Autorun: if "autorun.lua" is found in the filesystem, it is executed before starting the shell</li>
-  <li>Added "pack" (binary data packing/unpacking) and "bit" (binary operations) modules</li>
-  <li>Build system updated, easier to use, now it knows how to handle "boards" as well as CPUs</li>
-  <li>Modified the existing platform modules to take less RAM and to report an error when an unavailable resource is requested</li>
-  <li>Project documentation updated</li>
+  <li>Adicionado suporte para LPC2888 (preliminar)</li>
+  <li>Adicionado módulo PWM</li>
+  <li>Novos exemplos: TV-B-Gone (desliga sua TV), piano (toque piano do teclado de seu computador), pwmled (fade in/out), todos baseados no novo módulo PWM</li>
+  <li>Adicionado suporte para múltiplos espaços de memória (isso pode ser usado para tirar proveito de CPUs com memória RAM interna e chips com memória RAM externa na placa)</li>
+  <li>Autorun: se "autorun.lua" existir no sistema de arquivos, é executado automaticamente antes de iniciar o shell</li>
+  <li>Adicionado os móulos "pack" (compactação/descompactação de dados binário) e "bit" (operações binárias)</li>
+  <li>sistema de geração de <b>eLua</b> atualizado, fácil de usar, agora ele sabe como lidar com "placas", bem como CPUs</li>
+  <li>Modificado os módulos das plataformas já existentes para ocupar menos memória RAM e emitir um aviso de erro quando um recurso indisponível é solicitado</li>
+  <li>A documentação do projeto foi atualizada</li>
 </ul></td>
 </tr>
 <tr>
   <td align="center" style="color: rgb(255, 102, 0);">0.3</td>
   <td align="center">09.08.2008</td>
   <td><ul>
-  <li>Now you can play hangman directly from <b>eLua</b> :), thanks to the new "term" module that handles ANSI escape sequences</li>
-  <li>Added support for ST STR912FAW44</li>
-  <li>Added support for Cortex LM3S6965</li>
-  <li>More intuitive and flexible build system (new syntax, component selection at build time)</li>
-  <li>eLua examples are now part of the repository</li>
-  <li>Project documentation updated</li>
+  <li>Agora você pode jogar "forca" diretamente de <b>eLua</b> :), graças ao novo módulo "term" que manipula seqüências de escape ANSI</li>
+  <li>Adicionado suporte para a ST STR912FAW44</li>
+  <li>Adicionado suporte para o Cortex LM3S6965</li>
+  <li>Sistema de geração de <b>eLua</b> mais intuitivo e flexível (nova sintaxe ,seleção de componentes em tempo de compilação)</li>
+  <li>Exemplos de eLua são agora parte do repositório</li>
+  <li>A documentação do projeto foi atualizada</li>
 </ul></td>
 </tr>
 <tr>
   <td align="center" style="color: rgb(255, 102, 0);">0.2</td>
   <td align="center">27.08.2008</td>
   <td><ul>
-  <li>Added support for Cortex LM3S8962</li>
-  <li>New platform modules (UART, SPI, Timer, platform data)</li>
-  <li>First release of the shell</li>
-  <li>Lua source files can now be sent to target with XMODEM</li>
-  <li>You can download binary file images from the "files" section, so you don't need to compile <b>eLua</b> yourself</li>
+  <li>Adicionado suporte para o Cortex LM3S8962</li>
+  <li>Novos módulos de plataforma (UART, SPI, Timer, dados da plataforma)</li>
+  <li>Primeiro lançamento do shell</li>
+  <li>Arquivos fonte de Lua podem ser enviados para a placa com XMODEM</li>
+  <li>Pode-se baixar arquivos de imagem binários a partir da seção "files", dessa forma, não é necessário compilar <b>eLua</b></li>
 </ul></td>
 </tr>
 <tr>
   <td align="center" style="color: rgb(255, 102, 0);">0.1</td>
   <td align="center">11.08.2008</td>
-  <td><ul><li>Initial release, had support for i386 and AT91SAM7X platform</li></ul></td>
+  <td><ul><li>Versão inicial, com suporte para as plataformas i386 e AT91SAM7X</li></ul></td>
 </tr>
 </tbody>
 </table>
