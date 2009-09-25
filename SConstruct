@@ -1,4 +1,4 @@
-import os, sys
+import os, sys, shutil
 target = ARGUMENTS.get( 'target', 'lua' ).lower()
 cputype = ARGUMENTS.get( 'cpu', '' ).upper()
 allocator = ARGUMENTS.get( 'allocator', '' ).lower()
@@ -284,8 +284,11 @@ if not GetOption( 'clean' ):
   import mkfs
   mkfs.mkfs( "romfs", "romfiles", flist )
   print
-  os.system( "mv -f romfiles.h inc/" )
-  os.system( "rm -f src/fs.o" )
+  if os.path.exists( "inc/romfiles.h" ): 
+    os.remove( "inc/romfiles.h" )
+  shutil.move( "romfiles.h", "inc/" )
+  if os.path.exists( "src/fs.o" ): 
+    os.remove( "src/fs.o" )
 
 # Env for building the program
 comp = Environment( CCCOM = tools[ platform ][ 'cccom' ],
