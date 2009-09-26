@@ -1,98 +1,132 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
-<html><head>
-<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-<meta http-equiv="Content-Language" content="en-us"><title>Product</title>
+$$HEADER$$
+<a name="whatis" /><h3>O que é eLua ?</h3>
+<p><strong>eLua</strong>
+significa <strong>Embedded Lua</strong> e o projeto projeto visa trazer a
+funcionalidade completa da linguagem de programação <a href="http://www.lua.org">Lua</a> para o mundo
+do desenvolvimento de software embedded.</p>
+<p>A implementação busca oferecer isto de uma forma
+simples, para que não só desenvolvedores experiêntes mas também iniciantes no mundo embarcado e até
+mesmo usuários finais dos sistemas, possam desenvolver e alterar o comportamento dos códigos de seus produtos.</p>
 
-<link rel="stylesheet" type="text/css" href="../style.css"></head>
-<body style="background-color: rgb(255, 255, 255);">
-<a name="whatis"></a><h3>What is eLua ?</h3>
-<strong>eLua</strong>
-stands for <strong>Embedded Lua</strong> and the project
-aims to offer the full set of features of the&nbsp;<a href="www.lua.org">Lua Programming Language</a> to the embedded world. <span style="font-weight: bold;"><br>eLua</span>
-is not a striped down sub-sub-set of a language, much on the contrary.
-Besides offering different flavors &nbsp;of full Lua implementations
-(ie: integer or fp numbers, ...), <span style="font-weight: bold;">eLua</span>
-extends Lua with some neat types
-for the embedded world (ie: light tables, light functions, ...), to
-allow them to be romable and&nbsp;the aplications to exploit better the
-balance ROM/RAM of the current MCUs.<br><br>
-Lua is the perfect example of a
-minimal, yet fully
-functional language. Although generally advertised as a "scripting
-language" (and used accordingly especially in the game industry), it is
-also fully capable of running stand-alone programs. Its limited
-resource requirements make it suitable to a lot of microcontroller
-families. Lua's incredible portability (Lua code is ANSI C and runs virtually in every known platform) and <span style="font-weight: bold;">eLua</span>'s
-roadmap for supporting the most used MCUs on the market, opens to the
-embedded world a new degree of "portability". Write your program in Lua
-and run it, without or with very few modifications, on every <span style="font-weight: bold;">eLua</span> supported platform, even with different architectures!<br><br>The aim of the project is to have a fully functional Lua development
-environment <strong>on the microcontroller itself</strong>,
-without the need to install a specific development environment&nbsp;on the PC side.
-Initially, a PC will still be needed in order to edit the Lua programs
-for the microcontroller. But as the project evolves this requirement
-will be relaxed, as a basic editor (also residing on the
-microcontroller) will be usable with a variety of input/output devices.<br><br><span style="font-weight: bold;"></span><br>
-<br><br>
-<a name="audience"></a><br><h3>Audience</h3>
-<span style="font-weight: bold;">eLua</span> has a wide and varied audience, from highly skilled developers
-that want to extend their programs with the Lua library facilities and
-portable features, to the newcomer to the embedded world, who wants an
-easy and powerfull environment for prototyping, rapid application
-development, educational or final product quick production.<br><br><span style="font-weight: bold;">eLua</span>
-allows new embedded world programmers to use the simplicity and
-powerfullness of the Lua programming language, to hide low-level
-complexities and platform/architecture-dependent features. A whole new
-class of embedded programmers, with no deep knowledge of the peripheral
-details but with powerfull aplications in mind is now possible. Modern
-designers and multimedia artists are already an example of this "class".<br><br>On
-the other edge of the category, oldtime and skilled embedded developers
-can create complex and abstract modules, offering a degree of portability
-to the final user never dreamed before on the embedded world.<br><br>eLua audience would be among&nbsp;the following categories:<br><ul><li>Embedded developers that are looking for a fast, easy to use and powerful way of coding.</li><li>First-time
-embedded programmers (or simply first time programmers)&nbsp; that are
-looking for an easy way to "dive" into the embedded programming world.
-eLua is a great learning tool.</li><li>People that aren't really
-developers, but&nbsp;want to be able to prototype an embedded system
-fast and painless, without having to learn C for that.</li><li>Embedded
-developers that need powerfull meta-language mecanisms for complex code
-algorithms and data description, not offered by the languages available
-to the embedded development world.</li><li>Field
-engineers that can go their customer site and debug an eLua module on
-site, without any preparation at all, since the whole development
-environment resides on chip already.</li></ul><br><a name="authors"></a>
-<h3>Authors</h3>
-<p><strong>eLua</strong> is a joint project of <strong><a href="#contacts">Bogdan Marinescu</a></strong>,
-a software developer from Bucharest (Romania) and <strong><a href="#contacts">Dado Sutter</a></strong>,
-head of the Led Lab at <a href="http://www.puc-rio.br/">PUC-Rio
-University</a>, in Rio de Janeiro (Brazil). </p>
-<p>Its origins come from the <a href="http://www.circuitcellar.com/renesas2005m16c/winners/1685.htm">ReVaLuaTe</a>
-project also developed by Bogdan Marinescu (as a contest entry for the
-2005 Renesas M16CDesign Contest), and the Volta Project, managed by
-Dado Sutter at PUC-Rio from 2005 to 2007.</p>
-<p><strong>eLua</strong> is an Open Source and
-collaborative project and an always growing list of collaborators can
-be found in our <a href="#credits">Credits
-Page</a></p><p></p>
-<div style="text-align: center;"><span style="font-weight: bold;"></span><br><span style="font-weight: bold;"></span></div><table style="width: 578px; height: 256px; text-align: left; margin-left: auto; margin-right: auto;" border="1" cellpadding="2" cellspacing="2"><tbody><tr><td style="text-align: center; font-family: Verdana; font-weight: bold;" valign="undefined"><big>ReVaLuaTe Project</big></td><td style="text-align: center; font-family: Verdana; font-weight: bold;" valign="undefined"><big>Volta Project</big></td></tr><tr><td style="text-align: center;" valign="undefined"><img style="width: 278px; height: 188px;" alt="ReVaLuaTe project picture" src="../wb_img/terminalreneseas.jpg"></td><td style="text-align: center;" valign="undefined"><img style="width: 278px; height: 209px;" alt="Volta project picture" src="../wb_img/volta-small.jpg"></td></tr></tbody></table><div style="text-align: center;"><span style="font-weight: bold;"></span><br><span style="font-weight: bold;"></span><br><span style="font-weight: bold;"></span><br><span style="font-weight: bold;"></span></div><br><a name="contacts"></a>
-<h3>Contacts</h3>
-<p><strong>eLua</strong> authors can be contacted at:</p><p><strong>Bogdan Marinescu:</strong> bogdan dot marinescu at gmail dot com</p>
+<p><strong>eLua</strong> não é uma versão reduzida de Lua, muito pelo contrário, ela
+oferece os recursos completos da versão desktop de Lua, complementando-a
+ainda com características específicas para o uso embedded. 
+Oferece também a mesma possibilidade de escolha no uso de implementações diferentes
+de Lua (ex: Lua Inteiro x Lua Ponto-Flutuante etc...). Muito trabalho foi e ainda será feito no sentido de tornar Lua mais "amigável" no mundo embedded, 
+como as características já adicionadas que permitem a redução dos requisitos de memória.</p>
+<p>Lua é o exemplo perfeito de uma linguagem mínima e, ainda assim, totalmente funcional. Embora geralmente anunciada como uma linguagem de "scripting" (e utilizada
+fortemente como tal na indústria de jogos e em tantas outras áreas), Lua é capaz de executar programas como qualquer outra linguagem tradicional
+e grandes sistemas e aplicações (desktop ou web) são desenvolvidos hoje utilizando
+seu poder e sua performance (ex: Adobe Lightroom).
+Suas necessidades em recursos limitados, a tornam especialmente adequada para um grande número de famílias de microcontroladores. 
+A alta portabilidade intrínseca do código Lua original (que é ANSI C e funciona praticamente em todas as plataformas
+que se conhece hoje), combinada com a arquitetura do software de <b>eLua</b>, altamente portátil, 
+permite a migração fácil para uma grande variedade e arquiteturas de
+microcontroladores. 
+As bibliotecas de acesso a periféricos exportadas por <b>eLua</b> também são portáteis por
+definição, podendo-se assim executar um mesmo programa em Lua, sem ou com poucas
+modificações, em cada plataforma suportada por <span style="font-weight: bold;">eLua</span> (o <a href="status.html">status do projeto &amp; roadmap</a> 
+mostram uma lista sempre crescente de plataformas em que <b>eLua</b> é suportada). 
+<b>eLua</b> herdou o design minimalista e funcional de Lua, mantendo a filosofia bem conhecida do "<b>KISS</b>" - "<i>Keep It Small and Simple</i>", que significa "Mantenha seu código
+e sua arquitetura simples e reduzidos".</p>
 
-<p><strong>Dado Sutter:</strong>      dadosutter at gmail dot com</p>&nbsp; <br>&nbsp; &nbsp;You are also welcome to share your questions and suggestions on our <a href="comunity.html#lists">Mail Discussion List</a>
-<p></p><a name="license"></a>
-<h3>License</h3>
-<div class="content">
-<p><strong>eLua</strong> is Open Source and is freely
-distributed under the GPL (migrating to BSD soon) licence.</p>
-<p>The Lua code (with slight modifications) is included in the
-source
-tree and is, of course, licensed under the same MIT license that Lua
-uses.</p>
-<p>The terms of each of these licences can be viewed on their own
-pages at:</p>
-<p><a target="_top" href="http://en.wikipedia.org/wiki/GNU_General_Public_License">GPL
-Licence</a></p>
-<p><a target="_top" href="http://en.wikipedia.org/wiki/BSD_license#Terms">BSD
-Licence</a></p>
-<p><a target="_top" href="http://en.wikipedia.org/wiki/MIT_License">MIT
-Licence</a></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p><a href="http://en.wikipedia.org/wiki/MIT_License"></a></p>
-</div>
-</body></html>
+<a name="features"></a><h3>Recursos</h3>
+<p>Como já foi dito, <b>eLua</b> permite que você execute Lua diretamente no seu microcontrolador. 
+Um grande conjunto de módulos complementares já existe para a programação de periféricos <strong>eLua</strong>
+e o desenvolvimento de novos tem um crescimento cada vez mais rápido.</p>
+<p>Relacionamos a seguir as funções que estão prontas ou sendo implementadas:</p>
+<ul>
+  <li>um sistema de configuração do build flexível</li>
+  <li>acesso ao interpretador Lua na sua MCU, através de uma variedade de transportes físicos
+  (RS-232, ethernet, ...)</li>
+  <li>uma biblioteca de periféricos independentes de plataforma (PIO, UART, PWM, SPI, TMR, ADC, NET,
+  I2C, CAN ...)</li>
+  <li>um File System (ainda ROM), fácil de ser portado para diferentes tipos de chips de memória e outros dispositivos de armazenamento</li>
+  <li>um pequeno Fyle System FAT R/W, para cartões MMC e SD</li>
+  <li>um shell próprio mínimo (para operações com arquivos, configuração do ambiente e outros recursos)</li>
+  <li>suporte a redes TCP/IP</li>
+  <li>um servidor http embedded</li>
+  <li>terminal/console usando Ethernet</li>
+  <li>depuração (diretamente no MCU ou remotamente com o PC)</li>
+  <li>execução distribuida de código (LuaRPC)</li>
+</ul>
+
+<p>Para obter mais informações sobre as funcionalidades (implementadas e previstas) em <strong>eLua</strong> veja a <a href="status.html">página de status</a>.</p>
+<p>O projeto foi concebido de forma a que migrar <strong>eLua</strong> para uma outra plataforma
+ou mesmo arquitetura, seja algo fácil de ser realizado. 
+Atualmente, esta migração está restrita às plataformas para as quais gcc + newlib estejam disponíveis. 
+Esta restrição irá desaparecer em um futuro próximo, já que <b>eLua</b> terá sua própria libc e, portanto, 
+estará disponível em um leque mais amplo de MCUs.</p>
+<p>Lua está disponível em duas implementações: "Lua padrão" (usando ponto flutuante) e "Lua inteiro" (usando inteiro). 
+"Lua padrão" realiza operações de ponto flutuante (mais lentas devido a emulação via software no MCU), 
+enquanto "Lua inteiro" realiza operações com números inteiros 
+(suporte para ponto fixo e ponto flutuante podem ser adicionados em módulos separados) e assim será mais rápido.</p>
+
+<a name="audience"></a><h3>Público Alvo</h3>
+<p><span style="font-weight: bold;">eLua</span> tem uma audiência ampla e
+variada, desde recém-chegados ao mundo embedded que desejam um fácil e poderoso ambiente para prototipação, 
+desenvolvimento e produção rápida de aplicações, como desenvolvedores altamente
+qualificados, que precisam expandir seus programas com recursos de
+bibliotecas de alto nível com muita portabilidade.</p>
+<p><span style="font-weight: bold;">eLua</span> permite que programadores do mundo embedded usem a simplicidade 
+e o poder da linguagem de programação Lua e não precisem se preocupar com as complexidades e 
+características da plataforma/arquitetura-dependente do hardware. 
+Com <b>eLua</b>, o programador pode concentrar-se na implementação do seu programa, 
+sem ter que se preocupar com acesso à registros e configuração de periféricos, já que as bibliotecas da plataforma cuidam disso. 
+Com isso, aumentamos a produtividade e eliminamos tarefas muitas vezes frustrantes de lidar com drivers
+complexos de plataformas específicas.</p>
+<p>A lista abaixo resume o público-alvo de <b>eLua</b>:</p>
+<ul>
+  <li>Desenvolvedores de sistemas embarcados que estão procurando uma maneira rápida, fácil de usar e uma poderosa forma de codificação.</li>
+  <li>Novos programadores de sistemas embarcados (ou simplesmente programadores) que estão procurando uma maneira fácil de "mergulhar" no mundo da programação
+  embedded. <b>eLua</b> é uma grande ferramenta de aprendizagem.</li>
+  <li>Pessoas que não são realmente os desenvolvedores, mas ainda assim, querem ser capazes de projetar sistemas embarcados de forma rápida e sem muita dor-de-cabeça, sem ter para isso que aprenderem a linguagem C.
+  (Designers, artistas, ...)</li>
+  <li>Desenvolvedores de sistemas embarcados que necessitam de mecanismos poderosos de
+  meta-linguagem, para codificar algoritmos complexos e descrição de dados.</li>
+  <li>Engenheiros de campo que podem ir aos seus clientes e realizar depuração de módulos de <b>eLua</b> no local, sem para isso, necessitar de preparação, já que o ambiente de desenvolvimento reside em um chip.</li>
+</ul>
+
+<a name="authors" /><h3>Autores</h3>
+<p><strong>eLua</strong> é um projeto conjunto de <strong><a href="#contacts">Bogdan Marinescu</a></strong>, um desenvolvedor de software de Bucarest, 
+na Romênia e <strong><a href="#contacts">Dado Sutter</a></strong>, que
+dirige o Laboratório LED Lab na <a href="http://www.puc-rio.br/">Pontifícia Universidade Católica, PUC-Rio</a>, no Rio de
+Janeiro, Brasil.</p>
+<p>Suas origens vêm dos projetos <a
+href="http://www.circuitcellar.com/renesas2005m16c/winners/1685.htm">ReVaLuaTe</a>, 
+também desenvolvido pelo Bogdan Marinescu (como participante do concurso Renesas M16C Design de 2005) e do Projeto Volta,
+desenvolvido por Dado Sutter na PUC-Rio entre 2005 e 2007.</p>
+<p><strong>eLua</strong> é um projeto Open Source e uma lista crescente de colaboradores pode ser encontrada na nossa <a
+href="en_comunity.html#credits">página de créditos</a></p>
+<br />
+<table style="width: 578px; height: 256px; text-align: left; margin-left: auto; margin-right: auto;" border="1" cellpadding="2" cellspacing="2">
+<tbody>
+<tr>
+  <td style="text-align: center; font-family: Verdana; font-weight: bold;"><big>Projeto ReVaLuaTe</big></td>
+  <td style="text-align: center; font-family: Verdana; font-weight: bold;"><big>Projeto Volta</big></td>
+</tr>
+<tr>
+  <td style="text-align: center;"><img style="width: 278px; height: 188px;" alt="ReVaLuaTe project picture" src="images/terminalreneseas.jpg" /></td>
+  <td style="text-align: center;"><img style="width: 278px; height: 209px;" alt="Volta project picture" src="images/volta-small.jpg" /></td>
+</tr>
+</tbody>
+</table>
+<br />
+<br />
+<br />
+<a name="contacts" /><h3>Contatos</h3>
+<p>Os autores de <strong>eLua</strong> podem ser contactados em:</p><p><strong>Bogdan Marinescu:</strong> bogdan.marinescu -at- gmail.com</p>
+<p><strong>Dado Sutter:</strong> dadosutter -at- gmail.com</p>
+<p>Sejam bem-vindos e compartilhem suas dúvidas e sugestões em nossa <a href="comunity.html#lists">Lista de Discussão</a></p>
+<br />
+<br />
+<a name="license" /><h3>Licença</h3>
+<p><strong>eLua</strong> é Open Source e é distribuída gratuitamente sob a licença MIT.</p>
+<p>A licença MIT, diferentemente de outras licenças de código aberto (ex:
+GPL), permite que produtos de código proprietário sejam desenvolvidos
+utilizando <b>eLua</b>.</p>
+<p>O código Lua (com todas as mudanças específicas de <strong>eLua</strong>) está incluído na árvore de origem e
+é, naturalmente, licenciado sob a mesma <a href="http://en.wikipedia.org/wiki/MIT_License">licença MIT de Lua.</a></p>
+<p>Há ainda outros (poucos) componentes com diferentes licenças hoje, em uso no código de <strong>eLua</strong>. 
+Consulte o arquivo <strong>COPYING</strong> na distribuição fonte para maiores detalhes.</p>
+$$FOOTER$$

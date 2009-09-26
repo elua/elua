@@ -1,0 +1,84 @@
+$$HEADER$$
+<h3>eLua consoles and terminals</h3>
+<p>In <b>eLua</b>, a <b>console</b> and a <b>terminal</b> serve two related, but different purposes:</p>
+<ul>
+  <li>the <b>console</b> takes care of basic user input/output. They come in two flavours: serial consoles and TCP/IP consoles (note that the two can't coexist at the same time).</li>
+  <li>the <b>terminal</b> enhances the console in order to take advantage of ANSI terminals and their advanced control functions, like explicit cursor positioning, clear screen and others. At this
+  time, terminals work only over serial connections, not over TCP/IP (like consoles).</li>
+</ul>
+<p>Both components can be enabled and disabled as needed (they don't rely on each other). See <a href="building.html">building eLua</a> for details on how to enable and disable components.</p>
+<h2>Serial consoles</h2>
+<p>The serial console input/output is handled by a generic layer (<i>src/newlib/genstd.c</i>) that can be used to easily adapt the console subsystem to a variety of input/output devices. 
+  It needs just two functions, one for displaying characters and another one for receiving input with timeout:</p>
+<pre><code>// Send/receive function types
+typedef void ( *p_std_send_char )( int fd, char c );
+typedef int ( *p_std_get_char )( s32 to );
+</code></pre>
+<p>(the <b>send</b> faction gets an additional <b>fd</b> parameter that you can use to  differentiate between the standard C stdout and stderr output streams).</p>
+<p>To set them, use <b>std_set_send_func</b> and <b>std_set_get_func</b>, both defined in <i>inc/newlib/getstd.h</i>. Usually they are called from <i>src/common.c</i> and configured to work
+  over UART by default:</p>
+<pre><code>// *****************************************************************************
+// std functions and platform initialization
+
+static void uart_send( int fd, char c )
+{
+  fd = fd;
+  platform_uart_send( CON_UART_ID, c );
+}
+
+static int uart_recv( s32 to )
+{
+  return platform_uart_recv( CON_UART_ID, TERM_TIMER_ID, to );
+}
+
+void cmn_platform_init()
+{
+  // Set the send/recv functions                          
+  std_set_send_func( uart_send );
+  std_set_get_func( uart_recv );  
+}
+</code></pre>
+<p>If you need another type of serial console device (for example a dedicated console running over a SPI connection) just call <i>std_set_send_func/std_set_get_func</i> with the appropriate 
+  function pointers.</p>
+<p>To enable serial consoles, define the <b>BUILD_CON_GENERIC</b> macro in your platform's <b>platform_conf.h</b> file.</p>
+<h2>TCP/IP consoles</h2>
+<p>TCP/IP consoles have the same functionality as serial consoles, but they work over a TCP/IP connection using the telnet protocol. As they integrate directly with the TCP/IP subsystem, 
+  they don't have the same generic function based mechanism as serial consoles. To enable TCP/IP consoles, define the <b>BUILD_CON_TCP</b> macro in your platform's <b>platform_conf.h</b> file.</p>
+<h2>Terminals</h2>
+<p>Besides standard stdio/stdout/stderr support provided by consoles, <b>eLua</b> uses the "term" module to access ANSI compatible terminal emulators.  It is designed to be as flexible as 
+  possible, thus allowing a large number of terminal emulators to be used. To enable terminal support, add <b>BUILD_TERM</b> in your platform's <b>platform_conf.h</b> file. To use it, initialize
+  it with a call to <b>term_init</b>:</p>
+<pre><code>...........................
+// Terminal output function
+typedef void ( *p_term_out )( u8 );
+// Terminal input function
+typedef int ( *p_term_in )( int );
+// Terminal translate input function
+typedef int ( *p_term_translate )( u8 );
+...........................
+// Terminal initialization
+void term_init( unsigned lines, unsigned cols, p_term_out term_out_func, 
+                p_term_in term_in_func, p_term_translate term_translate_func );
+</code></pre>
+<p>The initialization function takes the physical size of the terminal emulator window (usually 80 lines and 25 cols) and three function pointers:</p>
+<ul>
+  <li><b>p_term_out</b>: this function will be called to output characters to the terminal. It receives the character to output as its single parameter.</li>
+  <li><b>p_term_in</b>: this function will be called to read a character from the terminal. It receives a parameter that can be either TERM_INPUT_DONT_WAIT (in which case the function returns 
+  -1 immediately if no character is available) or TERM_INPUT_WAIT (in which case the function will wait for the character).</li>
+  <li><b>p_term_translate</b>: this function translates terminal-specific codes to "term" codes. The "term" codes are defined in an enum from <i>inc/term.h</i>:
+<pre><code>...........................
+_D( KC_UP ),\
+_D( KC_DOWN ),\
+_D( KC_LEFT ),\
+...........................
+_D( KC_ESC ),\
+_D( KC_UNKNOWN )  
+...........................</code></pre>
+By using this function, it is possible to adapt a very large number of "term emulators" to <b>eLua</b>. For example, you might want to run eLua in a "standalone
+  mode" that does not require a PC at all, just an external LCD display and maybe a keyboard for data input. Your <b>eLua</b> board can connect to this standalone terminal using its 
+  I/O pins or built in peripherals, for example via SPI. By writing the three functions described above, the effort of making <b>eLua</b> work with this new type of device is minimal, 
+  and also writing an "ANSI emulator" for your terminal device is not hard.</li></ul>
+<p>For an example, see <i>src/main.c</i>, where these functions are implemented for an UART connection with a terminal emulator program running on PC.</p>
+<p><b>eLua</b> also provides a Lua module (called <b>term</b>) that can be used to access ANSI terminal. See <a href="">the term module API</a> for a full description of this module.</p>
+$$FOOTER$$
+

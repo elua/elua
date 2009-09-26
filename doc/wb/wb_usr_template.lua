@@ -111,9 +111,13 @@ wb_usr.tree =
             { 
               name = { en = "Developers", pt = "Desenvolvedores" },
               link = "downloads.html#svndev"
-            },
+            },            
           },
         },
+        {
+          name = { en = "eLua Logos", pt = "Logotipos eLua" },
+          link = "downloads.html#elualogos",
+        },     
         { 
           name = { en = "Old Versions", pt = "Versões Anteriores" },
           link = "dl_old.html",
