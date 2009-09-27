@@ -1,3 +1,10 @@
+-- This module introduces some constants and functions, specific to the
+-- Luminary Micro's LM3S platforms.
+
+-- ## It currently handles only LM3S8962 definitions
+-- ## Definitions for other kits needed, as well....
+-- .... if pd/board() == .........
+
 local pio = pio
   
 module(...)
