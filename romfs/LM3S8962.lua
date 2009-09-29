@@ -1,10 +1,3 @@
--- This module introduces some constants and functions, specific to the
--- Luminary Micro's LM3S platforms.
-
--- ## It currently handles only LM3S8962 definitions
--- ## Definitions for other kits needed, as well....
--- .... if pd/board() == .........
-
 local pio = pio
   
 module(...)
@@ -15,7 +8,7 @@ BTN_LEFT    = pio.PE_2
 BTN_RIGHT   = pio.PE_3
 BTN_SELECT  = pio.PF_1
 
-btnpressed = function( button )
+btn_pressed = function( button )
   return pio.pin.getval( button ) == 0
 end
 

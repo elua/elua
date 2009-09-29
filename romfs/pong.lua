@@ -64,9 +64,9 @@ item.all_chars = {}
 local pressed = {}             -- pressed[ button ] is true if the corresponding button was pressed, or nil if not
 
 
-require( pd.platform() )
+require( pd.cpu() )
 
-
+local kit = _G[ pd.cpu() ]
 
 local itemFunction = {
 ["L"] = function ()
@@ -101,14 +101,14 @@ local itemFunction = {
   end,
 
 ["Z"] = function ()
-    disp.print( tostring( score ), 111, 89, 0 )
+    lm3s.disp.print( tostring( score ), 111, 89, 0 )
     score = 0
   end,
 
 ["T"] = function ()
-    disp.print( ball.char, ball.x, ball.y, 0 )
+    lm3s.disp.print( ball.char, ball.x, ball.y, 0 )
     ball.y = math.random( 82 )
-    disp.print( ball.char, ball.x, ball.y, 15 )
+    lm3s.disp.print( ball.char, ball.x, ball.y, 15 )
   end,
 ["F"] = function()
     if delay_time >= 1000 then
@@ -119,14 +119,14 @@ local itemFunction = {
 
 -- Updates Y paddle position and draw it using the draw_paddle( ... ) function
 function update_paddle_pos()
-  if LM3S.btnpressed( LM3S.BTN_UP ) then
+  if kit.btn_pressed( kit.BTN_UP ) then
     if ( paddle.y > 0 ) then
       paddle.y = paddle.y - 1
       draw_paddle( paddle.y, 11, -1 )
     else
       tmr.delay( 1, 1700 )
     end
-  elseif LM3S.btnpressed( LM3S.BTN_DOWN ) then
+  elseif kit.btn_pressed( kit.BTN_DOWN ) then
     if ( paddle.y + ( paddle.size*6 ) + 1 < 90 ) then
       paddle.y = paddle.y + 1
       draw_paddle( paddle.y, 11, 1 )
@@ -143,21 +143,21 @@ end
 function draw_paddle( y, color, movement )
   if ( movement == 0 ) then
     for i = 0, paddle.size, 1 do
-      disp.print( "|", 0, y + ( i * 6 ),  color )
+      lm3s.disp.print( "|", 0, y + ( i * 6 ),  color )
     end
   elseif ( movement > 0 ) then      -- Paddle moving Down
     if y < 8 then
-      disp.print( "|", 0, 0,  0 )
+      lm3s.disp.print( "|", 0, 0,  0 )
     else
-      disp.print( "|", 0, y - 8 , 0 )
+      lm3s.disp.print( "|", 0, y - 8 , 0 )
     end
     for i = 0, paddle.size, 1 do
-      disp.print( "|", 0, y + ( i * 6 ),  color )
+      lm3s.disp.print( "|", 0, y + ( i * 6 ),  color )
     end
   elseif ( movement < 0 ) then    -- Paddle moving Up
-    disp.print( "|", 0, y + ( ( paddle.size + 1 ) * 6 ) + 2 , 0 )
+    lm3s.disp.print( "|", 0, y + ( ( paddle.size + 1 ) * 6 ) + 2 , 0 )
     for i = 0, paddle.size, 1 do
-      disp.print( "|", 0, y + ( i * 6 ),  color )
+      lm3s.disp.print( "|", 0, y + ( i * 6 ),  color )
     end
   end
 end
@@ -173,20 +173,20 @@ function update_ball_pos()
   if( ( ball.y >= 90 - ball.dy ) or ( ball.y <= 1 - ball.dy ) ) then
     ball.dy = -ball.dy;
   end
-  disp.print( ball.char, ball.x, ball.y, 0 )
+  lm3s.disp.print( ball.char, ball.x, ball.y, 0 )
   ball.x, ball.y = ( ball.x + ball.dx ), ( ball.y + ball.dy );
-  disp.print( ball.char, ball.x, ball.y, 15 )
+  lm3s.disp.print( ball.char, ball.x, ball.y, 15 )
 end
 
 
 -- Draw the top wall and erase the last one. Used to move it
 function draw_wall( x )
   for i = 0, canvas.y, 7 do                    -- Erase the wall
-    disp.print( "|", canvas.x + 1, i, 0 )
+    lm3s.disp.print( "|", canvas.x + 1, i, 0 )
   end
   canvas.x = x
   for i = 0, canvas.y, 7 do                    -- Draw a new wall
-    disp.print( "|", canvas.x + 1, i, 6 )
+    lm3s.disp.print( "|", canvas.x + 1, i, 6 )
   end
 end
 
@@ -212,13 +212,13 @@ function update_item_pos()
       if ( ( item.y + 8 < paddle.y ) or ( item.y > paddle.y + ( paddle.size * 6 ) + 8 ) ) == false then
         use_item()
       end
-      disp.print( item.char, item.x, item.y, 0 )
+      lm3s.disp.print( item.char, item.x, item.y, 0 )
       item.char = false
       return
     end
-    disp.print( item.char, item.x, item.y, 0 )
+    lm3s.disp.print( item.char, item.x, item.y, 0 )
     item.x = item.x - 2
-    disp.print( item.char, item.x, item.y, 10 )
+    lm3s.disp.print( item.char, item.x, item.y, 10 )
   end
 end
 
@@ -230,7 +230,7 @@ end
 -- Checks if a button was clicked ( pressed and released )
 -- Returns true or false
 function button_clicked( button )
-  if LM3S.btnpressed( button ) then
+  if kit.btn_pressed( button ) then
     pressed[ button ] = true
   else
     if pressed[ button ] then
@@ -244,7 +244,7 @@ end
 
 ------------ MAIN ------------
 upload_items()
-disp.init( 1000000 )
+lm3s.disp.init( 1000000 )
 
 tmr.start( tmr_id )
 --menu()
@@ -282,7 +282,7 @@ repeat
   delay_time = 10000
   paddle_hits = 0
 
-  disp.clear()
+  lm3s.disp.clear()
 
   draw_wall( canvas.x )
   draw_paddle( paddle.y, 11, 0 )
@@ -303,11 +303,11 @@ repeat
       end
     end
 
-    if button_clicked( LM3S.BTN_RIGHT ) and delay_time > 0 then   -- If the right button is clicked, increase the level
+    if button_clicked( kit.BTN_RIGHT ) and delay_time > 0 then   -- If the right button is clicked, increase the level
       delay_time = delay_time - delay_incr
       dscore = dscore + 1
     end
-    if button_clicked( LM3S.BTN_LEFT ) and dscore > 0 then    -- If the left button is clicked, decrease the level
+    if button_clicked( kit.BTN_LEFT ) and dscore > 0 then    -- If the left button is clicked, decrease the level
       delay_time = delay_time + delay_incr
       dscore = dscore - 1
     end
@@ -316,8 +316,8 @@ repeat
       paddle_hits = 0
       draw_wall( canvas.x - 5 )
     end
-    disp.print( tostring( dscore ), 118, 0, 6 )
-    disp.print( tostring( score ), 111, 89, 6 )
+    lm3s.disp.print( tostring( dscore ), 118, 0, 6 )
+    lm3s.disp.print( tostring( score ), 111, 89, 6 )
     collectgarbage( "collect" )
   end
 -------------------------------------------
@@ -326,18 +326,18 @@ repeat
   if score >= ( highscore or 0 ) then
     highscore = score
   end
-  disp.clear()
-  disp.print( "Game Over :(", 30, 20, 11 )
-  disp.print( "Your score was "..tostring( score ), 15, 40, 11 )
-  disp.print( "Highscore: "..tostring( highscore ), 15, 50, 11 )
-  disp.print( "SELECT to restart", 6, 70, 11 )
+  lm3s.disp.clear()
+  lm3s.disp.print( "Game Over :(", 30, 20, 11 )
+  lm3s.disp.print( "Your score was "..tostring( score ), 15, 40, 11 )
+  lm3s.disp.print( "Highscore: "..tostring( highscore ), 15, 50, 11 )
+  lm3s.disp.print( "SELECT to restart", 6, 70, 11 )
   enough = true
   for i=1, 100000 do
-    if LM3S.btnpressed( LM3S.BTN_SELECT ) then
+    if kit.btn_pressed( kit.BTN_SELECT ) then
       enough = false
       break
     end
   end
 until ( enough )
 
-disp.off()
+lm3s.disp.off()
