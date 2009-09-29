@@ -302,8 +302,9 @@ return string.format( [[
 <div id="logo">
   <table border="0" style="width: 100%%%%;" cellspacing="0" cellpadding="0">
     <tr>
-      <td valign="middle" style="width: 90px;"><img src="images/eLuaLogo.png" alt="eLua logo" style="margin-top: 3px;" /></td>
-      <td valign="middle" style="color:white; font-size: 2em; font-weight: bold;">%s</td>
+      <td valign="middle" style="width: 90px;"><img src="images/eLuaLogo.png" alt="eLua logo" class="logo_elua" /></td>
+      <td class="header_title" valign="middle">%s</td> 
+      
       <td style="width: 280px;" align="center" valign="middle">   
         <table border="0" cellspacing="0" cellpadding="0">        
         <tr style="height: 40px;">

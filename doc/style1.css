@@ -27,11 +27,20 @@ pre {
 /* Assume a logo size of 80x80 pixels! */
 #logo {
   background-image: url(images/title_background.png);
-  background-repeat: repeat-y;
-  height: 84px;
+  background-repeat: no-repeat;
+  background-position:right;
+  color:#000;
+font: bold 150%/100% tahoma, Arial, sans-serif;
+  height: 90px;
   margin: 0;
-  padding: 0; 
-  width: 100%; 
+  padding: 0;
+  width: 100%;
+  border-bottom: 0px solid #E7F1FA;
+}
+
+.logo_elua{
+margin-top:10px;
+margin-left:10px;
 }
 
 #nav {
@@ -53,15 +62,26 @@ pre {
 #logo h6.selected {
   margin: 2px 4px 2px 4px;
   padding: 2px;
-  background-color: blue;
+  background-color: #137096;
   color: white;
 }
 
 #logo h6 {
   margin: 2px 4px 2px 4px;
   padding: 2px;
-  background-color: white;
-  color: blue;
+  #background-color: white;
+  color: #137096;
+}
+
+.header_title{
+  font-size:36px;
+  color:#0b0c79;
+  font-weight:bold;
+  padding-left:20px;
+}
+
+h6{
+  font-size:10px;
 }
 
 #logo a {
@@ -71,8 +91,8 @@ pre {
 
 #logo a.lang:hover {
   text-decoration: none;
-  background-color: blue;
-  color: white;
+#  background-color: blue;
+#  color: white;
 }
 
 /*******************************************************************************
