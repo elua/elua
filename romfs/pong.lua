@@ -13,7 +13,7 @@
 -- Initial Version by Dado Sutter, Fev 2009
 --    This had only the ball bouncing on walls, paddle and paddle movement
 --
--- Greatly enhanced by Teo Benjamin, adding:
+-- Greatly enhanced by Teo Benjamin in Aug/Sep 2009, adding:
 --    Score, resizeable paddles, levels/speeds, items
 --
 --

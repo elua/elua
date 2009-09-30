@@ -11,7 +11,6 @@
 --   Teo Benjamin
 --
 -- Initial Version by Ives Negreiros, August 2009
---    Needs revisions and code cleaning
 --
 ---------------------------------------------------------------------------------
 local Vmax = 22                        -- Number of pieces in vertical +1
@@ -31,12 +30,12 @@ for i = 1, Vmax, 1 do
 end
 
 -- Initial information
-require( pd.platform() )
+local platform = require( pd.cpu() )
 lm3s.disp.init( 1000000 )
 
 lm3s.disp.print( "Tetrives", 30, 30, 11 )
 lm3s.disp.print( "Press SELECT", 30, 60, 11 )
-while LM3S.btnpressed( LM3S.BTN_SELECT ) == false do
+while platform.btn_pressed( platform.BTN_SELECT ) == false do
   seed = seed + 1
 end
 
@@ -74,7 +73,7 @@ function scan_piece( next_piece )      -- This function selec the next piece bas
   end
 end
 
-function draw_walls()                  -- This function draws the walls and the base of game screen
+function draw_walls()                  -- This function draws the walls and the base of game piece screen
   for i = 6, 63, 3 do
     lm3s.disp.print( "|", 3, i, 11 )
   end
@@ -209,7 +208,7 @@ function rotate()                      -- This function rotate the pieces
       piece_map = piecerot
     end
 
-  elseif ( rotate_type == 3 ) then     -- This part works like the upper part, but for another type of rotation
+  elseif ( rotate_type == 3 ) then      -- This part works like the upper part, but for another type of rotation
     for i in ipairs( piece_map ) do
       for j in ipairs( piece_map[ i ] ) do
         if( piece_map[ i ][ j ] == 1 ) then
@@ -323,7 +322,7 @@ end
 ---------------------------------------------------------------------------------
 repeat
 
-  for i in ipairs( game_map ) do       -- This loop create the border of game's map in the table
+  for i in ipairs( game_map ) do       -- This loop create the border of game's map
     for j = 1, Hmax, 1 do
       if( j == 1 or j == Hmax or i == 1 or i == Vmax ) then
         game_map[ i ][ j ] = 1
@@ -345,16 +344,16 @@ repeat
     print_data ()
     Tmax = 11 - 2 * level              -- This statement raises the speed based on the level
     for i = 1, Tmax, 1 do
-      if LM3S.btnpressed( LM3S.BTN_UP ) then
+      if platform.btn_pressed( platform.BTN_UP ) then
         move_left()
       end
-      if LM3S.btnpressed( LM3S.BTN_DOWN ) then
+      if platform.btn_pressed( platform.BTN_DOWN ) then
         move_right()
       end
-      if LM3S.btnpressed( LM3S.BTN_RIGHT ) then
+      if platform.btn_pressed( platform.BTN_RIGHT ) then
         rotate()
       end
-      if LM3S.btnpressed( LM3S.BTN_LEFT ) then   -- If the player presses "down", the piece drops instantly and a point is added to score
+      if platform.btn_pressed( platform.BTN_LEFT ) then   -- If the player presses "down", the piece drops instantly and a point is added to score
         score = score + 1
         tmr.delay( 1, 30000 )
         break
@@ -378,7 +377,7 @@ repeat
   lm3s.disp.print( "SELECT to restart", 6, 70, 11 )
   enough = true                        -- If the player presses select before the time reach 1000000ms, then restart the game
   for i=1, 1000000 do
-    if LM3S.btnpressed( LM3S.BTN_SELECT ) then
+    if platform.btn_pressed( platform.BTN_SELECT ) then
       enough = false
       break
     end
