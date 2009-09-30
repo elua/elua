@@ -59,14 +59,10 @@ local delay_time               -- This value is used for the main delay, to make
 local paddle_hits              -- Counts the number of hits on paddle
 local highscore                -- Current Highscore
 
-
 item.all_chars = {}
 local pressed = {}             -- pressed[ button ] is true if the corresponding button was pressed, or nil if not
 
-
-require( pd.cpu() )
-
-local kit = _G[ pd.cpu() ]
+local kit = require( pd.cpu() )  -- This variable is used as a pin assignments for the specific board
 
 local itemFunction = {
 ["L"] = function ()
