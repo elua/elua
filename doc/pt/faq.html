@@ -4,15 +4,15 @@ Assumimos que você já sabe o que é <b>eLua</b>, portanto aqui está uma lista
 
 <ul>
   <li><a href="#learnlua">Como posso aprender Lua? É difícil?</a></li>
-  <li><a href="#helpelua">Como posso ajudar Elua?</a></li>
-  <li><a href="#comercial">Posso usar Elua no meu projeto comercial de código fechado?</a></li>
-  <li><a href="#fast">Elua é rápida o bastante para minha aplicação?</a></li>
-  <li><a href="#minimum">Quais são os pré-requisitos mínimos para Elua?</a></li>
+  <li><a href="#helpelua">Como posso ajudar eLua?</a></li>
+  <li><a href="#comercial">Posso usar eLua no meu projeto comercial de código fechado?</a></li>
+  <li><a href="#fast">eLua é rápida o bastante para minha aplicação?</a></li>
+  <li><a href="#minimum">Quais são os pré-requisitos mínimos para eLua?</a></li>
   <li><a href="#portability">Tenho usado os módulos da plataforma Lua (uart, spi, pwm, tmr...), posso realmente usar o mesmo código em todas as minhas diferentes plataformas?</a></li>
   <li><a href="#luaversions">Qual a diferença entre Lua Ponto-Flutuante e Lua Inteiro?</a></li>
-  <li><a href="#windows">Todos os seus tutoriais fornecem instruções sobre como compilar Elua sob o Linux, mas parece que você usa muitas ferramentas do Windows. Como pode isso?</a></li>
+  <li><a href="#windows">Todos os seus tutoriais fornecem instruções sobre como compilar eLua sob o Linux, mas parece que você usa muitas ferramentas do Windows. Como pode isso?</a></li>
   <li><a href="#cygwin">Voces irão fornecer intruções sobre como montar toolchains sob Cygwin no Windows?</a></li>
-  <li><a href="#bytecode">Sei que um programa Lua pode ser compilado para bytecode, então fiz a compilação de um dos exemplos Elua com o luac e tentei executá-lo em minha placa Elua, mas não funcionou. Isso é um bug no Elua?</a></li>
+  <li><a href="#bytecode">Sei que um programa Lua pode ser compilado para bytecode, então fiz a compilação de um dos exemplos eLua com o luac e tentei executá-lo em minha placa eLua, mas não funcionou. Isso é um bug no eLua?</a></li>
   <li><a href="#outofmemory">Quando tento executar meus programas em Lua, recebo a mensagem de erro "falta de memória", o que devo fazer?</a></li>
   <li><a href="#rotables">Instalei o patch LTR, mas agora todas as tabelas dos meus módulos (math, io, string, spi e assim por diante) estão como somente para leitura. Terei que desinstalar o patch LTR, se quiser ter permissão de gravação nesses módulos?</a></li>
 </ul>
@@ -20,18 +20,28 @@ Assumimos que você já sabe o que é <b>eLua</b>, portanto aqui está uma lista
 <hr />
 
 <a name="learnlua" /><h2>Como posso aprender Lua? É difícil?</h2>
-<p>Lua é uma linguagem minimalística (e mesmo assim muito poderosa) e muito fácil de se aprender. Uma vêz entendido os conceitos básicos, você começará a programar em Lua imediatamente. A <a href="http://www.lua.org/">página de Lua na internet</a> é sua principal fonte de informação. 
+<p>Lua é uma linguagem minimalista (e mesmo assim muito poderosa) e muito fácil de se aprender. Uma vêz
+entendidos os conceitos básicos, você começará a programar em Lua imediatamente. A <a href="http://www.lua.org/">página de Lua na internet</a> é sua principal fonte de informação. 
 
-Na <a href="http://www.lua.org/docs.html">página de documentação</a> do site, você vai encontrar o manual de referência e a primeira edição do excelente livro versão "Programando em Lua". Recomendo que você adquira a segunda edição deste livro, já que você irá encontrar tudo que você realmente precisa aprender de Lua. Outra fonte muito interessante é o <a href="http://lua-users.org/wiki/">wiki Lua</a>. Se você precisar de mais ajuda, consulte a <a href="http://www.lua.org/community.html">página da comunidade</a>. Lua tem uma comunidade muito amigável e bastante ativa.
+Na <a href="http://www.lua.org/docs.html">página de documentação</a> do site, você vai encontrar o manual de referência e a primeira edição do excelente livro versão "Programando em Lua". Recomendamos que você adquira a segunda edição deste livro, já que você irá encontrar tudo que você realmente precisa aprender de Lua. Outra fonte muito interessante é
+a <a href="http://lua-users.org/wiki/">wiki Lua</a>. Se você precisar de mais ajuda, consulte a <a href="http://www.lua.org/community.html">página da comunidade</a>. Lua tem uma comunidade muito amigável e bastante ativa.
 
-<a name="helpelua" /><h2>Como posso ajudar Elua?</h2>
-<p><b>eLua</b> tem muitas metas ambiciosas, por isso seria ótimo ter mais pessoas trabalhando com ela. Dê uma olhada na <a href="status.html#roadmap">página roadmap</a>, e se existir algo que você gostasse de participar, não hesite em <a href="overview.html#contacts">contactar-nos</a>. Além disso, se você quiser fazer uma doação para o projeto (dinheiro, ou talvez uma placa para desenvolvimento) esteja certo que não iremos dizer não:) Também ajuda muito, caso você teste <b>eLua</b> em sua prṕria placa e encontre algum bug ou algum recurso inacabado. Ou se você apenas pensou em um recurso legal que você gostaria de ver no <b>eLua</b>. Se assim for, não hesite em <a href="overview.html#contacts">contactar-nos</a>.
+<a name="helpelua" /><h2>Como posso ajudar eLua?</h2>
+<p><b>eLua</b> tem muitas metas ambiciosas, por isso seria ótimo ter mais pessoas trabalhando
+conosco. Dê uma olhada na <a href="status.html#roadmap">página roadmap</a>
+e, se houver interesse em colaborar, não hesite em <a href="overview.html#contacts">contactar-nos</a>. Além disso, se você quiser fazer uma doação para o projeto (dinheiro, ou talvez uma placa para desenvolvimento) esteja certo que não iremos
+recusar :) Seus reports de bugs encontrados em testes de <b>eLua</b> em suas
+placas e suas idéias sobre recursos legais são tão valiosos quanto. Se assim for, não hesite em <a
+href="overview.html#contacts">nos contactar</a>.
 
-<a name="comercial" /><h2>Posso usar Elua no meu projeto comercial de código fechado?</h2>
-<p>A partir da versão 0.6, <b>eLua</b> é distribuída sob a licença MIT, assim você pode usá-la em seus projetos. Antes disso, foi distribuída sob a GPL, o que restringia seu uso para aplicações open source. Tenha cuidado, pois <b>eLua</b> contem alguns (poucos) bibliotecas de terceiros, cada uma com seus próprios termos de licença que podem ser mais restritos que do MIT. Veja a <a href="overview.html#license">licença eLua</a> para mais detalhes.</p> 
+<a name="comercial" /><h2>Posso usar eLua no meu projeto comercial de código fechado?</h2>
+<p>A partir da versão 0.6, <b>eLua</b> é distribuída sob a licença MIT e
+isto permite que seja usada em projetos comerciais e de código proprietário. 
+Antes disso, foi distribuída sob a GPL, o que restringia seu a aplicações open source. 
+Fique atento entretando, porque <b>eLua</b> atualmente contém algumas (poucas) bibliotecas de terceiros, cada uma com seus próprios termos de licença que podem ser mais restritos que do MIT. Veja a <a href="overview.html#license">licença eLua</a> para mais detalhes.</p> 
 
-<a name="fast" /><h2>Elua é rápida o bastante para minha aplicação?</h2>
-<p>Isso depende muito de suas expectativas. Se você espera que o seu código de Lua rode tão rápido quanto o seu código C compilado, isso não irá acontecer, simplesmente porque C é uma linguagem compilada, enquanto a Lua é uma linguagem interpretada. Dito isso, você vai ficar feliz em saber que a Lua é uma das linguagens interpretadas mais rápidas que existem por aí. Se você realmente precisa de muita velocidade e de Lua, você pode (muito fácil em Elua) escrever o seu código crítica em seções de código C e exportá-los como um módulo Lua. Desta forma, você terá o melhor de dois mundos.<br />
+<a name="fast" /><h2>eLua é rápida o bastante para minha aplicação?</h2>
+<p>Isso depende muito de suas expectativas. Se você espera que o seu código de Lua rode tão rápido quanto o seu código C compilado, isso não irá acontecer, simplesmente porque C é uma linguagem compilada, enquanto a Lua é uma linguagem interpretada. Dito isso, você vai ficar feliz em saber que a Lua é uma das linguagens interpretadas mais rápidas que existem por aí. Se você realmente precisa de muita velocidade e de Lua, você pode (muito fácil em eLua) escrever o seu código crítica em seções de código C e exportá-los como um módulo Lua. Desta forma, você terá o melhor de dois mundos.<br />
 
 
    Atualmente não temos nenhuma referência oficial sobre a velocidade de Lua em dispositivos embarcados, mas você dar uma olhada no exemplo TV-B-Gone na página <a href="examples.html">examplos</a>. TV-B-Gone é uma aplicação de controle remoto escrita em <b>eLua</b>. 
