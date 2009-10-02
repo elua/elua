@@ -86,7 +86,7 @@ board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
 romfs = { 'bisect' : [ 'bisect.lua' ],
           'hangman' : [ 'hangman.lua' ],
           'lhttpd' : [ 'index.pht', 'lhttpd.lua', 'test.lua' ],
-          'pong' : [ 'pong.lua', 'LM3S8962.lua' ],
+          'pong' : [ 'pong.lua' ],
           'led' : [ 'led.lua' ],
           'piano' : [ 'piano.lua' ],
           'pwmled' : [ 'pwmled.lua' ],
@@ -261,11 +261,14 @@ source_files = app_files + specific_files + newlib_files + uip_files + lua_full_
 # Make filesystem first
 if not GetOption( 'clean' ):
   print "Building filesystem..."
+  romdir = "romfs"
   flist = []
   for sample in file_list[ boardname ]:
-    flist = flist + romfs[ sample ]
+    flist += romfs[ sample ]
+  if os.path.isfile(  os.path.join( romdir, cputype + '.lua' ) ):
+    flist += [cputype + '.lua']
   import mkfs
-  mkfs.mkfs( "romfs", "romfiles", flist )
+  mkfs.mkfs( romdir, "romfiles", flist )
   print
   os.system( "mv -f romfiles.h inc/" )
   os.system( "rm -f src/fs.o" )
