@@ -110,7 +110,7 @@ local menu =
         },
       },
       { { "Code examples", "Exemplos de Código" }, "examples.html" },
-      { { "FAQ", "Perguntas Frequêntes" }, "faq.html" },
+      { { "FAQ", "Perguntas Frequentes (FAQ)" }, "faq.html" },
       { { "Tutorials", "Tutoriais" }, "tutorials.html",
         {
           { { "Booting on a PC", "Bootando num PC" }, "tut_bootpc.html" },

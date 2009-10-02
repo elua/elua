@@ -1,10 +1,10 @@
 $$HEADER$$
-<h3>Perguntas mais Frequentes de eLua</h3><p>Bem-vindo ao FAQ oficial de <b>eLua</b><br /> 
-Assumimos que você já sabe o que é <b>eLua</b>, portanto aqui está uma lista de perguntas (e respectivas respostas) que poderão ser úteis.</p>
+<h3>Perguntas mais Frequentes de eLua</h3><p>Bem-vindo à FAQ oficial de <b>eLua</b><br /> 
+Assumimos aqui que você já conhece o básico de <b>eLua</b> e que esta lista de perguntas (e respectivas respostas) poderão ser úteis.</p>
 
 <ul>
   <li><a href="#learnlua">Como posso aprender Lua? É difícil?</a></li>
-  <li><a href="#helpelua">Como posso ajudar eLua?</a></li>
+  <li><a href="#helpelua">Como posso ajudar o Projeto eLua?</a></li>
   <li><a href="#comercial">Posso usar eLua no meu projeto comercial de código fechado?</a></li>
   <li><a href="#fast">eLua é rápida o bastante para minha aplicação?</a></li>
   <li><a href="#minimum">Quais são os pré-requisitos mínimos para eLua?</a></li>
@@ -41,11 +41,16 @@ Antes disso, foi distribuída sob a GPL, o que restringia seu a aplicações ope
 Fique atento entretando, porque <b>eLua</b> atualmente contém algumas (poucas) bibliotecas de terceiros, cada uma com seus próprios termos de licença que podem ser mais restritos que do MIT. Veja a <a href="overview.html#license">licença eLua</a> para mais detalhes.</p> 
 
 <a name="fast" /><h2>eLua é rápida o bastante para minha aplicação?</h2>
-<p>Isso depende muito de suas expectativas. Se você espera que o seu código de Lua rode tão rápido quanto o seu código C compilado, isso não irá acontecer, simplesmente porque C é uma linguagem compilada, enquanto a Lua é uma linguagem interpretada. Dito isso, você vai ficar feliz em saber que a Lua é uma das linguagens interpretadas mais rápidas que existem por aí. Se você realmente precisa de muita velocidade e de Lua, você pode (muito fácil em eLua) escrever o seu código crítica em seções de código C e exportá-los como um módulo Lua. Desta forma, você terá o melhor de dois mundos.<br />
+<p>Isso depende muito de suas expectativas. Se você espera que o seu código
+em Lua rode tão rápido quanto o seu código C compilado isso não irá acontecer, simplesmente porque C é uma linguagem compilada enquanto a Lua é uma linguagem interpretada. Dito isso, você vai ficar feliz em saber que a Lua é uma das linguagens interpretadas mais rápidas que existem por aí. Se você realmente precisa de muita velocidade e de Lua, você pode (muito
+facilmente em eLua) escrever as seções críticas em seções de código C e exportá-los como um módulo Lua. Desta forma, você terá o melhor de dois mundos.<br />
 
 
-   Atualmente não temos nenhuma referência oficial sobre a velocidade de Lua em dispositivos embarcados, mas você dar uma olhada no exemplo TV-B-Gone na página <a href="examples.html">examplos</a>. TV-B-Gone é uma aplicação de controle remoto escrita em <b>eLua</b>. 
-  Se você estiver familiarizado com os protocolos de controle remoto, você vai saber que esse tipo de aplicação é executada em "tempo real", e os atrasos na ordem de milisegundos ou até menos pode fazer o seu software de controle remoto falhar. No entanto, este exemplo é executado sem problemas em uma CPU Cortex 50MHz (Thumb2). Este exemplo deve fornecer-lhe uma visão bastante intuitiva sobre a velocidade da eLua.
+   Atualmente não temos nenhuma referência oficial sobre a velocidade de Lua em dispositivos embarcados mas você
+   pode dar uma olhada no exemplo TV-B-Gone na página <a href="examples.html">examplos</a>. TV-B-Gone é uma aplicação de controle remoto escrita em <b>eLua</b>. 
+  Se você estiver familiarizado com os protocolos de controle remoto, você vai saber que esse tipo de aplicação é executada em "tempo real" e atrasos na ordem de milisegundos ou até menos
+   podem fazer o seu software de controle remoto falhar. No entanto, este exemplo é executado sem problemas em uma CPU
+   Cortex-M3 50MHz (em modo Thumb2). Este exemplo deve fornecer-lhe uma visão bastante intuitiva sobre a velocidade da eLua.
 
 <a name="minimum" /><h2>What are the minimum requirements for eLua?</h2>
 <p>It's hard to give a precise answer to this. As a general rule for
