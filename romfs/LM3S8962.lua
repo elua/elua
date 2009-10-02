@@ -14,7 +14,7 @@ end
 
 LED_1 = pio.PF_0
 
-pio.pin.setdir( pio.INPUT, pio.PE_0, pio.PE_1, pio.PE_2, pio.PE_3, pio.PF_1 )
-pio.pin.setpull( pio.PULLUP, pio.PE_0, pio.PE_1, pio.PE_2, pio.PE_3, pio.PF_1 )
-pio.pin.setdir( pio.OUTPUT, pio.PF_0 )
+pio.pin.setdir( pio.INPUT, BTN_UP, BTN_DOWN, BTN_LEFT, BTN_RIGHT, BTN_SELECT )
+pio.pin.setpull( pio.PULLUP, BTN_UP, BTN_DOWN, BTN_LEFT, BTN_RIGHT, BTN_SELECT )
+pio.pin.setdir( pio.OUTPUT, LED_1 )
 
