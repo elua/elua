@@ -282,16 +282,16 @@ all, so you can define as many constants as you want here. </td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">BUF_ENABLE_ADC</td>
-<td>If the <a href="arch_platform_adc.html">adc module</a> is enabled, this controls whether or not the ADC will create a buffer so that more than one sample per channel can be held in a buffer before being returned through adc.getsample or adc.getsamples.  If disabled, only one conversion result will be buffered.  This option does NOT affect the behavior of the moving average filter.</td>
+<td>If the <a href="refman_gen_adc.html">adc module</a> is enabled, this controls whether or not the ADC will create a buffer so that more than one sample per channel can be held in a buffer before being returned through adc.getsample or adc.getsamples.  If disabled, only one conversion result will be buffered.  This option does NOT affect the behavior of the moving average filter.</td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">ADC_BUF_SIZE</td>
-<td>If the <a href="arch_platform_adc.html">adc module</a> is enabled, and BUF_ENABLE_ADC is defined, this will define the default buffer length allocated at startup.  This does not limit buffer sizes, it only defines the default length.  Appropriate values range from BUF_SIZE_2 to BUF_SIZE_32768, with the numeric component at the end being in powers of 2.</td>
+<td>If the <a href="refman_gen_adc.html">adc module</a> is enabled, and BUF_ENABLE_ADC is defined, this will define the default buffer length allocated at startup.  This does not limit buffer sizes, it only defines the default length.  Appropriate values range from BUF_SIZE_2 to BUF_SIZE_32768, with the numeric component at the end being in powers of 2.</td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">ADC_BIT_RESOLUTION
 </td>
-<td>If the <a href="arch_platform_adc.html">adc module</a> is enabled, this will define the number of bits per adc conversion result.  This is used to determine the maximum conversion value that can be returned by the ADC.</td>
+<td>If the <a href="refman_gen_adc.html">adc module</a> is enabled, this will define the number of bits per adc conversion result.  This is used to determine the maximum conversion value that can be returned by the ADC.</td>
 </tr>
 </tbody>
 </table>
