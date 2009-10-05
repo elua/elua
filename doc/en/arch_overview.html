@@ -3,7 +3,7 @@ $$HEADER$$
 <p>The overall logical structure of <b>eLua</b> is shown in the image below:</p>
 <p style="text-align: center; valign:middle;"><img src="images/elua_arch.png" style="border: 0;" alt="eLua architecture"></img></p>
 <p><b>eLua</b> uses the notion of <b>platform</b> to denote a group of <b>CPUs</b> that share the same core structure, although their specific silicon
-  implementation might differ in terms of intergrated peripherals, internal memory and other such attributes. An <b>eLua</b> port implements one or 
+  implementation might differ in terms of integrated peripherals, internal memory and other such attributes. An <b>eLua</b> port implements one or 
   more CPUs from a given platform. For example, the <b>lm3s port</b> of <b>eLua</b> runs on LM3S8962, LM3S6965 and LM3S6918 CPUs, all of them part of the 
   <b>lm3s</b> platform. Refer to <a href="status.html">the status page</a> for a full list of platforms and CPUs on which <b>eLua</b> runs.</p>
 <p>As can be seen from this image, <b>eLua</b> tries to be as portable as possible between different platforms by using a few simple design
@@ -197,7 +197,7 @@ specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in spe
   <li>the platform initialization code is executed. This is the code that does very low level platform setup (if needed), copies ROM to RAM, zeroes out
   the BSS section, sets up the stack pointer and jumps to <b>main</b>.</li>
   <li>the first thing <b>main</b> does is call the platform specific initialization function (<b>platform_init</b>). <b>platform_init</b> must fully
-  initialize the platform and return a result to main, that can be either <b>PLATFORM_OK</b> if the initialization succeded or <b>PLATFORM_ERR</b>
+  initialize the platform and return a result to main, that can be either <b>PLATFORM_OK</b> if the initialization succeeded or <b>PLATFORM_ERR</b>
   otherwise. If <b>PLATFORM_ERR</b> is returned, <b>main</b> blocks immediately in an infinite loop.</li>
   <li><b>main</b> then initializes the rest of the system: the ROM file system, XMODEM, and term.</li>
   <li>if <b>/rom/autorun.lua</b> (which is a file called <b>autorun.lua</b> in the <a href="arch_romfs.html">ROM file system</a>) is found, it is

@@ -42,7 +42,7 @@ $$HEADER$$
 <p>I tested everything via "make generic", which is how I always build Lua for my embedded environments. This means (among other things) that I didn't 
 test pipes and dynamic module loading, although I don't see why they wouldn't work.</p>
 <p>I never tested the patch in a multithreaded environment with more threads running different lua_States. I never even used regular Lua like this, 
-so I can't make asumptions about how my patch would behave in a multithreaded environment. It doesn't use any global or static variables, but you 
+so I can't make assumptions about how my patch would behave in a multithreaded environment. It doesn't use any global or static variables, but you 
 might encounter other problems with it.</p>
 <h2>Results</h2>
 <p>The table below summarizes the RAM usage in KBytes (as obtained by running <i>lua -e "print(collectgarbage'count')"</i> from the <b>eLua</b> shell). 
@@ -96,10 +96,10 @@ might encounter other problems with it.</p>
 <p>As you can see, the differences are significant, and (more important) it doesn't matter how many modules you load in <b>eLua</b>, the RAM consumption
    doesn't modify.</p>
 <p>Currently, there aren't any performane measurements related to LTR. It's clear from the implementation that the patch slows down the virtual machine, 
-   but a precise performance penalty figure is not known. Experience suggests that the peformance penalty is minimal, and it certainly can't be observed 
+   but a precise performance penalty figure is not known. Experience suggests that the performance penalty is minimal, and it certainly can't be observed 
    with "regular" (non-computationally intensive) Lua programs.</p>
 <h2>How to enable LTR</h2>
-<p>Enabling LTR is very easy: all you need to do is specify the <b>opt=1</b> as a paramater to scons when bulding <b>eLua</b>, as explained
+<p>Enabling LTR is very easy: all you need to do is specify the <b>opt=1</b> as a parameter to scons when building <b>eLua</b>, as explained
    <a href="building.html">here</a>. You don't even to specify this explicitly, as LTR is enabled by default for all <b>eLua</b> targets.</p>
 <p>When <b>optram</b> is 0, LTR is not active. In this mode the patch just tries to keep the modified version as close as possible to the unpatched version 
   in terms of speed and functionality. You might want to use this if you want full Lua compatibility (although this is rarely an issue in practice),
@@ -255,7 +255,7 @@ LUALIB_API int luaopen_mod( lua_State *L )
   on the contrary, this is very much intended. Try using commas and you'll get in trouble very soon :) ).</p>
 <p>Note the 3rd parameter of the <b>_ROM</b> macro, which is the name of the definition array for the (ro)table. That's it. The code in linit.c will take 
   care of everything else, including initializing the list of modules in LUA_PLATFORM_LIBS_ROM with regular tables instead of rotables at <b>optram=0</b> 
-  (to maintain compatilibity with regular Lua). You can also have a list of modules that you want to use with regular tables no matter what the 
+  (to maintain compatibility with regular Lua). You can also have a list of modules that you want to use with regular tables no matter what the 
   optimization level is. In that case, list it in the <b>LUA_PLATFORM_LIBS_REG</b> macro via the old syntax for <b>LUA_PLATFORM_LIBS</b>, as shown
   above (the regular Lua syntax for defining a module to be registered with luaL_register). If you want this module to use lightfunctions instead of 
   regular functions (at <b>optram=1</b>), use <i>luaL_register_light</i> instead of <i>luaL_register</i>.

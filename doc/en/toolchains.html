@@ -22,7 +22,7 @@ of this there are a lot of toolchains available for download free of charge. One
 <ul>
   <li>it has support for both "traditional" ARM targets and Cortex-M3 (Thumb2) targets</li>
   <li>it comes with user-friendly installers for both Linux and Windows</li>
-  <li>it has fairlygood documentation</li>
+  <li>it has fairly good documentation</li>
   <li><b>eLua</b> supports this toolchain for all its ARM and Cortex targets</li>
 </ul>
 <p>Obtaining and installing the toolchain is very easy:</p>
@@ -157,7 +157,7 @@ platform_list = {
   'lm3s' : { 'cpus' : [ 'LM3S8962', 'LM3S6965', 'LM3S6918' ], <b>'toolchains' : [ 'arm-gcc', 'codesourcery' ]</b> },
   ................
 }</code></pre>
-<p>From this fragment it's easy to undertand that there are at most two places in SConstruct that must be taken into account when dealing with toolchain:</p>
+<p>From this fragment it's easy to understand that there are at most two places in SConstruct that must be taken into account when dealing with toolchain:</p>
 <ul>
   <li>the definition of <b>toolchain_list</b>. This is a list of all the supported toolchains with all their relevant components (compiler, linker, assembler, image copy tool and size tool).</li>
   <li>each <b>eLua</b> platform has a list of permitted toolchains (only the toolchains specified in this list can be used to build an <b>eLua</b> image for that target). The first element of 

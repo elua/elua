@@ -40,7 +40,7 @@ To summarize, you can forget about OpenOCD when:</p>
 <ul>
   <li>your CPU manufacturer provides a special tool for
 firmware burning. This is quite often the case, but more often that not
-the forementioned tools work only in Windows.</li>
+the aforementioned tools work only in Windows.</li>
   <li>you must debug your code, but you have a good intuition about where the
 problem is located. In this case, simply connecting a LED to a PIO port
 and turning it on and off from different parts of your code until you
@@ -205,7 +205,7 @@ flash bank str9x 0x00080000 0x00008000 0 0 0</code></pre>
 endian mode, with two flash memory banks, one that starts at 0x0 and
 it's 0x80000 bytes in size, and another one that starts at 0x80000 and
 it's 0x8000 bytes in size. Finally, OpenOCD must know what's the name
-of our script file (this is the file that is used to pysically program
+of our script file (this is the file that is used to physically program
 the CPU memory):</p>
 
 <pre><code>#Script used for FLASH programming
@@ -261,13 +261,13 @@ on the subject:</p>
   <li><a href="http://elua.berlios.de/other/str91x_reset.script">str91x_reset.script</a></li>
 </ul>
 
-<p>The <b>comstick.cfg</b> configuration file is for prorgramming the
+<p>The <b>comstick.cfg</b> configuration file is for programming the
 STR9-comStick. <b>comrst.cfg</b> is for resetting it. The comStick has a very
 interesting habit: after you power it (via USB) it does not start
 executing the code from the internal flash, you need to execute OpenOCD
 with the comreset.cfg script to start it. <b>comrst.cfg</b> does exactly what
 it says: executes a CPU reset (since the board doesn't have a RESET
-button). This is a very peculiar behaviour, and I'm not sure if it's
+button). This is a very peculiar behavior, and I'm not sure if it's
 generic or it's only relevant to my particular comStick. I suspect that
 the CPU RESET line isn't properly handled by the on-board USB-to-JTAG
 converter, and the only solution I have for this is to execute this
@@ -313,11 +313,11 @@ JTAG adapter (don't forget to change the script to match your adapter).</p>
 
 <p>For STR7 I'm using the Yagarto OpenOCD build for Windows (repository
 version 717, as described at the beginning of this tutorial). The
-<b>str7prg.cfg</b> configuration file is for prorgramming the STR9-comStick.
+<b>str7prg.cfg</b> configuration file is for programming the STR9-comStick.
 <b>str7rst.cfg</b> is for resetting it (you probably won't need this one). I'm using a STR711FR2 heard board from
 <a  href="http://www.sctec.com.br/content/view/101/30/">ScTec</a> to
 which I attached a few LEDs and a MAX3232 TTL to RS232 converter for
-the serial communication. The board comes with its own JTAG adadpter,
+the serial communication. The board comes with its own JTAG adapter,
 but it uses a parallel interface, and since my computer doesn't have
 one, I used the <a  href="http://www.olimex.com/dev/arm-usb-tiny.html">ARM-USB-TINY</a> from Olimex. To use them, invoke the OpenOCD executable like this:</p>
 

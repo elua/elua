@@ -16,7 +16,7 @@ $$HEADER$$
  <h3>Burning <b>eLua</b> to the STR9-comStick</h3>
  <p>You need OpenOCD to do this. Just follow the instructions from my <a href="tut_openocd.html">OpenOCD tutorial </a>. On the tutorial page you'll also find links to the OpenOCD
  configuration files that I'm using for burning <b>eLua</b> to the comstick.</p>
- <p><b>IMPORTANT NOTE</b>: for some very strage reasons (probably related to the on-board USB to JTAG converter) my comstick does NOT start to execute the code from its internal flash after being
+ <p><b>IMPORTANT NOTE</b>: for some very strange reasons (probably related to the on-board USB to JTAG converter) my comstick does NOT start to execute the code from its internal flash after being
  powered up via the USB cable (faulty reset sequence?). To overcome this, you'll find a special OpenOCD configuration file on my <a href="tut_openocd.html">OpenOCD tutorial</a> page. It is called <i>comrst.cfg</i>,
  and you can use it to reset your comstick after it is powered up.</p>
  <p>That's it! <b>eLua</b> is now programmed in the CPU, so you can start your terminal emulator and enjoy it, as described in <a href="using.html">using eLua</a>.

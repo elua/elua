@@ -50,7 +50,7 @@ It is assumed that you already know what <b>eLua</b> is, so here's a list of que
 <p>This pretty much depends on what you expect. If you expect your Lua code to run as fast as your compiled C code, this won't happen, simply because C 
   is a compiled language, while Lua is an interpreted language. That said, you'll be happy to know that Lua is one of the fastest interpreted languages 
   out there. If you really need both high speed and Lua, you can (very
-  easially in eLua) write your speed critical code sections in C and export them as a Lua module. 
+  easily in eLua) write your speed critical code sections in C and export them as a Lua module. 
   This way you get the best of both worlds.<br />
    We don't have any official benchmarks about Lua speed on embedded devices, but you might want to check the 
   TV-B-Gone example on the <a href="examples.html">examples page</a>.TV-B-Gone is a "software remote control" application coded directly in <b>eLua</b>. 
@@ -62,7 +62,7 @@ It is assumed that you already know what <b>eLua</b> is, so here's a list of que
 <p>It's hard to give a precise answer to this. As a general rule for
 a 32-bit CPU, we recommend at least 256k of Flash (program memory) and
 at least 64k of RAM. However, this isn't a strict requirement. A
-stripped down, integer-only version of eLua can definetely fit in 128k
+stripped down, integer-only version of eLua can definitely fit in 128k
 of Flash, and depending on your type of application, 32k of RAM might
 prove just fine. It largely depends on your needs.</p>
 
@@ -89,7 +89,7 @@ prove just fine. It largely depends on your needs.</p>
   changing the base clock for channel 1, you're also changing the base clock for channel 0; if channel 0 was already running, you won't like
   what will happen next. This time no eLua function can save you, you simply need you know your CPU architecture.</li>
   <li><b>GPIO</b>: only some platform have internal pullups for the GPIO pins (others might also have pulldowns). However, in this case you're safe, as 
-  <b>eLua</b> will signal an error if you try to execute a pullup operatin on a platform that does not support it.</li>
+  <b>eLua</b> will signal an error if you try to execute a pull-up operation on a platform that does not support it.</li>
 </ul>
 <p>The lesson here is clear: understand your platform first!</p>
 
@@ -104,7 +104,7 @@ prove just fine. It largely depends on your needs.</p>
 <a name="windows" /><h2>All your tutorials give instructions on how to compile eLua under Linux, yet you seem to use a lot of Windows tools. How come?</h2>
 <p>It's true that we do all the <b>eLua</b> development under Linux, since we find Linux an environment much more suited for development. At the same
   time it's true that most of the tools that come with my development boards run under Windows. So we choose to use the best of both world: Bogdan runs 
-  Linux under a <a href="http://www.virtualbox.org">VirtualBox</a> emulator, and does verything else under Windows. Dado does everything on 
+  Linux under a <a href="http://www.virtualbox.org">VirtualBox</a> emulator, and does everything else under Windows. Dado does everything on 
   Linux and runs Windows under <a href="http://www.vmware.com">VMWare</a>. Both options are nice if you master your environment. To make 
   everything even more flexible, Bogdan keeps his VirtualBox Ubuntu image on an external WD passport disk that he can carry with him wherever he goes, 
   so he can work on eLua whenever he has a bit of spare time :)</p>
