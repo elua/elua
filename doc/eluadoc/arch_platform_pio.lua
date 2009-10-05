@@ -33,7 +33,7 @@ data_en =
 }; ]],
       name = "PIO operations",
       desc = [[These are the operations that can be executed by the PIO subsystem on both ports and pins. They are given as arguments to the @#platform_pio_op@platform_pio_op@ function 
-  shown below. ##TODO: document read in/read out if we keep that]]
+  shown below.]]
     },
 
     { text = "typedef u32 pio_type;",
@@ -139,7 +139,7 @@ data_pt =
 }; ]],
       name = "PIO operations",
       desc = [[These are the operations that can be executed by the PIO subsystem on both ports and pins. They are given as arguments to the @#platform_pio_op@platform_pio_op@ function 
-  shown below. ##TODO: document read in/read out if we keep that]]
+  shown below.]]
     },
 
     { text = "typedef u32 pio_type;",

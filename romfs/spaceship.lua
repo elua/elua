@@ -29,7 +29,7 @@ local score = 0							-- Player's score
 local numOfEnemies = 5					-- Number of simultaneous enemies
 local won = false						-- If the player won the game, this value is true. If not, it's false.
 -- Initialization
-local kit = require( pd.cpu() )
+local kit = require( pd.board() )
 
 
 local canvasMap = {}	-- canvasMap[ line ][ #shot ]

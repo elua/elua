@@ -19,7 +19,7 @@ the lua interpreter inside eLua and write it yourself :)</p>
 <p><strong>Runs on: </strong>all targets</p>
 <p><strong>Description: </strong>this isn't really more advanced than "Hello, World!", but it does show
 an <b>eLua</b> specific module: the platform data module (<b>pd</b>). You can read
-more about the platform modules <a href="">##here</a>. The program will display the platform
+more about the platform modules <a href="refman_gen_pd.html">here</a>. The program will display the platform
 name, the CPU name, the board name and the CPU clock and then will exit
 to the shell.</p>
 <br />
@@ -37,10 +37,10 @@ data module makes it very easy to write such portable code.</li>
 <h3>hangman.lua: taking advantage of your terminal</h3>
 <p><strong>Runs on: </strong>all targets</p>
 <p><strong>Description: </strong>the geekiest example from the <b>eLua</b> distribution (or would it be morse.lua? :), it makes use of
-the <a href="">##term module</a> to let the user play a BSD-like "hangman" directly in his terminal emulator. Run the example
+the <a href="refman_gen_term.html">term module</a> to let the user play a BSD-like "hangman" directly in his terminal emulator. Run the example
 and enjoy. Currently it has a very small list of words, as this was
 written mainly as a proof of eLua's capabilities, but it's very easy to
-add new words/replace the existing ones. A screenshot can be seen <a href="">##here</a>.</p>
+add new words/replace the existing ones.</p>
 <br />
 
 <h3>pwmled.lua: LED blinker, advanced class</h3>
@@ -95,7 +95,7 @@ button on your board to exit the application and return to the shell.</p>
 notes via the on-board speaker using the PC keyboard. The on-screen
 keyboard shows what keys you must press for different notes, and you
 can set your octave and inter-note delay. Press ESC to end your <b>eLua</b>
-musical session :) A screenshot can be seen <a href="##">here</a>.</p>
+musical session :)</p>
 <br />
 
 <h3>bisect.lua: floating point at its best</h3>
@@ -148,7 +148,7 @@ of RAM?&nbsp;</p><p>The full list of features is given below:</p>
 your HTML file extension is ".pht", and the server will preprocess it
 and replace the Lua code with its output</li>
 <li>if a file with ".lua" extension is requested, it doesn't send the file, but
- executes it and sends its output (via "print" statements)</li>
+ executes it and sends its output (via "print" statements)</li></ul>
 <p>This is still work in progress, but it already works quite well.
 Take a look at <i>romfs/index.pht</i> and <i>romfs/test.lua</i> from the source
 distribution for an example of how to include Lua code in your HTML
@@ -166,5 +166,42 @@ files.</p>
 <p><b>Description: </b>##TODO
 </p>
 <br />
+
+<h3>logo.lua: graphics and eLua</h3>
+<p><strong>Runs on: </strong>EK-LM3S8962, EK-LM3S6965</p>
+<p><b>Description: </b>a complex example, proving that <b>eLua</b> can do even animations! The <b>eLua</b> logo is shown
+on the on-board OLED display and then <b>rotated in realtime</b>. You can get about 3fps with this example. Not bad for a bitmap
+rotation application that uses quite a lot of emulated floating point computations at 50MHz. Optimizations are still
+possible, but are left (for now) as an exercise for the <b>eLua</b> apprentice. Take a look at the code to discover
+how a highly optimized eLua program looks like, but don't spend too much time with it if your math feels rusty :)
+</p>
+<br />
+
+<h3>pong.lua: play with your eLua</h3>
+<p><strong>Runs on: </strong>EK-LM3S8962, EK-LM3S6965</p>
+<p><b>Description: </b>a tribute to the classics, as well as an addictive way of spending your time, this examples proves
+without any doubt that you can write games with <strong>eLua</strong>. This variant of the well known "pong" games plays on 
+the OLED display of your LM3S board, using the on-board switches to control your paddle. Hit the ball, collect or avoid the 
+"bonuses", a keep on trying to beat that highscore :) The code is just complex enough to give you a fair idea about the
+possibilities of <b>eLua</b>.
+</p>
+<br />
+
+<h3>spaceship.lua: even more fun</h3>
+<p><strong>Runs on: </strong>EK-LM3S8962, EK-LM3S6965</p>
+<p><b>Description: </b>tired of hitting a ball? What about hitting a spaceship instead? Or, even better, more spacehips? Defend
+your base with this little game that also plays on the OLED display of your LM3S board and uses the on-board switches as
+paddles. Once again, take a look at the code to get a feeling of <b>eLua</b>.
+</p>
+<br />
+
+<h3>tetrives.lua: don't let it get too addictive</h3>
+<p><strong>Runs on: </strong>EK-LM3S8962, EK-LM3S6965</p>
+<p><b>Description: </b>tetris doesn't need any introduction at all, so just start the game, grab the on-board switches and start
+making lines after lines on your OLED display. Once you're done playing, you might want to take a look at the code. This example 
+is fairly complex, large, uses <b>eLua</b> specific techniques (explicit memory management with calls to the garabge collector) and might 
+serve as a good base for your own code.
+</p>
+
 $$FOOTER$$
 

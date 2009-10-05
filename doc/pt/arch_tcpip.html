@@ -9,7 +9,7 @@ stack. These are the services provided by the TCP/IP stack:</p>
   <li>a set of functions for network access (defined in inc/elua_net.h)</li>
   <li>a DHCP client</li>
   <li>a DNS resolver</li>
-  <li>a module (<a href="m_net.html">net</a>) which can be used from Lua to access the network functions</li>
+  <li>a module (<a href="refman_gen_net.html">net</a>) which can be used from Lua to access the network functions</li>
   <li>a Telnet miniclient, which is used to support the eLua shell via TCP/IP instead of serial connections.</li>
 </ul>
 <br />
@@ -79,7 +79,7 @@ you're ready to use the stack. In this case the "adaption layer" is quite large
 because of uIP's callback-based design.</p>
 
 <p>To make the uIP implementation as platform-independent as possible, a special
-<a href="">##networking layer</a> is added to the <a href="arch_platform.html">platform interface</a>. 
+<a href="arch_platform_eth.html">networking layer</a> is added to the <a href="arch_platform.html">platform interface</a>. 
 There are only 4 functions that must be implemented by a backend
 to use the networking layer. They might change as more TCP/IP stacks are added
 to eLua, but probably the networking layer won't get much bigger than it is now.<br>

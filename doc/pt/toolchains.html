@@ -14,7 +14,7 @@ $$HEADER$$
 <p>You have multiple options when building <b>eLua</b> for ARM and Cortex CPUs:</p>
 <ul>
   <li>build your own toolchain. Even if you have a toolchain already available, you might want to do this for maximum flexibility and control (for example to control the libc build flags, or to
-      use specific version of the tools). Check <a href="#">##this link</a> for a step by step tutorial on building your own toolchain.</li>
+      use specific version of the tools). Check <a href="tchainbuild.html">this link</a> for a step by step tutorial on building your own toolchain.</li>
   <li>use a readily available toolchain. This saves you the hassle of building the toolchain yourself, which makes the process quicker and less error-prone.</li>
 </ul>
 <p>Because building a toolchain is already covered in another section of the documentation, we'll focus on installing a pre-compiled toolchain here. ARM is a very popular architecture, and because
@@ -51,7 +51,7 @@ $ sudo dpkg -i avr32program_3.0.4-1_i386.deb</code></pre>
 </ul>
 <p>That's it. Your toolchain is already be in $PATH (since it installs itself in /usr/bin) so you should be ready to build <b>eLua</b> for AVR32.</p>
 <a name="i386"><h2>Toolchains for i386</h2></a>
-<p>Currently the only tested procedure for building <b>eLua</b> for i386 is to <a href="">##build an i386 toolchain</a>. Other toolchains might work equally well though, but none was tested so far.
+<p>Currently the only tested procedure for building <b>eLua</b> for i386 is to <a href="tc_386.html">build an i386 toolchain</a>. Other toolchains might work equally well though, but none was tested so far.
 </p>
 <a name="configuration"><h3>Toolchain configuration in eLua <span style="color: red;">(WIP)</span></h3></a>
 <p>The <b>eLua</b> build system makes provisions for specifying an unlimited number of toolchains for a given target, selectable via the scons <b>toolchain=...</b> option. The default structure

@@ -115,7 +115,7 @@ To enable:
 <td>Enable ANSI terminal support. It allows <b>eLua</b>
 to interact with terminals that support ANSI escape sequences (more details <a href="arch_con_term.html">here</a>).
 Currently it works only over RS-232 connections, although this is not a
-strict requirement. You need to enable this if you want to use the <a href="m_term.html">##term module</a>.
+strict requirement. You need to enable this if you want to use the <a href="refman_gen_term.html">term module</a>.
 To enable:
 <pre><code>#define BUILD_TERM</code></pre>
 <a href="building.html#static">Static configuration data dependencies:</a> <b>CON_UART_ID, CON_UART_SPEED, CON_TIMER_ID, TERM_LINES, TERM_COLS</b></td>
@@ -123,9 +123,9 @@ To enable:
 <tr>
 <td style="color: rgb(255, 102, 0);">BUILD_UIP</td>
 <td>Enable TCP/IP networking support. You need to enable
-this if you want to use the <a href="m_net.html">##net
+this if you want to use the <a href="refman_gen_net.html">net
 module</a>. Also, your platform must implement the uIP support
-functions (see the <a href="platform_interface.html">##platform
+functions (see the <a href="arch_platform.html">platform
 interface</a> documentation for details).
 To enable:
 <pre><code>#define BUILD_UIP</code></pre>
@@ -176,11 +176,12 @@ To enable:
 <tr>
 <td style="color: rgb(255, 102, 0);">BUILD_ADC</td>
 <td>Generic ADC support code. You need to enable this if
-you want to use the <a href="m_adc.html">##adc</a>
+you want to use the <a href="refman_gen_adc.html">adc</a>
 module, or simply the ADC functions from the platform interface. You
 don't need it if you're not planning to use the ADC.
 To enable:
-<pre><code>#define ##BUILD_ADC</code></pre>
+<pre><code>#define BUILD_ADC</code></pre>
+<a href="building.html#static">Static configuration data dependencies:</a> <b>ADC_BIT_RESOLUTION, ADC_TIMER_FIRST_ID, ADC_NUM_TIMERS</b>
 </td>
 </tr>
 </tbody>
@@ -222,7 +223,7 @@ only way to specify the list of modules included in the build (although
 it is the most common one). Check the <a href="arch_ltr.html#config">LTR
 section</a> for more information about LTR.</p>
 <p>For the full list of modules that can be enabled or disabled
-via <i>platform_conf.h</i> check <a href="">##the
+via <i>platform_conf.h</i> check <a href="refman_gen.html">the
 eLua reference manual</a>.</p>
 <a name="static"><h2>Static configuration data</h2></a>
 <p>"Static configuration" reffers to the compile-time
@@ -265,13 +266,13 @@ needed if BUILD_UIP is enabled.</td>
 <td style="color: rgb(255, 102, 0);">VTMR_NUM_TIMERS<br>
 VTMR_FREQ_HZ</td>
 <td>Specify the virtual timers configuration for the
-platform (reffer to <a href="#">##the timer module
+platform (reffer to <a href="refman_gen_tmr.html">the timer module
 documentation</a> for details). Define VTMR_NUM_TIMERS to 0 if
 this feature is not used.</td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">PLATFORM_CPU_CONSTANTS</td>
-<td>If the <a href="">##cpu module</a>
+<td>If the <a href="refman_gen_cpu.html">cpu module</a>
 is enabled, this defines a list of platform-specific constants (for
 example interrupt masks) that can be accessed using the
 cpu.&lt;constant name&gt; notation. Each constant name must be
@@ -280,14 +281,19 @@ name&gt;</i>). For example:
 <pre><code>#define PLATFORM_CPU_CONSTANTS\<br> _C( INT_GPIOA ),\<br> _C( INT_GPIOB ),\<br> _C( INT_GPIOC ),\<br> _C( INT_GPIOD ),\<br> _C( INT_GPIOE )<br></code></pre>
 After compilation, you can access these constants using <i>cpu.INT_GPIOx</i>.
 Note that the implementation of this feature needs virtually no RAM at
-all, so you can define as many constants as you want here. ##TODO: ADC!!</td>
+all, so you can define as many constants as you want here. </td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">ADC_BIT_RESOLUTION<br>ADC_TIMER_FIRST_ID<br>ADC_NUM_TIMERS
+</td>
+<td>##</td>
 </tr>
 </tbody>
 </table>
 <p>The rest of the static configuration data parameters are meant
 to be modified mainly by developers and thus they're not listed here.<br>
 One more thing you might want to configure for your build is the
-contents of the ROM file system. See the <a href="">ROMFS
+contents of the ROM file system. See the <a href="arch_romfs.html">ROMFS
 documentation</a> for details on how to do this.</p>
 <h3>Invoking the build system</h3>
 <p>Once you have everything in place, all you have to do is to

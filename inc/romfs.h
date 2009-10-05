@@ -6,7 +6,7 @@
 #include "type.h"
 #include "devman.h"
 // Maximum length of a filename in the filesystem
-#define MAX_FNAME_LENGTH      14
+#define MAX_FNAME_LENGTH      30
 
 /*******************************************************************************
 The Read-Only "filesystem" resides in a contiguous zone of memory, with the
@@ -26,19 +26,20 @@ enum
  
 // This is the function used to read a byte at the given address from the file
 // system
-typedef u8 ( *p_read_fs_byte )( u16 );
+typedef u8 ( *p_read_fs_byte )( u32 );
 
 // A small "FILE" structure
 typedef struct 
 {
-  u16 baseaddr;
-  u16 offset;
+  u32 baseaddr;
+  u32 offset;
   u16 size;
   p_read_fs_byte p_read_func;
 } FS;
   
 // FS functions
 DM_DEVICE* romfs_init();
-u16 romfs_get_dir_entry(u16 offset, char *fname, int *fsize);
+u32 romfs_get_dir_entry( u32 offset, char *fname, u16 *fsize );
 
 #endif
+

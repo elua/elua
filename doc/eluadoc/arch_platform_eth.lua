@@ -12,7 +12,7 @@ data_en =
   overview = [[<span style="color: red;">$NOTE$: TCP/IP support is experimental in eLua. Although functional, it's quite incomplete at the moment.</span></p>
   <p>This part of the platform interface groups functions related to accessing the Ethernet interface (internal or external) of the CPU. Note that unlike the
   other parts of the platform interface this one is dedicated for TCP/IP support and thus it does not correspond directly to an eLua module, although
-  the @##@net module@ is implemented with functions that rely on this part of the platform interface. Currently only
+  the @refman_gen_net.html@net module@ is implemented with functions that rely on this part of the platform interface. Currently only
   the ^http://www.sics.se/~~adam/uip/index.php/Main_Page^uIP^ TCP/IP stack is supported by eLua.</p>
   <p>uIP is implemented in eLua using two hardware interrupts (that should be available on your platform): the Ethernet receive interrupt (to handle
   incoming packets) and a timer interrupt (timers are used internally by uIP). However, the uIP main loop is only called from the Ethernet interrupt handler
@@ -106,7 +106,7 @@ data_pt =
   overview = [[<span style="color: red;">$NOTE$: TCP/IP support is experimental in eLua. Although functional, it's quite incomplete at the moment.</span></p>
   <p>This part of the platform interface groups functions related to accessing the Ethernet interface (internal or external) of the CPU. Note that unlike the
   other parts of the platform interface this one is dedicated for TCP/IP support and thus it does not correspond directly to an eLua module, although
-  the @##@net module@ is implemented with functions that rely on this part of the platform interface. Currently only
+  the @refman_gen_net.html@net module@ is implemented with functions that rely on this part of the platform interface. Currently only
   the ^http://www.sics.se/~~adam/uip/index.php/Main_Page^uIP^ TCP/IP stack is supported by eLua.</p>
   <p>uIP is implemented in eLua using two hardware interrupts (that should be available on your platform): the Ethernet receive interrupt (to handle
   incoming packets) and a timer interrupt (timers are used internally by uIP). However, the uIP main loop is only called from the Ethernet interrupt handler

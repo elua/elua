@@ -98,13 +98,15 @@ romfs = { 'bisect' : [ 'bisect.lua' ],
           'adcscope' : [ 'adcscope.lua' ],
           'adcpoll' : [ 'adcpoll.lua' ],
           'life' : [ 'life.lua' ],
-          'logo' : ['logo.lua', 'logo.bin' ]
+          'logo' : ['logo.lua', 'logo.bin' ],
+          'spaceship' : [ 'spaceship.lua' ],
+          'tetrives' : [ 'tetrives.lua' ]
         }
 
 # List of board/romfs data combinations
 file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'info', 'morse' ],
-              'EK-LM3S8962' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope', 'adcpoll', 'logo' ],
-              'EK-LM3S6965' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope', 'adcpoll', 'logo' ],
+              'EK-LM3S8962' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope', 'adcpoll', 'logo', 'spaceship', 'tetrives' ],
+              'EK-LM3S6965' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope', 'adcpoll', 'logo', 'spaceship', 'tetrives' ],
               'STR9-COMSTICK' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
               'PC' : [ 'bisect', 'hello', 'info', 'life', 'hangman' ],
               'SIM' : [ 'bisect', 'hello', 'info', 'life', 'hangman' ],
@@ -265,8 +267,8 @@ if not GetOption( 'clean' ):
   flist = []
   for sample in file_list[ boardname ]:
     flist += romfs[ sample ]
-  if os.path.isfile(  os.path.join( romdir, cputype + '.lua' ) ):
-    flist += [cputype + '.lua']
+  if os.path.isfile( os.path.join( romdir, boardname + '.lua' ) ):
+    flist += [boardname + '.lua']
   import mkfs
   mkfs.mkfs( romdir, "romfiles", flist )
   print

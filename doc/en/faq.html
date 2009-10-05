@@ -68,7 +68,7 @@ prove just fine. It largely depends on your needs.</p>
 
 <a name="portability" /><h2>Since I'm using the Lua platform modules (uart, spi, pwm, tmr...), can I trust my peripheral code to run the same on all my
   platforms?</h2>
-<p>Unfortunately, no. While <b>eLua</b> makes it possible to have a common code on different platforms using the <a href="">##platform interface</a>,
+<p>Unfortunately, no. While <b>eLua</b> makes it possible to have a common code on different platforms using the <a href="arch_platform.html">platform interface</a>,
   it can't possibly provide the same functionality on all platforms, since all MCUs are not created equal. It is very recommended 
   (and many times imperative) to have an understanding of the peripherals on your particular MPU before you start writing your code. 
   This, of course, is not particular to <b>eLua</b>, but it's especially important since the platform interface might give the impression that it 

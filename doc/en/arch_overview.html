@@ -36,11 +36,11 @@ possible; that is, it should absorb as much common code as possible. For example
 <ul>
   <li>if you want to add a new file system to <b>eLua</b>, this should definitely be generic code. It's likely that this kind of code will have
   dependencies related to the physical medium on which this file system resides. If you're lucky, you can solve these dependencies using only the functions 
-  defined in the <a href="elua_platform.html">platform interface</a> (this would make sense if you're using a SD card controlled over SPI, since the 
+  defined in the <a href="arch_platform.html">platform interface</a> (this would make sense if you're using a SD card controlled over SPI, since the 
   platform interface already has a SPI layer). If not, you should group the platform specific functions in a separate interface that will be implemented by
   all platform that want to use your new file system. This gives the code maximum portability.</li>
   <li>if you want to add a driver for a specific ADC chip that works over SPI, the same observations apply: write it as common code as much as you can,
-  and use the <a href="elua_platform.html">platform interface</a> for the specific SPI functions you need.</li>
+  and use the <a href="arch_platform.html">platform interface</a> for the specific SPI functions you need.</li>
 </ul>
 <p>When designing and implementing a new component, keep in mind other <b>eLua</b> design goal: <b>flexibility</b>. The user should be able to 
   select which components are part of its <b>eLua</b> binary image (as described <a href="building.html">here</a>), and the implementation should take
@@ -71,7 +71,7 @@ possible; that is, it should absorb as much common code as possible. For example
   module, for example, you don't need to implement its platform interface.</li>
   <li>a part of the platform interface is implemented (at least partially) in a file that is common for all the platforms (<i>src/common.c</i>). It
   eases the implmentation of some modules (such as the timer module) and also implements common features that are tied to the platform interface,
-  but have a common behaviour on all platforms (for example virtual timers, see <a href="">##here</a> for details). You probably won't need to modify 
+  but have a common behaviour on all platforms (for example virtual timers, see <a href="arch_platform_timers.html#virtual_timers">here</a> for details). You probably won't need to modify 
   if you're writing platform specific code, but it's best to keep in mind what it does.</li>
 </ul>
 <p>A platform implementation might also contain one or more <b>platform dependent modules</b>. As already exaplained, their purpose is to allow Lua
@@ -138,7 +138,7 @@ specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in spe
 #define  STACK_SIZE_IRQ   64
 #define  STACK_SIZE_TOTAL ( STACK_SIZE_USR + STACK_SIZE_IRQ )</code></pre></li>
 <li><b>platform.c</b>: by convention, the <a href="arch_platform.html">platform interface</a> is implemented in this file. It also contains the platform-specific
-  initialization function (<i>platform_init</i>, see the description of the <a href="elua_arch.html#boot">eLua boot process</a> for details).</li>
+  initialization function (<i>platform_init</i>, see the description of the <a href="arch_overview.html#boot">eLua boot process</a> for details).</li>
 <li><b>platform_conf.h</b>: this is the platform configuration file, used to give information about both the platform itself and the build configuration for the 
   platform. This is what you can set inside <b>platform_conf.h</b>:
 <ul>

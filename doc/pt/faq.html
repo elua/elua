@@ -31,8 +31,7 @@ a <a href="http://lua-users.org/wiki/">wiki Lua</a>. Se você precisar de mais a
 conosco. Dê uma olhada na <a href="status.html#roadmap">página roadmap</a>
 e, se houver interesse em colaborar, não hesite em <a href="overview.html#contacts">contactar-nos</a>. Além disso, se você quiser fazer uma doação para o projeto (dinheiro, ou talvez uma placa para desenvolvimento) esteja certo que não iremos
 recusar :) Seus reports de bugs encontrados em testes de <b>eLua</b> em suas
-placas e suas idéias sobre recursos legais são tão valiosos quanto. Se assim for, não hesite em <a
-href="overview.html#contacts">nos contactar</a>.
+placas e suas idéias sobre recursos legais são tão valiosos quanto. Se assim for, não hesite em <a href="overview.html#contacts">nos contactar</a>.
 
 <a name="comercial" /><h2>Posso usar eLua no meu projeto comercial de código fechado?</h2>
 <p>A partir da versão 0.6, <b>eLua</b> é distribuída sob a licença MIT e
@@ -62,7 +61,7 @@ prove just fine. It largely depends on your needs.</p>
 
 <a name="portability" /><h2>Since I'm using the Lua platform modules (uart, spi, pwm, tmr...), can I trust my peripheral code to run the same on all my
   platforms?</h2>
-<p>Unfortunately, no. While <b>eLua</b> makes it possible to have a common code on different platforms using the <a href="">##platform interface</a>,
+<p>Unfortunately, no. While <b>eLua</b> makes it possible to have a common code on different platforms using the <a href="arch_platform.html">platform interface</a>,
   it can't possibly provide the same functionality on all platforms, since all MCUs are not created equal. It is very recommended 
   (and many times imperative) to have an understanding of the peripherals on your particular MPU before you start writing your code. 
   This, of course, is not particular to <b>eLua</b>, but it's especially important since the platform interface might give the impression that it 
