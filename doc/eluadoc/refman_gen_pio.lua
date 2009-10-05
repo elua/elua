@@ -15,8 +15,8 @@ data_en =
   <p>With the $pio$ module, you specifiy names of $ports$ as they appear in your eLua's CPU datasheet. For example, if your CPU's ports are named $PA, PB$ 
   and $PC$, you can reffer to them using $pio.PA$, $pio.PB$ and $pio.PC$, respectively. If your CPU uses $P0$, $P1$, $P2$ instead of $PA$, $PB$ and $PC$, 
   you can simply use $pio.P0$, $pio.P1$ and $pio.P2$ instead.</p>
-  <p>You can also reffer to individual $pins$ instead of ports. With the same notation as above, $pio.PA_0$ reffers to the first pin of port $PA$, 
-  $P0_15$ reffers to the 16th pin of port $P0$ and so on.
+  <p>You can also reffer to individual $pins$ instead of ports. With the same notation as above, $pio.PA_0$ refers to the first pin of port $PA$, 
+  $P0_15$ refers to the 16th pin of port $P0$ and so on.
   ]],
 
   -- Functions
@@ -171,8 +171,8 @@ data_pt =
   <p>With the $pio$ module, you specifiy names of $ports$ as they appear in your eLua's CPU datasheet. For example, if your CPU's ports are named $PA, PB$ 
   and $PC$, you can reffer to them using $pio.PA$, $pio.PB$ and $pio.PC$, respectively. If your CPU uses $P0$, $P1$, $P2$ instead of $PA$, $PB$ and $PC$, 
   you can simply use $pio.P0$, $pio.P1$ and $pio.P2$ instead.</p>
-  <p>You can also reffer to individual $pins$ instead of ports. With the same notation as above, $pio.PA_0$ reffers to the first pin of port $PA$, 
-  $P0_15$ reffers to the 16th pin of port $P0$ and so on.
+  <p>You can also reffer to individual $pins$ instead of ports. With the same notation as above, $pio.PA_0$ refers to the first pin of port $PA$, 
+  $P0_15$ refers to the 16th pin of port $P0$ and so on.
   ]],
 
   -- Functions
