@@ -60,10 +60,13 @@ margin-left:10px;
  ******************************************************************************/
  
 #logo h6.selected {
-  margin: 2px 4px 2px 4px;
+/*  margin: 2px 4px 2px 4px;
   padding: 2px;
   background-color: #137096;
   color: white;
+
+opacity:1.0;filter:alpha(opacity=100);
+*/
 }
 
 #logo h6 {
@@ -89,8 +92,13 @@ h6{
   padding: 2px 4px 2px 4px;
 }
 
+#logo a.lang img{
+border: 0px 
+}
+
 #logo a.lang:hover {
-  text-decoration: none;
+#border: 2px solid #ccc;
+#  text-decoration: none;
 #  background-color: blue;
 #  color: white;
 }

@@ -292,9 +292,9 @@ local function gen_logo( fname, lang )
     local crtlang = languages[ i ]
     local hlang = crtlang:sub( 1, 1 ):upper() .. crtlang:sub( 2, -1 )
     if lang:lower() == crtlang:lower() then 
-      langdata = langdata .. string.format('          <td align="center"><h6 class="selected">%s</h6></td>\n', hlang )
+      langdata = langdata .. string.format('          <td align="center"><h6 class="selected"><img src="images/%s.jpg" border="0" /></h6></td>\n', hlang )
     else
-      langdata = langdata .. string.format('          <td align="center"><h6><a href="%s_%s" class="lang">%s</a></h6></td>\n', crtlang:lower(), fname, hlang )
+      langdata = langdata .. string.format('          <td align="center"><h6><a href="%s_%s" class="lang"><img src="images/%s.jpg" border="0" /></a></h6></td>\n', crtlang:lower(), fname, hlang )
     end
   end
 return string.format( [[
