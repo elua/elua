@@ -156,14 +156,14 @@ files.</p>
 <br />
 
 <h3>adcscope.lua: ADCs and eLua, part I</h3>
-<p><b>Runs on: </b>##TODO</p>
-<p><b>Description: </b>##TODO
+<p><strong>Runs on: </strong>EK-LM3S8962, EK-LM3S6965, ET-STM32</p>
+<p><strong>Description: </strong>This uses the ADC module to acquire samples as quickly as possible on available ADC channels, and display them using the term module.  Additionally, for different channels, different length moving average filters are used to smooth the data being acquired (see the adcchannels and adcsmoothing variables).  While running the script also provides the average length of time required to get conversion results from each channel and the amount of memory used by garbage collectable objects in the running Lua environment.
 </p>
 <br />
 
 <h3>adcpoll.lua: ADCs and eLua, part II</h3>
-<p><b>Runs on: </b>##TODO</p>
-<p><b>Description: </b>##TODO
+<p><strong>Runs on: </strong>EK-LM3S8962, EK-LM3S6965, ET-STM32</p>
+<p><strong>Description: </strong>This is another example of the ADC and term modules.  This version uses hardware timers to acquire samples deterministically at a rate of 4 samples per second.  When run, note that data from some channels appear before that of others.  This is due to the moving average (smoothing) filter being enabled.  This filter will only return conversion results after enough samples are acquired to fill the filter length.  In addition, this example utilizes a polling mechanism.  When adc.getsample or adc.getsamples return nil, no samples were available to be returned.  Values for each channel, in this example, are only displayed when there is a non-nil value returned by adc.getsample.
 </p>
 <br />
 
