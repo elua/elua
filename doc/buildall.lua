@@ -1,6 +1,9 @@
 require "lfs"
 require "eluadoc"
 
+-- Uncomment this when generating offline docs
+-- local is_offline = true
+
 -- Languages in the system
 -- NOTE: "en" must ALWAYS be the first entry in this array!
 -- NOTE: all languages must be given in lowercase only!
@@ -228,7 +231,7 @@ end
 
 -- Generate the HTML menu structure for the given language and parentid
 -- If "is_offline" is true, don't generate links to the counter and the BerliOS logo
-local function gen_html_nav( parentid, lang, is_offline )
+local function gen_html_nav( parentid, lang )
   local htmlstr = [[
 <div id="nav">
   <div id="ddsidemenubar" class="markermenu">
@@ -270,6 +273,7 @@ local function gen_html_nav( parentid, lang, is_offline )
   end
   offline_data = not is_offline and [[
   <p style="margin-left: 35px;"><a href="http://www.pax.com/free-counters.html"><img src="http://counter.pax.com/counter/image?counter=ctr-zsg80nnmqt" alt="Free Hit Counter" style="border: 0;" /></a></p>
+<p style="margin-left: 18px;"><a href="http://developer.berlios.de" title="BerliOS Developer"> <img src="http://developer.berlios.de/bslogo.php?group_id=9919" width="124px" height="32px" border="0" alt="BerliOS Developer Logo"></a></p>
 ]] or ""
   htmlstr = htmlstr .. string.format( [[
     </ul>

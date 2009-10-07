@@ -101,6 +101,7 @@ local menu =
   },
   { { "Help", "Ajuda" }, "using.html", 
     {
+      { { "Building eLua", "Build de eLua" }, "building.html" },
       { { "Using", "Usando eLua" }, "using.html", 
         {
           { { "Over UART", "Console via UART" }, "using.html#uart" },
@@ -117,7 +118,6 @@ local menu =
           { { "Booting on a PC", "Bootando num PC" }, "tut_bootpc.html" },
           { { "Booting from a PenDrive", "Bootando de um Pen-Drive" }, "tut_bootstick.html" },
           { { "Using OpenOCD", "Usando OpenOCD" }, "tut_openocd.html" },
-          { { "Building eLua", "Build de eLua" }, "building.html" },
           { { "eLua toolchains", "Toolchains para eLua" }, "toolchains.html" },
           { { "Building toolchains", "Build de Toolchains" }, "tchainbuild.html",
             {

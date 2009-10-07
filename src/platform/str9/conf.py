@@ -5,10 +5,10 @@ cpumode = ARGUMENTS.get( 'cpumode', 'arm' ).lower()
 specific_files = "startup912.s startup_generic.s platform.c 91x_scu.c 91x_fmi.c 91x_gpio.c 91x_uart.c 91x_tim.c 91x_vic.c interrupt.c"
 
 # Check CPU
-if cputype == 'STR912FW44':
+if cputype == 'STR912FAW44':
   ldscript = "str912fw44.lds"
 else:
-  print "Invalid STR9 CPU %s", cputype
+  print "Invalid STR9 CPU %s" % cputype
   sys.exit( -1 )  
   
 # Check CPU mode
