@@ -30,7 +30,7 @@ function cycle()
 end
 
 pio.pin.setdir( pio.OUTPUT, ledpin )
-print( "Hello from eLua on " .. pd.cpu() )
+print( "Hello from eLua on " .. pd.board() )
 print "Watch your LED blinking :)"
 print "Press any key to end this demo.\n"
 

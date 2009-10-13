@@ -97,7 +97,7 @@ pwm.setup( pwmid, playFreq, 50 )
 while true do
   term.clrscr()
   term.moveto(1, 1)
-  print("Welcome to eLua Morse Playing on " .. pd.cpu())
+  print("Welcome to eLua Morse Playing on " .. pd.board())
   io.write("Enter phrase (empty phrase to exit): ")
   local msg, enabled = io.read(), true
   if #msg == 0 then break end

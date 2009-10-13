@@ -5,7 +5,8 @@ $$HEADER$$
 </p>
 <ul>
 <li>voc&ecirc; est&aacute; usando Linux. &Eacute; poss&iacute;vel a compila&ccedil;&atilde;o em windows, no entanto, ainda n&atilde;o foi testada. Usamos Ubuntu e o comando que utilizamos &eacute;&nbsp; o "apt-get". Caso voc&ecirc; esteja com uma distro que possua um gerenciador de pacotes diferente, voc&ecirc; ter&aacute; que alterar o comando "apt-get" para um compat&iacute;vel com a sua distro.</li>
-<li>voc&ecirc; possui um toolchain (compilador, linker e bibliotecas de assembler e C padr&atilde;o) para o seu hardware. D&ecirc; uma olhada na p&aacute;gina <a href="toolchains.html">toolchains</a> para obter ajuda. &Eacute; importante observar que, mesmo que voc&ecirc; j&aacute; tenha um toolchain compilado, diferen&ccedil;as nos par&acirc;metros de configura&ccedil;&atilde;o da NewLib (principalmente os  --disable-newlib-supplied-syscalls flags) podem gerar problemas e impedir que <b>eLua</b> seja gerada na sua m&aacute;quina.</li>
+<li>voc&ecirc; possui um toolchain (compilador, linker e bibliotecas de assembler e C padr&atilde;o) para o seu hardware. D&ecirc; uma olhada na p&aacute;gina 
+<a href="toolchains.html">toolchains</a> para obter ajuda. &Eacute; importante observar que, mesmo que voc&ecirc; j&aacute; tenha um toolchain compilado, diferen&ccedil;as nos par&acirc;metros de configura&ccedil;&atilde;o da NewLib (principalmente os  --disable-newlib-supplied-syscalls flags) podem gerar problemas e impedir que <b>eLua</b> seja gerada na sua m&aacute;quina.</li>
 <li>voc&ecirc; configurou a sua plataforma corretamente. Leia o pr&oacute;ximo par&aacute;grafo para obter instru&ccedil;&otilde;es de como configurar a gera&ccedil;&atilde;o de <b>eLua</b>.</li>
 <li>Python - Este deve estar previamente instalado. Caso contr&aacute;rio, execute o apt-get para instal&aacute;-lo:
 <pre><code>$ sudo apt-get install python</code></pre>
@@ -76,15 +77,15 @@ Para habilitar:
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">BUILD_TERM</td>
-<td>Habilita o suporte ao terminal ANSI. Este recurso permite que <b>eLua</b> interaja com terminais que suportem sequ&ecirc;ncias ANSI (mais detalhes <a href="arch_con_term.html">aqui</a>). Atualmente, este recurso funciona somente em conex&otilde;es R-232, apesar desta n&atilde;o ser uma obriga&ccedil;&atilde;o estrita. Voc&ecirc; precisa habilitar este recurso, caso seja necess&aacute;rio usar o <a href="m_term.html">##term module</a>.
+<td>Habilita o suporte ao terminal ANSI. Este recurso permite que <b>eLua</b> interaja com terminais que suportem sequ&ecirc;ncias ANSI (mais detalhes <a href="arch_con_term.html">aqui</a>). Atualmente, este recurso funciona somente em conex&otilde;es R-232, apesar desta n&atilde;o ser uma obriga&ccedil;&atilde;o estrita. Voc&ecirc; precisa habilitar este recurso, caso seja necess&aacute;rio usar o <a href="refman_gen_term.html">term module</a>.
 Para habilitar:
 <p><pre><code>#define BUILD_TERM</code></pre></p>
 <a href="building.html#static">Depend&ecirc;ncias da configura&ccedil;&atilde;o de dados est&aacute;ticos:</a> <b>CON_UART_ID, CON_UART_SPEED, CON_TIMER_ID, TERM_LINES, TERM_COLS</b></td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">BUILD_UIP</td>
-<td>Habilita o suporte para o TCP/IP. Voc&ecirc; precisa habilitar este recurso, caso seja necess&aacute;rio usar o  <a href="m_net.html">##net
-module</a>. Al&eacute;m disso, sua plataforma deve implementar o suporte para as fun&ccedil;&otilde;es uIP (veja a documenta&ccedil;&atilde;o <a href="platform_interface.html">##platforminterface</a> para mais detalhes).
+<td>Habilita o suporte para o TCP/IP. Voc&ecirc; precisa habilitar este recurso, caso seja necess&aacute;rio usar o  <a href="refman_gen_net.html">net
+module</a>. Al&eacute;m disso, sua plataforma deve implementar o suporte para as fun&ccedil;&otilde;es uIP (veja a documenta&ccedil;&atilde;o <a href="arch_platform.html">platforminterface</a> para mais detalhes).
 Para habilitar:
 <p><pre><code>#define BUILD_UIP</code></pre></p>
 <a href="building.html#static">Depend&ecirc;ncias da configura&ccedil;&atilde;o de dados est&aacute;ticos:</a> <b>ELUA_CONF_IPADDR0..3, ELUA_CONF_NETMASK0..3, ELUA_CONF_DEFGW0..3,
@@ -124,9 +125,9 @@ Para habilitar:
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">BUILD_ADC</td>
-<td>Suporte gen&eacute;rico para c&oacute;digo ADC. Voc&ecirc; precisa ativar este recurso caso queira usar o m&oacute;dulo <a href="m_adc.html">##adc</a>, ou simplesmente as fun&ccedil;&otilde;es ADC da interface da plataforma. Por outro lado, voc&ecirc; n&atilde;o precisa ativar este recurso caso n&atilde;o esteja pensando em usar as fun&ccedil;&otilde;es ADC.
+<td>Suporte gen&eacute;rico para c&oacute;digo ADC. Voc&ecirc; precisa ativar este recurso caso queira usar o m&oacute;dulo <a href="refman_gen_adc.html">adc</a>, ou simplesmente as fun&ccedil;&otilde;es ADC da interface da plataforma. Por outro lado, voc&ecirc; n&atilde;o precisa ativar este recurso caso n&atilde;o esteja pensando em usar as fun&ccedil;&otilde;es ADC.
 Para habilitar:
-<p><pre><code>#define ##BUILD_ADC</code></pre></p>
+<p><pre><code>#define BUILD_ADC</code></pre></p>
 </td>
 </tr>
 </tbody>
@@ -154,7 +155,7 @@ module_init_function, module_map_array )</b>, onde:
 <li><b>module_map_array</b> &eacute; uma lista de todas as fun&ccedil;&otilde;es e constantes exportadas pelo m&oacute;dulo</li>
 </ul>
 <p>Por favor, observe que esta nota&ccedil;&atilde;o &eacute; espec&iacute;fica para LTR (o patch <b>L</b>ua <b>T</b>iny <b>R</b>AM) e n&atilde;o &eacute; a &uacute;nica forma de especificar a lista dos m&oacute;dulos inclu&iacute;dos na gera&ccedil;&atilde;o (apesar desta ser uma forma comum). Verifique a <a href="arch_ltr.html#config">se&ccedil;&atilde;o LTR</a> para mais informa&ccedil;&otilde;es sobre LTR.</p>
-<p>Para uma lista completa de todos os m&oacute;dulos que podem ser ativados ou desativados via <i>platform_conf.h</i>, veja <a href="">##the
+<p>Para uma lista completa de todos os m&oacute;dulos que podem ser ativados ou desativados via <i>platform_conf.h</i>, veja <a href="refman_gen.html">the
 eLua reference manual</a>.</p>
 <a name="static"><h2>Dados da configura&ccedil;&atilde;o est&aacute;tica</h2></a>
 <p>"Configura&ccedil;&atilde;o est&aacute;tica" refere-se a configura&ccedil;&atilde;o durante o tempo de compila&ccedil;&atilde;o. Os par&acirc;metros  da configura&ccedil;&atilde;o est&aacute;tica est&atilde;o gravados na imagem do firmware e n&atilde;o podem ser alterados em tempo de execu&ccedil;&atilde;o. A tabela abaixo relaciona os par&acirc;metros de configura&ccedil;&atilde;o est&aacute;tica e suas sem&acirc;nticas.
@@ -184,19 +185,19 @@ ELUA_CONF_DNS0..3</td>
 <tr>
 <td style="color: rgb(255, 102, 0);">VTMR_NUM_TIMERS<br>
 VTMR_FREQ_HZ</td>
-<td>Especifique a configura&ccedil;&atilde;o dos timers virtuais da plataforma (acesse a <a href="">##documenta&ccedil;&atilde;o do m&oacute;dulo timer</a> para detalhes). Defina VTMR_NUM_TIMERS como 0 caso este recurso n&atilde;o seja utilizado.</td>
+<td>Especifique a configura&ccedil;&atilde;o dos timers virtuais da plataforma (acesse a <a href="arch_platform_timers.html#virtual_timers">documenta&ccedil;&atilde;o do m&oacute;dulo timer</a> para detalhes). Defina VTMR_NUM_TIMERS como 0 caso este recurso n&atilde;o seja utilizado.</td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">PLATFORM_CPU_CONSTANTS</td>
-<td>Se o <a href="">##cpu module</a>
+<td>Se o <a href="refman_gen_cpu.html">cpu module</a>
 estiver ativado, este define uma rela&ccedil;&atilde;o de constantes da plataforma espec&iacute;fica(por exempo m&aacute;scaras de interrup&ccedil;&atilde;o) que podem ser acessadas usando a nota&ccedil;o cpu.&lt;constant name&gt;. Os nomes de cada constante devem ser especificados ao inv&eacute;s de uma constru&ccedil;&atilde;o espec&iacute;fica (<i>_C(&lt;constantname&gt;</i>). Por exemplo:
 <pre><code>#define PLATFORM_CPU_CONSTANTS\<br> _C( INT_GPIOA ),\<br> _C( INT_GPIOB ),\<br> _C( INT_GPIOC ),\<br> _C( INT_GPIOD ),\<br> _C( INT_GPIOE )<br></code></pre>
 Ap&oacute;s a compila&ccedil;&atilde;o, voc&ecirc; poder&aacute; acessar essas constantes usando <i>cpu.INT_GPIOx</i>.
-Observe que a implementa&ccedil;&atilde;o desses recursos n&atilde;o precisa de mem&oacute;ria RAM, logo voc&ecirc; poder&aacute; definir quantas constantes desejar. ##TODO: ADC!!</td>
+Observe que a implementa&ccedil;&atilde;o desses recursos n&atilde;o precisa de mem&oacute;ria RAM, logo voc&ecirc; poder&aacute; definir quantas constantes desejar.</td>
 </tr>
 </tbody>
 </table>
-<p>Os par&acirc;metros da configura&ccedil;&atilde;o est&aacute;tica restantes foram deixados para serem alterados pelos desenvolvedores e por este motivo, n&atilde;o est&atilde;o relacionados aqui.<br>Outra coisa que voc&ecirc; poder&aacute; querer configurar &eacute; o conte&uacute;do do sistema de arquivo de sua ROM. Veja a <a href="">documenta&ccedil;&atilde;o ROMFS</a> para detalhes de como fazer isso.</p>
+<p>Os par&acirc;metros da configura&ccedil;&atilde;o est&aacute;tica restantes foram deixados para serem alterados pelos desenvolvedores e por este motivo, n&atilde;o est&atilde;o relacionados aqui.<br>Outra coisa que voc&ecirc; poder&aacute; querer configurar &eacute; o conte&uacute;do do sistema de arquivo de sua ROM. Veja a <a href="arch_romfs.html">documenta&ccedil;&atilde;o ROMFS</a> para detalhes de como fazer isso.</p>
 <h3>Iniciando o "build system"</h3>
 <p>Agora, que voc&ecirc; est&aacute; com tudo em seu lugar, resta ent&atilde;o executar o "build system" (scons) com os argumentos corretos. Este &eacute; um passo f&aacute;cil, apesar da apar&ecirc;ncia intimidadora devido as m&uacute;ltiplas op&ccedil;&otilde;es existentes no scons. S&atilde;o usadas para se ajustarem &agrave;s suas necessidades espec&iacute;ficas, mas a menos que suas necessidades sejam muito especiais, voc&ecirc; n&atilde;o precisar&aacute; modific&aacute;-las, logo n&atilde;o se preocupe com a aparente complexidade. Os exemplos no fim desta se&ccedil;&atilde;o mostrar&atilde;o como &eacute; f&aacute;cil usar o "build system" na pr&aacute;tica.</p>
 <pre><code>$ scons <br> [target=lua | lualong]<br> [cpu=at91sam7x256 | at91sam7x512 | i386 | str912fw44 | lm3s8962 | <br> lm3s6965 | lm3s6918 | lpc2888 | str711fr2 | at32uc3a0512 | stm32f103ze<br> [board=ek-lm3s8962 | ek-lm3s6965 | eagle-100 | str9-comstick | sam7-ex256 | <br> lpc-h2888 | mod711 | pc | atevk1100 | stm3210e-eval ]<br> [cpumode=arm | thumb] <br> [allocator = newlib | multiple | simple]<br> [toolchain = &lt;toolchain name&gt;]<br> [optram = 0 | 1]<br> [prog]<br></code></pre>

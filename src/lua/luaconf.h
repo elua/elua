@@ -826,7 +826,7 @@ union luai_Cast { double l_d; long l_l; };
 ** without modifying the main part of the file.
 */
 
-#ifndef LUA_CROSS_COMPILER
+#if !defined(LUA_CROSS_COMPILER) || defined(_WIN32)
 typedef short int16_t;
 typedef long int32_t;
 #endif
@@ -834,7 +834,7 @@ typedef long int32_t;
 /* If you define the next macro you'll get the ability to set rotables as
    metatables for tables/userdata/types (but the VM might run slower)
 */
-#ifndef LUA_CROSS_COMPILER
+#if (LUA_OPTIMIZE_MEMORY == 2) && !defined(LUA_CROSS_COMPILER)
 #define LUA_META_ROTABLES 
 #endif
 

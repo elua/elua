@@ -169,23 +169,23 @@ static void shell_ver( char* args )
 // 'ls' and 'dir' handler
 static void shell_ls( char* args )
 {
-  u16 offset;
-  char fname[MAX_FNAME_LENGTH + 1];
-  int i, size;
-  int total = 0;
+  u32 offset = 0;
+  char fname[ MAX_FNAME_LENGTH + 1 ];
+  unsigned i;
+  u16 size;
+  u32 total = 0;
   
   args = args;
-  offset = 0;
   printf( "\n/rom" );
   while ( ( offset = romfs_get_dir_entry( offset, fname, &size ) ) ) 
   {
     printf( "\n%s", fname );
     for( i = strlen( fname ); i <= MAX_FNAME_LENGTH; i++ )
       printf( " " );
-    printf( "%d bytes", size );
+    printf( "%u bytes", ( unsigned )size );
     total = total + size;
   }   
-  printf( "\n\nTotal = %d bytes\n\n", total );
+  printf( "\n\nTotal = %u bytes\n\n", ( unsigned )total );
 }
 
 // Insert shell commands here

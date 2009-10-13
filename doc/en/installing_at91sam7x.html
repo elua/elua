@@ -1,16 +1,10 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
-<html><head>
-<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-<meta http-equiv="Content-Language" content="en-us"><title>Installing eLua on AT91SAM7x CPUs</title>
-
-<link rel="stylesheet" type="text/css" href="../style.css"></head>
-<body style="background-color: rgb(255, 255, 255);">
- <h3>Using <b>eLua</b> with the AT91SAM7X CPUs from Atmel</h3>
- <p><a target="_blank" href="http://www.atmel.com">Atmel</a> is a company that doesn't need any kind of introduction :) Their huge product range include some quite nice ARM7TDMI core implementations.
- Among them are the <a target="_blank" href="http://www.atmel.com/dyn/products/Product_card.asp?part_id=3755">AT91SAM7X256</a> and
- <a target="_blank" href="http://www.atmel.com/dyn/products/Product_card.asp?part_id=4104">AT91SAM7X512</a> CPUs. The only difference between them is the ammount of internal memory (256k Flash+64k RAM for
+$$HEADER$$
+<h3>Using <b>eLua</b> with the AT91SAM7X CPUs from Atmel</h3>
+ <p><a href="http://www.atmel.com">Atmel</a> is a company that doesn't need any kind of introduction :) Their huge product range include some quite nice ARM7TDMI core implementations.
+ Among them are the <a href="http://www.atmel.com/dyn/products/Product_card.asp?part_id=3755">AT91SAM7X256</a> and
+ <a href="http://www.atmel.com/dyn/products/Product_card.asp?part_id=4104">AT91SAM7X512</a> CPUs. The only difference between them is the ammount of internal memory (256k Flash+64k RAM for
  AT91SAM7X256 vs. 512k Flash+128k RAM for AT91SAM7X512). Loaded with peripherals, and accompanied by a good support package, they make a perfect host for <b>eLua</b>. For this tutorial
- I'm going to use the <a target="_blank" href="http://www.olimex.com/dev/sam7-ex256.html">SAM7-EX256</a> development board from <a target="_blank" href="http://www.olimex.com">Olimex</a>. It's quite a 
+ I'm going to use the <a href="http://www.olimex.com/dev/sam7-ex256.html">SAM7-EX256</a> development board from <a href="http://www.olimex.com">Olimex</a>. It's quite a 
  decent board, and also reasonably priced, although it lacks a proper documentation package in my oppinion. It is equipped with an AT91SAM7X256 CPU. As much as I'd like to get
  my hands on a board with a AT91SAM7X512 CPU, this didn't happen so far, so I'm going to stick with AT91SAM7X256. Of course, you can still try this tutorial if you have
  a different AT91SAM7X256 development board. Plus, the instructions should be quite similar for AT91SAM7X512 CPUs.
@@ -18,12 +12,12 @@
  <h3> Prerequisites</h3> 
  <p>Before you'll be able to use <b>eLua</b> on the AT91SAM7X256 CPU, make sure that:</p>
  <ul>
- <li>you're using Windows. This isn't actually a strict requirement, it just makes life a bit easier. As the Atmel CPU is supported by the <a target="_blank" href="http://openocd.berlios.de/web/">OpenOCD</a> package, programming it from Linux is definitely possible, as OpenOCD runs equally well on Windows and Linux. However, since I'm forced to use Windows anyway because of the restrictions of
+ <li>you're using Windows. This isn't actually a strict requirement, it just makes life a bit easier. As the Atmel CPU is supported by the <a href="http://openocd.berlios.de/web/">OpenOCD</a> package, programming it from Linux is definitely possible, as OpenOCD runs equally well on Windows and Linux. However, since I'm forced to use Windows anyway because of the restrictions of
  some of my other development boards, I'm going to take advantage of this and cover the Atmel programming tool instead of OpenOCD. The advantage is that you don't need a JTAG "dongle"
  to program your board (which would be the case if you were using OpenOCD). The disadvantage, of course, is that the Atmel tool runs only on Windows. Plus, I personally find OpenOCD 
- tedious to use. If you still want to use it though, you might want to check the forementioned <a target="_blank" href="http://www.olimex.com/dev/sam7-ex256.html">Olimex page</a>, they have some OpenOCD related links there.
+ tedious to use. If you still want to use it though, you might want to check the forementioned <a href="http://www.olimex.com/dev/sam7-ex256.html">Olimex page</a>, they have some OpenOCD related links there.
  That said, from now on I'm going to assume that you use Windows. I'm using XP, Vista should work too.</li>
- <li>you have installed the <a target="_blank" href="http://www.atmel.com/dyn/products/tools_card.asp?tool_id=3883">AT91 In-system Programmer (ISP)</a> package from Atmel.</li>
+ <li>you have installed the <a href="http://www.atmel.com/dyn/products/tools_card.asp?tool_id=3883">AT91 In-system Programmer (ISP)</a> package from Atmel.</li>
  <li>you already have your <b>eLua</b> image for the AT91SAM7X256 CPU (<a href="building.html">built</a> or <a href="downloads.html">downloaded</a>).</li>
  </ul>
  <h3>Programming eLua on the SAM7-EX256 board</h3>
@@ -49,4 +43,5 @@
  </ul>
  <p>That's it! A bit tricky, but <b>eLua</b> is now programmed in the CPU, so you can start your terminal emulator and enjoy it, as described in <a href="using.html">using eLua</a>. 
  </p>
-</body></html>
+$$FOOTER$$
+

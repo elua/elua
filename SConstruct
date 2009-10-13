@@ -88,7 +88,7 @@ board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
 romfs = { 'bisect' : [ 'bisect.lua' ],
           'hangman' : [ 'hangman.lua' ],
           'lhttpd' : [ 'index.pht', 'lhttpd.lua', 'test.lua' ],
-          'pong' : [ 'pong.lua', 'LM3S.lua' ],
+          'pong' : [ 'pong.lua' ],
           'led' : [ 'led.lua' ],
           'piano' : [ 'piano.lua' ],
           'pwmled' : [ 'pwmled.lua' ],
@@ -100,11 +100,15 @@ romfs = { 'bisect' : [ 'bisect.lua' ],
           'adcscope' : [ 'adcscope.lua' ],
           'adcpoll' : [ 'adcpoll.lua' ],
           'life' : [ 'life.lua' ],
-          'logo' : ['logo.lua', 'logo.bin' ]
+          'logo' : ['logo.lua', 'logo.bin' ],
+          'spaceship' : [ 'spaceship.lua' ],
+          'tetrives' : [ 'tetrives.lua' ]
         }
 
 # List of board/romfs data combinations
 file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'info', 'morse' ],
+              'EK-LM3S8962' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope', 'adcpoll', 'logo', 'spaceship', 'tetrives' ],
+              'EK-LM3S6965' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope', 'adcpoll', 'logo', 'spaceship', 'tetrives' ],
               'EK-LM3S8962' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope','adcpoll', 'logo' ],
               'EK-LM3S6965' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope','adcpoll', 'logo' ],
               'EK-LM3S9B92' : [ 'bisect', 'hangman', 'lhttpd', 'led', 'pwmled', 'hello', 'info', 'adcscope','adcpoll', 'life' ],
@@ -278,11 +282,14 @@ source_files = app_files + specific_files + newlib_files + uip_files + lua_full_
 # Make filesystem first
 if not GetOption( 'clean' ):
   print "Building filesystem..."
+  romdir = "romfs"
   flist = []
   for sample in file_list[ boardname ]:
-    flist = flist + romfs[ sample ]
+    flist += romfs[ sample ]
+  if os.path.isfile( os.path.join( romdir, boardname + '.lua' ) ):
+    flist += [boardname + '.lua']
   import mkfs
-  mkfs.mkfs( "romfs", "romfiles", flist )
+  mkfs.mkfs( romdir, "romfiles", flist )
   print
   if os.path.exists( "inc/romfiles.h" ): 
     os.remove( "inc/romfiles.h" )

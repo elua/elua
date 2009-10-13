@@ -1,66 +1,61 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
-<html><head>
-<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-<meta http-equiv="Content-Language" content="en-us"><title>Toolchains for eLua</title>
-<link rel="stylesheet" type="text/css" href="../style.css"></head>
-<body style="background-color: rgb(255, 255, 255);">
+$$HEADER$$
 <h3>Toolchains for eLua</h3>
 <p>You need (at least) a toolchain if you decide to build <b>eLua</b> yourself. The toolchain must contain at least a compiler, an assembler, a linker and (most likely) a tool to extract binary 
    data from the compiled image (in order to build the actual firmware). Also, a program that reports the sizes of different sections in the compiled image is often used to give an idea about the 
    resource consumption of <b>eLua</b>. You can use as many toolchains as you want for a given target, as long as the build scripts know to handle them. This
-   section outlines the different toolchain choices available for compiling <b>eLua</b>. Use the links below to navigate directly to your target of interest.
+   section outlines the different toolchain choices available for compiling <b>eLua</b>. Use the links below to navigate directly to your target of interest.</p>
 <ul>
   <li><a href="#armcortex">Toolchains for ARM and Cortex</a></li>
   <li><a href="#avr32">Toolchains for AVR32</a></li>
   <li><a href="#i386">Toolchains for i386</a></li>
-</ul></p>
+</ul>
 <p>If you have a different toolchain, reffer to the <a href="#configuration">toolchain configuration</a> paragraph in this document.</p>
 <a name="armcortex"><h2>Toolcains for ARM and Cortex</h2></a>
-<p>You have multiple options when building <b>eLua</b> for ARM and Cortex CPUs:
+<p>You have multiple options when building <b>eLua</b> for ARM and Cortex CPUs:</p>
 <ul>
   <li>build your own toolchain. Even if you have a toolchain already available, you might want to do this for maximum flexibility and control (for example to control the libc build flags, or to
-      use specific version of the tools). Check <a href="">##this link</a> for a step by step tutorial on building your own toolchain.</li>
+      use specific version of the tools). Check <a href="tchainbuild.html">this link</a> for a step by step tutorial on building your own toolchain.</li>
   <li>use a readily available toolchain. This saves you the hassle of building the toolchain yourself, which makes the process quicker and less error-prone.</li>
-</ul></p>
+</ul>
 <p>Because building a toolchain is already covered in another section of the documentation, we'll focus on installing a pre-compiled toolchain here. ARM is a very popular architecture, and because
-of this there are a lot of toolchains available for download free of charge. One of the most popular ones comes from <a href="http://www.codesourcery.com">CodeSourcery</a>, and we'll cover it here for a number of important reasons:
+of this there are a lot of toolchains available for download free of charge. One of the most popular ones comes from <a href="http://www.codesourcery.com">CodeSourcery</a>, and we'll cover it here for a number of important reasons:</p>
 <ul>
   <li>it has support for both "traditional" ARM targets and Cortex-M3 (Thumb2) targets</li>
   <li>it comes with user-friendly installers for both Linux and Windows</li>
-  <li>it has fairlygood documentation</li>
+  <li>it has fairly good documentation</li>
   <li><b>eLua</b> supports this toolchain for all its ARM and Cortex targets</li>
-</ul></p>
-<p>Obtaining and installing the toolchain is very easy:
+</ul>
+<p>Obtaining and installing the toolchain is very easy:</p>
 <ol>
   <li>go to <a href="http://www.codesourcery.com/sgpp/lite/arm/portal/subscription?@template=lite">the CodeSourcery download location</a> for the toolchain.</li>
   <li>select from the table the current version in the "EABI" line (the link to the current version is just above the "All versions..." link).</li>
   <li>download and run the installer.</li>
-</ol></p>
+</ol>
 <p>That's all! Make sure that the location of the toolchain is in your $PATH and build <b>eLua</b> with the <b>toolchain=codesourcery</b> option.</p>
 <a name="avr32"><h2>Toolchains for AVR32</h2></a>
 <p>Currently you have only one option for AVR32: download and install the toolchain from <a href="http://www.atmel.com">Atmel</a>. Unfortuntely they don't provide an installer, just a bunch of 
-   Linux packages with some dependencies, so the installation process might be a bit tricky. These are the steps you should follow to install Atmel's AVR32 toolchain:
+   Linux packages with some dependencies, so the installation process might be a bit tricky. These are the steps you should follow to install Atmel's AVR32 toolchain:</p>
 <ul>
   <li>download the correct version for your Linux distribution (in this case Ubuntu) from <a href="http://www.atmel.com/dyn/products/tools_card.asp?tool_id=4118">here</a>.</li>
   <li>unzip the downloaded archive to a temporary directory, you'll get a bunch of .deb packages</li>
   <li>install the packages from this command line (the package names are based on version 2.1.4 of the toolchain, change them as needed if you're using a different version):
-  <p><pre><code>$ sudo dpkg -i libavr32ocd1_3.0.9-1_i386.deb libavr32sim_0.2.1-1_i386.deb 
+  <pre><code>$ sudo dpkg -i libavr32ocd1_3.0.9-1_i386.deb libavr32sim_0.2.1-1_i386.deb 
 $ sudo dpkg -i libavrtools1_3.0.9-1_i386.deb libelfdwarfparser_2.0.7-1_i386.deb
 $ sudo dpkg -i avr32headers_1.9.11-1_all.deb
 $ sudo dpkg -i avr32parts_1.9.9-1_all.deb
 $ sudo dpkg -i avr32-binutils_2.17.atmel.1.2.6-2_i386
 $ sudo dpkg -i avr32-gcc-newlib_4.2.2-atmel.1.0.8-2_i386.deb
-$ sudo dpkg -i avr32program_3.0.4-1_i386.deb</p></pre></code>
+$ sudo dpkg -i avr32program_3.0.4-1_i386.deb</code></pre>
   If dpkg complains about missing dependencies, install them as required and resume the installation process.
   </li>
-</ul></p>
+</ul>
 <p>That's it. Your toolchain is already be in $PATH (since it installs itself in /usr/bin) so you should be ready to build <b>eLua</b> for AVR32.</p>
 <a name="i386"><h2>Toolchains for i386</h2></a>
-<p>Currently the only tested procedure for building <b>eLua</b> for i386 is to <a href="">##build an i386 toolchain</a>. Other toolchains might work equally well though, but none was tested so far.
+<p>Currently the only tested procedure for building <b>eLua</b> for i386 is to <a href="tc_386.html">build an i386 toolchain</a>. Other toolchains might work equally well though, but none was tested so far.
 </p>
-<a name="configuration"><h3>Toolchain configuration in eLua <font color="red">(WIP)</font></h3></a>
+<a name="configuration"><h3>Toolchain configuration in eLua <span style="color: red;">(WIP)</span></h3></a>
 <p>The <b>eLua</b> build system makes provisions for specifying an unlimited number of toolchains for a given target, selectable via the scons <b>toolchain=...</b> option. The default structure
-   of each of the toolchains supported by default is listed in the table below.
+   of each of the toolchains supported by default is listed in the table below.</p>
 <table class="table_center">
 <tbody>
 <tr>
@@ -131,8 +126,8 @@ $ sudo dpkg -i avr32program_3.0.4-1_i386.deb</p></pre></code>
 </tr>
 </tbody>
 </table>
-</p>
-<p>If you need to add a new toolchain or modify an existing one, take a look at the scons build script (SConstruct). A toolchain-related fragment of SConstruct is shown below:
+
+<p>If you need to add a new toolchain or modify an existing one, take a look at the scons build script (SConstruct). A toolchain-related fragment of SConstruct is shown below:</p>
 <pre><code># List of toolchains
 toolchain_list = {
   <b># This defines a toolchain with the name "arm-elf"</b>
@@ -161,15 +156,15 @@ platform_list = {
   'at91sam7x' : { 'cpus' : [ 'AT91SAM7X256', 'AT91SAM7X512' ], <b>'toolchains' : [ 'arm-gcc', 'codesourcery' ]</b> },
   'lm3s' : { 'cpus' : [ 'LM3S8962', 'LM3S6965', 'LM3S6918' ], <b>'toolchains' : [ 'arm-gcc', 'codesourcery' ]</b> },
   ................
-}</pre></code></p>
-<p>From this fragment it's easy to undertand that there are at most two places in SConstruct that must be taken into account when dealing with toolchain:
+}</code></pre>
+<p>From this fragment it's easy to understand that there are at most two places in SConstruct that must be taken into account when dealing with toolchain:</p>
 <ul>
   <li>the definition of <b>toolchain_list</b>. This is a list of all the supported toolchains with all their relevant components (compiler, linker, assembler, image copy tool and size tool).</li>
   <li>each <b>eLua</b> platform has a list of permitted toolchains (only the toolchains specified in this list can be used to build an <b>eLua</b> image for that target). The first element of 
       this list will be automatically used if a <b>toolchain=...</b> option is not specified on the command line.</li>
-</ul></p>
+</ul>
 <p>Please note that in order to add a new toolchain to <b>eLua</b> it's generally not enough to edit just SConstruct. As different toolchains have different command line options, one should also
    edit the platform's build configuration file (<i>src/platform/&lt;platform name&gt;/conf.py</i>) and make it aware of the new toolchain. The exact procedure for doing this is highly dependent on
    the toolchain and it's well beyond the scope of this tutorial.</p>
-</body></html>
+$$FOOTER$$
 

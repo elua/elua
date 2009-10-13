@@ -1,17 +1,12 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
-<html><head>
-<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-<meta http-equiv="Content-Language" content="en-us"><title>Using eLua</title>
-
-<link rel="stylesheet" type="text/css" href="../style.css"></head>
-<body style="background-color: rgb(255, 255, 255);">
-<h3>Using eLua</h3><p> So, you already <a href="building.html">built</a> and <a href="installing.html">installed</a> <b>eLua</b>, and now it is time to (finally) have some fun with it :) 
+$$HEADER$$
+<h3>Using eLua</h3>
+<p> So, you already <a href="building.html">built</a> and <a href="installing.html">installed</a> <b>eLua</b>, and now it is time to (finally) have some fun with it :) 
   You can compile <b>eLua</b> with either console over UART (by far the most popular) and console over TCP/IP (still experimental, but working quite well), so there are two different usage 
   scenarios for this (see <a href="building.html">building eLua</a> for details on how to select serial or TCP/IP console).</p>
 <a name="uart"><h3>Using eLua over serial connections</h3></a>
 <p>All you need to use <b>eLua</b> over a serial connection is your <b>eLua</b>
 board connected to a PC running a terminal emulator program.<br>If
-you're using Windows, I strongly recommend <a target="_blank"  href="http://www.ayera.com/teraterm/">TeraTerm</a>.
+you're using Windows, I strongly recommend <a  href="http://www.ayera.com/teraterm/">TeraTerm</a>.
 It's a freeware, it's very powerful and also easy to use. The native Hyper Terminal progam can do too, but give TeraTerm a chance, it's much better than HyperTerm IMO.<br>On
 Linux,
 you'll probably be stucked with minicom. It is not exactly intuitive
@@ -37,7 +32,7 @@ the jumpers are already set as explained <a href="installing_at91sam7x.html">her
 There's no universal rule here, it all depends on your board.
 </p>
 <a name="tcpip"><h3>Using eLua over TCP/IP connections</h3></a>
-<p>Things are even easier if you decide to enable console over TCP/IP:
+<p>Things are even easier if you decide to enable console over TCP/IP:</p>
 <ul>
   <li>make sure you know the address of your board. If you enabled static IPs (see <a href="building.html">building</a>) remember what you chose for the static IP; if DHCP is used instead, your
       DHCP server should've added the address of the <b>eLua</b> board to your DNS. The board name is always "elua", so if you execute "ping elua" from a shell you should see that the board is
@@ -45,19 +40,19 @@ There's no universal rule here, it all depends on your board.
   <li>telnet to the address of the board (or simply "telnet elua" if DHCP is used), and you'll be greeted with the shell prompt (if the shell is enabled, see the next paragraph for details). 
   Note that you can only have an active telnet session to the <b>eLua</b> board at a given time.</li>
 </ul>
-</p>
+
 <p>If you're under Windows, make sure you're using a proper telnet client, which basically means "just about everything <b>but</b> the build-in telnet client".
-   <a target="_blank" href="http://www.chiark.greenend.org.uk/~sgtatham/putty/">PuTTY</a> is a very good and popular choice.</p>
+   <a href="http://www.chiark.greenend.org.uk/~sgtatham/putty/">PuTTY</a> is a very good and popular choice.</p>
 
 <a name="pc"><h3>Using standalone eLua on PC</h3></a>
 <p>If you build <b>eLua</b> for the i386 platform, you can boot your PC directly in <b>eLua</b>! No underlying OS, nothing but plain <b>eLua</b>. It won't have any actual peripherals to 
 access, but it can use the <b>term</b> module to run <i>hangman.lua</i> and <i>life.lua</i>, as well as other samples, which makes it a nice demo :) Follow <a href="installing_i386.html">
 this link</a> for specific informations about the i386 port. </p>
 
-<a name="shell"><h3><a name="shell"></a>The eLua shell</h3></a>
+<a name="shell"><h3>The eLua shell</h3></a>
 <p>No matter what's your physical connection (serial, TCP/IP or you PC's monitor after booting <b>eLua</b>), after you setup the PC-<b>eLua</b> board connection (if applicable) and press 
   the "RESET" button on your board or simply press ENTER if you're using the serial connection, you should see the <b>eLua</b> shell prompt (if you enabled the shell in your build, as described <a href="building.html">here</a>). The shell is a simple
-  interactive command interpreter that allows you to:
+  interactive command interpreter that allows you to:</p>
 <ul>
   <li>get help on shell usage with the help command</li>
   <li>run the Lua interpreter in interactive mode just like you'd do on a desktop machine</li>
@@ -65,7 +60,7 @@ this link</a> for specific informations about the i386 port. </p>
   <li>upload a Lua source file via XMODEM and execute in on board</li>
   <li>query the eLua version</li>
   <li>list files on eLua file systems</li>
-</ul></p>
+</ul>
 <p>A detailed description of all the shell commands is given below.</p>
 
 <h2>help</h2>
@@ -76,7 +71,7 @@ development tree, this isn't reflected in the version number.</p>
 <h2>recv</h2>
 
 <p>Allows you to receive a Lua file (either source or compiled bytecode) via
-XMODEM and execute it on your board. To use this, your <b>eLua</b> taret image must be built with support for XMODEM 
+XMODEM and execute it on your board. To use this, your <b>eLua</b> target image must be built with support for XMODEM 
 (see <a href="building.html">building</a> for details).Also, your terminal emulation program must 
 support sending files via the XMODEM protocol. Both XMODEM with checksum and XMODEM with CRC are supported, but only XMODEM with 128 
 byte packets is allowed (XMODEM with 1K packets won't work).
@@ -99,18 +94,18 @@ restrictions:</p>
 <li>character escaping is not implemented. For example, the next command won't work
     because of the ' (simple quotes) escape sequences:
 
-<p><pre><code>eLua# lua -e 'print(\'Hello, World!\')' -i<br>
-Press CTRL+Z to exit Lua<br>
-lua: (command line):1: unexpected symbol near ''</code></pre></p>
+<pre><code>eLua# lua -e 'print(\'Hello, World!\')' -i
+Press CTRL+Z to exit Lua
+lua: (command line):1: unexpected symbol near ''</code></pre>
 
 <p>However, if you use both '' (simple quotes) and "" (double quotes) for string quotin , it will work:</p>
 
-<p><pre><code>eLua# lua -e 'print("Hello, World")' -i
+<pre><code>eLua# lua -e 'print("Hello, World")' -i
 Press CTRL+Z to exit Lua
 Lua 5.1.4  Copyright (C) 1994-2008 Lua.org, PUC-Rio
-Hello,World</code></pre></p></li></ul>
-<p>If you want to execute a file from the <a href="">##ROM file system</a>, remember to prefix it with <i>/rom</i>. For example, to execute <b>hello.lua</b>, do this:</p>
-<p><pre><code>$ lua /rom/hello.lua</code></pre></p>
+Hello,World</code></pre></li></ul>
+<p>If you want to execute a file from the <a href="arch_romfs.html">ROM file system</a>, remember to prefix it with <i>/rom</i>. For example, to execute <b>hello.lua</b>, do this:</p>
+<pre><code>$ lua /rom/hello.lua</code></pre>
 <h2>ls or dir</h2>
 <p>Shows a list of all the files in the filesystems used by <b>eLua</b> (currently only the ROM file system), as well as their size and the total size of the given file system.</p>
 <h2>exit</h2>
@@ -121,7 +116,7 @@ Hello,World</code></pre></p></li></ul>
 different hardware platform. For example, the process of compiling the <b>eLua</b> binary image on
 a PC for your <b>eLua</b> board is cross-compiling. Lua can be cross-compiled, too. By cross-compiling Lua
 to bytecode on a PC and executing the resulting bytecode directly on your <b>eLua</b>
-board you have some important advantages:
+board you have some important advantages:</p>
 <ul>
 <li><b>speed</b>: the Lua compiler on the <b>eLua</b> board doesn't have to compile your Lua
   source code, it just executes the compiled bytecode.</li>
@@ -133,27 +128,27 @@ board you have some important advantages:
   running the bytecode instead. Also, compiling large Lua programs on your
   <b>eLua</b> board can lead to stack overflows, which in turn leads to very
   hard to find errors.</li>
-</ul></p>
+</ul>
 <p>In order to use cross-compilation, the two Lua targets (in this case your desktop PC and your <b>eLua</b> board) must be compatible
 (they should have the same data types, with the same size and the same memory
 representation). This isn't true all the time. For example, some gcc toolchains for ARM targets use a very specific representation for double precision numbers (called FPA
 format) by default, which makes bytecode files generated on the PC with the regular Lua compiler useless on
-ARM boards. Other toolchains don't have this problem. Other targets (like AVR32) are big endian, as opposed to Intel PCs that are little endian.<br>
-To overcome this kind of problems, a "Lua cross-compilation patch" was posted on the
+ARM boards. Other toolchains don't have this problem. Other targets (like AVR32) are big endian, as opposed to Intel PCs that are little endian.</p>
+<p>To overcome this kind of problems, a "Lua cross-compilation patch" was posted on the
 Lua mailing list a while ago, and it was further modified as part of the <b>eLua</b>
 project to work with ARM targets. This is how to use it (the following 
 instructions were tested on Linux, not Windows, but they should work on Windows 
-too with little or no tweaking):
+too with little or no tweaking):</p>
 <ul>
-<li>first, make sure that your PC has already a build system intalled (gcc,
+<li>first, make sure that your PC has already a build system installed (gcc,
   binutils, libc, headers...). You'll also need scons. The good news is that 
   you should have it already installed, since otherwise you won't be able to 
   build even regular <b>eLua</b> (see <a href="building.html">building</a> for more in-depth instructions).</li>
-<li>from the <b>eLua</b> base directory, issue this command:</li>
-  <p><pre><code>$ scons -f cross-lua.py</code></pre></p></ul>
-<p>You should get a file called <i>luac</i> in the same directory after this. It's almost the same as the regular Lua compiler, but it has a few arguments that deal with differences between
-different targets (shown below in bold):</p>
-<p><pre><code>usage: ./luac [options] [filenames].
+<li>from the <b>eLua</b> base directory, issue this command:
+  <pre><code>$ scons -f cross-lua.py</code></pre></li>
+</ul>
+<p>You should get a file called <i>luac</i> in the same directory after this. It's almost the same as the regular Lua compiler, but it has a few arguments that deal with differences between different targets (shown below in bold):</p>
+<pre><code>usage: ./luac [options] [filenames].
 Available options are:
 -        process stdin
 -l       list
@@ -164,9 +159,9 @@ Available options are:
 <b>-cci bits       cross-compile with given integer size
 -ccn type bits  cross-compile with given lua_Number type and size
 -cce endian     cross-compile with given endianness ('big' or 'little')</b>
---       stop handling options</code></pre></p>
+--       stop handling options</code></pre>
 <p>All it's left to do now is to use the table below to figure out what are the right parameters for using the cross-compiler:</p>
-</p><table style="text-align: left;" class="table_center">
+<table style="text-align: left;" class="table_center">
 <tbody>
 <tr>
   <th style="text-align: left;">eLua image type</th>
@@ -177,31 +172,31 @@ Available options are:
 <tr>
   <td>Floating point (lua)</td>
   <td>ARM7TDMI<br>Cortex-M3<br>ARM966E-S</td>
-  <td><a href="toolchains.html">arm-gcc</a>
+  <td><a href="toolchains.html">arm-gcc</a></td>
   <td><code>./luac -ccn float_arm 64 -cce little -o &lt;script.luac&gt; -s &lt;script.lua&gt;</code></td>
 </tr>
 <tr>
   <td>Floating point (lua)</td>
   <td>ARM7TDMI<br>Cortex-M3<br>ARM966E-S</td>
-  <td><a href="toolchains.html">codesourcery</a>
+  <td><a href="toolchains.html">codesourcery</a></td>
   <td><code>./luac -ccn float 64 -cce little -o &lt;script.luac&gt; -s &lt;script.lua&gt;</code></td>
 </tr>
 <tr>
   <td>Integer (lualong)</td>
   <td>ARM7TDMI<br>Cortex-M3<br>ARM966E-S</td>
-  <td><a href="toolchains.html">arm-gcc<br>codesourcery</a>
+  <td><a href="toolchains.html">arm-gcc<br>codesourcery</a></td>
   <td><code>./luac -ccn int 32 -cce little -o &lt;script.luac&gt; -s &lt;script.lua&gt;</code></td>
 </tr>
 <tr>
   <td>Floating point (lua)</td>
   <td>AVR32</td>
-  <td><a href="toolchains.html">avr32-gcc</a>
+  <td><a href="toolchains.html">avr32-gcc</a></td>
   <td><code>./luac -ccn float 64 -cce big -o &lt;script.luac&gt; -s &lt;script.lua&gt;</code></td>
 </tr>
 <tr>
   <td>Integer (lualong)</td>
   <td>AVR32</td>
-  <td><a href="toolchains.html">avr32-gcc</a>
+  <td><a href="toolchains.html">avr32-gcc</a></td>
   <td><code>./luac -ccn int 32 -cce big -o &lt;script.luac&gt; -s &lt;script.lua&gt;</code></td>
 </tr>
 </tbody>
@@ -213,7 +208,5 @@ You can omit the <i>-s</i> (strip) parameter from compilation, but this will res
   <li>write it to <a href="arch_romfs.html">the ROM file system</a> and execute it from there.</li>
   <li>use the <i>recv</i> command from <a href="using.html#shell">the shell</a> to upload it to the board using a serial connection.</li>
 </ul>
-<p>
-</p>
-</body></html>
+$$FOOTER$$
 

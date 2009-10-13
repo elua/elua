@@ -1,11 +1,10 @@
 $$HEADER$$
-<h3>Usando eLua</h3><p> Bem, você já <a
-href="building.html">compilou</a> e <a href="installing.html">instalou</a>
+<h3>Usando eLua</h3><p> Bem, você já <a href="building.html">compilou</a> e <a href="installing.html">instalou</a>
 <b>eLua</b>. Agora está (finalmente!) na hora da curtir os resultados :) 
   Você pode desenvolver em <b>eLua</b> utilizando tanto uma conexão serial (UART, de longe a mais comum) como uma conexão TCP/IP (neste caso, ainda em testes, mas funcionando muito bem), logo existem dois cenários para esta situação (veja também <a href="building.html">building eLua</a> para mais detalhes de como escolher entre console serial ou TCP/IP).</p>
 <a name="uart"><h3>Usando eLua com uma conexão serial</h3></a>
 <p>Tudo o que você precisa para usar <b>eLua</b> com uma conexão serial é de sua placa <b>eLua</b> conectada a um PC rodando um programa emulador de terminal.<br>Se
-você está usando o Windows, recomendamos o <a target="_blank"  href="http://www.ayera.com/teraterm/">TeraTerm</a>.
+você está usando o Windows, recomendamos o <a href="http://www.ayera.com/teraterm/">TeraTerm</a>.
 É gratuito, possui muitos recursos e é fácil de usar. O pré-instalado Hyper Terminal também pode ser usado, porém dê uma chance ao TeraTerm
 e compare as diferenças.<br>Se você usa Linux,
 irá provavelmente se deparar com o Minicom a qualque momento. Ele não é muito intuitivo e roda em modo texto, mas possui bastante recursos. Se você
@@ -25,8 +24,7 @@ parâmetros a serem configurados:</p>
 Além disso, dependendo do seu kit, você irá precisar conectá-lo a uma porta serial do seu PC ou a uma porta USB, caso esteja usando um conversor USB/Serial. Por exemplo, como já foi explicado <a href="installing_lm3s.html">aqui</a>,
 a porta USB nas placas LM3Sxxxx possui duas conexões, portanto você pode usá-la como um conversor de USB para serial depois de atualizar o
 firmware, dispensando qualquer outro tipo de conexão. O mesmo acontece com a placa STR9-comStick. Entretanto, para a placa SAM7-EX256 você precisará conectar um cabo serial ao conector "RS232", desde que
-os jumpers já estejam configurados como explicado <a
-href="installing_at91sam7x.html">aqui</a>. Para a placa MOD711 você precisará acrescentar um chip conversor RS232.
+os jumpers já estejam configurados como explicado <a href="installing_at91sam7x.html">aqui</a>. Para a placa MOD711 você precisará acrescentar um chip conversor RS232.
 Não existe uma única regra, tudo depende do modêlo da sua placa.
 </p>
 
@@ -47,7 +45,7 @@ Não existe uma única regra, tudo depende do modêlo da sua placa.
 <p>Se você está desenvolvendo em Windows, certifique-se que esteja utilizando um
 cliente Telnet adequado, o que significa na prática "qualquer coisa menos o cliente Telnet nativo".
 
-<a target="_blank" href="http://www.chiark.greenend.org.uk/~sgtatham/putty/">PuTTY</a> é muito popular e uma boa opção.</p>
+<a href="http://www.chiark.greenend.org.uk/~sgtatham/putty/">PuTTY</a> é muito popular e uma boa opção.</p>
 
 <a name="pc"><h3>Usando eLua "standalone" em seu PC</h3></a>
 <p>Se fez um build de <b>eLua</b> para a plataforma i386, poderá dar boot direto
@@ -117,7 +115,7 @@ Lua 5.1.4  Copyright (C) 1994-2008 Lua.org, PUC-Rio
 Hello,World</code></pre></p></li>
 </ul>
 
-<p>Caso você queira executar um arquivo a partir do <a href="">ROM File System</a>, não se esqueça de colocar antes do nome do arquivo o prefixo
+<p>Caso você queira executar um arquivo a partir do <a href="arch_romfs.html">ROM File System</a>, não se esqueça de colocar antes do nome do arquivo o prefixo
 <b>/rom</b>. 
 Por exemplo, para executar o arquivo hello.lua, digite o seguinte:
 </p>

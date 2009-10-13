@@ -1,10 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
-<html><head>
-<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-<meta http-equiv="Content-Language" content="en-us"><title>Building GCC for ARM</title>
-
-<link rel="stylesheet" type="text/css" href="../style.css"></head>
-<body style="background-color: rgb(255, 255, 255);">
+$$HEADER$$
 <h3>Building GCC for ARM</h3>
 
 <p> This tutorial explains how you can create a GCC+Newlib toolchain
@@ -14,16 +8,16 @@ out there. You'll need such a toolchain if you want to compile eLua for
 ARM CPUs. Please note that you can also use a
 pre-built toolchain to compile <b>eLua</b> (see <a href="toolchains.html">toolchains</a> for details) so building
 one yourself is not strictly required. This tutorial is similar to many others you'll find on the
-Internet (particulary the one from <a target="_blank" href="http://www.gnuarm.com/">gnuarm</a>, on which it's based), but it's a bit more detailed and shows some "tricks" 
+Internet (particulary the one from <a  href="http://www.gnuarm.com/">gnuarm</a>, on which it's based), but it's a bit more detailed and shows some "tricks" 
 (specifying parameters at compile time) you can use when compiling Newlib.</p>
 
-<p><strong>DISCLAIMER: I'm by no means a specialist in the
+<p><span class="warning">DISCLAIMER</span>: I'm by no means a specialist in the
 GCC/newlib/binutils compilation process. I'm sure that there are better
 ways to accomplish what I'm describing here, however I just wanted a
 quick and dirty way to build a toolchain, I have no intention in
 becoming too intimate with the build process. If you think that what I
-did is wrong, innacurate, or simply outrageously ugly, feel free to <a href="overview.html#contacts">contact us</a> and 
-I'll make the necessary corrections. And of course, this tutorial comes without any guarantees whatsoever.</strong></p>
+did is wrong, inaccurate, or simply outrageously ugly, feel free to <a href="overview.html#contacts">contact us</a> and 
+I'll make the necessary corrections. And of course, this tutorial comes without any guarantees whatsoever.</p>
 
 <h2>Prerequisites</h2>
 <p>To build your toolchain you'll need:</p>
@@ -36,30 +30,30 @@ and you'll sure find what you need. It is also assumed that the Linux
 system already has a "basic" native toolchain installed (gcc/make and
 related).This is true for Ubuntu after installation. Again, you might
 need to check your specific distribution.</li>
-<li><b>GNU binutils</b>: get it from <a target="_blank" href="http://ftp.gnu.org/gnu/binutils/">here</a>.
+<li><b>GNU binutils</b>: get it from <a  href="http://ftp.gnu.org/gnu/binutils/">here</a>.
 At the moment of writing this, the latest versions is 2.19.1, but it refuses to compile for ARM. Same goes for
 2.19. In fact, the only newer version of Binutils that seems to work properly is 
-2.19.50, it can be downloaded from <a target="_blank" href="ftp://sourceware.org/pub/binutils/snapshots/">here</a>.
+2.19.50, it can be downloaded from <a  href="ftp://sourceware.org/pub/binutils/snapshots/">here</a>.
 This is the version that we are going to use in this tutorial.</li>
 <li><b>GCC</b>:as I'm writing this, the latest GCC version is
-4.3.3, which I'll be using for this tutorial. Download it from <a target="_blank" href="http://gcc.gnu.org/mirrors.html">here</a> after choosing a suitable mirror.</li>
+4.3.3, which I'll be using for this tutorial. Download it from <a  href="http://gcc.gnu.org/mirrors.html">here</a> after choosing a suitable mirror.</li>
 <li><b>Newlib</b>: as I'm writing this, the latest official Newlib version is 1.17.0, which I'll be using for this tutorial.
-Download it from <a target="_blank" href="ftp://sources.redhat.com/pub/newlib/index.html">here</a>.</li>
+Download it from <a  href="ftp://sources.redhat.com/pub/newlib/index.html">here</a>.</li>
 <li>The tutorial assumes that you're using bash as your shell. If you use
-something else, you might need to adjust some shell-specific commands. </li></ul></p>
+something else, you might need to adjust some shell-specific commands. </li></ul>
 <p>You need some support programs/libraries in order to compile the toolchain. To install them:</p>
-<p><pre><code>$ sudo apt-get install flex bison libgmp3-dev libmpfr-dev autoconf texinfo build-essential</code></pre></p>
+<pre><code>$ sudo apt-get install flex bison libgmp3-dev libmpfr-dev autoconf texinfo build-essential</code></pre>
 <p>Next, decide where you want to install your toolchain. They
 generally go in <i>/usr/local/</i>, so I'm going to assume
 <i>/usr/local/cross-arm</i> for this tutorial. To save yourself some
 typing, set this path into a shell variable:</p>
-<p><pre><code>$ export TOOLPATH=/usr/local/cross-arm</code></pre></p>
+<pre><code>$ export TOOLPATH=/usr/local/cross-arm</code></pre>
 
 <h2>Step 1: binutils</h2>
 
 <p>This is the easiest step: unpack, configure, build.</p>
 
-<p><pre><code>$ tar -xvjf binutils-2.19.50.tar.bz2
+<pre><code>$ tar -xvjf binutils-2.19.50.tar.bz2
 $ cd binutils-2.19.50
 $ mkdir build
 $ cd build
@@ -67,7 +61,7 @@ $ ../configure --target=arm-elf --prefix=$TOOLPATH --enable-interwork --enable-m
 $ make all
 $ sudo make install
 $ export PATH=${TOOLPATH}/bin:$PATH
-$ cd ../..</code></pre></p>
+$ cd ../..</code></pre>
 
 <p>Now you have your ARM "binutils" (assembler, linker, disassembler ...) in your PATH. </p>
 
@@ -76,9 +70,9 @@ $ cd ../..</code></pre></p>
 <p>In this step we build a "basic" GCC (that is, a GCC without any
 support libs, which we'll use in order to build all the libraries for
 our target). Let's compile it (and note that the install step is 
-a bit different from Newlib's):</p?
+a bit different from Newlib's):</p>
 
-<p><pre><code>$ tar -xvjf gcc-4.3.3.tar.bz2
+<pre><code>$ tar -xvjf gcc-4.3.3.tar.bz2
 $ cd gcc-4.3.3
 $ mkdir build
 $ cd build
@@ -88,7 +82,7 @@ $ sudo -s -H
 # export PATH=/usr/local/cross-arm/bin:$PATH
 # make install-gcc
 # exit
-$ cd ../..</code></pre></p>
+$ cd ../..</code></pre>
 
 <h2>Step 3: Newlib</h2>
 
@@ -98,7 +92,7 @@ possible) and I only wanted to keep what's needed from it in the final
 executable, so I added the "-ffunction-sections -fdata-sections" flags
 to allow the linker to perform dead code stripping:</p>
 
-<p><pre><code>$ tar -xvzf newlib-1.17.0.tar.gz
+<pre><code>$ tar -xvzf newlib-1.17.0.tar.gz
 $ cd newlib-1.17.0
 $ mkdir build
 $ cd build
@@ -108,17 +102,18 @@ $ sudo -s -H
 # export PATH=/usr/local/cross-arm/bin:$PATH
 # make install
 # exit 
-$ cd ../..</code></pre></p>
+$ cd ../..</code></pre>
 
-<p>Some notes about the flags used in the above sequence:
+<p>Some notes about the flags used in the above sequence:</p>
 
 <ul>
   <li><code>--disable-newlib-supplied-syscalls</code>: this deserves a page of its own, but I won't cover it here. For an explanation, see for example 
-  <a target="_blank" href="http://openhardware.net/Embedded_ARM/NewLib_Stubs/">this page</a></li>
+  <a  href="http://openhardware.net/Embedded_ARM/NewLib_Stubs/">this page</a></li>
   <li><code>-DPREFER_SIZE_OVER_SPEED -D__OPTIMIZE_SIZE__</code>: compile Newlib for size, not for speed (these are Newlib specific).</li>
   <li><code>-Os -fomit-frame-pointer</code>: tell GCC to optimize for size, not for speed.</li>
   <li><code>-D__BUFSIZ__=256</code>: again Newlib specific, this is the buffer size allocated by default for files opened via fopen(). The default is 1024, which I find too much
-   for <b>eLua</b>, so I'm using 256 here. Of course, you can change this value.</li></ul></p>
+   for <b>eLua</b>, so I'm using 256 here. Of course, you can change this value.</li>
+</ul>
 
 <h2>Step 4: full GCC</h2>
 
@@ -127,13 +122,14 @@ build. In this stage, a number of compiler support libraries are built
 (most notably libgcc.a). Fortunately this is simpler that the Newlib
 compilation step:</p>
 
-<p><pre><code>$ cd gcc-4.3.3/build
+<pre><code>$ cd gcc-4.3.3/build
 $ make all
 $ sudo make install
-</code></pre></p>
+</code></pre>
 
 <h2>Step 5: all done!</h2>
 
 <p>Now you can finally enjoy your ARM toolchain, and compile <b>eLua</b> with it :)
 If you need further clarification, or if the above instructions didn't work for you, feel free to <a href="overview.html#contacts">contact us</a>.</p>
-</body></html>
+$$FOOTER$$
+
