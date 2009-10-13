@@ -163,15 +163,15 @@
 //                                A, B, C, D, E, F, G, H, J
 
 #ifdef FORLM3S9B92
-  #define MEM_TOTAL ( 0x18000 )
+  #define SRAM_SIZE ( 0x18000 )
 #else
-  #define MEM_TOTAL ( 0x10000 )
+  #define SRAM_SIZE ( 0x10000 )
 #endif
 
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)
 #define MEM_START_ADDRESS     { ( void* )end }
-#define MEM_END_ADDRESS       { ( void* )( SRAM_BASE + MEM_TOTAL - STACK_SIZE_TOTAL - 1 ) }
+#define MEM_END_ADDRESS       { ( void* )( SRAM_BASE + SRAM_SIZE - STACK_SIZE_TOTAL - 1 ) }
 
 // *****************************************************************************
 // CPU constants that should be exposed to the eLua "cpu" module

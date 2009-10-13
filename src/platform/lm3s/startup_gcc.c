@@ -61,7 +61,7 @@ extern int main(void);
 __attribute__ ((section(".isr_vector")))
 void (* const g_pfnVectors[])(void) =
 {
-    (void (*) (void))( SRAM_BASE + MEM_TOTAL - STACK_SIZE_TOTAL ),
+    (void (*) (void))( SRAM_BASE + SRAM_SIZE ),
                                             // The initial stack pointer
     ResetISR,                               // The reset handler
     NmiSR,                                  // The NMI handler
