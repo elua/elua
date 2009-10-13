@@ -45,6 +45,7 @@ static void print_usage (void) {
   "Available options are:\n"
   "  -e stat  execute string " LUA_QL("stat") "\n"
   "  -l name  require library " LUA_QL("name") "\n"
+  "  -m limit set memory limit. (units are in Kbytes)\n"
   "  -i       enter interactive mode after executing " LUA_QL("script") "\n"
   "  -v       show version information\n"
   "  --       stop handling options\n"
@@ -278,6 +279,7 @@ static int collectargs (char **argv, int *pi, int *pv, int *pe) {
         break;
       case 'e':
         *pe = 1;  /* go through */
+      case 'm':   /* go through */
       case 'l':
         if (argv[i][2] == '\0') {
           i++;
@@ -303,6 +305,15 @@ static int runargs (lua_State *L, char **argv, int n) {
         lua_assert(chunk != NULL);
         if (dostring(L, chunk, "=(command line)") != 0)
           return 1;
+        break;
+      }
+      case 'm': {
+        const char *limit = argv[i] + 2;
+        int memlimit=0;
+        if (*limit == '\0') limit = argv[++i];
+        lua_assert(limit != NULL);
+        memlimit = atoi(limit);
+        lua_gc(L, LUA_GCSETMEMLIMIT, memlimit);
         break;
       }
       case 'l': {
