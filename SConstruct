@@ -7,6 +7,12 @@ toolchain = ARGUMENTS.get( 'toolchain', '')
 optram = int( ARGUMENTS.get( 'optram', '1' ) )
 boot = ARGUMENTS.get( 'boot', '').lower()
 
+# Helper: "normalize" a name to make it a suitable C macro name
+def cnorm( name ):
+  name = name.replace( '-', '' )
+  name = name.replace( ' ', '' )
+  return name.upper()
+
 # List of toolchains
 toolchain_list = {
   'arm-gcc' : { 
@@ -34,6 +40,7 @@ toolchain_list = {
     'compile' : 'avr32-gcc', 
     'link' : 'avr32-ld', 
     'asm' : 'avr32-as', 
+    
     'bin' : 'avr32-objcopy', 
     'size' : 'avr32-size' 
   },
@@ -71,6 +78,7 @@ board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
                'EK-LM3S6965' : [ 'LM3S6965' ],
                'EK-LM3S9B92' : [ 'LM3S9B92' ],
                'STR9-COMSTICK' : [ 'STR912FAW44' ],
+               'STR-E912' : [ 'STR912FAW44' ],
                'PC' : [ 'I386' ],
                'SIM' : [ 'LINUX' ],
                'LPC-H2888' : [ 'LPC2888' ],
@@ -111,6 +119,7 @@ file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'i
               'EK-LM3S6965' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope', 'adcpoll', 'logo', 'spaceship', 'tetrives' ],
               'EK-LM3S9B92' : [ 'bisect', 'hangman', 'lhttpd', 'led', 'pwmled', 'hello', 'info', 'adcscope','adcpoll', 'life' ],
               'STR9-COMSTICK' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
+              'STR-E912' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'piano' ],
               'PC' : [ 'bisect', 'hello', 'info', 'life', 'hangman' ],
               'SIM' : [ 'bisect', 'hello', 'info', 'life', 'hangman' ],
               'LPC-H2888' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
@@ -216,6 +225,8 @@ if not GetOption( 'clean' ):
 
 output = 'elua_' + target + '_' + cputype.lower()
 cdefs = '-DELUA_CPU=%s -DELUA_BOARD=%s -DELUA_PLATFORM=%s -D__BUFSIZ__=128' % ( cputype, boardname, platform.upper() )
+# Also make the above into direct defines (to use in conditional C code)
+cdefs = cdefs + " -DELUA_CPU_%s -DELUA_BOARD_%s -DELUA_PLATFORM_%s" % ( cnorm( cputype ), cnorm( boardname ), cnorm( platform ) )
 if allocator == 'multiple':
   cdefs = cdefs + " -DUSE_MULTIPLE_ALLOCATOR"
 elif allocator == 'simple':

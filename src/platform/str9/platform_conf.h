@@ -19,7 +19,12 @@
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 
+#ifdef ELUA_BOARD_STRE912
 #define CON_UART_ID           0
+#else // STR9-comStick
+#define CON_UART_ID           1
+#endif
+
 #define CON_UART_SPEED        115200
 #define CON_TIMER_ID          0
 #define TERM_LINES            25
@@ -35,9 +40,9 @@
 // Number of resources (0 if not available/not implemented)
 #define NUM_PIO               10
 #define NUM_SPI               0
-#define NUM_UART              1
+#define NUM_UART              3
 #define NUM_TIMER             4
-#define NUM_PWM               0
+#define NUM_PWM               4
 #define NUM_ADC               0
 #define NUM_CAN               0
 
@@ -63,6 +68,9 @@ u32 SCU_GetMCLKFreqValue();
 // *****************************************************************************
 // Auxiliary libraries that will be compiled for this platform
 
+// The name of the platform specific libs table
+#define PS_LIB_TABLE_NAME   "str9"
+
 #define LUA_PLATFORM_LIBS_ROM\
   _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
   _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
@@ -72,6 +80,8 @@ u32 SCU_GetMCLKFreqValue();
   _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map)\
-  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
+  _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map)\
+  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
+  _ROM( PS_LIB_TABLE_NAME, luaopen_platform, platform_map )
 
 #endif // #ifndef __PLATFORM_CONF_H__

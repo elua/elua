@@ -966,9 +966,9 @@ LUALIB_API int luaopen_platform( lua_State *L )
 #if LUA_OPTIMIZE_MEMORY > 0
   return 0;
 #else // #if LUA_OPTIMIZE_MEMORY > 0
-  luaL_register( L, PS_LIB_TABLE_NAME, luaopen_platform );
+  luaL_register( L, PS_LIB_TABLE_NAME, platform_map );
 
-  // Setup the new tables (pin and port) inside pio
+  // Setup the new tables inside platform table
   lua_newtable( L );
   luaL_register( L, NULL, disp_map );
   lua_setfield( L, -2, "disp" );
