@@ -17,15 +17,25 @@ elseif pd.board() == "MOD711" then
 elseif pd.board() == "ATEVK1100" then
   ledpin = pio.PB_27
   invert = true
+elseif pd.board() == "STR-E912" then
+  ledpin = pio.P6_4
 else
   print( "\nError: Unknown board " .. pd.board() .. " !" )
   return
 end
 
 function cycle()
-  if not invert then pio.pin.sethigh( ledpin ) else pio.pin.setlow( ledpin ) end
+  if not invert then 
+    pio.pin.sethigh( ledpin ) 
+  else 
+    pio.pin.setlow( ledpin ) 
+  end
   tmr.delay( 0, 500000 )
-  if not invert then pio.pin.setlow( ledpin ) else pio.pin.sethigh( ledpin ) end
+  if not invert then 
+    pio.pin.setlow( ledpin ) 
+  else 
+    pio.pin.sethigh( ledpin ) 
+  end
   tmr.delay( 0, 500000 )
 end
 
