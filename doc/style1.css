@@ -43,7 +43,7 @@ margin-top:10px;
 margin-left:10px;
 }
 
-#nav {
+#nav, #menu {
  float: left;
  width: 170px;
  margin-left: 8px;

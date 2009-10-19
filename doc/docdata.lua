@@ -193,6 +193,7 @@ local translations =
 local fixed = 
 {
   "style1.css",
+  "menu.css",
   "images/",
   "ddlevelsfiles/"
 }

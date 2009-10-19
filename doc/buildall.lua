@@ -212,16 +212,17 @@ local function gen_submenus( item, lang, level )
   level = level or 1
   local data = ''
   local lidx = langidx[ lang ]
+  local arrptr = '<img class="rightarrowpointer" src="ddlevelsfiles/arrow-right.gif" />'
   for i = 1, #item do
     local l = item[ i ]
     if l[ submenu_idx ] then
-      data = data .. string.rep( " ", level * 2 ) .. string.format( '<li><a href="%s">%s</a>\n', get_link( lang, l[ link_idx ] ), get_menu_name( l, lang ) )
-      data = data .. string.rep( " ", level * 2 ) .. "<ul>\n"
+      data = data .. string.rep( " ", level * 2 + 8 ) .. string.format( '<li><a href="%s">%s%s</a>\n', get_link( lang, l[ link_idx ] ), arrptr, get_menu_name( l, lang ) )
+      data = data .. string.rep( " ", level * 2 + 8 ) .. "<ul>\n"
       data = data .. gen_submenus( l[ submenu_idx ], lang, level + 1 )
-      data = data .. string.rep( " ", level * 2 ) .. "</ul></li>\n"
+      data = data .. string.rep( " ", level * 2 + 8 ) .. "</ul></li>\n"
     else
       if get_menu_name( l, lang ) then
-        data = data .. string.rep( " ", level * 2 ) .. string.format( '<li><a href="%s">%s</a></li>\n', 
+        data = data .. string.rep( " ", level * 2 + 8 ) .. string.format( '<li><a href="%s">%s</a></li>\n', 
                get_link( lang, l[ link_idx ] ), get_menu_name( l, lang ) )
       end
     end
@@ -234,12 +235,12 @@ end
 local function gen_html_nav( parentid, lang )
   local htmlstr = [[
 <div id="nav">
-  <div id="ddsidemenubar" class="markermenu">
-    <ul>
+    <ul id="menu">
 ]]
-  local menudata = ""
   local lidx = langidx[ lang ]
   for i = 1, #themenu do
+    local menudata = ""
+    local imginsert = ""
     local styledef =  i == #themenu and ' style="border-bottom-width: 0"' or ""
     local link = themenu[ i ][ link_idx ]
     local name = get_menu_name( themenu[ i ], lang )
@@ -249,24 +250,25 @@ local function gen_html_nav( parentid, lang )
       local relname = string.gsub( string.gsub( string.format( "s_%d_%s", i, string.lower( get_base_link( link ) ) ), "%s", "_" ), "%.html", "" )
       -- If we have a submenu, update the HTML menu content part
       if themenu[ i ][ submenu_idx ] then
-        menudata = menudata .. string.format( [[
-<ul id="%s" class="ddsubmenustyle blackwhite">      
+        menudata = string.format( [[
+        <ul id="%s">      
 %s
-</ul>
-
+        </ul>
+      </li>
 ]], relname, string.sub( gen_submenus( themenu[ i ][ submenu_idx ], lang ), 1, -2 ) )
+        imginsert = '<img class="rightarrowpointer" src="ddlevelsfiles/arrow-right.gif"/>'
       end
       if name then
         if i == parentid then
           -- If this is the parent, use a special style for it (<a class="current"> or <li class="current">, depending on the item type)
           if themenu[ i ][ submenu_idx ] then
-            htmlstr = htmlstr .. string.format('      <li><a class="current" href="%s" rel="%s"%s>%s</a></li>\n', get_link( lang, link ), relname, styledef, name )
+            htmlstr = htmlstr .. string.format('      <li><a class="current" href="%s" rel="%s"%s>%s%s</a>\n%s    </li>\n', get_link( lang, link ), relname, styledef, imginsert, name, menudata )
           else
-            htmlstr = htmlstr .. string.format('      <li class="current"%s>%s</li>\n', styledef, name )
+            htmlstr = htmlstr .. string.format('      <li class="current"%s>%s%s\n%s    </li>\n', styledef, imginsert, name, menudata )
           end
         else
           local submenustr = themenu[ i ][ submenu_idx ] and string.format( ' rel="%s"', relname ) or ""
-          htmlstr = htmlstr .. string.format('      <li><a href="%s"%s%s>%s</a></li>\n', get_link( lang, link ), submenustr, styledef, name )
+          htmlstr = htmlstr .. string.format('      <li><a href="%s"%s%s>%s%s</a>\n%s   </li>\n', get_link( lang, link ), submenustr, styledef, imginsert, name, menudata )
         end
       end
     end
@@ -276,14 +278,10 @@ local function gen_html_nav( parentid, lang )
 <p style="margin-left: 18px;"><a href="http://developer.berlios.de" title="BerliOS Developer"> <img src="http://developer.berlios.de/bslogo.php?group_id=9919" width="124px" height="32px" border="0" alt="BerliOS Developer Logo"></a></p>
 ]] or ""
   htmlstr = htmlstr .. string.format( [[
-    </ul>
-  </div>
-  <script type="text/javascript">
-  ddlevelsmenu.setup("ddsidemenubar", "sidebar")
-  </script>    
+    </ul>  
 %s</div>
 ]], offline_data )
-  return htmlstr, menudata
+  return htmlstr
 end
 
 -------------------------------------------------------------------------------
@@ -385,25 +383,20 @@ local function gen_html_page( fname, lang )
 <head>
 <title>%s</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="menu.css" rel="stylesheet" type="text/css" />
 <link href="style1.css" rel="stylesheet" type="text/css" />
-<link rel="stylesheet" type="text/css" href="ddlevelsfiles/ddlevelsmenu-base.css" />
-<link rel="stylesheet" type="text/css" href="ddlevelsfiles/ddlevelsmenu-topbar.css" />
-<link rel="stylesheet" type="text/css" href="ddlevelsfiles/ddlevelsmenu-sidebar.css" />
-<script type="text/javascript" src="ddlevelsfiles/ddlevelsmenu.js"></script>
 </head>
 
 <body>
 ]], get_menu_title( item, lang ) )
   header = header .. gen_logo( fname, lang ) .. "\n"
-  local menuitems, menudata = gen_html_nav( parentid, lang )
+  local menuitems = gen_html_nav( parentid, lang )
   header = header .. menuitems .. '<div id="content">\n'
-  local footer = string.format( [[
+  local footer = [[
 </div>
-
-%s
 </body>
 </html>
-]], menudata )
+]] 
   orig = orig:gsub( "%$%$HEADER%$%$", header )
   orig = orig:gsub( "%$%$FOOTER%$%$", footer )
   return orig
