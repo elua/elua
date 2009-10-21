@@ -212,7 +212,7 @@ local function gen_submenus( item, lang, level )
   level = level or 1
   local data = ''
   local lidx = langidx[ lang ]
-  local arrptr = '<img class="rightarrowpointer" src="ddlevelsfiles/arrow-right.gif" />'
+  local arrptr = '<img class="rightarrowpointer" src="ddlevelsfiles/arrow-right.gif" alt="right arrow" />'
   for i = 1, #item do
     local l = item[ i ]
     if l[ submenu_idx ] then
@@ -254,28 +254,27 @@ local function gen_html_nav( parentid, lang )
         <ul id="%s">      
 %s
         </ul>
-      </li>
 ]], relname, string.sub( gen_submenus( themenu[ i ][ submenu_idx ], lang ), 1, -2 ) )
-        imginsert = '<img class="rightarrowpointer" src="ddlevelsfiles/arrow-right.gif"/>'
+        imginsert = '<img class="rightarrowpointer" src="ddlevelsfiles/arrow-right.gif" alt="right arrow" />'
       end
       if name then
         if i == parentid then
           -- If this is the parent, use a special style for it (<a class="current"> or <li class="current">, depending on the item type)
           if themenu[ i ][ submenu_idx ] then
-            htmlstr = htmlstr .. string.format('      <li><a class="current" href="%s" rel="%s"%s>%s%s</a>\n%s    </li>\n', get_link( lang, link ), relname, styledef, imginsert, name, menudata )
+            htmlstr = htmlstr .. string.format('      <li><a class="current" href="%s" rel="%s"%s>%s%s</a>\n%s      </li>\n', get_link( lang, link ), relname, styledef, imginsert, name, menudata )
           else
-            htmlstr = htmlstr .. string.format('      <li class="current"%s>%s%s\n%s    </li>\n', styledef, imginsert, name, menudata )
+            htmlstr = htmlstr .. string.format('      <li class="current"%s>%s%s\n%s      </li>\n', styledef, imginsert, name, menudata )
           end
         else
           local submenustr = themenu[ i ][ submenu_idx ] and string.format( ' rel="%s"', relname ) or ""
-          htmlstr = htmlstr .. string.format('      <li><a href="%s"%s%s>%s%s</a>\n%s   </li>\n', get_link( lang, link ), submenustr, styledef, imginsert, name, menudata )
+          htmlstr = htmlstr .. string.format('      <li><a href="%s"%s%s>%s%s</a>\n%s     </li>\n', get_link( lang, link ), submenustr, styledef, imginsert, name, menudata )
         end
       end
     end
   end
   offline_data = not is_offline and [[
   <p style="margin-left: 35px;"><a href="http://www.pax.com/free-counters.html"><img src="http://counter.pax.com/counter/image?counter=ctr-zsg80nnmqt" alt="Free Hit Counter" style="border: 0;" /></a></p>
-<p style="margin-left: 18px;"><a href="http://developer.berlios.de" title="BerliOS Developer"> <img src="http://developer.berlios.de/bslogo.php?group_id=9919" width="124px" height="32px" border="0" alt="BerliOS Developer Logo"></a></p>
+<p style="margin-left: 18px;"><a href="http://developer.berlios.de" title="BerliOS Developer"> <img src="http://developer.berlios.de/bslogo.php?group_id=9919" width="124px" height="32px" style="border: 0;" alt="BerliOS Developer Logo" /></a></p>
 ]] or ""
   htmlstr = htmlstr .. string.format( [[
     </ul>  
@@ -294,9 +293,9 @@ local function gen_logo( fname, lang )
     local crtlang = languages[ i ]
     local hlang = crtlang:sub( 1, 1 ):upper() .. crtlang:sub( 2, -1 )
     if lang:lower() == crtlang:lower() then 
-      langdata = langdata .. string.format('          <td align="center"><h6 class="selected"><img src="images/%s.jpg" border="0" /></h6></td>\n', hlang )
+      langdata = langdata .. string.format('          <td align="center"><h6 class="selected"><img src="images/%s.jpg" alt="%s" style="border: 0;" /></h6></td>\n', hlang, crtlang )
     else
-      langdata = langdata .. string.format('          <td align="center"><h6><a href="%s_%s" class="lang"><img src="images/%s.jpg" border="0" /></a></h6></td>\n', crtlang:lower(), fname, hlang )
+      langdata = langdata .. string.format('          <td align="center"><h6><a href="%s_%s" class="lang"><img src="images/%s.jpg" alt="%s" style="border: 0;" /></a></h6></td>\n', crtlang:lower(), fname, hlang, crtlang )
     end
   end
 return string.format( [[
@@ -376,7 +375,7 @@ local function gen_html_page( fname, lang )
   orig = orig:gsub( 'target="_blank"', "" )
 
   -- Generate actual data
-  local header = string.format( [[
+  local header = string.format( [=[
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 
@@ -400,11 +399,11 @@ sfHover = function() {
 }
 if (window.attachEvent) window.attachEvent("onload", sfHover);
 
-//--><!\]\]></script>
+//--><!]]></script>
 </head>
 
 <body>
-]], get_menu_title( item, lang ) )
+]=], get_menu_title( item, lang ) )
   header = header .. gen_logo( fname, lang ) .. "\n"
   local menuitems = gen_html_nav( parentid, lang )
   header = header .. menuitems .. '<div id="content">\n'
