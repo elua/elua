@@ -385,6 +385,22 @@ local function gen_html_page( fname, lang )
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <link href="menu.css" rel="stylesheet" type="text/css" />
 <link href="style1.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript"><!--//--><![CDATA[//><!--
+
+sfHover = function() {
+	var sfEls = document.getElementById("nav").getElementsByTagName("LI");
+	for (var i=0; i<sfEls.length; i++) {
+		sfEls[i].onmouseover=function() {
+			this.className+=" sfhover";
+		}
+		sfEls[i].onmouseout=function() {
+			this.className=this.className.replace(new RegExp(" sfhover\\b"), "");
+		}
+	}
+}
+if (window.attachEvent) window.attachEvent("onload", sfHover);
+
+//--><!\]\]></script>
 </head>
 
 <body>
