@@ -5,59 +5,63 @@ significa <strong>Embedded Lua</strong> e o projeto projeto visa trazer a
 funcionalidade completa da linguagem de programação <a href="http://www.lua.org">Lua</a> para o mundo
 do desenvolvimento de software embedded.</p>
 <p>A implementação busca oferecer isto de uma forma
-simples, para que não só desenvolvedores experiêntes mas também iniciantes no mundo embarcado e até
-mesmo usuários finais dos sistemas, possam desenvolver e alterar o comportamento dos códigos de seus produtos.</p>
+simples, para que não só desenvolvedores experientes mas também iniciantes no mundo embarcado e até
+mesmo usuários finais dos sistemas, possam desenvolver e alterar os
+programas dos seus produtos.</p>
 
 <p><strong>eLua</strong> não é uma versão reduzida de Lua, muito pelo contrário, ela
 oferece os recursos completos da versão desktop de Lua, complementando-a
 ainda com características específicas para o uso embedded. 
 Oferece também a mesma possibilidade de escolha no uso de implementações diferentes
-de Lua (ex: Lua Inteiro x Lua Ponto-Flutuante etc...). Muito trabalho foi e ainda será feito no sentido de tornar Lua mais "amigável" no mundo embedded, 
+de Lua (ex: Lua Inteiro x Lua Ponto-Flutuante). Muito trabalho foi e ainda será feito no sentido de tornar Lua mais "amigável" no mundo embedded, 
 como as características já adicionadas que permitem a redução dos requisitos de memória.</p>
 <p>Lua é o exemplo perfeito de uma linguagem mínima e, ainda assim, totalmente funcional. Embora geralmente anunciada como uma linguagem de "scripting" (e utilizada
-fortemente como tal na indústria de jogos e em tantas outras áreas), Lua é capaz de executar programas como qualquer outra linguagem tradicional
-e grandes sistemas e aplicações (desktop ou web) são desenvolvidos hoje utilizando
+fortemente como tal na indústria de jogos e em tantas outras áreas), Lua é capaz de executar programas como qualquer outra linguagem
+tradicional.
+Grandes sistemas e aplicações (desktop ou web) hoje, são desenvolvidos utilizando
 seu poder e sua performance (ex: Adobe Lightroom, World of Warcraft, ...).
-Suas necessidades em recursos limitados, a tornam especialmente adequada para um grande número de famílias de microcontroladores. 
+Suas reduzidas necessidades de recursos de hardware, a tornam especialmente adequada para um grande número de famílias de microcontroladores. 
 A alta portabilidade intrínseca do código Lua original (que é ANSI C e funciona praticamente em todas as plataformas
 que se conhece hoje), combinada com a arquitetura do software de <b>eLua</b>, altamente portátil, 
 permite a migração fácil para uma grande variedade e arquiteturas de
 microcontroladores. 
-As bibliotecas de acesso a periféricos exportadas por <b>eLua</b> também são portáteis por
+As bibliotecas de acesso a periféricos disponibilizadas por <b>eLua</b> também são portáteis por
 definição, podendo-se assim executar um mesmo programa em Lua, sem ou com poucas
-modificações, em cada plataforma suportada por <span style="font-weight: bold;">eLua</span> (o <a href="status.html">status do projeto &amp; roadmap</a> 
-mostram uma lista sempre crescente de plataformas em que <b>eLua</b> é suportada). 
+modificações, em qualquer hardware que "rode" <span style="font-weight: bold;">eLua</span> (o <a href="status.html">status do projeto &amp; roadmap</a> 
+mostram uma lista sempre crescente de plataformas com suporte à <b>eLua</b>). 
 <b>eLua</b> herdou o design minimalista e funcional de Lua, mantendo a filosofia bem conhecida do "<b>KISS</b>" - "<i>Keep It Small and Simple</i>", que significa "Mantenha seu código
-e sua arquitetura simples e reduzidos".</p>
+e sua arquitetura simples e sua complexidade reduzida".</p>
 
 <a name="features"></a><h3>Recursos</h3>
 <p><b>eLua</b> permite que você execute Lua diretamente no seu microcontrolador. 
 Um grande conjunto de módulos complementares já existe para a programação de periféricos <strong>eLua</strong>
 e o desenvolvimento de novos tem um crescimento cada vez mais rápido.</p>
-<p>Relacionamos a seguir as funções que estão prontas ou sendo implementadas:</p>
+<p>Relacionamos a seguir algumas funções que estão prontas ou sendo implementadas:</p>
 <ul>
-  <li>um sistema de configuração do build flexível</li>
-  <li>acesso ao interpretador Lua na sua MCU, através de uma variedade de transportes físicos
-  (RS-232, ethernet, ...)</li>
+  <li>um sistema de configuração do build flexível e um serviço de build
+  remoto via web</li>
+  <li>acesso ao interpretador Lua diretamente na sua MCU, através de uma variedade de
+  protocolos de transportes físicos (RS-232, ethernet, ...)</li>
   <li>uma biblioteca de periféricos independentes de plataforma (PIO, UART, PWM, SPI, TMR, ADC, NET,
   I2C, CAN ...)</li>
-  <li>um File System (ainda ROM), fácil de ser portado para diferentes tipos de chips de memória e outros dispositivos de armazenamento</li>
+  <li>um File System (por enquanto apenas em ROM), fácil de ser portado para diferentes tipos de chips de memória e outros dispositivos de armazenamento</li>
   <li>um pequeno Fyle System FAT R/W, para cartões MMC e SD</li>
   <li>um shell próprio mínimo (para operações com arquivos, configuração do ambiente e outros recursos)</li>
   <li>suporte a redes TCP/IP</li>
-  <li>um servidor http embedded</li>
-  <li>terminal/console usando Ethernet</li>
+  <li>um servidor http embedded escrito em Lua</li>
+  <li>terminal/console via serial ou Ethernet</li>
   <li>depuração (diretamente no MCU ou remotamente com o PC)</li>
   <li>execução distribuida de código (LuaRPC)</li>
 </ul>
 
 <p>Para obter mais informações sobre as funcionalidades (implementadas e previstas) em <strong>eLua</strong> veja a <a href="status.html">página de status</a>.</p>
-<p>O projeto foi concebido de forma a que migrar <strong>eLua</strong> para uma outra plataforma
+<p>O projeto foi concebido de forma que migrar <strong>eLua</strong> para uma outra plataforma
 ou mesmo arquitetura, seja algo fácil de ser realizado. 
-Atualmente, esta migração está restrita às plataformas para as quais gcc + newlib estejam disponíveis. 
-Esta restrição irá desaparecer em um futuro próximo, já que <b>eLua</b> terá sua própria libc e, portanto, 
+Atualmente, esta migração está restrita às plataformas para as quais gcc + newlib
+ou toolchains completos (ex:CodeSourcery) estejam disponíveis. 
+Esta restrição irá desaparecer em um futuro próximo, já que <b>eLua</b> terá sua própria libc e portanto 
 estará disponível em um leque mais amplo de MCUs.</p>
-<p>Lua está disponível em duas implementações: "Lua padrão" (usando ponto flutuante) e "Lua inteiro" (usando inteiro). 
+<p>Assim como para os ambientes Desktop, Lua em <strong>eLua</strong> está disponível em duas implementações: "Lua padrão" (usando ponto flutuante) e "Lua inteiro" (usando inteiro). 
 "Lua padrão" realiza operações de ponto flutuante (mais lentas devido a emulação via software no MCU), 
 enquanto "Lua inteiro" realiza operações com números inteiros 
 (suporte para ponto fixo e ponto flutuante podem ser adicionados em módulos separados) e assim será mais rápido.</p>
@@ -68,23 +72,26 @@ variada, desde recém-chegados ao mundo embedded que desejam um fácil e poderos
 desenvolvimento e produção rápida de aplicações, como desenvolvedores altamente
 qualificados, que precisam expandir seus programas com recursos de
 bibliotecas de alto nível com muita portabilidade.</p>
-<p><span style="font-weight: bold;">eLua</span> permite que programadores do mundo embedded usem a simplicidade 
-e o poder da linguagem de programação Lua e não precisem se preocupar com as complexidades e 
-características da plataforma/arquitetura-dependente do hardware. 
-Com <b>eLua</b>, o programador pode concentrar-se na implementação do seu programa, 
-sem ter que se preocupar com acesso à registros e configuração de periféricos, já que as bibliotecas da plataforma cuidam disso. 
+<p><span style="font-weight: bold;">eLua</span> permite que programadores
+com pouca experiência no mundo embedded utilizem a simplicidade 
+e o poder da linguagem de programação Lua, sem precisarem se preocupar com as complexidades e 
+da arquitetura do hardware em uso. 
+Utilizando <b>eLua</b>, o programador pode concentrar-se na implementação do seu programa, 
+sem ter que se preocupar com detalhes de acessos à registros, configuração de periféricos e mesmo gerenciamento de memória.
 Com isso, aumentamos a produtividade e eliminamos tarefas muitas vezes frustrantes de lidar com drivers
-complexos de plataformas específicas.</p>
+complexos de plataformas específicas. <stront>eLua</strong> absorve a
+complexidade das diversas arquiteturas, sem afastar demais o usuário do hardware.</p>
 <p>A lista abaixo resume o público-alvo de <b>eLua</b>:</p>
 <ul>
   <li>Desenvolvedores de sistemas embarcados que estão procurando uma maneira rápida, fácil de usar e uma poderosa forma de codificação.</li>
   <li>Novos programadores de sistemas embarcados (ou simplesmente programadores) que estão procurando uma maneira fácil de "mergulhar" no mundo da programação
   embedded. <b>eLua</b> é uma grande ferramenta de aprendizagem.</li>
-  <li>Pessoas que não são realmente os desenvolvedores, mas ainda assim, querem ser capazes de projetar sistemas embarcados de forma rápida e sem muita dor-de-cabeça, sem ter para isso que aprenderem a linguagem C.
+  <li>Pessoas que não são realmente os desenvolvedores, mas ainda assim querem ser capazes de projetar
+  e prototipar sistemas embarcados de forma rápida e sem muita dor-de-cabeça, sem ter para isso que aprenderem a linguagem C.
   (Designers, artistas, ...)</li>
-  <li>Desenvolvedores de sistemas embarcados que necessitam de mecanismos poderosos de
-  meta-linguagem, para codificar algoritmos complexos e descrição de dados.</li>
-  <li>Engenheiros de campo que podem ir aos seus clientes e realizar depuração de módulos de <b>eLua</b> no local, sem para isso, necessitar de preparação, já que o ambiente de desenvolvimento reside em um chip.</li>
+  <li>Desenvolvedores de sistemas embarcados que necessitam de mecanismos poderosos de meta-linguagem, para codificar algoritmos complexos e descrição de dados.</li>
+  <li>Engenheiros de campo que podem ir aos seus clientes realizar depuração de módulos de <b>eLua</b> no local
+  ou mesmo remotamente, sem para isso necessitar de preparação, já que todo o ambiente de desenvolvimento reside em um chip.</li>
 </ul>
 
 <a name="authors" /><h3>Autores</h3>
