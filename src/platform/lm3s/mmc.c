@@ -160,8 +160,8 @@ void send_initial_clock_train(void)
     DESELECT();
 
     /* Switch the SSI TX line to a GPIO and drive it high too. */
-    platform_pio_op( SDC_CS_PORT, ( ( u32 ) 1 << SDC_CS_PIN ), PLATFORM_IO_PIN_DIR_OUTPUT );
-    platform_pio_op( SDC_CS_PORT, ( ( u32 ) 1 << SDC_CS_PIN ), PLATFORM_IO_PIN_SET );
+    platform_pio_op( 0, ( ( u32 ) 1 << 5 ), PLATFORM_IO_PIN_DIR_OUTPUT );
+    platform_pio_op( 0, ( ( u32 ) 1 << 5 ), PLATFORM_IO_PIN_SET );
     
     /* Send 10 bytes over the SSI. This causes the clock to wiggle the */
     /* required number of times. */
@@ -188,7 +188,13 @@ void power_on (void)
      * This doesn't really turn the power on, but initializes the
      * SSI port and pins needed to talk to the card.
      */
-
+    
+    // Setup CS pin & deselect
+    platform_pio_op( SDC_CS_PORT, ( ( u32 ) 1 << SDC_CS_PIN ), PLATFORM_IO_PIN_DIR_OUTPUT );
+    platform_pio_op( SDC_CS_PORT, ( ( u32 ) 1 << SDC_CS_PIN ), PLATFORM_IO_PIN_PULLUP );
+    DESELECT();
+    
+    // Setup SPI
     platform_spi_setup( SDC_SPI_NUM, PLATFORM_SPI_MASTER, 400000, 0, 0, 8 );
 
     /* Set DI and CS high and apply more than 74 pulses to SCLK for the card */
@@ -356,7 +362,6 @@ DSTATUS disk_initialize (
     if (Stat & STA_NODISK) return Stat;    /* No card in the socket */
 
     power_on();                            /* Force socket power on */
-    send_initial_clock_train();
 
     SELECT();                /* CS = L */
     ty = 0;
