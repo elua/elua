@@ -9,13 +9,9 @@
  * This file was modified from a sample available from the FatFs
  * web site. It was modified to work with a LM3S boards.
  */
-
+ 
+#include "platform.h"
 #include "diskio.h"
-#include "hw_types.h"
-#include "hw_memmap.h"
-#include "ssi.h"
-#include "gpio.h"
-#include "sysctl.h"
 
 /* Definitions for MMC/SDC command */
 #define CMD0    (0x40+0)    /* GO_IDLE_STATE */
@@ -34,45 +30,33 @@
 #define CMD55    (0x40+55)    /* APP_CMD */
 #define CMD58    (0x40+58)    /* READ_OCR */
 
-/* Peripheral definitions for LM3S boards */
-// SSI port
-#define SDC_SSI_BASE            SSI0_BASE
-#define SDC_SSI_SYSCTL_PERIPH   SYSCTL_PERIPH_SSI0
-
-// GPIO for SSI pins
-#define SDC_GPIO_PORT_BASE      GPIO_PORTA_BASE
-#define SDC_GPIO_SYSCTL_PERIPH  SYSCTL_PERIPH_GPIOA
-#define SDC_SSI_CLK             GPIO_PIN_2
-#define SDC_SSI_TX              GPIO_PIN_5
-#define SDC_SSI_RX              GPIO_PIN_4
-#define SDC_SSI_FSS             GPIO_PIN_3
-#define SDC_SSI_PINS            (SDC_SSI_TX | SDC_SSI_RX | SDC_SSI_CLK)
 
 // GPIO for card chip select
 // FIXME: these should be tied to evaluation kits rather than particular chips
 
 #ifdef FORLM3S6965
   // EK-LM3S6965
-  #define SDC_CS_GPIO_PORT_BASE      GPIO_PORTD_BASE
-  #define SDC_CS_GPIO_SYSCTL_PERIPH  SYSCTL_PERIPH_GPIOD
-  #define SDC_CS                     GPIO_PIN_0
+  #define SDC_CS_PORT                3
+  #define SDC_CS_PIN                 0
+  #define SDC_SPI_NUM                0
 #endif
 
 #ifdef FORLM3S8962
   // EK-LM3S8962
-  #define SDC_CS_GPIO_PORT_BASE      GPIO_PORTG_BASE
-  #define SDC_CS_GPIO_SYSCTL_PERIPH  SYSCTL_PERIPH_GPIOG
-  #define SDC_CS                     GPIO_PIN_0
+  #define SDC_CS_PORT                6
+  #define SDC_CS_PIN                 0
+  #define SDC_SPI_NUM                0
+  
 #endif
 
 #ifdef FORLM3S6918
   // Eagle-100
-  #define SDC_CS_GPIO_PORT_BASE      GPIO_PORTG_BASE
-  #define SDC_CS_GPIO_SYSCTL_PERIPH  SYSCTL_PERIPH_GPIOG
-  #define SDC_CS                     GPIO_PIN_1
+  #define SDC_CS_PORT                6
+  #define SDC_CS_PIN                 1
+  #define SDC_SPI_NUM                0
 #endif
 
-#ifndef SDC_CS
+#ifndef SDC_SPI_NUM
   #error "MMC not supported on this board"
 #endif
 
@@ -80,14 +64,14 @@
 static
 void SELECT (void)
 {
-    GPIOPinWrite(SDC_CS_GPIO_PORT_BASE, SDC_CS, 0);
+    platform_pio_op( SDC_CS_PORT , ( ( u32 ) 1 << SDC_CS_PIN ), PLATFORM_IO_PIN_CLEAR );    
 }
 
 // de-asserts the CS pin to the card
 static
 void DESELECT (void)
 {
-    GPIOPinWrite(SDC_CS_GPIO_PORT_BASE, SDC_CS, SDC_CS);
+    platform_pio_op( SDC_CS_PORT, ( ( u32 ) 1 << SDC_CS_PIN ), PLATFORM_IO_PIN_SET );
 }
 
 
@@ -113,14 +97,14 @@ BYTE PowerFlag = 0;     /* indicates if "power" is on */
 /* Transmit a byte to MMC via SPI  (Platform dependent)                  */
 /*-----------------------------------------------------------------------*/
 
+unsigned spi_id = 0;
+
 static
 void xmit_spi (BYTE dat)
 {
     DWORD rcvdat;
 
-    SSIDataPut(SDC_SSI_BASE, dat); /* Write the data to the tx fifo */
-
-    SSIDataGet(SDC_SSI_BASE, &rcvdat); /* flush data read during the write */
+    rcvdat = platform_spi_send_recv(spi_id, dat );
 }
 
 
@@ -133,9 +117,7 @@ BYTE rcvr_spi (void)
 {
     DWORD rcvdat;
 
-    SSIDataPut(SDC_SSI_BASE, 0xFF); /* write dummy data */
-
-    SSIDataGet(SDC_SSI_BASE, &rcvdat); /* read data frm rx fifo */
+    rcvdat  = platform_spi_send_recv(spi_id, 0xFF );
 
     return (BYTE)rcvdat;
 }
@@ -174,29 +156,23 @@ static
 void send_initial_clock_train(void)
 {
     unsigned int i;
-    DWORD dat;
-
     /* Ensure CS is held high. */
     DESELECT();
 
     /* Switch the SSI TX line to a GPIO and drive it high too. */
-    GPIOPinTypeGPIOOutput(SDC_GPIO_PORT_BASE, SDC_SSI_TX);
-    GPIOPinWrite(SDC_GPIO_PORT_BASE, SDC_SSI_TX, SDC_SSI_TX);
-
+    platform_pio_op( SDC_CS_PORT, ( ( u32 ) 1 << SDC_CS_PIN ), PLATFORM_IO_PIN_DIR_OUTPUT );
+    platform_pio_op( SDC_CS_PORT, ( ( u32 ) 1 << SDC_CS_PIN ), PLATFORM_IO_PIN_SET );
+    
     /* Send 10 bytes over the SSI. This causes the clock to wiggle the */
     /* required number of times. */
     for(i = 0 ; i < 10 ; i++)
     {
-        /* Write DUMMY data. SSIDataPut() waits until there is room in the */
-        /* FIFO. */
-        SSIDataPut(SDC_SSI_BASE, 0xFF);
-
-        /* Flush data read during data write. */
-        SSIDataGet(SDC_SSI_BASE, &dat);
+        /* Write DUMMY data. */
+        rcvr_spi();
     }
 
     /* Revert to hardware control of the SSI TX line. */
-    GPIOPinTypeSSI(SDC_GPIO_PORT_BASE, SDC_SSI_TX);
+    platform_spi_setup( SDC_SPI_NUM, PLATFORM_SPI_MASTER, 400000, 0, 0, 8 );
 }
 
 /*-----------------------------------------------------------------------*/
@@ -213,26 +189,7 @@ void power_on (void)
      * SSI port and pins needed to talk to the card.
      */
 
-    /* Enable the peripherals used to drive the SDC on SSI, and the CS */
-    SysCtlPeripheralEnable(SDC_SSI_SYSCTL_PERIPH);
-    SysCtlPeripheralEnable(SDC_GPIO_SYSCTL_PERIPH);
-    SysCtlPeripheralEnable(SDC_CS_GPIO_SYSCTL_PERIPH);
-
-    /* Configure the appropriate pins to be SSI instead of GPIO */
-    GPIOPinTypeSSI(SDC_GPIO_PORT_BASE, SDC_SSI_PINS);
-    GPIOPinTypeGPIOOutput(SDC_CS_GPIO_PORT_BASE, SDC_CS);
-    GPIOPadConfigSet(SDC_GPIO_PORT_BASE, SDC_SSI_PINS, GPIO_STRENGTH_4MA,
-                     GPIO_PIN_TYPE_STD_WPU);
-    GPIOPadConfigSet(SDC_CS_GPIO_PORT_BASE, SDC_CS, GPIO_STRENGTH_4MA,
-                     GPIO_PIN_TYPE_STD_WPU);
-
-    /* Deassert the SSI0 chip select */
-    GPIOPinWrite(SDC_CS_GPIO_PORT_BASE, SDC_CS, SDC_CS);
-
-    /* Configure the SSI0 port */
-    SSIConfigSetExpClk(SDC_SSI_BASE, SysCtlClockGet(), SSI_FRF_MOTO_MODE_0,
-                       SSI_MODE_MASTER, 400000, 8);
-    SSIEnable(SDC_SSI_BASE);
+    platform_spi_setup( SDC_SPI_NUM, PLATFORM_SPI_MASTER, 400000, 0, 0, 8 );
 
     /* Set DI and CS high and apply more than 74 pulses to SCLK for the card */
     /* to be able to accept a native command. */
@@ -248,21 +205,14 @@ void set_max_speed(void)
     unsigned long i;
 
     /* Disable the SSI */
-    SSIDisable(SDC_SSI_BASE);
 
     /* Set the maximum speed as half the system clock, with a max of 12.5 MHz. */
-    i = SysCtlClockGet() / 2;
+    i = platform_cpu_get_frequency() / 2;
     if(i > 12500000)
-    {
         i = 12500000;
-    }
 
-    /* Configure the SSI0 port */
-    SSIConfigSetExpClk(SDC_SSI_BASE, SysCtlClockGet(), SSI_FRF_MOTO_MODE_0,
-                       SSI_MODE_MASTER, i, 8);
-
-    /* Enable the SSI */
-    SSIEnable(SDC_SSI_BASE);
+    /* Configure the SPI port */
+    platform_spi_setup( SDC_SPI_NUM, PLATFORM_SPI_MASTER, i, 0, 0, 8 );
 }
 
 static
