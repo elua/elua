@@ -17,7 +17,7 @@
 #define BUILD_ROMFS
 #define BUILD_TERM
 #define BUILD_UIP
-#define BUILD_DHCPC
+//#define BUILD_DHCPC
 #define BUILD_DNS
 #define BUILD_CON_GENERIC
 #define BUILD_ADC
@@ -84,8 +84,8 @@
 // Static TCP/IP configuration
 #define ELUA_CONF_IPADDR0     192
 #define ELUA_CONF_IPADDR1     168
-#define ELUA_CONF_IPADDR2     1
-#define ELUA_CONF_IPADDR3     218
+#define ELUA_CONF_IPADDR2     0
+#define ELUA_CONF_IPADDR3     5
 
 #define ELUA_CONF_NETMASK0    255
 #define ELUA_CONF_NETMASK1    255
@@ -94,12 +94,12 @@
 
 #define ELUA_CONF_DEFGW0      192
 #define ELUA_CONF_DEFGW1      168
-#define ELUA_CONF_DEFGW2      1
+#define ELUA_CONF_DEFGW2      0
 #define ELUA_CONF_DEFGW3      1
 
 #define ELUA_CONF_DNS0        192
 #define ELUA_CONF_DNS1        168
-#define ELUA_CONF_DNS2        1
+#define ELUA_CONF_DNS2        0
 #define ELUA_CONF_DNS3        1
 
 // *****************************************************************************
