@@ -23,5 +23,7 @@ typedef unsigned short WORD;
 typedef unsigned long  DWORD;
 typedef unsigned int   BOOL;
 
+typedef volatile unsigned long* PREG;
+
 #endif
 

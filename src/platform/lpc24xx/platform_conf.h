@@ -43,7 +43,7 @@
 #define VTMR_FREQ_HZ          4
 
 // Number of resources (0 if not available/not implemented)
-#define NUM_PIO               0
+#define NUM_PIO               5
 #define NUM_SPI               0
 #define NUM_UART              4
 #define NUM_PWM               0
@@ -52,8 +52,9 @@
 #define NUM_TIMER             0
 
 // Enable RX buffering on UART
-#define BUF_ENABLE_UART
-#define CON_BUF_SIZE          BUF_SIZE_128
+// [TODO] make this happen
+//#define BUF_ENABLE_UART
+//#define CON_BUF_SIZE          BUF_SIZE_128
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 #define CPU_FREQUENCY         Fcclk

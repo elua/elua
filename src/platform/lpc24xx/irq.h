@@ -72,7 +72,6 @@ family app-note AN10381 */
 restore registers into the stack in RVD as the compiler does that for you. 
 See RVD ARM compiler Inline and embedded assemblers, "Rules for 
 using __asm and asm keywords. */
-static DWORD sysreg;		/* used as LR register */
 #define IENABLE __asm { MRS sysreg, SPSR; MSR CPSR_c, #SYS32Mode }
 #define IDISABLE __asm { MSR CPSR_c, #(IRQ32Mode|I_Bit); MSR SPSR_cxsf, sysreg }
 

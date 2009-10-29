@@ -33,7 +33,6 @@ use USB, change "define USE_USB" from 0 to 1 */
  
 #define	USE_USB					0
 
-
 /* PLL Setting Table Matrix */
 /* 	
 	Main Osc.	CCLKCFG		Fcco		Fcclk 		M 	N
