@@ -67,8 +67,6 @@ resetHandler:
         msr     CPSR_c, #ARM_MODE_SVC|F_BIT
         mov     r13, r0
 
-/* Call external initialization code */
-        bl      TargetResetInit
 
 /* Perform low-level initialization of the chip using LowLevelInit() */
 /* Initialize the relocate segment */
@@ -90,6 +88,9 @@ ZeroBSS:
         cmp     r0, r1
         strcc   r2, [r0], #4
         bcc     ZeroBSS
+
+ /* Call external initialization code */
+        bl      TargetResetInit
 
 /* Branch to main()
  ******************/

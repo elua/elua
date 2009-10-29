@@ -33,7 +33,7 @@ def progfunc_lpx24xx( target, source, env ):
   outname = output + ".elf"
   os.system( "%s %s" % ( toolset[ 'size' ], outname ) )
   print "Generating binary image..."
-  os.system( "%s -O binary %s %s.bin" % ( toolset[ 'bin' ], outname, output ) )
+  os.system( "%s -O ihex %s %s.hex" % ( toolset[ 'bin' ], outname, output ) )
   
 tools[ 'lpc24xx' ][ 'progfunc' ] = progfunc_lpx24xx
 

@@ -20,7 +20,7 @@
 // UART/Timer IDs configuration data (used in main.c)
 
 #define CON_UART_ID           0
-#define CON_UART_SPEED        115200
+#define CON_UART_SPEED        9600
 #define CON_TIMER_ID          0
 #define TERM_LINES            25
 #define TERM_COLS             80
