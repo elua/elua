@@ -74,21 +74,29 @@ the same PLL. The USB clock needs to be multiple of
 /* System frequence,should be less than 80MHz. */
 #define Fcclk	48000000
 #define Fcco	288000000
-#else
+
+#else // #if USE_USB
 
 
 // [TODO]: use the PLL calculator XLS to increase frequency a bit
 /* Fcck = 60Mhz, Fosc = 360Mhz, USB can't be divided into 48Mhz
 in this case, so USBCLKDivValue is not needed. */
+#if 0 // 60MHz
 #define PLL_MValue			14
 #define PLL_NValue			0
 #define CCLKDivValue		5
+#define Fcclk           60000000ULL
+#else // 72MHz
+#define PLL_MValue      14
+#define PLL_NValue      0
+#define CCLKDivValue    4
+#define Fcclk           72000000ULL
+#endif
 
 /* System configuration: Fosc, Fcclk, Fcco, Fpclk must be defined */
 /* PLL input Crystal frequence range 4KHz~20MHz. */
 #define Fosc	12000000
 /* System frequence,should be less than 72MHz. */
-#define Fcclk	60000000
 #define Fcco	360000000
 
 #endif
@@ -100,6 +108,8 @@ in this case, so USBCLKDivValue is not needed. */
 #else
 #define Fpclk	(Fcclk / 4)
 #endif
+
+#define Fpclk_MHz       (Fpclk / 1000000)
 
 /******************************************************************************
 ** Function name:		TargetInit

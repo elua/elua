@@ -56,6 +56,7 @@ fiqVector:
 entry:
 resetHandler:
 
+// [TODO] enable interrupts
 /* Setup stacks for each mode */
         ldr     r0, =Top_Stack
 
@@ -64,7 +65,7 @@ resetHandler:
         sub     r0, r0, #STACK_SIZE_IRQ                  
 
         # Set up Supervisor Mode and set Supervisor Mode Stack (leave interrupts enabled)
-        msr     CPSR_c, #ARM_MODE_SVC|F_BIT
+        msr     CPSR_c, #ARM_MODE_SVC|F_BIT|I_BIT
         mov     r13, r0
 
 

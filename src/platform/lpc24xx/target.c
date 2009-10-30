@@ -130,7 +130,6 @@ void ConfigurePLL ( void )
   PLLFEED = 0xaa;
   PLLFEED = 0x55;
   while ( ((PLLSTAT & (1 << 25)) == 0) );	/* Check connect bit status */
-  return;
 }
 
 /******************************************************************************
@@ -190,7 +189,6 @@ void TargetResetInit(void)
   GPIOResetInit();
 
   init_VIC();
-  return;
 }
 
 /******************************************************************************

@@ -27,11 +27,11 @@ int platform_init()
 {
   // [TODO] the rest of initialization must go here
 
-  // Initialize UART
-  platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
-
   // Setup GPIO1 and GPIO1 in fast mode
   SCS |= 1;
+
+  // Initialize UART
+  platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
 
   // Common platform initialiation code
   cmn_platform_init();
@@ -91,7 +91,7 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
       break;
       
     case PLATFORM_IO_PIN_GET:
-      retval = *FIOxPIN & pinmask ? 1 : 0;
+      retval =( *FIOxPIN & pinmask ) ? 1 : 0;
       break;
       
     default:
@@ -115,15 +115,49 @@ static const u32 uart_fcr[ NUM_UART ] = { ( u32 )&U0FCR, ( u32 )&U1FCR, ( u32 )&
 static const u32 uart_thr[ NUM_UART ] = { ( u32 )&U0THR, ( u32 )&U1THR, ( u32 )&U2THR, ( u32 )&U3THR };
 static const u32 uart_lsr[ NUM_UART ] = { ( u32 )&U0LSR, ( u32 )&U1LSR, ( u32 )&U2LSR, ( u32 )&U3LSR };
 static const u32 uart_rbr[ NUM_UART ] = { ( u32 )&U0RBR, ( u32 )&U1RBR, ( u32 )&U2RBR, ( u32 )&U3RBR };
+static const u32 uart_fdr[ NUM_UART ] = { ( u32 )&U0FDR, ( u32 )0,      ( u32 )&U2FDR, ( u32 )&U3FDR };
+
+// Quick-and-dirty FP
+#define INTTOFP(x)      ( (x) << 8 )
+#define FLTTOFP(x)      ( ( u32 )( x * 256 ) )
+
+// Table of FR versus DivAddVal/MulVal (taken from the datasheet)
+typedef struct
+{
+  u32 fr;
+  u8 divadd;
+  u8 mul;
+} uart_fractional_data;
+
+static const uart_fractional_data fr_to_vals[] = 
+{
+  {FLTTOFP(1.000), 0, 1}, {FLTTOFP(1.067), 1, 15}, {FLTTOFP(1.071), 1, 14}, {FLTTOFP(1.077), 1, 13}, {FLTTOFP(1.083), 1, 12}, 
+  {FLTTOFP(1.091), 1, 11}, {FLTTOFP(1.100), 1, 10}, {FLTTOFP(1.111), 1, 9}, {FLTTOFP(1.125), 1, 8}, {FLTTOFP(1.133), 2, 15}, 
+  {FLTTOFP(1.143), 1, 7}, {FLTTOFP(1.154), 2, 13}, {FLTTOFP(1.167), 1, 6}, {FLTTOFP(1.182), 2, 11}, {FLTTOFP(1.200), 1, 5},
+  {FLTTOFP(1.214), 3, 14}, {FLTTOFP(1.222), 2, 9}, {FLTTOFP(1.231), 3, 13}, {FLTTOFP(1.250), 1, 4}, {FLTTOFP(1.267), 4, 15},
+  {FLTTOFP(1.273), 3, 11}, {FLTTOFP(1.286), 2, 7}, {FLTTOFP(1.300), 3, 10}, {FLTTOFP(1.308), 4, 13}, {FLTTOFP(1.333), 1, 3},
+  {FLTTOFP(1.357), 5, 14}, {FLTTOFP(1.364), 4, 11}, {FLTTOFP(1.375), 3, 8}, {FLTTOFP(1.385), 5, 13}, {FLTTOFP(1.400), 2, 5},
+  {FLTTOFP(1.417), 5, 12}, {FLTTOFP(1.429), 3, 7}, {FLTTOFP(1.444), 4, 9}, {FLTTOFP(1.455), 5, 11}, {FLTTOFP(1.462), 6, 13},
+  {FLTTOFP(1.467), 7, 15}, {FLTTOFP(1.500), 1, 2}, {FLTTOFP(1.533), 8, 15}, {FLTTOFP(1.538), 7, 13}, {FLTTOFP(1.545), 6, 11},
+  {FLTTOFP(1.556), 5, 9}, {FLTTOFP(1.571), 4, 7}, {FLTTOFP(1.583), 7, 12}, {FLTTOFP(1.600), 3, 5}, {FLTTOFP(1.615), 8, 13},
+  {FLTTOFP(1.625), 5, 8}, {FLTTOFP(1.636), 7, 11}, {FLTTOFP(1.643), 9, 14}, {FLTTOFP(1.667), 2, 3}, {FLTTOFP(1.692), 9, 13},
+  {FLTTOFP(1.700), 7, 10}, {FLTTOFP(1.714), 5, 7}, {FLTTOFP(1.727), 8, 11}, {FLTTOFP(1.733), 11, 15}, {FLTTOFP(1.750), 3, 4},
+  {FLTTOFP(1.769), 10, 13}, {FLTTOFP(1.778), 7, 9}, {FLTTOFP(1.786), 11, 14}, {FLTTOFP(1.800), 4, 5}, {FLTTOFP(1.818), 9, 11},
+  {FLTTOFP(1.833), 5, 6}, {FLTTOFP(1.846), 11, 13}, {FLTTOFP(1.857), 6, 7}, {FLTTOFP(1.867), 13, 15}, {FLTTOFP(1.875), 7, 8},
+  {FLTTOFP(1.889), 8, 9}, {FLTTOFP(1.900), 9, 10}, {FLTTOFP(1.909), 10, 11}, {FLTTOFP(1.917), 11, 12}, {FLTTOFP(1.923), 12, 13},
+  {FLTTOFP(1.929), 13, 14},{FLTTOFP(1.933), 14, 15}
+};
 
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )
 {
-  u32 temp;
+  u32 temp, frest, fr, dlest, minfr;
+  unsigned i, idx;
 
   PREG UxLCR = ( PREG )uart_lcr[ id ];
   PREG UxDLM = ( PREG )uart_dlm[ id ];
   PREG UxDLL = ( PREG )uart_dll[ id ];
-  PREG UxFCR = ( PREG )uart_fcr[ id ];
+  PREG UxFCR = ( PREG )uart_fcr[ id ];  
+  PREG UxFDR = ( PREG )uart_fdr[ id ];
 
   // Set data bits, parity, stop bit
   temp = 0;
@@ -159,9 +193,44 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   }
   *UxLCR = temp;
 
-  // Set baud
+  // Divisor and fractional baud computation
+  // Based on the datasheet, but modified slightly (also used 24.8 fixed point)
+  temp = ( Fpclk >> 4 ) / baud;
+  if( ( ( Fpclk >> 4 ) % baud != 0 ) && UxFDR )
+  {
+    // Non-integer result, must estimate fr
+    // Start from 1.1 and stop before 2, in 0.05 increments
+    minfr = 0xFFFFFFFF;
+    for( fr = FLTTOFP( 1.1 ); fr < INTTOFP( 2 ); fr += FLTTOFP( 0.05 ) )
+    {
+      dlest = ( Fpclk << 4 ) / ( baud * fr ); // this is an integer
+      frest = ( Fpclk << 4 ) / ( baud * dlest ); // this is a 24.8 FP number
+      if( ( frest < minfr ) && ( frest > FLTTOFP( 1.1 ) ) && ( frest < FLTTOFP( 1.9 ) ) )
+      {
+        temp = dlest;
+        minfr = frest;
+      }
+    }
+  }
+  else
+    minfr = INTTOFP( 1 );
+  // Divisor is in 'temp', now find DivAddVal and MulVal from frest
+  fr = minfr;
+  idx = 0;
+  if( fr != INTTOFP( 1 ) )
+  {
+    minfr = ABSDIFF( fr, fr_to_vals[ 0 ].fr );
+    for( i = 1; i < sizeof( fr_to_vals ) / sizeof( uart_fractional_data ); i ++ )
+      if( ABSDIFF( fr_to_vals[ i ].fr, fr ) < minfr )
+      {
+        idx = i;
+        minfr = ABSDIFF( fr_to_vals[ i ].fr, fr );
+      }
+  }
+  // Set baud and divisors
   *UxLCR |= UART_DLAB_ENABLE;
-  temp = ( Fpclk / 16 ) / baud;
+  if( UxFDR )
+   *UxFDR = ( fr_to_vals[ idx ].mul << 4 ) | fr_to_vals[ idx ].divadd;
   *UxDLM = temp >> 8;
   *UxDLL = temp & 0xFF;
   *UxLCR &= ~UART_DLAB_ENABLE;
@@ -175,7 +244,7 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
     PINSEL0 = ( PINSEL0 & 0xFFFFFF0F ) | 0x00000050;
 
   // Return the actual baud
-  return ( Fpclk / 16 ) / temp;
+  return ( Fpclk << 4 ) / ( 16 * temp * fr_to_vals[ idx ].fr );
 }
 
 void platform_uart_send( unsigned id, u8 data )
