@@ -106,6 +106,7 @@ LUALIB_API int ( luaopen_disp )( lua_State* L );
 #define VTMR_NUM_TIMERS       4
 #define VTMR_FREQ_HZ          4
 
+
 // Number of resources (0 if not available/not implemented)
 #define NUM_PIO               7
 #define NUM_SPI               1
@@ -136,6 +137,9 @@ LUALIB_API int ( luaopen_disp )( lua_State* L );
 #define ADC_TIMER_FIRST_ID    0
 #define ADC_NUM_TIMERS        NUM_TIMER  
 
+// SD/MMC Filesystem Setup
+#define MMCFS_TICK_HZ     4
+#define MMCFS_TICK_MS     ( 1000 / MMCFS_TICK_HZ )
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 #define CPU_FREQUENCY         SysCtlClockGet()

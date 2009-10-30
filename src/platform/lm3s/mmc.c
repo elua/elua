@@ -10,6 +10,7 @@
  * web site. It was modified to work with a LM3S boards.
  */
  
+#include "platform_conf.h"
 #include "platform.h"
 #include "diskio.h"
 
@@ -89,8 +90,8 @@ void DESELECT (void)
 static volatile
 DSTATUS Stat = STA_NOINIT;    /* Disk status */
 
-static volatile
-BYTE Timer1, Timer2;    /* 100Hz decrement timer */
+static volatile UINT Timer1 = 0;
+static volatile UINT Timer2 = 0;    /* decrement timer */
 
 static
 BYTE CardType;            /* b0:MMC, b1:SDC, b2:Block addressing */
@@ -107,9 +108,7 @@ unsigned spi_id = 0;
 static
 void xmit_spi (BYTE dat)
 {
-    DWORD rcvdat;
-
-    rcvdat = platform_spi_send_recv(spi_id, dat );
+    platform_spi_send_recv( spi_id, dat );
 }
 
 
@@ -122,9 +121,9 @@ BYTE rcvr_spi (void)
 {
     DWORD rcvdat;
 
-    rcvdat  = platform_spi_send_recv(spi_id, 0xFF );
+    rcvdat  = platform_spi_send_recv( spi_id, 0xFF );
 
-    return (BYTE)rcvdat;
+    return ( BYTE )rcvdat;
 }
 
 
@@ -143,7 +142,7 @@ BYTE wait_ready (void)
 {
     BYTE res;
 
-    Timer2 = 50;    /* Wait for ready in timeout of 500ms */
+    Timer2 = 500/MMCFS_TICK_MS;    /* Wait for ready in timeout of 500ms */
     rcvr_spi();
     do
         res = rcvr_spi();
@@ -163,17 +162,14 @@ void send_initial_clock_train(void)
     /* Ensure CS is held high. */
     DESELECT();
 
-    /* Switch the SSI TX line to a GPIO and drive it high too. */
+    /* Switch the SPI TX line to a GPIO and drive it high too. */
     platform_pio_op( SDC_SPI_PORT, ( ( u32 ) 1 << SDC_TX_PIN ), PLATFORM_IO_PIN_DIR_OUTPUT );
     platform_pio_op( SDC_SPI_PORT, ( ( u32 ) 1 << SDC_TX_PIN ), PLATFORM_IO_PIN_SET );
     
     /* Send 10 bytes over the SSI. This causes the clock to wiggle the */
     /* required number of times. */
     for(i = 0 ; i < 10 ; i++)
-    {
-        /* Write DUMMY data. */
         rcvr_spi();
-    }
 
     /* Revert to hardware control of the SSI TX line. */
     platform_spi_setup( SDC_SPI_NUM, PLATFORM_SPI_MASTER, 400000, 0, 0, 8 );
@@ -214,8 +210,6 @@ void set_max_speed(void)
 {
     unsigned long i;
 
-    /* Disable the SSI */
-
     /* Set the maximum speed as half the system clock, with a max of 12.5 MHz. */
     i = platform_cpu_get_frequency() / 2;
     if(i > 12500000)
@@ -252,7 +246,7 @@ BOOL rcvr_datablock (
     BYTE token;
 
 
-    Timer1 = 10;
+    Timer1 = 100/MMCFS_TICK_MS ? 100/MMCFS_TICK_MS : 1;
     do {                            /* Wait for data packet in timeout of 100ms */
         token = rcvr_spi();
     } while ((token == 0xFF) && Timer1);
@@ -364,13 +358,13 @@ DSTATUS disk_initialize (
 
     if (drv) return STA_NOINIT;            /* Supports only single drive */
     if (Stat & STA_NODISK) return Stat;    /* No card in the socket */
-
-    power_on();                            /* Force socket power on */
+    
+    power_on();                           /* Force socket power on */
 
     SELECT();                /* CS = L */
     ty = 0;
     if (send_cmd(CMD0, 0) == 1) {            /* Enter Idle state */
-        Timer1 = 100;                        /* Initialization timeout of 1000 msec */
+        Timer1 = 1000/MMCFS_TICK_MS;     /* Initialization timeout of 1000 msec */
         if (send_cmd(CMD8, 0x1AA) == 1) {    /* SDC Ver2+ */
             for (n = 0; n < 4; n++) ocr[n] = rcvr_spi();
             if (ocr[2] == 0x01 && ocr[3] == 0xAA) {    /* The card can work at vdd range of 2.7-3.6V */
@@ -624,13 +618,11 @@ DRESULT disk_ioctl (
 /*-----------------------------------------------------------------------*/
 /* This function must be called in period of 10ms                        */
 
-void disk_timerproc (void)
+void disk_timerproc( void )
 {
-//    BYTE n, s;
-    BYTE n;
+    UINT n;
 
-
-    n = Timer1;                        /* 100Hz decrement timer */
+    n = Timer1;
     if (n) Timer1 = --n;
     n = Timer2;
     if (n) Timer2 = --n;

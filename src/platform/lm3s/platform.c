@@ -16,6 +16,7 @@
 #include "platform_conf.h"
 #include "common.h"
 #include "math.h"
+#include "diskio.h"
 
 // Platform specific includes
 #include "hw_ints.h"
@@ -203,16 +204,16 @@ u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigne
   unsigned protocol;
 
   if( cpol == 0 )
-    protocol == cpha ? SSI_FRF_MOTO_MODE_1 : SSI_FRF_MOTO_MODE_0;
+    protocol = cpha ? SSI_FRF_MOTO_MODE_1 : SSI_FRF_MOTO_MODE_0;
   else
-    protocol == cpha ? SSI_FRF_MOTO_MODE_3 : SSI_FRF_MOTO_MODE_2;
+    protocol = cpha ? SSI_FRF_MOTO_MODE_3 : SSI_FRF_MOTO_MODE_2;
   mode = mode == PLATFORM_SPI_MASTER ? SSI_MODE_MASTER : SSI_MODE_SLAVE;
   SSIDisable( spi_base[ id ] );
 
   GPIOPinTypeSSI( spi_gpio_base[ id ], spi_gpio_pins[ id ] );
 
   // FIXME: not sure this is always "right"
-  GPIOPadConfigSet(spi_gpio_base[ id ], spi_gpio_clk_pin[ id ], GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_STD_WPU);
+  GPIOPadConfigSet(spi_gpio_base[ id ], spi_gpio_pins[ id ], GPIO_STRENGTH_4MA, GPIO_PIN_TYPE_STD_WPU);
 
   SSIConfigSetExpClk( spi_base[ id ], SysCtlClockGet(), protocol, mode, clock, databits );
   SSIEnable( spi_base[ id ] );
@@ -750,7 +751,7 @@ static void eth_init()
   GPIOPadConfigSet( GPIO_PORTF_BASE, GPIO_PIN_2 | GPIO_PIN_3, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD );
 
   // Configure SysTick for a periodic interrupt.
-  SysTickPeriodSet(SysCtlClockGet() / SYSTICKHZ);
+  SysTickPeriodSet(SysCtlClockGet() / SYSTICKHZ );
   SysTickEnable();
   SysTickIntEnable();
 
@@ -842,6 +843,10 @@ void SysTickIntHandler()
   // Handle virtual timers
   cmn_virtual_timer_cb();
 
+#ifdef BUILD_MMCFS
+  disk_timerproc();
+#endif
+
   // Indicate that a SysTick interrupt has occurred.
   eth_timer_fired = 1;
 
@@ -867,6 +872,10 @@ void EthernetIntHandler()
 void SysTickIntHandler()
 {
   cmn_virtual_timer_cb();
+
+#ifdef BUILD_MMCFS
+  disk_timerproc();
+#endif
 }
 
 void EthernetIntHandler()
