@@ -39,6 +39,8 @@
   #define SDC_CS_PORT                3
   #define SDC_CS_PIN                 0
   #define SDC_SPI_NUM                0
+  #define SDC_SPI_PORT               0
+  #define SDC_TX_PIN                 5
 #endif
 
 #ifdef FORLM3S8962
@@ -46,7 +48,8 @@
   #define SDC_CS_PORT                6
   #define SDC_CS_PIN                 0
   #define SDC_SPI_NUM                0
-  
+  #define SDC_SPI_PORT               0
+  #define SDC_TX_PIN                 5
 #endif
 
 #ifdef FORLM3S6918
@@ -54,6 +57,8 @@
   #define SDC_CS_PORT                6
   #define SDC_CS_PIN                 1
   #define SDC_SPI_NUM                0
+  #define SDC_SPI_PORT               0
+  #define SDC_TX_PIN                 5
 #endif
 
 #ifndef SDC_SPI_NUM
@@ -138,7 +143,6 @@ BYTE wait_ready (void)
 {
     BYTE res;
 
-
     Timer2 = 50;    /* Wait for ready in timeout of 500ms */
     rcvr_spi();
     do
@@ -160,8 +164,8 @@ void send_initial_clock_train(void)
     DESELECT();
 
     /* Switch the SSI TX line to a GPIO and drive it high too. */
-    platform_pio_op( 0, ( ( u32 ) 1 << 5 ), PLATFORM_IO_PIN_DIR_OUTPUT );
-    platform_pio_op( 0, ( ( u32 ) 1 << 5 ), PLATFORM_IO_PIN_SET );
+    platform_pio_op( SDC_SPI_PORT, ( ( u32 ) 1 << SDC_TX_PIN ), PLATFORM_IO_PIN_DIR_OUTPUT );
+    platform_pio_op( SDC_SPI_PORT, ( ( u32 ) 1 << SDC_TX_PIN ), PLATFORM_IO_PIN_SET );
     
     /* Send 10 bytes over the SSI. This causes the clock to wiggle the */
     /* required number of times. */

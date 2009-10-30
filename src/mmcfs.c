@@ -107,7 +107,7 @@ static int mmcfs_close_r( struct _reent *r, int fd )
 
 static _ssize_t mmcfs_write_r( struct _reent *r, int fd, const void* ptr, size_t len )
 {
-  WORD bytesWritten;
+  UINT bytesWritten;
 
   if (f_write(mmcfs_fd_table + fd, ptr, len, &bytesWritten) != FR_OK)
   {
@@ -120,7 +120,7 @@ static _ssize_t mmcfs_write_r( struct _reent *r, int fd, const void* ptr, size_t
 
 static _ssize_t mmcfs_read_r( struct _reent *r, int fd, void* ptr, size_t len )
 {
-  WORD bytesRead;
+  UINT bytesRead;
 
   if (f_read(mmcfs_fd_table + fd, ptr, len, &bytesRead) != FR_OK)
   {
