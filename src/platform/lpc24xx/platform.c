@@ -23,17 +23,42 @@
 // ****************************************************************************
 // Platform initialization
 
+static void platform_setup_timers();
+
+// Power management definitions
+enum
+{
+  PCUART2 = 1ULL << 24,
+  PCUART3 = 1ULL << 25,
+  PCTIM2 = 1ULL << 22,
+  PCTIM3 = 1ULL << 23
+};
+
+// CPU initialization
+static void platform_cpu_setup()
+{
+  // Enable clock for UART2 and UART3
+  PCONP |= PCUART2 | PCUART3;
+
+  // Enable clock for Timer 2 and Timer 3
+  PCONP |= PCTIM2 | PCTIM3;
+
+  // Setup GPIO0 and GPIO1 in fast mode
+  SCS |= 1;
+}
+
 int platform_init()
 {
-  // [TODO] the rest of initialization must go here
+  // Complete CPU initialization
+  platform_cpu_setup();
 
-  // Setup GPIO1 and GPIO1 in fast mode
-  SCS |= 1;
+  // Setup timers
+  platform_setup_timers();
 
   // Initialize UART
   platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
 
-  // Common platform initialiation code
+  // Common platform initialization code
   cmn_platform_init();
 
   return PLATFORM_OK;
@@ -101,7 +126,6 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
   return retval;
 }
 
-
 // ****************************************************************************
 // UART section
 
@@ -115,43 +139,17 @@ static const u32 uart_fcr[ NUM_UART ] = { ( u32 )&U0FCR, ( u32 )&U1FCR, ( u32 )&
 static const u32 uart_thr[ NUM_UART ] = { ( u32 )&U0THR, ( u32 )&U1THR, ( u32 )&U2THR, ( u32 )&U3THR };
 static const u32 uart_lsr[ NUM_UART ] = { ( u32 )&U0LSR, ( u32 )&U1LSR, ( u32 )&U2LSR, ( u32 )&U3LSR };
 static const u32 uart_rbr[ NUM_UART ] = { ( u32 )&U0RBR, ( u32 )&U1RBR, ( u32 )&U2RBR, ( u32 )&U3RBR };
+// UART1 doesn't have a fractional baud rate generator
 static const u32 uart_fdr[ NUM_UART ] = { ( u32 )&U0FDR, ( u32 )0,      ( u32 )&U2FDR, ( u32 )&U3FDR };
 
 // Quick-and-dirty FP
 #define INTTOFP(x)      ( (x) << 8 )
 #define FLTTOFP(x)      ( ( u32 )( x * 256 ) )
 
-// Table of FR versus DivAddVal/MulVal (taken from the datasheet)
-typedef struct
-{
-  u32 fr;
-  u8 divadd;
-  u8 mul;
-} uart_fractional_data;
-
-static const uart_fractional_data fr_to_vals[] = 
-{
-  {FLTTOFP(1.000), 0, 1}, {FLTTOFP(1.067), 1, 15}, {FLTTOFP(1.071), 1, 14}, {FLTTOFP(1.077), 1, 13}, {FLTTOFP(1.083), 1, 12}, 
-  {FLTTOFP(1.091), 1, 11}, {FLTTOFP(1.100), 1, 10}, {FLTTOFP(1.111), 1, 9}, {FLTTOFP(1.125), 1, 8}, {FLTTOFP(1.133), 2, 15}, 
-  {FLTTOFP(1.143), 1, 7}, {FLTTOFP(1.154), 2, 13}, {FLTTOFP(1.167), 1, 6}, {FLTTOFP(1.182), 2, 11}, {FLTTOFP(1.200), 1, 5},
-  {FLTTOFP(1.214), 3, 14}, {FLTTOFP(1.222), 2, 9}, {FLTTOFP(1.231), 3, 13}, {FLTTOFP(1.250), 1, 4}, {FLTTOFP(1.267), 4, 15},
-  {FLTTOFP(1.273), 3, 11}, {FLTTOFP(1.286), 2, 7}, {FLTTOFP(1.300), 3, 10}, {FLTTOFP(1.308), 4, 13}, {FLTTOFP(1.333), 1, 3},
-  {FLTTOFP(1.357), 5, 14}, {FLTTOFP(1.364), 4, 11}, {FLTTOFP(1.375), 3, 8}, {FLTTOFP(1.385), 5, 13}, {FLTTOFP(1.400), 2, 5},
-  {FLTTOFP(1.417), 5, 12}, {FLTTOFP(1.429), 3, 7}, {FLTTOFP(1.444), 4, 9}, {FLTTOFP(1.455), 5, 11}, {FLTTOFP(1.462), 6, 13},
-  {FLTTOFP(1.467), 7, 15}, {FLTTOFP(1.500), 1, 2}, {FLTTOFP(1.533), 8, 15}, {FLTTOFP(1.538), 7, 13}, {FLTTOFP(1.545), 6, 11},
-  {FLTTOFP(1.556), 5, 9}, {FLTTOFP(1.571), 4, 7}, {FLTTOFP(1.583), 7, 12}, {FLTTOFP(1.600), 3, 5}, {FLTTOFP(1.615), 8, 13},
-  {FLTTOFP(1.625), 5, 8}, {FLTTOFP(1.636), 7, 11}, {FLTTOFP(1.643), 9, 14}, {FLTTOFP(1.667), 2, 3}, {FLTTOFP(1.692), 9, 13},
-  {FLTTOFP(1.700), 7, 10}, {FLTTOFP(1.714), 5, 7}, {FLTTOFP(1.727), 8, 11}, {FLTTOFP(1.733), 11, 15}, {FLTTOFP(1.750), 3, 4},
-  {FLTTOFP(1.769), 10, 13}, {FLTTOFP(1.778), 7, 9}, {FLTTOFP(1.786), 11, 14}, {FLTTOFP(1.800), 4, 5}, {FLTTOFP(1.818), 9, 11},
-  {FLTTOFP(1.833), 5, 6}, {FLTTOFP(1.846), 11, 13}, {FLTTOFP(1.857), 6, 7}, {FLTTOFP(1.867), 13, 15}, {FLTTOFP(1.875), 7, 8},
-  {FLTTOFP(1.889), 8, 9}, {FLTTOFP(1.900), 9, 10}, {FLTTOFP(1.909), 10, 11}, {FLTTOFP(1.917), 11, 12}, {FLTTOFP(1.923), 12, 13},
-  {FLTTOFP(1.929), 13, 14},{FLTTOFP(1.933), 14, 15}
-};
-
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )
 {
-  u32 temp, frest, fr, dlest, minfr;
-  unsigned i, idx;
+  u32 temp, frest, fr, dlest, minfr, minbauddiff, baudest;
+  unsigned d, m, bd, bm;
 
   PREG UxLCR = ( PREG )uart_lcr[ id ];
   PREG UxDLM = ( PREG )uart_dlm[ id ];
@@ -194,43 +192,57 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   *UxLCR = temp;
 
   // Divisor and fractional baud computation
-  // Based on the datasheet, but modified slightly (also used 24.8 fixed point)
+  // Based on the datasheet, but modified slightly (also uses 24.8 fixed point)
   temp = ( Fpclk >> 4 ) / baud;
   if( ( ( Fpclk >> 4 ) % baud != 0 ) && UxFDR )
   {
     // Non-integer result, must estimate fr
-    // Start from 1.1 and stop before 2, in 0.05 increments
+    // Start from 1.025 and stop before 2, in 0.025 increments
     minfr = 0xFFFFFFFF;
-    for( fr = FLTTOFP( 1.1 ); fr < INTTOFP( 2 ); fr += FLTTOFP( 0.05 ) )
+    minbauddiff = 0xFFFFFFFF;
+    for( fr = FLTTOFP( 1.025 ); fr < INTTOFP( 2 ); fr += FLTTOFP( 0.025 ) )
     {
       dlest = ( Fpclk << 4 ) / ( baud * fr ); // this is an integer
       frest = ( Fpclk << 4 ) / ( baud * dlest ); // this is a 24.8 FP number
-      if( ( frest < minfr ) && ( frest > FLTTOFP( 1.1 ) ) && ( frest < FLTTOFP( 1.9 ) ) )
+      baudest =  ( Fpclk << 4 ) / ( frest * dlest ); // this is an integer
+      if( ( ABSDIFF( baudest, baud ) < minbauddiff ) && ( frest > FLTTOFP( 1.0 ) ) && ( frest < FLTTOFP( 2 ) ) )
       {
         temp = dlest;
         minfr = frest;
+        minbauddiff = ABSDIFF( baudest, baud );
       }
     }
   }
   else
     minfr = INTTOFP( 1 );
-  // Divisor is in 'temp', now find DivAddVal and MulVal from frest
+  // Divisor is in 'temp', now find best fraction that approximates 'minfr'
   fr = minfr;
-  idx = 0;
   if( fr != INTTOFP( 1 ) )
   {
-    minfr = ABSDIFF( fr, fr_to_vals[ 0 ].fr );
-    for( i = 1; i < sizeof( fr_to_vals ) / sizeof( uart_fractional_data ); i ++ )
-      if( ABSDIFF( fr_to_vals[ i ].fr, fr ) < minfr )
+    minfr = 0xFFFFFFFF;
+    bd = 0;
+    bm = 1;
+    for( d = 0; d <= 14; d ++ )
+      for( m = d + 1; m <= 15; m ++ )
       {
-        idx = i;
-        minfr = ABSDIFF( fr_to_vals[ i ].fr, fr );
+        frest = INTTOFP( d ) / m + INTTOFP( 1 );  
+        if( ABSDIFF( frest, fr ) < ABSDIFF( minfr, fr ) )
+        {
+          minfr = frest;
+          bd = d;
+          bm = m;
+        }
       }
   }
+  else
+  {
+    bd = 0;
+    bm = 1;
+  }  
   // Set baud and divisors
   *UxLCR |= UART_DLAB_ENABLE;
   if( UxFDR )
-   *UxFDR = ( fr_to_vals[ idx ].mul << 4 ) | fr_to_vals[ idx ].divadd;
+   *UxFDR = ( bm << 4 ) | bd;
   *UxDLM = temp >> 8;
   *UxDLL = temp & 0xFF;
   *UxLCR &= ~UART_DLAB_ENABLE;
@@ -244,7 +256,7 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
     PINSEL0 = ( PINSEL0 & 0xFFFFFF0F ) | 0x00000050;
 
   // Return the actual baud
-  return ( Fpclk << 4 ) / ( 16 * temp * fr_to_vals[ idx ].fr );
+  return ( Fpclk << 4 ) / ( temp * minfr );
 }
 
 void platform_uart_send( unsigned id, u8 data )
@@ -274,34 +286,102 @@ int platform_s_uart_recv( unsigned id, s32 timeout )
 }
 
 // ****************************************************************************
-// Timer
+// Timer section
+
+static const u32 tmr_tcr[ NUM_TIMER ] = { ( u32 )&T0TCR, ( u32 )&T1TCR, ( u32 )&T2TCR, ( u32 )&T3TCR };
+static const u32 tmr_ttc[ NUM_TIMER ] = { ( u32 )&T0TC, ( u32 )&T1TC, ( u32 )&T2TC, ( u32 )&T3TC };
+static const u32 tmr_tpr[ NUM_TIMER ] = { ( u32 )&T0PR, ( u32 )&T1PR, ( u32 )&T2PR, ( u32 )&T3PR };
+static const u32 tmr_tpc[ NUM_TIMER ] = { ( u32 )&T0PC, ( u32 )&T1PC, ( u32 )&T2PC, ( u32 )&T3PC };
+
+// Timer register definitions
+enum
+{
+  TMR_ENABLE = 1,
+  TMR_RESET = 2
+};
+
+// Helper function: get timer clock
+static u32 platform_timer_get_clock( unsigned id )
+{
+  PREG TxPR = ( PREG )tmr_tpr[ id ];
+
+  return Fpclk / ( *TxPR + 1 );
+}
+
+// Helper function: set timer clock
+static u32 platform_timer_set_clock( unsigned id, unsigned clock )
+{
+  u32 div = Fpclk / clock, prevtc;
+  PREG TxPR = ( PREG )tmr_tpr[ id ];  
+  PREG TxPC = ( PREG )tmr_tpc[ id ];
+  PREG TxTC = ( PREG )tmr_ttc[ id ]; 
+  
+  prevtc = *TxTC;
+  *TxTC = 0;
+  *TxPC = 0; 
+  *TxPR = div - 1;
+  *TxTC = prevtc;
+  return Fpclk / div;
+}
+
+// Helper function: setup timers
+static void platform_setup_timers()
+{
+  unsigned i;
+  PREG TxTC;
+
+  // Set base frequency to 1MHz, as we can't use a better resolution anyway
+  for( i = 0; i < NUM_TIMER; i ++ )
+  {
+    TxTC = ( PREG )tmr_ttc[ i ];
+    *TxTC = 0;
+    platform_timer_set_clock( 0, 1000000 );
+  }
+}
 
 void platform_s_timer_delay( unsigned id, u32 delay_us )
 {
+  PREG TxCR = ( PREG )tmr_tcr[ id ];
+  PREG TxTC = ( PREG )tmr_ttc[ id ];
+  u32 last;
+
+  last = ( ( u64 )delay_us * platform_timer_get_clock( id ) ) / 1000000;
+  *TxTC = TMR_ENABLE | TMR_RESET;
+  *TxTC = TMR_ENABLE;
+  while( *TxCR < last );
 }
       
 u32 platform_s_timer_op( unsigned id, int op, u32 data )
 {
   u32 res = 0;
+  PREG TxCR = ( PREG )tmr_tcr[ id ];
+  PREG TxTC = ( PREG )tmr_ttc[ id ];
 
   switch( op )
   {
     case PLATFORM_TIMER_OP_START:
+      *TxTC = TMR_ENABLE | TMR_RESET;
+      *TxTC = TMR_ENABLE;
       break;
       
     case PLATFORM_TIMER_OP_READ:
+      res = *TxCR;
       break;
-      
+
     case PLATFORM_TIMER_OP_GET_MAX_DELAY:
+      res = platform_timer_get_diff_us( id, 0, 0xFFFFFFFF );
       break;
       
     case PLATFORM_TIMER_OP_GET_MIN_DELAY:
+      res = platform_timer_get_diff_us( id, 0, 1 );
       break;      
       
     case PLATFORM_TIMER_OP_SET_CLOCK:
+      res = platform_timer_set_clock( id, data );
       break;
       
     case PLATFORM_TIMER_OP_GET_CLOCK:
+      res = platform_timer_get_clock( id );
       break;
   }
   return res;

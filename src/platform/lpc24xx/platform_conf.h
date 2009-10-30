@@ -49,7 +49,7 @@
 #define NUM_PWM               0
 #define NUM_ADC               0
 #define NUM_CAN               0
-#define NUM_TIMER             0
+#define NUM_TIMER             4
 
 // Enable RX buffering on UART
 // [TODO] make this happen
