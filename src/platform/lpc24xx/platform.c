@@ -40,6 +40,10 @@ static void platform_cpu_setup()
   // Enable clock for UART2 and UART3
   PCONP |= PCUART2 | PCUART3;
 
+  // Set clock for all the UARTs to the system clock (helps in baud generation)
+  PCLKSEL0 = ( PCLKSEL0 & 0xFFFFFC3F ) | 0x00000140;
+  PCLKSEL1 = ( PCLKSEL1 & 0xFFF0FFFF ) | 0x00050000;
+
   // Enable clock for Timer 2 and Timer 3
   PCONP |= PCTIM2 | PCTIM3;
 
@@ -139,23 +143,15 @@ static const u32 uart_fcr[ NUM_UART ] = { ( u32 )&U0FCR, ( u32 )&U1FCR, ( u32 )&
 static const u32 uart_thr[ NUM_UART ] = { ( u32 )&U0THR, ( u32 )&U1THR, ( u32 )&U2THR, ( u32 )&U3THR };
 static const u32 uart_lsr[ NUM_UART ] = { ( u32 )&U0LSR, ( u32 )&U1LSR, ( u32 )&U2LSR, ( u32 )&U3LSR };
 static const u32 uart_rbr[ NUM_UART ] = { ( u32 )&U0RBR, ( u32 )&U1RBR, ( u32 )&U2RBR, ( u32 )&U3RBR };
-// UART1 doesn't have a fractional baud rate generator
-static const u32 uart_fdr[ NUM_UART ] = { ( u32 )&U0FDR, ( u32 )0,      ( u32 )&U2FDR, ( u32 )&U3FDR };
-
-// Quick-and-dirty FP
-#define INTTOFP(x)      ( (x) << 8 )
-#define FLTTOFP(x)      ( ( u32 )( x * 256 ) )
 
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )
 {
-  u32 temp, frest, fr, dlest, minfr, minbauddiff, baudest;
-  unsigned d, m, bd, bm;
+  u32 temp;
 
   PREG UxLCR = ( PREG )uart_lcr[ id ];
   PREG UxDLM = ( PREG )uart_dlm[ id ];
   PREG UxDLL = ( PREG )uart_dll[ id ];
   PREG UxFCR = ( PREG )uart_fcr[ id ];  
-  PREG UxFDR = ( PREG )uart_fdr[ id ];
 
   // Set data bits, parity, stop bit
   temp = 0;
@@ -191,58 +187,10 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   }
   *UxLCR = temp;
 
-  // Divisor and fractional baud computation
-  // Based on the datasheet, but modified slightly (also uses 24.8 fixed point)
-  temp = ( Fpclk >> 4 ) / baud;
-  if( ( ( Fpclk >> 4 ) % baud != 0 ) && UxFDR )
-  {
-    // Non-integer result, must estimate fr
-    // Start from 1.025 and stop before 2, in 0.025 increments
-    minfr = 0xFFFFFFFF;
-    minbauddiff = 0xFFFFFFFF;
-    for( fr = FLTTOFP( 1.025 ); fr < INTTOFP( 2 ); fr += FLTTOFP( 0.025 ) )
-    {
-      dlest = ( Fpclk << 4 ) / ( baud * fr ); // this is an integer
-      frest = ( Fpclk << 4 ) / ( baud * dlest ); // this is a 24.8 FP number
-      baudest =  ( Fpclk << 4 ) / ( frest * dlest ); // this is an integer
-      if( ( ABSDIFF( baudest, baud ) < minbauddiff ) && ( frest > FLTTOFP( 1.0 ) ) && ( frest < FLTTOFP( 2 ) ) )
-      {
-        temp = dlest;
-        minfr = frest;
-        minbauddiff = ABSDIFF( baudest, baud );
-      }
-    }
-  }
-  else
-    minfr = INTTOFP( 1 );
-  // Divisor is in 'temp', now find best fraction that approximates 'minfr'
-  fr = minfr;
-  if( fr != INTTOFP( 1 ) )
-  {
-    minfr = 0xFFFFFFFF;
-    bd = 0;
-    bm = 1;
-    for( d = 0; d <= 14; d ++ )
-      for( m = d + 1; m <= 15; m ++ )
-      {
-        frest = INTTOFP( d ) / m + INTTOFP( 1 );  
-        if( ABSDIFF( frest, fr ) < ABSDIFF( minfr, fr ) )
-        {
-          minfr = frest;
-          bd = d;
-          bm = m;
-        }
-      }
-  }
-  else
-  {
-    bd = 0;
-    bm = 1;
-  }  
+  // Divisor computation
+  temp = ( Fpclk_UART >> 4 ) / baud;
   // Set baud and divisors
   *UxLCR |= UART_DLAB_ENABLE;
-  if( UxFDR )
-   *UxFDR = ( bm << 4 ) | bd;
   *UxDLM = temp >> 8;
   *UxDLL = temp & 0xFF;
   *UxLCR &= ~UART_DLAB_ENABLE;
@@ -256,7 +204,7 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
     PINSEL0 = ( PINSEL0 & 0xFFFFFF0F ) | 0x00000050;
 
   // Return the actual baud
-  return ( Fpclk << 4 ) / ( temp * minfr );
+  return ( Fpclk_UART >> 4 ) / temp;
 }
 
 void platform_uart_send( unsigned id, u8 data )
@@ -289,9 +237,9 @@ int platform_s_uart_recv( unsigned id, s32 timeout )
 // Timer section
 
 static const u32 tmr_tcr[ NUM_TIMER ] = { ( u32 )&T0TCR, ( u32 )&T1TCR, ( u32 )&T2TCR, ( u32 )&T3TCR };
-static const u32 tmr_ttc[ NUM_TIMER ] = { ( u32 )&T0TC, ( u32 )&T1TC, ( u32 )&T2TC, ( u32 )&T3TC };
-static const u32 tmr_tpr[ NUM_TIMER ] = { ( u32 )&T0PR, ( u32 )&T1PR, ( u32 )&T2PR, ( u32 )&T3PR };
-static const u32 tmr_tpc[ NUM_TIMER ] = { ( u32 )&T0PC, ( u32 )&T1PC, ( u32 )&T2PC, ( u32 )&T3PC };
+static const u32 tmr_tc[ NUM_TIMER ] = { ( u32 )&T0TC, ( u32 )&T1TC, ( u32 )&T2TC, ( u32 )&T3TC };
+static const u32 tmr_pr[ NUM_TIMER ] = { ( u32 )&T0PR, ( u32 )&T1PR, ( u32 )&T2PR, ( u32 )&T3PR };
+static const u32 tmr_pc[ NUM_TIMER ] = { ( u32 )&T0PC, ( u32 )&T1PC, ( u32 )&T2PC, ( u32 )&T3PC };
 
 // Timer register definitions
 enum
@@ -303,7 +251,7 @@ enum
 // Helper function: get timer clock
 static u32 platform_timer_get_clock( unsigned id )
 {
-  PREG TxPR = ( PREG )tmr_tpr[ id ];
+  PREG TxPR = ( PREG )tmr_pr[ id ];
 
   return Fpclk / ( *TxPR + 1 );
 }
@@ -312,15 +260,15 @@ static u32 platform_timer_get_clock( unsigned id )
 static u32 platform_timer_set_clock( unsigned id, unsigned clock )
 {
   u32 div = Fpclk / clock, prevtc;
-  PREG TxPR = ( PREG )tmr_tpr[ id ];  
-  PREG TxPC = ( PREG )tmr_tpc[ id ];
-  PREG TxTC = ( PREG )tmr_ttc[ id ]; 
+  PREG TxPR = ( PREG )tmr_pr[ id ];  
+  PREG TxPC = ( PREG )tmr_pc[ id ];
+  PREG TxTCR = ( PREG )tmr_tcr[ id ]; 
   
-  prevtc = *TxTC;
-  *TxTC = 0;
+  prevtc = *TxTCR;
+  *TxTCR = 0;
   *TxPC = 0; 
   *TxPR = div - 1;
-  *TxTC = prevtc;
+  *TxTCR = prevtc;
   return Fpclk / div;
 }
 
@@ -328,44 +276,44 @@ static u32 platform_timer_set_clock( unsigned id, unsigned clock )
 static void platform_setup_timers()
 {
   unsigned i;
-  PREG TxTC;
+  PREG TxTCR;
 
   // Set base frequency to 1MHz, as we can't use a better resolution anyway
   for( i = 0; i < NUM_TIMER; i ++ )
   {
-    TxTC = ( PREG )tmr_ttc[ i ];
-    *TxTC = 0;
-    platform_timer_set_clock( 0, 1000000 );
+    TxTCR = ( PREG )tmr_tcr[ i ];
+    *TxTCR = 0;
+    platform_timer_set_clock( i, 1000000 );
   }
 }
 
 void platform_s_timer_delay( unsigned id, u32 delay_us )
 {
-  PREG TxCR = ( PREG )tmr_tcr[ id ];
-  PREG TxTC = ( PREG )tmr_ttc[ id ];
+  PREG TxTCR = ( PREG )tmr_tcr[ id ];
+  PREG TxTC = ( PREG )tmr_tc[ id ];
   u32 last;
 
   last = ( ( u64 )delay_us * platform_timer_get_clock( id ) ) / 1000000;
-  *TxTC = TMR_ENABLE | TMR_RESET;
-  *TxTC = TMR_ENABLE;
-  while( *TxCR < last );
+  *TxTCR = TMR_ENABLE | TMR_RESET;
+  *TxTCR = TMR_ENABLE;
+  while( *TxTC < last );
 }
       
 u32 platform_s_timer_op( unsigned id, int op, u32 data )
 {
   u32 res = 0;
-  PREG TxCR = ( PREG )tmr_tcr[ id ];
-  PREG TxTC = ( PREG )tmr_ttc[ id ];
+  PREG TxTCR = ( PREG )tmr_tcr[ id ];
+  PREG TxTC = ( PREG )tmr_tc[ id ];
 
   switch( op )
   {
     case PLATFORM_TIMER_OP_START:
-      *TxTC = TMR_ENABLE | TMR_RESET;
-      *TxTC = TMR_ENABLE;
+      *TxTCR = TMR_ENABLE | TMR_RESET;
+      *TxTCR = TMR_ENABLE;
       break;
       
     case PLATFORM_TIMER_OP_READ:
-      res = *TxCR;
+      res = *TxTC;
       break;
 
     case PLATFORM_TIMER_OP_GET_MAX_DELAY:

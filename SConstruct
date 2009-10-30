@@ -129,7 +129,7 @@ file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'i
               'ATEVK1100' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
               'ET-STM32' : [ 'hello', 'hangman', 'info', 'bisect','adcscope','adcpoll', 'dualpwm', 'pwmled' ],
               'EAGLE-100' : [ 'bisect', 'hangman', 'lhttpd', 'led', 'hello', 'info' ],
-              'ELUA-PUC' : [ 'bisect', 'hangman', 'hello', 'info' ]
+              'ELUA-PUC' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ]
             }
 
 # Variants: board = <boardname>

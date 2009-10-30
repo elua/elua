@@ -110,6 +110,7 @@ in this case, so USBCLKDivValue is not needed. */
 #endif
 
 #define Fpclk_MHz       (Fpclk / 1000000)
+#define Fpclk_UART      (Fcclk)
 
 /******************************************************************************
 ** Function name:		TargetInit
