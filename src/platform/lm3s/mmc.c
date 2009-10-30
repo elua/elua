@@ -161,18 +161,11 @@ void send_initial_clock_train(void)
     unsigned int i;
     /* Ensure CS is held high. */
     DESELECT();
-
-    /* Switch the SPI TX line to a GPIO and drive it high too. */
-    platform_pio_op( SDC_SPI_PORT, ( ( u32 ) 1 << SDC_TX_PIN ), PLATFORM_IO_PIN_DIR_OUTPUT );
-    platform_pio_op( SDC_SPI_PORT, ( ( u32 ) 1 << SDC_TX_PIN ), PLATFORM_IO_PIN_SET );
     
     /* Send 10 bytes over the SSI. This causes the clock to wiggle the */
     /* required number of times. */
     for(i = 0 ; i < 10 ; i++)
         rcvr_spi();
-
-    /* Revert to hardware control of the SSI TX line. */
-    platform_spi_setup( SDC_SPI_NUM, PLATFORM_SPI_MASTER, 400000, 0, 0, 8 );
 }
 
 /*-----------------------------------------------------------------------*/
