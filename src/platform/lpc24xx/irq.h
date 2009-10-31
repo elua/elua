@@ -68,13 +68,6 @@
 be handled differently. More details can be found in Philips LPC2000
 family app-note AN10381 */
  
-/* unlike Keil CARM Compiler, in ARM's RealView compiler, don't save and 
-restore registers into the stack in RVD as the compiler does that for you. 
-See RVD ARM compiler Inline and embedded assemblers, "Rules for 
-using __asm and asm keywords. */
-#define IENABLE __asm { MRS sysreg, SPSR; MSR CPSR_c, #SYS32Mode }
-#define IDISABLE __asm { MSR CPSR_c, #(IRQ32Mode|I_Bit); MSR SPSR_cxsf, sysreg }
-
 void init_VIC( void );
 DWORD install_irq( DWORD IntNumber, void *HandlerAddr, DWORD Priority );
 
@@ -83,3 +76,4 @@ DWORD install_irq( DWORD IntNumber, void *HandlerAddr, DWORD Priority );
 /******************************************************************************
 **                            End Of File
 ******************************************************************************/
+

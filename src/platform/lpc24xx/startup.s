@@ -65,7 +65,7 @@ resetHandler:
         sub     r0, r0, #STACK_SIZE_IRQ                  
 
         # Set up Supervisor Mode and set Supervisor Mode Stack (leave interrupts enabled)
-        msr     CPSR_c, #ARM_MODE_SVC|F_BIT|I_BIT
+        msr     CPSR_c, #ARM_MODE_SVC|F_BIT
         mov     r13, r0
 
 
@@ -103,5 +103,25 @@ ZeroBSS:
 forever:
         b       forever
 
-        .end
+# enable interrupts
+        .global    enable_ints
+enable_ints:
+        stmfd   sp!,  {r1}
+        mrs     r1, CPSR
+        bic     r1, r1, #I_BIT
+        msr     CPSR_c, r1
+        ldmfd   sp!, {r1}
+        mov     pc, r14
+
+# disable interrupts
+       .global disable_ints
+disable_ints:
+       stmfd    sp!, {r1}
+       mrs      r1, CPSR
+       orr      r1, r1, #I_BIT
+       msr      CPSR_c, r1
+       ldmfd    sp!, {r1}
+       mov      pc, r14
+
+      .end
 

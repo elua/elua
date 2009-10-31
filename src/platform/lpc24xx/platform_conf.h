@@ -37,13 +37,14 @@
   _ROM( AUXLIB_TERM, luaopen_term, term_map )\
   _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
+  _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
 
 // *****************************************************************************
 // Configuration data
 
 // Virtual timers (0 if not used)
-#define VTMR_NUM_TIMERS       0
+#define VTMR_NUM_TIMERS       4
 #define VTMR_FREQ_HZ          4
 
 // Number of resources (0 if not available/not implemented)
@@ -53,7 +54,12 @@
 #define NUM_PWM               0
 #define NUM_ADC               0
 #define NUM_CAN               0
+// If virtual timers are enabled, the last timer will be used only for them
+#if VTMR_NUM_TIMERS == 0
 #define NUM_TIMER             4
+#else
+#define NUM_TIMER             3
+#endif
 
 // Enable RX buffering on UART
 // [TODO] make this happen

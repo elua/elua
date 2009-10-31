@@ -20,6 +20,9 @@
 #include "irq.h"
 #include "uart.h"
 
+extern void enable_ints();
+extern void disable_ints();
+
 // ****************************************************************************
 // Platform initialization
 
@@ -236,10 +239,10 @@ int platform_s_uart_recv( unsigned id, s32 timeout )
 // ****************************************************************************
 // Timer section
 
-static const u32 tmr_tcr[ NUM_TIMER ] = { ( u32 )&T0TCR, ( u32 )&T1TCR, ( u32 )&T2TCR, ( u32 )&T3TCR };
-static const u32 tmr_tc[ NUM_TIMER ] = { ( u32 )&T0TC, ( u32 )&T1TC, ( u32 )&T2TC, ( u32 )&T3TC };
-static const u32 tmr_pr[ NUM_TIMER ] = { ( u32 )&T0PR, ( u32 )&T1PR, ( u32 )&T2PR, ( u32 )&T3PR };
-static const u32 tmr_pc[ NUM_TIMER ] = { ( u32 )&T0PC, ( u32 )&T1PC, ( u32 )&T2PC, ( u32 )&T3PC };
+static const u32 tmr_tcr[] = { ( u32 )&T0TCR, ( u32 )&T1TCR, ( u32 )&T2TCR, ( u32 )&T3TCR };
+static const u32 tmr_tc[] = { ( u32 )&T0TC, ( u32 )&T1TC, ( u32 )&T2TC, ( u32 )&T3TC };
+static const u32 tmr_pr[] = { ( u32 )&T0PR, ( u32 )&T1PR, ( u32 )&T2PR, ( u32 )&T3PR };
+static const u32 tmr_pc[] = { ( u32 )&T0PC, ( u32 )&T1PC, ( u32 )&T2PC, ( u32 )&T3PC };
 
 // Timer register definitions
 enum
@@ -257,7 +260,7 @@ static u32 platform_timer_get_clock( unsigned id )
 }
 
 // Helper function: set timer clock
-static u32 platform_timer_set_clock( unsigned id, unsigned clock )
+static u32 platform_timer_set_clock( unsigned id, u32 clock )
 {
   u32 div = Fpclk / clock, prevtc;
   PREG TxPR = ( PREG )tmr_pr[ id ];  
@@ -272,6 +275,15 @@ static u32 platform_timer_set_clock( unsigned id, unsigned clock )
   return Fpclk / div;
 }
 
+#if VTMR_NUM_TIMERS > 0
+static void __attribute__((interrupt ("IRQ"))) tmr_int_handler() 
+{
+  T3IR = 1; // clear interrupt
+  cmn_virtual_timer_cb();
+  VICVectAddr = 0; // ACK interrupt
+}
+#endif
+
 // Helper function: setup timers
 static void platform_setup_timers()
 {
@@ -279,12 +291,25 @@ static void platform_setup_timers()
   PREG TxTCR;
 
   // Set base frequency to 1MHz, as we can't use a better resolution anyway
-  for( i = 0; i < NUM_TIMER; i ++ )
+  for( i = 0; i < 4; i ++ )
   {
     TxTCR = ( PREG )tmr_tcr[ i ];
     *TxTCR = 0;
-    platform_timer_set_clock( i, 1000000 );
+    platform_timer_set_clock( i, 1000000ULL );
   }
+#if VTMR_NUM_TIMERS > 0
+  // Setup virtual timers here
+  // Timer 3 is allocated for virtual timers and nothing else in this case
+  T3TCR = TMR_RESET;
+  T3MR0 = 1000000ULL / VTMR_FREQ_HZ - 1;
+  T3IR = 0xFF;
+  // Set interrupt handle and eanble timer interrupt (and global interrupts)
+  T3MCR = 0x03; // interrupt on match with MR0 and clear on match
+  install_irq( TIMER3_INT, tmr_int_handler, HIGHEST_PRIORITY ); 
+  platform_cpu_enable_interrupts(); 
+  // Start timer
+  T3TCR = TMR_ENABLE;
+#endif
 }
 
 void platform_s_timer_delay( unsigned id, u32 delay_us )
@@ -333,5 +358,18 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
       break;
   }
   return res;
+}
+
+// ****************************************************************************
+// CPU functions
+
+void platform_cpu_enable_interrupts()
+{
+  enable_ints();  
+}
+
+void platform_cpu_disable_interrupts()
+{
+  disable_ints();
 }
 
