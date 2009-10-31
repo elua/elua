@@ -27,6 +27,7 @@ extern void disable_ints();
 // Platform initialization
 
 static void platform_setup_timers();
+static void platform_setup_pwm();
 
 // Power management definitions
 enum
@@ -38,7 +39,7 @@ enum
 };
 
 // CPU initialization
-static void platform_cpu_setup()
+static void platform_setup_cpu()
 {
   // Enable clock for UART2 and UART3
   PCONP |= PCUART2 | PCUART3;
@@ -57,12 +58,13 @@ static void platform_cpu_setup()
 int platform_init()
 {
   // Complete CPU initialization
-  platform_cpu_setup();
+  platform_setup_cpu();
 
-  // Setup timers
+  // Setup peripherals
   platform_setup_timers();
+  platform_setup_pwm();
 
-  // Initialize UART
+  // Initialize console UART
   platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
 
   // Common platform initialization code
@@ -371,5 +373,126 @@ void platform_cpu_enable_interrupts()
 void platform_cpu_disable_interrupts()
 {
   disable_ints();
+}
+
+// ****************************************************************************
+// PWM functions
+
+static const u32 pwm_tcr[] = { ( u32 )&PWM0TCR, ( u32 )&PWM1TCR };
+static const u32 pwm_pr[] = { ( u32 )&PWM0PR, ( u32 )&PWM1PR };
+static const u32 pwm_pc[] = { ( u32 )&PWM0PC, ( u32 )&PWM1PC };
+static const u32 pwm_pcr[] = { ( u32 )&PWM0PCR, ( u32 )&PWM1PCR };
+static const u32 pwm_mcr[] = { ( u32 )&PWM0MCR, ( u32 )&PWM1MCR };
+static const u32 pwm_ler[] = { ( u32 )&PWM0LER, ( u32 )&PWM1LER };
+static const u32 pwm_channels[ 2 ][ 6 ] = 
+{
+  { ( u32 )&PWM0MR1, ( u32 )&PWM0MR2, ( u32 )&PWM0MR3, ( u32 )&PWM0MR4, ( u32 )&PWM0MR5, ( u32 )&PWM0MR6 },
+  { ( u32 )&PWM1MR1, ( u32 )&PWM1MR2, ( u32 )&PWM1MR3, ( u32 )&PWM1MR4, ( u32 )&PWM1MR5, ( u32 )&PWM1MR6 }, 
+};
+
+// Timer register definitions
+enum
+{
+  PWM_ENABLE = 1,
+  PWM_RESET = 2,
+  PWM_MODE = 8,
+  PWM_ENABLE_1 = 1 << 9,
+  PWM_ENABLE_2 = 1 << 10,
+  PWM_ENABLE_3 = 1 << 11,
+  PWM_ENABLE_4 = 1 << 12,
+  PWM_ENABLE_5 = 1 << 13,
+  PWM_ENABLE_6 = 1 << 14,
+};
+
+// Helper function: get timer clock
+static u32 platform_pwm_get_clock( unsigned id )
+{
+  unsigned pwmid = id / 6;
+  PREG PWMxPR = ( PREG )pwm_pr[ pwmid ];
+
+  return Fpclk / ( *PWMxPR + 1 );
+}
+
+// Helper function: set timer clock
+static u32 platform_pwm_set_clock( unsigned id, u32 clock )
+{
+  u32 div = Fpclk / clock, prevtc;
+  unsigned pwmid = id / 6;
+  PREG PWMxPR = ( PREG )pwm_pr[ pwmid ];  
+  PREG PWMxPC = ( PREG )pwm_pc[ pwmid ];
+  PREG PWMxTCR = ( PREG )pwm_tcr[ pwmid ]; 
+  
+  prevtc = *PWMxTCR;
+  *PWMxTCR = 0;
+  *PWMxPC = 0; 
+  *PWMxPR = div - 1;
+  *PWMxTCR = prevtc;
+  return Fpclk / div;
+}
+
+// Setup all PWM channels
+static void platform_setup_pwm()
+{
+  unsigned i;
+  PREG temp;
+
+  for( i = 0; i < 2; i ++ )
+  {
+    // Keep clock in reset, set PWM code
+    temp = ( PREG )pwm_tcr[ i ];
+    *temp = PWM_RESET;
+    // Set match mode (reset on MR0 match)
+    temp = ( PREG )pwm_mcr[ i ];
+    *temp = 0x02; 
+    // Set base frequency to 1MHz
+    platform_pwm_set_clock( i * 6, 1000000 );
+  }
+}
+
+u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
+{
+  unsigned pwmid = id / 6, chid = id % 6;
+  PREG PWMxMR0 = pwmid == 0 ? ( PREG )&PWM0MR0 : ( PREG )&PWM1MR0;
+  PREG PWMxMRc = ( PREG )pwm_channels[ pwmid ][ chid ];
+  PREG PWMxLER = ( PREG )pwm_ler[ pwmid ];
+  u32 divisor;
+
+  divisor = platform_pwm_get_clock( id ) / frequency - 1;
+  *PWMxMR0 = divisor;
+  *PWMxMRc = ( divisor * duty ) / 100;
+  *PWMxLER = 1 | ( 1 << ( chid + 1 ) );
+
+  return platform_pwm_get_clock( id ) / divisor;
+}
+
+u32 platform_pwm_op( unsigned id, int op, u32 data )
+{
+  u32 res = 0;
+  unsigned pwmid = id / 6;
+  PREG PWMxTCR = ( PREG )pwm_tcr[ pwmid ];
+  PREG PWMxPCR = ( PREG )pwm_pcr[ pwmid ];
+
+  switch( op )
+  {
+    case PLATFORM_PWM_OP_START:
+      *PWMxPCR = PWM_ENABLE_1 | PWM_ENABLE_2 | PWM_ENABLE_3 | PWM_ENABLE_4 | PWM_ENABLE_5 | PWM_ENABLE_6;
+      *PWMxTCR = PWM_ENABLE | PWM_MODE;
+      break;
+
+    case PLATFORM_PWM_OP_STOP:
+      *PWMxPCR = 0;   
+      *PWMxTCR = PWM_RESET;
+      break;
+
+    case PLATFORM_PWM_OP_SET_CLOCK:
+      res = platform_pwm_set_clock( id, data );
+      break;
+
+    case PLATFORM_PWM_OP_GET_CLOCK:
+      res = platform_pwm_get_clock( id );
+      break;
+  }
+
+  return res;
 }
 

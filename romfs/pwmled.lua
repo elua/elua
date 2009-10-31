@@ -4,6 +4,11 @@ local pwmid, tmrid, ledpin
 if pd.board() == 'EK-LM3S8962' or pd.board() == 'EK-LM3S6965' or pd.board() == 'ET-STM32' then
   pwmid, tmrid = 0, 1
   pwm.setclock( pwmid, 25000000 )
+elseif pd.board() == 'ELUA-PUC' then
+  pwmid, tmrid = 7, 0
+  local psel = cpu.r32( cpu.IO_PINSEL3 )
+  psel = bit.bor( bit.band( psel, 0xFFFFFCFF ), 0x00000200 )
+  cpu.w32( cpu.IO_PINSEL3, psel )
 else
   print( pd.board() .. " not supported by this example" )
   return
