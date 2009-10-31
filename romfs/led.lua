@@ -19,6 +19,8 @@ elseif pd.board() == "ATEVK1100" then
   invert = true
 elseif pd.board() == "STR-E912" then
   ledpin = pio.P6_4
+elseif pd.board() == "ELUA-PUC" then
+  ledpin = pio.P1_20
 else
   print( "\nError: Unknown board " .. pd.board() .. " !" )
   return

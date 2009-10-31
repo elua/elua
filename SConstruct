@@ -56,7 +56,6 @@ toolchain_list = {
 # Toolchain Aliases
 toolchain_list['devkitarm'] = toolchain_list['arm-eabi-gcc']
 
-
 # List of platform/CPU/toolchains combinations
 # The first toolchain in the toolchains list is the default one
 # (the one that will be used if none is specified)
@@ -69,7 +68,8 @@ platform_list = {
   'lpc288x' : { 'cpus' : [ 'LPC2888' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
   'str7' : { 'cpus' : [ 'STR711FR2' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
   'stm32' : { 'cpus' : [ 'STM32F103ZE', 'STM32F103RE' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
-  'avr32' : { 'cpus' : [ 'AT32UC3A0512' ], 'toolchains' : [ 'avr32-gcc' ] }
+  'avr32' : { 'cpus' : [ 'AT32UC3A0512' ], 'toolchains' : [ 'avr32-gcc' ] },
+  'lpc24xx' : { 'cpus' : [ 'LPC2468' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] }
 }
 
 # List of board/CPU combinations
@@ -86,7 +86,8 @@ board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
                'STM3210E-EVAL' : [ 'STM32F103ZE' ],
                'ATEVK1100' : [ 'AT32UC3A0512' ],
                'ET-STM32' : [ 'STM32F103RE' ],
-               'EAGLE-100' : [ 'LM3S6918' ]
+               'EAGLE-100' : [ 'LM3S6918' ],
+               'ELUA-PUC' : ['LPC2468' ]
             }
 
 # ROMFS file list "groups"
@@ -127,7 +128,8 @@ file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'i
               'STM3210E-EVAL' : [ 'bisect', 'hello', 'info' ],
               'ATEVK1100' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
               'ET-STM32' : [ 'hello', 'hangman', 'info', 'bisect','adcscope','adcpoll', 'dualpwm', 'pwmled' ],
-              'EAGLE-100' : [ 'bisect', 'hangman', 'lhttpd', 'led', 'hello', 'info' ]              
+              'EAGLE-100' : [ 'bisect', 'hangman', 'lhttpd', 'led', 'hello', 'info' ],
+              'ELUA-PUC' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ]
             }
 
 # Variants: board = <boardname>
