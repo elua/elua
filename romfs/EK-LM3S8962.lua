@@ -1,3 +1,17 @@
+--   This auxiliar platform dependent module defines some hardware devices
+-- available in the specific development kit.
+--   It will be automatically require()d when eLua detects it is running on the
+-- respective platform, exposing auxiliar constants and functions to facilitate
+-- and keep portable the access to the underlying hardware.
+--   The code configures the MCU to interface with the platform devices and
+-- exposes the following  objects, constants and fuctions:
+-- Onboard Buttons:
+--    BTN_UP, BTN_DOWN, BTN_LEFT, BTN_RIGHT, BTN_SELECT
+-- Onboard LED:
+-- Auxiliar Function:
+--    btn_pressed( button )
+--    returns true if the arg button is pressed, false otherwise
+
 local pio = pio
   
 module(...)

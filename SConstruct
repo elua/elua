@@ -40,7 +40,6 @@ toolchain_list = {
     'compile' : 'avr32-gcc', 
     'link' : 'avr32-ld', 
     'asm' : 'avr32-as', 
-    
     'bin' : 'avr32-objcopy', 
     'size' : 'avr32-size' 
   },
@@ -130,7 +129,7 @@ file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'i
               'ET-STM32' : [ 'hello', 'hangman', 'info', 'bisect','adcscope','adcpoll', 'dualpwm', 'pwmled' ],
               'EAGLE-100' : [ 'bisect', 'hangman', 'lhttpd', 'led', 'hello', 'info' ],
               'ELUA-PUC' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'pwmled' ]
-            }
+}
 
 # Variants: board = <boardname>
 #           cpu = <cpuname>
@@ -290,13 +289,17 @@ execfile( "src/platform/%s/conf.py" % platform )
 # Complete file list
 source_files = app_files + specific_files + newlib_files + uip_files + lua_full_files + module_files
 
-# Make filesystem first
+# Make ROM File System first
 if not GetOption( 'clean' ):
-  print "Building filesystem..."
+  print "Building ROM File System..."
   romdir = "romfs"
   flist = []
   for sample in file_list[ boardname ]:
     flist += romfs[ sample ]
+# Automatically includes the autorun.lua file in the ROMFS
+  if os.path.isfile( os.path.join( romdir, 'autorun.lua' ) ):
+    flist += [ 'autorun.lua' ]
+# Automatically includes platform specific Lua module 
   if os.path.isfile( os.path.join( romdir, boardname + '.lua' ) ):
     flist += [boardname + '.lua']
   import mkfs

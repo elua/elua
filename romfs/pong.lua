@@ -49,7 +49,6 @@ paddle.min_size = 0
 ball.char = "*"
 local delay_incr = 2000
 
-
 -- Define all "global" variables as program local ones.
 -- The values are initialized at the main loop.
 
@@ -72,6 +71,7 @@ local itemFunction = {
     end
     draw_paddle( paddle.y, 11, 0 )
   end,
+
 ["S"] = function ()
     draw_paddle( paddle.y, 0, 0 )
     if paddle.size > paddle.min_size then
@@ -106,6 +106,7 @@ local itemFunction = {
     ball.y = math.random( 82 )
     lm3s.disp.print( ball.char, ball.x, ball.y, 15 )
   end,
+
 ["F"] = function()
     if delay_time >= 1000 then
       delay_time = delay_time - 1000
@@ -173,7 +174,6 @@ function update_ball_pos()
   ball.x, ball.y = ( ball.x + ball.dx ), ( ball.y + ball.dy );
   lm3s.disp.print( ball.char, ball.x, ball.y, 15 )
 end
-
 
 -- Draw the top wall and erase the last one. Used to move it
 function draw_wall( x )
@@ -249,18 +249,7 @@ math.randomseed( tmr.read( tmr_id ) )    -- If you use the menu function, the ti
 
 collectgarbage( "collect" )
 
-
-
-
-
----------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------------
---                                                                                                     --
---                                        GAME START                                                   --
---                                                                                                     --
----------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------------
-
+-- GAME START
 repeat
   canvas.x = 124
   canvas.y = 97
@@ -337,3 +326,4 @@ repeat
 until ( enough )
 
 lm3s.disp.off()
+lm3s.disp.init( 1000000 )
