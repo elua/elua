@@ -141,6 +141,33 @@ LUALIB_API int ( luaopen_disp )( lua_State* L );
 #define MMCFS_TICK_HZ     4
 #define MMCFS_TICK_MS     ( 1000 / MMCFS_TICK_HZ )
 
+#ifdef FORLM3S6965
+  // EK-LM3S6965
+  #define SDC_CS_PORT                3
+  #define SDC_CS_PIN                 0
+  #define SDC_SPI_NUM                0
+  #define SDC_SPI_PORT               0
+  #define SDC_TX_PIN                 5
+#endif
+
+#ifdef FORLM3S8962
+  // EK-LM3S8962
+  #define SDC_CS_PORT                6
+  #define SDC_CS_PIN                 0
+  #define SDC_SPI_NUM                0
+  #define SDC_SPI_PORT               0
+  #define SDC_TX_PIN                 5
+#endif
+
+#ifdef FORLM3S6918
+  // Eagle-100
+  #define SDC_CS_PORT                6
+  #define SDC_CS_PIN                 1
+  #define SDC_SPI_NUM                0
+  #define SDC_SPI_PORT               0
+  #define SDC_TX_PIN                 5
+#endif
+
 // CPU frequency (needed by the CPU module, 0 if not used)
 #define CPU_FREQUENCY         SysCtlClockGet()
 

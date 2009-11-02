@@ -1,16 +1,12 @@
 /*-----------------------------------------------------------------------*/
 /* MMC/SDC (in SPI mode) control module  (C)ChaN, 2007                   */
 /*-----------------------------------------------------------------------*/
-/* Only rcvr_spi(), xmit_spi(), disk_timerproc() and some macros         */
-/* are platform dependent.                                               */
-/*-----------------------------------------------------------------------*/
 
-/*
- * This file was modified from a sample available from the FatFs
- * web site. It was modified to work with a LM3S boards.
- */
+// This file was modified from a sample available from the FatFs
+// web site by Jesus Alvarez & James Snyder for eLua.
  
 #include "platform_conf.h"
+#ifdef BUILD_MMCFS
 #include "platform.h"
 #include "diskio.h"
 
@@ -34,33 +30,6 @@
 
 // GPIO for card chip select
 // FIXME: these should be tied to evaluation kits rather than particular chips
-
-#ifdef FORLM3S6965
-  // EK-LM3S6965
-  #define SDC_CS_PORT                3
-  #define SDC_CS_PIN                 0
-  #define SDC_SPI_NUM                0
-  #define SDC_SPI_PORT               0
-  #define SDC_TX_PIN                 5
-#endif
-
-#ifdef FORLM3S8962
-  // EK-LM3S8962
-  #define SDC_CS_PORT                6
-  #define SDC_CS_PIN                 0
-  #define SDC_SPI_NUM                0
-  #define SDC_SPI_PORT               0
-  #define SDC_TX_PIN                 5
-#endif
-
-#ifdef FORLM3S6918
-  // Eagle-100
-  #define SDC_CS_PORT                6
-  #define SDC_CS_PIN                 1
-  #define SDC_SPI_NUM                0
-  #define SDC_SPI_PORT               0
-  #define SDC_TX_PIN                 5
-#endif
 
 #ifndef SDC_SPI_NUM
   #error "MMC not supported on this board"
@@ -641,3 +610,4 @@ DWORD get_fattime (void)
             ;
 
 }
+#endif /* ifdef BUILD_MMCFS */
