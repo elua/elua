@@ -47,7 +47,7 @@ static int uart_write( lua_State* L )
   MOD_CHECK_ID( uart, id );
   for( s = 2; s <= total; s ++ )
   {
-    if( lua_isnumber( L, s ) )
+    if( lua_type( L, s ) == LUA_TNUMBER )
     {
       len = lua_tointeger( L, s );
       if( ( len < 0 ) || ( len > 255 ) )
@@ -64,8 +64,6 @@ static int uart_write( lua_State* L )
   }
   return 0;
 }
-
-// Lua: data = read( id, format, [ timeout ], [ timer_id ] )
 static int uart_read( lua_State* L )
 {
   int id, res, mode, issign;
