@@ -269,7 +269,8 @@ static void traversestack (global_State *g, lua_State *l) {
     markvalue(g, o);
   for (; o <= lim; o++)
     setnilvalue(o);
-  checkstacksizes(l, lim);
+  if (!isfixedstack(l)) /* if stack size is fixed, can't resize it. */
+    checkstacksizes(l, lim);
 }
 
 
@@ -435,13 +436,12 @@ static void checkSizes (lua_State *L) {
   if (g->strt.nuse < cast(lu_int32, g->strt.size/4) &&
       g->strt.size > MINSTRTABSIZE*2)
     luaS_resize(L, g->strt.size/2);  /* table is too big */
+  /* it is not safe to re-size the buffer if it is in use. */
+  if (luaZ_bufflen(&g->buff) > 0) return;
   /* check size of buffer */
   if (luaZ_sizebuffer(&g->buff) > LUA_MINBUFFER*2) {  /* buffer too big? */
     size_t newsize = luaZ_sizebuffer(&g->buff) / 2;
-    /* make sure newsize is larger then the buffer's in use size. */
-    newsize = (luaZ_bufflen(&g->buff) > newsize) ? luaZ_bufflen(&g->buff) : newsize;
-    if(newsize < luaZ_sizebuffer(&g->buff))
-      luaZ_resizebuffer(L, &g->buff, newsize);
+    luaZ_resizebuffer(L, &g->buff, newsize);
   }
 }
 

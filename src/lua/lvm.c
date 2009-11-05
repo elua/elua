@@ -152,6 +152,10 @@ void luaV_gettable (lua_State *L, const TValue *t, TValue *key, StkId val) {
 
 void luaV_settable (lua_State *L, const TValue *t, TValue *key, StkId val) {
   int loop;
+  TValue temp;
+  setnilvalue(L->top);
+  L->top++;
+  fixedstack(L);
   for (loop = 0; loop < MAXTAGLOOP; loop++) {
     const TValue *tm;
     if (ttistable(t) || ttisrotable(t)) {  /* `t' is a table? */
@@ -160,6 +164,8 @@ void luaV_settable (lua_State *L, const TValue *t, TValue *key, StkId val) {
       if ((oldval && !ttisnil(oldval)) ||  /* result is no nil? */
           (tm = fasttm(L, ttistable(t) ? ((Table*)h)->metatable : (Table*)luaR_getmeta(h), TM_NEWINDEX)) == NULL) { /* or no TM? */
         if(oldval) {
+          L->top--;
+          unfixedstack(L);
           setobj2t(L, oldval, val);
           luaC_barriert(L, (Table*)h, val);
         }
@@ -170,10 +176,15 @@ void luaV_settable (lua_State *L, const TValue *t, TValue *key, StkId val) {
     else if (ttisnil(tm = luaT_gettmbyobj(L, t, TM_NEWINDEX)))
       luaG_typeerror(L, t, "index");
     if (ttisfunction(tm) || ttislightfunction(tm)) {
+      L->top--;
+      unfixedstack(L);
       callTM(L, tm, t, key, val);
       return;
     }
-    t = tm;  /* else repeat with `tm' */ 
+    /* else repeat with `tm' */
+    setobj(L, &temp, tm);  /* avoid pointing inside table (may rehash) */
+    t = &temp;
+    setobj2s(L, L->top-1, t);  /* need to protect value from EGC. */
   }
   luaG_runerror(L, "loop in settable");
 }
@@ -300,6 +311,8 @@ int luaV_equalval (lua_State *L, const TValue *t1, const TValue *t2) {
 
 
 void luaV_concat (lua_State *L, int total, int last) {
+  lu_mem max_sizet = MAX_SIZET;
+  if (G(L)->memlimit < max_sizet) max_sizet = G(L)->memlimit;
   do {
     StkId top = L->base + last + 1;
     int n = 2;  /* number of elements handled in this pass (at least 2) */
@@ -313,10 +326,11 @@ void luaV_concat (lua_State *L, int total, int last) {
       size_t tl = tsvalue(top-1)->len;
       char *buffer;
       int i;
+      fixedstack(L);
       /* collect total length */
       for (n = 1; n < total && tostring(L, top-n-1); n++) {
         size_t l = tsvalue(top-n-1)->len;
-        if (l >= MAX_SIZET - tl) luaG_runerror(L, "string length overflow");
+        if (l >= max_sizet - tl) luaG_runerror(L, "string length overflow");
         tl += l;
       }
       G(L)->buff.n = tl;
@@ -329,6 +343,7 @@ void luaV_concat (lua_State *L, int total, int last) {
       }
       setsvalue2s(L, top-n, luaS_newlstr(L, buffer, tl));
       luaZ_resetbuffer(&G(L)->buff);
+      unfixedstack(L);
     }
     total -= n-1;  /* got `n' strings to create 1 new */
     last -= n-1;

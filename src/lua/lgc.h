@@ -41,6 +41,7 @@
 ** Possible Garbage Collector flags.
 ** Layout for bit use in 'gsflags' field in global_State structure.
 ** bit 0 - Protect GC from recursive calls.
+** bit 1 - Don't try to shrink string table if EGC was called during a string table resize.
 */
 #define GCFlagsNone          0
 #define GCBlockGCBit         0
@@ -59,6 +60,7 @@
 ** bit 0 - object is white (type 0)
 ** bit 1 - object is white (type 1)
 ** bit 2 - object is black
+** bit 3 - for thread: Don't resize thread's stack
 ** bit 3 - for userdata: has been finalized
 ** bit 3 - for tables: has weak keys
 ** bit 4 - for tables: has weak values
@@ -70,6 +72,7 @@
 #define WHITE0BIT	0
 #define WHITE1BIT	1
 #define BLACKBIT	2
+#define FIXEDSTACKBIT	3
 #define FINALIZEDBIT	3
 #define KEYWEAKBIT	3
 #define VALUEWEAKBIT	4
@@ -92,6 +95,9 @@
 
 #define luaC_white(g)	cast(lu_byte, (g)->currentwhite & WHITEBITS)
 
+#define isfixedstack(x)	testbit((x)->marked, FIXEDSTACKBIT)
+#define fixedstack(x)	l_setbit((x)->marked, FIXEDSTACKBIT)
+#define unfixedstack(x)	resetbit((x)->marked, FIXEDSTACKBIT)
 
 #define luaC_checkGC(L) { \
   condhardstacktests(luaD_reallocstack(L, L->stacksize - EXTRA_STACK - 1)); \
