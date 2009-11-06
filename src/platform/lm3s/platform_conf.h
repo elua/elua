@@ -23,6 +23,7 @@
 #define BUILD_ADC
 #define BUILD_LUARPC
 //#define BUILD_CON_TCP
+#define BUILD_LUA_INT_HANDLERS
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
@@ -145,6 +146,8 @@
 #define ADC_TIMER_FIRST_ID    0
 #define ADC_NUM_TIMERS        NUM_TIMER  
 
+// Interrupt queue size (in entries)
+#define PLATFORM_INT_QUEUE_SIZE   32
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 #define CPU_FREQUENCY         SysCtlClockGet()

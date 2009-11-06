@@ -6,6 +6,7 @@
 #include "platform.h"
 #include "auxmods.h"
 #include "lrotable.h"
+#include "elua_int.h"
 #include <string.h> 
 
 #define _C( x ) { #x, x }
@@ -121,6 +122,31 @@ static int cpu_mt_index( lua_State *L )
 }
 #endif
 
+#ifdef BUILD_LUA_INT_HANDLERS
+static u8 cpu_int_handler_active;
+
+u8 cpu_is_int_handler_active()
+{
+  return cpu_int_handler_active;
+}
+
+// lua: cpu.set_int_handler( f )
+static int cpu_set_int_handler( lua_State *L )
+{
+  if( lua_type( L, 1 ) == LUA_TNIL )
+    cpu_int_handler_active = 0;
+  else if( lua_type( L, 1 ) == LUA_TFUNCTION || lua_type( L, 1 ) == LUA_TLIGHTFUNCTION )
+  {
+    lua_settop( L, 1 );
+    lua_rawseti( L, LUA_REGISTRYINDEX, LUA_INT_HANDLER_KEY );
+    cpu_int_handler_active = 1;
+  }
+  else
+    return luaL_error( L, "invalid argument (must be a function or nil)" );
+  return 0;
+}
+#endif
+
 // Module function map
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
@@ -135,6 +161,9 @@ const LUA_REG_TYPE cpu_map[] =
   { LSTRKEY( "cli" ), LFUNCVAL( cpu_cli ) },
   { LSTRKEY( "sei" ), LFUNCVAL( cpu_sei ) },
   { LSTRKEY( "clock" ), LFUNCVAL( cpu_clock ) },
+#ifdef BUILD_LUA_INT_HANDLERS
+  { LSTRKEY( "set_int_handler" ), LFUNCVAL( cpu_set_int_handler ) },
+#endif
 #if defined( PLATFORM_CPU_CONSTANTS ) && LUA_OPTIMIZE_MEMORY > 0
   { LSTRKEY( "__metatable" ), LROVAL( cpu_map ) },
 #endif
@@ -146,6 +175,9 @@ const LUA_REG_TYPE cpu_map[] =
 
 LUALIB_API int luaopen_cpu( lua_State *L )
 {
+#ifdef BUILD_LUA_INT_HANDLERS
+  cpu_int_handler_active = 0;
+#endif
 #if LUA_OPTIMIZE_MEMORY > 0
   return 0;
 #else // #if LUA_OPTIMIZE_MEMORY > 0
@@ -161,3 +193,4 @@ LUALIB_API int luaopen_cpu( lua_State *L )
   return 1;
 #endif // #if LUA_OPTIMIZE_MEMORY > 0
 }
+

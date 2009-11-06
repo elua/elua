@@ -19,6 +19,7 @@
 #include "lua.h"
 #include "lauxlib.h"
 #include "lrotable.h"
+#include "elua_int.h" 
 
 // Platform specific includes
 #include "hw_ints.h"
@@ -918,6 +919,12 @@ void SysTickIntHandler()
   // Generate a fake Ethernet interrupt.  This will perform the actual work
   // of incrementing the timers and taking the appropriate actions.
   platform_eth_force_interrupt();
+
+  // [TODO] testing only! remove this!
+  static int i = 0;
+  i ++;
+  if( ( i & 3 ) == 0 )
+    elua_int_add( 12 );
 }
 
 void EthernetIntHandler()
