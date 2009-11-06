@@ -26,7 +26,7 @@ static FIL mmc_fileObject;
 #define PATH_BUF_SIZE   40
 static char mmc_pathBuf[PATH_BUF_SIZE];
 
-static int mmcfs_find_empty_fd()
+static int mmcfs_find_empty_fd( void )
 {
   int i;
 
@@ -183,13 +183,13 @@ static DM_DEVICE mmcfs_device =
 DM_DEVICE* mmcfs_init()
 {
   // Mount the MMC file system using logical disk 0
-  if (f_mount(0, &mmc_fs) != FR_OK)
+  if ( f_mount( 0, &mmc_fs ) != FR_OK )
     return NULL;
 
   return &mmcfs_device;
 }
 
-#else // !defined(BUILD_MMCFS)
+#else // #ifdef BUILD_MMCFS
 
 DM_DEVICE* mmcfs_init()
 {
