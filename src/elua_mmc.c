@@ -27,10 +27,6 @@
 #define CMD55    (0x40+55)    /* APP_CMD */
 #define CMD58    (0x40+58)    /* READ_OCR */
 
-
-// GPIO for card chip select
-// FIXME: these should be tied to evaluation kits rather than particular chips
-
 #ifndef SDC_SPI_NUM
   #error "MMC not supported on this board"
 #endif

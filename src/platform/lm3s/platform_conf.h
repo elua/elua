@@ -151,26 +151,31 @@
 #define MMCFS_TICK_HZ     4
 #define MMCFS_TICK_MS     ( 1000 / MMCFS_TICK_HZ )
 
-#ifdef FORLM3S6965
+#ifdef ELUA_BOARD_EKLM3S6965
   // EK-LM3S6965
   #define SDC_CS_PORT                3
   #define SDC_CS_PIN                 0
   #define SDC_SPI_NUM                0
 #endif
 
-#ifdef FORLM3S8962
+#ifdef ELUA_BOARD_EKLM3S8962
   // EK-LM3S8962
   #define SDC_CS_PORT                6
   #define SDC_CS_PIN                 0
   #define SDC_SPI_NUM                0
 #endif
 
-#ifdef FORLM3S6918
+#ifdef ELUA_BOARD_EAGLE100
   // Eagle-100
   #define SDC_CS_PORT                6
   #define SDC_CS_PIN                 1
   #define SDC_SPI_NUM                0
 #endif
+
+#ifndef SDC_SPI_NUM
+#undef BUILD_MMCFS
+#endif
+
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 #define CPU_FREQUENCY         SysCtlClockGet()
