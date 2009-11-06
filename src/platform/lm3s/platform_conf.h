@@ -156,8 +156,6 @@
   #define SDC_CS_PORT                3
   #define SDC_CS_PIN                 0
   #define SDC_SPI_NUM                0
-  #define SDC_SPI_PORT               0
-  #define SDC_TX_PIN                 5
 #endif
 
 #ifdef FORLM3S8962
@@ -165,8 +163,6 @@
   #define SDC_CS_PORT                6
   #define SDC_CS_PIN                 0
   #define SDC_SPI_NUM                0
-  #define SDC_SPI_PORT               0
-  #define SDC_TX_PIN                 5
 #endif
 
 #ifdef FORLM3S6918
@@ -174,8 +170,6 @@
   #define SDC_CS_PORT                6
   #define SDC_CS_PIN                 1
   #define SDC_SPI_NUM                0
-  #define SDC_SPI_PORT               0
-  #define SDC_TX_PIN                 5
 #endif
 
 // CPU frequency (needed by the CPU module, 0 if not used)

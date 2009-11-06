@@ -153,7 +153,7 @@ void power_on (void)
     
     // Setup CS pin & deselect
     platform_pio_op( SDC_CS_PORT, ( ( u32 ) 1 << SDC_CS_PIN ), PLATFORM_IO_PIN_DIR_OUTPUT );
-    platform_pio_op( SDC_CS_PORT, ( ( u32 ) 1 << SDC_CS_PIN ), PLATFORM_IO_PIN_PULLUP );
+    //platform_pio_op( SDC_CS_PORT, ( ( u32 ) 1 << SDC_CS_PIN ), PLATFORM_IO_PIN_PULLUP );
     DESELECT();
     
     // Setup SPI

@@ -14,6 +14,7 @@
 #define BUILD_XMODEM
 #define BUILD_SHELL
 #define BUILD_ROMFS
+#define BUILD_MMCFS
 #define BUILD_TERM
 //#define BUILD_UIP
 //#define BUILD_DHCPC
@@ -88,8 +89,8 @@ LUALIB_API int ( luaopen_lcd )( lua_State* L );
 // Configuration data
 
 // Virtual timers (0 if not used)
-#define VTMR_NUM_TIMERS       0
-#define VTMR_FREQ_HZ          4
+#define VTMR_NUM_TIMERS       4
+#define VTMR_FREQ_HZ          10
 
 // Number of resources (0 if not available/not implemented)
 #define NUM_PIO               7
@@ -113,6 +114,14 @@ LUALIB_API int ( luaopen_lcd )( lua_State* L );
 #define ADC_TIMER_FIRST_ID    0
 #define ADC_NUM_TIMERS        4
 
+#define MMCFS_TICK_HZ     10
+#define MMCFS_TICK_MS     ( 1000 / MMCFS_TICK_HZ )
+
+// MMCFS Support (FatFs on SD/MMC)
+// For STM32F103RET6 - PA5 = CLK, PA6 = MISO, PA7 = MOSI, PA8 = CS
+#define SDC_CS_PORT                0
+#define SDC_CS_PIN                 8
+#define SDC_SPI_NUM                0
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 u32 platform_s_cpu_get_frequency();
