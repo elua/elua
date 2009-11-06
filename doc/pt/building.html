@@ -1,114 +1,238 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
-<html><head>
-<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-<meta http-equiv="Content-Language" content="en-us"><title>Product</title>
+$$HEADER$$
+<h3>Gerando eLua</h3>
+<p>Se voc&ecirc; chegou a conclus&atilde;o que fica melhor gerar o seu pr&oacute;prio arquivo bin&aacute;rio <b>eLua</b>
+ (ao inv&eacute;s de <a href="downloads.html">baix&aacute;-lo</a>), ent&atilde;o ser&aacute; necess&aacute;rio verificarmos algumas coisas antes:
+</p>
+<ul>
+<li>voc&ecirc; est&aacute; usando Linux. &Eacute; poss&iacute;vel a compila&ccedil;&atilde;o em windows, no entanto, ainda n&atilde;o foi testada. Usamos Ubuntu e o comando que utilizamos &eacute;&nbsp; o "apt-get". Caso voc&ecirc; esteja com uma distro que possua um gerenciador de pacotes diferente, voc&ecirc; ter&aacute; que alterar o comando "apt-get" para um compat&iacute;vel com a sua distro.</li>
+<li>voc&ecirc; possui um toolchain (compilador, linker e bibliotecas de assembler e C padr&atilde;o) para o seu hardware. D&ecirc; uma olhada na p&aacute;gina 
+<a href="toolchains.html">toolchains</a> para obter ajuda. &Eacute; importante observar que, mesmo que voc&ecirc; j&aacute; tenha um toolchain compilado, diferen&ccedil;as nos par&acirc;metros de configura&ccedil;&atilde;o da NewLib (principalmente os  --disable-newlib-supplied-syscalls flags) podem gerar problemas e impedir que <b>eLua</b> seja gerada na sua m&aacute;quina.</li>
+<li>voc&ecirc; configurou a sua plataforma corretamente. Leia o pr&oacute;ximo par&aacute;grafo para obter instru&ccedil;&otilde;es de como configurar a gera&ccedil;&atilde;o de <b>eLua</b>.</li>
+<li>Python - Este deve estar previamente instalado. Caso contr&aacute;rio, execute o apt-get para instal&aacute;-lo:
+<pre><code>$ sudo apt-get install python</code></pre>
+</li>
+<li>Scons - <b>eLua</b> usa scons ao inv&eacute;s do make
+e makefiles, porque achamos que o scons &eacute; muito mais "natural" e f&aacute;cil de usar do que o make. Para instal&aacute;-lo:
+<pre><code>$ sudo apt-get install scons</code></pre>
+</li>
+<li>o diret&oacute;rio "bin" do seu toolchain (normalmente algo como /usr/local/cross-arm/bin, onde /usr/local/cross-arm &eacute; o diret&oacute;rio de sua instala&ccedil;&atilde;o toolchain) e deve estar definido no $PATH.
+</li>
+<li>se voc&ecirc; est&aacute; gerando para a plataforma i386, precisar&aacute; tamb&eacute;m do "nasm":
+<pre><code>$ sudo apt-get install nasm</code></pre>
+</li>
+</ul>
+<p>Para cada plataforma, <b>eLua</b> assume um nome para os componentes do toolchain, como relacionado abaixo.
+</p>
+<p>Se seu toolchain utiliza nomes diferentes, ent&atilde; voc&ecirc; ter&aacute; que modificar a defini&ccedil;&atilde;o do toolchain no SConstruct. Leia as <a href="toolchains.html">instru&ccedil;&otilde;es</a> para maiores detalhes.</p>
+<h3>Configurando a imagem gerada</h3>
+<p><b>eLua</b> possui um sistema de gera&ccedil;&atilde;o de sua imagem bastante flex&iacute;vel, e que pode ser usado para selecionar os componentes desejados que far&atilde;o parte do arquivo bin&aacute;rio de <b>eLua</b> e tamb&eacute;m para configura&ccedil;&atilde;o(est&aacute;tica) durante a compila&ccedil;&atilde;o. Para us&aacute;-lo, ser&aacute; necess&aacute;rio editar somente um &uacute;nico arquivo (<i>platform_conf.h</i>)
+localizado no diret&oacute;rio da plataforma que est&aacute; sendo utilizada (<i>src/platform/&lt;platform
+name&gt;/platform_conf.h)</i>. Os par&acirc;metros de configura&ccedil;&atilde;o est&atilde;o descritos em detalhes nos pr&oacute;ximos par&aacute;grafos.</p>
+<a name="components"><h2>Configurando os componentes</h2></a>
+<p>Um <b>componente</b> &eacute; um recurso que pode ser habilitado para adicionar funcionalidade a <b>eLua</b>, sem modificar sua API (rotinas usadas pelos programadores para escrever programas em <b>eLua</b>). Segue abaixo um exemplo da configura&ccedil;&atilde;o de um componente em <i>platform_conf.h</i>:
+<p><pre><code>// *****************************************************************************
+// Define here what components you want for this platform
 
-<link rel="stylesheet" type="text/css" href="../style.css"></head>
-<body style="background-color: rgb(255, 255, 255);">
-<h3>Building eLua</h3>
-
-Up to date documentation of how to build eLua is always included in the <a href="http://www.eluaproject.net/?p=Downloads">eLua distributions</a>, in the docs directory).<br><p>For your convenience, the building instructions are also provided on this page.</p>
-
-<h2>Prerequisites</h2>
-
-<p>Before you start, you might want to check if the list of platform modules and 
-eLua components are set according to your needs. See platform_modules
-and elua_components in the distro doc for details. </p>
-
-<h2>Building eLua</h2>
-
-<p>To build <strong>eLua</strong> you'll need:</p>
-
-<ul><li><p>a GCC/Newlib toolchain for your target. Please note that even if
-    you already have a compiled toolchain, the differences in the Newlib configure
-    flags (mainly the --disable-newlib-supplied-syscalls flags) might prevent 
-    eLua for building properly on your machine.</p></li><li><p>Linux. Compiling under windows should be possible, however this isn't tested. 
-    I'm using Ubuntu, so I'm also using "apt-get". If you're using a distro with a 
-    different package manager you'll need to translate the "apt-get" calls to your 
-    specific distribution.</p></li><li><p>python. It should be already installed; if it's not:</p>
-    
-    <p>$ sudo apt-get install python</p></li><li><p>scons. eLua uses scons instead of make and makefiles, because I find scons
-    much more "natural" and easier to use than make. To install it:</p>
-    
-    <p>$ sudo apt-get install scons</p></li><li><p>your toolchain's "bin" directory (this is generally something like 
-    /usr/local/cross-arm/bin, where /usr/local/cross-arm is the directory in which 
-    you installed your toolchain) must be in $PATH. </p></li><li><p>if you're building for the i386 platform, you'll also need "nasm":</p>
-    
-    <p>$ sudo apt-get install nasm</p></li></ul>
-
-<p>For each platform, eLua assumes a certain name for the compiler/linker/assembler
-executable files, as shown below.</p>
-
-<pre><code>================================================================================<br>| Tool       |      Compiler       |         Linker       |      Assembler     |  <br>|------------|---------------------|----------------------|--------------------|  <br>| Platform   |                     |                      |                    |<br>|============|=====================|======================|====================|<br>| ARM (all)  |    arm-elf-gcc      |     arm-elf-gcc      |     arm-elf-gcc    |<br>|============|=====================|======================|====================|<br>| i386       |    i686-elf-gcc     |     i686-elf-gcc     |        nasm        |<br>|============|=====================|======================|====================|<br>| Cortex-M3  |    arm-elf-gcc      |     arm-elf-gcc      |     arm-elf-gcc    |<br>|============|=====================|======================|====================|<br></code></pre>
-
-<p>If your toolchain uses different names, you have to modify the "conf.py" file
-from src/platform/[your platform].</p>
-
-<p>To build, go to the directory where you unpacked your eLua distribution and 
-invoke scons:</p>
-
-<pre><code>$ scons [target=lua | lualong] <br>  [cpu=at91sam7x256 | at91sam7x512 | i386 | str912fw44 | lm3s8962 | <br>        lm3s6965 | lpc2888 | str711fr2 ]<br>  [board=ek-lm3s8962 | ek-lm3s6965 | str9-comstick | sam7-ex256 | lpc-h2888 | <br>        | mod711 | pc]<br>  [cpumode=arm | thumb] <br>  [allocator = newlib | multiple]<br>  [prog]<br></code></pre>
-
-<p>Your build target is specified by two paramters: cpu and board. "cpu" gives the
-name of your CPU, and "board" the name of the board. A board can be associated
-with more than one CPU. This allows the build system to be very flexible. You 
-can use these two options together or separately, as shown below:</p>
-
-<ul><li>cpu=name: build for the specified CPU. A board name will be assigned by the
-    build system automatically.</li><li>board=name: build for the specified board. The CPU name will be inferred by 
-    the build system automatically.</li><li>cpu=name board=name: build for the specified board and CPU.</li></ul>
-
-<p>For board/CPU assignment look at the beginning of the SConstruct file from the 
-base directory, it's self-explanatory.</p>
-
-<p>The other options are as follows:</p>
-
-<ul><li>target=lua | lualong: specify if you want to build full Lua (with floating 
-    point support) or integer only Lua (lualong). The default is "lua".</li><li>cpumode=arm | thumb: for ARM target (not Cortex) this specifies the
-    compilation mode. Its default value is 'thumb' for AT91SAM7X targets and
-    'arm' for STR9 and LPC2888 targets.</li><li>allocator = newlib | multiple: choose between the default newlib allocator
-    (newlib) and the multiple memory spaces allocator (multiple). You should
-    use the 'multiple' allocator only if you need to support multiple memory 
-    spaces, as it's larger that the default Newlib allocator (newlib). For more
-    information about this reffer to platform_interface. The default value
-    is 'newlib' for all CPUs except 'lpc2888', since my lpc-h2888 comes with
-    external SDRAM memory and thus it's an ideal target for 'multiple'.</li><li>prog: by default, the above 'scons' command will build only the 'elf' file.
-    Specify "prog" to build also the platform-specific programming file where
-    appropriate (for example, on a AT91SAM7X256 this results in a .bin file that
-    can be programmed in the CPU). </li></ul>
-
-<p>The output will be a file named elua<em>[target]</em>[cpu].elf (and also another
-file with the same name but ending in .bin if "prog" was specified for platforms
-that need .bin files for programming).
-If you want the equivalent of a "make clean", invoke "scons" as shown above,
-but add a "-c" at the end of the command line. "scons -c" is also recommended 
-after you change the list of modules/components to build for your target (see 
-section "prerequisites" of this document), as scons seems to "overlook" the 
-changes to these files on some occasions.</p>
-
-<p>A few examples:</p>
-
-<p>Clear previously built intermediate files.</p>
-
+#define BUILD_XMODEM
+#define BUILD_SHELL
+#define BUILD_ROMFS
+#define BUILD_TERM
+#define BUILD_UIP
+#define BUILD_DHCPC
+#define BUILD_DNS
+#define BUILD_CON_GENERIC
+#define BUILD_ADC</code></pre></p>
+<p>Os componentes que podem ser configurados em <b>eLua</b> s&atilde;o:
+</p>
+<table class="table_center">
+<tbody>
+<tr>
+<th style="text-align: left;">Nome</th>
+<th style="text-align: center;">Descri&ccedil;&atilde;o</th>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">BUILD_XMODEM</td>
+<td>Estabelece a fun&ccedil;&atilde;o de recep&ccedil;&atilde;o XMODEM. Se habilitada, voc&ecirc; pode usar o comando "recv" do shell para receber um arquivo Lua (tanto c&oacute;digo fonte quanto c&oacute;digo pr&eacute;compilado) e execut&aacute;-lo no seu hardware. Funciona somente com conex&otilde;es  RS-232 (apesar de que, em teoria, &eacute; poss&iacute;vel faz&ecirc;-lo funcionar em qualquer tipo de protocolo de transporte).
+Para habilitar:
+<p><pre><code>#define BUILD_XMODEM</code></pre></p>
+<a href="building.html#static">Depend&ecirc;ncias da configura&ccedil;&atilde;o de dados est&aacute;ticos:</a> <b>CON_UART_ID, CON_UART_SPEED, CON_TIMER_ID</b>
+</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">BUILD_SHELL</td>
+<td>Etabelece a fun&ccedil;&atilde;o de gerar um shell de <b>eLua</b> (veja <a href="using.html">usando eLua</a> para detalhes sobre o shell). Caso o shell n&atilde;o esteja habilitado, o c&oacute;digo busca o arquivo chamado  <i>/rom/autorun.lua</i> e executa-o. Se este arquivo n&atilde;o for encontrado, um interpretador Lua &eacute; iniciado automaticamente no seu hardware.<br>
+Para habilitar o shell usando uma conex&atilde;o serial:
+<p><pre><code>#define BUILD_SHELL
+#define BUILD_CON_GENERIC</code></pre></p>
+Para habilitar o shell usando uma conex&atilde;o TCP/IP:
+<p><pre><code>#define BUILD_SHELL
+#define BUILD_CON_TCP</code></pre></p>
+</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">BUILD_ROMFS</td>
+<td>Habilita o sistema de arquivos <b>eLua</b> somente para leitura. Veja a <a href="arch_romfs.html">documenta&ccedil;&atilde;o ROMFS</a> para maiores detalhes sobre como usar este sistema de arquivos.
+Para habilitar:
+<p><pre><code>#define BUILD_ROMFS</code></pre></p></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">BUILD_TERM</td>
+<td>Habilita o suporte ao terminal ANSI. Este recurso permite que <b>eLua</b> interaja com terminais que suportem sequ&ecirc;ncias ANSI (mais detalhes <a href="arch_con_term.html">aqui</a>). Atualmente, este recurso funciona somente em conex&otilde;es R-232, apesar desta n&atilde;o ser uma obriga&ccedil;&atilde;o estrita. Voc&ecirc; precisa habilitar este recurso, caso seja necess&aacute;rio usar o <a href="refman_gen_term.html">term module</a>.
+Para habilitar:
+<p><pre><code>#define BUILD_TERM</code></pre></p>
+<a href="building.html#static">Depend&ecirc;ncias da configura&ccedil;&atilde;o de dados est&aacute;ticos:</a> <b>CON_UART_ID, CON_UART_SPEED, CON_TIMER_ID, TERM_LINES, TERM_COLS</b></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">BUILD_UIP</td>
+<td>Habilita o suporte para o TCP/IP. Voc&ecirc; precisa habilitar este recurso, caso seja necess&aacute;rio usar o  <a href="refman_gen_net.html">net
+module</a>. Al&eacute;m disso, sua plataforma deve implementar o suporte para as fun&ccedil;&otilde;es uIP (veja a documenta&ccedil;&atilde;o <a href="arch_platform.html">platforminterface</a> para mais detalhes).
+Para habilitar:
+<p><pre><code>#define BUILD_UIP</code></pre></p>
+<a href="building.html#static">Depend&ecirc;ncias da configura&ccedil;&atilde;o de dados est&aacute;ticos:</a> <b>ELUA_CONF_IPADDR0..3, ELUA_CONF_NETMASK0..3, ELUA_CONF_DEFGW0..3,
+ ELUA_CONF_DNS0..3</b>
+</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">BUILD_DHCPC</td>
+<td>Se BUILD_UIP est&aacute; ativado, voc&ecirc; pode habilitar este recurso para incluir um cliente DHCP na rede TCP/IP.
+Para habilitar:
+<p><pre><code>#define BUILD_UIP
+#define BUILD_DHCPC</code></pre></p>
+</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">BUILD_DNS</td>
+<td>Se BUILD_UIP est&aacute; ativado, voc&ecirc; pode habilitar este recurso para incluir um servidor DNS m&iacute;nimo na rede TCP/IP.
+Para habilitar:
+<p><pre><code>#define BUILD_UIP
+#define BUILD_DNS</code></pre></p>
+</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">BUILD_CON_GENERIC</td>
+<td>Suporte gen&eacute;rico para console (detalhes <a href="arch_con_term.html">aqui</a>). Habilita o acesso a console (stdio/stdout/stderr) via protocolo de transporte serial (atualmente RS-232, mas outros podem ser suportados). Ative este recurso caso voc&ecirc; queira usar uma console de entrada/sa&iacute;da com sua conex&atilde;o RS-232. N&atilde;o ative este recurso caso voc&ecirc; queira usar uma console de entrada/sa&iacute;da com Ethernet (veja a pr&oacute;xima op&ccedil;&atilde;o).
+Para habilitar:
+<p><pre><code>#define BUILD_CON_GENERIC</code></pre></p>
+<a href="building.html#static">Depend&ecirc;ncias da configura&ccedil;&atilde;o de dados est&aacute;ticos:</a> <b>CON_UART_ID, CON_UART_SPEED, CON_TIMER_ID</b></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">BUILD_CON_TCP</td>
+<td>Console de entrada/sa&iacute;da sobre uma conex&atilde;o TCP/IP (detalhes <a href="arch_con_term.html">aqui</a>). Use este recurso se voc&ecirc; quiser usar sua placa <b>eLua</b> sobre uma conex&atilde;o telnet. N&atilde;o ative este recurso caso voc&ecirc; precise de uma console com protocolo de transporte serial (veja a op&ccedil;&atilde;o anterior).
+Para habilitar:
+<p><pre><code>#define BUILD_UIP
+#define BUILD_CON_TCP</code></pre></p>
+</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">BUILD_ADC</td>
+<td>Suporte gen&eacute;rico para c&oacute;digo ADC. Voc&ecirc; precisa ativar este recurso caso queira usar o m&oacute;dulo <a href="refman_gen_adc.html">adc</a>, ou simplesmente as fun&ccedil;&otilde;es ADC da interface da plataforma. Por outro lado, voc&ecirc; n&atilde;o precisa ativar este recurso caso n&atilde;o esteja pensando em usar as fun&ccedil;&otilde;es ADC.
+Para habilitar:
+<p><pre><code>#define BUILD_ADC</code></pre></p>
+</td>
+</tr>
+</tbody>
+</table>
+<a name="confmodules"><h2>Configurando os m&oacute;dulos</h2></a>
+<p>Voc&ecirc; pode selecionar os m&oacute;dulos que far&atilde;o parte do arquivo imagem de <b>eLua</b>. Ao contr&aacute;rio dos componentes, os m&oacute;dulos t&ecirc;m um impacto direto na API de <b>eLua</b>, logo tenha cuidado ao selecion&aacute;-los. Ao desativar um m&oacute;dulo, voc&ecirc; gera um espa&ccedil;o de mem&oacute;ria flash (e possivelmente RAM), mas tamb&eacute;m ir&aacute; remover completamente a possibilidade de usar este m&oacute;dulo de <b>eLua</b>.</p>
+<p>Os m&oacute;dulos inclu&iacute;dos na gera&ccedil;&atilde;o s&atilde;o epecificados pela macro LUA_PLATFORM_LIBS_ROM. Veja um exemplo abaixo: </p>
+<pre><code>#define LUA_PLATFORM_LIBS_ROM\
+  _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
+  _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
+  _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
+  _ROM( AUXLIB_UART, luaopen_uart, uart_map )\
+  _ROM( AUXLIB_TERM, luaopen_term, term_map )\
+  _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map )\
+  _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
+  _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
+  _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
+   ROM( LUA_MATHLIBNAME, luaopen_math, math_map )</code></pre>
+<p>Cada m&oacute;dulo &eacute; definido por uma macro <b>_ROM( module_name,
+module_init_function, module_map_array )</b>, onde:
+</p>
+<ul>
+<li><b>module_name</b> &eacute; o nome pelo qual o m&oacute;dulo pode ser usado a partir de eLua</li>
+<li><b>module_init_function</b> &eacute; uma fun&ccedil;&atilde;o chamada pelo programa Lua em tempo de execu&ccedil;&atilde;o quando o m&oacute;dulo  &eacute; inicializado</li>
+<li><b>module_map_array</b> &eacute; uma lista de todas as fun&ccedil;&otilde;es e constantes exportadas pelo m&oacute;dulo</li>
+</ul>
+<p>Por favor, observe que esta nota&ccedil;&atilde;o &eacute; espec&iacute;fica para LTR (o patch <b>L</b>ua <b>T</b>iny <b>R</b>AM) e n&atilde;o &eacute; a &uacute;nica forma de especificar a lista dos m&oacute;dulos inclu&iacute;dos na gera&ccedil;&atilde;o (apesar desta ser uma forma comum). Verifique a <a href="arch_ltr.html#config">se&ccedil;&atilde;o LTR</a> para mais informa&ccedil;&otilde;es sobre LTR.</p>
+<p>Para uma lista completa de todos os m&oacute;dulos que podem ser ativados ou desativados via <i>platform_conf.h</i>, veja <a href="refman_gen.html">the
+eLua reference manual</a>.</p>
+<a name="static"><h2>Dados da configura&ccedil;&atilde;o est&aacute;tica</h2></a>
+<p>"Configura&ccedil;&atilde;o est&aacute;tica" refere-se a configura&ccedil;&atilde;o durante o tempo de compila&ccedil;&atilde;o. Os par&acirc;metros  da configura&ccedil;&atilde;o est&aacute;tica est&atilde;o gravados na imagem do firmware e n&atilde;o podem ser alterados em tempo de execu&ccedil;&atilde;o. A tabela abaixo relaciona os par&acirc;metros de configura&ccedil;&atilde;o est&aacute;tica e suas sem&acirc;nticas.
+</p>
+<table class="table_center">
+<tbody>
+<tr>
+<th style="text-align: left;">Nome</th>
+<th style="text-align: center;">Descri&ccedil;&atilde;o</th>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">CON_UART_ID<br>CON_UART_SPEED<br>CON_TIMER_ID<br></td>
+<td>Usado para configurar console de entrada/sa&iacute;da sobre a UART. Um id espec&iacute;fico da UART ser&aacute; usado para a console de entrada/sa&iacute;da, a uma velocidade espec&iacute;fica. O formato dos dados &eacute; sempre &eacute; 8N1 (8 bits de dados, sem paridade, 1 stop bit)  neste ponto. O timer ID especificado ser&aacute; usado para o subsistema da console. Essas vari&aacute;veis s&atilde;o usadas tamb&eacute;m pelas implementa&ccedil;&otilde;es do XMODEM e do TERM.</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">TERM_LINES<br>TERM_COLS<br>
+</td>
+<td>Usado para configurar o suporte ao terminal ANSI (caso esteja habilitado). Usado para especificar (respectivamente) o n&uacute;mero de linhas e colunas do terminal ANSI.</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">ELUA_CONF_IPADDR0..3<br>
+ELUA_CONF_NETMASK0..3<br>
+ELUA_CONF_DEFGW0..3<br>
+ELUA_CONF_DNS0..3</td>
+<td>Usado pelo protocolo TCP/IP caso o cliente DHCP n&atilde;o esteja ativado, ou quando mesmo ativado, este n&aacute;o tenha como ser contactado. Especifique o endere&ccedil;o IP, a m&aacute;scara de rede, o gateway padr&atilde;o e o servidor DNS. Necess&aacute;rio somente quando o BUILD_UIP for habilitado.</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">VTMR_NUM_TIMERS<br>
+VTMR_FREQ_HZ</td>
+<td>Especifique a configura&ccedil;&atilde;o dos timers virtuais da plataforma (acesse a <a href="arch_platform_timers.html#virtual_timers">documenta&ccedil;&atilde;o do m&oacute;dulo timer</a> para detalhes). Defina VTMR_NUM_TIMERS como 0 caso este recurso n&atilde;o seja utilizado.</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">PLATFORM_CPU_CONSTANTS</td>
+<td>Se o <a href="refman_gen_cpu.html">cpu module</a>
+estiver ativado, este define uma rela&ccedil;&atilde;o de constantes da plataforma espec&iacute;fica(por exempo m&aacute;scaras de interrup&ccedil;&atilde;o) que podem ser acessadas usando a nota&ccedil;o cpu.&lt;constant name&gt;. Os nomes de cada constante devem ser especificados ao inv&eacute;s de uma constru&ccedil;&atilde;o espec&iacute;fica (<i>_C(&lt;constantname&gt;</i>). Por exemplo:
+<pre><code>#define PLATFORM_CPU_CONSTANTS\<br> _C( INT_GPIOA ),\<br> _C( INT_GPIOB ),\<br> _C( INT_GPIOC ),\<br> _C( INT_GPIOD ),\<br> _C( INT_GPIOE )<br></code></pre>
+Ap&oacute;s a compila&ccedil;&atilde;o, voc&ecirc; poder&aacute; acessar essas constantes usando <i>cpu.INT_GPIOx</i>.
+Observe que a implementa&ccedil;&atilde;o desses recursos n&atilde;o precisa de mem&oacute;ria RAM, logo voc&ecirc; poder&aacute; definir quantas constantes desejar.</td>
+</tr>
+</tbody>
+</table>
+<p>Os par&acirc;metros da configura&ccedil;&atilde;o est&aacute;tica restantes foram deixados para serem alterados pelos desenvolvedores e por este motivo, n&atilde;o est&atilde;o relacionados aqui.<br>Outra coisa que voc&ecirc; poder&aacute; querer configurar &eacute; o conte&uacute;do do sistema de arquivo de sua ROM. Veja a <a href="arch_romfs.html">documenta&ccedil;&atilde;o ROMFS</a> para detalhes de como fazer isso.</p>
+<h3>Iniciando o "build system"</h3>
+<p>Agora, que voc&ecirc; est&aacute; com tudo em seu lugar, resta ent&atilde;o executar o "build system" (scons) com os argumentos corretos. Este &eacute; um passo f&aacute;cil, apesar da apar&ecirc;ncia intimidadora devido as m&uacute;ltiplas op&ccedil;&otilde;es existentes no scons. S&atilde;o usadas para se ajustarem &agrave;s suas necessidades espec&iacute;ficas, mas a menos que suas necessidades sejam muito especiais, voc&ecirc; n&atilde;o precisar&aacute; modific&aacute;-las, logo n&atilde;o se preocupe com a aparente complexidade. Os exemplos no fim desta se&ccedil;&atilde;o mostrar&atilde;o como &eacute; f&aacute;cil usar o "build system" na pr&aacute;tica.</p>
+<pre><code>$ scons <br> [target=lua | lualong]<br> [cpu=at91sam7x256 | at91sam7x512 | i386 | str912fw44 | lm3s8962 | <br> lm3s6965 | lm3s6918 | lpc2888 | str711fr2 | at32uc3a0512 | stm32f103ze<br> [board=ek-lm3s8962 | ek-lm3s6965 | eagle-100 | str9-comstick | sam7-ex256 | <br> lpc-h2888 | mod711 | pc | atevk1100 | stm3210e-eval ]<br> [cpumode=arm | thumb] <br> [allocator = newlib | multiple | simple]<br> [toolchain = &lt;toolchain name&gt;]<br> [optram = 0 | 1]<br> [prog]<br></code></pre>
+<p>Seu hardware est&aacute; especificado por dois par&acirc;metros: cpu e placa. "cpu" representa o nome da cpu, e "placa" o nome de sua placa. Uma placa pode ser associada a mais de uma CPU. Esta caracter&iacute;stica permite ao "build system" ter bastante flexibilidade. Voc&ecirc; pode usar estas duas op&ccedil;&otilde;es juntas ou separadas, como mostrado a seguir:</p>
+<ul>
+<li><b>cpu=name</b>: gera para uma CPU espec&iacute;fica. Um nome para a placa ser&aacute; gerado automaticamente pelo sistema.</li>
+<li><b>board=name</b>: gera para uma placa espec&iacute;fica. Um nome para a CPU ser&aacute; inferido automaticamente pelo sistema.</li>
+<li><b>cpu=name board=name</b>: gera para uma placa e uma CPU. O script de gera&ccedil;&atilde;o n&atilde;o permitir&aacute; combina&ccedil;&otilde;es invalidas de CPU/placa.</li>
+</ul>
+<p>Veja no inicio do arquivo SConstruct (<i>platform_list</i>) como configurar os par&acirc;metros placa/CPU, s&atilde;o auto-explicativos.<br>
+As outras op&ccedil;&otilde;es s&atilde;o mostradas a seguir:</p>
+<ul>
+<li><b>target=lua | lualong</b>: especifica se voc&ecirc; deseja gerar Lua como "regular" (com suporte a ponto flutuante) ou somente "inteiro longo" (lualong). O default &eacute; "lua". "lualong" roda mais r&aacute;pido em hardware que n&atilde;o possua co-processador para ponto flutuante (o que &eacute; o caso de todos os atuais hardwares que rodam <b>eLua</b>) mas n&atilde;o permite o suporte para opera&ccedil;&otilde;es de ponto flutuante, somente opera com inteiros.</li>
+<li><b>cpumode=arm | thumb</b>: para CPUs ARM (n&atilde;o use Cortex) especifica o modo de compila&ccedil;&atilde;o. O valor default &eacute; 'thumb' para as CPUs AT91SAM7X  e 'arm' para as CPUs STR9 e LPC2888.</li>
+<li><b>allocator = newlib | multiple | simple</b>: escolha entre o valor default (newlib) que &eacute; uma vers&atilde;o mais antiga do alocador dlmalloc, o alocador m&uacute;tiplo de espa&ccedil;os de mem&oacute;ria (multiple) que &eacute; uma vers&atilde;o mais recente do dlmalloc que permite tratar m&uacute;ltiplos espa&ccedil;os de mem&oacute;ria, e um alocador de mem&oacute;ria muito simples (simple) que &eacute; lento e n&atilde;o trata muito bem fragmenta&ccedil;&atilde;o, mas requer muito pouco recurso (Flash/RAM). Voc&ecirc; s&oacute; deve usar o alocador 'multiple' nos casos em que prescise de a espa&ccedil;os m&uacute;ltiplos de mem&oacute;ria. O valor default &eacute; 'newlib' para todas as CPUs exceto a 'lpc2888' e a 'at32uc3a0512', desde que a LPC-H2888 e a placa ATEVK1100 venham com mem&oacute;ria externa SDRAM e dessa maneira se tornam o hardware ideal para o uso do 'multiple'. Voc&ecirc; deve utilizar 'simple' somente em sistemas com muita restri&ccedil;&atilde;o de recursos de hardware.</li>
+<li><b>toolchain=&lt;toolchain name&gt;</b>:
+especifica o nome do toolchain usado para gerar a imagem. Veja <a href="toolchains.html#configuration">este link</a> para mais detalhes.</li>
+<li><b>optram=0 | 1</b>: habilita ou desabilita o patch LTR, veja a <a href="arch_ltr.html">documenta&ccedil;&atilde;o LTR</a> pra mais detalhes. O valor default &eacute; 1, que habilita o patch LTR.</li>
+<li><b>prog</b>: por default, o comando 'scons' acima gerar&aacute; somente o arquivo 'elf' (execut&aacute;vel). Quando necess&aacute;rio, acrescente o par&acirc;metro "prog" para gerar tamb&eacute;m um arquivo de programa&ccedil;&atilde;o da plataforma espec&iacute;fica (por exemplo, usando o AT91SAM7X256, este par&acirc;metro resulta na gera&ccedil;&atilde;o de um arquivo .bin que poder&aacute; ser programado nesta CPU). </li>
+</ul>
+<p>O resultado ser&aacute; um arquivo chamado elua_<i>[target]</i>_<i>[cpu]</i>.elf
+(se o par&acirc;metro "prog" foi especificado, no caso de plataformas que precisam deste par&acirc;metro para programa&ccedil;&atilde;o, um outro arquivo tamb&eacute;m &eacute; gerado com o mesmo nome, por&eacute;m terminando com .bin/.hex).<br>
+Se voc&ecirc; deseja um comando equivalente a um  "make clean", execute o "scons" como mostrado acima, mas acrescente um "-c" ao final da linha de comando. "scons -c" &eacute; tamb&eacute;m recomendado ap&oacute;s voc&ecirc; reconfigurar sua imagem gerada, j&aacute que o scons parece omitir as mudan&ccedil;as feitas nestes arquivos em alguns momentos.</p>
+<p><b>Alguns exemplos:</b></p>
 <pre><code>$ scons cpu=at91sam7x256 -c <br></code></pre>
-
-<p>Build eLua for the AT91SAM7X256 CPU. The board name is detected as sam7-ex256.</p>
-
+<p>Apaga os arquivos gerados anteriormente.</p>
 <pre><code>$ scons cpu=at91sam7x256<br></code></pre>
-
-<p>Build eLua for the SAM7-EX256 board. The CPU is detected as AT91SAM7X256.</p>
-
+<p>Gera eLua para uma CPU AT91SAM7X256. O nome da placa &eacute; detectado como sendo a sam7-ex256.</p>
 <pre><code>$ scons board=sam7-ex256<br></code></pre>
-
-<p>Build eLua for the SAM7-EX256 board, but "overwrite" the default CPU. This is 
-useful when you'd like to see how the specified board would behave with a 
-different CPU (in the case of the SAM7-EX256 board it's possible to switch the
-on-board AT91SAM7X256 CPU for an AT91SAM7X512 which has the same pinout but 
-comes with more Flash/RAM memory).</p>
-
+<p>Gera eLua para uma placa SAM7-EX256. A CPU AT91SAM7X256 &eacute; detectada.</p>
 <pre><code>$ scons board=sam7-ex256 cpu=at91sam7x512<br></code></pre>
-
-<p>Build eLua for the lpc2888 CPU. The board name is detected as LPC-H2888. Also,
-the bin file required for target programming is generated.</p>
-
-<pre><code>$ scons cpu=lpc2888 prog </code></pre><br><br></body></html>
+<p>Gera eLua para a placa SAM7-EX256, por&eacute;m define uma CPU espec&iacute;fica. Isto &eacute; interessante quando voc&ecirc; gostaria de saber como a placa especificada se comportar&aacute; (em termos de recursos) com uma CPU diferente (no caso da placa SAM7-EX256 &eacute; poss&iacute;vel mudar a CPU AT91SAM7X256 por uma AT91SAM7X512 a qual possui a mesma pinagem mas vem com mais mem&oacute;ria Flash/RAM).</p>
+<pre><code>$ scons cpu=lpc2888 prog </code></pre>
+<p>Gera eLua para a CPU lpc2888. A placa &eacute; detectada como LPC-H2888. A&eacute;m disso, &eacute gerado um arquivo bin necess&aacute;rio para a programa&ccedil;&atilde;o da CPU. O par&acirc;metro allocator &eacute; detectado automaticamente como "multiple".</p>
+<pre><code>$ scons cpu=lm3s8962 toolchain=codesourcery prog</code></pre>
+<p>Gera a imagem para a CPU Cortex LM3S8962, mas usa o CodeSourcery toolchain ao inv&eacute;s do toolchain default (que &eacute; a toolchain "gen&eacute;rica" ARM GCC, normalmente a &uacute;nica gerada seguindo as instru&ccedil;&otilde;es dos tutoriais deste site.</p>
+$$FOOTER$$
+ 

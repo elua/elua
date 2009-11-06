@@ -2,7 +2,7 @@
 //
 // pwm.c - API for the PWM modules
 //
-// Copyright (c) 2005-2008 Luminary Micro, Inc.  All rights reserved.
+// Copyright (c) 2005-2009 Luminary Micro, Inc.  All rights reserved.
 // Software License Agreement
 // 
 // Luminary Micro, Inc. (LMI) is supplying this software for use solely and
@@ -21,7 +21,7 @@
 // LMI SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
 // CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
 // 
-// This is part of revision 3740 of the Stellaris Peripheral Driver Library.
+// This is part of revision 4781 of the Stellaris Peripheral Driver Library.
 //
 //*****************************************************************************
 
@@ -1544,14 +1544,23 @@ PWMGenFaultTriggerSet(unsigned long ulBase, unsigned long ulGen,
     ASSERT(HWREG(SYSCTL_DC5) & SYSCTL_DC5_PWMEFLT);
     ASSERT(ulBase == PWM_BASE);
     ASSERT(PWMGenValid(ulGen));
-    ASSERT(ulGroup == PWM_FAULT_GROUP_0);
+    ASSERT((ulGroup == PWM_FAULT_GROUP_0) || (ulGroup == PWM_FAULT_GROUP_1));
     ASSERT((ulFaultTriggers & ~(PWM_FAULT_FAULT0 | PWM_FAULT_FAULT1 |
                                 PWM_FAULT_FAULT2 | PWM_FAULT_FAULT3)) == 0);
 
     //
     // Write the fault triggers to the appropriate register.
     //
-    HWREG(PWM_GEN_BADDR(ulBase, ulGen) + PWM_O_X_FLTSRC0) = ulFaultTriggers;
+    if(ulGroup == PWM_FAULT_GROUP_0)
+    {
+        HWREG(PWM_GEN_BADDR(ulBase, ulGen) + PWM_O_X_FLTSRC0) =
+            ulFaultTriggers;
+    }
+    else
+    {
+        HWREG(PWM_GEN_BADDR(ulBase, ulGen) + PWM_O_X_FLTSRC1) =
+            ulFaultTriggers;
+    }
 }
 
 //*****************************************************************************
@@ -1588,12 +1597,19 @@ PWMGenFaultTriggerGet(unsigned long ulBase, unsigned long ulGen,
     ASSERT(HWREG(SYSCTL_DC5) & SYSCTL_DC5_PWMEFLT);
     ASSERT(ulBase == PWM_BASE);
     ASSERT(PWMGenValid(ulGen));
-    ASSERT(ulGroup == PWM_FAULT_GROUP_0);
+    ASSERT((ulGroup == PWM_FAULT_GROUP_0) || (ulGroup == PWM_FAULT_GROUP_1));
 
     //
     // Return the current fault triggers.
     //
-    return(HWREG(PWM_GEN_BADDR(ulBase, ulGen) + PWM_O_X_FLTSRC0));
+    if(ulGroup == PWM_FAULT_GROUP_0)
+    {
+        return(HWREG(PWM_GEN_BADDR(ulBase, ulGen) + PWM_O_X_FLTSRC0));
+    }
+    else
+    {
+        return(HWREG(PWM_GEN_BADDR(ulBase, ulGen) + PWM_O_X_FLTSRC1));
+    }
 }
 
 //*****************************************************************************
@@ -1637,12 +1653,19 @@ PWMGenFaultStatus(unsigned long ulBase, unsigned long ulGen,
     ASSERT(HWREG(SYSCTL_DC5) & SYSCTL_DC5_PWMEFLT);
     ASSERT(ulBase == PWM_BASE);
     ASSERT(PWMGenValid(ulGen));
-    ASSERT(ulGroup == PWM_FAULT_GROUP_0);
+    ASSERT((ulGroup == PWM_FAULT_GROUP_0) || (ulGroup == PWM_FAULT_GROUP_1));
 
     //
     // Return the current fault status.
     //
-    return(HWREG(PWM_GEN_EXT_BADDR(ulBase, ulGen) + PWM_O_X_FLTSTAT0));
+    if(ulGroup == PWM_FAULT_GROUP_0)
+    {
+        return(HWREG(PWM_GEN_EXT_BADDR(ulBase, ulGen) + PWM_O_X_FLTSTAT0));
+    }
+    else
+    {
+        return(HWREG(PWM_GEN_EXT_BADDR(ulBase, ulGen) + PWM_O_X_FLTSTAT1));
+    }
 }
 
 //*****************************************************************************
@@ -1678,15 +1701,23 @@ PWMGenFaultClear(unsigned long ulBase, unsigned long ulGen,
     ASSERT(HWREG(SYSCTL_DC5) & SYSCTL_DC5_PWMEFLT);
     ASSERT(ulBase == PWM_BASE);
     ASSERT(PWMGenValid(ulGen));
-    ASSERT(ulGroup == PWM_FAULT_GROUP_0);
+    ASSERT((ulGroup == PWM_FAULT_GROUP_0) || (ulGroup == PWM_FAULT_GROUP_1));
     ASSERT((ulFaultTriggers & ~(PWM_FAULT_FAULT0 | PWM_FAULT_FAULT1 |
                                 PWM_FAULT_FAULT2 | PWM_FAULT_FAULT3)) == 0);
 
     //
     // Clear the given faults.
     //
-    HWREG(PWM_GEN_EXT_BADDR(ulBase, ulGen) + PWM_O_X_FLTSTAT0) =
-        ulFaultTriggers;
+    if(ulGroup == PWM_FAULT_GROUP_0)
+    {
+        HWREG(PWM_GEN_EXT_BADDR(ulBase, ulGen) + PWM_O_X_FLTSTAT0) =
+            ulFaultTriggers;
+    }
+    else
+    {
+        HWREG(PWM_GEN_EXT_BADDR(ulBase, ulGen) + PWM_O_X_FLTSTAT1) =
+            ulFaultTriggers;
+    }
 }
 
 //*****************************************************************************

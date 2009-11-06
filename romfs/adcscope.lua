@@ -41,7 +41,7 @@ while true do
     end
   end
   etime = tread(0) -- get cycle end time
-  dtime = tmr.diff(0,etime,stime)/numiter -- compute average acquisition time per cycle
+  dtime = tmr.gettimediff(0,etime,stime)/numiter -- compute average acquisition time per cycle
   
   -- draw last acquired samples on the console
   term.moveto(1,4)

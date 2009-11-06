@@ -2,7 +2,7 @@
 //
 // ethernet.c - Driver for the Integrated Ethernet Controller
 //
-// Copyright (c) 2006-2008 Luminary Micro, Inc.  All rights reserved.
+// Copyright (c) 2006-2009 Luminary Micro, Inc.  All rights reserved.
 // Software License Agreement
 // 
 // Luminary Micro, Inc. (LMI) is supplying this software for use solely and
@@ -21,7 +21,7 @@
 // LMI SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
 // CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
 // 
-// This is part of revision 3740 of the Stellaris Peripheral Driver Library.
+// This is part of revision 4781 of the Stellaris Peripheral Driver Library.
 //
 //*****************************************************************************
 
@@ -32,14 +32,13 @@
 //
 //*****************************************************************************
 
+#include "hw_ethernet.h"
 #include "hw_ints.h"
 #include "hw_memmap.h"
 #include "hw_types.h"
-#include "hw_ethernet.h"
 #include "debug.h"
-#include "interrupt.h"
-#include "sysctl.h"
 #include "ethernet.h"
+#include "interrupt.h"
 
 //*****************************************************************************
 //

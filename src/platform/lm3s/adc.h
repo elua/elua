@@ -2,7 +2,7 @@
 //
 // adc.h - ADC headers for using the ADC driver functions.
 //
-// Copyright (c) 2005-2008 Luminary Micro, Inc.  All rights reserved.
+// Copyright (c) 2005-2009 Luminary Micro, Inc.  All rights reserved.
 // Software License Agreement
 // 
 // Luminary Micro, Inc. (LMI) is supplying this software for use solely and
@@ -21,7 +21,7 @@
 // LMI SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
 // CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
 // 
-// This is part of revision 3740 of the Stellaris Peripheral Driver Library.
+// This is part of revision 4781 of the Stellaris Peripheral Driver Library.
 //
 //*****************************************************************************
 
@@ -74,6 +74,66 @@ extern "C"
 #define ADC_CTL_CH5             0x00000005  // Input channel 5
 #define ADC_CTL_CH6             0x00000006  // Input channel 6
 #define ADC_CTL_CH7             0x00000007  // Input channel 7
+#define ADC_CTL_CH8             0x00000008  // Input channel 8
+#define ADC_CTL_CH9             0x00000009  // Input channel 9
+#define ADC_CTL_CH10            0x0000000A  // Input channel 10
+#define ADC_CTL_CH11            0x0000000B  // Input channel 11
+#define ADC_CTL_CH12            0x0000000C  // Input channel 12
+#define ADC_CTL_CH13            0x0000000D  // Input channel 13
+#define ADC_CTL_CH14            0x0000000E  // Input channel 14
+#define ADC_CTL_CH15            0x0000000F  // Input channel 15
+#define ADC_CTL_CMP0            0x00080000  // Select Comparator 0
+#define ADC_CTL_CMP1            0x00090000  // Select Comparator 1
+#define ADC_CTL_CMP2            0x000A0000  // Select Comparator 2
+#define ADC_CTL_CMP3            0x000B0000  // Select Comparator 3
+#define ADC_CTL_CMP4            0x000C0000  // Select Comparator 4
+#define ADC_CTL_CMP5            0x000D0000  // Select Comparator 5
+#define ADC_CTL_CMP6            0x000E0000  // Select Comparator 6
+#define ADC_CTL_CMP7            0x000F0000  // Select Comparator 7
+
+//*****************************************************************************
+//
+// Values that can be passed to ADCComparatorConfigure as part of the
+// ulConfig parameter.
+//
+//*****************************************************************************
+#define ADC_COMP_TRIG_NONE      0x00000000  // Trigger Disabled
+#define ADC_COMP_TRIG_LOW_ALWAYS \
+                                0x00001000  // Trigger Low Always
+#define ADC_COMP_TRIG_LOW_ONCE  0x00001100  // Trigger Low Once
+#define ADC_COMP_TRIG_LOW_HALWAYS \
+                                0x00001200  // Trigger Low Always (Hysteresis)
+#define ADC_COMP_TRIG_LOW_HONCE 0x00001300  // Trigger Low Once (Hysteresis)
+#define ADC_COMP_TRIG_MID_ALWAYS \
+                                0x00001400  // Trigger Mid Always
+#define ADC_COMP_TRIG_MID_ONCE  0x00001500  // Trigger Mid Once
+#define ADC_COMP_TRIG_HIGH_ALWAYS \
+                                0x00001C00  // Trigger High Always
+#define ADC_COMP_TRIG_HIGH_ONCE 0x00001D00  // Trigger High Once
+#define ADC_COMP_TRIG_HIGH_HALWAYS \
+                                0x00001E00  // Trigger High Always (Hysteresis)
+#define ADC_COMP_TRIG_HIGH_HONCE \
+                                0x00001F00  // Trigger High Once (Hysteresis)
+
+#define ADC_COMP_INT_NONE       0x00000000  // Interrupt Disabled
+#define ADC_COMP_INT_LOW_ALWAYS \
+                                0x00000010  // Interrupt Low Always
+#define ADC_COMP_INT_LOW_ONCE   0x00000011  // Interrupt Low Once
+#define ADC_COMP_INT_LOW_HALWAYS \
+                                0x00000012  // Interrupt Low Always
+                                            // (Hysteresis)
+#define ADC_COMP_INT_LOW_HONCE  0x00000013  // Interrupt Low Once (Hysteresis)
+#define ADC_COMP_INT_MID_ALWAYS \
+                                0x00000014  // Interrupt Mid Always
+#define ADC_COMP_INT_MID_ONCE   0x00000015  // Interrupt Mid Once
+#define ADC_COMP_INT_HIGH_ALWAYS \
+                                0x0000001C  // Interrupt High Always
+#define ADC_COMP_INT_HIGH_ONCE  0x0000001D  // Interrupt High Once
+#define ADC_COMP_INT_HIGH_HALWAYS \
+                                0x0000001E  // Interrupt High Always
+                                            // (Hysteresis)
+#define ADC_COMP_INT_HIGH_HONCE \
+                                0x0000001F  // Interrupt High Once (Hysteresis)
 
 //*****************************************************************************
 //
@@ -128,6 +188,21 @@ extern void ADCSoftwareOversampleDataGet(unsigned long ulBase,
                                          unsigned long ulCount);
 extern void ADCHardwareOversampleConfigure(unsigned long ulBase,
                                            unsigned long ulFactor);
+extern void ADCComparatorConfigure(unsigned long ulBase, unsigned long ulComp,
+                                   unsigned long ulConfig);
+extern void ADCComparatorRegionSet(unsigned long ulBase, unsigned long ulComp,
+                                   unsigned long ulLowRef,
+                                   unsigned long ulHighRef);
+extern void ADCComparatorReset(unsigned long ulBase, unsigned long ulComp,
+                               tBoolean bTrigger, tBoolean bInterrupt);
+extern void ADCComparatorIntDisable(unsigned long ulBase,
+                                    unsigned long ulSequenceNum);
+extern void ADCComparatorIntEnable(unsigned long ulBase,
+                                   unsigned long ulSequenceNum);
+extern unsigned long ADCComparatorIntStatus(unsigned long ulBase);
+extern void ADCComparatorIntClear(unsigned long ulBase,
+                                  unsigned long ulStatus);
+
 
 //*****************************************************************************
 //

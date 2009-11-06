@@ -1,11 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
-<html><head>
-<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-<meta http-equiv="Content-Language" content="en-us"><title>Building eLua</title>
-
-<link rel="stylesheet" type="text/css" href="../style.css">
-</head>
-<body style="background-color: rgb(255, 255, 255);">
+$$HEADER$$
 <h3>Building eLua</h3>
 <p>If you decide to build your own <b>eLua</b>
 binary image (instead of <a href="downloads.html">downloading
@@ -63,8 +56,8 @@ are described in detail in the next paragraphs.</p>
 enabled to add functionality to <b>eLua</b> itself,
 without modifying its API (which is the part that the programmer uses
 to write <b>eLua</b> programs). An example of component configuration from
-<i>platform_conf.h</i> is given below:
-<p><pre><code>// *****************************************************************************
+<i>platform_conf.h</i> is given below:</p>
+<pre><code>// *****************************************************************************
 // Define here what components you want for this platform
 
 #define BUILD_XMODEM
@@ -75,9 +68,8 @@ to write <b>eLua</b> programs). An example of component configuration from
 #define BUILD_DHCPC
 #define BUILD_DNS
 #define BUILD_CON_GENERIC
-#define BUILD_ADC</code></pre></p>
-<p>The components that can be configured in <b>eLua</b> are:
-</p>
+#define BUILD_ADC</code></pre>
+<p>The components that can be configured in <b>eLua</b> are:</p>
 <table class="table_center">
 <tbody>
 <tr>
@@ -92,7 +84,7 @@ file (either source code or precompiled byte code) and run in on the
 target. Works only over RS-232 connections (although in theory it's
 possible to make it work over any kind of transport).
 To enable:
-<p><pre><code>#define BUILD_XMODEM</code></pre></p>
+<pre><code>#define BUILD_XMODEM</code></pre>
 <a href="building.html#static">Static configuration data dependencies:</a> <b>CON_UART_ID, CON_UART_SPEED, CON_TIMER_ID</b>
 </td>
 </tr>
@@ -103,11 +95,11 @@ shell). If the shell is not enabled, the code looks for a file called <i>/rom/au
 and executes it. If this file is not found, a regular Lua intepreter is
 started on the target.<br>
 To enable the shell over a serial connection:
-<p><pre><code>#define BUILD_SHELL
-#define BUILD_CON_GENERIC</code></pre></p>
+<pre><code>#define BUILD_SHELL
+#define BUILD_CON_GENERIC</code></pre>
 To enable the shell over a TCP/IP connection:
-<p><pre><code>#define BUILD_SHELL
-#define BUILD_CON_TCP</code></pre></p>
+<pre><code>#define BUILD_SHELL
+#define BUILD_CON_TCP</code></pre>
 </td>
 </tr>
 <tr>
@@ -116,27 +108,27 @@ To enable the shell over a TCP/IP connection:
 filesystem. See the <a href="arch_romfs.html">ROMFS
 documentation</a> for details about using the ROM file system.
 To enable:
-<p><pre><code>#define BUILD_ROMFS</code></pre></p></td>
+<pre><code>#define BUILD_ROMFS</code></pre></td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">BUILD_TERM</td>
 <td>Enable ANSI terminal support. It allows <b>eLua</b>
 to interact with terminals that support ANSI escape sequences (more details <a href="arch_con_term.html">here</a>).
 Currently it works only over RS-232 connections, although this is not a
-strict requirement. You need to enable this if you want to use the <a href="m_term.html">##term module</a>.
+strict requirement. You need to enable this if you want to use the <a href="refman_gen_term.html">term module</a>.
 To enable:
-<p><pre><code>#define BUILD_TERM</code></pre></p>
+<pre><code>#define BUILD_TERM</code></pre>
 <a href="building.html#static">Static configuration data dependencies:</a> <b>CON_UART_ID, CON_UART_SPEED, CON_TIMER_ID, TERM_LINES, TERM_COLS</b></td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">BUILD_UIP</td>
 <td>Enable TCP/IP networking support. You need to enable
-this if you want to use the <a href="m_net.html">##net
+this if you want to use the <a href="refman_gen_net.html">net
 module</a>. Also, your platform must implement the uIP support
-functions (see the <a href="platform_interface.html">##platform
+functions (see the <a href="arch_platform.html">platform
 interface</a> documentation for details).
 To enable:
-<p><pre><code>#define BUILD_UIP</code></pre></p>
+<pre><code>#define BUILD_UIP</code></pre>
 <a href="building.html#static">Static configuration data dependencies:</a> <b>ELUA_CONF_IPADDR0..3, ELUA_CONF_NETMASK0..3, ELUA_CONF_DEFGW0..3,
  ELUA_CONF_DNS0..3</b>
 </td>
@@ -146,8 +138,8 @@ To enable:
 <td>If BUILD_UIP is enabled, you can enable this to include
 a DHCP client in the TCP/IP networking subsystem.
 To enable:
-<p><pre><code>#define BUILD_UIP
-#define BUILD_DHCPC</code></pre></p>
+<pre><code>#define BUILD_UIP
+#define BUILD_DHCPC</code></pre>
 </td>
 </tr>
 <tr>
@@ -155,8 +147,8 @@ To enable:
 <td>If BUILD_UIP is enabled, you can enable this to include
 a minimal DNS resolver in the TCP/IP networking subsystem.
 To enable:
-<p><pre><code>#define BUILD_UIP
-#define BUILD_DNS</code></pre></p>
+<pre><code>#define BUILD_UIP
+#define BUILD_DNS</code></pre>
 </td>
 </tr>
 <tr>
@@ -167,7 +159,7 @@ others can be supported). Enable this if you want to use console
 input/output over your RS-232 connection. Don't enable this if you need
 console input/ouput over Ethernet (see the next option).
 To enable:
-<p><pre><code>#define BUILD_CON_GENERIC</code></pre></p>
+<pre><code>#define BUILD_CON_GENERIC</code></pre>
 <a href="building.html#static">Static configuration data dependencies:</a> <b>CON_UART_ID, CON_UART_SPEED, CON_TIMER_ID</b></td>
 </tr>
 <tr>
@@ -177,18 +169,16 @@ this if you want to use your <b>eLua</b> board over a
 telnet session. Don't enable this if you need console input/output over
 serial transports (see the previous option).
 To enable:
-<p><pre><code>#define BUILD_UIP
-#define BUILD_CON_TCP</code></pre></p>
+<pre><code>#define BUILD_UIP
+#define BUILD_CON_TCP</code></pre>
 </td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">BUILD_ADC</td>
-<td>Generic ADC support code. You need to enable this if
-you want to use the <a href="m_adc.html">##adc</a>
-module, or simply the ADC functions from the platform interface. You
-don't need it if you're not planning to use the ADC.
+<td>Define this to build support for ADC peripherals. This must be enabled to use the <a href="refman_gen_adc.html">adc module</a>, or the <a href="arch_platform_adc.html">adc platform interface</a>.
 To enable:
-<p><pre><code>#define ##BUILD_ADC</code></pre></p>
+<pre><code>#define BUILD_ADC</code></pre>
+<a href="building.html#static">Static configuration data dependencies:</a> <b>ADC_BIT_RESOLUTION, ADC_TIMER_FIRST_ID, ADC_NUM_TIMERS, BUF_ENABLE_ADC, ADC_BUF_SIZE</b>
 </td>
 </tr>
 </tbody>
@@ -230,10 +220,10 @@ only way to specify the list of modules included in the build (although
 it is the most common one). Check the <a href="arch_ltr.html#config">LTR
 section</a> for more information about LTR.</p>
 <p>For the full list of modules that can be enabled or disabled
-via <i>platform_conf.h</i> check <a href="">##the
+via <i>platform_conf.h</i> check <a href="refman_gen.html">the
 eLua reference manual</a>.</p>
 <a name="static"><h2>Static configuration data</h2></a>
-<p>"Static configuration" reffers to the compile-time
+<p>"Static configuration" refers to the compile-time
 configuration. Static configuration parameters are hard-coded in the
 firmware image and can't be changed at run-time. The table below lists
 the static configuration parameters and their semantics.
@@ -273,13 +263,13 @@ needed if BUILD_UIP is enabled.</td>
 <td style="color: rgb(255, 102, 0);">VTMR_NUM_TIMERS<br>
 VTMR_FREQ_HZ</td>
 <td>Specify the virtual timers configuration for the
-platform (reffer to <a href="">##the timer module
+platform (refer to <a href="refman_gen_tmr.html">the timer module
 documentation</a> for details). Define VTMR_NUM_TIMERS to 0 if
 this feature is not used.</td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">PLATFORM_CPU_CONSTANTS</td>
-<td>If the <a href="">##cpu module</a>
+<td>If the <a href="refman_gen_cpu.html">cpu module</a>
 is enabled, this defines a list of platform-specific constants (for
 example interrupt masks) that can be accessed using the
 cpu.&lt;constant name&gt; notation. Each constant name must be
@@ -288,14 +278,45 @@ name&gt;</i>). For example:
 <pre><code>#define PLATFORM_CPU_CONSTANTS\<br> _C( INT_GPIOA ),\<br> _C( INT_GPIOB ),\<br> _C( INT_GPIOC ),\<br> _C( INT_GPIOD ),\<br> _C( INT_GPIOE )<br></code></pre>
 After compilation, you can access these constants using <i>cpu.INT_GPIOx</i>.
 Note that the implementation of this feature needs virtually no RAM at
-all, so you can define as many constants as you want here. ##TODO: ADC!!</td>
+all, so you can define as many constants as you want here. </td>
+</tr>
+
+<tr>
+<<<<<<< .mine
+<td style="color: rgb(255, 102, 0);">BUF_ENABLE_ADC</td>
+<td>If the <a href="arch_platform_adc.html">adc module</a> is enabled, this controls whether or not the ADC will create a buffer so that more than one sample per channel can be held in a buffer before being returned through adc.getsample or adc.getsamples.  If disabled, only one conversion result will be buffered.  This option does NOT affect the behavior of the moving average filter.</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">ADC_BUF_SIZE</td>
+<td>If the <a href="arch_platform_adc.html">adc module</a> is enabled, and BUF_ENABLE_ADC is defined, this will define the default buffer length allocated at startup.  This does not limit buffer sizes, it only defines the default length.  Appropriate values range from BUF_SIZE_2 to BUF_SIZE_32768, with the numeric component at the end being in powers of 2.</td>
+ </tr>
+
+<tr>
+<td style="color: rgb(255, 102, 0);">ADC_BIT_RESOLUTION<br>ADC_TIMER_FIRST_ID<br>ADC_NUM_TIMERS
+=======
+<td style="color: rgb(255, 102, 0);">BUF_ENABLE_ADC</td>
+<td>If the <a href="refman_gen_adc.html">adc module</a> is enabled, this controls whether or not the ADC will create a buffer so that more than one sample per channel can be held in a buffer before being returned through adc.getsample or adc.getsamples.  If disabled, only one conversion result will be buffered.  This option does NOT affect the behavior of the moving average filter.</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">ADC_BUF_SIZE</td>
+<td>If the <a href="refman_gen_adc.html">adc module</a> is enabled, and BUF_ENABLE_ADC is defined, this will define the default buffer length allocated at startup.  This does not limit buffer sizes, it only defines the default length.  Appropriate values range from BUF_SIZE_2 to BUF_SIZE_32768, with the numeric component at the end being in powers of 2.</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">ADC_BIT_RESOLUTION
+>>>>>>> .r476
+</td>
+<<<<<<< .mine
+<td>The ADC resolution in bits, the ID of the first timer and the total number of timers used by the ADC subsystem.</td>
+=======
+<td>If the <a href="refman_gen_adc.html">adc module</a> is enabled, this will define the number of bits per adc conversion result.  This is used to determine the maximum conversion value that can be returned by the ADC.</td>
+>>>>>>> .r476
 </tr>
 </tbody>
 </table>
 <p>The rest of the static configuration data parameters are meant
 to be modified mainly by developers and thus they're not listed here.<br>
 One more thing you might want to configure for your build is the
-contents of the ROM file system. See the <a href="">ROMFS
+contents of the ROM file system. See the <a href="arch_romfs.html">ROMFS
 documentation</a> for details on how to do this.</p>
 <h3>Invoking the build system</h3>
 <p>Once you have everything in place, all you have to do is to
@@ -394,6 +415,6 @@ allocator is automatically detected as "multiple".</p>
 <p>Build the image for the Cortex LM3S8962 CPU, but use the
 CodeSourcery toolchain instead of the default toolchain (which is a
 "generic" ARM GCC toolchain, usually the one built by following
-the tutorials from this site</p>
-.
-</body></html>
+the tutorials from this site.</p>
+$$FOOTER$$
+

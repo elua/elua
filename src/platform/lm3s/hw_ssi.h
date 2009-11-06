@@ -2,7 +2,7 @@
 //
 // hw_ssi.h - Macros used when accessing the SSI hardware.
 //
-// Copyright (c) 2005-2008 Luminary Micro, Inc.  All rights reserved.
+// Copyright (c) 2005-2009 Luminary Micro, Inc.  All rights reserved.
 // Software License Agreement
 // 
 // Luminary Micro, Inc. (LMI) is supplying this software for use solely and
@@ -21,7 +21,7 @@
 // LMI SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
 // CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
 // 
-// This is part of revision 3740 of the Stellaris Firmware Development Package.
+// This is part of revision 4781 of the Stellaris Firmware Development Package.
 //
 //*****************************************************************************
 
@@ -77,6 +77,7 @@
 // The following are defines for the bit fields in the SSI Control register 1.
 //
 //*****************************************************************************
+#define SSI_CR1_EOT             0x00000010  // End of Transmission.
 #define SSI_CR1_SOD             0x00000008  // Slave mode output disable
 #define SSI_CR1_MS              0x00000004  // Master or slave mode select
 #define SSI_CR1_SSE             0x00000002  // Sync serial port enable

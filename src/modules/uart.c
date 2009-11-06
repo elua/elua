@@ -35,7 +35,7 @@ static int uart_setup( lua_State* L )
   return 1;
 }
 
-// Lua: write( id, string1, string2, ... )
+// Lua: write( id, string1, [string2], ..., [stringn] )
 static int uart_write( lua_State* L )
 {
   int id;
@@ -47,10 +47,20 @@ static int uart_write( lua_State* L )
   MOD_CHECK_ID( uart, id );
   for( s = 2; s <= total; s ++ )
   {
-    luaL_checktype( L, s, LUA_TSTRING );
-    buf = lua_tolstring( L, s, &len );
-    for( i = 0; i < len; i ++ )
-      platform_uart_send( id, buf[ i ] );
+    if( lua_isnumber( L, s ) )
+    {
+      len = lua_tointeger( L, s );
+      if( ( len < 0 ) || ( len > 255 ) )
+        return luaL_error( L, "invalid number" );
+      platform_uart_send( id, ( u8 )len );
+    }
+    else
+    {
+      luaL_checktype( L, s, LUA_TSTRING );
+      buf = lua_tolstring( L, s, &len );
+      for( i = 0; i < len; i ++ )
+        platform_uart_send( id, buf[ i ] );
+    }
   }
   return 0;
 }

@@ -12,6 +12,10 @@ if pd.board() == "EK-LM3S8962" or pd.board() == "EK-LM3S6965" or pd.board() == "
 elseif pd.board() == "SAM7-EX256" then
   pwmid, tmrid = 0, 1
   tmr.setclock( 1, 1000000 )
+elseif pd.board() == "STR-E912" then
+  local g = str9.pio
+  g.setpin( pio.P4_6, g.OUTPUT, g.OUTPUT_PUSHPULL, false, g.ALT_OUTPUT2 )
+  pwmid, tmrid = 3, 1
 else
   print( pd.board() .. " not supported with this example" )
   return

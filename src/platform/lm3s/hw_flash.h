@@ -2,9 +2,9 @@
 //
 // hw_flash.h - Macros used when accessing the flash controller.
 //
-// Copyright (c) 2005-2008 Luminary Micro, Inc.  All rights reserved.
+// Copyright (c) 2005-2009 Luminary Micro, Inc.  All rights reserved.
 // Software License Agreement
-//
+// 
 // Luminary Micro, Inc. (LMI) is supplying this software for use solely and
 // exclusively on LMI's microcontroller products.
 // 
@@ -21,7 +21,7 @@
 // LMI SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
 // CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
 // 
-// This is part of revision 3740 of the Stellaris Firmware Development Package.
+// This is part of revision 4781 of the Stellaris Firmware Development Package.
 //
 //*****************************************************************************
 
@@ -39,6 +39,9 @@
 #define FLASH_FCRIS             0x400FD00C  // Raw interrupt status register
 #define FLASH_FCIM              0x400FD010  // Interrupt mask register
 #define FLASH_FCMISC            0x400FD014  // Interrupt status register
+#define FLASH_FMC2              0x400FD020  // Flash Memory Control 2
+#define FLASH_FWBVAL            0x400FD030  // Flash Write Buffer Valid
+#define FLASH_FWBN              0x400FD100  // Flash Write Buffer Register n
 #define FLASH_RMCTL             0x400FE0F0  // ROM Control
 #define FLASH_RMVER             0x400FE0F4  // ROM Version Register
 #define FLASH_FMPRE             0x400FE130  // FLASH read protect register
@@ -70,6 +73,14 @@
 #define FLASH_FMC_ERASE         0x00000002  // Erase FLASH page
 #define FLASH_FMC_WRITE         0x00000001  // Write FLASH word
 #define FLASH_FMC_WRKEY_S       16
+
+//*****************************************************************************
+//
+// The following are defines for the bit fields in the FLASH_FMC2 register.
+//
+//*****************************************************************************
+#define FLASH_FMC2_WRKEY        0xA4420000  // FLASH write key
+#define FLASH_FMC2_WRBUF        0x00000001  // Buffered Flash Write.
 
 //*****************************************************************************
 //
@@ -213,9 +224,17 @@
 //
 //*****************************************************************************
 #define FLASH_RMVER_CONT_M      0xFF000000  // ROM Contents.
-#define FLASH_RMVER_CONT_LM     0x00000000  // Boot Loader & DriverLib
+#define FLASH_RMVER_CONT_LM     0x00000000  // Stellaris Boot Loader &
+                                            // DriverLib
+#define FLASH_RMVER_CONT_LM_AES 0x02000000  // Stellaris Boot Loader &
+                                            // DriverLib with AES
+#define FLASH_RMVER_CONT_LM_AES_SAFERTOS \
+                                0x03000000  // Stellaris Boot Loader &
+                                            // DriverLib with AES and SAFERTOS
 #define FLASH_RMVER_SIZE_M      0x00FF0000  // ROM Size.
 #define FLASH_RMVER_SIZE_11K    0x00000000  // 11KB Size
+#define FLASH_RMVER_SIZE_23_75K 0x00020000  // 23.75KB Size
+#define FLASH_RMVER_SIZE_28_25K 0x00030000  // 28.25KB Size
 #define FLASH_RMVER_VER_M       0x0000FF00  // ROM Version.
 #define FLASH_RMVER_REV_M       0x000000FF  // ROM Revision.
 #define FLASH_RMVER_VER_S       8
@@ -238,6 +257,20 @@
 #define FLASH_USERREG3_NW       0x80000000  // Not Written.
 #define FLASH_USERREG3_DATA_M   0x7FFFFFFF  // User Data.
 #define FLASH_USERREG3_DATA_S   0
+
+//*****************************************************************************
+//
+// The following are defines for the bit fields in the FLASH_FWBVAL register.
+//
+//*****************************************************************************
+#define FLASH_FWBVAL_FWB_M      0xFFFFFFFF  // Flash Write Buffer.
+
+//*****************************************************************************
+//
+// The following are defines for the bit fields in the FLASH_FWBN register.
+//
+//*****************************************************************************
+#define FLASH_FWBN_DATA_M       0xFFFFFFFF  // Data.
 
 //*****************************************************************************
 //

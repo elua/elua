@@ -319,6 +319,7 @@ void luaV_concat (lua_State *L, int total, int last) {
         if (l >= MAX_SIZET - tl) luaG_runerror(L, "string length overflow");
         tl += l;
       }
+      G(L)->buff.n = tl;
       buffer = luaZ_openspace(L, &G(L)->buff, tl);
       tl = 0;
       for (i=n; i>0; i--) {  /* concat all strings */
@@ -327,6 +328,7 @@ void luaV_concat (lua_State *L, int total, int last) {
         tl += l;
       }
       setsvalue2s(L, top-n, luaS_newlstr(L, buffer, tl));
+      luaZ_resetbuffer(&G(L)->buff);
     }
     total -= n-1;  /* got `n' strings to create 1 new */
     last -= n-1;
@@ -481,7 +483,9 @@ void luaV_execute (lua_State *L, int nexeccalls) {
       case OP_NEWTABLE: {
         int b = GETARG_B(i);
         int c = GETARG_C(i);
-        sethvalue(L, ra, luaH_new(L, luaO_fb2int(b), luaO_fb2int(c)));
+        Table *h;
+        Protect(h = luaH_new(L, luaO_fb2int(b), luaO_fb2int(c)));
+        sethvalue(L, RA(i), h);
         Protect(luaC_checkGC(L));
         continue;
       }
@@ -748,6 +752,7 @@ void luaV_execute (lua_State *L, int nexeccalls) {
         p = cl->p->p[GETARG_Bx(i)];
         nup = p->nups;
         ncl = luaF_newLclosure(L, nup, cl->env);
+        setclvalue(L, ra, ncl);
         ncl->l.p = p;
         for (j=0; j<nup; j++, pc++) {
           if (GET_OPCODE(*pc) == OP_GETUPVAL)
@@ -757,7 +762,6 @@ void luaV_execute (lua_State *L, int nexeccalls) {
             ncl->l.upvals[j] = luaF_findupval(L, base + GETARG_B(*pc));
           }
         }
-        setclvalue(L, ra, ncl);
         Protect(luaC_checkGC(L));
         continue;
       }

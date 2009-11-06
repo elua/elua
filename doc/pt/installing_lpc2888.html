@@ -1,0 +1,42 @@
+$$HEADER$$
+<h3>Instalando <b>eLua</b> com o processador LPC2888 da NXP</h3>
+<p>O processador <a href="http://www.standardics.nxp.com/products/lpc2000/all/~LPC2888/">LPC2888</a> da <a href="http://www.nxp.com">NXP</a> 
+possui algumas características interessantes: uma enorme memória flash interna de 1Mbyte, USB 2.0 on-chip de alta velocidade 
+e o mais complexo (de longe) clock de rede que já vimos em um chip ATM7TDMI. 
+Além disso, implementa o USB DFU (Device Firmware Update) através de sua interface USB
+e por isso fica bastante fácil de programá-lo direto no hardware. Estamos usando a placa de desenvolvimento 
+<a href="http://www.olimex.com/dev/lpc-h2888.html">Olimex LPC-H2888</a> baseada nesse
+processador, que vem com 32M Bytes de SDRAM externo e também 2M Bytes de flash externo, 
+o que é mais que suficiente para nossas necessidades. 
+No entanto, existem algumas desvantagens. Para começar, seu aplicativo de suporte (da Panasonic) é muito
+fraco, quando comparado a outros concorrentes que aceitam <b>eLua</b>. 
+Não possui nem mesmo todos os drivers, somente uns poucos e bastante imcompletos. O esquema do processador poderia ser mais detalhado, 
+especialmente quando se refere a clock (que é bastante complicado). Em nossa placa, a atualização do firmware via USB (DFU download mode) 
+parou de funcionar de repente, sem qualquer razão aparente e não conseguimos
+mais usar a DFU no chip, desde então, tivemos que recorrer ao uso do OpenOCD (e preparar um arquivo de configuração, já que era impossível encontrar um para LPC2888). 
+A CPU em si tem uma limitação muito interessante: por causa de um erro estrutural é impossível executar código 
+Thumb da memória flash on-chip, só é possível executar código ARM comum (?!). 
+Além disso, a placa que temos da Olimex ignora completamente o fato de que esse chip é capaz de rodar no modo DFU 
+(a placa não inclui nenhum tipo de jumper e/ou switch para habilitar este modo), logo,
+tivemos que construir uma placa complementar. Era algo que já precisaria ser
+feito mesmo, pois a placa também não possui uma interface RS232, que foi
+construída baseada no chip MAX232. Depois de tudo isso, concluimos que nossa
+que nossa experiência com este chip (e com a placa Olimex) não foi tão agradável assim mas isso não muda o fato de que o LPC-H2888 
+é uma das mais poderosas placas em que <b>eLua</b> pode ser executada.</p>
+ <h3>Pré-requisitos</h3> 
+ <p>Antes de utilizar <b>eLua</b> na CPU LPC2888, certifique-se de que:</p>
+ <ul>
+  <li>se você vai usar DFU para a programação do firmware, você precisa do Windows (embora eu tenha ouvido relatos de programas Linux que podem programar o chip no modo DFU, não vou comentá-los aqui). Se você pretende utilizar OpenOCD no Linux, Windows, ou qualquer outro sistema operacional que tem suporte para <a href="http://openocd.berlios.de/web/">OpenOCD</a>, talvez queira dar uma olhada no <a href="tut_openocd.html">tutorial do OpenOCD</a> antes de continuar.</li>
+  <li>se você vai usar DFU, precisará de uma forma de inicializar o chip no modo DFU para atualização do firmware. Isso é feito, puxando para cima o pino P2.3 (ligado ao VCC) na inicialização. Na minha placa, incluí um switch para isso. Pressione o switch, pressione RESET enquanto mantém o switch pressionado, solte o switch. Você chip está agora em modo DFU.</li>
+  <li>Se você estiver usando DFU, instale o utilitário de programação de flash do LPC2888, que pode ser encontrado <a href="http://www.standardics.nxp.com/support/documents/microcontrollers/zip/flash.utility.mass.dfu.lpc2888.zip">aqui</a> (o pacote contém os drivers DFU para Windows).</li>
+  <li>se você estiver usando OpenOCD, siga as instruções do meu tutorial OpenOCD.</li>
+  <li>você já tem o arquivo com a imagem <b>eLua</b> para a CPU LPC2888 (<a href="building.html">gerada</a> or <a href="downloads.html">baixada</a>)..</li>
+ </ul>
+ <h3>Gravando <b>eLua</b> no LPC2888 usando a ferramenta DFU da NXP</h3>
+ <p>O software DFU para gravação em memória Flash não trabalha diretamente nos arquivos binários que você obteve após ter gerado <b>eLua</b>, é preciso executá-los através do programa "hostcrypt" da NXP (que faz parte do pacote LPC2888 DFU). Depois de já ter gerado o seu arquivo binário de <b>eLua</b>, execute os seguintes comandos a partir do prompt do Windows (certifique-se que hostcryptv2.exe está definido no path):</p>
+<div class="code"><pre>C:&gt; hostcryptv2 elua_lua_lpc2888.bin elua.ebn -K0 -F0</pre></div>
+<p>Como resultado, você terá um novo arquivo (<i>elua.ebn</i>). Agora, inicialize seu chip no modo DFU (veja acima) e use o utilitário DFU (<i>MassDFUApplication.exe</i>) para carregar <i>elua.ebn</i> em seu chip (as instruções sobre como usar o MassDFUApplication estão em um arquivo PDF que está incluído no pacote de LPC2888 DFU). Reinicie a placa e divirta-se.</p>
+ <h3>Gravando <b>eLua</b> no LPC2888 usando o OpenOCD</h3>
+<p>Se você tiver tanta sorte quanto nós, e sua placa se recusa a funcionar no modo DFU, siga este <a href="tut_openocd.html">tutorial do OpenOCD</a> para gravar sua imagem usando OpenOCD.</p>
+$$FOOTER$$
+

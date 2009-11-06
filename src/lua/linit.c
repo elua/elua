@@ -19,6 +19,8 @@
 #include "platform_conf.h"
 #endif
 
+extern int luaopen_platform( lua_State *L );
+
 #ifdef LUA_REMOTE
 #include "auxmods.h"
 #define LUA_PLATFORM_LIBS_ROM \
@@ -38,7 +40,7 @@ static const luaL_Reg lualibs[] = {
 #ifdef LUA_PLATFORM_LIBS_REG
   LUA_PLATFORM_LIBS_REG,
 #endif 
-#if defined(LUA_PLATFORM_LIBS_ROM) && LUA_OPTIMIZE_MEMORY != 2
+#if defined(LUA_PLATFORM_LIBS_ROM)
 #define _ROM( name, openf, table ) { name, openf },
   LUA_PLATFORM_LIBS_ROM
 #endif
@@ -65,7 +67,7 @@ const luaR_table lua_rotable[] =
 #if defined(LUA_PLATFORM_LIBS_ROM) && LUA_OPTIMIZE_MEMORY == 2
 #undef _ROM
 #define _ROM( name, openf, table ) { name, table },
-LUA_PLATFORM_LIBS_ROM
+  LUA_PLATFORM_LIBS_ROM
 #endif
 #endif
   {NULL, NULL}
@@ -79,3 +81,4 @@ LUALIB_API void luaL_openlibs (lua_State *L) {
     lua_call(L, 1, 0);
   }
 }
+

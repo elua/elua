@@ -17,7 +17,7 @@
 static FS romfs_fd_table[ ROMFS_MAX_FDS ];
 static int romfs_num_fd;
 
-static u8 romfs_read( u16 addr )
+static u8 romfs_read( u32 addr )
 {
   return romfiles_fs[ addr ];
 }
@@ -37,14 +37,13 @@ static void romfs_close_fd( int fd )
   memset( romfs_fd_table + fd, 0, sizeof( FS ) );
 }
 
-
 // Open the given file, returning one of FS_FILE_NOT_FOUND, FS_FILE_ALREADY_OPENED
 // or FS_FILE_OK
 u8 romfs_open_file( const char* fname, p_read_fs_byte p_read_func, FS* pfs )
 {
-  u16 i, j;
+  u32 i, j;
   char fsname[ MAX_FNAME_LENGTH + 1 ];
-  int fsize;
+  u16 fsize;
   
   // Look for the file
   i = 0;
@@ -66,7 +65,7 @@ u8 romfs_open_file( const char* fname, p_read_fs_byte p_read_func, FS* pfs )
     j = i + j + 1;
     // And read the size   
     fsize = p_read_func( j ) + ( p_read_func( j + 1 ) << 8 );
-    if( !strncmp( fname, fsname, MAX_FNAME_LENGTH ) )
+    if( !strncasecmp( fname, fsname, MAX_FNAME_LENGTH ) )
     {
       // Found the file
       pfs->baseaddr = j + 2;
@@ -130,7 +129,7 @@ static int romfs_ioctl_r( struct _reent *r, int fd, unsigned long request, void 
 {
   struct fd_seek *pseek = ( struct fd_seek* )ptr;
   FS* pfs = romfs_fd_table + fd;   
-  u16 newpos = 0;
+  u32 newpos = 0;
   
   if( request == FDSEEK )
   {
@@ -161,7 +160,6 @@ static int romfs_ioctl_r( struct _reent *r, int fd, unsigned long request, void 
     return -1;  
 }
 
-
 // Our UART device descriptor structure
 static DM_DEVICE romfs_device = 
 {
@@ -178,27 +176,22 @@ DM_DEVICE* romfs_init()
   return &romfs_device;
 }
 
-
 // Retrieves file name and size from ROMFS entry at romfiles[offset]
 // Returns the next file entry offset or null on last entry
-u16 romfs_get_dir_entry( u16 offset, char *fname, int *fsize )
+u32 romfs_get_dir_entry( u32 offset, char *fname, u16 *fsize )
 {
-  u16 i;
-  int j;
+  u32 i = offset;
+  unsigned j = 0;
   
-  i = offset;
-  j = 0;
   if ( romfs_read( i ) != 0 )
   {
-    while ( ( fname[j++] = romfs_read( i++ )));
-    *fsize = (int) ( romfs_read( i ) + ( romfs_read( i+1 ) << 8 ) );
-    return (u16) ( i + 2 + *fsize );
+    while( ( fname[ j++ ] = romfs_read( i++ ) ) );
+    *fsize = romfs_read( i ) + ( romfs_read( i + 1 ) << 8 );
+    return i + 2 + *fsize;
   }
   else
     return 0;  
 }
-
-
 
 #else // #ifdef BUILD_ROMFS
 
@@ -208,3 +201,4 @@ DM_DEVICE* romfs_init()
 }
 
 #endif // #ifdef BUILD_ROMFS
+

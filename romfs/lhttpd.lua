@@ -1,5 +1,5 @@
 -- Check platform
-if pd.board() ~= 'EK-LM3S8962' and pd.board() ~= 'EK-LM3S6965' and pd.board() ~= 'EAGLE-100' then
+if pd.board() ~= 'EK-LM3S8962' and pd.board() ~= 'EK-LM3S6965' and pd.board() ~= 'EAGLE-100' and pd.board() ~= 'EK-LM3S9B92' then
   print( pd.board() .. " not supported by this example" )
   return
 end

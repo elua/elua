@@ -18,13 +18,11 @@
 #include "common.h"
 #include "platform_conf.h"
 #include "91x_vic.h"
-
-// We define here the UART used by this porting layer
-#define STR9_UART         UART1
+#include "lrotable.h"
 
 // ****************************************************************************
 // Platform initialization
-static const GPIO_TypeDef* port_data[] = { GPIO0, GPIO1, GPIO2, GPIO3, GPIO4, GPIO5, GPIO6, GPIO7, GPIO8, GPIO9 };
+const GPIO_TypeDef* port_data[] = { GPIO0, GPIO1, GPIO2, GPIO3, GPIO4, GPIO5, GPIO6, GPIO7, GPIO8, GPIO9 };
 static const TIM_TypeDef* timer_data[] = { TIM0, TIM1, TIM2, TIM3 };
 
 static void platform_config_scu()
@@ -42,8 +40,8 @@ static void platform_config_scu()
 
   /* Set the RCLK Clock divider to max speed*/
   SCU_RCLKDivisorConfig(SCU_RCLK_Div1);
-  /* Set the PCLK Clock to MCLK/8 */
-  SCU_PCLKDivisorConfig(SCU_PCLK_Div8);
+  /* Set the PCLK Clock to MCLK/2 */
+  SCU_PCLKDivisorConfig(SCU_PCLK_Div2);
   /* Set the HCLK Clock to MCLK */
   SCU_HCLKDivisorConfig(SCU_HCLK_Div1);
   
@@ -64,6 +62,37 @@ static void platform_config_scu()
   SCU_APBPeriphClockConfig(__GPIO_ALL, ENABLE);  
 }
 
+// Port/pin definitions of the eLua UART connection for different boards
+#define UART_RX_IDX   0
+#define UART_TX_IDX   1
+
+#ifdef ELUA_BOARD_STRE912
+static const GPIO_TypeDef* uart_port_data[] = { GPIO5, GPIO5 };
+static const u8 uart_pin_data[] = { GPIO_Pin_1, GPIO_Pin_0 };
+#else // STR9-comStick
+static const GPIO_TypeDef* uart_port_data[] = { GPIO3, GPIO3 };
+static const u8 uart_pin_data[] = { GPIO_Pin_2, GPIO_Pin_3 };
+#endif
+
+// Plaform specific GPIO UART setup
+static void platform_gpio_uart_setup()
+{
+  GPIO_InitTypeDef GPIO_InitStructure;
+
+  GPIO_StructInit( &GPIO_InitStructure );
+  // RX
+  GPIO_InitStructure.GPIO_Direction = GPIO_PinInput;
+  GPIO_InitStructure.GPIO_Pin = uart_pin_data[ UART_RX_IDX ]; 
+  GPIO_InitStructure.GPIO_Type = GPIO_Type_PushPull ;
+  GPIO_InitStructure.GPIO_IPConnected = GPIO_IPConnected_Enable;
+  GPIO_InitStructure.GPIO_Alternate = GPIO_InputAlt1  ;
+  GPIO_Init( ( GPIO_TypeDef* )uart_port_data[ UART_RX_IDX ], &GPIO_InitStructure );
+  // TX
+  GPIO_InitStructure.GPIO_Pin = uart_pin_data[ UART_TX_IDX ];
+  GPIO_InitStructure.GPIO_Alternate = GPIO_OutputAlt3  ;
+  GPIO_Init( ( GPIO_TypeDef* )uart_port_data[ UART_TX_IDX ], &GPIO_InitStructure );
+}
+
 int platform_init()
 {
   unsigned i;
@@ -80,7 +109,8 @@ int platform_init()
   // Initialize VIC
   VIC_DeInit();
   
-  // UART setup (only STR9_UART is used in this example)
+  // UART setup
+  platform_gpio_uart_setup();
   platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
 
   // Initialize timers
@@ -159,25 +189,12 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 // ****************************************************************************
 // UART
 
+static const UART_TypeDef* uarts[] = { UART0, UART1, UART2 };
+
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )
 {
   UART_InitTypeDef UART_InitStructure;
-  GPIO_InitTypeDef GPIO_InitStructure;
-      
-  id = id;
-  
-  // First configure GPIO
-  // RX: GPIO3.2
-  GPIO_InitStructure.GPIO_Direction = GPIO_PinInput;
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
-  GPIO_InitStructure.GPIO_Type = GPIO_Type_PushPull ;
-  GPIO_InitStructure.GPIO_IPConnected = GPIO_IPConnected_Enable;
-  GPIO_InitStructure.GPIO_Alternate = GPIO_InputAlt1  ;
-  GPIO_Init (GPIO3, &GPIO_InitStructure);
-  // TX: GPIO3.3
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;
-  GPIO_InitStructure.GPIO_Alternate = GPIO_OutputAlt2  ;
-  GPIO_Init (GPIO3, &GPIO_InitStructure);
+  UART_TypeDef* p_uart = ( UART_TypeDef* )uarts[ id ];
     
   // Then configure UART parameters
   switch( databits )
@@ -212,33 +229,36 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   UART_InitStructure.UART_TxFIFOLevel = UART_FIFOLevel_1_2; /* FIFO size 16 bytes, FIFO level 8 bytes */
   UART_InitStructure.UART_RxFIFOLevel = UART_FIFOLevel_1_2; /* FIFO size 16 bytes, FIFO level 8 bytes */
 
-  UART_DeInit(STR9_UART);
-  UART_Init(STR9_UART, &UART_InitStructure);
-  UART_Cmd(STR9_UART, ENABLE);
+  UART_DeInit( p_uart );
+  UART_Init( p_uart , &UART_InitStructure );
+  UART_Cmd( p_uart, ENABLE );
   
   return baud;
 }
 
 void platform_uart_send( unsigned id, u8 data )
 {
-  id = id;
+  UART_TypeDef* p_uart = ( UART_TypeDef* )uarts[ id ];
+
 //  while( UART_GetFlagStatus( STR9_UART, UART_FLAG_TxFIFOFull ) == SET );
-  UART_SendData( STR9_UART, data );
-  while( UART_GetFlagStatus( STR9_UART, UART_FLAG_TxFIFOFull ) != RESET );  
+  UART_SendData( p_uart, data );
+  while( UART_GetFlagStatus( p_uart, UART_FLAG_TxFIFOFull ) != RESET );  
 }
 
 int platform_s_uart_recv( unsigned id, s32 timeout )
 {
+  UART_TypeDef* p_uart = ( UART_TypeDef* )uarts[ id ];
+
   if( timeout == 0 )
   {
     // Return data only if already available
-    if( UART_GetFlagStatus( STR9_UART, UART_FLAG_RxFIFOEmpty ) != SET )
-      return UART_ReceiveData( STR9_UART );
+    if( UART_GetFlagStatus( p_uart, UART_FLAG_RxFIFOEmpty ) != SET )
+      return UART_ReceiveData( p_uart );
     else
       return -1;
   }
-  while( UART_GetFlagStatus( STR9_UART, UART_FLAG_RxFIFOEmpty ) == SET );
-  return UART_ReceiveData( STR9_UART );
+  while( UART_GetFlagStatus( p_uart, UART_FLAG_RxFIFOEmpty ) == SET );
+  return UART_ReceiveData( p_uart ); 
 }
 
 // ****************************************************************************
@@ -326,6 +346,66 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
 }
 
 // ****************************************************************************
+// PWM functions
+
+u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
+{
+  TIM_TypeDef* p_timer = ( TIM_TypeDef* )timer_data[ id ];
+  u32 base = SCU_GetPCLKFreqValue() * 1000;
+  u32 div = ( base / 256 ) / frequency;
+  TIM_InitTypeDef tim;
+
+  TIM_DeInit( p_timer );
+  tim.TIM_Mode = TIM_PWM;
+  tim.TIM_Clock_Source = TIM_CLK_APB;       
+  tim.TIM_Prescaler = 0xFF;       
+  tim.TIM_Pulse_Level_1 = TIM_HIGH;   
+  tim.TIM_Period_Level = TIM_LOW;    
+  tim.TIM_Full_Period = div;
+  tim.TIM_Pulse_Length_1 = ( div * duty ) / 100;
+  TIM_Init( p_timer, &tim );
+
+  return base / div;
+}
+
+static u32 platform_pwm_set_clock( unsigned id, u32 clock )
+{
+  TIM_TypeDef* p_timer = ( TIM_TypeDef* )timer_data[ id ];
+  u32 base = ( SCU_GetPCLKFreqValue() * 1000 );
+  u32 div = base / clock;
+
+  TIM_PrescalerConfig( p_timer, ( u8 )div - 1 );
+  return base / div;
+}
+
+u32 platform_pwm_op( unsigned id, int op, u32 data )
+{
+  u32 res = 0;
+  TIM_TypeDef* p_timer = ( TIM_TypeDef* )timer_data[ id ];
+
+  switch( op )
+  {
+    case PLATFORM_PWM_OP_START:
+      TIM_CounterCmd( p_timer, TIM_START );
+      break;
+
+    case PLATFORM_PWM_OP_STOP:
+      TIM_CounterCmd( p_timer, TIM_STOP );
+      break;
+
+    case PLATFORM_PWM_OP_SET_CLOCK:
+      res = platform_pwm_set_clock( id, data );
+      break;
+
+    case PLATFORM_PWM_OP_GET_CLOCK:
+      res = ( SCU_GetPCLKFreqValue() * 1000 ) / ( TIM_GetPrescalerValue( p_timer ) + 1 );
+      break;
+  }
+
+  return res;
+}
+
+// ****************************************************************************
 // CPU functions
 
 extern void enable_ints();
@@ -340,3 +420,35 @@ void platform_cpu_disable_interrupts()
 {
   disable_ints();
 }
+
+// ****************************************************************************
+// Platform specific modules go here
+
+#define MIN_OPT_LEVEL 2
+#include "lrodefs.h"
+extern const LUA_REG_TYPE str9_pio_map[];
+
+const LUA_REG_TYPE platform_map[] =
+{
+#if LUA_OPTIMIZE_MEMORY > 0
+  { LSTRKEY( "pio" ), LROVAL( str9_pio_map ) },
+#endif
+  { LNILKEY, LNILVAL }
+};
+
+LUALIB_API int luaopen_platform( lua_State *L )
+{
+#if LUA_OPTIMIZE_MEMORY > 0
+  return 0;
+#else // #if LUA_OPTIMIZE_MEMORY > 0
+  luaL_register( L, PS_LIB_TABLE_NAME, platform_map );
+
+  // Setup the new tables inside platform table
+  lua_newtable( L );
+  luaL_register( L, NULL, str9_pio_map );
+  lua_setfield( L, -2, "pio" );
+
+  return 1;
+#endif // #if LUA_OPTIMIZE_MEMORY > 0
+}
+

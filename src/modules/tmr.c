@@ -51,8 +51,8 @@ static int tmr_start( lua_State* L )
   return tmrh_timer_op( L, PLATFORM_TIMER_OP_START );
 }
 
-// Lua: time_us = diff( id, end, start )
-static int tmr_diff( lua_State* L )
+// Lua: time_us = gettimediff( id, end, start )
+static int tmr_gettimediff( lua_State* L )
 {
   timer_data_type end, start;
   u32 res;
@@ -60,15 +60,15 @@ static int tmr_diff( lua_State* L )
     
   id = luaL_checkinteger( L, 1 ); 
   MOD_CHECK_ID( timer, id );
-  end = luaL_checkinteger( L, 2 );
-  start = luaL_checkinteger( L, 3 );  
+  end = ( timer_data_type )luaL_checkinteger( L, 2 );
+  start = ( timer_data_type )luaL_checkinteger( L, 3 );  
   res = platform_timer_get_diff_us( id, end, start );
   lua_pushinteger( L, res );
   return 1;    
 }
 
-// Lua: res = mindelay( id )
-static int tmr_mindelay( lua_State* L )
+// Lua: res = getmindelay( id )
+static int tmr_getmindelay( lua_State* L )
 {
   u32 res;
   unsigned id;
@@ -80,8 +80,8 @@ static int tmr_mindelay( lua_State* L )
   return 1;
 }
 
-// Lua: res = maxdelay( id )
-static int tmr_maxdelay( lua_State* L )
+// Lua: res = getmaxdelay( id )
+static int tmr_getmaxdelay( lua_State* L )
 {
   u32 res;
   unsigned id;
@@ -101,7 +101,7 @@ static int tmr_setclock( lua_State* L )
   
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( timer, id );
-  clock = luaL_checkinteger( L, 2 );
+  clock = ( u32 )luaL_checkinteger( L, 2 );
   clock = platform_timer_op( id, PLATFORM_TIMER_OP_SET_CLOCK, clock );
   lua_pushinteger( L, clock );
   return 1;
@@ -151,9 +151,9 @@ const LUA_REG_TYPE tmr_map[] =
   { LSTRKEY( "delay" ), LFUNCVAL( tmr_delay ) },
   { LSTRKEY( "read" ), LFUNCVAL( tmr_read ) },
   { LSTRKEY( "start" ), LFUNCVAL( tmr_start ) },
-  { LSTRKEY( "diff" ), LFUNCVAL( tmr_diff ) },  
-  { LSTRKEY( "mindelay" ), LFUNCVAL( tmr_mindelay ) },
-  { LSTRKEY( "maxdelay" ), LFUNCVAL( tmr_maxdelay ) },
+  { LSTRKEY( "gettimediff" ), LFUNCVAL( tmr_gettimediff ) },  
+  { LSTRKEY( "getmindelay" ), LFUNCVAL( tmr_getmindelay ) },
+  { LSTRKEY( "getmaxdelay" ), LFUNCVAL( tmr_getmaxdelay ) },
   { LSTRKEY( "setclock" ), LFUNCVAL( tmr_setclock ) },
   { LSTRKEY( "getclock" ), LFUNCVAL( tmr_getclock ) },
 #if LUA_OPTIMIZE_MEMORY > 0 && VTMR_NUM_TIMERS > 0

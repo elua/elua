@@ -18,7 +18,7 @@
 #define BUILD_MMCFS
 #define BUILD_TERM
 #define BUILD_UIP
-#define BUILD_DHCPC
+//#define BUILD_DHCPC
 #define BUILD_DNS
 #define BUILD_CON_GENERIC
 #define BUILD_ADC
@@ -37,12 +37,10 @@
 // *****************************************************************************
 // Auxiliary libraries that will be compiled for this platform
 
+// The name of the platform specific libs table
+// FIXME: should handle partial or no inclusion of platform specific modules per conf.py
 #ifdef ENABLE_DISP
-#define AUXLIB_DISP   "disp"
-LUALIB_API int ( luaopen_disp )( lua_State* L );
-#define DISPLINE _ROM( AUXLIB_DISP, luaopen_disp, disp_map )
-#else
-#define DISPLINE
+#define PS_LIB_TABLE_NAME   "lm3s"
 #endif
 
 #ifdef FORLM3S6918
@@ -57,6 +55,12 @@ LUALIB_API int ( luaopen_disp )( lua_State* L );
 #define NETLINE
 #endif
 
+#ifdef PS_LIB_TABLE_NAME
+#define PLATLINE _ROM( PS_LIB_TABLE_NAME, luaopen_platform, platform_map )
+#else
+#define PLATLINE
+#endif
+
 #define LUA_PLATFORM_LIBS_ROM\
   _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
   _ROM( AUXLIB_SPI, luaopen_spi, spi_map )\
@@ -67,22 +71,22 @@ LUALIB_API int ( luaopen_disp )( lua_State* L );
   _ROM( AUXLIB_TERM, luaopen_term, term_map )\
   _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
+  _ROM( AUXLIB_BITARRAY, luaopen_bitarray, bitarray_map )\
   NETLINE\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
   _ROM( AUXLIB_ADC, luaopen_adc, adc_map )\
   _ROM( AUXLIB_LUARPC, luaopen_luarpc, rpc_map )\
-  DISPLINE\
-  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
+  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
+  PLATLINE
 
-  
 // *****************************************************************************
 // Configuration data
 
 // Static TCP/IP configuration
 #define ELUA_CONF_IPADDR0     192
 #define ELUA_CONF_IPADDR1     168
-#define ELUA_CONF_IPADDR2     1
-#define ELUA_CONF_IPADDR3     218
+#define ELUA_CONF_IPADDR2     0
+#define ELUA_CONF_IPADDR3     5
 
 #define ELUA_CONF_NETMASK0    255
 #define ELUA_CONF_NETMASK1    255
@@ -91,12 +95,12 @@ LUALIB_API int ( luaopen_disp )( lua_State* L );
 
 #define ELUA_CONF_DEFGW0      192
 #define ELUA_CONF_DEFGW1      168
-#define ELUA_CONF_DEFGW2      1
+#define ELUA_CONF_DEFGW2      0
 #define ELUA_CONF_DEFGW3      1
 
 #define ELUA_CONF_DNS0        192
 #define ELUA_CONF_DNS1        168
-#define ELUA_CONF_DNS2        1
+#define ELUA_CONF_DNS2        0
 #define ELUA_CONF_DNS3        1
 
 // *****************************************************************************
@@ -108,9 +112,15 @@ LUALIB_API int ( luaopen_disp )( lua_State* L );
 
 
 // Number of resources (0 if not available/not implemented)
-#define NUM_PIO               7
+#ifdef FORLM3S9B92
+  #define NUM_PIO             7
+#else
+  #define NUM_PIO             7
+#endif
 #define NUM_SPI               1
 #ifdef FORLM3S6965
+  #define NUM_UART            3
+#elif FORLM3S9B92
   #define NUM_UART            3
 #else
   #define NUM_UART            2
@@ -177,12 +187,23 @@ LUALIB_API int ( luaopen_disp )( lua_State* L );
 // #define PIO_PINS_PER_PORT (n) if each port has the same number of pins, or
 // #define PIO_PIN_ARRAY { n1, n2, ... } to define pins per port in an array
 // Use #define PIO_PINS_PER_PORT 0 if this isn't needed
-#define PIO_PIN_ARRAY         { 8, 8, 8, 8, 4, 4, 2 }
+#ifdef FORLM3S9B92
+  #define PIO_PIN_ARRAY         { 8, 8, 8, 8, 8, 6, 8, 8, 8 }
+#else
+  #define PIO_PIN_ARRAY         { 8, 8, 8, 8, 4, 4, 2 }
+#endif
+//                                A, B, C, D, E, F, G, H, J
+
+#ifdef FORLM3S9B92
+  #define SRAM_SIZE ( 0x18000 )
+#else
+  #define SRAM_SIZE ( 0x10000 )
+#endif
 
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)
 #define MEM_START_ADDRESS     { ( void* )end }
-#define MEM_END_ADDRESS       { ( void* )( SRAM_BASE + 0x10000 - STACK_SIZE_TOTAL - 1 ) }
+#define MEM_END_ADDRESS       { ( void* )( SRAM_BASE + SRAM_SIZE - STACK_SIZE_TOTAL - 1 ) }
 
 // *****************************************************************************
 // CPU constants that should be exposed to the eLua "cpu" module

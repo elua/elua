@@ -32,7 +32,7 @@ typedef struct
   {
     const char*   strkey;
     luaR_numkey   numkey;
-  };
+  } id;
 } luaR_key;
 
 /* An entry in the read only table */

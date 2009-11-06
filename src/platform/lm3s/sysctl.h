@@ -2,7 +2,7 @@
 //
 // sysctl.h - Prototypes for the system control driver.
 //
-// Copyright (c) 2005-2008 Luminary Micro, Inc.  All rights reserved.
+// Copyright (c) 2005-2009 Luminary Micro, Inc.  All rights reserved.
 // Software License Agreement
 // 
 // Luminary Micro, Inc. (LMI) is supplying this software for use solely and
@@ -21,7 +21,7 @@
 // LMI SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
 // CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
 // 
-// This is part of revision 3740 of the Stellaris Peripheral Driver Library.
+// This is part of revision 4781 of the Stellaris Peripheral Driver Library.
 //
 //*****************************************************************************
 
@@ -48,13 +48,21 @@ extern "C"
 // is 3) can only be used with the SysCtlPeripheralPresent() API.
 //
 //*****************************************************************************
+#ifndef DEPRECATED
 #define SYSCTL_PERIPH_WDOG      0x00000008  // Watchdog
+#endif
+#define SYSCTL_PERIPH_WDOG0     0x00000008  // Watchdog 0
 #define SYSCTL_PERIPH_HIBERNATE 0x00000040  // Hibernation module
+#ifndef DEPRECATED
 #define SYSCTL_PERIPH_ADC       0x00100001  // ADC
+#endif
+#define SYSCTL_PERIPH_ADC0      0x00100001  // ADC0
+#define SYSCTL_PERIPH_ADC1      0x00100002  // ADC1
 #define SYSCTL_PERIPH_PWM       0x00100010  // PWM
 #define SYSCTL_PERIPH_CAN0      0x00100100  // CAN 0
 #define SYSCTL_PERIPH_CAN1      0x00100200  // CAN 1
 #define SYSCTL_PERIPH_CAN2      0x00100400  // CAN 2
+#define SYSCTL_PERIPH_WDOG1     0x00101000  // Watchdog 1
 #define SYSCTL_PERIPH_UART0     0x10000001  // UART 0
 #define SYSCTL_PERIPH_UART1     0x10000002  // UART 1
 #define SYSCTL_PERIPH_UART2     0x10000004  // UART 2
@@ -80,6 +88,8 @@ extern "C"
 #define SYSCTL_PERIPH_COMP0     0x10100100  // Analog comparator 0
 #define SYSCTL_PERIPH_COMP1     0x10100200  // Analog comparator 1
 #define SYSCTL_PERIPH_COMP2     0x10100400  // Analog comparator 2
+#define SYSCTL_PERIPH_I2S0      0x10101000  // I2S0
+#define SYSCTL_PERIPH_EPI0      0x10104000  // EPI0
 #define SYSCTL_PERIPH_GPIOA     0x20000001  // GPIO A
 #define SYSCTL_PERIPH_GPIOB     0x20000002  // GPIO B
 #define SYSCTL_PERIPH_GPIOC     0x20000004  // GPIO C
@@ -88,6 +98,7 @@ extern "C"
 #define SYSCTL_PERIPH_GPIOF     0x20000020  // GPIO F
 #define SYSCTL_PERIPH_GPIOG     0x20000040  // GPIO G
 #define SYSCTL_PERIPH_GPIOH     0x20000080  // GPIO H
+#define SYSCTL_PERIPH_GPIOJ     0x20000100  // GPIO J
 #define SYSCTL_PERIPH_UDMA      0x20002000  // uDMA
 #define SYSCTL_PERIPH_USB0      0x20100001  // USB0
 #define SYSCTL_PERIPH_ETH       0x20105000  // ETH
@@ -298,6 +309,68 @@ extern "C"
 #define SYSCTL_SYSDIV_62        0x9EC00000  // Processor clock is osc/pll /62
 #define SYSCTL_SYSDIV_63        0x9F400000  // Processor clock is osc/pll /63
 #define SYSCTL_SYSDIV_64        0x9FC00000  // Processor clock is osc/pll /64
+#define SYSCTL_SYSDIV_2_5       0xC1000000  // Processor clock is pll / 2.5
+#define SYSCTL_SYSDIV_3_5       0xC1800000  // Processor clock is pll / 3.5
+#define SYSCTL_SYSDIV_4_5       0xC2000000  // Processor clock is pll / 4.5
+#define SYSCTL_SYSDIV_5_5       0xC2800000  // Processor clock is pll / 5.5
+#define SYSCTL_SYSDIV_6_5       0xC3000000  // Processor clock is pll / 6.5
+#define SYSCTL_SYSDIV_7_5       0xC3800000  // Processor clock is pll / 7.5
+#define SYSCTL_SYSDIV_8_5       0xC4000000  // Processor clock is pll / 8.5
+#define SYSCTL_SYSDIV_9_5       0xC4800000  // Processor clock is pll / 9.5
+#define SYSCTL_SYSDIV_10_5      0xC5000000  // Processor clock is pll / 10.5
+#define SYSCTL_SYSDIV_11_5      0xC5800000  // Processor clock is pll / 11.5
+#define SYSCTL_SYSDIV_12_5      0xC6000000  // Processor clock is pll / 12.5
+#define SYSCTL_SYSDIV_13_5      0xC6800000  // Processor clock is pll / 13.5
+#define SYSCTL_SYSDIV_14_5      0xC7000000  // Processor clock is pll / 14.5
+#define SYSCTL_SYSDIV_15_5      0xC7800000  // Processor clock is pll / 15.5
+#define SYSCTL_SYSDIV_16_5      0xC8000000  // Processor clock is pll / 16.5
+#define SYSCTL_SYSDIV_17_5      0xC8800000  // Processor clock is pll / 17.5
+#define SYSCTL_SYSDIV_18_5      0xC9000000  // Processor clock is pll / 18.5
+#define SYSCTL_SYSDIV_19_5      0xC9800000  // Processor clock is pll / 19.5
+#define SYSCTL_SYSDIV_20_5      0xCA000000  // Processor clock is pll / 20.5
+#define SYSCTL_SYSDIV_21_5      0xCA800000  // Processor clock is pll / 21.5
+#define SYSCTL_SYSDIV_22_5      0xCB000000  // Processor clock is pll / 22.5
+#define SYSCTL_SYSDIV_23_5      0xCB800000  // Processor clock is pll / 23.5
+#define SYSCTL_SYSDIV_24_5      0xCC000000  // Processor clock is pll / 24.5
+#define SYSCTL_SYSDIV_25_5      0xCC800000  // Processor clock is pll / 25.5
+#define SYSCTL_SYSDIV_26_5      0xCD000000  // Processor clock is pll / 26.5
+#define SYSCTL_SYSDIV_27_5      0xCD800000  // Processor clock is pll / 27.5
+#define SYSCTL_SYSDIV_28_5      0xCE000000  // Processor clock is pll / 28.5
+#define SYSCTL_SYSDIV_29_5      0xCE800000  // Processor clock is pll / 29.5
+#define SYSCTL_SYSDIV_30_5      0xCF000000  // Processor clock is pll / 30.5
+#define SYSCTL_SYSDIV_31_5      0xCF800000  // Processor clock is pll / 31.5
+#define SYSCTL_SYSDIV_32_5      0xD0000000  // Processor clock is pll / 32.5
+#define SYSCTL_SYSDIV_33_5      0xD0800000  // Processor clock is pll / 33.5
+#define SYSCTL_SYSDIV_34_5      0xD1000000  // Processor clock is pll / 34.5
+#define SYSCTL_SYSDIV_35_5      0xD1800000  // Processor clock is pll / 35.5
+#define SYSCTL_SYSDIV_36_5      0xD2000000  // Processor clock is pll / 36.5
+#define SYSCTL_SYSDIV_37_5      0xD2800000  // Processor clock is pll / 37.5
+#define SYSCTL_SYSDIV_38_5      0xD3000000  // Processor clock is pll / 38.5
+#define SYSCTL_SYSDIV_39_5      0xD3800000  // Processor clock is pll / 39.5
+#define SYSCTL_SYSDIV_40_5      0xD4000000  // Processor clock is pll / 40.5
+#define SYSCTL_SYSDIV_41_5      0xD4800000  // Processor clock is pll / 41.5
+#define SYSCTL_SYSDIV_42_5      0xD5000000  // Processor clock is pll / 42.5
+#define SYSCTL_SYSDIV_43_5      0xD5800000  // Processor clock is pll / 43.5
+#define SYSCTL_SYSDIV_44_5      0xD6000000  // Processor clock is pll / 44.5
+#define SYSCTL_SYSDIV_45_5      0xD6800000  // Processor clock is pll / 45.5
+#define SYSCTL_SYSDIV_46_5      0xD7000000  // Processor clock is pll / 46.5
+#define SYSCTL_SYSDIV_47_5      0xD7800000  // Processor clock is pll / 47.5
+#define SYSCTL_SYSDIV_48_5      0xD8000000  // Processor clock is pll / 48.5
+#define SYSCTL_SYSDIV_49_5      0xD8800000  // Processor clock is pll / 49.5
+#define SYSCTL_SYSDIV_50_5      0xD9000000  // Processor clock is pll / 50.5
+#define SYSCTL_SYSDIV_51_5      0xD9800000  // Processor clock is pll / 51.5
+#define SYSCTL_SYSDIV_52_5      0xDA000000  // Processor clock is pll / 52.5
+#define SYSCTL_SYSDIV_53_5      0xDA800000  // Processor clock is pll / 53.5
+#define SYSCTL_SYSDIV_54_5      0xDB000000  // Processor clock is pll / 54.5
+#define SYSCTL_SYSDIV_55_5      0xDB800000  // Processor clock is pll / 55.5
+#define SYSCTL_SYSDIV_56_5      0xDC000000  // Processor clock is pll / 56.5
+#define SYSCTL_SYSDIV_57_5      0xDC800000  // Processor clock is pll / 57.5
+#define SYSCTL_SYSDIV_58_5      0xDD000000  // Processor clock is pll / 58.5
+#define SYSCTL_SYSDIV_59_5      0xDD800000  // Processor clock is pll / 59.5
+#define SYSCTL_SYSDIV_60_5      0xDE000000  // Processor clock is pll / 60.5
+#define SYSCTL_SYSDIV_61_5      0xDE800000  // Processor clock is pll / 61.5
+#define SYSCTL_SYSDIV_62_5      0xDF000000  // Processor clock is pll / 62.5
+#define SYSCTL_SYSDIV_63_5      0xDF800000  // Processor clock is pll / 63.5
 #define SYSCTL_USE_PLL          0x00000000  // System clock is the PLL clock
 #define SYSCTL_USE_OSC          0x00003800  // System clock is the osc clock
 #define SYSCTL_XTAL_1MHZ        0x00000000  // External crystal is 1MHz
@@ -327,7 +400,9 @@ extern "C"
 #define SYSCTL_OSC_INT          0x00000010  // Osc source is int. osc
 #define SYSCTL_OSC_INT4         0x00000020  // Osc source is int. osc /4
 #define SYSCTL_OSC_INT30        0x00000030  // Osc source is int. 30 KHz
+#define SYSCTL_OSC_EXT4_19      0x80000028  // Osc source is ext. 4.19 MHz
 #define SYSCTL_OSC_EXT32        0x80000038  // Osc source is ext. 32 KHz
+#define SYSCTL_INT_PIOSC_DIS    0x00000004  // Disable interal precision osc.
 #define SYSCTL_INT_OSC_DIS      0x00000002  // Disable internal oscillator
 #define SYSCTL_MAIN_OSC_DIS     0x00000001  // Disable main oscillator
 
@@ -379,6 +454,8 @@ extern void SysCtlGPIOAHBEnable(unsigned long ulGPIOPeripheral);
 extern void SysCtlGPIOAHBDisable(unsigned long ulGPIOPeripheral);
 extern void SysCtlUSBPLLEnable(void);
 extern void SysCtlUSBPLLDisable(void);
+extern unsigned long SysCtlI2SMClkSet(unsigned long ulInputClock,
+                                      unsigned long ulMClk);
 
 //*****************************************************************************
 //

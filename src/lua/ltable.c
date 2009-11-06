@@ -277,20 +277,35 @@ static void setarrayvector (lua_State *L, Table *t, int size) {
 }
 
 
-static void setnodevector (lua_State *L, Table *t, int size) {
+static Node *getfreepos (Table *t) {
+  while (t->lastfree-- > t->node) {
+    if (ttisnil(gkey(t->lastfree)))
+      return t->lastfree;
+  }
+  return NULL;  /* could not find a free place */
+}
+
+
+static void resizenodevector (lua_State *L, Table *t, int oldsize, int newsize) {
   int lsize;
-  if (size == 0) {  /* no elements to hash part? */
+  if (newsize == 0) {  /* no elements to hash part? */
     t->node = cast(Node *, dummynode);  /* use common `dummynode' */
     lsize = 0;
   }
   else {
+    Node *node = t->node;
     int i;
-    lsize = ceillog2(size);
+    lsize = ceillog2(newsize);
     if (lsize > MAXBITS)
       luaG_runerror(L, "table overflow");
-    size = twoto(lsize);
-    t->node = luaM_newvector(L, size, Node);
-    for (i=0; i<size; i++) {
+    newsize = twoto(lsize);
+    if (node == dummynode) {
+      oldsize = 0;
+      node = NULL; /* don't try to realloc `dummynode' pointer. */
+    }
+    luaM_reallocvector(L, node, oldsize, newsize, Node);
+    t->node = node;
+    for (i=oldsize; i<newsize; i++) {
       Node *n = gnode(t, i);
       gnext(n) = NULL;
       setnilvalue(gkey(n));
@@ -298,19 +313,138 @@ static void setnodevector (lua_State *L, Table *t, int size) {
     }
   }
   t->lsizenode = cast_byte(lsize);
-  t->lastfree = gnode(t, size);  /* all positions are free */
+  t->lastfree = gnode(t, newsize);  /* reset lastfree to end of table. */
+}
+
+
+static Node *find_prev_node(Node *mp, Node *next) {
+  Node *prev = mp;
+  while (prev != NULL && gnext(prev) != next) prev = gnext(prev);
+  return prev;
+}
+
+
+/*
+** move a node from it's old position to it's new position during a rehash;
+** first, check whether the moving node's main position is free. If not, check whether
+** colliding node is in its main position or not: if it is not, move colliding
+** node to an empty place and put moving node in its main position; otherwise
+** (colliding node is in its main position), moving node goes to an empty position. 
+*/
+static int move_node (lua_State *L, Table *t, Node *node) {
+  Node *mp = mainposition(t, key2tval(node));
+  /* if node is in it's main position, don't need to move node. */
+  if (mp == node) return 1;
+  /* if node is in it's main position's chain, don't need to move node. */
+  if (find_prev_node(mp, node) != NULL) return 1;
+  /* is main position is free? */
+  if (!ttisnil(gval(mp)) || mp == dummynode) {
+    /* no; move main position node if it is out of its main position */
+    Node *othermp;
+    othermp = mainposition(t, key2tval(mp));
+    if (othermp != mp) {  /* is colliding node out of its main position? */
+      /* yes; swap colliding node with the node that is being moved. */
+      Node *prev;
+      Node tmp;
+      tmp = *node;
+      prev = find_prev_node(othermp, mp);  /* find previous */
+      if (prev != NULL) gnext(prev) = node;  /* redo the chain with `n' in place of `mp' */
+      *node = *mp;  /* copy colliding node into free pos. (mp->next also goes) */
+      *mp = tmp;
+      return (prev != NULL) ? 1 : 0; /* is colliding node part of its main position chain? */
+    }
+    else {  /* colliding node is in its own main position */
+      /* add node to main position's chain. */
+      gnext(node) = gnext(mp);  /* chain new position */
+      gnext(mp) = node;
+    }
+  }
+  else { /* main position is free, move node */
+    *mp = *node;
+    gnext(node) = NULL;
+    setnilvalue(gkey(node));
+    setnilvalue(gval(node));
+  }
+  return 1;
+}
+
+
+static int move_number (lua_State *L, Table *t, Node *node) {
+  int key;
+  lua_Number n = nvalue(key2tval(node));
+  lua_number2int(key, n);
+  if (luai_numeq(cast_num(key), nvalue(key2tval(node)))) {/* index is int? */
+    /* (1 <= key && key <= t->sizearray) */
+    if (cast(unsigned int, key-1) < cast(unsigned int, t->sizearray)) {
+      setobjt2t(L, &t->array[key-1], gval(node));
+      setnilvalue(gkey(node));
+      setnilvalue(gval(node));
+      return 1;
+    }
+  }
+  return 0;
+}
+
+
+static void resize_hashpart (lua_State *L, Table *t, int nhsize) {
+  int i;
+  int lsize=0;
+  int oldhsize = (t->node != dummynode) ? twoto(t->lsizenode) : 0;
+  if (nhsize > 0) { /* round new hashpart size up to next power of two. */
+    lsize=ceillog2(nhsize);
+    if (lsize > MAXBITS)
+      luaG_runerror(L, "table overflow");
+  }
+  nhsize = twoto(lsize);
+  /* grow hash part to new size. */
+  if (oldhsize < nhsize)
+    resizenodevector(L, t, oldhsize, nhsize);
+  else { /* hash part might be shrinking */
+    if (nhsize > 0) {
+      t->lsizenode = cast_byte(lsize);
+      t->lastfree = gnode(t, nhsize);  /* reset lastfree back to end of table. */
+    }
+    else { /* new hashpart size is zero. */
+      resizenodevector(L, t, oldhsize, nhsize);
+      return;
+    }
+  }
+  /* break old chains, try moving int keys to array part and compact keys into new hashpart */
+  for (i = 0; i < oldhsize; i++) {
+    Node *old = gnode(t, i);
+    gnext(old) = NULL;
+    if (ttisnil(gval(old))) { /* clear nodes with nil values. */
+      setnilvalue(gkey(old));
+      continue;
+    }
+    if (ttisnumber(key2tval(old))) { /* try moving the int keys into array part. */
+      if(move_number(L, t, old))
+        continue;
+    }
+    if (i >= nhsize) { /* move all valid keys to indices < nhsize. */
+      Node *n = getfreepos(t);  /* get a free place */
+      lua_assert(n != dummynode && n != NULL);
+      *n = *old;
+    }
+  }
+  /* shrink hash part */
+  if (oldhsize > nhsize)
+    resizenodevector(L, t, oldhsize, nhsize);
+  /* move nodes to their new mainposition and re-create node chains */
+  for (i = 0; i < nhsize; i++) {
+    Node *curr = gnode(t, i);
+    if (!ttisnil(gval(curr)))
+      while (move_node(L, t, curr) == 0);
+  }
 }
 
 
 static void resize (lua_State *L, Table *t, int nasize, int nhsize) {
   int i;
   int oldasize = t->sizearray;
-  int oldhsize = t->lsizenode;
-  Node *nold = t->node;  /* save old hash ... */
   if (nasize > oldasize)  /* array part must grow? */
     setarrayvector(L, t, nasize);
-  /* create new hash part with appropriate size */
-  setnodevector(L, t, nhsize);  
+  resize_hashpart(L, t, nhsize);
   if (nasize < oldasize) {  /* array part must shrink? */
     t->sizearray = nasize;
     /* re-insert elements from vanishing slice */
@@ -321,14 +455,6 @@ static void resize (lua_State *L, Table *t, int nasize, int nhsize) {
     /* shrink array */
     luaM_reallocvector(L, t->array, oldasize, nasize, TValue);
   }
-  /* re-insert elements from hash part */
-  for (i = twoto(oldhsize) - 1; i >= 0; i--) {
-    Node *old = nold+i;
-    if (!ttisnil(gval(old)))
-      setobjt2t(L, luaH_set(L, t, key2tval(old)), gval(old));
-  }
-  if (nold != dummynode)
-    luaM_freearray(L, nold, twoto(oldhsize), Node);  /* free old array */
 }
 
 
@@ -366,6 +492,8 @@ static void rehash (lua_State *L, Table *t, const TValue *ek) {
 Table *luaH_new (lua_State *L, int narray, int nhash) {
   Table *t = luaM_new(L, Table);
   luaC_link(L, obj2gco(t), LUA_TTABLE);
+  sethvalue2s(L, L->top, t); /* put table on stack */
+  incr_top(L);
   t->metatable = NULL;
   t->flags = cast_byte(~0);
   /* temporary values (kept only if some malloc fails) */
@@ -374,7 +502,8 @@ Table *luaH_new (lua_State *L, int narray, int nhash) {
   t->lsizenode = 0;
   t->node = cast(Node *, dummynode);
   setarrayvector(L, t, narray);
-  setnodevector(L, t, nhash);
+  resizenodevector(L, t, 0, nhash);
+  L->top--; /* remove table from stack */
   return t;
 }
 
@@ -384,15 +513,6 @@ void luaH_free (lua_State *L, Table *t) {
     luaM_freearray(L, t->node, sizenode(t), Node);
   luaM_freearray(L, t->array, t->sizearray, TValue);
   luaM_free(L, t);
-}
-
-
-static Node *getfreepos (Table *t) {
-  while (t->lastfree-- > t->node) {
-    if (ttisnil(gkey(t->lastfree)))
-      return t->lastfree;
-  }
-  return NULL;  /* could not find a free place */
 }
 
 

@@ -179,31 +179,30 @@ static void shell_ver( char* args )
 // 'ls' and 'dir' handler
 static void shell_ls( char* args )
 {
-  char fname[MAX_FNAME_LENGTH + 1];
-  int i, size;
-  int total = 0;
-
-#if defined(BUILD_ROMFS)
-  u16 offset = 0;
-
+  u32 offset = 0;
+  char fname[ MAX_FNAME_LENGTH + 1 ];
+  unsigned i;
+  u16 size;
+  u32 total = 0;
+  
+  args = args;
   printf( "\n/rom" );
   while ( ( offset = romfs_get_dir_entry( offset, fname, &size ) ) )
   {
     printf( "\n%s", fname );
     for( i = strlen( fname ); i <= MAX_FNAME_LENGTH; i++ )
       printf( " " );
-    printf( "%d bytes", size );
+    printf( "%u bytes", ( unsigned )size );
     total = total + size;
   }
-  printf( "\n\nTotal = %d bytes\n", total );
-#endif
+  printf( "\n\nTotal = %u bytes\n\n", ( unsigned )total );
 
 #if defined(BUILD_MMCFS)
   total = 0;
   printf( "\n/mmc" );
   if (f_opendir(&mmc_dir, "/") != FR_OK)
   {
-    printf( "\n\nTotal = %d bytes\n\n", total );
+    printf( "\n\nTotal = %u bytes\n\n", ( unsigned )total );
     return;
   }
 
@@ -220,8 +219,6 @@ static void shell_ls( char* args )
     total = total + size;
   }
   printf( "\n\nTotal = %d bytes\n\n", total );
-#else
-  printf( "\n" );
 #endif
 }
 

@@ -20,6 +20,9 @@
 
 #include "luarpc_rpc.h"
 
+void transport_open( Transport *tpt, const char *path );
+
+
 #ifdef LUARPC_ENABLE_SERIAL
 
 /* Setup Transport */

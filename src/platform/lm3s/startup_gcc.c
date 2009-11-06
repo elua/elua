@@ -61,8 +61,7 @@ extern int main(void);
 __attribute__ ((section(".isr_vector")))
 void (* const g_pfnVectors[])(void) =
 {
-    //(void (*)(void))((unsigned long)pulStack + sizeof(pulStack)),
-    (void (*) (void))(SRAM_BASE + 64*1024),
+    (void (*) (void))( SRAM_BASE + SRAM_SIZE ),
                                             // The initial stack pointer
     ResetISR,                               // The reset handler
     NmiSR,                                  // The NMI handler
@@ -196,7 +195,7 @@ ResetISR(void)
 #include "gpio.h"
 #include "interrupt.h"
 #include "sysctl.h"
-#include "usart.h"
+#include "uart.h"
 
 //*****************************************************************************
 //

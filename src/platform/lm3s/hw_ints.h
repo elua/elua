@@ -2,7 +2,7 @@
 //
 // hw_ints.h - Macros that define the interrupt assignment on Stellaris.
 //
-// Copyright (c) 2005-2008 Luminary Micro, Inc.  All rights reserved.
+// Copyright (c) 2005-2009 Luminary Micro, Inc.  All rights reserved.
 // Software License Agreement
 // 
 // Luminary Micro, Inc. (LMI) is supplying this software for use solely and
@@ -11,7 +11,7 @@
 // The software is owned by LMI and/or its suppliers, and is protected under
 // applicable copyright laws.  All rights are reserved.  You may not combine
 // this software with "viral" open-source software in order to form a larger
-// program. Any use in violation of the foregoing restrictions may subject
+// program.  Any use in violation of the foregoing restrictions may subject
 // the user to criminal sanctions under applicable laws, as well as to civil
 // liability for the breach of the terms and conditions of this license.
 // 
@@ -21,7 +21,7 @@
 // LMI SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
 // CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
 // 
-// This is part of revision 3740 of the Stellaris Firmware Development Package.
+// This is part of revision 4781 of the Stellaris Firmware Development Package.
 //
 //*****************************************************************************
 
@@ -96,13 +96,20 @@
 #define INT_PWM3                61          // PWM Generator 3
 #define INT_UDMA                62          // uDMA controller
 #define INT_UDMAERR             63          // uDMA Error
+#define INT_ADC1SS0             64          // ADC1 Sequence 0
+#define INT_ADC1SS1             65          // ADC1 Sequence 1
+#define INT_ADC1SS2             66          // ADC1 Sequence 2
+#define INT_ADC1SS3             67          // ADC1 Sequence 3
+#define INT_I2S0                68          // I2S0
+#define INT_EPI0                69          // EPI0
+#define INT_GPIOJ               70          // GPIO Port J
 
 //*****************************************************************************
 //
 // The following are defines for the total number of interrupts.
 //
 //*****************************************************************************
-#define NUM_INTERRUPTS          64
+#define NUM_INTERRUPTS          70
 
 //*****************************************************************************
 //

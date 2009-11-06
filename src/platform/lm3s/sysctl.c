@@ -2,7 +2,7 @@
 //
 // sysctl.c - Driver for the system controller.
 //
-// Copyright (c) 2005-2008 Luminary Micro, Inc.  All rights reserved.
+// Copyright (c) 2005-2009 Luminary Micro, Inc.  All rights reserved.
 // Software License Agreement
 // 
 // Luminary Micro, Inc. (LMI) is supplying this software for use solely and
@@ -21,7 +21,7 @@
 // LMI SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
 // CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
 // 
-// This is part of revision 3740 of the Stellaris Peripheral Driver Library.
+// This is part of revision 4781 of the Stellaris Peripheral Driver Library.
 //
 //*****************************************************************************
 
@@ -33,7 +33,6 @@
 //*****************************************************************************
 
 #include "hw_ints.h"
-#include "hw_memmap.h"
 #include "hw_nvic.h"
 #include "hw_sysctl.h"
 #include "hw_types.h"
@@ -176,13 +175,15 @@ static const unsigned long g_pulXtals[] =
 static tBoolean
 SysCtlPeripheralValid(unsigned long ulPeripheral)
 {
-    return((ulPeripheral == SYSCTL_PERIPH_ADC) ||
+    return((ulPeripheral == SYSCTL_PERIPH_ADC0) ||
+           (ulPeripheral == SYSCTL_PERIPH_ADC1) ||
            (ulPeripheral == SYSCTL_PERIPH_CAN0) ||
            (ulPeripheral == SYSCTL_PERIPH_CAN1) ||
            (ulPeripheral == SYSCTL_PERIPH_CAN2) ||
            (ulPeripheral == SYSCTL_PERIPH_COMP0) ||
            (ulPeripheral == SYSCTL_PERIPH_COMP1) ||
            (ulPeripheral == SYSCTL_PERIPH_COMP2) ||
+           (ulPeripheral == SYSCTL_PERIPH_EPI0) ||
            (ulPeripheral == SYSCTL_PERIPH_ETH) ||
            (ulPeripheral == SYSCTL_PERIPH_GPIOA) ||
            (ulPeripheral == SYSCTL_PERIPH_GPIOB) ||
@@ -192,9 +193,11 @@ SysCtlPeripheralValid(unsigned long ulPeripheral)
            (ulPeripheral == SYSCTL_PERIPH_GPIOF) ||
            (ulPeripheral == SYSCTL_PERIPH_GPIOG) ||
            (ulPeripheral == SYSCTL_PERIPH_GPIOH) ||
+           (ulPeripheral == SYSCTL_PERIPH_GPIOJ) ||
            (ulPeripheral == SYSCTL_PERIPH_HIBERNATE) ||
            (ulPeripheral == SYSCTL_PERIPH_I2C0) ||
            (ulPeripheral == SYSCTL_PERIPH_I2C1) ||
+           (ulPeripheral == SYSCTL_PERIPH_I2S0) ||
            (ulPeripheral == SYSCTL_PERIPH_IEEE1588) ||
            (ulPeripheral == SYSCTL_PERIPH_MPU) ||
            (ulPeripheral == SYSCTL_PERIPH_PLL) ||
@@ -213,7 +216,8 @@ SysCtlPeripheralValid(unsigned long ulPeripheral)
            (ulPeripheral == SYSCTL_PERIPH_UART2) ||
            (ulPeripheral == SYSCTL_PERIPH_UDMA) ||
            (ulPeripheral == SYSCTL_PERIPH_USB0) ||
-           (ulPeripheral == SYSCTL_PERIPH_WDOG));
+           (ulPeripheral == SYSCTL_PERIPH_WDOG0) ||
+           (ulPeripheral == SYSCTL_PERIPH_WDOG1));
 }
 #endif
 
@@ -372,8 +376,22 @@ SysCtlPeripheralPresent(unsigned long ulPeripheral)
     //
     // Read the correct DC register and determine if this peripheral exists.
     //
-    if(HWREG(g_pulDCRegs[SYSCTL_PERIPH_INDEX(ulPeripheral)]) &
-       SYSCTL_PERIPH_MASK(ulPeripheral))
+    if(ulPeripheral == SYSCTL_PERIPH_USB0)
+    {
+        //
+        // USB is a special case since the DC bit is missing for USB0.
+        //
+        if(HWREG(SYSCTL_DC6) && SYSCTL_DC6_USB0_M)
+        {
+            return(true);
+        }
+        else
+        {
+            return(false);
+        }
+    }
+    else if(HWREG(g_pulDCRegs[SYSCTL_PERIPH_INDEX(ulPeripheral)]) &
+            SYSCTL_PERIPH_MASK(ulPeripheral))
     {
         return(true);
     }
@@ -1451,6 +1469,16 @@ SysCtlClockSet(unsigned long ulConfig)
                          SYSCTL_RCC_IOSCDIS | SYSCTL_RCC_MOSCDIS);
     ulRCC2 &= ~(SYSCTL_RCC2_SYSDIV2_M);
     ulRCC2 |= ulConfig & SYSCTL_RCC2_SYSDIV2_M;
+    if(ulConfig & SYSCTL_RCC2_USEFRACT)
+    {
+        ulRCC |= SYSCTL_RCC_USESYSDIV;
+        ulRCC2 &= ~(SYSCTL_RCC_USESYSDIV);
+        ulRCC2 |= ulConfig & (SYSCTL_RCC2_USEFRACT | SYSCTL_RCC2_FRACT);
+    }
+    else
+    {
+        ulRCC2 &= ~(SYSCTL_RCC2_USEFRACT);
+    }
 
     //
     // See if the PLL output is being used to clock the system.
@@ -1551,13 +1579,21 @@ SysCtlClockGet(void)
                 //
                 ulClk = 15000000;
             }
+            else if((CLASS_IS_FURY && REVISION_IS_A2) ||
+                    (CLASS_IS_DUSTDEVIL && REVISION_IS_A0))
+            {
+                //
+                // The internal oscillator on a rev A2 Fury-class device and a
+                // rev A0 Dustdevil-class device is 12 MHz +/- 30%.
+                //
+                ulClk = 12000000;
+            }
             else
             {
                 //
-                // The internal oscillator on a Fury-class device is 12 MHz
-                // +/- 30%.
+                // The internal oscillator on all other devices is 16 MHz.
                 //
-                ulClk = 12000000;
+                ulClk = 16000000;
             }
             break;
         }
@@ -1578,13 +1614,21 @@ SysCtlClockGet(void)
                 //
                 ulClk = 15000000 / 4;
             }
+            else if((CLASS_IS_FURY && REVISION_IS_A2) ||
+                    (CLASS_IS_DUSTDEVIL && REVISION_IS_A0))
+            {
+                //
+                // The internal oscillator on a rev A2 Fury-class device and a
+                // rev A0 Dustdevil-class device is 12 MHz +/- 30%.
+                //
+                ulClk = 12000000 / 4;
+            }
             else
             {
                 //
-                // The internal oscillator on a Fury-class device is 12 MHz
-                // +/- 30%.
+                // The internal oscillator on a Tempest-class device is 16 MHz.
                 //
-                ulClk = 12000000 / 4;
+                ulClk = 16000000 / 4;
             }
             break;
         }
@@ -1598,6 +1642,15 @@ SysCtlClockGet(void)
             // The internal 30 KHz oscillator has an accuracy of +/- 30%.
             //
             ulClk = 30000;
+            break;
+        }
+
+        //
+        // The 4.19 MHz clock from the hibernate module is the clock source.
+        //
+        case SYSCTL_RCC2_OSCSRC2_419:
+        {
+            ulClk = 4194304;
             break;
         }
 
@@ -1674,6 +1727,12 @@ SysCtlClockGet(void)
         {
             ulClk /= 4;
         }
+
+        //
+        // Force the system divider to be enabled.  It is always used when
+        // using the PLL, but in some cases it will not read as being enabled.
+        //
+        ulRCC |= SYSCTL_RCC_USESYSDIV;
     }
 
     //
@@ -1686,8 +1745,22 @@ SysCtlClockGet(void)
         //
         if(ulRCC2 & SYSCTL_RCC2_USERCC2)
         {
-            ulClk /= (((ulRCC2 & SYSCTL_RCC2_SYSDIV2_M) >>
-                       SYSCTL_RCC2_SYSDIV2_S) + 1);
+            if((ulRCC2 & SYSCTL_RCC2_USEFRACT) &&
+               (((ulRCC2 & SYSCTL_RCC2_USERCC2) &&
+                 !(ulRCC2 & SYSCTL_RCC2_BYPASS2)) ||
+                (!(ulRCC2 & SYSCTL_RCC2_USERCC2) &&
+                 !(ulRCC & SYSCTL_RCC_BYPASS))))
+
+            {
+                ulClk = ((ulClk * 2) / (((ulRCC2 & (SYSCTL_RCC2_SYSDIV2_M |
+                                                    SYSCTL_RCC2_FRACT)) >>
+                                         (SYSCTL_RCC2_SYSDIV2_S - 1)) + 1));
+            }
+            else
+            {
+                ulClk /= (((ulRCC2 & SYSCTL_RCC2_SYSDIV2_M) >>
+                           SYSCTL_RCC2_SYSDIV2_S) + 1);
+            }
         }
         else
         {
@@ -1820,7 +1893,7 @@ SysCtlADCSpeedSet(unsigned long ulSpeed)
     //
     // Check that there is an ADC block on this part.
     //
-    ASSERT(HWREG(SYSCTL_DC1) & SYSCTL_DC1_ADC);
+    ASSERT(HWREG(SYSCTL_DC1) & SYSCTL_DC1_ADC0);
 
     //
     // Set the ADC speed in run, sleep, and deep-sleep mode.
@@ -1850,7 +1923,7 @@ SysCtlADCSpeedGet(void)
     //
     // Check that there is an ADC block on this part.
     //
-    ASSERT(HWREG(SYSCTL_DC1) & SYSCTL_DC1_ADC);
+    ASSERT(HWREG(SYSCTL_DC1) & SYSCTL_DC1_ADC0);
 
     //
     // Return the current ADC speed.
@@ -1998,16 +2071,16 @@ SysCtlClkVerificationClear(void)
 
 //*****************************************************************************
 //
-//! Enables a GPIO peripheral for access from the high speed bus.
+//! Enables a GPIO peripheral for access from the AHB.
 //!
 //! \param ulGPIOPeripheral is the GPIO peripheral to enable.
 //!
-//! This function is used to enable the specified GPIO peripherals to be
-//! accessed from the high speed bus instead of the peripheral bus.  When
-//! a GPIO peripheral is enabled for high speed access, the \b _AHB_BASE
-//! form of the base address should be used for GPIO functions.  For example,
-//! instead of using \b GPIO_PORTA_BASE as the base address for GPIO functions,
-//! use \b GPIO_PORTA_AHB_BASE instead.
+//! This function is used to enable the specified GPIO peripheral to be
+//! accessed from the Advanced Host Bus (AHB) instead of the legacy Advanced
+//! Peripheral Bus (APB).  When a GPIO peripheral is enabled for AHB access,
+//! the \b _AHB_BASE form of the base address should be used for GPIO
+//! functions.  For example, instead of using \b GPIO_PORTA_BASE as the base
+//! address for GPIO functions, use \b GPIO_PORTA_AHB_BASE instead.
 //!
 //! The \e ulGPIOPeripheral argument must be only one of the following values:
 //! \b SYSCTL_PERIPH_GPIOA, \b SYSCTL_PERIPH_GPIOB, \b SYSCTL_PERIPH_GPIOC,
@@ -2030,7 +2103,8 @@ SysCtlGPIOAHBEnable(unsigned long ulGPIOPeripheral)
            (ulGPIOPeripheral == SYSCTL_PERIPH_GPIOE) ||
            (ulGPIOPeripheral == SYSCTL_PERIPH_GPIOF) ||
            (ulGPIOPeripheral == SYSCTL_PERIPH_GPIOG) ||
-           (ulGPIOPeripheral == SYSCTL_PERIPH_GPIOH));
+           (ulGPIOPeripheral == SYSCTL_PERIPH_GPIOH) ||
+           (ulGPIOPeripheral == SYSCTL_PERIPH_GPIOJ));
 
     //
     // Enable this GPIO for AHB access.
@@ -2040,13 +2114,13 @@ SysCtlGPIOAHBEnable(unsigned long ulGPIOPeripheral)
 
 //*****************************************************************************
 //
-//! Disables a GPIO peripheral for access from the high speed bus.
+//! Disables a GPIO peripheral for access from the AHB.
 //!
 //! \param ulGPIOPeripheral is the GPIO peripheral to disable.
 //!
-//! This function will disable the specified GPIO peripherals for access
-//! from the high speed bus.  Once disabled, the GPIO peripheral is accessed
-//! from the peripheral bus.
+//! This function disables the specified GPIO peripheral for access from the
+//! Advanced Host Bus (AHB).  Once disabled, the GPIO peripheral is accessed
+//! from the legacy Advanced Peripheral Bus (AHB).
 //!
 //! The \b ulGPIOPeripheral argument must be only one of the following values:
 //! \b SYSCTL_PERIPH_GPIOA, \b SYSCTL_PERIPH_GPIOB, \b SYSCTL_PERIPH_GPIOC,
@@ -2069,7 +2143,8 @@ SysCtlGPIOAHBDisable(unsigned long ulGPIOPeripheral)
            (ulGPIOPeripheral == SYSCTL_PERIPH_GPIOE) ||
            (ulGPIOPeripheral == SYSCTL_PERIPH_GPIOF) ||
            (ulGPIOPeripheral == SYSCTL_PERIPH_GPIOG) ||
-           (ulGPIOPeripheral == SYSCTL_PERIPH_GPIOH));
+           (ulGPIOPeripheral == SYSCTL_PERIPH_GPIOH) ||
+           (ulGPIOPeripheral == SYSCTL_PERIPH_GPIOJ));
 
     //
     // Disable this GPIO for AHB access.
@@ -2115,6 +2190,145 @@ SysCtlUSBPLLDisable(void)
     // Turn of USB PLL.
     //
     HWREG(SYSCTL_RCC2) |= SYSCTL_RCC2_USBPWRDN;
+}
+
+//*****************************************************************************
+//
+//! Sets the MCLK frequency provided to the I2S module.
+//!
+//! \param ulInputClock is the input clock to the MCLK divider.  If this is
+//! zero, the value is computed from the current PLL configuration.
+//! \param ulMClk is the desired MCLK frequency.  If this is zero, MCLK output
+//! is disabled.
+//!
+//! This function sets the dividers to provide MCLK to the I2S module.  A MCLK
+//! divider will be chosen that produces the MCLK frequency that is the closest
+//! possible to the requested frequency, which may be above or below the
+//! requested frequency.
+//!
+//! The actual MCLK frequency will be returned.  It is the responsibility of
+//! the application to determine if the selected MCLK is acceptable; in general
+//! the human ear can not discern the frequency difference if it is within 0.3%
+//! of the desired frequency (though there is a very small percentage of the
+//! population that can discern lower frequency deviations).
+//!
+//! \return Returns the actual MCLK frequency.
+//
+//*****************************************************************************
+unsigned long
+SysCtlI2SMClkSet(unsigned long ulInputClock, unsigned long ulMClk)
+{
+    unsigned long ulDivInt, ulDivFrac, ulPLL;
+
+    //
+    // See if the I2S MCLK should be disabled.
+    //
+    if(ulMClk == 0)
+    {
+        //
+        // Disable the I2S MCLK and return.
+        //
+        HWREG(SYSCTL_I2SMCLKCFG) = 0;
+        return(0);
+    }
+
+    //
+    // See if the input clock was specified.
+    //
+    if(ulInputClock == 0)
+    {
+        //
+        // The input clock was not specified, so compute the output frequency
+        // of the PLL.  Get the current PLL configuration.
+        //
+        ulPLL = HWREG(SYSCTL_PLLCFG);
+
+        //
+        // Get the frequency of the crystal in use.
+        //
+        ulInputClock = g_pulXtals[(HWREG(SYSCTL_RCC) & SYSCTL_RCC_XTAL_M) >>
+                                  SYSCTL_RCC_XTAL_S];
+
+        //
+        // Calculate the PLL output frequency.
+        //
+        ulInputClock = ((ulInputClock * ((ulPLL & SYSCTL_PLLCFG_F_M) >>
+                                         SYSCTL_PLLCFG_F_S)) /
+                        ((((ulPLL & SYSCTL_PLLCFG_R_M) >>
+                           SYSCTL_PLLCFG_R_S) + 1)));
+
+        //
+        // See if the optional output divide by 2 is being used.
+        //
+        if(ulPLL & SYSCTL_PLLCFG_OD_2)
+        {
+            ulInputClock /= 2;
+        }
+
+        //
+        // See if the optional output divide by 4 is being used.
+        //
+        if(ulPLL & SYSCTL_PLLCFG_OD_4)
+        {
+            ulInputClock /= 4;
+        }
+    }
+
+    //
+    // Verify that the requested MCLK frequency is attainable.
+    //
+    ASSERT(ulMClk < ulInputClock);
+
+    //
+    // Add a rounding factor to the input clock, so that the MCLK frequency
+    // that is closest to the desire value is selected.
+    //
+    ulInputClock += (ulMClk / 32) - 1;
+
+    //
+    // Compute the integer portion of the MCLK divider.
+    //
+    ulDivInt = ulInputClock / ulMClk;
+
+    //
+    // If the divisor is too large, then simply use the maximum divisor.
+    //
+    if(CLASS_IS_TEMPEST && REVISION_IS_B1 && (ulDivInt > 255))
+    {
+        ulDivInt = 255;
+        ulDivFrac = 15;
+    }
+    else if(ulDivInt > 1023)
+    {
+        ulDivInt = 1023;
+        ulDivFrac = 15;
+    }
+    else
+    {
+        //
+        // Compute the fractional portion of the MCLK divider.
+        //
+        ulDivFrac = ((ulInputClock - (ulDivInt * ulMClk)) * 16) / ulMClk;
+    }
+
+    //
+    // Set the divisor for the Tx and Rx MCLK generators and enable the clocks.
+    //
+    HWREG(SYSCTL_I2SMCLKCFG) = (SYSCTL_I2SMCLKCFG_RXEN |
+                                (ulDivInt << SYSCTL_I2SMCLKCFG_RXI_S) |
+                                (ulDivFrac << SYSCTL_I2SMCLKCFG_RXF_S) |
+                                SYSCTL_I2SMCLKCFG_TXEN |
+                                (ulDivInt << SYSCTL_I2SMCLKCFG_TXI_S) |
+                                (ulDivFrac << SYSCTL_I2SMCLKCFG_TXF_S));
+
+    //
+    // Return the actual MCLK frequency.
+    //
+    ulInputClock -= (ulMClk / 32) - 1;
+    ulDivInt = (ulDivInt * 16) + ulDivFrac;
+    ulMClk = (ulInputClock / ulDivInt) * 16;
+    ulMClk += ((ulInputClock - ((ulMClk / 16) * ulDivInt)) * 16) / ulDivInt;
+    return(ulMClk);
 }
 
 //*****************************************************************************

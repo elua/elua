@@ -1,16 +1,21 @@
-Trunk Dev  Bogdan Marinescu <bogdanm@eluaproject.net>
-           Dado Sutter      <dado@eluaproject.net>
-           James Snyder     <jbsnyder@fanplastic.org>
+06.10.2009  Bogdan Marinescu <bogdanm@eluaproject.net>
+            Dado Sutter      <dado@eluaproject.net>
+            James Snyder     <jbsnyder@fanplastic.org>
 
+  * Official release 0.6
+  * License changed to MIT
+  * Web page and documentation completely redesigned
+  * Documentation available offline
+  * Added support for AVR32 CPUs 
+  * Added support for STM32 Cortex-M3 CPUs
+  * Added ADC module with support for moving average filters
+  * Added support for multiple toolchains
   * Added an ls (or dir) shell command
-  * Added support for STM32
-  * Examples added pong, (morse on RIT128x96x4 ?, snake ?)
-  * Documentation now in PDF format (work in progress)
-  * added ADC module
-  *
-  *
-
-
+  * Added new examples: pong, tetrives, spaceship (games), logo
+    (graphics), adcpoll, adcscope (ADC operations)
+  * Added the LTR (Lua Tiny RAM) patch
+  * ROM FS content can be specified per board now
+  * API semantic revisions (old code might not be compatible)
 
 01.11.2008 Bogdan Marinescu <bogdanm@users.berlios.de>
            Dado Sutter <dadosutter@esp.puc-rio.br> 

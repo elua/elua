@@ -37,6 +37,22 @@
 #define test2bits(x,b1,b2)	testbits(x, (bit2mask(b1, b2)))
 
 
+/*
+** Possible Garbage Collector flags.
+** Layout for bit use in 'gsflags' field in global_State structure.
+** bit 0 - Protect GC from recursive calls.
+*/
+#define GCFlagsNone          0
+#define GCBlockGCBit         0
+#define GCResizingStringsBit 1
+
+
+#define is_block_gc(L)    testbit(G(L)->gcflags, GCBlockGCBit)
+#define set_block_gc(L)   l_setbit(G(L)->gcflags, GCBlockGCBit)
+#define unset_block_gc(L) resetbit(G(L)->gcflags, GCBlockGCBit)
+#define is_resizing_strings_gc(L)    testbit(G(L)->gcflags, GCResizingStringsBit)
+#define set_resizing_strings_gc(L)   l_setbit(G(L)->gcflags, GCResizingStringsBit)
+#define unset_resizing_strings_gc(L) resetbit(G(L)->gcflags, GCResizingStringsBit)
 
 /*
 ** Layout for bit use in `marked' field:
@@ -101,6 +117,7 @@ LUAI_FUNC void luaC_callGCTM (lua_State *L);
 LUAI_FUNC void luaC_freeall (lua_State *L);
 LUAI_FUNC void luaC_step (lua_State *L);
 LUAI_FUNC void luaC_fullgc (lua_State *L);
+LUAI_FUNC void luaC_marknew (lua_State *L, GCObject *o);
 LUAI_FUNC void luaC_link (lua_State *L, GCObject *o, lu_byte tt);
 LUAI_FUNC void luaC_linkupval (lua_State *L, UpVal *uv);
 LUAI_FUNC void luaC_barrierf (lua_State *L, GCObject *o, GCObject *v);

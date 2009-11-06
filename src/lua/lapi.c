@@ -687,14 +687,14 @@ LUA_API void lua_settable (lua_State *L, int idx) {
 
 LUA_API void lua_setfield (lua_State *L, int idx, const char *k) {
   StkId t;
-  TValue key;
   lua_lock(L);
   api_checknelems(L, 1);
   t = index2adr(L, idx);
   api_checkvalidindex(L, t);
-  setsvalue(L, &key, luaS_new(L, k));
-  luaV_settable(L, t, &key, L->top - 1);
-  L->top--;  /* pop value */
+  setsvalue2s(L, L->top, luaS_new(L, k));
+  api_incr_top(L);
+  luaV_settable(L, t, L->top - 1, L->top - 2);
+  L->top -= 2;  /* pop key and value */
   lua_unlock(L);
 }
 
@@ -940,11 +940,11 @@ LUA_API int lua_gc (lua_State *L, int what, int data) {
   g = G(L);
   switch (what) {
     case LUA_GCSTOP: {
-      g->GCthreshold = MAX_LUMEM;
+      set_block_gc(L);
       break;
     }
     case LUA_GCRESTART: {
-      g->GCthreshold = g->totalbytes;
+      unset_block_gc(L);
       break;
     }
     case LUA_GCCOLLECT: {
@@ -961,6 +961,10 @@ LUA_API int lua_gc (lua_State *L, int what, int data) {
       break;
     }
     case LUA_GCSTEP: {
+      if(is_block_gc(L)) {
+        res = 1; /* gc is block so we need to pretend that the collection cycle finished. */
+        break;
+      }
       lu_mem a = (cast(lu_mem, data) << 10);
       if (a <= g->totalbytes)
         g->GCthreshold = g->totalbytes - a;
@@ -983,6 +987,24 @@ LUA_API int lua_gc (lua_State *L, int what, int data) {
     case LUA_GCSETSTEPMUL: {
       res = g->gcstepmul;
       g->gcstepmul = data;
+      break;
+    }
+    case LUA_GCSETMEMLIMIT: {
+      /* GC values are expressed in Kbytes: #bytes/2^10 */
+      lu_mem new_memlimit = (cast(lu_mem, data) << 10);
+      if(new_memlimit > 0 && new_memlimit < g->totalbytes) {
+        /* run a full GC to make totalbytes < the new limit. */
+        luaC_fullgc(L);
+        if(new_memlimit < g->totalbytes)
+          new_memlimit = (g->totalbytes + 1024) & ~(1024-1); /* round up to next multiple of 1024 */
+      }
+      g->memlimit = new_memlimit;
+      /* new memlimit might be > then requested memlimit. */
+      res = cast_int(new_memlimit >> 10);
+      break;
+    }
+    case LUA_GCGETMEMLIMIT: {
+      res = cast_int(g->memlimit >> 10);
       break;
     }
     default: res = -1;  /* invalid option */

@@ -7,6 +7,8 @@ _crtline = '  '
 _numdata = 0
 _bytecnt = 0
 
+maxlen = 30
+
 # Line output function
 def _add_data( data, outfile, moredata = True ):
   global _crtline, _numdata, _bytecnt
@@ -46,8 +48,8 @@ def mkfs( dirname, outname, flist ):
   
   # Process all files
   for fname in flist:
-    if len( fname ) > 14:
-      print "Skipping %s (name longer than 14 chars)" % realname
+    if len( fname ) > maxlen:
+      print "Skipping %s (name longer than %d chars)" % ( fname, maxlen )
       continue 
       
     # Get actual file name

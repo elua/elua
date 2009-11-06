@@ -1,5 +1,5 @@
 # Configuration file for the LM3S microcontroller
-specific_files = "startup_gcc.c platform.c usart.c sysctl.c gpio.c ssi.c timer.c pwm.c ethernet.c systick.c flash.c interrupt.c cpu.c adc.c"
+specific_files = "startup_gcc.c platform.c uart.c sysctl.c gpio.c ssi.c timer.c pwm.c ethernet.c systick.c flash.c interrupt.c cpu.c adc.c"
 
 if boardname == 'EK-LM3S6965' or boardname == 'EK-LM3S8962':
   specific_files = specific_files + " rit128x96x4.c disp.c"
@@ -12,7 +12,10 @@ if boardname == 'EAGLE-100':
 else:
   linkopts = ""
 
-ldscript = "lm3s.ld"
+if boardname == 'EK-LM3S9B92':
+  ldscript = "lm3s-9b92.ld"
+else:
+  ldscript = "lm3s.ld"
 
 # Prepend with path
 specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )

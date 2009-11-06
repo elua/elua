@@ -36,8 +36,8 @@ static const TValue* luaR_auxfind(const luaR_entry *pentry, const char *strkey, 
   if (pentry == NULL)
     return NULL;  
   while(pentry->key.type != LUA_TNIL) {
-    if ((strkey && (pentry->key.type == LUA_TSTRING) && (!strcmp(pentry->key.strkey, strkey))) || 
-        (!strkey && (pentry->key.type == LUA_TNUMBER) && ((luaR_numkey)pentry->key.numkey == numkey))) {
+    if ((strkey && (pentry->key.type == LUA_TSTRING) && (!strcmp(pentry->key.id.strkey, strkey))) || 
+        (!strkey && (pentry->key.type == LUA_TNUMBER) && ((luaR_numkey)pentry->key.id.numkey == numkey))) {
       res = &pentry->value;
       break;
     }
@@ -84,9 +84,9 @@ static void luaR_next_helper(lua_State *L, const luaR_entry *pentries, int pos, 
   if (pentries[pos].key.type != LUA_TNIL) {
     /* Found an entry */
     if (pentries[pos].key.type == LUA_TSTRING)
-      setsvalue(L, key, luaS_new(L, pentries[pos].key.strkey))
+      setsvalue(L, key, luaS_new(L, pentries[pos].key.id.strkey))
     else
-      setnvalue(key, (lua_Number)pentries[pos].key.numkey)
+      setnvalue(key, (lua_Number)pentries[pos].key.id.numkey)
    setobj2s(L, val, &pentries[pos].value);
   }
 }

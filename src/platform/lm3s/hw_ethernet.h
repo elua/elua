@@ -2,9 +2,9 @@
 //
 // hw_ethernet.h - Macros used when accessing the Ethernet hardware.
 //
-// Copyright (c) 2006-2008 Luminary Micro, Inc.  All rights reserved.
+// Copyright (c) 2006-2009 Luminary Micro, Inc.  All rights reserved.
 // Software License Agreement
-//
+// 
 // Luminary Micro, Inc. (LMI) is supplying this software for use solely and
 // exclusively on LMI's microcontroller products.
 // 
@@ -21,7 +21,7 @@
 // LMI SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
 // CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
 // 
-// This is part of revision 3740 of the Stellaris Firmware Development Package.
+// This is part of revision 4781 of the Stellaris Firmware Development Package.
 //
 //*****************************************************************************
 
@@ -51,6 +51,8 @@
 #define MAC_O_NP                0x00000034  // Number of Packets Register
 #define MAC_O_TR                0x00000038  // Transmission Request Register
 #define MAC_O_TS                0x0000003C  // Timer Support Register
+#define MAC_O_LED               0x00000040  // Ethernet MAC LED Encoding
+#define MAC_O_MDIX              0x00000044  // MDIX Register
 
 //*****************************************************************************
 //
@@ -190,6 +192,13 @@
 
 //*****************************************************************************
 //
+// The following are defines for the bit fields in the MAC_MDIX register.
+//
+//*****************************************************************************
+#define MAC_MDIX_EN             0x00000001  // MDI/MDI-X Enable.
+
+//*****************************************************************************
+//
 // The following are defines for the Ethernet Controller PHY registers.
 //
 //*****************************************************************************
@@ -221,6 +230,14 @@
                                             // 23 - LED Configuration
 #define PHY_MR24                0x00000018  // Ethernet PHY Management Register
                                             // 24 -MDI/MDIX Control
+#define PHY_MR27                0x0000001B  // Ethernet PHY Management Register
+                                            // 27 -Special Control/Status
+#define PHY_MR29                0x0000001D  // Ethernet PHY Management Register
+                                            // 29 - Interrupt Status
+#define PHY_MR30                0x0000001E  // Ethernet PHY Management Register
+                                            // 30 - Interrupt Mask
+#define PHY_MR31                0x0000001F  // Ethernet PHY Management Register
+                                            // 31 - PHY Special Control/Status
 
 //*****************************************************************************
 //
@@ -351,10 +368,12 @@
 #define PHY_MR16_TXHIM          0x00001000  // Transmit High Impedance Mode.
 #define PHY_MR16_SQEI           0x00000800  // SQE Inhibit Testing.
 #define PHY_MR16_NL10           0x00000400  // Natural Loopback Mode.
+#define PHY_MR16_SR_M           0x000003C0  // Silicon Revision Identifier.
 #define PHY_MR16_APOL           0x00000020  // Auto-Polarity Disable.
 #define PHY_MR16_RVSPOL         0x00000010  // Receive Data Polarity.
 #define PHY_MR16_PCSBP          0x00000002  // PCS Bypass.
 #define PHY_MR16_RXCC           0x00000001  // Receive Clock Control.
+#define PHY_MR16_SR_S           6
 
 //*****************************************************************************
 //
@@ -362,24 +381,34 @@
 //
 //*****************************************************************************
 #define PHY_MR17_JABBER_IE      0x00008000  // Jabber Interrupt Enable.
+#define PHY_MR17_FASTRIP        0x00004000  // 10-BASE-T Fast Mode Enable.
 #define PHY_MR17_RXER_IE        0x00004000  // Receive Error Interrupt Enable.
+#define PHY_MR17_EDPD           0x00002000  // Enable Energy Detect Power Down.
 #define PHY_MR17_PRX_IE         0x00002000  // Page Received Interrupt Enable.
 #define PHY_MR17_PDF_IE         0x00001000  // Parallel Detection Fault
                                             // Interrupt Enable.
+#define PHY_MR17_LSQE           0x00000800  // Low Squelch Enable.
 #define PHY_MR17_LPACK_IE       0x00000800  // LP Acknowledge Interrupt Enable.
 #define PHY_MR17_LSCHG_IE       0x00000400  // Link Status Change Interrupt
                                             // Enable.
+#define PHY_MR17_MDPB           0x00000400  // Management Data Preamble Bypass.
 #define PHY_MR17_RFAULT_IE      0x00000200  // Remote Fault Interrupt Enable.
+#define PHY_MR17_FLPBK          0x00000200  // Far Loopback Mode.
 #define PHY_MR17_ANEGCOMP_IE    0x00000100  // Auto-Negotiation Complete
                                             // Interrupt Enable.
+#define PHY_MR17_FASTEST        0x00000100  // Auto-Negotiation Test Mode.
 #define PHY_MR17_JABBER_INT     0x00000080  // Jabber Event Interrupt.
 #define PHY_MR17_RXER_INT       0x00000040  // Receive Error Interrupt.
 #define PHY_MR17_PRX_INT        0x00000020  // Page Receive Interrupt.
 #define PHY_MR17_PDF_INT        0x00000010  // Parallel Detection Fault
                                             // Interrupt.
+#define PHY_MR17_REFCE          0x00000010  // Reference Clock Enable.
 #define PHY_MR17_LPACK_INT      0x00000008  // LP Acknowledge Interrupt.
+#define PHY_MR17_PADBP          0x00000008  // PHY Address Bypass.
 #define PHY_MR17_LSCHG_INT      0x00000004  // Link Status Change Interrupt.
+#define PHY_MR17_FGLS           0x00000004  // Force Good Link Status.
 #define PHY_MR17_RFAULT_INT     0x00000002  // Remote Fault Interrupt.
+#define PHY_MR17_ENON           0x00000002  // Energy On.
 #define PHY_MR17_ANEGCOMP_INT   0x00000001  // Auto-Negotiation Complete
                                             // Interrupt.
 
@@ -417,9 +446,6 @@
 #define PHY_MR23_LED1_M         0x000000F0  // LED1 Source.
 #define PHY_MR23_LED1_LINK      0x00000000  // Link OK
 #define PHY_MR23_LED1_RXTX      0x00000010  // RX or TX Activity (Default LED1)
-#define PHY_MR23_LED1_TX        0x00000020  // TX Activity
-#define PHY_MR23_LED1_RX        0x00000030  // RX Activity
-#define PHY_MR23_LED1_COL       0x00000040  // Collision
 #define PHY_MR23_LED1_100       0x00000050  // 100BASE-TX mode
 #define PHY_MR23_LED1_10        0x00000060  // 10BASE-T mode
 #define PHY_MR23_LED1_DUPLEX    0x00000070  // Full-Duplex
@@ -428,9 +454,6 @@
 #define PHY_MR23_LED0_M         0x0000000F  // LED0 Source.
 #define PHY_MR23_LED0_LINK      0x00000000  // Link OK (Default LED0)
 #define PHY_MR23_LED0_RXTX      0x00000001  // RX or TX Activity
-#define PHY_MR23_LED0_TX        0x00000002  // TX Activity
-#define PHY_MR23_LED0_RX        0x00000003  // RX Activity
-#define PHY_MR23_LED0_COL       0x00000004  // Collision
 #define PHY_MR23_LED0_100       0x00000005  // 100BASE-TX mode
 #define PHY_MR23_LED0_10        0x00000006  // 10BASE-T mode
 #define PHY_MR23_LED0_DUPLEX    0x00000007  // Full-Duplex
@@ -448,6 +471,78 @@
 #define PHY_MR24_MDIX_CM        0x00000010  // Auto-Switching Complete.
 #define PHY_MR24_MDIX_SD_M      0x0000000F  // Auto-Switching Seed.
 #define PHY_MR24_MDIX_SD_S      0
+
+//*****************************************************************************
+//
+// The following are defines for the bit fields in the PHY_MR27 register.
+//
+//*****************************************************************************
+#define PHY_MR27_XPOL           0x00000010  // Polarity State of 10 BASE-T.
+
+//*****************************************************************************
+//
+// The following are defines for the bit fields in the PHY_MR29 register.
+//
+//*****************************************************************************
+#define PHY_MR29_EONIS          0x00000080  // ENERGYON Interrupt.
+#define PHY_MR29_ANCOMPIS       0x00000040  // Auto-Negotiation Complete
+                                            // Interrupt.
+#define PHY_MR29_RFLTIS         0x00000020  // Remote Fault Interrupt.
+#define PHY_MR29_LDIS           0x00000010  // Link Down Interrupt.
+#define PHY_MR29_LPACKIS        0x00000008  // Auto-Negotiation LP Acknowledge.
+#define PHY_MR29_PDFIS          0x00000004  // Parallel Detection Fault.
+#define PHY_MR29_PRXIS          0x00000002  // Auto Negotiation Page Received.
+
+//*****************************************************************************
+//
+// The following are defines for the bit fields in the PHY_MR30 register.
+//
+//*****************************************************************************
+#define PHY_MR30_EONIM          0x00000080  // ENERGYON Interrupt Enabled.
+#define PHY_MR30_ANCOMPIM       0x00000040  // Auto-Negotiation Complete
+                                            // Interrupt Enabled.
+#define PHY_MR30_RFLTIM         0x00000020  // Remote Fault Interrupt Enabled.
+#define PHY_MR30_LDIM           0x00000010  // Link Down Interrupt Enabled.
+#define PHY_MR30_LPACKIM        0x00000008  // Auto-Negotiation LP Acknowledge
+                                            // Enabled.
+#define PHY_MR30_PDFIM          0x00000004  // Parallel Detection Fault
+                                            // Enabled.
+#define PHY_MR30_PRXIM          0x00000002  // Auto Negotiation Page Received
+                                            // Enabled.
+
+//*****************************************************************************
+//
+// The following are defines for the bit fields in the PHY_MR31 register.
+//
+//*****************************************************************************
+#define PHY_MR31_BPRMG          0x00008000  // Bypass Remove Glitch.
+#define PHY_MR31_AUTODONE       0x00001000  // Auto Negotiation Done.
+#define PHY_MR31_EN4B5B         0x00000040  // Enable 4B5B Encoding/Decoding.
+#define PHY_MR31_SPEED_M        0x0000001C  // HCD Speed Value.
+#define PHY_MR31_SCRDIS         0x00000001  // Scramble Disable.
+#define PHY_MR31_SPEED_S        2
+
+//*****************************************************************************
+//
+// The following are defines for the bit fields in the MAC_O_LED register.
+//
+//*****************************************************************************
+#define MAC_LED_LED1_M          0x000000F0  // LED1 Source.
+#define MAC_LED_LED1_LINK       0x00000000  // Link OK
+#define MAC_LED_LED1_RXTX       0x00000010  // RX or TX Activity (Default LED1)
+#define MAC_LED_LED1_100        0x00000050  // 100BASE-TX mode
+#define MAC_LED_LED1_10         0x00000060  // 10BASE-T mode
+#define MAC_LED_LED1_DUPLEX     0x00000070  // Full-Duplex
+#define MAC_LED_LED1_LINKACT    0x00000080  // Link OK & Blink=RX or TX
+                                            // Activity
+#define MAC_LED_LED0_M          0x0000000F  // LED0 Source.
+#define MAC_LED_LED0_LINK       0x00000000  // Link OK (Default LED0)
+#define MAC_LED_LED0_RXTX       0x00000001  // RX or TX Activity
+#define MAC_LED_LED0_100        0x00000005  // 100BASE-TX mode
+#define MAC_LED_LED0_10         0x00000006  // 10BASE-T mode
+#define MAC_LED_LED0_DUPLEX     0x00000007  // Full-Duplex
+#define MAC_LED_LED0_LINKACT    0x00000008  // Link OK & Blink=RX or TX
+                                            // Activity
 
 //*****************************************************************************
 //
@@ -569,6 +664,19 @@
 //
 //*****************************************************************************
 #define MAC_NP_NPR              0x0000003F  // Number of RX Frames in FIFO
+
+//*****************************************************************************
+//
+// The following are deprecated defines for the bit fields in the PHY_MR23
+// register.
+//
+//*****************************************************************************
+#define PHY_MR23_LED1_TX        0x00000020  // TX Activity
+#define PHY_MR23_LED1_RX        0x00000030  // RX Activity
+#define PHY_MR23_LED1_COL       0x00000040  // Collision
+#define PHY_MR23_LED0_TX        0x00000002  // TX Activity
+#define PHY_MR23_LED0_RX        0x00000003  // RX Activity
+#define PHY_MR23_LED0_COL       0x00000004  // Collision
 
 #endif
 
