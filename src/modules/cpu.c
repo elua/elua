@@ -69,16 +69,45 @@ static int cpu_r8( lua_State *L )
   return 1;
 }
 
-// Lua: cli()
+// Lua: cli() - to disable all interrupts
+// or cli( id1, id2, ..., idn ) - to disable specific interrupts
 static int cpu_cli( lua_State *L )
 {
+#ifdef BUILD_LUA_INT_HANDLERS
+  unsigned i;
+  elua_int_id id;
+
+  if( lua_gettop( L ) > 0 )
+  {
+    for( i = 1; i <= lua_gettop( L ); i ++ )
+    {
+      id = ( elua_int_id )luaL_checkinteger( L, i );
+      elua_int_disable( id );
+    }
+  }
+  else
+#endif
   platform_cpu_disable_interrupts();
   return 0;
 }
 
-// Lua: sei()
+// Lua: sei() - to enable all interrupts
+// or set( id1, id2, ..., idn ) - to enable specific interrupts
 static int cpu_sei( lua_State *L )
 {
+#ifdef BUILD_LUA_INT_HANDLERS
+  unsigned i;
+  elua_int_id id;
+
+  if( lua_gettop( L ) > 0 )
+  {
+    for( i = 1; i <= lua_gettop( L ); i ++ )
+    {
+      id = ( elua_int_id )luaL_checkinteger( L, i );
+      elua_int_enable( id );
+    }
+  }
+#endif
   platform_cpu_enable_interrupts();
   return 0;
 }

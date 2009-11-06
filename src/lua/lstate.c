@@ -22,7 +22,8 @@
 #include "lstring.h"
 #include "ltable.h"
 #include "ltm.h"
-
+// BogdanM: modified for Lua interrupt support
+#include "elua_int.h"
 
 #define state_size(x)	(sizeof(x) + LUAI_EXTRASPACE)
 #define fromstate(l)	(cast(lu_byte *, (l)) - LUAI_EXTRASPACE)
@@ -230,6 +231,7 @@ LUA_API void lua_close (lua_State *L) {
   close_state(L);
   // BogdanM: modified for eLua interrupt support
   lua_crtstate = NULL;
+  elua_int_disable_all();
 }
 
 
