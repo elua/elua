@@ -6,7 +6,7 @@
 
 local pwmid, tmrid, ledpin
 if pd.board() == "EK-LM3S8962" or pd.board() == "EK-LM3S6965" then
-  wmid, tmrid, ledpin = 1, 1, pio.PF_0
+  pwmid, tmrid, ledpin = 1, 1, pio.PF_0
 elseif pd.board() == "EAGLE-100" then
   wmid, tmrid, ledpin = 1, 1, pio.PE_1
 elseif pd.board() == "SAM7-EX256" then

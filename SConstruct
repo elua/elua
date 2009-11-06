@@ -113,34 +113,10 @@ romfs = { 'bisect' : [ 'bisect.lua' ],
           'tetrives' : [ 'tetrives.lua' ]
         }
 
-# List of platform/CPU combinations
-cpu_list = { 'at91sam7x' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
-              'lm3s' : [ 'LM3S8962', 'LM3S6965', 'LM3S6918' ],
-              'str9' : [ 'STR912FW44' ],
-              'i386' : [ 'I386' ],
-              'lpc288x' : [ 'LPC2888' ],
-              'str7' : [ 'STR711FR2' ],
-              'stm32' : [ 'STM32F103ZE' ],
-              'avr32' : [ 'AT32UC3A0512' ]
-            }
-
-# List of board/CPU combinations
-board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
-               'EK-LM3S8962' : [ 'LM3S8962' ],
-               'EK-LM3S6965' : [ 'LM3S6965' ],
-               'EAGLE-100' : [ 'LM3S6918' ],
-               'STR9-COMSTICK' : [ 'STR912FW44' ],
-               'PC' : [ 'I386' ],
-               'LPC-H2888' : [ 'LPC2888' ],
-               'MOD711' : [ 'STR711FR2' ],
-               'STM3210E-EVAL' : [ 'STM32F103ZE' ],
-               'ATEVK1100' : [ 'AT32UC3A0512' ]
-            }
-
 # List of board/romfs data combinations
 file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'info', 'morse' ],
               'EK-LM3S8962' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope', 'adcpoll', 'logo', 'spaceship', 'tetrives' ],
-              'EK-LM3S6965' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope', 'adcpoll', 'logo', 'spaceship', 'tetrives' ],
+              'EK-LM3S6965' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope', 'adcpoll', 'logo', 'spaceship' ],
               'EK-LM3S9B92' : [ 'bisect', 'hangman', 'lhttpd', 'led', 'pwmled', 'hello', 'info', 'adcscope','adcpoll', 'life' ],
               'STR9-COMSTICK' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
               'STR-E912' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'piano' ],
