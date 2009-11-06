@@ -30,13 +30,13 @@ data_en =
     },
 
     { sig = "#uart.write#( id, data1, [data2], ..., [datan] )",
-      desc = [[Write one or more strings or numbers to the serial port. If writing a number, its value must be between 0 and 255.]],
+      desc = [[Write one or more strings or 8-bit integers (raw data) to the serial port. If writing raw data, its value (represented by an integer) must be between 0 and 255.]],
       args = 
       {
         "$id$ - the ID of the serial port.",
-        "$data1$ - the first string/number to write.",
-        "$data2 (optional)$ - the second string/number to write.",
-        "$datan (optional)$ - the %n%-th string/number to write."
+        "$data1$ - the first string/8-bit integer to write.",
+        "$data2 (optional)$ - the second string/8-bit integer to write.",
+        "$datan (optional)$ - the %n%-th string/8-bit integer to write."
       }
     },
 

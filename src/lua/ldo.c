@@ -92,6 +92,8 @@ static void resetstack (lua_State *L, int status) {
 
 
 void luaD_throw (lua_State *L, int errcode) {
+  unfixedstack(L); /* make sure the fixedstack & block_gc flags get reset. */
+  unset_block_gc(L);
   if (L->errorJmp) {
     L->errorJmp->status = errcode;
     LUAI_THROW(L, L->errorJmp);

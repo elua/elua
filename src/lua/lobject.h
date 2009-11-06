@@ -120,48 +120,54 @@ typedef struct lua_TValue {
 #define setnilvalue(obj) ((obj)->tt=LUA_TNIL)
 
 #define setnvalue(obj,x) \
-  { TValue *i_o=(obj); i_o->value.n=(x); i_o->tt=LUA_TNUMBER; }
+  { lua_Number i_x = (x); TValue *i_o=(obj); i_o->value.n=i_x; i_o->tt=LUA_TNUMBER; }
 
 #define setpvalue(obj,x) \
-  { TValue *i_o=(obj); i_o->value.p=(x); i_o->tt=LUA_TLIGHTUSERDATA; }
+  { void *i_x = (x); TValue *i_o=(obj); i_o->value.p=i_x; i_o->tt=LUA_TLIGHTUSERDATA; }
   
 #define setrvalue(obj,x) \
-  { TValue *i_o=(obj); i_o->value.p=(x); i_o->tt=LUA_TROTABLE; }
+  { void *i_x = (x); TValue *i_o=(obj); i_o->value.p=i_x; i_o->tt=LUA_TROTABLE; }
   
 #define setfvalue(obj,x) \
-  { TValue *i_o=(obj); i_o->value.p=(x); i_o->tt=LUA_TLIGHTFUNCTION; }
+  { void *i_x = (x); TValue *i_o=(obj); i_o->value.p=i_x; i_o->tt=LUA_TLIGHTFUNCTION; }
 
 #define setbvalue(obj,x) \
-  { TValue *i_o=(obj); i_o->value.b=(x); i_o->tt=LUA_TBOOLEAN; }
+  { int i_x = (x); TValue *i_o=(obj); i_o->value.b=i_x; i_o->tt=LUA_TBOOLEAN; }
 
 #define setsvalue(L,obj,x) \
-  { TValue *i_o=(obj); \
-    i_o->value.gc=cast(GCObject *, (x)); i_o->tt=LUA_TSTRING; \
+  { GCObject *i_x = cast(GCObject *, (x)); \
+    TValue *i_o=(obj); \
+    i_o->value.gc=i_x; i_o->tt=LUA_TSTRING; \
     checkliveness(G(L),i_o); }
 
 #define setuvalue(L,obj,x) \
-  { TValue *i_o=(obj); \
-    i_o->value.gc=cast(GCObject *, (x)); i_o->tt=LUA_TUSERDATA; \
+  { GCObject *i_x = cast(GCObject *, (x)); \
+    TValue *i_o=(obj); \
+    i_o->value.gc=i_x; i_o->tt=LUA_TUSERDATA; \
     checkliveness(G(L),i_o); }
 
 #define setthvalue(L,obj,x) \
-  { TValue *i_o=(obj); \
-    i_o->value.gc=cast(GCObject *, (x)); i_o->tt=LUA_TTHREAD; \
+  { GCObject *i_x = cast(GCObject *, (x)); \
+    TValue *i_o=(obj); \
+    i_o->value.gc=i_x; i_o->tt=LUA_TTHREAD; \
     checkliveness(G(L),i_o); }
 
 #define setclvalue(L,obj,x) \
-  { TValue *i_o=(obj); \
-    i_o->value.gc=cast(GCObject *, (x)); i_o->tt=LUA_TFUNCTION; \
+  { GCObject *i_x = cast(GCObject *, (x)); \
+    TValue *i_o=(obj); \
+    i_o->value.gc=i_x; i_o->tt=LUA_TFUNCTION; \
     checkliveness(G(L),i_o); }
 
 #define sethvalue(L,obj,x) \
-  { TValue *i_o=(obj); \
-    i_o->value.gc=cast(GCObject *, (x)); i_o->tt=LUA_TTABLE; \
+  { GCObject *i_x = cast(GCObject *, (x)); \
+    TValue *i_o=(obj); \
+    i_o->value.gc=i_x; i_o->tt=LUA_TTABLE; \
     checkliveness(G(L),i_o); }
 
 #define setptvalue(L,obj,x) \
-  { TValue *i_o=(obj); \
-    i_o->value.gc=cast(GCObject *, (x)); i_o->tt=LUA_TPROTO; \
+  { GCObject *i_x = cast(GCObject *, (x)); \
+    TValue *i_o=(obj); \
+    i_o->value.gc=i_x; i_o->tt=LUA_TPROTO; \
     checkliveness(G(L),i_o); }
 
 
