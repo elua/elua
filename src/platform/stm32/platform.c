@@ -14,6 +14,7 @@
 #include "elua_adc.h"
 #include "uip-conf.h"
 #include "platform_conf.h"
+#include "diskio.h"
 #include "common.h"
 #include "buf.h"
 #include "utils.h"

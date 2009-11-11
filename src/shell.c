@@ -218,7 +218,7 @@ static void shell_ls( char* args )
     printf( "%d bytes", size );
     total = total + size;
   }
-  printf( "\n\nTotal = %d bytes\n\n", total );
+  printf( "\n\nTotal = %d bytes\n\n", ( unsigned )total );
 #endif
 }
 
