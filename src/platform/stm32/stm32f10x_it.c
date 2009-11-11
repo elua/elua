@@ -22,7 +22,6 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x_it.h"
-#include "systick.h"
 #include "platform.h"
 /** @addtogroup Template_Project
   * @{
