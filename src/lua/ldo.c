@@ -51,11 +51,13 @@ struct lua_longjmp {
 void luaD_seterrorobj (lua_State *L, int errcode, StkId oldtop) {
   switch (errcode) {
     case LUA_ERRMEM: {
-      setsvalue2s(L, oldtop, luaS_newliteral(L, MEMERRMSG));
+      ptrdiff_t oldtopr = savestack(L, oldtop);
+      setsvalue2s(L, restorestack(L, oldtopr), luaS_newliteral(L, MEMERRMSG));
       break;
     }
     case LUA_ERRERR: {
-      setsvalue2s(L, oldtop, luaS_newliteral(L, "error in error handling"));
+      ptrdiff_t oldtopr = savestack(L, oldtop);
+      setsvalue2s(L, restorestack(L, oldtopr), luaS_newliteral(L, "error in error handling"));
       break;
     }
     case LUA_ERRSYNTAX:
@@ -224,8 +226,10 @@ static StkId adjust_varargs (lua_State *L, Proto *p, int actual) {
     htab = luaH_new(L, nvar, 1);  /* create `arg' table */
     sethvalue2s(L, L->top, htab); /* put table on stack */
     incr_top(L);
+    fixedstack(L);
     for (i=0; i<nvar; i++)  /* put extra arguments into `arg' table */
       setobj2n(L, luaH_setnum(L, htab, i+1), L->top - 1 - nvar + i);
+    unfixedstack(L);
     /* store counter in field `n' */
     setnvalue(luaH_setstr(L, htab, luaS_newliteral(L, "n")), cast_num(nvar));
     L->top--; /* remove table from stack */

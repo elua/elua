@@ -282,6 +282,7 @@ module_files = " " + " ".join( [ "src/modules/%s" % name for name in module_name
 #opt = "-O3"
 opt = "-Os -fomit-frame-pointer"
 #opt += " -ffreestanding"
+#opt += " -fconserve-stack" # conserve stack at potential speed cost, >=GCC4.4
 
 
 # Toolset data (filled by each platform in part)

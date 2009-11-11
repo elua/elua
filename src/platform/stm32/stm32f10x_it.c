@@ -22,6 +22,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x_it.h"
+#include <stdio.h>
 #include "platform.h"
 /** @addtogroup Template_Project
   * @{
@@ -47,6 +48,51 @@ void NMI_Handler(void)
 {
 }
 
+int fputc(int ch, FILE *f)
+{
+   platform_uart_send(0, ch);
+   return ch;
+}
+
+void hard_fault_handler_c(unsigned int * hardfault_args)
+{
+  unsigned int stacked_r0;
+  unsigned int stacked_r1;
+  unsigned int stacked_r2;
+  unsigned int stacked_r3;
+  unsigned int stacked_r12;
+  unsigned int stacked_lr;
+  unsigned int stacked_pc;
+  unsigned int stacked_psr;
+
+  stacked_r0 = ((unsigned long) hardfault_args[0]);
+  stacked_r1 = ((unsigned long) hardfault_args[1]);
+  stacked_r2 = ((unsigned long) hardfault_args[2]);
+  stacked_r3 = ((unsigned long) hardfault_args[3]);
+
+  stacked_r12 = ((unsigned long) hardfault_args[4]);
+  stacked_lr = ((unsigned long) hardfault_args[5]);
+  stacked_pc = ((unsigned long) hardfault_args[6]);
+  stacked_psr = ((unsigned long) hardfault_args[7]);
+
+  printf ("[Hard fault handler]\n");
+  printf ("R0 = %x\n", stacked_r0);
+  printf ("R1 = %x\n", stacked_r1);
+  printf ("R2 = %x\n", stacked_r2);
+  printf ("R3 = %x\n", stacked_r3);
+  printf ("R12 = %x\n", stacked_r12);
+  printf ("LR = %x\n", stacked_lr);
+  printf ("PC = %x\n", stacked_pc);
+  printf ("PSR = %x\n", stacked_psr);
+  printf ("BFAR = %x\n", (*((volatile unsigned  *)(0xE000ED38))));
+  printf ("CFSR = %x\n", (*((volatile unsigned  *)(0xE000ED28))));
+  printf ("HFSR = %x\n", (*((volatile unsigned  *)(0xE000ED2C))));
+  printf ("DFSR = %x\n", (*((volatile unsigned  *)(0xE000ED30))));
+  printf ("AFSR = %x\n", (*((volatile unsigned  *)(0xE000ED3C))));
+
+  while (1) { ;; }
+}
+
 /**
   * @brief  This function handles Hard Fault exception.
   * @param  None
@@ -54,14 +100,13 @@ void NMI_Handler(void)
   */
 void HardFault_Handler(void)
 {
-/* Go to infinite loop when Hard Fault exception occurs */
-while (1)
-{
-  platform_uart_send(0, ' ');
-  platform_uart_send(0, 'H');
-  platform_uart_send(0, 'F');
-  platform_uart_send(0, '!');
-}
+  asm(
+  "tst lr, #4\n\t"
+  "ite eq\n\t"
+  "mrseq r0, msp\n\t"
+  "mrsne r0, psp\n\t"
+  "b hard_fault_handler_c"
+  );
 }
 
 /**
