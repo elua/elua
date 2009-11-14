@@ -747,13 +747,13 @@ static void helper_remote_index( Helper *helper )
     hstack[ helper->nparents - 1 ] = helper->parent;
     len += strlen( hstack[ helper->nparents - 1 ]->funcname ) + 1;
   
-    for(i = helper->nparents - 1 ; i > 0 ; i -- )
+    for( i = helper->nparents - 1 ; i > 0 ; i -- )
     {
       hstack[ i - 1 ] = hstack[ i ]->parent;
       len += strlen( hstack[ i ]->funcname ) + 1;
     }
 	
-	transport_write_u32( tpt, len );
+	  transport_write_u32( tpt, len );
 
     // replay helper key names      
     for( i = 0 ; i < helper->nparents ; i ++ )
@@ -1054,13 +1054,13 @@ static void server_handle_destroy( ServerHandle *h )
   server_handle_shutdown( h );
 }
 
-/****************************************************************************/
-/* remote function calling (client side) */
+// **************************************************************************
+// remote function calling (client side)
 
-/* rpc_connect (ip_address, port)
- *     returns a handle to the new connection, or nil if there was an error.
- *     if there is an RPC error function defined, it will be called on error.
- */
+// rpc_connect (ip_address, port)
+//      returns a handle to the new connection, or nil if there was an error.
+//      if there is an RPC error function defined, it will be called on error.
+
 
 static int rpc_connect( lua_State *L )
 {
@@ -1084,12 +1084,12 @@ static int rpc_connect( lua_State *L )
 }
 
 
-/* rpc_close (handle)
- *     this closes the transport, but does not free the handle object. that's
- *     because the handle will still be in the user's name space and might be
- *     referred to again. we'll let garbage collection free the object.
- *     it's a lua runtime error to refer to a transport after it has been closed.
- */
+// rpc_close( handle )
+//     this closes the transport, but does not free the handle object. that's
+//     because the handle will still be in the user's name space and might be
+//     referred to again. we'll let garbage collection free the object.
+//     it's a lua runtime error to refer to a transport after it has been closed.
+
 
 static int rpc_close( lua_State *L )
 {
