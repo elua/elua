@@ -36,14 +36,14 @@
 
 #ifdef BUILD_LUARPC
 
-/* Support for Compiling with rotables */
+// Support for Compiling with & without rotables 
 #ifdef LUA_OPTIMIZE_MEMORY
 #define LUA_ISCALLABLE( state, idx ) ( lua_isfunction( state, idx ) || lua_islightfunction( state, idx ) )
 #else
 #define LUA_ISCALLABLE( state, idx ) lua_isfunction( state, idx )
 #endif
 
-/* Prototypes for Local Functions  */
+// Prototypes for Local Functions  
 LUALIB_API int luaopen_luarpc( lua_State *L );
 Handle *handle_create( lua_State *L );
 
@@ -81,8 +81,7 @@ static void rpcdebug (const char *msg, ...)
   abort();
 }
 
-/* enums for variable types, commands, and status codes */
-
+// Lua Types
 enum {
   RPC_NIL=0,
   RPC_NUMBER,
@@ -94,6 +93,7 @@ enum {
   RPC_FUNCTION_END
 };
 
+// RPC Commands
 enum
 {
   RPC_CMD_CALL = 1,
@@ -102,6 +102,7 @@ enum
   RPC_CMD_NEWINDEX
 };
 
+// RPC Status Codes
 enum
 {
   RPC_READY = 64,
@@ -112,7 +113,7 @@ enum
 enum { RPC_PROTOCOL_VERSION = 3 };
 
 
-/* return a string representation of an error number */
+// return a string representation of an error number 
 
 static const char * errorString( int n )
 {
@@ -129,27 +130,24 @@ static const char * errorString( int n )
 }
 
 
-/****************************************************************************/
-/* transport layer generics */
+// **************************************************************************
+// transport layer generics
 
-/* read from the transport into a string buffer. */
-
+// read arbitrary length from the transport into a string buffer. 
 static void transport_read_string( Transport *tpt, const char *buffer, int length )
 {
   transport_read_buffer( tpt, ( u8 * )buffer, length );
 }
 
 
-/* write a string buffer to the transport */
-
+// write arbitrary length string buffer to the transport 
 static void transport_write_string( Transport *tpt, const char *buffer, int length )
 {
   transport_write_buffer( tpt, ( u8 * )buffer, length );
 }
 
 
-/* read a u8 from the transport */
-
+// read a u8 from the transport 
 static u8 transport_read_u8( Transport *tpt )
 {
   u8 b;
@@ -160,8 +158,7 @@ static u8 transport_read_u8( Transport *tpt )
 }
 
 
-/* write a u8 to the transport */
-
+// write a u8 to the transport 
 static void transport_write_u8( Transport *tpt, u8 x )
 {
   struct exception e;
@@ -185,7 +182,7 @@ union u32_bytes {
   uint8_t  b[ 4 ];
 };
 
-/* read a u32 from the transport */
+// read a u32 from the transport 
 static u32 transport_read_u32( Transport *tpt )
 {
   union u32_bytes ub;
@@ -198,7 +195,7 @@ static u32 transport_read_u32( Transport *tpt )
 }
 
 
-/* write a u32 to the transport */
+// write a u32 to the transport 
 static void transport_write_u32( Transport *tpt, u32 x )
 {
   union u32_bytes ub;
@@ -210,8 +207,7 @@ static void transport_write_u32( Transport *tpt, u32 x )
   transport_write_buffer( tpt, ub.b, 4 );
 }
 
-/* read a lua number from the transport */
-
+// read a lua number from the transport 
 static lua_Number transport_read_number( Transport *tpt )
 {
   lua_Number x;
@@ -223,9 +219,9 @@ static lua_Number transport_read_number( Transport *tpt )
   if( tpt->net_little != tpt->loc_little )
     swap_bytes( ( uint8_t * )b, tpt->lnum_bytes );
   
-  if( tpt->net_intnum != tpt->loc_intnum )
+  if( tpt->net_intnum != tpt->loc_intnum ) // if we differ on num types, use int
   {
-    switch( tpt->lnum_bytes )
+    switch( tpt->lnum_bytes ) // read integer types
     {
       case 1: {
         int8_t y = *( int8_t * )b;
@@ -247,13 +243,13 @@ static lua_Number transport_read_number( Transport *tpt )
     }
   }
   else
-    x = ( lua_Number ) *( lua_Number * )b;
+    x = ( lua_Number ) *( lua_Number * )b; // if types match, use native type
     
   return x;
 }
 
 
-/* write a lua number to the transport */
+// write a lua number to the transport 
 static void transport_write_number( Transport *tpt, lua_Number x )
 {
   struct exception e;
@@ -298,13 +294,10 @@ static void transport_write_number( Transport *tpt, lua_Number x )
 
 
 
-/****************************************************************************/
-/* lua utility */
+// **************************************************************************
+// lua utilities
 
-/* replacement for lua_error that resets the exception stack before leaving
- * Lua-RPC.
- */
-
+// replacement for lua_error
 void my_lua_error( lua_State *L, const char *errmsg )
 {
   lua_pushstring( L, errmsg );
@@ -313,7 +306,7 @@ void my_lua_error( lua_State *L, const char *errmsg )
 
 int check_num_args( lua_State *L, int desired_n )
 {
-  int n = lua_gettop( L );   /* number of arguments on stack */
+  int n = lua_gettop( L );   // number of arguments on stack
   if ( n != desired_n )
   {
     char s[ 30 ];
@@ -326,10 +319,10 @@ int check_num_args( lua_State *L, int desired_n )
 
 static int ismetatable_type( lua_State *L, int ud, const char *tname )
 {
-  if( lua_getmetatable( L, ud ) ) {  /* does it have a metatable? */
-    lua_getfield( L, LUA_REGISTRYINDEX, tname );  /* get correct metatable */
-    if( lua_rawequal( L, -1, -2 ) ) {  /* does it have the correct mt? */
-      lua_pop( L, 2 );  /* remove both metatables */
+  if( lua_getmetatable( L, ud ) ) {  // does it have a metatable?
+    lua_getfield( L, LUA_REGISTRYINDEX, tname );  // get correct metatable
+    if( lua_rawequal( L, -1, -2 ) ) {  // does it have the correct mt?
+      lua_pop( L, 2 );  // remove both metatables
       return 1;
     }
   }
@@ -339,28 +332,26 @@ static int ismetatable_type( lua_State *L, int ud, const char *tname )
 
 
 /****************************************************************************/
-/* read and write lua variables to a transport.
- * these functions do little error handling of their own, but they call transport
- * functions which may throw exceptions, so calls to these functions must be
- * wrapped in a Try block.
- */
-
-/* write a table at the given index in the stack. the index must be absolute
- * (i.e. positive).
- */
+// read and write lua variables to a transport.
+//   these functions do little error handling of their own, but they call transport
+//   functions which may throw exceptions, so calls to these functions must be
+//   wrapped in a Try block.
 
 static void write_variable( Transport *tpt, lua_State *L, int var_index );
 static int read_variable( Transport *tpt, lua_State *L );
 
+// write a table at the given index in the stack. the index must be absolute
+// (i.e. positive).
 static void write_table( Transport *tpt, lua_State *L, int table_index )
 {
-  lua_pushnil( L );  /* push first key */
+  lua_pushnil( L );  // push first key
   while ( lua_next( L, table_index ) ) 
   {
-    /* next key and value were pushed on the stack */
+    // next key and value were pushed on the stack 
     write_variable( tpt, L, lua_gettop( L ) - 1 );
     write_variable( tpt, L, lua_gettop( L ) );
-    /* remove value, keep key for next iteration */
+    
+    // remove value, keep key for next iteration 
     lua_pop( L, 1 );
   }
 }
@@ -387,25 +378,25 @@ static void write_function( Transport *tpt, lua_State *L, int var_index )
   target.lua_Number_integral=tpt->net_intnum;
   target.is_arm_fpa=0;
   
-  /* push function onto stack, serialize to string */
+  // push function onto stack, serialize to string 
   lua_pushvalue( L, var_index );
   luaL_buffinit( L, &b );
   lua_lock(L);
   o = L->top - 1;
   luaU_dump_crosscompile(L,clvalue(o)->l.p,writer,&b,0,target);
   lua_unlock(L);
-  /* put string representation on stack and send it */
+  
+  // put string representation on stack and send it
   luaL_pushresult( &b );
   write_variable( tpt, L, lua_gettop( L ) );
   
-  /* Remove function & dumped string from stack*/
+  // Remove function & dumped string from stack
   lua_pop( L, 2 );
 }
 
 
-/* write a variable at the given index in the stack. the index must be absolute
- * (i.e. positive).
- */
+// write a variable at the given index in the stack. the index must be absolute
+// (i.e. positive).
 
 static void write_variable( Transport *tpt, lua_State *L, int var_index )
 {
@@ -467,7 +458,7 @@ static void write_variable( Transport *tpt, lua_State *L, int var_index )
 }
 
 
-/* read a table and push in onto the stack */
+// read a table and push in onto the stack 
 static void read_table( Transport *tpt, lua_State *L )
 {
   int table_index;
@@ -482,6 +473,7 @@ static void read_table( Transport *tpt, lua_State *L )
   }
 }
 
+// read function and load
 static void read_function( Transport *tpt, lua_State *L )
 {
   const char *b;
@@ -500,10 +492,10 @@ static void read_function( Transport *tpt, lua_State *L )
 }
 
 
-/* read a variable and push in onto the stack. this returns 1 if a "normal"
- * variable was read, or 0 if an end-table marker was read (in which case
- * nothing is pushed onto the stack).
- */
+// read a variable and push in onto the stack. this returns 1 if a "normal"
+// variable was read, or 0 if an end-table or end-function marker was read (in which case
+// nothing is pushed onto the stack).
+
 
 static int read_variable( Transport *tpt, lua_State *L )
 {
@@ -557,11 +549,10 @@ static int read_variable( Transport *tpt, lua_State *L )
 }
 
 
-/****************************************************************************/
-/* rpc utility */
+// **************************************************************************
+// rpc utilities
 
-/* functions for sending and receving headers
- */
+// functions for sending and receving headers 
 
 static void client_negotiate( Transport *tpt )
 {
@@ -569,11 +560,11 @@ static void client_negotiate( Transport *tpt )
   char header[ 8 ];
   int x = 1;
 
-  tpt->loc_little = (char)*(char*)&x;
-  tpt->lnum_bytes = (char)sizeof(lua_Number);
-  tpt->loc_intnum = (char)(((lua_Number)0.5)==0);
+  tpt->loc_little = ( char )*( char * )&x;
+  tpt->lnum_bytes = ( char )sizeof( lua_Number );
+  tpt->loc_intnum = ( char )( ( ( lua_Number )0.5 ) == 0 );
 
-  /* write the protocol header */
+  // write the protocol header 
   header[0] = 'L';
   header[1] = 'R';
   header[2] = 'P';
@@ -585,7 +576,7 @@ static void client_negotiate( Transport *tpt )
   transport_write_string( tpt, header, sizeof( header ) );
   
   
-  /* read response with wire configuration */
+  // read response with wire configuration 
   transport_read_string( tpt, header, sizeof( header ) );
   if( header[0] != 'L' ||
       header[1] != 'R' ||
@@ -609,12 +600,11 @@ static void server_negotiate( Transport *tpt )
   char header[ 8 ];
   int x = 1;
   
-  tpt->net_little = tpt->loc_little = (char)*(char*)&x;
-  tpt->lnum_bytes = (char)sizeof(lua_Number);
-  tpt->net_intnum = tpt->loc_intnum = (char)(((lua_Number)0.5)==0);
+  tpt->net_little = tpt->loc_little = ( char )*( char * )&x;
+  tpt->lnum_bytes = ( char )sizeof( lua_Number );
+  tpt->net_intnum = tpt->loc_intnum = ( char )( ( ( lua_Number )0.5 ) == 0 );
   
-  
-  /* check that the header is ok */
+  // check that the header is ok 
   transport_read_string( tpt, header, sizeof( header ) );
   if( header[0] != 'L' ||
       header[1] != 'R' ||
@@ -627,41 +617,39 @@ static void server_negotiate( Transport *tpt )
     Throw( e );
   }
   
-  /*  check if endianness differs, if so use big endian order  */
+  // check if endianness differs, if so use big endian order  
   if( header[ 5 ] != tpt->loc_little )
     header[ 5 ] = tpt->net_little = 0;
     
-  /* set number precision to lowest common denominator */
+  // set number precision to lowest common denominator 
   if( header[ 6 ] > tpt->lnum_bytes )
     header[ 6 ] = tpt->lnum_bytes;
   if( header[ 6 ] < tpt->lnum_bytes )
     tpt->lnum_bytes = header[ 6 ];
   
-  /* if lua_Number is integer on either side, use integer */
+  // if lua_Number is integer on either side, use integer 
   if( header[ 7 ] != tpt->loc_intnum )
     header[ 7 ] = tpt->net_intnum = 1;
     
   transport_write_string( tpt, header, sizeof( header ) );
 }
 
-/****************************************************************************/
-/* client side handle and handle helper userdata objects.
- *
- * a handle userdata (handle to a RPC server) is a pointer to a Handle object.
- * a helper userdata is a pointer to a Helper object.
- *
- * helpers let us make expressions like:
- *    handle.funcname (a,b,c)
- * "handle.funcname" returns the helper object, which calls the remote
- * function.
- */
+// **************************************************************************
+// client side handle and handle helper userdata objects.
+//
+//  a handle userdata (handle to a RPC server) is a pointer to a Handle object.
+//  a helper userdata is a pointer to a Helper object.
+//
+//  helpers let us make expressions like:
+//     handle.funcname (a,b,c)
+//  "handle.funcname" returns the helper object, which calls the remote
+//  function.
 
-/* global error handling */
-static int global_error_handler = LUA_NOREF;  /* function reference */
+// global error handling 
+static int global_error_handler = LUA_NOREF;  // function reference
 
-/* handle a client or server side error. NOTE: this function may or may not
- * return. the handle `h' may be 0.
- */
+// handle a client or server side error. NOTE: this function may or may not
+// return. the handle `h' may be 0.
 
 void deal_with_error(lua_State *L, Handle *h, const char *error_string)
 { 
@@ -700,7 +688,7 @@ static Helper *helper_create( lua_State *L, Handle *handle, const char *funcname
 }
 
 
-/* indexing a handle returns a helper */
+// indexing a handle returns a helper 
 static int handle_index (lua_State *L)
 {
   const char *s;
@@ -716,13 +704,13 @@ static int handle_index (lua_State *L)
     
   helper_create( L, ( Handle * )lua_touserdata( L, 1 ), s );
 
-  /* return the helper object */
+  // return the helper object 
   return 1;
 }
 
 static int helper_newindex( lua_State *L );
 
-/* indexing a handle returns a helper */
+// indexing a handle returns a helper
 static int handle_newindex( lua_State *L )
 {
   const char *s;
@@ -744,14 +732,14 @@ static int handle_newindex( lua_State *L )
   return 0;
 }
 
-/* replays series of indexes to remote side as a string */
+// replays series of indexes to remote side as a string
 static void helper_remote_index( Helper *helper )
 {
   int i, len;
   Helper **hstack;
   Transport *tpt = &helper->handle->tpt;
   
-  /* get length of name & make stack of helpers */
+  // get length of name & make stack of helpers
   len = strlen( helper->funcname );
   if( helper->nparents > 0 ) // If helper has parents, build string to remote index
   {
@@ -767,7 +755,7 @@ static void helper_remote_index( Helper *helper )
 	
 	transport_write_u32( tpt, len );
 
-	/* replay helper key names */     
+    // replay helper key names      
     for( i = 0 ; i < helper->nparents ; i ++ )
     {
      transport_write_string( tpt, hstack[ i ]->funcname, strlen( hstack[ i ]->funcname ) );
@@ -796,7 +784,7 @@ static void helper_wait_ready( Transport *tpt, u8 cmd )
 
 }
 
-static int helper_get(lua_State *L, Helper *helper )
+static int helper_get( lua_State *L, Helper *helper )
 {
   struct exception e;
   int freturn = 0;
@@ -870,11 +858,11 @@ static int helper_call (lua_State *L)
   MYASSERT( lua_gettop( L ) >= 1 );
   MYASSERT( lua_isuserdata( L, 1 ) && ismetatable_type( L, 1, "rpc.helper" ) );
   
-  /* get helper object and its transport */
+  // get helper object and its transport 
   h = ( Helper * )lua_touserdata( L, 1 );
   tpt = &h->handle->tpt;
   
-  /* capture special calls, otherwise execute normal remote call */
+  // capture special calls, otherwise execute normal remote call
   if( strcmp("get", h->funcname ) == 0 )
   {
     helper_get( L, h->parent );
@@ -887,15 +875,15 @@ static int helper_call (lua_State *L)
       int i,n;
       u32 nret,ret_code;
 
-      /* write function name */
+      // write function name
       helper_wait_ready( tpt, RPC_CMD_CALL );
       helper_remote_index( h );
 
-      /* write number of arguments */
+      // write number of arguments
       n = lua_gettop( L );
       transport_write_u32( tpt, n - 1 );
     
-      /* write each argument */
+      // write each argument
       for( i = 2; i <= n; i ++ )
         write_variable( tpt, L, i );
 
@@ -906,12 +894,12 @@ static int helper_call (lua_State *L)
         freturn = 0;
       }*/
 
-      /* read return code */
+      // read return code
       ret_code = transport_read_u8( tpt );
 
       if ( ret_code == 0 )
       {
-        /* read return arguments */
+        // read return arguments
         nret = transport_read_u32( tpt );
       
         for ( i = 0; i < ( ( int ) nret ); i ++ )
@@ -921,7 +909,7 @@ static int helper_call (lua_State *L)
       }
       else
       {
-        /* read error and handle it */
+        // read error and handle it
         transport_read_u32( tpt ); // read code (not being used here)
         u32 len = transport_read_u32( tpt );
         char *err_string = ( char * )alloca( len + 1 );
@@ -961,13 +949,13 @@ static int helper_newindex( lua_State *L )
   MYASSERT( lua_isuserdata( L, -3 ) && ismetatable_type( L, -3, "rpc.helper" ) );
   MYASSERT( lua_isstring( L, -2 ) );
   
-  /* get helper object and its transport */
+  // get helper object and its transport
   h = ( Helper * )lua_touserdata( L, -3 );
   tpt = &h->handle->tpt;
   
   Try
   {  
-    /* write function name */
+    // write function name
     helper_wait_ready( tpt, RPC_CMD_NEWINDEX );
     helper_remote_index( h );
 
@@ -977,7 +965,7 @@ static int helper_newindex( lua_State *L )
     ret_code = transport_read_u8( tpt );
     if( ret_code != 0 )
     {
-      /* read error and handle it */
+      // read error and handle it
       transport_read_u32( tpt ); // Read code (not using here)
       u32 len = transport_read_u32( tpt );
       char *err_string = ( char * )alloca( len + 1 );
@@ -1020,8 +1008,8 @@ static Helper *helper_append( lua_State *L, Helper *helper, const char *funcname
   return h;
 }
 
-/* indexing a handle returns a helper */
-static int helper_index (lua_State *L)
+// indexing a handle returns a helper 
+static int helper_index( lua_State *L )
 {
   const char *s;
 
@@ -1039,8 +1027,8 @@ static int helper_index (lua_State *L)
   return 1;
 }
 
-/****************************************************************************/
-/* server side handle userdata objects. */
+// **************************************************************************
+// server side handle userdata objects. 
 
 static ServerHandle *server_handle_create( lua_State *L )
 {
@@ -1128,36 +1116,34 @@ static int rpc_close( lua_State *L )
 }
 
 
-/* rpc_async (handle,)
- *     this sets a handle's asynchronous calling mode (0/nil=off, other=on).
- *     (this is for the client only).
- */
-/* @@@ This should probably be adjusted to be in line with our new multiple command architecture */
-static int rpc_async (lua_State *L)
-{
-  Handle *handle;
-  check_num_args( L, 2 );
+// rpc_async (handle,)
+//     this sets a handle's asynchronous calling mode (0/nil=off, other=on).
+//     (this is for the client only).
+//     @@@ Before re-enabling, this should be brought up to date with multi-command architecture
 
-  if ( !lua_isuserdata( L, 1 ) || !ismetatable_type( L, 1, "rpc.handle" ) )
-    my_lua_error( L, "first arg must be client handle" );
+// static int rpc_async (lua_State *L)
+// {
+//   Handle *handle;
+//   check_num_args( L, 2 );
+// 
+//   if ( !lua_isuserdata( L, 1 ) || !ismetatable_type( L, 1, "rpc.handle" ) )
+//     my_lua_error( L, "first arg must be client handle" );
+// 
+//   handle = ( Handle * )lua_touserdata( L, 1 );
+// 
+//   if ( lua_isnil( L, 2 ) || ( lua_isnumber( L, 2 ) && lua_tonumber( L, 2 ) == 0) )
+//     handle->async = 0;
+//   else
+//     handle->async = 1;
+// 
+//   return 0;
+// }
 
-  handle = ( Handle * )lua_touserdata( L, 1 );
-
-  if ( lua_isnil( L, 2 ) || ( lua_isnumber( L, 2 ) && lua_tonumber( L, 2 ) == 0) )
-    handle->async = 0;
-  else
-    handle->async = 1;
-
-  return 0;
-}
-
-/****************************************************************************/
-/* lua remote function server */
-
-/* read function call data and execute the function. this function empties the
- * stack on entry and exit. This sets a custom error handler to catch errors 
- * around the function call.
- */
+//****************************************************************************
+// lua remote function server
+//   read function call data and execute the function. this function empties the
+//   stack on entry and exit. This sets a custom error handler to catch errors 
+//   around the function call.
 
 static void read_cmd_call( Transport *tpt, lua_State *L )
 {
@@ -1166,15 +1152,15 @@ static void read_cmd_call( Transport *tpt, lua_State *L )
   char *funcname;
   char *token = NULL;
 
-  /* read function name */
+  // read function name
   len = transport_read_u32( tpt ); /* function name string length */ 
   funcname = ( char * )alloca( len + 1 );
   transport_read_string( tpt, funcname, len );
   funcname[ len ] = 0;
     
-  /* get function */
-  /* @@@ perhaps handle more like variables instead of using a long string? */
-  /* @@@ also strtok is not thread safe */
+  // get function
+  // @@@ perhaps handle more like variables instead of using a long string?
+  // @@@ also strtok is not thread safe
   token = strtok( funcname, "." );
   lua_getglobal( L, token );
   token = strtok( NULL, "." );
@@ -1186,20 +1172,20 @@ static void read_cmd_call( Transport *tpt, lua_State *L )
   stackpos = lua_gettop( L ) - 1;
   good_function = LUA_ISCALLABLE( L, -1 );
 
-  /* read number of arguments */
+  // read number of arguments
   nargs = transport_read_u32( tpt );
 
-  /* read in each argument, leave it on the stack */
+  // read in each argument, leave it on the stack
   for ( i = 0; i < nargs; i ++ ) 
     read_variable( tpt, L );
 
-  /* call the function */
+  // call the function
   if( good_function )
   {
     int nret, error_code;
     error_code = lua_pcall( L, nargs, LUA_MULTRET, 0 );
     
-    /* handle errors */
+    // handle errors
     if ( error_code )
     {
       size_t len;
@@ -1212,7 +1198,7 @@ static void read_cmd_call( Transport *tpt, lua_State *L )
     }
     else
     {
-      /* pass the return values back to the caller */
+      // pass the return values back to the caller
       transport_write_u8( tpt, 0 );
       nret = lua_gettop( L ) - stackpos;
       transport_write_u32( tpt, nret );
@@ -1222,7 +1208,7 @@ static void read_cmd_call( Transport *tpt, lua_State *L )
   }
   else
   {
-    /* bad function */
+    // bad function
     const char *msg = "undefined function: ";
     int errlen = strlen( msg ) + len;
     transport_write_u8( tpt, 1 );
@@ -1231,7 +1217,7 @@ static void read_cmd_call( Transport *tpt, lua_State *L )
     transport_write_string( tpt, msg, strlen( msg ) );
     transport_write_string( tpt, funcname, len );
   }
-  /* empty the stack */
+  // empty the stack
   lua_settop ( L, 0 );
 }
 
@@ -1242,15 +1228,15 @@ static void read_cmd_get( Transport *tpt, lua_State *L )
   char *funcname;
   char *token = NULL;
 
-  /* read function name */
-  len = transport_read_u32( tpt ); /* function name string length */ 
+  // read function name
+  len = transport_read_u32( tpt ); // function name string length 
   funcname = ( char * )alloca( len + 1 );
   transport_read_string( tpt, funcname, len );
   funcname[ len ] = 0;
 
-  /* get function */
-  /* @@@ perhaps handle more like variables instead of using a long string? */
-  /* @@@ also strtok is not reentrant, strtok_r would be, if needed */
+  // get function
+  // @@@ perhaps handle more like variables instead of using a long string?
+  // @@@ also strtok is not thread safe
   token = strtok( funcname, "." );
   lua_getglobal( L, token );
   token = strtok( NULL, "." );
@@ -1260,10 +1246,10 @@ static void read_cmd_get( Transport *tpt, lua_State *L )
     token = strtok( NULL, "." );
   }
 
-  /* return top value on stack */
+  // return top value on stack
   write_variable( tpt, L, lua_gettop( L ) );
 
-  /* empty the stack */
+  // empty the stack
   lua_settop ( L, 0 );
 }
 
@@ -1274,16 +1260,16 @@ static void read_cmd_newindex( Transport *tpt, lua_State *L )
   char *funcname;
   char *token = NULL;
 
-  /* read function name */
-  len = transport_read_u32( tpt ); /* function name string length */ 
+  // read function name
+  len = transport_read_u32( tpt ); // function name string length
   funcname = ( char * )alloca( len + 1 );
   transport_read_string( tpt, funcname, len );
   funcname[ len ] = 0;
 
-  /* get function */
-  /* @@@ perhaps handle more like variables instead of using a long string? */
-  /* @@@ also strtok is not thread safe */
-  if( strlen( funcname ) > 0 ) /*  */
+  // get function
+  // @@@ perhaps handle more like variables instead of using a long string?
+  // @@@ also strtok is not thread safe
+  if( strlen( funcname ) > 0 )
   {
     token = strtok( funcname, "." );
     lua_getglobal( L, token );
@@ -1293,31 +1279,31 @@ static void read_cmd_newindex( Transport *tpt, lua_State *L )
       lua_getfield( L, -1, token );
       token = strtok( NULL, "." );
     }
-    read_variable( tpt, L ); /* key */
-    read_variable( tpt, L ); /* value */  
-    lua_settable( L, -3 ); /* set key to value on indexed table */
+    read_variable( tpt, L ); // key
+    read_variable( tpt, L ); // value
+    lua_settable( L, -3 ); // set key to value on indexed table
   }
   else
   {
-    read_variable( tpt, L ); /* key */
-    read_variable( tpt, L ); /* value */  
+    read_variable( tpt, L ); // key
+    read_variable( tpt, L ); // value
     lua_setglobal( L, lua_tostring( L, -2 ) );
   }
-  /* Write out 0 to indicate no error and that we're done */
+  // Write out 0 to indicate no error and that we're done
   transport_write_u8( tpt, 0 );
   
-  /*if ( error_code ) // Add some error handling later
-  {
-    size_t len;
-    const char *errmsg;
-    errmsg = lua_tolstring (L, -1, &len);
-    transport_write_u8( tpt, 1 );
-    transport_write_u32( tpt, error_code );
-    transport_write_u32( tpt, len );
-    transport_write_string( tpt, errmsg, len );
-  }*/
+  // if ( error_code ) // Add some error handling later
+  // {
+  //   size_t len;
+  //   const char *errmsg;
+  //   errmsg = lua_tolstring (L, -1, &len);
+  //   transport_write_u8( tpt, 1 );
+  //   transport_write_u32( tpt, error_code );
+  //   transport_write_u32( tpt, len );
+  //   transport_write_string( tpt, errmsg, len );
+  // }
   
-  /* empty the stack */
+  // empty the stack
   lua_settop ( L, 0 );
 }
 
@@ -1329,10 +1315,10 @@ static ServerHandle *rpc_listen_helper( lua_State *L )
 
   Try
   {
-    /* make server handle */
+    // make server handle 
     handle = server_handle_create( L );
 
-    /* make listening transport */
+    // make listening transport 
     transport_open_listener( L, handle );
   }
   Catch( e )
@@ -1347,7 +1333,8 @@ static ServerHandle *rpc_listen_helper( lua_State *L )
 }
 
 
-/* rpc_listen (port) --> server_handle */
+// rpc_listen( transport_indentifier ) --> server_handle
+//    transport_identifier defines where to listen, identifier type is subject to transport implementation
 static int rpc_listen( lua_State *L )
 {
   ServerHandle *handle;
@@ -1360,7 +1347,7 @@ static int rpc_listen( lua_State *L )
 }
 
 
-/* rpc_peek (server_handle) --> 0 or 1 */
+// rpc_peek( server_handle ) --> 0 or 1 
 static int rpc_peek( lua_State *L )
 {
   ServerHandle *handle;
@@ -1371,7 +1358,7 @@ static int rpc_peek( lua_State *L )
 
   handle = ( ServerHandle * )lua_touserdata( L, 1 );
 
-  /* if accepting transport is open, see if there is any data to read */
+  // if accepting transport is open, see if there is any data to read
   if ( transport_is_open( &handle->atpt ) )
   {
     if ( transport_readable( &handle->atpt ) )
@@ -1382,7 +1369,7 @@ static int rpc_peek( lua_State *L )
     return 1;
   }
 
-  /* otherwise, see if there is a new connection on the listening transport */
+  // otherwise, see if there is a new connection on the listening transport
   if ( transport_is_open( &handle->ltpt ) )
   {
     if ( transport_readable( &handle->ltpt ) )
@@ -1404,29 +1391,29 @@ static void rpc_dispatch_helper( lua_State *L, ServerHandle *handle )
 
   Try 
   {
-    /* if accepting transport is open, read function calls */
+    // if accepting transport is open, read function calls
     if ( transport_is_open( &handle->atpt ) )
     {
       Try
       {
         switch ( transport_read_u8( &handle->atpt ) )
         {
-          case RPC_CMD_CALL:
+          case RPC_CMD_CALL:  // call function
             transport_write_u8( &handle->atpt, RPC_READY );
             read_cmd_call( &handle->atpt, L );
             break;
-          case RPC_CMD_GET:
+          case RPC_CMD_GET: // get server-side variable for client
             transport_write_u8( &handle->atpt, RPC_READY );
             read_cmd_get( &handle->atpt, L );
             break;
-          case RPC_CMD_CON: /*  @@@ allow client to "reconnect", should support better mechanism */
+          case RPC_CMD_CON: //  @@@ allow client to "reconnect", should support better mechanism
             server_negotiate( &handle->atpt );
             break;
-          case RPC_CMD_NEWINDEX:
+          case RPC_CMD_NEWINDEX: // assign new variable on server
             transport_write_u8( &handle->atpt, RPC_READY );
             read_cmd_newindex( &handle->atpt, L );
             break;
-          default:
+          default: // complain and throw exception if unknown command
             transport_write_u8(&handle->atpt, RPC_UNSUPPORTED_CMD );
             e.type = nonfatal;
             e.errnum = ERR_COMMAND;
@@ -1437,22 +1424,21 @@ static void rpc_dispatch_helper( lua_State *L, ServerHandle *handle )
       }
       Catch( e )
       {
-        /* if the client has closed the connection, close our side
-         * gracefully too.
-         */
+        // close our side of the transport
+        // @@@ this catch block doesn't seem to make much sense
         transport_close( &handle->atpt );
 
         switch( e.type )
         {
-          case fatal:
+          case fatal: // shutdown will initiate after throw
             Throw( e );
             
-          case nonfatal:
+          case nonfatal
             handle->link_errs++;
             if ( handle->link_errs > MAX_LINK_ERRS )
             {
               handle->link_errs = 0;
-              Throw( e );
+              Throw( e ); // connection will close after throw
             }
             break;
             
@@ -1463,9 +1449,8 @@ static void rpc_dispatch_helper( lua_State *L, ServerHandle *handle )
     }
     else
     {
-      /* if accepting transport is not open, accept a new connection from the
-       * listening transport.
-       */
+      // if accepting transport is not open, accept a new connection from the
+      // listening transport
       transport_accept( &handle->ltpt, &handle->atpt );
       
       switch ( transport_read_u8( &handle->atpt ) )
@@ -1473,7 +1458,7 @@ static void rpc_dispatch_helper( lua_State *L, ServerHandle *handle )
         case RPC_CMD_CON:
           server_negotiate( &handle->atpt );
           break;
-        default: /* connection must be established to issue any other commands */
+        default: // connection must be established to issue any other commands
           e.type = nonfatal;
           e.errnum = ERR_COMMAND;
           Throw( e );
@@ -1488,9 +1473,11 @@ static void rpc_dispatch_helper( lua_State *L, ServerHandle *handle )
         server_handle_shutdown( handle );
         deal_with_error( L, 0, errorString( e.errnum ) );
         break;
+        
       case nonfatal:
         transport_close( &handle->atpt );
         break;
+        
       default:
         Throw( e );
     }
@@ -1498,8 +1485,7 @@ static void rpc_dispatch_helper( lua_State *L, ServerHandle *handle )
 }
 
 
-/* rpc_dispatch (server_handle) */
-
+// rpc_dispatch( server_handle )
 static int rpc_dispatch( lua_State *L )
 {
   ServerHandle *handle;
@@ -1515,16 +1501,20 @@ static int rpc_dispatch( lua_State *L )
 }
 
 
-/* lrf_server (port) */
-
+// rpc_server( transport_identifier )
 static int rpc_server( lua_State *L )
 {
   int shref;
   ServerHandle *handle = rpc_listen_helper( L );
   
-  /* hack to anchor handle in registry */
-  /* @@@ this should be replaced when we create a system for multiple connections */
-  /* @@@   such a mechanism would likely likely create a table for multiple connections that we could service in an event loop */
+  // Anchor handle in the registry
+  //   This is needed because garbage collection can steal our handle, 
+  //   which isn't otherwise referenced
+  //
+  //   @@@ this should be replaced when we create a system for multiple 
+  //   @@@ connections. such a mechanism would likely likely create a
+  //   @@@ table for multiple connections that we could service in an event loop 
+  
   shref = luaL_ref( L, LUA_REGISTRYINDEX );
   lua_rawgeti(L, LUA_REGISTRYINDEX, shref );
   
@@ -1536,12 +1526,10 @@ static int rpc_server( lua_State *L )
   return 0;
 }
 
-/****************************************************************************/
-/* more error handling stuff */
+// **************************************************************************
+// more error handling stuff 
 
-/* rpc_on_error ([handle,] error_handler)
- */
-
+// rpc_on_error( [ handle, ] error_handler )
 static int rpc_on_error( lua_State *L )
 {
   check_num_args( L, 1 );
@@ -1558,15 +1546,15 @@ static int rpc_on_error( lua_State *L )
   else
     my_lua_error( L, "bad args" );
 
-  /* @@@ add option for handle */
-  /* Handle *h = (Handle*) lua_touserdata (L,1); */
-  /* if (lua_isuserdata (L,1) && ismetatable_type(L, 1, "rpc.handle")); */
+  // @@@ add option for handle 
+  // Handle *h = (Handle*) lua_touserdata (L,1); 
+  // if (lua_isuserdata (L,1) && ismetatable_type(L, 1, "rpc.handle")); 
 
   return 0;
 }
 
-/****************************************************************************/
-/* register RPC functions */
+// **************************************************************************
+// register RPC functions 
 
 #ifndef LUARPC_STANDALONE
 
@@ -1602,9 +1590,9 @@ const LUA_REG_TYPE rpc_map[] =
   {  LSTRKEY( "listen" ), LFUNCVAL( rpc_listen ) },
   {  LSTRKEY( "peek" ), LFUNCVAL( rpc_peek ) },
   {  LSTRKEY( "dispatch" ), LFUNCVAL( rpc_dispatch ) },
-  {  LSTRKEY( "rpc_async" ), LFUNCVAL( rpc_async ) },
+//  {  LSTRKEY( "rpc_async" ), LFUNCVAL( rpc_async ) },
 #if LUA_OPTIMIZE_MEMORY > 0
-/*  {  LSTRKEY("mode"), LSTRVAL( LUARPC_MODE ) }, */
+// {  LSTRKEY("mode"), LSTRVAL( LUARPC_MODE ) }, 
 #endif // #if LUA_OPTIMIZE_MEMORY > 0
   { LNILKEY, LNILVAL }
 };
@@ -1663,7 +1651,7 @@ static const luaL_reg rpc_map[] =
   { "listen", rpc_listen },
   { "peek", rpc_peek },
   { "dispatch", rpc_dispatch },
-  { "rpc_async", rpc_async },
+//  { "rpc_async", rpc_async },
   { NULL, NULL }
 };
 
