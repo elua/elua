@@ -110,7 +110,8 @@ romfs = { 'bisect' : [ 'bisect.lua' ],
           'life' : [ 'life.lua' ],
           'logo' : ['logo.lua', 'logo.bin' ],
           'spaceship' : [ 'spaceship.lua' ],
-          'tetrives' : [ 'tetrives.lua' ]
+          'tetrives' : [ 'tetrives.lua' ],
+          'snake' : [ 'snake.lua' ]
         }
 
 # List of board/romfs data combinations
