@@ -1433,7 +1433,7 @@ static void rpc_dispatch_helper( lua_State *L, ServerHandle *handle )
           case fatal: // shutdown will initiate after throw
             Throw( e );
             
-          case nonfatal
+          case nonfatal:
             handle->link_errs++;
             if ( handle->link_errs > MAX_LINK_ERRS )
             {
