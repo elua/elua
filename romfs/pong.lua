@@ -14,7 +14,7 @@
 --    This had only the ball bouncing on walls, paddle and paddle movement
 --
 -- Greatly enhanced by Teo Benjamin in Aug/Sep 2009, adding:
---    Score, resizeable paddles, levels/speeds, items
+--    Score, resizeable paddles, levels/speeds, falling items, ...
 --
 --
 -------------------------------------------------------------------------------
@@ -27,7 +27,7 @@ local paddle = {}
 -- paddle.size                  -- Actual Paddle size = ( 6 * ( paddle.size + 1 ) ) + 2
 -- paddle.max_size              -- Max paddle.size value -> Constant
 -- paddle.min_size              -- Min paddle.size value -> Constant
--- paddle.y                            -- Paddle's Y position ( X position not needed, always 0 )
+-- paddle.y                     -- Paddle's Y position ( X position not needed, always 0 )
 
 local ball = {}
 -- ball.x                       -- Ball's X position
@@ -40,7 +40,7 @@ local item = {}
 -- item.x                       -- Item's X position
 -- item.y                       -- Item's Y position ( fix for each item )
 -- item.char                    -- This is the char that represents the item ( if false, there is no item )
--- item.all_chars                     -- A table that contains all the possibles item chars. Initialized by upload_items() function
+-- item.all_chars               -- A table that contains all the possibles item chars. Initialized by upload_items() function
 
 -- Define all constants
 local tmr_id = 1
