@@ -193,28 +193,28 @@ static void shell_ls( char* args )
 // 'cat' and 'type' handler
 static void shell_cat( char *args )
 {
-  args = args;
-
   FILE *fp;
   int c;
 
-// replace *args ending space with a string terminator
+// *args has an appended space. Replace it with the string terminator.
   *(strchr( args, ' ' )) = 0;
-    
-  if( ( fp = fopen( args , "rb" ) ) != NULL ) {
-    c = fgetc( fp );
-    while( c != EOF ) {
-      printf("%c", (char) c );  
+
+  if ( *args )
+    if( ( fp = fopen( args , "rb" ) ) != NULL ) {
       c = fgetc( fp );
+      while( c != EOF ) {
+        printf("%c", (char) c );  
+        c = fgetc( fp );
+      }
+      fclose ( fp );
     }
-    fclose ( fp );
-  }
-  else
-    if ( *args )
-      printf( "File %s not found\n", args );
     else
-      printf( "Usage: cat (or type) <filename>\n" );
+      printf( "File %s not found\n", args );
+  else
+    printf( "Usage: cat (or type) <filename>\n" );
 }  
+
+
 
 
 // Insert shell commands here
