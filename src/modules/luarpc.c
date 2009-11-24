@@ -342,6 +342,7 @@ static int read_variable( Transport *tpt, lua_State *L );
 
 // write a table at the given index in the stack. the index must be absolute
 // (i.e. positive).
+// @@@ circular table references will cause stack overflow!
 static void write_table( Transport *tpt, lua_State *L, int table_index )
 {
   lua_pushnil( L );  // push first key
@@ -365,6 +366,9 @@ static int writer( lua_State *L, const void* b, size_t size, void* B ) {
 #include "lundump.h"
 #include "ldo.h"
 
+// Dump bytecode representation of function onto stack and send. This
+// implementation uses eLua's crosscompile dump to match match the
+// bytecode representation to the client/server negotiated format.
 static void write_function( Transport *tpt, lua_State *L, int var_index )
 {
   TValue *o;
@@ -495,8 +499,6 @@ static void read_function( Transport *tpt, lua_State *L )
 // read a variable and push in onto the stack. this returns 1 if a "normal"
 // variable was read, or 0 if an end-table or end-function marker was read (in which case
 // nothing is pushed onto the stack).
-
-
 static int read_variable( Transport *tpt, lua_State *L )
 {
   struct exception e;
@@ -560,6 +562,7 @@ static void client_negotiate( Transport *tpt )
   char header[ 8 ];
   int x = 1;
 
+  // default client configuration
   tpt->loc_little = ( char )*( char * )&x;
   tpt->lnum_bytes = ( char )sizeof( lua_Number );
   tpt->loc_intnum = ( char )( ( ( lua_Number )0.5 ) == 0 );
@@ -576,7 +579,7 @@ static void client_negotiate( Transport *tpt )
   transport_write_string( tpt, header, sizeof( header ) );
   
   
-  // read response with wire configuration 
+  // read server's response
   transport_read_string( tpt, header, sizeof( header ) );
   if( header[0] != 'L' ||
       header[1] != 'R' ||
@@ -589,6 +592,7 @@ static void client_negotiate( Transport *tpt )
     Throw( e );
   }
   
+  // write configuration from response
   tpt->net_little = header[5];
   tpt->lnum_bytes = header[6];
   tpt->net_intnum = header[7];
@@ -600,11 +604,12 @@ static void server_negotiate( Transport *tpt )
   char header[ 8 ];
   int x = 1;
   
+  // default sever configuration
   tpt->net_little = tpt->loc_little = ( char )*( char * )&x;
   tpt->lnum_bytes = ( char )sizeof( lua_Number );
   tpt->net_intnum = tpt->loc_intnum = ( char )( ( ( lua_Number )0.5 ) == 0 );
   
-  // check that the header is ok 
+  // read and check header from client
   transport_read_string( tpt, header, sizeof( header ) );
   if( header[0] != 'L' ||
       header[1] != 'R' ||
@@ -630,8 +635,27 @@ static void server_negotiate( Transport *tpt )
   // if lua_Number is integer on either side, use integer 
   if( header[ 7 ] != tpt->loc_intnum )
     header[ 7 ] = tpt->net_intnum = 1;
-    
+  
+  // send reconciled configuration to client
   transport_write_string( tpt, header, sizeof( header ) );
+}
+
+
+static int generic_catch_handler(lua_State *L, Handle *handle, struct exception e )
+{
+  deal_with_error( L, handle, errorString( e.errnum ) );
+  switch( e.type )
+  {
+    case nonfatal:
+      lua_pushnil( L );
+      return 1;
+      break;
+    case fatal:
+      transport_close( &handle->tpt );
+      break;
+    default: lua_assert( 0 );
+  }
+  return 0;
 }
 
 // **************************************************************************
@@ -645,12 +669,11 @@ static void server_negotiate( Transport *tpt )
 //  "handle.funcname" returns the helper object, which calls the remote
 //  function.
 
-// global error handling 
-static int global_error_handler = LUA_NOREF;  // function reference
+// global error default (no handler) 
+static int global_error_handler = LUA_NOREF;
 
 // handle a client or server side error. NOTE: this function may or may not
 // return. the handle `h' may be 0.
-
 void deal_with_error(lua_State *L, Handle *h, const char *error_string)
 { 
   if( global_error_handler !=  LUA_NOREF )
@@ -662,7 +685,6 @@ void deal_with_error(lua_State *L, Handle *h, const char *error_string)
   else
     my_lua_error( L, error_string );
 }
-
 
 Handle *handle_create( lua_State *L )
 {
@@ -801,18 +823,7 @@ static int helper_get( lua_State *L, Helper *helper )
   }
   Catch( e )
   {
-    switch( e.type )
-    {
-        deal_with_error( L, helper->handle, errorString( e.errnum ) );
-      case nonfatal:
-        lua_pushnil( L );
-        return 1;
-        break;
-      case fatal:
-        transport_close( tpt );
-        break;
-      default: lua_assert( 0 );
-    }
+    freturn = generic_catch_handler( L, helper->handle, e );
   }
   return freturn;
 }
@@ -847,6 +858,8 @@ static int helper_get( lua_State *L, Helper *helper )
 //       }
 //     }
 // }
+
+
 
 
 static int helper_call (lua_State *L)
@@ -922,22 +935,14 @@ static int helper_call (lua_State *L)
     }
     Catch( e )
     {
-      switch( e.type )
-      {
-          deal_with_error( L, h->handle, errorString( e.errnum ) );
-        case nonfatal:
-          lua_pushnil( L );
-          return 1;
-          break;
-        case fatal:
-          transport_close( tpt );
-          break;
-        default: lua_assert( 0 );
-      }
+      freturn = generic_catch_handler( L, h->handle, e );
     }
   }
   return freturn;
 }
+
+
+
 
 static int helper_newindex( lua_State *L )
 {
@@ -979,18 +984,7 @@ static int helper_newindex( lua_State *L )
   }
   Catch( e )
   {
-    switch( e.type )
-    {
-        deal_with_error( L, h->handle, errorString( e.errnum ) );
-      case nonfatal:
-        lua_pushnil( L );
-        return 1;
-        break;
-      case fatal:
-        transport_close( tpt );
-        break;
-      default: lua_assert( 0 );
-    }
+    freturn = generic_catch_handler( L, h->handle, e );
   }
   return freturn;
 }
@@ -1406,7 +1400,7 @@ static void rpc_dispatch_helper( lua_State *L, ServerHandle *handle )
             transport_write_u8( &handle->atpt, RPC_READY );
             read_cmd_get( &handle->atpt, L );
             break;
-          case RPC_CMD_CON: //  @@@ allow client to "reconnect", should support better mechanism
+          case RPC_CMD_CON: //  allow client to renegotiate active connection
             server_negotiate( &handle->atpt );
             break;
           case RPC_CMD_NEWINDEX: // assign new variable on server
@@ -1424,10 +1418,6 @@ static void rpc_dispatch_helper( lua_State *L, ServerHandle *handle )
       }
       Catch( e )
       {
-        // close our side of the transport
-        // @@@ this catch block doesn't seem to make much sense
-        transport_close( &handle->atpt );
-
         switch( e.type )
         {
           case fatal: // shutdown will initiate after throw
@@ -1438,7 +1428,7 @@ static void rpc_dispatch_helper( lua_State *L, ServerHandle *handle )
             if ( handle->link_errs > MAX_LINK_ERRS )
             {
               handle->link_errs = 0;
-              Throw( e ); // connection will close after throw
+              Throw( e ); // remote connection will be closed
             }
             break;
             
@@ -1461,7 +1451,7 @@ static void rpc_dispatch_helper( lua_State *L, ServerHandle *handle )
         default: // connection must be established to issue any other commands
           e.type = nonfatal;
           e.errnum = ERR_COMMAND;
-          Throw( e );
+          Throw( e ); // remote connection will be closed
       }
     }
   }
