@@ -216,7 +216,7 @@ static void shell_cat( char *args )
       args = p + 1;
     }      
   else
-      printf( "Usage: cat (or type) <filename>\n" );
+      printf( "Usage: cat (or type) <filename1> [<filename2> ...]\n" );
 }    
 
 
