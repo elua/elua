@@ -1,9 +1,11 @@
 $$HEADER$$
-<h3>Exemplos de código Lua</h3>Distribuições eLua trazem ótimos e interessantes (claro! tem jogos também! :) exemplos de programas em Lua.
-Eles estão incluídos também na distribuição que vem com os códigos fontes, no subdiretório /romfs. <br>Programas Lua para eLua são mostrados e comentados aqui também. <br>Como já foi dito, você pode rodá-los a partir do sistema de arquivos de eLua ou pode usar o shell de eLua e enviá-los através do XMODEM, como or you can use the eLua shell and send them via XMODEM, as
-descrito <a href="using.html#shell">aqui</a>.<br><br>
+<h3>Exemplos de código Lua</h3>Distribuições eLua trazem ótimos e interessantes exemplos de programas em Lua
+(Sim ! Temos jogos também ! :).
+Eles também estão incluídos na distribuição que vem com os códigos fontes, no subdiretório /romfs. <br>Programas Lua para eLua são mostrados e comentados aqui também. <br>
+Como já foi dito, você pode rodá-los a partir do sistema de arquivos de eLua ou pode usar o shell de eLua e enviá-los através do XMODEM
+para seus kits, como descrito <a href="using.html#shell">aqui</a>.<br><br>
 
-<h3><a name="hello"></a>hello.lua: o obíquo "Hello, World!"</h3>
+<h3><a name="hello"></a>hello.lua: "Hello, World!"</h3>
 
 <p><strong>Roda em:&nbsp;</strong><br>Todas as arquiteturas</p><p><strong></strong>
 
@@ -18,7 +20,8 @@ Este programa não é muito mais complicado do que o "Hello, World!", porém ele
 mais sobre os módulos "platform" na distribuição do código fonte 
 (docs/platform_modules.txt). O programa mostrará o nome da plataforma, o nome da CPU, o nome da placa e o clock da CPU e então finaliza e volta para o shell.</p><p><strong>Código fonte comentado:</strong></p><p><span>-- Usa o módulo pd para ter acesso aos dados da plataforma e mostrá-lo no Terminal </span><br><span>print( "Estou usando a platforma " .. pd.platform() ) &nbsp;</span><br><span>print( "A CPU é uma " .. pd.cpu() )</span><br><span><span>print( "A placa é uma " .. pd.board(</span>) )</span><br></p><p></p>
 
-<h3><a name="led"></a>led.lua: o velho LED que pisca, jeito novo de fazer com eLua</h3>
+<h3><a name="led"></a>led.lua: O Hello World do mundo embedded ! :) O velho LED que pisca,
+agora via eLua</h3>
 
 <p><strong>Roda em: </strong><br>Todas as arquiteturas exceto i386</p><p><strong>Descrição:<br></strong><strong></strong>
 Agora temos que fazer algo com "cara" de embarcado: piscar um LED. O código a seguir ilustra alguns recursos interessantes de eLua:</p>
