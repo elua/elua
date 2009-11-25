@@ -195,24 +195,29 @@ static void shell_cat( char *args )
 {
   FILE *fp;
   int c;
+  char *p;
 
 // *args has an appended space. Replace it with the string terminator.
-  *(strchr( args, ' ' )) = 0;
-
+//  *(strchr( args, ' ' )) = 0;
   if ( *args )
-    if( ( fp = fopen( args , "rb" ) ) != NULL ) {
-      c = fgetc( fp );
-      while( c != EOF ) {
-        printf("%c", (char) c );  
+    while ( *args ) {
+      p = strchr( args, ' ' );
+      *p = 0;
+      if( ( fp = fopen( args , "rb" ) ) != NULL ) {
         c = fgetc( fp );
+        while( c != EOF ) {
+          printf("%c", (char) c );  
+          c = fgetc( fp );
+        }
+        fclose ( fp );
       }
-      fclose ( fp );
-    }
-    else
-      printf( "File %s not found\n", args );
+      else
+        printf( "File %s not found\n", args );
+      args = p + 1;
+    }      
   else
-    printf( "Usage: cat (or type) <filename>\n" );
-}  
+      printf( "Usage: cat (or type) <filename>\n" );
+}    
 
 
 
