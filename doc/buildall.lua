@@ -85,7 +85,7 @@ end
 -- Returns the english name if the name for the specified language can't be found
 -- If the link field doesn't exists, the name is returned instead
 local function get_menu_title( menuitem, lang )
-  return get_menu_field( menuitem, lang, title_idx ) or get_menu_field( menuitem, lang, name_idx )
+  return "eLua - " .. ( get_menu_field( menuitem, lang, title_idx ) or  get_menu_field( menuitem, lang, name_idx ) )
 end
 
 -- Set "print" to print indented (with 2 spaces)
