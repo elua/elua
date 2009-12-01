@@ -88,8 +88,8 @@ LUALIB_API int ( luaopen_lcd )( lua_State* L );
 // Configuration data
 
 // Virtual timers (0 if not used)
-#define VTMR_NUM_TIMERS       0
-#define VTMR_FREQ_HZ          4
+#define VTMR_NUM_TIMERS       4
+#define VTMR_FREQ_HZ          10
 
 // Number of resources (0 if not available/not implemented)
 #define NUM_PIO               7

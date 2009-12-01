@@ -22,7 +22,6 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x_it.h"
-#include "systick.h"
 #include <stdio.h>
 #include "platform.h"
 /** @addtogroup Template_Project
@@ -188,16 +187,6 @@ void PendSV_Handler(void)
 {
 }
 
-/**
-  * @brief  This function handles SysTick Handler.
-  * @param  None
-  * @retval None
-  */
-void SysTick_Handler(void)
-{
-	/* Decrement the TimingDelay variable */
-	Decrement_TimingDelay();
-}
 
 /******************************************************************************/
 /*                 STM32F10x Peripherals Interrupt Handlers                   */
@@ -206,19 +195,7 @@ void SysTick_Handler(void)
 /*  file (startup_stm32f10x_xx.s).                                            */
 /******************************************************************************/
 
-/**
-  * @brief  This function handles PPP interrupt request.
-  * @param  None
-  * @retval None
-  */
-/*void PPP_IRQHandler(void)
-{
-}*/
-
-/**
-  * @}
-  */ 
 extern void DMA1_Channel1_IRQHandler(void);
 extern void USART1_IRQHandler(void);
-
+extern void SysTick_Handler(void);
 /******************* (C) COPYRIGHT 2009 STMicroelectronics *****END OF FILE****/

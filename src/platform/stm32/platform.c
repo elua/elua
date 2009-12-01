@@ -27,6 +27,12 @@
 #define PCLK1_DIV   2
 #define PCLK2_DIV   1
 
+// SysTick Config Data
+// NOTE: when using virtual timers, SYSTICKHZ and VTMR_FREQ_HZ should have the
+// same value, as they're served by the same timer (the systick)
+// Max SysTick preload value is 16777215, for STM32F103RET6 @ 72 MHz, lowest acceptable rate would be about 5 Hz
+#define SYSTICKHZ               10  
+#define SYSTICKMS               (1000 / SYSTICKHZ)
 // ****************************************************************************
 // Platform initialization
 
@@ -50,9 +56,6 @@ int platform_init()
   // Setup IRQ's
   NVIC_Configuration();
 
-  // Enable SysTick timer.
-  SysTick_Config(720000);
-
   // Setup PIO
   pios_init();
 
@@ -73,7 +76,14 @@ int platform_init()
   
   // Setup CANs
   cans_init();
-
+  
+  // Enable SysTick
+  if ( SysTick_Config( HCLK / SYSTICKHZ ) )
+  { 
+    /* Capture error */ 
+    while (1);
+  }
+  
   cmn_platform_init();
 
   // All done
@@ -486,7 +496,7 @@ u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigne
   SPI_InitStructure.SPI_Mode = mode ? SPI_Mode_Master : SPI_Mode_Slave;
   SPI_InitStructure.SPI_DataSize = ( databits == 16 ) ? SPI_DataSize_16b : SPI_DataSize_8b; // not ideal, but defaults to sane 8-bits
   SPI_InitStructure.SPI_CPOL = cpol ? SPI_CPOL_High : SPI_CPOL_Low;
-  SPI_InitStructure.SPI_CPHA = cpha ? SPI_CPHA_1Edge : SPI_CPHA_2Edge;
+  SPI_InitStructure.SPI_CPHA = cpha ? SPI_CPHA_2Edge : SPI_CPHA_1Edge;
   SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;
   SPI_InitStructure.SPI_BaudRatePrescaler = spi_prescaler[ prescaler_idx ];
   SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
@@ -500,6 +510,9 @@ u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigne
 spi_data_type platform_spi_send_recv( unsigned id, spi_data_type data )
 {
   SPI_I2S_SendData( spi[ id ], data );
+  
+  while ( SPI_I2S_GetFlagStatus( spi[ id ], SPI_I2S_FLAG_RXNE ) == RESET );
+  
   return SPI_I2S_ReceiveData( spi[ id ] );
 }
 
@@ -679,9 +692,17 @@ static TIM_TypeDef * const timer[] = { TIM1, TIM2, TIM3, TIM4, TIM5 };
 #define TIM_GET_BASE_CLK( id ) ( ( id ) == 0 || ( id ) == 5 ? ( HCLK / PCLK2_DIV ) : ( HCLK / PCLK1_DIV ) )
 #define TIM_STARTUP_CLOCK       50000
 
+static u32 timer_set_clock( unsigned id, u32 clock );
+
+void SysTick_Handler( void )
+{
+  // Handle virtual timers
+  cmn_virtual_timer_cb();
+}
+
+
 static void timers_init()
 {
-  TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
   unsigned i;
 
   // Enable clocks.
@@ -695,12 +716,7 @@ static void timers_init()
   // Configure timers
   for( i = 0; i < NUM_TIMER; i ++ )
   {
-    TIM_TimeBaseStructure.TIM_Period = 0xFFFF;
-    TIM_TimeBaseStructure.TIM_Prescaler = TIM_GET_BASE_CLK( i ) / TIM_STARTUP_CLOCK;
-    TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
-    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
-    TIM_TimeBaseStructure.TIM_RepetitionCounter = 0x0000;
-    TIM_TimeBaseInit( timer[ i ], &TIM_TimeBaseStructure );
+    timer_set_clock( i, TIM_STARTUP_CLOCK );
   }
 }
 
@@ -715,17 +731,16 @@ static u32 timer_set_clock( unsigned id, u32 clock )
 {
   TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
   TIM_TypeDef *ptimer = timer[ id ];
-  u16 pre;
+  u16 pre = TIM_GET_BASE_CLK( id ) / clock;
   
   TIM_TimeBaseStructure.TIM_Period = 0xFFFF;
-  TIM_TimeBaseStructure.TIM_Prescaler = TIM_GET_BASE_CLK( id ) / TIM_STARTUP_CLOCK;
+  TIM_TimeBaseStructure.TIM_Prescaler = pre;
   TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
   TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
   TIM_TimeBaseStructure.TIM_RepetitionCounter = 0x0000;
   TIM_TimeBaseInit( timer[ id ], &TIM_TimeBaseStructure );
   TIM_Cmd( ptimer, ENABLE );
   
-  pre = TIM_GET_BASE_CLK( id ) / clock;
   TIM_PrescalerConfig( ptimer, pre, TIM_PSCReloadMode_Immediate );
   return TIM_GET_BASE_CLK( id ) / pre;
 }
