@@ -103,7 +103,8 @@ def mkfs( dirname, outname, flist, mode, compcmd ):
     filedata = crtfile.read()
     crtfile.close()
     if mode == 'compile' or mode == "compress":
-      os.remove( newname )
+      if fextpart == ".lua":
+        os.remove( newname )
 
     # Write name, size, id, numpars
     for c in fname:
