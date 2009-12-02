@@ -6,6 +6,7 @@ boardname = ARGUMENTS.get( 'board' , '').upper()
 toolchain = ARGUMENTS.get( 'toolchain', '')
 optram = int( ARGUMENTS.get( 'optram', '1' ) )
 boot = ARGUMENTS.get( 'boot', '').lower()
+romfsmode = ARGUMENTS.get( 'romfs', 'verbatim' ).lower()
 
 # Helper: "normalize" a name to make it a suitable C macro name
 def cnorm( name ):
@@ -20,35 +21,50 @@ toolchain_list = {
     'link' : 'arm-elf-ld', 
     'asm' : 'arm-elf-as', 
     'bin' : 'arm-elf-objcopy', 
-    'size' : 'arm-elf-size' 
+    'size' : 'arm-elf-size',
+    'cross_cpumode' : 'little',
+    'cross_lua' : 'float_arm 64',
+    'cross_lualong' : 'int 32'
   },
   'arm-eabi-gcc' : {
     'compile' : 'arm-eabi-gcc',
     'link' : 'arm-eabi-ld',
     'asm' : 'arm-eabi-as',
     'bin' : 'arm-eabi-objcopy',
-    'size' : 'arm-eabi-size'
+    'size' : 'arm-eabi-size',
+    'cross_cpumode' : 'little',
+    'cross_lua' : 'float 64',
+    'cross_lualong' : 'int 32'
   },
   'codesourcery' : { 
     'compile' : 'arm-none-eabi-gcc', 
     'link' : 'arm-none-eabi-ld', 
     'asm' : 'arm-none-eabi-as', 
     'bin' : 'arm-none-eabi-objcopy', 
-    'size' : 'arm-none-eabi-size' 
+    'size' : 'arm-none-eabi-size',
+    'cross_cpumode' : 'little',
+    'cross_lua' : 'float 64',
+    'cross_lualong' : 'int 32'
   },
   'avr32-gcc' : { 
     'compile' : 'avr32-gcc', 
     'link' : 'avr32-ld', 
     'asm' : 'avr32-as', 
     'bin' : 'avr32-objcopy', 
-    'size' : 'avr32-size' 
+    'size' : 'avr32-size',
+    'cross_cpumode' : 'big',
+    'cross_lua' : 'float 64',
+    'cross_lualong' : 'int 32'
   },
   'i686-gcc' : { 
     'compile' : 'i686-elf-gcc', 
     'link' : 'i686-elf-ld', 
     'asm' : 'nasm', 
     'bin' : 'i686-elf-objcopy', 
-    'size' : 'i686-elf-size' 
+    'size' : 'i686-elf-size',
+    'cross_cpumode' : 'little',
+    'cross_lua' : 'float 64',
+    'cross_lualong' : 'int 32'
   }
 }
 
@@ -207,21 +223,34 @@ if boot == '':
 elif boot not in ['standard', 'luaremote']:
   print "Unknown boot mode: ", boot
   print "Boot mode can be either 'standard' or 'luaremote'"
-  sys.exit( -1 );
+  sys.exit( -1 )
 
+# Check romfs mode
+if romfsmode not in ['verbatim', 'compile', 'compress']:
+  print "Unknown romfs mode: ", romfsmode
+  print "romfs mode can be either 'verbatin', 'compile' or 'compress'"
+  sys.exit( -1 )
+
+# Build the compilation command now
+compcmd = ''
+if romfsmode == 'compile':
+  compcmd = 'luac.cross -ccn %s -cce %s -o %%s -s %%s' % ( toolset[ 'cross_%s' % target ], toolset[ 'cross_cpumode' ] )
+elif romfsmode == 'compress':
+  compcmd = 'lua luasrcdiet.lua --quiet --maximum --opt-comments --opt-whitespace --opt-emptylines --opt-eols --opt-strings --opt-numbers --opt-locals -o %s %s'
 
 # User report
 if not GetOption( 'clean' ):
   print
   print "*********************************"
   print "Compiling eLua ..."
-  print "CPU:         ", cputype
-  print "Board:       ", boardname
-  print "Platform:    ", platform
-  print "Allocator:   ", allocator
-  print "Boot Mode:   ", boot
-  print "Target:      ", target == 'lua' and 'fplua' or 'target'
-  print "Toolchain:   ", toolchain
+  print "CPU:            ", cputype
+  print "Board:          ", boardname
+  print "Platform:       ", platform
+  print "Allocator:      ", allocator
+  print "Boot Mode:      ", boot
+  print "Target:         ", target == 'lua' and 'fplua' or 'target'
+  print "Toolchain:      ", toolchain
+  print "ROMFS mode:     ", romfsmode
   print "*********************************"
   print
 
@@ -281,7 +310,6 @@ opt = "-Os -fomit-frame-pointer"
 #opt += " -ffreestanding"
 #opt += " -fconserve-stack" # conserve stack at potential speed cost, >=GCC4.4
 
-
 # Toolset data (filled by each platform in part)
 tools = {}
 
@@ -298,14 +326,14 @@ if not GetOption( 'clean' ):
   flist = []
   for sample in file_list[ boardname ]:
     flist += romfs[ sample ]
-# Automatically includes the autorun.lua file in the ROMFS
+  # Automatically includes the autorun.lua file in the ROMFS
   if os.path.isfile( os.path.join( romdir, 'autorun.lua' ) ):
     flist += [ 'autorun.lua' ]
-# Automatically includes platform specific Lua module 
+  # Automatically includes platform specific Lua module 
   if os.path.isfile( os.path.join( romdir, boardname + '.lua' ) ):
     flist += [boardname + '.lua']
   import mkfs
-  mkfs.mkfs( romdir, "romfiles", flist )
+  mkfs.mkfs( romdir, "romfiles", flist, romfsmode, compcmd )
   print
   if os.path.exists( "inc/romfiles.h" ): 
     os.remove( "inc/romfiles.h" )
