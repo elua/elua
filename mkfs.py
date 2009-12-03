@@ -75,12 +75,13 @@ def mkfs( dirname, outname, flist, mode, compcmd ):
       return False
     
     # Do we need to process the file?
+    fextpart = ''
     if mode == "compile" or mode == "compress":
       fnamepart, fextpart = os.path.splitext( realname )
       if mode == "compress":
         newext = ".lua.tmp"
       else:
-        newext = ".luac"
+        newext = ".lc"
       if fextpart == ".lua":
         newname = fnamepart + newext
         if mode == "compress":
@@ -102,9 +103,8 @@ def mkfs( dirname, outname, flist, mode, compcmd ):
           fname = fnamepart + ".lc"
     filedata = crtfile.read()
     crtfile.close()
-    if mode == 'compile' or mode == "compress":
-      if fextpart == ".lua":
-        os.remove( newname )
+    if fextpart == ".lua" and mode != "verbatim":
+      os.remove( newname )
 
     # Write name, size, id, numpars
     for c in fname:
