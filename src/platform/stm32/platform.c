@@ -106,8 +106,6 @@ static void RCC_Configuration(void)
 {
   SystemInit();
   
-  RCC_PCLK1Config(RCC_HCLK_Div2);
-
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 }
 
@@ -689,7 +687,8 @@ int platform_s_uart_recv( unsigned id, s32 timeout )
 
 // We leave out TIM6/TIM for now, as they are dedicated
 static TIM_TypeDef * const timer[] = { TIM1, TIM2, TIM3, TIM4, TIM5 };
-#define TIM_GET_BASE_CLK( id ) ( ( id ) == 0 || ( id ) == 5 ? ( HCLK / PCLK2_DIV ) : ( HCLK / PCLK1_DIV ) )
+#define TIM_GET_PRESCALE( id ) ( ( id ) == 0 || ( id ) == 5 ? ( PCLK2_DIV ) : ( PCLK1_DIV ) )
+#define TIM_GET_BASE_CLK( id ) ( TIM_GET_PRESCALE( id ) == 1 ? ( HCLK / TIM_GET_PRESCALE( id ) ) : ( HCLK / ( TIM_GET_PRESCALE( id ) / 2 ) ) )
 #define TIM_STARTUP_CLOCK       50000
 
 static u32 timer_set_clock( unsigned id, u32 clock );
@@ -731,7 +730,7 @@ static u32 timer_set_clock( unsigned id, u32 clock )
 {
   TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
   TIM_TypeDef *ptimer = timer[ id ];
-  u16 pre = TIM_GET_BASE_CLK( id ) / clock;
+  u16 pre = ( TIM_GET_BASE_CLK( id ) / clock ) - 1;
   
   TIM_TimeBaseStructure.TIM_Period = 0xFFFF;
   TIM_TimeBaseStructure.TIM_Prescaler = pre;
@@ -741,8 +740,7 @@ static u32 timer_set_clock( unsigned id, u32 clock )
   TIM_TimeBaseInit( timer[ id ], &TIM_TimeBaseStructure );
   TIM_Cmd( ptimer, ENABLE );
   
-  TIM_PrescalerConfig( ptimer, pre, TIM_PSCReloadMode_Immediate );
-  return TIM_GET_BASE_CLK( id ) / pre;
+  return TIM_GET_BASE_CLK( id ) / ( pre + 1 );
 }
 
 void platform_s_timer_delay( unsigned id, u32 delay_us )
@@ -1144,12 +1142,12 @@ u32 platform_adc_setclock( unsigned id, u32 frequency )
   	period /= prescaler;
 
   	timer_base_struct.TIM_Period = period - 1;
-  	timer_base_struct.TIM_Prescaler = (2 * prescaler) - 1;
+  	timer_base_struct.TIM_Prescaler = prescaler - 1;
   	timer_base_struct.TIM_ClockDivision = TIM_CKD_DIV1;
   	timer_base_struct.TIM_CounterMode = TIM_CounterMode_Down;
   	TIM_TimeBaseInit( timer[ d->timer_id ], &timer_base_struct );
     
-    frequency = 2 * ( TIM_GET_BASE_CLK( id ) / ( TIM_GetPrescaler( timer[ d->timer_id ] ) + 1 ) ) / period;
+    frequency = ( TIM_GET_BASE_CLK( id ) / ( TIM_GetPrescaler( timer[ d->timer_id ] ) + 1 ) ) / period;
     
     // Set up output compare for timer
     TIM_SelectOutputTrigger(timer[ d->timer_id ], TIM_TRGOSource_Update);
