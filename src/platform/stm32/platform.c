@@ -855,7 +855,7 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
   
   /* PWM Mode configuration */  
   TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
-  TIM_OCInitStructure.TIM_OutputState = ( PWM_TIMER_NAME->CCER & ( ( u16 )1 << 4*id ) ) ? TIM_OutputState_Enable : TIM_OutputState_Disable;
+  TIM_OCInitStructure.TIM_OutputState = ( PWM_TIMER_NAME->CCER & ( ( u16 )1 << 4 * id ) ) ? TIM_OutputState_Enable : TIM_OutputState_Disable;
   TIM_OCInitStructure.TIM_OutputNState = TIM_OutputNState_Disable;
   TIM_OCInitStructure.TIM_Pulse = ( u16 )( duty * ( PWM_TIMER_NAME->ARR + 1 ) / 100 );
   TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
@@ -905,11 +905,11 @@ u32 platform_pwm_op( unsigned id, int op, u32 data )
       break;
 
     case PLATFORM_PWM_OP_START:
-      PWM_TIMER_NAME->CCER |= ( ( u16 )1 << 4*id );
+      PWM_TIMER_NAME->CCER |= ( ( u16 )1 << 4 * id );
       break;
 
     case PLATFORM_PWM_OP_STOP:
-      PWM_TIMER_NAME->CCER &= ~( ( u16 )1 << 4*id );
+      PWM_TIMER_NAME->CCER &= ~( ( u16 )1 << 4 * id );
       break;
   }
 
