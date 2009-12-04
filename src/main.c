@@ -22,6 +22,13 @@
 
 extern char etext[];
 
+#ifndef RPC_UART_ID
+  #define RPC_UART_ID     CON_UART_ID
+#endif
+
+#ifndef RPC_TIMER_ID
+  #define RPC_TIMER_ID    CON_TIMER_ID
+#endif
 
 void boot_remote( void )
 {
@@ -29,7 +36,9 @@ void boot_remote( void )
   luaL_openlibs(L);  /* open libraries */
   lua_getglobal( L, "rpc" );
   lua_getfield( L, -1, "server" );
-  lua_pcall( L, 0, 0, 0 );
+  lua_pushnumber( L, RPC_UART_ID );
+  lua_pushnumber( L, RPC_TIMER_ID );
+  lua_pcall( L, 2, 0, 0 );
 }
 
 // ****************************************************************************
@@ -60,7 +69,7 @@ int main( void )
     lua_main( 2, lua_argv );    
   }
   
-#ifdef ELUA_BOOT_REMOTE
+#ifdef ELUA_BOOT_RPC
   boot_remote();
 #else
   

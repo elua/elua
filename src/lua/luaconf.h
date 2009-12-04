@@ -89,7 +89,7 @@
 
 //## Modified for eLua
 //## Defaults search modules path to our ROM File System
-#ifndef LUA_REMOTE
+#ifndef LUA_RPC
 #define LUA_PATH_DEFAULT "/rom/?.lua"
 #else
 #define LUA_PATH_DEFAULT  \
@@ -104,7 +104,7 @@
 #define LUA_LDIR	LUA_ROOT "share/lua/5.1/"
 #define LUA_CDIR	LUA_ROOT "lib/lua/5.1/"
 
-#ifndef LUA_REMOTE
+#ifndef LUA_RPC
 #define LUA_PATH_DEFAULT  "/rom/?.lua"
 #else
 

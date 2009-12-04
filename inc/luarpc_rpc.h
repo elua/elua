@@ -1,7 +1,7 @@
 #include "cexcept.h"
 #include <stdint.h>
 
-#ifdef LUA_REMOTE
+#ifdef LUA_RPC
 /* signed and unsigned 8, 16 and 32 bit types */
 typedef uint8_t u8;
 typedef uint16_t u16;
@@ -104,6 +104,7 @@ typedef struct _Transport Transport;
 struct _Transport 
 {
   int fd;      /* INVALID_TRANSPORT if socket is closed */
+  unsigned tmr_id;
   u8     loc_little: 1, // Local is little endian?
          loc_armflt: 1, // local float representation is arm float?
          loc_intnum: 1, // Local is integer only?

@@ -113,6 +113,9 @@ LUALIB_API int ( luaopen_lcd )( lua_State* L );
 #define ADC_TIMER_FIRST_ID    0
 #define ADC_NUM_TIMERS        4
 
+// RPC  
+#define RPC_UART_ID           CON_UART_ID
+#define RPC_TIMER_ID          CON_TIMER_ID
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 u32 platform_s_cpu_get_frequency();

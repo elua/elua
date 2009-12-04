@@ -10,7 +10,13 @@ data_en =
   menu_name = "rpc",
 
   -- Overview
-  overview = [[LuaRPC allows one to remotely control a lua state running on another machine.]],
+  overview = [[LuaRPC allows one to remotely control a lua state running on another machine or microcontroller.</p>
+  <p>It works by providing a $handle$ to the client session which allows control over remote state. Functions can
+  be called in the remote environment and variables can be manipulated by treating the $handle$ (representing 
+  the remote global table) as if it were a local table.</p>
+  <p><span class="warning">IMPORTANT</span>: This module is considered experimental. It currently works over a 
+  serial port with eLua targets and on desktop systems implementing POSIX serial communications (Linux, Mac OS X, etc).
+  ]],
 
   -- Functions
   funcs = 

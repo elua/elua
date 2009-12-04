@@ -21,7 +21,7 @@
 
 extern int luaopen_platform( lua_State *L );
 
-#ifdef LUA_REMOTE
+#ifdef LUA_RPC
 #include "auxmods.h"
 #define LUA_PLATFORM_LIBS_ROM \
   _ROM( AUXLIB_LUARPC, luaopen_luarpc, rpc_map )

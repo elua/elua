@@ -309,10 +309,8 @@ int check_num_args( lua_State *L, int desired_n )
   int n = lua_gettop( L );   // number of arguments on stack
   if ( n != desired_n )
   {
-    char s[ 30 ];
-    snprintf( s, 30, "must have %d arg%c", desired_n,
+    return luaL_error( L, "must have %d arg%c", desired_n,
        ( desired_n == 1 ) ? '\0' : 's' );
-    my_lua_error( L, s );
   }
   return n;
 }
@@ -447,15 +445,15 @@ static void write_variable( Transport *tpt, lua_State *L, int var_index )
       break;
 
     case LUA_TUSERDATA:
-      my_lua_error( L, "userdata transmission unsupported" );
+      luaL_error( L, "userdata transmission unsupported" );
       break;
 
     case LUA_TTHREAD:
-      my_lua_error( L, "thread transmission unsupported" );
+      luaL_error( L, "thread transmission unsupported" );
       break;
 
     case LUA_TLIGHTUSERDATA:
-      my_lua_error( L, "light userdata transmission unsupported" );
+      luaL_error( L, "light userdata transmission unsupported" );
       break;
   }
   MYASSERT( lua_gettop( L ) == stack_at_start );
@@ -683,7 +681,7 @@ void deal_with_error(lua_State *L, Handle *h, const char *error_string)
     lua_pcall( L, 1, 0, 0 );
   }
   else
-    my_lua_error( L, error_string );
+    luaL_error( L, error_string );
 }
 
 Handle *handle_create( lua_State *L )
@@ -719,10 +717,10 @@ static int handle_index (lua_State *L)
   MYASSERT( lua_isuserdata( L, 1 ) && ismetatable_type( L, 1, "rpc.handle" ) );
 
   if( lua_type( L, 2 ) != LUA_TSTRING )
-    my_lua_error( L, "can't index a handle with a non-string" );
+    return luaL_error( L, "can't index a handle with a non-string" );
   s = lua_tostring( L, 2 );
   if ( strlen( s ) > NUM_FUNCNAME_CHARS - 1 )
-    my_lua_error( L, errorString( ERR_LONGFNAME ) );
+    return luaL_error( L, errorString( ERR_LONGFNAME ) );
     
   helper_create( L, ( Handle * )lua_touserdata( L, 1 ), s );
 
@@ -741,10 +739,10 @@ static int handle_newindex( lua_State *L )
   MYASSERT( lua_isuserdata( L, 1 ) && ismetatable_type( L, 1, "rpc.handle" ) );
 
   if( lua_type( L, 2 ) != LUA_TSTRING )
-    my_lua_error( L, "can't index handle with a non-string" );
+    return luaL_error( L, "can't index handle with a non-string" );
   s = lua_tostring( L, 2 );
   if ( strlen( s ) > NUM_FUNCNAME_CHARS - 1 )
-    my_lua_error( L, errorString( ERR_LONGFNAME ) );
+    return luaL_error( L, errorString( ERR_LONGFNAME ) );
   
   helper_create( L, ( Handle * )lua_touserdata( L, 1 ), "" );
   lua_replace(L, 1);
@@ -1011,10 +1009,10 @@ static int helper_index( lua_State *L )
   MYASSERT( lua_isuserdata( L, 1 ) && ismetatable_type( L, 1, "rpc.helper" ) );
 
   if( lua_type( L, 2 ) != LUA_TSTRING )
-    my_lua_error( L, "can't index handle with non-string" );
+    return luaL_error( L, "can't index handle with non-string" );
   s = lua_tostring( L, 2 );
   if ( strlen( s ) > NUM_FUNCNAME_CHARS - 1 )
-    my_lua_error( L, errorString( ERR_LONGFNAME ) );
+    return luaL_error( L, errorString( ERR_LONGFNAME ) );
   
   helper_append( L, ( Helper * )lua_touserdata( L, 1 ), s );
 
@@ -1105,8 +1103,7 @@ static int rpc_close( lua_State *L )
     }
   }
 
-  my_lua_error(L,"arg must be handle");
-  return 0;
+  return luaL_error(L,"arg must be handle");
 }
 
 
@@ -1335,7 +1332,7 @@ static int rpc_listen( lua_State *L )
 
   handle = rpc_listen_helper( L );
   if ( handle == 0 )
-    printf( "bad Handle" );
+    return luaL_error( L, "bad handle" );
     
   return 1;
 }
@@ -1348,7 +1345,7 @@ static int rpc_peek( lua_State *L )
 
   check_num_args( L, 1 );
   if ( !( lua_isuserdata( L, 1 ) && ismetatable_type( L, 1, "rpc.server_handle" ) ) )
-    my_lua_error( L, "arg must be server handle" );
+    return luaL_error( L, "arg must be server handle" );
 
   handle = ( ServerHandle * )lua_touserdata( L, 1 );
 
@@ -1482,7 +1479,7 @@ static int rpc_dispatch( lua_State *L )
   check_num_args( L, 1 );
 
   if ( ! ( lua_isuserdata( L, 1 ) && ismetatable_type( L, 1, "rpc.server_handle" ) ) )
-    my_lua_error( L, "arg must be server handle" );
+    return luaL_error( L, "arg must be server handle" );
 
   handle = ( ServerHandle * )lua_touserdata( L, 1 );
 
@@ -1534,7 +1531,7 @@ static int rpc_on_error( lua_State *L )
   else if ( lua_isnil( L, 1 ) )
     { ;; }
   else
-    my_lua_error( L, "bad args" );
+    return luaL_error( L, "bad args" );
 
   // @@@ add option for handle 
   // Handle *h = (Handle*) lua_touserdata (L,1); 

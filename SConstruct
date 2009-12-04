@@ -220,10 +220,10 @@ elif allocator not in [ 'newlib', 'multiple', 'simple' ]:
 # Check boot mode selection
 if boot == '':
   boot = 'standard'
-elif boot not in ['standard', 'luaremote']:
+elif boot not in ['standard', 'luarpc']:
   print "Unknown boot mode: ", boot
-  print "Boot mode can be either 'standard' or 'luaremote'"
-  sys.exit( -1 )
+  print "Boot mode can be either 'standard' or 'luarpc'"
+  sys.exit( -1 );
 
 # Check romfs mode
 if romfsmode not in ['verbatim', 'compile', 'compress']:
@@ -268,8 +268,8 @@ if allocator == 'multiple':
 elif allocator == 'simple':
   cdefs = cdefs + " -DUSE_SIMPLE_ALLOCATOR"
 
-if boot == 'luaremote':
-  cdefs += " -DELUA_BOOT_REMOTE"
+if boot == 'luarpc':
+  cdefs += " -DELUA_BOOT_RPC"
 
 # Special macro definitions for the SYM target
 if platform == 'sim':
