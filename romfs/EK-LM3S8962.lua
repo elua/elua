@@ -28,6 +28,10 @@ end
 
 LED_1 = pio.PF_0
 
+-- Associate the RIT OLED display device supported by the builtin module lm3s with
+-- a disp name/device offered here
+disp = lm3s.disp
+
 pio.pin.setdir( pio.INPUT, BTN_UP, BTN_DOWN, BTN_LEFT, BTN_RIGHT, BTN_SELECT )
 pio.pin.setpull( pio.PULLUP, BTN_UP, BTN_DOWN, BTN_LEFT, BTN_RIGHT, BTN_SELECT )
 pio.pin.setdir( pio.OUTPUT, LED_1 )
