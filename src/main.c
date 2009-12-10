@@ -22,6 +22,9 @@
 
 extern char etext[];
 
+
+#ifdef ELUA_BOOT_RPC
+
 #ifndef RPC_UART_ID
   #define RPC_UART_ID     CON_UART_ID
 #endif
@@ -30,7 +33,7 @@ extern char etext[];
   #define RPC_TIMER_ID    CON_TIMER_ID
 #endif
 
-void boot_remote( void )
+void boot_rpc( void )
 {
   lua_State *L = lua_open();
   luaL_openlibs(L);  /* open libraries */
@@ -40,6 +43,7 @@ void boot_remote( void )
   lua_pushnumber( L, RPC_TIMER_ID );
   lua_pcall( L, 2, 0, 0 );
 }
+#endif
 
 // ****************************************************************************
 //  Program entry point
@@ -70,7 +74,7 @@ int main( void )
   }
   
 #ifdef ELUA_BOOT_RPC
-  boot_remote();
+  boot_rpc();
 #else
   
   // Run the shell
@@ -83,7 +87,7 @@ int main( void )
   }
   else
     shell_start();
-#endif // #ifdef ELUA_BOOT_REMOTE
+#endif // #ifdef ELUA_BOOT_RPC
 
 #ifdef ELUA_SIMULATOR
   hostif_exit(0);
