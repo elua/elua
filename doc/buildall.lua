@@ -384,6 +384,7 @@ local function gen_html_page( fname, lang )
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <link href="menu.css" rel="stylesheet" type="text/css" />
 <link href="style1.css" rel="stylesheet" type="text/css" />
+<link REL="SHORTCUT ICON" HREF="./images/eLua_16x16.ico">
 <script type="text/javascript"><!--//--><![CDATA[//><!--
 
 sfHover = function() {
