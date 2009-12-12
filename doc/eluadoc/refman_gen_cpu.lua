@@ -12,7 +12,7 @@ data_en =
   -- Overview
   overview = [[This module deals with low-level access to CPU (and related modules) functionality, such as reading and writing memory, or 
   enabling and disabling interrupts. It also offers access to platform specific CPU-related constants using a special macro defined in the
-  platform's $platform_conf.h$ file, as exaplained @#cpu_constants@here@.]],
+  platform's $platform_conf.h$ file, as explained @#cpu_constants@here@.]],
 
   -- Data structures, constants and types
   structures = 
