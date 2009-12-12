@@ -70,7 +70,7 @@ possible; that is, it should absorb as much common code as possible. For example
   <a href="building.html">here</a>, the user must have full control over what's getting built into this <b>eLua</b> image. If you don't need the SPI
   module, for example, you don't need to implement its platform interface.</li>
   <li>a part of the platform interface is implemented (at least partially) in a file that is common for all the platforms (<i>src/common.c</i>). It
-  eases the implmentation of some modules (such as the timer module) and also implements common features that are tied to the platform interface,
+  eases the implementation of some modules (such as the timer module) and also implements common features that are tied to the platform interface,
   but have a common behaviour on all platforms (for example virtual timers, see <a href="arch_platform_timers.html#virtual_timers">here</a> for details). You probably won't need to modify 
   if you're writing platform specific code, but it's best to keep in mind what it does.</li>
 </ul>
