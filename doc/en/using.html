@@ -1,13 +1,16 @@
 $$HEADER$$
 <h3>Using eLua</h3>
-<p> So, you already <a href="building.html">built</a> and <a href="installing.html">installed</a> <b>eLua</b>, and now it is time to (finally) have some fun with it :) 
-  You can compile <b>eLua</b> with either console over UART (by far the most popular) and console over TCP/IP (still experimental, but working quite well), so there are two different usage 
-  scenarios for this (see <a href="building.html">building eLua</a> for details on how to select serial or TCP/IP console).</p>
+<p>So, you already <a href="building.html">built</a> and <a href="installing.html">installed</a> 
+<b>eLua</b>, now it is time to (finally) have some fun with it :) 
+  You can compile <b>eLua</b> with either console over UART (the default and by far the most popular)
+  or console over TCP/IP (still experimental, but working quite well). See <a href="building.html">building eLua</a> for details on how to select
+  the second option above.</p>
 <a name="uart"><h3>Using eLua over serial connections</h3></a>
 <p>All you need to use <b>eLua</b> over a serial connection is your <b>eLua</b>
 board connected to a PC running a terminal emulator program.<br>If
-you're using Windows, I strongly recommend <a  href="http://www.ayera.com/teraterm/">TeraTerm</a>.
-It's a freeware, it's very powerful and also easy to use. The native Hyper Terminal progam can do too, but give TeraTerm a chance, it's much better than HyperTerm IMO.<br>On
+you're using Windows, we recommend <a  href="http://www.ayera.com/teraterm/">TeraTerm</a>.
+It's a freeware, it's very powerful and also easy to use. The native Hyper Terminal progam can do
+too, as well as any most other terminal emulator programs.<br>On
 Linux,
 you'll probably be stucked with minicom. It is not exactly intuitive
 and it runs in text mode, but it's still very powerful. If you
@@ -22,35 +25,43 @@ settings you need to look at:</p>
 
 <p>Also, depending on the type of your board, you'll need some way to
 connect the board to a serial port on your PC or to USB if you're
-using an USB to serial converter. For example, as already explained <a href="installing_lm3s.html">here</a>,
+using an USB to serial converter. For example (as already explained <a
+href="installing_lm3s.html">here)</a>,
 the USB port on the LM3Sxxxx boards is dual, so you can use it as an USB
 to serial converter after downloading your firmware, thus you don't
 need any other type of connection. The same is true for the
-STR9-comStick board. On the other hand, for the SAM7-EX256 board you'll
+STR9-Comstick board. On the other hand, for the SAM7-EX256 board you'll
 need to connect a serial cable to the "RS232" connector, provided that
 the jumpers are already set as explained <a href="installing_at91sam7x.html">here</a> and on the MOD711 you will need to add an RS232 converter chip.
-There's no universal rule here, it all depends on your board.
+There's no universal rule here, it all depends on your board. Feel free to
+ask if you need help in our <a href="https://lists.berlios.de/mailman/listinfo/elua-dev">discussion
+list</a>
 </p>
 <a name="tcpip"><h3>Using eLua over TCP/IP connections</h3></a>
 <p>Things are even easier if you decide to enable console over TCP/IP:</p>
 <ul>
-  <li>make sure you know the address of your board. If you enabled static IPs (see <a href="building.html">building</a>) remember what you chose for the static IP; if DHCP is used instead, your
-      DHCP server should've added the address of the <b>eLua</b> board to your DNS. The board name is always "elua", so if you execute "ping elua" from a shell you should see that the board is
+  <li>make sure you know the address of your board. If you enabled static IPs (see <a href="building.html">building</a>) remember what you chose for the static IP; if DHCP
+  (the default) is used instead, your
+      DHCP server should've added the address of the <b>eLua</b> board to your DNS. The board name is always "elua"
+      in our code examples too, so if you execute "ping elua" from a shell you should see that the board is
       alive.</li>
-  <li>telnet to the address of the board (or simply "telnet elua" if DHCP is used), and you'll be greeted with the shell prompt (if the shell is enabled, see the next paragraph for details). 
+  <li>telnet to the address of the board (or simply "telnet elua" if DHCP is used), and you'll be greeted with the shell prompt (if the shell is
+      enabled; see the next paragraph for details). 
   Note that you can only have an active telnet session to the <b>eLua</b> board at a given time.</li>
 </ul>
 
-<p>If you're under Windows, make sure you're using a proper telnet client, which basically means "just about everything <b>but</b> the build-in telnet client".
+<p>If you're under Windows, make sure you're using a proper telnet client, which basically means "just about everything <b>but</b> the
+built-in telnet client".
    <a href="http://www.chiark.greenend.org.uk/~sgtatham/putty/">PuTTY</a> is a very good and popular choice.</p>
 
 <a name="pc"><h3>Using standalone eLua on PC</h3></a>
 <p>If you build <b>eLua</b> for the i386 platform, you can boot your PC directly in <b>eLua</b>! No underlying OS, nothing but plain <b>eLua</b>. It won't have any actual peripherals to 
-access, but it can use the <b>term</b> module to run <i>hangman.lua</i> and <i>life.lua</i>, as well as other samples, which makes it a nice demo :) Follow <a href="installing_i386.html">
+access, but it can use the <b>term</b> module to run <i>hangman.lua</i> and <i>life.lua</i>, as well as other
+code examples and games, which makes it a nice demo :) Follow <a href="installing_i386.html">
 this link</a> for specific informations about the i386 port. </p>
 
 <a name="shell"><h3>The eLua shell</h3></a>
-<p>No matter what's your physical connection (serial, TCP/IP or you PC's monitor after booting <b>eLua</b>), after you setup the PC-<b>eLua</b> board connection (if applicable) and press 
+<p>No matter what's your physical connection (serial, TCP/IP or you PC's monitor after booting <b>eLua</b>), after you setup the PC-<b>eLua</b> board connection and press 
   the "RESET" button on your board or simply press ENTER if you're using the serial connection, you should see the <b>eLua</b> shell prompt (if you enabled the shell in your build, as described <a href="building.html">here</a>). The shell is a simple
   interactive command interpreter that allows you to:</p>
 <ul>
@@ -59,23 +70,24 @@ this link</a> for specific informations about the i386 port. </p>
   <li>run a Lua program from the eLua File System</li>
   <li>upload a Lua source file via XMODEM and execute in on board</li>
   <li>query the eLua version</li>
-  <li>list files on eLua file systems</li>
+  <li>list file names and sizes on eLua file systems</li>
+  <li>list file contents</li>
 </ul>
-<p>A detailed description of all the shell commands is given below.</p>
+<p>A detailed description of the current shell commands is given below.</p>
 
 <h2>help</h2>
 <p>Show a list of all shell commands.</p>
 <h2>ver</h2>
 <p>Print the version of the <b>eLua</b> image installed on the board. Currently, the version only increments for official releases, so if there's inter-release code in the
 development tree, this isn't reflected in the version number.</p>
-<h2>recv</h2>
 
-<p>Allows you to receive a Lua file (either source or compiled bytecode) via
+<h2>recv</h2>
+<p>Allows you to receive from the PC running the terminal emulator program, a Lua file (either source or compiled bytecode) via
 XMODEM and execute it on your board. To use this, your <b>eLua</b> target image must be built with support for XMODEM 
-(see <a href="building.html">building</a> for details).Also, your terminal emulation program must 
+(see <a href="building.html">building</a> for details). Also, your terminal emulation program must 
 support sending files via the XMODEM protocol. Both XMODEM with checksum and XMODEM with CRC are supported, but only XMODEM with 128 
 byte packets is allowed (XMODEM with 1K packets won't work).
-To use this feature, enter "recv" at the shell prompt. eLua will respond with 
+To use this feature, enter "recv" at the shell prompt. <b>eLua</b> will respond with 
 "Waiting for file ...". At this point you can send the file to the eLua board 
 via XMODEM. eLua will receive and execute the file. Don't worry when you see 'C'
 characters suddenly appearing on your terminal after you enter this command, 
@@ -85,32 +97,34 @@ If you'd like to send compiled bytecode to <b>eLua</b> instead of source code, p
 </p>
 
 <h2>lua</h2>
-
-<p>This allows you to start the Lua interpreter, optionally passing command line parameters, just 
+<p>This command allows you to start the Lua interpreter, optionally passing command line parameters, just 
 as you would do from a desktop machine. The command has some
 restrictions:</p>
-
 <ul><li>the command line can't be longer than 50 chars</li>
 <li>character escaping is not implemented. For example, the next command won't work
     because of the ' (simple quotes) escape sequences:
-
 <pre><code>eLua# lua -e 'print(\'Hello, World!\')' -i
 Press CTRL+Z to exit Lua
 lua: (command line):1: unexpected symbol near ''</code></pre>
-
 <p>However, if you use both '' (simple quotes) and "" (double quotes) for string quotin , it will work:</p>
-
 <pre><code>eLua# lua -e 'print("Hello, World")' -i
 Press CTRL+Z to exit Lua
 Lua 5.1.4  Copyright (C) 1994-2008 Lua.org, PUC-Rio
 Hello,World</code></pre></li></ul>
 <p>If you want to execute a file from the <a href="arch_romfs.html">ROM file system</a>, remember to prefix it with <i>/rom</i>. For example, to execute <b>hello.lua</b>, do this:</p>
 <pre><code>$ lua /rom/hello.lua</code></pre>
+
 <h2>ls or dir</h2>
-<p>Shows a list of all the files in the filesystems used by <b>eLua</b> (currently only the ROM file system), as well as their size and the total size of the given file system.</p>
+<p>Shows a list of all the files in the filesystems used by <b>eLua</b>, as well as their size and the total size of the given file system.</p>
+
+<h2>cat or type</h2>
+<p>Prints the content of (usually text) files on the console.</p>
+<pre><code>$ cat <i>filename1</i> [<i>filename2 filename3 ...</i>]</code></pre>
+
 <h2>exit</h2>
 <p>Exits the shell. This only makes sense if <b>eLua</b> is compiled with terminal support over TCP/IP , as it closes the telnet session to the <b>eLua</b> board. Otherwise it just
   terminates the shell and blocks forever until you reset your board.</p>
+
 <a name="cross"><h3>Cross-compiling your eLua programs</h3></a>
 <p><i>Cross-compilation</i> is the process of compiling a program on one hardware platform for a 
 different hardware platform. For example, the process of compiling the <b>eLua</b> binary image on
@@ -207,6 +221,8 @@ You can omit the <i>-s</i> (strip) parameter from compilation, but this will res
 <ul>
   <li>write it to <a href="arch_romfs.html">the ROM file system</a> and execute it from there.</li>
   <li>use the <i>recv</i> command from <a href="using.html#shell">the shell</a> to upload it to the board using a serial connection.</li>
+  <li>write it to an sd/mmc card and, if your board supports it, execute it
+  from there.</li>
 </ul>
 $$FOOTER$$
 
