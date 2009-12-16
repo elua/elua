@@ -8,6 +8,11 @@
 
 #include "platform_conf.h"
 
+// The maximum 32 GPIO ports limitation is given by the port_mask variable in src/modules/pio.c
+#if NUM_PIO > 32
+#error "Can't have more than 32 GPIO ports"
+#endif
+
 // Can't define more than one console devices
 #if defined( BUILD_CON_TCP ) && defined( BUILD_CON_GENERIC )
 #error "Can't have two console devices (don't enable BUILD_CON_TCP and BUILD_CON_GENERIC in platform_conf.h at the same time)"
