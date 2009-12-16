@@ -30,7 +30,7 @@ notation given below:
 </tr>
 </tbody>
 </table>
-
+<p/>
 <a name="platforms" /><h3>eLua suported platforms</h3>
 <p>The list of CPUs and boards currently supported by <b>eLua</b> is given below:</p>
 <table style="text-align: left; width: 620px;" class="table_center">
@@ -151,8 +151,8 @@ notation given below:
 </tr>
 </tbody>
 </table>
-
-<a name="gen_modules" /><h3>eLua generic modules</h3>
+<p/>
+<a name="gen_modules" /><h3>eLua modules</h3>
 <p>The following table shows a list of the generic modules currently implemented (and planned to be implemented) in <b>eLua</b>.</p>
 <table style="text-align: left; width: 620px;" class="table_center">
 <tbody>
@@ -277,8 +277,30 @@ notation given below:
 </tr>
 </tbody>
 </table>
-
-<a name="plat_modules" /><h3>eLua modules x platforms</h3>
+<p>
+For some platforms, a number of platform dependent modules are
+implemented (or in the works) and are listed below. To understand the
+difference between generic modules and platform specific modules, check
+<a href="arch_overview.html">the eLua architecture page</a>.
+</p>
+<table style="width: 620px; margin-bottom: 10px;" class="table_center">
+<tbody>
+<tr>
+  <th style="text-align: left;">Name</th>
+  <th style="text-align: center;">Description</th>
+  <th style="text-align: center;">Boards</th>
+  <th style="text-align: center;">Status</th>
+</tr>
+<tr>
+  <td style="color: rgb(255, 102, 0);">disp</td>
+  <td>OLED display support</td>
+  <td>EKx-LM3S8962<br>EKx-LM3S6965</td>
+  <td><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+</tbody>
+</table>
+<p/>
+<a name="plat_modules" /><h3>eLua modules x MCUs</h3>
 <p>The relationship between a module and its implementation on a particular platform is given in the next table.</p>
 <table style="text-align: left; width: 620px;" class="table_center">
 <tbody>
@@ -569,30 +591,7 @@ notation given below:
 </tr>
 </tbody>
 </table>
-
-<p>
-For some platforms, a number of platform dependent modules are
-implemented (or in the works) and are listed below. To understand the
-difference between generic modules and platform specific modules, check
-<a href="arch_overview.html">the eLua architecture page</a>.
-</p>
-<table style="width: 620px; margin-bottom: 10px;" class="table_center">
-<tbody>
-<tr>
-  <th style="text-align: left;">Name</th>
-  <th style="text-align: center;">Description</th>
-  <th style="text-align: center;">Boards</th>
-  <th style="text-align: center;">Status</th>
-</tr>
-<tr>
-  <td style="color: rgb(255, 102, 0);">disp</td>
-  <td>OLED display support</td>
-  <td>EKx-LM3S8962<br>EKx-LM3S6965</td>
-  <td><img src="images/stat_ok.png" alt="Status: OK" /></td>
-</tr>
-</tbody>
-</table>
-
+<p/>
 <a name="roadmap" /><h3>Status of features and roadmap</h3>
 <p>The following table shows the status of some existing and planned <b>eLua</b> features.</p>
 <table style="text-align: left; width: 620px;" class="table_center">
