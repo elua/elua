@@ -1,4 +1,4 @@
--- eLua reference manual - SPI module
+-- eLua reference manual - RPC module
 
 data_en = 
 {
@@ -17,7 +17,7 @@ data_en =
   <p>In order to open a connection, it is necessary to specify the interface through wich the connection is made.
   Currently the connections are limited to serial ports on the desktop side, and uart devices on the eLua side.
   For a number of the connections below, a parameter labeled $transport_identifiers$ is used to specify the port
-  to be used in a platform specific manner:
+  to be used in a platform specific manner.:
   <ul>
     <li>eLua: $transport_identifiers$ = $uart_id$, $timer_id$
       <ul>
@@ -46,14 +46,32 @@ data_en =
       {
         "$transport_identifiers$ - platform-specific serial port identification (see @#overview@overview@)"
       },
-      ret = [[$handle$ - handle used to interact with the remote Lua state.  Usage styles are as follows:
-              <ul>
-                <li>$handle$.$remote_variable$ = $local_variable$ - send contents of $local_variable$ to remote host and assign to $remote_variable$ (registered on global table). This also works where the destination variable is nested within tables.</li>
-                <li>$local_variable$ = $handle$.$remote_variable$:get() - get contents of $remote_variable$ from remote global table and assign to $local_variable$.</li>
-                <li>$val1$, $val2$, $valn$ = $handle$.$remote_function$() - call $remote_function$ on the server side, and return values to local state</li>
-                <li>$helper$ = $handle$.$remote_variable$ - create a $helper$ which points to $remote_variable$, and can be used as shorthand later (e.g.: $helper$:get() would get the contents of the remote variable. If $remote_variable$ were a table with functions on it: $helper$.$funcname$() would call $funcname$, on table $remote_variable$ on the server, and return any results.)</li>
-              </ul>
-            ]]
+      ret = [[$handle$ - handle used to interact with the remote Lua state.  Usage styles are as follows:</p>
+    <table style="text-align: left; margin-left: 2em;">
+    <tbody>
+    <tr>
+      <th style="text-align: left; width: 20em;">Usage Style</th>
+      <th style="text-align: left;">Meaning</th>
+    </tr>
+    <tr>
+      <td>$handle$.$remote_var$ = $local_var$</td>
+      <td>send contents of $local_var$ to remote host and assign to $remote_var$ (registered on global table). This also works where the destination variable is nested within tables.</td>
+    </tr>
+    <tr>
+      <td>$local_var$ = $handle$.$remote_var$:get()</td>
+      <td>get contents of $remote_var$ from remote global table and assign to $local_var$.</td>
+    </tr>
+    <tr>
+      <td>$val1$, $val2$, $valn$ = $handle$.$remote_func$()</td>
+      <td>call $remote_func$ on the server side, and return values to local state</td>
+    </tr>
+    <tr>
+      <td>$helper$ = $handle$.$remote_var$</td>
+      <td>create a $helper$ which points to $remote_var$, and can be used as shorthand later (e.g.: $helper$:get() would get the contents of the remote variable. If $remote_var$ were a table with functions on it: $helper$.$funcname$() would call $funcname$, on table $remote_var$ on the server, and return any results.)</td>
+    </tr>
+    </tbody>
+    </table>
+    <p>]]
     },
 
     { sig = "#rpc.close#( handle )",
