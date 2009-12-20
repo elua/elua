@@ -48,11 +48,13 @@ void NMI_Handler(void)
 {
 }
 
+#if 0
 int fputc(int ch, FILE *f)
 {
    platform_uart_send(0, ch);
    return ch;
 }
+#endif
 
 void hard_fault_handler_c(unsigned int * hardfault_args)
 {
