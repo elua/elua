@@ -33,10 +33,19 @@ extern char etext[];
   #define RPC_TIMER_ID    CON_TIMER_ID
 #endif
 
+#ifndef RPC_TIMER_ID
+  #define RPC_UART_SPEED  CON_UART_SPEED
+#endif
+
 void boot_rpc( void )
 {
   lua_State *L = lua_open();
   luaL_openlibs(L);  /* open libraries */
+  
+  // Set up UART for 8N1 w/ adjustable baud rate
+  platform_uart_setup( RPC_UART_ID, RPC_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
+  
+  // Start RPC Server
   lua_getglobal( L, "rpc" );
   lua_getfield( L, -1, "server" );
   lua_pushnumber( L, RPC_UART_ID );

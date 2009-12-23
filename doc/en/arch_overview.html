@@ -202,7 +202,8 @@ specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in spe
   <li><b>main</b> then initializes the rest of the system: the ROM file system, XMODEM, and term.</li>
   <li>if <b>/rom/autorun.lua</b> (which is a file called <b>autorun.lua</b> in the <a href="arch_romfs.html">ROM file system</a>) is found, it is
   executed. If it returns after execution, or if it isn't found, the boot process continues with the next step.</li>
-  <li>if the <a href="using.html#shell">shell</a> was compiled in the image, it is started, otherwise a standard Lua interpreter is started.</li>
+  <li>if boot is set to 'standard' and the <a href="using.html#shell">shell</a> was compiled in the image, it is started, in the absence of the shell, a standard Lua interpreter is started.</li>
+  <li>if boot is set to 'luarpc' an rpc server is started.</li>
 </ol>
 $$FOOTER$$
 

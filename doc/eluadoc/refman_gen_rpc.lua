@@ -32,8 +32,8 @@ data_en =
     </li>
   </ul>
   </p>
-  
-  <p><span class="warning">IMPORTANT</span>: This module is considered experimental. It currently works over a 
+
+  <p><span class="warning">NOTE</span>: This module is considered experimental. It currently works over a 
   serial port with eLua targets and on desktop systems implementing POSIX serial communications (Linux, Mac OS X, etc).
   ]],
 

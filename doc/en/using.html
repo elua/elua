@@ -224,5 +224,71 @@ You can omit the <i>-s</i> (strip) parameter from compilation, but this will res
   <li>write it to an sd/mmc card and, if your board supports it, execute it
   from there.</li>
 </ul>
+
+<a name="rpc"><h3>Controlling eLua with LuaRPC</h3></a>
+<p><i>Remote procedure calls</i> (RPC) allow one program to communicate with another and call functions or subroutines within the second program. For example one might want to programmatically control an array of LEDs connected to an eLua embedded device from a desktop Lua state.  A simple implementation might be a protocol that would allow one to send commands numeric or text-based commands that would cause code to be executed in eLua that would change the state of the LEDs. As one needs new commands to change these LEDs, one would need to upload a new Lua program to handle changing functionality.  In contrast to this ad-hoc method for remote calls, LuaRPC provides one with much more flexible control over remote state.</p>
+  <p>When a client is connected to a LuaRPC server, it can interact with it in the following ways:</p>
+<ul>
+  <li>assign values to new or existing variables in the server state</li>
+  <li>get values from variables in the server state</li>
+  <li>call functions to be executed on the server side using parameters of serializable types, with return values being sent back to the client</li>
+  <li>create local userdata helpers (aliases) which provide short-hand access to remote state</li>
+</ul>
+<p>In terms of our LED example, one could directly call pio module functions from the desktop side, experimenting with responses. If the experimentation developed into a program this could be tested both on the desktop side and on the microcontroller by making aliases to eLua modules in local Lua state. Such aliasing can be done as follows (from desktop Linux):</p>
+<pre><code>slave,err = rpc.connect("/dev/ttyUSB0")
+pio = slave.pio -- pio in the local state is now a helper
+
+function set_port_val(val)
+  pio.port.setdir( pio.OUTPUT, pio.PB )
+  pio.port.setval( val, pio.PB )
+end
+
+set_port_val(23)</pre></code>
+<p>When we run this locally, calling and indexing helpers are translated into appropriate actions on the server.  If we were done with modifications to the above function and wanted it to execute in eLua rather than using local aliases which will result in a great deal of RPC traffic every time the function is called, we can send the function to the remote side:</p>
+<pre><code>-- send bytecode to target
+slave.set_port_val = set_port_val 
+
+-- call function on server device
+slave.set_port_val(23)</pre></code>
+
+<p>The above should work even when the server or client is integer-only but the other end of the connection is using floating point, or if one side is not of the same endianness as the other.</p>
+
+<p>While this example is trivial, it serves to illustrate a compelling development paradigm that gives one a great deal of flexibility for development and testing with an embedded target.</p>
+
+<p>Most Lua types can be transferred between the client and server states.  The following list indicates which ones can be transferred, and where there can be issues:</p>
+
+<table style="text-align: left;" class="table_center">
+<tbody>
+<tr>
+  <th style="text-align: left;">Serializable Types</th>
+  <th style="text-align: center;">Exceptions</th>
+</tr>
+<tr>
+  <td>numbers</td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td>strings</td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td>booleans</td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td>tables</td>
+  <td>no circular references</td>
+</tr>
+<tr>
+  <td>functions</td>
+  <td>no upvalues</td>
+</tr>
+<tr>
+  <td>nil</td>
+  <td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<p>
 $$FOOTER$$
 
