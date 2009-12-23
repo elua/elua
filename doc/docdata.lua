@@ -110,7 +110,12 @@ local menu =
           { "Cross-compiling", "using.html#cross" },
         },
       },
-      { { "Building eLua", "Build de eLua" }, "building.html" },
+      { { "Building eLua", "Build de eLua" }, "building.html",
+        {
+          { "Building eLua in Linux", "building_unix.html" },
+          { "Building eLua in Windows", "building_win.html" },
+        },  
+      },
       { { "Code examples", "Exemplos de Código" }, "examples.html" },
       { { "FAQ", "Perguntas Frequentes (FAQ)" }, "faq.html" },
       { { "Tutorials", "Tutoriais" }, "tutorials.html",

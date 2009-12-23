@@ -239,7 +239,7 @@ if romfsmode == 'compile':
     print "The eLua cross compiler was not found."
     print "Build it by running 'scons -f cross-lua.py'"
     sys.exit( -1 )
-  compcmd = './luac.cross -ccn %s -cce %s -o %%s -s %%s' % ( toolset[ 'cross_%s' % target ], toolset[ 'cross_cpumode' ] )
+  compcmd = os.path.join( os.getcwd(), 'luac.cross -ccn %s -cce %s -o %%s -s %%s' % ( toolset[ 'cross_%s' % target ], toolset[ 'cross_cpumode' ] ) )
 elif romfsmode == 'compress':
   compcmd = 'lua luasrcdiet.lua --quiet --maximum --opt-comments --opt-whitespace --opt-emptylines --opt-eols --opt-strings --opt-numbers --opt-locals -o %s %s'
 

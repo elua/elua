@@ -1,49 +1,10 @@
 $$HEADER$$
 <h3>Building eLua</h3>
-<p>If you decide to build your own <b>eLua</b>
-binary image (instead of <a href="downloads.html">downloading
-one</a>) you need to check a few things first:
-</p>
-<ul>
-<li>you're using Linux. Compiling under windows should be
-possible, however this isn't tested. We are in Ubuntu, so what
-we use is&nbsp;"apt-get". If you're using a distro with a different
-package
-manager you'll need to translate the "apt-get" calls to your specific
-distribution.</li>
-<li>you have a toolchain (compiler, linker, assembler and
-standard C libraries) for your target. Check <a href="toolchains.html">the toolchains page</a> for
-toolchain instructions. Please note that even if you already have a
-compiled toolchain, the differences in the Newlib configure flags
-(mainly the --disable-newlib-supplied-syscalls flags) might prevent <b>eLua</b>
-for building properly on your machine.</li>
-<li>you set your platform configuration options properly. Check
-the next paragraph for instructions on how to configure your build.</li>
-<li>Python - It should be already installed. If it's not, use
-apt-get to install it:
-<pre><code>$ sudo apt-get install python</code></pre>
-</li>
-<li>Scons - <b>eLua</b> uses scons instead of make
-and makefiles, because we find scons much more "natural" and easier to
-use than make. To install it:
-<pre><code>$ sudo apt-get install scons</code></pre>
-</li>
-<li>your toolchain's "bin" directory (this is generally
-something like /usr/local/cross-arm/bin, where /usr/local/cross-arm is
-the directory in which you installed your toolchain) must be in $PATH.
-</li>
-<li>if you're building for the i386 platform, you'll also need
-"nasm":
-<pre><code>$ sudo apt-get install nasm</code></pre>
-</li>
-</ul>
-<p>For each platform, <b>eLua</b> assumes a certain
-name for the toolchain components, as shown below.
-</p>
-<p>If your toolchain uses different names, you have to modify the
-toolchain definition in SConstruct. See the <a href="toolchains.html">toolchains instructions</a> for
-details.</p>
-<h3>Configuring the build image</h3>
+<p>If you decide to build your own <b>eLua</b> binary image (instead of <a href="downloads.html">downloading
+one</a>) you need to download the source code (see <a href="downloads.html#source">here</a> for details) and follow the 
+platform specific eLua build instructions (provided for <a href="build_unix.html">Linux</a> and <a href="build_win.html">Windows</a>) to setup your build environment. 
+Then follow the instructions below to build your eLua binary image.</p>
+<a name="configuring" /><h3>Configuring the build image</h3>
 <p><b>eLua</b> has a very flexible build system that
 can be used to select the components that are going to be part of the <b>eLua</b>
 binary image and to set the compile time (static) configuration.
@@ -326,7 +287,7 @@ to be modified mainly by developers and thus they're not listed here.<br>
 One more thing you might want to configure for your build is the
 contents of the ROM file system. See the <a href="arch_romfs.html">ROMFS
 documentation</a> for details on how to do this.</p>
-<h3>Invoking the build system</h3>
+<a name="buildoptions" /><h3>Invoking the build system</h3>
 <p>Once you have everything in place, all you have to do is to
 invoke the build system (scons) with the right arguments. This is a
 fairly easy step, although it might look intimidating because of the
@@ -336,7 +297,7 @@ very special you won't need to modify them, so don't worry about the
 aparent complexity. The examples at the end of this section will show
 how easy it is to use the build system in practice.
 </p>
-<pre><code>$ scons <br> [target=lua | lualong]<br> [cpu=at91sam7x256 | at91sam7x512 | i386 | str912fw44 | lm3s8962 | <br> lm3s6965 | lm3s6918 | lpc2888 | str711fr2 | at32uc3a0512 | stm32f103ze<br> [board=ek-lm3s8962 | ek-lm3s6965 | eagle-100 | str9-comstick | sam7-ex256 | <br> lpc-h2888 | mod711 | pc | atevk1100 | stm3210e-eval ]<br> [cpumode=arm | thumb] <br> [allocator = newlib | multiple | simple]<br> [toolchain = &lt;toolchain name&gt;]<br> [optram = 0 | 1]<br> [prog]<br></code></pre>
+<pre><code>$ scons <br> [target=lua | lualong]<br> [cpu=at91sam7x256 | at91sam7x512 | i386 | str912fw44 | lm3s8962 | <br> lm3s6965 | lm3s6918 | lpc2888 | str711fr2 | at32uc3a0512 | stm32f103ze<br> [board=ek-lm3s8962 | ek-lm3s6965 | eagle-100 | str9-comstick | sam7-ex256 | <br> lpc-h2888 | mod711 | pc | atevk1100 | stm3210e-eval ]<br> [cpumode=arm | thumb] <br> [allocator = newlib | multiple | simple]<br> [toolchain = &lt;toolchain name&gt;]<br> [optram = 0 | 1]<br> [romfs = verbatim | compress | compile]<br> [prog]<br></code></pre>
 <p>Your build target is specified by two paramters: cpu and
 board. "cpu" gives the name of your CPU, and "board" the name of the
 board. A board can be associated with more than one CPU. This allows
@@ -389,6 +350,7 @@ command will build only the 'elf' (executable) file. Specify "prog" to
 build also the platform-specific programming file where appropriate
 (for example, on a AT91SAM7X256 this results in a .bin file that can be
 programmed in the CPU). </li>
+<li><b>romfs = verbatim | compress | compile</b>: ROMFS compilation mode, check <a href="arch_romfs.html#mode">here</a> for details (<b>new in 0.7</b>).</li> 
 </ul>
 <p>The output will be a file named elua_<i>[target]</i>_<i>[cpu]</i>.elf
 (and also another file with the same name but ending in .bin/.hex if
