@@ -1,7 +1,7 @@
 -- Control LED intensity with PWM
 
 local pwmid, tmrid, ledpin
-if pd.board() == 'EK-LM3S8962' or pd.board() == 'EK-LM3S6965' or pd.board() == 'ET-STM32' then
+if pd.board() == 'EK-LM3S8962' or pd.board() == 'EK-LM3S6965' or pd.board() == 'ET-STM32' or pd.board() == 'EAGLE-100' then
   pwmid, tmrid = 0, 1
   pwm.setclock( pwmid, 25000000 )
 elseif pd.board() == 'ELUA-PUC' then

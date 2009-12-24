@@ -5,7 +5,6 @@
 #include "type.h"
 #include "devman.h"
 #include "platform.h"
-#include "romfs.h"
 #include "xmodem.h"
 #include "shell.h"
 #include "lua.h"
@@ -19,6 +18,15 @@
 
 // Validate eLua configuratin options
 #include "validate.h"
+
+#include "mmcfs.h"
+#include "romfs.h"
+#if defined(BUILD_MMCFS)
+  #define FS_AUTORUN          "/mmc/autorun.lua"
+#endif
+#if defined(BUILD_ROMFS) && !defined(FS_AUTORUN)
+  #define FS_AUTORUN          "/rom/autorun.lua"
+#endif
 
 extern char etext[];
 
@@ -60,26 +68,29 @@ void boot_rpc( void )
 int main( void )
 {
   FILE* fp;
-  
+
   // Initialize platform first
   if( platform_init() != PLATFORM_OK )
   {
     // This should never happen
     while( 1 );
   }
-  
+
   // Initialize device manager
   dm_init();
-  
-  // Register the ROM filesystem
-  dm_register( romfs_init() );  
 
-  // Autorun: if "autorun.lua" is found in the ROM file system, run it first
-  if( ( fp = fopen( "/rom/autorun.lua", "r" ) ) != NULL )
+  // Register the MMC filesystem
+  dm_register( mmcfs_init() );
+
+  // Register the ROM filesystem
+  dm_register( romfs_init() );
+
+  // Autorun: if "autorun.lua" is found in the file system, run it first
+  if( ( fp = fopen( FS_AUTORUN, "r" ) ) != NULL )
   {
     fclose( fp );
-    char* lua_argv[] = { "lua", "/rom/autorun.lua", NULL };
-    lua_main( 2, lua_argv );    
+    char* lua_argv[] = { "lua", FS_AUTORUN, NULL };
+    lua_main( 2, lua_argv );
   }
   
 #ifdef ELUA_BOOT_RPC

@@ -16,6 +16,7 @@
 #include "platform_conf.h"
 #include "common.h"
 #include "math.h"
+#include "diskio.h"
 #include "lua.h"
 #include "lauxlib.h"
 #include "lrotable.h"
@@ -247,7 +248,7 @@ u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigne
   MAP_GPIOPinTypeSSI( spi_gpio_base[ id ], spi_gpio_pins[ id ] );
 
   // FIXME: not sure this is always "right"
-  // MAP_GPIOPadConfigSet(spi_gpio_base[ id ], spi_gpio_clk_pin[ id ], GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_STD_WPU);
+  GPIOPadConfigSet(spi_gpio_base[ id ], spi_gpio_pins[ id ], GPIO_STRENGTH_4MA, GPIO_PIN_TYPE_STD_WPU);
 
   MAP_SSIConfigSetExpClk( spi_base[ id ], MAP_SysCtlClockGet(), protocol, mode, clock, databits );
   MAP_SSIEnable( spi_base[ id ] );
@@ -912,6 +913,10 @@ void SysTickIntHandler()
   // Handle virtual timers
   cmn_virtual_timer_cb();
 
+#ifdef BUILD_MMCFS
+  disk_timerproc();
+#endif
+
   // Indicate that a SysTick interrupt has occurred.
   eth_timer_fired = 1;
 
@@ -937,6 +942,10 @@ void EthernetIntHandler()
 void SysTickIntHandler()
 {
   cmn_virtual_timer_cb();
+
+#ifdef BUILD_MMCFS
+  disk_timerproc();
+#endif
 }
 
 void EthernetIntHandler()

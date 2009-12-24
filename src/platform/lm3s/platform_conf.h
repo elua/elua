@@ -15,6 +15,7 @@
 #define BUILD_XMODEM
 #define BUILD_SHELL
 #define BUILD_ROMFS
+#define BUILD_MMCFS
 #define BUILD_TERM
 #define BUILD_UIP
 //#define BUILD_DHCPC
@@ -148,6 +149,35 @@
 // RPC  
 #define RPC_UART_ID           CON_UART_ID
 #define RPC_TIMER_ID          CON_TIMER_ID
+// SD/MMC Filesystem Setup
+#define MMCFS_TICK_HZ     4
+#define MMCFS_TICK_MS     ( 1000 / MMCFS_TICK_HZ )
+
+#ifdef ELUA_BOARD_EKLM3S6965
+  // EK-LM3S6965
+  #define SDC_CS_PORT                3
+  #define SDC_CS_PIN                 0
+  #define SDC_SPI_NUM                0
+#endif
+
+#ifdef ELUA_BOARD_EKLM3S8962
+  // EK-LM3S8962
+  #define SDC_CS_PORT                6
+  #define SDC_CS_PIN                 0
+  #define SDC_SPI_NUM                0
+#endif
+
+#ifdef ELUA_BOARD_EAGLE100
+  // Eagle-100
+  #define SDC_CS_PORT                6
+  #define SDC_CS_PIN                 1
+  #define SDC_SPI_NUM                0
+#endif
+
+#ifndef SDC_SPI_NUM
+#undef BUILD_MMCFS
+#endif
+
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 #define CPU_FREQUENCY         SysCtlClockGet()
@@ -156,7 +186,7 @@
 #define PIO_PREFIX            'A'
 // Pins per port configuration:
 // #define PIO_PINS_PER_PORT (n) if each port has the same number of pins, or
-// #define PIO_PIN_ARRAY { n1, n2, ... } to define pins per port in an array 
+// #define PIO_PIN_ARRAY { n1, n2, ... } to define pins per port in an array
 // Use #define PIO_PINS_PER_PORT 0 if this isn't needed
 #ifdef FORLM3S9B92
   #define PIO_PIN_ARRAY         { 8, 8, 8, 8, 8, 6, 8, 8, 8 }
@@ -230,5 +260,5 @@
   _C( INT_PWM3 ),\
   _C( INT_UDMA ),\
   _C( INT_UDMAERR )
-  
+
 #endif // #ifndef __PLATFORM_CONF_H__

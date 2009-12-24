@@ -1,5 +1,4 @@
 # Configuration file for the LM3S microcontroller
-
 specific_files = "startup_gcc.c platform.c uart.c sysctl.c gpio.c ssi.c timer.c pwm.c ethernet.c systick.c flash.c interrupt.c cpu.c adc.c"
 
 if boardname == 'EK-LM3S6965' or boardname == 'EK-LM3S8962':

@@ -132,9 +132,9 @@ romfs = { 'bisect' : [ 'bisect.lua' ],
 
 # List of board/romfs data combinations
 file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'info', 'morse' ],
-              'EK-LM3S8962' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope', 'adcpoll', 'logo', 'spaceship', 'tetrives' ],
-              'EK-LM3S6965' : [ 'bisect', 'hangman', 'lhttpd', 'pong', 'led', 'piano', 'pwmled', 'tvbgone', 'hello', 'info', 'morse', 'adcscope', 'adcpoll', 'logo', 'spaceship', 'tetrives' ],
-              'EK-LM3S9B92' : [ 'bisect', 'hangman', 'lhttpd', 'led', 'pwmled', 'hello', 'info', 'adcscope','adcpoll', 'life' ],
+              'EK-LM3S8962' : [ 'bisect', 'hangman', 'pong', 'led', 'piano', 'pwmled', 'hello', 'info', 'morse', 'adcscope', 'adcpoll', 'logo' ],
+              'EK-LM3S6965' : [ 'bisect', 'hangman', 'pong', 'led', 'piano', 'pwmled', 'hello', 'info', 'morse', 'adcscope', 'adcpoll', 'logo' ],
+              'EK-LM3S9B92' : [ 'bisect', 'hangman', 'led', 'pwmled', 'hello', 'info', 'adcscope','adcpoll', 'life' ],
               'STR9-COMSTICK' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
               'STR-E912' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'piano' ],
               'PC' : [ 'bisect', 'hello', 'info', 'life', 'hangman' ],
@@ -304,6 +304,10 @@ newlib_files = " src/newlib/devman.c src/newlib/stubs.c src/newlib/genstd.c src/
 uip_files = "uip_arp.c uip.c uiplib.c dhcpc.c psock.c resolv.c"
 uip_files = " src/elua_uip.c " + " ".join( [ "src/uip/%s" % name for name in uip_files.split() ] )
 local_include += ['src/uip']
+
+# FatFs files
+app_files = app_files + "src/elua_mmc.c src/mmcfs.c src/fatfs/ff.c "
+local_include += ['src/fatfs']
 
 # Lua module files
 module_names = "pio.c spi.c tmr.c pd.c uart.c term.c pwm.c lpack.c bit.c net.c cpu.c adc.c can.c luarpc.c bitarray.c"
