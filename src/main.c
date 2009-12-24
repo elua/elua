@@ -41,7 +41,7 @@ extern char etext[];
   #define RPC_TIMER_ID    CON_TIMER_ID
 #endif
 
-#ifndef RPC_TIMER_ID
+#ifndef RPC_UART_SPEED
   #define RPC_UART_SPEED  CON_UART_SPEED
 #endif
 
@@ -79,11 +79,13 @@ int main( void )
   // Initialize device manager
   dm_init();
 
-  // Register the MMC filesystem
-  dm_register( mmcfs_init() );
-
   // Register the ROM filesystem
   dm_register( romfs_init() );
+
+#ifdef BUILD_MMCFS
+  // Register the MMC filesystem
+  dm_register( mmcfs_init() );
+#endif
 
   // Autorun: if "autorun.lua" is found in the file system, run it first
   if( ( fp = fopen( FS_AUTORUN, "r" ) ) != NULL )

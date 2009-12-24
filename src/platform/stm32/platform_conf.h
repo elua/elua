@@ -21,7 +21,7 @@
 //#define BUILD_DNS
 #define BUILD_CON_GENERIC
 #define BUILD_ADC
-#define BUILD_LUARPC
+#define BUILD_RPC
 //#define BUILD_CON_TCP
 
 // *****************************************************************************
@@ -57,7 +57,7 @@ LUALIB_API int ( luaopen_lcd )( lua_State* L );
   _ROM( AUXLIB_ADC, luaopen_adc, adc_map )\
   _ROM( AUXLIB_CAN, luaopen_can, can_map )\
   _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map )\
-	_ROM( AUXLIB_LUARPC, luaopen_luarpc, rpc_map )\
+  _ROM( AUXLIB_LUARPC, luaopen_luarpc, rpc_map )\
   LCDLINE\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
 	
@@ -114,10 +114,11 @@ LUALIB_API int ( luaopen_lcd )( lua_State* L );
 #define ADC_TIMER_FIRST_ID    0
 #define ADC_NUM_TIMERS        4
 
-// RPC  
+// RPC boot options
 #define RPC_UART_ID           CON_UART_ID
 #define RPC_TIMER_ID          CON_TIMER_ID
 #define RPC_UART_SPEED        CON_UART_SPEED
+
 
 #define MMCFS_TICK_HZ     10
 #define MMCFS_TICK_MS     ( 1000 / MMCFS_TICK_HZ )

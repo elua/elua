@@ -22,7 +22,7 @@
 #define BUILD_DNS
 #define BUILD_CON_GENERIC
 #define BUILD_ADC
-#define BUILD_LUARPC
+#define BUILD_RPC
 //#define BUILD_CON_TCP
 
 // *****************************************************************************
@@ -146,7 +146,7 @@
 #define ADC_TIMER_FIRST_ID    0
 #define ADC_NUM_TIMERS        NUM_TIMER  
 
-// RPC  
+// RPC boot options
 #define RPC_UART_ID           CON_UART_ID
 #define RPC_TIMER_ID          CON_TIMER_ID
 #define RPC_UART_SPEED        CON_UART_SPEED

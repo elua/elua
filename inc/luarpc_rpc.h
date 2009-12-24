@@ -11,7 +11,7 @@ typedef int16_t s16;
 typedef int32_t s32;
 
 #define LUARPC_ENABLE_SERIAL
-#define BUILD_LUARPC
+#define BUILD_RPC
 #endif
 
 /****************************************************************************/

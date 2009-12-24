@@ -15,7 +15,7 @@
 #define BUILD_ROMFS
 #define BUILD_TERM
 #define BUILD_CON_GENERIC
-#define BUILD_LUARPC
+#define BUILD_RPC
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
@@ -69,9 +69,10 @@
 //#define BUF_ENABLE_UART
 //#define CON_BUF_SIZE          BUF_SIZE_128
 
-// RPC  
+// RPC boot options
 #define RPC_UART_ID           CON_UART_ID
 #define RPC_TIMER_ID          CON_TIMER_ID
+#define RPC_UART_SPEED        CON_UART_SPEED
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 #define CPU_FREQUENCY         Fcclk

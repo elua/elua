@@ -34,7 +34,7 @@
 #include "luarpc_rpc.h"
 
 
-#ifdef BUILD_LUARPC
+#ifdef BUILD_RPC
 
 // Support for Compiling with & without rotables 
 #ifdef LUA_OPTIMIZE_MEMORY
