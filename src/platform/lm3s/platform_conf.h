@@ -149,6 +149,8 @@
 // RPC  
 #define RPC_UART_ID           CON_UART_ID
 #define RPC_TIMER_ID          CON_TIMER_ID
+#define RPC_UART_SPEED        CON_UART_SPEED
+
 // SD/MMC Filesystem Setup
 #define MMCFS_TICK_HZ     4
 #define MMCFS_TICK_MS     ( 1000 / MMCFS_TICK_HZ )
