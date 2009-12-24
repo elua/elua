@@ -64,6 +64,7 @@ defined in linker script */
     .section	.text.Reset_Handler
 	.weak	Reset_Handler
 	.type	Reset_Handler, %function
+  .thumb_func
 Reset_Handler:	
 
 /* FSMC Bank1 NOR/SRAM3 is used for the STM3210E-EVAL, if another Bank is 

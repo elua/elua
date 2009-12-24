@@ -12,7 +12,7 @@
 // *****************************************************************************
 // Define here what components you want for this platform
 
-//#define BUILD_XMODEM
+#define BUILD_XMODEM
 #define BUILD_SHELL
 #define BUILD_ROMFS
 #define BUILD_MMCFS
@@ -110,7 +110,6 @@
 #define VTMR_NUM_TIMERS       4
 #define VTMR_FREQ_HZ          4
 
-
 // Number of resources (0 if not available/not implemented)
 #ifdef FORLM3S9B92
   #define NUM_PIO             7
@@ -147,6 +146,9 @@
 #define ADC_TIMER_FIRST_ID    0
 #define ADC_NUM_TIMERS        NUM_TIMER  
 
+// RPC  
+#define RPC_UART_ID           CON_UART_ID
+#define RPC_TIMER_ID          CON_TIMER_ID
 // SD/MMC Filesystem Setup
 #define MMCFS_TICK_HZ     4
 #define MMCFS_TICK_MS     ( 1000 / MMCFS_TICK_HZ )

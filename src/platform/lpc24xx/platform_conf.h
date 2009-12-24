@@ -15,6 +15,7 @@
 #define BUILD_ROMFS
 #define BUILD_TERM
 #define BUILD_CON_GENERIC
+#define BUILD_LUARPC
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
@@ -39,6 +40,7 @@
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
   _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map )\
+  _ROM( AUXLIB_LUARPC, luaopen_luarpc, rpc_map )\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
 
 // *****************************************************************************
@@ -66,6 +68,10 @@
 // [TODO] make this happen
 //#define BUF_ENABLE_UART
 //#define CON_BUF_SIZE          BUF_SIZE_128
+
+// RPC  
+#define RPC_UART_ID           CON_UART_ID
+#define RPC_TIMER_ID          CON_TIMER_ID
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 #define CPU_FREQUENCY         Fcclk

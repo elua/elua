@@ -72,6 +72,13 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op );
 // Maximum length for any CAN message
 #define PLATFORM_CAN_MAXLEN                   8
 
+// eLua CAN ID types
+enum
+{
+  ELUA_CAN_ID_STD = 0,
+  ELUA_CAN_ID_EXT
+};
+
 int platform_can_exists( unsigned id );
 u32 platform_can_setup( unsigned id, u32 clock );
 void platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *data );

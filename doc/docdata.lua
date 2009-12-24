@@ -101,15 +101,21 @@ local menu =
   },
   { { "Help", "Ajuda" }, "using.html", 
     {
-      { { "Building eLua", "Build de eLua" }, "building.html" },
-      { { "Using", "Usando eLua" }, "using.html", 
+      { { "Using eLua", "Usando eLua" }, "using.html", 
         {
           { { "Over UART", "Console via UART" }, "using.html#uart" },
           { { "Over TCP/IP", "Console via TCP/IP" }, "using.html#tcpip" },
           { { "On PC", "Num PC" }, "using.html#pc" },
           { { "The shell", "O Shell" }, "using.html#shell" },
           { "Cross-compiling", "using.html#cross" },
+          { "LuaRPC", "using.html#rpc" },
         },
+      },
+      { { "Building eLua", "Build de eLua" }, "building.html",
+        {
+          { "Building eLua in Linux", "building_unix.html" },
+          { "Building eLua in Windows", "building_win.html" },
+        },  
       },
       { { "Code examples", "Exemplos de Código" }, "examples.html" },
       { { "FAQ", "Perguntas Frequentes (FAQ)" }, "faq.html" },

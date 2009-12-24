@@ -56,12 +56,13 @@ static void shell_help( char* args )
 {
   args = args;
   printf( "Shell commands:\n" );
-  printf( "  exit       - exit from this shell\n" );
-  printf( "  help       - print this help\n" );
-  printf( "  ls or dir  - lists ROMFS files and sizes\n" );
-  printf( "  lua [args] - run Lua with the given arguments\n" );
-  printf( "  recv       - receive a file (XMODEM) and execute it\n" );
-  printf( "  ver        - print eLua version\n" );
+  printf( "  exit        - exit from this shell\n" );
+  printf( "  help        - print this help\n" );
+  printf( "  ls or dir   - lists ROMFS files and sizes\n" );
+  printf( "  cat or type - lists file contents\n" );
+  printf( "  lua [args]  - run Lua with the given arguments\n" );
+  printf( "  recv        - receive a file (XMODEM) and execute it\n" );
+  printf( "  ver         - print eLua version\n" );
 }
 
 // 'lua' handler
@@ -222,6 +223,39 @@ static void shell_ls( char* args )
 #endif
 }
 
+
+// 'cat' and 'type' handler
+static void shell_cat( char *args )
+{
+  FILE *fp;
+  int c;
+  char *p;
+
+// *args has an appended space. Replace it with the string terminator.
+//  *(strchr( args, ' ' )) = 0;
+  if ( *args )
+    while ( *args ) {
+      p = strchr( args, ' ' );
+      *p = 0;
+      if( ( fp = fopen( args , "rb" ) ) != NULL ) {
+        c = fgetc( fp );
+        while( c != EOF ) {
+          printf("%c", (char) c );  
+          c = fgetc( fp );
+        }
+        fclose ( fp );
+      }
+      else
+        printf( "File %s not found\n", args );
+      args = p + 1;
+    }      
+  else
+      printf( "Usage: cat (or type) <filename1> [<filename2> ...]\n" );
+}    
+
+
+
+
 // Insert shell commands here
 static const SHELL_COMMAND shell_commands[] =
 {
@@ -232,6 +266,8 @@ static const SHELL_COMMAND shell_commands[] =
   { "exit", NULL },
   { "ls", shell_ls },
   { "dir", shell_ls },
+  { "cat", shell_cat },
+  { "type", shell_cat },
   { NULL, NULL }
 };
 

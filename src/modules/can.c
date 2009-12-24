@@ -69,6 +69,10 @@ const LUA_REG_TYPE can_map[] =
   { LSTRKEY( "setup" ),  LFUNCVAL( can_setup ) },
   { LSTRKEY( "send" ),  LFUNCVAL( can_send ) },  
   { LSTRKEY( "recv" ),  LFUNCVAL( can_recv ) },
+#if LUA_OPTIMIZE_MEMORY > 0
+  { LSTRKEY( "ID_STD" ), LNUMVAL( ELUA_CAN_ID_STD ) },
+  { LSTRKEY( "ID_EXT" ), LNUMVAL( ELUA_CAN_ID_EXT ) },
+#endif
   { LNILKEY, LNILVAL }
 };
 
@@ -78,6 +82,10 @@ LUALIB_API int luaopen_can( lua_State *L )
   return 0;
 #else // #if LUA_OPTIMIZE_MEMORY > 0
   luaL_register( L, AUXLIB_CAN, can_map );
+  
+  // Module constants  
+  MOD_REG_NUMBER( L, "ID_STD", ELUA_CAN_ID_STD );
+  MOD_REG_NUMBER( L, "ID_EXT", ELUA_CAN_ID_EXT );
   
   return 1;
 #endif // #if LUA_OPTIMIZE_MEMORY > 0  

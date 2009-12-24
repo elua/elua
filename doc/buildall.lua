@@ -85,7 +85,7 @@ end
 -- Returns the english name if the name for the specified language can't be found
 -- If the link field doesn't exists, the name is returned instead
 local function get_menu_title( menuitem, lang )
-  return get_menu_field( menuitem, lang, title_idx ) or get_menu_field( menuitem, lang, name_idx )
+  return "eLua - " .. ( get_menu_field( menuitem, lang, title_idx ) or  get_menu_field( menuitem, lang, name_idx ) )
 end
 
 -- Set "print" to print indented (with 2 spaces)
@@ -382,8 +382,12 @@ local function gen_html_page( fname, lang )
 <head>
 <title>%s</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="subject" content="eLua - Lua for the embedded world" />
+<meta name="Description" content="eLua stands for Embedded Lua and the project aims to offer the full set of features of the Lua Programming Language to the embedded world." />
+<meta name="Keywords" content="eLua, lua, embedded, ARM, Cortex-M3, AVR32, ARM7TDMI, microcontroller, mcu, programming, electronics, tools, development" />
 <link href="menu.css" rel="stylesheet" type="text/css" />
 <link href="style1.css" rel="stylesheet" type="text/css" />
+<link REL="SHORTCUT ICON" HREF="./images/eLua_16x16.ico">
 <script type="text/javascript"><!--//--><![CDATA[//><!--
 
 sfHover = function() {
@@ -409,9 +413,18 @@ if (window.attachEvent) window.attachEvent("onload", sfHover);
   header = header .. menuitems .. '<div id="content">\n'
   local footer = [[
 </div>
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%%3E%%3C/script%%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-11834941-1");
+pageTracker._trackPageview();
+} catch(err) {}</script>
 </body>
 </html>
-]] 
+]]
   orig = orig:gsub( "%$%$HEADER%$%$", header )
   orig = orig:gsub( "%$%$FOOTER%$%$", footer )
   return orig

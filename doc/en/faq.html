@@ -15,6 +15,7 @@ It is assumed that you already know what <b>eLua</b> is, so here's a list of que
   <li><a href="#windows">All your tutorials give instructions on how to compile eLua under Linux, yet you seem to use a lot of Windows tools. 
   How come?</a></li>
   <li><a href="#cygwin">Will you ever post instructions about how to compile toolchains under Cygwin in Windows?</a></li>
+  <li><a href="#wincomp">Is it possible to compile eLua under Windows?</a></li>
   <li><a href="#bytecode">I know that Lua can be compiled to bytecode, so I compiled one of the eLua examples with luac and tried to run it on 
   my eLua board, but it didn't work. Is this a bug in eLua?</a></li>
   <li><a href="#outofmemory">I get "out of memory" errors when I run my Lua programs, what should I do?</a></li>
@@ -78,8 +79,8 @@ prove just fine. It largely depends on your needs.</p>
   would increase the code size and complexity too much. These are some caveats that come to mind (note that these are only a few examples, the complete 
   list is much longer):</p>
 <ul>
-  <li><b>timers</b>: from all the platforms on which <b>eLua</b> runs, only the Luminary Cortex CPUs has rock solid 32-bit timers. You can do pretty much 
-  everything you need with them. All the other platforms have 16-bit timers, which imposes some limits on the range of delays you can achieve with them. 
+  <li><b>timers</b>: some CPUs, like the Luminary Cortex CPUs, have rock solid 32-bit timers. You can do pretty much 
+  everything you need with them. Most platforms have only 16-bit timers though, which imposes some limits on the range of delays you can achieve with them. 
   Make sure to use tmr.mindelay(id) and tmr.maxdelay(id) to check the actual resolution of your timers, and adapt your code accordingly. To 'compensate' 
   for this, it's not possible to change the base timer frequency on the Cortex CPUs, but it is possible on most other platforms :) So be sure to also check 
   the result of tmr.setclock(id)</li>
@@ -114,6 +115,9 @@ prove just fine. It largely depends on your needs.</p>
   over Windows when it comes to developing applications. Also, I noticed that the GNU based toolchains are noticeable slower on Cygwin than on Linux, so 
   experimenting with them can prove frustrating. Also, compiling under Linux and Cygwin should be quite similar,so try starting from my Linux based 
   tutorials, they might work as well on Cygwin.</p>
+  
+<a name ="wincomp /"><h2>Is it possible to compile eLua under Windows?</h2>
+<p>Starting with version 0.7, compiling <b>eLua</b> under Windows is officialy supported, check <a href="building_win.html">here</a> for details.</p>
 
 <a name="bytecode" /><h2>I know that Lua can be compiled to bytecode, so I compiled one of the eLua examples with luac and tried to run it on my eLua
   board, but it didn't work. Is this a bug in eLua?</h2>

@@ -17,9 +17,7 @@
 #include "lauxlib.h"
 #include "lualib.h"
 
-#if defined(ELUA_PLATFORM)
-#define main lua_main
-#endif
+
 
 static lua_State *globalL = NULL;
 
@@ -386,8 +384,7 @@ static int pmain (lua_State *L) {
   return 0;
 }
 
-
-#ifdef LUA_REMOTE
+#ifdef LUA_RPC
 int main (int argc, char **argv) {
 #else
 int lua_main (int argc, char **argv) {

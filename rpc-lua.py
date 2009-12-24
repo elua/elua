@@ -1,7 +1,7 @@
 import os, sys 
 
-output = 'lua'
-cdefs = '-DLUA_CROSS_COMPILER -DLUA_REMOTE -DLUA_USE_READLINE'
+output = 'luarpc'
+cdefs = '-DLUA_CROSS_COMPILER -DLUA_RPC -DLUA_USE_READLINE'
 
 # Lua source files and include path
 lua_files = """lapi.c lcode.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c lobject.c lopcodes.c

@@ -49,6 +49,7 @@ paddle.min_size = 0
 ball.char = "*"
 local delay_incr = 2000
 
+
 -- Define all "global" variables as program local ones.
 -- The values are initialized at the main loop.
 
@@ -71,7 +72,6 @@ local itemFunction = {
     end
     draw_paddle( paddle.y, 11, 0 )
   end,
-
 ["S"] = function ()
     draw_paddle( paddle.y, 0, 0 )
     if paddle.size > paddle.min_size then
@@ -106,7 +106,6 @@ local itemFunction = {
     ball.y = math.random( 82 )
     lm3s.disp.print( ball.char, ball.x, ball.y, 15 )
   end,
-
 ["F"] = function()
     if delay_time >= 1000 then
       delay_time = delay_time - 1000
@@ -174,6 +173,7 @@ function update_ball_pos()
   ball.x, ball.y = ( ball.x + ball.dx ), ( ball.y + ball.dy );
   lm3s.disp.print( ball.char, ball.x, ball.y, 15 )
 end
+
 
 -- Draw the top wall and erase the last one. Used to move it
 function draw_wall( x )
@@ -243,12 +243,24 @@ upload_items()
 lm3s.disp.init( 1000000 )
 
 tmr.start( tmr_id )
-lm3s.disp.print( "Pls press SELECT -->", 0, 34, 12 )          
-while not kit.btn_pressed( kit.BTN_SELECT ) do end -- Random init delay to randomsee
-math.randomseed( tmr.read( tmr_id ) ) 
+--menu()
+math.randomseed( tmr.read( tmr_id ) )    -- If you use the menu function, the time will be used as a seed to the random function
+--tmr.stop( tmr_id )
+
 collectgarbage( "collect" )
 
--- GAME START
+
+
+
+
+---------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------
+--                                                                                                     --
+--                                        GAME START                                                   --
+--                                                                                                     --
+---------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------
+
 repeat
   canvas.x = 124
   canvas.y = 97
@@ -271,7 +283,6 @@ repeat
   draw_wall( canvas.x )
   draw_paddle( paddle.y, 11, 0 )
 
-  local stop_playing = true
   while ( true ) do
     for i = 0, 1 do
       update_paddle_pos()
@@ -316,12 +327,13 @@ repeat
   lm3s.disp.print( "Your score was "..tostring( score ), 15, 40, 11 )
   lm3s.disp.print( "Highscore: "..tostring( highscore ), 15, 50, 11 )
   lm3s.disp.print( "SELECT to restart", 6, 70, 11 )
-  for i=1, 1000000 do
+  enough = true
+  for i=1, 100000 do
     if kit.btn_pressed( kit.BTN_SELECT ) then
-      stop_playing = false
+      enough = false
       break
     end
   end
-until (stop_playing)
+until ( enough )
 
 lm3s.disp.off()

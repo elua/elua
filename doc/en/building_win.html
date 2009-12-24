@@ -1,0 +1,34 @@
+$$HEADER$$
+<h3>Building eLua in Windows</h3>
+<p>Starting with version 0.7, building <b>eLua</b> in Windows is officialy supported. The following instructions were tested in Windows 7 Professional, but they
+should work with little or no modification in any version of Windows 7, Vista or XP. You need to download and install a few things first:</p> 
+<ul>
+<li><b>a toolchain</b>: building a GCC-based toolchain under Windows is possible, but not easy. We found that the easiest thing to do is to download a pre-built toolchain 
+and install it. Currently, all the targets supported by <b>eLua</b> (except i386) have at least one toolchain that runs under Windows:
+<ul> 
+  <li>For ARM7, ARM9 and Cortex-M3 targets, you can download and install the CodeSourcery Lite Edition (supported by <b>eLua</b> out of the box) from 
+  <a href="http://www.codesourcery.com/sgpp/lite/arm/portal/subscription?@template=lite">here</a>. For reference, the version used in this tutorial is 
+  "Sourcery G++ Lite 2009q3-68 for ARM EABI". Future (and some previous) versions of this toolchain should also work. Remember to specify 
+  <code>toolchain=codesourcery</code> when using this toolchain (see <a href="building.html#buildoptions">here</a> for details).</li>
+  <li>AVR32 has its own Windows based GNU toolchain that can be downloaded from Atmel <a href="http://www.atmel.com/dyn/products/tools_card.asp?tool_id=4118">here</a>.</li>
+</ul></li>   
+<li><b>Python</b>: my favourite Windows distribution of Python is <a href="http://www.activestate.com/activepython/">ActivePython</a>. Simply download it and install it. ActivePython
+2.6.4.8 will be used in this tutorial. Other Python distribution might work equally well.</li>
+<li><b>scons</b>: download the Windows installer package from <a href="http://www.scons.org/download.php">here</a>. For this tutorial, scons 1.2.0 will be used. Remember to install
+scons <b>after</b> you install Python. </li>
+<li><b>lua</b>: a very good and versatile Lua distribution for Windows is "Lua for Windows", it can be downloaded from <a href="http://luaforwindows.luaforge.net/">here</a>. Besides
+Lua itself, it includes a lot of very useful Lua modules, so I highly recommend it. Version 5.1.4.30 of Lua for Windows will be used in this tutorial.</li>
+<li><b>svn</b>: if you need to checkout the <b>eLua</b> source code from the SVN repository, you need to install SVN for windows. There are a few precompiled SVN packages for
+Windows available, I'm using the Tigris binaries that can be downloaded from <a href="http://subversion.tigris.org/servlets/ProjectDocumentList?folderID=8100">here</a>. In this
+tutorial I'll use version 1.6.6.</li>
+<li><b>gcc</b>: if you want to use the ROMFS precompile feature (see <a href="arch_romfs.html#mode">here</a> for details) you need to build an image of the <b>eLua</b> cross compiler, and you need an i386
+toolchain for this. I'm using MinGW for this task, it can be downloaded from <a href="http://www.mingw.org/">here</a>. This tutorial uses MinGW version 5.1.6. Note that you
+don't need to install MSYS, MinGW should be enough. Cygwin should work equally well, or even Microsoft's Visual Studio (not tested). To build the cross compiler, run
+this command from the command line:
+  <pre><code>scons -f cross-lua.py</code></pre>
+</li>
+</ul>
+<p>Make sure that all the programs listed above are added to %PATH%. Most of them do this automatically, or have an option to do this automatically, but some
+(for example MinGW) do not and you need to add them to %PATH% manually.</p> 
+<p>After you setup your build environment as described above, follow <a href="building.html#configuring">this tutorial</a> to build your <b>eLua</b> image.</p>
+$$FOOTER$$

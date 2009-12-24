@@ -6,7 +6,8 @@ rpc.on_error (error_handler);
 
 --slave,err = rpc.connect ("/dev/tty.usbserial-FTE3HV7L");
 -- slave,err = rpc.connect ("/dev/tty.usbserial-ftCYPMYJ");
-slave,err = rpc.connect("/dev/tty.usbserial-04110857B")
+-- slave,err = rpc.connect("/dev/tty.usbserial-04110857B")
+slave,err = rpc.connect("/dev/tty.usbserial-A9005fG0")
 --slave,err = rpc.connect ("/dev/ttys0");
 
 print("Platform: " .. slave.pd.platform())
@@ -36,16 +37,18 @@ assert(slave.test:get(), "couldn't get remote table")
 -- check that we can get entry on remote table
 assert(test_local.sval == slave.test:get().sval, "table field not equivalent")
 
-adc = slave.adc
+print("Memory Used: " .. slave.collectgarbage("count") .. " kB")
 
-adc.setblocking(0,1)
-adc.setclock(0, 64 ,2)
-
-adc.sample(0,128)
--- print(slave.collectgarbage("count"))
-for i=1,128 do
-	retsamp = adc.getsample(0)
-	if not (retsamp == nil) then
-		print(retsamp)
-	end
-end
+-- adc = slave.adc
+-- 
+-- adc.setblocking(0,1)
+-- adc.setclock(0, 64 ,2)
+-- 
+-- adc.sample(0,128)
+-- -- print(slave.collectgarbage("count"))
+-- for i=1,128 do
+--  retsamp = adc.getsample(0)
+--  if not (retsamp == nil) then
+--    print(retsamp)
+--  end
+-- end

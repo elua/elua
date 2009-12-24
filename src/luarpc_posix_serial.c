@@ -74,7 +74,7 @@ void transport_open_listener(lua_State *L, ServerHandle *handle)
 {
   check_num_args (L,2); /* 1st arg is path, 2nd is handle */
   if (!lua_isstring (L,1))
-    my_lua_error (L,"first argument must be serial serial port");
+    luaL_error(L,"first argument must be serial serial port");
 
   transport_open( &handle->ltpt, lua_tostring (L,1) );
     
@@ -86,7 +86,7 @@ int transport_open_connection(lua_State *L, Handle *handle)
 { 
   check_num_args (L,2); /* 1st arg is path, 2nd is handle */
   if (!lua_isstring (L,1))
-    my_lua_error (L,"first argument must be serial serial port");
+    luaL_error(L,"first argument must be serial serial port");
 
   transport_open( &handle->tpt, lua_tostring (L,1) );
   

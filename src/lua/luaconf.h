@@ -89,9 +89,8 @@
 
 //## Modified for eLua
 //## Defaults search modules path to our ROM File System
-
-#ifndef LUA_REMOTE
-#define LUA_PATH_DEFAULT "\\ROM\\?.lua"
+#ifndef LUA_RPC
+#define LUA_PATH_DEFAULT "/rom/?.lua"
 #else
 #define LUA_PATH_DEFAULT  \
 		".\\?.lua;"  LUA_LDIR"?.lua;"  LUA_LDIR"?\\init.lua;" \
@@ -105,7 +104,7 @@
 #define LUA_LDIR	LUA_ROOT "share/lua/5.1/"
 #define LUA_CDIR	LUA_ROOT "lib/lua/5.1/"
 
-#ifndef LUA_REMOTE
+#ifndef LUA_RPC
 #define LUA_PATH_DEFAULT  "/rom/?.lua"
 #else
 
@@ -827,7 +826,7 @@ union luai_Cast { double l_d; long l_l; };
 ** without modifying the main part of the file.
 */
 
-#if !defined(LUA_CROSS_COMPILER) || defined(_WIN32)
+#if !defined(LUA_CROSS_COMPILER)
 typedef short int16_t;
 typedef long int32_t;
 #endif
