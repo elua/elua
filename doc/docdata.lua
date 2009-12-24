@@ -108,6 +108,7 @@ local menu =
           { { "On PC", "Num PC" }, "using.html#pc" },
           { { "The shell", "O Shell" }, "using.html#shell" },
           { "Cross-compiling", "using.html#cross" },
+          { "LuaRPC", "using.html#rpc" },
         },
       },
       { { "Building eLua", "Build de eLua" }, "building.html",
