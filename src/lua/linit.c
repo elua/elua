@@ -15,7 +15,7 @@
 #include "lrotable.h"
 #include "luaconf.h"
 
-#if defined(ELUA_PLATFORM) && !defined(LUA_CROSS_COMPILER)
+#ifndef LUA_CROSS_COMPILER
 #include "platform_conf.h"
 #endif
 
