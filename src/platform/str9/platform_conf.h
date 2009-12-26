@@ -15,6 +15,7 @@
 #define BUILD_ROMFS
 #define BUILD_TERM
 #define BUILD_CON_GENERIC
+//#define BUILD_RPC
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
@@ -46,6 +47,11 @@
 #define NUM_ADC               0
 #define NUM_CAN               0
 
+// RPC boot options
+#define RPC_UART_ID           CON_UART_ID
+#define RPC_TIMER_ID          CON_TIMER_ID
+#define RPC_UART_SPEED        CON_UART_SPEED
+
 // CPU frequency (needed by the CPU module, 0 if not used)
 u32 SCU_GetMCLKFreqValue();
 #define CPU_FREQUENCY         ( SCU_GetMCLKFreqValue() * 1000 )
@@ -71,6 +77,12 @@ u32 SCU_GetMCLKFreqValue();
 // The name of the platform specific libs table
 #define PS_LIB_TABLE_NAME   "str9"
 
+#ifdef BUILD_RPC
+#define RPCLINE _ROM( AUXLIB_RPC, luaopen_rpc, rpc_map )
+#else
+#define RPCLINE
+#endif
+
 #define LUA_PLATFORM_LIBS_ROM\
   _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
   _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
@@ -80,6 +92,7 @@ u32 SCU_GetMCLKFreqValue();
   _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map)\
+  RPCLINE\
   _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map)\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
   _ROM( PS_LIB_TABLE_NAME, luaopen_platform, platform_map )

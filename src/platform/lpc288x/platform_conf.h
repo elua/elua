@@ -15,6 +15,7 @@
 #define BUILD_ROMFS
 #define BUILD_TERM
 #define BUILD_CON_GENERIC
+//#define BUILD_RPC
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
@@ -40,6 +41,11 @@
 #define NUM_ADC               0
 #define NUM_CAN               0
 
+// RPC boot options
+#define RPC_UART_ID           CON_UART_ID
+#define RPC_TIMER_ID          CON_TIMER_ID
+#define RPC_UART_SPEED        CON_UART_SPEED
+
 // CPU frequency (needed by the CPU module, 0 if not used)
 #define CPU_FREQUENCY         Fcclk
 
@@ -61,6 +67,12 @@
 // *****************************************************************************
 // Auxiliary libraries that will be compiled for this platform
 
+#ifdef BUILD_RPC
+#define RPCLINE _ROM( AUXLIB_RPC, luaopen_rpc, rpc_map )
+#else
+#define RPCLINE
+#endif
+
 #define LUA_PLATFORM_LIBS_ROM\
   _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
   _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
@@ -69,6 +81,7 @@
   _ROM( AUXLIB_TERM, luaopen_term, term_map )\
   _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
+  RPCLINE\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
 
 #endif // #ifndef __PLATFORM_CONF_H__
