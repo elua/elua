@@ -27,7 +27,7 @@
 #define CMD55    (0x40+55)    /* APP_CMD */
 #define CMD58    (0x40+58)    /* READ_OCR */
 
-#ifndef SDC_SPI_NUM
+#ifndef MMCFS_SPI_NUM
   #error "MMC not supported on this board"
 #endif
 
@@ -35,14 +35,14 @@
 static
 void SELECT (void)
 {
-    platform_pio_op( SDC_CS_PORT , ( ( u32 ) 1 << SDC_CS_PIN ), PLATFORM_IO_PIN_CLEAR );    
+    platform_pio_op( MMCFS_CS_PORT , ( ( u32 ) 1 << MMCFS_CS_PIN ), PLATFORM_IO_PIN_CLEAR );    
 }
 
 // de-asserts the CS pin to the card
 static
 void DESELECT (void)
 {
-    platform_pio_op( SDC_CS_PORT, ( ( u32 ) 1 << SDC_CS_PIN ), PLATFORM_IO_PIN_SET );
+    platform_pio_op( MMCFS_CS_PORT, ( ( u32 ) 1 << MMCFS_CS_PIN ), PLATFORM_IO_PIN_SET );
 }
 
 
@@ -148,12 +148,12 @@ void power_on (void)
      */
     
     // Setup CS pin & deselect
-    platform_pio_op( SDC_CS_PORT, ( ( u32 ) 1 << SDC_CS_PIN ), PLATFORM_IO_PIN_DIR_OUTPUT );
-    //platform_pio_op( SDC_CS_PORT, ( ( u32 ) 1 << SDC_CS_PIN ), PLATFORM_IO_PIN_PULLUP );
+    platform_pio_op( MMCFS_CS_PORT, ( ( u32 ) 1 << MMCFS_CS_PIN ), PLATFORM_IO_PIN_DIR_OUTPUT );
+    //platform_pio_op( MMCFS_CS_PORT, ( ( u32 ) 1 << MMCFS_CS_PIN ), PLATFORM_IO_PIN_PULLUP );
     DESELECT();
     
     // Setup SPI
-    platform_spi_setup( SDC_SPI_NUM, PLATFORM_SPI_MASTER, 400000, 0, 0, 8 );
+    platform_spi_setup( MMCFS_SPI_NUM, PLATFORM_SPI_MASTER, 400000, 0, 0, 8 );
 
     /* Set DI and CS high and apply more than 74 pulses to SCLK for the card */
     /* to be able to accept a native command. */
@@ -174,7 +174,7 @@ void set_max_speed(void)
         i = 12500000;
 
     /* Configure the SPI port */
-    platform_spi_setup( SDC_SPI_NUM, PLATFORM_SPI_MASTER, i, 0, 0, 8 );
+    platform_spi_setup( MMCFS_SPI_NUM, PLATFORM_SPI_MASTER, i, 0, 0, 8 );
 }
 
 static

@@ -24,6 +24,7 @@ to write <b>eLua</b> programs). An example of component configuration from
 #define BUILD_XMODEM
 #define BUILD_SHELL
 #define BUILD_ROMFS
+#define BUILD_MMCFS
 #define BUILD_TERM
 #define BUILD_UIP
 #define BUILD_DHCPC
@@ -71,6 +72,15 @@ filesystem. See the <a href="arch_romfs.html">ROMFS
 documentation</a> for details about using the ROM file system.
 To enable:
 <pre><code>#define BUILD_ROMFS</code></pre></td>
+</tr>
+<tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">BUILD_MMCFS</td>
+<td>Enable the <b>eLua</b> SD/MMC FAT
+filesystem support.
+To enable:
+<pre><code>#define BUILD_MMCFS</code></pre>
+<a href="building.html#static">Static configuration data dependencies:</a> <b>MMCFS_TICK_HZ, MMCFS_TICK_MS, MMCFS_CS_PORT, MMCFS_CS_PIN, MMCFS_SPI_NUM</b></td></td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">BUILD_TERM</td>
@@ -236,6 +246,20 @@ VTMR_FREQ_HZ</td>
 platform (refer to <a href="refman_gen_tmr.html">the timer module
 documentation</a> for details). Define VTMR_NUM_TIMERS to 0 if
 this feature is not used.</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">MMCFS_TICK_HZ<br>
+MMCFS_TICK_MS</td>
+<td>Specify the rate at which SD/MMC timer function <i>disk_timerproc()</i> are being called by the platform. On most platforms MMCFS_TICK_HZ will match VTMR_FREQ_HZ.  Only needed if MMCFS support is enabled.</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">MMCFS_CS_PORT<br>
+MMCFS_CS_PIN</td>
+<td>Specify the port and pin to be used as chip select for MMCFS control of an SD/MMC card over SPI. Only needed if MMCFS support is enabled.</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">MMCFS_SPI_NUM</td>
+<td>Specify the SPI peripheral to be used by MMCFS. Only needed if MMCFS support is enabled.</td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">PLATFORM_CPU_CONSTANTS</td>
