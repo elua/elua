@@ -55,6 +55,18 @@
 #define NETLINE
 #endif
 
+#ifdef BUILD_ADC
+#define ADCLINE _ROM( AUXLIB_ADC, luaopen_adc, adc_map )
+#else
+#define ADCLINE
+#endif
+
+#ifdef BUILD_RPC
+#define RPCLINE _ROM( AUXLIB_RPC, luaopen_rpc, rpc_map )
+#else
+#define RPCLINE
+#endif
+
 #ifdef PS_LIB_TABLE_NAME
 #define PLATLINE _ROM( PS_LIB_TABLE_NAME, luaopen_platform, platform_map )
 #else
@@ -74,8 +86,8 @@
   _ROM( AUXLIB_BITARRAY, luaopen_bitarray, bitarray_map )\
   NETLINE\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
-  _ROM( AUXLIB_ADC, luaopen_adc, adc_map )\
-  _ROM( AUXLIB_LUARPC, luaopen_luarpc, rpc_map )\
+  ADCLINE\
+  RPCLINE\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
   PLATLINE
 

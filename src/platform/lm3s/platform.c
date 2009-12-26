@@ -106,8 +106,10 @@ int platform_init()
   // Setup PWMs
   pwms_init();
 
+#ifdef BUILD_ADC
   // Setup ADCs
   adcs_init();
+#endif
 
   // Setup ethernet (TCP/IP)
   eth_init();
@@ -559,6 +561,8 @@ void platform_cpu_disable_interrupts()
 // *****************************************************************************
 // ADC specific functions and variables
 
+#ifdef BUILD_ADC
+
 // Pin configuration if necessary
 #ifdef FORLM3S9B92
   const static u32 adc_ports[] =  { GPIO_PORTE_BASE, GPIO_PORTE_BASE, GPIO_PORTE_BASE, GPIO_PORTE_BASE,
@@ -750,6 +754,8 @@ int platform_adc_start_sequence()
   
   return PLATFORM_OK;
 }
+
+#endif // ifdef BUILD_ADC
 
 // ****************************************************************************
 // OLED Display specific functions

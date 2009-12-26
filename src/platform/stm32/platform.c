@@ -71,9 +71,11 @@ int platform_init()
   
   // Setup PWMs
   pwms_init();
-  
+
+#ifdef BUILD_ADC
   // Setup ADCs
   adcs_init();
+#endif
   
   // Setup CANs
   cans_init();
@@ -942,6 +944,8 @@ u32 platform_s_cpu_get_frequency()
 // *****************************************************************************
 // ADC specific functions and variables
 
+#ifdef BUILD_ADC
+
 #define ADC1_DR_Address ((u32)ADC1_BASE + 0x4C)
 
 static ADC_TypeDef *const adc[] = { ADC1, ADC2, ADC3 };
@@ -1194,3 +1198,5 @@ int platform_adc_start_sequence( )
 
   return PLATFORM_OK;
 }
+
+#endif // ifdef BUILD_ADC

@@ -44,7 +44,7 @@
 #endif
 
 // Prototypes for Local Functions  
-LUALIB_API int luaopen_luarpc( lua_State *L );
+LUALIB_API int luaopen_rpc( lua_State *L );
 Handle *handle_create( lua_State *L );
 
 
@@ -1622,7 +1622,7 @@ const LUA_REG_TYPE rpc_map[] =
 };
 
 
-LUALIB_API int luaopen_luarpc(lua_State *L)
+LUALIB_API int luaopen_rpc(lua_State *L)
 {
 #if LUA_OPTIMIZE_MEMORY > 0
   luaL_rometatable(L, "rpc.helper", (void*)rpc_helper);
@@ -1680,7 +1680,7 @@ static const luaL_reg rpc_map[] =
 };
 
 
-LUALIB_API int luaopen_luarpc(lua_State *L)
+LUALIB_API int luaopen_rpc(lua_State *L)
 {
   luaL_register( L, "rpc", rpc_map );
   lua_pushstring(L, LUARPC_MODE);

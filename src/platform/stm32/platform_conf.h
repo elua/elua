@@ -44,6 +44,18 @@ LUALIB_API int ( luaopen_lcd )( lua_State* L );
 #define LCDLINE
 #endif
 
+#ifdef BUILD_ADC
+#define ADCLINE _ROM( AUXLIB_ADC, luaopen_adc, adc_map )
+#else
+#define ADCLINE
+#endif
+
+#ifdef BUILD_RPC
+#define RPCLINE _ROM( AUXLIB_RPC, luaopen_rpc, rpc_map )
+#else
+#define RPCLINE
+#endif
+
 #define LUA_PLATFORM_LIBS_ROM\
   _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
   _ROM( AUXLIB_SPI, luaopen_spi, spi_map )\
@@ -54,10 +66,10 @@ LUALIB_API int ( luaopen_lcd )( lua_State* L );
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
   _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
-  _ROM( AUXLIB_ADC, luaopen_adc, adc_map )\
+  ADCLINE\
   _ROM( AUXLIB_CAN, luaopen_can, can_map )\
   _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map )\
-  _ROM( AUXLIB_LUARPC, luaopen_luarpc, rpc_map )\
+  RPCLINE\
   LCDLINE\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
 	
