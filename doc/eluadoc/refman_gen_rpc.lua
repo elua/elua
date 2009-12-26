@@ -32,6 +32,8 @@ data_en =
     </li>
   </ul>
   </p>
+  
+  <p>See @using.html#rpc@Using eLua@ for a basic tutorial on getting started with the RPC module.</p>
 
   <p><span class="warning">NOTE</span>: This module is considered experimental. It currently works over a 
   serial port with eLua targets and on desktop systems implementing POSIX serial communications (Linux, Mac OS X, etc).

@@ -350,7 +350,8 @@ command will build only the 'elf' (executable) file. Specify "prog" to
 build also the platform-specific programming file where appropriate
 (for example, on a AT91SAM7X256 this results in a .bin file that can be
 programmed in the CPU). </li>
-<li><b>romfs = verbatim | compress | compile</b>: ROMFS compilation mode, check <a href="arch_romfs.html#mode">here</a> for details (<b>new in 0.7</b>).</li> 
+<li><b>romfs = verbatim | compress | compile</b>: ROMFS compilation mode, check <a href="arch_romfs.html#mode">here</a> for details (<b>new in 0.7</b>).</li>
+<li><b>boot = standard | luarpc</b>: Boot mode. 'standard' will boot to either a shell or lua interactive prompt. 'luarpc' boots with a waiting rpc server, using a UART & timer as specified in <a href="building.html#static">static configuration data</a> (<b>new in 0.7</b>).</li>
 </ul>
 <p>The output will be a file named elua_<i>[target]</i>_<i>[cpu]</i>.elf
 (and also another file with the same name but ending in .bin/.hex if

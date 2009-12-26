@@ -246,6 +246,11 @@ You can omit the <i>-s</i> (strip) parameter from compilation, but this will res
 </ul>
 <p>You should get a file called <i>luarpc</i> in the same directory which, when started, should give you a normal Lua interpreter with a built-in rpc module.</p>
 
+<h2>Building eLua with RPC Boot</h2>
+
+<p>See <a href="building.html">building</a> for details and requirements for the building process.  In order to boot into RPC mode, the RPC <a href="building.html#components">component</a> will need to be enabled, and appropriate <a href="building.html#static">static configuration data</a> need to be set.  To build <b>eLua</b> to boot into RPC mode, include <b>boot=rpc</b> in the <a href="building.html#buildoptions">build options</a>.</p>
+
+
 <h2>LuaRPC Basics</h2>
 <p>In terms of the LED example from the beginning of this section, one could directly call pio module functions from the desktop side, experimenting with responses. If the experimentation developed into a program this could be tested both on the desktop side and on the microcontroller by making aliases to eLua modules in local Lua state.  Such aliasing can be done as follows:</p>
 <pre><code>-- open connection from Linux host serial port to eLua
