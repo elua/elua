@@ -22,7 +22,7 @@
 #include "lstring.h"
 #include "ltable.h"
 #include "ltm.h"
-
+#include "platform_conf.h"
 
 #define state_size(x)	(sizeof(x) + LUAI_EXTRASPACE)
 #define fromstate(l)	(cast(lu_byte *, (l)) - LUAI_EXTRASPACE)
@@ -184,6 +184,16 @@ LUA_API lua_State *lua_newstate (lua_Alloc f, void *ud) {
   g->gcpause = LUAI_GCPAUSE;
   g->gcstepmul = LUAI_GCMUL;
   g->gcdept = 0;
+#ifdef EGC_INITIAL_MODE
+  g->egcmode = EGC_INITIAL_MODE;
+#else
+  g->egcmode = 0;
+#endif
+#ifdef EGC_INITIAL_MEMLIMIT
+  g->memlimit = EGC_INITIAL_MEMLIMIT;
+#else
+  g->memlimit = 0;
+#endif
   for (i=0; i<NUM_TAGS; i++) g->mt[i] = NULL;
   if (luaD_rawrunprotected(L, f_luaopen, NULL) != 0) {
     /* memory allocation error: free partial state */

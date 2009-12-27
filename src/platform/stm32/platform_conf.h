@@ -71,6 +71,7 @@ LUALIB_API int ( luaopen_lcd )( lua_State* L );
   _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map )\
   RPCLINE\
   LCDLINE\
+  _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
 	
 // *****************************************************************************

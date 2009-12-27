@@ -29,7 +29,7 @@
 #include "ldo.h"
 #include "lobject.h"
 #include "lstate.h"
-
+#include "legc.h"
 
 #define FREELIST_REF	0	/* free list of references */
 
@@ -696,17 +696,21 @@ static int l_check_memlimit(lua_State *L, size_t needbytes) {
 
 static void *l_alloc (void *ud, void *ptr, size_t osize, size_t nsize) {
   lua_State *L = (lua_State *)ud;
+  int mode = L == NULL ? 0 : G(L)->egcmode;
   void *nptr;
+
   if (nsize == 0) {
     free(ptr);
     return NULL;
   }
+  if (L != NULL && (mode & EGC_ALWAYS)) /* always collect memory if requested */
+    luaC_fullgc(L);
   if(nsize > osize && L != NULL) {
-    if(G(L)->memlimit > 0 && l_check_memlimit(L, nsize - osize))
+    if(G(L)->memlimit > 0 && (mode & EGC_ON_MEM_LIMIT) && l_check_memlimit(L, nsize - osize))
       return NULL;
   }
   nptr = realloc(ptr, nsize);
-  if (nptr == NULL && L != NULL) {
+  if (nptr == NULL && L != NULL && (mode & EGC_ON_ALLOC_FAILURE)) {
     luaC_fullgc(L); /* emergency full collection. */
     nptr = realloc(ptr, nsize); /* try allocation again */
   }
