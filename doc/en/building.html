@@ -304,6 +304,11 @@ the maximum conversion value that can be returned by the ADC.</td>
 </td>
 <td>If the <a href="refman_gen_rpc.html">rpc module</a> is enabled and boot mode is set to luarpc, this selects which timer will be used with the uart selected with RPC_UART_ID.</td>
 </tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">EGC_INITIAL_MODE<br />EGC_INITIAL_MEMLIMIT</td>
+<td><b>(version 0.7 or above)</b> Configure the default (compile time) operation mode and memory limit of the emergency garbage collector (see <a href="elua_egc.html">here</a> for details 
+about the EGC patch). If not specified, <b>EGC_INITIAL_MODE</b> defaults to <b>EGC_NOT_ACTIVE</b> (emergency garbage collector disabled) and <b>EGC_INITIAL_MEMLIMIT</b> defaults to 0.</td>
+</tr>
 </tbody>
 </table>
 <p>The rest of the static configuration data parameters are meant

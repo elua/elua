@@ -136,6 +136,8 @@ prove just fine. It largely depends on your needs.</p>
   <a href="http://www.lua.org/manual/5.1/manual.html#5.5">table.concat</a> to make a string from your table.</li>
   <li><b>control Lua's garbage collection manually</b>: if you're still running out of memory, try calling <i>collectgarbage('collect')</i> from your code, 
   which will force a garbage collection and thus might free some memory.</li>
+  <li><b>use the emergency garbage collector (EGC)</b>: starting with version 0.7, <b>eLua</b> integrates Robert Jakabosky's excellent Emergency Garbage Collector
+  (EGC) patch. It can help a lot with low memory problems. See <a href="elua_egc.html">here</a> for details on how to use the EGC patch in <b>eLua</b>.</li>
 </ul>
 
 <a name="rotables" /><h2>I enabled the LTR patch, but now all my module tables (math, io, string, spi and so on) are read only. Do I have to

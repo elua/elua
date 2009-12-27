@@ -109,6 +109,7 @@ local menu =
           { { "The shell", "O Shell" }, "using.html#shell" },
           { "Cross-compiling", "using.html#cross" },
           { "LuaRPC", "using.html#rpc" },
+          { "eLua and EGC", "elua_egc.html" },
         },
       },
       { { "Building eLua", "Build de eLua" }, "building.html",
