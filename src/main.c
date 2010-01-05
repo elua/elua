@@ -13,6 +13,7 @@
 #include "lualib.h"
 #include "term.h"
 #include "platform_conf.h"
+#include "elua_rfs.h"
 #ifdef ELUA_SIMULATOR
 #include "hostif.h"
 #endif
@@ -60,6 +61,9 @@ int main( void )
   
   // Register the ROM filesystem
   dm_register( romfs_init() );  
+
+  // Register the remote filesystem
+  dm_register( remotefs_init() );
 
   // Autorun: if "autorun.lua" is found in the ROM file system, run it first
   if( ( fp = fopen( "/rom/autorun.lua", "r" ) ) != NULL )

@@ -48,12 +48,6 @@ void NMI_Handler(void)
 {
 }
 
-int fputc(int ch, FILE *f)
-{
-   platform_uart_send(0, ch);
-   return ch;
-}
-
 void hard_fault_handler_c(unsigned int * hardfault_args)
 {
   unsigned int stacked_r0;
@@ -197,5 +191,7 @@ void PendSV_Handler(void)
 
 extern void DMA1_Channel1_IRQHandler(void);
 extern void USART1_IRQHandler(void);
+extern void USART2_IRQHandler(void);
+extern void USART3_IRQHandler(void);
 extern void SysTick_Handler(void);
 /******************* (C) COPYRIGHT 2009 STMicroelectronics *****END OF FILE****/

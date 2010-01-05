@@ -17,7 +17,7 @@ int dm_register( const DM_DEVICE *pdev )
   int i;
   
   // First char of the name must be '/'
-  if( pdev == NULL || pdev->name == NULL || *pdev->name == '\0' || *pdev->name != '/' || strlen( pdev->name ) > DM_MAX_DEV_NAME )
+  if( pdev == NULL || pdev->name == NULL || *pdev->name != '/' || strlen( pdev->name ) > DM_MAX_DEV_NAME )
     return DM_ERR_INVALID_NAME;
   
   // Check if the device is not already registered

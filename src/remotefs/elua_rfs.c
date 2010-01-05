@@ -6,12 +6,17 @@
 #include "platform.h"
 #include "remotefs.h"
 #include "client.h"
+#include "buf.h"
+#include <stdio.h>
 
 #ifdef BUILD_RFS
 
 // Our RFS buffer
-// (computed to be large enough for a WRITE request of RFS_BUFFER_SIZE bytes)
-static u8 rfs_buffer[ RFS_BUFFER_SIZE + RFS_WRITE_REQUEST_EXTRA ];
+// Compute the usable buffer size starting from RFS_BUFFER_SIZE (which is the
+// size of the serial buffer). A complete packet must fit in RFS_BUFFER_SIZE
+// bytes. Computed this to be large enough for a WRITE request.
+#define RFS_REAL_BUFFER_SIZE      ( ( 1 << RFS_BUFFER_SIZE ) - RFS_WRITE_REQUEST_EXTRA )
+static u8 rfs_buffer[ 1 << RFS_BUFFER_SIZE ];
 
 static int rfs_open_r( struct _reent *r, const char *path, int flags, int mode )
 {
@@ -29,17 +34,17 @@ static _ssize_t rfs_write_r( struct _reent *r, int fd, const void* ptr, size_t l
   u32 towrite;
   const u8 *p = ( const u8* )ptr;
 
-  // Write in RFS_BUFFER_SIZE increments
+  // Write in RFS_REAL_BUFFER_SIZE increments
   while( len )
   {
-    towrite = len > RFS_BUFFER_SIZE ? RFS_BUFFER_SIZE : len;
+    towrite = len > RFS_REAL_BUFFER_SIZE ? RFS_REAL_BUFFER_SIZE : len;
     if( ( res = rfsc_write( fd, p, towrite ) ) == -1 )
       break;
+    total += res;
     if( res < towrite )
       break;
     len -= towrite;
     p += towrite; 
-    total += towrite;
   }
   return ( _ssize_t )total;
 }
@@ -50,17 +55,17 @@ static _ssize_t rfs_read_r( struct _reent *r, int fd, void* ptr, size_t len )
   u32 toread;
   u8 *p = ( u8* )ptr;
 
-  // Read in RFS_BUFFER_SIZE increments
+  // Read in RFS_REAL_BUFFER_SIZE increments
   while( len )
   {
-    toread = len > RFS_BUFFER_SIZE ? RFS_BUFFER_SIZE : len;
+    toread = len > RFS_REAL_BUFFER_SIZE ? RFS_REAL_BUFFER_SIZE : len;
     if( ( res = rfsc_read( fd, p, toread ) ) == -1 )
       break;
+    total += res; 
     if( res < toread )
       break;
     len -= toread;
     p += toread;
-    total += toread;
   }
   return ( _ssize_t )total;
 }
@@ -116,6 +121,8 @@ const DM_DEVICE *remotefs_init()
 #ifdef RFS_UART_SPEED
   // Initialize RFS UART
   platform_uart_setup( RFS_UART_ID, RFS_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
+  // [TODO] this isn't exactly right
+  buf_set( BUF_ID_UART, RFS_UART_ID, RFS_BUFFER_SIZE, BUF_DSIZE_U8 ); 
 #endif
   rfsc_setup( rfs_buffer, rfs_send, rfs_recv, RFS_TIMEOUT );
   return &rfs_device;
