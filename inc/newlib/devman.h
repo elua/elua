@@ -5,6 +5,7 @@
 
 #include "type.h"
 #include <reent.h>
+#include <unistd.h>
 
 // Maximum number of devices in the system
 #define DM_MAX_DEVICES        16
@@ -33,6 +34,7 @@ typedef struct
   int ( *p_close_r )( struct _reent *r, int fd );
   _ssize_t ( *p_write_r ) ( struct _reent *r, int fd, const void *ptr, size_t len );
   _ssize_t ( *p_read_r )( struct _reent *r, int fd, void *ptr, size_t len );  
+  off_t ( *p_lseek_r )( struct _reent *r, int fd, off_t off, int whence );
   int ( *p_ioctl_r )( struct _reent *r, int file, unsigned long request, void *ptr );  
 } DM_DEVICE;
 
@@ -44,7 +46,7 @@ typedef struct
 #define DM_OK                       (0)
 
 // Add a device
-int dm_register( DM_DEVICE *pdev );
+int dm_register( const DM_DEVICE *pdev );
 // Unregister a device
 int dm_unregister( const char* name );
 // Get a device entry

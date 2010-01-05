@@ -281,7 +281,7 @@ lua_files = """lapi.c lcode.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c
    ldblib.c liolib.c lmathlib.c loslib.c ltablib.c lstrlib.c loadlib.c linit.c lua.c lrotable.c"""
 if target == 'lualong' or target == 'lua':
   lua_full_files = " " + " ".join( [ "src/lua/%s" % name for name in lua_files.split() ] )
-  local_include = ['inc', 'inc/newlib', 'src/lua']
+  local_include = ['inc', 'inc/newlib', 'inc/remotefs', 'src/lua']
   if target == 'lualong':
     cdefs = cdefs + ' -DLUA_NUMBER_INTEGRAL'
 else:
@@ -309,6 +309,10 @@ local_include += ['src/uip']
 module_names = "pio.c spi.c tmr.c pd.c uart.c term.c pwm.c lpack.c bit.c net.c cpu.c adc.c can.c luarpc.c bitarray.c"
 module_files = " " + " ".join( [ "src/modules/%s" % name for name in module_names.split() ] )
 
+# Remote file system files
+rfs_names = "remotefs.c client.c elua_os_io.c elua_rfs.c"
+rfs_files = " " + " ".join( [ "src/remotefs/%s" % name for name in rfs_names.split() ] )
+
 # Optimizer flags (speed or size)
 #opt = "-O3"
 opt = "-Os -fomit-frame-pointer"
@@ -322,7 +326,7 @@ tools = {}
 execfile( "src/platform/%s/conf.py" % platform )
 
 # Complete file list
-source_files = app_files + specific_files + newlib_files + uip_files + lua_full_files + module_files
+source_files = app_files + specific_files + newlib_files + uip_files + lua_full_files + module_files + rfs_files
 
 # Make ROM File System first
 if not GetOption( 'clean' ):

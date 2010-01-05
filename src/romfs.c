@@ -124,54 +124,48 @@ static _ssize_t romfs_read_r( struct _reent *r, int fd, void* ptr, size_t len )
   return actlen;
 }
 
-// IOCTL: only fseek
-static int romfs_ioctl_r( struct _reent *r, int fd, unsigned long request, void *ptr )
+// lseek
+static off_t romfs_lseek_r( struct _reent *r, int fd, off_t off, int whence )
 {
-  struct fd_seek *pseek = ( struct fd_seek* )ptr;
   FS* pfs = romfs_fd_table + fd;   
   u32 newpos = 0;
   
-  if( request == FDSEEK )
+  switch( whence )
   {
-    switch( pseek->dir )
-    {
-      case SEEK_SET:
-        newpos = pseek->off;
-        break;
-        
-      case SEEK_CUR:
-        newpos = pfs->offset + pseek->off;
-        break;
-        
-      case SEEK_END:
-        newpos = pfs->size + pseek->off;
-        break;
-        
-      default:
-        return -1;
-    }    
-    if( newpos > pfs->size )
+    case SEEK_SET:
+      newpos = off;
+      break;
+      
+    case SEEK_CUR:
+      newpos = pfs->offset + off;
+      break;
+      
+    case SEEK_END:
+      newpos = pfs->size + off;
+      break;
+      
+    default:
       return -1;
-    pfs->offset = newpos;      
-    pseek->off = newpos;
-    return 0;
-  }
-  else
-    return -1;  
+  }    
+  if( newpos > pfs->size )
+    return -1;
+  pfs->offset = newpos;      
+  return newpos;
 }
 
-// Our UART device descriptor structure
-static DM_DEVICE romfs_device = 
+// Our ROMFS device descriptor structure
+static const DM_DEVICE romfs_device = 
 {
   "/rom",
   romfs_open_r,  
   romfs_close_r, 
   romfs_write_r,
   romfs_read_r,
-  romfs_ioctl_r
+  romfs_lseek_r,
+  NULL
 };
 
-DM_DEVICE* romfs_init()
+const DM_DEVICE* romfs_init()
 {
   return &romfs_device;
 }
@@ -195,7 +189,7 @@ u32 romfs_get_dir_entry( u32 offset, char *fname, u16 *fsize )
 
 #else // #ifdef BUILD_ROMFS
 
-DM_DEVICE* romfs_init()
+const DM_DEVICE* romfs_init()
 {
   return NULL;
 }

@@ -12,7 +12,7 @@ static int dm_num_devs;                               // number of devices
 
 // Register a device
 // Returns the index of the device in the device table
-int dm_register( DM_DEVICE *pdev )
+int dm_register( const DM_DEVICE *pdev )
 {
   int i;
   
