@@ -20,6 +20,8 @@
 #include "lpc17xx_nvic.h"
 #include "lpc17xx_pinsel.h"
 #include "lpc17xx_uart.h"
+#include "lpc17xx_timer.h"
+#include "lpc17xx_clkpwr.h"
 
 // ****************************************************************************
 // Platform initialization
@@ -41,9 +43,16 @@ int platform_init()
   // Since the Number of Bits used for Priority Levels is five (5), so the
   // actual bit number of sub-priority is three (3)
 	NVIC_SetPriorityGrouping(0x05);
+	
+  	//  Set Vector table offset value
+  #if (__RAM_MODE__==1)
+  	NVIC_SetVTOR(0x10000000);
+  #else
+  	NVIC_SetVTOR(0x00000000);
+  #endif
 
   // Setup peripherals
-  //platform_setup_timers();
+  platform_setup_timers();
   //platform_setup_pwm();
 
   // Initialize console UART
@@ -214,122 +223,72 @@ int platform_s_uart_recv( unsigned id, s32 timeout )
 // ****************************************************************************
 // Timer section
 
-// ****************************************************************************
-// "Dummy" timer functions
-
-void platform_s_timer_delay( unsigned id, u32 delay_us )
-{
-}
-
-u32 platform_s_timer_op( unsigned id, int op, u32 data )
-{
-  return 0;
-}
-
-/*
-static const TIM_TypeDef tmr[] = { TIM0, TIM1, TIM2, TIM3 }
+static const TIM_TypeDef *tmr[] = { TIM0, TIM1, TIM2, TIM3 };
+static const u32 tmr_pclk[] = { CLKPWR_PCLKSEL_TIMER0, CLKPWR_PCLKSEL_TIMER1, CLKPWR_PCLKSEL_TIMER2, CLKPWR_PCLKSEL_TIMER3 };
 
 // Helper function: get timer clock
 static u32 platform_timer_get_clock( unsigned id )
 {
-  PREG TxPR = ( PREG )tmr_pr[ id ];
-
-  return Fpclk / ( *TxPR + 1 );
+  return CLKPWR_GetPCLK( tmr_pclk[ id ] ) / ( tmr[ id ]->PR + 1 );
 }
 
 // Helper function: set timer clock
 static u32 platform_timer_set_clock( unsigned id, u32 clock )
 {
   TIM_TIMERCFG_Type TIM_ConfigStruct;
-  TIM_MATCHCFG_Type TIM_MatchConfigStruct;
+
+  TIM_Cmd( tmr[ id ], DISABLE );
 
   // Initialize timer 0, prescale count time of 1uS
 	TIM_ConfigStruct.PrescaleOption = TIM_PRESCALE_USVAL;
-	TIM_ConfigStruct.PrescaleValue	= 1;
+	TIM_ConfigStruct.PrescaleValue	= 1000000ULL / clock;
 	
-	// use channel 0, MR0
-	TIM_MatchConfigStruct.MatchChannel = 0;
-	// Disable interrupt when MR0 matches the value in TC register
-	TIM_MatchConfigStruct.IntOnMatch   = TRUE;
-	//Enable reset on MR0: TIMER will reset if MR0 matches it
-	TIM_MatchConfigStruct.ResetOnMatch = TRUE;
-	//Stop on MR0 if MR0 matches it
-	TIM_MatchConfigStruct.StopOnMatch  = FALSE;
-	//Toggle MR0.0 pin if MR0 matches it
-	TIM_MatchConfigStruct.ExtMatchOutputType = TIM_EXTMATCH_TOGGLE;
-	// Set Match value, count value of 10000 (10000 * 100uS = 1S --> 1Hz)
-	TIM_MatchConfigStruct.MatchValue   = 10000;
-
   TIM_Init( tmr[ id ], TIM_TIMER_MODE, &TIM_ConfigStruct );
-	TIM_ConfigMatch( tmr[ id ], &TIM_MatchConfigStruct );
 	TIM_Cmd( tmr[ id ], ENABLE );
+	TIM_ResetCounter( tmr[ id ] );
   
   return clock;
 }
 
-#if VTMR_NUM_TIMERS > 0
-static void __attribute__((interrupt ("IRQ"))) tmr_int_handler() 
-{
-  T3IR = 1; // clear interrupt
-  cmn_virtual_timer_cb();
-  VICVectAddr = 0; // ACK interrupt
-}
-#endif
-
 // Helper function: setup timers
 static void platform_setup_timers()
 {
-
-
+  unsigned i;
+  
+  // Power on clocks on APB1
+  CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCTIM2, ENABLE);
+  CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCTIM3, ENABLE);
+  
   // Set base frequency to 1MHz, as we can't use a better resolution anyway
   for( i = 0; i < 4; i ++ )
   {
-    TxTCR = ( PREG )tmr_tcr[ i ];
-    *TxTCR = 0;
     platform_timer_set_clock( i, 1000000ULL );
   }
-#if VTMR_NUM_TIMERS > 0
-  // Setup virtual timers here
-  // Timer 3 is allocated for virtual timers and nothing else in this case
-  T3TCR = TMR_RESET;
-  T3MR0 = 1000000ULL / VTMR_FREQ_HZ - 1;
-  T3IR = 0xFF;
-  // Set interrupt handle and eanble timer interrupt (and global interrupts)
-  T3MCR = 0x03; // interrupt on match with MR0 and clear on match
-  install_irq( TIMER3_INT, tmr_int_handler, HIGHEST_PRIORITY ); 
-  platform_cpu_enable_interrupts(); 
-  // Start timer
-  T3TCR = TMR_ENABLE;
-#endif
 }
 
 void platform_s_timer_delay( unsigned id, u32 delay_us )
 {
-  PREG TxTCR = ( PREG )tmr_tcr[ id ];
-  PREG TxTC = ( PREG )tmr_tc[ id ];
   u32 last;
 
   last = ( ( u64 )delay_us * platform_timer_get_clock( id ) ) / 1000000;
-  *TxTCR = TMR_ENABLE | TMR_RESET;
-  *TxTCR = TMR_ENABLE;
-  while( *TxTC < last );
+  TIM_Cmd( tmr[ id ], ENABLE );
+  TIM_ResetCounter( tmr[ id ] );
+  while( tmr[ id ]->TC < last );
 }
       
 u32 platform_s_timer_op( unsigned id, int op, u32 data )
 {
   u32 res = 0;
-  PREG TxTCR = ( PREG )tmr_tcr[ id ];
-  PREG TxTC = ( PREG )tmr_tc[ id ];
 
   switch( op )
   {
     case PLATFORM_TIMER_OP_START:
-      *TxTCR = TMR_ENABLE | TMR_RESET;
-      *TxTCR = TMR_ENABLE;
+      TIM_Cmd( tmr[ id ], ENABLE );
+      TIM_ResetCounter( tmr[ id ] );
       break;
       
     case PLATFORM_TIMER_OP_READ:
-      res = *TxTC;
+      res = tmr[ id ]->TC;
       break;
 
     case PLATFORM_TIMER_OP_GET_MAX_DELAY:
@@ -356,14 +315,14 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
 
 void platform_cpu_enable_interrupts()
 {
-  enable_ints();  
+  __enable_irq();  
 }
 
 void platform_cpu_disable_interrupts()
 {
-  disable_ints();
+  __disable_irq();
 }
-
+/*
 // ****************************************************************************
 // PWM functions
 
