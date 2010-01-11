@@ -35,12 +35,14 @@ static _ssize_t rfs_write_r( struct _reent *r, int fd, const void* ptr, size_t l
   const u8 *p = ( const u8* )ptr;
 
   // Write in RFS_REAL_BUFFER_SIZE increments
+//  printf( "Got WRITE request for %d bytes\n", len );
   while( len )
   {
     towrite = len > RFS_REAL_BUFFER_SIZE ? RFS_REAL_BUFFER_SIZE : len;
     if( ( res = rfsc_write( fd, p, towrite ) ) == -1 )
       break;
     total += res;
+//    printf( "Wrote %d bytes\n", res );
     if( res < towrite )
       break;
     len -= towrite;
@@ -56,12 +58,14 @@ static _ssize_t rfs_read_r( struct _reent *r, int fd, void* ptr, size_t len )
   u8 *p = ( u8* )ptr;
 
   // Read in RFS_REAL_BUFFER_SIZE increments
+//  printf( "Got READ request for %d bytes\n", len );
   while( len )
   {
     toread = len > RFS_REAL_BUFFER_SIZE ? RFS_REAL_BUFFER_SIZE : len;
     if( ( res = rfsc_read( fd, p, toread ) ) == -1 )
       break;
     total += res; 
+//    printf( "Read %d bytes\n", res );
     if( res < toread )
       break;
     len -= toread;

@@ -20,9 +20,6 @@ static int rfsch_send_request_read_response()
 {
   u16 temp16;
 
-  // Empty receive buffer
-  while( rfsc_recv( rfsc_buffer, 1, 0 ) == 1 );
-
   // Send request
   if( remotefs_get_packet_size( rfsc_buffer, &temp16 ) == REMOTEFS_ERR )
     return CLIENT_ERR;
