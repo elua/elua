@@ -61,21 +61,8 @@ local menu =
   },
 
  -- "Using eLua" -- Menu Separator
-  { { "Using eLua", "Usando eLua"}, nil },
+  { { "Using eLua", "Usando eLua"}, nil },      
 
---  { { "Overview", "Visão Geral" }, "doc.html" },  ####### Aparently not necessary and taking noble main menu space
-  { { "Platforms", "Plataformas" }, "installing.html", 
-    {
-      { "AT91SAM7x", "installing_at91sam7x.html" },
-      { "AVR32", "installing_avr32.html" },
-      { "i386", "installing_i386.html" },
-      { "LM3S", "installing_lm3s.html" },
-      { "LPC2888", "installing_lpc2888.html" },
-      { "STR7", "installing_str7.html" },
-      { "STR9", "installing_str9.html" },
-      { "STM32", "installing_stm32.html" },
-    },
-  },
   { "Downloads", "downloads.html",    -- ### How come it opens downloads.html without specifying here ? :) Nice but unclear.
     {
       { { "Binaries", "Binários" }, "downloads.html#binaries" },
@@ -99,7 +86,7 @@ local menu =
       },
     },
   },
-  { { "Help", "Ajuda" }, "using.html", 
+  { { "Generic info", "Ajuda" }, "using.html", 
     {
       { { "Using eLua", "Usando eLua" }, "using.html", 
         {
@@ -119,7 +106,13 @@ local menu =
         },  
       },
       { { "Code examples", "Exemplos de Código" }, "examples.html" },
-      { { "FAQ", "Perguntas Frequentes (FAQ)" }, "faq.html" },
+      { { "FAQ", "Perguntas Frequentes (FAQ)" }, "faq.html" },     
+      { "eLua file systems", "filesystems.html",
+        {
+          { { "ROM file system", "O ROM File System" }, "arch_romfs.html" },
+          { "FAT file system", "fatfs.html" }
+        }
+      },
       { { "Tutorials", "Tutoriais" }, "tutorials.html",
         {
           { { "Booting on a PC", "Bootando num PC" }, "tut_bootpc.html" },
@@ -136,7 +129,20 @@ local menu =
         },
       },
     },
-  },
+  }, 
+  { { "Platform info", "Plataformas" }, "installing.html", 
+    {
+      { "AT91SAM7x", "installing_at91sam7x.html" },
+      { "AVR32", "installing_avr32.html" },
+      { "i386", "installing_i386.html" },
+      { "LM3S", "installing_lm3s.html" },
+      { "LPC2888", "installing_lpc2888.html" },
+      { "STR7", "installing_str7.html" },
+      { "STR9", "installing_str9.html" },
+      { "STM32", "installing_stm32.html" },
+    },
+  },        
+          
   
   -- "eLua internals" (menu separator)
   { { "eLua internals", "Arquitetura de eLua" } },
@@ -158,7 +164,6 @@ local menu =
   -- Other WRITE THE arch_platform_other.html file
   { { "More information", "Informações Adicionais" }, "#", 
     {
-      { { "ROM file system", "O ROM File System" }, "arch_romfs.html" },
       { { "Adding a new port", "Portando eLua" }, "arch_newport.html" },
       { { "Modules and LTR", "Modulos e LTR" }, "arch_ltr.html" },
       { { "Consoles and terminals", "Consoles e Terminais" }, "arch_con_term.html" },

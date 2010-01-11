@@ -20,7 +20,8 @@ scons <b>after</b> you install Python. </li>
 Lua itself, it includes a lot of very useful Lua modules, so I highly recommend it. Version 5.1.4.30 of Lua for Windows will be used in this tutorial.</li>
 <li><b>svn</b>: if you need to checkout the <b>eLua</b> source code from the SVN repository, you need to install SVN for windows. There are a few precompiled SVN packages for
 Windows available, I'm using the Tigris binaries that can be downloaded from <a href="http://subversion.tigris.org/servlets/ProjectDocumentList?folderID=8100">here</a>. In this
-tutorial I'll use version 1.6.6.</li>
+tutorial I'll use version 1.6.6. If you require developer access (svn+ssh), additional steps are needed to make "svn+ssh" work in Windows. A lot of tutorials
+that cover this topic are available, check for example <a href="http://agateau.wordpress.com/2007/07/03/windows-svnssh-and-the-subversion-command-line-client/">this one</a>.</li>
 <li><b>gcc</b>: if you want to use the ROMFS precompile feature (see <a href="arch_romfs.html#mode">here</a> for details) you need to build an image of the <b>eLua</b> cross compiler, and you need an i386
 toolchain for this. I'm using MinGW for this task, it can be downloaded from <a href="http://www.mingw.org/">here</a>. This tutorial uses MinGW version 5.1.6. Note that you
 don't need to install MSYS, MinGW should be enough. Cygwin should work equally well, or even Microsoft's Visual Studio (not tested). To build the cross compiler, run

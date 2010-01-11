@@ -1,0 +1,13 @@
+$$HEADER$$
+<h3>The FAT file system</h3>
+<p>The FAT file system implementation in <b>eLua</b> uses Elm Chan's excellent FatFS package, available <a href="http://elm-chan.org/fsw/ff/00index_e.html">here</a>. It can handle FAT12, FAT16
+and FAT32 file systems in read/write mode, and it packs a lot of functionality in a low footprint. <b>eLua</b> adds a platform abstraction layer on top of FatFS which makes it very easy to
+port the FAT file system implementation between different <b>eLua</b> targets. Since most SD/MMC cards can be accessed using the very common SPI interface, and since <b>eLua</b> already provides
+a <a href="arch_platform_spi.html">SPI platform interface</a>, porting the FAT file system to an <b>eLua</b> board is a fairly simple process.</p>
+<p>To use the FAT file system on your <b>elua</b> board (that has the proper hardware to access SD/MMC cards), first make sure that there is a working implementation of the 
+<a href="arch_platform_spi.html">eLua SPI platform interface</a> on your platform (as currently <b>eLua</b> can access SD/MMC cards only via SPI). Then you need to enable the FAT file system module 
+in your <b>eLua</b> binary image, as decribed in the <a href="building.html">building page</a>. To open a file on the SD/MMC card, all you need to do is to prefix its name with <i>/mmc/</i>, like this:</p> 
+<p><pre><code># lua /mmc/info.lua </code></pre></p>
+$$FOOTER$$
+
+
