@@ -178,10 +178,11 @@ local menu =
   -- "Generic modules" (automatically generated)
   { { "Generic modules", "Módulos Genéricos" }, "refman_gen.html", "refman_gen" },
 
-  -- "Platform modules"
+  -- "Platform modules" (automatically generated)
   { { "Platform modules", "Módulos Específicos" }, "refman_dep.html", 
     {
-      { "lm3s", "modules_lm3s.html", "refman_ps_lm3s" }
+      { "lm3s", "modules_lm3s.html", "refman_ps_lm3s" },
+      { "str9", "modules_str9.html", "refman_ps_str9" }
     }
   }
 }
