@@ -63,7 +63,7 @@ enum
   RAM chips).  Implemented in $src/common.c$, it uses the the $MEM_START_ADDRESS$ macro that must be defined in the platform's $platform_conf.h$
   file (see @arch_overview.html#platforms@here@ for details). This macro must be defined as an array that contains all the start addresses of 
   free RAM in the system. For internal RAM, this is generally handled by a linker exported symbol (named $end$ in many eLua ports) which 
-  points to the firs RAM address after all the constant and non-constant program data. An example is given below:</p>
+  points to the first RAM address after all the constant and non-constant program data. An example is given below:</p>
   ~#define MEM_START_ADDRESS     { ( void* )end }~<p>]],
       args = "$id$ - the identifier of the RAM area",
       ret = "the start address of the given memory area",   
@@ -141,7 +141,7 @@ enum
       }, 
     },
 
-    { sig = "void* #platform_get_last_free_ram#( unsigned id );",
+    { sig = "void* #platform_get_first_free_ram#( unsigned id );",
       desc = [[Returns the start address of a free RAM area in the system (this is the RAM that will be used by any part of the code that uses malloc(), 
   a good example being the Lua interpreter itself). There can be multiple free RAM areas in the system (for example the internal MCU RAM and external 
   RAM chips).  Implemented in $src/common.c$, it uses the the $MEM_START_ADDRESS$ macro that must be defined in the platform's $platform_conf.h$
