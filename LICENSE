@@ -25,8 +25,8 @@ FatFs (the FAT file system implementation of eLua) is written by Elm Chan
 LICENSE.fatfs file.
 
 The RPC implementation of eLua is based on Russell Smith's Lua-RPC
-(http://q12.org/lua/index.html), a copy of the Lua-RPC license can be found at
-LICENSE.luarpc file.
+(http://q12.org/lua/index.html), a copy of the Lua-RPC license can be found
+in the LICENSE.luarpc file.
 
 Manufacturer provided CPU support libraries are licensed under their own
 terms, check src/platform/<platform> for details.
