@@ -20,10 +20,18 @@ placed on the public domain.
 uIP (the TCP/IP stack used by eLua) is written by Adam Dunkels and released 
 under a BSD license. The eLua version is slightly modified.
 
+FatFs (the FAT file system implementation of eLua) is written by Elm Chan
+(http://elm-chan.org), a copy of the FatFs license can be found in the
+LICENSE.fatfs file.
+
+The RPC implementation of eLua is based on Russell Smith's Lua-RPC
+(http://q12.org/lua/index.html), a copy of the Lua-RPC license can be found at
+LICENSE.luarpc file.
+
 Manufacturer provided CPU support libraries are licensed under their own
 terms, check src/platform/<platform> for details.
 
-The rest of the code is licensed under MIT, listed below.
+The rest of the eLua code is licensed under MIT, listed below.
 
 ================================================================================
 The MIT License
