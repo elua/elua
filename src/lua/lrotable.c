@@ -131,8 +131,4 @@ extern char etext[];
 int luaR_isrotable(void *p) {
   return stext <= ( char* )p && ( char* )p <= etext;
 }
-#else
-int luaR_isrotable(void *p) {
-  return 0;
-}
 #endif
