@@ -36,10 +36,18 @@ Copy the binary image file to the scripts' dir of OpenOCD, renaming it to main.b
 to the binary image on your build dir but it must be named "main.bin")
 </li>
   <h2>$ cp elua_lua_str912faw44.bin /..yourpath../openocd/scripts/main.bin</h2>
-<li> 
+<li>
+Connect the Olimex programmer cable on the JTAG connector on the STR-E912 
+</li>
 Run the OpenOCD script as a superuser, from the OpenOCD scripts directory:
 </li>
   <h2>$ sudo ./openocd -f comstick.cfg</h2>
+<li>
+Carefully disconnect the Olimex programmer cable on the JTAG connector on the
+STR-E912, as unfortunately you will have to do this many times while using
+this combination. The terminal will NOT run if the programmer is connected
+to the board.
+</li>
 </ul>   
   
  
