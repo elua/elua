@@ -68,9 +68,8 @@ static int pioh_set_ports( lua_State* L, int stackidx, int op, pio_type mask )
 {
   int total = lua_gettop( L );
   int i, v, port;
-  
-  pioh_clear_masks();
-  
+  u32 port_mask = 0;
+
   // Get all masks
   for( i = stackidx; i <= total; i ++ )
   {
@@ -78,13 +77,13 @@ static int pioh_set_ports( lua_State* L, int stackidx, int op, pio_type mask )
     port = PLATFORM_IO_GET_PORT( v );
     if( !PLATFORM_IO_IS_PORT( v ) || !platform_pio_has_port( port ) )
       return luaL_error( L, "invalid port" );
-    pio_masks[ port ] = mask;
+    port_mask |= ( 1ULL << port );
   }
   
   // Ask platform to execute the given operation
   for( i = 0; i < PLATFORM_IO_PORTS; i ++ )
-    if( pio_masks[ i ] )
-      if( !platform_pio_op( i, pio_masks[ i ], op ) )
+    if( port_mask & ( 1ULL << i ) )
+      if( !platform_pio_op( i, mask, op ) )
         return luaL_error( L, "invalid PIO operation" );
   return 0;
 }
