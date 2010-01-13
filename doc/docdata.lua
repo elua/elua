@@ -140,6 +140,7 @@ local menu =
       { "STR7", "installing_str7.html" },
       { "STR9", "installing_str9.html" },
       { "STM32", "installing_stm32.html" },
+      { "LPC2468", "installing_lpc2468.html" }
     },
   },        
           
