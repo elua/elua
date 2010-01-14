@@ -147,3 +147,13 @@ void ser_set_timeout_ms( ser_handler id, u32 timeout )
     ser_win32_set_timeouts( id, 0, 0, timeout, 0, 0 );
 }
 
+int ser_readable( ser_handler id )
+{
+  COMSTAT comStat;
+  DWORD   dwErrors;
+  HANDLE hComm = ( HANDLE )id;
+  
+  ClearCommError(hComm, &dwErrors, &comStat)
+  
+  return ( comState.cbInQue > 0 );
+}

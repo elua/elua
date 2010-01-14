@@ -123,6 +123,8 @@ int ser_setup( ser_handler id, u32 baud, int databits, int parity, int stopbits 
 
   // And set blocking mode by default
   fcntl( id, F_SETFL, 0 );
+  
+  return SER_OK;
 }
 
 // Read up to the specified number of bytes, return bytes actually read
