@@ -9,7 +9,8 @@ lua_files = """lapi.c lcode.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c
    ldblib.c liolib.c lmathlib.c loslib.c ltablib.c lstrlib.c loadlib.c linit.c lua.c print.c lrotable.c"""
 lua_full_files = " " + " ".join( [ "src/lua/%s" % name for name in lua_files.split() ] )
 lua_full_files += " src/modules/luarpc.c src/luarpc_posix_serial.c "
-local_include = "-Isrc/lua -Iinc -Isrc/modules"
+lua_full_files += " src/serial/serial_posix.c"
+local_include = "-Isrc/lua -Iinc -Isrc/modules -Iinc/serial"
 
 # Compiler/linker options
 cccom = "gcc -g %s -Wall %s -c $SOURCE -o $TARGET" % ( local_include, cdefs )

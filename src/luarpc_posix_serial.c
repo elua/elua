@@ -1,24 +1,15 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <sys/fcntl.h>
-#include <sys/file.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/select.h>
-#include <sys/ioctl.h>
-#include <termios.h>
-#include <errno.h>
-#include <string.h>
 #include <alloca.h>
-
-/* FIXME:  I know not all of the above is necessary, should pare it down sometime */
+#include <errno.h>
 
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
 
 #include "luarpc_rpc.h"
+#include "serial.h"
 
 void transport_open( Transport *tpt, const char *path );
 
@@ -33,40 +24,19 @@ void transport_init (Transport *tpt)
 
 void transport_open( Transport *tpt, const char *path )
 {
-  struct termios options;
   struct exception e;
   
-  tpt->fd = open(path , O_RDWR | O_NOCTTY | O_NDELAY );
-  
+  tpt->fd = ser_open( path );
+
   if( tpt->fd == INVALID_TRANSPORT)
   {
     e.errnum = errno;
     e.type = fatal;
     Throw( e );
   }
-    
-  tcgetattr( tpt->fd, &options);
-
-  cfsetispeed( &options, B115200 );
-  cfsetospeed( &options, B115200 );
-
-  options.c_cflag     |= (CLOCAL | CREAD);
   
-  /* raw processing */
-  options.c_lflag     &= ~(ICANON | ECHO | ECHOE | ISIG);
-  options.c_oflag     &= ~OPOST;
-  
-  /* 8N1 */
-  options.c_cflag     &= ~PARENB;
-  options.c_cflag     &= ~CSTOPB;
-  options.c_cflag     &= ~CSIZE;
-  options.c_cflag     |= CS8;
-  
-  options.c_cc[VMIN]  = 1;
-  options.c_cc[VTIME] = 10;
-
-  tcsetattr(tpt->fd, TCSANOW, &options);
-  fcntl(tpt->fd, F_SETFL, 0);
+  ser_setup( tpt->fd, 115200, 8, SER_PARITY_NONE, 1 );
+  ser_set_timeout_ms( tpt->fd, 1000 );
 }
 
 /* Open Listener / Server */
@@ -78,7 +48,7 @@ void transport_open_listener(lua_State *L, ServerHandle *handle)
 
   transport_open( &handle->ltpt, lua_tostring (L,1) );
     
-  while( transport_readable ( &handle->ltpt ) == 0 ); /* wait for incoming data */
+  while( transport_readable( &handle->ltpt ) == 0 ); // wait for incoming data
 }
 
 /* Open Connection / Client */
@@ -98,6 +68,8 @@ void transport_accept (Transport *tpt, Transport *atpt)
 {
   struct exception e;
   TRANSPORT_VERIFY_OPEN;
+  while( transport_readable( tpt ) == 0 ); // wait for incoming data
+  
   atpt->fd = tpt->fd;
 }
 
@@ -105,7 +77,7 @@ void transport_accept (Transport *tpt, Transport *atpt)
 /* Read & Write to Transport */
 void transport_read_buffer (Transport *tpt, u8 *buffer, int length)
 {
-  int n;
+  u32 n;
   struct exception e;
   TRANSPORT_VERIFY_OPEN;
   
@@ -113,7 +85,7 @@ void transport_read_buffer (Transport *tpt, u8 *buffer, int length)
   {
     TRANSPORT_VERIFY_OPEN;
 
-    n = read( tpt->fd, ( void * )buffer, length );
+    n = ser_read( tpt->fd, buffer, length );
     
     /* error handling */
     if( n == 0 )
@@ -141,7 +113,7 @@ void transport_write_buffer( Transport *tpt, const u8 *buffer, int length )
   struct exception e;
   TRANSPORT_VERIFY_OPEN;
 
-  n = write( tpt->fd, buffer,length );
+  n = ser_write( tpt->fd, buffer, length );
   
   if ( n != length )
   {
@@ -156,21 +128,12 @@ void transport_write_buffer( Transport *tpt, const u8 *buffer, int length )
 int transport_readable (Transport *tpt)
 {
   struct exception e;
-  fd_set rdfs;
   int ret;
-  struct timeval tv;
 
   if (tpt->fd == INVALID_TRANSPORT)
     return 0;
   
-  FD_ZERO (&rdfs);
-  FD_SET (tpt->fd, &rdfs);
-  
-  /* Wait up to five seconds. */
-  tv.tv_sec = 5;
-  tv.tv_usec = 0;
-
-  ret = select( tpt->fd+1, &rdfs, NULL, NULL, &tv );
+  ret = ser_readable( tpt->fd );
   
   if ( ret < 0 )
   {
@@ -178,7 +141,7 @@ int transport_readable (Transport *tpt)
     e.type = fatal;
     Throw( e );
   }
-    
+  
   return ( ret > 0 );
 }
 
@@ -199,7 +162,7 @@ void transport_close (Transport *tpt)
                            already dropped, and properly close out on exit */
     
     /* Send break to the other side to indicate to opposing side that connection is ending */
-    tcsendbreak(tpt->fd, 0);
+    ser_close( tpt->fd );
     tpt->fd = INVALID_TRANSPORT;
   }
 }
