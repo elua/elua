@@ -1,4 +1,4 @@
-import os, sys 
+import os, sys, platform
 
 output = 'luarpc'
 cdefs = '-DLUA_CROSS_COMPILER -DLUA_RPC -DLUA_USE_READLINE'
