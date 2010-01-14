@@ -36,13 +36,13 @@
 // *****************************************************************************
 // Auxiliary libraries that will be compiled for this platform
 
-#ifdef FORSTM3210E_EVAL
-#define AUXLIB_LCD      "stm3210lcd"
-LUALIB_API int ( luaopen_lcd )( lua_State* L );
-#define LCDLINE  _ROM( AUXLIB_LCD, luaopen_lcd, lcd_map )
-#else
+//#ifdef FORSTM3210E_EVAL
+//#define AUXLIB_LCD      "stm3210lcd"
+//LUALIB_API int ( luaopen_lcd )( lua_State* L );
+//#define LCDLINE  _ROM( AUXLIB_LCD, luaopen_lcd, lcd_map )
+//#else
 #define LCDLINE
-#endif
+//#endif
 
 #ifdef BUILD_ADC
 #define ADCLINE _ROM( AUXLIB_ADC, luaopen_adc, adc_map )
