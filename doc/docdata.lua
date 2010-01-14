@@ -75,6 +75,7 @@ local menu =
       },
       { { "Old versions", "Versões Anteriores" }, "dl_old.html", 
         {
+          { "0.6", "dl_old.html#v060" },
           { "0.5", "dl_old.html#v050" },
           { "0.4.1", "dl_old.html#v041" },
           { "0.4", "dl_old.html#v04" },

@@ -6,6 +6,7 @@ skip directly to the OpenOCD script downloads, use the links below.</p>
 
 <ul>
   <li><a href="#str9files">Configuration files for STR9-comStick</a></li>
+  <li><a href="#stre912files">Configuration files for STR-E912</a></li>
   <li><a href="#lpc2888files">Configuration files for LPC2888</a></li>
   <li><a href="#str7files">Configuration files for STR7</a></li>
 </ul>
@@ -261,7 +262,8 @@ on the subject:</p>
   <li><a href="http://elua.berlios.de/other/str91x_reset.script">str91x_reset.script</a></li>
 </ul>
 
-<p>The <b>comstick.cfg</b> configuration file is for programming the
+<p>For STR9 I'm using the Yagarto OpenOCD build for Windows (repository
+version 717, as described at the beginning of this tutorial).The <b>comstick.cfg</b> configuration file is for programming the
 STR9-comStick. <b>comrst.cfg</b> is for resetting it. The comStick has a very
 interesting habit: after you power it (via USB) it does not start
 executing the code from the internal flash, you need to execute OpenOCD
@@ -272,9 +274,40 @@ generic or it's only relevant to my particular comStick. I suspect that
 the CPU RESET line isn't properly handled by the on-board USB-to-JTAG
 converter, and the only solution I have for this is to execute this
 script everytime you power the board and everytime you need to do a
-RESET.</p>
+RESET. To use the programming script, invoke the OpenOCD executable like this:</p>
+
+<pre><code>openocd-ftd2xx -f comstick.cfg</code></pre>
+
+<p>(<b>note</b>: under Windows, the OpenOCD executable name is often
+"openocd-ftd2xx". Under Linux it's simply "openocd". Replace it with
+the actualy name with your executable).</p>
+
 <p>Also, be sure to modify <b>str91x_flashprogram.script</b> if your image name is
 not <b>main.bin</b></p>
+
+<a name="stre912files" /><h2>Configuration files for STR-E912 (Olimex)</h2>
+
+<p>Download them below:</p>
+
+<ul>
+  <li><a href="http://elua.berlios.de/other/str-e912.cfg">str-e912.cfg</a></li>
+  <li><a href="http://elua.berlios.de/other/str91x_flashprogram.script">str91x_flashprogram.script</a></li>
+</ul>
+
+<p>For the <a href="http://www.olimex.com/dev/str-e912.html">STR-E912 board</a> I'm using the Yagarto OpenOCD build for Windows (repository
+version 717, as described at the beginning of this tutorial). As this board doesn't have a built-in USB to JTAG adapter, an external one
+is needed. The one used by the <b>str-e912.cfg</b> script is the <a href="http://olimex.com/dev/arm-usb-ocd.html">ARM-USB-OCD</a> adapter (also from Olimex).
+The <b>str-e912.cfg</b> configuration file is for programming the board. To use the programming script, invoke the OpenOCD executable like this:</p>
+
+<pre><code>openocd-ftd2xx -f str-e912.cfg</code></pre>
+
+<p>(<b>note</b>: under Windows, the OpenOCD executable name is often
+"openocd-ftd2xx". Under Linux it's simply "openocd". Replace it with
+the actualy name with your executable).</p>
+
+<p>Also, be sure to modify <b>str91x_flashprogram.script</b> if your image name is
+not <b>main.bin</b></p>
+
 
 <a name="lpc2888files" /><h2>Configuration files for LPC2888</h2>
 
@@ -300,7 +333,7 @@ like this:</p>
 from Olimex, but it should be easy to use the script with any other
 JTAG adapter (don't forget to change the script to match your adapter).</p>
 
-<a name="str7files" /><h2>#Configuration files for STR711FR2 (STR7 from ST)</h2>
+<a name="str7files" /><h2>Configuration files for STR711FR2 (STR7 from ST)</h2>
 
 <p>Download them below:</p>
 
