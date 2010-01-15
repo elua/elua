@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <alloca.h>
+#include <malloc.h>
 #include <errno.h>
 
 #include "lua.h"
@@ -25,6 +25,7 @@ void transport_init (Transport *tpt)
 void transport_open( Transport *tpt, const char *path )
 {
   struct exception e;
+  int ret;
   
   tpt->fd = ser_open( path );
 
@@ -35,7 +36,7 @@ void transport_open( Transport *tpt, const char *path )
     Throw( e );
   }
   
-  ser_setup( tpt->fd, 115200, 8, SER_PARITY_NONE, 1 );
+  ret = ser_setup( tpt->fd, 115200, SER_DATABITS_8, SER_PARITY_NONE, SER_STOPBITS_1 );
   ser_set_timeout_ms( tpt->fd, 1000 );
 }
 
@@ -114,7 +115,7 @@ void transport_write_buffer( Transport *tpt, const u8 *buffer, int length )
   TRANSPORT_VERIFY_OPEN;
 
   n = ser_write( tpt->fd, buffer, length );
-  
+
   if ( n != length )
   {
     e.errnum = errno;

@@ -17,19 +17,12 @@ typedef int32_t s32;
 /****************************************************************************/
 /* handle the differences between winsock and unix */
 
-#ifdef WIN32  /*  BEGIN WIN32 SOCKET SETUP  */
-
-#define close closesocket
-#define read(fd,buf,len) recv ((fd),(buf),(len),0)
-#define write(fd,buf,len) send ((fd),(buf),(len),0)
-#define SOCKTYPE SOCKET
-#define sock_errno (WSAGetLastError())
-
+#ifdef WIN32_BUILD  /*  BEGIN WIN32 SOCKET SETUP  */
+#include "windows.h"
+#define transport_strerror strerror
+#define errno (GetLastError())
 #else
 
-#define SOCKTYPE int
-#define net_startup() ;
-#define sock_errno errno
 #define transport_strerror strerror
 
 #endif
@@ -103,7 +96,11 @@ extern struct exception_context the_exception_context[ 1 ];
 typedef struct _Transport Transport;
 struct _Transport 
 {
+#ifdef WIN32_BUILD
+  HANDLE fd;
+#else
   int fd;      /* INVALID_TRANSPORT if socket is closed */
+#endif
   unsigned tmr_id;
   u8     loc_little: 1, // Local is little endian?
          loc_armflt: 1, // local float representation is arm float?
@@ -143,8 +140,11 @@ struct _ServerHandle {
 
 /* Maximum number of framing errors before connection reset */
 #define MAX_LINK_ERRS ( 2 )
-
+#ifdef WIN32_BUILD
+#define INVALID_TRANSPORT (INVALID_HANDLE_VALUE)
+#else
 #define INVALID_TRANSPORT (-1)
+#endif
 
 #define TRANSPORT_VERIFY_OPEN \
 	if (tpt->fd == INVALID_TRANSPORT) \

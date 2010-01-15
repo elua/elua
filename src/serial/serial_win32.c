@@ -37,7 +37,7 @@ ser_handler ser_open( const char* sername )
 {
   char portname[ WIN_MAX_PORT_NAME + 1 ];
   HANDLE hComm;
-  
+
   portname[ 0 ] = portname[ WIN_MAX_PORT_NAME ] = '\0';
   _snprintf( portname, WIN_MAX_PORT_NAME, "\\\\.\\%s", sername );
   hComm = CreateFile( portname, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, 0, 0 );
@@ -59,11 +59,11 @@ int ser_setup( ser_handler id, u32 baud, int databits, int parity, int stopbits 
   HANDLE hComm = ( HANDLE )id;
   DCB dcb;
   
-	if( GetCommState( hComm, &dcb ) == FALSE )
-	{
-		CloseHandle( hComm );
-		return SER_ERR;
-	}
+  if( GetCommState( hComm, &dcb ) == FALSE )
+  {
+    CloseHandle( hComm );
+    return SER_ERR;
+  }
   dcb.BaudRate = baud;
   dcb.ByteSize = databits;
   dcb.Parity = parity == SER_PARITY_NONE ? NOPARITY : ( parity == SER_PARITY_EVEN ? EVENPARITY : ODDPARITY );
@@ -86,7 +86,6 @@ int ser_setup( ser_handler id, u32 baud, int databits, int parity, int stopbits 
     CloseHandle( hComm );
     return SER_ERR;
   }
-  
   if( ser_win32_set_timeouts( hComm, 0, 0, 0, 0, 0 ) == SER_ERR )
   {
     CloseHandle( hComm );
@@ -123,7 +122,7 @@ int ser_read_byte( ser_handler id )
 u32 ser_write( ser_handler id, const u8 *src, u32 size )
 {
   HANDLE hComm = ( HANDLE )id;
-	DWORD written;
+  DWORD written;
 	
   if( WriteFile( hComm, src, size, &written, NULL ) == FALSE )
     return 0;
@@ -153,7 +152,7 @@ int ser_readable( ser_handler id )
   DWORD   dwErrors;
   HANDLE hComm = ( HANDLE )id;
   
-  ClearCommError(hComm, &dwErrors, &comStat)
+  ClearCommError(hComm, &dwErrors, &comStat);
   
-  return ( comState.cbInQue > 0 );
+  return ( comStat.cbInQue > 0 );
 }

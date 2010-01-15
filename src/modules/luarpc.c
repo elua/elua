@@ -16,7 +16,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#ifdef __MINGW32__
+void *alloca(size_t);
+#else
 #include <alloca.h>
+#endif
 
 #include "lua.h"
 #include "lualib.h"
