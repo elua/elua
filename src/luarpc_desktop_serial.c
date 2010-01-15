@@ -9,7 +9,6 @@
 #include <alloca.h>
 #endif
 
-
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
@@ -19,10 +18,9 @@
 
 void transport_open( Transport *tpt, const char *path );
 
-
 #ifdef LUARPC_ENABLE_SERIAL
 
-/* Setup Transport */
+// Setup Transport 
 void transport_init (Transport *tpt)
 {
   tpt->fd = INVALID_TRANSPORT;
@@ -46,10 +44,10 @@ void transport_open( Transport *tpt, const char *path )
   ser_set_timeout_ms( tpt->fd, 1000 );
 }
 
-/* Open Listener / Server */
+// Open Listener / Server 
 void transport_open_listener(lua_State *L, ServerHandle *handle)
 {
-  check_num_args (L,2); /* 1st arg is path, 2nd is handle */
+  check_num_args (L,2); // 1st arg is path, 2nd is handle
   if (!lua_isstring (L,1))
     luaL_error(L,"first argument must be serial serial port");
 
@@ -58,10 +56,10 @@ void transport_open_listener(lua_State *L, ServerHandle *handle)
   while( transport_readable( &handle->ltpt ) == 0 ); // wait for incoming data
 }
 
-/* Open Connection / Client */
+// Open Connection / Client
 int transport_open_connection(lua_State *L, Handle *handle)
 { 
-  check_num_args (L,2); /* 1st arg is path, 2nd is handle */
+  check_num_args (L,2); // 1st arg is path, 2nd is handle
   if (!lua_isstring (L,1))
     luaL_error(L,"first argument must be serial serial port");
 
@@ -70,7 +68,7 @@ int transport_open_connection(lua_State *L, Handle *handle)
   return 1;
 }
 
-/* Accept Connection */
+// Accept Connection
 void transport_accept (Transport *tpt, Transport *atpt)
 {
   struct exception e;
@@ -81,7 +79,7 @@ void transport_accept (Transport *tpt, Transport *atpt)
 }
 
 
-/* Read & Write to Transport */
+// Read & Write to Transport
 void transport_read_buffer (Transport *tpt, u8 *buffer, int length)
 {
   u32 n;
@@ -94,7 +92,7 @@ void transport_read_buffer (Transport *tpt, u8 *buffer, int length)
 
     n = ser_read( tpt->fd, buffer, length );
     
-    /* error handling */
+    // error handling
     if( n == 0 )
     {
       e.errnum = ERR_NODATA;
@@ -130,8 +128,8 @@ void transport_write_buffer( Transport *tpt, const u8 *buffer, int length )
   }
 }
 
-/* Check if data is available on connection without reading:
-    - 1 = data available, 0 = no data available */
+// Check if data is available on connection without reading:
+//    - 1 = data available, 0 = no data available
 int transport_readable (Transport *tpt)
 {
   struct exception e;
@@ -152,26 +150,21 @@ int transport_readable (Transport *tpt)
   return ( ret > 0 );
 }
 
-/* Check if transport is open:
-    1 = connection open, 0 = connection closed */
+// Check if transport is open:
+//    1 = connection open, 0 = connection closed
 int transport_is_open (Transport *tpt)
 {
   return (tpt->fd != INVALID_TRANSPORT);
 }
 
-/* Shut down connection */
+// Shut down connection
 void transport_close (Transport *tpt)
 {
   if (tpt->fd != INVALID_TRANSPORT)
   {
-    /* close (tpt->fd); -- not closing for now since atpt and ltpt use same fd,
-                           should use some method to detect whether one has 
-                           already dropped, and properly close out on exit */
-    
-    /* Send break to the other side to indicate to opposing side that connection is ending */
     ser_close( tpt->fd );
     tpt->fd = INVALID_TRANSPORT;
   }
 }
 
-#endif /* LUARPC_ENABLE_SERIAL */
+#endif // LUARPC_ENABLE_SERIAL

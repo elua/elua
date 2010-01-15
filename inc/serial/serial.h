@@ -43,5 +43,6 @@ int ser_read_byte( ser_handler id );
 u32 ser_write( ser_handler id, const u8 *src, u32 size );
 u32 ser_write_byte( ser_handler id, u8 data );
 void ser_set_timeout_ms( ser_handler id, u32 timeout );
+int ser_readable( ser_handler id );
 
 #endif
