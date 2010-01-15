@@ -169,33 +169,33 @@ e suas fases de desenvolvimento.</p>
 <table style="text-align: left; width: 620px;" class="table_center">
 <tbody>
 <tr>
-<th style="text-align: left;">Nome</th> 
-<th style="text-align: center;">Descrição</th>
+<th style="text-align: left;">Name</th> 
+<th style="text-align: center;">Description</th>
 <th style="text-align: center;">Status</th>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">pio</td>
-<td>Programmable Input/Output</td>
+<td>programmable input/output</td>
 <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">tmr</td>
-<td>timers</td>
+<td>periodic timer / counters</td>
 <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">pwm</td>
-<td>Pulse Width Modulation</td>
+<td>pulse width modulation</td>
 <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">uart</td>
-<td>Universal Asynchronous Receiver Transmitter</td>
+<td>universal asynchronous receiver transmitter</td>
 <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">spi</td>
-<td>Serial Peripheral Interface</td>
+<td>serial peripheral interface</td>
 <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
 </tr>
 <tr><td style="color: rgb(255, 102, 0);">net</td>
@@ -204,8 +204,13 @@ e suas fases de desenvolvimento.</p>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">adc</td>
-<td>Analog to Digital Converter</td>
+<td>analog to digital converter</td>
 <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">dac</td>
+<td>digital to analog converter</td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: OK" /></td>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">cpu</td>
@@ -239,7 +244,7 @@ e suas fases de desenvolvimento.</p>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">i2c</td>
-<td>I2C bus access module</td>
+<td>inter-integrated circuit protocol</td>
 <td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
 </tr>
 <tr>
@@ -249,11 +254,70 @@ e suas fases de desenvolvimento.</p>
 </tr>
 <tr>
 <td style="color: rgb(255, 102, 0);">can</td>
-<td>Controller Area Network</td>
+<td>controller area network</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: not implemented" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">rpc</td>
+<td>remote procedure call</td>
+<td style="text-align: center;"><img src="images/stat_not_tested.png" alt="Status: testing" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">i2s</td>
+<td>inter-IC sound</td>
 <td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">mmc</td>
+<td>sd/mmc card FAT file system</td>
+<td style="text-align: center;"><img src="images/stat_not_tested.png" alt="Status: testing" /></td>
+</tr>
+</tr>
+<td style="color: rgb(255, 102, 0);">disp</td>
+<td>lcd, oled and other displays support</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: testing" /></td>
+</tr>
+</tr>
+<td style="color: rgb(255, 102, 0);">int</td>
+<td>interrupt service routines</td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: testing" /></td>
 </tr>
 </tbody>
 </table>
+<p>
+Para algumas plataformas, estão disponíveis (ou em desenvolvimento) "Módulos Dependentes de
+Plataforma", conforme apresentado na tabela abaixo. A diferença conceitual
+entre Módulos Genéricos e Módulos Dependentes de Plataforma está apresentada
+na página de <a href="arch_overview.html">Architetura <b>eLua<b/></a>.
+</p>
+<table style="width: 620px; margin-bottom: 10px;" class="table_center">
+<tbody>
+<tr>
+  <th style="text-align: left;">Name</th>
+  <th style="text-align: center;">Description</th>
+  <th style="text-align: center;">Boards</th>
+  <th style="text-align: center;">Status</th>
+</tr>
+<tr>
+  <td style="color: rgb(255, 102, 0);">disp</td>
+  <td>OLED display support</td>
+  <td>EK-LM3S8962<br>
+      EK-LM3S6965
+  </td>
+  <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+   <td style="color: rgb(255, 102, 0);">pio</td>
+  <td>Platform specific PIO support</td>
+  <td>STR-E912<br />
+      STR9-comStick
+  </td>
+  <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+ 
+</tr>
+</tbody>
+</table>
+<p/>
 
 <br /><br />
 <p>A tabela a seguir apresenta a relação entre um modulo e sua implementação em cada
