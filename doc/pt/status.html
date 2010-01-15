@@ -32,36 +32,51 @@ gráfica:</p>
 </table>
 
 <br /><br />
-<p>A lista de CPUs/Plataformas atualmente suportadas por <b>eLua</b> é
+<a name="platforms" /><h3>Plataformas suportadas por eLua</h3>
+<p>A lista de CPUs x plataformas atualmente suportadas por <b>eLua</b> é
 apresentada a seguir:</p>
 <table style="text-align: left; width: 620px;" class="table_center">
 <tbody>
 <tr>
   <th style="text-align: left;">CPU</th>
   <th style="text-align: center;">Arquitetura</th>
-  <th style="text-align: center;">Plataforma</th>
-  <th style="text-align: center;">Placas Suportadas</th>
+  <th style="text-align: center;">Platforma</th>
+  <th style="text-align: center;">Placas/Kits</th>
   <th style="text-align: center;">Status</th>
 </tr>
 <tr>
   <td><a href="http://www.luminarymicro.com/products/LM3S8962.html">LM3S8962</a></td>
   <td>Cortex-M3</td>
-  <td style="color: rgb(255, 102, 0);">lm3s</td>
-  <td><a href="http://www.luminarymicro.com/products/lm3s8962_can_ethernet_evaluation_kit.html">EKx-LM3S8962</a></td>
+  <td style="color: rgb(255, 102, 0);">LM3S</td>
+  <td><a href="http://www.luminarymicro.com/products/lm3s8962_can_ethernet_evaluation_kit.html">EK-LM3S8962</a></td>
   <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
 </tr>
 <tr>
   <td><a href="http://www.luminarymicro.com/products/lm3s6965.html">LM3S6965</a></td>
   <td>Cortex-M3</td>
-  <td style="color: rgb(255, 102, 0);">lm3s</td>
-  <td><a href="http://www.luminarymicro.com/products/lm3s6965_ethernet_evaluation_kit.html">EKx-LM3S6965</a></td>
+  <td style="color: rgb(255, 102, 0);">LM3S</td>
+  <td><a href="http://www.luminarymicro.com/products/lm3s6965_ethernet_evaluation_kit.html">EK-LM3S6965</a></td>
   <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
 </tr>
 <tr>
   <td><a href="http://www.luminarymicro.com/products/lm3s6918.html">LM3S6918</a></td>
   <td>Cortex-M3</td>
-  <td style="color: rgb(255, 102, 0);">lm3s</td>
+  <td style="color: rgb(255, 102, 0);">LM3S</td>
   <td><a href="http://www.micromint.com/index.php/SBC/eagle-100.html">Eagle 100</a></td>
+  <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+  <td><a href="http://www.luminarymicro.com/products/lm3s6918.html">LM3S9B92</a></td>
+  <td>Cortex-M3</td>
+  <td style="color: rgb(255, 102, 0);">LM3S</td>
+  <td><a href="http://www.luminarymicro.com/products/ek-lm3s9b92.html">EK-LM3S9B92</a></td>
+  <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+  <td><a href="http://www.atmel.com/dyn/products/product_card.asp?part_id=4117">AT32UC3A0512</a></td>
+  <td>AVR32</td>
+  <td style="color: rgb(255, 102, 0);">AVR32</td>
+  <td><a href="http://www.atmel.com/dyn/Products/tools_card.asp?tool_id=4114">ATEVK1100</a></td>
   <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
 </tr>
 <tr>
@@ -76,27 +91,23 @@ apresentada a seguir:</p>
   <td>ARM7TDMI</td>
   <td style="color: rgb(255, 102, 0);">at91sam7x</td>
   <td>None</td>
-  <td style="text-align: center;"><img src="images/stat_not_tested.png" alt="Status: not tested" /></td>
+  <td style="text-align: center;"><img src="images/stat_not_tested.png" alt="Status: testing" /></td>
 </tr>
+<!--
 <tr>
-  <td><a href="http://www.intel.com">i386 (generic)</a></td>
-  <td>x86</td>
-  <td style="color: rgb(255, 102, 0);">i386</td>
-  <td>PCs/emulators</td>
+  <td><a href="http://www.nxp.com/#/pip/pip=[pip=LPC1768_66_65_64_2]|pp=[t=pip,i=LPC1768_66_65_64_2]">LPC1768</a></td>
+  <td>Cortex-M3</td>
+  <td style="color: rgb(255, 102, 0);">LPC17xx</td>
+  <td><a href="http://hackaday.com/2009/11/21/review-mbed-nxp-lpc1768-microcontroller/">mbed</a></td>  
   <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
 </tr>
+-->
 <tr>
-  <td><a href="http://www.st.com/mcu/devicedocs-STR912FAW44-101.html">STR912FAW44</a></td>
-  <td>ARM966E-S</td>
-  <td style="color: rgb(255, 102, 0);">STR</td>
-  <td><a href="http://www.hitex.com/index.php?id=383">STR9-comStick</a></td>
-  <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
-</tr>
-<tr>
-  <td><a href="http://www.st.com/mcu/devicedocs-STR912FAW44-101.html">STR912FAW44</a></td>
-  <td>ARM966E-S</td>
-  <td style="color: rgb(255, 102, 0);">STR</td>
-  <td><a href="http://www.olimex.com/dev/str-e912.html">STR-E912</a></td>
+  <td><a
+  href="http://www.nxp.com/#/pip/pip=[pip=LPC2468_4]|pp=[t=pip,i=LPC2468_4]">LPC2468</a></td>
+  <td>ARM7TDMI</td>
+  <td style="color: rgb(255, 102, 0);">LPC24xx</td>
+  <td><a href="http://www.giga.puc-rio.br/site/embedded/eluademoboard">PUC-Rio Demo Board</a></td>  
   <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
 </tr>
 <tr>
@@ -107,53 +118,52 @@ apresentada a seguir:</p>
   <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
 </tr>
 <tr>
-  <td><a
-  href="http://www.nxp.com/#/pip/pip=[pip=LPC2468_4]|pp=[t=pip,i=LPC2468_4]">LPC2468</a></td>
-  <td>ARM7TDMI</td>
-  <td style="color: rgb(255, 102, 0);">LPC24xx</td>
-  <td><a href="http://www.giga.puc-rio.br/site/embedded/eluademoboard">PUC-Rio Demo Board</a></td>  
-  <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
-</tr>
-<tr>
-  <td><a
-  href="http://www.nxp.com/#/pip/pip=[pip=LPC1768_66_65_64_2]|pp=[t=pip,i=LPC1768_66_65_64_2]">LPC1768</a></td>
-  <td>Cortex-M3</td>
-  <td style="color: rgb(255, 102, 0);">LPC17xx</td>
-  <td><a href="http://hackaday.com/2009/11/21/review-mbed-nxp-lpc1768-microcontroller/">mbed</a></td>  
-  <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
-</tr>
-<tr>
   <td><a href="http://www.st.com/mcu/devicedocs-STR711FR2.html">STR711FR2</a></td>
   <td>ARM7TDMI</td>
-  <td style="color: rgb(255, 102, 0);">str7</td>
+  <td style="color: rgb(255, 102, 0);">STR7</td>
   <td><a href="http://www.sctec.com.br/content/view/101/30/">MOD711</a></td>
   <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
 </tr>
 <tr>
-  <td><a href="http://www.atmel.com/dyn/products/product_card.asp?part_id=4117">AT32UC3A0512</a></td>
-  <td>AVR32</td>
-  <td style="color: rgb(255, 102, 0);">avr32</td>
-  <td><a href="http://www.atmel.com/dyn/Products/tools_card.asp?tool_id=4114">ATEVK1100</a></td>
+  <td><a href="http://www.st.com/mcu/devicedocs-STR912FAW44-101.html">STR912FAW44</a></td>
+  <td>ARM966E-S</td>
+  <td style="color: rgb(255, 102, 0);">STR9</td>
+  <td><a href="http://www.hitex.com/index.php?id=383">STR9-comStick</a></td>
+  <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+  <td><a href="http://www.st.com/mcu/devicedocs-STR912FAW44-101.html">STR912FAW44</a></td>
+  <td>ARM966E-S</td>
+  <td style="color: rgb(255, 102, 0);">STR9</td>
+  <td><a href="http://www.olimex.com/dev/str-e912.html">STR-E912</a></td>
   <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
 </tr>
 <tr>
   <td><a href="http://www.st.com/mcu/devicedocs-STM32F103ZE-110.html">STM32F103ZE</a></td>
   <td>Cortex-M3</td>
-  <td style="color: rgb(255, 102, 0);">stm32</td>
+  <td style="color: rgb(255, 102, 0);">STM32</td>
   <td><a href="http://www.st.com/mcu/contentid-100-110-STM3210E_EVAL.html">STM3210E-EVAL</a></td>
   <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
 </tr>
 <tr>
   <td><a href="http://www.st.com/mcu/devicedocs-STM32F103RE-110.html">STM32F103RE</a></td>
   <td>Cortex-M3</td>
-  <td style="color: rgb(255, 102, 0);">stm32</td>
+  <td style="color: rgb(255, 102, 0);">STM32</td>
   <td><a href="http://www.futurlec.com/ET-STM32_Stamp.shtml">ET-STM32 Stamp</a></td>
+  <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+  <td><a href="http://www.intel.com">i386 (generic)</a></td>
+  <td>x86</td>
+  <td style="color: rgb(255, 102, 0);">i386</td>
+  <td>PCs/emulators</td>
   <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
 </tr>
 </tbody>
 </table>
+<p/>
 
-<br /><br />
+<a name="gen_modules" /><h3>Módulos eLua</h3>
 <p>A tabela a seguir apresenta uma lista de Módulos Genéricos para <b>eLua</b>
 e suas fases de desenvolvimento.</p>
 <table style="text-align: left; width: 620px;" class="table_center">
