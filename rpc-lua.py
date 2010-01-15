@@ -8,7 +8,7 @@ lua_files = """lapi.c lcode.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c
    lparser.c lstate.c lstring.c ltable.c ltm.c lundump.c lvm.c lzio.c lauxlib.c lbaselib.c
    ldblib.c liolib.c lmathlib.c loslib.c ltablib.c lstrlib.c loadlib.c linit.c lua.c print.c lrotable.c"""
 lua_full_files = " " + " ".join( [ "src/lua/%s" % name for name in lua_files.split() ] )
-lua_full_files += " src/modules/luarpc.c src/luarpc_posix_serial.c "
+lua_full_files += " src/modules/luarpc.c src/luarpc_desktop_serial.c "
 
 linkcom = "gcc -o $TARGET $SOURCES -lm"
 

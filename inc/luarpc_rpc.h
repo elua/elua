@@ -10,21 +10,22 @@ typedef int8_t s8;
 typedef int16_t s16;
 typedef int32_t s32;
 
+#include "serial.h"
+
 #define LUARPC_ENABLE_SERIAL
 #define BUILD_RPC
 #endif
 
-/****************************************************************************/
-/* handle the differences between winsock and unix */
+//****************************************************************************
+// Windows vs POSIX Setup
 
-#ifdef WIN32_BUILD  /*  BEGIN WIN32 SOCKET SETUP  */
+#ifdef WIN32_BUILD
 #include "windows.h"
 #define transport_strerror strerror
-#define errno (GetLastError())
+#define transport_errno (GetLastError())
 #else
-
+#define transport_errno errno
 #define transport_strerror strerror
-
 #endif
 
 /****************************************************************************/

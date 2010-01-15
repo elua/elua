@@ -1,8 +1,14 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <malloc.h>
 #include <errno.h>
+
+#ifdef WIN32_BUILD
+#include <malloc.h>
+#else
+#include <alloca.h>
+#endif
+
 
 #include "lua.h"
 #include "lualib.h"
@@ -31,7 +37,7 @@ void transport_open( Transport *tpt, const char *path )
 
   if( tpt->fd == INVALID_TRANSPORT)
   {
-    e.errnum = errno;
+    e.errnum = transport_errno;
     e.type = fatal;
     Throw( e );
   }
@@ -98,7 +104,7 @@ void transport_read_buffer (Transport *tpt, u8 *buffer, int length)
     
     if( n < 0 )
     {
-      e.errnum = errno;
+      e.errnum = transport_errno;
       e.type = fatal;
       Throw( e );
     }
@@ -118,7 +124,7 @@ void transport_write_buffer( Transport *tpt, const u8 *buffer, int length )
 
   if ( n != length )
   {
-    e.errnum = errno;
+    e.errnum = transport_errno;
     e.type = fatal;
     Throw( e );
   }
@@ -138,7 +144,7 @@ int transport_readable (Transport *tpt)
   
   if ( ret < 0 )
   {
-    e.errnum = errno;
+    e.errnum = transport_errno;
     e.type = fatal;
     Throw( e );
   }
