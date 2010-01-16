@@ -78,7 +78,15 @@ int ser_setup( ser_handler id, u32 baud, int databits, int parity, int stopbits 
   cfsetospeed( &termdata, ser_baud_to_id( baud ) );
 
   // Parity / stop bits
-  termdata.c_cflag &= ~CSTOPB;
+  if ( stopbits == SER_STOPBITS_2)
+  {
+      termdata.c_cflag |= CSTOPB;
+  }
+  else
+  {
+    termdata.c_cflag &= ~CSTOPB;
+  }
+  
   if( parity == SER_PARITY_NONE ) // no parity
   {
     termdata.c_cflag &= ~PARENB;
@@ -174,6 +182,7 @@ void ser_set_timeout_ms( ser_handler id, u32 timeout )
   tcsetattr( id, TCSANOW, &termdata );
 }
 
+// Check if data is available for reading
 int ser_readable( ser_handler id )
 {
   fd_set rdfs;
