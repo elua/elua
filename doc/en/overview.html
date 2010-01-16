@@ -1,5 +1,5 @@
 $$HEADER$$
-<a name="whatis" /><h3>What is eLua ?</h3>
+<a name="whatis" /><h3>What is eLua?</h3>
 <p><strong>eLua</strong>
 stands for <strong>Embedded Lua</strong> and the project
 aims to offer the full set of features of the <a href="http://www.lua.org">Lua Programming Language</a> to the embedded world. </p>
@@ -137,9 +137,56 @@ href="en_comunity.html#credits">Credits Page</a></p>
 <br />
 <br />
 <a name="license" /><h3>License</h3>
-<p><strong>eLua</strong> is Open Source and is freely
-distributed under the MIT licence.</p>
+<p><strong>eLua</strong> is Open Source and is freely distributed under the MIT licence.</p>
 <p>The Lua code (with all the <strong>eLua</strong> specific changes) is included in the source tree and is, of course, licensed under the same <a href="http://en.wikipedia.org/wiki/MIT_License">MIT license that Lua uses.</a></p>
-<p>There may be other components with different licenses in <strong>eLua</strong>, see <strong>COPYING</strong> in the source distribution for details.</p>
+<p>Other (few) components have different licenses. Please see the file LICENCE in the source distribution for details.</p>
+<p>
+The Lua part of eLua is licensed under the Lua licensing terms, which you can
+find at http://www.lua.org/license.html.
+</p>
+<p>
+The XMODEM code is adapted from the FreeBSD at91 library, which was written by
+M. Warner Losh, and is released under the BSD license.
+</p>
+<p>
+The "pack" module is adapted from the "lpack" module by Luiz Henrique de 
+Figueiredo and it's placed in the public domain.
+</p>
+<p>
+The "bit" module is adapted from the "bitlib" library by Reuben Thomas which
+is distributed under a MIT license.
+</p>
+<p>
+The "integer only lua" is based on the "Go Long Lua!" patch by John D.
+Ramsdell (from the Lua Power Patches page) and is placed in the public
+domain.
+</p>
+<p>
+The multiple memory allocator (dlmalloc) is written by Doug Lea and it's
+placed on the public domain.
+</p>
+<p>
+uIP (the TCP/IP stack used by eLua) is written by Adam Dunkels and released 
+under a BSD license. The eLua version is slightly modified.
+</p>
+<p>
+FatFs (the FAT file system implementation of eLua) is written by Elm Chan
+(http://elm-chan.org), a copy of the FatFs license can be found in the
+LICENSE.fatfs file.
+</p>
+<p>
+The RPC implementation of eLua is based on Russell Smith's Lua-RPC
+(http://q12.org/lua/index.html), a copy of the Lua-RPC license can be found
+in the LICENSE.luarpc file.
+</p>
+<p>
+Manufacturer provided CPU support libraries are licensed under their own
+terms, check src/platform/<platform> for details.
+</p>
+<p>
+The rest of the eLua code is licensed under MIT, listed below.
+</p>
+
+
 $$FOOTER$$
 

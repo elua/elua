@@ -10,7 +10,7 @@ Figueiredo and it's placed in the public domain.
 The "bit" module is adapted from the "bitlib" library by Reuben Thomas which
 is distributed under a MIT license.
 
-The "integer only lua" is based on the "Go Long Lua!" patch by John D.
+The "integer only Lua" is based on the "Go Long Lua!" patch by John D.
 Ramsdell (from the Lua Power Patches page) and is placed in the public
 domain.
 
@@ -33,7 +33,7 @@ terms, check src/platform/<platform> for details.
 
 The rest of the eLua code is licensed under MIT, listed below.
 
-================================================================================
+
 The MIT License
 
 Copyright (c) 2009 Dado Sutter and Bogdan Marinescu

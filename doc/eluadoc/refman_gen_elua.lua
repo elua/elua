@@ -26,3 +26,4 @@ data_en =
   },
 }
 
+data_pt = data_en
