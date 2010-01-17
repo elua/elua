@@ -315,6 +315,10 @@ end
 function gen_html_doc()
   local menu, genfiles = {}, {}
 
+  for k, v in pairs( components ) do
+    table.sort( v )
+  end
+
   for _, section in pairs( doc_sections ) do 
     -- Generate documentation for each module in turn
     local fulldata = {}

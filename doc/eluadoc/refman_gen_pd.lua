@@ -7,7 +7,7 @@ data_en =
   title = "eLua reference manual - platform data",
 
   -- Menu name
-  menu_name = "Platform data (pd)",
+  menu_name = "pd",
 
   -- Overview
   overview = [[This module contains functions that access specific platform data. Useful if the code needs to know on which platform it runs.]],

@@ -29,7 +29,7 @@ local menu =
   -- "Overview"
   { { "Overview", "Apresentação" }, "overview.html", 
     {
-      { { "About", "O que é eLua ?" }, "overview.html#whatis" },
+      { { "What is eLua?", "O que é eLua ?" }, "overview.html#whatis" },
       { { "Features", "Características" }, "overview.html#features" },
       { { "Audience", "Público Alvo" }, "overview.html#audience" },
       { { "Authors", "Autores" }, "overview.html#authors" },
@@ -87,7 +87,7 @@ local menu =
       },
     },
   },
-  { { "Generic info", "Ajuda" }, "using.html", 
+  { { "Generic info", "Doc Genérica" }, "using.html", 
     {
       { { "Using eLua", "Usando eLua" }, "using.html", 
         {
@@ -131,7 +131,7 @@ local menu =
       },
     },
   }, 
-  { { "Platform info", "Plataformas" }, "installing.html", 
+  { { "Platform info", "Doc Específica" }, "installing.html", 
     {
       { "AT91SAM7x", "installing_at91sam7x.html" },
       { "AVR32", "installing_avr32.html" },
@@ -152,10 +152,10 @@ local menu =
   -- "Overview"
   { { "Overview", "Visão Geral" }, "arch_overview.html", 
     {
-      { { "Structure", "Estrutura" }, "arch_overview.html#structure" },
+      { { "eLua's Architecture", "Arquitetura de eLua" }, "arch_overview.html#structure" },
       { { "Common code", "Código Básico" }, "arch_overview.html#common" },
       { { "Interface architecture", "Interfaceamento" }, "arch_overview.html#platform" },
-      { { "Platforms/ports", "Portabilização" }, "arch_overview.html#platforms" },
+      { { "Platforms and ports", "Portabilização" }, "arch_overview.html#platforms" },
       { { "Booting eLua", "O Boot de eLua" }, "arch_overview.html#boot" }
     }
   },
@@ -167,9 +167,9 @@ local menu =
   { { "More information", "Informações Adicionais" }, "#", 
     {
       { { "Adding a new port", "Portando eLua" }, "arch_newport.html" },
-      { { "Modules and LTR", "Modulos e LTR" }, "arch_ltr.html" },
       { { "Consoles and terminals", "Consoles e Terminais" }, "arch_con_term.html" },
       { { "TCP/IP in eLua", "TCP/IP em eLua" }, "arch_tcpip.html" },
+      { { "LTR (Lua Tiny RAM) in eLua", "LTR (Lua Tiny RAM) em eLua" }, "arch_ltr.html" },
       { { "eLua coding style", "Regras de Codificação" }, "arch_coding.html" }
     }
   },

@@ -151,10 +151,10 @@ enum
     <li>many times it is difficult to share a hardware timer between different parts of an application because of conflicting requirements. Generally it's not possible to have timers that can
         achieve long delays and high accuracy at the same time (this is especially true for systems that have 16 bit or even smaller timers).</li>
   </ul>
-  <p>In this respect, $virtual timers$ are a set of timers that share a single hardware timer. It is possible, in this way, to have a hardware timer that can implement 4, 8 or more hardware
+  <p>In this respect, $virtual timers$ are a set of timers that share a single hardware timer. It is possible, in this way, to have a hardware timer that can implement 4, 8 or more virtual/software
   timers. There are a few drawbacks to this approach:</p>
   <ul>
-    <li>the hardware timer used to implement the virtual timers must generally be dedicated. In fact in cat be still used in "read only mode", which means that the only operations that can
+    <li>the hardware timer used to implement the virtual timers must generally be dedicated. In fact it can still be used in "read only mode", which means that the only operations that can
         be executed on it are $PLATFORM_TIMER_OP_READ$, $PLATFORM_TIMER_GET_CLOCK$, $PLATFORM_TIMER_OP_GET_MAX_DELAY$ and $PLATFORM_TIMER_OP_GET_MIN_DELAY$. However,
         since the "read only mode" is not enforced by the code, it is advisable to treat this timer as a dedicated resource and thus make it invisible to eLua by not associating it with 
         an ID.</li>

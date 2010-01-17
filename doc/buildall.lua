@@ -274,7 +274,7 @@ local function gen_html_nav( parentid, lang )
   end
   offline_data = not is_offline and [[
   <p style="margin-left: 35px;"><a href="http://www.pax.com/free-counters.html"><img src="http://counter.pax.com/counter/image?counter=ctr-zsg80nnmqt" alt="Free Hit Counter" style="border: 0;" /></a></p>
-<p style="margin-left: 18px;"><a href="http://developer.berlios.de" title="BerliOS Developer"> <img src="http://developer.berlios.de/bslogo.php?group_id=9919" width="124px" height="32px" style="border: 0;" alt="BerliOS Developer Logo" /></a></p>
+  <p style="margin-left: 18px;"><a href="http://developer.berlios.de" title="BerliOS Developer"> <img src="http://developer.berlios.de/bslogo.php?group_id=9919" width="124px" height="32px" style="border: 0;" alt="BerliOS Developer Logo" /></a></p>
 ]] or ""
   htmlstr = htmlstr .. string.format( [[
     </ul>  

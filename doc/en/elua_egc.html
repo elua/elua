@@ -1,6 +1,6 @@
 $$HEADER$$
 <h3>Using the EGC patch with eLua</h3>
-<p>The EGC (Emergency Garbage Collector) patch is a patch written originally for Lua by Robert Jakabosky, who was kind enough to port it to <b>eLua</b>. You can find the author's detailed
+<p>The EGC (Emergency Garbage Collector) patch was originally written for Lua by Robert Jakabosky, who was kind enough to port it to <b>eLua</b>. You can find the author's detailed
 description of the patch <a href="http://lua-users.org/wiki/EmergencyGarbageCollector">here</a>. In short, what it does is that it lets you run a garbage collection cycle in Lua in a low memory
 situation, from inside Lua's memory allocation function (something that the current version of Lua can't do out of the box). By forcing a garbage collection cycle, Lua can reclaim memory that's
 not in use anymore, thus making more memory available for your program. The downside is reduced execution speed, as a direct result of running the gargabe collector when needed. For some
