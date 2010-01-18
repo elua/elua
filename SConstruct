@@ -228,7 +228,7 @@ elif boot not in ['standard', 'luarpc']:
 # Check romfs mode
 if romfsmode not in ['verbatim', 'compile', 'compress']:
   print "Unknown romfs mode: ", romfsmode
-  print "romfs mode can be either 'verbatin', 'compile' or 'compress'"
+  print "romfs mode can be either 'verbatim', 'compile' or 'compress'"
   sys.exit( -1 )
 
 # Build the compilation command now
