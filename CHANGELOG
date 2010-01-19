@@ -11,7 +11,7 @@
   * Added the STR9 platform specific pio module
   * Added support for the PUC-Rio eLua board, NXP LPC2468 MCU
   * Added basic CAN module
-  * Compiling eLua under Windows is now officialy supported
+  * Compiling eLua under Windows is now officially supported
   * New ROMFS build modes: compress and compile
   * More portuguese content translations
   * ADC module and doc enhancements
