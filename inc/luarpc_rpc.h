@@ -92,11 +92,14 @@ extern struct exception_context the_exception_context[ 1 ];
 
 /* Transport Connection Structure */
 
-/* FIXME: should be cleaner */
 typedef struct _Transport Transport;
 struct _Transport 
 {
+#ifdef ser_handler
   ser_handler fd;
+#else
+  int fd;
+#endif
   unsigned tmr_id;
   u8     loc_little: 1,               // Local is little endian?
          loc_armflt: 1,               // local float representation is arm float?
