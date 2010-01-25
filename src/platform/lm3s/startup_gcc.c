@@ -96,10 +96,17 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // PWM Generator 1
     IntDefaultHandler,                      // PWM Generator 2
     IntDefaultHandler,                      // Quadrature Encoder 0
+#ifdef BUILD_ADC
     ADCIntHandler,	                        // ADC Sequence 0
     ADCIntHandler,                          // ADC Sequence 1
     ADCIntHandler,                          // ADC Sequence 2
     ADCIntHandler,                          // ADC Sequence 3
+#else
+    IntDefaultHandler,	                    // ADC Sequence 0
+    IntDefaultHandler,                      // ADC Sequence 1
+    IntDefaultHandler,                      // ADC Sequence 2
+    IntDefaultHandler,                      // ADC Sequence 3
+#endif
     IntDefaultHandler,                      // Watchdog timer
     IntDefaultHandler,                      // Timer 0 subtimer A
     IntDefaultHandler,                      // Timer 0 subtimer B

@@ -18,8 +18,8 @@
 #define LRO_NUMKEY(k)   {LUA_TNUMBER, {.numkey = k}}
 #define LRO_NILKEY      {LUA_TNIL, {.strkey=NULL}}
 
-/* Maximum length of a rotable name */
-#define LUA_MAX_ROTABLE_NAME      16
+/* Maximum length of a rotable name and of a string key*/
+#define LUA_MAX_ROTABLE_NAME      32
 
 /* Type of a numeric key in a rotable */
 typedef int luaR_numkey;

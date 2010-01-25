@@ -9,14 +9,15 @@ local sf = string.format
 -- Data structure declarations
 
 -- List here all the sections for which we're generating the documentation
-local doc_sections = { "arch_platform", "refman_gen", "refman_ps_lm3s" }
+local doc_sections = { "arch_platform", "refman_gen", "refman_ps_lm3s", "refman_ps_str9" }
 
 -- List here all the components of each section
 local components = 
 { 
   arch_platform = { "ll", "pio", "spi", "uart", "timers", "pwm", "cpu", "eth", "adc" },
-  refman_gen = { "bit", "pd", "cpu", "pack", "adc", "term", "pio", "uart", "spi", "tmr", "pwm", "net", "can", "rpc" },
-  refman_ps_lm3s = { "disp" }
+  refman_gen = { "bit", "pd", "cpu", "pack", "adc", "term", "pio", "uart", "spi", "tmr", "pwm", "net", "can", "rpc", "elua" },
+  refman_ps_lm3s = { "disp" },
+  refman_ps_str9 = { "pio" }
 }
 
 -------------------------------------------------------------------------------
@@ -313,6 +314,10 @@ end
 
 function gen_html_doc()
   local menu, genfiles = {}, {}
+
+  for k, v in pairs( components ) do
+    table.sort( v )
+  end
 
   for _, section in pairs( doc_sections ) do 
     -- Generate documentation for each module in turn

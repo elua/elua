@@ -11,7 +11,6 @@
 #include <stdlib.h>
 #include "platform.h"
 #include "elua_net.h"
-#include "romfs.h"
 
 #include "platform_conf.h"
 #ifdef BUILD_SHELL
@@ -24,6 +23,16 @@
   #define SHELL_EOF_STRING        "CTRL+Z"
 #else
   #define SHELL_EOF_STRING        "CTRL+D"
+#endif
+
+#if defined(BUILD_ROMFS)
+  #include "romfs.h"
+#endif
+#if defined(BUILD_MMCFS)
+  #include "mmcfs.h"
+  #include "ff.h"
+  static DIR mmc_dir;
+  static FILINFO mmc_fileInfo;
 #endif
 
 // Shell command handler function
@@ -62,7 +71,7 @@ static void shell_lua( char* args )
   int nargs = 0;
   char* lua_argv[ SHELL_MAX_LUA_ARGS + 2 ];
   char *p, *prev, *temp;
-  
+
   lua_argv[ 0 ] = "lua";
   // Process "args" if needed
   if( *args )
@@ -98,7 +107,7 @@ static void shell_lua( char* args )
   }
   lua_argv[ nargs + 1 ] = NULL;
   printf( "Press " SHELL_EOF_STRING " to exit Lua\n" );
-  lua_main( nargs + 1, lua_argv );  
+  lua_main( nargs + 1, lua_argv );
   clearerr( stdin );
 }
 
@@ -106,15 +115,15 @@ static void shell_lua( char* args )
 static void shell_recv( char* args )
 {
   args = args;
-  
-#ifndef BUILD_XMODEM  
+
+#ifndef BUILD_XMODEM
   printf( "XMODEM support not compiled, unable to recv\n" );
   return;
 #else // #ifndef BUILD_XMODEM
 
   char *p;
   long actsize;
-  lua_State* L;   
+  lua_State* L;
 
   if( ( shell_prog = malloc( XMODEM_INITIAL_BUFFER_SIZE ) ) == NULL )
   {
@@ -127,7 +136,7 @@ static void shell_recv( char* args )
     free( shell_prog );
     shell_prog = NULL;
     if( actsize == XMODEM_ERROR_OUTOFMEM )
-      printf( "file too big\n" ); 
+      printf( "file too big\n" );
     else
       printf( "XMODEM error\n" );
     return;
@@ -137,6 +146,7 @@ static void shell_recv( char* args )
   while( *p == '\x1A' )
     p --;
   p ++;
+  
   printf( "done, got %u bytes\n", ( unsigned )( p - shell_prog ) );          
   
   // Execute
@@ -156,7 +166,7 @@ static void shell_recv( char* args )
   lua_close( L );
   free( shell_prog );
   shell_prog = NULL;
-#endif // #ifndef BUILD_XMODEM  
+#endif // #ifndef BUILD_XMODEM
 }
 
 // 'ver' handler
@@ -178,15 +188,39 @@ static void shell_ls( char* args )
   
   args = args;
   printf( "\n/rom" );
-  while ( ( offset = romfs_get_dir_entry( offset, fname, &size ) ) ) 
+  while ( ( offset = romfs_get_dir_entry( offset, fname, &size ) ) )
   {
     printf( "\n%s", fname );
     for( i = strlen( fname ); i <= MAX_FNAME_LENGTH; i++ )
       printf( " " );
     printf( "%u bytes", ( unsigned )size );
     total = total + size;
-  }   
+  }
   printf( "\n\nTotal = %u bytes\n\n", ( unsigned )total );
+
+#if defined(BUILD_MMCFS)
+  total = 0;
+  printf( "\n/mmc" );
+  if (f_opendir(&mmc_dir, "/") != FR_OK)
+  {
+    printf( "\n\nTotal = %u bytes\n\n", ( unsigned )total );
+    return;
+  }
+
+  while (f_readdir(&mmc_dir, &mmc_fileInfo) == FR_OK)
+  {
+    if (!mmc_fileInfo.fname[0])
+      break;
+    strcpy(fname, mmc_fileInfo.fname);
+    size = mmc_fileInfo.fsize;
+    printf( "\n%s", fname );
+    for( i = strlen( fname ); i <= MAX_FNAME_LENGTH; i++ )
+      printf( " " );
+    printf( "%d bytes", size );
+    total = total + size;
+  }
+  printf( "\n\nTotal = %d bytes\n\n", ( unsigned )total );
+#endif
 }
 
 
@@ -223,7 +257,7 @@ static void shell_cat( char *args )
 
 
 // Insert shell commands here
-static const SHELL_COMMAND shell_commands[] = 
+static const SHELL_COMMAND shell_commands[] =
 {
   { "help", shell_help },
   { "lua", shell_lua },
@@ -245,16 +279,16 @@ void shell_start()
   const SHELL_COMMAND* pcmd;
   int i, inside_quotes;
   char quote_char;
-  
+
   while( 1 )
   {
     // Show prompt
     printf( SHELL_PROMPT );
-    
+
     // Read command
     while( fgets( cmd, SHELL_MAXSIZE, stdin ) == NULL )
       clearerr( stdin );
-          
+
     // Change '\r' and '\n' chars to ' ' to ease processing
     p = cmd;
     while( *p )
@@ -263,7 +297,7 @@ void shell_start()
         *p = ' ';
       p ++;
     }
-    
+
     // Transform ' ' characters inside a '' or "" quoted string in
     // a 'special' char. We do this to let the user execute something
     // like "lua -e 'quoted string'" without disturbing the quoted
@@ -292,7 +326,7 @@ void shell_start()
       printf( "Invalid quoted string\n" );
       continue;
     }
-    
+
     // Transform consecutive sequences of spaces into a single space
     p = strchr( cmd, ' ' );
     while( p )
@@ -304,11 +338,11 @@ void shell_start()
     }
     if( strlen( cmd ) == 1 )
       continue;
-        
-    // Look for the first ' ' to separate the command from its args    
+
+    // Look for the first ' ' to separate the command from its args
     temp = cmd;
     if( *temp == ' ' )
-      temp ++; 
+      temp ++;
     if( ( p = strchr( temp, ' ' ) ) == NULL )
     {
       printf( SHELL_ERRMSG );
@@ -343,7 +377,7 @@ void shell_start()
 #else
       break;
 #endif
-    
+
   }
   // Shell exit point
   if( shell_prog )

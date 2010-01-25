@@ -15,6 +15,7 @@
 #define BUILD_ROMFS
 #define BUILD_TERM
 #define BUILD_CON_GENERIC
+//#define BUILD_RPC
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
@@ -28,6 +29,12 @@
 // *****************************************************************************
 // Auxiliary libraries that will be compiled for this platform
 
+#ifdef BUILD_RPC
+#define RPCLINE _ROM( AUXLIB_RPC, luaopen_rpc, rpc_map )
+#else
+#define RPCLINE
+#endif
+
 #define LUA_PLATFORM_LIBS_ROM\
   _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
   _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
@@ -38,6 +45,7 @@
   _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
+  RPCLINE\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
 
 // *****************************************************************************
@@ -59,6 +67,11 @@
 #define NUM_PWM               4
 #define NUM_ADC               0
 #define NUM_CAN               0
+
+// RPC boot options
+#define RPC_UART_ID           CON_UART_ID
+#define RPC_TIMER_ID          CON_TIMER_ID
+#define RPC_UART_SPEED        CON_UART_SPEED
 
 // Enable RX buffering on UART
 #define BUF_ENABLE_UART

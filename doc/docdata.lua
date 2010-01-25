@@ -29,7 +29,7 @@ local menu =
   -- "Overview"
   { { "Overview", "Apresentação" }, "overview.html", 
     {
-      { { "About", "O que é eLua ?" }, "overview.html#whatis" },
+      { { "What is eLua?", "O que é eLua ?" }, "overview.html#whatis" },
       { { "Features", "Características" }, "overview.html#features" },
       { { "Audience", "Público Alvo" }, "overview.html#audience" },
       { { "Authors", "Autores" }, "overview.html#authors" },
@@ -61,21 +61,8 @@ local menu =
   },
 
  -- "Using eLua" -- Menu Separator
-  { { "Using eLua", "Usando eLua"}, nil },
+  { { "Using eLua", "Usando eLua"}, nil },      
 
---  { { "Overview", "Visão Geral" }, "doc.html" },  ####### Aparently not necessary and taking noble main menu space
-  { { "Platforms", "Plataformas" }, "installing.html", 
-    {
-      { "AT91SAM7x", "installing_at91sam7x.html" },
-      { "AVR32", "installing_avr32.html" },
-      { "i386", "installing_i386.html" },
-      { "LM3S", "installing_lm3s.html" },
-      { "LPC2888", "installing_lpc2888.html" },
-      { "STR7", "installing_str7.html" },
-      { "STR9", "installing_str9.html" },
-      { "STM32", "installing_stm32.html" },
-    },
-  },
   { "Downloads", "downloads.html",    -- ### How come it opens downloads.html without specifying here ? :) Nice but unclear.
     {
       { { "Binaries", "Binários" }, "downloads.html#binaries" },
@@ -88,6 +75,7 @@ local menu =
       },
       { { "Old versions", "Versões Anteriores" }, "dl_old.html", 
         {
+          { "0.6", "dl_old.html#v060" },
           { "0.5", "dl_old.html#v050" },
           { "0.4.1", "dl_old.html#v041" },
           { "0.4", "dl_old.html#v04" },
@@ -99,20 +87,33 @@ local menu =
       },
     },
   },
-  { { "Help", "Ajuda" }, "using.html", 
+  { { "Generic info", "Doc Genérica" }, "using.html", 
     {
-      { { "Building eLua", "Build de eLua" }, "building.html" },
-      { { "Using", "Usando eLua" }, "using.html", 
+      { { "Using eLua", "Usando eLua" }, "using.html", 
         {
           { { "Over UART", "Console via UART" }, "using.html#uart" },
           { { "Over TCP/IP", "Console via TCP/IP" }, "using.html#tcpip" },
           { { "On PC", "Num PC" }, "using.html#pc" },
           { { "The shell", "O Shell" }, "using.html#shell" },
           { "Cross-compiling", "using.html#cross" },
+          { "LuaRPC", "using.html#rpc" },
+          { "eLua and EGC", "elua_egc.html" },
         },
       },
+      { { "Building eLua", "Build de eLua" }, "building.html",
+        {
+          { "Building eLua in Linux", "building_unix.html" },
+          { "Building eLua in Windows", "building_win.html" },
+        },  
+      },
       { { "Code examples", "Exemplos de Código" }, "examples.html" },
-      { { "FAQ", "Perguntas Frequentes (FAQ)" }, "faq.html" },
+      { { "FAQ", "Perguntas Frequentes (FAQ)" }, "faq.html" },     
+      { "eLua file systems", "filesystems.html",
+        {
+          { { "ROM file system", "O ROM File System" }, "arch_romfs.html" },
+          { "FAT file system", "fatfs.html" }
+        }
+      },
       { { "Tutorials", "Tutoriais" }, "tutorials.html",
         {
           { { "Booting on a PC", "Bootando num PC" }, "tut_bootpc.html" },
@@ -129,7 +130,21 @@ local menu =
         },
       },
     },
-  },
+  }, 
+  { { "Platform info", "Doc Específica" }, "installing.html", 
+    {
+      { "AT91SAM7x", "installing_at91sam7x.html" },
+      { "AVR32", "installing_avr32.html" },
+      { "i386", "installing_i386.html" },
+      { "LM3S", "installing_lm3s.html" },
+      { "LPC2888", "installing_lpc2888.html" },
+      { "STR7", "installing_str7.html" },
+      { "STR9", "installing_str9.html" },
+      { "STM32", "installing_stm32.html" },
+      { "LPC2468", "installing_lpc2468.html" }
+    },
+  },        
+          
   
   -- "eLua internals" (menu separator)
   { { "eLua internals", "Arquitetura de eLua" } },
@@ -137,10 +152,10 @@ local menu =
   -- "Overview"
   { { "Overview", "Visão Geral" }, "arch_overview.html", 
     {
-      { { "Structure", "Estrutura" }, "arch_overview.html#structure" },
+      { { "eLua's Architecture", "Arquitetura de eLua" }, "arch_overview.html#structure" },
       { { "Common code", "Código Básico" }, "arch_overview.html#common" },
       { { "Interface architecture", "Interfaceamento" }, "arch_overview.html#platform" },
-      { { "Platforms/ports", "Portabilização" }, "arch_overview.html#platforms" },
+      { { "Platforms and ports", "Portabilização" }, "arch_overview.html#platforms" },
       { { "Booting eLua", "O Boot de eLua" }, "arch_overview.html#boot" }
     }
   },
@@ -151,11 +166,10 @@ local menu =
   -- Other WRITE THE arch_platform_other.html file
   { { "More information", "Informações Adicionais" }, "#", 
     {
-      { { "ROM file system", "O ROM File System" }, "arch_romfs.html" },
       { { "Adding a new port", "Portando eLua" }, "arch_newport.html" },
-      { { "Modules and LTR", "Modulos e LTR" }, "arch_ltr.html" },
       { { "Consoles and terminals", "Consoles e Terminais" }, "arch_con_term.html" },
       { { "TCP/IP in eLua", "TCP/IP em eLua" }, "arch_tcpip.html" },
+      { { "LTR (Lua Tiny RAM) in eLua", "LTR (Lua Tiny RAM) em eLua" }, "arch_ltr.html" },
       { { "eLua coding style", "Regras de Codificação" }, "arch_coding.html" }
     }
   },
@@ -166,10 +180,11 @@ local menu =
   -- "Generic modules" (automatically generated)
   { { "Generic modules", "Módulos Genéricos" }, "refman_gen.html", "refman_gen" },
 
-  -- "Platform modules"
+  -- "Platform modules" (automatically generated)
   { { "Platform modules", "Módulos Específicos" }, "refman_dep.html", 
     {
-      { "lm3s", "modules_lm3s.html", "refman_ps_lm3s" }
+      { "lm3s", "modules_lm3s.html", "refman_ps_lm3s" },
+      { "str9", "modules_str9.html", "refman_ps_str9" }
     }
   }
 }

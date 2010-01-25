@@ -14,6 +14,7 @@
 #include "elua_adc.h"
 #include "uip-conf.h"
 #include "platform_conf.h"
+#include "diskio.h"
 #include "common.h"
 #include "buf.h"
 #include "utils.h"
@@ -70,9 +71,11 @@ int platform_init()
   
   // Setup PWMs
   pwms_init();
-  
+
+#ifdef BUILD_ADC
   // Setup ADCs
   adcs_init();
+#endif
   
   // Setup CANs
   cans_init();
@@ -697,8 +700,11 @@ void SysTick_Handler( void )
 {
   // Handle virtual timers
   cmn_virtual_timer_cb();
-}
 
+#ifdef BUILD_MMCFS
+  disk_timerproc();
+#endif
+}
 
 static void timers_init()
 {
@@ -710,7 +716,6 @@ static void timers_init()
   RCC_APB1PeriphClockCmd( RCC_APB1Periph_TIM3, ENABLE );
   RCC_APB1PeriphClockCmd( RCC_APB1Periph_TIM4, ENABLE );
   RCC_APB1PeriphClockCmd( RCC_APB1Periph_TIM5, ENABLE );
-
 
   // Configure timers
   for( i = 0; i < NUM_TIMER; i ++ )
@@ -938,6 +943,8 @@ u32 platform_s_cpu_get_frequency()
 
 // *****************************************************************************
 // ADC specific functions and variables
+
+#ifdef BUILD_ADC
 
 #define ADC1_DR_Address ((u32)ADC1_BASE + 0x4C)
 
@@ -1191,3 +1198,5 @@ int platform_adc_start_sequence( )
 
   return PLATFORM_OK;
 }
+
+#endif // ifdef BUILD_ADC

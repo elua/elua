@@ -15,13 +15,14 @@
 #define BUILD_XMODEM
 #define BUILD_SHELL
 #define BUILD_ROMFS
+#define BUILD_MMCFS
 #define BUILD_TERM
 #define BUILD_UIP
 //#define BUILD_DHCPC
 #define BUILD_DNS
 #define BUILD_CON_GENERIC
 #define BUILD_ADC
-#define BUILD_LUARPC
+#define BUILD_RPC
 //#define BUILD_CON_TCP
 
 // *****************************************************************************
@@ -54,6 +55,18 @@
 #define NETLINE
 #endif
 
+#ifdef BUILD_ADC
+#define ADCLINE _ROM( AUXLIB_ADC, luaopen_adc, adc_map )
+#else
+#define ADCLINE
+#endif
+
+#ifdef BUILD_RPC
+#define RPCLINE _ROM( AUXLIB_RPC, luaopen_rpc, rpc_map )
+#else
+#define RPCLINE
+#endif
+
 #ifdef PS_LIB_TABLE_NAME
 #define PLATLINE _ROM( PS_LIB_TABLE_NAME, luaopen_platform, platform_map )
 #else
@@ -73,8 +86,8 @@
   _ROM( AUXLIB_BITARRAY, luaopen_bitarray, bitarray_map )\
   NETLINE\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
-  _ROM( AUXLIB_ADC, luaopen_adc, adc_map )\
-  _ROM( AUXLIB_LUARPC, luaopen_luarpc, rpc_map )\
+  ADCLINE\
+  RPCLINE\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
   PLATLINE
 
@@ -145,9 +158,40 @@
 #define ADC_TIMER_FIRST_ID    0
 #define ADC_NUM_TIMERS        NUM_TIMER  
 
-// RPC  
+// RPC boot options
 #define RPC_UART_ID           CON_UART_ID
 #define RPC_TIMER_ID          CON_TIMER_ID
+#define RPC_UART_SPEED        CON_UART_SPEED
+
+// SD/MMC Filesystem Setup
+#define MMCFS_TICK_HZ     4
+#define MMCFS_TICK_MS     ( 1000 / MMCFS_TICK_HZ )
+
+#ifdef ELUA_BOARD_EKLM3S6965
+  // EK-LM3S6965
+  #define MMCFS_CS_PORT                3
+  #define MMCFS_CS_PIN                 0
+  #define MMCFS_SPI_NUM                0
+#endif
+
+#ifdef ELUA_BOARD_EKLM3S8962
+  // EK-LM3S8962
+  #define MMCFS_CS_PORT                6
+  #define MMCFS_CS_PIN                 0
+  #define MMCFS_SPI_NUM                0
+#endif
+
+#ifdef ELUA_BOARD_EAGLE100
+  // Eagle-100
+  #define MMCFS_CS_PORT                6
+  #define MMCFS_CS_PIN                 1
+  #define MMCFS_SPI_NUM                0
+#endif
+
+#ifndef SDC_SPI_NUM
+#undef BUILD_MMCFS
+#endif
+
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 #define CPU_FREQUENCY         SysCtlClockGet()
@@ -156,7 +200,7 @@
 #define PIO_PREFIX            'A'
 // Pins per port configuration:
 // #define PIO_PINS_PER_PORT (n) if each port has the same number of pins, or
-// #define PIO_PIN_ARRAY { n1, n2, ... } to define pins per port in an array 
+// #define PIO_PIN_ARRAY { n1, n2, ... } to define pins per port in an array
 // Use #define PIO_PINS_PER_PORT 0 if this isn't needed
 #ifdef FORLM3S9B92
   #define PIO_PIN_ARRAY         { 8, 8, 8, 8, 8, 6, 8, 8, 8 }
@@ -230,5 +274,5 @@
   _C( INT_PWM3 ),\
   _C( INT_UDMA ),\
   _C( INT_UDMAERR )
-  
+
 #endif // #ifndef __PLATFORM_CONF_H__

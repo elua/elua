@@ -24,7 +24,7 @@ extern int luaopen_platform( lua_State *L );
 #ifdef LUA_RPC
 #include "auxmods.h"
 #define LUA_PLATFORM_LIBS_ROM \
-  _ROM( AUXLIB_LUARPC, luaopen_luarpc, rpc_map )
+  _ROM( AUXLIB_RPC, luaopen_rpc, rpc_map )
 #endif
 
 static const luaL_Reg lualibs[] = {

@@ -1,5 +1,5 @@
 $$HEADER$$
-<a name="whatis" /><h3>O que é eLua ?</h3>
+<a name="whatis" /><h3>O que é eLua?</h3>
 <p><strong>eLua</strong>
 significa <strong>Embedded Lua</strong> e o projeto projeto visa trazer a
 funcionalidade completa da linguagem de programação <a href="http://www.lua.org">Lua</a> para o mundo
@@ -9,8 +9,7 @@ simples, para que não só desenvolvedores experientes mas também iniciantes no
 mesmo usuários finais dos sistemas, possam desenvolver e alterar os
 programas dos seus produtos.</p>
 
-<p><strong>eLua</strong> não é uma versão reduzida de Lua, muito pelo contrário, ela
-oferece os recursos completos da versão desktop de Lua, complementando-a
+<p><strong>eLua</strong> não é uma versão reduzida de Lua, muito pelo contrário, oferece os recursos completos da versão desktop de Lua, complementando-a
 ainda com características específicas para o uso embedded. 
 Oferece também a mesma possibilidade de escolha no uso de implementações diferentes
 de Lua (ex: Lua Inteiro x Lua Ponto-Flutuante). Muito trabalho foi e ainda será feito no sentido de tornar Lua mais "amigável" no mundo embedded, 
@@ -32,39 +31,57 @@ mostram uma lista sempre crescente de plataformas com suporte à <b>eLua</b>).
 <b>eLua</b> herdou o design minimalista e funcional de Lua, mantendo a filosofia bem conhecida do "<b>KISS</b>" - "<i>Keep It Small and Simple</i>", que significa "Mantenha seu código
 e sua arquitetura simples e sua complexidade reduzida".</p>
 
-<a name="features"></a><h3>Recursos</h3>
-<p><b>eLua</b> permite que você execute Lua diretamente no seu microcontrolador. 
-Um grande conjunto de módulos complementares já existe para a programação de periféricos <strong>eLua</strong>
-e o desenvolvimento de novos tem um crescimento cada vez mais rápido.</p>
-<p>Relacionamos a seguir algumas funções que estão prontas ou sendo implementadas:</p>
+<a name="features"></a><h3>Funcionalidades</h3>
+<p>
+<b>eLua</b> permite que você execute Lua diretamente no seu microcontrolador.
+Um grande conjunto de módulos já existe para a programação de periféricos de
+um grande número de plataformas e o desenvolvimento de novos tem um crescimento cada vez mais rápido.
+</p>
+<p>
+Relacionamos a seguir algumas funções que estão prontas ou sendo implementadas:
+</p>
 <ul>
-  <li>um sistema de configuração do build flexível e um serviço de build
-  remoto via web</li>
+  <li>um serviço online, sempre gratuito, de configuração e build de imagens
+  binárias de <b>eLua</b> para todas as plataformas suportadas.</li>
   <li>acesso ao interpretador Lua diretamente na sua MCU, através de uma variedade de
-  protocolos de transportes físicos (RS-232, ethernet, ...)</li>
-  <li>uma biblioteca de periféricos independentes de plataforma (PIO, UART, PWM, SPI, TMR, ADC, NET,
-  I2C, CAN ...)</li>
-  <li>um File System (por enquanto apenas em ROM), fácil de ser portado para diferentes tipos de chips de memória e outros dispositivos de armazenamento</li>
-  <li>um pequeno Fyle System FAT R/W, para cartões MMC e SD</li>
-  <li>um shell próprio mínimo (para operações com arquivos, configuração do ambiente e outros recursos)</li>
+  protocolos de transportes (RS-232, Ethernet, ...)</li>
+  <li>uma biblioteca genérica, para acesso portátil à periféricos (PIO, UART, PWM, SPI, TMR, ADC, NET,
+  I2C, CAN ...) de todas
+  as plataformas suportadas por <b>eLua</b>. Portabilidade de código fonte no mundo
+  embedded !!! </li>
+  <li>um File System para memórias internas das MCUs (por enquanto apenas
+  para ROM), fácil de ser portado para diferentes chips e outros dispositivos de armazenamento</li>
+  <li>um File System FAT, read/write, para cartões de memória SD e MMC</li>
+  <li>um Command Shell próprio, para operações com arquivos, configuração do ambiente e outros recursos</li>
   <li>suporte a redes TCP/IP</li>
-  <li>um servidor http embedded escrito em Lua</li>
-  <li>terminal/console via serial ou Ethernet</li>
-  <li>depuração (diretamente no MCU ou remotamente com o PC)</li>
-  <li>execução distribuida de código (LuaRPC)</li>
+  <li>um servidor web embedded, 100% escrito em Lua e integrado ao código na MCU</li>
+  <li>suporte à desenvolvimento via terminal/console (VT-100 e similares) via serial ou Ethernet</li>
+  <li>ferramentas de depuração, diretamente na MCU ou remotamente com o PC (em desenvolvimento)</li>
+  <li>execução distribuida de código (LuaRPC) em MCUs interconectadas através de
+  diversos periféricos (UART, TCP/IP, SPI, ZigBee, ...). Remote Procedure
+  Calls no mundo embedded (!!! :)</li>
+  <li>compartilhamento de arquivos entre os File Systems nas MCUs e PCs
+  remotos. File Sharing no mundo embedded (!!! :)</li>
+  <li>suporte à desenvolvimento em ambientes Linux, MacOS e Windows</li>
+  <li>documentação online e integrada à distribuição, para acesso offline</li>
 </ul>
 
-<p>Para obter mais informações sobre as funcionalidades (implementadas e previstas) em <strong>eLua</strong> veja a <a href="status.html">página de status</a>.</p>
-<p>O projeto foi concebido de forma que migrar <strong>eLua</strong> para uma outra plataforma
-ou mesmo arquitetura, seja algo fácil de ser realizado. 
-Atualmente, esta migração está restrita às plataformas para as quais gcc + newlib
-ou toolchains completos (ex:CodeSourcery) estejam disponíveis. 
-Esta restrição irá desaparecer em um futuro próximo, já que <b>eLua</b> terá sua própria libc e portanto 
-estará disponível em um leque mais amplo de MCUs.</p>
-<p>Assim como para os ambientes Desktop, Lua em <strong>eLua</strong> está disponível em duas implementações: "Lua padrão" (usando ponto flutuante) e "Lua inteiro" (usando inteiro). 
-"Lua padrão" realiza operações de ponto flutuante (mais lentas devido a emulação via software no MCU), 
-enquanto "Lua inteiro" realiza operações com números inteiros 
-(suporte para ponto fixo e ponto flutuante podem ser adicionados em módulos separados) e assim será mais rápido.</p>
+<p>
+Para obter mais informações sobre as funcionalidades (implementadas e previstas) em <strong>eLua</strong> veja a <a href="status.html">página de status</a>.
+</p>
+<p>
+O projeto foi concebido de forma que portar <strong>eLua</strong> para uma outra plataforma
+ou mesmo arquitetura, seja algo fácil de ser realizado. Atualmente, esta migração está restrita às plataformas para as quais gcc + newlib
+ou toolchains completos (ex: CodeSourcery) estejam disponíveis. Esta restrição irá desaparecer em um futuro próximo, já que <b>eLua</b> terá sua própria libc e portanto 
+estará disponível em um leque mais amplo de MCUs.
+</p>
+<p>
+Assim como para os ambientes desktop, Lua em <strong>eLua</strong> está disponível em duas implementações: "Lua padrão" (usando ponto flutuante) e "Lua inteiro" (usando
+números inteiros). 
+"Lua padrão", realiza operações de ponto flutuante (mais lentas devido a emulação via software no MCU), 
+enquanto "Lua inteiro" realiza operações com números inteiros. Suporte para ponto fixo e ponto flutuante podem ser adicionados em módulos
+separados, otimizando ainda mais a execução se necessário.
+</p>
 
 <a name="audience"></a><h3>Público Alvo</h3>
 <p><span style="font-weight: bold;">eLua</span> tem uma audiência ampla e
@@ -74,9 +91,10 @@ qualificados, que precisam expandir seus programas com recursos de
 bibliotecas de alto nível com muita portabilidade.</p>
 <p><span style="font-weight: bold;">eLua</span> permite que programadores
 com pouca experiência no mundo embedded utilizem a simplicidade 
-e o poder da linguagem de programação Lua, sem precisarem se preocupar com as complexidades e 
+e o poder da linguagem de programação Lua, sem precisarem se preocupar com as complexidades
 da arquitetura do hardware em uso. 
-Utilizando <b>eLua</b>, o programador pode concentrar-se na implementação do seu programa, 
+Utilizando <b>eLua</b>, o programador pode concentrar-se na implementação da
+sua aplicação, 
 sem ter que se preocupar com detalhes de acessos à registros, configuração de periféricos e mesmo gerenciamento de memória.
 Com isso, aumentamos a produtividade e eliminamos tarefas muitas vezes frustrantes de lidar com drivers
 complexos de plataformas específicas. <stront>eLua</strong> absorve a
@@ -128,12 +146,57 @@ href="en_comunity.html#credits">página de créditos</a></p>
 <br />
 <br />
 <a name="license" /><h3>Licença</h3>
-<p><strong>eLua</strong> é Open Source e é distribuída gratuitamente sob a licença MIT.</p>
-<p>A licença MIT, diferentemente de outras licenças de código aberto (ex:
-GPL), permite que produtos de código proprietário sejam desenvolvidos
-utilizando <b>eLua</b>.</p>
+<p><strong>eLua</strong> é um projeto Livre e de Código Aberto, distribuído gratuitamente sob a licença MIT.</p>
+<p>A <a href="http://en.wikipedia.org/wiki/MIT_License">licença MIT</a>, diferentemente de outras licenças de código aberto (ex:
+GPL), permite que produtos de código proprietário sejam desenvolvidos utilizando <b>eLua</b>.
+</p>
 <p>O código Lua (com todas as mudanças específicas de <strong>eLua</strong>) está incluído na árvore de origem e
-é, naturalmente, licenciado sob a mesma <a href="http://en.wikipedia.org/wiki/MIT_License">licença MIT de Lua.</a></p>
+é, naturalmente, licenciado sob a mesma <a href="http://www.lua.org/license.html">licença MIT de Lua.</a></p>
 <p>Há ainda outros (poucos) componentes com diferentes licenças hoje, em uso no código de <strong>eLua</strong>. 
-Consulte o arquivo <strong>COPYING</strong> na distribuição fonte para maiores detalhes.</p>
+Consulte o arquivo <strong>LICENSE</strong> na distribuição fonte para maiores detalhes.</p>
+<p>
+O código de transporte XMODEM foi adaptado da biblioteca FreeBSD at91, de M. Warner Losh e é distribuído sob a licença BSD.
+</p>
+<p>
+O módulo "pack" foi adaptado do módulo "lpack", de Luiz Henrique de
+Figueiredo e foi posto em domínio público.
+</p>
+<p>
+O módulo "bit" foi adaptado da biblioteca "bitlib", de Reuben Thomas,
+distribuída sob a licença MIT.
+</p>
+<p>
+A versão "integer only Lua" é baseada no patch "Go Long Lua!", de John D.
+Ramsdell (do site Lua Power Patches), posto em domínio público.
+</p>
+<p>
+O alocador múltiplo de memória "dlmalloc" foi escrito por Doug Lea e foi
+posto em domínio público.
+</p>
+<p>
+O stack TCP/IP usado atualmente é o uIP (Micro IP), escrito por Adam
+Dunkels e distribuído sob a licença BSD. A versão usada em <b>eLua</b>
+sofreu pequenas adaptações para se adequar à arquitetura embarcada.
+</p>
+<p>
+O sistema de arquivos FAT usado é uma adaptação do "FatFs", escrito por <a
+href="http://elm-chan.org">Elm Chan</a> e uma cópia da licença do FatFs
+pode ser encontrada na nossa distribuição, no arquivo LICENSE.fatfs.
+</p>
+<p>
+A implementação de RPC (Remote Procedure Calls) de <b>eLua</b> é baseada na
+<a href="http://q12.org/lua/index.html">biblioteca LuaRPC</a>, de Russell
+Smith e uma cópia da licença de LuaRPC pode ser encontrada na nossa
+distribuição, no arquivo LICENCE.luarpc.
+</p>
+<p>
+Bibliotecas de suporte às MCUs são disponibilizadas por fabricantes das
+diversas plataformas suportadas, sob diversas licenças e termos. Detalhes
+podem ser encontrados na árvore do código fonte nas pastas
+src/platform/<nome-da-plataforma>.
+</p>
+<p>
+Todo o restante do código de <b>eLua</b> é distribuído sob a licença MIT.
+</p>
+
 $$FOOTER$$

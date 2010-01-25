@@ -45,14 +45,16 @@ LUALIB_API int ( luaopen_cpu )( lua_State* L );
 #define AUXLIB_ADC      "adc"
 LUALIB_API int ( luaopen_adc )( lua_State *L );
 
-#define AUXLIB_LUARPC   "rpc"
-LUALIB_API int ( luaopen_luarpc )( lua_State *L );
+#define AUXLIB_RPC   "rpc"
+LUALIB_API int ( luaopen_rpc )( lua_State *L );
 
 #define AUXLIB_BITARRAY "bitarray"
 LUALIB_API int ( luaopen_bitarray )( lua_State *L );
 
-// Helper macros
+#define AUXLIB_ELUA "elua"
+LUALIB_API int ( luaopen_elua )( lua_State *L );
 
+// Helper macros
 #define MOD_CHECK_ID( mod, id )\
   if( !platform_ ## mod ## _exists( id ) )\
     return luaL_error( L, #mod" %d does not exist", ( unsigned )id )

@@ -16,7 +16,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#ifdef __MINGW32__
+void *alloca(size_t);
+#else
 #include <alloca.h>
+#endif
 
 #include "lua.h"
 #include "lualib.h"
@@ -34,7 +38,7 @@
 #include "luarpc_rpc.h"
 
 
-#ifdef BUILD_LUARPC
+#ifdef BUILD_RPC
 
 // Support for Compiling with & without rotables 
 #ifdef LUA_OPTIMIZE_MEMORY
@@ -44,7 +48,7 @@
 #endif
 
 // Prototypes for Local Functions  
-LUALIB_API int luaopen_luarpc( lua_State *L );
+LUALIB_API int luaopen_rpc( lua_State *L );
 Handle *handle_create( lua_State *L );
 
 
@@ -90,7 +94,8 @@ enum {
   RPC_TABLE,
   RPC_TABLE_END,
   RPC_FUNCTION,
-  RPC_FUNCTION_END
+  RPC_FUNCTION_END,
+  RPC_REMOTE
 };
 
 // RPC Commands
@@ -397,6 +402,8 @@ static void write_function( Transport *tpt, lua_State *L, int var_index )
 }
 
 
+static void helper_remote_index( Helper *helper );
+
 // write a variable at the given index in the stack. the index must be absolute
 // (i.e. positive).
 
@@ -445,7 +452,12 @@ static void write_variable( Transport *tpt, lua_State *L, int var_index )
       break;
 
     case LUA_TUSERDATA:
-      luaL_error( L, "userdata transmission unsupported" );
+      if( lua_isuserdata( L, var_index ) && ismetatable_type( L, var_index, "rpc.helper" ) )
+      {
+        transport_write_u8( tpt, RPC_REMOTE );
+        helper_remote_index( ( Helper * )lua_touserdata( L, var_index ) );        
+      } else
+        luaL_error( L, "userdata transmission unsupported" );
       break;
 
     case LUA_TTHREAD:
@@ -490,6 +502,28 @@ static void read_function( Transport *tpt, lua_State *L )
     luaL_loadbuffer( L, b, len, b );
     lua_insert( L, -2 );
     lua_pop( L, 1 );
+  }
+}
+
+static void read_index( Transport *tpt, lua_State *L )
+{
+  u32 len;
+  char *funcname;
+  char *token = NULL;
+  
+  len = transport_read_u32( tpt ); // variable name length
+  funcname = ( char * )alloca( len + 1 );
+  transport_read_string( tpt, funcname, len );
+  funcname[ len ] = 0;
+  
+  token = strtok( funcname, "." );
+  lua_getglobal( L, token );
+  token = strtok( NULL, "." );
+  while( token != NULL )
+  {
+    lua_getfield( L, -1, token );
+    lua_remove( L, -2 );
+    token = strtok( NULL, "." );
   }
 }
 
@@ -539,6 +573,10 @@ static int read_variable( Transport *tpt, lua_State *L )
     
     case RPC_FUNCTION_END:
       return 0;
+
+    case RPC_REMOTE:
+      read_index( tpt, L );
+      break;
 
     default:
       e.errnum = type;
@@ -1158,6 +1196,7 @@ static void read_cmd_call( Transport *tpt, lua_State *L )
   while( token != NULL )
   {
     lua_getfield( L, -1, token );
+    lua_remove( L, -2 );
     token = strtok( NULL, "." );
   }
   stackpos = lua_gettop( L ) - 1;
@@ -1234,6 +1273,7 @@ static void read_cmd_get( Transport *tpt, lua_State *L )
   while( token != NULL )
   {
     lua_getfield( L, -1, token );
+    lua_remove( L, -2 );
     token = strtok( NULL, "." );
   }
 
@@ -1268,6 +1308,7 @@ static void read_cmd_newindex( Transport *tpt, lua_State *L )
     while( token != NULL )
     {
       lua_getfield( L, -1, token );
+      lua_remove( L, -2 );
       token = strtok( NULL, "." );
     }
     read_variable( tpt, L ); // key
@@ -1585,7 +1626,7 @@ const LUA_REG_TYPE rpc_map[] =
 };
 
 
-LUALIB_API int luaopen_luarpc(lua_State *L)
+LUALIB_API int luaopen_rpc(lua_State *L)
 {
 #if LUA_OPTIMIZE_MEMORY > 0
   luaL_rometatable(L, "rpc.helper", (void*)rpc_helper);
@@ -1643,7 +1684,7 @@ static const luaL_reg rpc_map[] =
 };
 
 
-LUALIB_API int luaopen_luarpc(lua_State *L)
+LUALIB_API int luaopen_rpc(lua_State *L)
 {
   luaL_register( L, "rpc", rpc_map );
   lua_pushstring(L, LUARPC_MODE);

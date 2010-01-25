@@ -1,3 +1,22 @@
+15.01.2010  Bogdan Marinescu <bogdanm@eluaproject.net>
+            Dado Sutter      <dado@eluaproject.net>
+            James Snyder     <jbsnyder@fanplastic.org>
+
+  * Official release 0.7
+  * Added Robert Jakabosky's EGC (Emergency Garbage Collector) patch to eLua
+  * Added generic and portable SD/MMC Card FAT File System support
+  * Added LuaRPC support (remote procedure calls in the embedded world)
+  * New eLua shell cat/type command, lists text file contents
+  * Added support for Olimex STR-E912 board
+  * Added the STR9 platform specific pio module
+  * Added support for the PUC-Rio eLua board, NXP LPC2468 MCU
+  * Added basic CAN module
+  * Compiling eLua under Windows is now officially supported
+  * New ROMFS build modes: compress and compile
+  * More portuguese content translations
+  * ADC module and doc enhancements
+
+
 06.10.2009  Bogdan Marinescu <bogdanm@eluaproject.net>
             Dado Sutter      <dado@eluaproject.net>
             James Snyder     <jbsnyder@fanplastic.org>

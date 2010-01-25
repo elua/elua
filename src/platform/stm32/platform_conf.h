@@ -14,13 +14,14 @@
 #define BUILD_XMODEM
 #define BUILD_SHELL
 #define BUILD_ROMFS
+#define BUILD_MMCFS
 #define BUILD_TERM
 //#define BUILD_UIP
 //#define BUILD_DHCPC
 //#define BUILD_DNS
 #define BUILD_CON_GENERIC
 #define BUILD_ADC
-#define BUILD_LUARPC
+#define BUILD_RPC
 //#define BUILD_CON_TCP
 
 // *****************************************************************************
@@ -35,12 +36,24 @@
 // *****************************************************************************
 // Auxiliary libraries that will be compiled for this platform
 
-#ifdef FORSTM3210E_EVAL
-#define AUXLIB_LCD      "stm3210lcd"
-LUALIB_API int ( luaopen_lcd )( lua_State* L );
-#define LCDLINE  _ROM( AUXLIB_LCD, luaopen_lcd, lcd_map )
-#else
+//#ifdef FORSTM3210E_EVAL
+//#define AUXLIB_LCD      "stm3210lcd"
+//LUALIB_API int ( luaopen_lcd )( lua_State* L );
+//#define LCDLINE  _ROM( AUXLIB_LCD, luaopen_lcd, lcd_map )
+//#else
 #define LCDLINE
+//#endif
+
+#ifdef BUILD_ADC
+#define ADCLINE _ROM( AUXLIB_ADC, luaopen_adc, adc_map )
+#else
+#define ADCLINE
+#endif
+
+#ifdef BUILD_RPC
+#define RPCLINE _ROM( AUXLIB_RPC, luaopen_rpc, rpc_map )
+#else
+#define RPCLINE
 #endif
 
 #define LUA_PLATFORM_LIBS_ROM\
@@ -53,11 +66,12 @@ LUALIB_API int ( luaopen_lcd )( lua_State* L );
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
   _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
-  _ROM( AUXLIB_ADC, luaopen_adc, adc_map )\
+  ADCLINE\
   _ROM( AUXLIB_CAN, luaopen_can, can_map )\
   _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map )\
-	_ROM( AUXLIB_LUARPC, luaopen_luarpc, rpc_map )\
+  RPCLINE\
   LCDLINE\
+  _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
 	
 // *****************************************************************************
@@ -113,9 +127,21 @@ LUALIB_API int ( luaopen_lcd )( lua_State* L );
 #define ADC_TIMER_FIRST_ID    0
 #define ADC_NUM_TIMERS        4
 
-// RPC  
+// RPC boot options
 #define RPC_UART_ID           CON_UART_ID
 #define RPC_TIMER_ID          CON_TIMER_ID
+#define RPC_UART_SPEED        CON_UART_SPEED
+
+
+
+
+// MMCFS Support (FatFs on SD/MMC)
+// For STM32F103RET6 - PA5 = CLK, PA6 = MISO, PA7 = MOSI, PA8 = CS
+#define MMCFS_TICK_HZ                10
+#define MMCFS_TICK_MS                ( 1000 / MMCFS_TICK_HZ )
+#define MMCFS_CS_PORT                0
+#define MMCFS_CS_PIN                 8
+#define MMCFS_SPI_NUM                0
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 u32 platform_s_cpu_get_frequency();

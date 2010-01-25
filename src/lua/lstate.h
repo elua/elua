@@ -87,6 +87,7 @@ typedef struct global_State {
   lu_mem gcdept;  /* how much GC is `behind schedule' */
   int gcpause;  /* size of pause between successive GCs */
   int gcstepmul;  /* GC `granularity' */
+  int egcmode;    /* emergency garbage collection operation mode */
   lua_CFunction panic;  /* to be called in unprotected errors */
   TValue l_registry;
   struct lua_State *mainthread;
