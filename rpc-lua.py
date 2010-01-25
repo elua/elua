@@ -20,7 +20,7 @@ else:
   linkcom += " -lreadline"
   cdefs += " -DLUA_USE_READLINE "
 
-local_include = "-Isrc/lua -Iinc -Isrc/modules -Iinc/serial"
+local_include = "-Isrc/lua -Iinc -Isrc/modules -Iinc/desktop"
 
 # Compiler/linker options
 cccom = "gcc -g %s -Wall %s -c $SOURCE -o $TARGET" % ( local_include, cdefs )

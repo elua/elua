@@ -29,7 +29,6 @@ void transport_init (Transport *tpt)
 void transport_open( Transport *tpt, const char *path )
 {
   struct exception e;
-  int ret;
   
   tpt->fd = ser_open( path );
 
@@ -40,7 +39,7 @@ void transport_open( Transport *tpt, const char *path )
     Throw( e );
   }
   
-  ret = ser_setup( tpt->fd, 115200, SER_DATABITS_8, SER_PARITY_NONE, SER_STOPBITS_1 );
+  ser_setup( tpt->fd, 115200, SER_DATABITS_8, SER_PARITY_NONE, SER_STOPBITS_1 );
   ser_set_timeout_ms( tpt->fd, 1000 );
 }
 
