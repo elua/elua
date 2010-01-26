@@ -1,11 +1,5 @@
 #include "cexcept.h"
 #include "type.h"
-
-#ifdef LUA_RPC
-#define LUARPC_ENABLE_SERIAL
-#define BUILD_RPC
-#endif
-
 #include "serial.h"
 
 /****************************************************************************/

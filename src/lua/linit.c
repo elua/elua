@@ -14,18 +14,9 @@
 #include "lauxlib.h"
 #include "lrotable.h"
 #include "luaconf.h"
-
-#ifndef LUA_CROSS_COMPILER
 #include "platform_conf.h"
-#endif
 
 extern int luaopen_platform( lua_State *L );
-
-#ifdef LUA_RPC
-#include "auxmods.h"
-#define LUA_PLATFORM_LIBS_ROM \
-  _ROM( AUXLIB_RPC, luaopen_rpc, rpc_map )
-#endif
 
 static const luaL_Reg lualibs[] = {
   {"", luaopen_base},

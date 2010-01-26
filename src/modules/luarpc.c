@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 #ifdef __MINGW32__
 void *alloca(size_t);
 #else
@@ -28,8 +29,9 @@ void *alloca(size_t);
 
 #ifndef LUA_CROSS_COMPILER
 #include "platform.h"
-#include "platform_conf.h"
 #endif
+
+#include "platform_conf.h"
 
 #ifdef LUA_OPTIMIZE_MEMORY
 #include "lrotable.h"

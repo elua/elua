@@ -8,7 +8,7 @@ lua_files = """lapi.c lcode.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c
    lparser.c lstate.c lstring.c ltable.c ltm.c lundump.c lvm.c lzio.c lauxlib.c lbaselib.c
    ldblib.c liolib.c lmathlib.c loslib.c ltablib.c lstrlib.c loadlib.c linit.c luac.c print.c lrotable.c"""
 lua_full_files = " " + " ".join( [ "src/lua/%s" % name for name in lua_files.split() ] )
-local_include = "-Isrc/lua"
+local_include = "-Isrc/lua -Iinc/desktop"
 
 # Compiler/linker options
 cccom = "gcc -O2 %s -Wall %s -c $SOURCE -o $TARGET" % ( local_include, cdefs )

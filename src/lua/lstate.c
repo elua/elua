@@ -22,9 +22,7 @@
 #include "lstring.h"
 #include "ltable.h"
 #include "ltm.h"
-#if !defined(LUA_CROSS_COMPILER)
 #include "platform_conf.h"
-#endif
 
 #define state_size(x)	(sizeof(x) + LUAI_EXTRASPACE)
 #define fromstate(l)	(cast(lu_byte *, (l)) - LUAI_EXTRASPACE)
