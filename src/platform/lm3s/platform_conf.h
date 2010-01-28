@@ -167,29 +167,24 @@
 #define MMCFS_TICK_HZ     4
 #define MMCFS_TICK_MS     ( 1000 / MMCFS_TICK_HZ )
 
-#ifdef ELUA_BOARD_EKLM3S6965
+#if defined( ELUA_BOARD_EKLM3S6965 )
   // EK-LM3S6965
   #define MMCFS_CS_PORT                3
   #define MMCFS_CS_PIN                 0
   #define MMCFS_SPI_NUM                0
-#endif
-
-#ifdef ELUA_BOARD_EKLM3S8962
+#elif defined( ELUA_BOARD_EKLM3S8962 )
   // EK-LM3S8962
   #define MMCFS_CS_PORT                6
   #define MMCFS_CS_PIN                 0
   #define MMCFS_SPI_NUM                0
-#endif
-
-#ifdef ELUA_BOARD_EAGLE100
+#elif defined( ELUA_BOARD_EAGLE100 )
   // Eagle-100
   #define MMCFS_CS_PORT                6
   #define MMCFS_CS_PIN                 1
   #define MMCFS_SPI_NUM                0
-#endif
-
-#ifndef SDC_SPI_NUM
-#undef BUILD_MMCFS
+#elif defined( BUILD_MMCFS ) && !defined( MMCFS_SPI_NUM )
+  #warning "MMCFS was enabled, but required SPI & CS data are undefined, disabling MMCFS"
+  #undef BUILD_MMCFS
 #endif
 
 
