@@ -365,7 +365,7 @@ comp = Environment( CCCOM = tools[ platform ][ 'cccom' ],
 # comp.SourceSignatures( 'MD5' )
 comp[ 'INCPREFIX' ] = "-I"
 Default( comp.Program( target = output, source = Split( source_files ) ) )
-Decider( 'MD5' )
+Decider( 'MD5-timestamp' )
 
 # Programming target
 prog = Environment( BUILDERS = { 'program' : Builder( action = Action ( tools[ platform ][ 'progfunc' ] ) ) }, ENV = os.environ )

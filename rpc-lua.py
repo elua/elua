@@ -29,5 +29,5 @@ comp = Environment( CPPPATH = local_include,
 # Debug
 comp.PrependUnique(CCFLAGS=['-g'])
 
-Decider( 'MD5' )                  
+Decider( 'MD5-timestamp' )                  
 Default( comp.Program( output, Split( lua_full_files ), LIBS=external_libs ) )
