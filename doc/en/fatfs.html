@@ -1,0 +1,53 @@
+$$HEADER$$
+<h3>The FAT file system</h3>
+<p>The FAT file system implementation in <b>eLua</b> uses Elm Chan's excellent FatFS package, available <a href="http://elm-chan.org/fsw/ff/00index_e.html">here</a>. It can handle FAT12, FAT16
+and FAT32 file systems in read/write mode, and it packs a lot of functionality in a low footprint.  Like the ROM filesystem it is integrated with the C library, so similar POSIX file manipulation will work in addition to accessing the filesystem via the Lua <b>io</b> module. <b>eLua</b> adds a platform abstraction layer on top of FatFS which makes it very easy to
+port the FAT file system implementation between different <b>eLua</b> targets.  Since most SD/MMC cards can be accessed using the very common SPI interface, and since <b>eLua</b> already provides
+a <a href="arch_platform_spi.html">SPI platform interface</a>, porting the FAT file system to an <b>eLua</b> board is a fairly simple process.</p>
+<p>To use the FAT file system on your <b>elua</b> board (that has the proper hardware to access SD/MMC cards), first make sure that there is a working implementation of the 
+<a href="arch_platform_spi.html">eLua SPI platform interface</a> on your platform (as currently <b>eLua</b> can access SD/MMC cards only via SPI). Then you need to enable the FAT file system module (MMCFS)
+in your <b>eLua</b> binary image, as described on the <a href="building.html">building page</a>.</p>
+<h2>Using the FAT file system</h2>
+<p>To use the FAT filesystem with an SD or MMC card, first ensure that the card has been properly formatted as a FAT filesystem (many come preformatted with this file system).</p>
+<p>Next, ensure that you have connected the SD or MMC card using the pin configuration described in the table below. For more more information, see Elm Chan's page on <a href="http://elm-chan.org/docs/mmc/mmc_e.html">SD/MMC with SPI</a>.</p>
+<table class="table_center"> 
+<tbody> 
+<tr> 
+<th>eLua PIN</th>
+<th>Static Config</th>
+<th>SD Card Pin</th> 
+<th>MMC Card Pin</th> 
+</tr> 
+<tr> 
+<td>CS</td>
+<td>MMCFS_CS_PORT,<br> MMCFS_CS_PIN</td> 
+<td>DAT3/CS</td> 
+<td>RES/CS</td> 
+</tr>
+<tr>
+  <td>SPI DO</td>
+  <td>MMCFS_SPI_NUM</td>
+  <td>CMD/DI</td>
+  <td>CMD/DI</td>
+</tr>
+<tr>
+  <td>SPI DI</td>
+  <td>MMCFS_SPI_NUM</td>
+  <td>DAT0/DO</td>
+  <td>DAT0/DO</td>
+</tr>
+<tr>
+  <td>SPI SCLK</td>
+  <td>MMCFS_SPI_NUM</td>
+  <td>CLK</td>
+  <td>CLK</td>
+</tr>
+</tbody>
+</table>
+<p>Once configured, connected, and <b>eLua</b> has started up, you are ready to work with the files on your card. To open a file on the SD/MMC card, all you need to do is to prefix its name with <i>/mmc/</i>, like this:</p> 
+<p><pre><code># lua /mmc/info.lua </code></pre></p>
+<p>Similarly, if you wanted to access a text file <b>a.txt</b> from your card, you could use fopen like this:</p>
+<p><pre><code>f = fopen( "/mmc/a.txt", "rb" )</code></pre></p>
+$$FOOTER$$
+
+

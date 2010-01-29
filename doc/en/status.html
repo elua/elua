@@ -1,0 +1,722 @@
+$$HEADER$$
+<a name="status" /><h3>eLua project status</h3>
+<p>
+The current status of <b>eLua</b> is given by the list of the
+currently supported platforms, together with a list of
+modules-per-platform and their development phase. For better
+formatting, the lists are organized as tables that use the graphical
+notation given below:
+</p>
+<table style="width: 620px;" class="table_center">
+<tbody>
+<tr>
+<th style="text-align: center;">Symbol</th>
+<th style="text-align: center;">Meaning</th>
+</tr>
+<tr>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: left;">Implemented and tested</td>
+</tr>
+<tr>
+<td style="text-align: center;"><img src="images/stat_not_tested.png" alt="Status: testing" /></td>
+<td style="text-align: left;">Implemented, needs more testing</td>
+</tr>
+<tr>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: left;">Not yet implemented</td>
+</tr>
+<tr>
+<td style="text-align: center;"><img src="images/stat_not_applicable.png" alt="Status: not applicable" /></td>
+<td style="text-align: left;">Not applicable</td>
+</tr>
+</tbody>
+</table>
+<p/>
+<a name="platforms" /><h3>eLua suported platforms</h3>
+<p>The list of CPUs and boards currently supported by <b>eLua</b> is given below:</p>
+<table style="text-align: left; width: 620px;" class="table_center">
+<tbody>
+<tr>
+  <th style="text-align: left;">CPU</th>
+  <th style="text-align: center;">Architecture</th>
+  <th style="text-align: center;">Platform name</th>
+  <th style="text-align: center;"> Supported boards </th>
+  <th style="text-align: center;">Status</th>
+</tr>
+<tr>
+  <td><a href="http://www.luminarymicro.com/products/LM3S8962.html">LM3S8962</a></td>
+  <td>Cortex-M3</td>
+  <td style="color: rgb(255, 102, 0);">LM3S</td>
+  <td><a href="http://www.luminarymicro.com/products/lm3s8962_can_ethernet_evaluation_kit.html">EK-LM3S8962</a></td>
+  <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+  <td><a href="http://www.luminarymicro.com/products/lm3s6965.html">LM3S6965</a></td>
+  <td>Cortex-M3</td>
+  <td style="color: rgb(255, 102, 0);">LM3S</td>
+  <td><a href="http://www.luminarymicro.com/products/lm3s6965_ethernet_evaluation_kit.html">EK-LM3S6965</a></td>
+  <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+  <td><a href="http://www.luminarymicro.com/products/lm3s6918.html">LM3S6918</a></td>
+  <td>Cortex-M3</td>
+  <td style="color: rgb(255, 102, 0);">LM3S</td>
+  <td><a href="http://www.micromint.com/index.php/SBC/eagle-100.html">Eagle 100</a></td>
+  <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+  <td><a href="http://www.luminarymicro.com/products/lm3s6918.html">LM3S9B92</a></td>
+  <td>Cortex-M3</td>
+  <td style="color: rgb(255, 102, 0);">LM3S</td>
+  <td><a href="http://www.luminarymicro.com/products/ek-lm3s9b92.html">EK-LM3S9B92</a></td>
+  <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+  <td><a href="http://www.atmel.com/dyn/products/product_card.asp?part_id=4117">AT32UC3A0512</a></td>
+  <td>AVR32</td>
+  <td style="color: rgb(255, 102, 0);">AVR32</td>
+  <td><a href="http://www.atmel.com/dyn/Products/tools_card.asp?tool_id=4114">ATEVK1100</a></td>
+  <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+  <td><a href="http://www.atmel.com/dyn/products/Product_card.asp?part_id=3755">AT91SAM7X256</a></td>
+  <td>ARM7TDMI</td>
+  <td style="color: rgb(255, 102, 0);">at91sam7x</td>
+  <td><a href="http://www.olimex.com/dev/sam7-ex256.html">SAM7-EX256</a></td>
+  <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+  <td><a href="http://www.atmel.com/dyn/products/Product_card.asp?part_id=4104">AT91SAM7X512</a></td>
+  <td>ARM7TDMI</td>
+  <td style="color: rgb(255, 102, 0);">at91sam7x</td>
+  <td>None</td>
+  <td style="text-align: center;"><img src="images/stat_not_tested.png" alt="Status: testing" /></td>
+</tr>
+<!--
+<tr>
+  <td><a href="http://www.nxp.com/#/pip/pip=[pip=LPC1768_66_65_64_2]|pp=[t=pip,i=LPC1768_66_65_64_2]">LPC1768</a></td>
+  <td>Cortex-M3</td>
+  <td style="color: rgb(255, 102, 0);">LPC17xx</td>
+  <td><a href="http://hackaday.com/2009/11/21/review-mbed-nxp-lpc1768-microcontroller/">mbed</a></td>  
+  <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+-->
+<tr>
+  <td><a
+  href="http://www.nxp.com/#/pip/pip=[pip=LPC2468_4]|pp=[t=pip,i=LPC2468_4]">LPC2468</a></td>
+  <td>ARM7TDMI</td>
+  <td style="color: rgb(255, 102, 0);">LPC24xx</td>
+  <td><a href="http://www.giga.puc-rio.br/site/embedded/eluademoboard">PUC-Rio Demo Board</a></td>  
+  <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+  <td><a href="http://www.standardics.nxp.com/microcontrollers/to/pip/LPC2880FET180.html">LPC2888</a></td>
+  <td>ARM7TDMI</td>
+  <td style="color: rgb(255, 102, 0);">LPC288x</td>
+  <td><a href="http://www.olimex.com/dev/lpc-h2888.html">LPC-H2888</a></td>  
+  <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+  <td><a href="http://www.st.com/mcu/devicedocs-STR711FR2.html">STR711FR2</a></td>
+  <td>ARM7TDMI</td>
+  <td style="color: rgb(255, 102, 0);">STR7</td>
+  <td><a href="http://www.sctec.com.br/content/view/101/30/">MOD711</a></td>
+  <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+  <td><a href="http://www.st.com/mcu/devicedocs-STR912FAW44-101.html">STR912FAW44</a></td>
+  <td>ARM966E-S</td>
+  <td style="color: rgb(255, 102, 0);">STR9</td>
+  <td><a href="http://www.hitex.com/index.php?id=383">STR9-comStick</a></td>
+  <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+  <td><a href="http://www.st.com/mcu/devicedocs-STR912FAW44-101.html">STR912FAW44</a></td>
+  <td>ARM966E-S</td>
+  <td style="color: rgb(255, 102, 0);">STR9</td>
+  <td><a href="http://www.olimex.com/dev/str-e912.html">STR-E912</a></td>
+  <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+  <td><a href="http://www.st.com/mcu/devicedocs-STM32F103ZE-110.html">STM32F103ZE</a></td>
+  <td>Cortex-M3</td>
+  <td style="color: rgb(255, 102, 0);">STM32</td>
+  <td><a href="http://www.st.com/mcu/contentid-100-110-STM3210E_EVAL.html">STM3210E-EVAL</a></td>
+  <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+  <td><a href="http://www.st.com/mcu/devicedocs-STM32F103RE-110.html">STM32F103RE</a></td>
+  <td>Cortex-M3</td>
+  <td style="color: rgb(255, 102, 0);">STM32</td>
+  <td><a href="http://www.futurlec.com/ET-STM32_Stamp.shtml">ET-STM32 Stamp</a></td>
+  <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+  <td><a href="http://www.intel.com">i386 (generic)</a></td>
+  <td>x86</td>
+  <td style="color: rgb(255, 102, 0);">i386</td>
+  <td>PCs/emulators</td>
+  <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+</tbody>
+</table>
+<p/>
+<a name="plat_modules" /><h3>eLua modules x MCUs</h3>
+<p>The relationship between a module and its implementation on a particular platform is given in the next table.</p>
+<table style="text-align: left; width: 620px;" class="table_center">
+<tbody>
+<tr>
+<th>Module</th>
+<th rowspan="2">pio</th>
+<th rowspan="2">spi</th>
+<th rowspan="2">uart</th>
+<th rowspan="2">tmr</th>
+<th rowspan="2">pwm</th>
+<th rowspan="2">net</th>
+<th rowspan="2">cpu</th>
+<th rowspan="2">adc</th>
+<th rowspan="2">pd</th>
+<th rowspan="2">term</th>
+<th rowspan="2">bit</th>
+<th rowspan="2">pack</th>
+<th rowspan="2">can</th>
+<!-- rowspan="2">i2c</th><-->
+<th rowspan="2">rpc</th>
+<th rowspan="2">mmc</th>
+</tr>
+<tr><td style="color: rgb(255, 102, 0);">MCU</td>
+</tr><tr>
+<td style="color: rgb(255, 102, 0);">LM3S8962</td>
+<td style="text-align: center;"><img style="width: 16px; height: 16px;" src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img style="width: 16px; height: 16px;" src="images/stat_not_tested.png" alt="Status: testing" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<!--><td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented"/></td><-->
+<td style="text-align: center;"><img src="images/stat_not_tested.png" alt="Status: testing" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">LM3S6965</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_tested.png" alt="Status: not tested" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_tested.png" alt="Status: not tested" /></td>
+<td style="text-align: center;"><img src="images/stat_not_tested.png" alt="Status: not tested" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_applicable.png" alt="Status: not applicable" /></td>
+<!--><td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td><-->
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">LM3S6918</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_tested.png" alt="Status: not tested" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_applicable.png" alt="Status: not applicable" /></td>
+<td style="text-align: center;"><img src="images/stat_not_tested.png" alt="Status: not tested" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_tested.png" alt="Status: not tested" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_applicable.png" alt="Status: not applicable" /></td>
+<!--><td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td><-->
+<td style="text-align: center;"><img src="images/stat_not_tested.png" alt="Status: not tested" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">LM3S9B92</td>
+<td style="text-align: center;"><img style="width: 16px; height: 16px;" src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img style="width: 16px; height: 16px;" src="images/stat_not_tested.png" alt="Status: testing" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_tested.png" alt="Status: testing" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<!--><td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td><-->
+<td style="text-align: center;"><img src="images/stat_not_tested.png" alt="Status: testing" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">AT32UC3A0512</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /> </td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" />  </td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /> </td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_applicable.png" alt="Status: not applicable" /></td>
+<!--><td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td><-->
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">AT91SAM7X256</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<!--><td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td><-->
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">AT91SAM7X512</td>
+<td style="text-align: center;"><img src="images/stat_not_tested.png" alt="Status: not tested" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_not_tested.png" alt="Status: not tested" /></td>
+<td style="text-align: center;"><img src="images/stat_not_tested.png" alt="Status: not tested" /></td>
+<td style="text-align: center;"><img src="images/stat_not_tested.png" alt="Status: not tested" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;" ><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<!--><td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td><-->
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+</tr>
+<!--
+<tr>
+<td style="color: rgb(255, 102, 0);">LPC1768</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;" ><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+</tr>
+-->
+<tr>
+<td style="color: rgb(255, 102, 0);">LPC2468</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;" ><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<!--><td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td><-->
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">LPC2888</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_applicable.png" alt="Status: not applicable" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;" ><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_applicable.png" alt="Status: not applicable" /></td>
+<!--><td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td><-->
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">STR711FR2</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /> </td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" />  </td>
+<td style="text-align: center;"><img src="images/stat_not_tested.png" alt="Status: not tested" /></td>
+<td style="text-align: center;"><img src="images/stat_not_applicable.png" alt="Status: not applicable" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /> </td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_applicable.png" alt="Status: not applicable" /></td>
+<!--><td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td><-->
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">STR912FAW44</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;" ><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<!--><td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td><-->
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">STM32F103ZE</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /> </td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" />  </td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /> </td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<!--><td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td><-->
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+</tr>
+<tr><td style="color: rgb(255, 102, 0);">STM32F103RE</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /> </td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" />  </td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /> </td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_tested.png" alt="Status: not tested" /></td>
+<!--><td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td><-->
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">i386</td>
+<td style="text-align: center;"><img src="images/stat_not_applicable.png" alt="Status: not applicable" /></td>
+<td style="text-align: center;"><img src="images/stat_not_applicable.png" alt="Status: not applicable" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img style="height: 16px; width: 16px;" src="images/stat_not_applicable.png" alt="Status: not applicable" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img style="height: 16px; width: 16px;" src="images/stat_not_applicable.png" alt="Status: not applicable" /></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_not_applicable.png" alt="Status: not applicable" /></td>
+<!--><td style="text-align: center;"><img src="images/stat_not_applicable.png" alt="Status: not applicable" /></td><-->
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+</tr>
+</tbody>
+</table>
+<a name="gen_modules" /><h3>eLua modules</h3>
+<p>The following table shows a list of the generic modules currently implemented (and planned to be implemented) in <b>eLua</b>.</p>
+<table style="text-align: left; width: 620px;" class="table_center">
+<tbody>
+<tr>
+<th style="text-align: left;">Name</th> 
+<th style="text-align: center;">Description</th>
+<th style="text-align: center;">Status</th>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">pio</td>
+<td>programmable input/output</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">tmr</td>
+<td>periodic timer / counters</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">pwm</td>
+<td>pulse width modulation</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">uart</td>
+<td>universal asynchronous receiver transmitter</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">spi</td>
+<td>serial peripheral interface</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr><td style="color: rgb(255, 102, 0);">net</td>
+<td>TCP/IP networking</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">adc</td>
+<td>analog to digital converter</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">dac</td>
+<td>digital to analog converter</td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">cpu</td>
+<td>low level system access</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">pd</td>
+<td>platform data</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">term</td>
+<td>ANSI terminal access</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">bit</td>
+<td>bitwise operations</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">pack</td>
+<td>pack/unpack binary data</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">cmp</td>
+<td>analog comparator</td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">i2c</td>
+<td>inter-integrated circuit protocol</td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">cnt</td>
+<td>event counter</td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">can</td>
+<td>controller area network</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: not implemented" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">rpc</td>
+<td>remote procedure call</td>
+<td style="text-align: center;"><img src="images/stat_not_tested.png" alt="Status: testing" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">i2s</td>
+<td>inter-IC sound</td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">mmc</td>
+<td>sd/mmc card FAT file system</td>
+<td style="text-align: center;"><img src="images/stat_not_tested.png" alt="Status: testing" /></td>
+</tr>
+</tr>
+<td style="color: rgb(255, 102, 0);">disp</td>
+<td>lcd, oled and other displays support</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: testing" /></td>
+</tr>
+</tr>
+<td style="color: rgb(255, 102, 0);">int</td>
+<td>interrupt service routines</td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: testing" /></td>
+</tr>
+</tbody>
+</table>
+<p>
+For some platforms, a number of platform dependent modules are
+implemented (or in the works) and are listed below. To understand the
+difference between generic modules and platform specific modules, check
+<a href="arch_overview.html">the eLua architecture page</a>.
+</p>
+<table style="width: 620px; margin-bottom: 10px;" class="table_center">
+<tbody>
+<tr>
+  <th style="text-align: left;">Name</th>
+  <th style="text-align: center;">Description</th>
+  <th style="text-align: center;">Boards</th>
+  <th style="text-align: center;">Status</th>
+</tr>
+<tr>
+  <td style="color: rgb(255, 102, 0);">disp</td>
+  <td>OLED display support</td>
+  <td>EK-LM3S8962<br>
+      EK-LM3S6965
+  </td>
+  <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+   <td style="color: rgb(255, 102, 0);">pio</td>
+  <td>Platform specific PIO support</td>
+  <td>STR-E912<br />
+      STR9-comStick
+  </td>
+  <td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+ 
+</tr>
+</tbody>
+</table>
+<p/>
+<p/>
+<a name="roadmap" /><h3>Status of features and roadmap</h3>
+<p>The following table shows the status of some existing and planned <b>eLua</b> features.</p>
+<table style="text-align: left; width: 620px;" class="table_center">
+<tbody><tr>
+<th style="text-align: left;">eLua Features</th>
+<th style="text-align: center;">Status</th>
+</tr>
+<tr>
+<td style="text-align: left;">Full Lua interpreter running on target</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+<td style="text-align: left;" >Embedded HTTP web server</td>
+<td style="text-align: center;" ><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+<td style="text-align: left;">Various Lua examples and eLua apps running properly</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+<td style="text-align: left;">Lua floating point or integer number selection</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+<td style="text-align: left;">eLua FP module (for integer Lua)</td>
+<td style="color: rgb(255, 102, 0); text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" />
+</td>
+</tr>
+<tr>
+<td style="text-align: left;">XMODEM protocol support for console file transfer</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+<td style="text-align: left;">Embedded ROM (Flash) file system</td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="fatfs.html">FAT File System layer for mmc/sd cards</a></td>
+<td style="text-align: center;"><img src="images/stat_not_tested.png" alt="Status: not tested" /></td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="using.html#rpc">LuaRPC - Remote Procedure Calls</a></td>
+<td style="text-align: center;"><img src="images/stat_not_tested.png" alt="Status: not tested" /></td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="using.html#uart">Terminal / Console over UART or Ethernet<a></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="using.html#shell">eLua command shell</a></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+<td style="text-align: left;">eLua complete interrupt support</td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="arch_ltr.html">eLua LTR (Lua Tiny RAM) patch</a></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="elua_egc.html">eLua EGC (Emergency Garbage Collection) patch</a></td>
+<td style="text-align: center;"><img src="images/stat_ok.png" alt="Status: OK" /></td>
+</tr>
+<tr>
+<td style="text-align: left;">Embedded text editor</td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+</tr>
+<tr>
+<td style="text-align: left;">Embedded help/doc subsystem</td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+</tr>
+<tr>
+<td style="text-align: left;">Lua debugging (remote/on target)</td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+</tr>
+<tr>
+<td style="text-align: left;">Host (PC) File Sharing</td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+</tr>
+<tr>
+<td style="text-align: left;">GUI/IDE interface for eLua</td>
+<td style="text-align: center;"><img src="images/stat_not_implemented.png" alt="Status: not implemented" /></td>
+</tr>
+<tr>
+<td style="text-align: left;">eLua web build service<br></td>
+<td style="text-align: center;"><img src="images/stat_not_tested.png" alt="Status: not tested" /></td>
+</tr>
+</tbody>
+</table>
+
+$$FOOTER$$
+

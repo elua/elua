@@ -1,0 +1,234 @@
+$$HEADER$$
+<p>Inicialmente, a id&eacute;ia de um "i386" cross "compiler" em Linux parece estranha. Afinal, voc&ecirc; j&aacute; roda Linux numa plataforma compat&iacute;vel com i386. Por&eacute;m, o compilador as vezes segue certos caminhos misteriosos junto com o sistema operacional onde este est&aacute; rodando (veja por exemplo <a href="http://wiki.osdev.org/GCC_Cross-Compiler">esta p&aacute;gina</a> para alguns sintomas poss&iacute;veis). E ainda, voc&ecirc; deseja usar uma NewLib, e n&atilde;o uma Libc, e ainda adaptar o m&aacute;ximo poss&iacute;vel o seu ambiente &agrave;s suas necessidades. Portanto, este tutorial ir&aacute; mostr&aacute;-lo como fazer isso.</p>
+<p><strong>AVISO: N&atilde;o sou um especialista no processo de constru&ccedil;&atilde;o de uma GCC/newlib/binutils. Tenho certeza de que existem melhores formas de realizar o que estou descrevendo aqui, no entanto, apresento apenas uma maneira r&aacute;pida de construir um toolchain, n&atilde;o tenho nenhuma inten&ccedil;&atilde;o de me aprofundar neste processo. Se voc&ecirc; acha que, o que fiz aqui est&aacute; errado, impreciso ou, simplesmente, escandalosamente feio, n&atilde;o hesite em <a href="overview.html#contacts">contactar-me</a> e farei as corre&ccedil;&otilde;es necess&aacute;rias. E claro, este tutorial &eacute; fornecido sem qualquer tipo de garantia.</strong></p>
+
+<h2>&#8250; Pr&eacute;-requisitos</h2>
+<p>Para construir seu toolchain voc&ecirc; precisar&aacute; de:</p>
+
+<ul>
+
+<li>um computador rodando Linux: Eu uso Ubuntu 8.04, mas qualquer Linux ir&aacute; funcionar, desde que voc&ecirc; saiba como encontrar o equivalente do "apt-get" para a sua distribui&ccedil;&atilde;o. N&atilde;o entrarei em detalhes sobre isso, pesquise no Google e voc&ecirc; encontrar&aacute; o que precisa. Assumimos tamb&eacute;m que o  Linux j&aacute; tem uma "base" nativa toolchain instalada (gcc/make e afins). Isto &eacute; verdadeiro para o Ubuntu depois de instalado. No entanto, voc&ecirc; precisa verificar a sua distribui&ccedil;&atilde;o espec&iacute;fica.</li>
+
+
+<li>GNU binutils: fa&ccedil;a o download clicando <a href="http://ftp.gnu.org/gnu/binutils/">aqui</a>. No momento em que estava fazendo este tutorial, as vers&otilde;es mais recentes eram 2.18, que por algum motivo desconhecido n&atilde;o compilava no meu sistema, por isso estou usando a vers&atilde;o 2,17.</li>
+
+<li>GCC: vers&atilde;o 4.3.0 ou superior &eacute; recomendada. No momento em que escrevia este tutorial, a vers&atilde;o mais recente era a 4.3.1, a qual usarei para este tutorial. Fa&ccedil;a o download <a href="http://gcc.gnu.org/mirrors.html">aqui</a> logo ap&oacute;s de ter escolhido o seu mirror.</li>
+
+
+<li>Newlib: enquanto preparava este tutorial, a vers&atilde;o mais recentes era a 1.16.0. Fa&ccedil;a o download do diret&oacute;rio <a href="ftp://sources.redhat.com/pub/newlib/index.html">FTP Newlib</a>.</li>
+
+<li>Al&eacute;m disso, este tutorial assume que voc&ecirc; esteja usando o bash como seu shell. Se voc&ecirc; usar qualquer outra coisa, provavelmente voc&ecirc; precisar&aacute; ajustar alguns comandos do shell espec&iacute;fico.</li>
+
+</ul>
+
+<p>Voc&ecirc; ainda precisar&aacute; de outros programas e bibliotecas a fim de construir o toolchain. Para instal&aacute;-los:</p>
+
+<p><br></p>
+
+<table class="table_cod">
+     <tbody><tr>
+        <th>$ sudo apt-get install flex bison libgmp3-dev libmpfr-dev autoconf texinfo</th>
+     </tr>
+</tbody></table>
+
+
+<p>Em seguida, decida onde pretende instalar o seu toolchain. Eles geralmente s&atilde;o instalados no diret&oacute;rio /usr/local/, logo, assumiremos o diret&oacute;rio /usr/local/cross-i386 para este tutorial. Para agilizarmos a digita&ccedil;&atilde;o, defina este caminho como padr&atilde;o na vari&aacute;vel de ambiente:</p>
+
+<p><br></p>
+
+<table class="table_cod">
+     <tbody><tr>
+        <th>$ export TOOLPATH=/usr/local/cross-i686</th>
+     </tr>
+</tbody></table>
+
+
+<h2>&#8250; Passo 1: binutils</h2>
+
+<p>Este &eacute; o passo mais f&aacute;cil: descompactar, configurar, compilar.</p>
+
+<p><br></p>
+
+<table class="table_cod">
+     <tbody><tr>
+        <th style="text-align: left;">$ tar -xvjf binutils-2.17.tar.bz2</th>
+     </tr>
+     <tr align="left">
+        <th>$ cd binutils-2.17</th>
+     </tr>
+     <tr align="left">
+        <th>$ mkdir build</th>
+     </tr>
+     <tr align="left">
+        <th>$ cd build</th>
+     </tr>
+     <tr align="left">
+        <th>$ ../configure --target=i686-elf --prefix=$TOOLPATH --with-gnu-as --with-gnu-ld --disable-nls</th>
+     </tr>
+     <tr align="left">
+        <th>$ make all</th>
+     </tr>
+     <tr align="left">
+        <th>$ sudo make install</th>
+     </tr>
+     <tr align="left">
+        <th>$ export PATH=${TOOLPATH}/bin:$PATH</th>
+     </tr>
+</tbody></table>
+
+
+
+
+<p>Agora voc&ecirc; tem os "binutils" para a CPU i386(assembler, linker, disassembler ...) em seu PATH.</p>
+<h2>&#8250; Passo 2: GCC b&aacute;sico</h2>
+
+<p>Nesta etapa iremos criar uma GCC "b&aacute;sica" (ou seja, uma GCC sem nenhuma bibliotecas de suporte, a qual utilizaremos a fim de criar todas as bibliotecas para o nosso objetivo). Mas primeiro, temos que fazer uma r&aacute;pida modifica&ccedil;&atilde;o nos arquivos de configura&ccedil;&atilde;o. Fora desse ambiente, o pacote GCC 4.3.1/newlib n&atilde;o compilar&aacute; corretamente, emitindo o seguinte erro muito estranho "Link tests are not allowed after GCC_NO_EXECUTABLES". Ap&oacute;s googlear um pouco, encontrei a seguinte solu&ccedil;&atilde;o:</p>
+
+<p><br></p>
+
+<table class="table_cod">
+     <tbody><tr align="left">
+        <th>$ tar -xvjf gcc-4.3.1.tar.bz2</th>
+     </tr>
+     <tr align="left">
+        <th>$ cd gcc-4.3.1/libstdc++-v3</th>
+     </tr>
+     <tr align="left">
+        <th>$ joe configure.ac</th>
+     </tr>
+</tbody></table>
+
+
+
+<p>Estou usando o "joe", como meu editor de Linux favorito, no entanto, voc&ecirc; pode usar qualquer outro editor de texto. Agora encontre a linha que tenha o string "AC_LIBTOOL_DLOPEN" e adicione um "#" no inicio da linha:</p>
+
+<pre><code>  # AC_LIBTOOL_DLOPEN<br></code></pre>
+
+<p>Salve o arquivo e saia do editor de texto.</p>
+
+<p><br></p>
+
+<table class="table_cod">
+     <tbody><tr align="left">
+        <th>$ autoconf</th>
+     </tr>
+     <tr align="left">
+        <th>$ cd ..</th>
+     </tr>
+</tbody></table>
+
+<p>&Oacute;timo, agora sabemos que podemos compilar, ent&atilde;o vamos em frente:</p>
+
+<p><br></p>
+
+<table class="table_cod">
+     <tbody><tr align="left">
+        <th>$ mkdir build</th>
+     </tr>
+     <tr align="left">
+        <th>$ cd build</th>
+     </tr>
+     <tr align="left">
+        <th>$
+../configure --target=i686-elf --prefix=$TOOLPATH
+--enable-languages="c,c++" --with-newlib --without-headers
+--disable-shared --with-gnu-as --with-gnu-ld
+</th>
+     </tr>
+     <tr align="left">
+        <th>$ make all-gcc</th>
+     </tr>
+     <tr align="left">
+        <th>$ sudo make install-gcc</th>
+     </tr>
+</tbody></table>
+
+<p>No meu sistema, a &uacute;ltima linha acima(sudo make install-gcc) termina com erros, devido a impossibilidade de encontrar a binutils recentemente compilada. Se isso acontece para qualquer tipo de comando "make install", aqui est&aacute; uma maneira r&aacute;pida de resolver isso:</p>
+
+<p><br></p>
+
+<table class="table_cod">
+     <tbody><tr>
+        <th>$ sudo -s -H</th>
+     </tr>
+</tbody></table>
+
+
+<pre><code>  # export PATH=/usr/local/cross-i686/bin:$PATH<br>  # make install-gcc<br>  # exit<br></code></pre>
+
+
+<h2>&#8250; Passo 3: Newlib</h2>
+
+<p>Outra vez, esse passo 3 NewLib, &eacute; t&atilde;o f&aacute;cil quanto descompactar, configurar e  compilar. Mas eu preciso que a minha biblioteca seja do menor tamanho poss&iacute;vel (em contraposi&ccedil;&atilde;o, a t&atilde;o r&aacute;pida quanto poss&iacute;vel) e s&oacute; quero manter o necess&aacute;rio no execut&aacute;vel, por isso, acrescentei os flags "-ffunction-sections -fdata-sections" para permitir que o linker execute dead code stripping:</p>
+
+<p><br></p>
+
+<table class="table_cod">
+     <tbody><tr align="left">
+        <th>$ tar xvfz newlib-1.16.0.tar.gz</th>
+     </tr>
+     <tr align="left">
+        <th>$ cd newlib-1.16.0</th>
+     </tr>
+     <tr align="left">
+        <th>$ mkdir build</th>
+     </tr>
+     <tr align="left">
+        <th>$ cd build</th>
+     </tr>
+     <tr align="left">
+        <th>$
+../configure --target=i686-elf --prefix=$TOOLPATH
+--disable-newlib-supplied-syscalls --with-gnu-ld --with-gnu-as
+--disable-shared</th>
+     </tr>
+     <tr align="left">
+        <th>$ make
+CFLAGS_FOR_TARGET="-ffunction-sections
+-fdata-sections -D__PREFER_SIZE_OVER_SPEED -D__OPTIMIZE_SIZE__ -Os
+-fomit-frame-pointer -D__BUFSIZ__=256"</th>
+     </tr>
+     <tr align="left">
+        <th>$ sudo make install</th>
+     </tr>
+</tbody></table>
+
+
+<p>Algumas observa&ccedil;&otilde;es sobre os flags usados na sequ&ecirc;ncia acima:</p>
+
+<ul>
+<li><code>--disable-newlib-supplied-syscalls:</code> isto merece uma p&aacute;gina inteira, mas n&atilde;o d&aacute; para faz&ecirc;-lo aqui. Para um melhor entendimento, veja <a href="http://openhardware.net/Embedded_ARM/NewLib_Stubs/">esta p&aacute;gina</a>.</li>
+
+<li><code>-D__PREFER_SIZE_OVER_SPEED -D__OPTIMIZE_SIZE__:</code> compila Newlib otimizando o tamanho, n&atilde;o a performance (estes s&atilde;o específicos da Newlib).</li>
+
+<li><code>-Os -fomit-frame-pointer:</code> indica para GCC otimizar o tamnho, n&atilde;o a velocidade.</li>
+
+<li><code>-D__BUFSIZ__=256:</code> novamente espec&iacute;fico da Newlib, este &eacute; o tamanho default do buffer alocado para arquivos abertos via fopen(). O padr&atilde;o &eacute; 1024, cujo tamanho considerei muito para eLua, logo estou usando 256 aqui. Certamente, voc&ecirc; pode mudar este valor.</li>
+
+</ul>
+
+
+<h2>&#8250; Passo 4: full GCC</h2>
+
+<p>Finalmente, no &uacute;ltimo passo deste tutorial, completamos a cria&ccedil;&atilde; da GCC. Nesta etapa, v&aacute;rias bibliotecas de suporte do compilador s&atilde;o montadas (sendo a mais importante a libgcc.a). Felizmente isto &eacute; mais simples do que a compilacria&ccedil;&atilde;o da NewLib:</p>
+
+<p><br></p>
+
+<table class="table_cod">
+     <tbody><tr align="left">
+        <th>$ cd gcc-4.3.1/build</th>
+     </tr>
+     <tr align="left">
+        <th>$ make all</th>
+     </tr>
+     <tr align="left">
+        <th>$ sudo make install</th>
+     </tr>
+</tbody></table>
+
+
+<h2>&#8250; Passo 5: Tudo pronto!</h2>
+
+<p>Finalmente, voc&ecirc; poder&aacute; usar o seu toolchain para i386, e compilar eLua com ele :)  Ap&oacute;s completar os passos acima, voc&ecirc; ser&aacute; capaz de dar  boot em eLua direto do seu PC, como descrito <a href="tut_bootpc.html">aqui</a>, e n&atilde;o precisar&aacute; fazer o download do arquivo ELF da p&aacute;gina do projeto eLua, j&aacute; que voc&ecirc; o gerou usando sua pr&oacute;pria toolchain!
+Se voc&ecirc; precisar de mais explica&ccedil;&otilde;es ou se as instru&ccedil;&otilde;es acima n&atilde;o funcionaram para voc&ecirc;, sinta-se a vontade para <a href="overview.html#contacts">contactar-me</a>.</p>
+$$FOOTER$$

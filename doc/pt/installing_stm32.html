@@ -1,0 +1,36 @@
+$$HEADER$$
+<h3>Usando <b>eLua</b> com as CPUs STM32 da ST</h3>
+ <p>A <a href="http://www.st.com/mcu/inchtml-pages-stm32.html">família STM32</a> de MCUs da <a href="http://www.st.com">ST</a> é uma linha de Cortex-M3 baseada em chips com um monte de recursos, incluindo (mas não limitado a) bastante memória Flash/RAM on-chip (até 512k Flash e 64k RAM), controlador de memórias externas incluindo as (P)SRAM, NAND Flash e NOR Flash, ADC e DAC integrados, temporizadores avançados e muitos outros. Eles também possuem um carregador de boot serial integrado (um bootloader), por isso é extremamente fácil de programá-los a partir de um dispositivo que possua uma porta serial. A ST fornece uma ferramenta de suporte que pode ser usada para baixar um programa para o STM32 usando este bootloader, mas só funciona no Windows. O protocolo desse bootloader está documentado em uma nota separada, logo, qualquer um poderá facilmente escrever um aplicativo para qualquer outro sistema operacional.</p>
+  <p><b>eLua</b> funciona atualmente em duas variantes do STM32F103 da família STM32, especificamente para essas placas:
+ <a href="http://www.st.com/mcu/contentid-100-110-STM3210E_EVAL.html">a STM3210E-EVAL</a> da <a href="http://www.st.com">ST</a> e a 
+ <a href="http://www.futurlec.com/ET-STM32_Stamp.shtml">ETM-STM32 stamp</a> da <a href="http://www.futurlec.com">Futurlec</a>. Instruções para a instalação de <b>eLua</b> em cada uma dessas placas é apresentado mais abaixo.</p>
+ <h3>Pré-requisitos</h3> 
+ <p>Antes de começar a usar <b>eLua</b> com a CPU STM32F103, certifique-se
+ de que:</p>
+ <ul>
+ <li>você está usando Windows. Como já foi dito antes, o software fornecido pela ST para baixar o firmware via serial funciona apenas no Windows. É provável que já existam ferramentas similares para a utilizaçãp com Linux e outros sistemas operacionais, ou que venham a ficar disponíveis brevemente.</li>
+ <li>você instalou o "demonstrador Flash loader" <a href="http://www.st.com/mcu/modules.php?name=mcu&amp;file=familiesdocs&amp;FAM=110">
+desta página</a> (procure-o na seção "Software - PC").</li>
+ <li>você já tem o arquivo com a imagem de <b>eLua</b> para a CPU STM32F103 (<a href="building.html">gerado</a> ou <a href="downloads.html">baixado</a>).</li>
+ </ul>
+
+ <h3>Gravando eLua na placa STM3210E-EVAL</h3>
+ <p>##TODO</p>
+ <h3>Gravando eLua na placa ET-STM32 stamp</h3>
+ <p>Siga os passos abaixo para instalar <b>eLua</b> na sua ET-STM32 stamp:</p>
+
+ <ul>
+ <li>conecte a placa em uma das portas seriais de seu computador com um cabo serial fornecido pelo fabricante.</li>
+ <li>na placa, coloque o jumper BOOT1 para a posição ISP (esta configuração já deve vir assim de fábrica e provavelmente não precisará ser alterada).</li> 
+ <li>pressione o switch BOOT0. O LED verde "BOOT0=1" deve acender.</li>
+ <li>reinicie a placa pressionando o botão RESET.</li>
+ <li>execute o programa ST Flash Loader. Selecione a sua porta serial na primeira tela, não altere os parâmetros de comunicação (57600 8E1) e pressione "Next" 3 vezes.</li>
+ <li>selecione o "Download to device", escolha o arquivo imagem de <b>eLua</b> e aperte "Next".</li>
+ <li>aguarde até a gravação terminar e então pressiona "Finish".</li>
+ <li>pressione novamente o switch BOOT0.</li>
+ <li>reinicie novamente a placa pressionando o botão RESET.</li>
+ </ul>
+
+ <p>A partir de agora você está com <b>eLua</b> instalada em sua placa, e pode escolher a mesma porta que utilizou para a gravação acima como uma porta comum para seu uso com  <b>eLua</b>.</p>
+$$FOOTER$$
+

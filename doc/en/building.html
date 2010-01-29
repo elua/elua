@@ -1,0 +1,420 @@
+$$HEADER$$
+<h3>Building eLua</h3>
+<p>If you decide to build your own <b>eLua</b> binary image (instead of <a href="downloads.html">downloading
+one</a>) you need to download the source code (see <a href="downloads.html#source">here</a> for details) and follow the 
+platform specific eLua build instructions (provided for <a href="building_unix.html">Linux</a> and <a href="building_win.html">Windows</a>) to setup your build environment. 
+Then follow the instructions below to build your eLua binary image.</p>
+<a name="configuring" /><h3>Configuring the build image</h3>
+<p><b>eLua</b> has a very flexible build system that
+can be used to select the components that are going to be part of the <b>eLua</b>
+binary image and to set the compile time (static) configuration.
+To use it, you need to edit a single configuration file (<i>platform_conf.h</i>)
+located in the platform specific directory (<i>src/platform/&lt;platform
+name&gt;/platform_conf.h)</i>. The configuration parameters
+are described in detail in the next paragraphs.</p>
+<a name="components"><h2>Configuring components</h2></a>
+<p>An <b>eLua component</b> is a feature that can be
+enabled to add functionality to <b>eLua</b> itself,
+without modifying its API (which is the part that the programmer uses
+to write <b>eLua</b> programs). An example of component configuration from
+<i>platform_conf.h</i> is given below:</p>
+<pre><code>// *****************************************************************************
+// Define here what components you want for this platform
+
+#define BUILD_XMODEM
+#define BUILD_SHELL
+#define BUILD_ROMFS
+#define BUILD_MMCFS
+#define BUILD_TERM
+#define BUILD_UIP
+#define BUILD_DHCPC
+#define BUILD_DNS
+#define BUILD_CON_GENERIC
+#define BUILD_ADC
+#define BUILD_RPC</code></pre>
+<p>The components that can be configured in <b>eLua</b> are:</p>
+<table class="table_center">
+<tbody>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: center;">Meaning</th>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">BUILD_XMODEM</td>
+<td>Define this to build support for XMODEM receive. If
+enabled, you can use the "recv" command from the shell to receive a Lua
+file (either source code or precompiled byte code) and run in on the
+target. Works only over RS-232 connections (although in theory it's
+possible to make it work over any kind of transport).
+To enable:
+<pre><code>#define BUILD_XMODEM</code></pre>
+<a href="building.html#static">Static configuration data dependencies:</a> <b>CON_UART_ID, CON_UART_SPEED, CON_TIMER_ID</b>
+</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">BUILD_SHELL</td>
+<td>This build the <b>eLua</b> shell (see <a href="using.html">using eLua</a> for details on the
+shell). If the shell is not enabled, the code looks for a file called <i>/rom/autorun.lua</i>
+and executes it. If this file is not found, a regular Lua intepreter is
+started on the target.<br>
+To enable the shell over a serial connection:
+<pre><code>#define BUILD_SHELL
+#define BUILD_CON_GENERIC</code></pre>
+To enable the shell over a TCP/IP connection:
+<pre><code>#define BUILD_SHELL
+#define BUILD_CON_TCP</code></pre>
+</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">BUILD_ROMFS</td>
+<td>Enable the <b>eLua</b> read-only
+filesystem. See the <a href="arch_romfs.html">ROMFS
+documentation</a> for details about using the ROM file system.
+To enable:
+<pre><code>#define BUILD_ROMFS</code></pre></td>
+</tr>
+<tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">BUILD_MMCFS</td>
+<td>Enable the <b>eLua</b> SD/MMC FAT
+filesystem support.
+To enable:
+<pre><code>#define BUILD_MMCFS</code></pre>
+<a href="building.html#static">Static configuration data dependencies:</a> <b>MMCFS_TICK_HZ, MMCFS_TICK_MS, MMCFS_CS_PORT, MMCFS_CS_PIN, MMCFS_SPI_NUM</b></td></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">BUILD_TERM</td>
+<td>Enable ANSI terminal support. It allows <b>eLua</b>
+to interact with terminals that support ANSI escape sequences (more details <a href="arch_con_term.html">here</a>).
+Currently it works only over RS-232 connections, although this is not a
+strict requirement. You need to enable this if you want to use the <a href="refman_gen_term.html">term module</a>.
+To enable:
+<pre><code>#define BUILD_TERM</code></pre>
+<a href="building.html#static">Static configuration data dependencies:</a> <b>CON_UART_ID, CON_UART_SPEED, CON_TIMER_ID, TERM_LINES, TERM_COLS</b></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">BUILD_UIP</td>
+<td>Enable TCP/IP networking support. You need to enable
+this if you want to use the <a href="refman_gen_net.html">net
+module</a>. Also, your platform must implement the uIP support
+functions (see the <a href="arch_platform.html">platform
+interface</a> documentation for details).
+To enable:
+<pre><code>#define BUILD_UIP</code></pre>
+<a href="building.html#static">Static configuration data dependencies:</a> <b>ELUA_CONF_IPADDR0..3, ELUA_CONF_NETMASK0..3, ELUA_CONF_DEFGW0..3,
+ ELUA_CONF_DNS0..3</b>
+</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">BUILD_DHCPC</td>
+<td>If BUILD_UIP is enabled, you can enable this to include
+a DHCP client in the TCP/IP networking subsystem.
+To enable:
+<pre><code>#define BUILD_UIP
+#define BUILD_DHCPC</code></pre>
+</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">BUILD_DNS</td>
+<td>If BUILD_UIP is enabled, you can enable this to include
+a minimal DNS resolver in the TCP/IP networking subsystem.
+To enable:
+<pre><code>#define BUILD_UIP
+#define BUILD_DNS</code></pre>
+</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">BUILD_CON_GENERIC</td>
+<td>Generic console support (details <a href="arch_con_term.html">here</a>). Enables console access
+(stdio/stdout/stderr) via a serial transport (currently RS-232, but
+others can be supported). Enable this if you want to use console
+input/output over your RS-232 connection. Don't enable this if you need
+console input/ouput over Ethernet (see the next option).
+To enable:
+<pre><code>#define BUILD_CON_GENERIC</code></pre>
+<a href="building.html#static">Static configuration data dependencies:</a> <b>CON_UART_ID, CON_UART_SPEED, CON_TIMER_ID</b></td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">BUILD_CON_TCP</td>
+<td>Console input/output over TCP/IP connections only (details <a href="arch_con_term.html">here</a>). Use
+this if you want to use your <b>eLua</b> board over a
+telnet session. Don't enable this if you need console input/output over
+serial transports (see the previous option).
+To enable:
+<pre><code>#define BUILD_UIP
+#define BUILD_CON_TCP</code></pre>
+</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">BUILD_ADC</td>
+<td>Define this to build support for ADC peripherals. This must be enabled to use the <a href="refman_gen_adc.html">adc module</a>, or the <a href="arch_platform_adc.html">adc platform interface</a>.
+To enable:
+<pre><code>#define BUILD_ADC</code></pre>
+<a href="building.html#static">Static configuration data dependencies:</a> <b>ADC_BIT_RESOLUTION, ADC_TIMER_FIRST_ID, ADC_NUM_TIMERS, BUF_ENABLE_ADC, ADC_BUF_SIZE</b>
+</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">BUILD_RPC</td>
+<td>Define this to build support for LuaRPC. This must be enabled to use the <a href="refman_gen_rpc.html">rpc module</a>.
+To enable:
+<pre><code>#define BUILD_RPC</code></pre>
+<a href="building.html#static">Static configuration data dependencies</a> (ONLY if built with boot=luarpc): <b>RPC_UART_ID, RPC_TIMER_ID</b>
+</td>
+</tr>
+</tbody>
+</table>
+<a name="confmodules"><h2>Configuring modules</h2></a>
+<p>You can also choose the modules that are going to be part of
+the <b>eLua</b> image. Unlike components, the modules have
+a direct impact on the <b>eLua</b> API, so choose them
+carefully. Disabling a module will save Flash space (and potentially
+RAM) but will also completely remove the possibility of using that
+module from <b>eLua</b>.</p>
+<p>The modules included in the build are specified by the
+LUA_PLATFORM_LIBS_ROM macro. An example is given below: </p>
+<pre><code>#define LUA_PLATFORM_LIBS_ROM\
+  _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
+  _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
+  _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
+  _ROM( AUXLIB_UART, luaopen_uart, uart_map )\
+  _ROM( AUXLIB_TERM, luaopen_term, term_map )\
+  _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map )\
+  _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
+  _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
+  _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
+   ROM( LUA_MATHLIBNAME, luaopen_math, math_map )</code></pre>
+<p>Each module is defined by a <b>_ROM( module_name,
+module_init_function, module_map_array )</b> macro, where:
+</p>
+<ul>
+<li><b>module_name</b> is the name by which the
+module can be used from Lua</li>
+<li><b>module_init_function</b> is a function
+called by the Lua runtime when the module is initialized</li>
+<li><b>module_map_array</b> is a list of all the
+functions and constants exported by a module</li>
+</ul>
+<p>Please note that this notation is specific to LTR (the <b>L</b>ua
+<b>T</b>iny <b>R</b>AM patch) and it's not the
+only way to specify the list of modules included in the build (although
+it is the most common one). Check the <a href="arch_ltr.html#config">LTR
+section</a> for more information about LTR.</p>
+<p>For the full list of modules that can be enabled or disabled
+via <i>platform_conf.h</i> check <a href="refman_gen.html">the
+eLua reference manual</a>.</p>
+<a name="static"><h2>Static configuration data</h2></a>
+<p>"Static configuration" refers to the compile-time
+configuration. Static configuration parameters are hard-coded in the
+firmware image and can't be changed at run-time. The table below lists
+the static configuration parameters and their semantics.
+</p>
+<table class="table_center">
+<tbody>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: center;">Meaning</th>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">CON_UART_ID<br>CON_UART_SPEED<br>CON_TIMER_ID<br></td>
+<td>Used to configure console input/output over UART. The
+specified UART id will be used for console input/output, at the
+specified speed. The data format is always 8N1 (8 data bits, no parity,
+1 stop bits) at this point. The specified timer ID will be used for the console subsystem. These
+variables are also used by the XMODEM and TERM implementations.</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">TERM_LINES<br>TERM_COLS<br>
+</td>
+<td>Used to configure the ANSI terminal support (if enabled
+in the build). Used to specify (respectively) the number of lines and
+columns of the ANSI terminal.</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">ELUA_CONF_IPADDR0..3<br>
+ELUA_CONF_NETMASK0..3<br>
+ELUA_CONF_DEFGW0..3<br>
+ELUA_CONF_DNS0..3</td>
+<td>Used by the TCP/IP implementation when the DHCP client
+is not enabled, or when it is enabled but can't be contacted. Specifies
+the IP address, network mask, default gateway and DNS server. Only
+needed if BUILD_UIP is enabled.</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">VTMR_NUM_TIMERS<br>
+VTMR_FREQ_HZ</td>
+<td>Specify the virtual timers configuration for the
+platform (refer to <a href="refman_gen_tmr.html">the timer module
+documentation</a> for details). Define VTMR_NUM_TIMERS to 0 if
+this feature is not used.</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">MMCFS_TICK_HZ<br>
+MMCFS_TICK_MS</td>
+<td>Specify the rate at which SD/MMC timer function <i>disk_timerproc()</i> are being called by the platform. On most platforms MMCFS_TICK_HZ will match VTMR_FREQ_HZ.  Only needed if MMCFS support is enabled.</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">MMCFS_CS_PORT<br>
+MMCFS_CS_PIN</td>
+<td>Specify the port and pin to be used as chip select for MMCFS control of an SD/MMC card over SPI. Only needed if MMCFS support is enabled.</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">MMCFS_SPI_NUM</td>
+<td>Specify the SPI peripheral to be used by MMCFS. Only needed if MMCFS support is enabled.</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">PLATFORM_CPU_CONSTANTS</td>
+<td>If the <a href="refman_gen_cpu.html">cpu module</a>
+is enabled, this defines a list of platform-specific constants (for
+example interrupt masks) that can be accessed using the
+cpu.&lt;constant name&gt; notation. Each constant name must be
+specified instead of a specific costruct (<i>_C(&lt;constant
+name&gt;</i>). For example:
+<pre><code>#define PLATFORM_CPU_CONSTANTS\<br> _C( INT_GPIOA ),\<br> _C( INT_GPIOB ),\<br> _C( INT_GPIOC ),\<br> _C( INT_GPIOD ),\<br> _C( INT_GPIOE )<br></code></pre>
+After compilation, you can access these constants using <i>cpu.INT_GPIOx</i>.
+Note that the implementation of this feature needs virtually no RAM at
+all, so you can define as many constants as you want here. </td>
+</tr>
+
+<tr>
+<td style="color: rgb(255, 102, 0);">BUF_ENABLE_ADC</td>
+<td>If the <a href="refman_gen_adc.html">adc module</a> is enabled, this controls whether or not the ADC will create a buffer so that more than one sample per channel can be held in a buffer before being returned through adc.getsample or adc.getsamples.  If disabled, only one conversion result will be buffered.  This option does NOT affect the behavior of the moving average filter.</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">ADC_BUF_SIZE</td>
+<td>If the <a href="refman_gen_adc.html">adc module</a> is enabled, and
+BUF_ENABLE_ADC is defined, this will define the default buffer length
+allocated at startup. This does not limit buffer sizes, it only defines the
+default length. Appropriate values range from BUF_SIZE_2 to BUF_SIZE_32768,
+with the numeric component at the end being in powers of 2.</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">ADC_BIT_RESOLUTION
+</td>
+<td>If the <a href="refman_gen_adc.html">adc module</a> is enabled, this will
+define the number of bits per adc conversion result. This is used to determine
+the maximum conversion value that can be returned by the ADC.</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">RPC_UART_ID
+</td>
+<td>If the <a href="refman_gen_rpc.html">rpc module</a> is enabled and boot mode is set to luarpc, this selects which uart luarpc will listen on for incoming client connections.</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">RPC_TIMER_ID
+</td>
+<td>If the <a href="refman_gen_rpc.html">rpc module</a> is enabled and boot mode is set to luarpc, this selects which timer will be used with the uart selected with RPC_UART_ID.</td>
+</tr>
+<tr>
+<td style="color: rgb(255, 102, 0);">EGC_INITIAL_MODE<br />EGC_INITIAL_MEMLIMIT</td>
+<td><b>(version 0.7 or above)</b> Configure the default (compile time) operation mode and memory limit of the emergency garbage collector (see <a href="elua_egc.html">here</a> for details 
+about the EGC patch). If not specified, <b>EGC_INITIAL_MODE</b> defaults to <b>EGC_NOT_ACTIVE</b> (emergency garbage collector disabled) and <b>EGC_INITIAL_MEMLIMIT</b> defaults to 0.</td>
+</tr>
+</tbody>
+</table>
+<p>The rest of the static configuration data parameters are meant
+to be modified mainly by developers and thus they're not listed here.<br>
+One more thing you might want to configure for your build is the
+contents of the ROM file system. See the <a href="arch_romfs.html">ROMFS
+documentation</a> for details on how to do this.</p>
+<a name="buildoptions" /><h3>Invoking the build system</h3>
+<p>Once you have everything in place, all you have to do is to
+invoke the build system (scons) with the right arguments. This is a
+fairly easy step, although it might look intimidating because of the
+multitude of options than can be given to scons. They are used to fine
+tune the final image to your specific needs, but unless your needs are
+very special you won't need to modify them, so don't worry about the
+aparent complexity. The examples at the end of this section will show
+how easy it is to use the build system in practice.
+</p>
+<pre><code>$ scons <br> [target=lua | lualong]<br> [cpu=at91sam7x256 | at91sam7x512 | i386 | str912fw44 | lm3s8962 | <br> lm3s6965 | lm3s6918 | lpc2888 | str711fr2 | at32uc3a0512 | stm32f103ze<br> [board=ek-lm3s8962 | ek-lm3s6965 | eagle-100 | str9-comstick | sam7-ex256 | <br> lpc-h2888 | mod711 | pc | atevk1100 | stm3210e-eval ]<br> [cpumode=arm | thumb] <br> [allocator = newlib | multiple | simple]<br> [toolchain = &lt;toolchain name&gt;]<br> [optram = 0 | 1]<br> [romfs = verbatim | compress | compile]<br> [prog]<br></code></pre>
+<p>Your build target is specified by two paramters: cpu and
+board. "cpu" gives the name of your CPU, and "board" the name of the
+board. A board can be associated with more than one CPU. This allows
+the build system to be very flexible. You can use these two options
+together or separately, as shown below:</p>
+<ul>
+<li><b>cpu=name</b>: build for the specified CPU. A
+board name will be assigned by the build system automatically.</li>
+<li><b>board=name</b>: build for the specified
+board. The CPU name will be inferred by the build system automatically.</li>
+<li><b>cpu=name board=name</b>: build for the
+specified board and CPU. The build script won't allow invalid CPU/board
+combinations.</li>
+</ul>
+<p>For board/CPU assignment look at the beginning of the
+SConstruct file (the <i>platform_list</i> array), it's
+self-explanatory.<br>
+The other options are as follows:</p>
+<ul>
+<li><b>target=lua | lualong</b>: specify if you
+want to build "regular" Lua (with floating point support) or integer
+only Lua (lualong). The default is "lua". "lualong" runs faster on
+targets that lack a floating point co-processor (which is the case for
+all current <b>eLua</b> targets) but it completely lacks
+support for floating point operations, it can only handle integers.</li>
+<li><b>cpumode=arm | thumb</b>: for ARM targets
+(not Cortex) this specifies the compilation mode. Its default value is
+'thumb' for AT91SAM7X targets and 'arm' for STR9 and LPC2888 targets.</li>
+<li><b>allocator = newlib | multiple | simple</b>:
+choose between the default newlib allocator (newlib) which is an older
+version of dlmalloc, the multiple memory spaces allocator (multiple)
+which is a newer version of dlmalloc that can handle multiple memory
+spaces, and a very simple memory allocator (simple) that is slow and
+doesn't handle fragmentation very well, but it requires very few
+resources (Flash/RAM). You should use the 'multiple' allocator only if
+you need to support multiple memory spaces. The default value is
+'newlib' for all CPUs except 'lpc2888' and 'at32uc3a0512', since the
+LPC-H2888 and ATEVK1100 board come with external SDRAM memory and thus
+are an ideal target for 'multiple'. You should use 'simple' only on
+very resource-constrained systems.
+</li>
+<li><b>toolchain=&lt;toolchain name&gt;</b>:
+this specifies the name of the toolchain used to build the image. See <a href="toolchains.html#configuration">this link</a> for
+details.</li>
+<li><b>optram=0 | 1</b>: enables of disables the
+LTR patch, see the <a href="arch_ltr.html">LTR documentation</a>
+for more details. The default is 1, which enables the LTR patch.</li>
+<li><b>prog</b>: by default, the above 'scons'
+command will build only the 'elf' (executable) file. Specify "prog" to
+build also the platform-specific programming file where appropriate
+(for example, on a AT91SAM7X256 this results in a .bin file that can be
+programmed in the CPU). </li>
+<li><b>romfs = verbatim | compress | compile</b>: ROMFS compilation mode, check <a href="arch_romfs.html#mode">here</a> for details (<b>new in 0.7</b>).</li>
+<li><b>boot = standard | luarpc</b>: Boot mode. 'standard' will boot to either a shell or lua interactive prompt. 'luarpc' boots with a waiting rpc server, using a UART & timer as specified in <a href="building.html#static">static configuration data</a> (<b>new in 0.7</b>).</li>
+</ul>
+<p>The output will be a file named elua_<i>[target]</i>_<i>[cpu]</i>.elf
+(and also another file with the same name but ending in .bin/.hex if
+"prog" was specified for platforms that need these files for
+programming).<br>
+If you want the equivalent of a "make clean", invoke "scons" as shown
+above, but add a "-c" at the end of the command line. "scons -c" is
+also recommended after you reconfigure your build image, as scons seems
+to "overlook" the changes to these files on some occasions.</p>
+<p><b>A few examples:</b></p>
+<pre><code>$ scons cpu=at91sam7x256 -c <br></code></pre>
+<p>Clear previously built intermediate files.</p>
+<pre><code>$ scons cpu=at91sam7x256<br></code></pre>
+<p>Build eLua for the AT91SAM7X256 CPU. The board name is
+detected as sam7-ex256.</p>
+<pre><code>$ scons board=sam7-ex256<br></code></pre>
+<p>Build eLua for the SAM7-EX256 board. The CPU is detected as
+AT91SAM7X256.</p>
+<pre><code>$ scons board=sam7-ex256 cpu=at91sam7x512<br></code></pre>
+<p>Build eLua for the SAM7-EX256 board, but "overwrite" the
+default CPU. This is useful when you'd like to see how the specified
+board would behave (in terms of resources) with a different CPU (in the
+case of the SAM7-EX256 board it's possible to switch the on-board
+AT91SAM7X256 CPU for an AT91SAM7X512 which has the same pinout but
+comes with more Flash/RAM memory).</p>
+<pre><code>$ scons cpu=lpc2888 prog </code></pre>
+<p>Build eLua for the lpc2888 CPU. The board name is detected as
+LPC-H2888. Also,
+the bin file required for target programming is generated. The
+allocator is automatically detected as "multiple".</p>
+<pre><code>$ scons cpu=lm3s8962 toolchain=codesourcery prog</code></pre>
+<p>Build the image for the Cortex LM3S8962 CPU, but use the
+CodeSourcery toolchain instead of the default toolchain (which is a
+"generic" ARM GCC toolchain, usually the one built by following
+the tutorials from this site.</p>
+$$FOOTER$$
+

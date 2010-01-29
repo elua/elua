@@ -1,0 +1,120 @@
+$$HEADER$$
+<h3>eLua version history</h3>
+<p>The table below presents the history of all official <b>eLua</b> releases (in reversed order, newest to oldest).</p>
+
+<table style="text-align: left" class="table_center">
+<tbody>
+<tr>
+<th style="text-align: left;">Version</th> 
+<th style="text-align: center;">Release date</th>
+<th style="text-align: center;">Description</th>
+</tr>
+<tr>
+<td align="center" style="color: rgb(255, 102, 0);">0.7</td>
+<td align="center">??.??.20??</td>
+<td>
+ <ul>
+  <li>Added the <a href="http://lua-users.org/wiki/EmergencyGarbageCollector">Lua EGC</a> (Emergency Garbage Collection) patch</li>
+  <li>Added generic and portable SD/MMC Card FAT File System support</li>
+  <li>Added <a href="http://fanplastic.org/2009/05/11/lua-rpc/">LuaRPC</a> support. Remote procedure calls in the embedded world</li>
+  <li>New eLua shell cat/type command, lists text file contents</li>
+  <li>Added support for <a href="http://www.olimex.com/dev/str-e912.html">Olimex STR-E912</a> board, ST Electronics STR912FW44X MCU</li>
+  <li>Added support for the <a href="http://www.giga.puc-rio.br/site/embedded/eluademoboard">PUC-Rio  eLua</a> board, NXP LPC2468 MCU</li>
+  <li>More portuguese content translations</li>
+  <li>ADC module and doc enhancements</li>
+</ul>
+</td>
+<tr>
+  <td align="center" style="color: rgb(255, 102, 0);">0.6</td>
+  <td align="center">06.10.2009</td>
+  <td>
+  <ul>
+  <li>License changed to MIT</li>
+  <li>Web page and documentation completely redesigned</li>
+  <li>Documentation available offline</li>
+  <li>Added support for AVR32 CPUs</li>
+  <li>Added support for STM32 Cortex-M3 CPUs</li>
+  <li>Added support for LM3S9Bxx Cortex-M2 CPUs</li>
+  <li>Added ADC module with support for moving average filters</li>
+  <li>Added support for multiple toolchains</li>
+  <li>Added an ls (or dir) shell command</li>
+  <li>Added new examples: pong, tetrives, spaceship (games), logo (graphics), adcpoll, adcscope (ADC operations)</li>
+  <li>Added the LTR (Lua Tiny RAM) patch</li>
+  <li>ROM FS content can be specified per board now</li>
+  <li>API semantic revisions (old code might not be compatible)</li>
+</ul>
+</td>
+</tr>
+<tr>
+  <td align="center" style="color: rgb(255, 102, 0);">0.5</td>
+  <td align="center">01.11.2008</td>
+  <td><ul>
+  <li>Added support for STR7 CPUs from ST</li>
+  <li>Added TCP/IP support using the uIP stack</li>
+  <li>Added support for console and shell over TCP/IP besides the previous serial link</li>
+  <li>Added the "net" module (eLua's interface to TCP/IP functions)</li>
+  <li>Added the "cpu" module (eLua's interface to the target CPU)</li>
+  <li>New samples: morse.lua (Morse code encoder), lhttpd.lua (Lua scripting HTTP server)</li>
+  <li>Added support for cross-compiling Lua code (compile on PC, run on target)</li>
+  <li>XMODEM can now receive Lua bytecode in addition to Lua source code</li>
+  <li>The XMODEM buffer is now dynamic (grows as needed) instead of fixed size</li>
+  <li>Project documentation updated</li>
+</ul></td>
+</tr>
+<tr>
+  <td align="center" style="color: rgb(255, 102, 0);">0.4.1</td>
+  <td align="center">10.09.2008</td>
+  <td><ul>
+  <li>changed from Lua version 5.1.3 to Lua version 5.1.4</li>
+  <li>Changed the file system structure; now you can build both Lua versions (floating point and int only) from the same directory</li>
+  <li>Made the math library configurable using the existent 'platform libraries' mechanism</li>
+  <li>The "os" and "package" modules are no longer loaded by Lua, since they can't be used anyway. Because of this, the code size of eLua was reduced.</li>
+  <li>Project documentation updated</li>
+</ul></td>
+</tr>
+<tr>
+  <td align="center" style="color: rgb(255, 102, 0);">0.4</td>
+  <td align="center">02.09.2008</td>
+  <td><ul>
+  <li>Added support for LPC2888 (preliminary)</li>
+  <li>Added PWM module</li>
+  <li>New samples: TV-B-Gone (power off your TV), piano (play piano from your PC keyboard), pwmled (fade led on/off), all based on the new PWM module</li>
+  <li>Added support for multiple memory spaces (this can be used to take advantage of both the internal CPU RAM and external RAM chips on boards that have external RAM)</li>
+  <li>Autorun: if "autorun.lua" is found in the filesystem, it is executed before starting the shell</li>
+  <li>Added "pack" (binary data packing/unpacking) and "bit" (binary operations) modules</li>
+  <li>Build system updated, easier to use, now it knows how to handle "boards" as well as CPUs</li>
+  <li>Modified the existing platform modules to take less RAM and to report an error when an unavailable resource is requested</li>
+  <li>Project documentation updated</li>
+</ul></td>
+</tr>
+<tr>
+  <td align="center" style="color: rgb(255, 102, 0);">0.3</td>
+  <td align="center">09.08.2008</td>
+  <td><ul>
+  <li>Now you can play hangman directly from <b>eLua</b> :), thanks to the new "term" module that handles ANSI escape sequences</li>
+  <li>Added support for ST STR912FAW44</li>
+  <li>Added support for Cortex LM3S6965</li>
+  <li>More intuitive and flexible build system (new syntax, component selection at build time)</li>
+  <li>eLua examples are now part of the repository</li>
+  <li>Project documentation updated</li>
+</ul></td>
+</tr>
+<tr>
+  <td align="center" style="color: rgb(255, 102, 0);">0.2</td>
+  <td align="center">27.08.2008</td>
+  <td><ul>
+  <li>Added support for Cortex LM3S8962</li>
+  <li>New platform modules (UART, SPI, Timer, platform data)</li>
+  <li>First release of the shell</li>
+  <li>Lua source files can now be sent to target with XMODEM</li>
+  <li>You can download binary file images from the "files" section, so you don't need to compile <b>eLua</b> yourself</li>
+</ul></td>
+</tr>
+<tr>
+  <td align="center" style="color: rgb(255, 102, 0);">0.1</td>
+  <td align="center">11.08.2008</td>
+  <td><ul><li>Initial release, had support for i386 and AT91SAM7X platform</li></ul></td>
+</tr>
+</tbody>
+</table>
+$$FOOTER$$

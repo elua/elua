@@ -1,0 +1,17 @@
+$$HEADER$$
+<h3>Installing <b>eLua</b> on the STR7 CPU family from ST</h3>
+ <p><a href="http://www.st.com/mcu/inchtml-pages-str7.html">STR7</a> is a family of ATM7TDMI based CPUs from <a href="http://www.st.com">ST</a>. They are small, low power MCUs, with a well balanced set of on-chip peripherals. I'm using the <a href="http://www.sctec.com.br/content/view/101/30/">MOD711</a> header board from <a href="http://www.sctec.com.br">ScTec</a>. The board is 
+based on this STR711FR2 variant of the STR7 family. Since this is not a full-fledged development board, I had to add a few things around it: a MAX3232 RS232 to TTL converter for the serial interface, a couple of LEDs and a reset button. After that, the board was ready for some <b>eLua</b> :) </p>
+ <h3>Prerequisites</h3> 
+ <p>Before you'll be able to use <b>eLua</b> on the STR711FR2 CPU, make sure that:</p>
+ <ul>
+ <li>you're using Linux, Windows, or any other OS that has support for <a href="http://openocd.berlios.de/web/">OpenOCD</a>. You might have a look at my <a href="tut_openocd.html">OpenOCD tutorial</a> before continuing.</li>
+ <li>you already have your <b>eLua</b> image for the STR711FR2 CPU (<a href="building.html">built</a> or <a href="downloads.html">downloaded</a>).</li>
+ </ul>
+ <h3>Burning <b>eLua</b> to the MOD711 board</h3>
+ <p>You need OpenOCD to do this. Just follow the instructions from my <a href="tut_openocd.html">OpenOCD tutorial </a>. On the tutorial page you'll also find links to the OpenOCD
+ configuration files that I'm using for burning <b>eLua</b> to the MOD711 board. And that's it! <b>eLua</b> is now programmed in the CPU, so you can start your terminal emulator and enjoy it, as described in <a href="using.html">using eLua</a>.</p>
+<p><b>IMPORTANT NOTE</b>: for this board you need to set your COM port speed to 38400 baud (as opposed to 115200 baud for the other boards). All the other parameters are the same (8 data bits,
+ no parity, one stop bit).</p>
+$$FOOTER$$
+

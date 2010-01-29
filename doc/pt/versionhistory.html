@@ -1,0 +1,123 @@
+$$HEADER$$
+<h3>Histórico das Versões de eLua</h3>
+
+<p>A tabela abaixo apresenta a histórico de todas as versões oficiais de <b>eLua</b> (em ordem inversa, da mais recente à mais antiga)..</p>
+<table style="text-align: left" class="table_center">
+<tbody>
+<tr>
+<th style="text-align: left;">Versão</th> 
+<th style="text-align: center;">Lançada em</th>
+<th style="text-align: center;">Descrição</th>
+</tr>
+<tr>
+  <td align="center" style="color: rgb(255, 102, 0);">##TODO</td>
+  <td align="center">##TODO.11.2009</td>
+  <td>
+  <ul>
+  <li>Adicionado suporte aos kits STR-E912</li>
+  <li>Exemplos alterados para suporte às STR-E912</li>
+  <li>Conteúdo da doc/site revisado e melhorado</li>
+  <li>Mais páginas em português</li>
+  <li>Novo m Módulo específico PIO para suporte à novidades dos STR9</li>
+  <li>Adicionado EGC (Emergency Garbage Collection) patch à Lua</li>
+  <li>(Adicionado suporte inicial à Rotinas de Tratamento de Interrupção em Lua)</li>
+  <li>(Adicionado suporte aos NXP LPC24xx)</li>
+  <li>(##Adicionado um FAT File System para cartões SD/MMC {pode não sair no
+  próximo minor release ainda})</li>
+</ul>
+</td>
+<tr>
+  <td align="center" style="color: rgb(255, 102, 0);">0.6</td>
+  <td align="center">06.10.2009</td>
+  <td>
+  <ul>
+  <li>Licença alterada para MIT</li>
+  <li>Estrutura do site/doc completamente redesenhada</li>
+  <li>Documentação incluída nas distros, para acesso offline</li>
+  <li>Adicionado suporte à CPUs AVR32</li>
+  <li>Adicionado suporte à CPUs STM32</li>
+  <li>Novo módulo ADC com suporte a filtros de média móvel</li>
+  <li>Adiconado suporte à múltiplos toolchains</li>
+  <li>Comando ls (ou dir) adicionado ao shell</li>
+  <li>Novos exemplos de código: pong, tetrives, spaceship (jogos), logo (gráficos), adcpoll, adcscope (módulo ADC)</li>
+  <li>Adicionado LTR (Lua Tiny RAM) patch à Lua, com grande ganho de memória</li>
+  <li>O conteúdo do ROM File System agora pode ser especificado por placa/kit</li>
+  <li>Semântica das funções da API revisada (pode exigir pequenas alterações de código anterior)</li>
+</ul>
+</td>
+</tr>
+<tr>
+  <td align="center" style="color: rgb(255, 102, 0);">0.5</td>
+  <td align="center">01.11.2008</td>
+  <td><ul>
+  <li>Adicionado suporte para CPUs STR7 da ST</li>
+  <li>Adicionado Suporte TCP/IP usando a pilha uIP</li>
+  <li>Adicionado suporte para a console e o shell sobre TCP/IP, além da já existente conexão serial</li>
+  <li>Adicionado o módulo "net" (interface de eLua para funções TCP/IP)</li>
+  <li>Adicionado o módulo CPU " (interface de eLua para a CPU corrente)</li>
+  <li>Novos exemplos: morse.lua (codificador de código Morse), lhttpd.lua (servidor HTTP em Lua)</li>
+  <li>Adicionado suporte para cross-compilar de código Lua (compile no PC e execute na sua placa)</li>
+  <li>A partir de agora, o protocolo XMODEM pode receber bytecode Lua além de código fonte Lua</li>
+  <li>O buffer do XMODEM agora é dinâmico (cresce conforme necessário) em vez de ter um tamanho fixo</li>
+  <li>A documentação do projeto foi atualizada</li>
+</ul></td>
+</tr>
+<tr>
+  <td align="center" style="color: rgb(255, 102, 0);">0.4.1</td>
+  <td align="center">10.09.2008</td>
+  <td><ul>
+
+
+  <li>alterada a versão de Lua de 5.1.3 para 5.1.4</li>
+  <li>alterada a estrutura do sistema de arquivos, agora você pode gerar as duas versões de Lua (ponto flutuante e inteiro) a partir do mesmo diretório</li>
+  <li>biblioteca matemática configurável usando o mecanismo já existente das "bibliotecas da plataforma"</li>
+  <li>Os módulos "os" e "package" não são mais carregados por Lua, já que não podem ser mais utilizados. Devido a isso, o tamanho do código de eLua foi reduzido.</li>
+  <li>A documentação do projeto foi atualizada</li>
+</ul></td>
+</tr>
+<tr>
+  <td align="center" style="color: rgb(255, 102, 0);">0.4</td>
+  <td align="center">02.09.2008</td>
+  <td><ul>
+  <li>Adicionado suporte para LPC2888 (preliminar)</li>
+  <li>Adicionado módulo PWM</li>
+  <li>Novos exemplos: TV-B-Gone (desliga sua TV), piano (toque piano do teclado de seu computador), pwmled (fade in/out), todos baseados no novo módulo PWM</li>
+  <li>Adicionado suporte para múltiplos espaços de memória (isso pode ser usado para tirar proveito de CPUs com memória RAM interna e chips com memória RAM externa na placa)</li>
+  <li>Autorun: se "autorun.lua" existir no sistema de arquivos, é executado automaticamente antes de iniciar o shell</li>
+  <li>Adicionado os móulos "pack" (compactação/descompactação de dados binário) e "bit" (operações binárias)</li>
+  <li>sistema de geração de <b>eLua</b> atualizado, fácil de usar, agora ele sabe como lidar com "placas", bem como CPUs</li>
+  <li>Modificado os módulos das plataformas já existentes para ocupar menos memória RAM e emitir um aviso de erro quando um recurso indisponível é solicitado</li>
+  <li>A documentação do projeto foi atualizada</li>
+</ul></td>
+</tr>
+<tr>
+  <td align="center" style="color: rgb(255, 102, 0);">0.3</td>
+  <td align="center">09.08.2008</td>
+  <td><ul>
+  <li>Agora você pode jogar "forca" diretamente de <b>eLua</b> :), graças ao novo módulo "term" que manipula seqüências de escape ANSI</li>
+  <li>Adicionado suporte para a ST STR912FAW44</li>
+  <li>Adicionado suporte para o Cortex LM3S6965</li>
+  <li>Sistema de geração de <b>eLua</b> mais intuitivo e flexível (nova sintaxe ,seleção de componentes em tempo de compilação)</li>
+  <li>Exemplos de eLua são agora parte do repositório</li>
+  <li>A documentação do projeto foi atualizada</li>
+</ul></td>
+</tr>
+<tr>
+  <td align="center" style="color: rgb(255, 102, 0);">0.2</td>
+  <td align="center">27.08.2008</td>
+  <td><ul>
+  <li>Adicionado suporte para o Cortex LM3S8962</li>
+  <li>Novos módulos de plataforma (UART, SPI, Timer, dados da plataforma)</li>
+  <li>Primeiro lançamento do shell</li>
+  <li>Arquivos fonte de Lua podem ser enviados para a placa com XMODEM</li>
+  <li>Pode-se baixar arquivos de imagem binários a partir da seção "files", dessa forma, não é necessário compilar <b>eLua</b></li>
+</ul></td>
+</tr>
+<tr>
+  <td align="center" style="color: rgb(255, 102, 0);">0.1</td>
+  <td align="center">11.08.2008</td>
+  <td><ul><li>Versão inicial, com suporte para as plataformas i386 e AT91SAM7X</li></ul></td>
+</tr>
+</tbody>
+</table>
+$$FOOTER$$
