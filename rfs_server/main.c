@@ -46,7 +46,7 @@ static void read_request_packet()
       flush_serial();
       continue;
     }
-      for(readbytes = 0; readbytes < 4; readbytes ++ ) printf( "%02X ", ( int )rfs_buffer[ readbytes ]); printf("\n");    
+
     if( remotefs_get_packet_size( rfs_buffer, &temp16 ) == REMOTEFS_ERR )
     {
       log_msg( "read_request_packet: ERROR getting packet size.\n" );

@@ -196,7 +196,7 @@ static int server_readdir( u8 *p )
       name = NULL;
     }
   }
-  log_msg( "server_readdir: OS response is fname = %s, fsize = %u", name, ( unsigned )fsize );
+  log_msg( "server_readdir: OS response is fname = %s, fsize = %u\n", name, ( unsigned )fsize );
   remotefs_readdir_write_response( p, name, fsize, 0 );
   return SERVER_OK;
 }

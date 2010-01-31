@@ -501,12 +501,12 @@ int remotefs_closedir_read_response( const u8 *p, int *pd )
 
 void remotefs_closedir_write_request( u8 *p, u32 d )
 {
-  remotefs_gen_write( p, "rl", RFS_OP_CLOSEDIR, d );
+  remotefs_gen_write( p, "ol", RFS_OP_CLOSEDIR, d );
 }
 
 int remotefs_closedir_read_request( const u8 *p, u32 *pd )
 {
-  return remotefs_gen_read( p, "rl", RFS_OP_CLOSEDIR, pd );
+  return remotefs_gen_read( p, "ol", RFS_OP_CLOSEDIR, pd );
 }
 
 
