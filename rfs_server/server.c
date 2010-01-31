@@ -41,12 +41,15 @@ static int server_open( u8 *p )
     log_msg( "server_open: unable to read request\n" );
     return SERVER_ERR;
   }
-  // Change all the flags to their regular counterpart
+  // Get real filename
   server_fullname[ 0 ] = server_fullname[ PLATFORM_MAX_FNAME_LEN ] = 0;
   strncpy( server_fullname, server_basedir, PLATFORM_MAX_FNAME_LEN );
-  if( server_fullname[ strlen( server_fullname ) - 1 ] != PLATFORM_PATH_SEPARATOR )
-    strncat( server_fullname, separator, PLATFORM_MAX_FNAME_LEN );
-  strncat( server_fullname, filename, PLATFORM_MAX_FNAME_LEN );
+  if( filename && strlen( filename ) > 0 )
+  {
+    if( server_fullname[ strlen( server_fullname ) - 1 ] != PLATFORM_PATH_SEPARATOR )
+      strncat( server_fullname, separator, PLATFORM_MAX_FNAME_LEN );
+    strncat( server_fullname, filename, PLATFORM_MAX_FNAME_LEN );
+  }
   log_msg( "server_open: full file path is %s\n", server_fullname ); 
   fd = os_open( server_fullname, flags, mode );
   log_msg( "server_open: OS file handler is %d\n", fd );
@@ -113,10 +116,10 @@ static int server_lseek( u8 *p )
   int fd, whence;
   s32 offset;
 
-  log_msg( "server_lseek: request handler starting" );
+  log_msg( "server_lseek: request handler starting\n" );
   if( remotefs_lseek_read_request( p, &fd, &offset, &whence ) == REMOTEFS_ERR )
   {
-    log_msg( "server_lseek: unable to read request" );
+    log_msg( "server_lseek: unable to read request\n" );
     return SERVER_ERR;
   }
   log_msg( "server_lseek: fd = %d, offset = %d, whence = %d\n", fd, ( int )offset, whence );
@@ -126,12 +129,102 @@ static int server_lseek( u8 *p )
   return SERVER_OK;
 }
 
+static int server_opendir( u8 *p )
+{
+  const char* name;
+  u32 d;
+  char separator[ 2 ] = { PLATFORM_PATH_SEPARATOR, 0 };
+
+  log_msg( "server_opendir: request handler starting\n" );
+  if( remotefs_opendir_read_request( p, &name ) == REMOTEFS_ERR )
+  {
+    log_msg( "server_opendir: unable to read request\n" );
+    return SERVER_ERR;
+  }
+  // Get real filename
+  server_fullname[ 0 ] = server_fullname[ PLATFORM_MAX_FNAME_LEN ] = 0;
+  strncpy( server_fullname, server_basedir, PLATFORM_MAX_FNAME_LEN );
+  if( name && strlen( name ) > 0 )
+  {
+    if( server_fullname[ strlen( server_fullname ) - 1 ] != PLATFORM_PATH_SEPARATOR )
+      strncat( server_fullname, separator, PLATFORM_MAX_FNAME_LEN );
+    strncat( server_fullname, name, PLATFORM_MAX_FNAME_LEN );
+  }
+  log_msg( "server_opendir: full dirname is %s\n", server_fullname );
+  d = os_opendir( server_fullname );
+  log_msg( "server_opendir: OS response is %08X\n", d );
+  remotefs_opendir_write_response( p, d );
+  return SERVER_OK;
+}
+
+static int server_readdir( u8 *p )
+{
+  const char* name;
+  u32 fsize, d;
+  int fd;
+  char separator[ 2 ] = { PLATFORM_PATH_SEPARATOR, 0 };
+
+  log_msg( "server_readdir: request handler starting\n" );
+  if( remotefs_readdir_read_request( p, &d ) == REMOTEFS_ERR )
+  {
+    log_msg( "server_readdir: unable to read request\n" );
+    return SERVER_ERR;
+  }
+  log_msg( "server_readdir: DIR = %08X\n", d );
+  os_readdir( d, &name );
+  if( name )
+  {
+    // Need to compute size now
+    // Get real filename
+    server_fullname[ 0 ] = server_fullname[ PLATFORM_MAX_FNAME_LEN ] = 0;
+    strncpy( server_fullname, server_basedir, PLATFORM_MAX_FNAME_LEN );
+    if( name && strlen( name ) > 0 )
+    {
+      if( server_fullname[ strlen( server_fullname ) - 1 ] != PLATFORM_PATH_SEPARATOR )
+        strncat( server_fullname, separator, PLATFORM_MAX_FNAME_LEN );
+      strncat( server_fullname, name, PLATFORM_MAX_FNAME_LEN );
+    }
+    fd = os_open( server_fullname, RFS_OPEN_FLAG_RDONLY, 0 );
+    if( fd )
+    {
+      fsize = os_lseek( fd, 0, RFS_LSEEK_END );
+      os_close( fd );
+    }
+    else
+    {
+      log_msg( "server_readdir: unable to open file %s\n", server_fullname );
+      name = NULL;
+    }
+  }
+  log_msg( "server_readdir: OS response is fname = %s, fsize = %u", name, ( unsigned )fsize );
+  remotefs_readdir_write_response( p, name, fsize, 0 );
+  return SERVER_OK;
+}
+
+static int server_closedir( u8 *p )
+{
+  u32 d;
+  int res;
+
+  log_msg( "server_closedir: request handler starting\n" );
+  if( remotefs_closedir_read_request( p, &d ) == REMOTEFS_ERR )
+  {
+    log_msg( "server_closedir: unable to read request\n" );
+    return SERVER_ERR;
+  }
+  log_msg( "server_closedir: DIR = %08X\n", d );
+  res = os_closedir( d );
+  log_msg( "server_closedir: OS response is %d\n", res );
+  remotefs_closedir_write_response( p, d );
+  return SERVER_OK;
+}
+
 // *****************************************************************************
 // Server public interface
 
 static const p_server_handler server_handlers[] = 
 { 
-  server_open, server_write, server_read, server_close, server_lseek
+  server_open, server_write, server_read, server_close, server_lseek, server_opendir, server_readdir, server_closedir
 };
 
 void server_setup( const char* basedir )

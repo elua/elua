@@ -11,16 +11,16 @@
 #define STDIN_FILENO 0
 #define STDOUT_FILENO 1
 
-void hostif_put(char c)
+void hostif_putc(char c)
 {
 	host_write(STDOUT_FILENO, &c, 1);
 }
 
-void hostif_write(const char *c)
+void hostif_putstr(const char *c)
 {
   int i = 0;
-  while (c[i])
-    hostif_put(c[i++]);
+  while( c[ i ] )
+    hostif_putc( c[ i++ ] );
 }
 
 int hostif_getch()
@@ -42,5 +42,25 @@ void* hostif_getmem( unsigned size )
 void hostif_exit()
 {
   host_exit( 0 );
+}
+
+int hostif_open( const char* name, int flags, unsigned mode )
+{
+  return host_open( name, flags, ( mode_t )mode );
+}
+
+int hostif_read( int fd, void *buf, unsigned count )
+{
+  return ( int )host_read( fd, buf, ( size_t )count );
+}
+
+int hostif_write( int fd, const void *buf, unsigned count )
+{
+  return ( int )host_write( fd, buf, ( size_t )count );
+}
+
+int hostif_close( int fd )
+{
+  return host_close( fd );
 }
 

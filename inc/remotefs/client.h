@@ -21,6 +21,9 @@ s32 rfsc_write( int fd, const void *buf, u32 count );
 s32 rfsc_read( int fd, void *buf, u32 count );
 s32 rfsc_lseek( int fd, s32 offset, int whence );
 int rfsc_close( int fd );
+u32 rfsc_opendir( const char* name );
+void rfsc_readdir( u32 d, const char **pname, u32 *psize, u32 *ptime );
+int rfsc_closedir( u32 d );
 
 #endif
 

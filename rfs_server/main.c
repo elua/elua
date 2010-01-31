@@ -40,15 +40,16 @@ static void read_request_packet()
   while( 1 )
   {
     // First read the length
-    if( ser_read( ser, rfs_buffer, RFS_START_OFFSET ) != RFS_START_OFFSET )
+    if( ( readbytes = ser_read( ser, rfs_buffer, RFS_START_OFFSET ) ) != RFS_START_OFFSET )
     {
-      log_msg(  "read_request_packet: ERROR reading packet length\n" );
+      log_msg( "read_request_packet: ERROR reading packet length. Requested %d bytes, got %d bytes\n", RFS_START_OFFSET, readbytes );
       flush_serial();
       continue;
     }
+      for(readbytes = 0; readbytes < 4; readbytes ++ ) printf( "%02X ", ( int )rfs_buffer[ readbytes ]); printf("\n");    
     if( remotefs_get_packet_size( rfs_buffer, &temp16 ) == REMOTEFS_ERR )
     {
-      log_msg(  "read_request_packet: ERROR getting packet size\n" );
+      log_msg( "read_request_packet: ERROR getting packet size.\n" );
       flush_serial();
       continue;
     }
@@ -72,7 +73,10 @@ static void send_response_packet()
 
   // Send request
   if( remotefs_get_packet_size( rfs_buffer, &temp16 ) != REMOTEFS_ERR )
+  {
+    log_msg( "send_response_packet: sending response packet of %u bytes\n", ( unsigned )temp16 );
     ser_write( ser, rfs_buffer, temp16 );
+  }
 }
 
 // Secure atoi
@@ -109,7 +113,7 @@ int main( int argc, const char **argv )
   
   if( argc < 4 )
   {
-    fprintf( stderr, "Usage: rfs_server <port> <speed> <dirname> [-v]\n" );
+    fprintf( stderr, "Usage: %s <port> <speed> <dirname> [-v]\n", argv[ 0 ] );
     fprintf( stderr, "(use -v for verbose output).\n");
     return 1;
   }
@@ -127,7 +131,7 @@ int main( int argc, const char **argv )
     log_init( LOG_ALL );
   else
     log_init( LOG_NONE );
-  
+
   // Setup RFS server
   server_setup( argv[ DIRNAME_ARG_IDX ] );
   

@@ -7,6 +7,10 @@
 #include "remotefs.h"
 #include "client.h"
 #include "buf.h"
+#include <fcntl.h>
+#ifdef ELUA_SIMULATOR
+#include "hostif.h"
+#endif
 #include <stdio.h>
 
 #ifdef BUILD_RFS
@@ -17,6 +21,10 @@
 // bytes. Computed this to be large enough for a WRITE request.
 #define RFS_REAL_BUFFER_SIZE      ( ( 1 << RFS_BUFFER_SIZE ) - RFS_WRITE_REQUEST_EXTRA )
 static u8 rfs_buffer[ 1 << RFS_BUFFER_SIZE ];
+
+#ifdef ELUA_SIMULATOR
+static int rfs_read_fd, rfs_write_fd;
+#endif
 
 static int rfs_open_r( struct _reent *r, const char *path, int flags, int mode )
 {
@@ -80,9 +88,33 @@ static off_t rfs_lseek_r( struct _reent *r, int fd, off_t off, int whence )
   return ( off_t )rfsc_lseek( fd, ( s32 )off, whence );
 }
 
+// opendir
+static void* rfs_opendir_r( struct _reent *r, const char* name )
+{
+  return ( void* )rfsc_opendir( name );
+}
+
+// readdir
+static struct dm_dirent* rfs_readdir_r( struct _reent *r, void *d )
+{
+  static struct dm_dirent ent;
+
+  rfsc_readdir( ( u32 )d, &ent.fname, &ent.fsize, &ent.ftime );
+  if( ent.fname == NULL )
+    return NULL;
+  return &ent;
+}
+
+// closedir
+static int rfs_closedir_r( struct _reent *r, void *d )
+{
+  return rfsc_closedir( ( u32 )d );
+}
+
 // ****************************************************************************
 // Remote FS serial transport functions
 
+#ifdef RFS_UART_ID
 static u32 rfs_send( const u8 *p, u32 size )
 {
   unsigned i;
@@ -107,26 +139,55 @@ static u32 rfs_recv( u8 *p, u32 size, u32 timeout )
   }
   return cnt;
 }
+#endif
+
+// ****************************************************************************
+// Remote FS pipe transport functions (used only in simulator)
+
+#ifdef ELUA_CPU_LINUX
+static u32 rfs_send( const u8 *p, u32 size )
+{
+  return ( u32 )hostif_write( rfs_write_fd, p, size );
+}
+
+static u32 rfs_recv( u8 *p, u32 size, u32 timeout )
+{
+  timeout = timeout;
+  return ( u32 )hostif_read( rfs_read_fd, p, size );
+}
+#endif
 
 // Our remote file system device descriptor structure
 static const DM_DEVICE rfs_device = 
 {
   "/rfs",
-  rfs_open_r,  
-  rfs_close_r, 
-  rfs_write_r,
-  rfs_read_r,
-  rfs_lseek_r,
-  NULL
+  rfs_open_r,           // open
+  rfs_close_r,          // close
+  rfs_write_r,          // write
+  rfs_read_r,           // read
+  rfs_lseek_r,          // lseek
+  rfs_opendir_r,        // opendir
+  rfs_readdir_r,        // readdir
+  rfs_closedir_r,       // closedir
 };
 
 const DM_DEVICE *remotefs_init()
 {
-#ifdef RFS_UART_SPEED
+#if defined( RFS_UART_ID ) && defined( RFS_UART_SPEED )
   // Initialize RFS UART
   platform_uart_setup( RFS_UART_ID, RFS_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
   // [TODO] this isn't exactly right
   buf_set( BUF_ID_UART, RFS_UART_ID, RFS_BUFFER_SIZE, BUF_DSIZE_U8 ); 
+#endif
+#ifdef ELUA_CPU_LINUX 
+  // Open our read/write pipes
+  rfs_read_fd = hostif_open( RFS_SRV_WRITE_PIPE, O_RDONLY, 0 );
+  rfs_write_fd = hostif_open( RFS_SRV_READ_PIPE, O_WRONLY, 0 );
+  if( rfs_read_fd == -1 || rfs_write_fd == -1 )
+  {
+    hostif_putstr( "unable to open read/write pipes\n" );
+    return NULL;
+  }
 #endif
   rfsc_setup( rfs_buffer, rfs_send, rfs_recv, RFS_TIMEOUT );
   return &rfs_device;

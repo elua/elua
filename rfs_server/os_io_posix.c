@@ -5,6 +5,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <dirent.h>
+#include <string.h>
 #include "os_io.h"
 #include "remotefs.h"
 
@@ -104,5 +106,40 @@ int os_isdir( const char* name )
     return 0;
   else
     return S_ISDIR( res.st_mode );
+}
+
+u32 os_opendir( const char* name )
+{
+  if( name || strlen( name ) == 0 || ( strlen( name ) == 1 && !strcmp( name, "/" ) ) )
+    return ( u32 )opendir( name );
+  return 0;
+}
+
+void os_readdir( u32 d, const char **pname )
+{
+  struct dirent *ent;
+  static char realname[ RFS_MAX_FNAME_SIZE + 1 ]; 
+
+  while( 1 )
+  {
+    ent = readdir( ( DIR* )d );
+    if( ent == NULL )
+    {
+      *pname = NULL;
+      break;
+    }
+    if( ent->d_type & DT_REG )
+    {
+      realname[ 0 ] = realname[ RFS_MAX_FNAME_SIZE ] = '\0';
+      strncpy( realname, ent->d_name, RFS_MAX_FNAME_SIZE );
+      *pname = realname;
+      break;
+    }
+  }
+}
+
+int os_closedir( u32 d )
+{
+  return closedir( ( DIR* )d );
 }
 

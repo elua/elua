@@ -39,7 +39,6 @@ typedef struct
   
 // FS functions
 const DM_DEVICE* romfs_init();
-u32 romfs_get_dir_entry( u32 offset, char *fname, u16 *fsize );
 
 #endif
 

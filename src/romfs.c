@@ -153,38 +153,62 @@ static off_t romfs_lseek_r( struct _reent *r, int fd, off_t off, int whence )
   return newpos;
 }
 
+// Directory operations
+static u32 romfs_dir_data = 0;
+
+// opendir
+static void* romfs_opendir_r( struct _reent *r, const char* dname )
+{
+  if( !dname || strlen( dname ) == 0 || ( strlen( dname ) == 1 && !strcmp( dname, "/" ) ) )
+  {
+    romfs_dir_data = 0;
+    return &romfs_dir_data;
+  }
+  return NULL;
+}
+
+// readdir
+static char romfs_dirent_name[ MAX_FNAME_LENGTH + 1 ]; 
+static struct dm_dirent* romfs_readdir_r( struct _reent *r, void *d )
+{
+  u32 off = *( u32* )d;
+  static struct dm_dirent ent;
+  unsigned j = 0;
+  
+  if( romfs_read( off ) == 0 )
+    return NULL;
+  while( ( romfs_dirent_name[ j ++ ] = romfs_read( off ++ ) ) != '\0' );
+  ent.fname = romfs_dirent_name;
+  ent.fsize = romfs_read( off ) + ( romfs_read( off + 1 ) << 8 );
+  ent.ftime = 0;
+  *( u32* )d = off + 2 + ent.fsize;
+  return &ent;
+}
+
+// closedir
+static int romfs_closedir_r( struct _reent *r, void *d )
+{
+  *( u32* )d = 0;
+  return 0;
+}
+
 // Our ROMFS device descriptor structure
 static const DM_DEVICE romfs_device = 
 {
   "/rom",
-  romfs_open_r,  
-  romfs_close_r, 
-  romfs_write_r,
-  romfs_read_r,
-  romfs_lseek_r,
-  NULL
+  romfs_open_r,         // open
+  romfs_close_r,        // close
+  romfs_write_r,        // write
+  romfs_read_r,         // read
+  romfs_lseek_r,        // lseek
+  romfs_opendir_r,      // opendir
+  romfs_readdir_r,      // readdir
+  romfs_closedir_r      // closedir
 };
 
 const DM_DEVICE* romfs_init()
 {
   return &romfs_device;
-}
-
-// Retrieves file name and size from ROMFS entry at romfiles[offset]
-// Returns the next file entry offset or null on last entry
-u32 romfs_get_dir_entry( u32 offset, char *fname, u16 *fsize )
-{
-  u32 i = offset;
-  unsigned j = 0;
-  
-  if ( romfs_read( i ) != 0 )
-  {
-    while( ( fname[ j++ ] = romfs_read( i++ ) ) );
-    *fsize = romfs_read( i ) + ( romfs_read( i + 1 ) << 8 );
-    return i + 2 + *fsize;
-  }
-  else
-    return 0;  
 }
 
 #else // #ifdef BUILD_ROMFS

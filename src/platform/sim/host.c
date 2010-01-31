@@ -4,6 +4,8 @@
 #define __NR_write    4
 #define __NR_mmap2    192
 #define __NR_exit     1
+#define __NR_open     5 
+#define __NR_close    6
 
 int host_errno = 0;
 
@@ -52,6 +54,8 @@ __asm__ volatile ("push %%ebp ; movl %%eax,%%ebp ; movl %1,%%eax ; int $0x80 ; p
 
 _syscall3(ssize_t, read, int, fd, void *, buf, size_t, count);
 _syscall3(ssize_t, write, int, fd, const void *, buf, size_t, count);
+_syscall3(int, open, const char*, pathname, int, flags, mode_t, mode);
 _syscall6(void *,mmap2, void *,addr, size_t, length, int, prot, int, flags, int, fd, off_t, offset);
 _syscall1(void, exit, int, status);
+_syscall1(int, close, int, status);
 

@@ -463,6 +463,7 @@ void* platform_get_last_free_ram( unsigned id )
 
 // ****************************************************************************
 // Misc support
+
 unsigned int intlog2( unsigned int v )
 {
   unsigned r = 0;

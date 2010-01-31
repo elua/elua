@@ -3,8 +3,12 @@
 #include <string.h>
 #include <stdio.h>
 #include <fcntl.h>
+#include <reent.h>
+#include <errno.h>
+#include <stdlib.h>
 #include "devman.h"
 #include "genstd.h"
+#include "common.h"
 #include "platform_conf.h"
 
 static DM_DEVICE dm_list[ DM_MAX_DEVICES ];           // list of devices
@@ -33,6 +37,28 @@ int dm_register( const DM_DEVICE *pdev )
   memcpy( dm_list + dm_num_devs, pdev, sizeof( DM_DEVICE ) );
   dm_num_devs ++;
   return dm_num_devs - 1;
+}
+
+// Helper: get a device ID from its name
+// Also return a pointer to the remaining part of the name as side effect
+static int dm_device_id_from_name( const char* name, const char **rest )
+{
+  unsigned i, pos;
+  unsigned matchlen = 0;
+
+  if( rest )
+    *rest = NULL;
+  for( i = pos = 0; i < dm_num_devs; i ++ )
+    if( !strncasecmp( name, dm_list[ i ].name, strlen( dm_list[ i ].name ) ) && strlen( dm_list[ i ].name ) > matchlen )
+    {
+      matchlen = strlen( dm_list[ i ].name );
+      pos = i;
+    }
+  if( matchlen == 0 )
+    return DM_ERR_NO_DEVICE;
+  if( rest )
+    *rest = name + strlen( dm_list[ pos ].name );
+  return pos;
 }
 
 // Unregister a device
@@ -83,3 +109,75 @@ int dm_init()
 #endif
   return DM_OK;
 }
+
+// Open a directory and return its descriptor
+DM_DIR* dm_opendir( const char* dirname )
+{
+  const char* rest;
+  const DM_DEVICE *pdev;
+  DM_DIR *d;
+  int pos;
+  void *data;
+
+  if( ( pos = dm_device_id_from_name( dirname, &rest ) ) == DM_ERR_NO_DEVICE )
+  {
+    _REENT->_errno = ENOSYS;
+    return NULL;
+  }
+  pdev = dm_list + pos;
+  if( pdev->p_opendir_r == NULL )
+  {
+    _REENT->_errno = ENOSYS;
+    return NULL;
+  }
+  if( ( data = pdev->p_opendir_r( _REENT, rest ) ) == NULL )
+    return NULL;
+  if( ( d = malloc( sizeof( DM_DIR ) ) ) == NULL )
+  {
+    _REENT->_errno = ENOMEM;
+    return NULL;
+  }
+  d->devid = pos;
+  d->userdata = data;
+  return d;
+}
+
+// Read the next directory entry from the directory descriptor
+struct dm_dirent* dm_readdir( DM_DIR *d )
+{
+  const DM_DEVICE *pdev;
+
+  if( d->devid < 0 || d->devid >= dm_num_devs )
+  {
+    _REENT->_errno = EBADF;
+    return NULL;
+  }
+  pdev = dm_list + d->devid;
+  if( pdev->p_readdir_r == NULL )
+  {
+    _REENT->_errno = EBADF;
+    return NULL;
+  }
+  return pdev->p_readdir_r( _REENT, d->userdata );
+}
+
+// Close a directory descriptor
+int dm_closedir( DM_DIR *d )
+{
+  int res = -1;
+  const DM_DEVICE *pdev;
+
+  if( d->devid < 0 || d->devid >= dm_num_devs )
+  {
+    _REENT->_errno = EBADF;
+    return -1;
+  }
+  pdev = dm_list + d->devid;
+  if( pdev )
+    res = pdev->p_closedir_r( _REENT, d->userdata );
+  else
+    _REENT->_errno = EBADF;
+  free( d );
+  return res;
+}
+

@@ -8,8 +8,10 @@
 
 extern int host_errno;
 
-ssize_t host_read( int fd, void * buf, size_t count);
-ssize_t host_write( int fd, const void * buf, size_t count);
+ssize_t host_read( int fd, void * buf, size_t count );
+ssize_t host_write( int fd, const void * buf, size_t count );
+int host_open( const char *name, int flags, mode_t mode );
+int host_close( int fd );
 
 #define PROT_READ 0x1   /* Page can be read.  */
 #define PROT_WRITE  0x2   /* Page can be written.  */
@@ -20,6 +22,10 @@ ssize_t host_write( int fd, const void * buf, size_t count);
 #define MAP_PRIVATE 0x02    /* Changes are private.  */
 #define MAP_FIXED 0x10    /* Interpret addr exactly.  */
 #define MAP_ANONYMOUS  0x20    /* Don't use a file.  */
+
+// Flags for "open"
+#define O_RDONLY	     00
+#define O_WRONLY	     01
 
 #define MAP_FAILED (void *)(-1)
 

@@ -12,6 +12,7 @@
 #include "platform.h"
 #include "elua_net.h"
 #include "romfs.h"
+#include "devman.h"
 
 #include "platform_conf.h"
 #ifdef BUILD_SHELL
@@ -170,25 +171,37 @@ static void shell_ver( char* args )
 // 'ls' and 'dir' handler
 static void shell_ls( char* args )
 {
-  u32 offset = 0;
-  char fname[ MAX_FNAME_LENGTH + 1 ];
-  unsigned i;
-  u16 size;
-  u32 total = 0;
-  
-  args = args;
-  printf( "\n/rom" );
-  while ( ( offset = romfs_get_dir_entry( offset, fname, &size ) ) ) 
-  {
-    printf( "\n%s", fname );
-    for( i = strlen( fname ); i <= MAX_FNAME_LENGTH; i++ )
-      printf( " " );
-    printf( "%u bytes", ( unsigned )size );
-    total = total + size;
-  }   
-  printf( "\n\nTotal = %u bytes\n\n", ( unsigned )total );
-}
+  const DM_DEVICE *pdev;
+  unsigned dev, i;
+  DM_DIR *d;
+  struct dm_dirent *ent;
+  u32 total;
 
+  // Iterate through all devices, looking for the ones that can do "opendir"
+  for( dev = 0; dev < dm_get_num_devices(); dev ++ )
+  {  
+    pdev = dm_get_device_at( dev );
+    if( pdev->p_opendir_r == NULL || pdev->p_readdir_r == NULL || pdev->p_closedir_r == NULL )
+      continue;
+    d = dm_opendir( pdev->name );
+    if( d )
+    {
+      total = 0;
+      printf( "\n%s", pdev->name );
+      while( ( ent = dm_readdir( d ) ) != NULL )
+      {
+        printf( "\n%s", ent->fname );
+        for( i = strlen( ent->fname ); i <= MAX_FNAME_LENGTH; i++ )
+          printf( " " );
+        printf( "%u bytes", ( unsigned )ent->fsize );
+        total = total + ent->fsize;
+      }
+      printf( "\n\nTotal on %s: %u bytes\n", pdev->name, ( unsigned )total );
+      dm_closedir( d );
+    }
+  }   
+  printf( "\n" );
+}
 
 // 'cat' and 'type' handler
 static void shell_cat( char *args )
@@ -197,15 +210,18 @@ static void shell_cat( char *args )
   int c;
   char *p;
 
-// *args has an appended space. Replace it with the string terminator.
-//  *(strchr( args, ' ' )) = 0;
+  // *args has an appended space. Replace it with the string terminator.
+  //  *(strchr( args, ' ' )) = 0;
   if ( *args )
-    while ( *args ) {
+    while ( *args ) 
+    {
       p = strchr( args, ' ' );
       *p = 0;
-      if( ( fp = fopen( args , "rb" ) ) != NULL ) {
+      if( ( fp = fopen( args , "rb" ) ) != NULL ) 
+      {
         c = fgetc( fp );
-        while( c != EOF ) {
+        while( c != EOF ) 
+        {
           printf("%c", (char) c );  
           c = fgetc( fp );
         }
@@ -218,9 +234,6 @@ static void shell_cat( char *args )
   else
       printf( "Usage: cat (or type) <filename1> [<filename2> ...]\n" );
 }    
-
-
-
 
 // Insert shell commands here
 static const SHELL_COMMAND shell_commands[] = 

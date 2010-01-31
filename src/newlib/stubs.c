@@ -146,29 +146,6 @@ off_t _lseek_r( struct _reent *r, int file, off_t off, int whence )
 }
 
 // *****************************************************************************
-// ioctl (actually our call, not newlib's)
-static int _ioctl_r( struct _reent *r, int file, unsigned long request, void *ptr )
-{
-  const DM_DEVICE* pdev;
-  
-  // Find device, check ioctl function
-  pdev = dm_get_device_at( DM_GET_DEVID( file ) );
-  if( pdev->p_ioctl_r == NULL )
-  {
-    r->_errno = ENOSYS;
-    return -1; 
-  }
-  
-  // And call the ioctl function
-  return pdev->p_ioctl_r( r, DM_GET_FD( file ), request, ptr );  
-}
-
-int ioctl( int file, unsigned long request, void *ptr )
-{
-  return _ioctl_r( _REENT, file, request, ptr );
-}
-
-// *****************************************************************************
 // _read_r 
 _ssize_t _read_r( struct _reent *r, int file, void *ptr, size_t len )
 {

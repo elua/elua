@@ -6,6 +6,7 @@
 #include "auxmods.h"
 #include "type.h"
 #include "stacks.h"
+#include "buf.h"
 
 // *****************************************************************************
 // Define here what components you want for this platform
@@ -14,6 +15,7 @@
 #define BUILD_ROMFS
 #define BUILD_CON_GENERIC
 #define BUILD_TERM
+#define BUILD_RFS
 
 #define TERM_LINES    25
 #define TERM_COLS     80
@@ -63,5 +65,9 @@ extern void *memory_end_address;
 #define MEM_LENGTH (1024 * 1024)
 #define MEM_START_ADDRESS     { ( void* )memory_start_address }
 #define MEM_END_ADDRESS       { ( void* )memory_end_address }
+
+// RFS configuration
+#define RFS_TIMEOUT           0 // dummy, always blocking by implementation
+#define RFS_BUFFER_SIZE       BUF_SIZE_512
 
 #endif // #ifndef __PLATFORM_CONF_H__
