@@ -34,8 +34,8 @@ else:
 local_include = "-Irfs_server -Iinc/remotefs"
 
 # Compiler/linker options
-cccom = "gcc -O0 -g %s -Wall %s -c $SOURCE -o $TARGET" % ( local_include, cdefs )
-linkcom = "gcc -o $TARGET $SOURCES"
+cccom = "gcc -m32 -O0 -g %s -Wall %s -c $SOURCE -o $TARGET" % ( local_include, cdefs )
+linkcom = "gcc -m32 -o $TARGET $SOURCES"
 
 # Env for building the program
 comp = Environment( CCCOM = cccom,
