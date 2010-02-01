@@ -22,13 +22,14 @@
 #define BUILD_CON_GENERIC
 #define BUILD_ADC
 #define BUILD_RPC
+#define BUILD_RFS
 //#define BUILD_CON_TCP
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 
-#define CON_UART_ID           0
-#define CON_UART_SPEED        115200
+#define CON_UART_ID           2
+#define CON_UART_SPEED        19200
 #define CON_TIMER_ID          0
 #define TERM_LINES            25
 #define TERM_COLS             80
@@ -154,6 +155,13 @@ u32 platform_s_cpu_get_frequency();
 // #define PIO_PIN_ARRAY { n1, n2, ... } to define pins per port in an array
 // Use #define PIO_PINS_PER_PORT 0 if this isn't needed
 #define PIO_PINS_PER_PORT     16
+
+// Remote file system data
+#define RFS_BUFFER_SIZE       BUF_SIZE_512
+#define RFS_UART_ID           0
+#define RFS_TIMER_ID          0
+#define RFS_TIMEOUT           100000
+#define RFS_UART_SPEED        115200
 
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)

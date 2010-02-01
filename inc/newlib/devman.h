@@ -5,6 +5,7 @@
 
 #include "type.h"
 #include <reent.h>
+#include <unistd.h>
 
 // Maximum number of devices in the system
 #define DM_MAX_DEVICES        16
@@ -12,6 +13,9 @@
 
 // Maximum number of a device name
 #define DM_MAX_DEV_NAME       12
+
+// GLOBAL maximum file length (on ALL supported filesystem)
+#define DM_MAX_FNAME_LENGTH   30
 
 // Pack/unpack descriptions
 // Even if a file descriptor is an 'int', newlib treats it as a short, so we need to stuff
@@ -25,6 +29,17 @@
 #define DM_STDOUT_NUM             1
 #define DM_STDERR_NUM             2
 
+// Our platform independent "dirent" structure (for opendir/readdir)
+struct dm_dirent {
+  u32 fsize;
+  const char *fname;
+  u32 ftime;
+};
+typedef struct {
+  u8 devid;
+  void *userdata;
+} DM_DIR;
+
 // A device structure with pointers to all the device functions
 typedef struct
 {
@@ -33,7 +48,10 @@ typedef struct
   int ( *p_close_r )( struct _reent *r, int fd );
   _ssize_t ( *p_write_r ) ( struct _reent *r, int fd, const void *ptr, size_t len );
   _ssize_t ( *p_read_r )( struct _reent *r, int fd, void *ptr, size_t len );  
-  int ( *p_ioctl_r )( struct _reent *r, int file, unsigned long request, void *ptr );  
+  off_t ( *p_lseek_r )( struct _reent *r, int fd, off_t off, int whence );
+  void* ( *p_opendir_r )( struct _reent *r, const char* name );
+  struct dm_dirent* ( *p_readdir_r )( struct _reent *r, void *dir );  
+  int ( *p_closedir_r )( struct _reent *r, void* dir );  
 } DM_DEVICE;
 
 // Errors
@@ -41,10 +59,11 @@ typedef struct
 #define DM_ERR_NOT_REGISTERED       (-2)
 #define DM_ERR_NO_SPACE             (-3)
 #define DM_ERR_INVALID_NAME         (-4)
+#define DM_ERR_NO_DEVICE            (-5)
 #define DM_OK                       (0)
 
 // Add a device
-int dm_register( DM_DEVICE *pdev );
+int dm_register( const DM_DEVICE *pdev );
 // Unregister a device
 int dm_unregister( const char* name );
 // Get a device entry
@@ -54,4 +73,10 @@ int dm_get_num_devices();
 // Initialize device manager
 int dm_init();
 
+// DM specific functions (uniform over all the installed filesystems)
+DM_DIR *dm_opendir( const char* dirname );
+struct dm_dirent* dm_readdir( DM_DIR *d );
+int dm_closedir( DM_DIR *d );
+
 #endif
+

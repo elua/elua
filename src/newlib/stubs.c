@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <unistd.h>
 #include "devman.h"
 #include "ioctl.h"
 #include "platform.h"
@@ -127,26 +128,21 @@ int _fstat_r( struct _reent *r, int file, struct stat *st )
 }
 
 // *****************************************************************************
-// ioctl (actually our call, not newlib's)
-static int _ioctl_r( struct _reent *r, int file, unsigned long request, void *ptr )
+// _lseek_r
+off_t _lseek_r( struct _reent *r, int file, off_t off, int whence )
 {
   const DM_DEVICE* pdev;
   
-  // Find device, check ioctl function
+  // Find device, check close function
   pdev = dm_get_device_at( DM_GET_DEVID( file ) );
-  if( pdev->p_ioctl_r == NULL )
+  if( pdev->p_lseek_r == NULL )
   {
     r->_errno = ENOSYS;
     return -1; 
   }
   
-  // And call the ioctl function
-  return pdev->p_ioctl_r( r, DM_GET_FD( file ), request, ptr );  
-}
-
-int ioctl( int file, unsigned long request, void *ptr )
-{
-  return _ioctl_r( _REENT, file, request, ptr );
+  // And call the close function
+  return pdev->p_lseek_r( r, DM_GET_FD( file ), off, whence );
 }
 
 // *****************************************************************************
@@ -183,21 +179,6 @@ _ssize_t _write_r( struct _reent *r, int file, const void *ptr, size_t len )
   
   // And call the write function
   return pdev->p_write_r( r, DM_GET_FD( file ), ptr, len );  
-}
-
-// *****************************************************************************
-// _lseek_r
-_off_t _lseek_r( struct _reent *r, int file, _off_t ptr, int dir )
-{
-  struct fd_seek seek;
-    
-  seek.off = ptr;
-  seek.dir = dir;
-  
-  if( ioctl( file, FDSEEK, &seek ) < 0 ) 
-    return (_off_t)-1;
-  else
-    return seek.off;
 }
 
 // ****************************************************************************

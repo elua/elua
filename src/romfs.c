@@ -4,12 +4,12 @@
 #include <string.h>
 #include <errno.h>
 #include "devman.h"
+#include "romfiles.h"
 #include <stdio.h>
 #include "ioctl.h"
 
 #include "platform_conf.h"
 #ifdef BUILD_ROMFS
-#include "romfiles.h"
 
 #define ROMFS_MAX_FDS   4
 #define fsmin( x , y ) ( ( x ) < ( y ) ? ( x ) : ( y ) )
@@ -42,7 +42,7 @@ static void romfs_close_fd( int fd )
 u8 romfs_open_file( const char* fname, p_read_fs_byte p_read_func, FS* pfs )
 {
   u32 i, j;
-  char fsname[ MAX_FNAME_LENGTH + 1 ];
+  char fsname[ DM_MAX_FNAME_LENGTH + 1 ];
   u16 fsize;
   
   // Look for the file
@@ -50,7 +50,7 @@ u8 romfs_open_file( const char* fname, p_read_fs_byte p_read_func, FS* pfs )
   while( 1 )
   {
     // Read file name
-    for( j = 0; j < MAX_FNAME_LENGTH; j ++ )
+    for( j = 0; j < DM_MAX_FNAME_LENGTH; j ++ )
     {
       fsname[ j ] = p_read_func( i + j );
       if( fsname[ j ] == 0 )
@@ -65,7 +65,7 @@ u8 romfs_open_file( const char* fname, p_read_fs_byte p_read_func, FS* pfs )
     j = i + j + 1;
     // And read the size   
     fsize = p_read_func( j ) + ( p_read_func( j + 1 ) << 8 );
-    if( !strncasecmp( fname, fsname, MAX_FNAME_LENGTH ) )
+    if( !strncasecmp( fname, fsname, DM_MAX_FNAME_LENGTH ) )
     {
       // Found the file
       pfs->baseaddr = j + 2;
@@ -124,78 +124,97 @@ static _ssize_t romfs_read_r( struct _reent *r, int fd, void* ptr, size_t len )
   return actlen;
 }
 
-// IOCTL: only fseek
-static int romfs_ioctl_r( struct _reent *r, int fd, unsigned long request, void *ptr )
+// lseek
+static off_t romfs_lseek_r( struct _reent *r, int fd, off_t off, int whence )
 {
-  struct fd_seek *pseek = ( struct fd_seek* )ptr;
   FS* pfs = romfs_fd_table + fd;   
   u32 newpos = 0;
   
-  if( request == FDSEEK )
+  switch( whence )
   {
-    switch( pseek->dir )
-    {
-      case SEEK_SET:
-        newpos = pseek->off;
-        break;
-        
-      case SEEK_CUR:
-        newpos = pfs->offset + pseek->off;
-        break;
-        
-      case SEEK_END:
-        newpos = pfs->size + pseek->off;
-        break;
-        
-      default:
-        return -1;
-    }    
-    if( newpos > pfs->size )
+    case SEEK_SET:
+      newpos = off;
+      break;
+      
+    case SEEK_CUR:
+      newpos = pfs->offset + off;
+      break;
+      
+    case SEEK_END:
+      newpos = pfs->size + off;
+      break;
+      
+    default:
       return -1;
-    pfs->offset = newpos;      
-    pseek->off = newpos;
-    return 0;
-  }
-  else
-    return -1;  
+  }    
+  if( newpos > pfs->size )
+    return -1;
+  pfs->offset = newpos;      
+  return newpos;
 }
 
-// Our UART device descriptor structure
-static DM_DEVICE romfs_device = 
+// Directory operations
+static u32 romfs_dir_data = 0;
+
+// opendir
+static void* romfs_opendir_r( struct _reent *r, const char* dname )
+{
+  if( !dname || strlen( dname ) == 0 || ( strlen( dname ) == 1 && !strcmp( dname, "/" ) ) )
+  {
+    romfs_dir_data = 0;
+    return &romfs_dir_data;
+  }
+  return NULL;
+}
+
+// readdir
+extern struct dm_dirent dm_shared_dirent;
+extern char dm_shared_fname[ DM_MAX_FNAME_LENGTH + 1 ];
+static struct dm_dirent* romfs_readdir_r( struct _reent *r, void *d )
+{
+  u32 off = *( u32* )d;
+  struct dm_dirent *pent = &dm_shared_dirent;
+  unsigned j = 0;
+  
+  if( romfs_read( off ) == 0 )
+    return NULL;
+  while( ( dm_shared_fname[ j ++ ] = romfs_read( off ++ ) ) != '\0' );
+  pent->fname = dm_shared_fname;
+  pent->fsize = romfs_read( off ) + ( romfs_read( off + 1 ) << 8 );
+  pent->ftime = 0;
+  *( u32* )d = off + 2 + pent->fsize;
+  return pent;
+}
+
+// closedir
+static int romfs_closedir_r( struct _reent *r, void *d )
+{
+  *( u32* )d = 0;
+  return 0;
+}
+
+// Our ROMFS device descriptor structure
+static const DM_DEVICE romfs_device = 
 {
   "/rom",
-  romfs_open_r,  
-  romfs_close_r, 
-  romfs_write_r,
-  romfs_read_r,
-  romfs_ioctl_r
+  romfs_open_r,         // open
+  romfs_close_r,        // close
+  romfs_write_r,        // write
+  romfs_read_r,         // read
+  romfs_lseek_r,        // lseek
+  romfs_opendir_r,      // opendir
+  romfs_readdir_r,      // readdir
+  romfs_closedir_r      // closedir
 };
 
-DM_DEVICE* romfs_init()
+const DM_DEVICE* romfs_init()
 {
   return &romfs_device;
 }
 
-// Retrieves file name and size from ROMFS entry at romfiles[offset]
-// Returns the next file entry offset or null on last entry
-u32 romfs_get_dir_entry( u32 offset, char *fname, u16 *fsize )
-{
-  u32 i = offset;
-  unsigned j = 0;
-  
-  if ( romfs_read( i ) != 0 )
-  {
-    while( ( fname[ j++ ] = romfs_read( i++ ) ) );
-    *fsize = romfs_read( i ) + ( romfs_read( i + 1 ) << 8 );
-    return i + 2 + *fsize;
-  }
-  else
-    return 0;  
-}
-
 #else // #ifdef BUILD_ROMFS
 
-DM_DEVICE* romfs_init()
+const DM_DEVICE* romfs_init()
 {
   return NULL;
 }

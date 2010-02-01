@@ -5,6 +5,7 @@
 #include "type.h"
 #include "devman.h"
 #include "platform.h"
+#include "romfs.h"
 #include "xmodem.h"
 #include "shell.h"
 #include "lua.h"
@@ -12,6 +13,7 @@
 #include "lualib.h"
 #include "term.h"
 #include "platform_conf.h"
+#include "elua_rfs.h"
 #ifdef ELUA_SIMULATOR
 #include "hostif.h"
 #endif
@@ -82,10 +84,11 @@ int main( void )
   // Register the ROM filesystem
   dm_register( romfs_init() );
 
-#ifdef BUILD_MMCFS
   // Register the MMC filesystem
   dm_register( mmcfs_init() );
-#endif
+
+  // Register the remote filesystem
+  dm_register( remotefs_init() );
 
   // Autorun: if "autorun.lua" is found in the file system, run it first
   if( ( fp = fopen( FS_AUTORUN, "r" ) ) != NULL )

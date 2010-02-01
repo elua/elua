@@ -152,6 +152,11 @@ static void NVIC_Configuration(void)
 
 #if defined( BUF_ENABLE_UART ) && defined( CON_BUF_SIZE )
   /* Enable the USART1 Interrupt */
+  // [TODO]: this is hardcoded, and it shouldn't be
+  nvic_init_structure.NVIC_IRQChannel = USART3_IRQn;
+  nvic_init_structure.NVIC_IRQChannelSubPriority = 0;
+  nvic_init_structure.NVIC_IRQChannelCmd = ENABLE;
+  NVIC_Init(&nvic_init_structure);
   nvic_init_structure.NVIC_IRQChannel = USART1_IRQn;
   nvic_init_structure.NVIC_IRQChannelSubPriority = 0;
   nvic_init_structure.NVIC_IRQChannelCmd = ENABLE;
@@ -537,16 +542,31 @@ static const u16 usart_gpio_rx_pin[] = { GPIO_Pin_10, GPIO_Pin_3, GPIO_Pin_11, G
 static const u16 usart_gpio_tx_pin[] = { GPIO_Pin_9, GPIO_Pin_2, GPIO_Pin_10, GPIO_Pin_10, GPIO_Pin_12 };
 
 #ifdef BUF_ENABLE_UART
-void USART1_IRQHandler(void)
+static void all_usart_irqhandler( int usart_id )
 {
   int c;
 
-  if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
+  if( USART_GetITStatus( usart[ usart_id ], USART_IT_RXNE ) != RESET )
   {
     /* Read one byte from the receive data register */
-    c = USART_ReceiveData(USART1);
-    buf_write( BUF_ID_UART, CON_UART_ID, ( t_buf_data* )&c );
+    c = USART_ReceiveData( usart[ usart_id ] );
+    buf_write( BUF_ID_UART, usart_id, ( t_buf_data* )&c );
   }
+}
+
+void USART1_IRQHandler( void )
+{
+  all_usart_irqhandler( 0 );
+}
+
+void USART2_IRQHandler(void)
+{
+  all_usart_irqhandler( 1 );
+}
+
+void USART3_IRQHandler(void)
+{
+  all_usart_irqhandler( 2 );
 }
 #endif
 
@@ -590,6 +610,7 @@ static void uarts_init()
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART4, ENABLE);
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART5, ENABLE);
 
   // Configure the U(S)ART
   USART_InitStructure.USART_BaudRate = CON_UART_SPEED;

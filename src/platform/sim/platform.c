@@ -21,7 +21,7 @@
 
 static void i386_term_out( u8 data )
 {
-  hostif_put( data );
+  hostif_putc( data );
 }
 
 static int i386_term_in( int mode )
@@ -66,7 +66,7 @@ static int i386_term_translate( int data )
 static void scr_write( int fd, char c )
 {
   fd = fd;
-  hostif_put( c );
+  hostif_putc( c );
 }
 
 static int kb_read( s32 to )
@@ -99,7 +99,7 @@ int platform_init()
 { 
 	if( memory_start_address == NULL ) 
   {
-    hostif_write( "platform_init(): mmap failed\n" );
+    hostif_putstr( "platform_init(): mmap failed\n" );
 		return PLATFORM_ERR;
 	}
 

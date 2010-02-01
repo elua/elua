@@ -131,56 +131,93 @@ static _ssize_t mmcfs_read_r( struct _reent *r, int fd, void* ptr, size_t len )
   return (_ssize_t) bytesRead;
 }
 
-// IOCTL: only fseek
-static int mmcfs_ioctl_r( struct _reent *r, int fd, unsigned long request, void *ptr )
+// lseek
+static off_t mmcfs_lseek_r( struct _reent *r, int fd, off_t off, int whence )
 {
-  struct fd_seek *pseek = ( struct fd_seek* )ptr;
   FIL* pFile = mmcfs_fd_table + fd;
-  u16 newpos = 0;
+  u32 newpos = 0;
 
-  if (request == FDSEEK)
+  switch( whence )
   {
-    switch (pseek->dir)
-    {
-      case SEEK_SET:
-        // seek from beginning of file
-        newpos =  pseek->off;
-        break;
+    case SEEK_SET:
+      // seek from beginning of file
+      newpos = off;
+      break;
 
-      case SEEK_CUR:
-        // seek from current position
-        newpos = pFile->fptr + pseek->off;
-        break;
+    case SEEK_CUR:
+      // seek from current position
+      newpos = pFile->fptr + off;
+      break;
 
-      case SEEK_END:
-        // seek from end of file
-        newpos = pFile->fsize + pseek->off;
-        break;
+    case SEEK_END:
+      // seek from end of file
+      newpos = pFile->fsize + off;
+      break;
 
-      default:
-        return -1;
-    }
-    if (f_lseek (pFile, newpos) != FR_OK)
+    default:
       return -1;
-    pseek->off = newpos;
-    return 0;
   }
-  else
+  if (f_lseek (pFile, newpos) != FR_OK)
     return -1;
+  return newpos;
+}
+
+// opendir
+static DIR mmc_dir;
+static void* mmcfs_opendir_r( struct _reent *r, const char* dname )
+{
+  void* res = NULL;
+  if( !dname || strlen( dname ) == 0 || ( strlen( dname ) == 1 && !strcmp( dname, "/" ) ) )
+    res = f_opendir( &mmc_dir, "/" ) != FR_OK ? NULL : &mmc_dir; 
+  return res;
+}
+
+// readdir
+extern struct dm_dirent dm_shared_dirent;
+extern char dm_shared_fname[ DM_MAX_FNAME_LENGTH + 1 ];
+static struct dm_dirent* mmcfs_readdir_r( struct _reent *r, void *d )
+{
+  DIR *pdir = ( DIR* )d;
+  FILINFO mmc_file_info;
+  struct dm_dirent* pent = &dm_shared_dirent;
+  
+  while( 1 )
+  {
+    if( f_readdir( pdir, &mmc_file_info ) != FR_OK )
+      return NULL;
+    if( ( mmc_file_info.fattrib & AM_DIR ) == 0 )
+      break;
+  }
+  if( mmc_file_info.fname[ 0 ] == '\0' )
+    return NULL;
+  strncpy( dm_shared_fname, mmc_file_info.fname, DM_MAX_FNAME_LENGTH );
+  pent->fname = dm_shared_fname;
+  pent->fsize = mmc_file_info.fsize;
+  pent->ftime = mmc_file_info.ftime; 
+  return pent;
+}
+
+// closedir
+static int mmcfs_closedir_r( struct _reent *r, void *d )
+{
+  return 0;
 }
 
 // MMC device descriptor structure
 static DM_DEVICE mmcfs_device =
 {
   "/mmc",
-  mmcfs_open_r,
-  mmcfs_close_r,
-  mmcfs_write_r,
-  mmcfs_read_r,
-  mmcfs_ioctl_r
+  mmcfs_open_r,         // open
+  mmcfs_close_r,        // close
+  mmcfs_write_r,        // write
+  mmcfs_read_r,         // read
+  mmcfs_lseek_r,        // lseek
+  mmcfs_opendir_r,      // opendir
+  mmcfs_readdir_r,      // readdir
+  mmcfs_closedir_r      // closedir
 };
 
-DM_DEVICE* mmcfs_init()
+const DM_DEVICE* mmcfs_init()
 {
   // Mount the MMC file system using logical disk 0
   if ( f_mount( 0, &mmc_fs ) != FR_OK )
@@ -191,7 +228,7 @@ DM_DEVICE* mmcfs_init()
 
 #else // #ifdef BUILD_MMCFS
 
-DM_DEVICE* mmcfs_init()
+const DM_DEVICE* mmcfs_init()
 {
   return NULL;
 }
