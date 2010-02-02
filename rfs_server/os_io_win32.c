@@ -104,3 +104,45 @@ int os_isdir( const char* name )
   else 
     return attrs & FILE_ATTRIBUTE_DIRECTORY;
 }
+
+static WIN32_FIND_DATA win32_dir_data;
+static HANDLE win32_dir_hnd;
+static int found_last_file;
+u32 os_opendir( const char* name )
+{  
+  if( name || strlen( name ) == 0 || ( strlen( name ) == 1 && !strcmp( name, "/" ) ) ) {
+    win32_dir_hnd = FindFirstFile( name, &win32_dir_data );
+    found_last_file = 0;
+    return win32_dir_hnd == INVALID_HANDLE_VALUE ? 0 : ( u32 )win32_dir_hnd;  
+  }
+  return 0;
+}
+
+void os_readdir( u32 d, const char **pname )
+{
+  static char realname[ RFS_MAX_FNAME_SIZE + 1 ]; 
+
+  *pname = NULL;
+  if( found_last_file )
+    return;  
+  while( 1 )
+  {
+    if( ( win32_dir_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) == 0 )
+    {
+      if( win32_dir_data.cFileName[ 0 ] )
+        strncpy( realname, win32_dir_data.cAlternateFileName, RFS_MAX_FNAME_SIZE );
+      else
+        strncpy( realname, win32_dir_data.cFileName, RFS_MAX_FNAME_SIZE );
+      *pname = realname;
+    }    
+    if( FindNextFile( win32_dir_hnd, &win32_dir_data ) == 0 )
+      found_last_file = 1;  
+    if( *pname || found_last_file )
+      break;
+  }
+}
+
+int os_closedir( u32 d )
+{
+  return FindClose( win32_dir_hnd ) == 0 ? -1 : 0;
+}
