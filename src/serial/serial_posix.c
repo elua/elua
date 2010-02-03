@@ -174,10 +174,17 @@ void ser_set_timeout_ms( ser_handler id, u32 timeout )
   if( timeout == SER_INF_TIMEOUT )
   {
     termdata.c_cc[ VTIME ] = 0;
+    fcntl( id, F_SETFL, 0 ); // calls block
+  }
+  else if( timeout == SER_NO_TIMEOUT)
+  {
+    termdata.c_cc[ VTIME ] = 0; 
+    fcntl( id, F_SETFL, FNDELAY ); // no blocking, timeout
   }
   else
   {
     termdata.c_cc[ VTIME ] = timeout / 100;
+    fcntl( id, F_SETFL, 0 ); // calls block
   }
   tcsetattr( id, TCSANOW, &termdata );
 }
