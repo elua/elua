@@ -33,8 +33,8 @@ end
 local platform = require( pd.board() )
 lm3s.disp.init( 1000000 )
 
-lm3s.disp.print( "Tetrives", 30, 30, 11 )
-lm3s.disp.print( "Press SELECT", 30, 60, 11 )
+lm3s.disp.print( "eLua Tetrives", 30, 10, 11 )
+lm3s.disp.print( "Press SELECT -->", 30, 40, 11 )
 while platform.btn_pressed( platform.BTN_SELECT ) == false do
   seed = seed + 1
 end

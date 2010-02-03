@@ -219,8 +219,8 @@ end
 lm3s.disp.init( 1000000 )
 
 -- Initial information
-lm3s.disp.print( "eLua SpaceShip", 10, 40, 11 )
-lm3s.disp.print( "Press SELECT", 10, 70, 11 )
+lm3s.disp.print( "eLua SpaceShip", 10, 10, 11 )
+lm3s.disp.print( "Press SELECT -->", 10, 40, 11 )
 local seed = 0
 while not buttonClicked( kit.BTN_SELECT ) do
 	seed = seed + 1
