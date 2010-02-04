@@ -216,7 +216,7 @@ static void shell_cat( char *args )
     {
       p = strchr( args, ' ' );
       *p = 0;
-      if( ( fp = fopen( args , "rb" ) ) != NULL ) 
+      if( ( fp = fopen( args , "rb" ) ) != NULL )
       {
         c = fgetc( fp );
         while( c != EOF ) 

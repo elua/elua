@@ -53,6 +53,11 @@ static int mmcfs_open_r( struct _reent *r, const char *path, int flags, int mode
     strcat(mmc_pathBuf, "/");
   strcat(mmc_pathBuf, path);
 
+  // Scrub binary flag, if defined
+#ifdef O_BINARY
+  flags &= ~O_BINARY;
+#endif
+
   // Translate fcntl.h mode to FatFs mode (by jcwren@jcwren.com)
   if (((flags & (O_CREAT | O_TRUNC)) == (O_CREAT | O_TRUNC)) && (flags & (O_RDWR | O_WRONLY)))
     mmc_mode = FA_CREATE_ALWAYS;
