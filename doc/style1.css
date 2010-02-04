@@ -2,22 +2,22 @@
  * Generic styling
  ******************************************************************************/
 
-body {  
-  padding: 0;
-  margin: 0;
-  font-family: tahoma,verdana,arial,helvetica,geneva,sans-serif;
-  background-color: #ffffff;  
+body {
+	font-family: tahoma,verdana,arial,helvetica,geneva,sans-serif;
+	background-color: #fff;
+	margin: 0;
+	padding: 0;
 }
 
 pre {
-  border: 1px dashed #ffbb22;
-  padding: 4px;
-  background-color: #ffddaa;
-  font-family: 'Monotype.com',"Courier New",Courier,monospace;
-  font-size: 90%;
-  line-height: 125%;
-  margin-left: 1em;
-  overflow: auto;
+	border: 1px dashed #fb2;
+	background-color: #fda;
+	font-family: Monotype.com,"Courier New",Courier,monospace;
+	font-size: 90%;
+	line-height: 125%;
+	margin-left: 1em;
+	overflow: auto;
+	padding: 4px;
 }
 
 /*******************************************************************************
@@ -25,82 +25,65 @@ pre {
  ******************************************************************************/
 
 /* Assume a logo size of 80x80 pixels! */
+
 #logo {
-  background-image: url(images/title_background.png);
-  background-repeat: no-repeat;
-  background-position:right;
-  color:#000;
-font: bold 150%/100% tahoma, Arial, sans-serif;
-  height: 90px;
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  border-bottom: 0px solid #E7F1FA;
+	background-image: url(images/title_background.png);
+	background-repeat: no-repeat;
+	background-position: right;
+	color: #000;
+	font: bold 150%/100% tahoma, Arial, sans-serif;
+	height: 90px;
+	width: 100%;
+	border-bottom: 0 solid #E7F1FA;
+	margin: 0;
+	padding: 0;
 }
 
-.logo_elua{
-margin-top:10px;
-margin-left:10px;
+.logo_elua {
+	margin-top: 10px;
+	margin-left: 10px;
 }
 
-#nav, #menu {
- float: left;
- width: 170px;
- margin-left: 8px;
- padding-top: 5px;
+#nav,#menu {
+	float: left;
+	width: 170px;
+	margin-left: 8px;
+	padding-top: 5px;
 }
 
 #content {
- padding-top: 10px;
- margin: 0 8px 8px 181px;
+	padding-top: 10px;
+	margin: 0 8px 8px 181px;
 }
 
 /*******************************************************************************
  * Logo styling
  ******************************************************************************/
- 
-#logo h6.selected {
-/*  margin: 2px 4px 2px 4px;
-  padding: 2px;
-  background-color: #137096;
-  color: white;
-
-opacity:1.0;filter:alpha(opacity=100);
-*/
-}
 
 #logo h6 {
-  margin: 2px 4px 2px 4px;
-  padding: 2px;
-  #background-color: white;
-  color: #137096;
+	color: #137096;
+	margin: 2px 4px;
+	padding: 2px;
 }
 
-.header_title{
-  font-size:36px;
-  color:#0b0c79;
-  font-weight:bold;
-  padding-left:20px;
+.header_title {
+	font-size: 36px;
+	color: #0b0c79;
+	font-weight: 700;
+	padding-left: 20px;
 }
 
-h6{
-  font-size:10px;
+h6 {
+	font-size: 10px;
 }
 
 #logo a {
-  text-decoration: none;
-  padding: 2px 4px 2px 4px;
+	text-decoration: none;
+	padding: 2px 4px;
 }
 
-#logo a.lang img{
-border: 0px 
-}
-
-#logo a.lang:hover {
-#border: 2px solid #ccc;
-#  text-decoration: none;
-#  background-color: blue;
-#  color: white;
+#logo a.lang img {
+	border: 0;
 }
 
 /*******************************************************************************
@@ -108,79 +91,66 @@ border: 0px
  ******************************************************************************/
 
 #content p {
-  line-height: 120%;
-  padding-left: 1em;
+	line-height: 120%;
+	padding-left: 1em;
 }
 
 #content h2 {
-  border: 1px solid #808080;
-  padding: 4px;
-  background-color: #a0ffa0;
-  font-size: 99%;
-  margin-left: 1em;
+	border: 1px solid gray;
+	background-color: #a0ffa0;
+	font-size: 99%;
+	margin-left: 1em;
+	padding: 4px;
 }
 
 #content h3 {
-  border: 1px solid #808080;
-  padding: 5px;
-  background-color: #cee7ff;
-  color: #5c5c5c;
-  margin: 0;
+	border: 1px solid gray;
+	background-color: #cee7ff;
+	color: #5c5c5c;
+	margin: 0;
+	padding: 5px;
 }
 
 #content table {
-  margin-left: 1em;
+	margin-left: 1em;
+	border-collapse: collapse;
 }
 
 #content p.info {
-  margin-left: 3em;
-}
-
-#content p.doc {
-  margin-left: 2em;
+	margin-left: 3em;
 }
 
 #content ul {
-  padding-left: 1em;
-  margin-left: 40px;
+	padding-left: 1em;
+	margin-left: 40px;
 }
 
-#content ol {
-  margin-left: 2em;
-}
-
-#content h4 {
-  margin-left: 2em;
-}
-
-#content table {
-  border-collapse: collapse;
-}
 #content td {
-  border: 1px solid #808080;
-  padding: 5px;
+	border: 1px solid gray;
+	padding: 5px;
 }
+
 #content th {
-  border: 2px solid #808080;
-  padding: 5px;
-  background-color: #c0c0c0;
+	border: 2px solid gray;
+	background-color: silver;
+	padding: 5px;
 }
 
 /*******************************************************************************
  * Table types
  ******************************************************************************/
- 
+
 table.invisible {
-  border: 0px solid black;
-  border-collapse: collapse;
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 4px;
+	border: 0 solid #000;
+	border-collapse: collapse;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 4px;
 }
 
 table.invisible td {
-  text-align: center;
-  border: 0px solid black;
+	text-align: center;
+	border: 0 solid #000;
 }
 
 /*******************************************************************************
@@ -188,25 +158,27 @@ table.invisible td {
  ******************************************************************************/
 
 .docdiv {
-  padding-left: 1em;
+	padding-left: 1em;
 }
 
 .docdiv pre {
-  margin-left: 0;
+	margin-left: 0;
 }
 
 .code {
-  border: 0;
-  padding: 4px;
-  background-color: white;
-  font-family: "Courier New",Courier,monospace;
-  font-size: 90%;
-  padding-left: 1em;
-  overflow: auto;
+	border: 0;
+	background-color: #FFF;
+	font-family: "Courier New",Courier,monospace;
+	font-size: 90%;
+	overflow: auto;
+	padding: 4px 4px 4px 1em;
 }
 
 .warning {
-  color: red;
-  font-weight: bold;
+	color: red;
+	font-weight: 700;
 }
 
+#content p.doc,#content ol,#content h4 {
+	margin-left: 2em;
+}
