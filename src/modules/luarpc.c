@@ -371,6 +371,7 @@ static int writer( lua_State *L, const void* b, size_t size, void* B ) {
 #include "lundump.h"
 #include "ldo.h"
 
+#if defined( LUA_CROSS_COMPILER )
 // Dump bytecode representation of function onto stack and send. This
 // implementation uses eLua's crosscompile dump to match match the
 // bytecode representation to the client/server negotiated format.
@@ -402,7 +403,28 @@ static void write_function( Transport *tpt, lua_State *L, int var_index )
   // Remove function & dumped string from stack
   lua_pop( L, 2 );
 }
-
+#else
+static void write_function( Transport *tpt, lua_State *L, int var_index )
+{
+  TValue *o;
+  luaL_Buffer b;
+  
+  // push function onto stack, serialize to string 
+  lua_pushvalue( L, var_index );
+  luaL_buffinit( L, &b );
+  lua_lock(L);
+  o = L->top - 1;
+  luaU_dump(L,clvalue(o)->l.p,writer,&b,0);
+  lua_unlock(L);
+  
+  // put string representation on stack and send it
+  luaL_pushresult( &b );
+  write_variable( tpt, L, lua_gettop( L ) );
+  
+  // Remove function & dumped string from stack
+  lua_pop( L, 2 );
+}
+#endif
 
 static void helper_remote_index( Helper *helper );
 
