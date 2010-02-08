@@ -7,6 +7,7 @@
 #include "type.h"
 #include "stacks.h"
 #include "stm32f10x.h"
+#include "sermux.h"
 
 // *****************************************************************************
 // Define here what components you want for this platform
@@ -23,13 +24,14 @@
 #define BUILD_ADC
 #define BUILD_RPC
 #define BUILD_RFS
+#define BUILD_SERMUX
 //#define BUILD_CON_TCP
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 
-#define CON_UART_ID           2
-#define CON_UART_SPEED        19200
+#define CON_UART_ID           SERVICE_ID_FIRST
+#define CON_BUF_SIZE          BUF_SIZE_128
 #define CON_TIMER_ID          0
 #define TERM_LINES            25
 #define TERM_COLS             80
@@ -133,16 +135,13 @@
 #define RPC_TIMER_ID          CON_TIMER_ID
 #define RPC_UART_SPEED        CON_UART_SPEED
 
-
-
-
 // MMCFS Support (FatFs on SD/MMC)
 // For STM32F103RET6 - PA5 = CLK, PA6 = MISO, PA7 = MOSI, PA8 = CS
-#define MMCFS_TICK_HZ                10
-#define MMCFS_TICK_MS                ( 1000 / MMCFS_TICK_HZ )
-#define MMCFS_CS_PORT                0
-#define MMCFS_CS_PIN                 8
-#define MMCFS_SPI_NUM                0
+#define MMCFS_TICK_HZ        10
+#define MMCFS_TICK_MS        ( 1000 / MMCFS_TICK_HZ )
+#define MMCFS_CS_PORT        0
+#define MMCFS_CS_PIN         8
+#define MMCFS_SPI_NUM        0 
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 u32 platform_s_cpu_get_frequency();
@@ -158,10 +157,16 @@ u32 platform_s_cpu_get_frequency();
 
 // Remote file system data
 #define RFS_BUFFER_SIZE       BUF_SIZE_512
-#define RFS_UART_ID           0
+#define RFS_UART_ID           ( SERVICE_ID_FIRST + 1 )
 #define RFS_TIMER_ID          0
 #define RFS_TIMEOUT           100000
 #define RFS_UART_SPEED        115200
+
+// Serial multiplexer
+#define SERMUX_PHYS_ID        0
+#define SERMUX_PHYS_SPEED     115200
+#define SERMUX_NUM_VUART      2
+#define SERMUX_BUFFER_SIZES   { CON_BUF_SIZE, RFS_BUFFER_SIZE }
 
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)

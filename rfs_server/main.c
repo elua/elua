@@ -26,9 +26,7 @@ static ser_handler ser;
 static void flush_serial()
 {
   // Flush all data in serial port
-  ser_set_timeout_ms( ser, SER_NO_TIMEOUT );
-  while( ser_read_byte( ser ) != -1 );
-  ser_set_timeout_ms( ser, SER_INF_TIMEOUT );
+  while( ser_read_byte( ser, SER_NO_TIMEOUT ) != -1 );
 }
 
 // Read a packet from the serial port
@@ -40,7 +38,7 @@ static void read_request_packet()
   while( 1 )
   {
     // First read the length
-    if( ( readbytes = ser_read( ser, rfs_buffer, RFS_START_OFFSET ) ) != RFS_START_OFFSET )
+    if( ( readbytes = ser_read( ser, rfs_buffer, RFS_START_OFFSET, SER_INF_TIMEOUT ) ) != RFS_START_OFFSET )
     {
       log_msg( "read_request_packet: ERROR reading packet length. Requested %d bytes, got %d bytes\n", RFS_START_OFFSET, readbytes );
       flush_serial();
@@ -55,7 +53,7 @@ static void read_request_packet()
     }
 
     // Then the rest of the data
-    if( ( readbytes = ser_read( ser, rfs_buffer + RFS_START_OFFSET, temp16 - RFS_START_OFFSET ) ) != temp16 - RFS_START_OFFSET )
+    if( ( readbytes = ser_read( ser, rfs_buffer + RFS_START_OFFSET, temp16 - RFS_START_OFFSET, SER_INF_TIMEOUT ) ) != temp16 - RFS_START_OFFSET )
     {
       log_msg( "read_request_packet: ERROR reading full packet, got %u bytes, expected %u bytes\n", ( unsigned )readbytes, ( unsigned )temp16 - RFS_START_OFFSET );
       flush_serial();

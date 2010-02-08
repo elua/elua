@@ -175,9 +175,9 @@ const DM_DEVICE *remotefs_init()
 {
 #if defined( RFS_UART_ID ) && defined( RFS_UART_SPEED )
   // Initialize RFS UART
-  platform_uart_setup( RFS_UART_ID, RFS_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
+//  platform_uart_setup( RFS_UART_ID, RFS_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
   // [TODO] this isn't exactly right
-  buf_set( BUF_ID_UART, RFS_UART_ID, RFS_BUFFER_SIZE, BUF_DSIZE_U8 ); 
+//  buf_set( BUF_ID_UART, RFS_UART_ID, RFS_BUFFER_SIZE, BUF_DSIZE_U8 ); 
 #endif
 #ifdef ELUA_CPU_LINUX 
   // Open our read/write pipes

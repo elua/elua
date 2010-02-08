@@ -55,8 +55,6 @@ enum
   BUF_DSIZE_U32
 };
 
-
-
 // Buffer API
 int buf_set(unsigned resid, unsigned resnum, u8 logsize, u8 logdsize);
 int buf_is_enabled( unsigned resid, unsigned resnum );

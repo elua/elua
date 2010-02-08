@@ -13,6 +13,7 @@
 #include "elua_adc.h"
 #include "term.h"
 #include "xmodem.h"
+#include "sermux.h"
 
 // ****************************************************************************
 // XMODEM support code
@@ -137,6 +138,15 @@ void cmn_platform_init()
   // Initialize terminal
   term_init( TERM_LINES, TERM_COLS, term_out, term_in, term_translate );
 #endif
+
+#ifdef BUILD_SERMUX
+  // Set buffers for all virtual UARTs
+  unsigned i;
+  unsigned bufsizes [] = SERMUX_BUFFER_SIZES;
+
+  for( i = 0; i < SERMUX_NUM_VUART; i ++ )
+    buf_set( BUF_ID_UART, i + SERVICE_ID_FIRST, bufsizes[ i ], BUF_DSIZE_U8 );
+#endif
 }
 
 // ****************************************************************************
@@ -170,10 +180,67 @@ int platform_pio_has_pin( unsigned port, unsigned pin )
 // ****************************************************************************
 // UART functions
 
+#ifdef BUILD_SERMUX
+int uart_service_id_in = -1;
+int uart_service_id_out = -1;
+u8 uart_got_esc = 0;
+#endif
+
 // The platform UART functions
 int platform_uart_exists( unsigned id )
 {
+#ifdef BUILD_SERMUX
+  return id < NUM_UART || ( id >= SERVICE_ID_FIRST && id < SERVICE_ID_FIRST + SERMUX_NUM_VUART );
+#else
   return id < NUM_UART;
+#endif
+}
+
+// Send: version with and without mux
+void platform_uart_send( unsigned id, u8 data ) 
+{
+#ifdef BUILD_SERMUX
+  if( id != uart_service_id_out )
+    platform_s_uart_send( SERMUX_PHYS_ID, id );
+  if( data == ESCAPE_CHAR || ( data >= SERVICE_ID_FIRST && data <= SERVICE_ID_LAST ) )
+  {
+    platform_s_uart_send( SERMUX_PHYS_ID, ESCAPE_CHAR );
+    platform_s_uart_send( SERMUX_PHYS_ID, data ^ ESCAPE_XOR_MASK );
+  }
+  else
+    platform_s_uart_send( SERMUX_PHYS_ID, data );
+  uart_service_id_out = id;
+#else
+  platform_s_uart_send( id, data );
+#endif
+}
+
+void cmn_rx_handler( int usart_id, u8 data )
+{
+#ifdef BUILD_SERMUX
+  if( usart_id == SERMUX_PHYS_ID )
+  {
+    if( data != ESCAPE_CHAR )
+    {
+      if( data >= SERVICE_ID_FIRST && data < SERVICE_ID_LAST + SERMUX_NUM_VUART )
+        uart_service_id_in = data;
+      else
+      {
+        // Check for an escaped char
+        if( uart_got_esc )
+        {
+          data ^= ESCAPE_XOR_MASK;
+          uart_got_esc = 0;
+        }
+        buf_write( BUF_ID_UART, uart_service_id_in, ( t_buf_data* )&data );
+      }
+    }
+    else
+      uart_got_esc = 1;
+  }
+  else
+#endif
+  buf_write( BUF_ID_UART, usart_id, ( t_buf_data* )&data );
 }
 
 // Helper function for buffers

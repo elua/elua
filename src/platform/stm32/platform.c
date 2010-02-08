@@ -34,6 +34,7 @@
 // Max SysTick preload value is 16777215, for STM32F103RET6 @ 72 MHz, lowest acceptable rate would be about 5 Hz
 #define SYSTICKHZ               10  
 #define SYSTICKMS               (1000 / SYSTICKHZ)
+
 // ****************************************************************************
 // Platform initialization
 
@@ -150,13 +151,13 @@ static void NVIC_Configuration(void)
   NVIC_Init(&nvic_init_structure_adc);
 #endif
 
-#if defined( BUF_ENABLE_UART ) && defined( CON_BUF_SIZE )
+#if defined( BUF_ENABLE_UART ) && ( defined( CON_BUF_SIZE ) || defined( BUILD_SERMUX ) )
   /* Enable the USART1 Interrupt */
   // [TODO]: this is hardcoded, and it shouldn't be
-  nvic_init_structure.NVIC_IRQChannel = USART3_IRQn;
+/*  nvic_init_structure.NVIC_IRQChannel = USART3_IRQn;
   nvic_init_structure.NVIC_IRQChannelSubPriority = 0;
   nvic_init_structure.NVIC_IRQChannelCmd = ENABLE;
-  NVIC_Init(&nvic_init_structure);
+  NVIC_Init(&nvic_init_structure);*/
   nvic_init_structure.NVIC_IRQChannel = USART1_IRQn;
   nvic_init_structure.NVIC_IRQChannelSubPriority = 0;
   nvic_init_structure.NVIC_IRQChannelCmd = ENABLE;
@@ -550,7 +551,7 @@ static void all_usart_irqhandler( int usart_id )
   {
     /* Read one byte from the receive data register */
     c = USART_ReceiveData( usart[ usart_id ] );
-    buf_write( BUF_ID_UART, usart_id, ( t_buf_data* )&c );
+    cmn_rx_handler( usart_id, c );
   }
 }
 
@@ -591,7 +592,7 @@ static void usart_init(u32 id, USART_InitTypeDef * initVals)
   /* Configure USART */
   USART_Init(usart[id], initVals);
   
-#if defined( BUF_ENABLE_UART ) && defined( CON_BUF_SIZE )
+#if defined( BUF_ENABLE_UART ) && ( defined( CON_BUF_SIZE ) || defined( BUILD_SERMUX ) )
   /* Enable USART1 Receive and Transmit interrupts */
   USART_ITConfig(usart[id], USART_IT_RXNE, ENABLE);
   //USART_ITConfig(usart[id], USART_IT_TXE, ENABLE);
@@ -612,6 +613,7 @@ static void uarts_init()
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART4, ENABLE);
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART5, ENABLE);
 
+#ifndef BUILD_SERMUX
   // Configure the U(S)ART
   USART_InitStructure.USART_BaudRate = CON_UART_SPEED;
   USART_InitStructure.USART_WordLength = USART_WordLength_8b;
@@ -622,9 +624,21 @@ static void uarts_init()
 
 #if defined( BUF_ENABLE_UART ) && defined( CON_BUF_SIZE )
   buf_set( BUF_ID_UART, CON_UART_ID, CON_BUF_SIZE, BUF_DSIZE_U8 );
-#endif
+#endif // #if defined( BUF_ENABLE_UART ) && defined( CON_BUF_SIZE )
 
   usart_init(CON_UART_ID, &USART_InitStructure);
+
+#else // #ifndef BUILD_SERMUX
+
+  // Configure the U(S)ART
+  USART_InitStructure.USART_BaudRate = SERMUX_PHYS_SPEED;
+  USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+  USART_InitStructure.USART_StopBits = USART_StopBits_1;
+  USART_InitStructure.USART_Parity = USART_Parity_No;
+  USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+  USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+  usart_init( SERMUX_PHYS_ID, &USART_InitStructure );
+#endif // #ifndef BUILD_SERMUX
 
 }
 
@@ -684,7 +698,7 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   return TRUE;
 }
 
-void platform_uart_send( unsigned id, u8 data )
+void platform_s_uart_send( unsigned id, u8 data )
 {
   while(USART_GetFlagStatus(usart[id], USART_FLAG_TXE) == RESET)
   {

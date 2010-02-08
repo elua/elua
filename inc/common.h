@@ -11,6 +11,7 @@
 // Functions exported by the common platform layer
 void cmn_platform_init();
 void cmn_virtual_timer_cb();
+void cmn_rx_handler( int usart_id, u8 data );
 
 unsigned int intlog2( unsigned int v );
 

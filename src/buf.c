@@ -6,18 +6,25 @@
 #define BUF_ENABLE
 #endif
 
+#ifdef BUILD_SERMUX
+#define NUM_TOTAL_UART  ( NUM_UART + SERMUX_NUM_VUART )
+#else
+#define NUM_TOTAL_UART  ( NUM_UART )
+#endif
+
 #ifdef BUF_ENABLE
 
 #include "buf.h"
 #include "type.h"
 #include "platform.h"
 #include "utils.h"
+#include "sermux.h"
 #include <stdlib.h>
 #include <string.h>
 
 // [TODO]? Following code might need a C99 compiler (for 0-sized arrays)
 #ifdef BUF_ENABLE_UART
-  static buf_desc buf_desc_uart[ NUM_UART ];
+  static buf_desc buf_desc_uart[ NUM_TOTAL_UART ];
 #else
   static buf_desc buf_desc_uart[ 0 ];
 #endif
@@ -48,6 +55,21 @@ static const buf_desc* buf_desc_array[ BUF_ID_TOTAL ] =
 #define READ16( p )     p
 #define WRITE16( p, x ) p = x
 
+// Helper: check 'resnum' (for virtual UARTs)
+// UART resource ID translation to buffer ID translation (for serial multiplexer support)
+#ifdef BUILD_SERMUX
+static unsigned bufh_check_resnum( unsigned resid, unsigned resnum )
+{
+  if( resid == BUF_ID_UART && resnum >= SERVICE_ID_FIRST )
+    return resnum - SERVICE_ID_FIRST + NUM_UART;
+  else
+    return resnum;
+}
+#define BUF_CHECK_RESNUM( resid, resnum ) resnum = bufh_check_resnum( resid, resnum )    
+#else
+#define BUF_CHECK_RESNUM( resid, resnum )
+#endif
+
 // Initialize the buffer of the specified resource
 // resid - resource ID (BUF_ID_UART ...)
 // resnum - resource number (0, 1, 2...)
@@ -57,6 +79,7 @@ static const buf_desc* buf_desc_array[ BUF_ID_TOTAL ] =
 // Returns 1 on success, 0 on failure
 int buf_set( unsigned resid, unsigned resnum, u8 logsize, u8 logdsize )
 {
+  BUF_CHECK_RESNUM( resid, resnum );
   BUF_GETPTR( resid, resnum );
   
   pbuf->logdsize = logdsize;
@@ -76,6 +99,7 @@ int buf_set( unsigned resid, unsigned resnum, u8 logsize, u8 logdsize )
 // Marks buffer as empty
 void buf_flush( unsigned resid, unsigned resnum )
 {
+  BUF_CHECK_RESNUM( resid, resnum );
   BUF_GETPTR( resid, resnum );
   
   pbuf->rptr = pbuf->wptr = pbuf->count = 0;
@@ -89,6 +113,7 @@ void buf_flush( unsigned resid, unsigned resnum )
 // [TODO] maybe add a buffer overflow flag
 int buf_write( unsigned resid, unsigned resnum, t_buf_data *data )
 {
+  BUF_CHECK_RESNUM( resid, resnum );
   BUF_GETPTR( resid, resnum );
   const char* s = ( const char* )data;
   char* d = ( char* )( pbuf->buf + pbuf->wptr );
@@ -110,6 +135,7 @@ int buf_write( unsigned resid, unsigned resnum, t_buf_data *data )
 // resnum - resource number (0, 1, 2...)
 int buf_is_enabled( unsigned resid, unsigned resnum )
 {
+  BUF_CHECK_RESNUM( resid, resnum );
   BUF_GETPTR( resid, resnum );
     
   return pbuf->logsize != BUF_SIZE_NONE;
@@ -118,6 +144,7 @@ int buf_is_enabled( unsigned resid, unsigned resnum )
 // Return the size of the buffer in number
 unsigned buf_get_size( unsigned resid, unsigned resnum )
 {
+  BUF_CHECK_RESNUM( resid, resnum );
   BUF_GETPTR( resid, resnum );
     
   return BUF_REALSIZE( pbuf );
@@ -126,6 +153,7 @@ unsigned buf_get_size( unsigned resid, unsigned resnum )
 // Return the size of the data in the buffer
 unsigned buf_get_count( unsigned resid, unsigned resnum )
 {
+  BUF_CHECK_RESNUM( resid, resnum );
   BUF_GETPTR( resid, resnum );
   
   return READ16( pbuf->count );  
@@ -140,6 +168,7 @@ unsigned buf_get_count( unsigned resid, unsigned resnum )
 //   PLATFORM_UNDERFLOW on buffer empty
 int buf_read( unsigned resid, unsigned resnum, t_buf_data *data )
 {
+  BUF_CHECK_RESNUM( resid, resnum );
   BUF_GETPTR( resid, resnum );
   
   if( READ16( pbuf->count ) == 0 )

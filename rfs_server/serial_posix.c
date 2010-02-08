@@ -11,8 +11,6 @@
 #include <sys/time.h>
 #include <sys/types.h>
 
-static u32 ser_timeout = SER_INF_TIMEOUT;
-
 // Open the serial port
 ser_handler ser_open( const char* sername )
 {
@@ -132,12 +130,12 @@ int ser_setup( ser_handler id, u32 baud, int databits, int parity, int stopbits 
 }
 
 // Read up to the specified number of bytes, return bytes actually read
-u32 ser_read( ser_handler id, u8* dest, u32 maxsize )
+u32 ser_read( ser_handler id, u8* dest, u32 maxsize, u32 timeout )
 {
   struct termios termdata;
 
   tcgetattr( id, &termdata );
-  if( ser_timeout == SER_INF_TIMEOUT )
+  if( timeout == SER_INF_TIMEOUT )
   {
     termdata.c_cc[ VMIN ] = maxsize;
     termdata.c_cc[ VTIME ] = 0;
@@ -155,8 +153,8 @@ u32 ser_read( ser_handler id, u8* dest, u32 maxsize )
     tcsetattr( id, TCSANOW, &termdata );
     FD_ZERO( &readfs );
     FD_SET( ( int )id, &readfs );
-    tv.tv_sec = ser_timeout / 1000000;
-    tv.tv_usec = ( ser_timeout % 1000000 ) * 1000;
+    tv.tv_sec = timeout / 1000000;
+    tv.tv_usec = ( timeout % 1000000 ) * 1000;
     retval = select( ( int )id + 1, &readfs, NULL, NULL, &tv );
     if( retval == -1 || retval == 0 )
       return 0;
@@ -166,10 +164,10 @@ u32 ser_read( ser_handler id, u8* dest, u32 maxsize )
 }
 
 // Read a single byte and return it (or -1 for error)
-int ser_read_byte( ser_handler id )
+int ser_read_byte( ser_handler id, u32 timeout )
 {
   u8 data;
-  int res = ser_read( id, &data, 1 );
+  int res = ser_read( id, &data, 1, timeout );
 
   return res == 1 ? data : -1;
 }
@@ -187,11 +185,5 @@ u32 ser_write( ser_handler id, const u8 *src, u32 size )
 u32 ser_write_byte( ser_handler id, u8 data )
 {
   return ( u32 )write( id, &data, 1 );
-}
-
-// Set communication timeout
-void ser_set_timeout_ms( ser_handler id, u32 timeout )
-{
-  ser_timeout = timeout;
 }
 
