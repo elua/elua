@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <share.h>
 #include <windows.h>
+#include <string.h>
 #include "os_io.h"
 #include "remotefs.h"
 
@@ -111,7 +112,10 @@ static int found_last_file;
 u32 os_opendir( const char* name )
 {  
   if( name || strlen( name ) == 0 || ( strlen( name ) == 1 && !strcmp( name, "/" ) ) ) {
-    win32_dir_hnd = FindFirstFile( name, &win32_dir_data );
+    TCHAR dirname[ MAX_PATH ];
+    strncpy( dirname, name, MAX_PATH );
+    strncat( dirname, "\\*", MAX_PATH );
+    win32_dir_hnd = FindFirstFile( dirname, &win32_dir_data );
     found_last_file = 0;
     return win32_dir_hnd == INVALID_HANDLE_VALUE ? 0 : ( u32 )win32_dir_hnd;  
   }
@@ -130,9 +134,9 @@ void os_readdir( u32 d, const char **pname )
     if( ( win32_dir_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) == 0 )
     {
       if( win32_dir_data.cFileName[ 0 ] )
-        strncpy( realname, win32_dir_data.cAlternateFileName, RFS_MAX_FNAME_SIZE );
-      else
         strncpy( realname, win32_dir_data.cFileName, RFS_MAX_FNAME_SIZE );
+      else
+        strncpy( realname, win32_dir_data.cAlternateFileName, RFS_MAX_FNAME_SIZE );
       *pname = realname;
     }    
     if( FindNextFile( win32_dir_hnd, &win32_dir_data ) == 0 )
