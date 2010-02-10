@@ -61,10 +61,13 @@
 #define ADCLINE
 #endif
 
-#ifdef BUILD_RPC
+#if defined( BUILD_RPC ) || defined( ELUA_BOOT_RPC )
 #define RPCLINE _ROM( AUXLIB_RPC, luaopen_rpc, rpc_map )
 #else
 #define RPCLINE
+#if !defined( BUILD_RPC )
+#define BUILD_RPC
+#endif
 #endif
 
 #ifdef PS_LIB_TABLE_NAME

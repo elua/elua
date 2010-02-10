@@ -40,7 +40,7 @@ void *alloca(size_t);
 #include "luarpc_rpc.h"
 
 
-#ifdef BUILD_RPC
+#if defined( BUILD_RPC )
 
 // Support for Compiling with & without rotables 
 #ifdef LUA_OPTIMIZE_MEMORY

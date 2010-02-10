@@ -5,7 +5,7 @@
 #include "platform_conf.h"
 #include "luarpc_rpc.h"
 
-#ifdef BUILD_RPC
+#if defined( BUILD_RPC )
 
 // Setup Transport
 void transport_init (Transport *tpt)
