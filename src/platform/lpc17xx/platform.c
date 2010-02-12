@@ -23,9 +23,6 @@
 #include "lpc17xx_timer.h"
 #include "lpc17xx_clkpwr.h"
 
-// mbed-specific includes
-#include "PinNames.h"
-
 // ****************************************************************************
 // Platform initialization
 
@@ -69,71 +66,92 @@ int platform_init()
 
 // ****************************************************************************
 // PIO section
-                 
-u32 pin_ports = {0,0,0,0,0,0,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,1 ,1 ,2,2,2,2,2,2,0 ,0,0, // mbed p5 - p30
-                 1 ,1 ,1 ,1 ,0,0}; // mbed LED1-4, USBTX, USBRX
-u32 pin_nums  = {9,8,7,6,0,1,18,17,15,16,23,24,25,26,30,31,5,4,3,2,1,0,11,5,4,
+   
+u32 pin_ports[] = {0,0,0,0,0,0,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,1 ,1 ,2,2,2,2,2,2,0 ,0 ,0,0, // mbed p5 - p30 -- mapped to P0_
+                 1 ,1 ,1 ,1 ,0,0}; // mbed LED1-4, USBTX, USBRX -- mapped to P1_
+u32 pin_nums[]  = {9,8,7,6,0,1,18,17,15,16,23,24,25,26,30,31,5,4,3,2,1,0,11,10,5,4,
                  18,20,21,23,2,3};
-
-inline PinName parse_pins(const char *str) {
-    const PinName pin_names[] = {p5, p6, p7, p8, p9, p10, p11, p12, p13, p14
-                                , p15, p16, p17, p18, p19, p20, p21, p22, p23
-                                , p24, p25, p26, p27, p28, p29, p30};
-
-    if(str[0] == 'P') { // Pn_n
-        uint32_t port = str[1] - '0';
-        uint32_t pin = str[3] - '0'; // Pn_n
-        uint32_t pin2 = str[4] - '0'; // Pn_nn
-        if(pin2 <= 9) {
-            pin = pin * 10 + pin2;
-        }
-        return (PinName)(LPC_GPIO0_BASE + port * 32 + pin);
-    } else if(str[0] == 'p') {  // pn
-        uint32_t pin = str[1] - '0'; // pn
-        uint32_t pin2 = str[2] - '0'; // pnn
-        if(pin2 <= 9) {
-                  pin = pin * 10 + pin2;
-        }
-        if(pin < 5 || pin > 30) {
-              return NC;
-        }
-        return pin_names[pin - 5];
-    } else if(str[0] == 'L') {  // LEDn
-        switch(str[3]) {
-            case '1' : return LED1;
-            case '2' : return LED2;
-            case '3' : return LED3;
-            case '4' : return LED4;
-        }
-    } else if(str[0] == 'U') {  // USB?X
-        switch(str[3]) {
-            case 'T' : return USBTX;
-            case 'R' : return USBRX;
-        }
-    }
-    return NC;
-}
-
 
 // The platform I/O functions
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 {
+  pio_type tmp_mask;
+  u32 idx = 0;
   pio_type retval = 1;
-   
+  
+  /*if ( op == PLATFORM_IO_PORT_GET_VALUE )
+    retval = 0;*/
+  if ( port == 0 )
+    pinmask >>= 5; // mbed pins start at pin 5
+  
+  // roll through  
+  while( pinmask > 0)
+  {
+    if ( pinmask & 1 )
+    {
+      
+      if ( port == 1 )
+        idx += 26;
+
+      tmp_mask = (u32)1 << pin_nums[idx];
+
+      switch( op )
+      {
+        case PLATFORM_IO_PIN_SET:
+          GPIO_SetValue(pin_ports[idx], tmp_mask);
+          break;
+
+        case PLATFORM_IO_PIN_CLEAR:
+          GPIO_ClearValue(pin_ports[idx], tmp_mask);
+          break;  
+
+        case PLATFORM_IO_PIN_DIR_OUTPUT:
+          GPIO_SetDir(pin_ports[idx], tmp_mask, 1);
+          break;
+
+        case PLATFORM_IO_PIN_DIR_INPUT:
+          GPIO_SetDir(pin_ports[idx], tmp_mask, 0);
+          break;
+
+        case PLATFORM_IO_PIN_GET:
+          retval = ( GPIO_ReadValue(pin_ports[idx]) & tmp_mask ) ? 1 : 0;
+          break;
+          
+        /*case PLATFORM_IO_PORT_GET_VALUE:
+          retval |=  ( pio_type ) ( ( GPIO_ReadValue(port) & tmp_mask ) ? 1 : 0 ) << idx;
+          break;*/
+          
+        default:
+          retval = 0;
+          break;
+      }
+    }
+    pinmask >>= 1;
+    idx++;
+  }
+  return retval;
+}
+// The platform I/O functions
+/*
+pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
+{
+  pio_type retval = 1;
+  u32 idx = 0;
+  
   switch( op )
   {
     case PLATFORM_IO_PORT_SET_VALUE:   
       GPIO_SetValue(port, pinmask);
       break;
-      
+    
     case PLATFORM_IO_PIN_SET:
       GPIO_SetValue(port, pinmask);
       break;
-      
+    
     case PLATFORM_IO_PIN_CLEAR:
       GPIO_ClearValue(port, pinmask);
       break;
-      
+    
     case PLATFORM_IO_PORT_DIR_OUTPUT:
       GPIO_SetDir(port, 0xFFFFFFFF, 1);
       break;    
@@ -141,7 +159,7 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
     case PLATFORM_IO_PIN_DIR_OUTPUT:
       GPIO_SetDir(port, pinmask, 1);
       break;
-      
+    
     case PLATFORM_IO_PORT_DIR_INPUT:
       GPIO_SetDir(port, 0xFFFFFFFF, 0);
       break;
@@ -149,21 +167,23 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
     case PLATFORM_IO_PIN_DIR_INPUT:
       GPIO_SetDir(port, pinmask, 0);
       break;    
-            
+          
     case PLATFORM_IO_PORT_GET_VALUE:
       retval = GPIO_ReadValue(port);
       break;
-      
+    
     case PLATFORM_IO_PIN_GET:
       retval = ( GPIO_ReadValue(port) & pinmask ) ? 1 : 0;
       break;
-      
+    
     default:
       retval = 0;
       break;
   }
   return retval;
 }
+*/
+
 
 // ****************************************************************************
 // UART section
