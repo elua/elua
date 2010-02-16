@@ -13,6 +13,7 @@
 #include "utils.h"
 #include "common.h"
 #include "platform_conf.h"
+#include "lrotable.h"
 
 // Platform includes
 #include "lpc17xx_gpio.h"
@@ -67,72 +68,7 @@ int platform_init()
 // ****************************************************************************
 // PIO section
    
-u32 pin_ports[] = {0,0,0,0,0,0,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,1 ,1 ,2,2,2,2,2,2,0 ,0 ,0,0, // mbed p5 - p30 -- mapped to P0_
-                 1 ,1 ,1 ,1 ,0,0}; // mbed LED1-4, USBTX, USBRX -- mapped to P1_
-u32 pin_nums[]  = {9,8,7,6,0,1,18,17,15,16,23,24,25,26,30,31,5,4,3,2,1,0,11,10,5,4,
-                 18,20,21,23,2,3};
-
 // The platform I/O functions
-pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
-{
-  pio_type tmp_mask;
-  u32 idx = 0;
-  pio_type retval = 1;
-  
-  /*if ( op == PLATFORM_IO_PORT_GET_VALUE )
-    retval = 0;*/
-  if ( port == 0 )
-    pinmask >>= 5; // mbed pins start at pin 5
-  
-  // roll through  
-  while( pinmask > 0)
-  {
-    if ( pinmask & 1 )
-    {
-      
-      if ( port == 1 )
-        idx += 26;
-
-      tmp_mask = (u32)1 << pin_nums[idx];
-
-      switch( op )
-      {
-        case PLATFORM_IO_PIN_SET:
-          GPIO_SetValue(pin_ports[idx], tmp_mask);
-          break;
-
-        case PLATFORM_IO_PIN_CLEAR:
-          GPIO_ClearValue(pin_ports[idx], tmp_mask);
-          break;  
-
-        case PLATFORM_IO_PIN_DIR_OUTPUT:
-          GPIO_SetDir(pin_ports[idx], tmp_mask, 1);
-          break;
-
-        case PLATFORM_IO_PIN_DIR_INPUT:
-          GPIO_SetDir(pin_ports[idx], tmp_mask, 0);
-          break;
-
-        case PLATFORM_IO_PIN_GET:
-          retval = ( GPIO_ReadValue(pin_ports[idx]) & tmp_mask ) ? 1 : 0;
-          break;
-          
-        /*case PLATFORM_IO_PORT_GET_VALUE:
-          retval |=  ( pio_type ) ( ( GPIO_ReadValue(port) & tmp_mask ) ? 1 : 0 ) << idx;
-          break;*/
-          
-        default:
-          retval = 0;
-          break;
-      }
-    }
-    pinmask >>= 1;
-    idx++;
-  }
-  return retval;
-}
-// The platform I/O functions
-/*
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 {
   pio_type retval = 1;
@@ -182,7 +118,6 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
   }
   return retval;
 }
-*/
 
 
 // ****************************************************************************
@@ -513,3 +448,34 @@ u32 platform_pwm_op( unsigned id, int op, u32 data )
 }
 
 */
+
+// ****************************************************************************
+// Platform specific modules go here
+
+#define MIN_OPT_LEVEL 2
+#include "lrodefs.h"
+extern const LUA_REG_TYPE mbed_pio_map[];
+
+const LUA_REG_TYPE platform_map[] =
+{
+#if LUA_OPTIMIZE_MEMORY > 0
+  { LSTRKEY( "pio" ), LROVAL( mbed_pio_map ) },
+#endif
+  { LNILKEY, LNILVAL }
+};
+
+LUALIB_API int luaopen_platform( lua_State *L )
+{
+#if LUA_OPTIMIZE_MEMORY > 0
+  return 0;
+#else // #if LUA_OPTIMIZE_MEMORY > 0
+  luaL_register( L, PS_LIB_TABLE_NAME, platform_map );
+  
+  // Setup the new tables inside platform table
+  lua_newtable( L );
+  luaL_register( L, NULL, mbed_pio_map );
+  lua_setfield( L, -2, "pio" );
+
+  return 1;
+#endif // #if LUA_OPTIMIZE_MEMORY > 0
+}

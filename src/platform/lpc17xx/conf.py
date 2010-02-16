@@ -7,7 +7,7 @@ local_include +=  ['src/platform/%s/drivers/inc' % platform]
 
 fwlib_files = " ".join(glob.glob("src/platform/%s/drivers/src/*.c" % platform))
 
-specific_files = "startup_LPC17xx.c system_LPC17xx.c core_cm3.c platform.c"
+specific_files = "startup_LPC17xx.c system_LPC17xx.c core_cm3.c platform.c mbed_pio.c"
 
 # Check CPU
 if cputype == 'LPC1768':
