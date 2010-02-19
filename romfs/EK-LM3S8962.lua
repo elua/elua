@@ -1,14 +1,16 @@
---   This auxiliar platform dependent module defines some hardware devices
+--   This auxiliary platform dependent module defines some hardware devices
 -- available in the specific development kit.
 --   It will be automatically require()d when eLua detects it is running on the
--- respective platform, exposing auxiliar constants and functions to facilitate
+-- respective platform, exposing auxiliary constants and functions to facilitate
 -- and keep portable the access to the underlying hardware.
 --   The code configures the MCU to interface with the platform devices and
--- exposes the following  objects, constants and fuctions:
--- Onboard Buttons:
+-- exposes the following  objects, constants and functions:
+-- On-board buttons:
 --    BTN_UP, BTN_DOWN, BTN_LEFT, BTN_RIGHT, BTN_SELECT
--- Onboard LED:
--- Auxiliar Function:
+-- On-board LED:
+--    LED_1  
+-- On-board LED:
+-- Auxiliary Function:
 --    btn_pressed( button )
 --    returns true if the arg button is pressed, false otherwise
 
@@ -27,10 +29,6 @@ btn_pressed = function( button )
 end
 
 LED_1 = pio.PF_0
-
--- Associate the RIT OLED display device supported by the builtin module lm3s with
--- a disp name/device offered here
--- disp = lm3s.disp
 
 pio.pin.setdir( pio.INPUT, BTN_UP, BTN_DOWN, BTN_LEFT, BTN_RIGHT, BTN_SELECT )
 pio.pin.setpull( pio.PULLUP, BTN_UP, BTN_DOWN, BTN_LEFT, BTN_RIGHT, BTN_SELECT )

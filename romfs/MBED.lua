@@ -1,3 +1,13 @@
+--   This auxiliary platform dependent module defines some hardware devices
+-- available in the specific development kit.
+--   It will be automatically require()d when eLua detects it is running on the
+-- respective platform, exposing auxiliary constants and functions to facilitate
+-- and keep portable the access to the underlying hardware.
+--   The code configures the MCU to interface with the platform devices and
+-- exposes the following  objects, constants and functions:
+-- On-board LEDs:
+--  Led1, Led2, Led3 and Led4
+
 local pio = pio
   
 module(...)
