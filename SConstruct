@@ -148,7 +148,7 @@ file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'i
               'ET-STM32' : [ 'hello', 'hangman', 'info', 'bisect','adcscope','adcpoll', 'dualpwm', 'pwmled' ],
               'EAGLE-100' : [ 'bisect', 'hangman', 'lhttpd', 'led', 'hello', 'info' ],
               'ELUA-PUC' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'pwmled' ],
-              'MBED' : [ 'bisect', 'hello', 'info', 'led', 'pwmled', 'dualpwm' ],
+              'MBED' : [ 'bisect', 'hangman', 'hello', 'info', 'led', 'pwmled', 'dualpwm', 'life' ],
 }
 
 # Variants: board = <boardname>
@@ -211,7 +211,7 @@ toolset = toolchain_list[ toolchain ]
 
 # CPU/allocator mapping (if allocator not specified)
 if allocator == '':
-  if boardname == 'LPC-H2888' or boardname == 'ATEVK1100':
+  if boardname in ['LPC-H2888', 'ATEVK1100', 'MBED']:
     allocator = 'multiple'
   else:
     allocator = 'newlib'

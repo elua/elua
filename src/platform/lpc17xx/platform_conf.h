@@ -42,10 +42,13 @@
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
   _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map )\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
+  _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )\
   _ROM( PS_LIB_TABLE_NAME, luaopen_platform, platform_map )
 
 // *****************************************************************************
 // Configuration data
+
+#define EGC_INITIAL_MODE      1
 
 // Virtual timers (0 if not used)
 #define VTMR_NUM_TIMERS       0
@@ -88,10 +91,12 @@
 
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)
-#define SRAM_ORIGIN           0x40000000
-#define SRAM_SIZE             0x10000 // [TODO]: make this 96k?
-#define MEM_START_ADDRESS     { ( void* )end }
-#define MEM_END_ADDRESS       { ( void* )( SRAM_ORIGIN + SRAM_SIZE - STACK_SIZE_TOTAL - 1 ) }
+#define SRAM_ORIGIN           0x10000000
+#define SRAM_SIZE             0x8000
+#define SRAM2_ORIGIN          0x2007C000
+#define SRAM2_SIZE            0x8000
+#define MEM_START_ADDRESS     { ( void* )end, ( void* )SRAM2_ORIGIN }
+#define MEM_END_ADDRESS       { ( void* )( SRAM_ORIGIN + SRAM_SIZE - STACK_SIZE_TOTAL - 1 ), ( void* )( SRAM2_ORIGIN + SRAM2_SIZE - 1 ) }
  
 #endif // #ifndef __PLATFORM_CONF_H__
 
