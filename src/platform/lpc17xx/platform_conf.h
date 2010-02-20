@@ -40,6 +40,7 @@
   _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
+  _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map )\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
   _ROM( PS_LIB_TABLE_NAME, luaopen_platform, platform_map )
 
@@ -54,7 +55,7 @@
 #define NUM_PIO               5
 #define NUM_SPI               0
 #define NUM_UART              4
-#define NUM_PWM               0
+#define NUM_PWM               6
 #define NUM_ADC               0
 #define NUM_CAN               0
 // If virtual timers are enabled, the last timer will be used only for them

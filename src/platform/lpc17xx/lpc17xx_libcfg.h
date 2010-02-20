@@ -46,6 +46,10 @@
 /* TIMER ------------------------------- */
 #define _TIM
 
+/* PWM ------------------------------- */
+#define _PWM	1
+#define _PWM1	1
+
 /************************** GLOBAL/PUBLIC MACRO DEFINITIONS *********************************/
 
 #ifdef  DEBUG
