@@ -48,6 +48,7 @@
   _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
+  _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )\
   _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map )\
   RPCLINE\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )

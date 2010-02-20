@@ -7,6 +7,7 @@
 #include "auxmods.h"
 #include "lrotable.h"
 #include "legc.h"
+#include "version.h"
 #include <string.h>
 
 // Lua: elua.egc_setup( mode, [ memlimit ] )
@@ -21,12 +22,22 @@ static int egc_setup( lua_State *L )
   return 0;
 }
 
+
+// Lua: elua.version()
+static int version( lua_State *L )
+{
+  lua_pushstring( L, ELUA_STR_VERSION );
+  return 1;
+}
+
+
 // Module function map
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
 const LUA_REG_TYPE elua_map[] = 
 {
   { LSTRKEY( "egc_setup" ), LFUNCVAL( egc_setup ) },
+  { LSTRKEY( "version" ), LFUNCVAL( version ) },
 #if LUA_OPTIMIZE_MEMORY > 0
   { LSTRKEY( "EGC_NOT_ACTIVE" ), LNUMVAL( EGC_NOT_ACTIVE ) },
   { LSTRKEY( "EGC_ON_ALLOC_FAILURE" ), LNUMVAL( EGC_ON_ALLOC_FAILURE ) },

@@ -95,6 +95,7 @@ u32 SCU_GetMCLKFreqValue();
   _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map)\
+  _ROM( AUXLIB_CPU, luaopen_elua, elua_map)\
   RPCLINE\
   _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map)\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\

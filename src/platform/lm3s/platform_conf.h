@@ -89,6 +89,7 @@
   _ROM( AUXLIB_BITARRAY, luaopen_bitarray, bitarray_map )\
   NETLINE\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
+  _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )\
   ADCLINE\
   RPCLINE\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
@@ -100,7 +101,7 @@
 // Static TCP/IP configuration
 #define ELUA_CONF_IPADDR0     192
 #define ELUA_CONF_IPADDR1     168
-#define ELUA_CONF_IPADDR2     0
+#define ELUA_CONF_IPADDR2     100
 #define ELUA_CONF_IPADDR3     5
 
 #define ELUA_CONF_NETMASK0    255
@@ -110,12 +111,12 @@
 
 #define ELUA_CONF_DEFGW0      192
 #define ELUA_CONF_DEFGW1      168
-#define ELUA_CONF_DEFGW2      0
+#define ELUA_CONF_DEFGW2      100
 #define ELUA_CONF_DEFGW3      1
 
 #define ELUA_CONF_DNS0        192
 #define ELUA_CONF_DNS1        168
-#define ELUA_CONF_DNS2        0
+#define ELUA_CONF_DNS2        100
 #define ELUA_CONF_DNS3        1
 
 // *****************************************************************************
