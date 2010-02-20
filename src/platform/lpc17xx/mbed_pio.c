@@ -7,12 +7,38 @@
 #include "lrotable.h"
 #include "platform_conf.h"
 #include "auxmods.h"
+#include "lpc17xx_pinsel.h"
+
+static int configpin( lua_State* L )
+{
+  pio_type v = ( pio_type )luaL_checkinteger( L, 1 );
+  int funcnum = luaL_checkinteger( L, 2 );
+  int opendrain = luaL_checkinteger( L, 3 );
+  int pinmode = luaL_checkinteger( L, 4 );
+  PINSEL_CFG_Type PinCfg;
+  int port, pin;
+
+  port = PLATFORM_IO_GET_PORT( v );
+  pin = PLATFORM_IO_GET_PIN( v );
+  if( PLATFORM_IO_IS_PORT( v ) || !platform_pio_has_port( port ) || !platform_pio_has_pin( port, pin ) )
+    return luaL_error( L, "invalid pin" );
+  
+  PinCfg.Funcnum = funcnum;
+	PinCfg.OpenDrain = opendrain;
+	PinCfg.Pinmode = pinmode;
+	PinCfg.Portnum = port;
+	PinCfg.Pinnum = pin;
+	PINSEL_ConfigPin(&PinCfg);
+	
+  return 0;
+}
+
 
 // mbed pin map from DIP pins to lpc17xx ports/pins
-u32 pin_ports[] = {0,0,0,0,0,0,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,1 ,1 ,2,2,2,2,2,2,0 ,0 ,0,0, // mbed p5 - p30 -- mapped to P0_
-                 1 ,1 ,1 ,1 ,0,0}; // mbed LED1-4, USBTX, USBRX -- mapped to P1_
-u32 pin_nums[]  = {9,8,7,6,0,1,18,17,15,16,23,24,25,26,30,31,5,4,3,2,1,0,11,10,5,4,
-                 18,20,21,23,2,3};
+u32 pin_ports[] = { 0,0,0,0,0,0,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,1 ,1 ,2,2,2,2,2,2,0 ,0 ,0,0, // mbed p5 - p30 -- mapped to P0_
+                 1 ,1 ,1 ,1 ,0,0 }; // mbed LED1-4, USBTX, USBRX -- mapped to P1_
+u32 pin_nums[]  = { 9,8,7,6,0,1,18,17,15,16,23,24,25,26,30,31,5,4,3,2,1,0,11,10,5,4,
+                 18,20,21,23,2,3 };
 
 static int mbed_pio_mt_index( lua_State* L ) 
 {
@@ -63,6 +89,7 @@ const LUA_REG_TYPE mbed_pio_map[] =
 #if LUA_OPTIMIZE_MEMORY > 0
   { LSTRKEY( "__metatable" ), LROVAL( mbed_pio_map ) },
 #endif
+  { LSTRKEY( "configpin" ),  LFUNCVAL( configpin ) },
   { LSTRKEY( "__index" ), LFUNCVAL( mbed_pio_mt_index ) },
   { LNILKEY, LNILVAL }
 };

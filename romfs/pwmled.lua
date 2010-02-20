@@ -9,6 +9,9 @@ elseif pd.board() == 'ELUA-PUC' then
   local psel = cpu.r32( cpu.IO_PINSEL3 )
   psel = bit.bor( bit.band( psel, 0xFFFFFCFF ), 0x00000200 )
   cpu.w32( cpu.IO_PINSEL3, psel )
+elseif pd.board() == 'MBED' then
+  pwmid, tmrid = 1, 0
+  mbed.pio.configpin(mbed.pio.LED1, 2, 0, 0)
 else
   print( pd.board() .. " not supported by this example" )
   return

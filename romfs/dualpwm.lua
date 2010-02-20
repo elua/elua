@@ -4,6 +4,10 @@ local pwmid1, pwmid2, tmrid
 
 if pd.board() == 'MOD711' or pd.board() == 'ET-STM32' then
   pwmid1, pwmid2, tmrid = 0, 1, 3
+elseif pd.board() == 'MBED' then
+  pwmid1, pwmid2, tmrid = 1, 2, 0
+  mbed.pio.configpin(mbed.pio.LED1, 2, 0, 0)
+  mbed.pio.configpin(mbed.pio.LED2, 2, 0, 0)
 else
   print( pd.board() .. " not supported by this example" )
   return

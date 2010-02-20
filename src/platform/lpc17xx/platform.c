@@ -354,7 +354,6 @@ static u32 platform_pwm_set_clock( unsigned id, u32 clock )
 // Setup all PWM channels
 static void platform_setup_pwm()
 {
-  PWM_TIMERCFG_Type PWMCfgDat;
   PWM_MATCHCFG_Type PWMMatchCfgDat;
   
   // Keep clock in reset, set PWM code
@@ -374,7 +373,6 @@ static void platform_setup_pwm()
 u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
 {
   PWM_MATCHCFG_Type PWMMatchCfgDat;
-  PINSEL_CFG_Type PinCfg;
   u32 divisor = platform_pwm_get_clock( id ) / frequency - 1;
     
   PWM_MatchUpdate(PWM1, 0, divisor, PWM_MATCH_UPDATE_NOW); // PWM1 cycle rate
@@ -388,6 +386,9 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
 	PWMMatchCfgDat.ResetOnMatch = DISABLE;
 	PWMMatchCfgDat.StopOnMatch = DISABLE;
 	PWM_ConfigMatch(PWM1, &PWMMatchCfgDat);
+	
+	PWM_ResetCounter(PWM1);
+	PWM_CounterCmd(PWM1, ENABLE);
 	
 	PWM_ChannelCmd(PWM1, id, ENABLE);
 

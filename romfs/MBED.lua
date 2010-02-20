@@ -12,10 +12,10 @@ local pio = pio
   
 module(...)
 
-LED_1 = pio.P1_0
-LED_2 = pio.P1_1
-LED_3 = pio.P1_2
-LED_4 = pio.P1_3
+LED_1 = mbed.pio.LED1
+LED_2 = mbed.pio.LED2
+LED_3 = mbed.pio.LED3
+LED_4 = mbed.pio.LED4
 
 pio.pin.setdir( pio.OUTPUT, LED_1 )
 pio.pin.setdir( pio.OUTPUT, LED_2 )
