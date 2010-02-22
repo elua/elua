@@ -1,4 +1,4 @@
--- eLua Documentation structure is defined here
+-- The eLua documentation structure (main menu) is defined here.
 
 --[[
 The menu is defined by an array of { name, link, submenu, title } arrays
@@ -21,6 +21,7 @@ If 'name' is nil, the entry defines a "hidden menu item": they are part of the t
 generation process, but they don't appear in the menu. These entries NEED A LINK
 AND TITLE FIELDS! See the definition of 'forum.html' below for an example of such item.
 --]]
+
 local menu =
 {
   -- "eLua project" (menu separator)
@@ -97,37 +98,21 @@ local menu =
           { { "The shell", "O Shell" }, "using.html#shell" },
           { "Cross-compiling", "using.html#cross" },
           { "LuaRPC", "using.html#rpc" },
-          { "eLua and EGC", "elua_egc.html" },
         },
+      },
+      { { "Code examples", "Exemplos de Código" }, "examples.html" },
+      { { "FAQ", "Perguntas Frequentes (FAQ)" }, "faq.html" },     
+      { "eLua file systems", "filesystems.html",
+        {
+          { { "Read-Only FS in MCU Flash", "O ROM File System em Flash" }, "arch_romfs.html" },
+          { "R/W FAT FS in SD/MMC Cards", "fatfs.html" }
+        }
       },
       { { "Building eLua", "Build de eLua" }, "building.html",
         {
           { "Building eLua in Linux", "building_unix.html" },
           { "Building eLua in Windows", "building_win.html" },
         },  
-      },
-      { { "Code examples", "Exemplos de Código" }, "examples.html" },
-      { { "FAQ", "Perguntas Frequentes (FAQ)" }, "faq.html" },     
-      { "eLua file systems", "filesystems.html",
-        {
-          { { "ROM file system", "O ROM File System" }, "arch_romfs.html" },
-          { "FAT file system", "fatfs.html" }
-        }
-      },
-      { { "Tutorials", "Tutoriais" }, "tutorials.html",
-        {
-          { { "Booting on a PC", "Bootando num PC" }, "tut_bootpc.html" },
-          { { "Booting from a PenDrive", "Bootando de um Pen-Drive" }, "tut_bootstick.html" },
-          { { "Using OpenOCD", "Usando OpenOCD" }, "tut_openocd.html" },
-          { { "eLua toolchains", "Toolchains para eLua" }, "toolchains.html" },
-          { { "Building toolchains", "Build de Toolchains" }, "tchainbuild.html",
-            {
-              { "ARM7 and ARM9", "tc_arm.html" },
-              { "ARM Cortex-M3", "tc_cortex.html" },
-              { "i386", "tc_386.html" }
-            },
-          },
-        },
       },
     },
   }, 
@@ -155,8 +140,9 @@ local menu =
       { { "eLua's Architecture", "Arquitetura de eLua" }, "arch_overview.html#structure" },
       { { "Common code", "Código Básico" }, "arch_overview.html#common" },
       { { "Interface architecture", "Interfaceamento" }, "arch_overview.html#platform" },
+      { { "Booting eLua", "O Boot de eLua" }, "arch_overview.html#boot" },
       { { "Platforms and ports", "Portabilização" }, "arch_overview.html#platforms" },
-      { { "Booting eLua", "O Boot de eLua" }, "arch_overview.html#boot" }
+      { { "Adding a new port", "Portando eLua" }, "arch_newport.html" },
     }
   },
 
@@ -166,11 +152,22 @@ local menu =
   -- Other WRITE THE arch_platform_other.html file
   { { "More information", "Informações Adicionais" }, "#", 
     {
-      { { "Adding a new port", "Portando eLua" }, "arch_newport.html" },
       { { "Consoles and terminals", "Consoles e Terminais" }, "arch_con_term.html" },
       { { "TCP/IP in eLua", "TCP/IP em eLua" }, "arch_tcpip.html" },
       { { "LTR (Lua Tiny RAM) in eLua", "LTR (Lua Tiny RAM) em eLua" }, "arch_ltr.html" },
-      { { "eLua coding style", "Regras de Codificação" }, "arch_coding.html" }
+      { "EGC (Emergency GC) in eLua", "elua_egc.html" },
+      { { "Booting on a PC", "Bootando num PC" }, "tut_bootpc.html" },
+      { { "Booting from a PenDrive", "Bootando de um Pen-Drive" }, "tut_bootstick.html" },
+      { { "Using OpenOCD", "Usando OpenOCD" }, "tut_openocd.html" },
+      { { "eLua toolchains", "Toolchains para eLua" }, "toolchains.html" },
+      { { "Building toolchains", "Build de Toolchains" }, "tchainbuild.html",
+        {
+          { "ARM7 and ARM9", "tc_arm.html" },
+          { "ARM Cortex-M3", "tc_cortex.html" },
+          { "i386", "tc_386.html" }
+        },
+      },
+      { { "eLua coding style", "Regras de Codificação" }, "arch_coding.html" },
     }
   },
 
@@ -188,7 +185,6 @@ local menu =
     }
   }
 }
-
 
 -- Translations for different strings needed by the generator
 -- The order of languages is the same as the one defines in the languages array 
@@ -213,6 +209,6 @@ local fixed =
   "ddlevelsfiles/"
 }
 
--- Return our whole data
+-- Return our whole data defined above
 return menu, translations, fixed
 

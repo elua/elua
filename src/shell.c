@@ -49,10 +49,10 @@ static void shell_help( char* args )
   printf( "Shell commands:\n" );
   printf( "  exit        - exit from this shell\n" );
   printf( "  help        - print this help\n" );
-  printf( "  ls or dir   - lists ROMFS files and sizes\n" );
+  printf( "  ls or dir   - lists filesystems files and sizes\n" );
   printf( "  cat or type - lists file contents\n" );
   printf( "  lua [args]  - run Lua with the given arguments\n" );
-  printf( "  recv        - receive a file (XMODEM) and execute it\n" );
+  printf( "  recv        - receive a file via XMODEM and execute it\n" );
   printf( "  ver         - print eLua version\n" );
 }
 
@@ -258,6 +258,7 @@ void shell_start()
   int i, inside_quotes;
   char quote_char;
 
+  printf( SHELL_WELCOMEMSG, ELUA_STR_VERSION );
   while( 1 )
   {
     // Show prompt
