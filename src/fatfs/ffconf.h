@@ -9,12 +9,15 @@
 #ifndef _FFCONFIG
 #define _FFCONFIG 0x007E
 
+#include "type.h"
+#include "integer.h"
+#include "devman.h"
 
 /*---------------------------------------------------------------------------/
 / Function and Buffer Configurations
 /----------------------------------------------------------------------------*/
 
-#define	_FS_TINY	0		/* 0 or 1 */
+#define	_FS_TINY	1		/* 0 or 1 */
 /* When _FS_TINY is set to 1, FatFs uses the sector buffer in the file system
 /  object instead of the sector buffer in the individual file object for file
 /  data transfer. This reduces memory consumption 512 bytes each file object. */
@@ -53,7 +56,7 @@
 / Locale and Namespace Configurations
 /----------------------------------------------------------------------------*/
 
-#define _CODE_PAGE	932
+#define _CODE_PAGE	437
 /* The _CODE_PAGE specifies the OEM code page to be used on the target system.
 /  Incorrect setting of the code page can cause a file open failure.
 /
@@ -86,8 +89,8 @@
 */
 
 
-#define	_USE_LFN	0		/* 0, 1 or 2 */
-#define	_MAX_LFN	255		/* Maximum LFN length to handle (12 to 255) */
+#define	_USE_LFN	1		/* 0, 1 or 2 */
+#define	_MAX_LFN	( DM_MAX_FNAME_LENGTH )		/* Maximum LFN length to handle (12 to 255) */
 /* The _USE_LFN option switches the LFN support.
 /
 /   0: Disable LFN. _MAX_LFN and _LFN_UNICODE have no effect.

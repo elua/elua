@@ -14,7 +14,7 @@
 #define BUILD_XMODEM
 #define BUILD_SHELL
 #define BUILD_ROMFS
-//#define BUILD_MMCFS
+#define BUILD_MMCFS
 #define BUILD_TERM
 //#define BUILD_UIP
 //#define BUILD_DHCPC
@@ -22,7 +22,7 @@
 #define BUILD_CON_GENERIC
 #define BUILD_ADC
 #define BUILD_RPC
-#define BUILD_RFS
+//#define BUILD_RFS
 //#define BUILD_CON_TCP
 
 // *****************************************************************************
@@ -105,6 +105,8 @@
 
 // *****************************************************************************
 // Configuration data
+
+#define EGC_INITIAL_MODE      1
 
 // Virtual timers (0 if not used)
 #define VTMR_NUM_TIMERS       4

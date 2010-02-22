@@ -309,7 +309,7 @@ uip_files = " src/elua_uip.c " + " ".join( [ "src/uip/%s" % name for name in uip
 local_include += ['src/uip']
 
 # FatFs files
-app_files = app_files + "src/elua_mmc.c src/mmcfs.c src/fatfs/ff.c "
+app_files = app_files + "src/elua_mmc.c src/mmcfs.c src/fatfs/ff.c src/fatfs/ccsbcs.c "
 local_include += ['src/fatfs']
 
 # Lua module files

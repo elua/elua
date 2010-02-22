@@ -185,17 +185,28 @@ static struct dm_dirent* mmcfs_readdir_r( struct _reent *r, void *d )
   DIR *pdir = ( DIR* )d;
   FILINFO mmc_file_info;
   struct dm_dirent* pent = &dm_shared_dirent;
+  char *fn;
+#if _USE_LFN
+  static char lfn[_MAX_LFN * (_DF1S ? 2 : 1) + 1];
+  mmc_file_info.lfname = lfn;
+  mmc_file_info.lfsize = sizeof(lfn);
+#endif
   
-  while( 1 )
+  while( 1 ) // loop until we get a file, error, or end of directory
   {
-    if( f_readdir( pdir, &mmc_file_info ) != FR_OK )
+    if( f_readdir( pdir, &mmc_file_info ) != FR_OK ) // return NULL on read error
       return NULL;
-    if( ( mmc_file_info.fattrib & AM_DIR ) == 0 )
+    if( mmc_file_info.fname[ 0 ] == '\0' ) // return NULL when listing is done
+      return NULL;  
+    if( ( mmc_file_info.fattrib & AM_DIR ) == 0 ) // if we have a file, exit loop
       break;
   }
-  if( mmc_file_info.fname[ 0 ] == '\0' )
-    return NULL;
-  strncpy( dm_shared_fname, mmc_file_info.fname, DM_MAX_FNAME_LENGTH );
+#if _USE_LFN
+  fn = *mmc_file_info.lfname ? mmc_file_info.lfname : mmc_file_info.fname;
+#else
+  fn = mmc_file_info.fname;
+#endif
+  strncpy( dm_shared_fname, fn, DM_MAX_FNAME_LENGTH );
   pent->fname = dm_shared_fname;
   pent->fsize = mmc_file_info.fsize;
   pent->ftime = mmc_file_info.ftime; 
