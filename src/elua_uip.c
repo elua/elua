@@ -512,9 +512,8 @@ static void elua_prep_socket_state( volatile struct elua_uip_state *pstate, void
 int elua_net_socket( int type )
 {
   int i;
-  //struct uip_conn* pconn;
-  volatile struct elua_uip_state *pstate;  
-    
+  struct uip_conn* pconn;
+  
   // [TODO] add UDP support at some point.
   if( type == ELUA_NET_SOCK_DGRAM )
     return -1;
@@ -523,10 +522,8 @@ int elua_net_socket( int type )
   // Iterate through the list of connections, looking for a free one
   for( i = 0; i < UIP_CONNS; i ++ )
   {
-    //pconn = uip_conns + i;
-    //if( pconn->tcpstateflags == UIP_CLOSED )
-    pstate = ( volatile struct elua_uip_state* )&( uip_conns[ i ].appstate );
-    if( pstate->state == ELUA_UIP_STATE_IDLE)
+    pconn = uip_conns + i;
+    if( pconn->tcpstateflags == UIP_CLOSED )
     { 
       // Found a free connection, reserve it for later use
       uip_conn_reserve( i );
