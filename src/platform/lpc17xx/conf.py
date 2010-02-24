@@ -11,7 +11,7 @@ specific_files = "startup_LPC17xx.c system_LPC17xx.c core_cm3.c platform.c mbed_
 
 # Check CPU
 if cputype == 'LPC1768':
-  ldscript = "lpc17xx.ld"
+  ldscript = "LPC17xx.ld"
 else:
   print "Invalid LPC17xx CPU %s", cputype
   sys.exit( -1 )  

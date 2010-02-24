@@ -69,6 +69,7 @@ SECTIONS
 		. = ALIGN(4);
 		/* End Of .text section */
 		etext = .;
+                _fini = .;
 		_sidata = .;
 	} >IROM
 
