@@ -1,4 +1,4 @@
-/* This header file is part of the ATMEL AVR32-SoftwareFramework-1.3.0-AT32UC3A Release */
+/* This header file is part of the ATMEL AVR-UC3-SoftwareFramework-1.6.1 Release */
 
 /*This file has been prepared for Doxygen automatic documentation generation.*/
 /*! \file *********************************************************************
@@ -15,33 +15,36 @@
  *
  *****************************************************************************/
 
-/* Copyright (C) 2006-2008, Atmel Corporation All rights reserved.
+/* Copyright (c) 2009 Atmel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. The name of ATMEL may not be used to endorse or promote products derived
+ * 3. The name of Atmel may not be used to endorse or promote products derived
  * from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY ATMEL ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * 4. This software may only be redistributed and used in connection with an Atmel
+ * AVR product.
+ *
+ * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE EXPRESSLY AND
- * SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR ANY DIRECT,
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+ * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
+ *
  */
-
 
 #ifndef _PM_H_
 #define _PM_H_
@@ -58,7 +61,7 @@
  *   \arg \c AVR32_PM_SMODE_FROZEN: Frozen;
  *   \arg \c AVR32_PM_SMODE_STANDBY: Standby;
  *   \arg \c AVR32_PM_SMODE_STOP: Stop;
- *   \arg \c AVR32_PM_SMODE_SHUTDOWN: Shutdown (DeepStop);
+ *   \arg \c AVR32_PM_SMODE_DEEP_STOP: DeepStop;
  *   \arg \c AVR32_PM_SMODE_STATIC: Static.
  */
 #define SLEEP(mode)   {__asm__ __volatile__ ("sleep "STRINGZ(mode));}
@@ -73,10 +76,10 @@ typedef struct
   //! PBA frequency (input/output argument).
   unsigned long pba_f;
 
-  //! Oscillator 0 frequency (board dependant) (input argument).
+  //! Oscillator 0's external crystal(or external clock) frequency (board dependant) (input argument).
   unsigned long osc0_f;
 
-  //! Oscillator 0 startup time: AVR32_PM_OSCCTRL0_STARTUP_x_RCOSC (input argument).
+  //! Oscillator 0's external crystal(or external clock) startup time: AVR32_PM_OSCCTRL0_STARTUP_x_RCOSC (input argument).
   unsigned long osc0_startup;
 } pm_freq_param_t;
 
@@ -91,7 +94,7 @@ typedef struct
  * \return The MCU reset cause which can be masked with the
  *         \c AVR32_PM_RCAUSE_x_MASK bit-masks to isolate specific causes.
  */
-#if __GNUC__
+#if (defined __GNUC__)
 __attribute__((__always_inline__))
 #endif
 extern __inline__ unsigned int pm_get_reset_cause(volatile avr32_pm_t *pm)
@@ -424,6 +427,34 @@ extern unsigned long pm_read_gplp(volatile avr32_pm_t *pm, unsigned long gplp);
 extern void pm_write_gplp(volatile avr32_pm_t *pm, unsigned long gplp, unsigned long value);
 
 
+/*! \brief Enable the clock of a module.
+ *
+ * \param pm Base address of the Power Manager (i.e. &AVR32_PM)
+ * \param module The module to clock (use one of the defines in the part-specific
+ * header file under "toolchain folder"/avr32/inc(lude)/avr32/; depending on the
+ * clock domain, look for the sections "CPU clocks", "HSB clocks", "PBx clocks")
+ *
+ * \return Status.
+ *   \retval 0  Success.
+ *   \retval <0 An error occured.
+ */
+extern long pm_enable_module(volatile avr32_pm_t *pm, unsigned long module);
+
+/*! \brief Disable the clock of a module.
+ *
+ * \param pm Base address of the Power Manager (i.e. &AVR32_PM)
+ * \param module The module to shut down (use one of the defines in the part-specific
+ * header file under "toolchain folder"/avr32/inc(lude)/avr32/; depending on the
+ * clock domain, look for the sections "CPU clocks", "HSB clocks", "PBx clocks")
+ *
+ * \return Status.
+ *   \retval 0  Success.
+ *   \retval <0 An error occured.
+ */
+extern long pm_disable_module(volatile avr32_pm_t *pm, unsigned long module);
+
+
+
 /*! \brief Automatically configure the CPU, PBA, PBB, and HSB clocks
  *         according to the user wishes.
  *
@@ -436,8 +467,7 @@ extern void pm_write_gplp(volatile avr32_pm_t *pm, unsigned long gplp, unsigned 
  *  - It first try to find a valid PLL frequency (the highest possible value to avoid jitter) in order
  *    to satisfy the CPU frequency,
  *  - It optimizes the configuration depending the various divide stages,
- *  - Then, the PBA frequency is configured from the CPU freq (PBA freq = CPU freq/(2 exp x)) so that
- *    PBA max frequencies is always below 30MHz.
+ *  - Then, the PBA frequency is configured from the CPU freq.
  *  - Note that HSB and PBB are configured with the same frequency as CPU.
  *  - Note also that the number of wait states of the flash read accesses is automatically set-up depending
  *    the CPU frequency. As a consequence, the application needs the FLASHC driver to compile.

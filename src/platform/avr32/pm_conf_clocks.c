@@ -1,4 +1,4 @@
-/* This source file is part of the ATMEL AVR32-SoftwareFramework-1.3.0-AT32UC3A Release */
+/* This source file is part of the ATMEL AVR-UC3-SoftwareFramework-1.6.1 Release */
 
 /*This file has been prepared for Doxygen automatic documentation generation.*/
 /*! \file *********************************************************************
@@ -15,43 +15,46 @@
  *
  *****************************************************************************/
 
-/* Copyright (C) 2006-2008, Atmel Corporation All rights reserved.
+/* Copyright (c) 2009 Atmel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. The name of ATMEL may not be used to endorse or promote products derived
+ * 3. The name of Atmel may not be used to endorse or promote products derived
  * from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY ATMEL ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * 4. This software may only be redistributed and used in connection with an Atmel
+ * AVR product.
+ *
+ * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE EXPRESSLY AND
- * SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR ANY DIRECT,
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+ * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
+ *
  */
 
-
 #include <string.h>
-#if __GNUC__
-#  include <sys/cpu.h>
-#endif
 #include "compiler.h"
 #include "pm.h"
 
 
 extern void flashc_set_wait_state(unsigned int wait_state);
+#if (defined AVR32_FLASHC_210_H_INCLUDED)
+extern void flashc_issue_command(unsigned int command, int page_number);
+#endif
 
 
 #define PM_MAX_MUL                ((1 << AVR32_PM_PLL0_PLLMUL_SIZE) - 1)
@@ -151,7 +154,7 @@ int pm_configure_clocks(pm_freq_param_t *param)
   pm_pll_set_option(&AVR32_PM
   , 0 // pll
   // PLL clock is lower than 160MHz: need to set pllopt.
-  , (pll_freq < 160000000) ? 1 : 0 // pll_freq
+  , (pll_freq < AVR32_PM_PLL_VCO_RANGE0_MIN_FREQ) ? 1 : 0 // pll_freq
   , div2_en // pll_div2
   , 0 // pll_wbwdisable
   );
@@ -168,10 +171,6 @@ int pm_configure_clocks(pm_freq_param_t *param)
 
   // Update real PBA Frequency
   param->pba_f = pll_freq / (1 << div2_pba);
-
-#if __GNUC__
-  set_cpu_hz(param->pba_f);
-#endif
 
   // Enable PLL0
   pm_pll_enable(&AVR32_PM, 0);
@@ -202,9 +201,25 @@ int pm_configure_clocks(pm_freq_param_t *param)
   );
 
   if (param->cpu_f > AVR32_FLASHC_FWS_0_MAX_FREQ)
+  {
     flashc_set_wait_state(1);
+#if (defined AVR32_FLASHC_210_H_INCLUDED)
+    if (param->cpu_f > AVR32_FLASHC_HSEN_FWS_1_MAX_FREQ)
+      flashc_issue_command(AVR32_FLASHC_FCMD_CMD_HSEN, -1);
+    else
+      flashc_issue_command(AVR32_FLASHC_FCMD_CMD_HSDIS, -1);
+#endif
+  }
   else
+  {
     flashc_set_wait_state(0);
+#if (defined AVR32_FLASHC_210_H_INCLUDED)
+    if (param->cpu_f > AVR32_FLASHC_HSEN_FWS_0_MAX_FREQ)
+      flashc_issue_command(AVR32_FLASHC_FCMD_CMD_HSEN, -1);
+    else
+      flashc_issue_command(AVR32_FLASHC_FCMD_CMD_HSDIS, -1);
+#endif
+  }
 
   pm_switch_to_clock(&AVR32_PM, AVR32_PM_MCCTRL_MCSEL_PLL0);
 
@@ -214,34 +229,44 @@ int pm_configure_clocks(pm_freq_param_t *param)
 
 void pm_configure_usb_clock(void)
 {
-  volatile avr32_pm_t *pm = &AVR32_PM;
-
-  // Set PLL1 @ 96 MHz from Osc0: 12MHz*(7+1)/1 = 96MHz.
-  // In order to work, we need to go above 80MHz, then divide.
-  pm_pll_setup(pm, 1,   // pll
-                   7,   // mul
-                   1,   // div
-                   0,   // osc
-                   16); // lockcount
-
-  pm_pll_set_option(pm, 1,  // pll1
-                        1,  // Choose the range 80-180MHz.
-                        1,  // div2
-                        0); // wbwdisable
-
-  // Enable PLL1.
-  pm_pll_enable(pm, 1);
-
-  // Wait for PLL1 locked.
-  pm_wait_for_pll1_locked(pm);
+#if (defined __AVR32_UC3A3256__)  || (defined __AVR32_UC3A3128__)  || (defined __AVR32_UC3A364__)  || \
+    (defined __AVR32_UC3A3256S__) || (defined __AVR32_UC3A3128S__) || (defined __AVR32_UC3A364S__) || \
+    (defined __AT32UC3A3256__)  || (defined __AT32UC3A3128__)  || (defined __AT32UC3A364__) ||        \
+    (defined __AT32UC3A3256S__) || (defined __AT32UC3A3128S__) || (defined __AT32UC3A364S__)
 
   // Setup USB GCLK.
-  pm_gc_setup(pm, AVR32_PM_GCLK_USBB, // gc
-                  1,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
-                  1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+  pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_USBB, // gc
+                  0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+                  0,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
                   0,                  // diven
                   0);                 // div
 
   // Enable USB GCLK.
-  pm_gc_enable(pm, AVR32_PM_GCLK_USBB);
+  pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_USBB);
+#else
+  // Use 12MHz from OSC0 and generate 96 MHz
+  pm_pll_setup(&AVR32_PM, 1,  // pll.
+	  7,   // mul.
+	  1,   // div.
+	  0,   // osc.
+	  16); // lockcount.
+
+  pm_pll_set_option(&AVR32_PM, 1, // pll.
+	  1,  // pll_freq: choose the range 80-180MHz.
+	  1,  // pll_div2.
+	  0); // pll_wbwdisable.
+
+  // start PLL1 and wait forl lock
+  pm_pll_enable(&AVR32_PM, 1);
+
+  // Wait for PLL1 locked.
+  pm_wait_for_pll1_locked(&AVR32_PM);
+
+  pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_USBB,  // gc.
+            1,  // osc_or_pll: use Osc (if 0) or PLL (if 1).
+            1,  // pll_osc: select Osc0/PLL0 or Osc1/PLL1.
+            0,  // diven.
+            0); // div.
+  pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_USBB);
+#endif
 }

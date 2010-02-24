@@ -1,4 +1,4 @@
-/* This header file is part of the ATMEL AVR32-SoftwareFramework-1.3.0-AT32UC3A Release */
+/* This header file is part of the ATMEL AVR-UC3-SoftwareFramework-1.6.1 Release */
 
 /*This file is prepared for Doxygen automatic documentation generation.*/
 /*! \file *********************************************************************
@@ -16,33 +16,36 @@
  *
  ******************************************************************************/
 
-/* Copyright (C) 2006-2008, Atmel Corporation All rights reserved.
+/* Copyright (c) 2009 Atmel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. The name of ATMEL may not be used to endorse or promote products derived
+ * 3. The name of Atmel may not be used to endorse or promote products derived
  * from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY ATMEL ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * 4. This software may only be redistributed and used in connection with an Atmel
+ * AVR product.
+ *
+ * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE EXPRESSLY AND
- * SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR ANY DIRECT,
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+ * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
+ *
  */
-
 
 #ifndef _FLASHC_H_
 #define _FLASHC_H_
@@ -821,10 +824,10 @@ extern void flashc_write_user_page(void);
  * \return The value of \a dst.
  *
  * \warning This function may be called with \a erase set to \c FALSE only if
- *          the destination consists only of erased bytes, i.e. this function
- *          can not be used to write only one bit of a previously written byte.
- *          E.g., if \c 0x01 then \c 0xFE are written to a byte, the resulting
- *          value in flash may be different from \c 0x00.
+ *          the destination consists only of erased words, i.e. this function
+ *          can not be used to write only one bit of a previously written word.
+ *          E.g., if \c 0x00000001 then \c 0xFFFFFFFE are written to a word, the
+ *          resulting value in flash may be different from \c 0x00000000.
  *
  * \warning A Lock Error is issued if the command is applied to pages belonging
  *          to a locked region or to the bootloader protected area.
@@ -850,10 +853,10 @@ extern volatile void *flashc_memset8(volatile void *dst, U8 src, size_t nbytes, 
  * \return The value of \a dst.
  *
  * \warning This function may be called with \a erase set to \c FALSE only if
- *          the destination consists only of erased bytes, i.e. this function
- *          can not be used to write only one bit of a previously written byte.
- *          E.g., if \c 0x01 then \c 0xFE are written to a byte, the resulting
- *          value in flash may be different from \c 0x00.
+ *          the destination consists only of erased words, i.e. this function
+ *          can not be used to write only one bit of a previously written word.
+ *          E.g., if \c 0x00000001 then \c 0xFFFFFFFE are written to a word, the
+ *          resulting value in flash may be different from \c 0x00000000.
  *
  * \warning A Lock Error is issued if the command is applied to pages belonging
  *          to a locked region or to the bootloader protected area.
@@ -879,10 +882,10 @@ extern volatile void *flashc_memset16(volatile void *dst, U16 src, size_t nbytes
  * \return The value of \a dst.
  *
  * \warning This function may be called with \a erase set to \c FALSE only if
- *          the destination consists only of erased bytes, i.e. this function
- *          can not be used to write only one bit of a previously written byte.
- *          E.g., if \c 0x01 then \c 0xFE are written to a byte, the resulting
- *          value in flash may be different from \c 0x00.
+ *          the destination consists only of erased words, i.e. this function
+ *          can not be used to write only one bit of a previously written word.
+ *          E.g., if \c 0x00000001 then \c 0xFFFFFFFE are written to a word, the
+ *          resulting value in flash may be different from \c 0x00000000.
  *
  * \warning A Lock Error is issued if the command is applied to pages belonging
  *          to a locked region or to the bootloader protected area.
@@ -908,10 +911,10 @@ extern volatile void *flashc_memset32(volatile void *dst, U32 src, size_t nbytes
  * \return The value of \a dst.
  *
  * \warning This function may be called with \a erase set to \c FALSE only if
- *          the destination consists only of erased bytes, i.e. this function
- *          can not be used to write only one bit of a previously written byte.
- *          E.g., if \c 0x01 then \c 0xFE are written to a byte, the resulting
- *          value in flash may be different from \c 0x00.
+ *          the destination consists only of erased words, i.e. this function
+ *          can not be used to write only one bit of a previously written word.
+ *          E.g., if \c 0x00000001 then \c 0xFFFFFFFE are written to a word, the
+ *          resulting value in flash may be different from \c 0x00000000.
  *
  * \warning A Lock Error is issued if the command is applied to pages belonging
  *          to a locked region or to the bootloader protected area.
@@ -938,10 +941,10 @@ extern volatile void *flashc_memset64(volatile void *dst, U64 src, size_t nbytes
  * \return The value of \a dst.
  *
  * \warning This function may be called with \a erase set to \c FALSE only if
- *          the destination consists only of erased bytes, i.e. this function
- *          can not be used to write only one bit of a previously written byte.
- *          E.g., if \c 0x01 then \c 0xFE are written to a byte, the resulting
- *          value in flash may be different from \c 0x00.
+ *          the destination consists only of erased words, i.e. this function
+ *          can not be used to write only one bit of a previously written word.
+ *          E.g., if \c 0x00000001 then \c 0xFFFFFFFE are written to a word, the
+ *          resulting value in flash may be different from \c 0x00000000.
  *
  * \warning A Lock Error is issued if the command is applied to pages belonging
  *          to a locked region or to the bootloader protected area.
@@ -971,10 +974,10 @@ extern volatile void *flashc_memset64(volatile void *dst, U64 src, size_t nbytes
  *          undefined.
  *
  * \warning This function may be called with \a erase set to \c FALSE only if
- *          the destination consists only of erased bytes, i.e. this function
- *          can not be used to write only one bit of a previously written byte.
- *          E.g., if \c 0x01 then \c 0xFE are written to a byte, the resulting
- *          value in flash may be different from \c 0x00.
+ *          the destination consists only of erased words, i.e. this function
+ *          can not be used to write only one bit of a previously written word.
+ *          E.g., if \c 0x00000001 then \c 0xFFFFFFFE are written to a word, the
+ *          resulting value in flash may be different from \c 0x00000000.
  *
  * \warning A Lock Error is issued if the command is applied to pages belonging
  *          to a locked region or to the bootloader protected area.
@@ -983,6 +986,17 @@ extern volatile void *flashc_memset64(volatile void *dst, U64 src, size_t nbytes
  *       \ref flashc_is_programming_error is updated.
  */
 extern volatile void *flashc_memcpy(volatile void *dst, const void *src, size_t nbytes, Bool erase);
+
+#if ( defined (__GNUC__) && ( defined (__AVR32_UC3C064C__) || defined (__AVR32_UC3C0128C__) || defined (__AVR32_UC3C0256C__) || defined (__AVR32_UC3C0512C__) || defined (__AVR32_UC3C164C__) || defined (__AVR32_UC3C1128C__) || defined (__AVR32_UC3C1256C__) || defined (__AVR32_UC3C1512C__) || defined (__AVR32_UC3C264C__) || defined (__AVR32_UC3C2128C__) || defined (__AVR32_UC3C2256C__) || defined (__AVR32_UC3C2512C__))) \
+  ||( defined (__ICCAVR32__) && ( defined (__AT32UC3C064C__) || defined (__AT32UC3C0128C__) || defined (__AT32UC3C0256C__) || defined (__AT32UC3C0512C__) || defined (__AT32UC3C164C__) || defined (__AT32UC3C1128C__) || defined (__AT32UC3C1256C__) || defined (__AT32UC3C1512C__) || defined (__AT32UC3C264C__) || defined (__AT32UC3C2128C__) || defined (__AT32UC3C2256C__) || defined (__AT32UC3C2512C__)))
+
+/*! \brief Depednding to the CPU frequency, set the wait states of flash read
+ *         accesses and enable or disable the High speed read mode.
+ *
+ * \param cpu_f_hz The CPU frequency
+ */
+void flashc_set_flash_waitstate_and_readmode(unsigned long cpu_f_hz);
+#endif // UC3C device-specific implementation
 
 //! @}
 

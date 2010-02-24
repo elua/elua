@@ -1,4 +1,4 @@
-/* This source file is part of the ATMEL AVR32-SoftwareFramework-1.3.0-AT32UC3A Release */
+/* This source file is part of the ATMEL AVR-UC3-SoftwareFramework-1.6.1 Release */
 
 /*This file is prepared for Doxygen automatic documentation generation.*/
 /*! \file *********************************************************************
@@ -16,49 +16,54 @@
  *
  ******************************************************************************/
 
-/* Copyright (C) 2006-2008, Atmel Corporation All rights reserved.
+/* Copyright (c) 2009 Atmel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. The name of ATMEL may not be used to endorse or promote products derived
+ * 3. The name of Atmel may not be used to endorse or promote products derived
  * from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY ATMEL ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * 4. This software may only be redistributed and used in connection with an Atmel
+ * AVR product.
+ *
+ * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE EXPRESSLY AND
- * SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR ANY DIRECT,
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+ * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
+ *
  */
-
 
 #include <avr32/io.h>
 #include "compiler.h"
 #include "preprocessor.h"
 #include "intc.h"
 
+// define _evba from exception.S
+extern void _evba;
 
 //! Values to store in the interrupt priority registers for the various interrupt priority levels.
 extern const unsigned int ipr_val[AVR32_INTC_NUM_INT_LEVELS];
 
 //! Creates a table of interrupt line handlers per interrupt group in order to optimize RAM space.
 //! Each line handler table contains a set of pointers to interrupt handlers.
-#if __GNUC__
+#if (defined __GNUC__)
 #define DECL_INT_LINE_HANDLER_TABLE(GRP, unused) \
 static volatile __int_handler _int_line_handler_table_##GRP[Max(AVR32_INTC_NUM_IRQS_PER_GRP##GRP, 1)];
-#elif __ICCAVR32__
+#elif (defined __ICCAVR32__)
 #define DECL_INT_LINE_HANDLER_TABLE(GRP, unused) \
 static volatile __no_init __int_handler _int_line_handler_table_##GRP[Max(AVR32_INTC_NUM_IRQS_PER_GRP##GRP, 1)];
 #endif
@@ -84,9 +89,9 @@ static const struct
  *
  * \note Taken and adapted from Newlib.
  */
-#if __GNUC__
+#if (defined __GNUC__)
 __attribute__((__interrupt__))
-#elif __ICCAVR32__
+#elif (defined __ICCAVR32__)
 __interrupt
 #endif
 static void _unhandled_interrupt(void)
@@ -96,21 +101,21 @@ static void _unhandled_interrupt(void)
 }
 
 
-/*! \brief Gets the interrupt handler of the current event at the \a int_lev
+/*! \brief Gets the interrupt handler of the current event at the \a int_level
  *         interrupt priority level (called from exception.S).
  *
- * \param int_lev Interrupt priority level to handle.
+ * \param int_level Interrupt priority level to handle.
  *
  * \return Interrupt handler to execute.
  *
  * \note Taken and adapted from Newlib.
  */
-__int_handler _get_interrupt_handler(unsigned int int_lev)
+__int_handler _get_interrupt_handler(unsigned int int_level)
 {
   // ICR3 is mapped first, ICR0 last.
-  // Code in exception.S puts int_lev in R12 which is used by AVR32-GCC to pass
-  // a single argument to a function.
-  unsigned int int_grp = AVR32_INTC.icr[AVR32_INTC_INT3 - int_lev];
+  // Code in exception.S puts int_level in R12 which is used by AVR32-GCC to
+  // pass a single argument to a function.
+  unsigned int int_grp = AVR32_INTC.icr[AVR32_INTC_INT3 - int_level];
   unsigned int int_req = AVR32_INTC.irr[int_grp];
 
   // As an interrupt may disappear while it is being fetched by the CPU
@@ -161,10 +166,17 @@ __int_handler _get_interrupt_handler(unsigned int int_lev)
   return (int_req) ? _int_handler_table[int_grp]._int_line_handler_table[32 - clz(int_req) - 1] : NULL;
 }
 
+//! Init EVBA address. This sequence might also be done in the UTILS/STARTUP/GCC/crt0.S
+static __inline__ void INTC_init_evba(void)
+{
+  Set_system_register(AVR32_EVBA, (int)&_evba );
+}
 
 void INTC_init_interrupts(void)
 {
   unsigned int int_grp, int_req;
+
+  INTC_init_evba();
 
   // For all interrupt groups,
   for (int_grp = 0; int_grp < AVR32_INTC_NUM_INT_GRPS; int_grp++)
@@ -184,7 +196,7 @@ void INTC_init_interrupts(void)
 }
 
 
-void INTC_register_interrupt(__int_handler handler, unsigned int irq, unsigned int int_lev)
+void INTC_register_interrupt(__int_handler handler, unsigned int irq, unsigned int int_level)
 {
   // Determine the group of the IRQ.
   unsigned int int_grp = irq / AVR32_INTC_MAX_NUM_IRQS_PER_GRP;
@@ -198,5 +210,5 @@ void INTC_register_interrupt(__int_handler handler, unsigned int irq, unsigned i
   // system.
   // NOTE: The _intx functions are intermediate assembly functions between the
   // core interrupt system and the user interrupt handler.
-  AVR32_INTC.ipr[int_grp] = ipr_val[int_lev & (AVR32_INTC_IPR_INTLEV_MASK >> AVR32_INTC_IPR_INTLEV_OFFSET)];
+  AVR32_INTC.ipr[int_grp] = ipr_val[int_level & (AVR32_INTC_IPR_INTLEVEL_MASK >> AVR32_INTC_IPR_INTLEVEL_OFFSET)];
 }

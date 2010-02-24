@@ -78,6 +78,9 @@
 
 #include "ff.h"			/* FatFs configurations and declarations */
 #include "diskio.h"		/* Declarations of low level disk I/O functions */
+#include "platform_conf.h"
+
+#ifdef BUILD_MMCFS
 
 /*--------------------------------------------------------------------------
 
@@ -3151,3 +3154,5 @@ int f_printf (
 
 #endif /* !_FS_READONLY */
 #endif /* _USE_STRFUNC */
+
+#endif // #ifdef BUILD_MMCFS

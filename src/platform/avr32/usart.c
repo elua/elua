@@ -1,4 +1,4 @@
-/* This source file is part of the ATMEL AVR32-SoftwareFramework-1.3.0-AT32UC3A Release */
+/* This source file is part of the ATMEL AVR-UC3-SoftwareFramework-1.6.1 Release */
 
 /*This file is prepared for Doxygen automatic documentation generation.*/
 /*! \file *********************************************************************
@@ -17,33 +17,36 @@
  *
  ******************************************************************************/
 
-/* Copyright (C) 2006-2008, Atmel Corporation All rights reserved.
+/* Copyright (c) 2009 Atmel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. The name of ATMEL may not be used to endorse or promote products derived
+ * 3. The name of Atmel may not be used to endorse or promote products derived
  * from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY ATMEL ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * 4. This software may only be redistributed and used in connection with an Atmel
+ * AVR product.
+ *
+ * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE EXPRESSLY AND
- * SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR ANY DIRECT,
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+ * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
+ *
  */
-
 
 #include "compiler.h"
 #include "usart.h"
@@ -61,7 +64,7 @@
  *
  * \return \c 1 if the USART is in multidrop mode, otherwise \c 0.
  */
-#if __GNUC__
+#if (defined __GNUC__)
 __attribute__((__always_inline__))
 #endif
 static __inline__ int usart_mode_is_multidrop(volatile avr32_usart_t *usart)
@@ -88,9 +91,9 @@ static __inline__ int usart_mode_is_multidrop(volatile avr32_usart_t *usart)
 static int usart_set_async_baudrate(volatile avr32_usart_t *usart, unsigned int baudrate, unsigned long pba_hz)
 {
   unsigned int over = (pba_hz >= 16 * baudrate) ? 16 : 8;
-  unsigned int cd = pba_hz / (over * baudrate);
-  unsigned int fp = ((1 << AVR32_USART_BRGR_FP_SIZE) * pba_hz + (over * baudrate) / 2) / (over * baudrate) -
-                    (1 << AVR32_USART_BRGR_FP_SIZE) * cd;
+  unsigned int cd_fp = ((1 << AVR32_USART_BRGR_FP_SIZE) * pba_hz + (over * baudrate) / 2) / (over * baudrate);
+  unsigned int cd = cd_fp >> AVR32_USART_BRGR_FP_SIZE;
+  unsigned int fp = cd_fp & ((1 << AVR32_USART_BRGR_FP_SIZE) - 1);
 
   if (cd < 1 || cd > (1 << AVR32_USART_BRGR_CD_SIZE) - 1)
     return USART_INVALID_INPUT;
@@ -188,7 +191,10 @@ static int usart_set_iso7816_clock(volatile avr32_usart_t *usart, unsigned int c
 }
 
 
-#ifdef AVR32_USART_400_H_INCLUDED
+#if defined(AVR32_USART_400_H_INCLUDED) || \
+    defined(AVR32_USART_410_H_INCLUDED) || \
+    defined(AVR32_USART_420_H_INCLUDED) || \
+    defined(AVR32_USART_440_H_INCLUDED)
 
 
 /*! \brief Calculates a clock divider (\e CD) for the USART SPI master mode to
@@ -236,7 +242,7 @@ static int usart_set_spi_slave_baudrate(volatile avr32_usart_t *usart)
 }
 
 
-#endif
+#endif  // USART rev. >= 4.0.0
 
 
 //! @}
@@ -271,7 +277,10 @@ void usart_reset(volatile avr32_usart_t *usart)
               AVR32_USART_CR_RSTSTA_MASK  |
               AVR32_USART_CR_RSTIT_MASK   |
               AVR32_USART_CR_RSTNACK_MASK |
+#ifndef AVR32_USART_440_H_INCLUDED
+// Note: Modem Signal Management DTR-DSR-DCD-RI are not included in USART rev.440.
               AVR32_USART_CR_DTRDIS_MASK  |
+#endif
               AVR32_USART_CR_RTSDIS_MASK;
 }
 
@@ -600,7 +609,50 @@ int usart_init_iso7816(volatile avr32_usart_t *usart, const usart_iso7816_option
 }
 
 
-#ifdef AVR32_USART_400_H_INCLUDED
+#if defined(AVR32_USART_400_H_INCLUDED) || \
+    defined(AVR32_USART_410_H_INCLUDED) || \
+    defined(AVR32_USART_420_H_INCLUDED) || \
+    defined(AVR32_USART_440_H_INCLUDED)
+
+
+int usart_init_lin_master(volatile avr32_usart_t *usart, unsigned long baudrate, long pba_hz)
+{
+  // Reset the USART and shutdown TX and RX.
+  usart_reset(usart);
+
+  // Check input values.
+  if (usart_set_async_baudrate(usart, baudrate, pba_hz) == USART_INVALID_INPUT)
+    return USART_INVALID_INPUT;
+
+  usart->mr |= AVR32_USART_MR_MODE_LIN_MASTER << AVR32_USART_MR_MODE_OFFSET;  // LIN master mode.
+
+  // Setup complete; enable communication.
+  // Enable input and output.
+  usart->cr = AVR32_USART_CR_RXEN_MASK |
+              AVR32_USART_CR_TXEN_MASK;
+
+  return USART_SUCCESS;
+}
+
+
+int usart_init_lin_slave(volatile avr32_usart_t *usart, unsigned long baudrate, long pba_hz)
+{
+  // Reset the USART and shutdown TX and RX.
+  usart_reset(usart);
+
+  // Check input values.
+  if (usart_set_async_baudrate(usart, baudrate, pba_hz) == USART_INVALID_INPUT)
+    return USART_INVALID_INPUT;
+
+  usart->mr |= AVR32_USART_MR_MODE_LIN_SLAVE << AVR32_USART_MR_MODE_OFFSET; // LIN slave mode.
+
+  // Setup complete; enable communication.
+  // Enable input and output.
+  usart->cr = AVR32_USART_CR_RXEN_MASK |
+              AVR32_USART_CR_TXEN_MASK;
+
+  return USART_SUCCESS;
+}
 
 
 int usart_init_spi_master(volatile avr32_usart_t *usart, const usart_spi_options_t *opt, long pba_hz)
@@ -680,14 +732,17 @@ int usart_init_spi_slave(volatile avr32_usart_t *usart, const usart_spi_options_
 }
 
 
-#endif
+#endif  // USART rev. >= 4.0.0
 
 
 //! @}
 
 
 //------------------------------------------------------------------------------
-#ifdef AVR32_USART_400_H_INCLUDED
+#if defined(AVR32_USART_400_H_INCLUDED) || \
+    defined(AVR32_USART_410_H_INCLUDED) || \
+    defined(AVR32_USART_420_H_INCLUDED) || \
+    defined(AVR32_USART_440_H_INCLUDED)
 
 
 /*! \name SPI Control Functions
@@ -723,7 +778,7 @@ int usart_spi_unselectChip(volatile avr32_usart_t *usart)
 //! @}
 
 
-#endif
+#endif  // USART rev. >= 4.0.0
 
 
 //------------------------------------------------------------------------------
@@ -761,7 +816,23 @@ int usart_write_char(volatile avr32_usart_t *usart, int c)
 
 int usart_putchar(volatile avr32_usart_t *usart, int c)
 {
-  while (usart_write_char(usart, c) != USART_SUCCESS);
+  int timeout = USART_DEFAULT_TIMEOUT;
+
+  if (c == '\n')
+  {
+    do
+    {
+      if (!timeout--) return USART_FAILURE;
+    } while (usart_write_char(usart, '\r') != USART_SUCCESS);
+
+    timeout = USART_DEFAULT_TIMEOUT;
+  }
+
+  do
+  {
+    if (!timeout--) return USART_FAILURE;
+  } while (usart_write_char(usart, c) != USART_SUCCESS);
+
   return USART_SUCCESS;
 }
 
@@ -817,6 +888,7 @@ int usart_get_echo_line(volatile avr32_usart_t *usart)
     if (rx_char == USART_FAILURE)
     {
       usart_write_line(usart, "Error!!!\n");
+      retval = USART_FAILURE;
       break;
     }
     if (rx_char == '\x03')

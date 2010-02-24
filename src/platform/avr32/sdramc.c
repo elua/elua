@@ -1,4 +1,4 @@
-/* This source file is part of the ATMEL AVR32-SoftwareFramework-1.3.0-AT32UC3A Release */
+/* This source file is part of the ATMEL AVR-UC3-SoftwareFramework-1.6.1 Release */
 
 /*This file is prepared for Doxygen automatic documentation generation.*/
 /*! \file *********************************************************************
@@ -14,33 +14,36 @@
  *
  ******************************************************************************/
 
-/* Copyright (C) 2006-2008, Atmel Corporation All rights reserved.
+/* Copyright (c) 2009 Atmel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. The name of ATMEL may not be used to endorse or promote products derived
+ * 3. The name of Atmel may not be used to endorse or promote products derived
  * from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY ATMEL ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * 4. This software may only be redistributed and used in connection with an Atmel
+ * AVR product.
+ *
+ * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE EXPRESSLY AND
- * SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR ANY DIRECT,
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+ * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
+ *
  */
-
 
 #include "compiler.h"
 #include "preprocessor.h"
@@ -60,14 +63,11 @@ static void sdramc_ck_delay(unsigned long ck)
 
   // To be safer, the end of wait is based on an inequality test, so CPU cycle
   // counter wrap around is checked.
-  if (delay_start_cycle <= delay_end_cycle)
-  {
-    while ((unsigned long)Get_system_register(AVR32_COUNT) < delay_end_cycle);
-  }
-  else
+  if (delay_start_cycle > delay_end_cycle)
   {
     while ((unsigned long)Get_system_register(AVR32_COUNT) > delay_end_cycle);
   }
+  while ((unsigned long)Get_system_register(AVR32_COUNT) < delay_end_cycle);
 }
 
 
@@ -90,7 +90,7 @@ static void sdramc_ck_delay(unsigned long ck)
 /*! \brief Puts the multiplexed MCU pins used for the SDRAM under control of the
  *         SDRAMC.
  */
-#if BOARD == EVK1100
+#if BOARD == EVK1100 || BOARD == EVK1104 || BOARD == EVK1105 
 static void sdramc_enable_muxed_pins(void)
 {
   static const gpio_map_t SDRAMC_EBI_GPIO_MAP =
@@ -130,7 +130,7 @@ static void sdramc_enable_muxed_pins(void)
     {AVR32_EBI_ADDR_0_PIN,            AVR32_EBI_ADDR_0_FUNCTION           },
     {AVR32_EBI_NWE1_0_PIN,            AVR32_EBI_NWE1_0_FUNCTION           },
 #if SDRAM_DBW >= 32
-    {AVR32_EBI_NWE2_0_PIN,            AVR32_EBI_NWE2_0_FUNCTION           },
+    {AVR32_EBI_ADDR_1_PIN,            AVR32_EBI_ADDR_1_FUNCTION           },
     {AVR32_EBI_NWE3_0_PIN,            AVR32_EBI_NWE3_0_FUNCTION           },
 #endif
 
@@ -147,12 +147,69 @@ static void sdramc_enable_muxed_pins(void)
 
   gpio_enable_module(SDRAMC_EBI_GPIO_MAP, sizeof(SDRAMC_EBI_GPIO_MAP) / sizeof(SDRAMC_EBI_GPIO_MAP[0]));
 }
+#elif BOARD == UC3C_EK 
+static void sdramc_enable_muxed_pins(void)
+{
+  static const gpio_map_t SDRAMC_EBI_GPIO_MAP =
+  {
+    // Enable data pins.
+#define SDRAMC_ENABLE_DATA_PIN(DATA_BIT, unused) \
+    {AVR32_EBI_DATA_##DATA_BIT##_PIN, AVR32_EBI_DATA_##DATA_BIT##_FUNCTION},
+    MREPEAT(SDRAM_DBW, SDRAMC_ENABLE_DATA_PIN, ~)
+#undef SDRAMC_ENABLE_DATA_PIN
+
+    // Enable row/column address pins.
+    {AVR32_EBI_ADDR_2_PIN,            AVR32_EBI_ADDR_2_FUNCTION           },
+    {AVR32_EBI_ADDR_3_PIN,            AVR32_EBI_ADDR_3_FUNCTION           },
+    {AVR32_EBI_ADDR_4_PIN,            AVR32_EBI_ADDR_4_FUNCTION           },
+    {AVR32_EBI_ADDR_5_PIN,            AVR32_EBI_ADDR_5_FUNCTION           },
+    {AVR32_EBI_ADDR_6_PIN,            AVR32_EBI_ADDR_6_FUNCTION           },
+    {AVR32_EBI_ADDR_7_PIN,            AVR32_EBI_ADDR_7_FUNCTION           },
+    {AVR32_EBI_ADDR_8_PIN,            AVR32_EBI_ADDR_8_FUNCTION           },
+    {AVR32_EBI_ADDR_9_PIN,            AVR32_EBI_ADDR_9_FUNCTION           },
+    {AVR32_EBI_ADDR_10_PIN,           AVR32_EBI_ADDR_10_FUNCTION          },
+    {AVR32_EBI_ADDR_11_PIN,           AVR32_EBI_ADDR_11_FUNCTION          },
+    {AVR32_EBI_SDA10_PIN,           AVR32_EBI_SDA10_FUNCTION          },
+#if SDRAM_ROW_BITS >= 12
+    {AVR32_EBI_ADDR_13_PIN,           AVR32_EBI_ADDR_13_FUNCTION          },
+  #if SDRAM_ROW_BITS >= 13
+    {AVR32_EBI_ADDR_14_PIN,           AVR32_EBI_ADDR_14_FUNCTION          },
+  #endif
+#endif
+
+    // Enable bank address pins.
+    {AVR32_EBI_ADDR_16_PIN,           AVR32_EBI_ADDR_16_FUNCTION          },
+#if SDRAM_BANK_BITS >= 2
+    {AVR32_EBI_ADDR_17_PIN,           AVR32_EBI_ADDR_17_FUNCTION          },
+#endif
+
+    // Enable data mask pins.
+    {AVR32_EBI_ADDR_0_PIN,            AVR32_EBI_ADDR_0_FUNCTION           },
+    {AVR32_EBI_NWE1_PIN,            AVR32_EBI_NWE1_FUNCTION           },
+#if SDRAM_DBW >= 32
+    {AVR32_EBI_ADDR_1_PIN,            AVR32_EBI_ADDR_1_FUNCTION           },
+    {AVR32_EBI_NWE3_PIN,            AVR32_EBI_NWE3_FUNCTION           },
+#endif
+
+    // Enable control pins.
+    {AVR32_EBI_SDWE_PIN,            AVR32_EBI_SDWE_FUNCTION           },
+    {AVR32_EBI_CAS_PIN,             AVR32_EBI_CAS_FUNCTION            },
+    {AVR32_EBI_RAS_PIN,             AVR32_EBI_RAS_FUNCTION            },
+    {AVR32_EBI_NCS_1_PIN,             AVR32_EBI_NCS_1_FUNCTION            },
+
+    // Enable clock-related pins.
+    {AVR32_EBI_SDCK_PIN,            AVR32_EBI_SDCK_FUNCTION           },
+    {AVR32_EBI_SDCKE_PIN,           AVR32_EBI_SDCKE_FUNCTION          }
+  };
+
+  gpio_enable_module(SDRAMC_EBI_GPIO_MAP, sizeof(SDRAMC_EBI_GPIO_MAP) / sizeof(SDRAMC_EBI_GPIO_MAP[0]));
+}
 #elif BOARD == STK1000
 static void sdramc_enable_muxed_pins(void)
 {
   volatile avr32_hmatrix_t *hmatrix = &AVR32_HMATRIX;
 
-  // Enable SDRAM mode for CS1 in the BAMBI mux 
+  // Enable SDRAM mode for CS1 in the BAMBI mux
   hmatrix->sfr[4] |= 0x0002;
   hmatrix->sfr[4] |= 0x0100;
 

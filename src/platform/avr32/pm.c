@@ -1,4 +1,4 @@
-/* This source file is part of the ATMEL AVR32-SoftwareFramework-1.3.0-AT32UC3A Release */
+/* This source file is part of the ATMEL AVR-UC3-SoftwareFramework-1.6.1 Release */
 
 /*This file has been prepared for Doxygen automatic documentation generation.*/
 /*! \file *********************************************************************
@@ -15,33 +15,36 @@
  *
  *****************************************************************************/
 
-/* Copyright (C) 2006-2008, Atmel Corporation All rights reserved.
+/* Copyright (c) 2009 Atmel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. The name of ATMEL may not be used to endorse or promote products derived
+ * 3. The name of Atmel may not be used to endorse or promote products derived
  * from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY ATMEL ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * 4. This software may only be redistributed and used in connection with an Atmel
+ * AVR product.
+ *
+ * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE EXPRESSLY AND
- * SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR ANY DIRECT,
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+ * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
+ *
  */
-
 
 #include "compiler.h"
 #include "pm.h"
@@ -513,4 +516,31 @@ unsigned long pm_read_gplp(volatile avr32_pm_t *pm, unsigned long gplp)
 void pm_write_gplp(volatile avr32_pm_t *pm, unsigned long gplp, unsigned long value)
 {
   pm->gplp[gplp] = value;
+}
+
+
+long pm_enable_module(volatile avr32_pm_t *pm, unsigned long module)
+{
+  unsigned long domain = module>>5;
+  unsigned long *regptr = (unsigned long*)(&(pm->cpumask) + domain*sizeof(unsigned long));
+
+  // Implementation-specific shortcut: the ckMASK registers are contiguous and
+  // memory-mapped in that order: CPUMASK, HSBMASK, PBAMASK, PBBMASK.
+
+  *regptr |= (module%32);
+
+  return PASS;
+}
+
+long pm_disable_module(volatile avr32_pm_t *pm, unsigned long module)
+{
+  unsigned long domain = module>>5;
+  unsigned long *regptr = (unsigned long*)(&(pm->cpumask) + domain*sizeof(unsigned long));
+
+  // Implementation-specific shortcut: the ckMASK registers are contiguous and
+  // memory-mapped in that order: CPUMASK, HSBMASK, PBAMASK, PBBMASK.
+
+  *regptr &= ~(module%32);
+
+  return PASS;
 }

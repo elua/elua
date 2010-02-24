@@ -1,4 +1,4 @@
-/* This header file is part of the ATMEL AVR32-SoftwareFramework-1.3.0-AT32UC3A Release */
+/* This header file is part of the ATMEL AVR-UC3-SoftwareFramework-1.6.1 Release */
 
 /*This file is prepared for Doxygen automatic documentation generation.*/
 /*! \file *********************************************************************
@@ -6,7 +6,9 @@
  * \brief AT32UC3A EVK1100 board header file.
  *
  * This file contains definitions and services related to the features of the
- * EVK1100 board.
+ * EVK1100 board rev. B and C.
+ *
+ * To use this board, define BOARD=EVK1100.
  *
  * - Compiler:           IAR EWAVR32 and GNU GCC for AVR32
  * - Supported devices:  All AVR32 AT32UC3A devices can be used.
@@ -17,36 +19,43 @@
  *
  ******************************************************************************/
 
-/* Copyright (C) 2006-2008, Atmel Corporation All rights reserved.
+/* Copyright (c) 2009 Atmel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. The name of ATMEL may not be used to endorse or promote products derived
+ * 3. The name of Atmel may not be used to endorse or promote products derived
  * from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY ATMEL ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * 4. This software may only be redistributed and used in connection with an Atmel
+ * AVR product.
+ *
+ * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE EXPRESSLY AND
- * SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR ANY DIRECT,
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+ * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
+ *
  */
-
 
 #ifndef _EVK1100_H_
 #define _EVK1100_H_
+
+#ifdef EVK1100_REVA
+#  include "evk1100_revA.h"
+#else
 
 #include "compiler.h"
 
@@ -83,7 +92,7 @@
 //! @{
 
 //! Part header file of used SDRAM(s).
-#define SDRAM_PART_HDR  "mt48lc16m16a2tg7e.h"
+#define SDRAM_PART_HDR  "MT48LC16M16A2TG7E/mt48lc16m16a2tg7e.h"
 
 //! Data bus width to use the SDRAM(s) with (16 or 32 bits; always 16 bits on
 //! UC3).
@@ -104,35 +113,19 @@
 //! Multiplexed pin used for USB_VBOF: AVR32_USBB_USB_VBOF_x_x.
 //! To be selected according to the AVR32_USBB_USB_VBOF_x_x_PIN and
 //! AVR32_USBB_USB_VBOF_x_x_FUNCTION definitions from <avr32/uc3axxxx.h>.
-#ifdef EVK1100_REVA
-#  define USB_VBOF                    AVR32_USBB_USB_VBOF_0_0
-#else
-#  define USB_VBOF                    AVR32_USBB_USB_VBOF_0_1
-#endif
+#define USB_VBOF                    AVR32_USBB_USB_VBOF_0_1
 
 //! Active level of the USB_VBOF output pin.
-#ifdef EVK1100_REVA
-#  define USB_VBOF_ACTIVE_LEVEL       HIGH
-#else
-#  define USB_VBOF_ACTIVE_LEVEL       LOW
-#endif
+#define USB_VBOF_ACTIVE_LEVEL       LOW
 
 //! USB overcurrent detection pin.
-#ifdef EVK1100_REVA
-#  define USB_OVERCURRENT_DETECT_PIN  AVR32_PIN_PB18
-#else
-#  define USB_OVERCURRENT_DETECT_PIN  AVR32_PIN_PX33
-#endif
+#define USB_OVERCURRENT_DETECT_PIN  AVR32_PIN_PX33
 
 //! @}
 
 
 //! GPIO connection of the MAC PHY PWR_DOWN/INT signal.
-#ifdef EVK1100_REVA
-#  define MACB_INTERRUPT_PIN  AVR32_PIN_PX12
-#else
-#  define MACB_INTERRUPT_PIN  AVR32_PIN_PA24
-#endif
+#define MACB_INTERRUPT_PIN  AVR32_PIN_PA24
 
 
 //! Number of LEDs.
@@ -141,25 +134,14 @@
 /*! \name GPIO Connections of LEDs
  */
 //! @{
-#ifdef EVK1100_REVA
-#  define LED0_GPIO   AVR32_PIN_PX13
-#  define LED1_GPIO   AVR32_PIN_PX14
-#  define LED2_GPIO   AVR32_PIN_PX15
-#  define LED3_GPIO   AVR32_PIN_PX16
-#  define LED4_GPIO   AVR32_PIN_PB19
-#  define LED5_GPIO   AVR32_PIN_PB20
-#  define LED6_GPIO   AVR32_PIN_PB21
-#  define LED7_GPIO   AVR32_PIN_PB22
-#else
-#  define LED0_GPIO   AVR32_PIN_PB27
-#  define LED1_GPIO   AVR32_PIN_PB28
-#  define LED2_GPIO   AVR32_PIN_PB29
-#  define LED3_GPIO   AVR32_PIN_PB30
-#  define LED4_GPIO   AVR32_PIN_PB19
-#  define LED5_GPIO   AVR32_PIN_PB20
-#  define LED6_GPIO   AVR32_PIN_PB21
-#  define LED7_GPIO   AVR32_PIN_PB22
-#endif
+#define LED0_GPIO   AVR32_PIN_PB27
+#define LED1_GPIO   AVR32_PIN_PB28
+#define LED2_GPIO   AVR32_PIN_PB29
+#define LED3_GPIO   AVR32_PIN_PB30
+#define LED4_GPIO   AVR32_PIN_PB19
+#define LED5_GPIO   AVR32_PIN_PB20
+#define LED6_GPIO   AVR32_PIN_PB21
+#define LED7_GPIO   AVR32_PIN_PB22
 //! @}
 
 /*! \name PWM Channels of LEDs
@@ -191,51 +173,42 @@
 /*! \name Color Identifiers of LEDs to Use with LED Functions
  */
 //! @{
-#ifdef EVK1100_REVA
-#  define LED_MONO0_GREEN   LED4
-#  define LED_MONO1_GREEN   LED5
-#  define LED_MONO2_GREEN   LED6
-#  define LED_MONO3_GREEN   LED7
-#  define LED_BI0_GREEN     LED1
-#  define LED_BI0_RED       LED0
-#  define LED_BI1_GREEN     LED3
-#  define LED_BI1_RED       LED2
-#else
-#  define LED_MONO0_GREEN   LED0
-#  define LED_MONO1_GREEN   LED1
-#  define LED_MONO2_GREEN   LED2
-#  define LED_MONO3_GREEN   LED3
-#  define LED_BI0_GREEN     LED5
-#  define LED_BI0_RED       LED4
-#  define LED_BI1_GREEN     LED7
-#  define LED_BI1_RED       LED6
-#endif
+#define LED_MONO0_GREEN   LED0
+#define LED_MONO1_GREEN   LED1
+#define LED_MONO2_GREEN   LED2
+#define LED_MONO3_GREEN   LED3
+#define LED_BI0_GREEN     LED5
+#define LED_BI0_RED       LED4
+#define LED_BI1_GREEN     LED7
+#define LED_BI1_RED       LED6
 //! @}
 
 
 /*! \name GPIO Connections of Push Buttons
  */
 //! @{
-#ifdef EVK1100_REVA
-#  define GPIO_PUSH_BUTTON_0    AVR32_PIN_PB28
-#  define GPIO_PUSH_BUTTON_1    AVR32_PIN_PB29
-#  define GPIO_PUSH_BUTTON_2    AVR32_PIN_PB27
-#else
-#  define GPIO_PUSH_BUTTON_0    AVR32_PIN_PX16
-#  define GPIO_PUSH_BUTTON_1    AVR32_PIN_PX19
-#  define GPIO_PUSH_BUTTON_2    AVR32_PIN_PX22
-#endif
+#define GPIO_PUSH_BUTTON_0            AVR32_PIN_PX16
+#define GPIO_PUSH_BUTTON_0_PRESSED    0
+#define GPIO_PUSH_BUTTON_1            AVR32_PIN_PX19
+#define GPIO_PUSH_BUTTON_1_PRESSED    0
+#define GPIO_PUSH_BUTTON_2            AVR32_PIN_PX22
+#define GPIO_PUSH_BUTTON_2_PRESSED    0
 //! @}
 
 
 /*! \name GPIO Connections of the Joystick
  */
 //! @{
-#define GPIO_JOYSTICK_PUSH    AVR32_PIN_PA20
-#define GPIO_JOYSTICK_LEFT    AVR32_PIN_PA25
-#define GPIO_JOYSTICK_RIGHT   AVR32_PIN_PA28
-#define GPIO_JOYSTICK_UP      AVR32_PIN_PA26
-#define GPIO_JOYSTICK_DOWN    AVR32_PIN_PA27
+#define GPIO_JOYSTICK_PUSH            AVR32_PIN_PA20
+#define GPIO_JOYSTICK_PUSH_PRESSED    0
+#define GPIO_JOYSTICK_LEFT            AVR32_PIN_PA25
+#define GPIO_JOYSTICK_LEFT_PRESSED    0
+#define GPIO_JOYSTICK_RIGHT           AVR32_PIN_PA28
+#define GPIO_JOYSTICK_RIGHT_PRESSED   0
+#define GPIO_JOYSTICK_UP              AVR32_PIN_PA26
+#define GPIO_JOYSTICK_UP_PRESSED      0
+#define GPIO_JOYSTICK_DOWN            AVR32_PIN_PA27
+#define GPIO_JOYSTICK_DOWN_PRESSED    0
 //! @}
 
 
@@ -295,6 +268,7 @@
  */
 //! @{
 #define AT45DBX_SPI                 (&AVR32_SPI1)
+#define AT45DBX_SPI_NPCS            0
 #define AT45DBX_SPI_SCK_PIN         AVR32_SPI1_SCK_0_0_PIN
 #define AT45DBX_SPI_SCK_FUNCTION    AVR32_SPI1_SCK_0_0_FUNCTION
 #define AT45DBX_SPI_MISO_PIN        AVR32_SPI1_MISO_0_0_PIN
@@ -350,5 +324,7 @@
 #define SPARE_SPI_NPCS_FUNCTION     AVR32_SPI0_NPCS_0_0_FUNCTION
 //! @}
 
+
+#endif  // !EVK1100_REVA
 
 #endif  // _EVK1100_H_

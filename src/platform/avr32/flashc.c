@@ -1,4 +1,4 @@
-/* This source file is part of the ATMEL AVR32-SoftwareFramework-1.3.0-AT32UC3A Release */
+/* This source file is part of the ATMEL AVR-UC3-SoftwareFramework-1.6.1 Release */
 
 /*This file is prepared for Doxygen automatic documentation generation.*/
 /*! \file *********************************************************************
@@ -16,33 +16,36 @@
  *
  ******************************************************************************/
 
-/* Copyright (C) 2006-2008, Atmel Corporation All rights reserved.
+/* Copyright (c) 2009 Atmel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. The name of ATMEL may not be used to endorse or promote products derived
+ * 3. The name of Atmel may not be used to endorse or promote products derived
  * from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY ATMEL ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * 4. This software may only be redistributed and used in connection with an Atmel
+ * AVR product.
+ *
+ * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE EXPRESSLY AND
- * SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR ANY DIRECT,
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+ * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
+ *
  */
-
 
 #include <avr32/io.h>
 #include <stddef.h>
@@ -76,6 +79,20 @@ typedef union
 
 unsigned int flashc_get_flash_size(void)
 {
+#if (defined AVR32_FLASHC_300_H_INCLUDED)
+  static const unsigned int FLASH_SIZE[1 << AVR32_FLASHC_PR_FSZ_SIZE] =
+  {
+      32 << 10,
+      64 << 10,
+     128 << 10,
+     256 << 10,
+     384 << 10,
+     512 << 10,
+     768 << 10,
+    1024 << 10
+  };
+  return FLASH_SIZE[(AVR32_FLASHC.pr & AVR32_FLASHC_PR_FSZ_MASK) >> AVR32_FLASHC_PR_FSZ_OFFSET];
+#else 
   static const unsigned int FLASH_SIZE[1 << AVR32_FLASHC_FSR_FSZ_SIZE] =
   {
       32 << 10,
@@ -88,6 +105,7 @@ unsigned int flashc_get_flash_size(void)
     1024 << 10
   };
   return FLASH_SIZE[(AVR32_FLASHC.fsr & AVR32_FLASHC_FSR_FSZ_MASK) >> AVR32_FLASHC_FSR_FSZ_OFFSET];
+#endif  
 }
 
 
@@ -1053,5 +1071,48 @@ volatile void *flashc_memcpy(volatile void *dst, const void *src, size_t nbytes,
   return dst;
 }
 
+
+#if ( defined (__GNUC__) && ( defined (__AVR32_UC3C064C__) || defined (__AVR32_UC3C0128C__) || defined (__AVR32_UC3C0256C__) || defined (__AVR32_UC3C0512CREVC__) || defined (__AVR32_UC3C164C__) || defined (__AVR32_UC3C1128C__) || defined (__AVR32_UC3C1256C__) || defined (__AVR32_UC3C1512CREVC__) || defined (__AVR32_UC3C264C__) || defined (__AVR32_UC3C2128C__) || defined (__AVR32_UC3C2256C__) || defined (__AVR32_UC3C2512CREVC__))) \
+  ||( defined (__ICCAVR32__) && ( defined (__AT32UC3C064C__) || defined (__AT32UC3C0128C__) || defined (__AT32UC3C0256C__) || defined (__AT32UC3C0512C__) || defined (__AT32UC3C164C__) || defined (__AT32UC3C1128C__) || defined (__AT32UC3C1256C__) || defined (__AT32UC3C1512C__) || defined (__AT32UC3C264C__) || defined (__AT32UC3C2128C__) || defined (__AT32UC3C2256C__) || defined (__AT32UC3C2512C__)))
+void flashc_set_flash_waitstate_and_readmode(unsigned long cpu_f_hz)
+{
+  //! Device-specific data
+  #undef AVR32_FLASHC_FWS_0_MAX_FREQ
+  #undef AVR32_FLASHC_FWS_1_MAX_FREQ
+  #undef AVR32_FLASHC_HSEN_FWS_0_MAX_FREQ
+  #undef AVR32_FLASHC_HSEN_FWS_1_MAX_FREQ
+  #define AVR32_FLASHC_FWS_0_MAX_FREQ           33000000
+  #define AVR32_FLASHC_FWS_1_MAX_FREQ           66000000
+  #define AVR32_FLASHC_HSEN_FWS_0_MAX_FREQ      33000000
+  #define AVR32_FLASHC_HSEN_FWS_1_MAX_FREQ      72000000
+  // These defines are missing from or wrong in the toolchain header files uc3cxxx.h
+  // Put a Bugzilla 
+
+  if(cpu_f_hz > AVR32_FLASHC_HSEN_FWS_0_MAX_FREQ)    // > 33MHz
+  {
+    // Set a wait-state
+    flashc_set_wait_state(1);
+    if(cpu_f_hz <= AVR32_FLASHC_FWS_1_MAX_FREQ) // <= 66MHz and >33Mhz
+    {
+      // Disable the high-speed read mode.      
+      flashc_issue_command(AVR32_FLASHC_FCMD_CMD_HSDIS, -1);
+    }
+    else // > 66Mhz
+    {
+      // Enable the high-speed read mode.
+      flashc_issue_command(AVR32_FLASHC_FCMD_CMD_HSEN, -1);                     
+    }
+  }
+  else  // <= 33 MHz    
+  {
+    // Disable wait-state
+    flashc_set_wait_state(0);
+
+    // Disable the high-speed read mode.
+    flashc_issue_command(AVR32_FLASHC_FCMD_CMD_HSDIS, -1);
+    
+  }
+}
+#endif // UC3C device-specific implementation
 
 //! @}

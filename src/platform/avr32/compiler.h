@@ -1,4 +1,4 @@
-/* This header file is part of the ATMEL AVR32-SoftwareFramework-1.3.0-AT32UC3A Release */
+/* This header file is part of the ATMEL AVR-UC3-SoftwareFramework-1.6.1 Release */
 
 /*This file is prepared for Doxygen automatic documentation generation.*/
 /*! \file *********************************************************************
@@ -16,41 +16,44 @@
  *
  ******************************************************************************/
 
-/* Copyright (C) 2006-2008, Atmel Corporation All rights reserved.
+/* Copyright (c) 2009 Atmel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. The name of ATMEL may not be used to endorse or promote products derived
+ * 3. The name of Atmel may not be used to endorse or promote products derived
  * from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY ATMEL ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * 4. This software may only be redistributed and used in connection with an Atmel
+ * AVR product.
+ *
+ * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE EXPRESSLY AND
- * SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR ANY DIRECT,
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+ * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
+ *
  */
-
 
 #ifndef _COMPILER_H_
 #define _COMPILER_H_
 
-#if (__GNUC__ && __AVR32__) || (__ICCAVR32__ || __AAVR32__)
+#if ((defined __GNUC__) && (defined __AVR32__)) || (defined __ICCAVR32__ || defined __AAVR32__)
 #  include <avr32/io.h>
 #endif
-#if __ICCAVR32__
+#if (defined __ICCAVR32__)
 #  include <intrinsics.h>
 #endif
 #include "preprocessor.h"
@@ -64,7 +67,7 @@
 #include <stdlib.h>
 
 
-#if __ICCAVR32__
+#if (defined __ICCAVR32__)
 
 /*! \name Compiler Keywords
  *
@@ -83,6 +86,11 @@
  */
 //! @{
 typedef unsigned char           Bool; //!< Boolean.
+#ifndef __cplusplus
+#if !defined(__bool_true_false_are_defined)
+typedef unsigned char           bool; //!< Boolean.
+#endif
+#endif
 typedef signed char             S8 ;  //!< 8-bit signed integer.
 typedef unsigned char           U8 ;  //!< 8-bit unsigned integer.
 typedef signed short int        S16;  //!< 16-bit signed integer.
@@ -263,6 +271,12 @@ typedef struct
 #define ON        1
 #define FALSE     0
 #define TRUE      1
+#ifndef __cplusplus
+#if !defined(__bool_true_false_are_defined)
+#define false     FALSE
+#define true      TRUE
+#endif
+#endif
 #define KO        0
 #define OK        1
 #define PASS      0
@@ -395,9 +409,9 @@ typedef struct
  *
  * \return The count of leading zero bits in \a u.
  */
-#if __GNUC__
+#if (defined __GNUC__)
   #define clz(u)              __builtin_clz(u)
-#elif __ICCAVR32__
+#elif (defined __ICCAVR32__)
   #define clz(u)              __count_leading_zeros(u)
 #endif
 
@@ -407,9 +421,9 @@ typedef struct
  *
  * \return The count of trailing zero bits in \a u.
  */
-#if __GNUC__
+#if (defined __GNUC__)
   #define ctz(u)              __builtin_ctz(u)
-#elif __ICCAVR32__
+#elif (defined __ICCAVR32__)
   #define ctz(u)              __count_trailing_zeros(u)
 #endif
 
@@ -442,7 +456,7 @@ typedef struct
  *
  * \return Value resulting from \a u32 with reversed bits.
  */
-#if __GNUC__
+#if (defined __GNUC__)
   #define bit_reverse32(u32) \
   (\
     {\
@@ -451,7 +465,7 @@ typedef struct
       (U32)__value;\
     }\
   )
-#elif __ICCAVR32__
+#elif (defined __ICCAVR32__)
   #define bit_reverse32(u32)  ((U32)__bit_reverse((U32)(u32)))
 #endif
 
@@ -573,7 +587,7 @@ typedef struct
  *
  * \note More optimized if only used with values unknown at compile time.
  */
-#if __GNUC__
+#if (defined __GNUC__)
   #define abs(a) \
   (\
     {\
@@ -582,7 +596,7 @@ typedef struct
       __value;\
     }\
   )
-#elif __ICCAVR32__
+#elif (defined __ICCAVR32__)
   #define abs(a)      Abs(a)
 #endif
 
@@ -595,7 +609,7 @@ typedef struct
  *
  * \note More optimized if only used with values unknown at compile time.
  */
-#if __GNUC__
+#if (defined __GNUC__)
   #define min(a, b) \
   (\
     {\
@@ -604,7 +618,7 @@ typedef struct
       __value;\
     }\
   )
-#elif __ICCAVR32__
+#elif (defined __ICCAVR32__)
   #define min(a, b)   __min(a, b)
 #endif
 
@@ -617,7 +631,7 @@ typedef struct
  *
  * \note More optimized if only used with values unknown at compile time.
  */
-#if __GNUC__
+#if (defined __GNUC__)
   #define max(a, b) \
   (\
     {\
@@ -626,7 +640,7 @@ typedef struct
       __value;\
     }\
   )
-#elif __ICCAVR32__
+#elif (defined __ICCAVR32__)
   #define max(a, b)   __max(a, b)
 #endif
 
@@ -650,14 +664,14 @@ typedef struct
  *
  * \warning It shall not be called from the CPU application mode.
  */
-#if __GNUC__
+#if (defined __GNUC__)
   #define Reset_CPU() \
   (\
     {\
       __asm__ __volatile__ (\
         "lddpc   r9, 3f\n\t"\
         "mfsr    r8, %[SR]\n\t"\
-        "bfextu  r8, r8, %[SR_MX_OFFSET], %[SR_MX_SIZE]\n\t"\
+        "bfextu  r8, r8, %[SR_M_OFFSET], %[SR_M_SIZE]\n\t"\
         "cp.w    r8, 0b001\n\t"\
         "breq    0f\n\t"\
         "sub     r8, pc, $ - 1f\n\t"\
@@ -691,23 +705,23 @@ typedef struct
         ".word   %[RESET_SR]"\
         :\
         : [SR] "i" (AVR32_SR),\
-          [SR_MX_OFFSET] "i" (AVR32_SR_M0_OFFSET),\
-          [SR_MX_SIZE] "i" (AVR32_SR_M0_SIZE + AVR32_SR_M1_SIZE + AVR32_SR_M2_SIZE),\
-          [RESET_SR] "i" (AVR32_SR_GM_MASK | AVR32_SR_EM_MASK | AVR32_SR_M0_MASK)\
+          [SR_M_OFFSET] "i" (AVR32_SR_M_OFFSET),\
+          [SR_M_SIZE] "i" (AVR32_SR_M_SIZE),\
+          [RESET_SR] "i" (AVR32_SR_GM_MASK | AVR32_SR_EM_MASK | (AVR32_SR_M_SUP << AVR32_SR_M_OFFSET))\
       );\
     }\
   )
-#elif __ICCAVR32__
+#elif (defined __ICCAVR32__)
   #define Reset_CPU() \
   {\
     extern void *volatile __program_start;\
     __asm__ __volatile__ (\
       "mov     r7, LWRD(__program_start)\n\t"\
       "orh     r7, HWRD(__program_start)\n\t"\
-      "mov     r9, LWRD("ASTRINGZ(AVR32_SR_GM_MASK | AVR32_SR_EM_MASK | AVR32_SR_M0_MASK)")\n\t"\
-      "orh     r9, HWRD("ASTRINGZ(AVR32_SR_GM_MASK | AVR32_SR_EM_MASK | AVR32_SR_M0_MASK)")\n\t"\
+      "mov     r9, LWRD("ASTRINGZ(AVR32_SR_GM_MASK | AVR32_SR_EM_MASK | (AVR32_SR_M_SUP << AVR32_SR_M_OFFSET))")\n\t"\
+      "orh     r9, HWRD("ASTRINGZ(AVR32_SR_GM_MASK | AVR32_SR_EM_MASK | (AVR32_SR_M_SUP << AVR32_SR_M_OFFSET))")\n\t"\
       "mfsr    r8, "ASTRINGZ(AVR32_SR)"\n\t"\
-      "bfextu  r8, r8, "ASTRINGZ(AVR32_SR_M0_OFFSET)", "ASTRINGZ(AVR32_SR_M0_SIZE + AVR32_SR_M1_SIZE + AVR32_SR_M2_SIZE)"\n\t"\
+      "bfextu  r8, r8, "ASTRINGZ(AVR32_SR_M_OFFSET)", "ASTRINGZ(AVR32_SR_M_SIZE)"\n\t"\
       "cp.w    r8, 001b\n\t"\
       "breq    $ + 10\n\t"\
       "sub     r8, pc, -12\n\t"\
@@ -749,9 +763,9 @@ typedef struct
  *
  * \return Value of the \a sysreg system register.
  */
-#if __GNUC__
+#if (defined __GNUC__)
   #define Get_system_register(sysreg)         __builtin_mfsr(sysreg)
-#elif __ICCAVR32__
+#elif (defined __ICCAVR32__)
   #define Get_system_register(sysreg)         __get_system_register(sysreg)
 #endif
 
@@ -760,9 +774,9 @@ typedef struct
  * \param sysreg  Address of the system register of which to set the value.
  * \param value   Value to set the \a sysreg system register to.
  */
-#if __GNUC__
+#if (defined __GNUC__)
   #define Set_system_register(sysreg, value)  __builtin_mtsr(sysreg, value)
-#elif __ICCAVR32__
+#elif (defined __ICCAVR32__)
   #define Set_system_register(sysreg, value)  __set_system_register(sysreg, value)
 #endif
 
@@ -777,73 +791,87 @@ typedef struct
  *
  * \return \c 1 if exceptions are globally enabled, else \c 0.
  */
-#define Is_global_exception_enabled()       (!Tst_bits(Get_system_register(AVR32_SR), AVR32_SR_EM_MASK))
+#define Is_global_exception_enabled()         (!Tst_bits(Get_system_register(AVR32_SR), AVR32_SR_EM_MASK))
 
 /*! \brief Disables exceptions globally.
  */
-#if __GNUC__
-  #define Disable_global_exception()        ({__asm__ __volatile__ ("ssrf\t%0" :  : "i" (AVR32_SR_EM_OFFSET));})
-#elif __ICCAVR32__
-  #define Disable_global_exception()        (__set_status_flag(AVR32_SR_EM_OFFSET))
+#if (defined __GNUC__)
+  #define Disable_global_exception()          ({__asm__ __volatile__ ("ssrf\t%0" :  : "i" (AVR32_SR_EM_OFFSET));})
+#elif (defined __ICCAVR32__)
+  #define Disable_global_exception()          (__set_status_flag(AVR32_SR_EM_OFFSET))
 #endif
 
 /*! \brief Enables exceptions globally.
  */
-#if __GNUC__
-  #define Enable_global_exception()         ({__asm__ __volatile__ ("csrf\t%0" :  : "i" (AVR32_SR_EM_OFFSET));})
-#elif __ICCAVR32__
-  #define Enable_global_exception()         (__clear_status_flag(AVR32_SR_EM_OFFSET))
+#if (defined __GNUC__)
+  #define Enable_global_exception()           ({__asm__ __volatile__ ("csrf\t%0" :  : "i" (AVR32_SR_EM_OFFSET));})
+#elif (defined __ICCAVR32__)
+  #define Enable_global_exception()           (__clear_status_flag(AVR32_SR_EM_OFFSET))
 #endif
 
 /*! \brief Tells whether interrupts are globally enabled.
  *
  * \return \c 1 if interrupts are globally enabled, else \c 0.
  */
-#define Is_global_interrupt_enabled()       (!Tst_bits(Get_system_register(AVR32_SR), AVR32_SR_GM_MASK))
+#define Is_global_interrupt_enabled()         (!Tst_bits(Get_system_register(AVR32_SR), AVR32_SR_GM_MASK))
 
 /*! \brief Disables interrupts globally.
  */
-#if __GNUC__
-  #define Disable_global_interrupt()        ({__asm__ __volatile__ ("ssrf\t%0" :  : "i" (AVR32_SR_GM_OFFSET));})
-#elif __ICCAVR32__
-  #define Disable_global_interrupt()        (__disable_interrupt())
+#if (defined __GNUC__)
+  #define Disable_global_interrupt()          ({__asm__ __volatile__ ("ssrf\t%0" :  : "i" (AVR32_SR_GM_OFFSET));})
+#elif (defined __ICCAVR32__)
+  #define Disable_global_interrupt()          (__disable_interrupt())
 #endif
 
 /*! \brief Enables interrupts globally.
  */
-#if __GNUC__
-  #define Enable_global_interrupt()         ({__asm__ __volatile__ ("csrf\t%0" :  : "i" (AVR32_SR_GM_OFFSET));})
-#elif __ICCAVR32__
-  #define Enable_global_interrupt()         (__enable_interrupt())
+#if (defined __GNUC__)
+  #define Enable_global_interrupt()           ({__asm__ __volatile__ ("csrf\t%0" :  : "i" (AVR32_SR_GM_OFFSET));})
+#elif (defined __ICCAVR32__)
+  #define Enable_global_interrupt()           (__enable_interrupt())
 #endif
 
-/*! \brief Tells whether interrupt level \a int_lev is enabled.
+/*! \brief Tells whether interrupt level \a int_level is enabled.
  *
- * \param int_lev Interrupt level (0 to 3).
+ * \param int_level Interrupt level (0 to 3).
  *
- * \return \c 1 if interrupt level \a int_lev is enabled, else \c 0.
+ * \return \c 1 if interrupt level \a int_level is enabled, else \c 0.
  */
-#define Is_interrupt_level_enabled(int_lev) (!Tst_bits(Get_system_register(AVR32_SR), TPASTE3(AVR32_SR_I, int_lev, M_MASK)))
+#define Is_interrupt_level_enabled(int_level) (!Tst_bits(Get_system_register(AVR32_SR), TPASTE3(AVR32_SR_I, int_level, M_MASK)))
 
-/*! \brief Disables interrupt level \a int_lev.
+/*! \brief Disables interrupt level \a int_level.
  *
- * \param int_lev Interrupt level to disable (0 to 3).
+ * \param int_level Interrupt level to disable (0 to 3).
  */
-#if __GNUC__
-  #define Disable_interrupt_level(int_lev)  ({__asm__ __volatile__ ("ssrf\t%0" :  : "i" (TPASTE3(AVR32_SR_I, int_lev, M_OFFSET)));})
-#elif __ICCAVR32__
-  #define Disable_interrupt_level(int_lev)  (__set_status_flag(TPASTE3(AVR32_SR_I, int_lev, M_OFFSET)))
+#if (defined __GNUC__)
+  #define Disable_interrupt_level(int_level)  ({__asm__ __volatile__ ("ssrf\t%0" :  : "i" (TPASTE3(AVR32_SR_I, int_level, M_OFFSET)));})
+#elif (defined __ICCAVR32__)
+  #define Disable_interrupt_level(int_level)  (__set_status_flag(TPASTE3(AVR32_SR_I, int_level, M_OFFSET)))
 #endif
 
-/*! \brief Enables interrupt level \a int_lev.
+/*! \brief Enables interrupt level \a int_level.
  *
- * \param int_lev Interrupt level to enable (0 to 3).
+ * \param int_level Interrupt level to enable (0 to 3).
  */
-#if __GNUC__
-  #define Enable_interrupt_level(int_lev)   ({__asm__ __volatile__ ("csrf\t%0" :  : "i" (TPASTE3(AVR32_SR_I, int_lev, M_OFFSET)));})
-#elif __ICCAVR32__
-  #define Enable_interrupt_level(int_lev)   (__clear_status_flag(TPASTE3(AVR32_SR_I, int_lev, M_OFFSET)))
+#if (defined __GNUC__)
+  #define Enable_interrupt_level(int_level)   ({__asm__ __volatile__ ("csrf\t%0" :  : "i" (TPASTE3(AVR32_SR_I, int_level, M_OFFSET)));})
+#elif (defined __ICCAVR32__)
+  #define Enable_interrupt_level(int_level)   (__clear_status_flag(TPASTE3(AVR32_SR_I, int_level, M_OFFSET)))
 #endif
+
+/*! \brief Protects subsequent code from interrupts.
+ */
+#define AVR32_ENTER_CRITICAL_REGION( ) \
+  { \
+  Bool global_interrupt_enabled = Is_global_interrupt_enabled(); \
+  Disable_global_interrupt(); // Disable the appropriate interrupts.
+
+/*! \brief This macro must always be used in conjunction with AVR32_ENTER_CRITICAL_REGION
+ *         so that interrupts are enabled again.
+ */
+#define AVR32_LEAVE_CRITICAL_REGION( ) \
+  if (global_interrupt_enabled) Enable_global_interrupt(); \
+  }
 
 //! @}
 
@@ -858,9 +886,9 @@ typedef struct
  *
  * \return Value of the \a dbgreg debug register.
  */
-#if __GNUC__
+#if (defined __GNUC__)
   #define Get_debug_register(dbgreg)          __builtin_mfdr(dbgreg)
-#elif __ICCAVR32__
+#elif (defined __ICCAVR32__)
   #define Get_debug_register(dbgreg)          __get_debug_register(dbgreg)
 #endif
 
@@ -869,9 +897,9 @@ typedef struct
  * \param dbgreg  Address of the debug register of which to set the value.
  * \param value   Value to set the \a dbgreg debug register to.
  */
-#if __GNUC__
+#if (defined __GNUC__)
   #define Set_debug_register(dbgreg, value)   __builtin_mtdr(dbgreg, value)
-#elif __ICCAVR32__
+#elif (defined __ICCAVR32__)
   #define Set_debug_register(dbgreg, value)   __set_debug_register(dbgreg, value)
 #endif
 
@@ -881,7 +909,10 @@ typedef struct
 
 
 //! Boolean evaluating MCU little endianism.
-#if (__GNUC__ && __AVR32__) || (__ICCAVR32__ || __AAVR32__)
+#if ((defined __GNUC__) && (defined __AVR32__)) || ((defined __ICCAVR32__) || (defined __AAVR32__))
+  #define LITTLE_ENDIAN_MCU     FALSE
+#else
+  #error If you are here, you should check what is exactly the processor you are using...
   #define LITTLE_ENDIAN_MCU     FALSE
 #endif
 
@@ -900,8 +931,7 @@ typedef struct
  */
 //! @{
 
-#if LITTLE_ENDIAN_MCU
-
+#if (LITTLE_ENDIAN_MCU==TRUE)
   #define LSB(u16)        (((U8  *)&(u16))[0])  //!< Least significant byte of \a u16.
   #define MSB(u16)        (((U8  *)&(u16))[1])  //!< Most significant byte of \a u16.
 
@@ -943,8 +973,7 @@ typedef struct
   #define MSB1D(u64)      LSB6D(u64)            //!< Most significant byte of 2nd rank of \a u64.
   #define MSB0D(u64)      LSB7D(u64)            //!< Most significant byte of 1st rank of \a u64.
 
-#else // BIG_ENDIAN_MCU
-
+#elif (BIG_ENDIAN_MCU==TRUE) 
   #define MSB(u16)        (((U8  *)&(u16))[0])  //!< Most significant byte of \a u16.
   #define LSB(u16)        (((U8  *)&(u16))[1])  //!< Least significant byte of \a u16.
 
@@ -986,6 +1015,8 @@ typedef struct
   #define LSB1D(u64)      MSB6D(u64)            //!< Least significant byte of 2nd rank of \a u64.
   #define LSB0D(u64)      MSB7D(u64)            //!< Least significant byte of 1st rank of \a u64.
 
+#else
+  #error  Unknown endianism.
 #endif
 
 //! @}
@@ -1044,9 +1075,9 @@ typedef struct
  *
  * \note More optimized if only used with values unknown at compile time.
  */
-#if __GNUC__
+#if (defined __GNUC__)
   #define swap16(u16) ((U16)__builtin_bswap_16((U16)(u16)))
-#elif __ICCAVR32__
+#elif (defined __ICCAVR32__)
   #define swap16(u16) ((U16)__swap_bytes_in_halfwords((U16)(u16)))
 #endif
 
@@ -1058,9 +1089,9 @@ typedef struct
  *
  * \note More optimized if only used with values unknown at compile time.
  */
-#if __GNUC__
+#if (defined __GNUC__)
   #define swap32(u32) ((U32)__builtin_bswap_32((U32)(u32)))
-#elif __ICCAVR32__
+#elif (defined __ICCAVR32__)
   #define swap32(u32) ((U32)__swap_bytes((U32)(u32)))
 #endif
 

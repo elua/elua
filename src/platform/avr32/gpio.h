@@ -1,4 +1,4 @@
-/* This header file is part of the ATMEL AVR32-SoftwareFramework-1.3.0-AT32UC3A Release */
+/* This header file is part of the ATMEL AVR-UC3-SoftwareFramework-1.6.1 Release */
 
 /*This file has been prepared for Doxygen automatic documentation generation.*/
 /*! \file *********************************************************************
@@ -16,33 +16,36 @@
  *
  *****************************************************************************/
 
-/* Copyright (C) 2006-2008, Atmel Corporation All rights reserved.
+/* Copyright (c) 2009 Atmel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. The name of ATMEL may not be used to endorse or promote products derived
+ * 3. The name of Atmel may not be used to endorse or promote products derived
  * from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY ATMEL ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * 4. This software may only be redistributed and used in connection with an Atmel
+ * AVR product.
+ *
+ * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE EXPRESSLY AND
- * SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR ANY DIRECT,
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+ * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
+ *
  */
-
 
 #ifndef _GPIO_H_
 #define _GPIO_H_
@@ -133,6 +136,15 @@ extern void gpio_enable_gpio(const gpio_map_t gpiomap, unsigned int size);
  */
 extern void gpio_enable_gpio_pin(unsigned int pin);
 
+// The open-drain mode is not synthesized on the current AVR32 products.
+// If one day some AVR32 products have this feature, the corresponding part
+// numbers should be listed in the #if below.
+// Note that other functions are available in this driver to use pins with open
+// drain in GPIO mode. The advantage of the open-drain mode functions over these
+// other functions is that they can be used not only in GPIO mode but also in
+// module mode.
+#if 0
+
 /*! \brief Enables the open-drain mode of a pin.
  *
  * \param pin The pin number.
@@ -145,6 +157,8 @@ extern void gpio_enable_pin_open_drain(unsigned int pin);
  */
 extern void gpio_disable_pin_open_drain(unsigned int pin);
 
+#endif
+
 /*! \brief Enables the pull-up resistor of a pin.
  *
  * \param pin The pin number.
@@ -156,6 +170,35 @@ extern void gpio_enable_pin_pull_up(unsigned int pin);
  * \param pin The pin number.
  */
 extern void gpio_disable_pin_pull_up(unsigned int pin);
+
+#if defined(AVR32_GPIO_200_H_INCLUDED) || defined(AVR32_GPIO_210_H_INCLUDED) || defined(AVR32_GPIO_211_H_INCLUDED)
+// Added support of Pull-up Resistor, Pull-down Resistor and Buskeeper Control.
+
+/*! \brief Enables the pull-down resistor of a pin.
+ *
+ * \param pin The pin number.
+ */
+extern void gpio_enable_pin_pull_down(unsigned int pin);
+
+/*! \brief Disables the pull-down resistor of a pin.
+ *
+ * \param pin The pin number.
+ */
+extern void gpio_disable_pin_pull_down(unsigned int pin);
+
+/*! \brief Enables the buskeeper functionality on a pin.
+ *
+ * \param pin The pin number.
+ */
+extern void gpio_enable_pin_buskeeper(unsigned int pin);
+
+/*! \brief Disables the buskeeper functionality on a pin.
+ *
+ * \param pin The pin number.
+ */
+extern void gpio_disable_pin_buskeeper(unsigned int pin);
+
+#endif
 
 /*! \brief Returns the value of a pin.
  *
@@ -170,8 +213,23 @@ extern int gpio_get_pin_value(unsigned int pin);
  * \param pin The pin number.
  *
  * \return The pin output value.
+ *
+ * \note This function must be used in conjunction with \ref gpio_set_gpio_pin,
+ *       \ref gpio_clr_gpio_pin and \ref gpio_tgl_gpio_pin.
  */
 extern int gpio_get_gpio_pin_output_value(unsigned int pin);
+
+/*! \brief Returns the output value set for a GPIO pin using open drain.
+ *
+ * \param pin The pin number.
+ *
+ * \return The pin output value.
+ *
+ * \note This function must be used in conjunction with
+ *       \ref gpio_set_gpio_open_drain_pin, \ref gpio_clr_gpio_open_drain_pin
+ *       and \ref gpio_tgl_gpio_open_drain_pin.
+ */
+extern int gpio_get_gpio_open_drain_pin_output_value(unsigned int pin);
 
 /*! \brief Drives a GPIO pin to 1.
  *
@@ -190,6 +248,24 @@ extern void gpio_clr_gpio_pin(unsigned int pin);
  * \param pin The pin number.
  */
 extern void gpio_tgl_gpio_pin(unsigned int pin);
+
+/*! \brief Drives a GPIO pin to 1 using open drain.
+ *
+ * \param pin The pin number.
+ */
+extern void gpio_set_gpio_open_drain_pin(unsigned int pin);
+
+/*! \brief Drives a GPIO pin to 0 using open drain.
+ *
+ * \param pin The pin number.
+ */
+extern void gpio_clr_gpio_open_drain_pin(unsigned int pin);
+
+/*! \brief Toggles a GPIO pin using open drain.
+ *
+ * \param pin The pin number.
+ */
+extern void gpio_tgl_gpio_open_drain_pin(unsigned int pin);
 
 /*! \brief Enables the glitch filter of a pin.
  *
@@ -253,6 +329,10 @@ extern void gpio_clear_pin_interrupt_flag(unsigned int pin);
  * deterministic since it does not need to access a shared bus which may be
  * heavily loaded.
  *
+ * \warning To use this interface, the clock frequency of the peripheral bus on
+ *          which the GPIO peripheral is connected must be set to the CPU clock
+ *          frequency (fPB = fCPU).
+ *
  * \note This interface has to be initialized in order to be available.
  */
 //! @{
@@ -262,7 +342,7 @@ extern void gpio_clear_pin_interrupt_flag(unsigned int pin);
  * \note This function must have been called at least once before using other
  *       functions in this interface.
  */
-#if __GNUC__
+#if (defined __GNUC__)
 __attribute__((__always_inline__))
 #endif
 extern __inline__ void gpio_local_init(void)
@@ -280,7 +360,7 @@ extern __inline__ void gpio_local_init(void)
  * \note This function does not enable the GPIO mode of the pin.
  *       \ref gpio_enable_gpio_pin can be called for this purpose.
  */
-#if __GNUC__
+#if (defined __GNUC__)
 __attribute__((__always_inline__))
 #endif
 extern __inline__ void gpio_local_enable_pin_output_driver(unsigned int pin)
@@ -294,7 +374,7 @@ extern __inline__ void gpio_local_enable_pin_output_driver(unsigned int pin)
  *
  * \note \ref gpio_local_init must have been called beforehand.
  */
-#if __GNUC__
+#if (defined __GNUC__)
 __attribute__((__always_inline__))
 #endif
 extern __inline__ void gpio_local_disable_pin_output_driver(unsigned int pin)
@@ -310,7 +390,7 @@ extern __inline__ void gpio_local_disable_pin_output_driver(unsigned int pin)
  *
  * \note \ref gpio_local_init must have been called beforehand.
  */
-#if __GNUC__
+#if (defined __GNUC__)
 __attribute__((__always_inline__))
 #endif
 extern __inline__ int gpio_local_get_pin_value(unsigned int pin)
@@ -329,7 +409,7 @@ extern __inline__ int gpio_local_get_pin_value(unsigned int pin)
  *       \ref gpio_local_enable_pin_output_driver can be called for this
  *       purpose.
  */
-#if __GNUC__
+#if (defined __GNUC__)
 __attribute__((__always_inline__))
 #endif
 extern __inline__ void gpio_local_set_gpio_pin(unsigned int pin)
@@ -348,7 +428,7 @@ extern __inline__ void gpio_local_set_gpio_pin(unsigned int pin)
  *       \ref gpio_local_enable_pin_output_driver can be called for this
  *       purpose.
  */
-#if __GNUC__
+#if (defined __GNUC__)
 __attribute__((__always_inline__))
 #endif
 extern __inline__ void gpio_local_clr_gpio_pin(unsigned int pin)
@@ -367,7 +447,7 @@ extern __inline__ void gpio_local_clr_gpio_pin(unsigned int pin)
  *       \ref gpio_local_enable_pin_output_driver can be called for this
  *       purpose.
  */
-#if __GNUC__
+#if (defined __GNUC__)
 __attribute__((__always_inline__))
 #endif
 extern __inline__ void gpio_local_tgl_gpio_pin(unsigned int pin)
@@ -375,7 +455,133 @@ extern __inline__ void gpio_local_tgl_gpio_pin(unsigned int pin)
   AVR32_GPIO_LOCAL.port[pin >> 5].ovrt = 1 << (pin & 0x1F);
 }
 
+/*! \brief Initializes the configuration of a GPIO pin so that it can be used
+ *         with GPIO open-drain functions.
+ *
+ * \note This function must have been called at least once before using
+ *       \ref gpio_local_set_gpio_open_drain_pin,
+ *       \ref gpio_local_clr_gpio_open_drain_pin or
+ *       \ref gpio_local_tgl_gpio_open_drain_pin.
+ */
+#if (defined __GNUC__)
+__attribute__((__always_inline__))
+#endif
+extern __inline__ void gpio_local_init_gpio_open_drain_pin(unsigned int pin)
+{
+  AVR32_GPIO_LOCAL.port[pin >> 5].ovrc = 1 << (pin & 0x1F);
+}
+
+/*! \brief Drives a GPIO pin to 1 using open drain.
+ *
+ * \param pin The pin number.
+ *
+ * \note \ref gpio_local_init and \ref gpio_local_init_gpio_open_drain_pin must
+ *       have been called beforehand.
+ *
+ * \note This function does not enable the GPIO mode of the pin.
+ *       \ref gpio_enable_gpio_pin can be called for this purpose.
+ */
+#if (defined __GNUC__)
+__attribute__((__always_inline__))
+#endif
+extern __inline__ void gpio_local_set_gpio_open_drain_pin(unsigned int pin)
+{
+  AVR32_GPIO_LOCAL.port[pin >> 5].oderc = 1 << (pin & 0x1F);
+}
+
+/*! \brief Drives a GPIO pin to 0 using open drain.
+ *
+ * \param pin The pin number.
+ *
+ * \note \ref gpio_local_init and \ref gpio_local_init_gpio_open_drain_pin must
+ *       have been called beforehand.
+ *
+ * \note This function does not enable the GPIO mode of the pin.
+ *       \ref gpio_enable_gpio_pin can be called for this purpose.
+ */
+#if (defined __GNUC__)
+__attribute__((__always_inline__))
+#endif
+extern __inline__ void gpio_local_clr_gpio_open_drain_pin(unsigned int pin)
+{
+  AVR32_GPIO_LOCAL.port[pin >> 5].oders = 1 << (pin & 0x1F);
+}
+
+/*! \brief Toggles a GPIO pin using open drain.
+ *
+ * \param pin The pin number.
+ *
+ * \note \ref gpio_local_init and \ref gpio_local_init_gpio_open_drain_pin must
+ *       have been called beforehand.
+ *
+ * \note This function does not enable the GPIO mode of the pin.
+ *       \ref gpio_enable_gpio_pin can be called for this purpose.
+ */
+#if (defined __GNUC__)
+__attribute__((__always_inline__))
+#endif
+extern __inline__ void gpio_local_tgl_gpio_open_drain_pin(unsigned int pin)
+{
+  AVR32_GPIO_LOCAL.port[pin >> 5].odert = 1 << (pin & 0x1F);
+}
+
 //! @}
+
+#if (((defined __GNUC__) && ((defined __AVR32_UC3L016__) || \
+                             (defined __AVR32_UC3L032__) || \
+                             (defined __AVR32_UC3L064__)) \
+    ||(defined __ICCAVR32__) && ((defined __AT32UC3L016__) || \
+                                 (defined __AT32UC3L032__) || \
+                                 (defined __AT32UC3L064__) )))
+//! @{
+/*! \name Peripheral Event System support
+ *
+ * The GPIO can be programmed to output peripheral events whenever an interrupt
+ * condition is detected, such as pin value change, or only when a rising or
+ * falling edge is detected.
+ *
+ */
+
+/*! \brief Enables the peripheral event generation of a pin.
+ *
+ * \param pin The pin number.
+ *
+ */
+#if (defined __GNUC__)
+__attribute__((__always_inline__))
+#endif
+extern __inline__ void gpio_enable_pin_periph_event(unsigned int pin)
+{
+  AVR32_GPIO.port[pin >> 5].oderc = 1 << (pin & 0x1F); // The GPIO output driver is disabled for that pin.
+  AVR32_GPIO.port[pin >> 5].evers = 1 << (pin & 0x1F);
+}
+
+/*! \brief Disables the peripheral event generation of a pin.
+ *
+ * \param pin The pin number.
+ *
+ */
+#if (defined __GNUC__)
+__attribute__((__always_inline__))
+#endif
+extern __inline__ void gpio_disable_pin_periph_event(unsigned int pin)
+{
+  AVR32_GPIO.port[pin >> 5].everc = 1 << (pin & 0x1F);
+}
+
+/*! \brief Configure the peripheral event trigger mode of a pin
+ *
+ * \param pin The pin number.
+ * \param mode The trigger mode (\ref GPIO_PIN_CHANGE, \ref GPIO_RISING_EDGE or
+ *             \ref GPIO_FALLING_EDGE).
+ * \param use_igf use the Input Glitch Filter (TRUE) or not (FALSE).
+ *
+ * \return \ref GPIO_SUCCESS or \ref GPIO_INVALID_ARGUMENT.
+ */
+extern int gpio_configure_pin_periph_event_mode(unsigned int pin, unsigned int mode, unsigned int use_igf);
+
+//! @}
+#endif
 
 
 #endif  // _GPIO_H_
