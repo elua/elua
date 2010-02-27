@@ -56,7 +56,9 @@ local menu =
   -- "Status"
   { "Status", "status.html", 
     {
-      { { "Supported platforms", "Plataformas Suportadas" }, "status.html#platforms" },
+      { { "Supported platforms", "Plataformas Suportadas" }, "status.html" },
+      { { "Modules per platform table", "Módulos por plataforma" }, "status.html#plat_modules" },
+      { { "Modules overview status", "Visão geral dos módulos" }, "status.html#gen_modules" },
       { { "Roadmap", "Planejamento Futuro" }, "status.html#roadmap" }
     }
   },
