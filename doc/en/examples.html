@@ -7,6 +7,7 @@ system or you can use the eLua shell and send them via XMODEM, as
 described <a href="using.html#shell">here</a>.</p>
 <br />
 
+<a name="hello" />
 <h3>hello.lua: the ubiquitous "Hello, World!"</h3>
 <p><strong>Runs on: </strong>all targets</p>
 <p><strong>Description: </strong>to call this a "program" is a gross overstatement, but it's a
@@ -15,6 +16,7 @@ returns to the shell. Run it from the file system only if you feel too lazy to f
 the lua interpreter inside eLua and write it yourself :)</p>
 <br />
 
+<a name="info" />
 <h3>info.lua: getting the platform data</h3>
 <p><strong>Runs on: </strong>all targets</p>
 <p><strong>Description: </strong>this isn't really more advanced than "Hello, World!", but it does show
@@ -24,6 +26,7 @@ name, the CPU name, the board name and the CPU clock and then will exit
 to the shell.</p>
 <br />
 
+<a name="led" />
 <h3>led.lua: the old LED blinker, the new eLua way</h3>
 <p><strong>Runs on: </strong> all targets except i386</p>
 <p><strong>Description: </strong> now we get to do something "more embedded": blink a LED. The code illustrates a few interesting <b>eLua</b> features:</p>
@@ -34,6 +37,7 @@ data module makes it very easy to write such portable code.</li>
 <p>Watch it blink, then press any key to return to the eLua shell.</p>
 <br />
 
+<a name="hangman=" />
 <h3>hangman.lua: taking advantage of your terminal</h3>
 <p><strong>Runs on: </strong>all targets</p>
 <p><strong>Description: </strong>the geekiest example from the <b>eLua</b> distribution (or would it be morse.lua? :), it makes use of
@@ -43,6 +47,7 @@ written mainly as a proof of eLua's capabilities, but it's very easy to
 add new words/replace the existing ones.</p>
 <br />
 
+<a name="pwmled=" />
 <h3>pwmled.lua: LED blinker, advanced class</h3>
 <p><strong>Runs on: </strong>EK-LM3S8962, EK-LM3S6965</p>
 <p><strong>Description: </strong>this uses the PWM module to fade the on-board LED in and out, in an
@@ -51,6 +56,7 @@ results are quite spectacular. Press any key to end the sample and
 return to the shell.</p>
 <br />
 
+<a name="dualpwm=" />
 <h3>dualpwm.lua: because a single LED is just not enough</h3>
 <p><strong>Runs on: </strong>MOD711, ET-STM32</p>
 <p><strong>Description: </strong>My <a href="http://www.sctec.com.br/content/view/101/30/">MOD711 board</a> needed a
@@ -58,6 +64,7 @@ return to the shell.</p>
 to two different PWM channels. With this program, the two LEDs fade at the same type, but in different directions.</p>
 <br />
 
+<a name="tvbgone" />
 <h3>tvbgone.lua: yes, eLua can do real time!</h3>
 <p><strong>Runs on: </strong>EK-LM3S8962, EK-LM3S6965</p>
 <p><strong>Description: </strong>this is more complex, but also very important for <b>eLua</b>, because it
@@ -82,6 +89,7 @@ the codes are transmitted and shuts off afterwards. Press the "down"
 button on your board to exit the application and return to the shell.</p>
 <br />
 
+<a name="piano" />
 <h3>piano.lua: because PWM is great</h3>
 <p><strong>Runs on: </strong>EK-LM3S8962, EK-LM3S6965, SAM7-EX256</p>
 <p><strong>Description: </strong>yet another use for the PWM module, this sample can be used to "play"
@@ -91,6 +99,7 @@ can set your octave and inter-note delay. Press ESC to end your <b>eLua</b>
 musical session :)</p>
 <br />
 
+<a name="bisect" />
 <h3>bisect.lua: floating point at its best</h3>
 <p><strong>Runs on: </strong>all targets</p>
 <p><strong>Description: </strong>this is taken directly from the official Lua distribution, and it's
@@ -99,6 +108,7 @@ machine, albeit slower. Run it on your target, then run it again, but
 this time on the PC, and compare the results. Yes, they are identical.</p>
 <br />
 
+<a name="life" />
 <h3>life.lua: the game of life</h3>
 <p><strong>Runs on: </strong>i386</p>
 <p><strong>Description: </strong>another example taken directly from the Lua distribution, this time
@@ -108,6 +118,7 @@ platform too (although it requires quite a bit of memory, which is not a problem
 memory). </p>
 <br />
 
+<a name="morse" />
 <h3>morse.lua: because PWM is great, part II</h3>
 <p><strong>Runs on: </strong> EK-LM3S8962, EK-LM3S6965, SAM7-EX256</p>
 <p><strong>Description: </strong>this uses the same PWM module for Morse code generation. Just enter a
@@ -117,6 +128,7 @@ letters and Morse codes are also shown on the terminal. Use '+' and
 's' to mute/unmute, and ESC to exit.</p>
 <br />
 
+<a name="lhttpd" />
 <h3>lhttpd.lua: only with (e)Lua ...</h3>
 <p><strong>Runs on: </strong>EK-LM3S8962, EK-LM3S6965</p>
 <p><strong>Description: </strong>this is one of those things that can show the real potential of a
@@ -148,18 +160,21 @@ distribution for an example of how to include Lua code in your HTML
 files.</p>
 <br />
 
+<a name="adcscope" />
 <h3>adcscope.lua: ADCs and eLua, part I</h3>
 <p><strong>Runs on: </strong>EK-LM3S8962, EK-LM3S6965, ET-STM32</p>
 <p><strong>Description: </strong>This uses the ADC module to acquire samples as quickly as possible on available ADC channels, and display them using the term module.  Additionally, for different channels, different length moving average filters are used to smooth the data being acquired (see the adcchannels and adcsmoothing variables).  While running the script also provides the average length of time required to get conversion results from each channel and the amount of memory used by garbage collectable objects in the running Lua environment.
 </p>
 <br />
 
+<a name="adcpoll" />
 <h3>adcpoll.lua: ADCs and eLua, part II</h3>
 <p><strong>Runs on: </strong>EK-LM3S8962, EK-LM3S6965, ET-STM32</p>
 <p><strong>Description: </strong>This is another example of the ADC and term modules.  This version uses hardware timers to acquire samples deterministically at a rate of 4 samples per second.  When run, note that data from some channels appear before that of others.  This is due to the moving average (smoothing) filter being enabled.  This filter will only return conversion results after enough samples are acquired to fill the filter length.  In addition, this example utilizes a polling mechanism.  When adc.getsample or adc.getsamples return nil, no samples were available to be returned.  Values for each channel, in this example, are only displayed when there is a non-nil value returned by adc.getsample.
 </p>
 <br />
 
+<a name="logo" />
 <h3>logo.lua: graphics and eLua</h3>
 <p><strong>Runs on: </strong>EK-LM3S8962, EK-LM3S6965</p>
 <p><b>Description: </b>a complex example, proving that <b>eLua</b> can do even animations! The <b>eLua</b> logo is shown
@@ -171,6 +186,7 @@ how a highly optimized eLua program looks like, but don't spend too much time wi
 <br />
 
 
+<a name="pong" />
 <h3>pong.lua: eLua meets a classic</h3>
 <p><strong>Runs on: </strong>EK-LM3S8962, EK-LM3S6965</p>
 <p><b>Description: </b>a tribute to the classics, as well as an addictive way of spending your time, this examples proves
@@ -181,6 +197,7 @@ possibilities of <b>eLua</b>.
 </p>
 <br />
 
+<a name="spaceship" />
 <h3>spaceship.lua: even more fun</h3>
 <p><strong>Runs on: </strong>EK-LM3S8962, EK-LM3S6965</p>
 <p><b>Description: </b>tired of hitting a ball? What about hitting a spaceship instead? Or, even better, more spaceships? Defend
@@ -189,6 +206,7 @@ paddles. Once again, take a look at the code to get a feeling of <b>eLua</b>.
 </p>
 <br />
 
+<a name="tetrives" />
 <h3>tetrives.lua: don't let it get too addictive</h3>
 <p><strong>Runs on: </strong>EK-LM3S8962, EK-LM3S6965</p>
 <p><b>Description: </b>tetris doesn't need any introduction at all, so just start the game, grab the on-board switches and start
