@@ -102,6 +102,8 @@ static int semifs_close_r( struct _reent *r, int fd )
   if( fd != SEMIFS_MAX_FDS )
     semifs_fd_table[ fd ].handle = -1;
 
+  semifs_num_fd --;
+
   return __semihost(SYS_CLOSE, &fh);
 }
 
