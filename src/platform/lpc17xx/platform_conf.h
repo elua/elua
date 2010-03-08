@@ -14,6 +14,7 @@
 #define BUILD_ROMFS
 #define BUILD_TERM
 #define BUILD_CON_GENERIC
+#define BUILD_SEMIFS
 //#define BUILD_LUARPC
 
 // *****************************************************************************

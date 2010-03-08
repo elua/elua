@@ -87,6 +87,9 @@ int main( void )
   // Register the MMC filesystem
   dm_register( mmcfs_init() );
 
+  // Register the Semihosting filesystem
+  dm_register( semifs_init() );
+
   // Register the remote filesystem
   dm_register( remotefs_init() );
 

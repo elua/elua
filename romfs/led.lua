@@ -23,6 +23,7 @@ elseif pd.board() == "ELUA-PUC" then
   ledpin = pio.P1_20
 elseif pd.board() == "MBED" then
   ledpin = mbed.pio.LED1
+  mbed.pio.configpin( ledpin, 0, 0, 0 )
 else
   print( "\nError: Unknown board " .. pd.board() .. " !" )
   return
