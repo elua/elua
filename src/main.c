@@ -23,12 +23,19 @@
 
 #include "mmcfs.h"
 #include "romfs.h"
+
+// Define here your autorun/boot files, 
+// in the order you want eLua to search for them
+char *boot_order[] = {
 #if defined(BUILD_MMCFS)
-  #define FS_AUTORUN          "/mmc/autorun.lua"
+	"/mmc/autorun.lua",
+	"/mmc/autorun.lc",
 #endif
-#if defined(BUILD_ROMFS) && !defined(FS_AUTORUN)
-  #define FS_AUTORUN          "/rom/autorun.lua"
+#if defined(BUILD_ROMFS)
+	"/rom/autorun.lua",
+	"/rom/autorun.lc",
 #endif
+};
 
 extern char etext[];
 
@@ -69,6 +76,7 @@ void boot_rpc( void )
 
 int main( void )
 {
+  int i;
   FILE* fp;
 
   // Initialize platform first
@@ -93,14 +101,17 @@ int main( void )
   // Register the remote filesystem
   dm_register( remotefs_init() );
 
-  // Autorun: if "autorun.lua" is found in the file system, run it first
-  if( ( fp = fopen( FS_AUTORUN, "r" ) ) != NULL )
-  {
-    fclose( fp );
-    char* lua_argv[] = { "lua", FS_AUTORUN, NULL };
-    lua_main( 2, lua_argv );
+  // Search for autorun files in the defined order and execute the 1st if found
+  for( i = 0; i < sizeof( boot_order )/sizeof( *boot_order ); i++ ){
+    if( ( fp = fopen( boot_order[i], "r" ) ) != NULL )
+	{
+	  fclose( fp );
+	  char* lua_argv[] = { "lua", boot_order[i], NULL };
+	  lua_main( 2, lua_argv );
+	  break; // autoruns only the first found
+	}
   }
-  
+
 #ifdef ELUA_BOOT_RPC
   boot_rpc();
 #else
