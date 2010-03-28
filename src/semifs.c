@@ -25,6 +25,8 @@ typedef struct
 static poslog semifs_fd_table[ SEMIFS_MAX_FDS ];
 static int semifs_num_fd;
 
+
+// Semihosting calls, some portions based on arm/syscalls.c from Newlib
 static inline int
 __semihost(int reason, void * arg)
 {
