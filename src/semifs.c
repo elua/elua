@@ -15,6 +15,10 @@
 
 #define SEMIFS_MAX_FDS   4
 
+// Custom Functions for mbed getting listings of files
+#define RESERVED_FOR_USER_APPLICATIONS (0x100) /* 0x100 - 0x1ff */
+#define USR_XFFIND (RESERVED_FOR_USER_APPLICATIONS + 0)    
+
 
 typedef struct
 {
@@ -193,6 +197,55 @@ static off_t semifs_lseek_r( struct _reent *r, int fd, off_t off, int whence )
   return res == 0 ? off : -1;
 }
 
+static int xffind(const char *pattern, XFINFO *info)
+{
+    uint32_t param[4];
+
+    param[0] = (uint32_t)pattern;
+    param[1] = (uint32_t)strlen(pattern);
+    param[2] = (uint32_t)info;
+    param[3] = (uint32_t)sizeof(XFINFO);
+    
+    return __semihost(USR_XFFIND, param);
+}
+
+// opendir
+char testpattern[] = "*";
+SEARCHINFO semifs_dir;
+static void* semifs_opendir_r( struct _reent *r, const char* dname )
+{
+  semifs_dir.file_info.fileID = 0;
+  semifs_dir.pattern = testpattern;
+  return ( void * )&semifs_dir;
+}
+
+// readdir
+extern struct dm_dirent dm_shared_dirent;
+extern char dm_shared_fname[ DM_MAX_FNAME_LENGTH + 1 ];
+static struct dm_dirent* semifs_readdir_r( struct _reent *r, void *d )
+{
+  SEARCHINFO *dir = ( SEARCHINFO* )d;
+  XFINFO *semifs_file_info = &dir->file_info;
+  struct dm_dirent* pent = &dm_shared_dirent;
+  int res;
+  
+  res = xffind(( char * )dir->pattern, semifs_file_info);
+  if( res != 0 )
+    return NULL;
+
+  strncpy( dm_shared_fname, semifs_file_info->name, DM_MAX_FNAME_LENGTH );
+  pent->fname = dm_shared_fname;
+  pent->fsize = semifs_file_info->size;
+  pent->ftime = 0; // need to convert from struct to UNIX time?!
+  return pent;
+}
+
+// closedir
+static int semifs_closedir_r( struct _reent *r, void *d )
+{
+  return 0;
+}
+
 // Semihosting device descriptor structure
 static DM_DEVICE semifs_device =
 {
@@ -202,9 +255,9 @@ static DM_DEVICE semifs_device =
   semifs_write_r,        // write
   semifs_read_r,         // read
   semifs_lseek_r,        // lseek
-  NULL,      // opendir
-  NULL,      // readdir
-  NULL       // closedir
+  semifs_opendir_r,      // opendir
+  semifs_readdir_r,      // readdir
+  semifs_closedir_r       // closedir
 };
 
 const DM_DEVICE* semifs_init()
