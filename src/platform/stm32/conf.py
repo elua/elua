@@ -16,7 +16,7 @@ ldscript = "stm32.ld"
 specific_files = fwlib_files + " " + " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )
 ldscript = "src/platform/%s/%s" % ( platform, ldscript )
 
-if boardname == 'STM3210E-EVAL':
+if comp[ 'board' ] == 'STM3210E-EVAL':
   cdefs = cdefs + " -DFORSTM3210E_EVAL"
 
 cdefs = cdefs + " -Dgcc"

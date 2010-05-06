@@ -3,10 +3,10 @@
 cpumode = ARGUMENTS.get( 'cpumode', 'thumb' ).lower()
 
 specific_files = "platform.c crt0.s 71x_rccu.c 71x_uart.c 71x_apb.c 71x_gpio.c 71x_tim.c"
-if cputype == 'STR711FR2':
+if comp[ 'cpu' ] == 'STR711FR2':
   ldscript = "str711fr2.lds"
 else:
-  print "Invalid STR7 CPU %s" % cputype
+  print "Invalid STR7 CPU %s" % comp[ 'cpu' ]
   sys.exit( -1 )  
   
 # Check CPU mode

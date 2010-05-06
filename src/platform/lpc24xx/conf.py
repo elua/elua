@@ -3,11 +3,11 @@
 cpumode = ARGUMENTS.get( 'cpumode', 'arm' ).lower()
 
 specific_files = "startup.s irq.c target.c platform.c"
-if cputype == 'LPC2468':
+if comp[ 'cpu' ] == 'LPC2468':
   ldscript = "lpc2468.lds"
 else:
-  print "Invalid CPU %s" % cputype
-  sys.exit( -1 )  
+  print "Invalid CPU %s" % comp[ 'cpu' ]
+  Exit( -1 )  
   
 # Check CPU mode
 if cpumode == 'arm':

@@ -1,6 +1,6 @@
 # Configuration file for the linux backend
 
-specific_files = "boot.s utils.s hostif_%s.c platform.c host.c" % cputype.lower()
+specific_files = "boot.s utils.s hostif_%s.c platform.c host.c" % comp[ 'cpu' ].lower()
 ldscript = "i386.ld"
   
 # override default optimize settings (-Os is broken right now)

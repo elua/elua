@@ -3,14 +3,14 @@
 cpumode = ARGUMENTS.get( 'cpumode', 'thumb' ).lower()
 
 specific_files = "board_cstartup.s board_lowlevel.c board_memories.c usart.c pmc.c pio.c platform.c tc.c pwmc.c aic.c"
-if cputype == 'AT91SAM7X256':
+if comp[ 'cpu' ] == 'AT91SAM7X256':
   ldscript = "flash256.lds"
   cdefs = cdefs + " -Dat91sam7x256"
-elif cputype == 'AT91SAM7X512':
+elif comp[ 'cpu' ] == 'AT91SAM7X512':
   ldscript = "flash512.lds"
   cdefs = cdefs + " -Dat91sam7x512"
 else:
-  print "Invalid AT91SAM7X CPU %s" % cputype
+  print "Invalid AT91SAM7X CPU %s" % comp[ 'cpu' ]
   sys.exit( -1 )  
   
 # Check CPU mode
@@ -35,7 +35,7 @@ tools[ 'at91sam7x' ][ 'linkcom' ] = "%s -nostartfiles -nostdlib %s -T %s -Wl,--g
 tools[ 'at91sam7x' ][ 'ascom' ] = "%s -x assembler-with-cpp $_CPPINCFLAGS -mcpu=arm7tdmi %s %s -D__ASSEMBLY__ -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], modeflag, cdefs )
 
 # Programming function for LPC2888
-def progfunc_at91sam7x( target, source, env ):
+def progfunc_at91sam7x( comp[ 'target' ], source, env ):
   outname = output + ".elf"
   os.system( "%s %s" % ( toolset[ 'size' ], outname ) )
   print "Generating binary image..."

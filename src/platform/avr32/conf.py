@@ -16,7 +16,7 @@ tools[ 'avr32' ][ 'linkcom' ] = "%s -nostartfiles -nostdlib -T %s -Wl,--gc-secti
 tools[ 'avr32' ][ 'ascom' ] = "%s -x assembler-with-cpp $_CPPINCFLAGS -mpart=uc3a0512 %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], cdefs )
 
 # Programming function
-def progfunc_avr32( target, source, env ):
+def progfunc_avr32( comp[ 'target' ], source, env ):
   outname = output + ".elf"
   os.system( "%s %s" % ( toolset[ 'size' ], outname ) )
   print "Generating binary image..."

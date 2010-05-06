@@ -10,19 +10,17 @@ fwlib_files = " ".join(glob.glob("src/platform/%s/drivers/src/*.c" % platform))
 specific_files = "startup_LPC17xx.c system_LPC17xx.c core_cm3.c platform.c mbed_pio.c"
 
 # Check CPU
-if cputype == 'LPC1768':
+if comp[ 'cpu' ] == 'LPC1768':
   ldscript = "LPC17xx.ld"
 else:
-  print "Invalid LPC17xx CPU %s", cputype
-  sys.exit( -1 )  
-  
-
+  print "Invalid LPC17xx CPU %s", comp[ 'cpu' ]
+  Exit( -1 )  
   
 # Prepend with path
 specific_files = fwlib_files + " " + " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )
 ldscript = "src/platform/%s/%s" % ( platform, ldscript )
 
-cdefs = cdefs + " -DFOR" + cputype + " -Dgcc"
+cdefs = cdefs + " -DFOR" + comp[ 'cpu' ] + " -Dgcc"
 
 # Toolset data
 tools[ 'lpc17xx' ] = {}
