@@ -1,7 +1,44 @@
 import os, sys, shutil
-target = ARGUMENTS.get( 'target', 'lua' ).lower()
+
+vars = Variables('build-setup.conf')
+
+AddOption( "cpu",
+           dest="cputype",
+           type="string",
+           nargs=1,
+           action="store",
+           help="build for the specified CPU. A board name will be assigned by the build system automatically.")
+
+AddOption( "target",
+           dest="target",
+           type="string",
+           nargs=1,
+           action="store",
+           default="lua",
+           help="lua | lualong: specify if you want to build 'regular' Lua (with floating point support) or integer only Lua (lualong). The default is 'lua'.")
+
+AddOption( "cpumode",
+           dest="cpumode"
+           type="string",
+           nargs=1,
+           action="store",
+           default="thumb",
+           help="arm | thumb: for ARM targets (not Cortex) this specifies the compilation mode.")
+           
+AddOption( "allocator",
+           dest="allocator",
+           type="string",
+           nargs=1,
+           action="store",
+           default="newlib",
+           help="newlib | multiple | simple: choose between the default newlib allocator (newlib) which is an older version of dlmalloc, the multiple memory spaces allocator (multiple) which is a newer version of dlmalloc that can handle multiple memory spaces, and a very simple memory allocator (simple) that is slow and doesn't handle fragmentation very well, but it requires very few resources (Flash/RAM).")
+           
+
+
+
+#target = ARGUMENTS.get( 'target', 'lua' ).lower()
 cputype = ARGUMENTS.get( 'cpu', '' ).upper()
-allocator = ARGUMENTS.get( 'allocator', '' ).lower()
+#allocator = ARGUMENTS.get( 'allocator', '' ).lower()
 boardname = ARGUMENTS.get( 'board' , '').upper()
 toolchain = ARGUMENTS.get( 'toolchain', '')
 optram = int( ARGUMENTS.get( 'optram', '1' ) )
@@ -151,27 +188,31 @@ file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'i
               'MBED' : [ 'bisect', 'hangman', 'hello', 'info', 'led', 'pwmled', 'dualpwm', 'life' ],
 }
 
+comp = Environment( OBJSUFFIX = ".o", PROGSUFFIX = ".elf", ENV = os.environ )
+
+conf = Configure(comp)
+
 # Variants: board = <boardname>
 #           cpu = <cpuname>
 #           board = <boardname> cpu=<cpuname>
 if boardname == '' and cputype == '':
   print "Must specifiy board, cpu, or both"
-  sys.exit( -1 )
+  Exit( -1 )
 elif boardname != '' and cputype != '':
   # board = <boardname> cpu=<cpuname>
   # Check if the board, cpu pair is correct
   if not board_list.has_key( boardname ):
     print "Unknown board", boardname
-    sys.exit( -1 )
+    Exit( -1 )
   if not cputype in board_list[ boardname ]:
     print "Invalid CPU %s for board %s" % ( cputype, boardname )
-    sys.exit( -1 )
+    Exit( -1 )
 elif boardname != '':
   # board = <boardname>
   # Find CPU
   if not board_list.has_key( boardname ):
     print "Unknown board", boardname
-    sys.exit( -1 )
+    Exit( -1 )
   cputype = board_list[ boardname ][ 0 ]
 else:
   # cpu = <cputype>
@@ -335,6 +376,21 @@ execfile( "src/platform/%s/conf.py" % platform )
 # Complete file list
 source_files = app_files + specific_files + newlib_files + uip_files + lua_full_files + module_files + rfs_files
 
+
+
+# Env for building the program
+comp['CCCOM'] = tools[ platform ][ 'cccom' ]
+comp['ASCOM'] = tools[ platform ][ 'ascom' ]
+comp['LINKCOM'] = tools[ platform ][ 'linkcom' ]
+comp['CPPPATH'] = local_include
+
+# Check our configuration further.
+if not conf.CheckCC():
+  print('Not able to find your compiler, please check that it is in your path.')
+  Exit(0)
+  
+comp = conf.Finish()
+
 # Make ROM File System first
 if not GetOption( 'clean' ):
   print "Building ROM File System..."
@@ -357,14 +413,6 @@ if not GetOption( 'clean' ):
   if os.path.exists( "src/fs.o" ): 
     os.remove( "src/fs.o" )
 
-# Env for building the program
-comp = Environment( CCCOM = tools[ platform ][ 'cccom' ],
-                    ASCOM = tools[ platform ][ 'ascom' ],
-                    LINKCOM = tools[ platform ][ 'linkcom' ],
-                    OBJSUFFIX = ".o",
-                    PROGSUFFIX = ".elf",
-                    CPPPATH = local_include,
-                    ENV = os.environ )
 # comp.TargetSignatures( 'content' )
 # comp.SourceSignatures( 'MD5' )
 comp[ 'INCPREFIX' ] = "-I"
