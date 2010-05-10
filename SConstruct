@@ -1,6 +1,5 @@
 import os, sys, shutil, string
 
-
 # Helper: "normalize" a name to make it a suitable C macro name
 def cnorm( name ):
   name = name.replace( '-', '' )
@@ -147,7 +146,57 @@ file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'i
               'MBED' : [ 'bisect', 'hangman', 'hello', 'info', 'led', 'pwmled', 'dualpwm', 'life' ],
 }
 
-comp = Environment( OBJSUFFIX = ".o", PROGSUFFIX = ".elf", ENV = os.environ )
+# define terminal colors
+colors = {}
+colors['cyan']   = '\033[96m'
+colors['purple'] = '\033[95m'
+colors['blue']   = '\033[94m'
+colors['green']  = '\033[92m'
+colors['yellow'] = '\033[93m'
+colors['red']    = '\033[91m'
+colors['end']    = '\033[0m'
+
+#If the output is not a terminal, remove the colors
+if not sys.stdout.isatty():
+   for key, value in colors.iteritems():
+      colors[key] = ''
+
+compile_source_message = '%sCompiling     %s==> %s$SOURCE%s' % \
+   (colors['blue'], colors['purple'], colors['yellow'], colors['end'])
+
+compile_shared_source_message = '%sCompiling shared %s==> %s$SOURCE%s' % \
+   (colors['blue'], colors['purple'], colors['yellow'], colors['end'])
+
+link_program_message = '%sLinking Image %s==> %s$TARGET%s' % \
+   (colors['red'], colors['purple'], colors['yellow'], colors['end'])
+
+link_library_message = '%sLinking Static Library %s==> %s$TARGET%s' % \
+   (colors['red'], colors['purple'], colors['yellow'], colors['end'])
+
+ranlib_library_message = '%sRanlib Library %s==> %s$TARGET%s' % \
+   (colors['red'], colors['purple'], colors['yellow'], colors['end'])
+
+link_shared_library_message = '%sLinking Shared Library %s==> %s$TARGET%s' % \
+   (colors['red'], colors['purple'], colors['yellow'], colors['end'])
+
+java_library_message = '%sCreating Java Archive %s==> %s$TARGET%s' % \
+   (colors['red'], colors['purple'], colors['yellow'], colors['end'])
+
+
+comp = Environment( OBJSUFFIX = ".o",
+                    PROGSUFFIX = ".elf",
+                    ENV = os.environ,
+                    CPPDEFINES = {},
+                    CXXCOMSTR = compile_source_message,
+                    CCCOMSTR = compile_source_message,
+                    SHCCCOMSTR = compile_shared_source_message,
+                    SHCXXCOMSTR = compile_shared_source_message,
+                    ARCOMSTR = link_library_message,
+                    RANLIBCOMSTR = ranlib_library_message,
+                    SHLINKCOMSTR = link_shared_library_message,
+                    LINKCOMSTR = link_program_message,
+                    JARCOMSTR = java_library_message,
+                    JAVACCOMSTR = compile_source_message )
 
 # Replacement for standard EnumVariable functionality to derive case from original list
 class InsensitiveString(object):
@@ -176,58 +225,41 @@ def MatchEnumVariable(key, help, default, allowed_values, map={}):
 # Add Configurable Variables
 vars = Variables('build-setup.conf')
 
-vars.Add(MatchEnumVariable('target',
-                           'build "regular" float lua or integer-only "lualong"', 
-                           'lua',
-                           allowed_values = ['lua','lualong']))
-          
-vars.Add(MatchEnumVariable('cpu',
-                           'build for the specified CPU (board will be inferred, if possible)',
-                           'auto',
-                           allowed_values = cpu_list + ['auto']))
-          
-vars.Add(MatchEnumVariable('allocator',
-                           'select memory allocator',
-                           'auto',
-                           allowed_values=['newlib','multiple','simple','auto']))
-
-vars.Add(MatchEnumVariable('board',
-                           'selects board for target (cpu will be inferred)',
-                           'auto',
-                           allowed_values=board_list.keys() + ['auto']))
-         
-vars.Add(MatchEnumVariable('toolchain',
-                           'specifies toolchain to use (if unset, will scan for working, compatible toolchain',
-                           'auto',
-                           allowed_values=toolchain_list.keys() + ['auto']))
-          
-vars.Add(BoolVariable('optram',
-                      'enables Lua Tiny RAM enhancements',
-                      True))
-
-vars.Add(MatchEnumVariable('boot',
-                           'boot mode, standard will boot to shell, luarpc boots to an rpc server',
-                           'standard',
-                           allowed_values=['standard','luarpc']))
-         
-vars.Add(MatchEnumVariable('romfs',
-                           'ROMFS compilation mode',
-                           'verbatim',
-                           allowed_values=['verbatim', 'compress', 'compiled']))
+vars.AddVariables(MatchEnumVariable('target',
+                                    'build "regular" float lua or integer-only "lualong"', 
+                                    'lua',
+                                    allowed_values = [ 'lua', 'lualong' ] ),
+                  MatchEnumVariable('cpu',
+                                    'build for the specified CPU (board will be inferred, if possible)',
+                                    'auto',
+                                    allowed_values = cpu_list + [ 'auto' ] ),
+                  MatchEnumVariable('allocator',
+                                    'select memory allocator',
+                                          'auto',
+                                    allowed_values=[ 'newlib', 'multiple', 'simple', 'auto' ] ),
+                  MatchEnumVariable('board',
+                                    'selects board for target (cpu will be inferred)',
+                                    'auto',
+                                    allowed_values=board_list.keys() + [ 'auto' ] ),
+                  MatchEnumVariable('toolchain',
+                                    'specifies toolchain to use (auto=search for usable toolchain)',
+                                    'auto',
+                                    allowed_values=toolchain_list.keys() + [ 'auto' ] ),
+                  BoolVariable(     'optram',
+                                    'enables Lua Tiny RAM enhancements',
+                                    True ),
+                  MatchEnumVariable('boot',
+                                    'boot mode, standard will boot to shell, luarpc boots to an rpc server',
+                                    'standard',
+                                    allowed_values=[ 'standard' , 'luarpc' ] ),
+                  MatchEnumVariable('romfs',
+                                    'ROMFS compilation mode',
+                                    'verbatim',
+                                    allowed_values=[ 'verbatim' , 'compress', 'compiled' ] ) )
 
 
 vars.Update(comp)
-Help(vars.GenerateHelpText(comp))
 vars.Save('build-setup.conf', comp)
-
-# target = ARGUMENTS.get( 'target', 'lua' ).lower()
-# cputype = ARGUMENTS.get( 'cpu', '' ).upper()
-# allocator = ARGUMENTS.get( 'allocator', '' ).lower()
-# board = ARGUMENTS.get( 'board' , '').upper()
-# toolchain = ARGUMENTS.get( 'toolchain', '')
-# optram = int( ARGUMENTS.get( 'optram', '1' ) )
-# boot = ARGUMENTS.get( 'boot', '').lower()
-# romfsmode = ARGUMENTS.get( 'romfs', 'verbatim' ).lower()
 
 if not GetOption( 'help' ):
 
@@ -240,20 +272,12 @@ if not GetOption( 'help' ):
     print "Must specifiy board, cpu, or both"
     Exit( -1 )
   elif comp['board'] != 'auto' and comp['cpu'] != 'auto':
-    # board = <board> cpu=<cpuname>
     # Check if the board, cpu pair is correct
-    if not board_list.has_key( comp['board'] ):
-      print "Unknown board", comp['board']
-      Exit( -1 )
     if not comp['cpu'] in board_list[ comp['board'] ]:
       print "Invalid CPU %s for board %s" % ( comp['cpu'], comp['board'] )
       Exit( -1 )
   elif comp['board'] != 'auto':
-    # board = <board>
     # Find CPU
-    if not board_list.has_key( comp['board'] ):
-      print "Unknown board", comp['board']
-      Exit( -1 )
     comp['cpu'] = board_list[ comp['board'] ][ 0 ]
   else:
     # cpu = <cputype>
@@ -280,7 +304,7 @@ if not GetOption( 'help' ):
       for cpu in v[ 'cpus' ]:
         print cpu,
       print
-    sys.exit( -1 )
+    Exit( -1 )
 
   # Check the toolchain
   if comp['toolchain'] != 'auto':
@@ -289,17 +313,18 @@ if not GetOption( 'help' ):
       Exit( -1 )
     toolset = toolchain_list[ comp['toolchain'] ]
   else:
-    for toolchain in platform_list[ platform ]['toolchains']:
-      comp['CC'] = toolchain_list[ toolchain ][ 'compile' ]
-      if conf.CheckCC():
-        comp['toolchain'] = toolchain
+    # if 'auto' try to match a working toolchain with target
+    usable_chains = [toolchain_list[ toolchain ][ 'compile' ] for toolchain in platform_list[ platform ]['toolchains']]
+    comp['CC'] = comp.Detect( usable_chains )
+    if comp['CC']:
+        comp['AS'] = toolchain_list[ toolchain ][ 'asm' ]
+        comp['toolchain'] =  platform_list[ platform ]['toolchains'][usable_chains.index(comp['CC'])]
         toolset = toolchain_list[ comp['toolchain'] ]
-        break
-
-    if comp['toolchain'] == 'auto':
-      print "No available, compatible toolchain found"
+    else:
+      print "Unable to find usable toolchain in your path."
+      print "List of accepted toolchains (for %s):" % ( comp['cpu'] )
+      print ', '.join(usable_chains)
       Exit( -1 )
-
 
   # CPU/allocator mapping (if allocator not specified)
   if comp['allocator'] == 'auto':
@@ -307,22 +332,6 @@ if not GetOption( 'help' ):
       comp['allocator'] = 'multiple'
     else:
       comp['allocator'] = 'newlib'
-  elif comp['allocator'] not in [ 'newlib', 'multiple', 'simple' ]:
-    print "Unknown allocator", comp['allocator']
-    print "Allocator can be either 'newlib', 'multiple' or 'simple'"
-    Exit( -1 )
-
-  # Check boot mode selection
-  ## if comp['boot'] not in ['standard', 'luarpc']:
-  ##   print "Unknown boot mode: ", comp['boot']
-  ##   print "Boot mode can be either 'standard' or 'luarpc'"
-  ##   Exit( -1 );
-
-  # Check romfs mode
-  if comp['romfs'] not in ['verbatim', 'compile', 'compress']:
-    print "Unknown romfs mode: ", comp['romfs']
-    print "romfs mode can be either 'verbatim', 'compile' or 'compress'"
-    Exit( -1 )
 
   # Build the compilation command now
   compcmd = ''
@@ -353,36 +362,36 @@ if not GetOption( 'help' ):
     print
 
   output = 'elua_' + comp['target'] + '_' + comp['cpu'].lower()
-  cdefs = '-DELUA_CPU=%s -DELUA_BOARD=%s -DELUA_PLATFORM=%s -D__BUFSIZ__=128' % ( comp['cpu'], comp['board'], platform.upper() )
+
+  comp.Append(CPPDEFINES = {'__BUFSIZ__' : 128})
   # Also make the above into direct defines (to use in conditional C code)
-  cdefs = cdefs + " -DELUA_CPU_%s -DELUA_BOARD_%s -DELUA_PLATFORM_%s" % ( cnorm( comp['cpu'] ), cnorm( comp['board'] ), cnorm( platform ) )
+  comp.Append(CPPDEFINES = ["ELUA_CPU_" + cnorm( comp['cpu'] ), "ELUA_BOARD_" + cnorm( comp['board'] ), "ELUA_PLATFORM_" +  cnorm( platform )])
+
   if comp['allocator'] == 'multiple':
-    cdefs = cdefs + " -DUSE_MULTIPLE_ALLOCATOR"
+     comp.Append(CPPDEFINES = ['USE_MULTIPLE_ALLOCATOR'])
   elif comp['allocator'] == 'simple':
-    cdefs = cdefs + " -DUSE_SIMPLE_ALLOCATOR"
+     comp.Append(CPPDEFINES = ['USE_SIMPLE_ALLOCATOR'])
 
   if comp['boot'] == 'luarpc':
-    cdefs += " -DELUA_BOOT_RPC"
+    comp.Append(CPPDEFINES = ['ELUA_BOOT_RPC'])
 
   # Special macro definitions for the SYM target
   if platform == 'sim':
-    cdefs = cdefs + " -DELUA_SIMULATOR -DELUA_SIM_%s" % comp['cpu']
+    comp.Append(CPPDEFINES = ['ELUA_SIMULATOR',"ELUA_SIM_" + cnorm( comp['cpu'] ) ] )
 
   # Lua source files and include path
   lua_files = """lapi.c lcode.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c lobject.c lopcodes.c
     lparser.c lstate.c lstring.c ltable.c ltm.c lundump.c lvm.c lzio.c lauxlib.c lbaselib.c
     ldblib.c liolib.c lmathlib.c loslib.c ltablib.c lstrlib.c loadlib.c linit.c lua.c lrotable.c legc.c"""
-  if comp['target'] == 'lualong' or comp['target'] == 'lua':
-    lua_full_files = " " + " ".join( [ "src/lua/%s" % name for name in lua_files.split() ] )
-    local_include = ['inc', 'inc/newlib',  'inc/remotefs', 'src/lua']
-    if comp['target'] == 'lualong':
-      cdefs = cdefs + ' -DLUA_NUMBER_INTEGRAL'
-  else:
-    print "Invalid target", comp['target']
-    Exit( 1 )
 
-  local_include += ['src/modules', 'src/platform/%s' % platform]
-  cdefs = cdefs + " -DLUA_OPTIMIZE_MEMORY=%d" % ( comp['optram'] != 0 and 2 or 0 )
+  lua_full_files = " " + " ".join( [ "src/lua/%s" % name for name in lua_files.split() ] )
+  
+  comp.Append(CPPPATH = ['inc', 'inc/newlib',  'inc/remotefs', 'src/lua'])
+  if comp['target'] == 'lualong':
+    comp.Append(CPPDEFINES = ['LUA_NUMBER_INTEGRAL'])
+
+  comp.Append(CPPPATH = ['src/modules', 'src/platform/%s' % platform])
+  comp.Append(CPPDEFINES = {"LUA_OPTIMIZE_MEMORY" : ( comp['optram'] != 0 and 2 or 0 ) } )
 
   # Additional libraries
   local_libs = ''
@@ -396,11 +405,11 @@ if not GetOption( 'help' ):
   # UIP files
   uip_files = "uip_arp.c uip.c uiplib.c dhcpc.c psock.c resolv.c"
   uip_files = " src/elua_uip.c " + " ".join( [ "src/uip/%s" % name for name in uip_files.split() ] )
-  local_include += ['src/uip']
+  comp.Append(CPPPATH = ['src/uip'])
 
   # FatFs files
   app_files = app_files + "src/elua_mmc.c src/mmcfs.c src/fatfs/ff.c src/fatfs/ccsbcs.c "
-  local_include += ['src/fatfs']
+  comp.Append(CPPPATH = ['src/fatfs'])
 
   # Lua module files
   module_names = "pio.c spi.c tmr.c pd.c uart.c term.c pwm.c lpack.c bit.c net.c cpu.c adc.c can.c luarpc.c bitarray.c elua.c"
@@ -411,8 +420,7 @@ if not GetOption( 'help' ):
   rfs_files = " " + " ".join( [ "src/remotefs/%s" % name for name in rfs_names.split() ] )
 
   # Optimizer flags (speed or size)
-  #opt = "-O3"
-  opt = "-Os -fomit-frame-pointer"
+  comp.Append(CCFLAGS = ['-Os','-fomit-frame-pointer'])
   #opt += " -ffreestanding"
   #opt += " -fconserve-stack" # conserve stack at potential speed cost, >=GCC4.4
 
@@ -423,13 +431,7 @@ if not GetOption( 'help' ):
   execfile( "src/platform/%s/conf.py" % platform )
 
   # Complete file list
-  source_files = app_files + specific_files + newlib_files + uip_files + lua_full_files + module_files + rfs_files
-
-  # Env for building the program
-  comp['CCCOM'] = tools[ platform ][ 'cccom' ]
-  comp['ASCOM'] = tools[ platform ][ 'ascom' ]
-  comp['LINKCOM'] = tools[ platform ][ 'linkcom' ]
-  comp['CPPPATH'] = local_include
+  source_files = Split( app_files + specific_files + newlib_files + uip_files + lua_full_files + module_files + rfs_files )
   
   comp = conf.Finish()
 
@@ -458,9 +460,11 @@ if not GetOption( 'help' ):
   # comp.TargetSignatures( 'content' )
   # comp.SourceSignatures( 'MD5' )
   comp[ 'INCPREFIX' ] = "-I"
-  Default( comp.Program( target = output, source = Split( source_files ) ) )
+  Default( comp.Program( target = output, source = source_files ) )
   Decider( 'MD5-timestamp' )
 
   # Programming target
   prog = Environment( BUILDERS = { 'program' : Builder( action = Action ( tools[ platform ][ 'progfunc' ] ) ) }, ENV = os.environ )
   prog.program( "prog", output + ".elf" )
+
+Help(vars.GenerateHelpText(comp))
