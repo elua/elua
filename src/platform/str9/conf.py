@@ -26,7 +26,7 @@ ldscript = "src/platform/%s/%s" % ( platform, ldscript )
 
 # toolchain 'arm-gcc' requires '-mfpu=fpa' for some reason
 auxm = ''
-if toolchain == 'arm-gcc':
+if comp['toolchain'] == 'arm-gcc':
   auxm = '-mfpu=fpa'
 
 # Toolset data

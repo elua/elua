@@ -35,7 +35,7 @@ tools[ 'at91sam7x' ][ 'linkcom' ] = "%s -nostartfiles -nostdlib %s -T %s -Wl,--g
 tools[ 'at91sam7x' ][ 'ascom' ] = "%s -x assembler-with-cpp $_CPPINCFLAGS -mcpu=arm7tdmi %s %s -D__ASSEMBLY__ -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], modeflag, cdefs )
 
 # Programming function for LPC2888
-def progfunc_at91sam7x( comp[ 'target' ], source, env ):
+def progfunc_at91sam7x( target, source, env ):
   outname = output + ".elf"
   os.system( "%s %s" % ( toolset[ 'size' ], outname ) )
   print "Generating binary image..."
