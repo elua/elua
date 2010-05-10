@@ -5,34 +5,36 @@ cpumode = ARGUMENTS.get( 'cpumode', 'thumb' ).lower()
 specific_files = "board_cstartup.s board_lowlevel.c board_memories.c usart.c pmc.c pio.c platform.c tc.c pwmc.c aic.c"
 if comp[ 'cpu' ] == 'AT91SAM7X256':
   ldscript = "flash256.lds"
-  cdefs = cdefs + " -Dat91sam7x256"
+  comp.Append(CPPDEFINES = 'at91sam7x256')
 elif comp[ 'cpu' ] == 'AT91SAM7X512':
   ldscript = "flash512.lds"
-  cdefs = cdefs + " -Dat91sam7x512"
+  comp.Append(CPPDEFINES = 'at91sam7x512')
 else:
   print "Invalid AT91SAM7X CPU %s" % comp[ 'cpu' ]
-  sys.exit( -1 )  
+  Exit( -1 )
   
-# Check CPU mode
-if cpumode == 'arm':
-  modeflag = ''
-elif cpumode == 'thumb':
-  modeflag = '-mthumb'
-else:
-  print "Invalid CPU mode %s", cpumode
-  sys.exit( -1 )
-  
-cdefs = cdefs + ' -DNOASSERT -DNOTRACE'
+comp.Append(CPPDEFINES = ['NOASSERT','NOTRACE'])
   
 # Prepend with path
 specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )
 ldscript = "src/platform/%s/%s" % ( platform, ldscript )
 
+comp.Append(CCFLAGS = ['-ffunction-sections','-fdata-sections','-fno-strict-aliasing','-Wall'])
+comp.Append(LINKFLAGS = ['-nostartfiles','-nostdlib','-T',ldscript,'-Wl,--gc-sections','-Wl,--allow-multiple-definition'])
+comp.Append(ASFLAGS = ['-x','assembler-with-cpp','-c','-Wall','$_CPPDEFFLAGS'])
+comp.Append(LIBS = ['c','gcc','m'])
+
+TARGET_FLAGS = ['-mcpu=arm7tdmi']
+if cpumode == 'thumb':
+  TARGET_FLAGS += ['-mthumb']
+
+# Configure General Flags for Target
+comp.Prepend(CCFLAGS = [TARGET_FLAGS])
+comp.Prepend(LINKFLAGS = [TARGET_FLAGS,'-Wl,-e,entry'])
+comp.Prepend(ASFLAGS = [TARGET_FLAGS,'-D__ASSEMBLY__'])
+
 # Toolset data
 tools[ 'at91sam7x' ] = {}
-tools[ 'at91sam7x' ][ 'cccom' ] = "%s -mcpu=arm7tdmi %s %s $_CPPINCFLAGS -ffunction-sections -fdata-sections %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], modeflag, opt, cdefs )
-tools[ 'at91sam7x' ][ 'linkcom' ] = "%s -nostartfiles -nostdlib %s -T %s -Wl,--gc-sections -Wl,-e,entry -Wl,--allow-multiple-definition -o $TARGET $SOURCES %s -lc -lgcc -lm" % ( toolset[ 'compile' ], modeflag, ldscript, local_libs )
-tools[ 'at91sam7x' ][ 'ascom' ] = "%s -x assembler-with-cpp $_CPPINCFLAGS -mcpu=arm7tdmi %s %s -D__ASSEMBLY__ -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], modeflag, cdefs )
 
 # Programming function for LPC2888
 def progfunc_at91sam7x( target, source, env ):

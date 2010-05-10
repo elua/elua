@@ -23,12 +23,19 @@ ldscript = "src/platform/%s/%s" % ( platform, ldscript )
 
 comp.Append(CPPDEFINES = ["FOR" + comp[ 'cpu' ],'gcc'])
 
-# Configure General Flags for Target
-comp.Prepend(CCFLAGS = ['-mcpu=cortex-m3','-mthumb','-mlittle-endian','-ffunction-sections','-fdata-sections','-fno-strict-aliasing'])
-comp.Prepend(LINKFLAGS = ['-mcpu=cortex-m3','-mthumb','-Wl,-T','-Xlinker',ldscript,'-u', '_start','-Wl,-e,Reset_Handler','-Wl,-static','-Wl,--gc-sections','-nostartfiles','-nostdlib','-Wl,--allow-multiple-definition'])
-comp.Prepend(ASFLAGS = ['-x assembler-with-cpp','-mcpu=cortex-m3','-mthumb','-Wall'])
-
+# Standard GCC Flags
+comp.Append(CCFLAGS = ['-ffunction-sections','-fdata-sections','-fno-strict-aliasing','-Wall'])
+comp.Append(LINKFLAGS = ['-nostartfiles','-nostdlib','-T',ldscript,'-Wl,--gc-sections','-Wl,--allow-multiple-definition'])
+comp.Append(ASFLAGS = ['-x','assembler-with-cpp','-c','-Wall','$_CPPDEFFLAGS'])
 comp.Append(LIBS = ['c','gcc','m'])
+
+TARGET_FLAGS = ['-mcpu=cortex-m3','-mthumb']
+
+# Configure General Flags for Target
+comp.Prepend(CCFLAGS = [TARGET_FLAGS,'-mlittle-endian'])
+comp.Prepend(LINKFLAGS = [TARGET_FLAGS,'-Wl,-e,Reset_Handler','-Wl,-static'])
+comp.Prepend(ASFLAGS = TARGET_FLAGS)
+
 
 # Toolset data
 tools[ 'lpc17xx' ] = {}

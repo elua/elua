@@ -1,5 +1,9 @@
 #ifndef __TYPE_H__
 #define __TYPE_H__
+typedef unsigned char  BYTE;
+typedef unsigned short WORD;
+typedef unsigned long  DWORD;
+typedef unsigned int   BOOL;
 
 typedef unsigned char u8;
 typedef signed char s8;

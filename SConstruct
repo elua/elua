@@ -146,57 +146,10 @@ file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'i
               'MBED' : [ 'bisect', 'hangman', 'hello', 'info', 'led', 'pwmled', 'dualpwm', 'life' ],
 }
 
-# define terminal colors
-colors = {}
-colors['cyan']   = '\033[96m'
-colors['purple'] = '\033[95m'
-colors['blue']   = '\033[94m'
-colors['green']  = '\033[92m'
-colors['yellow'] = '\033[93m'
-colors['red']    = '\033[91m'
-colors['end']    = '\033[0m'
-
-#If the output is not a terminal, remove the colors
-if not sys.stdout.isatty():
-   for key, value in colors.iteritems():
-      colors[key] = ''
-
-compile_source_message = '%sCompiling     %s==> %s$SOURCE%s' % \
-   (colors['blue'], colors['purple'], colors['yellow'], colors['end'])
-
-compile_shared_source_message = '%sCompiling shared %s==> %s$SOURCE%s' % \
-   (colors['blue'], colors['purple'], colors['yellow'], colors['end'])
-
-link_program_message = '%sLinking Image %s==> %s$TARGET%s' % \
-   (colors['red'], colors['purple'], colors['yellow'], colors['end'])
-
-link_library_message = '%sLinking Static Library %s==> %s$TARGET%s' % \
-   (colors['red'], colors['purple'], colors['yellow'], colors['end'])
-
-ranlib_library_message = '%sRanlib Library %s==> %s$TARGET%s' % \
-   (colors['red'], colors['purple'], colors['yellow'], colors['end'])
-
-link_shared_library_message = '%sLinking Shared Library %s==> %s$TARGET%s' % \
-   (colors['red'], colors['purple'], colors['yellow'], colors['end'])
-
-java_library_message = '%sCreating Java Archive %s==> %s$TARGET%s' % \
-   (colors['red'], colors['purple'], colors['yellow'], colors['end'])
-
-
 comp = Environment( OBJSUFFIX = ".o",
                     PROGSUFFIX = ".elf",
                     ENV = os.environ,
-                    CPPDEFINES = {},
-                    CXXCOMSTR = compile_source_message,
-                    CCCOMSTR = compile_source_message,
-                    SHCCCOMSTR = compile_shared_source_message,
-                    SHCXXCOMSTR = compile_shared_source_message,
-                    ARCOMSTR = link_library_message,
-                    RANLIBCOMSTR = ranlib_library_message,
-                    SHLINKCOMSTR = link_shared_library_message,
-                    LINKCOMSTR = link_program_message,
-                    JARCOMSTR = java_library_message,
-                    JAVACCOMSTR = compile_source_message )
+                    CPPDEFINES = {})
 
 # Replacement for standard EnumVariable functionality to derive case from original list
 class InsensitiveString(object):
@@ -317,8 +270,8 @@ if not GetOption( 'help' ):
     usable_chains = [toolchain_list[ toolchain ][ 'compile' ] for toolchain in platform_list[ platform ]['toolchains']]
     comp['CC'] = comp.Detect( usable_chains )
     if comp['CC']:
-        comp['AS'] = toolchain_list[ toolchain ][ 'asm' ]
         comp['toolchain'] =  platform_list[ platform ]['toolchains'][usable_chains.index(comp['CC'])]
+        comp['AS'] = comp['CC']
         toolset = toolchain_list[ comp['toolchain'] ]
     else:
       print "Unable to find usable toolchain in your path."

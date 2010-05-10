@@ -9,33 +9,37 @@ if comp[ 'cpu' ] == 'STR912FAW44':
   ldscript = "str912fw44.lds"
 else:
   print "Invalid STR9 CPU %s" % comp[ 'cpu' ]
-  sys.exit( -1 )  
-  
-# Check CPU mode
-if cpumode == 'arm':
-  modeflag = ''
-elif cpumode == 'thumb':
-  modeflag = '-mthumb'
-else:
-  print "Invalid CPU mode %s", cpumode
-  sys.exit( -1 )
+  Exit( -1 )
   
 # Prepend with path
 specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )
 ldscript = "src/platform/%s/%s" % ( platform, ldscript )
 
+comp.Append(CPPDEFINES = ["FOR" + comp[ 'cpu' ],'gcc'])
+
+# Standard GCC Flags
+comp.Append(CCFLAGS = ['-ffunction-sections','-fdata-sections','-fno-strict-aliasing','-Wall'])
+comp.Append(LINKFLAGS = ['-nostartfiles','-nostdlib','-T',ldscript,'-Wl,--gc-sections','-Wl,--allow-multiple-definition'])
+comp.Append(ASFLAGS = ['-x','assembler-with-cpp','-c','-Wall','$_CPPDEFFLAGS','$_CPPINCFLAGS'])
+comp.Append(LIBS = ['c','gcc','m'])
+
+# Special Target Configuration
+TARGET_FLAGS = ['-mcpu=arm966e-s']
+if cpumode == 'thumb':
+  TARGET_FLAGS += ['-mthumb']
+
 # toolchain 'arm-gcc' requires '-mfpu=fpa' for some reason
-auxm = ''
 if comp['toolchain'] == 'arm-gcc':
-  auxm = '-mfpu=fpa'
+   TARGET_FLAGS += ['-mfpu=fpa']
+
+comp.Prepend(CCFLAGS = TARGET_FLAGS)
+comp.Prepend(LINKFLAGS = [TARGET_FLAGS,'-Wl,-e,_startup'])
+comp.Prepend(ASFLAGS = [TARGET_FLAGS])
 
 # Toolset data
 tools[ 'str9' ] = {}
-tools[ 'str9' ][ 'cccom' ] = "%s -mcpu=arm966e-s %s %s $_CPPINCFLAGS %s -ffunction-sections -fdata-sections %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile'], auxm, opt, modeflag, cdefs )
-tools[ 'str9' ][ 'linkcom' ] = "%s -mcpu=arm966e-s %s -nostartfiles -nostdlib %s -T %s -Wl,--gc-sections -Wl,-e,_startup -Wl,--allow-multiple-definition -o $TARGET $SOURCES %s -lc -lgcc -lm" % ( toolset[ 'compile' ], auxm, modeflag, ldscript, local_libs )
-tools[ 'str9' ][ 'ascom' ] = "%s -x assembler-with-cpp $_CPPINCFLAGS %s -mfpu=fpa %s %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], auxm, modeflag, cdefs )
 
-# Programming function for LPC2888
+# Programming function for STR9
 def progfunc_str9( target, source, env ):
   outname = output + ".elf"
   os.system( "%s %s" % ( toolset[ 'size' ], outname ) )

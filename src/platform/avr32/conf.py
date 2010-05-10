@@ -2,18 +2,27 @@
 
 specific_files = "crt0.s trampoline.s platform.c exception.s intc.c pm.c flashc.c pm_conf_clocks.c usart.c gpio.c tc.c sdramc.c"
 ldscript = "at32uc3a0512.ld"
-# [TODO] the next line assumes that the board is an ATEVK1100 (see src/platform/avr32/board.h)
-cdefs = cdefs + " -DFORAVR32 -DBOARD=1"
+# [TODO] the appends assume that the board is an ATEVK1100 (see src/platform/avr32/board.h)
+comp.Append(CPPDEFINES = 'FORAVR32')
+comp.Append(CPPDEFINES = {'BOARD' : 1})
 
 # Prepend with path
 specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )
 ldscript = "src/platform/%s/%s" % ( platform, ldscript )
 
+# Standard GCC Flags
+comp.Append(CCFLAGS = ['-ffunction-sections','-fdata-sections','-fno-strict-aliasing','-Wall'])
+comp.Append(LINKFLAGS = ['-nostartfiles','-nostdlib','-Wl,--gc-sections','-Wl,--allow-multiple-definition','-T',ldscript])
+comp.Append(ASFLAGS = ['-x','assembler-with-cpp','-c'])
+comp.Append(LIBS = ['c','gcc','m'])
+
+# Target-specific Flags
+comp.Prepend(CCFLAGS = ['-mpart=uc3a0512'])
+comp.Prepend(ASFLAGS = ['-mpart=uc3a0512'])
+comp.Append(LINKFLAGS = ['-Wl,-e,crt0'])
+
 # Toolset data
 tools[ 'avr32' ] = {}
-tools[ 'avr32' ][ 'cccom' ] = "%s -mpart=uc3a0512 %s $_CPPINCFLAGS -ffunction-sections -fdata-sections %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], opt, cdefs )
-tools[ 'avr32' ][ 'linkcom' ] = "%s -nostartfiles -nostdlib -T %s -Wl,--gc-sections -Wl,-e,crt0 -Wl,--allow-multiple-definition -o $TARGET $SOURCES -lc -lgcc -lm %s" % ( toolset[ 'compile' ], ldscript, local_libs )
-tools[ 'avr32' ][ 'ascom' ] = "%s -x assembler-with-cpp $_CPPINCFLAGS -mpart=uc3a0512 %s -Wall -c $SOURCE -o $TARGET" % ( toolset[ 'compile' ], cdefs )
 
 # Programming function
 def progfunc_avr32( comp[ 'target' ], source, env ):
