@@ -146,6 +146,7 @@ file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'i
               'MBED' : [ 'bisect', 'hangman', 'hello', 'info', 'led', 'pwmled', 'dualpwm', 'life' ],
 }
 
+VariantDir('build', 'src')
 comp = Environment( OBJSUFFIX = ".o",
                     PROGSUFFIX = ".elf",
                     ENV = os.environ,
@@ -178,37 +179,38 @@ def MatchEnumVariable(key, help, default, allowed_values, map={}):
 # Add Configurable Variables
 vars = Variables('build-setup.conf')
 
-vars.AddVariables(MatchEnumVariable('target',
-                                    'build "regular" float lua or integer-only "lualong"', 
-                                    'lua',
-                                    allowed_values = [ 'lua', 'lualong' ] ),
-                  MatchEnumVariable('cpu',
-                                    'build for the specified CPU (board will be inferred, if possible)',
-                                    'auto',
-                                    allowed_values = cpu_list + [ 'auto' ] ),
-                  MatchEnumVariable('allocator',
-                                    'select memory allocator',
-                                          'auto',
-                                    allowed_values=[ 'newlib', 'multiple', 'simple', 'auto' ] ),
-                  MatchEnumVariable('board',
-                                    'selects board for target (cpu will be inferred)',
-                                    'auto',
-                                    allowed_values=board_list.keys() + [ 'auto' ] ),
-                  MatchEnumVariable('toolchain',
-                                    'specifies toolchain to use (auto=search for usable toolchain)',
-                                    'auto',
-                                    allowed_values=toolchain_list.keys() + [ 'auto' ] ),
-                  BoolVariable(     'optram',
-                                    'enables Lua Tiny RAM enhancements',
-                                    True ),
-                  MatchEnumVariable('boot',
-                                    'boot mode, standard will boot to shell, luarpc boots to an rpc server',
-                                    'standard',
-                                    allowed_values=[ 'standard' , 'luarpc' ] ),
-                  MatchEnumVariable('romfs',
-                                    'ROMFS compilation mode',
-                                    'verbatim',
-                                    allowed_values=[ 'verbatim' , 'compress', 'compiled' ] ) )
+vars.AddVariables(
+  MatchEnumVariable('target',
+                    'build "regular" float lua or integer-only "lualong"', 
+                    'lua',
+                    allowed_values = [ 'lua', 'lualong' ] ),
+  MatchEnumVariable('cpu',
+                    'build for the specified CPU (board will be inferred, if possible)',
+                    'auto',
+                    allowed_values = cpu_list + [ 'auto' ] ),
+  MatchEnumVariable('allocator',
+                    'select memory allocator',
+                    'auto',
+                    allowed_values=[ 'newlib', 'multiple', 'simple', 'auto' ] ),
+  MatchEnumVariable('board',
+                    'selects board for target (cpu will be inferred)',
+                    'auto',
+                    allowed_values=board_list.keys() + [ 'auto' ] ),
+  MatchEnumVariable('toolchain',
+                    'specifies toolchain to use (auto=search for usable toolchain)',
+                    'auto',
+                    allowed_values=toolchain_list.keys() + [ 'auto' ] ),
+  BoolVariable(     'optram',
+                    'enables Lua Tiny RAM enhancements',
+                    True ),
+  MatchEnumVariable('boot',
+                    'boot mode, standard will boot to shell, luarpc boots to an rpc server',
+                    'standard',
+                    allowed_values=[ 'standard' , 'luarpc' ] ),
+  MatchEnumVariable('romfs',
+                    'ROMFS compilation mode',
+                    'verbatim',
+                    allowed_values=[ 'verbatim' , 'compress', 'compiled' ] ) )
 
 
 vars.Update(comp)
@@ -269,7 +271,7 @@ if not GetOption( 'help' ):
     # if 'auto' try to match a working toolchain with target
     usable_chains = [toolchain_list[ toolchain ][ 'compile' ] for toolchain in platform_list[ platform ]['toolchains']]
     comp['CC'] = comp.Detect( usable_chains )
-    if comp['CC']:
+    if comp['CC'] and conf.CheckCC():
         comp['toolchain'] =  platform_list[ platform ]['toolchains'][usable_chains.index(comp['CC'])]
         comp['AS'] = comp['CC']
         toolset = toolchain_list[ comp['toolchain'] ]
@@ -316,21 +318,25 @@ if not GetOption( 'help' ):
 
   output = 'elua_' + comp['target'] + '_' + comp['cpu'].lower()
 
+  comp.Append(CPPDEFINES = { 'ELUA_CPU' : comp['cpu'],
+                             'ELUA_BOARD' : comp['board'],
+                             'ELUA_PLATFORM' : platform.upper() } )
   comp.Append(CPPDEFINES = {'__BUFSIZ__' : 128})
+
   # Also make the above into direct defines (to use in conditional C code)
-  comp.Append(CPPDEFINES = ["ELUA_CPU_" + cnorm( comp['cpu'] ), "ELUA_BOARD_" + cnorm( comp['board'] ), "ELUA_PLATFORM_" +  cnorm( platform )])
+  conf.env.Append(CPPDEFINES = ["ELUA_CPU_" + cnorm( comp['cpu'] ), "ELUA_BOARD_" + cnorm( comp['board'] ), "ELUA_PLATFORM_" +  cnorm( platform )])
 
   if comp['allocator'] == 'multiple':
-     comp.Append(CPPDEFINES = ['USE_MULTIPLE_ALLOCATOR'])
+     conf.env.Append(CPPDEFINES = ['USE_MULTIPLE_ALLOCATOR'])
   elif comp['allocator'] == 'simple':
-     comp.Append(CPPDEFINES = ['USE_SIMPLE_ALLOCATOR'])
+     conf.env.Append(CPPDEFINES = ['USE_SIMPLE_ALLOCATOR'])
 
   if comp['boot'] == 'luarpc':
-    comp.Append(CPPDEFINES = ['ELUA_BOOT_RPC'])
+    conf.env.Append(CPPDEFINES = ['ELUA_BOOT_RPC'])
 
   # Special macro definitions for the SYM target
   if platform == 'sim':
-    comp.Append(CPPDEFINES = ['ELUA_SIMULATOR',"ELUA_SIM_" + cnorm( comp['cpu'] ) ] )
+    conf.env.Append(CPPDEFINES = ['ELUA_SIMULATOR',"ELUA_SIM_" + cnorm( comp['cpu'] ) ] )
 
   # Lua source files and include path
   lua_files = """lapi.c lcode.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c lobject.c lopcodes.c
@@ -341,10 +347,10 @@ if not GetOption( 'help' ):
   
   comp.Append(CPPPATH = ['inc', 'inc/newlib',  'inc/remotefs', 'src/lua'])
   if comp['target'] == 'lualong':
-    comp.Append(CPPDEFINES = ['LUA_NUMBER_INTEGRAL'])
+    conf.env.Append(CPPDEFINES = ['LUA_NUMBER_INTEGRAL'])
 
-  comp.Append(CPPPATH = ['src/modules', 'src/platform/%s' % platform])
-  comp.Append(CPPDEFINES = {"LUA_OPTIMIZE_MEMORY" : ( comp['optram'] != 0 and 2 or 0 ) } )
+  conf.env.Append(CPPPATH = ['src/modules', 'src/platform/%s' % platform])
+  conf.env.Append(CPPDEFINES = {"LUA_OPTIMIZE_MEMORY" : ( comp['optram'] != 0 and 2 or 0 ) } )
 
   # Additional libraries
   local_libs = ''
