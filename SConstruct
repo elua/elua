@@ -267,11 +267,13 @@ if not GetOption( 'help' ):
       print "Invalid toolchain '%s' for CPU '%s'" % ( comp['toolchain'], comp['cpu'] )
       Exit( -1 )
     toolset = toolchain_list[ comp['toolchain'] ]
+    comp[ 'CC' ] = toolset[ 'compile' ]
+    comp[ 'AS' ] = toolset[ 'compile' ]
   else:
     # if 'auto' try to match a working toolchain with target
     usable_chains = [toolchain_list[ toolchain ][ 'compile' ] for toolchain in platform_list[ platform ]['toolchains']]
     comp['CC'] = comp.Detect( usable_chains )
-    if comp['CC'] and conf.CheckCC():
+    if comp['CC']:
         comp['toolchain'] =  platform_list[ platform ]['toolchains'][usable_chains.index(comp['CC'])]
         comp['AS'] = comp['CC']
         toolset = toolchain_list[ comp['toolchain'] ]
@@ -279,6 +281,10 @@ if not GetOption( 'help' ):
       print "Unable to find usable toolchain in your path."
       print "List of accepted toolchains (for %s):" % ( comp['cpu'] )
       print ', '.join(usable_chains)
+      Exit( -1 )
+
+    if not conf.CheckCC():
+      print "Test compile failed with selected toolchain: %s" % (comp['toolchain'])
       Exit( -1 )
 
   # CPU/allocator mapping (if allocator not specified)
