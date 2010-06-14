@@ -55,10 +55,78 @@ static void platform_setup_cpu()
   SCS |= 1;
 }
 
+#define P2C(Period)     (((Period<EMC_PERIOD)?0:(unsigned int)((float)Period/EMC_PERIOD)))
+#define SDRAM_BASE_ADDR *(volatile unsigned int*)0xA0000000 //DYCS0
+#define SDRAM_CS0_BASE (0xA0000000)
+
+// External memory initialization
+static void platform_setup_extmem()
+{
+#ifdef ELUA_BOARD_ELUAPUC
+  volatile unsigned int i;
+  volatile DWORD wtemp;
+
+  EMC_CTRL = 0x00000001;		/*Disable Address mirror*/
+  PCONP   |= 0x00000800;		/* Turn On EMC PCLK */
+  PINSEL4  = 0x50000000;
+  PINSEL5  = 0x05050555;
+  PINSEL6  = 0x55555555;
+  PINSEL8  = 0x55555555;
+  PINSEL9  = 0x50555555;      
+    
+  EMC_DYN_RP = P2C(SDRAM_TRP);
+  EMC_DYN_RAS = P2C(SDRAM_TRAS);
+  EMC_DYN_SREX = P2C(SDRAM_TXSR); 
+  EMC_DYN_APR = SDRAM_TAPR; 
+  EMC_DYN_DAL = SDRAM_TDAL ;
+  EMC_DYN_WR = SDRAM_TWR;
+  EMC_DYN_RC = P2C(SDRAM_TRC); 
+  EMC_DYN_RFC = P2C(SDRAM_TRFC); 
+  EMC_DYN_XSR = P2C(SDRAM_TXSR); 
+  EMC_DYN_RRD = P2C(SDRAM_TRRD); 
+  EMC_DYN_MRD = SDRAM_TMRD; 
+  
+  EMC_DYN_RD_CFG=1;//Configures the dynamic memory read strategy(Command delayed strategy)
+  
+  /* Default setting, RAS latency 3 CCLKs, CAS latenty 3 CCLKs. */
+  EMC_DYN_RASCAS0 = 0x00000303; // RAS delay = 3, CAS delay = 3  
+  
+   
+  EMC_DYN_CFG0 = 0x00000280;   //16 bit external bus, 64 MB (4Mx16), 4 banks, row length = 12, column length = 8 
+  for( i = 0; i < 40000; i ++ );
+                                                                                    
+  // JEDEC General SDRAM Initialization Sequence
+  // DELAY to allow power and clocks to stabilize ~100 us
+  // NOP
+  EMC_DYN_CTRL = 0x0183;   
+  //Issue SDRAM NOP (no operation) command ; CLKOUT runs continuously;All clock enables are driven HIGH continuously
+  
+  for( i = 0; i < 80000; i ++ );
+
+  EMC_DYN_CTRL = 0x00000103; //Issue SDRAM PALL (precharge all) command.
+  EMC_DYN_RFSH = 1;  //Indicates 1X16 CCLKs between SDRAM refresh cycles.
+  for(i = 0; i < 0x40; i ++);
+
+  //EMC_DYN_RFSH = P2C(SDRAM_REFRESH) >> 4; // //Indicates ?? CCLKs between SDRAM refresh cycles.
+  EMC_DYN_RFSH = 70;
+  
+  EMC_DYN_CTRL = 0x00000083;
+  wtemp = *(volatile DWORD *)(SDRAM_CS0_BASE | (0x33 << 11)); /* 8 burst, 3 CAS latency */ // modified from AN
+
+  EMC_DYN_CTRL = 0x0000;  //Issue SDRAM norm command ; CLKOUT stop;All clock enables low
+
+  EMC_DYN_CFG0|=0x80000; //Buffer enabled for accesses to DCS0 chip
+  for(i = 200*10; i;i--);  
+#endif
+}
+
 int platform_init()
 {
   // Complete CPU initialization
   platform_setup_cpu();
+
+  // External memory
+  platform_setup_extmem();   
 
   // Setup peripherals
   platform_setup_timers();

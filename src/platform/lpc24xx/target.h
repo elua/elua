@@ -111,6 +111,39 @@ in this case, so USBCLKDivValue is not needed. */
 
 #define Fpclk_MHz       (Fpclk / 1000000)
 #define Fpclk_UART      (Fcclk)
+#define SYS_FREQ        (Fcclk / 1000000)
+
+#ifdef ELUA_BOARD_ELUAPUC
+
+#if   SYS_FREQ == (72)
+#define EMC_PERIOD          13.88888888  // 72MHz
+#elif   SYS_FREQ == (60)
+#define EMC_PERIOD          16.6  // 60MHz
+#elif   SYS_FREQ == (57)
+#define EMC_PERIOD          17.4  // 57.6MHz
+#elif SYS_FREQ == (48)
+#define EMC_PERIOD          20.8  // 48MHz
+#elif SYS_FREQ == (36)
+#define EMC_PERIOD          27.8  // 36MHz
+#elif SYS_FREQ == (24)
+#define EMC_PERIOD          41.7  // 24MHz
+#else
+#error Frequency not defined
+#endif
+
+#define SDRAM_REFRESH         15625	//max 64ms
+#define SDRAM_TRP             18	  //
+#define SDRAM_TRAS            42	
+#define SDRAM_TAPR            2
+#define SDRAM_TWR             2
+#define SDRAM_TDAL  			    (SDRAM_TWR+P2C(SDRAM_TRP))
+#define SDRAM_TRC             60 //samsung 65 micron 66
+#define SDRAM_TRFC            60	
+#define SDRAM_TXSR            70		
+#define SDRAM_TRRD            12     
+#define SDRAM_TMRD            2	
+	
+#endif
 
 /******************************************************************************
 ** Function name:		TargetInit

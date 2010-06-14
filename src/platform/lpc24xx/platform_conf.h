@@ -99,8 +99,18 @@
 // (start address and end address)
 #define SRAM_ORIGIN           0x40000000
 #define SRAM_SIZE             0x10000 // [TODO]: make this 96k?
+
+#ifdef ELUA_BOARD_ELUAPUC
+#define SDRAM_BASE_ADDR2      0xA0000000
+#define SDRAM_SIZE            ( 8 * 1048576 )
+#define MEM_START_ADDRESS     { ( void* )end, ( void* )SDRAM_BASE_ADDR2 }
+#define MEM_END_ADDRESS       { ( void* )( SRAM_ORIGIN + SRAM_SIZE - STACK_SIZE_TOTAL - 1 ), ( void* )( SDRAM_BASE_ADDR2 + SDRAM_SIZE - 1 ) }
+//#define MEM_START_ADDRESS     { ( void* )SDRAM_BASE_ADDR2 }
+//#define MEM_END_ADDRESS       { ( void* )( SDRAM_BASE_ADDR2 + SDRAM_SIZE - 1 ) }
+#else
 #define MEM_START_ADDRESS     { ( void* )end }
 #define MEM_END_ADDRESS       { ( void* )( SRAM_ORIGIN + SRAM_SIZE - STACK_SIZE_TOTAL - 1 ) }
+#endif
 
 // *****************************************************************************
 // CPU constants that should be exposed to the eLua "cpu" module
