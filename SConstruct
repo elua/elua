@@ -146,11 +146,16 @@ file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'i
               'MBED' : [ 'bisect', 'hangman', 'hello', 'info', 'led', 'pwmled', 'dualpwm', 'life' ],
 }
 
-VariantDir('build', 'src')
-comp = Environment( OBJSUFFIX = ".o",
+comp = Environment( tools = [],
+                    OBJSUFFIX = ".o",
                     PROGSUFFIX = ".elf",
                     ENV = os.environ,
-                    CPPDEFINES = {})
+                    CPPDEFINES = {} )
+
+if comp['PLATFORM'] == 'win32':
+  Tool('mingw')(comp)
+else:
+  Tool('default')(comp)
 
 # Replacement for standard EnumVariable functionality to derive case from original list
 class InsensitiveString(object):
