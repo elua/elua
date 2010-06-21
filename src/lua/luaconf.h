@@ -90,7 +90,7 @@
 //## Modified for eLua
 //## Defaults search modules path to our ROM File System
 #ifndef LUA_RPC
-#define LUA_PATH_DEFAULT "/rom/?.lua;/rom/?.lc"
+#define LUA_PATH_DEFAULT "/mmc/?.lua;/mmc/?.lc;/rom/?.lua;/rom/?.lc"
 #else
 #define LUA_PATH_DEFAULT  \
 		".\\?.lua;"  LUA_LDIR"?.lua;"  LUA_LDIR"?\\init.lua;" \
