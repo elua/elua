@@ -105,7 +105,7 @@
 #define LUA_CDIR	LUA_ROOT "lib/lua/5.1/"
 
 #ifndef LUA_RPC
-#define LUA_PATH_DEFAULT  "/rom/?.lua;/rom/?.lc"
+#define LUA_PATH_DEFAULT  "/mmc/?.lua;/mmc/?.lc;/rom/?.lua;/rom/?.lc"
 #else
 
 #define LUA_PATH_DEFAULT  \

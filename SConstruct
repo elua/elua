@@ -124,12 +124,13 @@ romfs = { 'bisect' : [ 'bisect.lua' ],
           'pong' : [ 'pong.lua' ],
           'spaceship' : [ 'spaceship.lua' ],
           'tetrives' : [ 'tetrives.lua' ],
-          'snake' : [ 'snake.lua' ]
+          'snake' : [ 'snake.lua' ],
+          'pachube' : [ 'pachube_demo.lua' ]
         }
 
 # List of board/romfs data combinations
 file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'info', 'morse' ],
-              'EK-LM3S8962' : [ 'bisect', 'hangman', 'pong', 'led', 'piano', 'pwmled', 'hello', 'info', 'morse', 'adcscope', 'adcpoll', 'logo', 'tetrives' ],
+              'EK-LM3S8962' : [ 'lhttpd','bisect', 'led', 'pachube' ],
               'EK-LM3S6965' : [ 'bisect', 'hangman', 'pong', 'led', 'piano', 'pwmled', 'hello', 'info', 'morse', 'adcscope', 'adcpoll', 'logo', 'tetrives' ],
               'EK-LM3S9B92' : [ 'bisect', 'hangman', 'led', 'pwmled', 'hello', 'info', 'adcscope','adcpoll', 'life' ],
               'STR9-COMSTICK' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],

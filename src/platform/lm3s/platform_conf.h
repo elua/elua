@@ -102,7 +102,7 @@
 #define ELUA_CONF_IPADDR0     192
 #define ELUA_CONF_IPADDR1     168
 #define ELUA_CONF_IPADDR2     100
-#define ELUA_CONF_IPADDR3     5
+#define ELUA_CONF_IPADDR3     90
 
 #define ELUA_CONF_NETMASK0    255
 #define ELUA_CONF_NETMASK1    255
@@ -112,12 +112,12 @@
 #define ELUA_CONF_DEFGW0      192
 #define ELUA_CONF_DEFGW1      168
 #define ELUA_CONF_DEFGW2      100
-#define ELUA_CONF_DEFGW3      1
+#define ELUA_CONF_DEFGW3      20
 
 #define ELUA_CONF_DNS0        192
 #define ELUA_CONF_DNS1        168
 #define ELUA_CONF_DNS2        100
-#define ELUA_CONF_DNS3        1
+#define ELUA_CONF_DNS3        20
 
 // *****************************************************************************
 // Configuration data
