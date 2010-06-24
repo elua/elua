@@ -216,7 +216,7 @@ vars.AddVariables(
   MatchEnumVariable('romfs',
                     'ROMFS compilation mode',
                     'verbatim',
-                    allowed_values=[ 'verbatim' , 'compress', 'compiled' ] ) )
+                    allowed_values=[ 'verbatim' , 'compress', 'compile' ] ) )
 
 
 vars.Update(comp)
@@ -308,7 +308,7 @@ if not GetOption( 'help' ):
       print "The eLua cross compiler was not found."
       print "Build it by running 'scons -f cross-lua.py'"
       Exit( -1 )
-    compcmd = os.path.join( os.getcwd(), 'luac.cross -ccn %s -cce %s -o %%s -s %%s' % ( toolset[ 'cross_%s' % target ], toolset[ 'cross_cpumode' ] ) )
+    compcmd = os.path.join( os.getcwd(), 'luac.cross -ccn %s -cce %s -o %%s -s %%s' % ( toolset[ 'cross_%s' % comp['target'] ], toolset[ 'cross_cpumode' ] ) )
   elif comp['romfs'] == 'compress':
     compcmd = 'lua luasrcdiet.lua --quiet --maximum --opt-comments --opt-whitespace --opt-emptylines --opt-eols --opt-strings --opt-numbers --opt-locals -o %s %s'
 
