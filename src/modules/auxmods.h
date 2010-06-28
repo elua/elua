@@ -1,5 +1,5 @@
 // Auxiliary Lua modules. All of them are declared here, then each platform
-// decides what module(s) to register in the "platform_libs.h" file
+// decides what module(s) to register in the src/platform/xxxxx/platform_conf.h file
 
 #ifndef __AUXMODS_H__
 #define __AUXMODS_H__
