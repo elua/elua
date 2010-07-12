@@ -279,26 +279,26 @@ typedef struct {
  * @{
  */
 
-void MCPWM_Init(MCPWM_TypeDef *MCPWMx);
-void MCPWM_ConfigChannel(MCPWM_TypeDef *MCPWMx, uint32_t channelNum,
+void MCPWM_Init(LPC_MCPWM_TypeDef *MCPWMx);
+void MCPWM_ConfigChannel(LPC_MCPWM_TypeDef *MCPWMx, uint32_t channelNum,
 						MCPWM_CHANNEL_CFG_Type * channelSetup);
-void MCPWM_WriteToShadow(MCPWM_TypeDef *MCPWMx, uint32_t channelNum,
+void MCPWM_WriteToShadow(LPC_MCPWM_TypeDef *MCPWMx, uint32_t channelNum,
 						MCPWM_CHANNEL_CFG_Type *channelSetup);
-void MCPWM_ConfigCapture(MCPWM_TypeDef *MCPWMx, uint32_t channelNum,
+void MCPWM_ConfigCapture(LPC_MCPWM_TypeDef *MCPWMx, uint32_t channelNum,
 						MCPWM_CAPTURE_CFG_Type *captureConfig);
-void MCPWM_ClearCapture(MCPWM_TypeDef *MCPWMx, uint32_t captureChannel);
-uint32_t MCPWM_GetCapture(MCPWM_TypeDef *MCPWMx, uint32_t captureChannel);
-void MCPWM_CountConfig(MCPWM_TypeDef *MCPWMx, uint32_t channelNum,
+void MCPWM_ClearCapture(LPC_MCPWM_TypeDef *MCPWMx, uint32_t captureChannel);
+uint32_t MCPWM_GetCapture(LPC_MCPWM_TypeDef *MCPWMx, uint32_t captureChannel);
+void MCPWM_CountConfig(LPC_MCPWM_TypeDef *MCPWMx, uint32_t channelNum,
 					uint32_t countMode, MCPWM_COUNT_CFG_Type *countConfig);
-void MCPWM_Start(MCPWM_TypeDef *MCPWMx,uint32_t channel0, uint32_t channel1, uint32_t channel2);
-void MCPWM_Stop(MCPWM_TypeDef *MCPWMx,uint32_t channel0, uint32_t channel1, uint32_t channel2);
-void MCPWM_ACMode(MCPWM_TypeDef *MCPWMx,uint32_t acMode);
-void MCPWM_DCMode(MCPWM_TypeDef *MCPWMx, uint32_t dcMode,
+void MCPWM_Start(LPC_MCPWM_TypeDef *MCPWMx,uint32_t channel0, uint32_t channel1, uint32_t channel2);
+void MCPWM_Stop(LPC_MCPWM_TypeDef *MCPWMx,uint32_t channel0, uint32_t channel1, uint32_t channel2);
+void MCPWM_ACMode(LPC_MCPWM_TypeDef *MCPWMx,uint32_t acMode);
+void MCPWM_DCMode(LPC_MCPWM_TypeDef *MCPWMx, uint32_t dcMode,
 					uint32_t outputInvered, uint32_t outputPattern);
-void MCPWM_IntConfig(MCPWM_TypeDef *MCPWMx, uint32_t ulIntType, FunctionalState NewState);
-void MCPWM_IntSet(MCPWM_TypeDef *MCPWMx, uint32_t ulIntType);
-void MCPWM_IntClear(MCPWM_TypeDef *MCPWMx, uint32_t ulIntType);
-FlagStatus MCPWM_GetIntStatus(MCPWM_TypeDef *MCPWMx, uint32_t ulIntType);
+void MCPWM_IntConfig(LPC_MCPWM_TypeDef *MCPWMx, uint32_t ulIntType, FunctionalState NewState);
+void MCPWM_IntSet(LPC_MCPWM_TypeDef *MCPWMx, uint32_t ulIntType);
+void MCPWM_IntClear(LPC_MCPWM_TypeDef *MCPWMx, uint32_t ulIntType);
+FlagStatus MCPWM_GetIntStatus(LPC_MCPWM_TypeDef *MCPWMx, uint32_t ulIntType);
 
 /**
  * @}

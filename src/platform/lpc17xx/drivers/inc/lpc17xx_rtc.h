@@ -230,9 +230,9 @@ typedef enum {
 } RTC_TIMETYPE_Num;
 
 #define PARAM_RTC_TIMETYPE(n)	((n==RTC_TIMETYPE_SECOND) || (n==RTC_TIMETYPE_MINUTE) \
-							|| (n==RTC_TIMETYPE_HOUR) || (n==RTC_TIMETYPE_DAYOFWEEK) \
-							|| (n==RTC_TIMETYPE_DAYOFMONTH) || (n==RTC_TIMETYPE_DAYOFYEAR) \
-							|| (n==RTC_TIMETYPE_MONTH) || (n==RTC_TIMETYPE_YEAR))
+|| (n==RTC_TIMETYPE_HOUR) || (n==RTC_TIMETYPE_DAYOFWEEK) \
+|| (n==RTC_TIMETYPE_DAYOFMONTH) || (n==RTC_TIMETYPE_DAYOFYEAR) \
+|| (n==RTC_TIMETYPE_MONTH) || (n==RTC_TIMETYPE_YEAR))
 
 
 /**
@@ -246,7 +246,7 @@ typedef enum {
  */
 
 /** Macro to determine if it is valid RTC peripheral */
-#define PARAM_RTCx(x)	(((uint32_t *)x)==((uint32_t *)RTC))
+#define PARAM_RTCx(x)	(((uint32_t *)x)==((uint32_t *)LPC_RTC))
 
 /** Calibration definitions */
 #define RTC_CALIB_DIR_FORWARD	((uint8_t)(0))
@@ -267,28 +267,28 @@ typedef enum {
  * @{
  */
 
-void RTC_Init (RTC_TypeDef *RTCx);
-void RTC_DeInit(RTC_TypeDef *RTCx);
-void RTC_ResetClockTickCounter(RTC_TypeDef *RTCx);
-void RTC_Cmd (RTC_TypeDef *RTCx, FunctionalState NewState);
-void RTC_CntIncrIntConfig (RTC_TypeDef *RTCx, uint32_t CntIncrIntType, \
+void RTC_Init (LPC_RTC_TypeDef *RTCx);
+void RTC_DeInit(LPC_RTC_TypeDef *RTCx);
+void RTC_ResetClockTickCounter(LPC_RTC_TypeDef *RTCx);
+void RTC_Cmd (LPC_RTC_TypeDef *RTCx, FunctionalState NewState);
+void RTC_CntIncrIntConfig (LPC_RTC_TypeDef *RTCx, uint32_t CntIncrIntType, \
 								FunctionalState NewState);
-void RTC_AlarmIntConfig (RTC_TypeDef *RTCx, uint32_t AlarmTimeType, \
+void RTC_AlarmIntConfig (LPC_RTC_TypeDef *RTCx, uint32_t AlarmTimeType, \
 								FunctionalState NewState);
-void RTC_SetTime (RTC_TypeDef *RTCx, uint32_t Timetype, uint32_t TimeValue);
-uint32_t RTC_GetTime(RTC_TypeDef *RTCx, uint32_t Timetype);
-void RTC_SetFullTime (RTC_TypeDef *RTCx, RTC_TIME_Type *pFullTime);
-void RTC_GetFullTime (RTC_TypeDef *RTCx, RTC_TIME_Type *pFullTime);
-void RTC_SetAlarmTime (RTC_TypeDef *RTCx, uint32_t Timetype, uint32_t ALValue);
-uint32_t RTC_GetAlarmTime (RTC_TypeDef *RTCx, uint32_t Timetype);
-void RTC_SetFullAlarmTime (RTC_TypeDef *RTCx, RTC_TIME_Type *pFullTime);
-void RTC_GetFullAlarmTime (RTC_TypeDef *RTCx, RTC_TIME_Type *pFullTime);
-IntStatus RTC_GetIntPending (RTC_TypeDef *RTCx, uint32_t IntType);
-void RTC_ClearIntPending (RTC_TypeDef *RTCx, uint32_t IntType);
-void RTC_CalibCounterCmd(RTC_TypeDef *RTCx, FunctionalState NewState);
-void RTC_CalibConfig(RTC_TypeDef *RTCx, uint32_t CalibValue, uint8_t CalibDir);
-void RTC_WriteGPREG (RTC_TypeDef *RTCx, uint8_t Channel, uint32_t Value);
-uint32_t RTC_ReadGPREG (RTC_TypeDef *RTCx, uint8_t Channel);
+void RTC_SetTime (LPC_RTC_TypeDef *RTCx, uint32_t Timetype, uint32_t TimeValue);
+uint32_t RTC_GetTime(LPC_RTC_TypeDef *RTCx, uint32_t Timetype);
+void RTC_SetFullTime (LPC_RTC_TypeDef *RTCx, RTC_TIME_Type *pFullTime);
+void RTC_GetFullTime (LPC_RTC_TypeDef *RTCx, RTC_TIME_Type *pFullTime);
+void RTC_SetAlarmTime (LPC_RTC_TypeDef *RTCx, uint32_t Timetype, uint32_t ALValue);
+uint32_t RTC_GetAlarmTime (LPC_RTC_TypeDef *RTCx, uint32_t Timetype);
+void RTC_SetFullAlarmTime (LPC_RTC_TypeDef *RTCx, RTC_TIME_Type *pFullTime);
+void RTC_GetFullAlarmTime (LPC_RTC_TypeDef *RTCx, RTC_TIME_Type *pFullTime);
+IntStatus RTC_GetIntPending (LPC_RTC_TypeDef *RTCx, uint32_t IntType);
+void RTC_ClearIntPending (LPC_RTC_TypeDef *RTCx, uint32_t IntType);
+void RTC_CalibCounterCmd(LPC_RTC_TypeDef *RTCx, FunctionalState NewState);
+void RTC_CalibConfig(LPC_RTC_TypeDef *RTCx, uint32_t CalibValue, uint8_t CalibDir);
+void RTC_WriteGPREG (LPC_RTC_TypeDef *RTCx, uint8_t Channel, uint32_t Value);
+uint32_t RTC_ReadGPREG (LPC_RTC_TypeDef *RTCx, uint8_t Channel);
 
 /**
  * @}

@@ -42,7 +42,7 @@ typedef struct
 // Channel Management
 #define ACTIVATE_CHANNEL( d, id ) ( d->ch_active |= ( ( u32 )1 << ( id ) ) )
 #define INACTIVATE_CHANNEL( d, id ) ( d->ch_active &= ~( ( u32 )1 << ( id ) ) )
-#define INCR_SEQCTR( d ) ( d->seq_ctr++ )
+#define INCR_SEQCTR( d ) ( d->seq_ctr++; if( d->seq_ctr >= d->seq_len - 1) d->seq_ctr = 0; )
 
 int adc_setup_channel( unsigned id, u8 logcount );
 void adc_update_dev_sequence( unsigned dev_id );

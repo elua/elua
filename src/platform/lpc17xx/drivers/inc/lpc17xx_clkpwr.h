@@ -28,7 +28,7 @@
 #define LPC17XX_CLKPWR_H_
 
 /* Includes ------------------------------------------------------------------- */
-#include "LPC17xx.h"
+#include "lpc17xx.h"
 #include "lpc_types.h"
 
 #ifdef __cplusplus
@@ -206,16 +206,6 @@ extern "C"
 
 /**
  * @}
- */
-
-/**
- * @}
- */
-
-
-/* Public Types --------------------------------------------------------------- */
-/** @defgroup CLKPWR_Public_Types
- * @{
  */
 
 /**

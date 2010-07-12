@@ -29,7 +29,9 @@ void adc_update_dev_sequence( unsigned dev_id  )
 {
   elua_adc_dev_state *d = adc_get_dev_state( dev_id );
   elua_adc_ch_state *s;
+  unsigned previd = d->ch_state[ d->seq_ctr ]->id;
   unsigned id;
+  u8 tmp_seq_ctr = 0;
   
   if( d->ch_active != d->last_ch_active || d->force_reseq == 1 )
   {
@@ -44,6 +46,8 @@ void adc_update_dev_sequence( unsigned dev_id  )
         d->ch_state[ d->seq_ctr ] = s;
         s->value_ptr = &( d->sample_buf[ d->seq_ctr ] );
         s->value_fresh = 0;
+        if( s->id == previd )
+          tmp_seq_ctr = d->seq_ctr;
         d->seq_ctr++;
   	  }
     }
@@ -59,7 +63,7 @@ void adc_update_dev_sequence( unsigned dev_id  )
     platform_adc_update_sequence();
     
     d->last_ch_active = d->ch_active;
-    d->seq_ctr = 0;
+    d->seq_ctr = tmp_seq_ctr;
     d->force_reseq = 0;
     platform_cpu_enable_interrupts();
   }

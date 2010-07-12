@@ -725,11 +725,12 @@ typedef void ( fnCANCbs_Type)();
  */
 
 /** Macro to determine if it is valid CAN peripheral */
-#define PARAM_CANx(x)			((((uint32_t*)x)==((uint32_t *)CAN1)) \
-								||(((uint32_t*)x)==((uint32_t *)CAN2)))
-#define PARAM_CANAFx(x)			(((uint32_t*)x)== ((uint32_t*)CANAF))
-#define PARAM_CANAFRAMx(x)		(((uint32_t*)x)== (uint32_t*)CANAF_RAM)
-#define PARAM_CANCRx(x)			(((uint32_t*)x)==((uint32_t*)CANCR))
+#define PARAM_CANx(x)			((((uint32_t*)x)==((uint32_t *)LPC_CAN1)) \
+||(((uint32_t*)x)==((uint32_t *)LPC_CAN2)))
+
+#define PARAM_CANAFx(x)			(((uint32_t*)x)== ((uint32_t*)LPC_CANAF))
+#define PARAM_CANAFRAMx(x)		(((uint32_t*)x)== (uint32_t*)LPC_CANAF_RAM)
+#define PARAM_CANCRx(x)			(((uint32_t*)x)==((uint32_t*)LPC_CANCR))
 
 /** Macro to check Data to send valid */
 #define PARAM_I2S_DATA(data) 	((data>=0)&&(data <= 0xFFFFFFFF))
@@ -747,27 +748,27 @@ typedef void ( fnCANCbs_Type)();
 
 #define PARAM_DLC(n)			((n>>4)==0)  /*-- 4 bit --*/
 #define PARAM_ID_FORMAT(n)		((n==STD_ID_FORMAT)||(n==EXT_ID_FORMAT))
-#define PARAM_GRP_ID(x,y)		((x<=y))
+#define PARAM_GRP_ID(x, y)		((x<=y))
 #define PARAM_FRAME_TYPE(n)		((n==DATA_FRAME)||(n==REMOTE_FRAME))
 
 /** Macro to check Control/Central Status type parameter */
 #define PARAM_CTRL_STS_TYPE(n)	((n==CANCTRL_GLOBAL_STS)||(n==CANCTRL_INT_CAP) \
-							    ||(n==CANCTRL_ERR_WRN)||(n==CANCTRL_STS))
+||(n==CANCTRL_ERR_WRN)||(n==CANCTRL_STS))
 #define PARAM_CR_STS_TYPE(n)	((n==CANCR_TX_STS)||(n==CANCR_RX_STS) \
-							    ||(n==CANCR_MS))
+||(n==CANCR_MS))
 /** Macro to check AF Mode type parameter */
 #define PARAM_AFMODE_TYPE(n)	((n==CAN_Normal)||(n==CAN_AccOff) \
-								||(n==CAN_AccBP)||(n==CAN_eFCAN))
+||(n==CAN_AccBP)||(n==CAN_eFCAN))
 /** Macro to check Operation Mode */
 #define PARAM_MODE_TYPE(n)		((n==CAN_OPERATING_MODE)||(n==CAN_RESET_MODE) \
-								||(n==CAN_LISTENONLY_MODE)||(n==CAN_SELFTEST_MODE) \
-								||(n==CAN_TXPRIORITY_MODE)||(n==CAN_SLEEP_MODE) \
-								||(n==CAN_RXPOLARITY_MODE)||(n==CAN_TEST_MODE))
+||(n==CAN_LISTENONLY_MODE)||(n==CAN_SELFTEST_MODE) \
+||(n==CAN_TXPRIORITY_MODE)||(n==CAN_SLEEP_MODE) \
+||(n==CAN_RXPOLARITY_MODE)||(n==CAN_TEST_MODE))
 
 /** Macro define for struct AF_Section parameter */
-#define CAN1_CTRL				((uint8_t)(0))
-#define CAN2_CTRL				((uint8_t)(1))
-#define PARAM_CTRL(n)			((n==CAN1_CTRL)|(n==CAN2_CTRL))
+#define CAN1_CTRL	((uint8_t)(0))
+#define CAN2_CTRL	((uint8_t)(1))
+#define PARAM_CTRL(n)	((n==CAN1_CTRL)|(n==CAN2_CTRL))
 
 #define MSG_ENABLE				((uint8_t)(0))
 #define MSG_DISABLE				((uint8_t)(1))
@@ -775,17 +776,17 @@ typedef void ( fnCANCbs_Type)();
 
 /**Macro to check Interrupt Type parameter */
 #define PARAM_INT_EN_TYPE(n)	((n==CANINT_RIE)||(n==CANINT_TIE1) \
-								||(n==CANINT_EIE)||(n==CANINT_DOIE) \
-								||(n==CANINT_WUIE)||(n==CANINT_EPIE) \
-								||(n==CANINT_ALIE)||(n==CANINT_BEIE) \
-								||(n==CANINT_IDIE)||(n==CANINT_TIE2) \
-								||(n==CANINT_TIE3)||(n==CANINT_FCE))
+||(n==CANINT_EIE)||(n==CANINT_DOIE) \
+||(n==CANINT_WUIE)||(n==CANINT_EPIE) \
+||(n==CANINT_ALIE)||(n==CANINT_BEIE) \
+||(n==CANINT_IDIE)||(n==CANINT_TIE2) \
+||(n==CANINT_TIE3)||(n==CANINT_FCE))
 
 /** Macro to check AFLUT Entry type */
-#define PARAM_AFLUT_ENTRY_TYPE(n)	((n==FULLCAN_ENTRY)||(n==EXPLICIT_STANDARD_ENTRY)	\
-									||(n==GROUP_STANDARD_ENTRY)||(n==EXPLICIT_EXTEND_ENTRY)	\
-									||(n==GROUP_EXTEND_ENTRY))
-#define PARAM_POSITION(n)		((n>=0)&&(n<512))
+#define PARAM_AFLUT_ENTRY_TYPE(n)	((n==FULLCAN_ENTRY)||(n==EXPLICIT_STANDARD_ENTRY)\
+||(n==GROUP_STANDARD_ENTRY)||(n==EXPLICIT_EXTEND_ENTRY)	\
+||(n==GROUP_EXTEND_ENTRY))
+#define PARAM_POSITION(n)	((n>=0)&&(n<512))
 
 /** CAN function pin selection defines */
 #define CAN_RD1_P0_0		((uint8_t)(0))
@@ -809,32 +810,32 @@ typedef void ( fnCANCbs_Type)();
  * @{
  */
 
-void CAN_Init(CAN_TypeDef *CANx, uint32_t baudrate);
-void CAN_DeInit(CAN_TypeDef *CANx);
+void CAN_Init(LPC_CAN_TypeDef *CANx, uint32_t baudrate);
+void CAN_DeInit(LPC_CAN_TypeDef *CANx);
 
-Status CAN_SendMsg(CAN_TypeDef *CANx, CAN_MSG_Type *CAN_Msg);
-Status CAN_ReceiveMsg(CAN_TypeDef *CANx, CAN_MSG_Type *CAN_Msg);
-CAN_ERROR FCAN_ReadObj(CANAF_TypeDef* CANAFx, CAN_MSG_Type *CAN_Msg);
+Status CAN_SendMsg(LPC_CAN_TypeDef *CANx, CAN_MSG_Type *CAN_Msg);
+Status CAN_ReceiveMsg(LPC_CAN_TypeDef *CANx, CAN_MSG_Type *CAN_Msg);
+CAN_ERROR FCAN_ReadObj(LPC_CANAF_TypeDef* CANAFx, CAN_MSG_Type *CAN_Msg);
 
-uint32_t CAN_GetCTRLStatus(CAN_TypeDef* CANx, CAN_CTRL_STS_Type arg);
-uint32_t CAN_GetCRStatus(CANCR_TypeDef* CANCRx, CAN_CR_STS_Type arg);
-void CAN_ModeConfig(CAN_TypeDef* CANx, CAN_MODE_Type mode,
+uint32_t CAN_GetCTRLStatus(LPC_CAN_TypeDef* CANx, CAN_CTRL_STS_Type arg);
+uint32_t CAN_GetCRStatus(LPC_CANCR_TypeDef* CANCRx, CAN_CR_STS_Type arg);
+void CAN_ModeConfig(LPC_CAN_TypeDef* CANx, CAN_MODE_Type mode,
 		FunctionalState NewState);
-void CAN_SetBaudRate(CAN_TypeDef *CANx, uint32_t baudrate);
+void CAN_SetBaudRate(LPC_CAN_TypeDef *CANx, uint32_t baudrate);
 
-void CAN_SetAFMode(CANAF_TypeDef* CANAFx, CAN_AFMODE_Type AFmode);
-CAN_ERROR CAN_SetupAFLUT(CANAF_TypeDef* CANAFx, AF_SectionDef* AFSection);
-CAN_ERROR CAN_LoadFullCANEntry(CAN_TypeDef* CANx, uint16_t ID);
-CAN_ERROR CAN_LoadExplicitEntry(CAN_TypeDef* CANx, uint32_t ID,
+void CAN_SetAFMode(LPC_CANAF_TypeDef* CANAFx, CAN_AFMODE_Type AFmode);
+CAN_ERROR CAN_SetupAFLUT(LPC_CANAF_TypeDef* CANAFx, AF_SectionDef* AFSection);
+CAN_ERROR CAN_LoadFullCANEntry(LPC_CAN_TypeDef* CANx, uint16_t ID);
+CAN_ERROR CAN_LoadExplicitEntry(LPC_CAN_TypeDef* CANx, uint32_t ID,
 		CAN_ID_FORMAT_Type format);
-CAN_ERROR CAN_LoadGroupEntry(CAN_TypeDef* CANx, uint32_t lowerID,
+CAN_ERROR CAN_LoadGroupEntry(LPC_CAN_TypeDef* CANx, uint32_t lowerID,
 		uint32_t upperID, CAN_ID_FORMAT_Type format);
 CAN_ERROR CAN_RemoveEntry(AFLUT_ENTRY_Type EntryType, uint16_t position);
 
 void CAN_SetupCBS(CAN_INT_EN_Type arg, fnCANCbs_Type* pnCANCbs);
-void CAN_IRQCmd(CAN_TypeDef* CANx, CAN_INT_EN_Type arg,
+void CAN_IRQCmd(LPC_CAN_TypeDef* CANx, CAN_INT_EN_Type arg,
 		FunctionalState NewState);
-void CAN_IntHandler(CAN_TypeDef* CANx);
+void CAN_IntHandler(LPC_CAN_TypeDef* CANx);
 
 /**
  * @}

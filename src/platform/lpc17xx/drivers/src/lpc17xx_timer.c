@@ -1,10 +1,10 @@
 /**
  * @file	: lpc17xx_timer.c
- * @brief	: Contains all functions support for SPI firmware library on LPC17xx
+ * @brief	: Contains all functions support for Timer firmware library on LPC17xx
  * @version	: 1.0
  * @date	: 14. April. 2009
- * @author	:
- *----------------------------------------------------------------------------
+ * @author	: HieuNguyen
+ **************************************************************************
  * Software that is described herein is for illustrative purposes only
  * which provides customers with programming information regarding the
  * products. This software is supplied "AS IS" without any warranties.
@@ -46,7 +46,7 @@
 
 uint32_t TIM_GetPClock (uint32_t timernum);
 uint32_t TIM_ConverUSecToVal (uint32_t timernum, uint32_t usec);
-uint32_t TIM_ConverPtrToTimeNum (TIM_TypeDef *TIMx);
+uint32_t TIM_ConverPtrToTimeNum (LPC_TIM_TypeDef *TIMx);
 
 
 /*********************************************************************//**
@@ -103,23 +103,23 @@ uint32_t TIM_ConverUSecToVal (uint32_t timernum, uint32_t usec)
  * @param[in]	TIMx Pointer to a timer register set
  * @return 		The timer number (0 to 3) or -1 if register pointer is bad
  **********************************************************************/
-uint32_t TIM_ConverPtrToTimeNum (TIM_TypeDef *TIMx)
+uint32_t TIM_ConverPtrToTimeNum (LPC_TIM_TypeDef *TIMx)
 {
 	uint32_t tnum = -1;
 
-	if (TIMx == TIM0)
+	if (TIMx == LPC_TIM0)
 	{
 		tnum = 0;
 	}
-	else if (TIMx == TIM1)
+	else if (TIMx == LPC_TIM1)
 	{
 		tnum = 1;
 	}
-	else if (TIMx == TIM2)
+	else if (TIMx == LPC_TIM2)
 	{
 		tnum = 2;
 	}
-	else if (TIMx == TIM3)
+	else if (TIMx == LPC_TIM3)
 	{
 		tnum = 3;
 	}
@@ -145,7 +145,7 @@ uint32_t TIM_ConverPtrToTimeNum (TIM_TypeDef *TIMx)
  * 				- SET : interrupt
  * 				- RESET : no interrupt
  **********************************************************************/
-FlagStatus TIM_GetIntStatus(TIM_TypeDef *TIMx, uint8_t IntFlag)
+FlagStatus TIM_GetIntStatus(LPC_TIM_TypeDef *TIMx, uint8_t IntFlag)
 {
 	CHECK_PARAM(PARAM_TIMx(TIMx));
 	CHECK_PARAM(PARAM_TIM_INT_TYPE(IntFlag));
@@ -164,7 +164,7 @@ FlagStatus TIM_GetIntStatus(TIM_TypeDef *TIMx, uint8_t IntFlag)
  * 				- SET : interrupt
  * 				- RESET : no interrupt
  **********************************************************************/
-FlagStatus TIM_GetIntCaptureStatus(TIM_TypeDef *TIMx, uint8_t IntFlag)
+FlagStatus TIM_GetIntCaptureStatus(LPC_TIM_TypeDef *TIMx, uint8_t IntFlag)
 {
 	CHECK_PARAM(PARAM_TIMx(TIMx));
 	CHECK_PARAM(PARAM_TIM_INT_TYPE(IntFlag));
@@ -179,7 +179,7 @@ FlagStatus TIM_GetIntCaptureStatus(TIM_TypeDef *TIMx, uint8_t IntFlag)
  * @param[in]	IntFlag should be in TIM_INT_TYPE enum
  * @return 		None
  **********************************************************************/
-void TIM_ClearIntPending(TIM_TypeDef *TIMx, uint8_t IntFlag)
+void TIM_ClearIntPending(LPC_TIM_TypeDef *TIMx, uint8_t IntFlag)
 {
 	CHECK_PARAM(PARAM_TIMx(TIMx));
 	CHECK_PARAM(PARAM_TIM_INT_TYPE(IntFlag));
@@ -192,7 +192,7 @@ void TIM_ClearIntPending(TIM_TypeDef *TIMx, uint8_t IntFlag)
  * @param[in]	IntFlag should be in TIM_INT_TYPE enum
  * @return 		None
  **********************************************************************/
-void TIM_ClearIntCapturePending(TIM_TypeDef *TIMx, uint8_t IntFlag)
+void TIM_ClearIntCapturePending(LPC_TIM_TypeDef *TIMx, uint8_t IntFlag)
 {
 	CHECK_PARAM(PARAM_TIMx(TIMx));
 	CHECK_PARAM(PARAM_TIM_INT_TYPE(IntFlag));
@@ -237,7 +237,7 @@ void TIM_ConfigStructInit(uint8_t TimerCounterMode, void *TIM_ConfigStruct)
  *                    specified Timer peripheral.
  * @return 		None
  **********************************************************************/
-void TIM_Init(TIM_TypeDef *TIMx, uint8_t TimerCounterMode, void *TIM_ConfigStruct)
+void TIM_Init(LPC_TIM_TypeDef *TIMx, uint8_t TimerCounterMode, void *TIM_ConfigStruct)
 {
 	TIM_TIMERCFG_Type *pTimeCfg;
 	TIM_COUNTERCFG_Type *pCounterCfg;
@@ -248,24 +248,24 @@ void TIM_Init(TIM_TypeDef *TIMx, uint8_t TimerCounterMode, void *TIM_ConfigStruc
 
 	timer = TIM_ConverPtrToTimeNum(TIMx) ;
 	//set power
-	if (TIMx== TIM0)
+	if (TIMx== LPC_TIM0)
 	{
 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCTIM0, ENABLE);
 		CLKPWR_SetPCLKDiv (CLKPWR_PCLKSEL_TIMER0, CLKPWR_PCLKSEL_CCLK_DIV_4);
 	}
-	else if (TIMx== TIM1)
+	else if (TIMx== LPC_TIM1)
 	{
 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCTIM1, ENABLE);
 		CLKPWR_SetPCLKDiv (CLKPWR_PCLKSEL_TIMER1, CLKPWR_PCLKSEL_CCLK_DIV_4);
 
 	}
 
-	else if (TIMx== TIM2)
+	else if (TIMx== LPC_TIM2)
 	{
 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCTIM2, ENABLE);
 		CLKPWR_SetPCLKDiv (CLKPWR_PCLKSEL_TIMER2, CLKPWR_PCLKSEL_CCLK_DIV_4);
 	}
-	else if (TIMx== TIM3)
+	else if (TIMx== LPC_TIM3)
 	{
 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCTIM3, ENABLE);
 		CLKPWR_SetPCLKDiv (CLKPWR_PCLKSEL_TIMER3, CLKPWR_PCLKSEL_CCLK_DIV_4);
@@ -309,23 +309,23 @@ void TIM_Init(TIM_TypeDef *TIMx, uint8_t TimerCounterMode, void *TIM_ConfigStruc
  * @param[in]	TIMx  Pointer to timer device
  * @return 		None
  **********************************************************************/
-void TIM_DeInit (TIM_TypeDef *TIMx)
+void TIM_DeInit (LPC_TIM_TypeDef *TIMx)
 {
 	CHECK_PARAM(PARAM_TIMx(TIMx));
 	// Disable timer/counter
 	TIMx->TCR = 0x00;
 
 	// Disable power
-	if (TIMx== TIM0)
+	if (TIMx== LPC_TIM0)
 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCTIM0, DISABLE);
 
-	else if (TIMx== TIM1)
+	else if (TIMx== LPC_TIM1)
 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCTIM1, DISABLE);
 
-	else if (TIMx== TIM2)
+	else if (TIMx== LPC_TIM2)
 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCTIM2, DISABLE);
 
-	else if (TIMx== TIM3)
+	else if (TIMx== LPC_TIM3)
 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCTIM2, DISABLE);
 
 }
@@ -338,7 +338,7 @@ void TIM_DeInit (TIM_TypeDef *TIMx)
  * 				-	DISABLE : disable timer
  * @return 		None
  **********************************************************************/
-void TIM_Cmd(TIM_TypeDef *TIMx, FunctionalState NewState)
+void TIM_Cmd(LPC_TIM_TypeDef *TIMx, FunctionalState NewState)
 {
 	CHECK_PARAM(PARAM_TIMx(TIMx));
 	if (NewState == ENABLE)
@@ -358,7 +358,7 @@ void TIM_Cmd(TIM_TypeDef *TIMx, FunctionalState NewState)
  * @param[in]	TIMx Pointer to timer device
  * @return 		None
  **********************************************************************/
-void TIM_ResetCounter(TIM_TypeDef *TIMx)
+void TIM_ResetCounter(LPC_TIM_TypeDef *TIMx)
 {
 	CHECK_PARAM(PARAM_TIMx(TIMx));
 	TIMx->TCR |= TIM_RESET;
@@ -384,7 +384,7 @@ void TIM_ResetCounter(TIM_TypeDef *TIMx)
  *					MatchValue: Set the value to be compared with TC value
  * @return 		None
  **********************************************************************/
-void TIM_ConfigMatch(TIM_TypeDef *TIMx, TIM_MATCHCFG_Type *TIM_MatchConfigStruct)
+void TIM_ConfigMatch(LPC_TIM_TypeDef *TIMx, TIM_MATCHCFG_Type *TIM_MatchConfigStruct)
 {
 	uint32_t timer;
 
@@ -431,7 +431,7 @@ void TIM_ConfigMatch(TIM_TypeDef *TIMx, TIM_MATCHCFG_Type *TIM_MatchConfigStruct
  * @param[in]   TIM_CaptureConfigStruct	Pointer to TIM_CAPTURECFG_Type
  * @return 		None
  **********************************************************************/
-void TIM_ConfigCapture(TIM_TypeDef *TIMx, TIM_CAPTURECFG_Type *TIM_CaptureConfigStruct)
+void TIM_ConfigCapture(LPC_TIM_TypeDef *TIMx, TIM_CAPTURECFG_Type *TIM_CaptureConfigStruct)
 {
 	uint32_t timer;
 
@@ -455,7 +455,7 @@ void TIM_ConfigCapture(TIM_TypeDef *TIMx, TIM_CAPTURECFG_Type *TIM_CaptureConfig
  * @param[in]	CaptureChannel: capture channel number
  * @return 		Value of capture register
  **********************************************************************/
-uint32_t TIM_GetCaptureValue(TIM_TypeDef *TIMx, uint8_t CaptureChannel)
+uint32_t TIM_GetCaptureValue(LPC_TIM_TypeDef *TIMx, uint8_t CaptureChannel)
 {
 	CHECK_PARAM(PARAM_TIMx(TIMx));
 	CHECK_PARAM(PARAM_TIM_COUNTER_INPUT_OPT(CaptureChannel));

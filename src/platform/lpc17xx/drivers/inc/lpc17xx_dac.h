@@ -52,8 +52,8 @@ typedef enum
 	DAC_MAX_CURRENT_350uA		/*!< The settling time of the DAC is 2.5 us
 								and the maximum current is 350 uA */
 } DAC_CURRENT_OPT;
-#define	PARAM_DAC_CURRENT_OPT(OPTION) ((OPTION == DAC_MAX_CURRENT_700uA)||\
-									(OPTION == DAC_MAX_CURRENT_350uA))
+#define	PARAM_DAC_CURRENT_OPT(OPTION) ((OPTION == DAC_MAX_CURRENT_700uA)\
+||(OPTION == DAC_MAX_CURRENT_350uA))
 
 /**
  * @brief Configuration for DA converter control register */
@@ -108,7 +108,7 @@ is VALUE/1024 × VREF */
 #define DAC_DACCTRL_MASK	((uint32_t)(0x0F))
 
 /** Macro to determine if it is valid DAC peripheral */
-#define PARAM_DACx(n)	(((uint32_t *)n)==((uint32_t *)DAC))
+#define PARAM_DACx(n)	(((uint32_t *)n)==((uint32_t *)LPC_DAC))
 
 /**
  * @}
@@ -119,11 +119,11 @@ is VALUE/1024 × VREF */
  * @{
  */
 
-void 	DAC_Init(DAC_TypeDef *DACx);
-void    DAC_UpdateValue (DAC_TypeDef *DACx, uint32_t dac_value);
-void    DAC_SetBias (DAC_TypeDef *DACx,uint32_t bias);
-void    DAC_ConfigDAConverterControl (DAC_TypeDef *DACx,DAC_CONVERTER_CFG_Type *DAC_ConverterConfigStruct);
-void 	DAC_SetDMATimeOut(DAC_TypeDef *DACx,uint32_t time_out);
+void 	DAC_Init(LPC_DAC_TypeDef *DACx);
+void    DAC_UpdateValue (LPC_DAC_TypeDef *DACx, uint32_t dac_value);
+void    DAC_SetBias (LPC_DAC_TypeDef *DACx,uint32_t bias);
+void    DAC_ConfigDAConverterControl (LPC_DAC_TypeDef *DACx,DAC_CONVERTER_CFG_Type *DAC_ConverterConfigStruct);
+void 	DAC_SetDMATimeOut(LPC_DAC_TypeDef *DACx,uint32_t time_out);
 
 /**
  * @}

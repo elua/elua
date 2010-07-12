@@ -4,7 +4,7 @@
  * @version	: 1.0
  * @date	: 26. May. 2009
  * @author	: HieuNguyen
- *----------------------------------------------------------------------------
+ **************************************************************************
  * Software that is described herein is for illustrative purposes only
  * which provides customers with programming information regarding the
  * products. This software is supplied "AS IS" without any warranties.
@@ -74,7 +74,7 @@ typedef union {
  * 								- QEI_RESET_IDX: Reset Index Counter
  * @return		None
  **********************************************************************/
-void QEI_Reset(QEI_TypeDef *QEIx, uint32_t ulResetType)
+void QEI_Reset(LPC_QEI_TypeDef *QEIx, uint32_t ulResetType)
 {
 	CHECK_PARAM(PARAM_QEIx(QEIx));
 	CHECK_PARAM(PARAM_QEI_RESET(ulResetType));
@@ -91,7 +91,7 @@ void QEI_Reset(QEI_TypeDef *QEIx, uint32_t ulResetType)
 *                    specified QEI peripheral
  * @return		None
  **********************************************************************/
-void QEI_Init(QEI_TypeDef *QEIx, QEI_CFG_Type *QEI_ConfigStruct)
+void QEI_Init(LPC_QEI_TypeDef *QEIx, QEI_CFG_Type *QEI_ConfigStruct)
 {
 
 	CHECK_PARAM(PARAM_QEIx(QEIx));
@@ -132,7 +132,7 @@ void QEI_Init(QEI_TypeDef *QEIx, QEI_CFG_Type *QEI_ConfigStruct)
  * @param[in]	QEIx				QEI peripheral, should be QEI
  * @return 		None
  **********************************************************************/
-void QEI_DeInit(QEI_TypeDef *QEIx)
+void QEI_DeInit(LPC_QEI_TypeDef *QEIx)
 {
 	CHECK_PARAM(PARAM_QEIx(QEIx));
 
@@ -167,7 +167,7 @@ void QEI_ConfigStructInit(QEI_CFG_Type *QIE_InitStruct)
  * 							- QEI_STATUS_DIR: Direction Status
  * @return		New Status of this status flag (SET or RESET)
  **********************************************************************/
-FlagStatus QEI_GetStatus(QEI_TypeDef *QEIx, uint32_t ulFlagType)
+FlagStatus QEI_GetStatus(LPC_QEI_TypeDef *QEIx, uint32_t ulFlagType)
 {
 	CHECK_PARAM(PARAM_QEIx(QEIx));
 	CHECK_PARAM(PARAM_QEI_STATUS(ulFlagType));
@@ -179,7 +179,7 @@ FlagStatus QEI_GetStatus(QEI_TypeDef *QEIx, uint32_t ulFlagType)
  * @param[in]	QEIx		QEI peripheral, should be QEI
  * @return		Current position value of QEI peripheral
  **********************************************************************/
-uint32_t QEI_GetPosition(QEI_TypeDef *QEIx)
+uint32_t QEI_GetPosition(LPC_QEI_TypeDef *QEIx)
 {
 	CHECK_PARAM(PARAM_QEIx(QEIx));
 	return (QEIx->QEIPOS);
@@ -191,7 +191,7 @@ uint32_t QEI_GetPosition(QEI_TypeDef *QEIx)
  * @param[in]	ulMaxPos	Max position value to set
  * @return		None
  **********************************************************************/
-void QEI_SetMaxPosition(QEI_TypeDef *QEIx, uint32_t ulMaxPos)
+void QEI_SetMaxPosition(LPC_QEI_TypeDef *QEIx, uint32_t ulMaxPos)
 {
 	CHECK_PARAM(PARAM_QEIx(QEIx));
 	QEIx->QEIMAXPOS = ulMaxPos;
@@ -207,7 +207,7 @@ void QEI_SetMaxPosition(QEI_TypeDef *QEIx, uint32_t ulMaxPos)
  * @param[in]	ulPosComp	Compare Position value to set
  * @return		None
  **********************************************************************/
-void QEI_SetPositionComp(QEI_TypeDef *QEIx, uint8_t bPosCompCh, uint32_t ulPosComp)
+void QEI_SetPositionComp(LPC_QEI_TypeDef *QEIx, uint8_t bPosCompCh, uint32_t ulPosComp)
 {
 	uint32_t *tmp;
 
@@ -223,7 +223,7 @@ void QEI_SetPositionComp(QEI_TypeDef *QEIx, uint8_t bPosCompCh, uint32_t ulPosCo
  * @param[in]	QEIx		QEI peripheral, should be QEI
  * @return		Current value of QEI index counter
  **********************************************************************/
-uint32_t QEI_GetIndex(QEI_TypeDef *QEIx)
+uint32_t QEI_GetIndex(LPC_QEI_TypeDef *QEIx)
 {
 	CHECK_PARAM(PARAM_QEIx(QEIx));
 	return (QEIx->INXCNT);
@@ -235,7 +235,7 @@ uint32_t QEI_GetIndex(QEI_TypeDef *QEIx)
  * @param[in]	ulIndexComp		Compare Index Value to set
  * @return		None
  **********************************************************************/
-void QEI_SetIndexComp(QEI_TypeDef *QEIx, uint32_t ulIndexComp)
+void QEI_SetIndexComp(LPC_QEI_TypeDef *QEIx, uint32_t ulIndexComp)
 {
 	CHECK_PARAM(PARAM_QEIx(QEIx));
 	QEIx->INXCMP = ulIndexComp;
@@ -247,10 +247,10 @@ void QEI_SetIndexComp(QEI_TypeDef *QEIx, uint32_t ulIndexComp)
  * 				into the velocity timer for next period. The calculated velocity in RPM
  * 				therefore will be affect by this value.
  * @param[in]	QEIx			QEI peripheral, should be QEI
- * @param[in]	ulTimerReload	Timer Reload value to set
+ * @param[in]	QEIReloadStruct	QEI reload structure
  * @return		None
  **********************************************************************/
-void QEI_SetTimerReload(QEI_TypeDef *QEIx, QEI_RELOADCFG_Type *QEIReloadStruct)
+void QEI_SetTimerReload(LPC_QEI_TypeDef *QEIx, QEI_RELOADCFG_Type *QEIReloadStruct)
 {
 	uint64_t pclk;
 
@@ -271,7 +271,7 @@ void QEI_SetTimerReload(QEI_TypeDef *QEIx, QEI_RELOADCFG_Type *QEIReloadStruct)
  * @param[in]	QEIx			QEI peripheral, should be QEI
  * @return		Current timer counter in QEI peripheral
  **********************************************************************/
-uint32_t QEI_GetTimer(QEI_TypeDef *QEIx)
+uint32_t QEI_GetTimer(LPC_QEI_TypeDef *QEIx)
 {
 	CHECK_PARAM(PARAM_QEIx(QEIx));
 	return (QEIx->QEITIME);
@@ -282,7 +282,7 @@ uint32_t QEI_GetTimer(QEI_TypeDef *QEIx)
  * @param[in]	QEIx			QEI peripheral, should be QEI
  * @return		Current velocity pulse counter value
  **********************************************************************/
-uint32_t QEI_GetVelocity(QEI_TypeDef *QEIx)
+uint32_t QEI_GetVelocity(LPC_QEI_TypeDef *QEIx)
 {
 	CHECK_PARAM(PARAM_QEIx(QEIx));
 	return (QEIx->QEIVEL);
@@ -295,7 +295,7 @@ uint32_t QEI_GetVelocity(QEI_TypeDef *QEIx)
  * @param[in]	QEIx			QEI peripheral, should be QEI
  * @return		The most recently measured velocity value
  **********************************************************************/
-uint32_t QEI_GetVelocityCap(QEI_TypeDef *QEIx)
+uint32_t QEI_GetVelocityCap(LPC_QEI_TypeDef *QEIx)
 {
 	CHECK_PARAM(PARAM_QEIx(QEIx));
 	return (QEIx->QEICAP);
@@ -307,7 +307,7 @@ uint32_t QEI_GetVelocityCap(QEI_TypeDef *QEIx)
  * @param[in]	ulVelComp		Compare Velocity value to set
  * @return		None
  **********************************************************************/
-void QEI_SetVelocityComp(QEI_TypeDef *QEIx, uint32_t ulVelComp)
+void QEI_SetVelocityComp(LPC_QEI_TypeDef *QEIx, uint32_t ulVelComp)
 {
 	CHECK_PARAM(PARAM_QEIx(QEIx));
 	QEIx->VELCOMP = ulVelComp;
@@ -320,7 +320,7 @@ void QEI_SetVelocityComp(QEI_TypeDef *QEIx, uint32_t ulVelComp)
  * @param[in]	ulSamplingPulse	Value of sampling count to set
  * @return		None
  **********************************************************************/
-void QEI_SetDigiFilter(QEI_TypeDef *QEIx, uint32_t ulSamplingPulse)
+void QEI_SetDigiFilter(LPC_QEI_TypeDef *QEIx, uint32_t ulSamplingPulse)
 {
 	CHECK_PARAM(PARAM_QEIx(QEIx));
 	QEIx->FILTER = ulSamplingPulse;
@@ -350,7 +350,7 @@ void QEI_SetDigiFilter(QEI_TypeDef *QEIx, uint32_t ulSamplingPulse)
 								- QEI_INTFLAG_POS2REV_Int: Combined position 2 and revolution count interrupt
  * @return		New State of specified interrupt flag status (SET or RESET)
  **********************************************************************/
-FlagStatus QEI_GetIntStatus(QEI_TypeDef *QEIx, uint32_t ulIntType)
+FlagStatus QEI_GetIntStatus(LPC_QEI_TypeDef *QEIx, uint32_t ulIntType)
 {
 	CHECK_PARAM(PARAM_QEIx(QEIx));
 	CHECK_PARAM(PARAM_QEI_INTFLAG(ulIntType));
@@ -362,26 +362,29 @@ FlagStatus QEI_GetIntStatus(QEI_TypeDef *QEIx, uint32_t ulIntType)
  * @brief		Enable/Disable specified interrupt in QEI peripheral
  * @param[in]	QEIx			QEI peripheral, should be QEI
  * @param[in]	ulIntType		Interrupt Flag Status type, should be:
-								- QEI_INTFLAG_INX_Int: index pulse was detected interrupt
-								- QEI_INTFLAG_TIM_Int: Velocity timer over flow interrupt
-								- QEI_INTFLAG_VELC_Int: Capture velocity is less than compare interrupt
-								- QEI_INTFLAG_DIR_Int: Change of direction interrupt
-								- QEI_INTFLAG_ERR_Int: An encoder phase error interrupt
-								- QEI_INTFLAG_ENCLK_Int: An encoder clock pulse was detected interrupt
-								- QEI_INTFLAG_POS0_Int: position 0 compare value is equal to the
-														current position interrupt
-								- QEI_INTFLAG_POS1_Int: position 1 compare value is equal to the
-														current position interrupt
-								- QEI_INTFLAG_POS2_Int: position 2 compare value is equal to the
-														current position interrupt
-								- QEI_INTFLAG_REV_Int: Index compare value is equal to the current
-														index count interrupt
-								- QEI_INTFLAG_POS0REV_Int: Combined position 0 and revolution count interrupt
-								- QEI_INTFLAG_POS1REV_Int: Combined position 1 and revolution count interrupt
-								- QEI_INTFLAG_POS2REV_Int: Combined position 2 and revolution count interrupt
+ * 								- QEI_INTFLAG_INX_Int: index pulse was detected interrupt
+ *								- QEI_INTFLAG_TIM_Int: Velocity timer over flow interrupt
+ *								- QEI_INTFLAG_VELC_Int: Capture velocity is less than compare interrupt
+ * 								- QEI_INTFLAG_DIR_Int: Change of direction interrupt
+ *  							- QEI_INTFLAG_ERR_Int: An encoder phase error interrupt
+ * 								- QEI_INTFLAG_ENCLK_Int: An encoder clock pulse was detected interrupt
+ *								- QEI_INTFLAG_POS0_Int: position 0 compare value is equal to the
+ *														current position interrupt
+ *								- QEI_INTFLAG_POS1_Int: position 1 compare value is equal to the
+ *														current position interrupt
+ *								- QEI_INTFLAG_POS2_Int: position 2 compare value is equal to the
+ *														current position interrupt
+ *								- QEI_INTFLAG_REV_Int: Index compare value is equal to the current
+ *														index count interrupt
+ *								- QEI_INTFLAG_POS0REV_Int: Combined position 0 and revolution count interrupt
+ *								- QEI_INTFLAG_POS1REV_Int: Combined position 1 and revolution count interrupt
+ *								- QEI_INTFLAG_POS2REV_Int: Combined position 2 and revolution count interrupt
+ * @param[in]	NewState		New function state, should be:
+ *								- DISABLE
+ *								- ENABLE
  * @return		None
  **********************************************************************/
-void QEI_IntCmd(QEI_TypeDef *QEIx, uint32_t ulIntType, FunctionalState NewState)
+void QEI_IntCmd(LPC_QEI_TypeDef *QEIx, uint32_t ulIntType, FunctionalState NewState)
 {
 	CHECK_PARAM(PARAM_QEIx(QEIx));
 	CHECK_PARAM(PARAM_QEI_INTFLAG(ulIntType));
@@ -418,7 +421,7 @@ void QEI_IntCmd(QEI_TypeDef *QEIx, uint32_t ulIntType, FunctionalState NewState)
 								- QEI_INTFLAG_POS2REV_Int: Combined position 2 and revolution count interrupt
  * @return		None
  **********************************************************************/
-void QEI_IntSet(QEI_TypeDef *QEIx, uint32_t ulIntType)
+void QEI_IntSet(LPC_QEI_TypeDef *QEIx, uint32_t ulIntType)
 {
 	CHECK_PARAM(PARAM_QEIx(QEIx));
 	CHECK_PARAM(PARAM_QEI_INTFLAG(ulIntType));
@@ -449,7 +452,7 @@ void QEI_IntSet(QEI_TypeDef *QEIx, uint32_t ulIntType)
 								- QEI_INTFLAG_POS2REV_Int: Combined position 2 and revolution count interrupt
  * @return		None
  **********************************************************************/
-void QEI_IntClear(QEI_TypeDef *QEIx, uint32_t ulIntType)
+void QEI_IntClear(LPC_QEI_TypeDef *QEIx, uint32_t ulIntType)
 {
 	CHECK_PARAM(PARAM_QEIx(QEIx));
 	CHECK_PARAM(PARAM_QEI_INTFLAG(ulIntType));
@@ -468,7 +471,7 @@ void QEI_IntClear(QEI_TypeDef *QEIx, uint32_t ulIntType)
  * @param[in]	ulPPR			Pulse per round of encoder
  * @return		The actual value of velocity in RPM (Round per minute)
  **********************************************************************/
-uint32_t QEI_CalculateRPM(QEI_TypeDef *QEIx, uint32_t ulVelCapValue, uint32_t ulPPR)
+uint32_t QEI_CalculateRPM(LPC_QEI_TypeDef *QEIx, uint32_t ulVelCapValue, uint32_t ulPPR)
 {
 	uint64_t rpm, clock, Load, edges;
 

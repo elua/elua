@@ -147,7 +147,7 @@ extern "C"
  * (Slave Receive) or SLV/TRX (Slave Transmit) */
 #define I2C_I2STAT_S_RX_STA_STO_SLVREC_SLVTRX	((0xA0))
 
-/** Slave transmit mode -------------------------------------------- */
+/** Slave transmit mode */
 /** Own SLA+R has been received, ACK has been returned */
 #define I2C_I2STAT_S_TX_SLAR_ACK				((0xA8))
 
@@ -318,9 +318,9 @@ typedef enum {
 #define PARAM_I2C_SLAVEADDR_CH(n)	((n>=0) && (n<=3))
 
 /** Macro to determine if it is valid SSP port number */
-#define PARAM_I2Cx(n)	((((uint32_t *)n)==((uint32_t *)I2C0)) \
-						|| (((uint32_t *)n)==((uint32_t *)I2C1)) \
-						|| (((uint32_t *)n)==((uint32_t *)I2C2)))
+#define PARAM_I2Cx(n)	((((uint32_t *)n)==((uint32_t *)LPC_I2C0)) \
+|| (((uint32_t *)n)==((uint32_t *)LPC_I2C1)) \
+|| (((uint32_t *)n)==((uint32_t *)LPC_I2C2)))
 
 /* I2C status values */
 #define I2C_SETUP_STATUS_ARBF   (1<<8)	/**< Arbitration false */
@@ -346,22 +346,22 @@ typedef enum {
  * @{
  */
 
-void I2C_SetClock (I2C_TypeDef *I2Cx, uint32_t target_clock);
-void I2C_DeInit(I2C_TypeDef* I2Cx);
-void I2C_Init(I2C_TypeDef *I2Cx, uint32_t clockrate);
-void I2C_Cmd(I2C_TypeDef* I2Cx, FunctionalState NewState);
+void I2C_SetClock (LPC_I2C_TypeDef *I2Cx, uint32_t target_clock);
+void I2C_DeInit(LPC_I2C_TypeDef* I2Cx);
+void I2C_Init(LPC_I2C_TypeDef *I2Cx, uint32_t clockrate);
+void I2C_Cmd(LPC_I2C_TypeDef* I2Cx, FunctionalState NewState);
 
-Status I2C_MasterTransferData(I2C_TypeDef *I2Cx, \
+Status I2C_MasterTransferData(LPC_I2C_TypeDef *I2Cx, \
 		I2C_M_SETUP_Type *TransferCfg, I2C_TRANSFER_OPT_Type Opt);
-Status I2C_SlaveTransferData(I2C_TypeDef *I2Cx, \
+Status I2C_SlaveTransferData(LPC_I2C_TypeDef *I2Cx, \
 		I2C_S_SETUP_Type *TransferCfg, I2C_TRANSFER_OPT_Type Opt);
 
-void I2C_SetOwnSlaveAddr(I2C_TypeDef *I2Cx, I2C_OWNSLAVEADDR_CFG_Type *OwnSlaveAddrConfigStruct);
-uint8_t I2C_GetLastStatusCode(I2C_TypeDef* I2Cx);
+void I2C_SetOwnSlaveAddr(LPC_I2C_TypeDef *I2Cx, I2C_OWNSLAVEADDR_CFG_Type *OwnSlaveAddrConfigStruct);
+uint8_t I2C_GetLastStatusCode(LPC_I2C_TypeDef* I2Cx);
 
-void I2C_MonitorModeConfig(I2C_TypeDef *I2Cx, uint32_t MonitorCfgType, FunctionalState NewState);
-void I2C_MonitorModeCmd(I2C_TypeDef *I2Cx, FunctionalState NewState);
-uint8_t I2C_MonitorGetDatabuffer(I2C_TypeDef *I2Cx);
+void I2C_MonitorModeConfig(LPC_I2C_TypeDef *I2Cx, uint32_t MonitorCfgType, FunctionalState NewState);
+void I2C_MonitorModeCmd(LPC_I2C_TypeDef *I2Cx, FunctionalState NewState);
+uint8_t I2C_MonitorGetDatabuffer(LPC_I2C_TypeDef *I2Cx);
 
 void I2C0_StdIntHandler(void);
 void I2C1_StdIntHandler(void);

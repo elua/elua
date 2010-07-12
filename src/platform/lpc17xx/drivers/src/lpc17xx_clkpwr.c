@@ -5,7 +5,7 @@
  * @version	: 1.0
  * @date	: 18. Mar. 2009
  * @author	: HieuNguyen
- *----------------------------------------------------------------------------
+ **************************************************************************
  * Software that is described herein is for illustrative purposes only
  * which provides customers with programming information regarding the
  * products. This software is supplied "AS IS" without any warranties.
@@ -81,19 +81,19 @@ void CLKPWR_SetPCLKDiv (uint32_t ClkType, uint32_t DivVal)
 	if (ClkType < 32)
 	{
 		/* Clear two bit at bit position */
-		SC->PCLKSEL0 &= (~(CLKPWR_PCLKSEL_BITMASK(bitpos)));
+		LPC_SC->PCLKSEL0 &= (~(CLKPWR_PCLKSEL_BITMASK(bitpos)));
 
 		/* Set two selected bit */
-		SC->PCLKSEL0 |= (CLKPWR_PCLKSEL_SET(bitpos, DivVal));
+		LPC_SC->PCLKSEL0 |= (CLKPWR_PCLKSEL_SET(bitpos, DivVal));
 	}
 	/* PCLKSEL1 selected */
 	else
 	{
 		/* Clear two bit at bit position */
-		SC->PCLKSEL1 &= ~(CLKPWR_PCLKSEL_BITMASK(bitpos));
+		LPC_SC->PCLKSEL1 &= ~(CLKPWR_PCLKSEL_BITMASK(bitpos));
 
 		/* Set two selected bit */
-		SC->PCLKSEL1 |= (CLKPWR_PCLKSEL_SET(bitpos, DivVal));
+		LPC_SC->PCLKSEL1 |= (CLKPWR_PCLKSEL_SET(bitpos, DivVal));
 	}
 }
 
@@ -139,12 +139,12 @@ uint32_t CLKPWR_GetPCLKSEL (uint32_t ClkType)
 	if (ClkType < 32)
 	{
 		bitpos = ClkType;
-		retval = SC->PCLKSEL0;
+		retval = LPC_SC->PCLKSEL0;
 	}
 	else
 	{
 		bitpos = ClkType - 32;
-		retval = SC->PCLKSEL1;
+		retval = LPC_SC->PCLKSEL1;
 	}
 
 	retval = CLKPWR_PCLKSEL_GET(bitpos, retval);
@@ -191,7 +191,7 @@ uint32_t CLKPWR_GetPCLK (uint32_t ClkType)
 {
 	uint32_t retval, div;
 
-	retval = SystemFrequency;
+	retval = SystemCoreClock;
 	div = CLKPWR_GetPCLKSEL(ClkType);
 
 	switch (div)
@@ -261,11 +261,11 @@ void CLKPWR_ConfigPPWR (uint32_t PPType, FunctionalState NewState)
 {
 	if (NewState == ENABLE)
 	{
-		SC->PCONP |= PPType & CLKPWR_PCONP_BITMASK;
+		LPC_SC->PCONP |= PPType & CLKPWR_PCONP_BITMASK;
 	}
 	else if (NewState == DISABLE)
 	{
-		SC->PCONP &= (~PPType) & CLKPWR_PCONP_BITMASK;
+		LPC_SC->PCONP &= (~PPType) & CLKPWR_PCONP_BITMASK;
 	}
 }
 
@@ -277,7 +277,7 @@ void CLKPWR_ConfigPPWR (uint32_t PPType, FunctionalState NewState)
  */
 void CLKPWR_Sleep(void)
 {
-	SC->PCON = 0x00;
+	LPC_SC->PCON = 0x00;
 	/* Sleep Mode*/
 	__WFI();
 }
@@ -292,7 +292,7 @@ void CLKPWR_DeepSleep(void)
 {
     /* Deep-Sleep Mode, set SLEEPDEEP bit */
 	SCB->SCR = 0x4;
-	SC->PCON = 0x00;
+	LPC_SC->PCON = 0x00;
 	/* Sleep Mode*/
 	__WFI();
 }
@@ -307,7 +307,7 @@ void CLKPWR_PowerDown(void)
 {
     /* Deep-Sleep Mode, set SLEEPDEEP bit */
 	SCB->SCR = 0x4;
-	SC->PCON = 0x01;
+	LPC_SC->PCON = 0x01;
 	/* Sleep Mode*/
 	__WFI();
 }
@@ -322,7 +322,7 @@ void CLKPWR_DeepPowerDown(void)
 {
     /* Deep-Sleep Mode, set SLEEPDEEP bit */
 	SCB->SCR = 0x4;
-	SC->PCON = 0x03;
+	LPC_SC->PCON = 0x03;
 	/* Sleep Mode*/
 	__WFI();
 }

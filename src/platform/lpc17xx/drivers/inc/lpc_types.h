@@ -1,23 +1,10 @@
 /***********************************************************************//**
  * @file	: lpc_types.h
- * @brief	: 
+ * @brief	:
  *     Contains the NXP ABL typedefs for C standard types.
  *     It is intended to be used in ISO C conforming development
  *     environments and checks for this insofar as it is possible
  *     to do so.
- *     lpc_types.h ensures that the name used to define types correctly
- *     identifies a representation size, and by direct inference the
- *     storage size, in bits. E.g., UNS_32 identifies an unsigned
- *     integer type stored in 32 bits.
- *     It requires that the basic storage unit (char) be stored in
- *     8 bits.
- *     No assumptions about Endianess are made or implied.
- *     lpc_types.h also contains NXP ABL Global Macros:
- *         _BIT
- *         _SBF
- *         _BITMAP
- *     These #defines are not strictly types, but rather Preprocessor
- *     Macros that have been found to be generally useful.
  * @version	: 1.0
  * @date	: 27 Jul. 2008
  * @author	: wellsk
@@ -33,7 +20,7 @@
  * warranty that such application will be suitable for the specified
  * use without further testing or modification.
  **************************************************************************/
- 
+
 /* Type group ----------------------------------------------------------- */
 /** @defgroup LPC_Types
  * @ingroup LPC1700CMSIS_FwLib_Drivers

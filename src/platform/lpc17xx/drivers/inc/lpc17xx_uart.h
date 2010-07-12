@@ -233,8 +233,8 @@ typedef enum {
 } UART_DATABIT_Type;
 
 /** Macro to check the input UART_DATABIT parameters */
-#define PARAM_UART_DATABIT(databit)	((databit==UART_DATABIT_5) || (databit==UART_DATABIT_6) \
-									|| (databit==UART_DATABIT_7) || (databit==UART_DATABIT_8))
+#define PARAM_UART_DATABIT(databit)	((databit==UART_DATABIT_5) || (databit==UART_DATABIT_6)\
+|| (databit==UART_DATABIT_7) || (databit==UART_DATABIT_8))
 
 /**
  * @brief UART Stop bit type definitions
@@ -260,8 +260,8 @@ typedef enum {
 
 /** Macro to check the input UART_PARITY parameters */
 #define PARAM_UART_PARITY(parity)	((parity==UART_PARITY_NONE) || (parity==UART_PARITY_ODD) \
-									|| (parity==UART_PARITY_EVEN) || (parity==UART_PARITY_SP_1) \
-									|| (parity==UART_PARITY_SP_0))
+|| (parity==UART_PARITY_EVEN) || (parity==UART_PARITY_SP_1) \
+|| (parity==UART_PARITY_SP_0))
 
 /**
  * @brief FIFO Level type definitions
@@ -275,8 +275,8 @@ typedef enum {
 
 /** Macro to check the input UART_FIFO parameters */
 #define PARAM_UART_FIFO_LEVEL(fifo)	((fifo==UART_FIFO_TRGLEV0) \
-								|| (fifo==UART_FIFO_TRGLEV1) || (fifo==UART_FIFO_TRGLEV2) \
-								|| (fifo==UART_FIFO_TRGLEV3))
+|| (fifo==UART_FIFO_TRGLEV1) || (fifo==UART_FIFO_TRGLEV2) \
+|| (fifo==UART_FIFO_TRGLEV3))
 
 /********************************************************************//**
 * @brief UART Interrupt Type definitions
@@ -293,8 +293,9 @@ typedef enum {
 
 /** Macro to check the input UART_INTCFG parameters */
 #define PARAM_UART_INTCFG(IntCfg)	((IntCfg==UART_INTCFG_RBR) || (IntCfg==UART_INTCFG_THRE) \
-									|| (IntCfg==UART_INTCFG_RLS) || (IntCfg==UART_INTCFG_ABEO) \
-									|| (IntCfg==UART_INTCFG_ABTO))
+|| (IntCfg==UART_INTCFG_RLS) || (IntCfg==UART_INTCFG_ABEO) \
+|| (IntCfg==UART_INTCFG_ABTO))
+
 /** Macro to check the input UART1_INTCFG parameters - expansion input parameter for UART1 */
 #define PARAM_UART1_INTCFG(IntCfg)	((IntCfg==UART1_INTCFG_MS) || (IntCfg==UART1_INTCFG_CTS))
 
@@ -343,8 +344,7 @@ typedef enum {
 }UART_ABEO_Type;
 
 /** Macro to check the input UART_AUTOBAUD_INTSTAT parameters */
-#define PARAM_UART_AUTOBAUD_INTSTAT(ABIntStat)	((ABIntStat==UART_AUTOBAUD_INTSTAT_ABEO) \
-												|| (ABIntStat==UART_AUTOBAUD_INTSTAT_ABTO))
+#define PARAM_UART_AUTOBAUD_INTSTAT(ABIntStat)	((ABIntStat==UART_AUTOBAUD_INTSTAT_ABEO) || (ABIntStat==UART_AUTOBAUD_INTSTAT_ABTO))
 
 /**
  * UART IrDA Control type Definition
@@ -371,9 +371,9 @@ typedef enum {
 
 /** Macro to check the input UART_IrDA_PULSEDIV parameters */
 #define PARAM_UART_IrDA_PULSEDIV(PulseDiv)	((PulseDiv==UART_IrDA_PULSEDIV2) || (PulseDiv==UART_IrDA_PULSEDIV4) \
-											|| (PulseDiv==UART_IrDA_PULSEDIV8) || (PulseDiv==UART_IrDA_PULSEDIV16) \
-											|| (PulseDiv==UART_IrDA_PULSEDIV32) || (PulseDiv==UART_IrDA_PULSEDIV64) \
-											|| (PulseDiv==UART_IrDA_PULSEDIV128) || (PulseDiv==UART_IrDA_PULSEDIV256))
+|| (PulseDiv==UART_IrDA_PULSEDIV8) || (PulseDiv==UART_IrDA_PULSEDIV16) \
+|| (PulseDiv==UART_IrDA_PULSEDIV32) || (PulseDiv==UART_IrDA_PULSEDIV64) \
+|| (PulseDiv==UART_IrDA_PULSEDIV128) || (PulseDiv==UART_IrDA_PULSEDIV256))
 
 /********************************************************************//**
 * @brief UART1 Full modem -  Signal states definition
@@ -423,7 +423,7 @@ typedef enum {
 
 /** Macro to check the input PARAM_UART1_MODEM_MODE parameters */
 #define PARAM_UART1_MODEM_MODE(x) ((x==UART1_MODEM_MODE_LOOPBACK) || (x==UART1_MODEM_MODE_AUTO_RTS) \
-								|| (x==UART1_MODEM_MODE_AUTO_CTS))
+|| (x==UART1_MODEM_MODE_AUTO_CTS))
 
 
 /**
@@ -545,12 +545,12 @@ typedef void (fnModemCbs_Type)(uint8_t ModemStatus);
 
 
 /* Macro to determine if it is valid UART port number */
-#define PARAM_UARTx(x)	((((uint32_t *)x)==((uint32_t *)UART0)) \
-						|| (((uint32_t *)x)==((uint32_t *)UART1)) \
-						|| (((uint32_t *)x)==((uint32_t *)UART2)) \
-						|| (((uint32_t *)x)==((uint32_t *)UART3)))
-#define PARAM_UART_IrDA(x) (((uint32_t *)x)==((uint32_t *)UART3))
-#define PARAM_UART1_MODEM(x) (((uint32_t *)x)==((uint32_t *)UART1))
+#define PARAM_UARTx(x)	((((uint32_t *)x)==((uint32_t *)LPC_UART0)) \
+|| (((uint32_t *)x)==((uint32_t *)LPC_UART1)) \
+|| (((uint32_t *)x)==((uint32_t *)LPC_UART2)) \
+|| (((uint32_t *)x)==((uint32_t *)LPC_UART3)))
+#define PARAM_UART_IrDA(x) (((uint32_t *)x)==((uint32_t *)LPC_UART3))
+#define PARAM_UART1_MODEM(x) (((uint32_t *)x)==((uint32_t *)LPC_UART1))
 
 
 /** Macro to check the input value for UART1_RS485_CFG_MATCHADDRVALUE parameter */
@@ -576,39 +576,39 @@ typedef void (fnModemCbs_Type)(uint8_t ModemStatus);
  * @{
  */
 
-void UART_DeInit(UART_TypeDef* UARTx);
-void UART_Init(UART_TypeDef *UARTx, UART_CFG_Type *UART_ConfigStruct);
+void UART_DeInit(LPC_UART_TypeDef* UARTx);
+void UART_Init(LPC_UART_TypeDef *UARTx, UART_CFG_Type *UART_ConfigStruct);
 void UART_ConfigStructInit(UART_CFG_Type *UART_InitStruct);
-void UART_SendData(UART_TypeDef* UARTx, uint8_t Data);
-uint8_t UART_ReceiveData(UART_TypeDef* UARTx);
-void UART_ForceBreak(UART_TypeDef* UARTx);
-void UART_IrDAInvtInputCmd(UART_TypeDef* UARTx, FunctionalState NewState);
-void UART_IrDACmd(UART_TypeDef* UARTx, FunctionalState NewState);
-void UART_IrDAPulseDivConfig(UART_TypeDef *UARTx, UART_IrDA_PULSE_Type PulseDiv);
-void UART_IntConfig(UART_TypeDef *UARTx, UART_INT_Type UARTIntCfg, \
+void UART_SendData(LPC_UART_TypeDef* UARTx, uint8_t Data);
+uint8_t UART_ReceiveData(LPC_UART_TypeDef* UARTx);
+void UART_ForceBreak(LPC_UART_TypeDef* UARTx);
+void UART_IrDAInvtInputCmd(LPC_UART_TypeDef* UARTx, FunctionalState NewState);
+void UART_IrDACmd(LPC_UART_TypeDef* UARTx, FunctionalState NewState);
+void UART_IrDAPulseDivConfig(LPC_UART_TypeDef *UARTx, UART_IrDA_PULSE_Type PulseDiv);
+void UART_IntConfig(LPC_UART_TypeDef *UARTx, UART_INT_Type UARTIntCfg, \
 				FunctionalState NewState);
-uint8_t UART_GetLineStatus(UART_TypeDef* UARTx);
-FlagStatus UART_CheckBusy(UART_TypeDef *UARTx);
-void UART_FIFOConfig(UART_TypeDef *UARTx, UART_FIFO_CFG_Type *FIFOCfg);
+uint8_t UART_GetLineStatus(LPC_UART_TypeDef* UARTx);
+FlagStatus UART_CheckBusy(LPC_UART_TypeDef *UARTx);
+void UART_FIFOConfig(LPC_UART_TypeDef *UARTx, UART_FIFO_CFG_Type *FIFOCfg);
 void UART_FIFOConfigStructInit(UART_FIFO_CFG_Type *UART_FIFOInitStruct);
-void UART_ABCmd(UART_TypeDef *UARTx, UART_AB_CFG_Type *ABConfigStruct, \
+void UART_ABCmd(LPC_UART_TypeDef *UARTx, UART_AB_CFG_Type *ABConfigStruct, \
 				FunctionalState NewState);
-void UART_TxCmd(UART_TypeDef *UARTx, FunctionalState NewState);
-void UART_FullModemForcePinState(UART1_TypeDef *UARTx, UART_MODEM_PIN_Type Pin, \
+void UART_TxCmd(LPC_UART_TypeDef *UARTx, FunctionalState NewState);
+void UART_FullModemForcePinState(LPC_UART1_TypeDef *UARTx, UART_MODEM_PIN_Type Pin, \
 							UART1_SignalState NewState);
-void UART_FullModemConfigMode(UART1_TypeDef *UARTx, UART_MODEM_MODE_Type Mode, \
+void UART_FullModemConfigMode(LPC_UART1_TypeDef *UARTx, UART_MODEM_MODE_Type Mode, \
 							FunctionalState NewState);
-uint8_t UART_FullModemGetStatus(UART1_TypeDef *UARTx);
-void UART_RS485Config(UART1_TypeDef *UARTx, \
+uint8_t UART_FullModemGetStatus(LPC_UART1_TypeDef *UARTx);
+void UART_RS485Config(LPC_UART1_TypeDef *UARTx, \
 		UART1_RS485_CTRLCFG_Type *RS485ConfigStruct);
-void UART_RS485ReceiverCmd(UART1_TypeDef *UARTx, FunctionalState NewState);
-void UART_RS485SendSlvAddr(UART1_TypeDef *UARTx, uint8_t SlvAddr);
-uint32_t UART_RS485SendData(UART1_TypeDef *UARTx, uint8_t *pData, uint32_t size);
-uint32_t UART_Send(UART_TypeDef *UARTx, uint8_t *txbuf,
+void UART_RS485ReceiverCmd(LPC_UART1_TypeDef *UARTx, FunctionalState NewState);
+void UART_RS485SendSlvAddr(LPC_UART1_TypeDef *UARTx, uint8_t SlvAddr);
+uint32_t UART_RS485SendData(LPC_UART1_TypeDef *UARTx, uint8_t *pData, uint32_t size);
+uint32_t UART_Send(LPC_UART_TypeDef *UARTx, uint8_t *txbuf,
 		uint32_t buflen, TRANSFER_BLOCK_Type flag);
-uint32_t UART_Receive(UART_TypeDef *UARTx, uint8_t *rxbuf, \
+uint32_t UART_Receive(LPC_UART_TypeDef *UARTx, uint8_t *rxbuf, \
 		uint32_t buflen, TRANSFER_BLOCK_Type flag);
-void UART_SetupCbs(UART_TypeDef *UARTx, uint8_t CbType, void *pfnCbs);
+void UART_SetupCbs(LPC_UART_TypeDef *UARTx, uint8_t CbType, void *pfnCbs);
 void UART0_StdIntHandler(void);
 void UART1_StdIntHandler(void);
 void UART2_StdIntHandler(void);

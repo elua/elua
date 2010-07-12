@@ -4,7 +4,7 @@
  * @version	: 1.0
  * @date	: 3. April. 2009
  * @author	: NgaDinh
- *----------------------------------------------------------------------------
+ **************************************************************************
  * Software that is described herein is for illustrative purposes only
  * which provides customers with programming information regarding the
  * products. This software is supplied "AS IS" without any warranties.
@@ -44,17 +44,17 @@
  * @{
  */
 
-/**
+/*********************************************************************//**
  * @brief 		Initial for ADC
  * 					- Set bit PCADC
  * 					- Set clock for ADC
  * 					- Set Clock Frequency
  *
- * @param[in]	ADCx pointer to ADC_TypeDef
+ * @param[in]	ADCx pointer to LPC_ADC_TypeDef
  * @param[in]	ConvFreq Clock frequency
  * @return 		None
- */
-void ADC_Init(ADC_TypeDef *ADCx, uint32_t ConvFreq)
+ **********************************************************************/
+void ADC_Init(LPC_ADC_TypeDef *ADCx, uint32_t ConvFreq)
 
 {
 	uint32_t temp, tmp;
@@ -80,13 +80,12 @@ void ADC_Init(ADC_TypeDef *ADCx, uint32_t ConvFreq)
 }
 
 
-/**
+/*********************************************************************//**
 * @brief 		Close ADC
 * @param[in]	ADCx pointer to ADC
 * @return 		None
-*
- *********************************************************************/
-void 		ADC_DeInit(ADC_TypeDef *ADCx)
+**********************************************************************/
+void 		ADC_DeInit(LPC_ADC_TypeDef *ADCx)
 {
 	CHECK_PARAM(PARAM_ADCx(ADCx));
 
@@ -97,39 +96,39 @@ void 		ADC_DeInit(ADC_TypeDef *ADCx)
 }
 
 
-/**
+/*********************************************************************//**
 * @brief 		Get Result conversion from A/D data register
 * @param[in]	channel number which want to read back the result
 * @return 		Result of conversion
- *********************************************************************/
+*********************************************************************/
 uint32_t ADC_GetData(uint32_t channel)
 {
 	uint32_t adc_value;
 
 	CHECK_PARAM(PARAM_ADC_CHANNEL_SELECTION(channel));
 
-	adc_value = *(uint32_t *)((&ADC->ADDR0) + channel);
+	adc_value = *(uint32_t *)((&LPC_ADC->ADDR0) + channel);
 	return ADC_GDR_RESULT(adc_value);
 }
 
-/**
+/*********************************************************************//**
 * @brief 		Set start mode for ADC
-* @param[in]	ADCx pointer to ADC_TypeDef
+* @param[in]	ADCx pointer to LPC_ADC_TypeDef
 * @param[in]	start_mode Start mode choose one of modes in
 * 							'ADC_START_OPT' enumeration type definition
 * @return 		None
- *********************************************************************/
-void ADC_StartCmd(ADC_TypeDef *ADCx, uint8_t start_mode)
+*********************************************************************/
+void ADC_StartCmd(LPC_ADC_TypeDef *ADCx, uint8_t start_mode)
 {
 	CHECK_PARAM(PARAM_ADCx(ADCx));
 	CHECK_PARAM(PARAM_ADC_START_OPT(start_mode));
 
-	ADC->ADCR &= ~ADC_CR_START_MASK;
-	ADC->ADCR |=ADC_CR_START_MODE_SEL((uint32_t)start_mode);
+	ADCx->ADCR &= ~ADC_CR_START_MASK;
+	ADCx->ADCR |=ADC_CR_START_MODE_SEL((uint32_t)start_mode);
 }
 
 
-/**
+/*********************************************************************//**
 * @brief 		ADC Burst mode setting
 *
 * @param[in]	ADCx pointer to ADC
@@ -137,9 +136,8 @@ void ADC_StartCmd(ADC_TypeDef *ADCx, uint8_t start_mode)
 * 				-	1: Set Burst mode
 * 				-	0: reset Burst mode
 * @return 		None
-*
- *********************************************************************/
-void ADC_BurstCmd(ADC_TypeDef *ADCx, FunctionalState NewState)
+**********************************************************************/
+void ADC_BurstCmd(LPC_ADC_TypeDef *ADCx, FunctionalState NewState)
 {
 	CHECK_PARAM(PARAM_ADCx(ADCx));
 
@@ -150,7 +148,7 @@ void ADC_BurstCmd(ADC_TypeDef *ADCx, FunctionalState NewState)
 
 }
 
-/**
+/*********************************************************************//**
 * @brief 		Set AD conversion in power mode
 *
 * @param[in]	ADCx pointer to ADC
@@ -158,9 +156,8 @@ void ADC_BurstCmd(ADC_TypeDef *ADCx, FunctionalState NewState)
 * 				-	1: AD converter is optional
 * 				-	0: AD Converter is in power down mode
 * @return 		None
-*
- *********************************************************************/
-void ADC_PowerdownCmd(ADC_TypeDef *ADCx, FunctionalState NewState)
+**********************************************************************/
+void ADC_PowerdownCmd(LPC_ADC_TypeDef *ADCx, FunctionalState NewState)
 {
 	CHECK_PARAM(PARAM_ADCx(ADCx));
 
@@ -170,7 +167,7 @@ void ADC_PowerdownCmd(ADC_TypeDef *ADCx, FunctionalState NewState)
 	}
 }
 
-/**
+/*********************************************************************//**
 * @brief 		Set Edge start configuration
 *
 * @param[in]	ADCx pointer to ADC
@@ -179,9 +176,8 @@ void ADC_PowerdownCmd(ADC_TypeDef *ADCx, FunctionalState NewState)
 * 					1:ADC_START_ON_FALLING
 *
 * @return 		None
-*
- *********************************************************************/
-void ADC_EdgeStartConfig(ADC_TypeDef *ADCx, uint8_t EdgeOption)
+**********************************************************************/
+void ADC_EdgeStartConfig(LPC_ADC_TypeDef *ADCx, uint8_t EdgeOption)
 {
 	CHECK_PARAM(PARAM_ADCx(ADCx));
 	CHECK_PARAM(PARAM_ADC_START_ON_EDGE_OPT(EdgeOption));
@@ -192,7 +188,7 @@ void ADC_EdgeStartConfig(ADC_TypeDef *ADCx, uint8_t EdgeOption)
 	}
 }
 
-/**
+/*********************************************************************//**
 * @brief 		ADC interrupt configuration
 * @param[in]	ADCx pointer to ADC
 * @param[in]	IntType
@@ -201,9 +197,8 @@ void ADC_EdgeStartConfig(ADC_TypeDef *ADCx, uint8_t EdgeOption)
 * 					- RESET: disable ADC interrupt
 *
 * @return 		None
-*
- *********************************************************************/
-void ADC_IntConfig (ADC_TypeDef *ADCx, ADC_TYPE_INT_OPT IntType, FunctionalState NewState)
+**********************************************************************/
+void ADC_IntConfig (LPC_ADC_TypeDef *ADCx, ADC_TYPE_INT_OPT IntType, FunctionalState NewState)
 {
 	CHECK_PARAM(PARAM_ADCx(ADCx));
 	CHECK_PARAM(PARAM_ADC_TYPE_INT_OPT(IntType));
@@ -214,16 +209,15 @@ void ADC_IntConfig (ADC_TypeDef *ADCx, ADC_TYPE_INT_OPT IntType, FunctionalState
 	}
 }
 
-/**
+/*********************************************************************//**
 * @brief 		Enable/Disable ADC channel number
 * @param[in]	ADCx pointer to ADC
 * @param[in]	Channel channel number
 * @param[in]	NewState Enable or Disable
 *
 * @return 		None
-*
- *********************************************************************/
-void ADC_ChannelCmd (ADC_TypeDef *ADCx, uint8_t Channel, FunctionalState NewState)
+**********************************************************************/
+void ADC_ChannelCmd (LPC_ADC_TypeDef *ADCx, uint8_t Channel, FunctionalState NewState)
 {
 	CHECK_PARAM(PARAM_ADCx(ADCx));
 	CHECK_PARAM(PARAM_ADC_CHANNEL_SELECTION(Channel));
@@ -235,14 +229,13 @@ void ADC_ChannelCmd (ADC_TypeDef *ADCx, uint8_t Channel, FunctionalState NewStat
 	}
 }
 
-/**
+/*********************************************************************//**
 * @brief 		Get ADC result
 * @param[in]	ADCx pointer to ADC
 * @param[in]	channel channel number
 * @return 		Data conversion
-*
- *********************************************************************/
-uint16_t ADC_ChannelGetData(ADC_TypeDef *ADCx, uint8_t channel)
+**********************************************************************/
+uint16_t ADC_ChannelGetData(LPC_ADC_TypeDef *ADCx, uint8_t channel)
 {
 	uint32_t adc_value;
 
@@ -253,7 +246,7 @@ uint16_t ADC_ChannelGetData(ADC_TypeDef *ADCx, uint8_t channel)
 	return ADC_DR_RESULT(adc_value);
 }
 
-/**
+/*********************************************************************//**
 * @brief 		Get ADC Chanel status from ADC data register
 * @param[in]	ADCx pointer to ADC
 * @param[in]	channel channel number
@@ -261,9 +254,8 @@ uint16_t ADC_ChannelGetData(ADC_TypeDef *ADCx, uint8_t channel)
 *              		 	0:Burst status
 *               		1:Done 	status
 * @return 		SET / RESET
-*
- *********************************************************************/
-FlagStatus ADC_ChannelGetStatus(ADC_TypeDef *ADCx, uint8_t channel, uint32_t StatusType)
+**********************************************************************/
+FlagStatus ADC_ChannelGetStatus(LPC_ADC_TypeDef *ADCx, uint8_t channel, uint32_t StatusType)
 {
 	uint32_t temp;
 
@@ -285,14 +277,13 @@ FlagStatus ADC_ChannelGetStatus(ADC_TypeDef *ADCx, uint8_t channel, uint32_t Sta
 
 }
 
-/**
+/*********************************************************************//**
 * @brief 		Get ADC Data from AD Global register
 * @param[in]	ADCx pointer to ADC
 * @param[in]	channel channel number
 * @return 		Result of conversion
-*
- *********************************************************************/
-uint16_t ADC_GlobalGetData(ADC_TypeDef *ADCx, uint8_t channel)
+**********************************************************************/
+uint16_t ADC_GlobalGetData(LPC_ADC_TypeDef *ADCx, uint8_t channel)
 {
 	CHECK_PARAM(PARAM_ADCx(ADCx));
 	CHECK_PARAM(PARAM_ADC_CHANNEL_SELECTION(channel));
@@ -302,16 +293,15 @@ uint16_t ADC_GlobalGetData(ADC_TypeDef *ADCx, uint8_t channel)
 	return (uint16_t)(ADC_GDR_RESULT(ADCx->ADGDR));
 }
 
-/**
+/*********************************************************************//**
 * @brief 		Get ADC Chanel status from AD global data register
 * @param[in]	ADCx pointer to ADC
 * @param[in]  	StatusType
 *              		 	0:Burst status
 *               		1:Done 	status
 * @return 		SET / RESET
-*
- *********************************************************************/
-FlagStatus	ADC_GlobalGetStatus(ADC_TypeDef *ADCx, uint32_t StatusType)
+**********************************************************************/
+FlagStatus	ADC_GlobalGetStatus(LPC_ADC_TypeDef *ADCx, uint32_t StatusType)
 {
 	uint32_t temp;
 

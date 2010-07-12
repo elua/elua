@@ -209,7 +209,7 @@ typedef struct {
  */
 
 /** Macro to determine if it is valid SPI port number */
-#define PARAM_SPIx(n)	(((uint32_t *)n)==((uint32_t *)SPI))
+#define PARAM_SPIx(n)	(((uint32_t *)n)==((uint32_t *)LPC_SPI))
 
 /*********************************************************************//**
  * SPI configuration parameter defines
@@ -245,10 +245,10 @@ typedef struct {
 #define SPI_DATABIT_14		SPI_SPCR_BITS(0x0E) 	/*!< Databit number = 14 */
 #define SPI_DATABIT_15		SPI_SPCR_BITS(0x0F) 	/*!< Databit number = 15 */
 #define PARAM_SPI_DATABIT(n)	((n==SPI_DATABIT_16) || (n==SPI_DATABIT_8) \
-							|| (n==SPI_DATABIT_9) || (n==SPI_DATABIT_10) \
-							|| (n==SPI_DATABIT_11) || (n==SPI_DATABIT_12) \
-							|| (n==SPI_DATABIT_13) || (n==SPI_DATABIT_14) \
-							|| (n==SPI_DATABIT_15))
+|| (n==SPI_DATABIT_9) || (n==SPI_DATABIT_10) \
+|| (n==SPI_DATABIT_11) || (n==SPI_DATABIT_12) \
+|| (n==SPI_DATABIT_13) || (n==SPI_DATABIT_14) \
+|| (n==SPI_DATABIT_15))
 
 
 /*********************************************************************//**
@@ -265,8 +265,8 @@ typedef struct {
 /** SPI transfer complete flag */
 #define SPI_STAT_SPIF		SPI_SPSR_SPIF
 #define PARAM_SPI_STAT(n)	((n==SPI_STAT_ABRT) || (n==SPI_STAT_MODF) \
-						|| (n==SPI_STAT_ROVR) || (n==SPI_STAT_WCOL) \
-						|| (n==SPI_STAT_SPIF))
+|| (n==SPI_STAT_ROVR) || (n==SPI_STAT_WCOL) \
+|| (n==SPI_STAT_SPIF))
 
 
 /* SPI Status Implementation definitions */
@@ -283,17 +283,17 @@ typedef struct {
  * @{
  */
 
-void SPI_SetClock (SPI_TypeDef *SPIx, uint32_t target_clock);
-void SPI_DeInit(SPI_TypeDef *SPIx);
-void SPI_Init(SPI_TypeDef *SPIx, SPI_CFG_Type *SPI_ConfigStruct);
+void SPI_SetClock (LPC_SPI_TypeDef *SPIx, uint32_t target_clock);
+void SPI_DeInit(LPC_SPI_TypeDef *SPIx);
+void SPI_Init(LPC_SPI_TypeDef *SPIx, SPI_CFG_Type *SPI_ConfigStruct);
 void SPI_ConfigStructInit(SPI_CFG_Type *SPI_InitStruct);
-void SPI_SendData(SPI_TypeDef *SPIx, uint16_t Data);
-uint16_t SPI_ReceiveData(SPI_TypeDef *SPIx);
-int32_t SPI_ReadWrite (SPI_TypeDef *SPIx, SPI_DATA_SETUP_Type *dataCfg, SPI_TRANSFER_Type xfType);
-void SPI_IntCmd(SPI_TypeDef *SPIx, FunctionalState NewState);
-IntStatus SPI_GetIntStatus (SPI_TypeDef *SPIx);
-void SPI_ClearIntPending(SPI_TypeDef *SPIx);
-uint32_t SPI_GetStatus(SPI_TypeDef *SPIx);
+void SPI_SendData(LPC_SPI_TypeDef *SPIx, uint16_t Data);
+uint16_t SPI_ReceiveData(LPC_SPI_TypeDef *SPIx);
+int32_t SPI_ReadWrite (LPC_SPI_TypeDef *SPIx, SPI_DATA_SETUP_Type *dataCfg, SPI_TRANSFER_Type xfType);
+void SPI_IntCmd(LPC_SPI_TypeDef *SPIx, FunctionalState NewState);
+IntStatus SPI_GetIntStatus (LPC_SPI_TypeDef *SPIx);
+void SPI_ClearIntPending(LPC_SPI_TypeDef *SPIx);
+uint32_t SPI_GetStatus(LPC_SPI_TypeDef *SPIx);
 FlagStatus SPI_CheckStatus (uint32_t inputSPIStatus,  uint8_t SPIStatus);
 void SPI_StdIntHandler(void);
 

@@ -103,16 +103,14 @@ typedef enum {
 	WDT_CLKSRC_PCLK = 1, /*!< Selects the APB peripheral clock (PCLK) */
 	WDT_CLKSRC_RTC = 2 /*!< Selects the RTC oscillator */
 } WDT_CLK_OPT;
-#define PARAM_WDT_CLK_OPT(OPTION)  ((OPTION ==WDT_CLKSRC_IRC)||\
-								  (OPTION ==WDT_CLKSRC_IRC)||\
-								  (OPTION ==WDT_CLKSRC_IRC))
+#define PARAM_WDT_CLK_OPT(OPTION)  ((OPTION ==WDT_CLKSRC_IRC)||(OPTION ==WDT_CLKSRC_IRC)\
+||(OPTION ==WDT_CLKSRC_IRC))
 /** @brief WDT operation mode */
 typedef enum {
 	WDT_MODE_INT_ONLY = 0, /*!< Use WDT to generate interrupt only */
 	WDT_MODE_RESET = 1    /*!< Use WDT to generate interrupt and reset MCU */
 } WDT_MODE_OPT;
-#define PARAM_WDT_MODE_OPT(OPTION)  ((OPTION ==WDT_MODE_INT_ONLY)||\
-								  (OPTION ==WDT_MODE_RESET))
+#define PARAM_WDT_MODE_OPT(OPTION)  ((OPTION ==WDT_MODE_INT_ONLY)||(OPTION ==WDT_MODE_RESET))
 
 /**
  * @}

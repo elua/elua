@@ -280,17 +280,17 @@ typedef void (fnGPDMACbs_Type)(uint32_t channelStatus);
 #define GPDMA_CONN_MAT3_1   		((23UL)) 		/**< MAT3.1 */
 
 #define PARAM_GPDMA_CONN(n)		((n==GPDMA_CONN_SSP0_Tx) || (n==GPDMA_CONN_SSP0_Rx) \
-							|| (n==GPDMA_CONN_SSP1_Tx) || (n==GPDMA_CONN_SSP1_Rx) \
-							|| (n==GPDMA_CONN_ADC) || (n==GPDMA_CONN_I2S_Channel_0) \
-							|| (n==GPDMA_CONN_I2S_Channel_1) || (n==GPDMA_CONN_DAC) \
-							|| (n==GPDMA_CONN_UART0_Tx) || (n==GPDMA_CONN_UART0_Rx) \
-							|| (n==GPDMA_CONN_UART1_Tx) || (n==GPDMA_CONN_UART1_Rx) \
-							|| (n==GPDMA_CONN_UART2_Tx) || (n==GPDMA_CONN_UART2_Rx) \
-							|| (n==GPDMA_CONN_UART3_Tx) || (n==GPDMA_CONN_UART3_Rx) \
-							|| (n==GPDMA_CONN_MAT0_0) || (n==GPDMA_CONN_MAT0_1) \
-							|| (n==GPDMA_CONN_MAT1_0) || (n==GPDMA_CONN_MAT1_1) \
-							|| (n==GPDMA_CONN_MAT2_0) || (n==GPDMA_CONN_MAT2_1) \
-							|| (n==GPDMA_CONN_MAT3_0) || (n==GPDMA_CONN_MAT3_1))
+|| (n==GPDMA_CONN_SSP1_Tx) || (n==GPDMA_CONN_SSP1_Rx) \
+|| (n==GPDMA_CONN_ADC) || (n==GPDMA_CONN_I2S_Channel_0) \
+|| (n==GPDMA_CONN_I2S_Channel_1) || (n==GPDMA_CONN_DAC) \
+|| (n==GPDMA_CONN_UART0_Tx) || (n==GPDMA_CONN_UART0_Rx) \
+|| (n==GPDMA_CONN_UART1_Tx) || (n==GPDMA_CONN_UART1_Rx) \
+|| (n==GPDMA_CONN_UART2_Tx) || (n==GPDMA_CONN_UART2_Rx) \
+|| (n==GPDMA_CONN_UART3_Tx) || (n==GPDMA_CONN_UART3_Rx) \
+|| (n==GPDMA_CONN_MAT0_0) || (n==GPDMA_CONN_MAT0_1) \
+|| (n==GPDMA_CONN_MAT1_0) || (n==GPDMA_CONN_MAT1_1) \
+|| (n==GPDMA_CONN_MAT2_0) || (n==GPDMA_CONN_MAT2_1) \
+|| (n==GPDMA_CONN_MAT3_0) || (n==GPDMA_CONN_MAT3_1))
 
 
 /** GPDMA Transfer type definitions */
@@ -300,8 +300,8 @@ typedef void (fnGPDMACbs_Type)(uint32_t channelStatus);
 #define GPDMA_TRANSFERTYPE_P2P 		((3UL)) 	/**< Source peripheral to destination peripheral - DMA control */
 
 
-#define PARAM_GPDMA_TRANSFERTYPE(n) ((n==GPDMA_TRANSFERTYPE_M2M) || (n==GPDMA_TRANSFERTYPE_M2P) \
-							|| (n==GPDMA_TRANSFERTYPE_P2M) || (n==GPDMA_TRANSFERTYPE_P2P))
+#define PARAM_GPDMA_TRANSFERTYPE(n) ((n==GPDMA_TRANSFERTYPE_M2M)||(n==GPDMA_TRANSFERTYPE_M2P) \
+||(n==GPDMA_TRANSFERTYPE_P2M)||(n==GPDMA_TRANSFERTYPE_P2P))
 
 
 /** Burst size in Source and Destination definitions */
@@ -315,9 +315,9 @@ typedef void (fnGPDMACbs_Type)(uint32_t channelStatus);
 #define GPDMA_BSIZE_256 ((7UL)) /**< Burst size = 256 */
 
 #define PARAM_GPDMA_BSIZE(n)	((n==GPDMA_BSIZE_1) || (n==GPDMA_BSIZE_4) \
-							|| (n==GPDMA_BSIZE_8) || (n==GPDMA_BSIZE_16) \
-							|| (n==GPDMA_BSIZE_32) || (n==GPDMA_BSIZE_64) \
-							|| (n==GPDMA_BSIZE_128) || (n==GPDMA_BSIZE_256))
+|| (n==GPDMA_BSIZE_8) || (n==GPDMA_BSIZE_16) \
+|| (n==GPDMA_BSIZE_32) || (n==GPDMA_BSIZE_64) \
+|| (n==GPDMA_BSIZE_128) || (n==GPDMA_BSIZE_256))
 
 
 /** Width in Source transfer width and Destination transfer width definitions */
@@ -326,7 +326,7 @@ typedef void (fnGPDMACbs_Type)(uint32_t channelStatus);
 #define GPDMA_WIDTH_WORD 		((2UL)) /**< Width = 4 bytes */
 
 #define PARAM_GPDMA_WIDTH(n) ((n==GPDMA_WIDTH_BYTE) || (n==GPDMA_WIDTH_HALFWORD) \
-							|| (n==GPDMA_WIDTH_WORD))
+|| (n==GPDMA_WIDTH_WORD))
 
 
 /** DMA Request Select Mode definitions */
@@ -350,8 +350,8 @@ typedef void (fnGPDMACbs_Type)(uint32_t channelStatus);
 #define GPDMA_STAT_ENABLED_CH	((5UL))
 
 #define PARAM_GPDMA_STAT(n)	((n==GPDMA_STAT_INT) || (n==GPDMA_STAT_INTTC) \
-						|| (n==GPDMA_STAT_INTERR) || (n==GPDMA_STAT_RAWINTTC) \
-						|| (n==GPDMA_STAT_RAWINTERR) || (n==GPDMA_STAT_ENABLED_CH))
+|| (n==GPDMA_STAT_INTERR) || (n==GPDMA_STAT_RAWINTTC) \
+|| (n==GPDMA_STAT_RAWINTERR) || (n==GPDMA_STAT_ENABLED_CH))
 
 /** GPDMA status type definition that can be clear */
 /** GPDMA Interrupt Terminal Count Request Clear */

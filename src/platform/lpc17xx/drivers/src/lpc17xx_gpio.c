@@ -4,7 +4,7 @@
  * @version	: 1.0
  * @date	: 11. Jun. 2009
  * @author	: HieuNguyen
- *----------------------------------------------------------------------------
+ **************************************************************************
  * Software that is described herein is for illustrative purposes only
  * which provides customers with programming information regarding the
  * products. This software is supplied "AS IS" without any warranties.
@@ -39,34 +39,33 @@
 #ifdef _GPIO
 
 /* Private Functions ---------------------------------------------------------- */
-/** @defgroup GPIO_Private_Functions
+/** @addtogroup GPIO_Private_Functions
  * @{
  */
-
 /*********************************************************************//**
  * @brief		Get pointer to GPIO peripheral due to GPIO port
  * @param[in]	portNum		Port Number value, should be in range from 0 to 4.
  * @return		Pointer to GPIO peripheral
  **********************************************************************/
-static GPIO_TypeDef *GPIO_GetPointer(uint8_t portNum)
+static LPC_GPIO_TypeDef *GPIO_GetPointer(uint8_t portNum)
 {
-	GPIO_TypeDef *pGPIO = NULL;
+	LPC_GPIO_TypeDef *pGPIO = NULL;
 
 	switch (portNum) {
 	case 0:
-		pGPIO = GPIO0;
+		pGPIO = LPC_GPIO0;
 		break;
 	case 1:
-		pGPIO = GPIO1;
+		pGPIO = LPC_GPIO1;
 		break;
 	case 2:
-		pGPIO = GPIO2;
+		pGPIO = LPC_GPIO2;
 		break;
 	case 3:
-		pGPIO = GPIO3;
+		pGPIO = LPC_GPIO3;
 		break;
 	case 4:
-		pGPIO = GPIO4;
+		pGPIO = LPC_GPIO4;
 		break;
 	default:
 		break;
@@ -170,7 +169,7 @@ static GPIO_Byte_TypeDef *FIO_ByteGetPointer(uint8_t portNum)
  **********************************************************************/
 void GPIO_SetDir(uint8_t portNum, uint32_t bitValue, uint8_t dir)
 {
-	GPIO_TypeDef *pGPIO = GPIO_GetPointer(portNum);
+	LPC_GPIO_TypeDef *pGPIO = GPIO_GetPointer(portNum);
 
 	if (pGPIO != NULL) {
 		// Enable Output
@@ -201,7 +200,7 @@ void GPIO_SetDir(uint8_t portNum, uint32_t bitValue, uint8_t dir)
  **********************************************************************/
 void GPIO_SetValue(uint8_t portNum, uint32_t bitValue)
 {
-	GPIO_TypeDef *pGPIO = GPIO_GetPointer(portNum);
+	LPC_GPIO_TypeDef *pGPIO = GPIO_GetPointer(portNum);
 
 	if (pGPIO != NULL) {
 		pGPIO->FIOSET = bitValue;
@@ -224,7 +223,7 @@ void GPIO_SetValue(uint8_t portNum, uint32_t bitValue)
  **********************************************************************/
 void GPIO_ClearValue(uint8_t portNum, uint32_t bitValue)
 {
-	GPIO_TypeDef *pGPIO = GPIO_GetPointer(portNum);
+	LPC_GPIO_TypeDef *pGPIO = GPIO_GetPointer(portNum);
 
 	if (pGPIO != NULL) {
 		pGPIO->FIOCLR = bitValue;
@@ -241,7 +240,7 @@ void GPIO_ClearValue(uint8_t portNum, uint32_t bitValue)
  **********************************************************************/
 uint32_t GPIO_ReadValue(uint8_t portNum)
 {
-	GPIO_TypeDef *pGPIO = GPIO_GetPointer(portNum);
+	LPC_GPIO_TypeDef *pGPIO = GPIO_GetPointer(portNum);
 
 	if (pGPIO != NULL) {
 		return pGPIO->FIOPIN;
@@ -306,7 +305,7 @@ uint32_t FIO_ReadValue(uint8_t portNum)
  **********************************************************************/
 void FIO_SetMask(uint8_t portNum, uint32_t bitValue, uint8_t maskValue)
 {
-	GPIO_TypeDef *pFIO = GPIO_GetPointer(portNum);
+	LPC_GPIO_TypeDef *pFIO = GPIO_GetPointer(portNum);
 	if(pFIO != NULL) {
 		// Mask
 		if (maskValue){
@@ -373,8 +372,8 @@ void FIO_HalfWordSetDir(uint8_t portNum, uint8_t halfwordNum, uint16_t bitValue,
  * @param[in]	bitValue	Value that contains all bits in to set,
  * 							in range from 0 to 0xFFFF.
  * @param[in]	maskValue	Mask value contains state value for each bit:
- * 							- 0: not mask.
- * 							- 1: mask.
+ * 					- 0: not mask.
+ * 					- 1: mask.
  * @return		None
  *
  * Note:

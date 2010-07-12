@@ -4,7 +4,7 @@
  * @version	: 1.0
  * @date	: 9. April. 2009
  * @author	: HieuNguyen
- *----------------------------------------------------------------------------
+ **************************************************************************
  * Software that is described herein is for illustrative purposes only
  * which provides customers with programming information regarding the
  * products. This software is supplied "AS IS" without any warranties.
@@ -67,7 +67,7 @@ uint8_t WDT_SetTimeOut (uint8_t clk_source, uint32_t timeout)
     	// Check if it valid
     	if ((tempval >= WDT_TIMEOUT_MIN) && (tempval <= WDT_TIMEOUT_MAX))
     	{
-    		WDT->WDTC = tempval;
+    		LPC_WDT->WDTC = tempval;
     		return	SUCCESS;
     	}
 
@@ -76,38 +76,38 @@ uint8_t WDT_SetTimeOut (uint8_t clk_source, uint32_t timeout)
     case WDT_CLKSRC_PCLK:
 
     	// Get WDT clock with CCLK divider = 4
-		pclk_wdt = SystemFrequency / 4;
+		pclk_wdt = SystemCoreClock / 4;
 		// Calculate TC in WDT
 		tempval  = (((pclk_wdt) / WDT_US_INDEX) * (timeout / 4));
 
 		if ((tempval >= WDT_TIMEOUT_MIN) && (tempval <= WDT_TIMEOUT_MAX))
 		{
 			CLKPWR_SetPCLKDiv (CLKPWR_PCLKSEL_WDT, CLKPWR_PCLKSEL_CCLK_DIV_4);
-			WDT->WDTC = (uint32_t) tempval;
+			LPC_WDT->WDTC = (uint32_t) tempval;
 			return SUCCESS;
 		}
 
 		// Get WDT clock with CCLK divider = 2
-		pclk_wdt = SystemFrequency / 2;
+		pclk_wdt = SystemCoreClock / 2;
 		// Calculate TC in WDT
 		tempval  = (((pclk_wdt) / WDT_US_INDEX) * (timeout / 4));
 
 		if ((tempval >= WDT_TIMEOUT_MIN) && (tempval <= WDT_TIMEOUT_MAX))
 		{
 			CLKPWR_SetPCLKDiv (CLKPWR_PCLKSEL_WDT, CLKPWR_PCLKSEL_CCLK_DIV_2);
-			WDT->WDTC = (uint32_t) tempval;
+			LPC_WDT->WDTC = (uint32_t) tempval;
 			return	SUCCESS;
 		}
 
 		// Get WDT clock with CCLK divider = 1
-		pclk_wdt = SystemFrequency;
+		pclk_wdt = SystemCoreClock;
 		// Calculate TC in WDT
 		tempval  = (((pclk_wdt) / WDT_US_INDEX) * (timeout / 4));
 
 		if ((tempval >= WDT_TIMEOUT_MIN) && (tempval <= WDT_TIMEOUT_MAX))
 		{
 			CLKPWR_SetPCLKDiv (CLKPWR_PCLKSEL_WDT, CLKPWR_PCLKSEL_CCLK_DIV_1);
-			WDT->WDTC = (uint32_t) tempval;
+			LPC_WDT->WDTC = (uint32_t) tempval;
 			return	SUCCESS;
 		}
 		break ;
@@ -120,7 +120,7 @@ uint8_t WDT_SetTimeOut (uint8_t clk_source, uint32_t timeout)
 		// Check if it valid
 		if ((tempval >= WDT_TIMEOUT_MIN) && (tempval <= WDT_TIMEOUT_MAX))
 		{
-			WDT->WDTC = (uint32_t) tempval;
+			LPC_WDT->WDTC = (uint32_t) tempval;
 			return	SUCCESS;
 		}
 
@@ -166,51 +166,49 @@ void WDT_Init (uint32_t ClkSrc, uint32_t WDTMode)
 	CLKPWR_SetPCLKDiv (CLKPWR_PCLKSEL_WDT, CLKPWR_PCLKSEL_CCLK_DIV_4);
 
 	//Set clock source
-	WDT->WDCLKSEL &= ~WDT_WDCLKSEL_MASK;
-	WDT->WDCLKSEL |= ClkSrc;
+	LPC_WDT->WDCLKSEL &= ~WDT_WDCLKSEL_MASK;
+	LPC_WDT->WDCLKSEL |= ClkSrc;
 	//Set WDT mode
 	if (WDTMode == WDT_MODE_RESET){
-		WDT->WDMOD |= WDT_WDMOD(WDTMode);
+		LPC_WDT->WDMOD |= WDT_WDMOD(WDTMode);
 	}
 }
 
-
-/**
- * @brief		Start WDT activity with given timeout value
- * @param[in]   TimeOut WDT reset after timeout if it is not feed
- * @return		None
- */
+/*********************************************************************//**
+* @brief 		Start WDT activity with given timeout value
+* @param[in]	TimeOut WDT reset after timeout if it is not feed
+* @return 		None
+ **********************************************************************/
 void WDT_Start(uint32_t TimeOut)
 {
 	uint32_t ClkSrc;
 
-	ClkSrc = WDT->WDCLKSEL;
+	ClkSrc = LPC_WDT->WDCLKSEL;
 	ClkSrc &=WDT_WDCLKSEL_MASK;
 	WDT_SetTimeOut(ClkSrc,TimeOut);
 	//enable watchdog
-	WDT->WDMOD |= WDT_WDMOD_WDEN;
+	LPC_WDT->WDMOD |= WDT_WDMOD_WDEN;
 	WDT_Feed();
 }
 
-
 /********************************************************************//**
  * @brief 		Read WDT Time out flag
- * @param		None
+ * @param[in]	None
  * @return		Time out flag status of WDT
  *********************************************************************/
 FlagStatus WDT_ReadTimeOutFlag (void)
 {
-	return ((WDT->WDMOD & WDT_WDMOD_WDTOF) >>2);
+	return ((LPC_WDT->WDMOD & WDT_WDMOD_WDTOF) >>2);
 }
 
 /********************************************************************//**
  * @brief 		Clear WDT Time out flag
- * @param		None
+ * @param[in]	None
  * @return		None
  *********************************************************************/
 void WDT_ClrTimeOutFlag (void)
 {
-	WDT->WDMOD &=~WDT_WDMOD_WDTOF;
+	LPC_WDT->WDMOD &=~WDT_WDMOD_WDTOF;
 }
 
 /********************************************************************//**
@@ -221,7 +219,7 @@ void WDT_ClrTimeOutFlag (void)
 void WDT_UpdateTimeOut ( uint32_t TimeOut)
 {
 	uint32_t ClkSrc;
-	ClkSrc = WDT->WDCLKSEL;
+	ClkSrc = LPC_WDT->WDCLKSEL;
 	ClkSrc &=WDT_WDCLKSEL_MASK;
 	WDT_SetTimeOut(ClkSrc,TimeOut);
 	WDT_Feed();
@@ -231,7 +229,7 @@ void WDT_UpdateTimeOut ( uint32_t TimeOut)
 /********************************************************************//**
  * @brief 		After set WDTEN, call this function to start Watchdog
  * 				or reload the Watchdog timer
- * @param	None
+ * @param[in]	None
  *
  * @return		None
  *********************************************************************/
@@ -239,20 +237,20 @@ void WDT_Feed (void)
 {
 	// Disable irq interrupt
 	__disable_irq();
-	WDT->WDFEED = 0xAA;
-	WDT->WDFEED = 0x55;
+	LPC_WDT->WDFEED = 0xAA;
+	LPC_WDT->WDFEED = 0x55;
 	// Then enable irq interrupt
 	__enable_irq();
 }
 
 /********************************************************************//**
  * @brief 		Get the current value of WDT
- * @param		None
+ * @param[in]	None
  * @return		current value of WDT
  *********************************************************************/
 uint32_t WDT_GetCurrentCount(void)
 {
-	return WDT->WDTV;
+	return LPC_WDT->WDTV;
 }
 
 /**

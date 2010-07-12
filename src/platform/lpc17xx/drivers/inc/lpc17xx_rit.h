@@ -85,7 +85,7 @@ typedef struct
 
 /*************************** GLOBAL/PUBLIC MACROS ***************************/
 /** Macro to determine if it is valid RIT peripheral */
-#define PARAM_RITx(n)	(((uint32_t *)n)==((uint32_t *)RIT))
+#define PARAM_RITx(n)	(((uint32_t *)n)==((uint32_t *)LPC_RIT))
 
 /**
  * @}
@@ -97,13 +97,13 @@ typedef struct
  * @{
  */
 
-void RIT_Init(RIT_TypeDef *RITx);
-void RIT_DeInit(RIT_TypeDef *RITx);
-void RIT_TimerConfig(RIT_TypeDef *RITx, RIT_CMP_VAL *value);
-void RIT_Cmd(RIT_TypeDef *RITx, FunctionalState NewState);
-void RIT_TimerClearCmd(RIT_TypeDef *RITx, FunctionalState NewState);
-void RIT_TimerEnableOnBreakCmd(RIT_TypeDef *RITx, FunctionalState NewState);
-IntStatus RIT_GetIntStatus(RIT_TypeDef *RITx);
+void RIT_Init(LPC_RIT_TypeDef *RITx);
+void RIT_DeInit(LPC_RIT_TypeDef *RITx);
+void RIT_TimerConfig(LPC_RIT_TypeDef *RITx, RIT_CMP_VAL *value);
+void RIT_Cmd(LPC_RIT_TypeDef *RITx, FunctionalState NewState);
+void RIT_TimerClearCmd(LPC_RIT_TypeDef *RITx, FunctionalState NewState);
+void RIT_TimerEnableOnBreakCmd(LPC_RIT_TypeDef *RITx, FunctionalState NewState);
+IntStatus RIT_GetIntStatus(LPC_RIT_TypeDef *RITx);
 
 /**
  * @}

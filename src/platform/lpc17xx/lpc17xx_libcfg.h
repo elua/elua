@@ -50,6 +50,9 @@
 #define _PWM	1
 #define _PWM1	1
 
+/* ADC------------------------------- */
+#define _ADC 1
+
 /************************** GLOBAL/PUBLIC MACRO DEFINITIONS *********************************/
 
 #ifdef  DEBUG

@@ -4,7 +4,7 @@
  * @version	: 1.0
  * @date	: 7. May. 2009
  * @author	: NguyenCao
- *----------------------------------------------------------------------------
+ **************************************************************************
  * Software that is described herein is for illustrative purposes only
  * which provides customers with programming information regarding the
  * products. This software is supplied "AS IS" without any warranties.
@@ -50,7 +50,7 @@
  * @param[in]	RITx is RIT peripheral selected, should be: RIT
  * @return 		None
  *******************************************************************************/
-void RIT_Init(RIT_TypeDef *RITx)
+void RIT_Init(LPC_RIT_TypeDef *RITx)
 {
 	CHECK_PARAM(PARAM_RITx(RITx));
 	CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCRIT, ENABLE);
@@ -69,7 +69,7 @@ void RIT_Init(RIT_TypeDef *RITx)
  * @param[in]	RITx is RIT peripheral selected, should be: RIT
  * @return 		None
  *******************************************************************************/
-void RIT_DeInit(RIT_TypeDef *RITx)
+void RIT_DeInit(LPC_RIT_TypeDef *RITx)
 {
 	CHECK_PARAM(PARAM_RITx(RITx));
 
@@ -87,7 +87,7 @@ void RIT_DeInit(RIT_TypeDef *RITx)
  * @param[in]	value: pointer to RIT_CMP_VAL Structure
  * @return 		None
  *******************************************************************************/
-void RIT_TimerConfig(RIT_TypeDef *RITx, RIT_CMP_VAL *value)
+void RIT_TimerConfig(LPC_RIT_TypeDef *RITx, RIT_CMP_VAL *value)
 {
 	CHECK_PARAM(PARAM_RITx(RITx));
 
@@ -103,7 +103,7 @@ void RIT_TimerConfig(RIT_TypeDef *RITx, RIT_CMP_VAL *value)
  * 					-DISABLE: Disable Timer
  * @return 		None
  *******************************************************************************/
-void RIT_Cmd(RIT_TypeDef *RITx, FunctionalState NewState)
+void RIT_Cmd(LPC_RIT_TypeDef *RITx, FunctionalState NewState)
 {
 	CHECK_PARAM(PARAM_RITx(RITx));
 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
@@ -128,7 +128,7 @@ void RIT_Cmd(RIT_TypeDef *RITx, FunctionalState NewState)
  * 						-DISABLE: The timer will not be clear to 0
  * @return 		None
  *******************************************************************************/
-void RIT_TimerClearCmd(RIT_TypeDef *RITx, FunctionalState NewState)
+void RIT_TimerClearCmd(LPC_RIT_TypeDef *RITx, FunctionalState NewState)
 {
 	CHECK_PARAM(PARAM_RITx(RITx));
 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
@@ -151,7 +151,7 @@ void RIT_TimerClearCmd(RIT_TypeDef *RITx, FunctionalState NewState)
  * 					-DISABLE: Hardware break has no effect on the timer operation
  * @return 		None
  *******************************************************************************/
-void RIT_TimerEnableOnBreakCmd(RIT_TypeDef *RITx, FunctionalState NewState)
+void RIT_TimerEnableOnBreakCmd(LPC_RIT_TypeDef *RITx, FunctionalState NewState)
 {
 	CHECK_PARAM(PARAM_RITx(RITx));
 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
@@ -171,7 +171,7 @@ void RIT_TimerEnableOnBreakCmd(RIT_TypeDef *RITx, FunctionalState NewState)
  * @param[in]	RITx is RIT peripheral selected, should be: RIT
  * @return 		Current interrupt status, could be: SET/RESET
  *******************************************************************************/
-IntStatus RIT_GetIntStatus(RIT_TypeDef *RITx)
+IntStatus RIT_GetIntStatus(LPC_RIT_TypeDef *RITx)
 {
 	uint8_t result;
 	CHECK_PARAM(PARAM_RITx(RITx));

@@ -4,7 +4,7 @@
  * @version	: 1.0
  * @date	: 9. April. 2009
  * @author	: HieuNguyen
- *----------------------------------------------------------------------------
+ **************************************************************************
  * Software that is described herein is for illustrative purposes only
  * which provides customers with programming information regarding the
  * products. This software is supplied "AS IS" without any warranties.
@@ -54,7 +54,7 @@ typedef struct
 {
   uint32_t      txrx_setup; 						/* Transmission setup */
   int32_t		dir;								/* Current direction phase, 0 - write, 1 - read */
-  void		(*inthandler)(I2C_TypeDef *I2Cx);   	/* Transmission interrupt handler */
+  void		(*inthandler)(LPC_I2C_TypeDef *I2Cx);   	/* Transmission interrupt handler */
 } I2C_CFG_T;
 
 /**
@@ -62,17 +62,11 @@ typedef struct
  */
 
 /* Private Variables ---------------------------------------------------------- */
-/** @defgroup I2C_Private_Variables
- * @{
+/**
+ * @brief II2C driver data for I2C0, I2C1 and I2C2
  */
-
-/* I2C driver data for I2C0, I2C1 and I2C2 */
 static I2C_CFG_T i2cdat[3];
 
-
-/**
- * @}
- */
 
 
 /* Private Functions ---------------------------------------------------------- */
@@ -81,37 +75,37 @@ static I2C_CFG_T i2cdat[3];
  */
 
 /* Generate a start condition on I2C bus (in master mode only) */
-static uint32_t I2C_Start (I2C_TypeDef *I2Cx);
+static uint32_t I2C_Start (LPC_I2C_TypeDef *I2Cx);
 
 /* Generate a stop condition on I2C bus (in master mode only) */
-static void I2C_Stop (I2C_TypeDef *I2Cx);
+static void I2C_Stop (LPC_I2C_TypeDef *I2Cx);
 
 /* I2C send byte subroutine */
-static uint32_t I2C_SendByte (I2C_TypeDef *I2Cx, uint8_t databyte);
+static uint32_t I2C_SendByte (LPC_I2C_TypeDef *I2Cx, uint8_t databyte);
 
 /* I2C get byte subroutine */
-static uint32_t I2C_GetByte (I2C_TypeDef *I2Cx, uint8_t *retdat, Bool ack);
+static uint32_t I2C_GetByte (LPC_I2C_TypeDef *I2Cx, uint8_t *retdat, Bool ack);
 
 /* I2C interrupt master handler */
-void I2C_MasterHandler (I2C_TypeDef *I2Cx);
+void I2C_MasterHandler (LPC_I2C_TypeDef *I2Cx);
 
 /* I2C interrupt master handler */
-void I2C_SlaveHandler (I2C_TypeDef *I2Cx);
+void I2C_SlaveHandler (LPC_I2C_TypeDef *I2Cx);
 
 /* Enable interrupt for I2C device */
-void I2C_IntCmd (I2C_TypeDef *I2Cx, Bool NewState);
+void I2C_IntCmd (LPC_I2C_TypeDef *I2Cx, Bool NewState);
 
 /*--------------------------------------------------------------------------------*/
 
 /**
  * @brief Convert from I2C peripheral to number
  */
-static int32_t I2C_getNum(I2C_TypeDef *I2Cx){
-	if (I2Cx == I2C0) {
+static int32_t I2C_getNum(LPC_I2C_TypeDef *I2Cx){
+	if (I2Cx == LPC_I2C0) {
 		return (0);
-	} else if (I2Cx == I2C1) {
+	} else if (I2Cx == LPC_I2C1) {
 		return (1);
-	} else if (I2Cx == I2C2) {
+	} else if (I2Cx == LPC_I2C2) {
 		return (2);
 	}
 	return (-1);
@@ -125,7 +119,7 @@ static int32_t I2C_getNum(I2C_TypeDef *I2Cx){
  *     blocking: blocking or none blocking mode
  * Returns: value of I2C status register after generate a start condition
  **********************************************************************/
-static uint32_t I2C_Start (I2C_TypeDef *I2Cx)
+static uint32_t I2C_Start (LPC_I2C_TypeDef *I2Cx)
 {
 	I2Cx->I2CONCLR = I2C_I2CONCLR_SIC;
 	I2Cx->I2CONSET = I2C_I2CONSET_STA;
@@ -144,7 +138,7 @@ static uint32_t I2C_Start (I2C_TypeDef *I2Cx)
  *     I2Cx: Pointer to I2C register
  * Returns: None
  **********************************************************************/
-static void I2C_Stop (I2C_TypeDef *I2Cx)
+static void I2C_Stop (LPC_I2C_TypeDef *I2Cx)
 {
 
 	/* Make sure start bit is not active */
@@ -164,7 +158,7 @@ static void I2C_Stop (I2C_TypeDef *I2Cx)
  *     I2Cx: Pointer to I2C register
  * Returns: value of I2C status register after sending
  **********************************************************************/
-static uint32_t I2C_SendByte (I2C_TypeDef *I2Cx, uint8_t databyte)
+static uint32_t I2C_SendByte (LPC_I2C_TypeDef *I2Cx, uint8_t databyte)
 {
 	/* Make sure start bit is not active */
 	if (I2Cx->I2CONSET & I2C_I2CONSET_STA)
@@ -186,7 +180,7 @@ static uint32_t I2C_SendByte (I2C_TypeDef *I2Cx, uint8_t databyte)
  *     I2Cx: Pointer to I2C register
  * Returns: value of I2C status register after receiving
  **********************************************************************/
-static uint32_t I2C_GetByte (I2C_TypeDef *I2Cx, uint8_t *retdat, Bool ack)
+static uint32_t I2C_GetByte (LPC_I2C_TypeDef *I2Cx, uint8_t *retdat, Bool ack)
 {
 	if (ack == TRUE)
 	{
@@ -214,34 +208,34 @@ static uint32_t I2C_GetByte (I2C_TypeDef *I2Cx, uint8_t *retdat, Bool ack)
  * 							- DISABLE: disable interrupt for this I2C peripheral
  * @return 		None
  **********************************************************************/
-void I2C_IntCmd (I2C_TypeDef *I2Cx, Bool NewState)
+void I2C_IntCmd (LPC_I2C_TypeDef *I2Cx, Bool NewState)
 {
 	if (NewState)
 	{
-		if(I2Cx == I2C0)
+		if(I2Cx == LPC_I2C0)
 		{
 			NVIC_EnableIRQ(I2C0_IRQn);
 		}
-		else if (I2Cx == I2C1)
+		else if (I2Cx == LPC_I2C1)
 		{
 			NVIC_EnableIRQ(I2C1_IRQn);
 		}
-		else if (I2Cx == I2C2)
+		else if (I2Cx == LPC_I2C2)
 		{
 			NVIC_EnableIRQ(I2C2_IRQn);
 		}
 	}
 	else
 	{
-		if(I2Cx == I2C0)
+		if(I2Cx == LPC_I2C0)
 		{
 			NVIC_DisableIRQ(I2C0_IRQn);
 		}
-		else if (I2Cx == I2C1)
+		else if (I2Cx == LPC_I2C1)
 		{
 			NVIC_DisableIRQ(I2C1_IRQn);
 		}
-		else if (I2Cx == I2C2)
+		else if (I2Cx == LPC_I2C2)
 		{
 			NVIC_DisableIRQ(I2C2_IRQn);
 		}
@@ -255,7 +249,7 @@ void I2C_IntCmd (I2C_TypeDef *I2Cx, Bool NewState)
  * @param[in]	I2Cx	I2C peripheral selected, should be I2C0, I2C1 or I2C2
  * @return 		None
  **********************************************************************/
-void I2C_MasterHandler (I2C_TypeDef  *I2Cx)
+void I2C_MasterHandler (LPC_I2C_TypeDef  *I2Cx)
 {
 	int32_t tmp;
 	uint8_t returnCode;
@@ -462,7 +456,7 @@ end_stage:
  * @param[in]	I2Cx	I2C peripheral selected, should be I2C0, I2C1 or I2C2
  * @return 		None
  **********************************************************************/
-void I2C_SlaveHandler (I2C_TypeDef  *I2Cx)
+void I2C_SlaveHandler (LPC_I2C_TypeDef  *I2Cx)
 {
 	int32_t tmp;
 	uint8_t returnCode;
@@ -621,22 +615,22 @@ s_int_end:
  * @param[in]	target_clock : clock of SSP (Hz)
  * @return 		None
  ***********************************************************************/
-void I2C_SetClock (I2C_TypeDef *I2Cx, uint32_t target_clock)
+void I2C_SetClock (LPC_I2C_TypeDef *I2Cx, uint32_t target_clock)
 {
 	uint32_t temp;
 
 	CHECK_PARAM(PARAM_I2Cx(I2Cx));
 
 	// Get PCLK of I2C controller
-	if (I2Cx == I2C0)
+	if (I2Cx == LPC_I2C0)
 	{
 		temp = CLKPWR_GetPCLK (CLKPWR_PCLKSEL_I2C0) / target_clock;
 	}
-	else if (I2Cx == I2C1)
+	else if (I2Cx == LPC_I2C1)
 	{
 		temp = CLKPWR_GetPCLK (CLKPWR_PCLKSEL_I2C1) / target_clock;
 	}
-	else if (I2Cx == I2C2)
+	else if (I2Cx == LPC_I2C2)
 	{
 		temp = CLKPWR_GetPCLK (CLKPWR_PCLKSEL_I2C1) / target_clock;
 	}
@@ -653,24 +647,24 @@ void I2C_SetClock (I2C_TypeDef *I2Cx, uint32_t target_clock)
  * @param[in]	I2Cx	I2C peripheral selected, should be I2C0, I2C1 or I2C2
  * @return 		None
  **********************************************************************/
-void I2C_DeInit(I2C_TypeDef* I2Cx)
+void I2C_DeInit(LPC_I2C_TypeDef* I2Cx)
 {
 	CHECK_PARAM(PARAM_I2Cx(I2Cx));
 
 	/* Disable I2C control */
 	I2Cx->I2CONCLR = I2C_I2CONCLR_I2ENC;
 
-	if (I2Cx==I2C0)
+	if (I2Cx==LPC_I2C0)
 	{
 		/* Disable power for I2C0 module */
 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCI2C0, DISABLE);
 	}
-	else if (I2Cx==I2C1)
+	else if (I2Cx==LPC_I2C1)
 	{
 		/* Disable power for I2C1 module */
 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCI2C1, DISABLE);
 	}
-	else if (I2Cx==I2C2)
+	else if (I2Cx==LPC_I2C2)
 	{
 		/* Disable power for I2C2 module */
 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCI2C2, DISABLE);
@@ -685,11 +679,11 @@ void I2C_DeInit(I2C_TypeDef* I2Cx)
  * 				peripheral
  * @return 		None
  *********************************************************************/
-void I2C_Init(I2C_TypeDef *I2Cx, uint32_t clockrate)
+void I2C_Init(LPC_I2C_TypeDef *I2Cx, uint32_t clockrate)
 {
 	CHECK_PARAM(PARAM_I2Cx(I2Cx));
 
-	if (I2Cx==I2C0)
+	if (I2Cx==LPC_I2C0)
 	{
 		/* Set up clock and power for I2C0 module */
 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCI2C0, ENABLE);
@@ -697,7 +691,7 @@ void I2C_Init(I2C_TypeDef *I2Cx, uint32_t clockrate)
 		 * is set to FCCLK / 2 */
 		CLKPWR_SetPCLKDiv(CLKPWR_PCLKSEL_I2C0, CLKPWR_PCLKSEL_CCLK_DIV_2);
 	}
-	else if (I2Cx==I2C1)
+	else if (I2Cx==LPC_I2C1)
 	{
 		/* Set up clock and power for I2C1 module */
 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCI2C1, ENABLE);
@@ -705,7 +699,7 @@ void I2C_Init(I2C_TypeDef *I2Cx, uint32_t clockrate)
 		 * is set to FCCLK / 2 */
 		CLKPWR_SetPCLKDiv(CLKPWR_PCLKSEL_I2C1, CLKPWR_PCLKSEL_CCLK_DIV_2);
 	}
-	else if (I2Cx==I2C2)
+	else if (I2Cx==LPC_I2C2)
 	{
 		/* Set up clock and power for I2C2 module */
 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCI2C2, ENABLE);
@@ -731,7 +725,7 @@ void I2C_Init(I2C_TypeDef *I2Cx, uint32_t clockrate)
  * @param[in]	NewState New State of I2Cx peripheral's operation
  * @return 		none
  **********************************************************************/
-void I2C_Cmd(I2C_TypeDef* I2Cx, FunctionalState NewState)
+void I2C_Cmd(LPC_I2C_TypeDef* I2Cx, FunctionalState NewState)
 {
 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
 	CHECK_PARAM(PARAM_I2Cx(I2Cx));
@@ -749,6 +743,7 @@ void I2C_Cmd(I2C_TypeDef* I2Cx, FunctionalState NewState)
 
 /*********************************************************************//**
  * @brief 		Transmit and Receive data in master mode
+ * @param[in]	I2Cx			I2C peripheral selected, should be I2C0, I2C1 or I2C2
  * @param[in]	TransferCfg		Pointer to a I2C_M_SETUP_Type structure that
  * 								contains specified information about the
  * 								configuration for master transfer.
@@ -765,7 +760,7 @@ void I2C_Cmd(I2C_TypeDef* I2Cx, FunctionalState NewState)
  * transmit data pointer, receive length and receive data pointer should be set
  * corresponding.
  **********************************************************************/
-Status I2C_MasterTransferData(I2C_TypeDef *I2Cx, I2C_M_SETUP_Type *TransferCfg, \
+Status I2C_MasterTransferData(LPC_I2C_TypeDef *I2Cx, I2C_M_SETUP_Type *TransferCfg, \
 								I2C_TRANSFER_OPT_Type Opt)
 {
 	uint8_t *txdat;
@@ -949,6 +944,7 @@ error:
 
 /*********************************************************************//**
  * @brief 		Receive and Transmit data in slave mode
+ * @param[in]	I2Cx			I2C peripheral selected, should be I2C0, I2C1 or I2C2
  * @param[in]	TransferCfg		Pointer to a I2C_S_SETUP_Type structure that
  * 								contains specified information about the
  * 								configuration for master transfer.
@@ -974,7 +970,7 @@ error:
  * value.
  * - In case of writing operation (from master): slave will ignore remain data from master.
  **********************************************************************/
-Status I2C_SlaveTransferData(I2C_TypeDef *I2Cx, I2C_S_SETUP_Type *TransferCfg, \
+Status I2C_SlaveTransferData(LPC_I2C_TypeDef *I2Cx, I2C_S_SETUP_Type *TransferCfg, \
 								I2C_TRANSFER_OPT_Type Opt)
 {
 	uint8_t *txdat;
@@ -1164,7 +1160,7 @@ s_error:
 *               specified I2C slave address.
  * @return 		None
  **********************************************************************/
-void I2C_SetOwnSlaveAddr(I2C_TypeDef *I2Cx, I2C_OWNSLAVEADDR_CFG_Type *OwnSlaveAddrConfigStruct)
+void I2C_SetOwnSlaveAddr(LPC_I2C_TypeDef *I2Cx, I2C_OWNSLAVEADDR_CFG_Type *OwnSlaveAddrConfigStruct)
 {
 	uint32_t tmp;
 	CHECK_PARAM(PARAM_I2Cx(I2Cx));
@@ -1214,7 +1210,7 @@ void I2C_SetOwnSlaveAddr(I2C_TypeDef *I2Cx, I2C_OWNSLAVEADDR_CFG_Type *OwnSlaveA
  * 				- DISABLE: Disable this function.
  * @return		None
  **********************************************************************/
-void I2C_MonitorModeConfig(I2C_TypeDef *I2Cx, uint32_t MonitorCfgType, FunctionalState NewState)
+void I2C_MonitorModeConfig(LPC_I2C_TypeDef *I2Cx, uint32_t MonitorCfgType, FunctionalState NewState)
 {
 	CHECK_PARAM(PARAM_I2Cx(I2Cx));
 	CHECK_PARAM(PARAM_I2C_MONITOR_CFG(MonitorCfgType));
@@ -1239,7 +1235,7 @@ void I2C_MonitorModeConfig(I2C_TypeDef *I2Cx, uint32_t MonitorCfgType, Functiona
  * 				- DISABLE: Disable monitor mode.
  * @return		None
  **********************************************************************/
-void I2C_MonitorModeCmd(I2C_TypeDef *I2Cx, FunctionalState NewState)
+void I2C_MonitorModeCmd(LPC_I2C_TypeDef *I2Cx, FunctionalState NewState)
 {
 	CHECK_PARAM(PARAM_I2Cx(I2Cx));
 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
@@ -1267,7 +1263,7 @@ void I2C_MonitorModeCmd(I2C_TypeDef *I2Cx, FunctionalState NewState)
  * respond to the interrupt before the received data is overwritten by
  * new data.
  **********************************************************************/
-uint8_t I2C_MonitorGetDatabuffer(I2C_TypeDef *I2Cx)
+uint8_t I2C_MonitorGetDatabuffer(LPC_I2C_TypeDef *I2Cx)
 {
 	CHECK_PARAM(PARAM_I2Cx(I2Cx));
 	return ((uint8_t)(I2Cx->I2DATA_BUFFER));
@@ -1280,7 +1276,7 @@ uint8_t I2C_MonitorGetDatabuffer(I2C_TypeDef *I2Cx)
  **********************************************************************/
 void I2C0_StdIntHandler(void)
 {
-	i2cdat[0].inthandler(I2C0);
+	i2cdat[0].inthandler(LPC_I2C0);
 }
 
 /*********************************************************************//**
@@ -1290,7 +1286,7 @@ void I2C0_StdIntHandler(void)
  **********************************************************************/
 void I2C1_StdIntHandler(void)
 {
-	i2cdat[1].inthandler(I2C1);
+	i2cdat[1].inthandler(LPC_I2C1);
 }
 
 /*********************************************************************//**
@@ -1300,7 +1296,7 @@ void I2C1_StdIntHandler(void)
  **********************************************************************/
 void I2C2_StdIntHandler(void)
 {
-	i2cdat[2].inthandler(I2C2);
+	i2cdat[2].inthandler(LPC_I2C2);
 }
 
 

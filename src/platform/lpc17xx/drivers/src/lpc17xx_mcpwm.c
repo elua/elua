@@ -5,7 +5,7 @@
  * @version	: 1.0
  * @date	: 26. May. 2009
  * @author	: HieuNguyen
- *----------------------------------------------------------------------------
+ **************************************************************************
  * Software that is described herein is for illustrative purposes only
  * which provides customers with programming information regarding the
  * products. This software is supplied "AS IS" without any warranties.
@@ -50,7 +50,7 @@
  * @param[in]	MCPWMx 		Motor Control PWM peripheral selected, should be MCPWM
  * @return		None
  **********************************************************************/
-void MCPWM_Init(MCPWM_TypeDef *MCPWMx)
+void MCPWM_Init(LPC_MCPWM_TypeDef *MCPWMx)
 {
 
 	/* Turn On MCPWM PCLK */
@@ -79,7 +79,7 @@ void MCPWM_Init(MCPWM_TypeDef *MCPWMx)
 *                    			specified MCPWM channel.
  * @return		None
  **********************************************************************/
-void MCPWM_ConfigChannel(MCPWM_TypeDef *MCPWMx, uint32_t channelNum,
+void MCPWM_ConfigChannel(LPC_MCPWM_TypeDef *MCPWMx, uint32_t channelNum,
 						MCPWM_CHANNEL_CFG_Type * channelSetup)
 {
 	if ((channelNum >= 0) && (channelNum <= 2)) {
@@ -138,7 +138,7 @@ void MCPWM_ConfigChannel(MCPWM_TypeDef *MCPWMx, uint32_t channelNum,
 *                    			specified MCPWM channel.
  * @return		None
  **********************************************************************/
-void MCPWM_WriteToShadow(MCPWM_TypeDef *MCPWMx, uint32_t channelNum,
+void MCPWM_WriteToShadow(LPC_MCPWM_TypeDef *MCPWMx, uint32_t channelNum,
 								MCPWM_CHANNEL_CFG_Type *channelSetup)
 {
 	if (channelNum == 0){
@@ -164,7 +164,7 @@ void MCPWM_WriteToShadow(MCPWM_TypeDef *MCPWMx, uint32_t channelNum,
 *                    			specified MCPWM capture.
  * @return
  **********************************************************************/
-void MCPWM_ConfigCapture(MCPWM_TypeDef *MCPWMx, uint32_t channelNum,
+void MCPWM_ConfigCapture(LPC_MCPWM_TypeDef *MCPWMx, uint32_t channelNum,
 						MCPWM_CAPTURE_CFG_Type *captureConfig)
 {
 	if ((channelNum >= 0) && (channelNum <= 2)) {
@@ -202,7 +202,7 @@ void MCPWM_ConfigCapture(MCPWM_TypeDef *MCPWMx, uint32_t channelNum,
  * @param[in]	captureChannel	Capture channel number, should be in range from 0 to 2
  * @return		None
  **********************************************************************/
-void MCPWM_ClearCapture(MCPWM_TypeDef *MCPWMx, uint32_t captureChannel)
+void MCPWM_ClearCapture(LPC_MCPWM_TypeDef *MCPWMx, uint32_t captureChannel)
 {
 	MCPWMx->MCCAP_CLR = MCPWM_CAPCLR_CAP(captureChannel);
 }
@@ -213,7 +213,7 @@ void MCPWM_ClearCapture(MCPWM_TypeDef *MCPWMx, uint32_t captureChannel)
  * @param[in]	captureChannel	Capture channel number, should be in range from 0 to 2
  * @return		None
  **********************************************************************/
-uint32_t MCPWM_GetCapture(MCPWM_TypeDef *MCPWMx, uint32_t captureChannel)
+uint32_t MCPWM_GetCapture(LPC_MCPWM_TypeDef *MCPWMx, uint32_t captureChannel)
 {
 	if (captureChannel == 0){
 		return (MCPWMx->MCCR0);
@@ -238,7 +238,7 @@ uint32_t MCPWM_GetCapture(MCPWM_TypeDef *MCPWMx, uint32_t captureChannel)
 *                    		specified MCPWM count control.
  * @return		None
  **********************************************************************/
-void MCPWM_CountConfig(MCPWM_TypeDef *MCPWMx, uint32_t channelNum,
+void MCPWM_CountConfig(LPC_MCPWM_TypeDef *MCPWMx, uint32_t channelNum,
 					uint32_t countMode, MCPWM_COUNT_CFG_Type *countConfig)
 {
 	if ((channelNum >= 0) && (channelNum <= 2)) {
@@ -275,7 +275,7 @@ void MCPWM_CountConfig(MCPWM_TypeDef *MCPWMx, uint32_t channelNum,
  * 							- DISABLE: 'Start' command will not effect on channel 2
  * @return		None
  **********************************************************************/
-void MCPWM_Start(MCPWM_TypeDef *MCPWMx, uint32_t channel0,
+void MCPWM_Start(LPC_MCPWM_TypeDef *MCPWMx, uint32_t channel0,
 					uint32_t channel1, uint32_t channel2)
 {
 	uint32_t regVal = 0;
@@ -299,7 +299,7 @@ void MCPWM_Start(MCPWM_TypeDef *MCPWMx, uint32_t channel0,
  * 							- DISABLE: 'Stop' command will not effect on channel 2
  * @return		None
  **********************************************************************/
-void MCPWM_Stop(MCPWM_TypeDef *MCPWMx, uint32_t channel0,
+void MCPWM_Stop(LPC_MCPWM_TypeDef *MCPWMx, uint32_t channel0,
 		uint32_t channel1, uint32_t channel2)
 {
 	uint32_t regVal = 0;
@@ -317,7 +317,7 @@ void MCPWM_Stop(MCPWM_TypeDef *MCPWMx, uint32_t channel0,
  * 							- DISABLE.
  * @return		None
  **********************************************************************/
-void MCPWM_ACMode(MCPWM_TypeDef *MCPWMx, uint32_t acMode)
+void MCPWM_ACMode(LPC_MCPWM_TypeDef *MCPWMx, uint32_t acMode)
 {
 	if (acMode){
 		MCPWMx->MCCON_SET = MCPWM_CON_ACMODE;
@@ -339,7 +339,7 @@ void MCPWM_ACMode(MCPWM_TypeDef *MCPWMx, uint32_t acMode)
  * 									from the MCOA outputs.
  * 								- DISABLE: The MCOB outputs have the same basic
  * 									polarity as the MCOA outputs.
- * @param[in]	outputPatent	A value contains bits that enables/disables the specified
+ * @param[in]	outputPattern	A value contains bits that enables/disables the specified
  * 								output pins route to the internal MCOA0 signal, should be:
 								- MCPWM_PATENT_A0: 	 MCOA0 tracks internal MCOA0
 								- MCPWM_PATENT_B0: 	 MCOB0 tracks internal MCOA0
@@ -351,7 +351,7 @@ void MCPWM_ACMode(MCPWM_TypeDef *MCPWMx, uint32_t acMode)
  *
  * Note: all these outputPatent values above can be ORed together for using as input parameter.
  **********************************************************************/
-void MCPWM_DCMode(MCPWM_TypeDef *MCPWMx, uint32_t dcMode,
+void MCPWM_DCMode(LPC_MCPWM_TypeDef *MCPWMx, uint32_t dcMode,
 					uint32_t outputInvered, uint32_t outputPattern)
 {
 	if (dcMode){
@@ -391,7 +391,7 @@ void MCPWM_DCMode(MCPWM_TypeDef *MCPWMx, uint32_t dcMode,
  *
  * Note: all these ulIntType values above can be ORed together for using as input parameter.
  **********************************************************************/
-void MCPWM_IntConfig(MCPWM_TypeDef *MCPWMx, uint32_t ulIntType, FunctionalState NewState)
+void MCPWM_IntConfig(LPC_MCPWM_TypeDef *MCPWMx, uint32_t ulIntType, FunctionalState NewState)
 {
 	if (NewState) {
 		MCPWMx->MCINTEN_SET = ulIntType;
@@ -418,7 +418,7 @@ void MCPWM_IntConfig(MCPWM_TypeDef *MCPWMx, uint32_t ulIntType, FunctionalState 
  * @return		None
  * Note: all these ulIntType values above can be ORed together for using as input parameter.
  **********************************************************************/
-void MCPWM_IntSet(MCPWM_TypeDef *MCPWMx, uint32_t ulIntType)
+void MCPWM_IntSet(LPC_MCPWM_TypeDef *MCPWMx, uint32_t ulIntType)
 {
 	MCPWMx->MCINTFLAG_SET = ulIntType;
 }
@@ -441,7 +441,7 @@ void MCPWM_IntSet(MCPWM_TypeDef *MCPWMx, uint32_t ulIntType)
  * @return		None
  * Note: all these ulIntType values above can be ORed together for using as input parameter.
  **********************************************************************/
-void MCPWM_IntClear(MCPWM_TypeDef *MCPWMx, uint32_t ulIntType)
+void MCPWM_IntClear(LPC_MCPWM_TypeDef *MCPWMx, uint32_t ulIntType)
 {
 	MCPWMx->MCINTFLAG_CLR = ulIntType;
 }
@@ -463,7 +463,7 @@ void MCPWM_IntClear(MCPWM_TypeDef *MCPWMx, uint32_t ulIntType)
  * 							- MCPWM_INTFLAG_ABORT: Fast abort interrupt
  * @return		None
  **********************************************************************/
-FlagStatus MCPWM_GetIntStatus(MCPWM_TypeDef *MCPWMx, uint32_t ulIntType)
+FlagStatus MCPWM_GetIntStatus(LPC_MCPWM_TypeDef *MCPWMx, uint32_t ulIntType)
 {
 	return ((MCPWMx->MCINTFLAG & ulIntType) ? SET : RESET);
 }

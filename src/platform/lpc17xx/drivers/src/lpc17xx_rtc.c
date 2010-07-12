@@ -4,7 +4,7 @@
  * @version	: 1.0
  * @date	: 23. Apr. 2009
  * @author	: HieuNguyen
- *----------------------------------------------------------------------------
+ **************************************************************************
  * Software that is described herein is for illustrative purposes only
  * which provides customers with programming information regarding the
  * products. This software is supplied "AS IS" without any warranties.
@@ -51,7 +51,7 @@
  * @param[in]	RTCx	RTC peripheral selected, should be RTC
  * @return 		None
  *********************************************************************/
-void RTC_Init (RTC_TypeDef *RTCx)
+void RTC_Init (LPC_RTC_TypeDef *RTCx)
 {
 	CHECK_PARAM(PARAM_RTCx(RTCx));
 
@@ -73,7 +73,7 @@ void RTC_Init (RTC_TypeDef *RTCx)
  * @param[in]	RTCx	RTC peripheral selected, should be RTC
  * @return 		None
  **********************************************************************/
-void RTC_DeInit(RTC_TypeDef *RTCx)
+void RTC_DeInit(LPC_RTC_TypeDef *RTCx)
 {
 	CHECK_PARAM(PARAM_RTCx(RTCx));
 
@@ -87,7 +87,7 @@ void RTC_DeInit(RTC_TypeDef *RTCx)
  * @param[in]	RTCx	RTC peripheral selected, should be RTC
  * @return 		None
  **********************************************************************/
-void RTC_ResetClockTickCounter(RTC_TypeDef *RTCx)
+void RTC_ResetClockTickCounter(LPC_RTC_TypeDef *RTCx)
 {
 	CHECK_PARAM(PARAM_RTCx(RTCx));
 
@@ -103,7 +103,7 @@ void RTC_ResetClockTickCounter(RTC_TypeDef *RTCx)
  * 				- DISABLE: The time counters are disabled
  * @return 		None
  **********************************************************************/
-void RTC_Cmd (RTC_TypeDef *RTCx, FunctionalState NewState)
+void RTC_Cmd (LPC_RTC_TypeDef *RTCx, FunctionalState NewState)
 {
 	CHECK_PARAM(PARAM_RTCx(RTCx));
 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
@@ -141,7 +141,7 @@ void RTC_Cmd (RTC_TypeDef *RTCx, FunctionalState NewState)
  * 					time type are disabled
  * @return 		None
  **********************************************************************/
-void RTC_CntIncrIntConfig (RTC_TypeDef *RTCx, uint32_t CntIncrIntType, \
+void RTC_CntIncrIntConfig (LPC_RTC_TypeDef *RTCx, uint32_t CntIncrIntType, \
 								FunctionalState NewState)
 {
 	CHECK_PARAM(PARAM_RTCx(RTCx));
@@ -233,7 +233,7 @@ void RTC_CntIncrIntConfig (RTC_TypeDef *RTCx, uint32_t CntIncrIntType, \
  * 					time type are disabled
  * @return 		None
  **********************************************************************/
-void RTC_AlarmIntConfig (RTC_TypeDef *RTCx, uint32_t AlarmTimeType, \
+void RTC_AlarmIntConfig (LPC_RTC_TypeDef *RTCx, uint32_t AlarmTimeType, \
 								FunctionalState NewState)
 {
 	CHECK_PARAM(PARAM_RTCx(RTCx));
@@ -318,7 +318,7 @@ void RTC_AlarmIntConfig (RTC_TypeDef *RTCx, uint32_t AlarmTimeType, \
  * @param[in]	TimeValue Time value to set
  * @return 		None
  **********************************************************************/
-void RTC_SetTime (RTC_TypeDef *RTCx, uint32_t Timetype, uint32_t TimeValue)
+void RTC_SetTime (LPC_RTC_TypeDef *RTCx, uint32_t Timetype, uint32_t TimeValue)
 {
 	CHECK_PARAM(PARAM_RTCx(RTCx));
 	CHECK_PARAM(PARAM_RTC_TIMETYPE(Timetype));
@@ -392,7 +392,7 @@ void RTC_SetTime (RTC_TypeDef *RTCx, uint32_t Timetype, uint32_t TimeValue)
  * 				- RTC_TIMETYPE_YEAR
  * @return 		Value of time according to specified time type
  **********************************************************************/
-uint32_t RTC_GetTime(RTC_TypeDef *RTCx, uint32_t Timetype)
+uint32_t RTC_GetTime(LPC_RTC_TypeDef *RTCx, uint32_t Timetype)
 {
 	CHECK_PARAM(PARAM_RTCx(RTCx));
 	CHECK_PARAM(PARAM_RTC_TIMETYPE(Timetype));
@@ -437,7 +437,7 @@ uint32_t RTC_GetTime(RTC_TypeDef *RTCx, uint32_t Timetype)
  * 				contains time value in full.
  * @return 		None
  **********************************************************************/
-void RTC_SetFullTime (RTC_TypeDef *RTCx, RTC_TIME_Type *pFullTime)
+void RTC_SetFullTime (LPC_RTC_TypeDef *RTCx, RTC_TIME_Type *pFullTime)
 {
 	CHECK_PARAM(PARAM_RTCx(RTCx));
 
@@ -459,7 +459,7 @@ void RTC_SetFullTime (RTC_TypeDef *RTCx, RTC_TIME_Type *pFullTime)
  * 				will be stored time in full.
  * @return 		None
  **********************************************************************/
-void RTC_GetFullTime (RTC_TypeDef *RTCx, RTC_TIME_Type *pFullTime)
+void RTC_GetFullTime (LPC_RTC_TypeDef *RTCx, RTC_TIME_Type *pFullTime)
 {
 	CHECK_PARAM(PARAM_RTCx(RTCx));
 
@@ -489,7 +489,7 @@ void RTC_GetFullTime (RTC_TypeDef *RTCx, RTC_TIME_Type *pFullTime)
  * @param[in]	ALValue Alarm time value to set
  * @return 		None
  **********************************************************************/
-void RTC_SetAlarmTime (RTC_TypeDef *RTCx, uint32_t Timetype, uint32_t ALValue)
+void RTC_SetAlarmTime (LPC_RTC_TypeDef *RTCx, uint32_t Timetype, uint32_t ALValue)
 {
 	CHECK_PARAM(PARAM_RTCx(RTCx));
 
@@ -564,7 +564,7 @@ void RTC_SetAlarmTime (RTC_TypeDef *RTCx, uint32_t Timetype, uint32_t ALValue)
  * 				- RTC_TIMETYPE_YEAR
   * @return 	Value of Alarm time according to specified time type
  **********************************************************************/
-uint32_t RTC_GetAlarmTime (RTC_TypeDef *RTCx, uint32_t Timetype)
+uint32_t RTC_GetAlarmTime (LPC_RTC_TypeDef *RTCx, uint32_t Timetype)
 {
 	switch (Timetype)
 	{
@@ -606,7 +606,7 @@ uint32_t RTC_GetAlarmTime (RTC_TypeDef *RTCx, uint32_t Timetype)
  * 				contains alarm time value in full.
  * @return 		None
  **********************************************************************/
-void RTC_SetFullAlarmTime (RTC_TypeDef *RTCx, RTC_TIME_Type *pFullTime)
+void RTC_SetFullAlarmTime (LPC_RTC_TypeDef *RTCx, RTC_TIME_Type *pFullTime)
 {
 	CHECK_PARAM(PARAM_RTCx(RTCx));
 
@@ -628,7 +628,7 @@ void RTC_SetFullAlarmTime (RTC_TypeDef *RTCx, RTC_TIME_Type *pFullTime)
  * 				will be stored alarm time in full.
  * @return 		None
  **********************************************************************/
-void RTC_GetFullAlarmTime (RTC_TypeDef *RTCx, RTC_TIME_Type *pFullTime)
+void RTC_GetFullAlarmTime (LPC_RTC_TypeDef *RTCx, RTC_TIME_Type *pFullTime)
 {
 	CHECK_PARAM(PARAM_RTCx(RTCx));
 
@@ -655,7 +655,7 @@ void RTC_GetFullAlarmTime (RTC_TypeDef *RTCx, RTC_TIME_Type *pFullTime)
  * @return 		New state of specified Location interrupt in RTC peripheral
  * 				(SET or RESET)
  **********************************************************************/
-IntStatus RTC_GetIntPending (RTC_TypeDef *RTCx, uint32_t IntType)
+IntStatus RTC_GetIntPending (LPC_RTC_TypeDef *RTCx, uint32_t IntType)
 {
 	CHECK_PARAM(PARAM_RTCx(RTCx));
 	CHECK_PARAM(PARAM_RTC_INT(IntType));
@@ -674,7 +674,7 @@ IntStatus RTC_GetIntPending (RTC_TypeDef *RTCx, uint32_t IntType)
  * 						- RTC_INT_ALARM: Clear alarm interrupt pending
  * @return 		None
  **********************************************************************/
-void RTC_ClearIntPending (RTC_TypeDef *RTCx, uint32_t IntType)
+void RTC_ClearIntPending (LPC_RTC_TypeDef *RTCx, uint32_t IntType)
 {
 	CHECK_PARAM(PARAM_RTCx(RTCx));
 	CHECK_PARAM(PARAM_RTC_INT(IntType));
@@ -690,7 +690,7 @@ void RTC_ClearIntPending (RTC_TypeDef *RTCx, uint32_t IntType)
  * 				- DISABLE: The calibration counter is disabled and reset to zero
  * @return 		None
  **********************************************************************/
-void RTC_CalibCounterCmd(RTC_TypeDef *RTCx, FunctionalState NewState)
+void RTC_CalibCounterCmd(LPC_RTC_TypeDef *RTCx, FunctionalState NewState)
 {
 	CHECK_PARAM(PARAM_RTCx(RTCx));
 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
@@ -716,7 +716,7 @@ void RTC_CalibCounterCmd(RTC_TypeDef *RTCx, FunctionalState NewState)
  * 					- RTC_CALIB_DIR_BACKWARD: Backward calibration
  * @return 		None
  **********************************************************************/
-void RTC_CalibConfig(RTC_TypeDef *RTCx, uint32_t CalibValue, uint8_t CalibDir)
+void RTC_CalibConfig(LPC_RTC_TypeDef *RTCx, uint32_t CalibValue, uint8_t CalibDir)
 {
 	CHECK_PARAM(PARAM_RTCx(RTCx));
 	CHECK_PARAM(PARAM_RTC_CALIB_DIR(CalibDir));
@@ -738,7 +738,7 @@ void RTC_CalibConfig(RTC_TypeDef *RTCx, uint32_t CalibValue, uint8_t CalibDir)
  * information when the main power supply is off. The value in these
  * registers is not affected by chip reset.
  **********************************************************************/
-void RTC_WriteGPREG (RTC_TypeDef *RTCx, uint8_t Channel, uint32_t Value)
+void RTC_WriteGPREG (LPC_RTC_TypeDef *RTCx, uint8_t Channel, uint32_t Value)
 {
 	uint32_t *preg;
 
@@ -761,7 +761,7 @@ void RTC_WriteGPREG (RTC_TypeDef *RTCx, uint8_t Channel, uint32_t Value)
  * information when the main power supply is off. The value in these
  * registers is not affected by chip reset.
  **********************************************************************/
-uint32_t RTC_ReadGPREG (RTC_TypeDef *RTCx, uint8_t Channel)
+uint32_t RTC_ReadGPREG (LPC_RTC_TypeDef *RTCx, uint8_t Channel)
 {
 	uint32_t *preg;
 	uint32_t value;

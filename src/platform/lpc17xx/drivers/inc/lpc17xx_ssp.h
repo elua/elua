@@ -255,8 +255,8 @@ typedef struct {
  */
 
 /** Macro to determine if it is valid SSP port number */
-#define PARAM_SSPx(n)	((((uint32_t *)n)==((uint32_t *)SSP0)) \
-						|| (((uint32_t *)n)==((uint32_t *)SSP1)))
+#define PARAM_SSPx(n)	((((uint32_t *)n)==((uint32_t *)LPC_SSP0)) \
+|| (((uint32_t *)n)==((uint32_t *)LPC_SSP1)))
 
 /*********************************************************************//**
  * SSP configuration parameter defines
@@ -297,12 +297,12 @@ typedef struct {
 #define SSP_DATABIT_15		SSP_CR0_DSS(15) 		/*!< Databit number = 15 */
 #define SSP_DATABIT_16		SSP_CR0_DSS(16) 		/*!< Databit number = 16 */
 #define PARAM_SSP_DATABIT(n) 	((n==SSP_DATABIT_4) || (n==SSP_DATABIT_5) \
-							|| (n==SSP_DATABIT_6) || (n==SSP_DATABIT_16) \
-							|| (n==SSP_DATABIT_7) || (n==SSP_DATABIT_8) \
-							|| (n==SSP_DATABIT_9) || (n==SSP_DATABIT_10) \
-							|| (n==SSP_DATABIT_11) || (n==SSP_DATABIT_12) \
-							|| (n==SSP_DATABIT_13) || (n==SSP_DATABIT_14) \
-							|| (n==SSP_DATABIT_15))
+|| (n==SSP_DATABIT_6) || (n==SSP_DATABIT_16) \
+|| (n==SSP_DATABIT_7) || (n==SSP_DATABIT_8) \
+|| (n==SSP_DATABIT_9) || (n==SSP_DATABIT_10) \
+|| (n==SSP_DATABIT_11) || (n==SSP_DATABIT_12) \
+|| (n==SSP_DATABIT_13) || (n==SSP_DATABIT_14) \
+|| (n==SSP_DATABIT_15))
 
 /** SSP Frame Format definition */
 /** Motorola SPI mode */
@@ -312,7 +312,8 @@ typedef struct {
 /** National Micro-wire mode */
 #define SSP_FRAME_MICROWIRE	SSP_CR0_FRF_MICROWIRE
 
-#define PARAM_SSP_FRAME(n) ((n==SSP_FRAME_SPI) || (n==SSP_FRAME_TI) || (n==SSP_FRAME_MICROWIRE))
+#define PARAM_SSP_FRAME(n) ((n==SSP_FRAME_SPI) || (n==SSP_FRAME_TI)\
+|| (n==SSP_FRAME_MICROWIRE))
 
 
 /*********************************************************************//**
@@ -330,8 +331,8 @@ typedef struct {
 #define SSP_STAT_BUSY				SSP_SR_BSY
 
 #define PARAM_SSP_STAT(n) ((n==SSP_STAT_TXFIFO_EMPTY) || (n==SSP_STAT_TXFIFO_NOTFULL) \
-						|| (n==SSP_STAT_RXFIFO_NOTEMPTY) || (n==SSP_STAT_RXFIFO_FULL) \
-						|| (n==SSP_STAT_BUSY))
+|| (n==SSP_STAT_RXFIFO_NOTEMPTY) || (n==SSP_STAT_RXFIFO_FULL) \
+|| (n==SSP_STAT_BUSY))
 
 
 /*********************************************************************//**
@@ -347,7 +348,7 @@ typedef struct {
 #define SSP_INTCFG_TX		SSP_IMSC_TX
 
 #define PARAM_SSP_INTCFG(n)	((n==SSP_INTCFG_ROR) || (n==SSP_INTCFG_RT) \
-						|| (n==SSP_INTCFG_RX) || (n==SSP_INTCFG_TX))
+|| (n==SSP_INTCFG_RX) || (n==SSP_INTCFG_TX))
 
 
 /*********************************************************************//**
@@ -363,7 +364,7 @@ typedef struct {
 #define SSP_INTSTAT_TX		SSP_MIS_TX
 
 #define PARAM_SSP_INTSTAT(n) ((n==SSP_INTSTAT_ROR) || (n==SSP_INTSTAT_RT) \
-							|| (n==SSP_INTSTAT_RX) || (n==SSP_INTSTAT_TX))
+|| (n==SSP_INTSTAT_RX) || (n==SSP_INTSTAT_TX))
 
 
 /*********************************************************************//**
@@ -379,7 +380,7 @@ typedef struct {
 #define SSP_INTSTAT_RAW_TX		SSP_RIS_TX
 
 #define PARAM_SSP_INTSTAT_RAW(n)	((n==SSP_INTSTAT_RAW_ROR) || (n==SSP_INTSTAT_RAW_RT) \
-								|| (n==SSP_INTSTAT_RAW_RX) || (n==SSP_INTSTAT_RAW_TX))
+|| (n==SSP_INTSTAT_RAW_RX) || (n==SSP_INTSTAT_RAW_TX))
 
 
 /*********************************************************************//**
@@ -419,23 +420,23 @@ typedef struct {
  * @{
  */
 
-void SSP_SetClock (SSP_TypeDef *SSPx, uint32_t target_clock);
-void SSP_DeInit(SSP_TypeDef* SSPx);
-void SSP_Init(SSP_TypeDef *SSPx, SSP_CFG_Type *SSP_ConfigStruct);
+void SSP_SetClock (LPC_SSP_TypeDef *SSPx, uint32_t target_clock);
+void SSP_DeInit(LPC_SSP_TypeDef* SSPx);
+void SSP_Init(LPC_SSP_TypeDef *SSPx, SSP_CFG_Type *SSP_ConfigStruct);
 void SSP_ConfigStructInit(SSP_CFG_Type *SSP_InitStruct);
-void SSP_Cmd(SSP_TypeDef* SSPx, FunctionalState NewState);
-void SSP_LoopBackCmd(SSP_TypeDef* SSPx, FunctionalState NewState);
-void SSP_SlaveOutputCmd(SSP_TypeDef* SSPx, FunctionalState NewState);
-void SSP_SendData(SSP_TypeDef* SSPx, uint16_t Data);
-uint16_t SSP_ReceiveData(SSP_TypeDef* SSPx);
-int32_t SSP_ReadWrite (SSP_TypeDef *SSPx, SSP_DATA_SETUP_Type *dataCfg, \
+void SSP_Cmd(LPC_SSP_TypeDef* SSPx, FunctionalState NewState);
+void SSP_LoopBackCmd(LPC_SSP_TypeDef* SSPx, FunctionalState NewState);
+void SSP_SlaveOutputCmd(LPC_SSP_TypeDef* SSPx, FunctionalState NewState);
+void SSP_SendData(LPC_SSP_TypeDef* SSPx, uint16_t Data);
+uint16_t SSP_ReceiveData(LPC_SSP_TypeDef* SSPx);
+int32_t SSP_ReadWrite (LPC_SSP_TypeDef *SSPx, SSP_DATA_SETUP_Type *dataCfg, \
 						SSP_TRANSFER_Type xfType);
-FlagStatus SSP_GetStatus(SSP_TypeDef* SSPx, uint32_t FlagType);
-void SSP_IntConfig(SSP_TypeDef *SSPx, uint32_t IntType, FunctionalState NewState);
-IntStatus SSP_GetRawIntStatus(SSP_TypeDef *SSPx, uint32_t RawIntType);
-IntStatus SSP_GetIntStatus (SSP_TypeDef *SSPx, uint32_t IntType);
-void SSP_ClearIntPending(SSP_TypeDef *SSPx, uint32_t IntType);
-void SSP_DMACmd(SSP_TypeDef *SSPx, uint32_t DMAMode, FunctionalState NewState);
+FlagStatus SSP_GetStatus(LPC_SSP_TypeDef* SSPx, uint32_t FlagType);
+void SSP_IntConfig(LPC_SSP_TypeDef *SSPx, uint32_t IntType, FunctionalState NewState);
+IntStatus SSP_GetRawIntStatus(LPC_SSP_TypeDef *SSPx, uint32_t RawIntType);
+IntStatus SSP_GetIntStatus (LPC_SSP_TypeDef *SSPx, uint32_t IntType);
+void SSP_ClearIntPending(LPC_SSP_TypeDef *SSPx, uint32_t IntType);
+void SSP_DMACmd(LPC_SSP_TypeDef *SSPx, uint32_t DMAMode, FunctionalState NewState);
 void SSP0_StdIntHandler(void);
 void SSP1_StdIntHandler(void);
 

@@ -12,8 +12,10 @@
 #include <stdio.h>
 #include "utils.h"
 #include "common.h"
+#include "elua_adc.h"
 #include "platform_conf.h"
 #include "lrotable.h"
+#include "buf.h"
 
 // Platform includes
 #include "lpc17xx_gpio.h"
@@ -24,12 +26,14 @@
 #include "lpc17xx_timer.h"
 #include "lpc17xx_clkpwr.h"
 #include "lpc17xx_pwm.h"
+#include "lpc17xx_adc.h"
 
 // ****************************************************************************
 // Platform initialization
 
 static void platform_setup_timers();
 static void platform_setup_pwm();
+static void platform_setup_adcs();
 
 int platform_init()
 {
@@ -37,21 +41,21 @@ int platform_init()
   SystemInit();
   
   // DeInit NVIC and SCBNVIC
-	NVIC_DeInit();
-	NVIC_SCBDeInit();
+  NVIC_DeInit();
+  NVIC_SCBDeInit();
 	
   // Configure the NVIC Preemption Priority Bits:
   // two (2) bits of preemption priority, six (6) bits of sub-priority.
   // Since the Number of Bits used for Priority Levels is five (5), so the
   // actual bit number of sub-priority is three (3)
-	NVIC_SetPriorityGrouping(0x05);
+  NVIC_SetPriorityGrouping(0x05);
 	
-  	//  Set Vector table offset value
-  #if (__RAM_MODE__==1)
-  	NVIC_SetVTOR(0x10000000);
-  #else
-  	NVIC_SetVTOR(0x00000000);
-  #endif
+  //  Set Vector table offset value
+#if (__RAM_MODE__==1)
+  NVIC_SetVTOR(0x10000000);
+#else
+  NVIC_SetVTOR(0x00000000);
+#endif
 
   // Setup peripherals
   platform_setup_timers();
@@ -59,6 +63,11 @@ int platform_init()
 
   // Initialize console UART
   platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
+
+#ifdef BUILD_ADC
+  // Setup ADCs
+  platform_setup_adcs();
+#endif
 
   // Common platform initialization code
   cmn_platform_init();
@@ -128,27 +137,27 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 // The other UARTs have assignable Rx/Tx pins and thus have to be configured
 // by the user
 
-static const UART_TypeDef *uart[] = { UART0, UART1, UART2, UART3 };
+static LPC_UART_TypeDef *uart[] = { LPC_UART0, LPC_UART1, LPC_UART2, LPC_UART3 };
 
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )
 {
   u32 temp;
-	// UART Configuration structure variable
-	UART_CFG_Type UARTConfigStruct;
-	// UART FIFO configuration Struct variable
-	UART_FIFO_CFG_Type UARTFIFOConfigStruct;
-	// Pin configuration for UART0
-	PINSEL_CFG_Type PinCfg;
+  // UART Configuration structure variable
+  UART_CFG_Type UARTConfigStruct;
+  // UART FIFO configuration Struct variable
+  UART_FIFO_CFG_Type UARTFIFOConfigStruct;
+  // Pin configuration for UART0
+  PINSEL_CFG_Type PinCfg;
 	
-	// UART0 Pin Config
-	PinCfg.Funcnum = 1;
-	PinCfg.OpenDrain = 0;
-	PinCfg.Pinmode = 0;
-	PinCfg.Pinnum = 2;
-	PinCfg.Portnum = 0;
-	PINSEL_ConfigPin(&PinCfg);
-	PinCfg.Pinnum = 3;
-	PINSEL_ConfigPin(&PinCfg);
+  // UART0 Pin Config
+  PinCfg.Funcnum = 1;
+  PinCfg.OpenDrain = 0;
+  PinCfg.Pinmode = 0;
+  PinCfg.Pinnum = 2;
+  PinCfg.Portnum = 0;
+  PINSEL_ConfigPin(&PinCfg);
+  PinCfg.Pinnum = 3;
+  PINSEL_ConfigPin(&PinCfg);
 	
   UARTConfigStruct.Baud_rate = ( uint32_t )baud;
   
@@ -157,7 +166,7 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
     case 5:
       UARTConfigStruct.Databits = UART_DATABIT_5;
       break;
-
+      
     case 6:
       UARTConfigStruct.Databits = UART_DATABIT_6;
       break;
@@ -191,15 +200,15 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
       break;
   }
 	
-	UART_Init(uart[ id ], &UARTConfigStruct);
+  UART_Init(uart[ id ], &UARTConfigStruct);
 	
-	// Get default FIFO config and initialize
-	UART_FIFOConfigStructInit(&UARTFIFOConfigStruct);
-	UART_FIFOConfig(uart[ id ], &UARTFIFOConfigStruct);
-	
-	// Enable Transmit
-	UART_TxCmd(uart[ id ], ENABLE);
-	
+  // Get default FIFO config and initialize
+  UART_FIFOConfigStructInit(&UARTFIFOConfigStruct);
+  UART_FIFOConfig(uart[ id ], &UARTFIFOConfigStruct);
+  
+  // Enable Transmit
+  UART_TxCmd(uart[ id ], ENABLE);
+  
   return baud; // FIXME: find a way to actually get baud
 }
 
@@ -227,7 +236,7 @@ int platform_s_uart_recv( unsigned id, s32 timeout )
 // ****************************************************************************
 // Timer section
 
-static const TIM_TypeDef *tmr[] = { TIM0, TIM1, TIM2, TIM3 };
+static LPC_TIM_TypeDef *tmr[] = { LPC_TIM0, LPC_TIM1, LPC_TIM2, LPC_TIM3 };
 static const u32 tmr_pclk[] = { CLKPWR_PCLKSEL_TIMER0, CLKPWR_PCLKSEL_TIMER1, CLKPWR_PCLKSEL_TIMER2, CLKPWR_PCLKSEL_TIMER3 };
 
 // Helper function: get timer clock
@@ -244,12 +253,12 @@ static u32 platform_timer_set_clock( unsigned id, u32 clock )
   TIM_Cmd( tmr[ id ], DISABLE );
 
   // Initialize timer 0, prescale count time of 1uS
-	TIM_ConfigStruct.PrescaleOption = TIM_PRESCALE_USVAL;
-	TIM_ConfigStruct.PrescaleValue	= 1000000ULL / clock;
+  TIM_ConfigStruct.PrescaleOption = TIM_PRESCALE_USVAL;
+  TIM_ConfigStruct.PrescaleValue	= 1000000ULL / clock;
 	
   TIM_Init( tmr[ id ], TIM_TIMER_MODE, &TIM_ConfigStruct );
-	TIM_Cmd( tmr[ id ], ENABLE );
-	TIM_ResetCounter( tmr[ id ] );
+  TIM_Cmd( tmr[ id ], ENABLE );
+  TIM_ResetCounter( tmr[ id ] );
   
   return clock;
 }
@@ -265,9 +274,7 @@ static void platform_setup_timers()
   
   // Set base frequency to 1MHz, as we can't use a better resolution anyway
   for( i = 0; i < 4; i ++ )
-  {
     platform_timer_set_clock( i, 1000000ULL );
-  }
 }
 
 void platform_s_timer_delay( unsigned id, u32 delay_us )
@@ -328,6 +335,215 @@ void platform_cpu_disable_interrupts()
 }
 
 
+// *****************************************************************************
+// ADC specific functions and variables
+
+#ifdef BUILD_ADC
+
+
+// Match trigger sources for timer 1 & timer 3
+static const u32 adc_trig[] = { 0, ADC_START_ON_MAT11, 0, 0 };
+
+int platform_adc_check_timer_id( unsigned id, unsigned timer_id )
+{
+  return ( ( timer_id == 1 ) );
+}
+
+void platform_adc_stop( unsigned id )
+{  
+  elua_adc_ch_state *s = adc_get_ch_state( id );
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+    
+  s->op_pending = 0;
+  INACTIVATE_CHANNEL( d, id );
+  
+  // If there are no more active channels, stop the sequencer
+  if( d->ch_active == 0 && d->running == 1 )
+  {
+    d->running = 0;
+    NVIC_DisableIRQ( ADC_IRQn );
+  }
+}
+
+// Handle ADC interrupts
+// NOTE: This could probably be less complicated...
+void ADC_IRQHandler(void)
+{
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  elua_adc_ch_state *s = d->ch_state[ d->seq_ctr ];
+  int i;
+  
+  // Disable sampling & current sequence channel
+  ADC_StartCmd( LPC_ADC, 0 );
+  ADC_ChannelCmd( LPC_ADC, s->id, DISABLE );
+  ADC_IntConfig( LPC_ADC, s->id, DISABLE );
+
+  if ( ADC_ChannelGetStatus( LPC_ADC, s->id, ADC_DATA_DONE ) )
+  { 
+    d->sample_buf[ d->seq_ctr ] = ( u16 )ADC_ChannelGetData( LPC_ADC, s->id );
+    s->value_fresh = 1;
+            
+    if ( s->logsmoothlen > 0 && s->smooth_ready == 0)
+      adc_smooth_data( s->id );
+#if defined( BUF_ENABLE_ADC )
+    else if ( s->reqsamples > 1 )
+    {
+      buf_write( BUF_ID_ADC, s->id, ( t_buf_data* )s->value_ptr );
+      s->value_fresh = 0;
+    }
+#endif
+        
+    if ( adc_samples_available( s->id ) >= s->reqsamples && s->freerunning == 0 )
+      platform_adc_stop( s->id );      
+  }
+    
+  // Set up for next channel acquisition if we're still running
+  if( d->running == 1 )
+  {
+    // Prep next channel in sequence, if applicable
+    if( d->seq_ctr < ( d->seq_len - 1 ) )
+      d->seq_ctr++;
+    else if( d->seq_ctr == ( d->seq_len - 1 ) )
+    { 
+      adc_update_dev_sequence( 0 );
+      d->seq_ctr = 0; // reset sequence counter if on last sequence entry
+    }
+          
+    ADC_ChannelCmd( LPC_ADC, d->ch_state[ d->seq_ctr ]->id, ENABLE );
+    ADC_IntConfig( LPC_ADC, d->ch_state[ d->seq_ctr ]->id, ENABLE );
+         
+    if( d->clocked == 1  && d->seq_ctr == 0 ) // always use clock for first in clocked sequence
+      ADC_StartCmd( LPC_ADC, adc_trig[ d->timer_id ] );
+
+    // Start next conversion if unclocked or if clocked and sequence index > 0
+    if( ( d->clocked == 1 && d->seq_ctr > 0 ) || d->clocked == 0 )
+      ADC_StartCmd( LPC_ADC, ADC_START_NOW );
+  }
+}
+
+
+static void platform_setup_adcs()
+{
+  unsigned id;
+  
+  for( id = 0; id < NUM_ADC; id ++ )
+    adc_init_ch_state( id );
+  
+  NVIC_SetPriority(ADC_IRQn, ((0x01<<3)|0x01));
+
+  ADC_Init(LPC_ADC, 13000000);
+  
+  // Default enables CH0, disable channel
+  ADC_ChannelCmd( LPC_ADC, 0, DISABLE );
+  
+  // Default enables ADC interrupt only on global, switch to per-channel
+  ADC_IntConfig( LPC_ADC, ADC_ADGINTEN, DISABLE );
+    
+  platform_adc_setclock( 0, 0 );
+}
+
+
+// NOTE: On this platform, there is only one ADC, clock settings apply to the whole device
+u32 platform_adc_setclock( unsigned id, u32 frequency )
+{
+  TIM_TIMERCFG_Type TIM_ConfigStruct;
+  TIM_MATCHCFG_Type TIM_MatchConfigStruct ;
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+
+  if ( frequency > 0 )
+  {
+    d->clocked = 1;
+    
+    // Max Sampling Rate on LPC1768 is 200 kS/s
+    if ( frequency > 200000 )
+      frequency = 200000;
+        
+    // Run timer at 1MHz
+    TIM_ConfigStruct.PrescaleOption = TIM_PRESCALE_USVAL;
+    TIM_ConfigStruct.PrescaleValue	= 1;
+    
+    TIM_MatchConfigStruct.MatchChannel = 1;
+    TIM_MatchConfigStruct.IntOnMatch   = FALSE;
+    TIM_MatchConfigStruct.ResetOnMatch = TRUE;
+    TIM_MatchConfigStruct.StopOnMatch  = FALSE;
+    TIM_MatchConfigStruct.ExtMatchOutputType = TIM_EXTMATCH_TOGGLE;
+    // Set match value to period (in uS) associated with frequency
+    TIM_MatchConfigStruct.MatchValue   = ( 1000000ULL / ( frequency * 2 ) ) - 1;
+        
+    frequency = 1000000ULL / (TIM_MatchConfigStruct.MatchValue + 1);
+  	
+    // Set configuration for Tim_config and Tim_MatchConfig
+    TIM_Init( tmr[ d->timer_id ], TIM_TIMER_MODE, &TIM_ConfigStruct );
+    TIM_ConfigMatch( tmr[ d->timer_id ], &TIM_MatchConfigStruct );
+    TIM_ResetCounter( tmr[ d->timer_id ] );
+  }
+  else
+    d->clocked = 0;
+    
+  return frequency;
+}
+
+static const u8 adc_ports[] = {  0, 0,   0,  0,  1,  1, 0, 0 };
+static const u8 adc_pins[] =  { 23, 24, 25, 26, 30, 31, 3, 2 };
+static const u8 adc_funcs[] = {  1,  1,  1,  1,  3,  3, 2, 2 };
+
+// Prepare Hardware Channel
+int platform_adc_update_sequence( )
+{ 
+  elua_adc_dev_state *d = adc_get_dev_state( 0 ); 
+  PINSEL_CFG_Type PinCfg;
+  u8 seq_tmp;
+  unsigned id;
+  
+  // Enable Needed Pins
+  PinCfg.OpenDrain = 0;
+  PinCfg.Pinmode = 0;
+  
+  for( seq_tmp = 0; seq_tmp < d->seq_len; seq_tmp++ )
+  {
+    id = d->ch_state[ seq_tmp ]->id;
+       
+    PinCfg.Funcnum = adc_funcs[ id ];
+    PinCfg.Pinnum = adc_pins[ id ];
+    PinCfg.Portnum = adc_ports[ id ];
+    PINSEL_ConfigPin(&PinCfg);
+  }
+  
+  return PLATFORM_OK;
+}
+
+
+int platform_adc_start_sequence()
+{ 
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  
+  if( d->running != 1 )
+  {
+    adc_update_dev_sequence( 0 );
+    
+    // Start sampling on first channel
+    d->seq_ctr = 0;
+    ADC_ChannelCmd( LPC_ADC, d->ch_state[ d->seq_ctr ]->id, ENABLE );
+    ADC_IntConfig( LPC_ADC, d->ch_state[ d->seq_ctr ]->id, ENABLE );
+
+    d->running = 1;
+    NVIC_EnableIRQ( ADC_IRQn );
+    
+    if( d->clocked == 1 )
+    {
+      ADC_StartCmd( LPC_ADC, adc_trig[ d->timer_id ] );
+      TIM_ResetCounter( tmr[ d->timer_id ] );
+      TIM_Cmd( tmr[ d->timer_id ], ENABLE );
+    }
+    else
+      ADC_StartCmd( LPC_ADC, ADC_START_NOW );
+  }
+  
+  return PLATFORM_OK;
+}
+
+#endif // ifdef BUILD_ADC
+
 
 // ****************************************************************************
 // PWM functions
@@ -336,7 +552,7 @@ void platform_cpu_disable_interrupts()
 // Helper function: get timer clock
 static u32 platform_pwm_get_clock( unsigned id )
 {
-  return CLKPWR_GetPCLK( CLKPWR_PCLKSEL_PWM1 ) / ( PWM1->PR + 1 );
+  return CLKPWR_GetPCLK( CLKPWR_PCLKSEL_PWM1 ) / ( LPC_PWM1->PR + 1 );
 }
 
 // Helper function: set timer clock
@@ -346,7 +562,7 @@ static u32 platform_pwm_set_clock( unsigned id, u32 clock )
   
   PWMCfgDat.PrescaleOption = PWM_TIMER_PRESCALE_USVAL;
 	PWMCfgDat.PrescaleValue = 1000000ULL / clock;
-	PWM_Init(PWM1, PWM_MODE_TIMER, &PWMCfgDat);
+	PWM_Init(LPC_PWM1, PWM_MODE_TIMER, &PWMCfgDat);
 	
   return clock;
 }
@@ -357,14 +573,14 @@ static void platform_setup_pwm()
   PWM_MATCHCFG_Type PWMMatchCfgDat;
   
   // Keep clock in reset, set PWM code
-  PWM_ResetCounter(PWM1);
+  PWM_ResetCounter(LPC_PWM1);
   
   // Set match mode (reset on MR0 match)
   PWMMatchCfgDat.IntOnMatch = DISABLE;
 	PWMMatchCfgDat.MatchChannel = 0;
 	PWMMatchCfgDat.ResetOnMatch = ENABLE;
 	PWMMatchCfgDat.StopOnMatch = DISABLE;
-	PWM_ConfigMatch(PWM1, &PWMMatchCfgDat);
+	PWM_ConfigMatch(LPC_PWM1, &PWMMatchCfgDat);
 
   // Set base frequency to 1MHz
   platform_pwm_set_clock( 0, 1000000 );
@@ -375,22 +591,22 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
   PWM_MATCHCFG_Type PWMMatchCfgDat;
   u32 divisor = platform_pwm_get_clock( id ) / frequency - 1;
     
-  PWM_MatchUpdate(PWM1, 0, divisor, PWM_MATCH_UPDATE_NOW); // PWM1 cycle rate
-  PWM_MatchUpdate(PWM1, id, ( divisor * duty ) / 100, PWM_MATCH_UPDATE_NOW); // PWM1 channel edge position
+  PWM_MatchUpdate(LPC_PWM1, 0, divisor, PWM_MATCH_UPDATE_NOW); // PWM1 cycle rate
+  PWM_MatchUpdate(LPC_PWM1, id, ( divisor * duty ) / 100, PWM_MATCH_UPDATE_NOW); // PWM1 channel edge position
   
   if ( id > 1 ) // Channel one is permanently single-edge
-    PWM_ChannelConfig( PWM1, id, PWM_CHANNEL_SINGLE_EDGE );
+    PWM_ChannelConfig( LPC_PWM1, id, PWM_CHANNEL_SINGLE_EDGE );
   
   PWMMatchCfgDat.IntOnMatch = DISABLE;
 	PWMMatchCfgDat.MatchChannel = id;
 	PWMMatchCfgDat.ResetOnMatch = DISABLE;
 	PWMMatchCfgDat.StopOnMatch = DISABLE;
-	PWM_ConfigMatch(PWM1, &PWMMatchCfgDat);
+	PWM_ConfigMatch(LPC_PWM1, &PWMMatchCfgDat);
 	
-	PWM_ResetCounter(PWM1);
-	PWM_CounterCmd(PWM1, ENABLE);
+	PWM_ResetCounter(LPC_PWM1);
+	PWM_CounterCmd(LPC_PWM1, ENABLE);
 	
-	PWM_ChannelCmd(PWM1, id, ENABLE);
+	PWM_ChannelCmd(LPC_PWM1, id, ENABLE);
 
   return platform_pwm_get_clock( id ) / divisor;
 }
@@ -402,11 +618,11 @@ u32 platform_pwm_op( unsigned id, int op, u32 data )
   switch( op )
   {
     case PLATFORM_PWM_OP_START:
-      PWM_Cmd(PWM1, ENABLE);
+      PWM_Cmd(LPC_PWM1, ENABLE);
       break;
 
     case PLATFORM_PWM_OP_STOP:
-      PWM_Cmd(PWM1, DISABLE);
+      PWM_Cmd(LPC_PWM1, DISABLE);
       break;
 
     case PLATFORM_PWM_OP_SET_CLOCK:

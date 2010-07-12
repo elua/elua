@@ -39,12 +39,12 @@ extern "C"
 
 
 /* Private Macros ------------------------------------------------------------- */
-/** @defgroup ADC_Private_Macros
+/** @defgroup ADC_Private_Macros ADC_Private_Macros
  * @{
  */
 
 
-/** @defgroup ADC_REGISTER_BIT_DEFINITIONS
+/** @defgroup group3 ADC_REGISTER_BIT_DEFINITIONS
  * @{
  */
 
@@ -218,10 +218,10 @@ typedef enum
 
 /** Macro to determine if it is valid interrupt type */
 #define PARAM_ADC_TYPE_INT_OPT(OPT) ((OPT == ADC_ADINTEN0)||(OPT == ADC_ADINTEN1)\
-										||(OPT == ADC_ADINTEN2)||(OPT == ADC_ADINTEN3)\
-										||(OPT == ADC_ADINTEN4)||(OPT == ADC_ADINTEN5)\
-										||(OPT == ADC_ADINTEN6)||(OPT == ADC_ADINTEN7)\
-										||(OPT == ADC_ADGINTEN))
+||(OPT == ADC_ADINTEN2)||(OPT == ADC_ADINTEN3)\
+||(OPT == ADC_ADINTEN4)||(OPT == ADC_ADINTEN5)\
+||(OPT == ADC_ADINTEN6)||(OPT == ADC_ADINTEN7)\
+||(OPT == ADC_ADGINTEN))
 
 
 /** @brief ADC Data  status */
@@ -234,37 +234,27 @@ typedef enum
 
 #define PARAM_ADC_START_ON_EDGE_OPT(OPT)	((OPT == ADC_START_ON_RISING)||(OPT == ADC_START_ON_FALLING))
 
-#define PARAM_ADC_DATA_STATUS(OPT) ((OPT== ADC_DATA_BURST)||(OPT== ADC_DATA_DONE))
+#define PARAM_ADC_DATA_STATUS(OPT)	((OPT== ADC_DATA_BURST)||(OPT== ADC_DATA_DONE))
 
 #define PARAM_ADC_FREQUENCY(FRE) (FRE <= 13000000 )
 
 #define PARAM_ADC_CHANNEL_SELECTION(SEL)     ((SEL == ADC_CHANNEL_0)||(ADC_CHANNEL_1)\
-												||(SEL == ADC_CHANNEL_2)|(ADC_CHANNEL_3)\
-												||(SEL == ADC_CHANNEL_4)||(ADC_CHANNEL_5)\
-												||(SEL == ADC_CHANNEL_6)||(	ADC_CHANNEL_7))
+||(SEL == ADC_CHANNEL_2)|(ADC_CHANNEL_3)\
+||(SEL == ADC_CHANNEL_4)||(ADC_CHANNEL_5)\
+||(SEL == ADC_CHANNEL_6)||(ADC_CHANNEL_7))
 
 #define PARAM_ADC_START_OPT(OPT)	((OPT == ADC_START_CONTINUOUS)||(OPT == ADC_START_NOW)\
-										||(OPT == ADC_START_ON_EINT0)||(OPT == ADC_START_ON_CAP01)\
-										||(OPT == ADC_START_ON_MAT01)||(OPT == ADC_START_ON_MAT03)\
-										||(OPT == ADC_START_ON_MAT10)||(OPT == ADC_START_ON_MAT11))
+||(OPT == ADC_START_ON_EINT0)||(OPT == ADC_START_ON_CAP01)\
+||(OPT == ADC_START_ON_MAT01)||(OPT == ADC_START_ON_MAT03)\
+||(OPT == ADC_START_ON_MAT10)||(OPT == ADC_START_ON_MAT11))
 
 #define PARAM_ADC_TYPE_INT_OPT(OPT) ((OPT == ADC_ADINTEN0)||(OPT == ADC_ADINTEN1)\
-										||(OPT == ADC_ADINTEN2)||(OPT == ADC_ADINTEN3)\
-										||(OPT == ADC_ADINTEN4)||(OPT == ADC_ADINTEN5)\
-										||(OPT == ADC_ADINTEN6)||(OPT == ADC_ADINTEN7)\
-										||(OPT == ADC_ADGINTEN))
+||(OPT == ADC_ADINTEN2)||(OPT == ADC_ADINTEN3)\
+||(OPT == ADC_ADINTEN4)||(OPT == ADC_ADINTEN5)\
+||(OPT == ADC_ADINTEN6)||(OPT == ADC_ADINTEN7)\
+||(OPT == ADC_ADGINTEN))
 
-#define PARAM_ADCx(n)	(((uint32_t *)n)==((uint32_t *)ADC))
-
-/**
- * @}
- */
-
-
-/* Public Macros -------------------------------------------------------------- */
-/** @defgroup ADC_Public_Macros
- * @{
- */
+#define PARAM_ADCx(n)	(((uint32_t *)n)==((uint32_t *)LPC_ADC))
 
 /**
  * @}
@@ -277,18 +267,18 @@ typedef enum
  * @{
  */
 
-void ADC_Init(ADC_TypeDef *ADCx, uint32_t ConvFreq);
-void ADC_DeInit(ADC_TypeDef *ADCx);
-void ADC_BurstCmd(ADC_TypeDef *ADCx, FunctionalState NewState);
-void ADC_PowerdownCmd(ADC_TypeDef *ADCx, FunctionalState NewState);
-void ADC_StartCmd(ADC_TypeDef *ADCx, uint8_t start_mode);
-void ADC_EdgeStartConfig(ADC_TypeDef *ADCx, uint8_t EdgeOption);
-void ADC_IntConfig (ADC_TypeDef *ADCx, ADC_TYPE_INT_OPT IntType, FunctionalState NewState);
-void ADC_ChannelCmd (ADC_TypeDef *ADCx, uint8_t Channel, FunctionalState NewState);
-uint16_t ADC_ChannelGetData(ADC_TypeDef *ADCx, uint8_t channel);
-FlagStatus ADC_ChannelGetStatus(ADC_TypeDef *ADCx, uint8_t channel, uint32_t StatusType);
-uint16_t ADC_GlobalGetData(ADC_TypeDef *ADCx, uint8_t channel);
-FlagStatus	ADC_GlobalGetStatus(ADC_TypeDef *ADCx, uint32_t StatusType);
+void ADC_Init(LPC_ADC_TypeDef *ADCx, uint32_t ConvFreq);
+void ADC_DeInit(LPC_ADC_TypeDef *ADCx);
+void ADC_BurstCmd(LPC_ADC_TypeDef *ADCx, FunctionalState NewState);
+void ADC_PowerdownCmd(LPC_ADC_TypeDef *ADCx, FunctionalState NewState);
+void ADC_StartCmd(LPC_ADC_TypeDef *ADCx, uint8_t start_mode);
+void ADC_EdgeStartConfig(LPC_ADC_TypeDef *ADCx, uint8_t EdgeOption);
+void ADC_IntConfig (LPC_ADC_TypeDef *ADCx, ADC_TYPE_INT_OPT IntType, FunctionalState NewState);
+void ADC_ChannelCmd (LPC_ADC_TypeDef *ADCx, uint8_t Channel, FunctionalState NewState);
+uint16_t ADC_ChannelGetData(LPC_ADC_TypeDef *ADCx, uint8_t channel);
+FlagStatus ADC_ChannelGetStatus(LPC_ADC_TypeDef *ADCx, uint8_t channel, uint32_t StatusType);
+uint16_t ADC_GlobalGetData(LPC_ADC_TypeDef *ADCx, uint8_t channel);
+FlagStatus	ADC_GlobalGetStatus(LPC_ADC_TypeDef *ADCx, uint32_t StatusType);
 
 /**
  * @}

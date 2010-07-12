@@ -1,10 +1,10 @@
 /**
  * @file	: lpc17xx_timer.h
- * @brief	: Contains all functions support for SPI firmware library on LPC17xx
+ * @brief	: Contains all functions support for Timer firmware library on LPC17xx
  * @version	: 1.0
  * @date	: 14. April. 2009
- * @author	:
- * *----------------------------------------------------------------------------
+ * @author	: HieuNguyen
+ **************************************************************************
  * Software that is described herein is for illustrative purposes only
  * which provides customers with programming information regarding the
  * products. This software is supplied "AS IS" without any warranties.
@@ -152,12 +152,10 @@ typedef enum
 	TIM_CR0_INT =4, /*!< interrupt for Capture channel 0*/
 	TIM_CR1_INT =5, /*!< interrupt for Capture channel 1*/
 }TIM_INT_TYPE;
-#define PARAM_TIM_INT_TYPE(TYPE)	((TYPE ==TIM_MR0_INT)||\
-									 (TYPE ==TIM_MR1_INT)||\
-									 (TYPE ==TIM_MR2_INT)||\
-									 (TYPE ==TIM_MR3_INT)||\
-									 (TYPE ==TIM_CR0_INT)||\
-									 (TYPE ==TIM_CR1_INT))
+#define PARAM_TIM_INT_TYPE(TYPE)	((TYPE ==TIM_MR0_INT)||(TYPE ==TIM_MR1_INT)\
+||(TYPE ==TIM_MR2_INT)||(TYPE ==TIM_MR3_INT)\
+||(TYPE ==TIM_CR0_INT)||(TYPE ==TIM_CR1_INT))
+
 /** @brief Timer/counter operating mode */
 typedef enum
 {
@@ -166,26 +164,23 @@ typedef enum
 	TIM_COUNTER_FALLING_MODE,		/*!< Counter falling mode */
 	TIM_COUNTER_ANY_MODE			/*!< Counter on both edges */
 } TIM_MODE_OPT;
-#define PARAM_TIM_MODE_OPT(MODE)	((	MODE	==TIM_TIMER_MODE)|| \
-									(	MODE	==TIM_COUNTER_RISING_MODE)|| \
-									(	MODE	==TIM_COUNTER_RISING_MODE)|| \
-								    (	MODE	==TIM_COUNTER_RISING_MODE))
+#define PARAM_TIM_MODE_OPT(MODE)	((MODE == TIM_TIMER_MODE)||(MODE == TIM_COUNTER_RISING_MODE)\
+|| (MODE == TIM_COUNTER_RISING_MODE)||(MODE == TIM_COUNTER_RISING_MODE))
 /** @brief Timer/Counter prescale option */
 typedef enum
 {
 	TIM_PRESCALE_TICKVAL = 0,		/*!< Prescale in absolute value */
 	TIM_PRESCALE_USVAL				/*!< Prescale in microsecond value */
 } TIM_PRESCALE_OPT;
-#define PARAM_TIM_PRESCALE_OPT(OPT)	((	OPT	==	TIM_PRESCALE_TICKVAL)|| \
-										(	OPT	==	TIM_PRESCALE_USVAL))
+#define PARAM_TIM_PRESCALE_OPT(OPT)	((OPT == TIM_PRESCALE_TICKVAL)||(OPT == TIM_PRESCALE_USVAL))
 /** @brief Counter input option */
 typedef enum
 {
 	TIM_COUNTER_INCAP0 = 0,			/*!< CAPn.0 input pin for TIMERn */
 	TIM_COUNTER_INCAP1,				/*!< CAPn.1 input pin for TIMERn */
 } TIM_COUNTER_INPUT_OPT;
-#define PARAM_TIM_COUNTER_INPUT_OPT(OPT)	((	OPT	==	TIM_COUNTER_INCAP0)|| \
-											(	OPT	==	TIM_COUNTER_INCAP1))
+#define PARAM_TIM_COUNTER_INPUT_OPT(OPT)	((OPT == TIM_COUNTER_INCAP0)||(OPT == TIM_COUNTER_INCAP1))
+
 /** @brief Timer/Counter external match option */
 typedef enum
 {
@@ -194,10 +189,9 @@ typedef enum
 	TIM_EXTMATCH_HIGH,				/*!< Force external output pin to high if match */
 	TIM_EXTMATCH_TOGGLE				/*!< Toggle external output pin if match */
 }TIM_EXTMATCH_OPT;
-#define PARAM_TIM_EXTMATCH_OPT(OPT)	((	OPT	==	TIM_EXTMATCH_NOTHING)|| \
-									(	OPT	==	TIM_EXTMATCH_LOW)|| \
-									(	OPT	==	TIM_EXTMATCH_HIGH)|| \
-									(	OPT	==	TIM_EXTMATCH_TOGGLE))
+#define PARAM_TIM_EXTMATCH_OPT(OPT)	((OPT == TIM_EXTMATCH_NOTHING)||(OPT == TIM_EXTMATCH_LOW)\
+||(OPT == TIM_EXTMATCH_HIGH)||(OPT == TIM_EXTMATCH_TOGGLE))
+
 /** @brief Timer/counter capture mode options */
 typedef enum {
 	TIM_CAPTURE_NONE = 0,	/*!< No Capture */
@@ -205,10 +199,9 @@ typedef enum {
 	TIM_CAPTURE_FALLING,	/*!< Falling capture mode */
 	TIM_CAPTURE_ANY			/*!< On both edges */
 } TIM_CAP_MODE_OPT;
-#define PARAM_TIM_CAP_MODE_OPT(OPT)	((	OPT	==	TIM_CAPTURE_NONE)|| \
-									(	OPT	==	TIM_CAPTURE_RISING)|| \
-									(	OPT	==	TIM_CAPTURE_FALLING)|| \
-									(	OPT	==	TIM_CAPTURE_ANY))
+
+#define PARAM_TIM_CAP_MODE_OPT(OPT)	((OPT == TIM_CAPTURE_NONE)||(OPT == TIM_CAPTURE_RISING) \
+||(OPT == TIM_CAPTURE_FALLING)||(OPT == TIM_CAPTURE_ANY))
 
 /** @brief Configuration structure in TIMER mode */
 typedef struct
@@ -291,10 +284,8 @@ typedef struct {
  */
 
 /** Macro to determine if it is valid TIMER peripheral */
-#define PARAM_TIMx(n)	((((uint32_t *)n)==((uint32_t *)TIM0)) \
-						|| (((uint32_t *)n)==((uint32_t *)TIM1)) \
-						|| (((uint32_t *)n)==((uint32_t *)TIM2)) \
-						|| (((uint32_t *)n)==((uint32_t *)TIM3)))
+#define PARAM_TIMx(n)	((((uint32_t *)n)==((uint32_t *)LPC_TIM0)) || (((uint32_t *)n)==((uint32_t *)LPC_TIM1)) \
+|| (((uint32_t *)n)==((uint32_t *)LPC_TIM2)) || (((uint32_t *)n)==((uint32_t *)LPC_TIM3)))
 
 /**
  * @}
@@ -306,19 +297,19 @@ typedef struct {
  * @{
  */
 
-FlagStatus TIM_GetIntStatus(TIM_TypeDef *TIMx, uint8_t IntFlag);
-FlagStatus TIM_GetIntCaptureStatus(TIM_TypeDef *TIMx, uint8_t IntFlag);
-void TIM_ClearIntPending(TIM_TypeDef *TIMx, uint8_t IntFlag);
-void TIM_ClearIntCapturePending(TIM_TypeDef *TIMx, uint8_t IntFlag);
-void TIM_Cmd(TIM_TypeDef *TIMx, FunctionalState NewState);
-void TIM_ResetCounter(TIM_TypeDef *TIMx);
-void TIM_Init(TIM_TypeDef *TIMx, uint8_t TimerCounterMode, void *TIM_ConfigStruct);
-void TIM_DeInit(TIM_TypeDef *TIMx);
+FlagStatus TIM_GetIntStatus(LPC_TIM_TypeDef *TIMx, uint8_t IntFlag);
+FlagStatus TIM_GetIntCaptureStatus(LPC_TIM_TypeDef *TIMx, uint8_t IntFlag);
+void TIM_ClearIntPending(LPC_TIM_TypeDef *TIMx, uint8_t IntFlag);
+void TIM_ClearIntCapturePending(LPC_TIM_TypeDef *TIMx, uint8_t IntFlag);
+void TIM_Cmd(LPC_TIM_TypeDef *TIMx, FunctionalState NewState);
+void TIM_ResetCounter(LPC_TIM_TypeDef *TIMx);
+void TIM_Init(LPC_TIM_TypeDef *TIMx, uint8_t TimerCounterMode, void *TIM_ConfigStruct);
+void TIM_DeInit(LPC_TIM_TypeDef *TIMx);
 void TIM_ConfigStructInit(uint8_t TimerCounterMode, void *TIM_ConfigStruct);
-void TIM_ConfigMatch(TIM_TypeDef *TIMx, TIM_MATCHCFG_Type *TIM_MatchConfigStruct);
-void TIM_SetMatchExt(TIM_TypeDef *TIMx,TIM_EXTMATCH_OPT ext_match );
-void TIM_ConfigCapture(TIM_TypeDef *TIMx, TIM_CAPTURECFG_Type *TIM_CaptureConfigStruct);
-uint32_t TIM_GetCaptureValue(TIM_TypeDef *TIMx, uint8_t CaptureChannel);
+void TIM_ConfigMatch(LPC_TIM_TypeDef *TIMx, TIM_MATCHCFG_Type *TIM_MatchConfigStruct);
+void TIM_SetMatchExt(LPC_TIM_TypeDef *TIMx,TIM_EXTMATCH_OPT ext_match );
+void TIM_ConfigCapture(LPC_TIM_TypeDef *TIMx, TIM_CAPTURECFG_Type *TIM_CaptureConfigStruct);
+uint32_t TIM_GetCaptureValue(LPC_TIM_TypeDef *TIMx, uint8_t CaptureChannel);
 
 /**
  * @}

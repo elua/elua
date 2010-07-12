@@ -277,7 +277,7 @@ typedef void (fnI2SCbs_Type)();
  */
 
 /** Macro to determine if it is valid I2S peripheral */
-#define PARAM_I2Sx(n)	(((uint32_t *)n)==((uint32_t *)I2S))
+#define PARAM_I2Sx(n)	(((uint32_t *)n)==((uint32_t *)LPC_I2S))
 
 /** Macro to check Data to send valid */
 #define PARAM_I2S_DATA(data) 	((data>=0)&&(data <= 0xFFFFFFFF))
@@ -324,7 +324,7 @@ typedef void (fnI2SCbs_Type)();
 #define I2S_WORDWIDTH_16		I2S_DAO_WORDWIDTH_16
 #define I2S_WORDWIDTH_32		I2S_DAO_WORDWIDTH_32
 #define PARAM_I2S_WORDWIDTH(n)	((n==I2S_WORDWIDTH_8)||(n==I2S_WORDWIDTH_16)\
-								 ||	(n==I2S_WORDWIDTH_32))
+||(n==I2S_WORDWIDTH_32))
 
 /** I2S Channel bit */
 #define I2S_STEREO				((uint32_t)(0))
@@ -393,27 +393,27 @@ typedef void (fnI2SCbs_Type)();
  * @{
  */
 
-void I2S_Init(I2S_TypeDef *I2Sx);
-void I2S_DeInit(I2S_TypeDef *I2Sx);
+void I2S_Init(LPC_I2S_TypeDef *I2Sx);
+void I2S_DeInit(LPC_I2S_TypeDef *I2Sx);
 
-void I2S_Config(I2S_TypeDef *I2Sx, uint8_t TRMode, I2S_CFG_Type* ConfigStruct);
-Status I2S_FreqConfig(I2S_TypeDef *I2Sx, uint32_t Freq, uint8_t TRMode);
-void I2S_SetBitRate(I2S_TypeDef *I2Sx, uint8_t bitrate, uint8_t TRMode);
-void I2S_ModeConfig(I2S_TypeDef *I2Sx, I2S_MODEConf_Type* ModeConfig, uint8_t TRMode);
+void I2S_Config(LPC_I2S_TypeDef *I2Sx, uint8_t TRMode, I2S_CFG_Type* ConfigStruct);
+Status I2S_FreqConfig(LPC_I2S_TypeDef *I2Sx, uint32_t Freq, uint8_t TRMode);
+void I2S_SetBitRate(LPC_I2S_TypeDef *I2Sx, uint8_t bitrate, uint8_t TRMode);
+void I2S_ModeConfig(LPC_I2S_TypeDef *I2Sx, I2S_MODEConf_Type* ModeConfig, uint8_t TRMode);
 
-void I2S_Send(I2S_TypeDef *I2Sx, uint32_t BufferData);
-uint32_t I2S_Receive(I2S_TypeDef* I2Sx);
-void I2S_Start(I2S_TypeDef *I2Sx);
-void I2S_Pause(I2S_TypeDef *I2Sx, uint8_t TRMode);
-void I2S_Mute(I2S_TypeDef *I2Sx, uint8_t TRMode);
-void I2S_Stop(I2S_TypeDef *I2Sx, uint8_t TRMode);
+void I2S_Send(LPC_I2S_TypeDef *I2Sx, uint32_t BufferData);
+uint32_t I2S_Receive(LPC_I2S_TypeDef* I2Sx);
+void I2S_Start(LPC_I2S_TypeDef *I2Sx);
+void I2S_Pause(LPC_I2S_TypeDef *I2Sx, uint8_t TRMode);
+void I2S_Mute(LPC_I2S_TypeDef *I2Sx, uint8_t TRMode);
+void I2S_Stop(LPC_I2S_TypeDef *I2Sx, uint8_t TRMode);
 
-void I2S_DMAConfig(I2S_TypeDef *I2Sx, I2S_DMAConf_Type* DMAConfig, uint8_t TRMode);
-void I2S_DMACmd(I2S_TypeDef *I2Sx, uint8_t DMAIndex,uint8_t TRMode, FunctionalState NewState);
-void I2S_IRQConfig(I2S_TypeDef *I2Sx, uint8_t TRMode, uint8_t level, fnI2SCbs_Type *pfnI2SCbs);
-void I2S_IRQCmd(I2S_TypeDef *I2Sx,uint8_t TRMode, FunctionalState NewState);
+void I2S_DMAConfig(LPC_I2S_TypeDef *I2Sx, I2S_DMAConf_Type* DMAConfig, uint8_t TRMode);
+void I2S_DMACmd(LPC_I2S_TypeDef *I2Sx, uint8_t DMAIndex,uint8_t TRMode, FunctionalState NewState);
+void I2S_IRQConfig(LPC_I2S_TypeDef *I2Sx, uint8_t TRMode, uint8_t level, fnI2SCbs_Type *pfnI2SCbs);
+void I2S_IRQCmd(LPC_I2S_TypeDef *I2Sx,uint8_t TRMode, FunctionalState NewState);
 void I2S_IntHandler(void);
-uint8_t I2S_GetLevel(I2S_TypeDef *I2Sx, uint8_t TRMode);
+uint8_t I2S_GetLevel(LPC_I2S_TypeDef *I2Sx, uint8_t TRMode);
 
 /**
  * @}

@@ -205,7 +205,7 @@ typedef struct {
 
 
 /** Macro to determine if it is valid PWM peripheral */
-#define PARAM_PWMx(n)	(((uint32_t *)n)==((uint32_t *)PWM1))
+#define PARAM_PWMx(n)	(((uint32_t *)n)==((uint32_t *)LPC_PWM1))
 
 #define PARAM_PWM1_MATCH_CHANNEL(n)		((n>=0) && (n<=6))
 #define PARAM_PWM1_CHANNEL(n)			((n>=1) && (n<=6))
@@ -250,7 +250,7 @@ typedef enum {
 } PWM_COUNTER_EDGE_OPT;
 
 #define PARAM_PWM_COUNTER_EDGE(n)	((n==PWM_COUNTER_RISING) || (n==PWM_COUNTER_FALLING) \
-									|| (n==PWM_COUNTER_ANY))
+|| (n==PWM_COUNTER_ANY))
 
 
 /* PWM configuration type definition ----------------------------------------------------- */
@@ -289,8 +289,8 @@ typedef enum
 }PWM_INTSTAT_TYPE;
 
 #define PARAM_PWM_INTSTAT(n)	((n==PWM_INTSTAT_MR0) || (n==PWM_INTSTAT_MR1) || (n==PWM_INTSTAT_MR2) \
-						|| (n==PWM_INTSTAT_MR3) || (n==PWM_INTSTAT_MR4) || (n==PWM_INTSTAT_MR5) \
-						|| (n==PWM_INTSTAT_MR6) || (n==PWM_INTSTAT_CAP0) || (n==PWM_INTSTAT_CAP1))
+|| (n==PWM_INTSTAT_MR3) || (n==PWM_INTSTAT_MR4) || (n==PWM_INTSTAT_MR5) \
+|| (n==PWM_INTSTAT_MR6) || (n==PWM_INTSTAT_CAP0) || (n==PWM_INTSTAT_CAP1))
 
 /**
  * @}
@@ -302,22 +302,22 @@ typedef enum
  * @{
  */
 
-void PWM_PinConfig(PWM_TypeDef *PWMx, uint8_t PWM_Channel, uint8_t PinselOption);
-IntStatus PWM_GetIntStatus(PWM_TypeDef *PWMx, uint32_t IntFlag);
-void PWM_ClearIntPending(PWM_TypeDef *PWMx, uint32_t IntFlag);
+void PWM_PinConfig(LPC_PWM_TypeDef *PWMx, uint8_t PWM_Channel, uint8_t PinselOption);
+IntStatus PWM_GetIntStatus(LPC_PWM_TypeDef *PWMx, uint32_t IntFlag);
+void PWM_ClearIntPending(LPC_PWM_TypeDef *PWMx, uint32_t IntFlag);
 void PWM_ConfigStructInit(uint8_t PWMTimerCounterMode, void *PWM_InitStruct);
-void PWM_Init(PWM_TypeDef *PWMx, uint32_t PWMTimerCounterMode, void *PWM_ConfigStruct);
-void PWM_DeInit (PWM_TypeDef *PWMx);
-void PWM_Cmd(PWM_TypeDef *PWMx, FunctionalState NewState);
-void PWM_CounterCmd(PWM_TypeDef *PWMx, FunctionalState NewState);
-void PWM_ResetCounter(PWM_TypeDef *PWMx);
-void PWM_ConfigMatch(PWM_TypeDef *PWMx, PWM_MATCHCFG_Type *PWM_MatchConfigStruct);
-void PWM_ConfigCapture(PWM_TypeDef *PWMx, PWM_CAPTURECFG_Type *PWM_CaptureConfigStruct);
-uint32_t PWM_GetCaptureValue(PWM_TypeDef *PWMx, uint8_t CaptureChannel);
-void PWM_MatchUpdate(PWM_TypeDef *PWMx, uint8_t MatchChannel, \
+void PWM_Init(LPC_PWM_TypeDef *PWMx, uint32_t PWMTimerCounterMode, void *PWM_ConfigStruct);
+void PWM_DeInit (LPC_PWM_TypeDef *PWMx);
+void PWM_Cmd(LPC_PWM_TypeDef *PWMx, FunctionalState NewState);
+void PWM_CounterCmd(LPC_PWM_TypeDef *PWMx, FunctionalState NewState);
+void PWM_ResetCounter(LPC_PWM_TypeDef *PWMx);
+void PWM_ConfigMatch(LPC_PWM_TypeDef *PWMx, PWM_MATCHCFG_Type *PWM_MatchConfigStruct);
+void PWM_ConfigCapture(LPC_PWM_TypeDef *PWMx, PWM_CAPTURECFG_Type *PWM_CaptureConfigStruct);
+uint32_t PWM_GetCaptureValue(LPC_PWM_TypeDef *PWMx, uint8_t CaptureChannel);
+void PWM_MatchUpdate(LPC_PWM_TypeDef *PWMx, uint8_t MatchChannel, \
 					uint32_t MatchValue, uint8_t UpdateType);
-void PWM_ChannelConfig(PWM_TypeDef *PWMx, uint8_t PWMChannel, uint8_t ModeOption);
-void PWM_ChannelCmd(PWM_TypeDef *PWMx, uint8_t PWMChannel, FunctionalState NewState);
+void PWM_ChannelConfig(LPC_PWM_TypeDef *PWMx, uint8_t PWMChannel, uint8_t ModeOption);
+void PWM_ChannelCmd(LPC_PWM_TypeDef *PWMx, uint8_t PWMChannel, FunctionalState NewState);
 
 /**
  * @}

@@ -334,7 +334,7 @@ extern "C"
 
 /** RX Status Information word mask */
 #define EMAC_RINFO_ERR_MASK     (EMAC_RINFO_FAIL_FILT | EMAC_RINFO_CRC_ERR   | EMAC_RINFO_SYM_ERR | \
-								EMAC_RINFO_LEN_ERR   | EMAC_RINFO_ALIGN_ERR | EMAC_RINFO_OVERRUN)
+EMAC_RINFO_LEN_ERR   | EMAC_RINFO_ALIGN_ERR | EMAC_RINFO_OVERRUN)
 
 /* TX Descriptor Control Word */
 #define EMAC_TCTRL_SIZE          0x000007FF  /**< Size of data buffer in bytes      */

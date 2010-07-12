@@ -5,7 +5,7 @@
  * @version	: 1.0
  * @date	: 25. Feb. 2009
  * @author	: HoanTran
- *----------------------------------------------------------------------------
+ **************************************************************************
  * Software that is described herein is for illustrative purposes only
  * which provides customers with programming information regarding the
  * products. This software is supplied "AS IS" without any warranties.
@@ -89,7 +89,7 @@ void PINSEL_SetPinFunc ( uint8_t portnum, uint8_t pinnum, uint8_t funcnum)
 {
 	uint32_t pinnum_t = pinnum;
 	uint32_t pinselreg_idx = 2 * portnum;
-	uint32_t *pPinCon = (uint32_t *)&PINCON->PINSEL0;
+	uint32_t *pPinCon = (uint32_t *)&LPC_PINCON->PINSEL0;
 
 	if (pinnum_t >= 16) {
 		pinnum_t -= 16;
@@ -113,9 +113,9 @@ void PINSEL_SetPinFunc ( uint8_t portnum, uint8_t pinnum, uint8_t funcnum)
 void PINSEL_ConfigTraceFunc(FunctionalState NewState)
 {
 	if (NewState == ENABLE) {
-		PINCON->PINSEL10 |= (0x01UL << 3);
+		LPC_PINCON->PINSEL10 |= (0x01UL << 3);
 	} else if (NewState == DISABLE) {
-		PINCON->PINSEL10 &= ~(0x01UL << 3);
+		LPC_PINCON->PINSEL10 &= ~(0x01UL << 3);
 	}
 }
 
@@ -176,7 +176,7 @@ void PINSEL_SetResistorMode ( uint8_t portnum, uint8_t pinnum, uint8_t modenum)
 {
 	uint32_t pinnum_t = pinnum;
 	uint32_t pinmodereg_idx = 2 * portnum;
-	uint32_t *pPinCon = (uint32_t *)&PINCON->PINMODE0;
+	uint32_t *pPinCon = (uint32_t *)&LPC_PINCON->PINMODE0;
 
 	if (pinnum_t >= 16) {
 		pinnum_t -= 16;
@@ -242,7 +242,7 @@ void PINSEL_SetResistorMode ( uint8_t portnum, uint8_t pinnum, uint8_t modenum)
  **********************************************************************/
 void PINSEL_SetOpenDrainMode( uint8_t portnum, uint8_t pinnum, uint8_t modenum)
 {
-	uint32_t *pPinCon = (uint32_t *)&PINCON->PINMODE_OD0;
+	uint32_t *pPinCon = (uint32_t *)&LPC_PINCON->PINMODE_OD0;
 
 	if (modenum == PINSEL_PINMODE_OPENDRAIN){
 		*(uint32_t *)(pPinCon + portnum) |= (0x01UL << pinnum);
@@ -277,7 +277,7 @@ void PINSEL_SetI2C0Pins(uint8_t i2cPinMode, FunctionalState filterSlewRateEnable
 	if (filterSlewRateEnable == DISABLE){
 		regVal = PINSEL_I2CPADCFG_SCLI2C0 | PINSEL_I2CPADCFG_SDAI2C0;
 	}
-	PINCON->I2CPADCFG = regVal;
+	LPC_PINCON->I2CPADCFG = regVal;
 }
 
 

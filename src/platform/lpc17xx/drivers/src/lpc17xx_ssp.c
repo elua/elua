@@ -4,7 +4,7 @@
  * @version	: 1.0
  * @date	: 9. April. 2009
  * @author	: HieuNguyen
- *----------------------------------------------------------------------------
+ **************************************************************************
  * Software that is described herein is for illustrative purposes only
  * which provides customers with programming information regarding the
  * products. This software is supplied "AS IS" without any warranties.
@@ -50,7 +50,7 @@ typedef struct
 {
 	int32_t 	dataword;				/* Current data word: 0 - 8 bit; 1 - 16 bit */
 	uint32_t    txrx_setup; 			/* Transmission setup */
-	void		(*inthandler)(SSP_TypeDef *SSPx);   	/* Transmission interrupt handler */
+	void		(*inthandler)(LPC_SSP_TypeDef *SSPx);   	/* Transmission interrupt handler */
 } SSP_CFG_T;
 
 /**
@@ -58,16 +58,8 @@ typedef struct
  */
 
 /* Private Variables ---------------------------------------------------------- */
-/** @defgroup SSP_Private_Variables
- * @{
- */
-
 /* SSP configuration data */
 static SSP_CFG_T sspdat[2];
-
-/**
- * @}
- */
 
 
 /* Private Functions ---------------------------------------------------------- */
@@ -78,10 +70,10 @@ static SSP_CFG_T sspdat[2];
 /**
  * @brief Convert from SSP peripheral to number
  */
-static int32_t SSP_getNum(SSP_TypeDef *SSPx){
-	if (SSPx == SSP0) {
+static int32_t SSP_getNum(LPC_SSP_TypeDef *SSPx){
+	if (SSPx == LPC_SSP0) {
 		return (0);
-	} else if (SSPx == SSP1) {
+	} else if (SSPx == LPC_SSP1) {
 		return (1);
 	}
 	return (-1);
@@ -90,10 +82,11 @@ static int32_t SSP_getNum(SSP_TypeDef *SSPx){
 
 /*********************************************************************//**
  * @brief 		Standard Private SSP Interrupt handler
- * @param		None
+ * @param		SSPx: SSP peripheral definition, should be
+ * 					  SSP0 or SSP1.
  * @return 		None
  ***********************************************************************/
-void SSP_IntHandler(SSP_TypeDef *SSPx)
+void SSP_IntHandler(LPC_SSP_TypeDef *SSPx)
 {
 	SSP_DATA_SETUP_Type *xf_setup;
     uint16_t tmp;
@@ -231,7 +224,7 @@ void SSP_IntHandler(SSP_TypeDef *SSPx)
  * @param[in]	target_clock : clock of SSP (Hz)
  * @return 		None
  ***********************************************************************/
-void SSP_SetClock (SSP_TypeDef *SSPx, uint32_t target_clock)
+void SSP_SetClock (LPC_SSP_TypeDef *SSPx, uint32_t target_clock)
 {
     uint32_t prescale, cr0_div, cmp_clk, ssp_clk;
 
@@ -239,9 +232,9 @@ void SSP_SetClock (SSP_TypeDef *SSPx, uint32_t target_clock)
 
     /* The SSP clock is derived from the (main system oscillator / 2),
        so compute the best divider from that clock */
-    if (SSPx == SSP0){
+    if (SSPx == LPC_SSP0){
     	ssp_clk = CLKPWR_GetPCLK (CLKPWR_PCLKSEL_SSP0);
-    } else if (SSPx == SSP1) {
+    } else if (SSPx == LPC_SSP1) {
     	ssp_clk = CLKPWR_GetPCLK (CLKPWR_PCLKSEL_SSP1);
     } else {
     	return;
@@ -280,14 +273,14 @@ void SSP_SetClock (SSP_TypeDef *SSPx, uint32_t target_clock)
  * @param[in]	SSPx	SSP peripheral selected, should be SSP0 or SSP1
  * @return 		None
  **********************************************************************/
-void SSP_DeInit(SSP_TypeDef* SSPx)
+void SSP_DeInit(LPC_SSP_TypeDef* SSPx)
 {
 	CHECK_PARAM(PARAM_SSPx(SSPx));
 
-	if (SSPx == SSP0){
+	if (SSPx == LPC_SSP0){
 		/* Set up clock and power for SSP0 module */
 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCSSP0, DISABLE);
-	} else if (SSPx == SSP1) {
+	} else if (SSPx == LPC_SSP1) {
 		/* Set up clock and power for SSP1 module */
 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCSSP1, DISABLE);
 	}
@@ -304,16 +297,16 @@ void SSP_DeInit(SSP_TypeDef* SSPx)
 *                    specified SSP peripheral.
  * @return 		None
  *********************************************************************/
-void SSP_Init(SSP_TypeDef *SSPx, SSP_CFG_Type *SSP_ConfigStruct)
+void SSP_Init(LPC_SSP_TypeDef *SSPx, SSP_CFG_Type *SSP_ConfigStruct)
 {
 	uint32_t tmp;
 
 	CHECK_PARAM(PARAM_SSPx(SSPx));
 
-	if(SSPx == SSP0) {
+	if(SSPx == LPC_SSP0) {
 		/* Set up clock and power for SSP0 module */
 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCSSP0, ENABLE);
-	} else if(SSPx == SSP1) {
+	} else if(SSPx == LPC_SSP1) {
 		/* Set up clock and power for SSP1 module */
 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCSSP1, ENABLE);
 	} else {
@@ -374,7 +367,7 @@ void SSP_ConfigStructInit(SSP_CFG_Type *SSP_InitStruct)
  * @param[in]	NewState New State of SSPx peripheral's operation
  * @return 		none
  **********************************************************************/
-void SSP_Cmd(SSP_TypeDef* SSPx, FunctionalState NewState)
+void SSP_Cmd(LPC_SSP_TypeDef* SSPx, FunctionalState NewState)
 {
 	CHECK_PARAM(PARAM_SSPx(SSPx));
 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
@@ -399,7 +392,7 @@ void SSP_Cmd(SSP_TypeDef* SSPx, FunctionalState NewState)
  * 							- DISABLE: Disable this function
  * @return 		None
  **********************************************************************/
-void SSP_LoopBackCmd(SSP_TypeDef* SSPx, FunctionalState NewState)
+void SSP_LoopBackCmd(LPC_SSP_TypeDef* SSPx, FunctionalState NewState)
 {
 	CHECK_PARAM(PARAM_SSPx(SSPx));
 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
@@ -427,7 +420,7 @@ void SSP_LoopBackCmd(SSP_TypeDef* SSPx, FunctionalState NewState)
  * Note: 		This function is available when SSP peripheral in Slave mode
  * @return 		None
  **********************************************************************/
-void SSP_SlaveOutputCmd(SSP_TypeDef* SSPx, FunctionalState NewState)
+void SSP_SlaveOutputCmd(LPC_SSP_TypeDef* SSPx, FunctionalState NewState)
 {
 	CHECK_PARAM(PARAM_SSPx(SSPx));
 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
@@ -451,7 +444,7 @@ void SSP_SlaveOutputCmd(SSP_TypeDef* SSPx, FunctionalState NewState)
  * 						this depend on SSP data bit number configured)
  * @return 		none
  **********************************************************************/
-void SSP_SendData(SSP_TypeDef* SSPx, uint16_t Data)
+void SSP_SendData(LPC_SSP_TypeDef* SSPx, uint16_t Data)
 {
 	CHECK_PARAM(PARAM_SSPx(SSPx));
 
@@ -465,7 +458,7 @@ void SSP_SendData(SSP_TypeDef* SSPx, uint16_t Data)
  * @param[in]	SSPx	SSP peripheral selected, should be SSP
  * @return 		Data received (16-bit long)
  **********************************************************************/
-uint16_t SSP_ReceiveData(SSP_TypeDef* SSPx)
+uint16_t SSP_ReceiveData(LPC_SSP_TypeDef* SSPx)
 {
 	CHECK_PARAM(PARAM_SSPx(SSPx));
 
@@ -486,7 +479,7 @@ uint16_t SSP_ReceiveData(SSP_TypeDef* SSPx)
  * 				Return (-1) if error.
  * Note: This function can be used in both master and slave mode.
  ***********************************************************************/
-int32_t SSP_ReadWrite (SSP_TypeDef *SSPx, SSP_DATA_SETUP_Type *dataCfg, \
+int32_t SSP_ReadWrite (LPC_SSP_TypeDef *SSPx, SSP_DATA_SETUP_Type *dataCfg, \
 						SSP_TRANSFER_Type xfType)
 {
 	uint8_t *rdata8;
@@ -672,7 +665,7 @@ int32_t SSP_ReadWrite (SSP_TypeDef *SSPx, SSP_DATA_SETUP_Type *dataCfg, \
  *							- SSP_STAT_BUSY: SSP peripheral is busy
  * @return		New State of specified SSP status flag
  **********************************************************************/
-FlagStatus SSP_GetStatus(SSP_TypeDef* SSPx, uint32_t FlagType)
+FlagStatus SSP_GetStatus(LPC_SSP_TypeDef* SSPx, uint32_t FlagType)
 {
 	CHECK_PARAM(PARAM_SSPx(SSPx));
 	CHECK_PARAM(PARAM_SSP_STAT(FlagType));
@@ -695,7 +688,7 @@ FlagStatus SSP_GetStatus(SSP_TypeDef* SSPx, uint32_t FlagType)
  * 				- DISABLE: Disable this interrupt type
  * @return		None
  **********************************************************************/
-void SSP_IntConfig(SSP_TypeDef *SSPx, uint32_t IntType, FunctionalState NewState)
+void SSP_IntConfig(LPC_SSP_TypeDef *SSPx, uint32_t IntType, FunctionalState NewState)
 {
 	CHECK_PARAM(PARAM_SSPx(SSPx));
 	CHECK_PARAM(PARAM_SSP_INTCFG(IntType));
@@ -724,7 +717,7 @@ void SSP_IntConfig(SSP_TypeDef *SSPx, uint32_t IntType, FunctionalState NewState
  * Note: Enabling/Disabling specified interrupt in SSP peripheral does not
  * 		effect to Raw Interrupt Status flag.
  **********************************************************************/
-IntStatus SSP_GetRawIntStatus(SSP_TypeDef *SSPx, uint32_t RawIntType)
+IntStatus SSP_GetRawIntStatus(LPC_SSP_TypeDef *SSPx, uint32_t RawIntType)
 {
 	CHECK_PARAM(PARAM_SSPx(SSPx));
 	CHECK_PARAM(PARAM_SSP_INTSTAT_RAW(RawIntType));
@@ -737,7 +730,7 @@ IntStatus SSP_GetRawIntStatus(SSP_TypeDef *SSPx, uint32_t RawIntType)
  * @brief	Check whether the specified interrupt status flag is
  * 			set or not
  * @param[in]	SSPx	SSP peripheral selected, should be SSP0 or SSP1
- * @param[in]	RawIntType	Raw Interrupt Type, should be:
+ * @param[in]	IntType	Raw Interrupt Type, should be:
  * 				- SSP_INTSTAT_ROR: Receive Overrun interrupt
  * 				- SSP_INTSTAT_RT: Receive Time out interrupt
  * 				- SSP_INTSTAT_RX: RX FIFO is at least half full interrupt
@@ -746,7 +739,7 @@ IntStatus SSP_GetRawIntStatus(SSP_TypeDef *SSPx, uint32_t RawIntType)
  * Note: Enabling/Disabling specified interrupt in SSP peripheral effects
  * 			to Interrupt Status flag.
  **********************************************************************/
-IntStatus SSP_GetIntStatus (SSP_TypeDef *SSPx, uint32_t IntType)
+IntStatus SSP_GetIntStatus (LPC_SSP_TypeDef *SSPx, uint32_t IntType)
 {
 	CHECK_PARAM(PARAM_SSPx(SSPx));
 	CHECK_PARAM(PARAM_SSP_INTSTAT(IntType));
@@ -766,7 +759,7 @@ IntStatus SSP_GetIntStatus (SSP_TypeDef *SSPx, uint32_t IntType)
  * 						has not been read for a timeout period" interrupt.
  * @return		None
  **********************************************************************/
-void SSP_ClearIntPending(SSP_TypeDef *SSPx, uint32_t IntType)
+void SSP_ClearIntPending(LPC_SSP_TypeDef *SSPx, uint32_t IntType)
 {
 	CHECK_PARAM(PARAM_SSPx(SSPx));
 	CHECK_PARAM(PARAM_SSP_INTCLR(IntType));
@@ -786,7 +779,7 @@ void SSP_ClearIntPending(SSP_TypeDef *SSPx, uint32_t IntType)
  * 						- DISABLE: Disable this function
  * @return		None
  **********************************************************************/
-void SSP_DMACmd(SSP_TypeDef *SSPx, uint32_t DMAMode, FunctionalState NewState)
+void SSP_DMACmd(LPC_SSP_TypeDef *SSPx, uint32_t DMAMode, FunctionalState NewState)
 {
 	CHECK_PARAM(PARAM_SSPx(SSPx));
 	CHECK_PARAM(PARAM_SSP_DMA(DMAMode));
@@ -810,7 +803,7 @@ void SSP_DMACmd(SSP_TypeDef *SSPx, uint32_t DMAMode, FunctionalState NewState)
 void SSP0_StdIntHandler(void)
 {
 	// Call relevant handler
-	sspdat[0].inthandler(SSP0);
+	sspdat[0].inthandler(LPC_SSP0);
 }
 
 /**
@@ -821,7 +814,7 @@ void SSP0_StdIntHandler(void)
 void SSP1_StdIntHandler(void)
 {
 	// Call relevant handler
-	sspdat[1].inthandler(SSP1);
+	sspdat[1].inthandler(LPC_SSP1);
 }
 
 /**

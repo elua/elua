@@ -5,6 +5,10 @@ if pd.board() == "ET-STM32" then
   adcchannels = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}
   adcsmoothing = {4, 4, 4, 4, 16, 16, 16, 16, 32, 32, 32, 32, 64, 128, 64, 128}
   numiter = 50
+elseif pd.board() == "MBED" then
+  adcchannels = {0,1,2,3,4,5}
+  adcsmoothing = {4, 4, 16, 16, 32, 32}
+  numiter = 2
 else
   adcchannels = {0,1,2,3}
   adcsmoothing = {4, 16, 64, 128}

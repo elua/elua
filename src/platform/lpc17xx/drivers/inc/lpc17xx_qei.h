@@ -279,7 +279,7 @@ typedef struct {
  * @{
  */
 
-#define PARAM_QEIx(n)	((n==QEI))
+#define PARAM_QEIx(n)	((n==LPC_QEI))
 
 /* QEI Reset types */
 #define QEI_RESET_POS			QEI_CON_RESP		/**< Reset position counter */
@@ -288,9 +288,9 @@ typedef struct {
 #define QEI_RESET_IDX			QEI_CON_RESI		/**< Reset Index Counter */
 
 #define PARAM_QEI_RESET(n)	((n==QEI_CON_RESP) \
-							|| (n==QEI_RESET_POSOnIDX) \
-							|| (n==QEI_RESET_VEL) \
-							|| (n==QEI_RESET_IDX))
+|| (n==QEI_RESET_POSOnIDX) \
+|| (n==QEI_RESET_VEL) \
+|| (n==QEI_RESET_IDX))
 
 /* QEI Direction Invert Type Option */
 #define QEI_DIRINV_NONE		((uint32_t)(0))		/**< Direction is not inverted */
@@ -351,18 +351,18 @@ typedef struct {
 #define QEI_INTFLAG_POS2REV_Int		((uint32_t)(1<<12))	/**< Combined position 2 and revolution count interrupt */
 
 #define PARAM_QEI_INTFLAG(n)	((n==QEI_INTFLAG_INX_Int) \
-								|| (n==QEI_INTFLAG_TIM_Int) \
-								|| (n==QEI_INTFLAG_VELC_Int) \
-								|| (n==QEI_INTFLAG_DIR_Int) \
-								|| (n==QEI_INTFLAG_ERR_Int) \
-								|| (n==QEI_INTFLAG_ENCLK_Int) \
-								|| (n==QEI_INTFLAG_POS0_Int) \
-								|| (n==QEI_INTFLAG_POS1_Int) \
-								|| (n==QEI_INTFLAG_POS2_Int) \
-								|| (n==QEI_INTFLAG_REV_Int) \
-								|| (n==QEI_INTFLAG_POS0REV_Int) \
-								|| (n==QEI_INTFLAG_POS1REV_Int) \
-								|| (n==QEI_INTFLAG_POS2REV_Int))
+|| (n==QEI_INTFLAG_TIM_Int) \
+|| (n==QEI_INTFLAG_VELC_Int) \
+|| (n==QEI_INTFLAG_DIR_Int) \
+|| (n==QEI_INTFLAG_ERR_Int) \
+|| (n==QEI_INTFLAG_ENCLK_Int) \
+|| (n==QEI_INTFLAG_POS0_Int) \
+|| (n==QEI_INTFLAG_POS1_Int) \
+|| (n==QEI_INTFLAG_POS2_Int) \
+|| (n==QEI_INTFLAG_REV_Int) \
+|| (n==QEI_INTFLAG_POS0REV_Int) \
+|| (n==QEI_INTFLAG_POS1REV_Int) \
+|| (n==QEI_INTFLAG_POS2REV_Int))
 
 /**
  * @}
@@ -374,27 +374,27 @@ typedef struct {
  * @{
  */
 
-void QEI_Reset(QEI_TypeDef *QEIx, uint32_t ulResetType);
-void QEI_Init(QEI_TypeDef *QEIx, QEI_CFG_Type *QEI_ConfigStruct);
+void QEI_Reset(LPC_QEI_TypeDef *QEIx, uint32_t ulResetType);
+void QEI_Init(LPC_QEI_TypeDef *QEIx, QEI_CFG_Type *QEI_ConfigStruct);
 void QEI_ConfigStructInit(QEI_CFG_Type *QIE_InitStruct);
-void QEI_DeInit(QEI_TypeDef *QEIx);
-FlagStatus QEI_GetStatus(QEI_TypeDef *QEIx, uint32_t ulFlagType);
-uint32_t QEI_GetPosition(QEI_TypeDef *QEIx);
-void QEI_SetMaxPosition(QEI_TypeDef *QEIx, uint32_t ulMaxPos);
-void QEI_SetPositionComp(QEI_TypeDef *QEIx, uint8_t bPosCompCh, uint32_t ulPosComp);
-uint32_t QEI_GetIndex(QEI_TypeDef *QEIx);
-void QEI_SetIndexComp(QEI_TypeDef *QEIx, uint32_t ulIndexComp);
-void QEI_SetTimerReload(QEI_TypeDef *QEIx, QEI_RELOADCFG_Type *QEIReloadStruct);
-uint32_t QEI_GetTimer(QEI_TypeDef *QEIx);
-uint32_t QEI_GetVelocity(QEI_TypeDef *QEIx);
-uint32_t QEI_GetVelocityCap(QEI_TypeDef *QEIx);
-void QEI_SetVelocityComp(QEI_TypeDef *QEIx, uint32_t ulVelComp);
-void QEI_SetDigiFilter(QEI_TypeDef *QEIx, uint32_t ulSamplingPulse);
-FlagStatus QEI_GetIntStatus(QEI_TypeDef *QEIx, uint32_t ulIntType);
-void QEI_IntCmd(QEI_TypeDef *QEIx, uint32_t ulIntType, FunctionalState NewState);
-void QEI_IntSet(QEI_TypeDef *QEIx, uint32_t ulIntType);
-void QEI_IntClear(QEI_TypeDef *QEIx, uint32_t ulIntType);
-uint32_t QEI_CalculateRPM(QEI_TypeDef *QEIx, uint32_t ulVelCapValue, uint32_t ulPPR);
+void QEI_DeInit(LPC_QEI_TypeDef *QEIx);
+FlagStatus QEI_GetStatus(LPC_QEI_TypeDef *QEIx, uint32_t ulFlagType);
+uint32_t QEI_GetPosition(LPC_QEI_TypeDef *QEIx);
+void QEI_SetMaxPosition(LPC_QEI_TypeDef *QEIx, uint32_t ulMaxPos);
+void QEI_SetPositionComp(LPC_QEI_TypeDef *QEIx, uint8_t bPosCompCh, uint32_t ulPosComp);
+uint32_t QEI_GetIndex(LPC_QEI_TypeDef *QEIx);
+void QEI_SetIndexComp(LPC_QEI_TypeDef *QEIx, uint32_t ulIndexComp);
+void QEI_SetTimerReload(LPC_QEI_TypeDef *QEIx, QEI_RELOADCFG_Type *QEIReloadStruct);
+uint32_t QEI_GetTimer(LPC_QEI_TypeDef *QEIx);
+uint32_t QEI_GetVelocity(LPC_QEI_TypeDef *QEIx);
+uint32_t QEI_GetVelocityCap(LPC_QEI_TypeDef *QEIx);
+void QEI_SetVelocityComp(LPC_QEI_TypeDef *QEIx, uint32_t ulVelComp);
+void QEI_SetDigiFilter(LPC_QEI_TypeDef *QEIx, uint32_t ulSamplingPulse);
+FlagStatus QEI_GetIntStatus(LPC_QEI_TypeDef *QEIx, uint32_t ulIntType);
+void QEI_IntCmd(LPC_QEI_TypeDef *QEIx, uint32_t ulIntType, FunctionalState NewState);
+void QEI_IntSet(LPC_QEI_TypeDef *QEIx, uint32_t ulIntType);
+void QEI_IntClear(LPC_QEI_TypeDef *QEIx, uint32_t ulIntType);
+uint32_t QEI_CalculateRPM(LPC_QEI_TypeDef *QEIx, uint32_t ulVelCapValue, uint32_t ulPPR);
 
 
 /**

@@ -4,7 +4,7 @@
  * @version	: 1.0
  * @date	: 3. April. 2009
  * @author	: HieuNguyen
- *----------------------------------------------------------------------------
+ **************************************************************************
  * Software that is described herein is for illustrative purposes only
  * which provides customers with programming information regarding the
  * products. This software is supplied "AS IS" without any warranties.
@@ -57,16 +57,8 @@ typedef struct
 
 
 /* Private Variables ---------------------------------------------------------- */
-/** @defgroup SPI_Private_Variables
- * @{
- */
-
 /* SPI configuration data */
 static SPI_CFG_T spidat;
-
-/**
- * @}
- */
 
 
 /* Private Functions ---------------------------------------------------------- */
@@ -76,7 +68,7 @@ static SPI_CFG_T spidat;
 
 /*********************************************************************//**
  * @brief 		Standard Private SPI Interrupt handler
- * @param		None
+ * @param[in]	None
  * @return 		None
  ***********************************************************************/
 void SPI_IntHandler(void)
@@ -87,18 +79,18 @@ void SPI_IntHandler(void)
     xf_setup = (SPI_DATA_SETUP_Type *)spidat.txrx_setup;
 
     /* Dummy read to clear SPI interrupt flag */
-    if (SPI->SPINT & SPI_SPINT_INTFLAG){
-    	SPI->SPINT = SPI_SPINT_INTFLAG;
+    if (LPC_SPI->SPINT & SPI_SPINT_INTFLAG){
+    	LPC_SPI->SPINT = SPI_SPINT_INTFLAG;
     }
 
     // save status
-    tmp = SPI->SPSR;
+    tmp = LPC_SPI->SPSR;
     xf_setup->status = tmp;
     // Check for error
     if (tmp & (SPI_SPSR_ABRT | SPI_SPSR_MODF | SPI_SPSR_ROVR | SPI_SPSR_WCOL)){
     	xf_setup->status |= SPI_STAT_ERROR;
     	// Disable Interrupt and call call-back
-    	SPI_IntCmd(SPI, DISABLE);
+    	SPI_IntCmd(LPC_SPI, DISABLE);
     	if (xf_setup->callback != NULL){
     		xf_setup->callback();
     	}
@@ -108,7 +100,7 @@ void SPI_IntHandler(void)
     /* Check SPI complete flag */
     if (tmp & SPI_SPSR_SPIF){
 	   // Read data from SPI data
-		tmp = SPI_ReceiveData(SPI);
+		tmp = SPI_ReceiveData(LPC_SPI);
 		if (xf_setup->rx_data != NULL)
 		{
 //			if (spidat.dataword == 0){
@@ -134,9 +126,9 @@ void SPI_IntHandler(void)
 		// Write data to buffer
 		if(xf_setup->tx_data == NULL){
 			if (spidat.dataword == 0){
-				SPI_SendData(SPI, 0xFF);
+				SPI_SendData(LPC_SPI, 0xFF);
 			} else {
-				SPI_SendData(SPI, 0xFFFF);
+				SPI_SendData(LPC_SPI, 0xFFFF);
 			}
 		} else {
 //			if (spidat.dataword == 0){
@@ -145,9 +137,9 @@ void SPI_IntHandler(void)
 //				SPI_SendData(SPI, (*(uint16_t *)(xf_setup->tx_data + xf_setup->counter)));
 //			}
 			if (spidat.dataword == 0){
-				SPI_SendData(SPI, (*(uint8_t *)((uint8_t *)(xf_setup->tx_data) + xf_setup->counter)));
+				SPI_SendData(LPC_SPI, (*(uint8_t *)((uint8_t *)(xf_setup->tx_data) + xf_setup->counter)));
 			} else {
-				SPI_SendData(SPI, (*(uint16_t *)((uint8_t *)(xf_setup->tx_data) + xf_setup->counter)));
+				SPI_SendData(LPC_SPI, (*(uint16_t *)((uint8_t *)(xf_setup->tx_data) + xf_setup->counter)));
 			}
 		}
     }
@@ -155,7 +147,7 @@ void SPI_IntHandler(void)
 	else {
     	xf_setup->status |= SPI_STAT_DONE;
     	// Disable Interrupt and call call-back
-    	SPI_IntCmd(SPI, DISABLE);
+    	SPI_IntCmd(LPC_SPI, DISABLE);
     	if (xf_setup->callback != NULL){
     		xf_setup->callback();
     	}
@@ -178,14 +170,14 @@ void SPI_IntHandler(void)
  * @param[in]	target_clock : clock of SPI (Hz)
  * @return 		None
  ***********************************************************************/
-void SPI_SetClock (SPI_TypeDef *SPIx, uint32_t target_clock)
+void SPI_SetClock (LPC_SPI_TypeDef *SPIx, uint32_t target_clock)
 {
 	uint32_t spi_pclk;
 	uint32_t prescale, temp;
 
 	CHECK_PARAM(PARAM_SPIx(SPIx));
 
-	if (SPIx == SPI){
+	if (SPIx == LPC_SPI){
 		spi_pclk =  CLKPWR_GetPCLK (CLKPWR_PCLKSEL_SPI);
 	} else {
 		return;
@@ -215,11 +207,11 @@ void SPI_SetClock (SPI_TypeDef *SPIx, uint32_t target_clock)
  * @param[in]	SPIx	SPI peripheral selected, should be SPI
  * @return 		None
  **********************************************************************/
-void SPI_DeInit(SPI_TypeDef *SPIx)
+void SPI_DeInit(LPC_SPI_TypeDef *SPIx)
 {
 	CHECK_PARAM(PARAM_SPIx(SPIx));
 
-	if (SPIx == SPI){
+	if (SPIx == LPC_SPI){
 		/* Set up clock and power for SPI module */
 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCSPI, DISABLE);
 	}
@@ -236,13 +228,13 @@ void SPI_DeInit(SPI_TypeDef *SPIx)
 *                    specified SPI peripheral.
  * @return 		None
  *********************************************************************/
-void SPI_Init(SPI_TypeDef *SPIx, SPI_CFG_Type *SPI_ConfigStruct)
+void SPI_Init(LPC_SPI_TypeDef *SPIx, SPI_CFG_Type *SPI_ConfigStruct)
 {
 	uint32_t tmp;
 
 	CHECK_PARAM(PARAM_SPIx(SPIx));
 
-	if(SPIx == SPI){
+	if(SPIx == LPC_SPI){
 		/* Set up clock and power for UART module */
 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCSPI, ENABLE);
 	} else {
@@ -302,7 +294,7 @@ void SPI_ConfigStructInit(SPI_CFG_Type *SPI_InitStruct)
  * 						this depend on SPI data bit number configured)
  * @return 		none
  **********************************************************************/
-void SPI_SendData(SPI_TypeDef* SPIx, uint16_t Data)
+void SPI_SendData(LPC_SPI_TypeDef* SPIx, uint16_t Data)
 {
 	CHECK_PARAM(PARAM_SPIx(SPIx));
 
@@ -316,7 +308,7 @@ void SPI_SendData(SPI_TypeDef* SPIx, uint16_t Data)
  * @param[in]	SPIx	SPI peripheral selected, should be SPI
  * @return 		Data received (16-bit long)
  **********************************************************************/
-uint16_t SPI_ReceiveData(SPI_TypeDef* SPIx)
+uint16_t SPI_ReceiveData(LPC_SPI_TypeDef* SPIx)
 {
 	CHECK_PARAM(PARAM_SPIx(SPIx));
 
@@ -337,7 +329,7 @@ uint16_t SPI_ReceiveData(SPI_TypeDef* SPIx)
  * 				Return (-1) if error.
  * Note: This function can be used in both master and slave mode.
  ***********************************************************************/
-int32_t SPI_ReadWrite (SPI_TypeDef *SPIx, SPI_DATA_SETUP_Type *dataCfg, \
+int32_t SPI_ReadWrite (LPC_SPI_TypeDef *SPIx, SPI_DATA_SETUP_Type *dataCfg, \
 						SPI_TRANSFER_Type xfType)
 {
 	uint8_t *rdata8;
@@ -461,7 +453,7 @@ int32_t SPI_ReadWrite (SPI_TypeDef *SPIx, SPI_DATA_SETUP_Type *dataCfg, \
 * 				- DISALBE: Disable this SPI interrupt.
  * @return 		None
  *********************************************************************/
-void SPI_IntCmd(SPI_TypeDef *SPIx, FunctionalState NewState)
+void SPI_IntCmd(LPC_SPI_TypeDef *SPIx, FunctionalState NewState)
 {
 	CHECK_PARAM(PARAM_SPIx(SPIx));
 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
@@ -482,7 +474,7 @@ void SPI_IntCmd(SPI_TypeDef *SPIx, FunctionalState NewState)
  * @param[in]	SPIx	SPI peripheral selected, should be SPI
  * @return 		The new state of SPI Interrupt Flag (SET or RESET)
  *********************************************************************/
-IntStatus SPI_GetIntStatus (SPI_TypeDef *SPIx)
+IntStatus SPI_GetIntStatus (LPC_SPI_TypeDef *SPIx)
 {
 	CHECK_PARAM(PARAM_SPIx(SPIx));
 
@@ -495,7 +487,7 @@ IntStatus SPI_GetIntStatus (SPI_TypeDef *SPIx)
  * @param[in]	SPIx	SPI peripheral selected, should be SPI
  * @return 		None
  *********************************************************************/
-void SPI_ClearIntPending(SPI_TypeDef *SPIx)
+void SPI_ClearIntPending(LPC_SPI_TypeDef *SPIx)
 {
 	CHECK_PARAM(PARAM_SPIx(SPIx));
 
@@ -515,7 +507,7 @@ void SPI_ClearIntPending(SPI_TypeDef *SPIx)
  * 			read SPI status register in one time only, then the return value
  * 			used to check all flags.
  *********************************************************************/
-uint32_t SPI_GetStatus(SPI_TypeDef* SPIx)
+uint32_t SPI_GetStatus(LPC_SPI_TypeDef* SPIx)
 {
 	CHECK_PARAM(PARAM_SPIx(SPIx));
 
