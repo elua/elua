@@ -9,8 +9,6 @@ require "eluadoc"
 -- NOTE: all languages must be given in lowercase only!
 
 -- ## Obs: PT going offline in July 2010 for lack of support. 
--- ## Obs: PT going offline in July 2010 for lack of support. 
---         We hope to offer it again and I'll keep maintaining (offline) what I can.
 --         We hope to offer it again and I'll keep maintaining (offline) what I can.
 --languages = { "en", "pt" } 
 languages = { "en" }
