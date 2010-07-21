@@ -1221,3 +1221,5 @@ int platform_adc_start_sequence( )
 }
 
 #endif // ifdef BUILD_ADC
+
+

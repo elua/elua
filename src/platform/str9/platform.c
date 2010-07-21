@@ -19,6 +19,7 @@
 #include "platform_conf.h"
 #include "91x_vic.h"
 #include "lrotable.h"
+#include "91x_i2c.h"
 
 // ****************************************************************************
 // Platform initialization
@@ -60,6 +61,10 @@ static void platform_config_scu()
 
   // Enable the GPIO clocks  
   SCU_APBPeriphClockConfig(__GPIO_ALL, ENABLE);  
+
+  // Enable the I2C clocks
+  SCU_APBPeriphClockConfig(__I2C0, ENABLE);
+  SCU_APBPeriphClockConfig(__I2C1, ENABLE);
 }
 
 // Port/pin definitions of the eLua UART connection for different boards
@@ -419,6 +424,90 @@ void platform_cpu_enable_interrupts()
 void platform_cpu_disable_interrupts()
 {
   disable_ints();
+}
+
+// ****************************************************************************
+// I2C support
+static const GPIO_TypeDef* i2c_port_data[] = { GPIO1, GPIO2 };
+static const I2C_TypeDef* i2cs[] = { I2C0, I2C1 };
+static const u8 i2c_clock_pin[] = { GPIO_Pin_4, GPIO_Pin_2 };
+static const u8 i2c_data_pin[] = { GPIO_Pin_6, GPIO_Pin_3 };
+
+u32 platform_i2c_setup( unsigned id, u32 speed )
+{
+  GPIO_InitTypeDef GPIO_InitStructure;
+  I2C_InitTypeDef I2C_InitStructure;
+
+  // Setup PIO
+  GPIO_StructInit( &GPIO_InitStructure );
+  GPIO_InitStructure.GPIO_Pin = i2c_clock_pin[ id ] | i2c_data_pin[ id ]; 
+  GPIO_InitStructure.GPIO_Type = GPIO_Type_OpenCollector;
+  GPIO_InitStructure.GPIO_IPConnected = GPIO_IPConnected_Enable;
+  GPIO_InitStructure.GPIO_Alternate = id == 0 ? GPIO_OutputAlt3 : GPIO_OutputAlt2;
+  GPIO_Init( ( GPIO_TypeDef* )i2c_port_data[ id ], &GPIO_InitStructure );
+ 
+  // Setup and interface
+  I2C_StructInit( &I2C_InitStructure );
+  I2C_InitStructure.I2C_GeneralCall = I2C_GeneralCall_Disable;
+  I2C_InitStructure.I2C_Ack = I2C_Ack_Enable;
+  I2C_InitStructure.I2C_CLKSpeed = speed;
+  I2C_InitStructure.I2C_OwnAddress = 0XA0 + id; // dummy, shouldn't matter
+  I2C_Init( ( I2C_TypeDef* )i2cs[ id ], &I2C_InitStructure );
+
+  // Return actual speed
+  return speed;
+}
+
+void platform_i2c_send_start( unsigned id )
+{
+  I2C_TypeDef *pi2c = ( I2C_TypeDef* )i2cs[ id ];
+
+  while( I2C_GetFlagStatus( pi2c, I2C_FLAG_BUSY ) );
+  I2C_GenerateStart( pi2c, ENABLE );
+  while( !I2C_CheckEvent( pi2c, I2C_EVENT_MASTER_MODE_SELECT ) );
+}
+
+void platform_i2c_send_stop( unsigned id )
+{
+  I2C_TypeDef *pi2c = ( I2C_TypeDef* )i2cs[ id ];
+
+  while( I2C_GetFlagStatus( pi2c, I2C_FLAG_BUSY ) );
+  I2C_GenerateSTOP( pi2c, ENABLE );
+}
+
+int platform_i2c_send_address( unsigned id, u16 address, int direction)
+{
+  I2C_TypeDef *pi2c = ( I2C_TypeDef* )i2cs[ id ];
+
+  while( I2C_GetFlagStatus( pi2c, I2C_FLAG_BUSY ) );
+  I2C_Send7bitAddress( pi2c, address, direction == PLATFORM_I2C_DIRECTION_TRANSMITTER ? I2C_MODE_TRANSMITTER : I2C_MODE_RECEIVER );
+  while( !I2C_CheckEvent( pi2c, I2C_EVENT_MASTER_MODE_SELECTED ) )
+    if( I2C_GetFlagStatus( pi2c, I2C_FLAG_AF ) == SET )
+      return 0;
+  return 1;
+}
+
+int platform_i2c_send_byte( unsigned id, u8 data )
+{
+  I2C_TypeDef *pi2c = ( I2C_TypeDef* )i2cs[ id ];
+
+  while( I2C_GetFlagStatus( pi2c, I2C_FLAG_BUSY ) );
+  I2C_SendData( pi2c, data ); 
+  while( !I2C_CheckEvent( pi2c, I2C_EVENT_MASTER_BYTE_TRANSMITTED ) )
+    if( I2C_GetFlagStatus( pi2c, I2C_FLAG_AF ) == SET )
+      return 0;
+  return 1;
+}
+
+int platform_i2c_recv_byte( unsigned id, int ack )
+{
+  I2C_TypeDef *pi2c = ( I2C_TypeDef* )i2cs[ id ];
+
+  while( I2C_GetFlagStatus( pi2c, I2C_FLAG_BUSY ) );
+  I2C_AcknowledgeConfig( pi2c, ack ? ENABLE : DISABLE );
+  if( I2C_CheckEvent( pi2c, I2C_EVENT_MASTER_BYTE_RECEIVED ) )
+    return I2C_ReceiveData( pi2c );
+  return -1;
 }
 
 // ****************************************************************************

@@ -211,8 +211,8 @@ enum
 };
 
 // Functions requiring platform-specific implementation
-int platform_adc_update_sequence(  );
-int platform_adc_start_sequence(  );
+int platform_adc_update_sequence();
+int platform_adc_start_sequence();
 void platform_adc_stop( unsigned id );
 u32 platform_adc_setclock( unsigned id, u32 frequency);
 
@@ -220,6 +220,31 @@ u32 platform_adc_setclock( unsigned id, u32 frequency);
 int platform_adc_exists( unsigned id );
 int platform_adc_check_timer_id( unsigned id, unsigned timer_id );
 u32 platform_adc_op( unsigned id, int op, u32 data );
+
+// *****************************************************************************
+// I2C platform interface
+
+// I2C speed
+enum
+{
+  PLATFORM_I2C_SPEED_SLOW = 100000,
+  PLATFORM_I2C_SPEED_FAST = 400000
+};
+
+// I2C direction
+enum
+{
+  PLATFORM_I2C_DIRECTION_TRANSMITTER,
+  PLATFORM_I2C_DIRECTION_RECEIVER
+};
+
+int platform_i2c_exists( unsigned id );
+u32 platform_i2c_setup( unsigned id, u32 speed );
+void platform_i2c_send_start( unsigned id );
+void platform_i2c_send_stop( unsigned id );
+int platform_i2c_send_address( unsigned id, u16 address, int direction );
+int platform_i2c_send_byte( unsigned id, u8 data );
+int platform_i2c_recv_byte( unsigned id, int ack );
 
 // *****************************************************************************
 // Ethernet specific functions

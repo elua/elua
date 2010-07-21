@@ -46,6 +46,7 @@
 #define NUM_PWM               4
 #define NUM_ADC               0
 #define NUM_CAN               0
+#define NUM_I2C               2
 
 // RPC boot options
 #define RPC_UART_ID           CON_UART_ID
@@ -96,6 +97,7 @@ u32 SCU_GetMCLKFreqValue();
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map)\
   _ROM( AUXLIB_CPU, luaopen_elua, elua_map)\
+  _ROM( AUXLIB_I2C, luaopen_i2c, i2c_map)\
   RPCLINE\
   _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map)\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\

@@ -461,6 +461,16 @@ void* platform_get_last_free_ram( unsigned id )
   return ( void* )p;
 }
 
+// I2C support
+int platform_i2c_exists( unsigned id )
+{
+#ifndef NUM_I2C
+  return 0;
+#else
+  return id < NUM_I2C;
+#endif
+}
+
 // ****************************************************************************
 // Misc support
 unsigned int intlog2( unsigned int v )
