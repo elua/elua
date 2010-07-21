@@ -44,7 +44,7 @@ data_en =
       desc = "Write one or more strings/numbers to the SPI interface.",
       args = 
       {
-        "$id$ - the ID os the SPI interface.",
+        "$id$ - the ID of the SPI interface.",
         "$data1$ - the first string/number to send.",
         "$data2 (optional)$ - the second string/number to send.",
         "$datan (optional)$ - the %n%-th string/number to send."
@@ -55,7 +55,7 @@ data_en =
       desc = "Write one or more strings/numbers to the SPI interface and return the data read from the same interface.",
       args =
       {
-        "$id$ - the ID os the SPI interface.",
+        "$id$ - the ID of the SPI interface.",
         "$data1$ - the first string/number to send.",
         "$data2 (optional)$ - the second string/number to send.",
         "$datan (optional)$ - the %n%-th string/number to send."

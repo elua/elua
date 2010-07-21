@@ -15,7 +15,7 @@ local doc_sections = { "arch_platform", "refman_gen", "refman_ps_lm3s", "refman_
 local components = 
 { 
   arch_platform = { "ll", "pio", "spi", "uart", "timers", "pwm", "cpu", "eth", "adc" },
-  refman_gen = { "bit", "pd", "cpu", "pack", "adc", "term", "pio", "uart", "spi", "tmr", "pwm", "net", "can", "rpc", "elua" },
+  refman_gen = { "bit", "pd", "cpu", "pack", "adc", "term", "pio", "uart", "spi", "tmr", "pwm", "net", "can", "rpc", "elua", "i2c" },
   refman_ps_lm3s = { "disp" },
   refman_ps_str9 = { "pio" }
 }
