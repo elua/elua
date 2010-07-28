@@ -25,7 +25,7 @@ comp.Append(LINKFLAGS = ['-Wl,-e,crt0'])
 tools[ 'avr32' ] = {}
 
 # Programming function
-def progfunc_avr32( comp[ 'target' ], source, env ):
+def progfunc_avr32( target, source, env ):
   outname = output + ".elf"
   os.system( "%s %s" % ( toolset[ 'size' ], outname ) )
   print "Generating binary image..."
