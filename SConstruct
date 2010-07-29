@@ -183,7 +183,7 @@ def MatchEnumVariable(key, help, default, allowed_values, map={}):
 
 
 # Add Configurable Variables
-vars = Variables('build-setup.conf')
+vars = Variables()
 
 vars.AddVariables(
   MatchEnumVariable('target',
@@ -220,7 +220,6 @@ vars.AddVariables(
 
 
 vars.Update(comp)
-vars.Save('build-setup.conf', comp)
 
 if not GetOption( 'help' ):
 
