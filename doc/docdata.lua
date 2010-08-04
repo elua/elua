@@ -42,9 +42,9 @@ local menu =
   -- "Community"
   { { "Community", "Comunidade" }, "comunity.html", 
     {
-      { { "Lists", "Listas de Discussão" }, "comunity.html#lists" },
+      { { "Discussion Lists", "Listas de Discussão" }, "comunity.html#lists" },
       { "Forums", "comunity.html#forums" },
-      { "User Labs", "comunity.html#userswiki" },      
+      { "User Labs Wiki", "comunity.html#userswiki" },      
       { { "Credits", "Créditos" }, "comunity.html#credits" },
       { nil, "forum.html", nil, "Forum" } -- "hidden" entry (doesn't appear in the menu)
     }
