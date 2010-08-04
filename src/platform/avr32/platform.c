@@ -14,6 +14,7 @@
 #include "platform_conf.h"
 #include "common.h"
 #include "buf.h"
+#include "spi.h"
 
 // Platform-specific includes
 #include <avr32/io.h>
@@ -25,7 +26,6 @@
 #include "gpio.h"
 #include "tc.h"
 #include "intc.h"
-#include "sdramc.h"
 
 // ****************************************************************************
 // Platform initialization
@@ -45,7 +45,14 @@ __attribute__((__interrupt__)) static void tmr_int_handler()
 }                                
 #endif
 
-static const u32 uart_base_addr[ NUM_UART ] = { AVR32_USART0_ADDRESS, AVR32_USART1_ADDRESS, AVR32_USART2_ADDRESS, AVR32_USART3_ADDRESS };
+static const u32 uart_base_addr[ ] = { 
+    AVR32_USART0_ADDRESS, 
+    AVR32_USART1_ADDRESS, 
+    AVR32_USART2_ADDRESS, 
+#ifdef AVR32_USART3_ADDRESS
+    AVR32_USART3_ADDRESS,
+#endif    
+};
 
 // Buffered UART support
 #ifdef BUF_ENABLE_UART
@@ -111,8 +118,10 @@ int platform_init()
   // Enable the 32-kHz clock
   pm_enable_clk32_no_wait( &AVR32_PM, AVR32_PM_OSCCTRL32_STARTUP_0_RCOSC );    
   
-  // Initialize external memory
+  // Initialize external memory if any.
+#ifdef AVR32_SDRAMC
   sdramc_init( REQ_CPU_FREQ );
+#endif 
   
   // Setup UART for eLua
   platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );  
@@ -154,6 +163,20 @@ int platform_init()
   tc_configure_interrupts( tc, VTMR_CH, &tmrint );
   Enable_global_interrupt();
   tc_start( tc, VTMR_CH );  
+#endif
+
+    // Setup spi controller(s) : up to 4 slave by controller.
+#if NUM_SPI > 0
+    spi_master_options_t spiopt;
+    spiopt.modfdis = TRUE;
+    spiopt.pcs_decode = FALSE;
+    spiopt.delay = 0;
+    spi_initMaster(&AVR32_SPI0, &spiopt, REQ_PBA_FREQ);
+    
+#if NUM_SPI > 4
+    spi_initMaster(&AVR32_SPI1, &spiopt, REQ_PBA_FREQ);
+#endif    
+
 #endif
 
   cmn_platform_init();
@@ -351,15 +374,20 @@ static const gpio_map_t uart_pins =
   // UART 0
   { AVR32_USART0_RXD_0_0_PIN, AVR32_USART0_RXD_0_0_FUNCTION },
   { AVR32_USART0_TXD_0_0_PIN, AVR32_USART0_TXD_0_0_FUNCTION },
+  
   // UART 1
   { AVR32_USART1_RXD_0_0_PIN, AVR32_USART1_RXD_0_0_FUNCTION },
   { AVR32_USART1_TXD_0_0_PIN, AVR32_USART1_TXD_0_0_FUNCTION },
+  
   // UART 2
   { AVR32_USART2_RXD_0_0_PIN, AVR32_USART2_RXD_0_0_FUNCTION },
   { AVR32_USART2_TXD_0_0_PIN, AVR32_USART2_TXD_0_0_FUNCTION },
+  
+#ifdef AVR32_USART3_ADDRESS  
   // UART 3
   { AVR32_USART3_RXD_0_0_PIN, AVR32_USART3_RXD_0_0_FUNCTION },
-  { AVR32_USART3_TXD_0_0_PIN, AVR32_USART3_TXD_0_0_FUNCTION }
+  { AVR32_USART3_TXD_0_0_PIN, AVR32_USART3_TXD_0_0_FUNCTION },
+#endif  
 };
 
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )
@@ -499,6 +527,75 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
       break;
   }
   return res;
+}
+
+// ****************************************************************************
+// SPI functions
+
+/* Note about AVR32 SPI
+ *
+ * Each controller can handle up to 4 different settings.
+ * Here, for convenience, we don't use the builtin chip select lines, 
+ * it's up to the user to drive the corresponding GPIO lines.
+ *
+*/
+static const gpio_map_t spi_pins = 
+{
+  // SPI0
+  { BOARD_SPI0_SCK_PIN, BOARD_SPI0_SCK_PIN_FUNCTION },
+  { BOARD_SPI0_MISO_PIN, BOARD_SPI0_MISO_PIN_FUNCTION },
+  { BOARD_SPI0_MOSI_PIN, BOARD_SPI0_MOSI_PIN_FUNCTION },
+  
+  // SPI1
+#if NUM_SPI > 4  
+  { BOARD_SPI1_SCK_PIN, BOARD_SPI1_SCK_PIN_FUNCTION },
+  { BOARD_SPI1_MISO_PIN, BOARD_SPI1_MISO_PIN_FUNCTION },
+  { BOARD_SPI1_MOSI_PIN, BOARD_SPI1_MOSI_PIN_FUNCTION },
+#endif  
+};
+
+static const
+u32 spireg[] = 
+{ 
+    AVR32_SPI0_ADDRESS, 
+#ifdef AVR32_SPI1_ADDRESS    
+    AVR32_SPI1_ADDRESS,
+#endif
+};
+
+u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigned cpha, unsigned databits )
+{
+    spi_options_t opt;
+    
+    opt.baudrate = clock;
+    opt.bits = min(databits, 16);
+    opt.spck_delay = 0;
+    opt.trans_delay = 0;
+    opt.mode = ((cpol & 1) << 1) | (cpha & 1);
+
+    // Set actual interface
+    gpio_enable_module(spi_pins + (id >> 2) * 3, 3);
+    spi_setupChipReg((volatile avr32_spi_t *) spireg[id >> 2], id % 4, &opt, REQ_PBA_FREQ);
+    
+    // TODO: return the actual baudrate.
+    return clock;
+}
+
+spi_data_type platform_spi_send_recv( unsigned id, spi_data_type data )
+{
+    volatile avr32_spi_t * spi = (volatile avr32_spi_t *) spireg[id >> 2];
+    
+    /* Since none of the builtin chip select lines are externally wired,
+     * spi_selectChip() just ensure that the correct spi settings are 
+     * used for the transfer.
+     */
+    spi_selectChip(spi, id % 4);
+    return spi_single_transfer(spi, (u16) data);
+}
+
+void platform_spi_select( unsigned id, int is_select )
+{
+    // Unsupported.
 }
 
 // ****************************************************************************

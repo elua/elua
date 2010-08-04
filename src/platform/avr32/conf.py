@@ -1,14 +1,21 @@
-# Configuration file for the AVR32 microcontroller
+# Configuration file for the AVR32 microcontrollers
 
-specific_files = "crt0.s trampoline.s platform.c exception.s intc.c pm.c flashc.c pm_conf_clocks.c usart.c gpio.c tc.c sdramc.c"
-ldscript = "at32uc3a0512.ld"
-# [TODO] the appends assume that the board is an ATEVK1100 (see src/platform/avr32/board.h)
+specific_files = "crt0.s trampoline.s platform.c exception.s intc.c pm.c flashc.c pm_conf_clocks.c usart.c gpio.c tc.c spi.c"
 comp.Append(CPPDEFINES = 'FORAVR32')
-comp.Append(CPPDEFINES = {'BOARD' : 1})
+
+# See board.h for possible BOARD values.
+if comp[ 'board' ]  == "ATEVK1100":
+    specific_files += " sdramc.c"
+    comp.Append(CPPDEFINES = {'BOARD' : 1})
+elif comp[ 'board' ]  == "ATEVK1101":
+    comp.Append(CPPDEFINES = {'BOARD' : 2})
+else:
+    print "Invalid board for %s platform (%s)" %( platform, comp[ 'board' ] )
+    sys.exit( -1 )
 
 # Prepend with path
 specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )
-ldscript = "src/platform/%s/%s" % ( platform, ldscript )
+ldscript = "src/platform/%s/%s.ld" % ( platform, comp[ 'cpu' ].lower() )
 
 # Standard GCC Flags
 comp.Append(CCFLAGS = ['-ffunction-sections','-fdata-sections','-fno-strict-aliasing','-Wall'])
@@ -17,8 +24,8 @@ comp.Append(ASFLAGS = ['-x','assembler-with-cpp','-c'])
 comp.Append(LIBS = ['c','gcc','m'])
 
 # Target-specific Flags
-comp.Prepend(CCFLAGS = ['-mpart=uc3a0512'])
-comp.Prepend(ASFLAGS = ['-mpart=uc3a0512'])
+comp.Prepend(CCFLAGS = ['-mpart=%s' % (comp[ 'cpu' ][4:].lower())])
+comp.Prepend(ASFLAGS = ['-mpart=%s' % (comp[ 'cpu' ][4:].lower())])
 comp.Append(LINKFLAGS = ['-Wl,-e,crt0'])
 
 # Toolset data
@@ -31,7 +38,7 @@ def progfunc_avr32( target, source, env ):
   print "Generating binary image..."
   os.system( "%s -O ihex %s %s.hex" % ( toolset[ 'bin' ], outname, output ) )
 
-#  print "Programming..."
-#  os.system( "batchisp3.sh -hardware usb -device at32uc3a0512 -operation erase f memory flash blankcheck loadbuffer %s program verify start reset 0" % ( output + ".hex" ) )
+  print "Programming..."
+  os.system( "batchisp -hardware usb -device %s -operation erase f memory flash blankcheck loadbuffer %s program verify start reset 0" % ( comp[ 'cpu' ].lower(), output + ".hex" ) )
 
 tools[ 'avr32' ][ 'progfunc' ] = progfunc_avr32

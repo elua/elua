@@ -1,7 +1,7 @@
 MEMORY
 {
-    sram (W!RX) : ORIGIN = 0x00000004, LENGTH = 0x0000FFFC
-    flash (RX) : ORIGIN = 0x80002000, LENGTH = 0x00080000 - 0x2000
+    sram (W!RX) : ORIGIN = 0x00000004, LENGTH = 0x00007FFC
+    flash (RX) : ORIGIN = 0x80002000, LENGTH = 0x00040000 - 0x2000
 }
 
 SECTIONS
@@ -46,5 +46,5 @@ SECTIONS
     } >sram
 
     end = .;
-    _sstack = 0x00010000;
+    _sstack = 0x0008000;
 }

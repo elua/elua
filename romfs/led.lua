@@ -17,6 +17,10 @@ elseif pd.board() == "MOD711" then
 elseif pd.board() == "ATEVK1100" then
   ledpin = pio.PB_27
   invert = true
+elseif pd.board() == "ATEVK1101" then
+  ledpin = pio.PA_8
+  invert = true  
+  uartid = 1
 elseif pd.board() == "STR-E912" then
   ledpin = pio.P6_4
 elseif pd.board() == "ELUA-PUC" then

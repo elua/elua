@@ -75,7 +75,7 @@ platform_list = {
   'lpc288x' : { 'cpus' : [ 'LPC2888' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
   'str7' : { 'cpus' : [ 'STR711FR2' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
   'stm32' : { 'cpus' : [ 'STM32F103ZE', 'STM32F103RE' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
-  'avr32' : { 'cpus' : [ 'AT32UC3A0512' ], 'toolchains' : [ 'avr32-gcc' ] },
+  'avr32' : { 'cpus' : [ 'AT32UC3A0512', 'AT32UC3B0256' ], 'toolchains' : [ 'avr32-gcc' ] },
   'lpc24xx' : { 'cpus' : [ 'LPC2468' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
   'lpc17xx' : { 'cpus' : [ 'LPC1768' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] }
 }
@@ -93,6 +93,7 @@ board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
                'MOD711' : [ 'STR711FR2' ],
                'STM3210E-EVAL' : [ 'STM32F103ZE' ],
                'ATEVK1100' : [ 'AT32UC3A0512' ],
+               'ATEVK1101' : [ 'AT32UC3B0256' ],
                'ET-STM32' : [ 'STM32F103RE' ],
                'EAGLE-100' : [ 'LM3S6918' ],
                'ELUA-PUC' : ['LPC2468' ],
@@ -125,6 +126,7 @@ romfs = { 'bisect' : [ 'bisect.lua' ],
           'spaceship' : [ 'spaceship.lua' ],
           'tetrives' : [ 'tetrives.lua' ],
           'snake' : [ 'snake.lua' ],
+          'dataflash' : [ 'dataflash.lua' ],
           'pachube' : [ 'pachube_demo.lua' ]
         }
 
@@ -140,7 +142,8 @@ file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'i
               'LPC-H2888' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
               'MOD711' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'dualpwm' ],
               'STM3210E-EVAL' : [ 'bisect', 'hello', 'info' ],
-              'ATEVK1100' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
+              'ATEVK1100' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'dataflash' ],
+              'ATEVK1101' : [ 'bisect', 'led', 'hello', 'info', 'dataflash' ],
               'ET-STM32' : [ 'hello', 'hangman', 'info', 'bisect','adcscope','adcpoll', 'dualpwm', 'pwmled' ],
               'EAGLE-100' : [ 'bisect', 'hangman', 'lhttpd', 'led', 'hello', 'info' ],
               'ELUA-PUC' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'pwmled' ],
