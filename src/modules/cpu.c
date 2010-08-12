@@ -125,7 +125,7 @@ static int cpu_mt_index( lua_State *L )
   {
     if( !strcmp( cpu_constants[ i ].name, key ) )
     {
-      lua_pushinteger( L, cpu_constants[ i ].val );
+      lua_pushnumber( L, cpu_constants[ i ].val );
       return 1;
     }
     i ++;
