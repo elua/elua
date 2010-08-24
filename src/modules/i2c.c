@@ -118,6 +118,8 @@ static int i2c_read( lua_State *L )
   int data;
 
   MOD_CHECK_ID( i2c, id );
+  if( size == 0 )
+    return 0;
   luaL_buffinit( L, &b );
   for( i = 0; i < size; i ++ )
     if( ( data = platform_i2c_recv_byte( id, i < size - 1 ) ) == -1 )

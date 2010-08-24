@@ -64,7 +64,9 @@ static void platform_config_scu()
 
   // Enable the I2C clocks
   SCU_APBPeriphClockConfig(__I2C0, ENABLE);
+  SCU_APBPeriphReset(__I2C0, DISABLE);
   SCU_APBPeriphClockConfig(__I2C1, ENABLE);
+  SCU_APBPeriphReset(__I2C1, DISABLE);
 }
 
 // Port/pin definitions of the eLua UART connection for different boards
@@ -462,40 +464,57 @@ void platform_i2c_send_start( unsigned id )
 {
   I2C_TypeDef *pi2c = ( I2C_TypeDef* )i2cs[ id ];
 
-  while( I2C_GetFlagStatus( pi2c, I2C_FLAG_BUSY ) );
+  //while( I2C_GetFlagStatus( pi2c, I2C_FLAG_BUSY ) );
   I2C_GenerateStart( pi2c, ENABLE );
-  while( !I2C_CheckEvent( pi2c, I2C_EVENT_MASTER_MODE_SELECT ) );
+  while( I2C_CheckEvent( pi2c, I2C_EVENT_MASTER_MODE_SELECT ) != SUCCESS );
 }
 
 void platform_i2c_send_stop( unsigned id )
 {
   I2C_TypeDef *pi2c = ( I2C_TypeDef* )i2cs[ id ];
 
-  while( I2C_GetFlagStatus( pi2c, I2C_FLAG_BUSY ) );
   I2C_GenerateSTOP( pi2c, ENABLE );
+  while( I2C_GetFlagStatus( pi2c, I2C_FLAG_BUSY ) );
 }
 
-int platform_i2c_send_address( unsigned id, u16 address, int direction)
+int platform_i2c_send_address( unsigned id, u16 address, int direction )
 {
   I2C_TypeDef *pi2c = ( I2C_TypeDef* )i2cs[ id ];
+  u16 flags;
 
-  while( I2C_GetFlagStatus( pi2c, I2C_FLAG_BUSY ) );
   I2C_Send7bitAddress( pi2c, address, direction == PLATFORM_I2C_DIRECTION_TRANSMITTER ? I2C_MODE_TRANSMITTER : I2C_MODE_RECEIVER );
-  while( !I2C_CheckEvent( pi2c, I2C_EVENT_MASTER_MODE_SELECTED ) )
-    if( I2C_GetFlagStatus( pi2c, I2C_FLAG_AF ) == SET )
+  while( 1 )
+  {
+    flags = I2C_GetLastEvent( pi2c );
+    if( flags & I2C_FLAG_AF )
       return 0;
+    if( flags == I2C_EVENT_MASTER_MODE_SELECTED )
+      break;
+  }
+  I2C_ClearFlag( pi2c, I2C_FLAG_ENDAD );
+  if( direction == PLATFORM_I2C_DIRECTION_TRANSMITTER )
+  {
+    while( I2C_CheckEvent( pi2c, I2C_EVENT_MASTER_BYTE_TRANSMITTED ) != SUCCESS );
+    I2C_ClearFlag( pi2c, I2C_FLAG_BTF );
+  }
   return 1;
 }
 
 int platform_i2c_send_byte( unsigned id, u8 data )
 {
   I2C_TypeDef *pi2c = ( I2C_TypeDef* )i2cs[ id ];
+  u16 flags;
 
-  while( I2C_GetFlagStatus( pi2c, I2C_FLAG_BUSY ) );
   I2C_SendData( pi2c, data ); 
-  while( !I2C_CheckEvent( pi2c, I2C_EVENT_MASTER_BYTE_TRANSMITTED ) )
-    if( I2C_GetFlagStatus( pi2c, I2C_FLAG_AF ) == SET )
+  while( 1 )
+  {
+    flags = I2C_GetLastEvent( pi2c );
+    if( flags & I2C_FLAG_AF )
       return 0;
+    if( flags == I2C_EVENT_MASTER_BYTE_TRANSMITTED )
+      break;
+  }
+  I2C_ClearFlag( pi2c, I2C_FLAG_BTF );
   return 1;
 }
 
@@ -503,11 +522,11 @@ int platform_i2c_recv_byte( unsigned id, int ack )
 {
   I2C_TypeDef *pi2c = ( I2C_TypeDef* )i2cs[ id ];
 
-  while( I2C_GetFlagStatus( pi2c, I2C_FLAG_BUSY ) );
   I2C_AcknowledgeConfig( pi2c, ack ? ENABLE : DISABLE );
-  if( I2C_CheckEvent( pi2c, I2C_EVENT_MASTER_BYTE_RECEIVED ) )
-    return I2C_ReceiveData( pi2c );
-  return -1;
+  if( !ack )
+    I2C_GenerateSTOP( pi2c, ENABLE );
+  while( I2C_CheckEvent( pi2c, I2C_EVENT_MASTER_BYTE_RECEIVED ) != SUCCESS );
+  return I2C_ReceiveData( pi2c );
 }
 
 // ****************************************************************************
