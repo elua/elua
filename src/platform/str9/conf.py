@@ -19,7 +19,7 @@ comp.Append(CPPDEFINES = ["FOR" + comp[ 'cpu' ],'gcc'])
 
 # Standard GCC Flags
 comp.Append(CCFLAGS = ['-ffunction-sections','-fdata-sections','-fno-strict-aliasing','-Wall'])
-comp.Append(LINKFLAGS = ['-nostartfiles','-nostdlib','-T',ldscript,'-Wl,--gc-sections','-Wl,--allow-multiple-definition'])
+comp.Append(LINKFLAGS = ['-nostartfiles','-nostdlib','-T',ldscript,'-Wl,--gc-sections','-Wl,--allow-multiple-definition','-Wl,-Map=elua.map'])
 comp.Append(ASFLAGS = ['-x','assembler-with-cpp','-c','-Wall','$_CPPDEFFLAGS','$_CPPINCFLAGS'])
 comp.Append(LIBS = ['c','gcc','m'])
 

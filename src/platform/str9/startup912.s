@@ -132,6 +132,11 @@ DAbt_Handler:       B       DAbt_Handler
 IRQ_Handler:        B       IRQ_Handler       /* should never get here as IRQ is via VIC slot... */
 FIQ_Handler:        B       FIQ_Handler
 
+          .section  .dlsym, "a"
+          .extern symaddr
+
+.word     symaddr
+
           .text
 
 

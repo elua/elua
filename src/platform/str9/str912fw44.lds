@@ -15,6 +15,7 @@ SECTIONS
         _sfixed = .;
         PROVIDE(stext = .);
         KEEP(*(.vectors))
+        KEEP(*(.dlsym))
         *(.text .text.*)        
         *(.rodata .rodata.*)        
         *(.gnu.linkonce.t.*)
@@ -23,12 +24,14 @@ SECTIONS
         *(.gcc_except_table)
         *(.gnu.linkonce.r.*)
         . = ALIGN(4);
-        _efixed = .;
         PROVIDE(etext = .);        
         _fini = .;
         *(.fini)
+        . = ALIGN(4);
+        _efixed = .;
     } >flash
-
+    
+    firstsram = .;
     .relocate : AT (_efixed)
     {
         . = ALIGN(4);
@@ -38,7 +41,7 @@ SECTIONS
         . = ALIGN(4);
         _erelocate = .;
     } >sram
-
+    
     .ARM.extab :
     {
         *(.ARM.extab*)
@@ -50,6 +53,8 @@ SECTIONS
         *(.ARM.exidx*)
     } >sram
      __exidx_end = .;
+
+    PROVIDE(symaddr = _efixed + . - _srelocate );
 
     .bss (NOLOAD) : {
         _szero = .;
