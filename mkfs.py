@@ -114,12 +114,17 @@ def mkfs( dirname, outname, flist, mode, compcmd ):
     size_h = ( len( filedata ) >> 8 ) & 0xFF
     _add_data( size_l, outfile )
     _add_data( size_h, outfile )
+    # Round to a multiple of 4
+    actual = len( filedata )
+    while _bytecnt & 4 != 0:
+      _add_data( 0, outfile )
+      actual = actual + 1
     # Then write the rest of the file
     for c in filedata:
       _add_data( ord( c ), outfile )
     
     # Report
-    print "Encoded file %s (%d bytes)" % ( fname, len( filedata ) )
+    print "Encoded file %s (%d bytes real size, %d bytes after rounding)" % ( fname, len( filedata ), actual )
     
   # All done, write the final "0" (terminator)
   _add_data( 0, outfile, False )

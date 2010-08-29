@@ -65,17 +65,20 @@ u8 romfs_open_file( const char* fname, p_read_fs_byte p_read_func, FS* pfs )
     j = i + j + 1;
     // And read the size   
     fsize = p_read_func( j ) + ( p_read_func( j + 1 ) << 8 );
+    j += 2;
+    // Round to a multiple of 4
+    j = ( j + 3 ) & ~3;
     if( !strncasecmp( fname, fsname, DM_MAX_FNAME_LENGTH ) )
     {
       // Found the file
-      pfs->baseaddr = j + 2;
+      pfs->baseaddr = j;
       pfs->offset = 0;
       pfs->size = fsize;
       pfs->p_read_func = p_read_func;   
       return FS_FILE_OK;
     }
     // Move to next file
-    i = j + 2 + fsize;
+    i = j + fsize;
   }
   return FS_FILE_NOT_FOUND;
 }

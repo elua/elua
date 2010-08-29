@@ -17,6 +17,8 @@ SECTIONS
         KEEP(*(.vectors))
         KEEP(*(.dlsym))
         *(.text .text.*)        
+        . = ALIGN(4);
+        *(.rodata.romfiles_fs)
         *(.rodata .rodata.*)        
         *(.gnu.linkonce.t.*)
         *(.glue_7)
