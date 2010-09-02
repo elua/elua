@@ -4,10 +4,15 @@
 //         Definitions
 //------------------------------------------------------------------------------
 
-#define ARM_MODE_ABT     0x17
+
+#define ARM_MODE_USR     0x10
 #define ARM_MODE_FIQ     0x11
 #define ARM_MODE_IRQ     0x12
 #define ARM_MODE_SVC     0x13
+#define ARM_MODE_ABT     0x17
+#define ARM_MODE_UND     0x1B
+#define ARM_MODE_SYS     0x1F
+
 
 #define I_BIT            0x80
 #define F_BIT            0x40
@@ -60,13 +65,15 @@ resetHandler:
 /* Setup stacks for each mode */
         ldr     r0, =Top_Stack
 
+        /* Set IRQ Mode Stack & Pointer */
         msr     CPSR_c, #ARM_MODE_IRQ|I_BIT|F_BIT
         mov     r13, r0
         sub     r0, r0, #STACK_SIZE_IRQ                  
 
-        # Set up Supervisor Mode and set Supervisor Mode Stack (leave interrupts enabled)
+        /* Set SVC Mode Stack & Pointer - leave interrupts enabled */
         msr     CPSR_c, #ARM_MODE_SVC|F_BIT
         mov     r13, r0
+        sub     r0, r0, #STACK_SIZE_USR
 
 
 /* Perform low-level initialization of the chip using LowLevelInit() */

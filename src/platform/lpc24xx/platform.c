@@ -12,7 +12,9 @@
 #include <stdio.h>
 #include "utils.h"
 #include "common.h"
+#include "elua_adc.h"
 #include "platform_conf.h"
+#include "buf.h"
 
 // Platform includes
 #include "LPC23xx.h"                        /* LPC23xx/24xx definitions */
@@ -28,6 +30,7 @@ extern void disable_ints();
 
 static void platform_setup_timers();
 static void platform_setup_pwm();
+static void platform_setup_adcs();
 
 // Power management definitions
 enum
@@ -35,8 +38,10 @@ enum
   PCUART2 = 1ULL << 24,
   PCUART3 = 1ULL << 25,
   PCTIM2 = 1ULL << 22,
-  PCTIM3 = 1ULL << 23
+  PCTIM3 = 1ULL << 23,
+  PCADC = 1ULL << 12
 };
+
 
 // CPU initialization
 static void platform_setup_cpu()
@@ -134,6 +139,11 @@ int platform_init()
 
   // Initialize console UART
   platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
+  
+#ifdef BUILD_ADC
+  // Setup ADCs
+  platform_setup_adcs();
+#endif
 
   // Common platform initialization code
   cmn_platform_init();
@@ -216,15 +226,24 @@ static const u32 uart_fcr[ NUM_UART ] = { ( u32 )&U0FCR, ( u32 )&U1FCR, ( u32 )&
 static const u32 uart_thr[ NUM_UART ] = { ( u32 )&U0THR, ( u32 )&U1THR, ( u32 )&U2THR, ( u32 )&U3THR };
 static const u32 uart_lsr[ NUM_UART ] = { ( u32 )&U0LSR, ( u32 )&U1LSR, ( u32 )&U2LSR, ( u32 )&U3LSR };
 static const u32 uart_rbr[ NUM_UART ] = { ( u32 )&U0RBR, ( u32 )&U1RBR, ( u32 )&U2RBR, ( u32 )&U3RBR };
+static const u32 uart_fdr[ NUM_UART ] = { ( u32 )&U0FDR, ( u32 )&U1FDR, ( u32 )&U2FDR, ( u32 )&U3FDR };
 
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )
 {
-  u32 temp;
+  u32 temp, uclk, mul_frac_div, div_add_frac_div;
+  u32 diviser = 0;
+  u32 mul_frac_div_opt = 0;
+  u32 div_add_opt = 0;
+  u32 div_opt = 0;
+  u32 calc_baud = 0;
+  u32 rel_err = 0;
+  u32 rel_err_opt = 100000;
 
   PREG UxLCR = ( PREG )uart_lcr[ id ];
   PREG UxDLM = ( PREG )uart_dlm[ id ];
   PREG UxDLL = ( PREG )uart_dll[ id ];
-  PREG UxFCR = ( PREG )uart_fcr[ id ];  
+  PREG UxFCR = ( PREG )uart_fcr[ id ];
+  PREG UxFDR = ( PREG )uart_fdr[ id ];
 
   // Set data bits, parity, stop bit
   temp = 0;
@@ -261,12 +280,45 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   *UxLCR = temp;
 
   // Divisor computation
-  temp = ( Fpclk_UART >> 4 ) / baud;
+  //temp = ( Fpclk_UART >> 4 ) / baud;
+  uclk = Fpclk_UART >> 4;
+
+  for( mul_frac_div = 1; mul_frac_div <= 15; mul_frac_div++ )
+  {
+    for( div_add_frac_div = 1; div_add_frac_div <= 15; div_add_frac_div++ )
+    {
+      temp = ( mul_frac_div * uclk ) / ( ( mul_frac_div + div_add_frac_div ) );
+
+      diviser = temp / baud;
+
+      if ( ( temp % baud ) > ( baud / 2 ) )
+        diviser++;
+
+      if ( diviser > 2 && diviser < 65536 )
+      {
+        calc_baud = temp / diviser;
+       
+        if (calc_baud <= baud)
+          rel_err = baud - calc_baud;
+
+        if ((rel_err < rel_err_opt))
+        {
+          mul_frac_div_opt = mul_frac_div ;
+          div_add_opt = div_add_frac_div;
+          div_opt = diviser;
+          rel_err_opt = rel_err;
+          if (rel_err == 0)
+            break;
+        }
+      }
+    }
+  }
   // Set baud and divisors
   *UxLCR |= UART_DLAB_ENABLE;
-  *UxDLM = temp >> 8;
-  *UxDLL = temp & 0xFF;
+  *UxDLM = div_opt >> 8;
+  *UxDLL = div_opt & 0xFF;
   *UxLCR &= ~UART_DLAB_ENABLE;
+  *UxFDR = ( ( mul_frac_div_opt << 4 ) & 0xF0 ) | ( div_add_opt & 0x0F );
 
   // Enable and reset Tx and Rx FIFOs
   *UxFCR = UART_FIFO_ENABLE | UART_RXFIFO_RESET | UART_TXFIFO_RESET;
@@ -302,7 +354,8 @@ int platform_s_uart_recv( unsigned id, s32 timeout )
     else
       return -1;
   }
-  while( ( *UxLSR & LSR_RDR ) == 0 );
+  else
+    while( ( *UxLSR & LSR_RDR ) == 0 );
   return *UxRBR;
 }
 
@@ -313,6 +366,9 @@ static const u32 tmr_tcr[] = { ( u32 )&T0TCR, ( u32 )&T1TCR, ( u32 )&T2TCR, ( u3
 static const u32 tmr_tc[] = { ( u32 )&T0TC, ( u32 )&T1TC, ( u32 )&T2TC, ( u32 )&T3TC };
 static const u32 tmr_pr[] = { ( u32 )&T0PR, ( u32 )&T1PR, ( u32 )&T2PR, ( u32 )&T3PR };
 static const u32 tmr_pc[] = { ( u32 )&T0PC, ( u32 )&T1PC, ( u32 )&T2PC, ( u32 )&T3PC };
+static const u32 tmr_mr1[] = { ( u32 )&T0MR1, ( u32 )&T1MR1, ( u32 )&T2MR1, ( u32 )&T3MR1 };
+static const u32 tmr_mcr[] = { ( u32 )&T0MCR, ( u32 )&T1MCR, ( u32 )&T2MCR, ( u32 )&T3MCR };
+static const u32 tmr_emr[] = { ( u32 )&T0EMR, ( u32 )&T1EMR, ( u32 )&T2EMR, ( u32 )&T3EMR };
 
 // Timer register definitions
 enum
@@ -442,6 +498,234 @@ void platform_cpu_disable_interrupts()
 {
   disable_ints();
 }
+
+// *****************************************************************************
+// ADC specific functions and variables
+
+#ifdef BUILD_ADC
+
+static const u32 adc_trig[] = { 6, 7, 0, 0 };
+
+static const u32 adc_dr[] = { ( u32 )&AD0DR0, ( u32 )&AD0DR1, ( u32 )&AD0DR2, ( u32 )&AD0DR3,
+                              ( u32 )&AD0DR4, ( u32 )&AD0DR5, ( u32 )&AD0DR6, ( u32 )&AD0DR7 };
+
+static const u8 pclk_div[] = { 4, 1, 2, 8};
+
+int platform_adc_check_timer_id( unsigned id, unsigned timer_id )
+{
+  return ( ( timer_id == 1 ) );
+}
+
+void platform_adc_stop( unsigned id )
+{  
+  elua_adc_ch_state *s = adc_get_ch_state( id );
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+    
+  s->op_pending = 0;
+  INACTIVATE_CHANNEL( d, id );
+  
+  // If there are no more active channels, stop the sequencer
+  if( d->ch_active == 0 && d->running == 1 )
+  {
+    d->running = 0;
+    AD0CR &= 0xF8FFFF00; // stop ADC, disable channels
+  }
+}
+
+
+
+static void __attribute__((optimize(2))) __attribute__((interrupt ("IRQ"))) adc_int_handler() 
+{
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  elua_adc_ch_state *s = d->ch_state[ d->seq_ctr ];
+  u32 tmp, dreg_t;
+
+  tmp = AD0STAT; // Clear interrupt flag
+  //AD0INTEN = 0; // Disable generating interrupts
+
+  dreg_t =  *( PREG )adc_dr[ s->id ];
+  if ( dreg_t & ( 1UL << 31 ) )
+  { 
+    d->sample_buf[ d->seq_ctr ] = ( u16 )( ( dreg_t >> 6 ) & 0x3FF );
+    AD0CR &= 0xF8FFFF00;	// stop ADC, disable channels
+    s->value_fresh = 1;
+            
+    if ( s->logsmoothlen > 0 && s->smooth_ready == 0)
+      adc_smooth_data( s->id );
+#if defined( BUF_ENABLE_ADC )
+    else if ( s->reqsamples > 1 )
+    {
+      buf_write( BUF_ID_ADC, s->id, ( t_buf_data* )s->value_ptr );
+      s->value_fresh = 0;
+    }
+#endif
+    
+    if ( adc_samples_available( s->id ) >= s->reqsamples && s->freerunning == 0 )
+    {
+      platform_adc_stop( s->id );      
+    }
+  }
+
+  // Set up for next channel acquisition if we're still running
+  if( d->running == 1 )
+  {
+    // Prep next channel in sequence, if applicable
+    if( d->seq_ctr < ( d->seq_len - 1 ) )
+      d->seq_ctr++;
+    else if( d->seq_ctr == ( d->seq_len - 1 ) )
+    { 
+      adc_update_dev_sequence( 0 );
+      d->seq_ctr = 0; // reset sequence counter if on last sequence entry
+    }
+
+    AD0CR |= ( 1ULL << d->ch_state[ d->seq_ctr ]->id );
+    //AD0INTEN |= ( 1ULL << d->ch_state[ d->seq_ctr ]->id );
+         
+    if( d->clocked == 1  && d->seq_ctr == 0 ) // always use clock for first in clocked sequence
+    {
+      AD0CR |= ( adc_trig[ d->timer_id ] << 24 );
+    }
+
+    // Start next conversion if unclocked or if clocked and sequence index > 0
+    if( ( d->clocked == 1 && d->seq_ctr > 0 ) || d->clocked == 0 )
+    {
+      AD0CR |= ( 1ULL << 24 ); // Start conversion now
+    }
+  }
+  VICVectAddr = 0; // ACK interrupt
+}
+
+static void platform_setup_adcs()
+{
+  unsigned id;
+  
+  for( id = 0; id < NUM_ADC; id ++ )
+    adc_init_ch_state( id );
+
+  PCONP |= PCADC;
+
+  AD0CR = ( ( Fpclk / 4500000 - 1 ) << 8 ) |  /* CLKDIV = Fpclk / 1000000 - 1 */   
+          ( 0 << 16 ) |     /* BURST = 0, no BURST, software controlled */   
+          ( 0 << 17 ) |     /* CLKS = 0, 11 clocks/10 bits */   
+          ( 1 << 21 ) |     /* PDN = 1, normal operation */   
+          ( 0 << 22 ) |     /* TEST1:0 = 00 */   
+          ( 0 << 24 ) |     /* START = 0 A/D conversion stops */   
+          ( 0 << 27 );      /* EDGE = 0 (CAP/MAT singal falling,trigger A/D conversion) */ 
+  
+  // Default enables ADC interrupt only on global, switch to per-channel
+  //AD0INTEN &= ~( 1ULL << 8 );
+   
+  install_irq( ADC0_INT, adc_int_handler, HIGHEST_PRIORITY );
+}
+
+
+// NOTE: On this platform, there is only one ADC, clock settings apply to the whole device
+u32 platform_adc_setclock( unsigned id, u32 frequency )
+{
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+
+  if ( frequency > 0 )
+  {
+    d->clocked = 1;
+    
+    // Max Sampling Rate on LPC2468 is 200 kS/s
+    if ( frequency > 200000 )
+      frequency = 200000;
+        
+    // Set clock to 1 MHz
+    platform_timer_set_clock( d->timer_id, 1000000ULL );
+    
+    // Set match to period in uS
+    *( PREG )tmr_mr1[ d->timer_id ] = ( u32 )( ( 1000000ULL / ( frequency * 2 ) ) - 1 );
+    
+    // Reset on match
+    *( PREG )tmr_mcr[ d->timer_id ] |= ( 1ULL << 4 );
+    
+    // Don't stop on match
+    *( PREG )tmr_mcr[ d->timer_id ] &= ~( 1ULL << 5 );
+    
+    // Set match channel to 1
+    *( PREG )tmr_emr[ d->timer_id ] |= ( 1ULL << 1 );
+    
+    // Toggle output on match
+    *( PREG )tmr_emr[ d->timer_id ] |= ( 3ULL << 6 );
+        
+    frequency = 1000000ULL / (*( PREG )tmr_mr1[ d->timer_id ] + 1);
+  }
+  else
+    d->clocked = 0;
+    
+  return frequency;
+}
+
+static const u8 adc_ports[] = {  0, 0,   0,  0,  1,  1,  0,  0 };
+static const u8 adc_pins[] =  { 23, 24, 25, 26, 30, 31, 12, 13 };
+static const u8 adc_funcs[] = {  1,  1,  1,  1,  3,  3,  3,  3 };
+
+static const u32 pinsel_reg[] = { ( u32 )&PINSEL0, ( u32 )&PINSEL1, ( u32 )&PINSEL2,
+                                  ( u32 )&PINSEL3, ( u32 )&PINSEL4, ( u32 )&PINSEL5,
+                                  ( u32 )&PINSEL6, ( u32 )&PINSEL7, ( u32 )&PINSEL8,
+                                  ( u32 )&PINSEL9, ( u32 )&PINSEL10 };
+
+// Prepare Hardware Channel
+int platform_adc_update_sequence( )
+{ 
+  elua_adc_dev_state *d = adc_get_dev_state( 0 ); 
+  u8 seq_tmp;
+  unsigned id;
+  u32 pinnum, pinreg_idx;
+
+  for( seq_tmp = 0; seq_tmp < d->seq_len; seq_tmp++ )
+  {
+    id = d->ch_state[ seq_tmp ]->id;
+    pinnum = adc_pins[ id ];
+    pinreg_idx = 2 * adc_ports[ id ];
+
+    if ( pinnum >= 16 )
+    {
+        pinnum -= 16;
+        pinreg_idx++;
+    }
+    
+    *( PREG )pinsel_reg[ pinreg_idx ] &= ~( 0x03UL << pinnum * 2 );
+    *( PREG )pinsel_reg[ pinreg_idx ] |= ( ( u32 )adc_funcs[ id ] << pinnum * 2 );
+  }
+  
+  return PLATFORM_OK;
+}
+
+
+int platform_adc_start_sequence()
+{ 
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  
+  if( d->running != 1 )
+  {
+    adc_update_dev_sequence( 0 );
+    
+    // Start sampling on first channel
+    d->seq_ctr = 0;
+
+    // Enable channel & interrupt on channel conversion
+    AD0CR |= ( 1ULL << d->ch_state[ d->seq_ctr ]->id );
+    //AD0INTEN |= ( 1ULL << d->ch_state[ d->seq_ctr ]->id );
+
+    d->running = 1;
+
+    if( d->clocked == 1 )
+    {
+      AD0CR |= ( adc_trig[ d->timer_id ] << 24 );
+      platform_s_timer_op( d->timer_id,  PLATFORM_TIMER_OP_START, 0);
+    }
+    else
+      AD0CR |= ( 1ULL << 24 );
+  }
+  
+  return PLATFORM_OK;
+}
+
+#endif // ifdef BUILD_ADC
+
 
 // ****************************************************************************
 // PWM functions

@@ -15,6 +15,7 @@
 #define BUILD_ROMFS
 #define BUILD_TERM
 #define BUILD_CON_GENERIC
+#define BUILD_ADC
 #define BUILD_RPC
 
 // *****************************************************************************
@@ -29,6 +30,12 @@
 // *****************************************************************************
 // Auxiliary libraries that will be compiled for this platform
 
+#ifdef BUILD_ADC
+#define ADCLINE _ROM( AUXLIB_ADC, luaopen_adc, adc_map )
+#else
+#define ADCLINE
+#endif
+
 #if defined( BUILD_RPC ) || defined( ELUA_BOOT_RPC )
 #define RPCLINE _ROM( AUXLIB_RPC, luaopen_rpc, rpc_map )
 #else
@@ -41,6 +48,7 @@
 #define LUA_PLATFORM_LIBS_ROM\
   _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
   _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
+  ADCLINE\
   _ROM( AUXLIB_UART, luaopen_uart, uart_map )\
   _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
   _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
@@ -65,7 +73,7 @@
 #define NUM_SPI               0
 #define NUM_UART              4
 #define NUM_PWM               12
-#define NUM_ADC               0
+#define NUM_ADC               8
 #define NUM_CAN               0
 // If virtual timers are enabled, the last timer will be used only for them
 #if VTMR_NUM_TIMERS == 0
@@ -78,6 +86,15 @@
 // [TODO] make this happen
 //#define BUF_ENABLE_UART
 //#define CON_BUF_SIZE          BUF_SIZE_128
+
+// ADC Configuration Params
+#define ADC_BIT_RESOLUTION    10
+#define BUF_ENABLE_ADC
+#define ADC_BUF_SIZE          BUF_SIZE_2
+
+// These should be adjusted to support multiple ADC devices
+#define ADC_TIMER_FIRST_ID    0
+#define ADC_NUM_TIMERS        4
 
 // RPC boot options
 #define RPC_UART_ID           CON_UART_ID
