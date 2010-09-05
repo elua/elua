@@ -80,6 +80,8 @@ static const u32 pio_fiodir[ NUM_PIO ] = { ( u32 )&FIO0DIR, ( u32 )&FIO1DIR, ( u
 static const u32 pio_fiopin[ NUM_PIO ] = { ( u32 )&FIO0PIN, ( u32 )&FIO1PIN, ( u32 )&FIO2PIN, ( u32 )&FIO3PIN, ( u32 )&FIO4PIN };
 static const u32 pio_fioset[ NUM_PIO ] = { ( u32 )&FIO0SET, ( u32 )&FIO1SET, ( u32 )&FIO2SET, ( u32 )&FIO3SET, ( u32 )&FIO4SET };
 static const u32 pio_fioclr[ NUM_PIO ] = { ( u32 )&FIO0CLR, ( u32 )&FIO1CLR, ( u32 )&FIO2CLR, ( u32 )&FIO3CLR, ( u32 )&FIO4CLR };
+static const u32 pio_pinmode[ NUM_PIO * 2 ] = { ( u32 )&PINMODE0, ( u32 )&PINMODE1, ( u32 )&PINMODE2, ( u32 )&PINMODE3, ( u32 )&PINMODE4,
+                                                ( u32 )&PINMODE5, ( u32 )&PINMODE6, ( u32 )&PINMODE7, ( u32 )&PINMODE8, ( u32 )&PINMODE9 };
 
 // The platform I/O functions
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
@@ -89,6 +91,9 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
   PREG FIOxPIN = ( PREG )pio_fiopin[ port ];
   PREG FIOxSET = ( PREG )pio_fioset[ port ];
   PREG FIOxCLR = ( PREG )pio_fioclr[ port ];
+  PREG PINxMODE0 = ( PREG )pio_pinmode[ port * 2 ];
+  PREG PINxMODE1 = ( PREG )pio_pinmode[ port * 2 + 1 ];
+  u32 mask;
    
   switch( op )
   {
@@ -126,6 +131,48 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
       
     case PLATFORM_IO_PIN_GET:
       retval =( *FIOxPIN & pinmask ) ? 1 : 0;
+      break;
+
+    case PLATFORM_IO_PIN_PULLUP:
+      if( port == 0 && ( pinmask & 0xF8000000 ) )
+        printf( "Unable to set pullups on specified pin(s).\n" );
+      else
+      {
+        for( mask = 1; mask < 16; mask ++ )
+          if( pinmask & ( 1 << mask ) )
+            *PINxMODE0 = *PINxMODE0 & ~( 3 << ( mask * 2 ) );
+        for( mask = 16; mask < 32; mask ++ ) 
+          if( pinmask & ( 1 << mask ) )
+            *PINxMODE1 = *PINxMODE1 & ~( 3 << ( mask * 2 ) );
+      }
+      break;
+
+    case PLATFORM_IO_PIN_PULLDOWN:
+      if( port == 0 && ( pinmask & 0xF8000000 ) )
+        printf( "Unable to set pulldowns on specified pin(s).\n" );
+      else
+      {
+         for( mask = 1; mask < 16; mask ++ )
+          if( pinmask & ( 1 << mask ) )
+            *PINxMODE0 = ( *PINxMODE0 & ~( 3 << ( mask * 2 ) ) ) | ( 3 << ( mask * 2 ) );
+        for( mask = 16; mask < 32; mask ++ ) 
+          if( pinmask & ( 1 << mask ) )
+            *PINxMODE1 = ( *PINxMODE1 & ~( 3 << ( mask * 2 ) ) ) | ( 3 << ( mask * 2 ) );
+      }
+      break;
+
+    case PLATFORM_IO_PIN_NOPULL:
+      if( port == 0 && ( pinmask & 0xF8000000 ) )
+        printf( "Unable to reset pullups/pulldowns on specified pin(s).\n" );
+      else
+      {
+        for( mask = 1; mask < 16; mask ++ )
+          if( pinmask & ( 1 << mask ) )
+            *PINxMODE0 = ( *PINxMODE0 & ~( 3 << ( mask * 2 ) ) ) | ( 2 << ( mask * 2 ) );
+        for( mask = 16; mask < 32; mask ++ ) 
+          if( pinmask & ( 1 << mask ) )
+            *PINxMODE1 = ( *PINxMODE1 & ~( 3 << ( mask * 2 ) ) ) | ( 2 << ( mask * 2 ) );
+      }
       break;
       
     default:
@@ -308,7 +355,7 @@ static void platform_setup_timers()
   // Set interrupt handle and eanble timer interrupt (and global interrupts)
   T3MCR = 0x03; // interrupt on match with MR0 and clear on match
   install_irq( TIMER3_INT, tmr_int_handler, HIGHEST_PRIORITY ); 
-  platform_cpu_enable_interrupts(); 
+  platform_cpu_set_global_interrupts( PLATFORM_CPU_ENABLE );
   // Start timer
   T3TCR = TMR_ENABLE;
 #endif
@@ -365,14 +412,42 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
 // ****************************************************************************
 // CPU functions
 
-void platform_cpu_enable_interrupts()
+#define INTERRUPT_ENABLED_MASK          0x80
+
+extern void enable_ints();
+extern void disable_ints();
+extern u32 get_int_status();
+
+int platform_cpu_set_global_interrupts( int status )
 {
-  enable_ints();  
+  u32 crt_status = get_int_status();
+
+  if( status == PLATFORM_CPU_ENABLE )
+    enable_ints();
+  else
+    disable_ints();
+  return ( crt_status & INTERRUPT_ENABLED_MASK ) == 0 ? PLATFORM_CPU_ENABLED : PLATFORM_CPU_DISABLED;
 }
 
-void platform_cpu_disable_interrupts()
+int platform_cpu_get_global_interrupts()
 {
-  disable_ints();
+  return ( get_int_status() & INTERRUPT_ENABLED_MASK ) == 0 ? PLATFORM_CPU_ENABLED : PLATFORM_CPU_DISABLED;
+}
+
+// Helper: return the status of a specific interrupt (enabled/disabled)
+static int platform_cpuh_get_int_status( unsigned id )
+{
+  return PLATFORM_CPU_DISABLED;
+}
+
+int platform_cpu_set_interrupt( unsigned id, int status )
+{
+  return PLATFORM_CPU_ENABLED;
+}
+
+int platform_cpu_get_interrupt( unsigned id )
+{
+  return PLATFORM_CPU_ENABLED;
 }
 
 // ****************************************************************************

@@ -15,8 +15,8 @@
 // Lua: w32( address, data )
 static int cpu_w32( lua_State *L )
 {
-  u32 addr = ( u32 )luaL_checkinteger( L, 1 );
-  u32 data = ( u32 )luaL_checkinteger( L, 2 );
+  u32 addr = ( u32 )luaL_checknumber( L, 1 );
+  u32 data = ( u32 )luaL_checknumber( L, 2 );
   
   *( u32* )addr = data;
   return 0;
@@ -25,7 +25,7 @@ static int cpu_w32( lua_State *L )
 // Lua: data = r32( address )
 static int cpu_r32( lua_State *L )
 {
-  u32 addr = ( u32 )luaL_checkinteger( L, 1 );
+  u32 addr = ( u32 )luaL_checknumber( L, 1 );
 
   lua_pushinteger( L, ( lua_Integer )( *( u32* )addr ) );  
   return 1;
@@ -34,8 +34,8 @@ static int cpu_r32( lua_State *L )
 // Lua: w16( address, data )
 static int cpu_w16( lua_State *L )
 {
-  u32 addr = ( u32 )luaL_checkinteger( L, 1 );
-  u16 data = ( u16 )luaL_checkinteger( L, 2 );
+  u32 addr = ( u32 )luaL_checknumber( L, 1 );
+  u16 data = ( u16 )luaL_checknumber( L, 2 );
   
   *( u16* )addr = data;
   return 0;
@@ -44,7 +44,7 @@ static int cpu_w16( lua_State *L )
 // Lua: data = r16( address )
 static int cpu_r16( lua_State *L )
 {
-  u32 addr = ( u32 )luaL_checkinteger( L, 1 );
+  u32 addr = ( u32 )luaL_checknumber( L, 1 );
 
   lua_pushinteger( L, ( lua_Integer )( *( u16* )addr ) );  
   return 1;
@@ -53,8 +53,8 @@ static int cpu_r16( lua_State *L )
 // Lua: w8( address, data )
 static int cpu_w8( lua_State *L )
 {
-  u32 addr = ( u32 )luaL_checkinteger( L, 1 );
-  u8 data = ( u8 )luaL_checkinteger( L, 2 );
+  u32 addr = ( u32 )luaL_checknumber( L, 1 );
+  u8 data = ( u8 )luaL_checknumber( L, 2 );
   
   *( u8* )addr = data;
   return 0;
@@ -63,7 +63,7 @@ static int cpu_w8( lua_State *L )
 // Lua: data = r8( address )
 static int cpu_r8( lua_State *L )
 {
-  u32 addr = ( u32 )luaL_checkinteger( L, 1 );
+  u32 addr = ( u32 )luaL_checknumber( L, 1 );
 
   lua_pushinteger( L, ( lua_Integer )( *( u8* )addr ) );  
   return 1;
@@ -73,7 +73,6 @@ static int cpu_r8( lua_State *L )
 // or cli( id1, id2, ..., idn ) - to disable specific interrupts
 static int cpu_cli( lua_State *L )
 {
-#ifdef BUILD_LUA_INT_HANDLERS
   unsigned i;
   elua_int_id id;
 
@@ -82,12 +81,12 @@ static int cpu_cli( lua_State *L )
     for( i = 1; i <= lua_gettop( L ); i ++ )
     {
       id = ( elua_int_id )luaL_checkinteger( L, i );
+      platform_cpu_set_interrupt( id, PLATFORM_CPU_DISABLE );
       elua_int_disable( id );
     }
   }
   else
-#endif
-  platform_cpu_set_global_interrupts( PLATFORM_CPU_DISABLE );
+    platform_cpu_set_global_interrupts( PLATFORM_CPU_DISABLE );
   return 0;
 }
 
@@ -95,7 +94,6 @@ static int cpu_cli( lua_State *L )
 // or set( id1, id2, ..., idn ) - to enable specific interrupts
 static int cpu_sei( lua_State *L )
 {
-#ifdef BUILD_LUA_INT_HANDLERS
   unsigned i;
   elua_int_id id;
 
@@ -104,11 +102,12 @@ static int cpu_sei( lua_State *L )
     for( i = 1; i <= lua_gettop( L ); i ++ )
     {
       id = ( elua_int_id )luaL_checkinteger( L, i );
+      platform_cpu_set_interrupt( id, PLATFORM_CPU_ENABLE );
       elua_int_enable( id );
     }
   }
-#endif
-  platform_cpu_set_global_interrupts( PLATFORM_CPU_ENABLE );
+  else
+    platform_cpu_set_global_interrupts( PLATFORM_CPU_ENABLE );
   return 0;
 }
 
@@ -142,7 +141,7 @@ static int cpu_mt_index( lua_State *L )
   {
     if( !strcmp( cpu_constants[ i ].name, key ) )
     {
-      lua_pushinteger( L, cpu_constants[ i ].val );
+      lua_pushnumber( L, cpu_constants[ i ].val );
       return 1;
     }
     i ++;

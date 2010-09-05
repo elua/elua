@@ -6,6 +6,8 @@
 #include "auxmods.h"
 #include "stacks.h"
 #include "type.h"
+#include "buf.h"
+#include "elua_int.h"
 
 // *****************************************************************************
 // Define here what components you want for this platform
@@ -15,6 +17,7 @@
 #define BUILD_ROMFS
 #define BUILD_TERM
 #define BUILD_CON_GENERIC
+#define BUILD_LUA_INT_HANDLERS
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
@@ -45,6 +48,9 @@
 #define NUM_PWM               4
 #define NUM_ADC               0
 #define NUM_CAN               0
+
+// Interrupt data
+#define PLATFORM_INT_QUEUE_LOG_SIZE   BUF_SIZE_16
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 u32 SCU_GetMCLKFreqValue();
@@ -83,5 +89,13 @@ u32 SCU_GetMCLKFreqValue();
   _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map)\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
   _ROM( PS_LIB_TABLE_NAME, luaopen_platform, platform_map )
+
+// ****************************************************************************
+// List of interrupt IDs
+
+enum
+{ 
+  INT_UART_RX = ELUA_INT_FIRST_ID
+};
 
 #endif // #ifndef __PLATFORM_CONF_H__

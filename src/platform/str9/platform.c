@@ -430,12 +430,20 @@ int platform_cpu_get_global_interrupts()
   return ( get_int_status() & INTERRUPT_ENABLED_MASK ) == 0 ? PLATFORM_CPU_ENABLED : PLATFORM_CPU_DISABLED;
 }
 
+// Helper: return the status of a specific interrupt (enabled/disabled)
+static int platform_cpuh_get_int_status( unsigned id )
+{
+  return PLATFORM_CPU_DISABLED;
+}
+
 int platform_cpu_set_interrupt( unsigned id, int status )
 {
+  return PLATFORM_CPU_ENABLED;
 }
 
 int platform_cpu_get_interrupt( unsigned id )
 {
+  return PLATFORM_CPU_ENABLED;
 }
 
 // ****************************************************************************
