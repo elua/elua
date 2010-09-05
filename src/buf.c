@@ -141,6 +141,7 @@ unsigned buf_get_count( unsigned resid, unsigned resnum )
 int buf_read( unsigned resid, unsigned resnum, t_buf_data *data )
 {
   BUF_GETPTR( resid, resnum );
+  int old_status;
   
   if( READ16( pbuf->count ) == 0 )
     return PLATFORM_UNDERFLOW;
@@ -150,10 +151,10 @@ int buf_read( unsigned resid, unsigned resnum, t_buf_data *data )
   
   DUFF_DEVICE_8( BUF_REALDSIZE( pbuf ),  *d++ = *s++ );
 
-  platform_cpu_disable_interrupts();
+  old_status = platform_cpu_set_global_interrupts( PLATFORM_CPU_DISABLE );
   pbuf->count --;
   BUF_MOD_INCR( pbuf, rptr );
-  platform_cpu_enable_interrupts();
+  platform_cpu_set_global_interrupts( old_status );
   
   return PLATFORM_OK;
 }

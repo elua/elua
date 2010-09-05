@@ -87,7 +87,7 @@ static int cpu_cli( lua_State *L )
   }
   else
 #endif
-  platform_cpu_disable_interrupts();
+  platform_cpu_set_global_interrupts( PLATFORM_CPU_DISABLE );
   return 0;
 }
 
@@ -108,7 +108,7 @@ static int cpu_sei( lua_State *L )
     }
   }
 #endif
-  platform_cpu_enable_interrupts();
+  platform_cpu_set_global_interrupts( PLATFORM_CPU_ENABLE );
   return 0;
 }
 

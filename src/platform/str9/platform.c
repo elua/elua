@@ -408,17 +408,34 @@ u32 platform_pwm_op( unsigned id, int op, u32 data )
 // ****************************************************************************
 // CPU functions
 
+#define INTERRUPT_ENABLED_MASK          0x80
+
 extern void enable_ints();
 extern void disable_ints();
+extern u32 get_int_status();
 
-void platform_cpu_enable_interrupts()
+int platform_cpu_set_global_interrupts( int status )
 {
-  enable_ints();
+  u32 crt_status = get_int_status();
+
+  if( status == PLATFORM_CPU_ENABLE )
+    enable_ints();
+  else
+    disable_ints();
+  return ( crt_status & INTERRUPT_ENABLED_MASK ) == 0 ? PLATFORM_CPU_ENABLED : PLATFORM_CPU_DISABLED;
 }
 
-void platform_cpu_disable_interrupts()
+int platform_cpu_get_global_interrupts()
 {
-  disable_ints();
+  return ( get_int_status() & INTERRUPT_ENABLED_MASK ) == 0 ? PLATFORM_CPU_ENABLED : PLATFORM_CPU_DISABLED;
+}
+
+int platform_cpu_set_interrupt( unsigned id, int status )
+{
+}
+
+int platform_cpu_get_interrupt( unsigned id )
+{
 }
 
 // ****************************************************************************

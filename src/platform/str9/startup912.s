@@ -298,6 +298,12 @@ disable_ints:
       ldmfd    sp!, {r1}
       mov      pc, r14
 
+# Get interrupt status
+      .global get_int_status
+get_int_status:
+      mrs     r0, CPSR
+      mov     pc, r14
+
 #*************************************************************************
 # END
 #*************************************************************************   
