@@ -17,9 +17,11 @@
 #define BUILD_ROMFS
 #define BUILD_MMCFS
 #define BUILD_TERM
-#define BUILD_UIP
+#ifndef FORLM3S1968
+  #define BUILD_UIP
 //#define BUILD_DHCPC
-#define BUILD_DNS
+  #define BUILD_DNS
+#endif  
 #define BUILD_CON_GENERIC
 #define BUILD_ADC
 #define BUILD_RPC
@@ -127,7 +129,9 @@
 #define VTMR_FREQ_HZ          4
 
 // Number of resources (0 if not available/not implemented)
-#ifdef FORLM3S9B92
+#if defined(FORLM3S1968)
+  #define NUM_PIO             8
+#elif defined(FORLM3S9B92)
   #define NUM_PIO             7
 #else
   #define NUM_PIO             7
@@ -201,7 +205,9 @@
 // #define PIO_PINS_PER_PORT (n) if each port has the same number of pins, or
 // #define PIO_PIN_ARRAY { n1, n2, ... } to define pins per port in an array
 // Use #define PIO_PINS_PER_PORT 0 if this isn't needed
-#ifdef FORLM3S9B92
+#if defined(FORLM3S1968)
+  #define PIO_PIN_ARRAY         { 8, 8, 8, 4, 4, 8, 8, 4}
+#elif defined(FORLM3S9B92)
   #define PIO_PIN_ARRAY         { 8, 8, 8, 8, 8, 6, 8, 8, 8 }
 #else
   #define PIO_PIN_ARRAY         { 8, 8, 8, 8, 4, 4, 2 }

@@ -29,6 +29,13 @@ for i = 1, Vmax, 1 do
   game_map[ i ] = {}
 end
 
+local pwmid
+if pd.board() == "EK-LM3S1968" then
+  pwmid = 2
+else
+  pwmid = 1
+end
+
 -- Initial information
 local platform = require( pd.board() )
 lm3s.disp.init( 1000000 )
@@ -84,9 +91,9 @@ function draw_walls()                  -- This function draws the walls and the 
 end
 
 function sound()                       -- This function beeps
-  pwm.start( 1 )
+  pwm.start( pwmid )
   tmr.delay( 0, 20000 )
-  pwm.stop( 1 )
+  pwm.stop( pwmid )
 end
 
 function print_data()                  -- This function writes the score and level on screen
@@ -331,8 +338,8 @@ repeat
   end
   level = 1                            -- This statements sets the level and score from the beginning
   score = 0
-  pwm.setclock( 1, 25000000 )          -- This statements sets the PWM for the sound function
-  pwm.setup( 1, 1000, 70 )
+  pwm.setclock( pwmid, 25000000 )      -- This statements sets the PWM for the sound function
+  pwm.setup( pwmid, 1000, 70 )
   draw_walls()
   next_piece = math.random(7)
   scan_piece ( next_piece )
