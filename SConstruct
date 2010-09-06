@@ -110,7 +110,8 @@ romfs = { 'bisect' : [ 'bisect.lua' ],
           'life' : [ 'life.lua' ],
           'logo' : ['logo.lua', 'logo.bin' ],
           'spaceship' : [ 'spaceship.lua' ],
-          'tetrives' : [ 'tetrives.lua' ]
+          'tetrives' : [ 'tetrives.lua' ],
+          'inttest' : [ 'inttest.lua' ]
         }
 
 # List of board/romfs data combinations
@@ -128,7 +129,7 @@ file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'i
               'ATEVK1100' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
               'ET-STM32' : [ 'hello', 'hangman', 'info', 'bisect','adcscope','adcpoll', 'dualpwm', 'pwmled' ],
               'EAGLE-100' : [ 'bisect', 'hangman', 'lhttpd', 'led', 'hello', 'info' ],
-              'ELUA-PUC' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'pwmled' ]
+              'ELUA-PUC' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'pwmled', 'inttest' ]
 }
 
 # Variants: board = <boardname>

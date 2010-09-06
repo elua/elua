@@ -70,20 +70,22 @@ static int cpu_r8( lua_State *L )
 }
 
 // Lua: cli() - to disable all interrupts
-// or cli( id1, id2, ..., idn ) - to disable specific interrupts
+// or cli( id1, resnum1, [resnum2], ..., [resnumn] ) - to disable a specific id/resnum(s)
 static int cpu_cli( lua_State *L )
 {
   unsigned i;
   elua_int_id id;
+  elua_int_resnum resnum;
 
   if( lua_gettop( L ) > 0 )
   {
-    for( i = 1; i <= lua_gettop( L ); i ++ )
+    id = ( elua_int_id )luaL_checkinteger( L, 1 );
+    for( i = 2; i <= lua_gettop( L ); i ++ )
     {
-      id = ( elua_int_id )luaL_checkinteger( L, i );
-      platform_cpu_set_interrupt( id, PLATFORM_CPU_DISABLE );
-      elua_int_disable( id );
+      resnum = ( elua_int_resnum )luaL_checkinteger( L, i );
+      platform_cpu_set_interrupt( id, resnum, PLATFORM_CPU_DISABLE );
     }
+    elua_int_disable( id );
   }
   else
     platform_cpu_set_global_interrupts( PLATFORM_CPU_DISABLE );
@@ -91,20 +93,22 @@ static int cpu_cli( lua_State *L )
 }
 
 // Lua: sei() - to enable all interrupts
-// or set( id1, id2, ..., idn ) - to enable specific interrupts
+// or sei( id1, resnum1, [resnum2], ..., [resnumn] ) - to enable a specific id/resnum(s)
 static int cpu_sei( lua_State *L )
 {
   unsigned i;
   elua_int_id id;
+  elua_int_resnum resnum;  
 
   if( lua_gettop( L ) > 0 )
   {
-    for( i = 1; i <= lua_gettop( L ); i ++ )
+    id = ( elua_int_id )luaL_checkinteger( L, 1 );
+    for( i = 2; i <= lua_gettop( L ); i ++ )
     {
-      id = ( elua_int_id )luaL_checkinteger( L, i );
-      platform_cpu_set_interrupt( id, PLATFORM_CPU_ENABLE );
-      elua_int_enable( id );
+      resnum = ( elua_int_resnum )luaL_checkinteger( L, i );
+      platform_cpu_set_interrupt( id, resnum, PLATFORM_CPU_ENABLE );
     }
+    elua_int_enable( id );
   }
   else
     platform_cpu_set_global_interrupts( PLATFORM_CPU_ENABLE );

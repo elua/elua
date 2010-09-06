@@ -39,16 +39,19 @@ static void elua_int_hook( lua_State *L, lua_Debug *ar )
   // Call Lua handler
   if( cpu_is_int_handler_active() )
   {
+    old_status = platform_cpu_set_global_interrupts( PLATFORM_CPU_DISABLE );    
+    lua_sethook( L, NULL, 0, 0 );
+    platform_cpu_set_global_interrupts( old_status );    
     lua_rawgeti( L, LUA_REGISTRYINDEX, LUA_INT_HANDLER_KEY );
     lua_pushinteger( L, crt.id );
     lua_pushinteger( L, crt.resnum );
-    lua_call( L, 2, 0 );
+    lua_call( L, 2, 0 );    
   }
 
-  // Unset hook if needed
+  // Set hook again if needed
   old_status = platform_cpu_set_global_interrupts( PLATFORM_CPU_DISABLE );
-  if( elua_int_queue[ elua_int_read_idx ].id == ELUA_INT_EMPTY_SLOT )
-    lua_sethook( L, elua_int_hook, 0, 0 );
+  if( elua_int_queue[ elua_int_read_idx ].id != ELUA_INT_EMPTY_SLOT )
+    lua_sethook( lua_getstate(), elua_int_hook, LUA_MASKCOUNT, 2 );
   platform_cpu_set_global_interrupts( old_status );
 }
 

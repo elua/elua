@@ -5,6 +5,7 @@
 
 #include "devman.h"
 #include "type.h"
+#include "elua_int.h"
 
 // Error / status codes
 enum
@@ -192,8 +193,8 @@ u32 platform_pwm_op( unsigned id, int op, u32 data );
 
 int platform_cpu_set_global_interrupts( int status );
 int platform_cpu_get_global_interrupts();
-int platform_cpu_set_interrupt( unsigned id, int status );
-int platform_cpu_get_interrupt( unsigned id );
+int platform_cpu_set_interrupt( elua_int_id id, elua_int_resnum resnum, int status );
+int platform_cpu_get_interrupt( elua_int_id id, elua_int_resnum resnum );
 u32 platform_cpu_get_frequency();
 
 // *****************************************************************************

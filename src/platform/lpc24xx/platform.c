@@ -13,6 +13,7 @@
 #include "utils.h"
 #include "common.h"
 #include "platform_conf.h"
+#include "elua_int.h"
 
 // Platform includes
 #include "LPC23xx.h"                        /* LPC23xx/24xx definitions */
@@ -20,8 +21,50 @@
 #include "irq.h"
 #include "uart.h"
 
-extern void enable_ints();
-extern void disable_ints();
+// *****************************************************************************
+// These interrupt handlers are the link to elua_int.c
+
+static void __attribute__((optimize(0))) __attribute__((interrupt ("IRQ"))) eint3_int_handler()
+{
+  elua_int_id id = ELUA_INT_INVALID_INTERRUPT;
+  elua_int_resnum resnum = 0;
+  
+  EXTINT |= 1 << 3; // clear interrupt
+  // Look for interrupt source
+  // In can only be GPIO0/GPIO2, as the EXT interrupts are not (yet) used
+  if( IO_INT_STAT & 1 )
+  {
+    if( IO0_INT_STAT_R )
+    {
+      id = INT_GPIO0_POSEDGE;
+      resnum = intlog2( IO0_INT_STAT_R );
+    }
+    else
+    {
+      id = INT_GPIO0_NEGEDGE;
+      resnum = intlog2( IO0_INT_STAT_F );
+    }
+    IO0_INT_CLR = 1 << resnum;
+  }
+  else
+  {
+    if( IO2_INT_STAT_R )
+    {
+      id = INT_GPIO2_POSEDGE;
+      resnum = intlog2( IO2_INT_STAT_R );
+    }
+    else
+    {
+      id = INT_GPIO2_NEGEDGE;
+      resnum = intlog2( IO2_INT_STAT_F );
+    }  
+    IO2_INT_CLR = 1 << resnum;
+  }
+  
+  // Queue interrupt
+  elua_int_add( id, resnum );
+  VICVectAddr = 0; // ACK interrupt    
+}
 
 // ****************************************************************************
 // Platform initialization
@@ -55,6 +98,12 @@ static void platform_setup_cpu()
   SCS |= 1;
 }
 
+// Setup all required interrupt handlers
+static void platform_setup_interrupts()
+{
+  install_irq( EINT3_INT, eint3_int_handler, HIGHEST_PRIORITY - 1 );   
+}
+
 int platform_init()
 {
   // Complete CPU initialization
@@ -63,6 +112,9 @@ int platform_init()
   // Setup peripherals
   platform_setup_timers();
   platform_setup_pwm();
+  
+  // Setup interrupt handlers
+  platform_setup_interrupts();
 
   // Initialize console UART
   platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
@@ -418,6 +470,11 @@ extern void enable_ints();
 extern void disable_ints();
 extern u32 get_int_status();
 
+static PREG const IO0INTR = ( PREG )&IO0_INT_EN_R; 
+static PREG const IO0INTF = ( PREG )&IO0_INT_EN_F;
+static PREG const IO2INTR = ( PREG )&IO2_INT_EN_R;
+static PREG const IO2INTF = ( PREG )&IO2_INT_EN_F;
+
 int platform_cpu_set_global_interrupts( int status )
 {
   u32 crt_status = get_int_status();
@@ -435,19 +492,65 @@ int platform_cpu_get_global_interrupts()
 }
 
 // Helper: return the status of a specific interrupt (enabled/disabled)
-static int platform_cpuh_get_int_status( unsigned id )
+static int platform_cpuh_get_int_status( elua_int_id id, elua_int_resnum resnum )
 {
+  switch( id )
+  {
+    case INT_GPIO0_POSEDGE:
+      return ( *IO0INTR & ( 1 << resnum ) ) ? PLATFORM_CPU_ENABLED : PLATFORM_CPU_DISABLED;
+      
+    case INT_GPIO0_NEGEDGE:
+      return ( *IO0INTF & ( 1 << resnum ) ) ? PLATFORM_CPU_ENABLED : PLATFORM_CPU_DISABLED;
+      
+    case INT_GPIO2_POSEDGE:
+      return ( *IO2INTR & ( 1 << resnum ) ) ? PLATFORM_CPU_ENABLED : PLATFORM_CPU_DISABLED;
+      
+    case INT_GPIO2_NEGEDGE:
+      return ( *IO2INTF & ( 1 << resnum ) ) ? PLATFORM_CPU_ENABLED : PLATFORM_CPU_DISABLED;
+  }
   return PLATFORM_CPU_DISABLED;
 }
 
-int platform_cpu_set_interrupt( unsigned id, int status )
+int platform_cpu_set_interrupt( elua_int_id id, elua_int_resnum resnum, int status )
 {
-  return PLATFORM_CPU_ENABLED;
+  int crt_status = platform_cpuh_get_int_status( id, resnum );
+
+  switch( id )
+  {
+    case INT_GPIO0_POSEDGE:
+      if( status == PLATFORM_CPU_ENABLE )
+        *IO0INTR |= 1 << resnum;
+      else
+        *IO0INTR &= ~( 1 << resnum );        
+      break;
+      
+    case INT_GPIO0_NEGEDGE:
+      if( status == PLATFORM_CPU_ENABLE )
+        *IO0INTF |= 1 << resnum;
+      else
+        *IO0INTF &= ~( 1 << resnum );        
+      break;
+      
+    case INT_GPIO2_POSEDGE:
+      if( status == PLATFORM_CPU_ENABLE )
+        *IO2INTR |= 1 << resnum;
+      else
+        *IO2INTR &= ~( 1 << resnum );       
+      break;
+      
+    case INT_GPIO2_NEGEDGE:
+      if( status == PLATFORM_CPU_ENABLE )
+        *IO2INTF |= 1 << resnum;
+      else
+        *IO2INTF &= ~( 1 << resnum );         
+      break;
+  }
+  return crt_status;
 }
 
-int platform_cpu_get_interrupt( unsigned id )
+int platform_cpu_get_interrupt( elua_int_id id, elua_int_resnum resnum )
 {
-  return PLATFORM_CPU_ENABLED;
+  return platform_cpuh_get_int_status( id, resnum );
 }
 
 // ****************************************************************************

@@ -10,6 +10,7 @@ typedef u8 elua_int_resnum;
 
 #define ELUA_INT_EMPTY_SLOT             0
 #define ELUA_INT_FIRST_ID               1
+#define ELUA_INT_INVALID_INTERRUPT      0xFF
 
 // This is what gets pushed in the interrupt queue
 typedef struct 
