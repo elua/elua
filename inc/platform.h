@@ -188,8 +188,6 @@ u32 platform_pwm_op( unsigned id, int op, u32 data );
 
 #define PLATFORM_CPU_DISABLE            0
 #define PLATFORM_CPU_ENABLE             1
-#define PLATFORM_CPU_DISABLED           0
-#define PLATFORM_CPU_ENABLED            1
 
 int platform_cpu_set_global_interrupts( int status );
 int platform_cpu_get_global_interrupts();

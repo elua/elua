@@ -6,7 +6,9 @@
 #include "type.h"
 
 typedef u8 elua_int_id;
-typedef u8 elua_int_resnum;
+// The resource number is a 16-bit integer because it must be able to hold a 
+// port/pin combination coded as specified in platform.h 
+typedef u16 elua_int_resnum;
 
 #define ELUA_INT_EMPTY_SLOT             0
 #define ELUA_INT_FIRST_ID               1

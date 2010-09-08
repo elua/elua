@@ -24,42 +24,32 @@
 // *****************************************************************************
 // These interrupt handlers are the link to elua_int.c
 
+static PREG const posedge_status[] = { ( PREG )&IO0_INT_STAT_R, ( PREG )&IO2_INT_STAT_R };
+static PREG const negedge_status[] = { ( PREG )&IO0_INT_STAT_F, ( PREG )&IO2_INT_STAT_F };
+static PREG const intclr_regs[] = { ( PREG )&IO0_INT_CLR, ( PREG )&IO2_INT_CLR };
+
 static void __attribute__((optimize(0))) __attribute__((interrupt ("IRQ"))) eint3_int_handler()
 {
   elua_int_id id = ELUA_INT_INVALID_INTERRUPT;
-  elua_int_resnum resnum = 0;
+  pio_code resnum = 0;
+  int pidx, pin;
   
   EXTINT |= 1 << 3; // clear interrupt
   // Look for interrupt source
   // In can only be GPIO0/GPIO2, as the EXT interrupts are not (yet) used
-  if( IO_INT_STAT & 1 )
+  pidx = ( IO_INT_STAT & 1 ) ? 0 : 1;
+  if( *posedge_status[ pidx ] )
   {
-    if( IO0_INT_STAT_R )
-    {
-      id = INT_GPIO0_POSEDGE;
-      resnum = intlog2( IO0_INT_STAT_R );
-    }
-    else
-    {
-      id = INT_GPIO0_NEGEDGE;
-      resnum = intlog2( IO0_INT_STAT_F );
-    }
-    IO0_INT_CLR = 1 << resnum;
+    id = INT_GPIO_POSEDGE;
+    pin = intlog2( *posedge_status[ pidx ] );
   }
   else
   {
-    if( IO2_INT_STAT_R )
-    {
-      id = INT_GPIO2_POSEDGE;
-      resnum = intlog2( IO2_INT_STAT_R );
-    }
-    else
-    {
-      id = INT_GPIO2_NEGEDGE;
-      resnum = intlog2( IO2_INT_STAT_F );
-    }  
-    IO2_INT_CLR = 1 << resnum;
+    id = INT_GPIO_NEGEDGE;
+    pin = intlog2( *negedge_status[ pidx ] );
   }
+  resnum = PLATFORM_IO_ENCODE( pidx * 2, pin, PLATFORM_IO_ENC_PIN );   
+  *intclr_regs[ pidx ] = 1 << pin;
   
   // Queue interrupt
   elua_int_add( id, resnum );
@@ -470,10 +460,8 @@ extern void enable_ints();
 extern void disable_ints();
 extern u32 get_int_status();
 
-static PREG const IO0INTR = ( PREG )&IO0_INT_EN_R; 
-static PREG const IO0INTF = ( PREG )&IO0_INT_EN_F;
-static PREG const IO2INTR = ( PREG )&IO2_INT_EN_R;
-static PREG const IO2INTF = ( PREG )&IO2_INT_EN_F;
+static PREG const posedge_regs[] = { ( PREG )&IO0_INT_EN_R, NULL, ( PREG )&IO2_INT_EN_R };
+static PREG const negedge_regs[] = { ( PREG )&IO0_INT_EN_F, NULL, ( PREG )&IO0_INT_EN_F };
 
 int platform_cpu_set_global_interrupts( int status )
 {
@@ -483,67 +471,54 @@ int platform_cpu_set_global_interrupts( int status )
     enable_ints();
   else
     disable_ints();
-  return ( crt_status & INTERRUPT_ENABLED_MASK ) == 0 ? PLATFORM_CPU_ENABLED : PLATFORM_CPU_DISABLED;
+  return ( crt_status & INTERRUPT_ENABLED_MASK ) != 0;
 }
 
 int platform_cpu_get_global_interrupts()
 {
-  return ( get_int_status() & INTERRUPT_ENABLED_MASK ) == 0 ? PLATFORM_CPU_ENABLED : PLATFORM_CPU_DISABLED;
+  return ( get_int_status() & INTERRUPT_ENABLED_MASK ) != 0;
 }
 
 // Helper: return the status of a specific interrupt (enabled/disabled)
 static int platform_cpuh_get_int_status( elua_int_id id, elua_int_resnum resnum )
 {
-  switch( id )
+  int port, pin;
+  
+  if( id == INT_GPIO_POSEDGE || id == INT_GPIO_NEGEDGE )
   {
-    case INT_GPIO0_POSEDGE:
-      return ( *IO0INTR & ( 1 << resnum ) ) ? PLATFORM_CPU_ENABLED : PLATFORM_CPU_DISABLED;
-      
-    case INT_GPIO0_NEGEDGE:
-      return ( *IO0INTF & ( 1 << resnum ) ) ? PLATFORM_CPU_ENABLED : PLATFORM_CPU_DISABLED;
-      
-    case INT_GPIO2_POSEDGE:
-      return ( *IO2INTR & ( 1 << resnum ) ) ? PLATFORM_CPU_ENABLED : PLATFORM_CPU_DISABLED;
-      
-    case INT_GPIO2_NEGEDGE:
-      return ( *IO2INTF & ( 1 << resnum ) ) ? PLATFORM_CPU_ENABLED : PLATFORM_CPU_DISABLED;
-  }
-  return PLATFORM_CPU_DISABLED;
+    port = PLATFORM_IO_GET_PORT( resnum ); 
+    pin = PLATFORM_IO_GET_PIN( resnum ); 
+    if( id == INT_GPIO_POSEDGE )
+      return *posedge_regs[ port ] & ( 1 << pin );
+    else
+      return *negedge_regs[ port ] & ( 1 << pin );        
+  } 
+  return 0;
 }
 
 int platform_cpu_set_interrupt( elua_int_id id, elua_int_resnum resnum, int status )
 {
   int crt_status = platform_cpuh_get_int_status( id, resnum );
-
-  switch( id )
+  int port, pin;
+  
+  if( id == INT_GPIO_POSEDGE || id == INT_GPIO_NEGEDGE )
   {
-    case INT_GPIO0_POSEDGE:
+    port = PLATFORM_IO_GET_PORT( resnum ); 
+    pin = PLATFORM_IO_GET_PIN( resnum ); 
+    if( id == INT_GPIO_POSEDGE )
+    {
       if( status == PLATFORM_CPU_ENABLE )
-        *IO0INTR |= 1 << resnum;
+        *posedge_regs[ port ] |= 1 << pin;
       else
-        *IO0INTR &= ~( 1 << resnum );        
-      break;
-      
-    case INT_GPIO0_NEGEDGE:
+        *posedge_regs[ port ] &= ~( 1 << pin );       
+    }
+    else
+    {
       if( status == PLATFORM_CPU_ENABLE )
-        *IO0INTF |= 1 << resnum;
+        *negedge_regs[ port ] |= 1 << pin;
       else
-        *IO0INTF &= ~( 1 << resnum );        
-      break;
-      
-    case INT_GPIO2_POSEDGE:
-      if( status == PLATFORM_CPU_ENABLE )
-        *IO2INTR |= 1 << resnum;
-      else
-        *IO2INTR &= ~( 1 << resnum );       
-      break;
-      
-    case INT_GPIO2_NEGEDGE:
-      if( status == PLATFORM_CPU_ENABLE )
-        *IO2INTF |= 1 << resnum;
-      else
-        *IO2INTF &= ~( 1 << resnum );         
-      break;
+        *negedge_regs[ port ] &= ~( 1 << pin );         
+    }    
   }
   return crt_status;
 }
