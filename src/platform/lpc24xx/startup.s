@@ -44,7 +44,21 @@ irqVector:
          ldr     pc, [pc, #-0x0120]      /* Vector from VicVectAddr */
 fiqVector:
          b       fiqVector               /* Fast interrupt */
+         
+//------------------------------------------------------------------------------
+/// IRQ handler macro
+//------------------------------------------------------------------------------                          
+            .macro    irq_handler label
 
+            .global   irqh_\label
+            .extern   c_handler_\label
+irqh_\label:
+            stmfd     sp!, {r0-r4, r12, lr}
+            bl        c_handler_\label
+            ldmfd     sp!, {r0-r4, r12, lr}
+            subs      pc, lr, #4
+
+            .endm
 //------------------------------------------------------------------------------
 /// Initializes the chip and branches to the main() function.
 //------------------------------------------------------------------------------
@@ -56,7 +70,6 @@ fiqVector:
 entry:
 resetHandler:
 
-// [TODO] enable interrupts
 /* Setup stacks for each mode */
         ldr     r0, =Top_Stack
 
@@ -102,6 +115,10 @@ ZeroBSS:
 /* Loop indefinitely when program is finished */
 forever:
         b       forever
+        
+// IRQ handlers
+        irq_handler   eint3       
+        irq_handler   tmr 
 
 # enable interrupts
         .global    enable_ints

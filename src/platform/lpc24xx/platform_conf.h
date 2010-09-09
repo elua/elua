@@ -110,8 +110,10 @@
 // Interrupt list
 enum
 {
+  // Platform interrupts
   INT_GPIO_POSEDGE = ELUA_INT_FIRST_ID,
   INT_GPIO_NEGEDGE,
+  INT_TMR_MATCH
 };
 
 #define PLATFORM_CPU_CONSTANTS\
@@ -127,7 +129,8 @@ enum
  _C( IO_PINSEL9 ),\
  _C( IO_PINSEL10 ),\
  _C( INT_GPIO_POSEDGE ),\
- _C( INT_GPIO_NEGEDGE )
+ _C( INT_GPIO_NEGEDGE ),\
+ _C( INT_TMR_MATCH )
  
 #endif // #ifndef __PLATFORM_CONF_H__
 

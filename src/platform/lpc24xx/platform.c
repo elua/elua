@@ -28,7 +28,8 @@ static PREG const posedge_status[] = { ( PREG )&IO0_INT_STAT_R, ( PREG )&IO2_INT
 static PREG const negedge_status[] = { ( PREG )&IO0_INT_STAT_F, ( PREG )&IO2_INT_STAT_F };
 static PREG const intclr_regs[] = { ( PREG )&IO0_INT_CLR, ( PREG )&IO2_INT_CLR };
 
-static void __attribute__((optimize(0))) __attribute__((interrupt ("IRQ"))) eint3_int_handler()
+extern void irqh_eint3();
+void c_handler_eint3()
 {
   elua_int_id id = ELUA_INT_INVALID_INTERRUPT;
   pio_code resnum = 0;
@@ -91,7 +92,7 @@ static void platform_setup_cpu()
 // Setup all required interrupt handlers
 static void platform_setup_interrupts()
 {
-  install_irq( EINT3_INT, eint3_int_handler, HIGHEST_PRIORITY - 1 );   
+  install_irq( EINT3_INT, irqh_eint3, HIGHEST_PRIORITY - 1 );   
 }
 
 int platform_init()
@@ -367,7 +368,8 @@ static u32 platform_timer_set_clock( unsigned id, u32 clock )
 }
 
 #if VTMR_NUM_TIMERS > 0
-static void __attribute__((interrupt ("IRQ"))) tmr_int_handler() 
+extern void irqh_tmr();
+void c_handler_tmr()
 {
   T3IR = 1; // clear interrupt
   cmn_virtual_timer_cb();
@@ -396,7 +398,7 @@ static void platform_setup_timers()
   T3IR = 0xFF;
   // Set interrupt handle and eanble timer interrupt (and global interrupts)
   T3MCR = 0x03; // interrupt on match with MR0 and clear on match
-  install_irq( TIMER3_INT, tmr_int_handler, HIGHEST_PRIORITY ); 
+  install_irq( TIMER3_INT, irqh_tmr, HIGHEST_PRIORITY ); 
   platform_cpu_set_global_interrupts( PLATFORM_CPU_ENABLE );
   // Start timer
   T3TCR = TMR_ENABLE;
@@ -471,12 +473,12 @@ int platform_cpu_set_global_interrupts( int status )
     enable_ints();
   else
     disable_ints();
-  return ( crt_status & INTERRUPT_ENABLED_MASK ) != 0;
+  return ( crt_status & INTERRUPT_ENABLED_MASK ) == 0;
 }
 
 int platform_cpu_get_global_interrupts()
 {
-  return ( get_int_status() & INTERRUPT_ENABLED_MASK ) != 0;
+  return ( get_int_status() & INTERRUPT_ENABLED_MASK ) == 0;
 }
 
 // Helper: return the status of a specific interrupt (enabled/disabled)
