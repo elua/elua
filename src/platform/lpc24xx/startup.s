@@ -17,6 +17,8 @@
 #define RAM_Size         0x10000        // [TODO] make this 96k?
 #define Top_Stack        (RAM_Base + RAM_Size)
 
+#define VectorAddress    0xFFFFFF00
+
 //------------------------------------------------------------------------------
 //         Startup routine
 //------------------------------------------------------------------------------
@@ -41,24 +43,23 @@ dataAbortVector:
 reservedVector:
          b       reservedVector          /* Reserved for future use */
 irqVector:
-         ldr     pc, [pc, #-0x0120]      /* Vector from VicVectAddr */
+         b       irqHandler              /* Generic IRQ handler */
 fiqVector:
-         b       fiqVector               /* Fast interrupt */
+         b       fiqVector               /* Fast interrupt */                
          
 //------------------------------------------------------------------------------
-/// IRQ handler macro
+/// IRQ handler
 //------------------------------------------------------------------------------                          
-            .macro    irq_handler label
 
-            .global   irqh_\label
-            .extern   c_handler_\label
-irqh_\label:
-            stmfd     sp!, {r0-r4, r12, lr}
-            bl        c_handler_\label
-            ldmfd     sp!, {r0-r4, r12, lr}
-            subs      pc, lr, #4
-
-            .endm
+irqHandler:
+            sub       lr, lr ,#4
+            stmfd     sp!, {r0-r3, r12, lr}
+            ldr       r0, =VectorAddress
+            ldr       r0, [r0] 
+            mov       lr, pc                          
+            bx        r0               
+            ldmfd     sp!, {r0-r3, r12, pc}^
+            
 //------------------------------------------------------------------------------
 /// Initializes the chip and branches to the main() function.
 //------------------------------------------------------------------------------
@@ -114,11 +115,7 @@ ZeroBSS:
 
 /* Loop indefinitely when program is finished */
 forever:
-        b       forever
-        
-// IRQ handlers
-        irq_handler   eint3       
-        irq_handler   tmr 
+        b       forever      
 
 # enable interrupts
         .global    enable_ints
