@@ -18,5 +18,9 @@ linkcom = "gcc -o $TARGET $SOURCES -lm"
 comp = Environment( CCCOM = cccom,
                     LINKCOM = linkcom,
                     ENV = os.environ )
+if comp['PLATFORM'] == 'win32':
+  suffix = ".exe"
+else:
+  suffix = ".elf"                    
 Decider( 'MD5' )                  
-Default( comp.Program( output, Split( lua_full_files ) ) )
+Default( comp.Program( output + suffix, Split( lua_full_files ) ) )
