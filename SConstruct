@@ -1,4 +1,5 @@
 import os, sys, shutil, string
+import platform  as syspl
 
 # Helper: "normalize" a name to make it a suitable C macro name
 def cnorm( name ):
@@ -307,12 +308,16 @@ if not GetOption( 'help' ):
   # Build the compilation command now
   compcmd = ''
   if comp['romfs'] == 'compile':
+    if syspl.system() == 'Windows':
+      suffix = '.exe'
+    else:
+      suffix = '.elf'
     # First check for luac.cross in the current directory
-    if not os.path.isfile( "luac.cross" ):
+    if not os.path.isfile( "luac.cross" + suffix ):
       print "The eLua cross compiler was not found."
       print "Build it by running 'scons -f cross-lua.py'"
       Exit( -1 )
-    compcmd = os.path.join( os.getcwd(), 'luac.cross -ccn %s -cce %s -o %%s -s %%s' % ( toolset[ 'cross_%s' % comp['target'] ], toolset[ 'cross_cpumode' ] ) )
+    compcmd = os.path.join( os.getcwd(), 'luac.cross%s -ccn %s -cce %s -o %%s -s %%s' % ( suffix, toolset[ 'cross_%s' % comp['target'] ], toolset[ 'cross_cpumode' ] ) )
   elif comp['romfs'] == 'compress':
     compcmd = 'lua luasrcdiet.lua --quiet --maximum --opt-comments --opt-whitespace --opt-emptylines --opt-eols --opt-strings --opt-numbers --opt-locals -o %s %s'
 
