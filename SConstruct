@@ -129,7 +129,8 @@ romfs = { 'bisect' : [ 'bisect.lua' ],
           'tetrives' : [ 'tetrives.lua' ],
           'snake' : [ 'snake.lua' ],
           'dataflash' : [ 'dataflash.lua' ],
-          'pachube' : [ 'pachube_demo.lua' ]
+          'pachube' : [ 'pachube_demo.lua' ],
+          'inttest' : [ 'inttest.lua' ]
         }
 
 # List of board/romfs data combinations
@@ -149,7 +150,7 @@ file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'i
               'ATEVK1101' : [ 'bisect', 'led', 'hello', 'info', 'dataflash' ],
               'ET-STM32' : [ 'hello', 'hangman', 'info', 'bisect','adcscope','adcpoll', 'dualpwm', 'pwmled' ],
               'EAGLE-100' : [ 'bisect', 'hangman', 'lhttpd', 'led', 'hello', 'info' ],
-              'ELUA-PUC' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'pwmled', 'adcscope', 'adcpoll' ],
+              'ELUA-PUC' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'pwmled', 'adcscope', 'adcpoll', 'inttest' ],
               'MBED' : [ 'bisect', 'hangman', 'hello', 'info', 'led', 'pwmled', 'dualpwm', 'life', 'adcscope', 'adcpoll' ],
 }
 
@@ -366,7 +367,7 @@ if not GetOption( 'help' ):
 
   lua_full_files = " " + " ".join( [ "src/lua/%s" % name for name in lua_files.split() ] )
   
-  comp.Append(CPPPATH = ['inc', 'inc/newlib',  'inc/remotefs', 'src/lua'])
+  comp.Append(CPPPATH = ['inc', 'inc/newlib',  'inc/remotefs', 'src/platform', 'src/lua'])
   if comp['target'] == 'lualong':
     conf.env.Append(CPPDEFINES = ['LUA_NUMBER_INTEGRAL'])
 
@@ -377,7 +378,7 @@ if not GetOption( 'help' ):
   local_libs = ''
 
   # Application files
-  app_files = " src/main.c src/romfs.c src/semifs.c src/xmodem.c src/shell.c src/term.c src/common.c src/buf.c src/elua_adc.c src/dlmalloc.c src/salloc.c src/luarpc_elua_uart.c "
+  app_files = " src/main.c src/romfs.c src/semifs.c src/xmodem.c src/shell.c src/term.c src/common.c src/buf.c src/elua_adc.c src/dlmalloc.c src/salloc.c src/luarpc_elua_uart.c src/elua_int.c "
 
   # Newlib related files
   newlib_files = " src/newlib/devman.c src/newlib/stubs.c src/newlib/genstd.c src/newlib/stdtcp.c"

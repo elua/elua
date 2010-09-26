@@ -304,7 +304,19 @@ static int pio_mt_index( lua_State* L )
   }
 }
 
-// ****************************************************************************
+// *****************************************************************************
+// The 'decode' functions returns a port/pin pair from a platform code
+
+static int pio_decode( lua_State *L )
+{
+  int code = ( int )luaL_checkinteger( L, 1 );
+  
+  lua_pushinteger( L, PLATFORM_IO_GET_PORT( code ) );
+  lua_pushinteger( L, PLATFORM_IO_GET_PIN( code ) );
+  return 2;
+}
+
+// *****************************************************************************
 // Pin function map
 
 #define MIN_OPT_LEVEL 2
@@ -336,6 +348,7 @@ const LUA_REG_TYPE pio_map[] =
 #if LUA_OPTIMIZE_MEMORY > 0
   { LSTRKEY( "pin" ), LROVAL( pio_pin_map ) },
   { LSTRKEY( "port" ), LROVAL( pio_port_map ) },
+  { LSTRKEY( "decode" ), LFUNCVAL( pio_decode ) },  
   { LSTRKEY( "INPUT" ), LNUMVAL( PIO_DIR_INPUT ) },
   { LSTRKEY( "OUTPUT" ), LNUMVAL( PIO_DIR_OUTPUT ) },
   { LSTRKEY( "PULLUP" ), LNUMVAL( PLATFORM_IO_PIN_PULLUP ) },

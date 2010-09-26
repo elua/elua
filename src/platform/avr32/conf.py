@@ -38,7 +38,7 @@ def progfunc_avr32( target, source, env ):
   print "Generating binary image..."
   os.system( "%s -O ihex %s %s.hex" % ( toolset[ 'bin' ], outname, output ) )
 
-  print "Programming..."
-  os.system( "batchisp -hardware usb -device %s -operation erase f memory flash blankcheck loadbuffer %s program verify start reset 0" % ( comp[ 'cpu' ].lower(), output + ".hex" ) )
+  # print "Programming..."
+  # os.system( "batchisp -hardware usb -device %s -operation erase f memory flash blankcheck loadbuffer %s program verify start reset 0" % ( comp[ 'cpu' ].lower(), output + ".hex" ) )
 
 tools[ 'avr32' ][ 'progfunc' ] = progfunc_avr32

@@ -5,7 +5,7 @@ ldscript = "i386.ld"
   
 # override default optimize settings (-Os is broken right now)
 comp.Replace(OPTFLAGS = ['-O0'])
-comp.AppendUnique(CCFLAGS = '-g'])
+comp.AppendUnique(CCFLAGS = ['-g'])
 
 # Prepend with path
 specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )

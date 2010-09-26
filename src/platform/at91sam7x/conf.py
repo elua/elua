@@ -17,6 +17,7 @@ comp.Append(CPPDEFINES = ['NOASSERT','NOTRACE'])
   
 # Prepend with path
 specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )
+specific_files += " src/platform/arm_utils.s src/platform/arm_cortex_interrupts.c"
 ldscript = "src/platform/%s/%s" % ( platform, ldscript )
 
 comp.Append(CCFLAGS = ['-ffunction-sections','-fdata-sections','-fno-strict-aliasing','-Wall'])
@@ -27,6 +28,9 @@ comp.Append(LIBS = ['c','gcc','m'])
 TARGET_FLAGS = ['-mcpu=arm7tdmi']
 if cpumode == 'thumb':
   TARGET_FLAGS += ['-mthumb']
+  comp.Append(CPPDEFINES = ['CPUMODE_THUMB'])
+else:
+  comp.Append(CPPDEFINES = ['CPUMODE_ARM'])
 
 # Configure General Flags for Target
 comp.Prepend(CCFLAGS = [TARGET_FLAGS])

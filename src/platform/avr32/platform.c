@@ -601,13 +601,19 @@ void platform_spi_select( unsigned id, int is_select )
 // ****************************************************************************
 // CPU functions
 
-void platform_cpu_enable_interrupts()
+int platform_cpu_set_global_interrupts( int status )
 {
-  Enable_global_interrupt();
+  int previous = Is_global_interrupt_enabled();
+
+  if( status == PLATFORM_CPU_ENABLE )
+    Enable_global_interrupt();
+  else
+    Disable_global_interrupt();
+  return previous;
 }
 
-void platform_cpu_disable_interrupts()
+int platform_cpu_get_global_interrupts()
 {
-  Disable_global_interrupt();
+  return Is_global_interrupt_enabled();
 }
 

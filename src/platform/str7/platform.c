@@ -56,6 +56,9 @@ int platform_init()
   platform_timer_op( 0, PLATFORM_TIMER_OP_SET_CLOCK, 39000 ); 
   
   cmn_platform_init();
+
+  // If interrupts are needed, uncomment the line below
+  // EIC->ICR |= 0x03;
       
   return PLATFORM_OK;
 } 
@@ -342,15 +345,3 @@ u32 platform_pwm_op( unsigned id, int op, u32 data )
   return res;
 }
 
-// ****************************************************************************
-// CPU functions
-
-void platform_cpu_enable_interrupts()
-{
-  EIC->ICR |= 0x03;
-}
-
-void platform_cpu_disable_interrupts()
-{
-  EIC->ICR &= ~0x03;
-}

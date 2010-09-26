@@ -82,16 +82,60 @@ static int cpu_r8( lua_State *L )
 }
 
 // Lua: cli()
+// Lua: cli() - to disable all interrupts
+// or cli( id1, resnum1, [resnum2], ..., [resnumn] ) - to disable a specific id/resnum(s)
 static int cpu_cli( lua_State *L )
 {
-  platform_cpu_disable_interrupts();
+#ifdef BUILD_LUA_INT_HANDLERS
+  unsigned i;
+  elua_int_id id;
+  elua_int_resnum resnum;
+
+  if( lua_gettop( L ) > 0 )
+  {
+    id = ( elua_int_id )luaL_checkinteger( L, 1 );
+    for( i = 2; i <= lua_gettop( L ); i ++ )
+    {
+      resnum = ( elua_int_resnum )luaL_checkinteger( L, i );
+      platform_cpu_set_interrupt( id, resnum, PLATFORM_CPU_DISABLE );
+    }
+    elua_int_disable( id );
+  }
+  else
+#else // #ifdef BUILD_LUA_INT_HANDLERS
+  if( lua_gettop( L ) > 0 )
+    return luaL_error( L, "Lua interrupt support not available." );
+#endif // #ifdef BUILD_LUA_INT_HANDLERS
+  platform_cpu_set_global_interrupts( PLATFORM_CPU_DISABLE );
   return 0;
 }
 
-// Lua: sei()
+
+// Lua: sei() - to enable all interrupts
+// or sei( id1, resnum1, [resnum2], ..., [resnumn] ) - to enable a specific id/resnum(s)
 static int cpu_sei( lua_State *L )
 {
-  platform_cpu_enable_interrupts();
+#ifdef BUILD_LUA_INT_HANDLERS  
+  unsigned i;
+  elua_int_id id;
+  elua_int_resnum resnum;  
+
+  if( lua_gettop( L ) > 0 )
+  {
+    id = ( elua_int_id )luaL_checkinteger( L, 1 );
+    for( i = 2; i <= lua_gettop( L ); i ++ )
+    {
+      resnum = ( elua_int_resnum )luaL_checkinteger( L, i );
+      platform_cpu_set_interrupt( id, resnum, PLATFORM_CPU_ENABLE );
+    }
+    elua_int_enable( id );
+  }
+  else
+#else // #ifdef BUILD_LUA_INT_HANDLERS
+  if( lua_gettop( L ) > 0 )
+    return luaL_error( L, "Lua interrupt support not available." );
+#endif // #ifdef BUILD_LUA_INT_HANDLERS  
+  platform_cpu_set_global_interrupts( PLATFORM_CPU_ENABLE );
   return 0;
 }
 
@@ -134,6 +178,31 @@ static int cpu_mt_index( lua_State *L )
 }
 #endif
 
+#ifdef BUILD_LUA_INT_HANDLERS
+static u8 cpu_int_handler_active;
+
+u8 cpu_is_int_handler_active()
+{
+  return cpu_int_handler_active;
+}
+
+// lua: cpu.set_int_handler( f )
+static int cpu_set_int_handler( lua_State *L )
+{
+  if( lua_type( L, 1 ) == LUA_TNIL )
+    cpu_int_handler_active = 0;
+  else if( lua_type( L, 1 ) == LUA_TFUNCTION || lua_type( L, 1 ) == LUA_TLIGHTFUNCTION )
+  {
+    lua_settop( L, 1 );
+    lua_rawseti( L, LUA_REGISTRYINDEX, LUA_INT_HANDLER_KEY );
+    cpu_int_handler_active = 1;
+  }
+  else
+    return luaL_error( L, "invalid argument (must be a function or nil)" );
+  return 0;
+}
+#endif
+
 // Module function map
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
@@ -148,6 +217,9 @@ const LUA_REG_TYPE cpu_map[] =
   { LSTRKEY( "cli" ), LFUNCVAL( cpu_cli ) },
   { LSTRKEY( "sei" ), LFUNCVAL( cpu_sei ) },
   { LSTRKEY( "clock" ), LFUNCVAL( cpu_clock ) },
+#ifdef BUILD_LUA_INT_HANDLERS
+  { LSTRKEY( "set_int_handler" ), LFUNCVAL( cpu_set_int_handler ) },
+#endif
 #if defined( PLATFORM_CPU_CONSTANTS ) && LUA_OPTIMIZE_MEMORY > 0
   { LSTRKEY( "__metatable" ), LROVAL( cpu_map ) },
 #endif
@@ -159,6 +231,9 @@ const LUA_REG_TYPE cpu_map[] =
 
 LUALIB_API int luaopen_cpu( lua_State *L )
 {
+#ifdef BUILD_LUA_INT_HANDLERS
+  cpu_int_handler_active = 0;
+#endif
 #if LUA_OPTIMIZE_MEMORY > 0
   return 0;
 #else // #if LUA_OPTIMIZE_MEMORY > 0

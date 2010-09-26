@@ -15,6 +15,8 @@
 #include "elua_adc.h"
 #include "platform_conf.h"
 #include "buf.h"
+#include "elua_int.h"
+#include "arm_constants.h"
 
 // Platform includes
 #include "LPC23xx.h"                        /* LPC23xx/24xx definitions */
@@ -25,6 +27,40 @@
 extern void enable_ints();
 extern void disable_ints();
 
+// *****************************************************************************
+// These interrupt handlers are the link to elua_int.c
+
+static PREG const posedge_status[] = { ( PREG )&IO0_INT_STAT_R, ( PREG )&IO2_INT_STAT_R };
+static PREG const negedge_status[] = { ( PREG )&IO0_INT_STAT_F, ( PREG )&IO2_INT_STAT_F };
+static PREG const intclr_regs[] = { ( PREG )&IO0_INT_CLR, ( PREG )&IO2_INT_CLR };
+
+static void int_handler_eint3()
+{
+  elua_int_id id = ELUA_INT_INVALID_INTERRUPT;
+  pio_code resnum = 0;
+  int pidx, pin;
+  
+  EXTINT |= 1 << 3; // clear interrupt
+  // Look for interrupt source
+  // In can only be GPIO0/GPIO2, as the EXT interrupts are not (yet) used
+  pidx = ( IO_INT_STAT & 1 ) ? 0 : 1;
+  if( *posedge_status[ pidx ] )
+  {
+    id = INT_GPIO_POSEDGE;
+    pin = intlog2( *posedge_status[ pidx ] );
+  }
+  else
+  {
+    id = INT_GPIO_NEGEDGE;
+    pin = intlog2( *negedge_status[ pidx ] );
+  }
+  resnum = PLATFORM_IO_ENCODE( pidx * 2, pin, PLATFORM_IO_ENC_PIN );   
+  *intclr_regs[ pidx ] = 1 << pin;
+  
+  // Queue interrupt
+  elua_int_add( id, resnum );
+  VICVectAddr = 0; // ACK interrupt    
+}
 // ****************************************************************************
 // Platform initialization
 
@@ -58,6 +94,12 @@ static void platform_setup_cpu()
 
   // Setup GPIO0 and GPIO1 in fast mode
   SCS |= 1;
+}
+
+// Setup all required interrupt handlers
+static void platform_setup_interrupts()
+{
+  install_irq( EINT3_INT, int_handler_eint3, HIGHEST_PRIORITY - 1 );   
 }
 
 #define P2C(Period)     (((Period<EMC_PERIOD)?0:(unsigned int)((float)Period/EMC_PERIOD)))
@@ -136,6 +178,9 @@ int platform_init()
   // Setup peripherals
   platform_setup_timers();
   platform_setup_pwm();
+  
+  // Setup interrupt handlers
+  platform_setup_interrupts();
 
   // Initialize console UART
   platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
@@ -158,6 +203,8 @@ static const u32 pio_fiodir[ NUM_PIO ] = { ( u32 )&FIO0DIR, ( u32 )&FIO1DIR, ( u
 static const u32 pio_fiopin[ NUM_PIO ] = { ( u32 )&FIO0PIN, ( u32 )&FIO1PIN, ( u32 )&FIO2PIN, ( u32 )&FIO3PIN, ( u32 )&FIO4PIN };
 static const u32 pio_fioset[ NUM_PIO ] = { ( u32 )&FIO0SET, ( u32 )&FIO1SET, ( u32 )&FIO2SET, ( u32 )&FIO3SET, ( u32 )&FIO4SET };
 static const u32 pio_fioclr[ NUM_PIO ] = { ( u32 )&FIO0CLR, ( u32 )&FIO1CLR, ( u32 )&FIO2CLR, ( u32 )&FIO3CLR, ( u32 )&FIO4CLR };
+static const u32 pio_pinmode[ NUM_PIO * 2 ] = { ( u32 )&PINMODE0, ( u32 )&PINMODE1, ( u32 )&PINMODE2, ( u32 )&PINMODE3, ( u32 )&PINMODE4,
+                                                ( u32 )&PINMODE5, ( u32 )&PINMODE6, ( u32 )&PINMODE7, ( u32 )&PINMODE8, ( u32 )&PINMODE9 };
 
 // The platform I/O functions
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
@@ -167,6 +214,9 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
   PREG FIOxPIN = ( PREG )pio_fiopin[ port ];
   PREG FIOxSET = ( PREG )pio_fioset[ port ];
   PREG FIOxCLR = ( PREG )pio_fioclr[ port ];
+  PREG PINxMODE0 = ( PREG )pio_pinmode[ port * 2 ];
+  PREG PINxMODE1 = ( PREG )pio_pinmode[ port * 2 + 1 ];
+  u32 mask;
    
   switch( op )
   {
@@ -204,6 +254,48 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
       
     case PLATFORM_IO_PIN_GET:
       retval =( *FIOxPIN & pinmask ) ? 1 : 0;
+      break;
+
+    case PLATFORM_IO_PIN_PULLUP:
+      if( port == 0 && ( pinmask & 0xF8000000 ) )
+        printf( "Unable to set pullups on specified pin(s).\n" );
+      else
+      {
+        for( mask = 1; mask < 16; mask ++ )
+          if( pinmask & ( 1 << mask ) )
+            *PINxMODE0 = *PINxMODE0 & ~( 3 << ( mask * 2 ) );
+        for( mask = 16; mask < 32; mask ++ ) 
+          if( pinmask & ( 1 << mask ) )
+            *PINxMODE1 = *PINxMODE1 & ~( 3 << ( mask * 2 ) );
+      }
+      break;
+
+    case PLATFORM_IO_PIN_PULLDOWN:
+      if( port == 0 && ( pinmask & 0xF8000000 ) )
+        printf( "Unable to set pulldowns on specified pin(s).\n" );
+      else
+      {
+         for( mask = 1; mask < 16; mask ++ )
+          if( pinmask & ( 1 << mask ) )
+            *PINxMODE0 = ( *PINxMODE0 & ~( 3 << ( mask * 2 ) ) ) | ( 3 << ( mask * 2 ) );
+        for( mask = 16; mask < 32; mask ++ ) 
+          if( pinmask & ( 1 << mask ) )
+            *PINxMODE1 = ( *PINxMODE1 & ~( 3 << ( mask * 2 ) ) ) | ( 3 << ( mask * 2 ) );
+      }
+      break;
+
+    case PLATFORM_IO_PIN_NOPULL:
+      if( port == 0 && ( pinmask & 0xF8000000 ) )
+        printf( "Unable to reset pullups/pulldowns on specified pin(s).\n" );
+      else
+      {
+        for( mask = 1; mask < 16; mask ++ )
+          if( pinmask & ( 1 << mask ) )
+            *PINxMODE0 = ( *PINxMODE0 & ~( 3 << ( mask * 2 ) ) ) | ( 2 << ( mask * 2 ) );
+        for( mask = 16; mask < 32; mask ++ ) 
+          if( pinmask & ( 1 << mask ) )
+            *PINxMODE1 = ( *PINxMODE1 & ~( 3 << ( mask * 2 ) ) ) | ( 2 << ( mask * 2 ) );
+      }
       break;
       
     default:
@@ -402,7 +494,7 @@ static u32 platform_timer_set_clock( unsigned id, u32 clock )
 }
 
 #if VTMR_NUM_TIMERS > 0
-static void __attribute__((interrupt ("IRQ"))) tmr_int_handler() 
+static void int_handler_tmr()
 {
   T3IR = 1; // clear interrupt
   cmn_virtual_timer_cb();
@@ -431,8 +523,8 @@ static void platform_setup_timers()
   T3IR = 0xFF;
   // Set interrupt handle and eanble timer interrupt (and global interrupts)
   T3MCR = 0x03; // interrupt on match with MR0 and clear on match
-  install_irq( TIMER3_INT, tmr_int_handler, HIGHEST_PRIORITY ); 
-  platform_cpu_enable_interrupts(); 
+  install_irq( TIMER3_INT, int_handler_tmr, HIGHEST_PRIORITY ); 
+  platform_cpu_set_global_interrupts( PLATFORM_CPU_ENABLE );
   // Start timer
   T3TCR = TMR_ENABLE;
 #endif
@@ -489,14 +581,56 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
 // ****************************************************************************
 // CPU functions
 
-void platform_cpu_enable_interrupts()
+static PREG const posedge_regs[] = { ( PREG )&IO0_INT_EN_R, NULL, ( PREG )&IO2_INT_EN_R };
+static PREG const negedge_regs[] = { ( PREG )&IO0_INT_EN_F, NULL, ( PREG )&IO0_INT_EN_F };
+
+// Helper: return the status of a specific interrupt (enabled/disabled)
+static int platform_cpuh_get_int_status( elua_int_id id, elua_int_resnum resnum )
 {
-  enable_ints();  
+  int port, pin;
+  
+  if( id == INT_GPIO_POSEDGE || id == INT_GPIO_NEGEDGE )
+  {
+    port = PLATFORM_IO_GET_PORT( resnum ); 
+    pin = PLATFORM_IO_GET_PIN( resnum ); 
+    if( id == INT_GPIO_POSEDGE )
+      return *posedge_regs[ port ] & ( 1 << pin );
+    else
+      return *negedge_regs[ port ] & ( 1 << pin );        
+  } 
+  return 0;
 }
 
-void platform_cpu_disable_interrupts()
+int platform_cpu_set_interrupt( elua_int_id id, elua_int_resnum resnum, int status )
 {
-  disable_ints();
+  int crt_status = platform_cpuh_get_int_status( id, resnum );
+  int port, pin;
+  
+  if( id == INT_GPIO_POSEDGE || id == INT_GPIO_NEGEDGE )
+  {
+    port = PLATFORM_IO_GET_PORT( resnum ); 
+    pin = PLATFORM_IO_GET_PIN( resnum ); 
+    if( id == INT_GPIO_POSEDGE )
+    {
+      if( status == PLATFORM_CPU_ENABLE )
+        *posedge_regs[ port ] |= 1 << pin;
+      else
+        *posedge_regs[ port ] &= ~( 1 << pin );       
+    }
+    else
+    {
+      if( status == PLATFORM_CPU_ENABLE )
+        *negedge_regs[ port ] |= 1 << pin;
+      else
+        *negedge_regs[ port ] &= ~( 1 << pin );         
+    }    
+  }
+  return crt_status;
+}
+
+int platform_cpu_get_interrupt( elua_int_id id, elua_int_resnum resnum )
+{
+  return platform_cpuh_get_int_status( id, resnum );
 }
 
 // *****************************************************************************
@@ -534,7 +668,7 @@ void platform_adc_stop( unsigned id )
 
 
 
-static void __attribute__((optimize(2))) __attribute__((interrupt ("IRQ"))) adc_int_handler() 
+static void adc_int_handler() 
 {
   elua_adc_dev_state *d = adc_get_dev_state( 0 );
   elua_adc_ch_state *s = d->ch_state[ d->seq_ctr ];

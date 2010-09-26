@@ -120,6 +120,23 @@ static int tmr_getclock( lua_State* L )
   return 1;
 }
 
+// Lua: setinttimeout( id, timeout )
+static int tmr_setinttimeout( lua_State *L )
+{
+#ifdef BUILD_LUA_INT_HANDLERS
+  unsigned id;
+  u32 res;
+  
+  id = luaL_checkinteger( L, 1 );
+  MOD_CHECK_ID( timer, id );
+  res = platform_timer_op( id, PLATFORM_TIMER_OP_SET_INT_TIMEOUT, ( u32 )luaL_checknumber( L, 2 ) );
+  lua_pushinteger( L, res );
+  return 1;
+#else
+  return luaL_error( L, "setinttimeout not supported when Lua interrupt support is not compiled" );
+#endif
+}
+
 #if VTMR_NUM_TIMERS > 0
 // __index metafunction for TMR
 // Look for all VIRTx timer identifiers
@@ -156,6 +173,7 @@ const LUA_REG_TYPE tmr_map[] =
   { LSTRKEY( "getmaxdelay" ), LFUNCVAL( tmr_getmaxdelay ) },
   { LSTRKEY( "setclock" ), LFUNCVAL( tmr_setclock ) },
   { LSTRKEY( "getclock" ), LFUNCVAL( tmr_getclock ) },
+  { LSTRKEY( "setinttimeout" ), LFUNCVAL( tmr_setinttimeout ) },
 #if LUA_OPTIMIZE_MEMORY > 0 && VTMR_NUM_TIMERS > 0
   { LSTRKEY( "__metatable" ), LROVAL( tmr_map ) },
 #endif

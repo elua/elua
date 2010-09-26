@@ -32,10 +32,10 @@ void adc_update_dev_sequence( unsigned dev_id  )
   unsigned previd = d->ch_state[ d->seq_ctr ]->id;
   unsigned id;
   u8 tmp_seq_ctr = 0;
-  
+  int old_status;  
   if( d->ch_active != d->last_ch_active || d->force_reseq == 1 )
   {
-    platform_cpu_disable_interrupts();
+    old_status = platform_cpu_set_global_interrupts( PLATFORM_CPU_DISABLE );
     // Update channel sequence
     d->seq_ctr = 0;
     for( id = 0; id < NUM_ADC; id ++ )
@@ -65,7 +65,7 @@ void adc_update_dev_sequence( unsigned dev_id  )
     d->last_ch_active = d->ch_active;
     d->seq_ctr = tmp_seq_ctr;
     d->force_reseq = 0;
-    platform_cpu_enable_interrupts();
+    platform_cpu_set_global_interrupts( old_status );
   }
 }
 
@@ -74,10 +74,12 @@ int adc_setup_channel( unsigned id, u8 logcount )
 {
   elua_adc_ch_state *s = adc_get_ch_state( id );
   elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  int old_status = platform_cpu_get_global_interrupts();
+
 #if defined( BUF_ENABLE_ADC )
   int res;
 
-  platform_cpu_disable_interrupts();
+  old_status = platform_cpu_get_global_interrupts( PLATFORM_CPU_DISABLE );
   if( ( (u16) 1 << logcount ) != buf_get_size( BUF_ID_ADC, id ) )
   {   
     res = buf_set( BUF_ID_ADC, id, logcount, BUF_DSIZE_U16 );
@@ -91,7 +93,7 @@ int adc_setup_channel( unsigned id, u8 logcount )
   s->op_pending = 1;
   
   ACTIVATE_CHANNEL( d, id );
-  platform_cpu_enable_interrupts();
+  platform_cpu_set_global_interrupts( old_status );
   
   return PLATFORM_OK;
 }

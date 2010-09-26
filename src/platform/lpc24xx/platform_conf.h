@@ -6,6 +6,8 @@
 #include "auxmods.h"
 #include "stacks.h"
 #include "target.h"
+#include "buf.h"
+#include "elua_int.h"
 
 // *****************************************************************************
 // Define here what components you want for this platform
@@ -17,6 +19,7 @@
 #define BUILD_CON_GENERIC
 #define BUILD_ADC
 #define BUILD_RPC
+#define BUILD_LUA_INT_HANDLERS
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
@@ -82,6 +85,8 @@
 #define NUM_TIMER             3
 #endif
 
+// Interrupt data
+#define PLATFORM_INT_QUEUE_LOG_SIZE   BUF_SIZE_32
 // Enable RX buffering on UART
 // [TODO] make this happen
 //#define BUF_ENABLE_UART
@@ -145,6 +150,15 @@
 #define IO_PINSEL9           ( PINSEL_BASE_ADDR + 0x24 )
 #define IO_PINSEL10          ( PINSEL_BASE_ADDR + 0x28 )
 
+// Interrupt list
+enum
+{
+  // Platform interrupts
+  INT_GPIO_POSEDGE = ELUA_INT_FIRST_ID,
+  INT_GPIO_NEGEDGE,
+  INT_TMR_MATCH
+};
+
 #define PLATFORM_CPU_CONSTANTS\
  _C( IO_PINSEL0 ),\
  _C( IO_PINSEL1 ),\
@@ -156,7 +170,10 @@
  _C( IO_PINSEL7 ),\
  _C( IO_PINSEL8 ),\
  _C( IO_PINSEL9 ),\
- _C( IO_PINSEL10 )
+ _C( IO_PINSEL10 ),\
+ _C( INT_GPIO_POSEDGE ),\
+ _C( INT_GPIO_NEGEDGE ),\
+ _C( INT_TMR_MATCH )
  
 #endif // #ifndef __PLATFORM_CONF_H__
 

@@ -20,6 +20,7 @@
 #include "lua.h"
 #include "lauxlib.h"
 #include "lrotable.h"
+#include "elua_int.h" 
 
 // Platform specific includes
 #include "hw_ints.h"
@@ -548,19 +549,6 @@ u32 platform_pwm_op( unsigned id, int op, u32 data )
   }
 
   return res;
-}
-
-// *****************************************************************************
-// CPU specific functions
-
-void platform_cpu_enable_interrupts()
-{
-  MAP_IntMasterEnable();
-}
-
-void platform_cpu_disable_interrupts()
-{
-  MAP_IntMasterDisable();
 }
 
 // *****************************************************************************

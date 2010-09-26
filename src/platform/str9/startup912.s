@@ -291,26 +291,6 @@ PLL_LOCK_LOOP:
 forever:
        B      forever
 
-# enable interrupts
-     .global    enable_ints
-enable_ints:
-      stmfd   sp!,  {r1}
-      mrs     r1, CPSR
-      bic     r1, r1, #I_BIT
-      msr     CPSR_c, r1
-      ldmfd   sp!, {r1}
-      mov     pc, r14
-
-# disable interrupts
-     .global disable_ints
-disable_ints:
-      stmfd    sp!, {r1}
-      mrs      r1, CPSR
-      orr      r1, r1, #I_BIT
-      msr      CPSR_c, r1
-      ldmfd    sp!, {r1}
-      mov      pc, r14
-
 #*************************************************************************
 # END
 #*************************************************************************   

@@ -321,20 +321,6 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
   return res;
 }
 
-// ****************************************************************************
-// CPU functions
-
-void platform_cpu_enable_interrupts()
-{
-  __enable_irq();  
-}
-
-void platform_cpu_disable_interrupts()
-{
-  __disable_irq();
-}
-
-
 // *****************************************************************************
 // ADC specific functions and variables
 

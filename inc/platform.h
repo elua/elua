@@ -5,6 +5,7 @@
 
 #include "devman.h"
 #include "type.h"
+#include "elua_int.h"
 
 // Error / status codes
 enum
@@ -158,7 +159,8 @@ enum
   PLATFORM_TIMER_OP_SET_CLOCK,
   PLATFORM_TIMER_OP_GET_CLOCK,
   PLATFORM_TIMER_OP_GET_MAX_DELAY,
-  PLATFORM_TIMER_OP_GET_MIN_DELAY
+  PLATFORM_TIMER_OP_GET_MIN_DELAY,
+  PLATFORM_TIMER_OP_SET_INT_TIMEOUT
 };
 
 // The platform timer functions
@@ -192,8 +194,13 @@ u32 platform_pwm_op( unsigned id, int op, u32 data );
 // *****************************************************************************
 // CPU specific functions
 
-void platform_cpu_enable_interrupts();
-void platform_cpu_disable_interrupts();
+#define PLATFORM_CPU_DISABLE            0
+#define PLATFORM_CPU_ENABLE             1
+
+int platform_cpu_set_global_interrupts( int status );
+int platform_cpu_get_global_interrupts();
+int platform_cpu_set_interrupt( elua_int_id id, elua_int_resnum resnum, int status );
+int platform_cpu_get_interrupt( elua_int_id id, elua_int_resnum resnum );
 u32 platform_cpu_get_frequency();
 
 // *****************************************************************************

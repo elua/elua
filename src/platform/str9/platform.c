@@ -413,22 +413,6 @@ u32 platform_pwm_op( unsigned id, int op, u32 data )
 }
 
 // ****************************************************************************
-// CPU functions
-
-extern void enable_ints();
-extern void disable_ints();
-
-void platform_cpu_enable_interrupts()
-{
-  enable_ints();
-}
-
-void platform_cpu_disable_interrupts()
-{
-  disable_ints();
-}
-
-// ****************************************************************************
 // I2C support
 static const GPIO_TypeDef* i2c_port_data[] = { GPIO1, GPIO2 };
 static const I2C_TypeDef* i2cs[] = { I2C0, I2C1 };

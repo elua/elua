@@ -942,21 +942,9 @@ u32 platform_pwm_op( unsigned id, int op, u32 data )
   return res;
 }
 
-
-
 // *****************************************************************************
 // CPU specific functions
  
-void platform_cpu_enable_interrupts()
-{
-  void NVIC_RESETPRIMASK(void); // enable interrupts
-}
-
-void platform_cpu_disable_interrupts()
-{
-  void NVIC_SETPRIMASK(void); // disable interrupts
-}
-
 u32 platform_s_cpu_get_frequency()
 {
   return HCLK;

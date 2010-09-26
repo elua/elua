@@ -22,6 +22,8 @@
 #define RAM_Size         0x10000        // [TODO] make this 96k?
 #define Top_Stack        (RAM_Base + RAM_Size)
 
+#define VectorAddress    0xFFFFFF00
+
 //------------------------------------------------------------------------------
 //         Startup routine
 //------------------------------------------------------------------------------
@@ -46,10 +48,23 @@ dataAbortVector:
 reservedVector:
          b       reservedVector          /* Reserved for future use */
 irqVector:
-         ldr     pc, [pc, #-0x0120]      /* Vector from VicVectAddr */
+         b       irqHandler              /* Generic IRQ handler */
 fiqVector:
-         b       fiqVector               /* Fast interrupt */
+         b       fiqVector               /* Fast interrupt */                
+         
+//------------------------------------------------------------------------------
+/// IRQ handler
+//------------------------------------------------------------------------------                          
 
+irqHandler:
+            sub       lr, lr ,#4
+            stmfd     sp!, {r0-r3, r12, lr}
+            ldr       r0, =VectorAddress
+            ldr       r0, [r0] 
+            mov       lr, pc                          
+            bx        r0               
+            ldmfd     sp!, {r0-r3, r12, pc}^
+            
 //------------------------------------------------------------------------------
 /// Initializes the chip and branches to the main() function.
 //------------------------------------------------------------------------------
@@ -61,7 +76,6 @@ fiqVector:
 entry:
 resetHandler:
 
-// [TODO] enable interrupts
 /* Setup stacks for each mode */
         ldr     r0, =Top_Stack
 
@@ -108,27 +122,7 @@ ZeroBSS:
 
 /* Loop indefinitely when program is finished */
 forever:
-        b       forever
-
-# enable interrupts
-        .global    enable_ints
-enable_ints:
-        stmfd   sp!,  {r1}
-        mrs     r1, CPSR
-        bic     r1, r1, #I_BIT
-        msr     CPSR_c, r1
-        ldmfd   sp!, {r1}
-        mov     pc, r14
-
-# disable interrupts
-       .global disable_ints
-disable_ints:
-       stmfd    sp!, {r1}
-       mrs      r1, CPSR
-       orr      r1, r1, #I_BIT
-       msr      CPSR_c, r1
-       ldmfd    sp!, {r1}
-       mov      pc, r14
+        b       forever      
 
       .end
 
