@@ -110,6 +110,7 @@ local menu =
           { "R/W FAT FS in SD/MMC Cards", "fatfs.html" }
         }
       },
+      { "eLua interrupt handlers", "inthandlers.html" },
       { { "Building eLua", "Build de eLua" }, "building.html",
         {
           { "Building eLua in Linux", "building_unix.html" },

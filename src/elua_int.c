@@ -7,6 +7,7 @@
 #include "type.h"
 #include "ldebug.h"
 #include <stdio.h>
+#include <string.h>
 
 #ifdef BUILD_LUA_INT_HANDLERS
 
@@ -45,10 +46,17 @@ static void elua_int_hook( lua_State *L, lua_Debug *ar )
     lua_call( L, 2, 0 );    
   }
 
-  // Set hook again if needed
   old_status = platform_cpu_set_global_interrupts( PLATFORM_CPU_DISABLE );
-  if( elua_int_queue[ elua_int_read_idx ].id == ELUA_INT_EMPTY_SLOT )
+  if( elua_int_queue[ elua_int_read_idx ].id == ELUA_INT_EMPTY_SLOT ) // no more interrupts in the queue, so clear the hook
     lua_sethook( L, NULL, 0, 0 );
+  else if( !cpu_is_int_handler_active() )
+  {
+    // The interrupt handler was deactivated in the Lua code, but there are still interrupts in the queue
+    // So reset the queue and clear the hook
+    memset( elua_int_queue, ELUA_INT_EMPTY_SLOT, sizeof( elua_int_queue ) );
+    elua_int_read_idx = elua_int_write_idx = 0;
+    lua_sethook( L, NULL, 0, 0 );
+  }
   platform_cpu_set_global_interrupts( old_status );
 }
 

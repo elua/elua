@@ -1,0 +1,203 @@
+$$HEADER$$
+<h3>eLua interrupt handlers</h3>
+<p>Starting with version 0.8, <b>eLua</b> supports interrupt handlers written in Lua. Once an interrupt handler is set in the Lua code, it will be called each time a supported 
+interrupt is generated. A <b>supported interrupt</b> is any interrupt that is handled by the platform C code (see <a href="#cints">here</a> for more details). </p>
+<p><b><font color="red">IMPORTANT:</font></b> before learning how to use interrupt handlers in Lua, please keep in mind that Lua interrupt handlers don't work the same way as 
+regular (C) interrupt handlers (although it might appear so). As Lua doesn't have direct suport for interrupts, they have to be emulated. <b>eLua</b> emulates them using a 
+queue that is populated with interrupt data by the C support code. As long as the queue is not empty, a Lua hook is set to run every 2 Lua bytecode instructions, 
+and the hook function is the Lua interrupt handler. After all the interrupts are handled and the queue is emptied, the hook is automatically disabled. Consequently: </p>
+<ul>
+  <li>When the interrupt queue is full (a situation that might appear when interrupts are added to the queue faster than the Lua code can handle them) subsequent interrupts are
+      ignored (not added to the queue) and an error message is printed on the <b>eLua</b> console device. The interrupt queue size can be configured at build time, as explained
+      <a href="[TODO]">here</a>. Even if the interrupt queue is large, one most remember that Lua code is significantly slower than C code, thus not all C interrupts make
+      suitable candidates for Lua interrupt handlers. For example, a serial interrupt that is generated each time a char is received at 115200baud might be too fast for Lua
+      (this is largely dependent on the platform). On the other hand, a GPIO interrupt-on-change on a GPIO line connected with a matrix keyboard is a very good candidate for
+      a Lua handler. Experimenting with different interrupt types is the best way to find the interrupts that work well with Lua.</li>
+  <li>A more subtle point is that the Lua virtual machine must <b>run</b> for the interrupt handlers to work. A simple analogy is that a CPU must have a running clock in order
+      to function properly (and in order to take care of the hardware interrupts). If the clock is stopped, the CPU doesn't run and the interrupt handlers aren't called anymore,
+      although the occurence of the interrupt might be recorded inside the CPU. This is the exact same situation with Lua: if the virtual machine doesn't run, the interrupts
+      are still recorded in the interrupt queue, but the Lua handler won't be called until the virtual machine runs again. In this case though, the "clock" of the Lua VM is a 
+      C function that is executed for every VM instruction. If this function blocks for some reason, the VM instructions are not executed anymore. It's not hard to make
+      this function block; for example, it blocks everytime the Lua code waits for some user input at the console, or when a tmr.delay is executed, or when uart.read is called 
+      with an infinite or very large timeout; in general, any function from a Lua library that doesn't return immediately (or after a short ammount of time) will block the VM. 
+      Care must be taken to avoid such operations as much as possible, otherwise the interrupt support code won't run properly.</li>
+  <li>There is a single interrupt handler in Lua, as opposed to the many hardware interrupt handlers usually found on the <b>eLua</b> targets. It is however easy to differentiate
+      between different interrupt sources, as will be explained in the next paragraph.</li>
+  <li>Lua interrupt handlers are never reentrant.</li>
+</ul>
+<p>While this might seem restrictive, Lua interrupt handlers work quite well in practical situations. As an added bonus, since they are implemented by C support code, there's nothing
+preventing <b>eLua</b> from implementing "custom interrupts" (software generated interrupts that don't correspond to a hardware interrupt on the CPU), such as serial interrupt on
+char match (generate an interrupt when a certain char is received on the serial port, for example a newline), timer interrupts for <a href="[TODO]">virtual timers</a>, TCP/UDP data
+packet received interrupt, and many others.</p>
+
+<h3>Using interrupt handlers in Lua</h3>
+<p>Setting up interrupt handlers is a straightforward process, most of the required functionality is provided by the <a href="refman_gen_cpu.html">CPU module</a>:</p>
+<ul>
+<li>use <i>cpu.set_int_handler</i> to set the interrupt handler function (call with <b>nil</b> to disable interrupt handling in Lua code.</li>
+<li>use <i>cpu.sei( int_id, resnum1, [resnum2], ..., [resnumn])</i> and <i>cpu.cli( int_id, resnum1, [resnum2], ..., [resnumn])</i> to enable/disable specific CPU interrupts 
+    that will trigger the interrupt handler (use <i>cpu.sei()</i> and <i>cpu.cli</i> (without parameters) to enable/disable global interrupts on the CPU).</li>
+</ul>
+<p>The interrupt handler receives two arguments: the interrupt type (all the interrupt types are mapped to constants from the <a href="refman_gen_cpu.html">CPU module</a>) and a
+resource ID that specifies the target resource for the interrupt. This depends on the interrupt type; it can be a timer ID for a timer overflow interrupt, a GPIO port/pin combination
+for a GPIO interrupt on pin change, a SPI interface ID for a SPI data available interrupt, and so on.</p>
+<p>An example that uses the above concepts and knows how to handle two different interrupt types is presented below:</p>
+<pre><code>local vtmrid = tmr.VIRT0
+local to = 1500000
+
+-- This is the interrupt handler
+<b>local function handler( id, resnum )</b>
+  print( string.format( "Got interrupt with id %d and resnum %d", id, resnum ) )
+  -- Identify interrupt
+  if id == cpu.INT_GPIO_POSEDGE or id == cpu.INT_GPIO_NEGEDGE then
+    local port, pin = pio.decode( resnum )
+    print( string.format( "Port is %d, pin is %d", port, pin ) )
+  elseif id == cpu.INT_TMR_MATCH then
+    -- Timer interrupt on match is one shot, need to rearm to get a periodic timer interrupt
+    print "Timer interrupt! Rearming ... "
+    tmr.setinttimeout( vtmrid, to )
+  end
+end
+
+<b>cpu.set_int_handler( handler )</b>                  -- set interrupt handler
+<b>cpu.sei( cpu.INT_GPIO_NEGEDGE, pio.P0_0 )</b>       -- enable GPIO interrupt on change (negative edge) for pin 0 of port 0
+<b>cpu.sei( cpu.INT_TMR_MATCH, vtmrid )</b>            -- enable timer match interrupt on virtual timer 0
+tmr.setinttimeout( vtmrid, to )                 -- set interrupt timeout ( for timer match interrupt) on virtual timer 0
+local tmrid = 0
+
+-- Enter an infinite loop that prints "Outside interrupt" every second
+-- This output will be interleaved with the interrupt handler timeout:
+--   the timer interrupt message will appear every 1.5 seconds
+--   the GPIO message will appear each time pin 0 of port 0 changes state from 1 to 0
+while true do
+  print "Outside interrupt" 
+  for i = 1, 1000 do tmr.delay( tmrid, 1000 ) end
+end
+</code></pre>
+<br />
+
+<a name="cints" />
+<h3>Support code for Lua interrupt handlers</h3>
+<p><b><font color="red">NOTE:</font></b> this paragraph describes the support code that must be implemented in C to make the existence of Lua interrupt handlers possible. Consequently,
+it's only relevant for <b>eLua</b> developers. If you're just using <b>eLua</b> as is, you can safely skip this paragraph.</p>
+<p>Specific C code is required to make Lua interrupt handlers functional. An <b>eLua</b> platform that needs to implement Lua interrupt handlers must respect these rules:</p>
+<ul>
+  <li>it must have a functional interrupt subsystem (the part of the code that knows how to handle CPU interrupts).</li>
+  <li>it must define the interrupts that will be accesible from Lua handlers with symbolic names, see <a href="refman_gen_cpu.html#structures">here</a> for details.</li>
+  <li>it must add code to enable and disable specific interrupts (in <i>platform_cpu_set_interrupt</i>) and also get the state of a specific interrupt (enabled/disabled) (in
+      <i>platform_cpu_get_interrupt</i>. See <a href="arch_platform.cpu.html">the CPU platform interface documentation</a> for details.</li>
+  <li>it must write the actual CPU interrupt handlers (in C/ASM) and link them to the <b>eLua</b> interrupt support code. At the very least, the interrupt handler should clear the
+      interrupt flag and call <i>elua_int_add</i> with two parameters: the interrupt ID and the resource ID.</li>
+</ul>
+<p>This is best illustrated with an example. The code below is a fragment from the lpc24xx backend and shows how the GPIO interrupt on change can be made available from Lua. First, the
+interrupt is declared explicitly in <i>platform_conf.h</i>:</p>
+<pre><code>// Interrupt list
+enum
+{
+  // Platform interrupts
+<b>  INT_GPIO_POSEDGE = ELUA_INT_FIRST_ID,
+  INT_GPIO_NEGEDGE</b>
+};
+
+#define PLATFORM_CPU_CONSTANTS\
+ _C( IO_PINSEL0 ),\
+ _C( IO_PINSEL1 ),\
+ _C( IO_PINSEL2 ),\
+ _C( IO_PINSEL3 ),\
+ _C( IO_PINSEL4 ),\
+ _C( IO_PINSEL5 ),\
+ _C( IO_PINSEL6 ),\
+ _C( IO_PINSEL7 ),\
+ _C( IO_PINSEL8 ),\
+ _C( IO_PINSEL9 ),\
+ _C( IO_PINSEL10 ),\
+<b> _C( INT_GPIO_POSEDGE ,\
+ _C( INT_GPIO_NEGEDGE )</b>
+</code></pre>
+<p>Then code is added in <i>platform.c</i> to enable/disable these interrupts and get their status:</p>
+<pre><code>static PREG const posedge_regs[] = { ( PREG )&amp;IO0_INT_EN_R, NULL, ( PREG )&amp;IO2_INT_EN_R };
+static PREG const negedge_regs[] = { ( PREG )&amp;IO0_INT_EN_F, NULL, ( PREG )&amp;IO0_INT_EN_F };
+
+// Helper: return the status of a specific interrupt (enabled/disabled)
+static int platform_cpuh_get_int_status( elua_int_id id, elua_int_resnum resnum )
+{
+  int port, pin;
+  
+  if( id == INT_GPIO_POSEDGE || id == INT_GPIO_NEGEDGE )
+  {
+    port = PLATFORM_IO_GET_PORT( resnum ); 
+    pin = PLATFORM_IO_GET_PIN( resnum ); 
+    if( id == INT_GPIO_POSEDGE )
+      return *posedge_regs[ port ] &amp; ( 1 &lt;&lt; pin );
+    else
+      return *negedge_regs[ port ] &amp; ( 1 &lt;&lt; pin );        
+  } 
+  return 0;
+}
+
+<b>int platform_cpu_set_interrupt( elua_int_id id, elua_int_resnum resnum, int status )</b>
+{
+  int crt_status = platform_cpuh_get_int_status( id, resnum );
+  int port, pin;
+  
+  if( id == INT_GPIO_POSEDGE || id == INT_GPIO_NEGEDGE )
+  {
+    port = PLATFORM_IO_GET_PORT( resnum ); 
+    pin = PLATFORM_IO_GET_PIN( resnum ); 
+    if( id == INT_GPIO_POSEDGE )
+    {
+      if( status == PLATFORM_CPU_ENABLE )
+        *posedge_regs[ port ] |= 1 &lt;&lt; pin;
+      else
+        *posedge_regs[ port ] &amp;= ~( 1 &lt;&lt; pin );       
+    }
+    else
+    {
+      if( status == PLATFORM_CPU_ENABLE )
+        *negedge_regs[ port ] |= 1 &lt;&lt; pin;
+      else
+        *negedge_regs[ port ] &amp;= ~( 1 &lt;&lt; pin );         
+    }    
+  }
+  return crt_status;
+}
+
+<b>int platform_cpu_get_interrupt( elua_int_id id, elua_int_resnum resnum )</b>
+{
+  return platform_cpuh_get_int_status( id, resnum );
+}
+
+</code></pre>
+<p>An interrupt handler must also be defined for this type of interrupt, and it must call <i>elua_add_int</i> to enqueue the interrupt:</p>
+<pre><code>static void int_handler_eint3()
+{
+  elua_int_id id = ELUA_INT_INVALID_INTERRUPT;
+  pio_code resnum = 0;
+  int pidx, pin;
+  
+  EXTINT |= 1 &lt;&lt; 3; // clear interrupt
+  // Look for interrupt source
+  // In can only be GPIO0/GPIO2, as the EXT interrupts are not (yet) used
+  pidx = ( IO_INT_STAT &amp; 1 ) ? 0 : 1;
+  if( *posedge_status[ pidx ] )
+  {
+    id = INT_GPIO_POSEDGE;
+    pin = intlog2( *posedge_status[ pidx ] );
+  }
+  else
+  {
+    id = INT_GPIO_NEGEDGE;
+    pin = intlog2( *negedge_status[ pidx ] );
+  }
+  <b>// The resource corresponding to the interrupt is computed here, in this case it is a port/pin combination
+  resnum = PLATFORM_IO_ENCODE( pidx * 2, pin, PLATFORM_IO_ENC_PIN );
+  // Also, the interrupt source must be cleared in the handler
+  *intclr_regs[ pidx ] = 1 &lt;&lt; pin;</b>
+  
+  // Queue interrupt
+  <b>elua_int_add( id, resnum );</b>
+  VICVectAddr = 0; // ACK interrupt    
+}
+</code></pre>
+
+$$FOOTER$$
+
