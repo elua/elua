@@ -90,7 +90,8 @@ static void sdramc_ck_delay(unsigned long ck)
 /*! \brief Puts the multiplexed MCU pins used for the SDRAM under control of the
  *         SDRAMC.
  */
-#if BOARD == EVK1100 || BOARD == EVK1104 || BOARD == EVK1105 
+#if BOARD == EVK1100 || BOARD == EVK1104 || BOARD == EVK1105 \
+ || BOARD == MIZAR32
 static void sdramc_enable_muxed_pins(void)
 {
   static const gpio_map_t SDRAMC_EBI_GPIO_MAP =

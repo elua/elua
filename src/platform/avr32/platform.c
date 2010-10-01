@@ -32,6 +32,8 @@
 
 extern int pm_configure_clocks( pm_freq_param_t *param );
 
+static u32 platform_timer_set_clock( unsigned id, u32 clock );
+
 // Virtual timers support
 #if VTMR_NUM_TIMERS > 0
 #define VTMR_CH     (2)
@@ -140,6 +142,11 @@ int platform_init()
   {
     tmropt.channel = i;
     tc_init_waveform( tc, &tmropt );
+#ifndef FOSC32
+    // At reset, timers run from the 32768Hz crystal. If there is no such clock
+    // then run them all at the lowest frequency available (PBA_FREQ / 128)
+    platform_timer_set_clock( i, REQ_PBA_FREQ / 128 );
+#endif
   }
   
   // Setup timer interrupt for the virtual timers if needed
@@ -159,7 +166,16 @@ int platform_init()
     0,              // Load overrun interrupt.
     0               // Counter overflow interrupt.
   };
-  tc_write_rc( tc, VTMR_CH, 32768 / VTMR_FREQ_HZ );
+# ifdef FOSC32
+  tc_write_rc( tc, VTMR_CH, FOSC32 / VTMR_FREQ_HZ );
+# else
+  // Run VTMR from the slowest available PBA clock divisor
+  { u32 vt_clock_freq = platform_timer_set_clock( VTMR_CH, REQ_PBA_FREQ / 128 );
+    u32 div = vt_clock_freq / VTMR_FREQ_HZ;
+    if (div > 0xffff) div = 0xffff;
+    tc_write_rc( tc, VTMR_CH, div );
+  }
+# endif
   tc_configure_interrupts( tc, VTMR_CH, &tmrint );
   Enable_global_interrupt();
   tc_start( tc, VTMR_CH );  
@@ -457,7 +473,11 @@ static u32 platform_timer_get_clock( unsigned id )
   volatile avr32_tc_t *tc = &AVR32_TC;
   unsigned int clksel = tc->channel[ id ].CMR.waveform.tcclks;
         
-  return clksel == 0 ? 32768 : REQ_PBA_FREQ / clkdivs[ clksel ];
+#ifdef FOSC32
+  return clksel == 0 ? FOSC32 : REQ_PBA_FREQ / clkdivs[ clksel ];
+#else
+  return REQ_PBA_FREQ / clkdivs[ clksel ];
+#endif
 }
 
 // Helper: set timer clock
@@ -467,11 +487,22 @@ static u32 platform_timer_set_clock( unsigned id, u32 clock )
   volatile avr32_tc_t *tc = &AVR32_TC;
   volatile unsigned long *pclksel = &tc->channel[ id ].cmr;
   
+#ifdef FOSC32
   for( i = mini = 0; i < 5; i ++ )
-    if( ABSDIFF( clock, i == 0 ? 32768 : REQ_PBA_FREQ / clkdivs[ i ] ) < ABSDIFF( clock, mini == 0 ? 32768 : REQ_PBA_FREQ / clkdivs[ mini ] ) )
+    if( ABSDIFF( clock, i == 0 ? FOSC32 : REQ_PBA_FREQ / clkdivs[ i ] ) <
+        ABSDIFF( clock, mini == 0 ? FOSC32 : REQ_PBA_FREQ / clkdivs[ mini ] ) )
       mini = i;
   *pclksel = ( *pclksel & ~0x07 ) | mini;
-  return mini == 0 ? 32768 : REQ_PBA_FREQ / clkdivs[ mini ];
+  return mini == 0 ? FOSC32 : REQ_PBA_FREQ / clkdivs[ mini ];
+#else
+  // There is no 32768Hz clock so choose from the divisors of PBA.
+  for( i = mini = 1; i < 5; i ++ )
+    if( ABSDIFF( clock, REQ_PBA_FREQ / clkdivs[ i ] ) <
+        ABSDIFF( clock, REQ_PBA_FREQ / clkdivs[ mini ] ) )
+      mini = i;
+  *pclksel = ( *pclksel & ~0x07 ) | mini;
+  return REQ_PBA_FREQ / clkdivs[ mini ];
+#endif
 }
 
 void platform_s_timer_delay( unsigned id, u32 delay_us )

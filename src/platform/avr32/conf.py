@@ -9,6 +9,9 @@ if comp[ 'board' ]  == "ATEVK1100":
     comp.Append(CPPDEFINES = {'BOARD' : 1})
 elif comp[ 'board' ]  == "ATEVK1101":
     comp.Append(CPPDEFINES = {'BOARD' : 2})
+elif comp[ 'board' ]  == "MIZAR32":
+    specific_files += " sdramc.c"
+    comp.Append(CPPDEFINES = {'BOARD' : 98})
 else:
     print "Invalid board for %s platform (%s)" %( platform, comp[ 'board' ] )
     sys.exit( -1 )

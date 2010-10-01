@@ -11,6 +11,8 @@
     #include "EVK1100/evk1100_conf.h"
 #elif BOARD == EVK1101
     #include "EVK1101/evk1101_conf.h"
+#elif BOARD == MIZAR32
+    #include "MIZAR32/mizar32_conf.h"
 #else
     #error No known AVR32 board defined    
 #endif
