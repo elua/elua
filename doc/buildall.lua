@@ -19,6 +19,8 @@ for k, v in ipairs( languages ) do
   langidx[ v ] = k
 end
 
+local sf = string.format
+
 -------------------------------------------------------------------------------
 -- Indexes into our menu table (defined in docdata.lua)
 name_idx, link_idx, submenu_idx , title_idx = 1, 2, 3, 4
@@ -136,7 +138,7 @@ local function copy_dir_rec( src, dst )
   for f in lfs.dir( src ) do
     local oldf = string.format( "%s/%s", src, f )
     local attrs = lfs.attributes( oldf )
-    if attrs.mode == 'directory' and f ~= "." and f ~= ".." and f ~= ".svn" then
+    if attrs.mode == 'directory' and f ~= "." and f ~= ".." and f ~= ".svn" and f ~= ".git" then
       local newdir = string.format( "%s/%s", dst, f )
       lfs.mkdir( newdir )
       copy_dir_rec( oldf, newdir )
@@ -287,6 +289,20 @@ local function gen_html_nav( parentid, lang )
   return htmlstr
 end
 
+-- Helper function: replace local links with links prefixed by language
+local function language_for_links( lang, orig )
+    -- Iterate through all the links in the document and change the local ones with
+    -- the correct language option
+    orig = orig:gsub( [==[<a href=["'](.-)["']>]==], function( link )
+      if beginswith( link, "#" ) or beginswith( link, "http://" ) or beginswith( link, "https://" ) or beginswith( link, "ftp://" ) then
+        return string.format( '<a href="%s">', link )
+      else
+        return string.format( '<a href="%s_%s">', lang, link )
+      end
+    end )
+    return orig
+end
+
 -------------------------------------------------------------------------------
 -- Build the logo for a given language
 
@@ -350,33 +366,46 @@ local function gen_html_page( fname, lang )
   local fullname = string.format( "%s/%s", lang, fname )
   local f = io.open( fullname, "rb" )
   if not f then
-    return nil, string.format( "Error opening %s", fullname )
+    fullname = fullname:gsub( "%.html", "%.txt" )
+    f = io.open( fullname, "rb" )
+    if not f then
+      return nil, string.format( "Error opening %s", fullname )
+    end
   end
   local orig = f:read( "*a" )
   f:close()
+  local asciimode = fullname:find( "%.txt" )
 
   -- Check the presence of $$HEADER$$ and $$FOOTER$$
   if not orig:find( "%$%$HEADER%$%$" ) or not orig:find( "%$%$FOOTER%$%$" ) then
     return nil, string.format( "%s not formated properly ($$HEADER$$ or $$FOOTER$$ not found)", fullname )
   end
 
-  -- Iterate through all the links in the document and change the local ones with
-  -- the correct language option
-  orig = orig:gsub( [==[<a href=["'](.-)["']>]==], function( link )
-    if beginswith( link, "#" ) or beginswith( link, "http://" ) or beginswith( link, "https://" ) or beginswith( link, "ftp://" ) then
-      return string.format( '<a href="%s">', link )
-    else
-      return string.format( '<a href="%s_%s">', lang, link )
+  if not asciimode then
+    print ""
+    -- Anticipate some common errors and fix them directly
+    orig = orig:gsub( "<br>", "<br />" )
+    orig = orig:gsub( '(<a name=["\'][^\'"]-["\']>)([^\n]-)</a>%s-\n', function( anchor, data )
+      return anchor:gsub( ">", " />" ) .. data .. "\n"
+    end )
+    orig = orig:gsub( '<p><pre><code>(.-)</code></pre></p>', "<pre><code>%1</code></pre>" )
+    orig = orig:gsub( 'target="_blank"', "" )
+  else
+    print( "(AsciiDoc mode)" )
+    -- Call "asciidoc" to generate the actual HTML
+    local tempname = fullname .. '.temp' 
+    os.execute( sf( "asciidoc -s -a icons -a 'newline=\\n' -b xhtml11 -o %s %s", tempname, fullname ) )
+    local resfile = io.open( tempname, "rb" )
+    if not resfile then
+      return nil, sf( "Unable to find the AsciiDoc generated file %s", tempname )
     end
-  end )
-
-  -- Anticipate some common errors and fix them directly
-  orig = orig:gsub( "<br>", "<br />" )
-  orig = orig:gsub( '(<a name=["\'][^\'"]-["\']>)([^\n]-)</a>%s-\n', function( anchor, data )
-    return anchor:gsub( ">", " />" ) .. data .. "\n"
-  end )
-  orig = orig:gsub( '<p><pre><code>(.-)</code></pre></p>', "<pre><code>%1</code></pre>" )
-  orig = orig:gsub( 'target="_blank"', "" )
+    orig = resfile:read( "*a" )
+    resfile:close()
+    orig = "$$HEADER$$\n" .. orig .. "$$FOOTER$$\n"
+    os.remove( tempname )
+  end
+  -- Replace local links with language-dependent links
+  orig = language_for_links( lang, orig )
 
   -- Generate actual data
   local header = string.format( [=[
@@ -391,7 +420,7 @@ local function gen_html_page( fname, lang )
 <meta name="Keywords" content="eLua, lua, embedded, ARM, Cortex-M3, AVR32, ARM7TDMI, microcontroller, mcu, programming, electronics, tools, development" />
 <link href="menu.css" rel="stylesheet" type="text/css" />
 <link href="style1.css" rel="stylesheet" type="text/css" />
-<link REL="SHORTCUT ICON" HREF="./images/eLua_16x16.ico">
+<link REL="SHORTCUT ICON" HREF="images/eLua_16x16.ico">
 <script type="text/javascript"><!--//--><![CDATA[//><!--
 
 sfHover = function() {
@@ -409,6 +438,7 @@ if (window.attachEvent) window.attachEvent("onload", sfHover);
 
 //--><!]]></script>
 </head>
+
 
 <body>
 ]=], get_menu_title( item, lang ) )
@@ -514,7 +544,7 @@ indent_print()
 flist = get_file_list()
 for _, lang in ipairs( languages ) do
   for fname, entry in pairs( flist ) do
-    print( string.format( "Processing %s %s...", fname, entry.item[ name_idx ] and "" or "(hidden entry)" ) )
+    io.write( string.format( "Processing %s %s...", fname, entry.item[ name_idx ] and "" or "(hidden entry)" ) )
     local res, err = gen_html_page( fname, lang )
     if not res then
       print( "***" .. err )
