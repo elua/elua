@@ -9,7 +9,8 @@ We're proud to announce a web service that builds eLua images ready to be flashe
 newcomers to quickly generate firmware images without the need to install any local toolchain. +
 This is a beta version and we count on the community to help us refine it. +
 The generated images, together with some other info (build options used, error/warning reports, ...) are made available for download and are also stored in the user's area. 
-Most of the current build and configuration options can be defined and stored as a named "build". Builds are automatically stored in the user's area and can be reused (for config variations and new builds). Users can upload and store files (Lua sources or compiled programs, modules, ...) in their user's areas too. These can be optionally included in each build 
+Most of the current build and configuration options can be defined and stored as a named "build". Builds are automatically stored in the user's area and can be reused (for config variations and new builds). 
+Users can upload and store files (Lua sources or compiled programs, modules, ...) in their user's areas too. These can be optionally included in each build 
 by simply checking boxes on the build configuration. +
 There are some "?" icons with help and instructions for each section. Please let us know if they are clear enough or send us new texts and we'll be glad to add it. We hope to find 
 some time to make a tutorial for the wiki too. +

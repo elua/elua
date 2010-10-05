@@ -90,6 +90,13 @@ h6 {
  * Content styling
  ******************************************************************************/
 
+div.paragraph p {
+	line-height: 120%;
+	padding-left: 1em;
+}
+
+/* [TODO] remove this rule once all the HTMLs are rewritten to use classes
+  instead of ids */
 #content p {
 	line-height: 120%;
 	padding-left: 1em;
@@ -450,22 +457,41 @@ div.compact div, div.compact div {
   margin-bottom: 0.1em;
 }
 
-div.tableblock > table {
+/*BogdanM: replaced the previous "table" declaration*/
+/*div.tableblock > table {
   border: 3px solid #527bbd;
+}*/
+div.tableblock > table {
+	margin-left: 1em;
+	border-collapse: collapse;
 }
-thead, p.table.header {
+/*BogdanM: commented next rule, added the next two for td and th*/
+/*thead, p.table.header {
   font-family: sans-serif;
   font-weight: bold;
   color: #527bbd;
+}*/
+.tableblock td {
+	border: 1px solid gray;
+	padding: 5px;
 }
+
+.tableblock th {
+	border: 2px solid gray;
+	background-color: silver;
+	padding: 5px;
+}
+
 tfoot {
   font-weight: bold;
 }
 td > div.verse {
   white-space: pre;
 }
-p.table {
-  margin-top: 0;
+/* BogdanM: added next rule to reduce table line height */
+div.tableblock p.table {
+  margin: 0;
+  padding: 0;
 }
 /* Because the table frame attribute is overriden by CSS in most browsers. */
 div.tableblock > table[frame="void"] {
@@ -579,3 +605,7 @@ div.toclevel4 {
   font-size: 0.9em;
 }
 
+/* BogdanM: new rules for eLua docs */
+span.orange {
+  color: rgb(255, 102, 0);
+};

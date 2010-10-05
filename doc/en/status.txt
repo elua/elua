@@ -1,0 +1,101 @@
+// $$HEADER$$
+[[status]]
+eLua project status
+-------------------
+The current status of eLua is given by the list of the currently supported platforms, together with a list of modules-per-platform and their development 
+phase. For better formatting, the lists are organized as tables that use the graphical notation given below:
+
+[width="70%", cols="^1,<4", options="header"]
+|======================================================
+|      Symbol        ^|        Meaning                  
+|      _sok           | Implemented and tested          
+|      _snt           | Implemented, needs more testing
+|      _sni           | Not yet implemented            
+|      _sna           | Not applicable                 
+|======================================================
+
+[[platforms]]
+eLua suported platforms
+-----------------------
+The list of CPUs and boards currently supported by eLua is given below:
+
+[width="70%", cols="<2, <3, <3, <3, ^1", options="header"]
+|=====================================================================================
+^| CPU          ^| Architecture ^|    Platform name      ^| Supported boards ^| Status
+| _LM3S8962      |  Cortex-M3    o|    LM3S               |  _EK-LM3S8962     | _sok
+| _LM3S6965      |  Cortex-M3    o|    LM3S               |  _EK-LM3S6965     | _sok
+| _LM3S6918      |  Cortex-M3    o|    LM3S               |  _Eagle-100       | _sok
+| _LM3S9B92      |  Cortex-M3    o|    LM3S               |  _EK-LM3S9B92     | _sok
+| _AT32UC3A0512  |  AVR32        o|    AVR32              |  _ATEVK1100       | _sok
+| _AT91SAM7X256  |  ARM7TDMI     o|    AT91SAM7X          |  _SAM7-EX256      | _sok
+| _AT91SAM7X512  |  ARM7TDMI     o|    AT91SAM7X          |  None             | _snt
+| _LPC2468       |  ARM7TDMI     o|    LPC24xx            |  _PUC-RioDemo     | _sok
+| _LPC2888       |  ARM7TDMI     o|    LPC288x            |  _LPC-H2888       | _sok
+| _STR711FR2     |  ARM7TDMI     o|    STR7               |  _MOD711          | _sok
+| _STR912FAW44   |  ARM966E-S    o|    STR9               |  _STR9-comStick   | _sok
+| _STR912FAW44   |  ARM966E-S    o|    STR9               |  _STR-E912        | _sok
+| _STM32F103ZE   |  Cortex-M3    o|    STM32              |  _STM3210E-EVAL   | _sok
+| _STM32F103RE   |  Cortex-M3    o|    STM32              |  _ET-STM32Stamp   | _sok
+| _i386          |  x86          o|    i386               |  PCs/emulators    | _sok
+|=====================================================================================
+// | _LPC1768       |  Cortex-M3    o|  LPC17xx              |  _mbed            | _sok
+
+[[plat_modules]]
+eLua modules x MCUs
+-------------------
+The relationship between a module and its implementation on a particular platform is given in the next table.
+
+[width="70%", cols="<4, ^1, ^1, ^1, ^1, ^1, ^1, ^1, ^1, ^1, ^1, ^1, ^1, ^1, ^1, ^1", options="header"]
+|===================================================================================================================================
+^| MCU            15+| Module
+|                g|  pio g|  spi g|  uart g|  tmr g|  pwm g|  net g|  cpu g|  adc g|   pd g| term g|  bit g| pack g|  can g|  rpc g|mmc
+| _LM3S8962      | _sok | _snt | _sok | _sok | _sok | _sok | _sok | _sok | _sok | _sok | _sok | _sok | _sni | _snt | _sok 
+| _LM3S6965      | _sok | _snt | _sok | _sok | _snt | _snt | _sok | _sok | _sok | _sok | _sok | _sok | _sna | _sok | _sok
+| _LM3S6918      | _sok | _snt | _sok | _sok | _sna | _snt | _sok | _snt | _sok | _sok | _sok | _sok | _sna | _snt | _sni
+| _LM3S9B92      | _sok | _snt | _sok | _sok | _sok | _sok | _sok | _snt | _sok | _sok | _sok | _sok | _sni | _snt | _sok
+| _AT32UC3A0512  | _sok | _sni | _sok | _sok | _sni | _sni | _sok | _sni | _sok | _sok | _sok | _sok | _sna | _sni | _sni
+| _AT91SAM7X256  | _sok | _sni | _sok | _sok | _sok | _sni | _sok | _sni | _sok | _sok | _sok | _sok | _sni | _sni | _sni
+| _AT91SAM7X512  | _snt | _sni | _snt | _snt | _snt | _sni | _sok | _sni | _sok | _sok | _sok | _sok | _sni | _sni | _sni
+| _LPC2468       | _sok | _sni | _sok | _sok | _sni | _sni | _sok | _sni | _sok | _sok | _sok | _sok | _sni | _sni | _sni
+| _LPC2888       | _sok | _sni | _sok | _sok | _sna | _sni | _sok | _sni | _sok | _sok | _sok | _sok | _sna | _sni | _sni
+| _STR711FR2     | _sok | _sni | _sok | _sok | _snt | _sna | _sok | _sni | _sok | _sok | _sok | _sok | _sna | _sni | _sni
+| _STR912FAW44   | _sok | _sni | _sok | _sok | _sok | _sni | _sok | _sni | _sok | _sok | _sok | _sok | _sni | _sni | _sni
+| _STM32F103ZE   | _sok | _sni | _sok | _sok | _sni | _sni | _sok | _sni | _sok | _sok | _sok | _sok | _sni | _sni | _sni 
+| _STM32F103RE   | _sok | _sni | _sok | _sok | _sni | _sni | _sok | _sni | _sok | _sok | _sok | _sok | _snt | _sni | _sni
+| _i386          | _sna | _sna | _sni | _sni | _sna | _sni | _sni | _sna | _sok | _sni | _sni | _sni | _sna | _sni | _sni
+|===================================================================================================================================
+
+[[gen_modules]]
+eLua modules
+------------
+The following table shows a list of the generic modules currently implemented (and planned to be implemented) in eLua.
+
+[width="70%", cols="<1, <5, ^1", options="header"]
+|=========================================================================
+|Name      ^|Description                                          | Status 
+o|pio      | programmable input/output                            | _sok
+o|tmr      | periodic timer / counters                            | _sok
+o|pwm 	   | pulse width modulation 	                            | _sok
+o|uart 	   | universal asynchronous receiver transmitter 	        | _sok
+o|spi 	   | serial peripheral interface                          | _sok
+o|net  	   | TCP/IP networking                                    | _sok
+o|adc 	   | analog to digital converter                          | _sok 
+o|dac 	   | digital to analog converter                          | _sni
+o|cpu 	   | low level system access                              | _sok
+o|pd 	     | platform data                                        | _sok
+o|term 	   | ANSI terminal access                                 | _sok
+o|bit 	   | bitwise operations                                   | _sok
+o|pack 	   | pack/unpack binary data                              | _sok
+o|cmp 	   | analog comparator                                    | _sni
+o|i2c 	   | inter-integrated circuit protocol                    | _sni
+o|cnt 	   | event counter                                        | _sni
+o|can 	   | controller area network                              | _snt
+o|rpc 	   | remote procedure call                                | _snt
+o|i2s 	   | inter-IC sound                                       | _sni
+o|mmc 	   | SD/MMC card FAT file system                          | _sok
+o|disp 	   | LCD, OLED and other displays support                 | _sok
+o|int 	   | interrupt service routines                           | _sni
+|=========================================================================
+               
+// $$FOOTER$$                                                    
+
