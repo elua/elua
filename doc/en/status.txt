@@ -21,7 +21,7 @@ The list of CPUs and boards currently supported by eLua is given below:
 
 [width="70%", cols="<2, <3, <3, <3, ^1", options="header"]
 |=====================================================================================
-^| CPU          ^| Architecture ^|    Platform name      ^| Supported boards ^| Status
+^| CPU          ^| Architecture  ^|   Platform name      ^| Supported boards ^| Status
 | _LM3S8962      |  Cortex-M3    o|    LM3S               |  _EK-LM3S8962     | _sok
 | _LM3S6965      |  Cortex-M3    o|    LM3S               |  _EK-LM3S6965     | _sok
 | _LM3S6918      |  Cortex-M3    o|    LM3S               |  _Eagle-100       | _sok
@@ -48,7 +48,7 @@ The relationship between a module and its implementation on a particular platfor
 [width="70%", cols="<4, ^1, ^1, ^1, ^1, ^1, ^1, ^1, ^1, ^1, ^1, ^1, ^1, ^1, ^1, ^1", options="header"]
 |===================================================================================================================================
 ^| MCU            15+| Module
-|                g|  pio g|  spi g|  uart g|  tmr g|  pwm g|  net g|  cpu g|  adc g|   pd g| term g|  bit g| pack g|  can g|  rpc g|mmc
+|               g|  pio g|  spi g|  uart g|  tmr g|  pwm g|  net g|  cpu g|  adc g|   pd g| term g|  bit g| pack g|  can g|  rpc g|mmc
 | _LM3S8962      | _sok | _snt | _sok | _sok | _sok | _sok | _sok | _sok | _sok | _sok | _sok | _sok | _sni | _snt | _sok 
 | _LM3S6965      | _sok | _snt | _sok | _sok | _snt | _snt | _sok | _sok | _sok | _sok | _sok | _sok | _sna | _sok | _sok
 | _LM3S6918      | _sok | _snt | _sok | _sok | _sna | _snt | _sok | _snt | _sok | _sok | _sok | _sok | _sna | _snt | _sni
@@ -72,7 +72,7 @@ The following table shows a list of the generic modules currently implemented (a
 
 [width="70%", cols="<1, <5, ^1", options="header"]
 |=========================================================================
-|Name      ^|Description                                          | Status 
+|Name     ^|Description                                           | Status 
 o|pio      | programmable input/output                            | _sok
 o|tmr      | periodic timer / counters                            | _sok
 o|pwm 	   | pulse width modulation 	                            | _sok
@@ -96,6 +96,46 @@ o|mmc 	   | SD/MMC card FAT file system                          | _sok
 o|disp 	   | LCD, OLED and other displays support                 | _sok
 o|int 	   | interrupt service routines                           | _sni
 |=========================================================================
-               
+
+For some platforms, a number of platform dependent modules are implemented (or in the works) and are listed below. To understand the difference between generic 
+modules and platform specific modules, check link:arch_overview.html[the eLua architecture page].
+
+[width="70%", cols="<.^1, <.^4, <.^3, <.^1", options="header"]
+|=======================================================================================
+^|    Name   ^| Description                   ^|      Boards                   ^| Status
+o| disp       | OLED display support           | _EK-LM3S8962 _br _EK-LM3S6965  | _sok
+o| pio        | Platform specific PIO support  | _STR-E912 _br _STR9-comStick   | _sok
+|=======================================================================================
+
+[[roadmap]]
+Status of features and roadmap
+------------------------------
+The following table shows the status of some existing and planned eLua features.
+
+[width="70%", cols="<6,^1", options="header"]
+|=============================================================================
+| Feature                                                             | Status 
+| Full Lua interpreter running on target                              | _sok
+| Embedded HTTP web server                                            | _sok
+| Various Lua examples and eLua apps running properly                 | _sok
+| Lua floating point or integer number selection                      | _sok
+| eLua FP module (for integer Lua)                                    | _sni
+| XMODEM protocol support for console file transfer                   | _sok
+| Embedded ROM (Flash) file system                                    | _sok
+| link:fatfs.html[FAT File System layer for mmc/sd cards]             | _sok
+| link:using.html#rpc[LuaRPC - Remote Procedure Calls]                | _snt
+| link:using.html#uart[Terminal / Console over UART or Ethernet]      | _sok
+| link:using.html#shell[eLua command shell]                           | _sok
+| eLua complete interrupt support                                     | _sni
+| link:arch_ltr.html[eLua LTR (Lua Tiny RAM) patch]                   | _sok
+| link:elua_egc.html[eLua EGC (Emergency Garbage Collection) patch]   | _sok
+| Embedded text editor                                                | _sni
+| Embedded help/doc subsystem                                         | _sni
+| Lua debugging (remote/on target)                                    | _sni
+| Host (PC) File Sharing                                              | _sni
+| GUI/IDE interface for eLua                                          | _sni
+| eLua web build service                                              | _snt
+|=============================================================================
+
 // $$FOOTER$$                                                    
 

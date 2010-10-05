@@ -90,14 +90,13 @@ h6 {
  * Content styling
  ******************************************************************************/
 
-div.paragraph p {
+/*div.paragraph p {
 	line-height: 120%;
 	padding-left: 1em;
-}
+}*/
 
-/* [TODO] remove this rule once all the HTMLs are rewritten to use classes
-  instead of ids */
-#content p {
+/*#content p {*/
+.sectionbody p {
 	line-height: 120%;
 	padding-left: 1em;
 }

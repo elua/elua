@@ -444,8 +444,8 @@ if (window.attachEvent) window.attachEvent("onload", sfHover);
 ]=], get_menu_title( item, lang ) )
   header = header .. gen_logo( fname, lang ) .. "\n"
   local menuitems = gen_html_nav( parentid, lang )
-  header = header .. menuitems .. '<div id="content">\n'
-  local footer = [[
+  header = header .. menuitems .. '<div id="content">\n' .. ( asciimode and "" or '<div class="sectionbody">' )
+  local footer = ( asciimode and "" or '</div>' ) .. [[
 </div>
 <script type="text/javascript">
 var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
