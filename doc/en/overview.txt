@@ -177,7 +177,7 @@ eLua is developed in an fully open, distributed and colaborative
 model. An always growing list of collaborators, from all over the
 planet, can be found in our link:comunity.html#credits[Credits Page].
 
-[width="70%", cols="^,^", options="header"]
+[width="70%", align="center", cols="^,^", options="header"]
 |====================================================================================================================
 | *ReVaLuaTe Project*                                           | *Volta Project*
 | image:images/terminalreneseas.jpg[ReVaLuaTe project picture] | image:images/volta-small.jpg[Volta project picture]

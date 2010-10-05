@@ -100,7 +100,7 @@ o|int 	   | interrupt service routines                           | _sni
 For some platforms, a number of platform dependent modules are implemented (or in the works) and are listed below. To understand the difference between generic 
 modules and platform specific modules, check link:arch_overview.html[the eLua architecture page].
 
-[width="70%", cols="<.^1, <.^4, <.^3, <.^1", options="header"]
+[width="70%", cols="<.^1, <.^4, <.^3, ^.^1", options="header"]
 |=======================================================================================
 ^|    Name   ^| Description                   ^|      Boards                   ^| Status
 o| disp       | OLED display support           | _EK-LM3S8962 _br _EK-LM3S6965  | _sok

@@ -2,7 +2,7 @@ require "lfs"
 require "eluadoc"
 
 -- Uncomment this when generating offline docs
--- local is_offline = true
+local is_offline = true
 
 -- Languages in the system
 -- NOTE: "en" must ALWAYS be the first entry in this array!
@@ -486,13 +486,21 @@ end
 
 -- Argument check
 local args = { ... }
-local destdir
-if #args ~= 1 then
-  print "Using 'dist/' as the destination directory"
-  destdir = "dist"
-else
-  destdir = args[ 1 ]
+local destdir = "dist"
+local destdiridx = 1
+if #args > 2 then
+  print "Usage: buildall.lua [destdir] [-online]"
+  print "Use -online to generate online documentation (includes BerliOS logo and counter)"
+  return
 end
+for i = 1, #args do
+  if args[ i ] == "-online" then
+    is_offline = false
+  else 
+    destdir = args[ i ]
+  end
+end
+print( sf( "Using '%s' as the destination directory", destdir ) );
 
 -- Read the documentation data
 themenu, translations, fixed = dofile( "docdata.lua" )
