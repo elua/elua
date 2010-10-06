@@ -15,7 +15,7 @@ Forums
 eLua doesn't have a dedicated forum at this point. However, our *developers and users discussion list* is "mirrored" in a forum-like format at
 http://elua-development.2368040.n2.nabble.com[this address] (using the services provided by http://www.nable.com[Nabble]).
 
-[[userwiki]]
+[[userswiki]]
 eLua User Labs
 --------------
 eLua users maintain a wiki with projects, code examples, tutorials and media at http://wiki.eluaproject.net.
