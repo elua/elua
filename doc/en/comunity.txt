@@ -15,6 +15,14 @@ Forums
 eLua doesn't have a dedicated forum at this point. However, our *developers and users discussion list* is "mirrored" in a forum-like format at
 http://elua-development.2368040.n2.nabble.com[this address] (using the services provided by http://www.nable.com[Nabble]).
 
+[[irc]]
+IRC
+---
+`#elua` is the official IRC channel of eLua, it can be found on http://freenode.net[freenode]. If you can't use an IRC client (for example because
+your firewall blocks IRC ports) you can still try to access the IRC channel using the http://wiki.eluaproject.net/IRC[Web based client].
+The conversations on the IRC channel are logged and are available at http://irclogs.ls-themes.org/freenode/elua/logs. + 
+And since you're on frenode, you might want to check the `#lua` channel as well (for discussions regarding the Lua language in general).
+
 [[userswiki]]
 eLua User Labs
 --------------
@@ -36,6 +44,7 @@ Here's an alphabetically ordered non-exhaustive list of contributors:
 - Raul Nunes - The fundamental support from http://www.puc-rio.br[PUC-Rio].
 - Roberto Ierusalimschy, Luiz Henrique Figueiredo, Waldemar Celles - for http://www.lua.org[Lua] :)
 - Téo Benjamin, Ives Cunha, Rafael Barmak - Pong, TetrIves, SpaceShip games and http://wiki.eluaproject.net/Manfredo[Manfredo], a GPS guided robot, powered by eLua.
+- joritzel (THC4k on http://freenode.net[freenode]) for the web-based IRC logs.
 - The whole community of users on our eLua list at https://lists.berlios.de/mailman/listinfo/elua-dev.
 
 \... and the constant help and support from:
