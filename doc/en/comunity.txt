@@ -1,0 +1,49 @@
+// $$HEADER$$
+[[lists]]
+Mailing lists
+-------------
+Currently eLua currently has a single *developers and users discussion list* You are very welcomed
+to join us at https://lists.berlios.de/mailman/listinfo/elua-dev. Please note that the list is moderated in order to avoid spam, so you
+need to join it if you want to post. Messages from non-members are rarely accepted.
+
+Our development repository is currently maintained in a Subversion server. If you want to track SVN activity, you can also subscribe to our 
+*SVN Activity List* at https://lists.berlios.de/mailman/listinfo/elua-svn.
+
+[[forums]]
+Forums
+------
+eLua doesn't have a dedicated forum at this point. However, our *developers and users discussion list* is "mirrored" in a forum-like format at
+http://elua-development.2368040.n2.nabble.com[this address] (using the services provided by http://www.nable.com[Nabble]).
+
+[[userwiki]]
+eLua User Labs
+--------------
+eLua users maintain a wiki with projects, code examples, tutorials and media at http://wiki.eluaproject.net.
+
+[[credits]]
+Credits
+-------
+The authors of eLua would like to thank the colaborative help from the community for the continuous development of the project. 
+Here's an alphabetically ordered non-exhaustive list of contributors:
+
+- Everson Denis and Flávio Nogueira - Portuguese translation for the site&doc
+- Robert Jakabosky - for porting his link:elua_egc.html[excellent emergency garbage collector] patch to eLua
+- Fréderic Thomas - Previous site hosting, LM3S enhancements
+- Jesus Alvarez - Initial SD/MMC support
+- James Snyder - ADC, CAN, LuaRPC (http://q12.org/lua/index.html[originaly by Russell Smith]), sd/mmc, doc/site menu CSS, testing, planning, ...
+- Mike Panetta - STM32 port
+- Pedro Bittencourt - RIT OLED display support, testing ...
+- Raul Nunes - The fundamental support from http://www.puc-rio.br[PUC-Rio].
+- Roberto Ierusalimschy, Luiz Henrique Figueiredo, Waldemar Celles - for http://www.lua.org[Lua] :)
+- Téo Benjamin, Ives Cunha, Rafael Barmak - Pong, TetrIves, SpaceShip games and http://wiki.eluaproject.net/Manfredo[Manfredo], a GPS guided robot, powered by eLua.
+- The whole community of users on our eLua list at https://lists.berlios.de/mailman/listinfo/elua-dev.
+
+\... and the constant help and support from:
+ 
+Alberto Fabiano, André Carregal, Ângelo Santos, Asko Kauppi, Carlos Eduardo Deodoro,
+Cosmin Filip, Dean Hall, Diego Sueiro, Eduardo von Ristow, Fabio Pereira,
+Giovani Balduino, Guilherme Sanchez Pacheco, John Hind, Luiz de Barros, Marcelo
+Tílio, Marco Meggiolaro, Ralph Hempel, Vagner Nascimento, Yuri Takhteyev, ....
+
+// $$FOOTER$$
+
