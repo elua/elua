@@ -20,6 +20,7 @@
 #include "91x_vic.h"
 #include "lrotable.h"
 #include "91x_i2c.h"
+#include "91x_wiu.h"
 
 // ****************************************************************************
 // Platform initialization
@@ -62,6 +63,10 @@ static void platform_config_scu()
   // Enable the GPIO clocks  
   SCU_APBPeriphClockConfig(__GPIO_ALL, ENABLE);  
 
+  // Enable the WIU clock
+  SCU_APBPeriphClockConfig(__WIU, ENABLE);
+  SCU_APBPeriphReset(__WIU, DISABLE);
+
   // Enable the I2C clocks
   SCU_APBPeriphClockConfig(__I2C0, ENABLE);
   SCU_APBPeriphReset(__I2C0, DISABLE);
@@ -80,6 +85,13 @@ static const u8 uart_pin_data[] = { GPIO_Pin_1, GPIO_Pin_0 };
 static const GPIO_TypeDef* uart_port_data[] = { GPIO3, GPIO3 };
 static const u8 uart_pin_data[] = { GPIO_Pin_2, GPIO_Pin_3 };
 #endif
+
+// Dummy interrupt handlers avoid spurious interrupts (AN2593)
+static void dummy_int_handler()
+{
+  VIC0->VAR = 0xFF;
+  VIC1->VAR = 0xFF;
+}  
 
 // Plaform specific GPIO UART setup
 static void platform_gpio_uart_setup()
@@ -115,7 +127,24 @@ int platform_init()
     
   // Initialize VIC
   VIC_DeInit();
+  VIC0->DVAR = ( u32 )dummy_int_handler;
+  VIC1->DVAR = ( u32 )dummy_int_handler;
+
+  // Enablue WIU
+  WIU_DeInit();
   
+  // Initialize all external interrupts
+  VIC_Config( EXTIT0_ITLine, VIC_IRQ, 1 );
+  VIC_Config( EXTIT1_ITLine, VIC_IRQ, 2 );
+  VIC_Config( EXTIT2_ITLine, VIC_IRQ, 3 );
+  VIC_Config( EXTIT3_ITLine, VIC_IRQ, 4 );
+  VIC_ITCmd( EXTIT0_ITLine, ENABLE );
+  VIC_ITCmd( EXTIT1_ITLine, ENABLE );
+  VIC_ITCmd( EXTIT2_ITLine, ENABLE );
+  VIC_ITCmd( EXTIT3_ITLine, ENABLE );
+  // Enable interrupt generation on WIU
+  WIU->CTRL |= 2; 
+
   // UART setup
   platform_gpio_uart_setup();
   platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
@@ -135,7 +164,7 @@ int platform_init()
   cmn_platform_init();
 
   return PLATFORM_OK;
-} 
+}
 
 // ****************************************************************************
 // PIO functions
@@ -511,6 +540,159 @@ int platform_i2c_recv_byte( unsigned id, int ack )
     I2C_GenerateSTOP( pi2c, ENABLE );
   while( I2C_CheckEvent( pi2c, I2C_EVENT_MASTER_BYTE_RECEIVED ) != SUCCESS );
   return I2C_ReceiveData( pi2c );
+}
+
+// ****************************************************************************
+// EXTINT handlers and support functions
+
+static const u8 exint_group_to_gpio[] = { 3, 5, 6, 7 };
+
+// Convert an EXINT source number to a GPIO ID
+static u16 exint_src_to_gpio( u32 exint )
+{
+  return PLATFORM_IO_ENCODE( exint_group_to_gpio[ exint >> 3 ], exint & 0x07, 0 ); 
+}
+
+// Convert a GPIO ID to a EXINT number
+static int exint_gpio_to_src( pio_type piodata )
+{
+  u16 port = PLATFORM_IO_GET_PORT( piodata );
+  u16 pin = PLATFORM_IO_GET_PIN( piodata );
+  unsigned i;
+
+  for( i = 0; i < sizeof( exint_group_to_gpio ) / sizeof( u8 ); i ++ )
+    if( exint_group_to_gpio[ i ] == port )
+      break;
+  // Restrictions: only the specified port(s) have interrupt capabilities
+  //               for port 0 (GPIO3), only pins 2..7 have interrupt capabilities
+  if( ( i == sizeof( exint_group_to_gpio ) / sizeof( u8 ) ) || ( ( i == 0 ) && ( pin < 2 ) ) )
+    return -1;
+  return ( i << 3 ) + pin;
+}
+
+// External interrupt handlers
+static void exint_irq_handler( int group )
+{
+  u32 bmask;
+  u32 pr = WIU->PR;
+  u32 mr = WIU->MR;
+  u32 tr = WIU->TR;
+  u32 shift = group << 3;
+  unsigned i;
+
+  // Check interrupt mask
+  if( ( ( pr >> shift ) & 0xFF ) == 0 )
+  {
+    VIC1->VAR = 0xFF;
+    return;
+  }
+
+  // Iterate through all the bits in the mask, queueing interrupts as needed
+  for( i = 0, bmask = 1 << shift; i < 8; i ++, bmask <<= 1 )
+    if( ( pr & bmask ) && ( mr & bmask ) )
+    {
+      // Enqueue interrupt
+      if( tr & bmask )
+        elua_int_add( INT_GPIO_POSEDGE, exint_src_to_gpio( shift + i ) );
+      else
+        elua_int_add( INT_GPIO_NEGEDGE, exint_src_to_gpio( shift + i ) );
+      // Then clear it
+      WIU->PR  = bmask;
+    }
+
+  // Clear interrupt source
+  VIC1->VAR = 0xFF;
+}
+
+void EXTIT0_IRQHandler()
+{
+  exint_irq_handler( 0 );
+}
+
+void EXTIT1_IRQHandler()
+{
+  exint_irq_handler( 1 );
+}
+
+void EXTIT2_IRQHandler()
+{
+  exint_irq_handler( 2 );
+}
+
+void EXTIT3_IRQHandler()
+{
+  exint_irq_handler( 3 );
+}
+
+// ****************************************************************************
+// CPU functions
+
+// Helper: return the status of a specific interrupt (enabled/disabled)
+static int platform_cpuh_get_int_status( elua_int_id id, elua_int_resnum resnum )
+{
+  int temp;
+  u32 mask;
+  
+  if( id == INT_GPIO_POSEDGE || id == INT_GPIO_NEGEDGE )
+  {
+    if( ( temp = exint_gpio_to_src( resnum ) ) == -1 )
+    {
+      fprintf( stderr, "Error: not a valid source for an external interrupt\n" );
+      return 0;
+    }
+    mask = 1 << temp;
+    if( WIU->MR & mask )
+    {
+      if( id == INT_GPIO_POSEDGE )
+        return ( WIU->TR & mask ) != 0;
+      else
+        return ( WIU->TR & mask ) == 0;
+    }
+    else
+      return 0;
+  } 
+  else
+    fprintf( stderr, "Error: %d not a valid interrupt ID\n", id );
+  return 0;
+}
+
+int platform_cpu_set_interrupt( elua_int_id id, elua_int_resnum resnum, int status )
+{
+  int crt_status = platform_cpuh_get_int_status( id, resnum );
+  int temp;
+  u32 mask;
+  
+  if( id == INT_GPIO_POSEDGE || id == INT_GPIO_NEGEDGE )
+  {
+    if( ( temp = exint_gpio_to_src( resnum ) ) == -1 )
+    {
+      fprintf( stderr, "Error: not a valid source for an external interrupt\n" );
+      return 0;
+    }
+    mask = 1 << temp;
+    if( status == PLATFORM_CPU_ENABLE )
+    {
+      // Set edge type
+      if( id == INT_GPIO_POSEDGE )
+        WIU->TR |= mask;
+      else
+        WIU->TR &= ~mask;
+      // Clear interrupt flag?
+      // WIU->PR = mask;
+      // Enable interrupt
+      WIU->MR |= mask;
+    }     
+    else
+      WIU->MR &= ~mask; 
+  }
+  else
+    fprintf( stderr, "Error: %d not a valid interrupt ID\n", id );
+  return crt_status;
+}
+
+int platform_cpu_get_interrupt( elua_int_id id, elua_int_resnum resnum )
+{
+  return platform_cpuh_get_int_status( id, resnum );
 }
 
 // ****************************************************************************
