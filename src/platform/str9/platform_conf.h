@@ -17,6 +17,7 @@
 #define BUILD_ROMFS
 #define BUILD_TERM
 #define BUILD_CON_GENERIC
+#define BUILD_ADC
 //#define BUILD_RPC
 #define BUILD_LUA_INT_HANDLERS
 
@@ -47,9 +48,18 @@
 #define NUM_UART              3
 #define NUM_TIMER             4
 #define NUM_PWM               4
-#define NUM_ADC               0
+#define NUM_ADC               8
 #define NUM_CAN               0
 #define NUM_I2C               2
+
+// ADC Configuration Params
+#define ADC_BIT_RESOLUTION    10
+#define BUF_ENABLE_ADC
+#define ADC_BUF_SIZE          BUF_SIZE_2
+
+// These should be adjusted to support multiple ADC devices
+#define ADC_TIMER_FIRST_ID    0
+#define ADC_NUM_TIMERS        0
 
 // RPC boot options
 #define RPC_UART_ID           CON_UART_ID
@@ -84,6 +94,12 @@ u32 SCU_GetMCLKFreqValue();
 // The name of the platform specific libs table
 #define PS_LIB_TABLE_NAME   "str9"
 
+#ifdef BUILD_ADC
+#define ADCLINE _ROM( AUXLIB_ADC, luaopen_adc, adc_map )
+#else
+#define ADCLINE
+#endif
+
 #if defined( BUILD_RPC ) || defined( ELUA_BOOT_RPC )
 #define RPCLINE _ROM( AUXLIB_RPC, luaopen_rpc, rpc_map )
 #else
@@ -96,6 +112,7 @@ u32 SCU_GetMCLKFreqValue();
 #define LUA_PLATFORM_LIBS_ROM\
   _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
   _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
+  ADCLINE\
   _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
   _ROM( AUXLIB_UART, luaopen_uart, uart_map )\
   _ROM( AUXLIB_TERM, luaopen_term, term_map )\

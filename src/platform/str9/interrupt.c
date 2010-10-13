@@ -174,9 +174,8 @@ void MC_IRQHandler(void)
 * Function Name  : ADC_IRQHandler
 * Description    : This function handles the ADC interrupt request
 *******************************************************************************/
-void ADC_IRQHandler(void)
-{
-}
+extern void ADC_IRQHandler(void);
+
 /*******************************************************************************
 * Function Name  : UART0_IRQHandler
 * Description    : This function handles the UART0 interrupt request

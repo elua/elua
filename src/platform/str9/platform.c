@@ -21,11 +21,16 @@
 #include "lrotable.h"
 #include "91x_i2c.h"
 #include "91x_wiu.h"
+#include "buf.h"
+#include "elua_adc.h"
+#include "91x_adc.h"
 
 // ****************************************************************************
 // Platform initialization
 const GPIO_TypeDef* port_data[] = { GPIO0, GPIO1, GPIO2, GPIO3, GPIO4, GPIO5, GPIO6, GPIO7, GPIO8, GPIO9 };
 static const TIM_TypeDef* timer_data[] = { TIM0, TIM1, TIM2, TIM3 };
+
+static void platform_setup_adcs();
 
 static void platform_config_scu()
 {     
@@ -47,9 +52,9 @@ static void platform_config_scu()
   /* Set the HCLK Clock to MCLK */
   SCU_HCLKDivisorConfig(SCU_HCLK_Div1);
   
-  /* Enable VIC clock */
+  // Enable VIC clock
   SCU_AHBPeriphClockConfig(__VIC, ENABLE);
-  SCU_AHBPeriphReset(__VIC, DISABLE);  
+  SCU_AHBPeriphReset(__VIC, DISABLE);
                  
   // Enable the UART clocks
   SCU_APBPeriphClockConfig(__UART_ALL, ENABLE);
@@ -72,6 +77,9 @@ static void platform_config_scu()
   SCU_APBPeriphReset(__I2C0, DISABLE);
   SCU_APBPeriphClockConfig(__I2C1, ENABLE);
   SCU_APBPeriphReset(__I2C1, DISABLE);
+  
+  // Enable the ADC clocks
+  SCU_APBPeriphClockConfig(__ADC, ENABLE);
 }
 
 // Port/pin definitions of the eLua UART connection for different boards
@@ -160,6 +168,11 @@ int platform_init()
     TIM_Init( base, &tim );    
     TIM_CounterCmd( base, TIM_START );
   }
+  
+#ifdef BUILD_ADC
+  // Setup ADCs
+  platform_setup_adcs();
+#endif
   
   cmn_platform_init();
 
@@ -380,6 +393,211 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
   }
   return res;
 }
+
+
+// *****************************************************************************
+// ADC specific functions and variables
+
+#ifdef BUILD_ADC
+
+ADC_InitTypeDef ADC_InitStructure;
+
+int platform_adc_check_timer_id( unsigned id, unsigned timer_id )
+{
+  return 0; // This platform does not support direct timer triggering
+}
+
+void platform_adc_stop( unsigned id )
+{  
+  elua_adc_ch_state *s = adc_get_ch_state( id );
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  
+  s->op_pending = 0;
+  INACTIVATE_CHANNEL( d, id );
+
+  // If there are no more active channels, stop the sequencer
+  if( d->ch_active == 0 )    
+    d->running = 0;
+}
+
+
+void ADC_IRQHandler(void)
+{
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  elua_adc_ch_state *s;
+
+  if ( ADC_GetFlagStatus( ADC_FLAG_ECV ) )
+  {
+    d->seq_ctr = 0;
+    while( d->seq_ctr < d->seq_len )
+    {
+      s = d->ch_state[ d->seq_ctr ];
+      d->sample_buf[ d->seq_ctr] = ( u16 )ADC_GetConversionValue( s->id );
+      s->value_fresh = 1;
+    
+      // Fill in smoothing buffer until warmed up
+      if ( s->logsmoothlen > 0 && s->smooth_ready == 0)
+	adc_smooth_data( s->id );
+#if defined( BUF_ENABLE_ADC )
+      else if ( s->reqsamples > 1 )
+      {
+	buf_write( BUF_ID_ADC, s->id, ( t_buf_data* )s->value_ptr );
+	s->value_fresh = 0;
+      }
+#endif
+
+      // If we have the number of requested samples, stop sampling
+      if ( adc_samples_available( s->id ) >= s->reqsamples && s->freerunning == 0 )
+	platform_adc_stop( s->id );
+
+      d->seq_ctr++;
+    }
+    d->seq_ctr = 0;
+    ADC_ClearFlag( ADC_FLAG_ECV );
+  }
+  
+  if( d->running == 1 )
+    adc_update_dev_sequence( 0 );
+  
+  if ( d->clocked == 0 && d->running == 1 )
+    ADC_ConversionCmd(ADC_Conversion_Start);
+   
+  VIC0->VAR = 0xFF;
+}
+
+static void platform_setup_adcs()
+{
+  unsigned id;
+  
+  for( id = 0; id < NUM_ADC; id ++ )
+    adc_init_ch_state( id );
+  
+  VIC_Config(ADC_ITLine, VIC_IRQ, 0);
+  VIC_ITCmd(ADC_ITLine, ENABLE);
+  
+  ADC_StructInit(&ADC_InitStructure);
+
+  /* Configure the ADC  structure in continuous mode conversion */
+  ADC_DeInit();             /* ADC Deinitialization */
+  ADC_InitStructure.ADC_Channel_0_Mode = ADC_NoThreshold_Conversion;
+  ADC_InitStructure.ADC_Scan_Mode = ENABLE;
+  ADC_InitStructure.ADC_Conversion_Mode = ADC_Single_Mode;
+  
+  ADC_Cmd( ENABLE );
+  ADC_PrescalerConfig( 0x2 );
+  ADC_Init( &ADC_InitStructure );
+
+  ADC_ITConfig(ADC_IT_ECV, ENABLE);
+
+  platform_adc_setclock( 0, 0 );
+ 
+}
+
+
+// NOTE: On this platform, there is only one ADC, clock settings apply to the whole device
+u32 platform_adc_setclock( unsigned id, u32 frequency )
+{
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  
+  // No clocked conversions supported
+  d->clocked = 0;
+
+  return 0;
+}
+
+const int adc_gpio_chan[] = { GPIO_ANAChannel0, GPIO_ANAChannel1, GPIO_ANAChannel2, GPIO_ANAChannel3, GPIO_ANAChannel4, GPIO_ANAChannel5, GPIO_ANAChannel6, GPIO_ANAChannel7 };
+
+// Prepare Hardware Channel
+int platform_adc_update_sequence( )
+{ 
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+    
+  ADC_Cmd( DISABLE );
+  ADC_DeInit();
+  
+  ADC_InitStructure.ADC_Channel_0_Mode = ADC_No_Conversion;
+  ADC_InitStructure.ADC_Channel_1_Mode = ADC_No_Conversion;
+  ADC_InitStructure.ADC_Channel_2_Mode = ADC_No_Conversion;
+  ADC_InitStructure.ADC_Channel_3_Mode = ADC_No_Conversion;
+  ADC_InitStructure.ADC_Channel_4_Mode = ADC_No_Conversion;
+  ADC_InitStructure.ADC_Channel_5_Mode = ADC_No_Conversion;
+  ADC_InitStructure.ADC_Channel_6_Mode = ADC_No_Conversion;
+  ADC_InitStructure.ADC_Channel_7_Mode = ADC_No_Conversion;
+
+  d->seq_ctr = 0;
+  while( d->seq_ctr < d->seq_len )
+  {
+    GPIO_ANAPinConfig( adc_gpio_chan[ d->ch_state[ d->seq_ctr ]->id ], ENABLE );
+
+    // This is somewhat terrible, but the API doesn't provide an alternative
+    switch( d->ch_state[ d->seq_ctr ]->id )
+    {
+      case 0:
+        ADC_InitStructure.ADC_Channel_0_Mode = ADC_NoThreshold_Conversion;
+        break;
+      case 1:
+        ADC_InitStructure.ADC_Channel_1_Mode = ADC_NoThreshold_Conversion;
+        break;
+      case 2:
+        ADC_InitStructure.ADC_Channel_2_Mode = ADC_NoThreshold_Conversion;
+        break;
+      case 3:
+        ADC_InitStructure.ADC_Channel_3_Mode = ADC_NoThreshold_Conversion;
+        break;
+      case 4:
+        ADC_InitStructure.ADC_Channel_4_Mode = ADC_NoThreshold_Conversion;
+        break;
+      case 5:
+        ADC_InitStructure.ADC_Channel_5_Mode = ADC_NoThreshold_Conversion;
+        break;
+      case 6:
+        ADC_InitStructure.ADC_Channel_6_Mode = ADC_NoThreshold_Conversion;
+        break;
+      case 7:
+        ADC_InitStructure.ADC_Channel_7_Mode = ADC_NoThreshold_Conversion;
+        break;
+    }
+    d->seq_ctr++;
+  }
+  d->seq_ctr = 0;
+  
+  ADC_Cmd( ENABLE );
+  ADC_PrescalerConfig( 0x2 );
+  ADC_Init( &ADC_InitStructure );
+  
+  return PLATFORM_OK;
+}
+
+
+int platform_adc_start_sequence()
+{ 
+    elua_adc_dev_state *d = adc_get_dev_state( 0 );
+
+    // Only force update and initiate if we weren't already running
+    // changes will get picked up during next interrupt cycle
+    if ( d->running != 1 )
+    {
+      // Bail if we somehow were trying to set up clocked conversion
+      if( d->clocked == 1 )
+        return PLATFORM_ERR;
+
+      adc_update_dev_sequence( 0 );
+
+      d->running = 1;
+
+      ADC_ClearFlag(ADC_FLAG_ECV);
+
+      ADC_ITConfig(ADC_IT_ECV, ENABLE);
+
+      ADC_ConversionCmd( ADC_Conversion_Start );
+    }
+
+    return PLATFORM_OK;
+  }
+
+
+#endif // ifdef BUILD_ADC
+
 
 // ****************************************************************************
 // PWM functions
