@@ -416,12 +416,12 @@ void platform_adc_stop( unsigned id )
   INACTIVATE_CHANNEL( d, id );
 
   // If there are no more active channels, stop the sequencer
-  if( d->ch_active == 0 )    
+  if( d->ch_active == 0 )
     d->running = 0;
 }
 
 
-void ADC_IRQHandler(void)
+void ADC_IRQHandler( void )
 {
   elua_adc_dev_state *d = adc_get_dev_state( 0 );
   elua_adc_ch_state *s;
@@ -432,7 +432,7 @@ void ADC_IRQHandler(void)
     while( d->seq_ctr < d->seq_len )
     {
       s = d->ch_state[ d->seq_ctr ];
-      d->sample_buf[ d->seq_ctr] = ( u16 )ADC_GetConversionValue( s->id );
+      d->sample_buf[ d->seq_ctr ] = ( u16 )ADC_GetConversionValue( s->id );
       s->value_fresh = 1;
     
       // Fill in smoothing buffer until warmed up
@@ -458,10 +458,12 @@ void ADC_IRQHandler(void)
   
   if( d->running == 1 )
     adc_update_dev_sequence( 0 );
-  
+
   if ( d->clocked == 0 && d->running == 1 )
-    ADC_ConversionCmd(ADC_Conversion_Start);
-   
+  {
+    ADC_ConversionCmd( ADC_Conversion_Start );
+  }
+
   VIC0->VAR = 0xFF;
 }
 
@@ -490,7 +492,6 @@ static void platform_setup_adcs()
   ADC_ITConfig(ADC_IT_ECV, ENABLE);
 
   platform_adc_setclock( 0, 0 );
- 
 }
 
 
@@ -564,7 +565,9 @@ int platform_adc_update_sequence( )
   ADC_Cmd( ENABLE );
   ADC_PrescalerConfig( 0x2 );
   ADC_Init( &ADC_InitStructure );
-  
+
+  ADC_ITConfig( ADC_IT_ECV, ENABLE );
+
   return PLATFORM_OK;
 }
 
@@ -585,9 +588,9 @@ int platform_adc_start_sequence()
 
       d->running = 1;
 
-      ADC_ClearFlag(ADC_FLAG_ECV);
+      ADC_ClearFlag( ADC_FLAG_ECV );
 
-      ADC_ITConfig(ADC_IT_ECV, ENABLE);
+      ADC_ITConfig( ADC_IT_ECV, ENABLE );
 
       ADC_ConversionCmd( ADC_Conversion_Start );
     }
