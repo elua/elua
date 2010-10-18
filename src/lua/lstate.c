@@ -240,7 +240,9 @@ LUA_API void lua_close (lua_State *L) {
   luai_userstateclose(L);
   close_state(L);
   // BogdanM: modified for eLua interrupt support
+#ifndef LUA_CROSS_COMPILER  
   lua_crtstate = NULL;
   elua_int_disable_all();
+#endif  
 }
 
