@@ -11,6 +11,7 @@
 /* Macros one can use to define rotable entries */
 #define LRO_FUNCVAL(v)  {{.p = v}, LUA_TLIGHTFUNCTION}
 #define LRO_NUMVAL(v)   {{.n = v}, LUA_TNUMBER}
+#define LRO_BOOLVAL(v)  {{.n = v}, LUA_TBOOLEAN}
 #define LRO_ROVAL(v)    {{.p = ( void* )v}, LUA_TROTABLE}
 #define LRO_NILVAL      {{.p = NULL}, LUA_TNIL}
 

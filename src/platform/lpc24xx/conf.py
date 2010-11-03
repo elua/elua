@@ -2,7 +2,7 @@
 
 cpumode = ARGUMENTS.get( 'cpumode', 'arm' ).lower()
 
-specific_files = "startup.s irq.c target.c platform.c"
+specific_files = "startup.s irq.c target.c platform.c platform_int.c"
 if comp[ 'cpu' ] == 'LPC2468':
   ldscript = "lpc2468.lds"
 else:

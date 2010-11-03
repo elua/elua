@@ -20,6 +20,7 @@
 #define BUILD_ADC
 #define BUILD_RPC
 #define BUILD_LUA_INT_HANDLERS
+#define BUILD_C_INT_HANDLERS
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
@@ -137,27 +138,24 @@
 // *****************************************************************************
 // CPU constants that should be exposed to the eLua "cpu" module
 
-#define PINSEL_BASE_ADDR	0xE002C000
-#define IO_PINSEL0           ( PINSEL_BASE_ADDR + 0x00 )
-#define IO_PINSEL1           ( PINSEL_BASE_ADDR + 0x04 )
-#define IO_PINSEL2           ( PINSEL_BASE_ADDR + 0x08 )
-#define IO_PINSEL3           ( PINSEL_BASE_ADDR + 0x0C )
-#define IO_PINSEL4           ( PINSEL_BASE_ADDR + 0x10 )
-#define IO_PINSEL5           ( PINSEL_BASE_ADDR + 0x14 )
-#define IO_PINSEL6           ( PINSEL_BASE_ADDR + 0x18 )
-#define IO_PINSEL7           ( PINSEL_BASE_ADDR + 0x1C )
-#define IO_PINSEL8           ( PINSEL_BASE_ADDR + 0x20 )
-#define IO_PINSEL9           ( PINSEL_BASE_ADDR + 0x24 )
-#define IO_PINSEL10          ( PINSEL_BASE_ADDR + 0x28 )
+#define PINSEL_BASE_ADDR	      0xE002C000
+#define IO_PINSEL0            ( PINSEL_BASE_ADDR + 0x00 )
+#define IO_PINSEL1            ( PINSEL_BASE_ADDR + 0x04 )
+#define IO_PINSEL2            ( PINSEL_BASE_ADDR + 0x08 )
+#define IO_PINSEL3            ( PINSEL_BASE_ADDR + 0x0C )
+#define IO_PINSEL4            ( PINSEL_BASE_ADDR + 0x10 )
+#define IO_PINSEL5            ( PINSEL_BASE_ADDR + 0x14 )
+#define IO_PINSEL6            ( PINSEL_BASE_ADDR + 0x18 )
+#define IO_PINSEL7            ( PINSEL_BASE_ADDR + 0x1C )
+#define IO_PINSEL8            ( PINSEL_BASE_ADDR + 0x20 )
+#define IO_PINSEL9            ( PINSEL_BASE_ADDR + 0x24 )
+#define IO_PINSEL10           ( PINSEL_BASE_ADDR + 0x28 )
 
 // Interrupt list
-enum
-{
-  // Platform interrupts
-  INT_GPIO_POSEDGE = ELUA_INT_FIRST_ID,
-  INT_GPIO_NEGEDGE,
-  INT_TMR_MATCH
-};
+#define INT_GPIO_POSEDGE      ELUA_INT_FIRST_ID
+#define INT_GPIO_NEGEDGE      ( ELUA_INT_FIRST_ID + 1 )
+#define INT_TMR_MATCH         ( ELUA_INT_FIRST_ID + 2 )
+#define INT_ELUA_LAST         INT_TMR_MATCH
 
 #define PLATFORM_CPU_CONSTANTS\
  _C( IO_PINSEL0 ),\

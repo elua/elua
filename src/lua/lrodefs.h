@@ -17,6 +17,7 @@
 #define LNILKEY                     LRO_NILKEY
 #define LFUNCVAL                    LRO_FUNCVAL
 #define LNUMVAL                     LRO_NUMVAL
+#define LBOOLVAL                    LRO_BOOLVAL
 #define LROVAL                      LRO_ROVAL
 #define LNILVAL                     LRO_NILVAL
 #define LREGISTER(L, name, table)\

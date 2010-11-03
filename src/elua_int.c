@@ -9,6 +9,9 @@
 #include <stdio.h>
 #include <string.h>
 
+// ****************************************************************************
+// Lua handlers
+
 #ifdef BUILD_LUA_INT_HANDLERS
 
 // Interrupt queue read and write indexes
@@ -64,6 +67,9 @@ static void elua_int_hook( lua_State *L, lua_Debug *ar )
 // Returns PLATFORM_OK or PLATFORM_ERR
 int elua_int_add( elua_int_id inttype, elua_int_resnum resnum )
 {
+  if( inttype < ELUA_INT_FIRST_ID || inttype > INT_ELUA_LAST )
+    return PLATFORM_ERR;
+
   // If Lua is not running (no Lua state), or no Lua interrupt handler is set, 
   // or the interrupt is not enabled, don't do anything
   if( lua_getstate() == NULL || !cpu_is_int_handler_active() || !elua_int_is_enabled( inttype ) )
@@ -82,7 +88,6 @@ int elua_int_add( elua_int_id inttype, elua_int_resnum resnum )
   elua_int_write_idx = ( elua_int_write_idx + 1 ) & INT_IDX_MASK;
 
   // Set the Lua hook (it's OK to set it even if it's already set)
-  // [TODO] is it safe to call lua_sethook here ? If not, set a "trap" in lvm.c
   lua_sethook( lua_getstate(), elua_int_hook, LUA_MASKCOUNT, 2 ); 
 
   // All OK
@@ -120,10 +125,23 @@ void elua_int_disable_all()
     elua_int_flags[ i ] = 0;    
 }
 
+// Called from lstate.c/lua_close
+void elua_int_cleanup()
+{
+  elua_int_disable_all();
+  elua_int_read_idx = elua_int_write_idx = 0;
+  memset( elua_int_queue, ELUA_INT_EMPTY_SLOT, sizeof( elua_int_queue ) );
+}
+
 #else // #ifdef BUILD_LUA_INT_HANDLERS
 
 // This is needed by lua_close (lstate.c)
 void elua_int_disable_all()
+{
+}
+
+// This too
+void elua_int_cleanup()
 {
 }
 
@@ -135,5 +153,50 @@ void elua_int_disable( elua_int_id inttype )
 {
 }
 
+int elua_int_add( elua_int_id inttype, elua_int_resnum resnum )
+{
+  return PLATFORM_ERR;
+}
+
 #endif // #ifdef BUILD_LUA_INT_HANDLERS
+
+// ****************************************************************************
+// C handlers
+
+#ifdef BUILD_C_INT_HANDLERS
+
+static elua_int_c_handler elua_int_c_handler_list[ INT_ELUA_LAST ];
+
+elua_int_c_handler elua_int_set_c_handler( elua_int_id inttype, elua_int_c_handler phandler )
+{
+  elua_int_c_handler crthandler;
+
+  if( inttype < ELUA_INT_FIRST_ID || inttype > INT_ELUA_LAST )
+    return NULL;
+  inttype -= ELUA_INT_FIRST_ID;
+  crthandler = elua_int_c_handler_list[ inttype ];
+  elua_int_c_handler_list[ inttype ] = phandler;
+  return crthandler;
+}
+
+elua_int_c_handler elua_int_get_c_handler( elua_int_id inttype )
+{
+  if( inttype < ELUA_INT_FIRST_ID || inttype > INT_ELUA_LAST )
+    return NULL;
+  return elua_int_c_handler_list[ inttype - ELUA_INT_FIRST_ID ];
+}
+
+#else // #ifdef BUILD_C_INT_HANDLERS
+
+elua_int_c_handler elua_int_set_c_handler( elua_int_id inttype, elua_int_c_handler phandler )
+{
+  return NULL;
+}
+
+elua_int_c_handler elua_int_get_c_handler( elua_int_id inttype )
+{
+  return NULL;
+}
+
+#endif // #ifdef BUILD_C_INT_HANDLERS
 

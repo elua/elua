@@ -17,6 +17,7 @@ enum
 
 // Platform initialization
 int platform_init();
+void platform_int_init();
 
 // *****************************************************************************
 // PIO subsection
@@ -151,6 +152,16 @@ int platform_s_uart_recv( unsigned id, s32 timeout );
 // Data types
 typedef u32 timer_data_type;
 
+// Interrupt types
+#define PLATFORM_TIMER_INT_ONESHOT            1
+#define PLATFORM_TIMER_INT_CYCLIC             2
+
+// Match interrupt error codes
+#define PLATFORM_TIMER_INT_OK                 0
+#define PLATFORM_TIMER_INT_TOO_SHORT          1
+#define PLATFORM_TIMER_INT_INVALID_ID         2  
+#define PLATFORM_TIMER_INT_GENERIC_ERR        3         
+
 // Timer operations
 enum
 {
@@ -159,8 +170,7 @@ enum
   PLATFORM_TIMER_OP_SET_CLOCK,
   PLATFORM_TIMER_OP_GET_CLOCK,
   PLATFORM_TIMER_OP_GET_MAX_DELAY,
-  PLATFORM_TIMER_OP_GET_MIN_DELAY,
-  PLATFORM_TIMER_OP_SET_INT_TIMEOUT
+  PLATFORM_TIMER_OP_GET_MIN_DELAY
 };
 
 // The platform timer functions
@@ -169,6 +179,8 @@ void platform_timer_delay( unsigned id, u32 delay_us );
 void platform_s_timer_delay( unsigned id, u32 delay_us );
 u32 platform_timer_op( unsigned id, int op, u32 data );
 u32 platform_s_timer_op( unsigned id, int op, u32 data );
+int platform_timer_set_match_int( unsigned id, u32 period_us, int type );
+int platform_s_timer_set_match_int( unsigned id, u32 period_us, int type );
 u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_type start );
 
 // *****************************************************************************
@@ -197,10 +209,18 @@ u32 platform_pwm_op( unsigned id, int op, u32 data );
 #define PLATFORM_CPU_DISABLE            0
 #define PLATFORM_CPU_ENABLE             1
 
+// Interrupt functions return status
+#define PLATFORM_INT_OK                 0
+#define PLATFORM_INT_GENERIC_ERROR      ( -1 )
+#define PLATFORM_INT_INVALID            ( -2 )
+#define PLATFORM_INT_NOT_HANDLED        ( -3 )
+#define PLATFORM_INT_NOT_ANY            ( -4 )
+
 int platform_cpu_set_global_interrupts( int status );
 int platform_cpu_get_global_interrupts();
 int platform_cpu_set_interrupt( elua_int_id id, elua_int_resnum resnum, int status );
 int platform_cpu_get_interrupt( elua_int_id id, elua_int_resnum resnum );
+int platform_cpu_get_interrupt_flag( elua_int_id id, elua_int_resnum resnum, int clear );
 u32 platform_cpu_get_frequency();
 
 // *****************************************************************************

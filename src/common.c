@@ -15,6 +15,17 @@
 #include "xmodem.h"
 #include "elua_int.h"
 
+#if defined( BUILD_LUA_INT_HANDLERS ) || defined( BUILD_C_INT_HANDLERS )
+#define BUILD_INT_HANDLERS
+
+#ifndef INT_TMR_MATCH
+#define INT_TMR_MATCH         ELUA_INT_INVALID_INTERRUPT
+#endif
+
+extern elua_int_descriptor elua_int_table[ INT_ELUA_LAST ];
+
+#endif
+
 // ****************************************************************************
 // XMODEM support code
 
@@ -125,6 +136,10 @@ static int uart_recv( s32 to )
 
 void cmn_platform_init()
 {
+#ifdef BUILD_LUA_INT_HANDLERS
+  platform_int_init();
+#endif
+
   // Set the send/recv functions                          
   std_set_send_func( uart_send );
   std_set_get_func( uart_recv );  
@@ -224,161 +239,6 @@ int platform_uart_recv( unsigned id, unsigned timer_id, s32 timeout )
     }
     return res;
   }
-}
-
-// ****************************************************************************
-// Timers (and vtimers) functions
-
-#if VTMR_NUM_TIMERS > 0
-static volatile u32 vtmr_counters[ VTMR_NUM_TIMERS ];
-static volatile s8 vtmr_reset_idx = -1;
-
-#ifdef BUILD_LUA_INT_HANDLERS
-static volatile u32 vtmr_period_limit[ VTMR_NUM_TIMERS ];  
-static volatile u8 vtmr_int_enabled[ ( VTMR_NUM_TIMERS + 7 ) >> 3 ];
-#endif // #ifdef BUILD_LUA_INTERRUPT_HANDLERS
-
-// This should be called from the platform's timer interrupt at VTMR_FREQ_HZ
-void cmn_virtual_timer_cb()
-{
-  unsigned i;
-
-  for( i = 0; i < VTMR_NUM_TIMERS; i ++ )
-  {
-    vtmr_counters[ i ] ++;  
-#ifdef BUILD_LUA_INT_HANDLERS
-    if( ( vtmr_int_enabled[ i >> 3 ] & ( 1 << ( i & 0x07 ) ) ) && ( vtmr_counters[ i ] == vtmr_period_limit[ i ] ) )
-    {
-      vtmr_int_enabled[ i >> 3 ] &= ( u8 )~( 1 << ( i & 0x07 ) );    
-      elua_int_add( INT_TMR_MATCH, i + VTMR_FIRST_ID );
-    }
-#endif // #ifdef BUILD_LUA_INT_HANDLERS
-  }    
-  if( vtmr_reset_idx != -1 )
-  {
-    vtmr_counters[ vtmr_reset_idx ] = 0;
-    vtmr_reset_idx = -1;
-  }
-}
-
-static void vtmr_reset_timer( unsigned vid )
-{
-  unsigned id = VTMR_GET_ID( vid );
-
-  vtmr_reset_idx = ( s8 )id;
-  while( vtmr_reset_idx != -1 );  
-}
-
-static void vtmr_delay( unsigned vid, u32 delay_us )
-{
-  timer_data_type final;
-  unsigned id = VTMR_GET_ID( vid );
-  
-  final = ( ( u64 )delay_us * VTMR_FREQ_HZ ) / 1000000;
-  vtmr_reset_timer( vid );
-  while( vtmr_counters[ id ] < final );  
-}
-
-#ifdef BUILD_LUA_INT_HANDLERS
-static int vtmr_set_int_timeout( unsigned vid, u32 delay_us )
-{
-  timer_data_type final;
-  unsigned id = VTMR_GET_ID( vid );
-    
-  if( ( final = ( ( u64 )delay_us * VTMR_FREQ_HZ ) / 1000000 ) == 0 )
-    return 0;
-  vtmr_period_limit[ id ] = final;
-  vtmr_reset_timer( vid );  
-  vtmr_int_enabled[ id >> 3 ] |= 1 << ( id & 0x07 );    
-  return 1; 
-}
-#else // #ifdef BUILD_LUA_INT_HANDLERS
-static int vtmr_set_int_timeout( unsigned vid, u32 delay_us )
-{
-  fprintf( stderr, "Timeouts with interrupts not available when Lua interrupt support is not enabled\n" );
-  return 0;
-}
-#endif // #ifdef BUILD_LUA_INT_HANDLERS
-
-#else // #if VTMR_NUM_TIMERS > 0
-
-void cmn_virtual_timer_cb()
-{
-}
-#endif // #if VTMR_NUM_TIMERS > 0
-
-int platform_timer_exists( unsigned id )
-{
-#if VTMR_NUM_TIMERS > 0
-  if( id >= VTMR_FIRST_ID )
-    return TIMER_IS_VIRTUAL( id );
-  else
-#endif
-    return id < NUM_TIMER;
-}
-
-void platform_timer_delay( unsigned id, u32 delay_us )
-{
-#if VTMR_NUM_TIMERS > 0
-  if( TIMER_IS_VIRTUAL( id ) )
-    vtmr_delay( id, delay_us );
-  else
-#endif
-    platform_s_timer_delay( id, delay_us );
-}
-      
-u32 platform_timer_op( unsigned id, int op, u32 data )
-{
-  u32 res = 0;
-
-  if( ( VTMR_NUM_TIMERS == 0 ) || ( !TIMER_IS_VIRTUAL( id ) ) )
-    return platform_s_timer_op( id, op, data );
-#if VTMR_NUM_TIMERS > 0
-  switch( op )
-  {
-    case PLATFORM_TIMER_OP_START:
-      vtmr_reset_timer( id );
-      res = 0;
-      break;
-      
-    case PLATFORM_TIMER_OP_READ:
-      res = vtmr_counters[ VTMR_GET_ID( id ) ];
-      break;
-      
-    case PLATFORM_TIMER_OP_GET_MAX_DELAY:
-      res = platform_timer_get_diff_us( id, 0, 0xFFFFFFFF );
-      break;
-      
-    case PLATFORM_TIMER_OP_GET_MIN_DELAY:
-      res = platform_timer_get_diff_us( id, 0, 1 );
-      break;
-      
-    case PLATFORM_TIMER_OP_SET_CLOCK:
-    case PLATFORM_TIMER_OP_GET_CLOCK:
-      res = VTMR_FREQ_HZ;
-      break;      
-      
-    case PLATFORM_TIMER_OP_SET_INT_TIMEOUT:
-      res = vtmr_set_int_timeout( id, data );
-      break;
-  }
-#endif
-  return res;
-}
-
-u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_type start )
-{
-  timer_data_type temp;
-  u32 freq;
-    
-  freq = platform_timer_op( id, PLATFORM_TIMER_OP_GET_CLOCK, 0 );
-  if( start < end )
-  {
-    temp = end;
-    end = start;
-    start = temp;
-  }
-  return ( ( u64 )( start - end ) * 1000000 ) / freq;
 }
 
 // ****************************************************************************
@@ -512,7 +372,65 @@ int platform_i2c_exists( unsigned id )
 }
 
 // ****************************************************************************
+// Interrupt support
+#ifdef BUILD_INT_HANDLERS
+
+int platform_cpu_set_interrupt( elua_int_id id, elua_int_resnum resnum, int status )
+{
+  elua_int_p_set_status ps;
+
+  if( id < ELUA_INT_FIRST_ID || id > INT_ELUA_LAST )
+    return PLATFORM_INT_INVALID;
+  if( ( ps = elua_int_table[ id - ELUA_INT_FIRST_ID ].int_set_status ) == NULL )
+    return PLATFORM_INT_NOT_HANDLED;
+  if( id == INT_TMR_MATCH )
+    return cmn_tmr_int_set_status( resnum, status );
+  return ps( resnum, status );
+}
+
+int platform_cpu_get_interrupt( elua_int_id id, elua_int_resnum resnum )
+{
+  elua_int_p_get_status pg;
+
+  if( id < ELUA_INT_FIRST_ID || id > INT_ELUA_LAST )
+    return PLATFORM_INT_INVALID;
+  if( ( pg = elua_int_table[ id - ELUA_INT_FIRST_ID ].int_get_status ) == NULL )
+    return PLATFORM_INT_NOT_HANDLED;
+  if( id == INT_TMR_MATCH )
+    return cmn_tmr_int_get_status( resnum );
+  return pg( resnum );
+}
+
+int platform_cpu_get_interrupt_flag( elua_int_id id, elua_int_resnum resnum, int clear )
+{
+  elua_int_p_get_flag pf;
+
+  if( id < ELUA_INT_FIRST_ID || id > INT_ELUA_LAST )
+    return PLATFORM_INT_INVALID;
+  if( ( pf = elua_int_table[ id - ELUA_INT_FIRST_ID ].int_get_flag ) == NULL )
+    return PLATFORM_INT_NOT_HANDLED;
+  if( id == INT_TMR_MATCH )
+    return cmn_tmr_int_get_flag( resnum, clear );
+  else    
+    return pf( resnum, clear );
+}
+
+// Common interrupt handling
+void cmn_int_handler( elua_int_id id, elua_int_resnum resnum )
+{
+  elua_int_add( id, resnum );
+#ifdef BUILD_C_INT_HANDLERS
+  elua_int_c_handler phnd = elua_int_get_c_handler( id );
+  if( phnd )
+    phnd( resnum );
+#endif
+}
+
+#endif // #ifdef BUILD_INT_HANDLERS
+
+// ****************************************************************************
 // Misc support
+
 unsigned int intlog2( unsigned int v )
 {
   unsigned r = 0;

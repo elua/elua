@@ -120,22 +120,23 @@ static int tmr_getclock( lua_State* L )
   return 1;
 }
 
-// Lua: setinttimeout( id, timeout )
-static int tmr_setinttimeout( lua_State *L )
-{
 #ifdef BUILD_LUA_INT_HANDLERS
+// Lua: set_match_int( id, timeout, type )
+static int tmr_set_match_int( lua_State *L )
+{
   unsigned id;
   u32 res;
   
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( timer, id );
-  res = platform_timer_op( id, PLATFORM_TIMER_OP_SET_INT_TIMEOUT, ( u32 )luaL_checknumber( L, 2 ) );
-  lua_pushinteger( L, res );
-  return 1;
-#else
-  return luaL_error( L, "setinttimeout not supported when Lua interrupt support is not compiled" );
-#endif
+  res = platform_timer_set_match_int( id, ( u32 )luaL_checknumber( L, 2 ), ( int )luaL_checkinteger( L, 3 ) );
+  if( res == PLATFORM_TIMER_INT_TOO_SHORT )
+    return luaL_error( L, "timer interval too small" );
+  else if( res == PLATFORM_TIMER_INT_INVALID_ID )
+    return luaL_error( L, "mach interrupt cannot be set on this timer" );
+  return 0;
 }
+#endif // #ifdef BUILD_LUA_INT_HANDLERS
 
 #if VTMR_NUM_TIMERS > 0
 // __index metafunction for TMR
@@ -173,13 +174,19 @@ const LUA_REG_TYPE tmr_map[] =
   { LSTRKEY( "getmaxdelay" ), LFUNCVAL( tmr_getmaxdelay ) },
   { LSTRKEY( "setclock" ), LFUNCVAL( tmr_setclock ) },
   { LSTRKEY( "getclock" ), LFUNCVAL( tmr_getclock ) },
-  { LSTRKEY( "setinttimeout" ), LFUNCVAL( tmr_setinttimeout ) },
+#ifdef BUILD_LUA_INT_HANDLERS
+  { LSTRKEY( "set_match_int" ), LFUNCVAL( tmr_set_match_int ) },
+#endif  
 #if LUA_OPTIMIZE_MEMORY > 0 && VTMR_NUM_TIMERS > 0
   { LSTRKEY( "__metatable" ), LROVAL( tmr_map ) },
 #endif
 #if VTMR_NUM_TIMERS > 0  
   { LSTRKEY( "__index" ), LFUNCVAL( tmr_mt_index ) },
 #endif  
+#if LUA_OPTIMIZE_MEMORY > 0 && defined( BUILD_LUA_INT_HANDLERS )
+  { LSTRKEY( "INT_ONESHOT" ), LNUMVAL( PLATFORM_TIMER_INT_ONESHOT ) },
+  { LSTRKEY( "INT_CYCLIC" ), LNUMVAL( PLATFORM_TIMER_INT_CYCLIC ) },
+#endif
   { LNILKEY, LNILVAL }
 };
 
