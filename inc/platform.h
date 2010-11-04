@@ -214,7 +214,7 @@ u32 platform_pwm_op( unsigned id, int op, u32 data );
 #define PLATFORM_INT_GENERIC_ERROR      ( -1 )
 #define PLATFORM_INT_INVALID            ( -2 )
 #define PLATFORM_INT_NOT_HANDLED        ( -3 )
-#define PLATFORM_INT_NOT_ANY            ( -4 )
+#define PLATFORM_INT_BAD_RESNUM         ( -4 )
 
 int platform_cpu_set_global_interrupts( int status );
 int platform_cpu_get_global_interrupts();

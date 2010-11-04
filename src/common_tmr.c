@@ -19,7 +19,11 @@
 
 extern elua_int_descriptor elua_int_table[ INT_ELUA_LAST ];
 
-#endif
+#endif // #if defined( BUILD_LUA_INT_HANDLERS ) || defined( BUILD_C_INT_HANDLERS )
+
+#ifndef VTMR_NUM_TIMERS
+#define VTMR_NUM_TIMERS       0
+#endif // #ifndef VTMR_NUM_TIMERS
 
 // ****************************************************************************
 // Timers (and vtimers) functions
@@ -230,7 +234,7 @@ u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_typ
   return ( ( u64 )( start - end ) * 1000000 ) / freq;
 }
 
-#ifdef CMN_TIMER_INT_SUPPORT
+#ifdef BUILD_INT_HANDLERS
 int platform_timer_set_match_int( unsigned id, u32 period_us, int type )
 {
 #if VTMR_NUM_TIMERS > 0
@@ -267,8 +271,6 @@ int cmn_tmr_int_get_status( elua_int_resnum resnum )
 
 int cmn_tmr_int_get_flag( elua_int_resnum resnum, int clear )
 {
-  if( resnum == ELUA_INT_RESNUM_ANY )
-    return PLATFORM_INT_NOT_ANY;
 #if VTMR_NUM_TIMERS > 0
   if( TIMER_IS_VIRTUAL( resnum ) )
     return vtmr_int_get_flag( resnum, clear );
@@ -279,11 +281,13 @@ int cmn_tmr_int_get_flag( elua_int_resnum resnum, int clear )
   return pf( resnum, clear );
 }
 
-#else // #ifdef CMN_TIMER_INT_SUPPORT
+#else // #ifdef BUILD_INT_HANDLERS
+
 int platform_timer_set_match_int( unsigned id, u32 period_us, int type )
 {
   fprintf( stderr, "Timer match interrupt not available when eLua interrupt support is not enabled.\n" );
   return 0;
 }
-#endif // #ifdef CMN_TIMER_INT_SUPPORT
+
+#endif // #ifdef BUILD_INT_HANDLERS
 

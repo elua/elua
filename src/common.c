@@ -24,7 +24,11 @@
 
 extern elua_int_descriptor elua_int_table[ INT_ELUA_LAST ];
 
-#endif
+#endif // #if defined( BUILD_LUA_INT_HANDLERS ) || defined( BUILD_C_INT_HANDLERS )
+
+#ifndef VTMR_NUM_TIMERS
+#define VTMR_NUM_TIMERS       0
+#endif // #ifndef VTMR_NUM_TIMERS
 
 // ****************************************************************************
 // XMODEM support code
@@ -411,8 +415,7 @@ int platform_cpu_get_interrupt_flag( elua_int_id id, elua_int_resnum resnum, int
     return PLATFORM_INT_NOT_HANDLED;
   if( id == INT_TMR_MATCH )
     return cmn_tmr_int_get_flag( resnum, clear );
-  else    
-    return pf( resnum, clear );
+  return pf( resnum, clear );
 }
 
 // Common interrupt handling

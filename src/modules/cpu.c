@@ -102,7 +102,9 @@ static int cpu_cli( lua_State *L )
       if( res == PLATFORM_INT_INVALID )
         return luaL_error( L, "%d is not a valid interrupt ID", ( int )id );
       else if( res == PLATFORM_INT_NOT_HANDLED )
-        return luaL_error( L, "cli operation not implemented for interrupt %d with resnum %d", ( int )id, ( int )resnum );
+        return luaL_error( L, "cli operation not implemented for interrupt %d with resource %d", ( int )id, ( int )resnum );
+      else if( res == PLATFORM_INT_BAD_RESNUM )
+        return luaL_error( L, "resource %d not valid for interrupt %d", ( int )resnum, ( int )id );
     }
     elua_int_disable( id );
   }
@@ -137,6 +139,8 @@ static int cpu_sei( lua_State *L )
         return luaL_error( L, "%d is not a valid interrupt ID", ( int )id );
       else if( res == PLATFORM_INT_NOT_HANDLED )
         return luaL_error( L, "sei operation not implemented for interrupt %d with resnum %d", ( int )id, ( int )resnum );
+      else if( res == PLATFORM_INT_BAD_RESNUM )
+        return luaL_error( L, "resource %d not valid for interrupt %d", ( int )resnum, ( int )id );
     }
     elua_int_enable( id );
   }
@@ -234,7 +238,9 @@ static int cpu_get_int_flag( lua_State *L )
   if( res == PLATFORM_INT_INVALID )
     return luaL_error( L, "%d is not a valid interrupt ID", ( int )id );
   else if( res == PLATFORM_INT_NOT_HANDLED )
-    return luaL_error( L, "get flag operation not implemented for interrupt %d with resnum %d", ( int )id, ( int )resnum );
+    return luaL_error( L, "get flag operation not implemented for interrupt %d with resource %d", ( int )id, ( int )resnum );
+  else if( res == PLATFORM_INT_BAD_RESNUM )
+    return luaL_error( L, "resource %d not valid for interrupt %d", ( int )resnum, ( int )id );
   lua_pushinteger( L, res );
   return 1;
 }
@@ -257,7 +263,6 @@ const LUA_REG_TYPE cpu_map[] =
 #ifdef BUILD_LUA_INT_HANDLERS
   { LSTRKEY( "set_int_handler" ), LFUNCVAL( cpu_set_int_handler ) },
   { LSTRKEY( "get_int_flag" ), LFUNCVAL( cpu_get_int_flag) },
-  { LSTRKEY( "ANY_RES" ), LNUMVAL( ELUA_INT_RESNUM_ANY ) },
   { LSTRKEY( "INT_FLAG_CLEAR" ), LBOOLVAL( 1 ) },
   { LSTRKEY( "INT_FLAG_KEEP" ), LBOOLVAL( 0 ) },
 #endif

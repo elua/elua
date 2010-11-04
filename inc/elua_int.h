@@ -14,9 +14,6 @@ typedef u16 elua_int_resnum;
 #define ELUA_INT_FIRST_ID               1
 #define ELUA_INT_INVALID_INTERRUPT      0xFF
 
-// "Any resnum" value for "get flag" functions
-#define ELUA_INT_RESNUM_ANY             0xFFFF
-
 // This is what gets pushed in the interrupt queue
 typedef struct 
 {

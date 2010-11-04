@@ -101,15 +101,6 @@ static int gpioh_get_flag( elua_int_id id, elua_int_resnum resnum, int clear )
   // Look for interrupt source
   // In can only be GPIO0/GPIO2, as the EXT interrupts are not (yet) used
   pidx = ( IO_INT_STAT & 1 ) ? 0 : 1;
-  if( resnum == ELUA_INT_RESNUM_ANY )
-  {
-    if( id == INT_GPIO_POSEDGE && *posedge_status[ pidx ] )
-      resnum = intlog2( *posedge_status[ pidx ] );
-    else if( id == INT_GPIO_NEGEDGE && *negedge_status[ pidx ] )
-      resnum = intlog2( *negedge_status[ pidx ] );
-    else
-      return 0;
-  }
   if( id == INT_GPIO_POSEDGE && ( *posedge_status[ pidx ] && ( 1 << resnum ) ) )
     flag = 1;
   else if( id == INT_GPIO_NEGEDGE && ( *negedge_status[ pidx ] && ( 1 << resnum ) ) )

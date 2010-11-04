@@ -20,6 +20,7 @@
 #define BUILD_ADC
 //#define BUILD_RPC
 #define BUILD_LUA_INT_HANDLERS
+#define BUILD_C_INT_HANDLERS
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
@@ -127,12 +128,9 @@ u32 SCU_GetMCLKFreqValue();
   _ROM( PS_LIB_TABLE_NAME, luaopen_platform, platform_map )
 
  // Interrupt list
-enum
-{
-  // Platform interrupts
-  INT_GPIO_POSEDGE = ELUA_INT_FIRST_ID,
-  INT_GPIO_NEGEDGE,
-};
+#define INT_GPIO_POSEDGE      ELUA_INT_FIRST_ID
+#define INT_GPIO_NEGEDGE      ( ELUA_INT_FIRST_ID + 1 )
+#define INT_ELUA_LAST         INT_GPIO_NEGEDGE
 
 #define PLATFORM_CPU_CONSTANTS\
  _C( INT_GPIO_POSEDGE ),\
