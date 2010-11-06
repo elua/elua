@@ -1,0 +1,188 @@
+// $$HEADER$$
+eLua interrupt handlers
+-----------------------
+
+Starting with version link:TODO[0.8], eLua supports interrupt handlers written in Lua. Once an interrupt handler is set in the Lua code, it will be called each time a supported 
+interrupt is generated. A *supported interrupt* is any interrupt that is handled by the platform C code (see link:#cints[here] for more details).
+
+[red]*IMPORTANT*: before learning how to use interrupt handlers in Lua, please keep in mind that Lua interrupt handlers don't work the same way as 
+regular \(C) interrupt handlers. As Lua doesn't have direct suport for interrupts, they have to be emulated. eLua emulates them using a  queue that is populated with 
+interrupt data by the C support code. As long as the queue is not empty, a Lua hook is set to run every 2 Lua bytecode instructions. This hook function is the Lua interrupt 
+handler. After all the interrupts are handled and the queue is emptied, the hook is automatically disabled. Consequently:
+
+* When the interrupt queue is full (a situation that might appear when interrupts are added to the queue faster than the Lua code can handle them) subsequent interrupts are
+    ignored (not added to the queue) and an error message is printed on the eLua console device. The interrupt queue size can be configured at build time, as explained
+    link:TODO[here]. Even if the interrupt queue is large, one most remember that Lua code is significantly slower than C code, thus not all C interrupts make
+    suitable candidates for Lua interrupt handlers. For example, a serial interrupt that is generated each time a char is received at 115200 baud might be too fast for Lua
+    (this is largely dependent on the platform). On the other hand, a GPIO interrupt-on-change on a GPIO line connected with a matrix keyboard is a very good candidate for
+    a Lua handler. Experimenting with different interrupt types is the best way to find the interrupts that work well with Lua.
+
+* A more subtle point is that the Lua virtual machine must *run* for the interrupt handlers to work. A simple analogy is that a CPU must have a running clock in order
+    to function properly (and in order to take care of the hardware interrupts). If the clock is stopped, the CPU doesn't run and the interrupt handlers aren't called anymore,
+    although the occurence of the interrupt might be recorded inside the CPU. This is the exact same situation with Lua: if the virtual machine doesn't run, the interrupts
+    are still recorded in the interrupt queue, but the Lua handler won't be called until the virtual machine runs again. In this case though, the "clock" of the Lua VM is a 
+    C function that is executed for every VM instruction. If this function blocks for some reason, the VM instructions are not executed anymore. It's not hard to make
+    this function block; for example, it blocks everytime the Lua code waits for some user input at the console, or when a TODO tmr.delay is executed, or when TODO uart.read is called 
+    with an infinite or very large timeout; in general, any function from a Lua library that doesn't return immediately (or after a short ammount of time) will block the VM. 
+    Care must be taken to avoid such operations as much as possible, otherwise the interrupt support code won't run properly.
+
+* There is a single interrupt handler in Lua, as opposed to the many hardware interrupt handlers usually found on the eLua targets. It is however easy to differentiate
+    between different interrupt sources, as will be explained in the next paragraph.
+
+* Lua interrupt handlers are never reentrant.
+
+While this might seem restrictive, Lua interrupt handlers work quite well in practical situations. As an added bonus, since they are implemented by C support code, there's nothing
+preventing eLua from implementing "custom interrupts" (software generated interrupts that don't correspond to a hardware interrupt on the CPU), such as serial interrupt on
+char match (generate an interrupt when a certain char is received on the serial port, for example a newline), timer interrupts for link:TODO[virtual timers], TCP/UDP data
+packet received interrupt, and many others.
+
+Using interrupt handlers in Lua
+--------------------------------
+To enable Lua interrupt handler, define *BUILD_LUA_INT_HANDLERS* in _platform_conf.h_. Setting up interrupt handlers is a straightforward process, most of the required 
+functionality is provided by the _mcpu module:
+
+* use _cpu.set_int_handler_ to set the interrupt handler function (call with *nil* to disable interrupt handling in Lua code).
+
+* use _cpu.sei( int_id, resnum1, [resnum2], ..., [resnumn])_ and _cpu.cli( int_id, resnum1, [resnum2], ..., [resnumn])_ to enable/disable specific CPU interrupts 
+    that will trigger the interrupt handler. You can also use _cpu.sei()_ and _cpu.cli_ (without parameters) to enable/disable global interrupts on the CPU, although this
+    is not recommended.
+
+The interrupt handler receives two arguments: the interrupt *type* (all the interrupt types are mapped to constants from the _mcpu module) and a
+*resource ID( that specifies the target resource for the interrupt. This depends on the interrupt type; it can be a timer ID for a timer overflow interrupt, a GPIO port/pin combination
+for a GPIO interrupt on pin change, a SPI interface ID for a SPI data available interrupt, and so on.
+
+An example that uses the above concepts and knows how to handle two different interrupt types is presented below:
+
+[subs="quotes"]
+-------------------------------
+local vtmrid = tmr.VIRT0
+local to = 1500000
+
+-- This is the interrupt handler
+[bblue]*local function handler( id, resnum )*
+  print( string.format( "Got interrupt with id %d and resnum %d", id, resnum ) )
+  -- Identify interrupt
+  if id == [bblue]*cpu.INT_GPIO_POSEDGE* or id == [bblue]*cpu.INT_GPIO_NEGEDGE* then
+    local port, pin = pio.decode( resnum )
+    print( string.format( "Port is %d, pin is %d", port, pin ) )
+  elseif [bblue]*id == cpu.INT_TMR_MATCH* then
+    -- Timer interrupt on match is one shot, need to rearm to get a periodic timer interrupt
+    print "Timer interrupt!"
+  end
+end
+
+[bblue]*cpu.set_int_handler( handler )*                    -- set interrupt handler
+[bblue]*tmr.set_match_int( vtmrid, to, tmr.INT_CYCLIC )*   -- enable periodic timer interrupt for virtual timer 0
+[bblue]*cpu.sei( cpu.INT_GPIO_NEGEDGE, pio.P0_0 )*         -- enable GPIO interrupt on change (negative edge) for pin 0 of port 0
+[bblue]*cpu.sei( cpu.INT_TMR_MATCH, vtmrid )*              -- enable timer match interrupt on virtual timer 0
+
+local tmrid = 0
+-- Enter an infinite loop that prints "Outside interrupt" every second
+-- This output will be interleaved with the interrupt handler timeout:
+--   the timer interrupt message will appear every 1.5 seconds
+--   the GPIO message will appear each time pin 0 of port 0 changes state from 1 to 0
+while true do
+  print "Outside interrupt" 
+  for i = 1, 1000 do tmr.delay( tmrid, 1000 ) end
+end
+-------------------------------
+
+This is the most common use case for Lua interrupts, but it's not the only one. Another way to use interrupts from eLua uses polling instead of interrupt handlers: directly 
+check the interrupt flags and execute a certain action when one of them becomes set. For this, use the _cpu.get_int_flag( id, resnum, [clear] )_ function from the _mcpu module, 
+which returns the specified interrupt's status for resource *resnum*. *clear* is an optional boolean parameter, specifying if the interrupt flag should be cleared if it is set. 
+It defaults to *true*, and in most cases it shouldn't be changed. Using this feature, it becomes easy to wait for one or more interrupt flag(s) to be set. To use interrupt 
+polling:
+
+* Enable/disable interrupts to be polled with _cpu.hw_sei_/_cpu.hw_cli_ instead of _cpu.sei_/_cpu.cli_. These functions enable/disable interrupts only in hardware, 
+  as opposed to _cpu.sei_/_cpu.cli_ that also set/clear an internal flag which makes the interrupt able to trigger a Lua handler. 
+
+* Use _cpu.get_int_flag_ to get the interrupt flag.
+
+The *int_select* function below is a possible implementation of a function that gets an array of interrupts and returns the first one that gets active:
+
+[subs="quotes"]
+------------------------------
+function int_select( int_table )
+  while true do
+    for i = 1, #int_table do
+      local t = int_table[ i ]
+      if [bblue]*cpu.get_int_flag[ t[ 1 ], t[ 2 ] )* then
+        return t[ 1 ], t[ 2 ]
+      end
+    end
+ end
+end
+
+[bblue]*cpu.hw_sei( cpu.INT_GPIO_NEGEDGE, pio.P0_0 )*
+[bblue]*cpu.hw_sei( cpu.INT_TMR_MATCH, tmr.VIRT0 )*
+local ints = { { cpu.INT_GPIO_NEGEDGE, pio.P0_0 }, { cpu.INT_TMR_MATCH, tmr.VIRT0 } }
+-- int_select will wait for either INT_GPIO_NEGEDGE or INT_TMR_MATCH to become active
+print( int_select( ints ) )
+------------------------------
+
+Note that the two mechanisms (interrupt handlers and polling) can be used in parallel as long as an interrupt is not set with both _cpu.hw_sei_ and _cpu.sei_, in which case the bevahiour
+is unpredictable. This is why it makes sense to write the *int_select* function above in Lua instead of C: it keeps the Lua VM running, so Lua interrupt handlers can be executed.
+
+[[cints]]
+Interrupt handlers in C
+-----------------------
+
+The interrupt subsystem has also a basic C API that can be used to implement portable eLua components and modules. It is enabled by defining *BUILD_C_INT_HANDLERS* in _platform_conf.h_. 
+It is defined in _inc/elua_int.h_ and has 2 functions:
+
+elua_int_c_handler elua_int_set_c_handler( elua_int_id inttype, elua_int_c_handler phandler )::
+  Sets the interrupt handler for interrupt *inttype* to *phandler* and returns the previous interrupt handler for interrupt *inttype*.
+
+elua_int_c_handler elua_int_get_c_handler( elua_int_id inttype )::
+  Returns the interrupt handler for interrupt *inttype*
+
+*elua_int_c_handler* is a function that doesn't return anything and receives a single parameter of type *elua_int_resnum* to differentiate between the sources (GPIO pin, UART id, timer id
+and so on) that can trigger the interrupt *inttype*. Note that the C interrupt model defines an interrupt handler per interrupt type, as opposed to the Lua interrupt model that defines
+a single interrupt handler for all interrupt types. 
+
+To work with interrupts from C code use these functions defined by the link:TODO[CPU platform interface]:
+
+int platform_cpu_set_interrupt( elua_int_id id, elua_int_resnum resnum, int status )::
+  Enable (*status* = *PLATFORM_CPU_ENABLE*) or disable (*status* = *PLATFORM_CPU_DISABLE*) interrupt *id* for resource *resnum*. 
+
+int platform_cpu_get_interrupt( elua_int_id id, elua_int_resnum resnum )::
+  Returns 1 if interrupt *id* is enabled for resource *resnum*, 0 otherwise.
+
+int platform_cpu_get_interrupt_flag( elua_int_id id, elua_int_resnum resnum, int clear )::
+  Get interrupt flag for interrupt *id* and resource *resnum*, clear interrupt flag if it is set and *clear* is 1, leave it untouched otherwise.
+
+Since _elua_int_set_c_handler_ returns the previous handler, it is easy to chain the interrupt handlers from different system components. To ensure correct operation, every C module that
+needs access to interrupt handlers should use this sequence:
+
+[subs="quotes"]
+------------------------------
+#include "elua_int.h"
+
+static elua_int_c_handler prev_handler;
+static void int_handler( elua_int_resnum resnum );
+
+void module_init()
+{
+  int id = SOME_INT_ID;
+  
+  platform_cpu_set_interrupt( id, some_resnum, PLATFORM_CPU_ENABLE );
+  prev_handler = elua_int_set_c_handler( id, int_handler );
+}
+
+static void int_handler( elua_int_resnum resnum )
+{
+  // Note: prev_handler can also be called at the end of int_handler
+  if( prev_handler )
+    prev_handler( resnum );
+
+  // (Optional) Check resnum and return if the interrupt was fired by a different resource
+  if( resnum != some_resnum )
+    return;
+
+  // Actual interrupt handler code comes here
+}
+
+------------------------------
+
+// $$FOOTER$$
+

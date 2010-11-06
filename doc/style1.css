@@ -9,7 +9,7 @@ body {
 	padding: 0;
 }
 
-pre {
+div.sectionbody pre {
 	border: 1px dashed #fb2;
 	background-color: #fda;
 	font-family: Monotype.com,"Courier New",Courier,monospace;
@@ -38,6 +38,7 @@ pre {
 	margin: 0;
 	padding: 0;
 }
+
 
 .logo_elua {
 	margin-top: 10px;
@@ -171,9 +172,9 @@ table.invisible td {
 	margin-left: 0;
 }
 
-.code {
+div.sectionbody pre.code {
 	border: 0;
-	background-color: #FFF;
+	background-color: #FFFFFF;
 	font-family: "Courier New",Courier,monospace;
 	font-size: 90%;
 	overflow: auto;
@@ -222,9 +223,10 @@ strong {
   /*color: #083194;*/
 }
 
-tt {
+/* BogdanM: commented out the color inside <tt> blocks */
+/*tt {
   color: navy;
-}
+}*/
 
 /* BogdanM: commented out the next 5 rules */
 /*h1, h2, h3, h4, h5, h6 {
@@ -362,11 +364,12 @@ div.sidebarblock > div.content {
   padding: 0.5em;
 }
 
-div.listingblock > div.content {
+/* BogdanM: commented out the next defition */
+/*div.content div.listingblock {
   border: 1px solid silver;
   background: #f4f4f4;
   padding: 0.5em;
-}
+}*/
 
 div.quoteblock, div.verseblock {
   padding-left: 1.0em;
@@ -520,6 +523,7 @@ td.hdlist1 {
   vertical-align: top;
   font-style: normal;
   padding-right: 0.8em;
+  margin-left: 1em;
   color: navy;
 }
 td.hdlist2 {
@@ -604,7 +608,75 @@ div.toclevel4 {
   font-size: 0.9em;
 }
 
+/******************************************************************************/
 /* BogdanM: new rules for eLua docs */
+
 span.orange {
   color: rgb(255, 102, 0);
-};
+}
+
+span.red {
+  color: rgb(255, 0, 0);
+}
+
+pre.mono, pre.func {
+	border: 1px dashed #fb2;
+	background-color: #fda;
+	font-family: Monotype.com,"Courier New",Courier,monospace;
+	font-size: 90%;
+	line-height: 125%;
+	margin-left: 1em;
+	overflow: auto;
+	padding: 4px;
+}
+
+pre.mono p, pre.func p {
+  margin: 0;
+  padding: 0;
+}
+
+div.openblock.right {
+  margin-left: 2em;
+}
+
+div.openblock.right p {
+  margin: 0;
+  padding: 0;
+}
+
+div.listingblock div.content pre {
+	/*border: 0;*/
+	/*background-color: #FFFFFF;*/
+  border: 1px solid silver;
+  background: #f4f4f4;
+	font-family: "Courier New",Courier,monospace;
+	font-size: 90%;
+	overflow: auto;
+	padding: 4px 4px 4px 1em;
+/*  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+	font-family: Monotype.com,"Courier New",Courier,monospace;
+	font-size: 100%;
+	overflow: auto;*/
+}
+
+div.listingblock div.content tt {
+  color: black;
+  font-size: 110%;  
+}
+
+span.bblue {
+  color: rgb(0, 0, 255);
+  font-weight: bold;
+}
+
+.dlist dl {
+  margin-left: 2em;
+}
+
+dd {
+  display: block;
+  margin-left: 20px;
+}
