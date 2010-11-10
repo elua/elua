@@ -11,6 +11,7 @@
 #define   TYPE_START      0x05
 #define   TYPE_END        0x06
 #define   TYPE_OP_ID      0x07
+#define   TYPE_SMALL_PTR  0x08
 #define   TYPE_PKT_SIZE   0xA5
                                     
 #endif

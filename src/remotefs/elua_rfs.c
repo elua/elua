@@ -5,7 +5,9 @@
 #include "type.h"
 #include "platform.h"
 #include "remotefs.h"
+#include "eluarpc.h"
 #include "client.h"
+#include "sermux.h"
 #include "buf.h"
 #include <fcntl.h>
 #ifdef ELUA_SIMULATOR
@@ -19,7 +21,7 @@
 // Compute the usable buffer size starting from RFS_BUFFER_SIZE (which is the
 // size of the serial buffer). A complete packet must fit in RFS_BUFFER_SIZE
 // bytes. Computed this to be large enough for a WRITE request.
-#define RFS_REAL_BUFFER_SIZE      ( ( 1 << RFS_BUFFER_SIZE ) - RFS_WRITE_REQUEST_EXTRA )
+#define RFS_REAL_BUFFER_SIZE      ( ( 1 << RFS_BUFFER_SIZE ) - ELUARPC_WRITE_REQUEST_EXTRA )
 static u8 rfs_buffer[ 1 << RFS_BUFFER_SIZE ];
 
 #ifdef ELUA_SIMULATOR
@@ -124,7 +126,7 @@ static u32 rfs_send( const u8 *p, u32 size )
   return size;
 }
 
-static u32 rfs_recv( u8 *p, u32 size, u32 timeout )
+static u32 rfs_recv( u8 *p, u32 size, s32 timeout )
 {
   u32 cnt = 0;
   int data;
@@ -173,12 +175,6 @@ static const DM_DEVICE rfs_device =
 
 const DM_DEVICE *remotefs_init()
 {
-#if defined( RFS_UART_ID ) && defined( RFS_UART_SPEED )
-  // Initialize RFS UART
-  platform_uart_setup( RFS_UART_ID, RFS_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
-  // [TODO] this isn't exactly right
-  buf_set( BUF_ID_UART, RFS_UART_ID, RFS_BUFFER_SIZE, BUF_DSIZE_U8 ); 
-#endif
 #ifdef ELUA_CPU_LINUX 
   // Open our read/write pipes
   rfs_read_fd = hostif_open( RFS_SRV_WRITE_PIPE, O_RDONLY, 0 );
@@ -188,6 +184,14 @@ const DM_DEVICE *remotefs_init()
     hostif_putstr( "unable to open read/write pipes\n" );
     return NULL;
   }
+#elif RFS_UART_ID < SERVICE_ID_FIRST  // if RFS runs on a virtual UART, buffers are already set in common.c
+  // Initialize RFS UART
+  platform_uart_setup( RFS_UART_ID, RFS_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
+  if( platform_uart_set_buffer( RFS_UART_ID, RFS_BUFFER_SIZE ) == PLATFORM_ERR )
+  {
+    printf( "WARNING: unable to initialize RFS filesystem\n" );
+    return NULL;
+  } 
 #endif
   rfsc_setup( rfs_buffer, rfs_send, rfs_recv, RFS_TIMEOUT );
   return &rfs_device;

@@ -3,6 +3,7 @@
 #include <windows.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "type.h"
 #include "serial.h"
 
@@ -33,6 +34,17 @@ static int ser_win32_set_timeouts( HANDLE hComm, DWORD ri, DWORD rtm, DWORD rtc,
   return SER_OK;
 }
 
+// Helper: set communication timeout
+static int ser_set_timeout_ms( HANDLE hComm, u32 timeout )
+{ 
+  if( timeout == SER_NO_TIMEOUT )
+    return ser_win32_set_timeouts( hComm, MAXDWORD, 0, 0, 0, 0 );
+  else if( timeout == SER_INF_TIMEOUT )
+    return ser_win32_set_timeouts( hComm, 0, 0, 0, 0, 0 );
+  else
+    return ser_win32_set_timeouts( hComm, 0, 0, timeout, 0, 0 );
+}
+
 // Open the serial port
 ser_handler ser_open( const char* sername )
 {
@@ -41,18 +53,20 @@ ser_handler ser_open( const char* sername )
   
   portname[ 0 ] = portname[ WIN_MAX_PORT_NAME ] = '\0';
   _snprintf( portname, WIN_MAX_PORT_NAME, "\\\\.\\%s", sername );
-  hComm = CreateFile( portname, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, 0, 0 );
+  hComm = CreateFile( portname, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, 0 );
   if( hComm == INVALID_HANDLE_VALUE )
     return WIN_ERROR;
   if( !SetupComm( hComm, 2048, 2048 ) )
     return WIN_ERROR;
-  return hComm;
+  if( ser_set_timeout_ms( hComm, SER_INF_TIMEOUT ) != SER_OK )
+    return WIN_ERROR;
+  return ( ser_handler )hComm;
 }
 
 // Close the serial port
 void ser_close( ser_handler id )
 {
-  CloseHandle( id );
+  CloseHandle( ( HANDLE )id );
 }
 
 int ser_setup( ser_handler id, u32 baud, int databits, int parity, int stopbits )
@@ -100,23 +114,55 @@ int ser_setup( ser_handler id, u32 baud, int databits, int parity, int stopbits 
 }
 
 // Read up to the specified number of bytes, return bytes actually read
-u32 ser_read( ser_handler id, u8* dest, u32 maxsize )
+u32 ser_read( ser_handler id, u8* dest, u32 maxsize, u32 timeout )
 {
   HANDLE hComm = ( HANDLE )id;
-  DWORD readbytes;
+  OVERLAPPED o = { 0 };
+  DWORD readbytes = 0;
+  BOOL fWaitingOnRead = FALSE;
   
-  if( ReadFile( hComm, dest, maxsize, &readbytes, NULL ) == FALSE )
+  o.hEvent = CreateEvent( NULL, TRUE, FALSE, NULL );
+  if( ReadFile( hComm, dest, maxsize, &readbytes, &o ) == FALSE )
+  {
+    if( GetLastError() != ERROR_IO_PENDING )
+    {
+      CloseHandle( o.hEvent );      
     return 0;
+    }
+    else
+      fWaitingOnRead = TRUE;
+  }
+  else
+  {
+    CloseHandle( o.hEvent );
+    return readbytes;
+  }
+    
+  if( fWaitingOnRead )
+  {
+    BOOL dwRes = WaitForSingleObject( o.hEvent, timeout == SER_INF_TIMEOUT ? INFINITE : timeout );
+    if( dwRes == WAIT_OBJECT_0 ) 
+    {
+      if( !GetOverlappedResult( hComm, &o, &readbytes, TRUE ) )
+        readbytes = 0;
+    }
+    else if( dwRes == WAIT_TIMEOUT )
+    {
+      CancelIo( hComm );
+      GetOverlappedResult( hComm, &o, &readbytes, TRUE );
+      readbytes = 0;
+    }
+  }  
+  CloseHandle( o.hEvent );
   return readbytes;
 }
 
 // Read a single byte and return it (or -1 for error)
-int ser_read_byte( ser_handler id )
+int ser_read_byte( ser_handler id, u32 timeout )
 {
   u8 data;
-  int res = ser_read( id, &data, 1 );
+  int res = ser_read( id, &data, 1, timeout );
 
-  //printf( "READ %02X, res is %d\n", data, res );
   return res == 1 ? data : -1;
 }
 
@@ -124,10 +170,36 @@ int ser_read_byte( ser_handler id )
 u32 ser_write( ser_handler id, const u8 *src, u32 size )
 {
   HANDLE hComm = ( HANDLE )id;
-	DWORD written;
+  OVERLAPPED o = { 0 };
+  DWORD written = 0;
+  BOOL fWaitingOnWrite = FALSE;
 	
-  if( WriteFile( hComm, src, size, &written, NULL ) == FALSE )
+  o.hEvent = CreateEvent( NULL, TRUE, FALSE, NULL );
+  if( WriteFile( hComm, src, size, &written, &o ) == FALSE )
+  {
+    if( GetLastError() != ERROR_IO_PENDING )
+    {
+      CloseHandle( o.hEvent );      
     return 0;
+    }
+    else
+      fWaitingOnWrite = TRUE;
+  }
+  else
+  {
+    CloseHandle( o.hEvent );
+  return written;
+}
+
+  if( fWaitingOnWrite )
+{
+    BOOL dwRes = WaitForSingleObject( o.hEvent, INFINITE );
+    if( dwRes == WAIT_OBJECT_0 )
+      if( !GetOverlappedResult( hComm, &o, &written, FALSE ) )
+        written = 0;
+}
+
+  CloseHandle( o.hEvent );
   return written;
 }
 
@@ -136,15 +208,3 @@ u32 ser_write_byte( ser_handler id, u8 data )
 {
   return ser_write( id, &data, 1 );
 }
-
-// Set communication timeout
-void ser_set_timeout_ms( ser_handler id, u32 timeout )
-{
-  if( timeout == SER_NO_TIMEOUT )
-    ser_win32_set_timeouts( id, MAXDWORD, 0, 0, 0, 0 );
-  else if( timeout == SER_INF_TIMEOUT )
-    ser_win32_set_timeouts( id, 0, 0, 0, 0, 0 );
-  else
-    ser_win32_set_timeouts( id, 0, 0, timeout, 0, 0 );
-}
-

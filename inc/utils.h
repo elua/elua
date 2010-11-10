@@ -8,6 +8,12 @@
 #define UMAX( x, y )      ( ( x ) >= ( y ) ? ( x ) : ( y ) )
 #define UABS( x )         ( ( x ) >= 0 ? ( x ) : -( x ) )
 
+// Implement a very simple try-catch ike mechanism using setmp/longjmp,
+// mostly to avoid goto's :)
+#define EXC_DECLARE static jmp_buf exception_buf
+#define EXC_TRY if( setjmp( exception_buf ) == 0 )
+#define EXC_CATCH else
+#define EXC_THROW() longjmp( exception_buf, 1 )
 
 // Macro version of Duff's device found in 
 // "A Reusable Duff Device" by Ralf Holly

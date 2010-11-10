@@ -12,6 +12,9 @@
 #include "platform.h"
 #include "elua_net.h"
 #include "devman.h"
+#include "buf.h"
+#include "remotefs.h"
+#include "eluarpc.h"
 
 #include "platform_conf.h"
 #ifdef BUILD_SHELL
@@ -52,7 +55,8 @@ static void shell_help( char* args )
   printf( "  ls or dir   - lists filesystems files and sizes\n" );
   printf( "  cat or type - lists file contents\n" );
   printf( "  lua [args]  - run Lua with the given arguments\n" );
-  printf( "  recv        - receive a file via XMODEM and execute it\n" );
+  printf( "  recv           - receive a file (XMODEM) and execute it\n" );
+  printf( "  cp <src> <dst> - copy source file 'src' to 'dst'\n" );
   printf( "  ver         - print eLua version\n" );
 }
 
@@ -234,6 +238,71 @@ static void shell_cat( char *args )
       printf( "Usage: cat (or type) <filename1> [<filename2> ...]\n" );
 }    
 
+// 'copy' handler
+#ifdef BUILD_RFS
+#define SHELL_COPY_BUFSIZE    ( ( 1 << RFS_BUFFER_SIZE ) - ELUARPC_WRITE_REQUEST_EXTRA )
+#else
+#define SHELL_COPY_BUFSIZE    256
+#endif
+static void shell_cp( char *args )
+{
+  char *p1, *p2;
+  int res = 0;
+  FILE *fps = NULL, *fpd = NULL;
+  void *buf = NULL;
+  size_t datalen, total = 0;
+
+  if( *args )
+  {
+    p1 = strchr( args, ' ' );
+    if( p1 )
+    {
+      *p1 = 0;
+      p2 = strchr( p1 + 1, ' ' );
+      if( p2 )
+      {
+        *p2 = 0;
+        // First file is at args, second one at p1 + 1
+        if( ( fps = fopen( args, "rb" ) ) == NULL )
+          printf( "Unable to open %s for reading\n", args );
+        else
+        {
+          if( ( fpd = fopen( p1 + 1, "wb" ) ) == NULL )
+            printf( "Unable to open %s for writing\n", p1 + 1 );
+          else
+          {
+            // Alloc memory
+            if( ( buf = malloc( SHELL_COPY_BUFSIZE ) ) == NULL )
+              printf( "Not enough memory\n" );
+            else
+            {
+              // Do the actual copy
+              while( 1 )
+              {
+                datalen = fread( buf, 1, SHELL_COPY_BUFSIZE, fps );
+                fwrite( buf, 1, datalen, fpd );
+                total += datalen;
+                if( datalen < SHELL_COPY_BUFSIZE )
+                  break;
+              }
+              printf( "%u bytes copied\n", total );
+              res = 1;
+            }
+          }
+        } 
+      }
+    }
+  }
+  if( !res )
+    printf( "Syntax error.\n" );
+  if( fps )
+    fclose( fps );
+  if( fpd )
+    fclose( fpd );
+  if( buf )
+    free( buf );
+}
+
 // Insert shell commands here
 static const SHELL_COMMAND shell_commands[] =
 {
@@ -246,6 +315,7 @@ static const SHELL_COMMAND shell_commands[] =
   { "dir", shell_ls },
   { "cat", shell_cat },
   { "type", shell_cat },
+  { "cp", shell_cp },
   { NULL, NULL }
 };
 

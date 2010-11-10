@@ -12,8 +12,6 @@ typedef unsigned long u32;
 typedef long long s64;
 typedef unsigned long long u64;
 
-// Define serial port "handle" type for each platform
-// [TODO] for now, only UNIX is supported
 #ifdef WIN32_BUILD
 #include <windows.h>
 typedef HANDLE ser_handler;

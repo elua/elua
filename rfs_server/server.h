@@ -11,6 +11,7 @@
 
 // Server function                     
 void server_setup( const char *basedir );
+void server_cleanup();
 int server_execute_request( u8 *pdata );
 
 #endif
