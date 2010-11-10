@@ -3,7 +3,7 @@ import os, sys, platform
 sim = ARGUMENTS.get( 'sim', '0' )
 
 flist = ""
-cdefs = "-DRFS_SERIAL_TRANSPORT -DRFS_STANDALONE_MODE"
+cdefs = "-DRFS_STANDALONE_MODE"
 socklib = ''
 if sim == '0':
   mainname = "main.c"
@@ -16,11 +16,10 @@ if platform.system() == "Windows":
   flist = "main.c server.c os_io_win32.c log.c"
   cdefs = cdefs + " -DWIN32_BUILD"
   exeprefix = "exe"
-  socklib = 'wsock32'
+  socklib = '-lwsock32'
 else:
   flist = "%s server.c os_io_posix.c log.c" % mainname
   exeprefix = "elf"
-  socklib = 'socket'
 
 if sim == '0':
   output = 'rfs_server.%s' % exeprefix
@@ -38,7 +37,7 @@ local_include = "-Irfs_server -Iinc/remotefs -Iinc"
 
 # Compiler/linker options
 cccom = "gcc -m32 -O0 -g %s -Wall %s -c $SOURCE -o $TARGET" % ( local_include, cdefs )
-linkcom = "gcc -m32 -o $TARGET $SOURCES -l%s" % socklib
+linkcom = "gcc -m32 -o $TARGET $SOURCES %s" % socklib
 
 # Env for building the program
 comp = Environment( CCCOM = cccom,

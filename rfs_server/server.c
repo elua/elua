@@ -1,6 +1,7 @@
 // Remote filesystem server implementation
 
 #include <string.h>
+#include <stdlib.h>
 #include "server.h"
 #include "remotefs.h"
 #include "eluarpc.h"

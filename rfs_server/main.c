@@ -303,8 +303,8 @@ int RFS_MAIN_FUNC_NAME( int argc, const char **argv )
   if( argc < MIN_ARGC_COUNT )
   {
     log_err( "Usage: %s <transport> <dirname> [-v]\n", argv[ 0 ] );
-    log_err( "  Serial transport: 'ser:<sername>,<serspeed>'" );
-    log_err( "  UDP transport: 'udp:<port>'" );
+    log_err( "  Serial transport: 'ser:<sername>,<serspeed>'\n" );
+    log_err( "  UDP transport: 'udp:<port>'\n" );
     log_err( "Use -v for verbose output.\n");
     return 1;
   }
