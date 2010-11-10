@@ -35,7 +35,7 @@ local menu =
       { { "Audience", "Público Alvo" }, "overview.html#audience" },
       { { "Authors", "Autores" }, "overview.html#authors" },
       { { "Contacts","Contatos" }, "overview.html#contacts" },
-      { { "License", "Licença" },"overview.html#license" }
+      { { "License", "Licença" },"overview.html#license" },
     }
   },
 
@@ -53,6 +53,9 @@ local menu =
 
   -- News
   { { "News", "Notícias" }, "news.html" },
+  
+  -- Media
+  { "Media", "media.html" },  
 
   -- "Status"
   { "Status", "status.html", 

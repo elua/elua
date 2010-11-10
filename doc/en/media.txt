@@ -1,0 +1,28 @@
+// $$HEADER$$
+eLua media
+----------
+This is a list of known media related to eLua. If you find another eLua-related
+media resource that is not in the list below, please link:overview.html#contacts[contact us]
+and we will add to the list.
+
+[width="80%", cols="<5, <5", options="header"]
+|=============================================================================================
+^|        Description                           ^|                Link(s)
+| eLua on http://twit.tv/floss116[FLOSS Weekly 116] | http://www.youtube.com/watch?v=SV87Mc-BVx0
+| Testing CAN support and LuaRPC with eLua       | http://www.youtube.com/watch?v=2AdSavanq20
+| eLua on LM3S6965                               | http://www.youtube.com/watch?v=W_aXsutL4rQ
+.4+| http://wiki.eluaproject.net/Anubisway[eLua self balancing robot] |  http://www.youtube.com/watch?v=g9qRdDGtroc
+| http://www.youtube.com/watch?v=MRcIIrxZ4BI 
+| http://www.youtube.com/watch?v=pIP1FdYoGvY
+| http://www.youtube.com/watch?v=G8dojuUDQ1c
+| eLua spaceship game                            | http://www.youtube.com/watch?v=QtokEt3-ZII
+| eLua pong game                                 | http://www.youtube.com/watch?v=gvlW0_CjSIw
+| eLua tetrives game                             | http://www.youtube.com/watch?v=6y8HEjA6k7U
+| eLua snake game                                | http://www.youtube.com/watch?v=_d9dcU4hu1U
+| eLua logo and LED examples                     | http://www.youtube.com/watch?v=3MZy6QyuyxU
+| http://www.circuitcellar.com/iMCU/winners/003185.html[eLua based programmable LED display] | http://www.youtube.com/watch?v=s63d34uMN_I
+|=============================================================================================
+
+For more eLua demos, tutorials and projects visit the http://wiki.eluaproject.net[eLua wiki].
+
+// $$FOOTER$$
