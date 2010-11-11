@@ -115,7 +115,7 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   return uart_init( baud, databits, parity, stopbits );
 }
 
-void platform_uart_send( unsigned id, u8 data )
+void platform_s_uart_send( unsigned id, u8 data )
 {
   uart_write( data );
 }

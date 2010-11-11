@@ -381,7 +381,7 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   return ( Fpclk_UART >> 4 ) / temp;
 }
 
-void platform_uart_send( unsigned id, u8 data )
+void platform_s_uart_send( unsigned id, u8 data )
 {
   PREG UxTHR = ( PREG )uart_thr[ id ];
   PREG UxLSR = ( PREG )uart_lsr[ id ];

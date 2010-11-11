@@ -5,6 +5,7 @@
 #include "platform_conf.h"
 #include "buf.h"
 #include "elua_int.h"
+#include "sermux.h"
 
 // ****************************************************************************
 // UART functions
@@ -121,7 +122,7 @@ static elua_int_c_handler prev_uart_rx_handler;
 static void cmn_uart_rx_handler( elua_int_resnum resnum )
 {
   if( buf_is_enabled( BUF_ID_UART, resnum ) )
-    cmn_rx_handler( resnum, platform_s_uart_recv( ressnum, 0 ) );
+    cmn_rx_handler( resnum, platform_s_uart_recv( resnum, 0 ) );
   
   // Chain to previous handler
   if( prev_uart_rx_handler != NULL )
@@ -151,7 +152,7 @@ int platform_uart_set_buffer( unsigned id, unsigned log2size )
       return PLATFORM_ERR;
     // Setup our C handler
     if( elua_int_get_c_handler( INT_UART_RX ) != cmn_uart_rx_handler )
-      prev_uart_rx_handler = elua_int_set_c_handler( cmn_uart_rx_handler );      
+      prev_uart_rx_handler = elua_int_set_c_handler( INT_UART_RX, cmn_uart_rx_handler );      
   }
   return PLATFORM_OK;
 #else

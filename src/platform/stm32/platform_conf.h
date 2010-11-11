@@ -7,6 +7,7 @@
 #include "type.h"
 #include "stacks.h"
 #include "stm32f10x.h"
+#include "elua_int.h"
 
 // *****************************************************************************
 // Define here what components you want for this platform
@@ -24,6 +25,8 @@
 #define BUILD_RPC
 //#define BUILD_RFS
 //#define BUILD_CON_TCP
+#define BUILD_C_INT_HANDLERS
+#define BUILD_LUA_INT_HANDLERS
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
@@ -139,9 +142,6 @@
 #define RPC_TIMER_ID          CON_TIMER_ID
 #define RPC_UART_SPEED        CON_UART_SPEED
 
-
-
-
 // MMCFS Support (FatFs on SD/MMC)
 // For STM32F103RET6 - PA5 = CLK, PA6 = MISO, PA7 = MOSI, PA8 = CS
 #define MMCFS_TICK_HZ                10
@@ -175,5 +175,16 @@ u32 platform_s_cpu_get_frequency();
 #define MEM_START_ADDRESS     { ( void* )end }
 #define MEM_END_ADDRESS       { ( void* )( SRAM_BASE + SRAM_SIZE - STACK_SIZE_TOTAL - 1 ) }
 
-#endif // #ifndef __PLATFORM_CONF_H__
+// Interrupt queue size
+#define PLATFORM_INT_QUEUE_LOG_SIZE 5
 
+// Interrupt list
+#define INT_TMR_MATCH         ELUA_INT_FIRST_ID
+#define INT_UART_RX           ( ELUA_INT_FIRST_ID + 1 )
+#define INT_ELUA_LAST         INT_UART_RX
+
+#define PLATFORM_CPU_CONSTANTS\
+  _C( INT_TMR_MATCH ),\
+  _C( INT_UART_RX )
+
+#endif // #ifndef __PLATFORM_CONF_H__

@@ -66,5 +66,15 @@
   #error "Virtual UARTs need buffering support, enable BUF_ENABLE_UART"  
   #endif
 #endif
+
+// CON_BUF_SIZE needs BUF_ENABLE_UART and CON_UART_ID
+#if defined( CON_BUF_SIZE )
+  #if !defined( BUF_ENABLE_UART )
+  #error "Console buffering needs BUF_ENABLE_UART"
+  #endif
+  #if !defined( CON_UART_ID )
+  #error "Console buffering needs CON_UART_ID defined to the UART ID of the console device"
+  #endif
+#endif
   
 #endif // #ifndef __VALIDATE_H__

@@ -260,7 +260,7 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   return baud;
 }
 
-void platform_uart_send( unsigned id, u8 data )
+void platform_s_uart_send( unsigned id, u8 data )
 {
   AT91S_USART* base = id == 0 ? AT91C_BASE_US0 : AT91C_BASE_US1;  
   

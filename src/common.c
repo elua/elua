@@ -140,7 +140,7 @@ static int uart_recv( s32 to )
 
 void cmn_platform_init()
 {
-#ifdef BUILD_LUA_INT_HANDLERS
+#ifdef BUILD_INT_HANDLERS
   platform_int_init();
 #endif
 
@@ -156,6 +156,20 @@ void cmn_platform_init()
 #ifdef BUILD_TERM  
   // Initialize terminal
   term_init( TERM_LINES, TERM_COLS, term_out, term_in, term_translate );
+#endif
+
+#ifdef BUILD_SERMUX
+  // Set buffers for all virtual UARTs
+  unsigned i;
+  unsigned bufsizes [] = SERMUX_BUFFER_SIZES;
+
+  for( i = 0; i < sizeof( bufsizes ) / sizeof( unsigned ); i ++ )
+    buf_set( BUF_ID_UART, i + SERVICE_ID_FIRST, bufsizes[ i ], BUF_DSIZE_U8 );
+#endif
+
+#if defined( CON_BUF_SIZE ) && ( CON_UART_ID < SERMUX_SERVICE_ID_FIRST )
+  // Set console buffer if the console is on a physical UART
+  platform_uart_set_buffer( CON_UART_ID, intlog2( CON_BUF_SIZE ) );
 #endif
 }
 
