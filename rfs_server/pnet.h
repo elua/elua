@@ -20,7 +20,7 @@ typedef int socklen_t;
 #include <sys/select.h>
 typedef int SOCKET;
 #define socket_close  close
-#define INVALID_SOCKET_VALUE  (-1)
+#define INVALID_SOCKET_VALUE  ( -1 )
 
 #endif // #ifdef WIN32_BUILD
 

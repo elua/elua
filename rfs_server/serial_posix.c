@@ -17,7 +17,10 @@ ser_handler ser_open( const char* sername )
   int fd;
 
   if( ( fd = open( sername, O_RDWR | O_NOCTTY | O_NDELAY ) ) == -1 )
+  {
     perror( "ser_open: unable to open port" );
+    return SER_HANDLER_INVALID;
+  }
   else
     fcntl( fd, F_SETFL, 0 );
   return ( ser_handler )fd;

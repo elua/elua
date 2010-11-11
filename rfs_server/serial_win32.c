@@ -50,28 +50,37 @@ ser_handler ser_open( const char* sername )
 {
   char portname[ WIN_MAX_PORT_NAME + 1 ];
   HANDLE hComm;
+  ser_handler hnd;
   
   portname[ 0 ] = portname[ WIN_MAX_PORT_NAME ] = '\0';
   _snprintf( portname, WIN_MAX_PORT_NAME, "\\\\.\\%s", sername );
   hComm = CreateFile( portname, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, 0 );
   if( hComm == INVALID_HANDLE_VALUE )
-    return WIN_ERROR;
+    return SER_HANDLER_INVALID;
   if( !SetupComm( hComm, 2048, 2048 ) )
-    return WIN_ERROR;
+    return SER_HANDLER_INVALID;
   if( ser_set_timeout_ms( hComm, SER_INF_TIMEOUT ) != SER_OK )
-    return WIN_ERROR;
-  return ( ser_handler )hComm;
+    return SER_HANDLER_INVALID;
+  if( ( hnd = malloc( sizeof( SERIAL_DATA ) ) ) == NULL )
+    return SER_HANDLER_INVALID;
+  memset( hnd, 0, sizeof( SERIAL_DATA ) );
+  hnd->hnd = hComm;
+  if( ( hnd->o.hEvent = CreateEvent( NULL, TRUE, FALSE, NULL ) ) == NULL )
+    return SER_HANDLER_INVALID;
+  return hnd;
 }
 
 // Close the serial port
 void ser_close( ser_handler id )
 {
-  CloseHandle( ( HANDLE )id );
+  CloseHandle( id->o.hEvent );
+  CloseHandle( id->hnd );
+  free( id );
 }
 
 int ser_setup( ser_handler id, u32 baud, int databits, int parity, int stopbits )
 {
-  HANDLE hComm = ( HANDLE )id;
+  HANDLE hComm = id->hnd;
   DCB dcb;
   
 	if( GetCommState( hComm, &dcb ) == FALSE )
@@ -116,44 +125,36 @@ int ser_setup( ser_handler id, u32 baud, int databits, int parity, int stopbits 
 // Read up to the specified number of bytes, return bytes actually read
 u32 ser_read( ser_handler id, u8* dest, u32 maxsize, u32 timeout )
 {
-  HANDLE hComm = ( HANDLE )id;
-  OVERLAPPED o = { 0 };
+  HANDLE hComm = id->hnd;
   DWORD readbytes = 0;
   BOOL fWaitingOnRead = FALSE;
   
-  o.hEvent = CreateEvent( NULL, TRUE, FALSE, NULL );
-  if( ReadFile( hComm, dest, maxsize, &readbytes, &o ) == FALSE )
+  ResetEvent( id->o.hEvent );
+  if( ReadFile( hComm, dest, maxsize, &readbytes, &id->o ) == FALSE )
   {
-    if( GetLastError() != ERROR_IO_PENDING )
-    {
-      CloseHandle( o.hEvent );      
-    return 0;
-    }
+    if( GetLastError() != ERROR_IO_PENDING )   
+      return 0;
     else
       fWaitingOnRead = TRUE;
   }
   else
-  {
-    CloseHandle( o.hEvent );
     return readbytes;
-  }
     
   if( fWaitingOnRead )
   {
-    BOOL dwRes = WaitForSingleObject( o.hEvent, timeout == SER_INF_TIMEOUT ? INFINITE : timeout );
+    BOOL dwRes = WaitForSingleObject( id->o.hEvent, timeout == SER_INF_TIMEOUT ? INFINITE : timeout );
     if( dwRes == WAIT_OBJECT_0 ) 
     {
-      if( !GetOverlappedResult( hComm, &o, &readbytes, TRUE ) )
+      if( !GetOverlappedResult( hComm, &id->o, &readbytes, TRUE ) )
         readbytes = 0;
     }
     else if( dwRes == WAIT_TIMEOUT )
     {
       CancelIo( hComm );
-      GetOverlappedResult( hComm, &o, &readbytes, TRUE );
+      GetOverlappedResult( hComm, &id->o, &readbytes, TRUE );
       readbytes = 0;
     }
   }  
-  CloseHandle( o.hEvent );
   return readbytes;
 }
 
@@ -169,37 +170,29 @@ int ser_read_byte( ser_handler id, u32 timeout )
 // Write up to the specified number of bytes, return bytes actually written
 u32 ser_write( ser_handler id, const u8 *src, u32 size )
 {
-  HANDLE hComm = ( HANDLE )id;
-  OVERLAPPED o = { 0 };
+  HANDLE hComm = id->hnd;
   DWORD written = 0;
   BOOL fWaitingOnWrite = FALSE;
 	
-  o.hEvent = CreateEvent( NULL, TRUE, FALSE, NULL );
-  if( WriteFile( hComm, src, size, &written, &o ) == FALSE )
+  ResetEvent( id->o.hEvent );
+  if( WriteFile( hComm, src, size, &written, &id->o ) == FALSE )
   {
-    if( GetLastError() != ERROR_IO_PENDING )
-    {
-      CloseHandle( o.hEvent );      
-    return 0;
-    }
+    if( GetLastError() != ERROR_IO_PENDING )    
+      return 0;
     else
       fWaitingOnWrite = TRUE;
   }
   else
-  {
-    CloseHandle( o.hEvent );
-  return written;
-}
+    return written;
 
   if( fWaitingOnWrite )
-{
-    BOOL dwRes = WaitForSingleObject( o.hEvent, INFINITE );
+  {
+    BOOL dwRes = WaitForSingleObject( id->o.hEvent, INFINITE );
     if( dwRes == WAIT_OBJECT_0 )
-      if( !GetOverlappedResult( hComm, &o, &written, FALSE ) )
+      if( !GetOverlappedResult( hComm, &id->o, &written, FALSE ) )
         written = 0;
-}
+  }
 
-  CloseHandle( o.hEvent );
   return written;
 }
 

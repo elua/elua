@@ -50,4 +50,21 @@
   #endif // #ifndef BUILD_UIP
 #endif // #ifdef BUILD_DNS
 
+// For BUF_ENABLE_UART we also need C interrupt handlers support and specific INT_UART_RX support
+#if defined( BUF_ENABLE_UART ) 
+  #if !defined( BUILD_C_INT_HANDLERS )
+  #error "Buffering support on UART neeeds C interrupt handlers support, define BUILD_C_INT_HANDLERS in your platform_conf.h"
+  #endif
+  #if !defined( INT_UART_RX )
+  #error "Buffering support on UART needs support for the INT_UART_RX interrupt"
+  #endif
+#endif
+
+// Virtual UARTs need buffering and a few specific macros
+#if defined( BUILD_SERMUX )
+  #if !defined( BUF_ENABLE_UART )
+  #error "Virtual UARTs need buffering support, enable BUF_ENABLE_UART"  
+  #endif
+#endif
+  
 #endif // #ifndef __VALIDATE_H__

@@ -184,7 +184,7 @@ const DM_DEVICE *remotefs_init()
     hostif_putstr( "unable to open read/write pipes\n" );
     return NULL;
   }
-#elif RFS_UART_ID < SERVICE_ID_FIRST  // if RFS runs on a virtual UART, buffers are already set in common.c
+#elif RFS_UART_ID < SERMUX_SERVICE_ID_FIRST  // if RFS runs on a virtual UART, buffers are already set in common.c
   // Initialize RFS UART
   platform_uart_setup( RFS_UART_ID, RFS_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
   if( platform_uart_set_buffer( RFS_UART_ID, RFS_BUFFER_SIZE ) == PLATFORM_ERR )

@@ -13,10 +13,23 @@ typedef long long s64;
 typedef unsigned long long u64;
 
 #ifdef WIN32_BUILD
+
 #include <windows.h>
-typedef HANDLE ser_handler;
-#else // assume POSIX here
+typedef struct
+{
+  HANDLE hnd;
+  OVERLAPPED o;
+} SERIAL_DATA;
+typedef SERIAL_DATA* ser_handler;
+#define SER_HANDLER_INVALID   ( NULL )
+typedef OVERLAPPED* ser_sync_object;
+#else // #ifdef WIN32_BUILD
+
+// Assume POSIX here
+
 typedef int ser_handler;
-#endif
+#define SER_HANDLER_INVALID   ( -1 )
+
+#endif // #ifdef WIN32_BUILD
                                     
-#endif
+#endif // #ifndef __TYPE_H__

@@ -13,12 +13,12 @@ if platform.system() == "Windows":
   if sim == '1':
     print "SIM target not supported under Windows"
     os.exit( 1 )
-  flist = "main.c server.c os_io_win32.c log.c"
+  flist = "main.c server.c os_io_win32.c log.c netinit.c"
   cdefs = cdefs + " -DWIN32_BUILD"
   exeprefix = "exe"
   socklib = '-lwsock32'
 else:
-  flist = "%s server.c os_io_posix.c log.c" % mainname
+  flist = "%s server.c os_io_posix.c log.c netinit.c" % mainname
   exeprefix = "elf"
 
 if sim == '0':

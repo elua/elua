@@ -186,64 +186,6 @@ int platform_pio_has_pin( unsigned port, unsigned pin )
   #error "You must define either PIO_PINS_PER_PORT of PIO_PIN_ARRAY in platform_conf.h"
 #endif
 }
- 
-// ****************************************************************************
-// UART functions
-
-// The platform UART functions
-int platform_uart_exists( unsigned id )
-{
-  return id < NUM_UART;
-}
-
-// Helper function for buffers
-static int cmn_recv_helper( unsigned id, s32 timeout )
-{
-#ifdef BUF_ENABLE_UART
-  t_buf_data data;
-  
-  if( buf_is_enabled( BUF_ID_UART, id ) )
-  {
-    if( timeout == 0 )
-    {
-      if ( ( buf_read( BUF_ID_UART, id, &data ) ) == PLATFORM_UNDERFLOW )
-        return -1;
-    }
-    else
-    {
-      while( ( buf_read( BUF_ID_UART, id, &data ) ) == PLATFORM_UNDERFLOW );
-    }
-    return ( int )data;
-  }
-  else
-#endif
-  return platform_s_uart_recv( id, timeout );
-}
-
-int platform_uart_recv( unsigned id, unsigned timer_id, s32 timeout )
-{
-  timer_data_type tmr_start, tmr_crt;
-  int res;
-  
-  if( timeout == 0 )
-    return cmn_recv_helper( id, timeout );
-  else if( timeout == PLATFORM_UART_INFINITE_TIMEOUT )
-    return cmn_recv_helper( id, timeout );
-  else
-  {
-    // Receive char with the specified timeout
-    tmr_start = platform_timer_op( timer_id, PLATFORM_TIMER_OP_START, 0 );
-    while( 1 )
-    {
-      if( ( res = cmn_recv_helper( id, 0 ) ) >= 0 )
-        break;
-      tmr_crt = platform_timer_op( timer_id, PLATFORM_TIMER_OP_READ, 0 );
-      if( platform_timer_get_diff_us( timer_id, tmr_crt, tmr_start ) >= timeout )
-        break;
-    }
-    return res;
-  }
-}
 
 // ****************************************************************************
 // CAN functions

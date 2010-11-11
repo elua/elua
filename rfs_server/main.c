@@ -8,6 +8,7 @@
 #include "type.h"
 #include "log.h"
 #include "os_io.h"
+#include "netinit.h"
 #include <stdio.h>
 #include <limits.h>
 #include <errno.h>
@@ -96,7 +97,7 @@ static void ser_send_response_packet()
 static int ser_server_init( const char *portname, int serspeed )
 {
   // Setup serial port
-  if( ( ser = ser_open( portname ) ) == ( ser_handler )-1 )
+  if( ( ser = ser_open( portname ) ) == SER_HANDLER_INVALID )
   {
     log_err( "Cannot open port %s\n", portname );
     return 0;
@@ -105,7 +106,7 @@ static int ser_server_init( const char *portname, int serspeed )
   {
     log_err( "Unable to initialize serial port\n" );
     return 0;
-  }
+  }  
   flush_serial();
   
   // User report
@@ -277,6 +278,8 @@ static int parse_transport_and_init( const char* s )
       log_err( "Invalid port number\n" );
       return 0;
     }    
+    if( net_init() == 0 )
+      return 0;
     return udp_server_init( tempi );   
   }
   log_err( "Error: unsupported transport\n" );
@@ -308,22 +311,23 @@ int RFS_MAIN_FUNC_NAME( int argc, const char **argv )
     log_err( "Use -v for verbose output.\n");
     return 1;
   }
+  
+  if( ( argc >= VERBOSE_ARGC_COUNT ) && !strcmp( argv[ VERBOSE_ARG_IDX ], "-v" ) )
+    log_init( LOG_ALL );
+  else
+    log_init( LOG_NONE );  
+  
   if( !os_isdir( argv[ DIRNAME_ARG_IDX ] ) )
   {
     log_err( "Invalid directory %s\n", argv[ DIRNAME_ARG_IDX ] );
     return 1;
   }  
-  if( !parse_transport_and_init( argv[ TRANSPORT_ARG_IDX ] ) == 0 )
+  if( parse_transport_and_init( argv[ TRANSPORT_ARG_IDX ] ) == 0 )
     return 1;
   
     // Setup RFS server
   server_setup( argv[ DIRNAME_ARG_IDX ] );   
-  log_msg( "Running RFS server on directory %s\n", argv[ DIRNAME_ARG_IDX ] );
-
-  if( ( argc >= VERBOSE_ARGC_COUNT ) && !strcmp( argv[ VERBOSE_ARG_IDX ], "-v" ) )
-    log_init( LOG_ALL );
-  else
-    log_init( LOG_NONE );
+  log_msg( "Sharing directory %s\n", argv[ DIRNAME_ARG_IDX ] );
 
   // Enter the server endless loop
   while( 1 )
@@ -336,5 +340,3 @@ int RFS_MAIN_FUNC_NAME( int argc, const char **argv )
   p_transport_data->f_cleanup();
   return 0;
 }
-
-

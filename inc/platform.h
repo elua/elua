@@ -139,7 +139,9 @@ enum
 // The platform UART functions
 int platform_uart_exists( unsigned id );
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits );
+int platform_uart_set_buffer( unsigned id, unsigned size );
 void platform_uart_send( unsigned id, u8 data );
+void platform_s_uart_send( unsigned id, u8 data );
 int platform_uart_recv( unsigned id, unsigned timer_id, s32 timeout );
 int platform_s_uart_recv( unsigned id, s32 timeout );
 
