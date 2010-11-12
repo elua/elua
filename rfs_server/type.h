@@ -19,16 +19,20 @@ typedef struct
 {
   HANDLE hnd;
   OVERLAPPED o;
+  BOOL fWaitingOnRead;
+  u8 databuf;
 } SERIAL_DATA;
 typedef SERIAL_DATA* ser_handler;
 #define SER_HANDLER_INVALID   ( NULL )
-typedef OVERLAPPED* ser_sync_object;
+typedef HANDLE sync_object;
+
 #else // #ifdef WIN32_BUILD
 
 // Assume POSIX here
 
 typedef int ser_handler;
 #define SER_HANDLER_INVALID   ( -1 )
+typedef int sync_object;
 
 #endif // #ifdef WIN32_BUILD
                                     

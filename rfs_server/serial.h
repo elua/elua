@@ -36,5 +36,6 @@ u32 ser_read( ser_handler id, u8* dest, u32 maxsize, u32 timeout );
 int ser_read_byte( ser_handler id, u32 timeout );
 u32 ser_write( ser_handler id, const u8 *src, u32 size );
 u32 ser_write_byte( ser_handler id, u8 data );
+int ser_select_byte( ser_handler *pobjects, unsigned nobjects, int timeout );
 
 #endif

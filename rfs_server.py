@@ -13,12 +13,12 @@ if platform.system() == "Windows":
   if sim == '1':
     print "SIM target not supported under Windows"
     os.exit( 1 )
-  flist = "main.c server.c os_io_win32.c log.c netinit.c"
+  flist = "main.c server.c os_io_win32.c log.c net_win32.c serial_win32.c"
   cdefs = cdefs + " -DWIN32_BUILD"
   exeprefix = "exe"
-  socklib = '-lwsock32'
+  socklib = '-lws2_32'
 else:
-  flist = "%s server.c os_io_posix.c log.c netinit.c" % mainname
+  flist = "%s server.c os_io_posix.c log.c net_posix.c serial_posix.c" % mainname
   exeprefix = "elf"
 
 if sim == '0':
@@ -29,10 +29,6 @@ else:
 
 full_files = " " + " ".join( [ "rfs_server/%s" % name for name in flist.split() ] )
 full_files = full_files + " src/remotefs/remotefs.c src/eluarpc.c"
-if platform.system() == "Windows":
-  full_files = full_files + " rfs_server/serial_win32.c"
-else:
-  full_files = full_files + " rfs_server/serial_posix.c"
 local_include = "-Irfs_server -Iinc/remotefs -Iinc"
 
 # Compiler/linker options

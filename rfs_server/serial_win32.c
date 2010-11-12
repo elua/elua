@@ -9,6 +9,9 @@
 
 #define WIN_ERROR     ( HANDLE )-1
 #define WIN_MAX_PORT_NAME   1024
+#define MAX_HANDLES   1024
+
+static HANDLE sel_handlers[ MAX_HANDLES ];
 
 // Helper: set timeout
 static int ser_win32_set_timeouts( HANDLE hComm, DWORD ri, DWORD rtm, DWORD rtc, DWORD wtm, DWORD wtc )
@@ -127,22 +130,24 @@ u32 ser_read( ser_handler id, u8* dest, u32 maxsize, u32 timeout )
 {
   HANDLE hComm = id->hnd;
   DWORD readbytes = 0;
-  BOOL fWaitingOnRead = FALSE;
   
-  ResetEvent( id->o.hEvent );
-  if( ReadFile( hComm, dest, maxsize, &readbytes, &id->o ) == FALSE )
+  if( !id->fWaitingOnRead )
   {
-    if( GetLastError() != ERROR_IO_PENDING )   
-      return 0;
+    if( ReadFile( hComm, dest, maxsize, &readbytes, &id->o ) == FALSE )
+    {
+      if( GetLastError() != ERROR_IO_PENDING )   
+        return 0;
+      else
+        id->fWaitingOnRead = TRUE;
+    }
     else
-      fWaitingOnRead = TRUE;
+      return readbytes;
   }
-  else
-    return readbytes;
-    
-  if( fWaitingOnRead )
+      
+  if( id->fWaitingOnRead )
   {
-    BOOL dwRes = WaitForSingleObject( id->o.hEvent, timeout == SER_INF_TIMEOUT ? INFINITE : timeout );
+    DWORD dwRes = WaitForSingleObject( id->o.hEvent, timeout == SER_INF_TIMEOUT ? INFINITE : timeout );
+    ResetEvent( id->o.hEvent );    
     if( dwRes == WAIT_OBJECT_0 ) 
     {
       if( !GetOverlappedResult( hComm, &id->o, &readbytes, TRUE ) )
@@ -155,6 +160,7 @@ u32 ser_read( ser_handler id, u8* dest, u32 maxsize, u32 timeout )
       readbytes = 0;
     }
   }  
+  id->fWaitingOnRead = FALSE;  
   return readbytes;
 }
 
@@ -187,7 +193,7 @@ u32 ser_write( ser_handler id, const u8 *src, u32 size )
 
   if( fWaitingOnWrite )
   {
-    BOOL dwRes = WaitForSingleObject( id->o.hEvent, INFINITE );
+    DWORD dwRes = WaitForSingleObject( id->o.hEvent, INFINITE );
     if( dwRes == WAIT_OBJECT_0 )
       if( !GetOverlappedResult( hComm, &id->o, &written, FALSE ) )
         written = 0;
@@ -200,4 +206,69 @@ u32 ser_write( ser_handler id, const u8 *src, u32 size )
 u32 ser_write_byte( ser_handler id, u8 data )
 {
   return ser_write( id, &data, 1 );
+}
+
+// Perform 'select' on the specified handler(s), returning a single byte 
+// if it could be read (plus the object ID in the upper 8 bits) and -1
+// otherwise
+int ser_select_byte( ser_handler *pobjects, unsigned nobjects, int timeout )
+{
+  unsigned i;
+  int wait_on_read = 0;
+  DWORD readbytes;
+  int res;
+  
+  // Try to read directly first
+  for( i = 0; i < nobjects; i ++ )
+    if( !pobjects[ i ]->fWaitingOnRead )
+    {
+      if( ReadFile( pobjects[ i ]->hnd, &pobjects[ i ]->databuf, 1, &readbytes, &pobjects[ i ]->o ) == FALSE )
+      {
+        if( GetLastError() != ERROR_IO_PENDING )   
+          return -1;
+        else
+        {
+          pobjects[ i ]->fWaitingOnRead = TRUE;
+          wait_on_read = 1;
+        }
+      }
+      else
+      {
+        if( readbytes == 1 )
+          return pobjects[ i ]->databuf | ( i << 8 );
+        else
+          return -1;
+      }    
+    }
+    
+  // Populate handler array  
+  for( i = 0; i < nobjects; i ++ )
+    sel_handlers[ i ] = pobjects[ i ]->o.hEvent;
+    
+  if( wait_on_read )
+  {
+    DWORD dwRes = WaitForMultipleObjects( nobjects, sel_handlers, FALSE, timeout == SER_INF_TIMEOUT ? INFINITE : timeout );
+    if( dwRes >= WAIT_OBJECT_0 && dwRes < WAIT_OBJECT_0 + nobjects ) 
+    {
+      i = dwRes - WAIT_OBJECT_0;
+      pobjects[ i ]->fWaitingOnRead = FALSE;
+      if( !GetOverlappedResult( pobjects[ i ]->hnd, &pobjects[ i ]->o, &readbytes, TRUE ) )
+        res = -1;
+      else if( readbytes == 1 )
+        res = pobjects[ i ]->databuf | ( i << 8 );
+      ResetEvent( pobjects[ i ]->o.hEvent );        
+    }
+    else if( dwRes == WAIT_TIMEOUT )
+    {
+      for( i = 0; i < nobjects; i ++ )
+      {
+        CancelIo( pobjects[ i ]->hnd );
+        GetOverlappedResult( pobjects[ i ]->hnd, &pobjects[ i ]->o, &readbytes, TRUE );
+        pobjects[ i ]->fWaitingOnRead = FALSE;
+        ResetEvent( pobjects[ i ]->o.hEvent );
+      }
+    }
+  }  
+  
+  return res;    
 }
