@@ -160,7 +160,6 @@ typedef u32 timer_data_type;
 #define PLATFORM_TIMER_INT_OK                 0
 #define PLATFORM_TIMER_INT_TOO_SHORT          1
 #define PLATFORM_TIMER_INT_INVALID_ID         2  
-#define PLATFORM_TIMER_INT_GENERIC_ERR        3         
 
 // Timer operations
 enum

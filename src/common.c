@@ -22,7 +22,7 @@
 #define INT_TMR_MATCH         ELUA_INT_INVALID_INTERRUPT
 #endif
 
-extern elua_int_descriptor elua_int_table[ INT_ELUA_LAST ];
+extern const elua_int_descriptor elua_int_table[ INT_ELUA_LAST ];
 
 #endif // #if defined( BUILD_LUA_INT_HANDLERS ) || defined( BUILD_C_INT_HANDLERS )
 
@@ -140,7 +140,7 @@ static int uart_recv( s32 to )
 
 void cmn_platform_init()
 {
-#ifdef BUILD_LUA_INT_HANDLERS
+#ifdef BUILD_INT_HANDLERS
   platform_int_init();
 #endif
 

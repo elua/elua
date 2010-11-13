@@ -17,7 +17,7 @@
 #define INT_TMR_MATCH         ELUA_INT_INVALID_INTERRUPT
 #endif
 
-extern elua_int_descriptor elua_int_table[ INT_ELUA_LAST ];
+extern const elua_int_descriptor elua_int_table[ INT_ELUA_LAST ];
 
 #endif // #if defined( BUILD_LUA_INT_HANDLERS ) || defined( BUILD_C_INT_HANDLERS )
 
@@ -111,12 +111,12 @@ static int vtmr_set_match_int( unsigned vid, u32 period_us, int type )
   if( ( final = ( ( u64 )period_us * VTMR_FREQ_HZ ) / 1000000 ) == 0 )
     return PLATFORM_TIMER_INT_TOO_SHORT;
   vtmr_period_limit[ id ] = final;
-  vtmr_reset_timer( vid ); 
   if( type == PLATFORM_TIMER_INT_ONESHOT )
     vtmr_int_periodic_flag[ id >> 3 ] &= ( u8 )~msk;
   else
     vtmr_int_periodic_flag[ id >> 3 ] |= msk;
   vtmr_int_flag[ id >> 3 ] &= ( u8 )~msk;
+  vtmr_reset_timer( vid ); 
   vtmr_int_enabled[ id >> 3 ] |= msk;
   return PLATFORM_TIMER_INT_OK;
 }

@@ -81,10 +81,10 @@ static int cpu_r8( lua_State *L )
   return 1;
 }
 
-// Lua: cli()
-// Lua: cli() - to disable all interrupts
-// or cli( id1, resnum1, [resnum2], ..., [resnumn] ) - to disable a specific id/resnum(s)
-static int cpu_cli( lua_State *L )
+// cli helper, does either hw_cli (clear interrupt only in hardware) or full cli (also clear the Lua interrupt flag)
+// Lua: [hw_]cli() - to disable all interrupts
+// or [hw_]cli( id1, resnum1, [resnum2], ..., [resnumn] ) - to disable a specific id/resnum(s)
+static int cpuh_cli( lua_State *L, int hwmode )
 {
 #ifdef BUILD_LUA_INT_HANDLERS
   unsigned i;
@@ -106,7 +106,8 @@ static int cpu_cli( lua_State *L )
       else if( res == PLATFORM_INT_BAD_RESNUM )
         return luaL_error( L, "resource %d not valid for interrupt %d", ( int )resnum, ( int )id );
     }
-    elua_int_disable( id );
+    if( !hwmode )
+      elua_int_disable( id );
   }
   else
 #else // #ifdef BUILD_LUA_INT_HANDLERS
@@ -118,9 +119,10 @@ static int cpu_cli( lua_State *L )
 }
 
 
-// Lua: sei() - to enable all interrupts
-// or sei( id1, resnum1, [resnum2], ..., [resnumn] ) - to enable a specific id/resnum(s)
-static int cpu_sei( lua_State *L )
+// sei helper, does either hw_sei (set interrupt only in hardware) or full sei (also set the Lua interrupt flag)
+// Lua: [hw_]sei() - to enable all interrupts
+// or [hw_]sei( id1, resnum1, [resnum2], ..., [resnumn] ) - to enable a specific id/resnum(s)
+static int cpuh_sei( lua_State *L, int hwmode )
 {
 #ifdef BUILD_LUA_INT_HANDLERS  
   unsigned i;
@@ -142,7 +144,8 @@ static int cpu_sei( lua_State *L )
       else if( res == PLATFORM_INT_BAD_RESNUM )
         return luaL_error( L, "resource %d not valid for interrupt %d", ( int )resnum, ( int )id );
     }
-    elua_int_enable( id );
+    if( !hwmode )
+      elua_int_enable( id );
   }
   else
 #else // #ifdef BUILD_LUA_INT_HANDLERS
@@ -151,6 +154,26 @@ static int cpu_sei( lua_State *L )
 #endif // #ifdef BUILD_LUA_INT_HANDLERS  
   platform_cpu_set_global_interrupts( PLATFORM_CPU_ENABLE );
   return 0;
+}
+
+static int cpu_cli( lua_State *L )
+{
+  return cpuh_cli( L, 0 );
+}
+
+static int cpu_hw_cli( lua_State *L )
+{
+  return cpuh_cli( L, 1 );
+}
+
+static int cpu_sei( lua_State *L )
+{
+  return cpuh_sei( L, 0 );
+}
+
+static int cpu_hw_sei( lua_State *L )
+{
+  return cpuh_sei( L, 1 );
 }
 
 // Lua: frequency = clock()
@@ -258,13 +281,13 @@ const LUA_REG_TYPE cpu_map[] =
   { LSTRKEY( "w8" ), LFUNCVAL( cpu_w8 ) },
   { LSTRKEY( "r8" ), LFUNCVAL( cpu_r8 ) },
   { LSTRKEY( "cli" ), LFUNCVAL( cpu_cli ) },
+  { LSTRKEY( "hw_cli" ), LFUNCVAL( cpu_hw_cli ) },
   { LSTRKEY( "sei" ), LFUNCVAL( cpu_sei ) },
+  { LSTRKEY( "hw_sei" ), LFUNCVAL( cpu_hw_sei ) },
   { LSTRKEY( "clock" ), LFUNCVAL( cpu_clock ) },
 #ifdef BUILD_LUA_INT_HANDLERS
   { LSTRKEY( "set_int_handler" ), LFUNCVAL( cpu_set_int_handler ) },
   { LSTRKEY( "get_int_flag" ), LFUNCVAL( cpu_get_int_flag) },
-  { LSTRKEY( "INT_FLAG_CLEAR" ), LBOOLVAL( 1 ) },
-  { LSTRKEY( "INT_FLAG_KEEP" ), LBOOLVAL( 0 ) },
 #endif
 #if defined( PLATFORM_CPU_CONSTANTS ) && LUA_OPTIMIZE_MEMORY > 0
   { LSTRKEY( "__metatable" ), LROVAL( cpu_map ) },
