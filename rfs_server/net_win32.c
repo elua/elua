@@ -44,7 +44,7 @@ NET_SOCKET net_create_socket( int domain, int type, int protocol )
   return d;  
 }
 
-ssize_t net_recvfrom( NET_SOCKET s, void *buf, size_t len, int flags, struct sockaddr* from, socklen_t *fromlen, int timeout )
+net_ssize_t net_recvfrom( NET_SOCKET s, void *buf, size_t len, int flags, struct sockaddr* from, socklen_t *fromlen, int timeout )
 {
   DWORD readbytes = 0;
   DWORD rflags = ( DWORD )flags;
@@ -76,7 +76,7 @@ ssize_t net_recvfrom( NET_SOCKET s, void *buf, size_t len, int flags, struct soc
   return readbytes;    
 }
 
-ssize_t net_sendto( NET_SOCKET s, const void *buf, size_t len, int flags, const struct sockaddr *to, socklen_t tolen )
+net_ssize_t net_sendto( NET_SOCKET s, const void *buf, size_t len, int flags, const struct sockaddr *to, socklen_t tolen )
 {
   DWORD wrotebytes;
   WSABUF datadesc = { len, ( char* )buf };

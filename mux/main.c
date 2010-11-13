@@ -12,12 +12,18 @@
 #include "serial.h"
 #include "sermux.h"
 #include "rfs.h"
+#include "deskutils.h"
 
 // ****************************************************************************
 // Data structures and local variables
 
 #define MODE_MUX              1
 #define MODE_RFSMUX           2
+
+#define HND_TRANSPORT_OFFSET  0
+#define HND_FIRST_VOFFSET     1
+
+#define RFS_PSEUDO_SELIDX     0xFF
 
 // Send/receive/init function pointers
 typedef u32 ( *p_recv_func )( u8 *p, u32 size );
@@ -41,7 +47,6 @@ static SERVICE_DATA *services;
 static unsigned vport_num;
 
 static TRANSPORT_SER *transport_data;
-static p_recv_func transport_recv;
 static p_send_func transport_send;
 static p_init_func transport_init;
 
@@ -50,16 +55,10 @@ static int service_id_in = -1, service_id_out = -1;
 static ser_handler transport_hnd = SER_HANDLER_INVALID;
 static int mux_mode;
 static int verbose_mode;
+static int rfs_service_id = -1, service_offset;
 
 // ***************************************************************************
 // Serial transport implementation
-
-static u32 transport_ser_recv( u8 *p, u32 size ) 
-{
-  TRANSPORT_SER *pser = ( TRANSPORT_SER* )transport_data;
-
-  return ser_read( pser->fd, p, size, SER_NO_TIMEOUT );
-}
 
 static u32 transport_ser_send( const u8 *p, u32 size )
 {
@@ -96,45 +95,6 @@ static void transport_send_byte( u8 data )
   transport_send( &data, 1 );
 }
 
-static int transport_read_byte() 
-{
-  u8 c;
-
-  return transport_recv( &c, 1 ) == 1 ? c : -1;
-}
-
-// Secure atoi
-static int secure_atoi( const char *str, long *pres )
-{
-  char *end_ptr;
-  long s1;
-  
-  errno = 0;
-  s1 = strtol( str, &end_ptr, 10 );
-  if( ( s1 == LONG_MIN || s1 == LONG_MAX ) && errno != 0 )
-    return 0;
-  else if( end_ptr == str )
-    return 0;
-  else if( s1 > INT_MAX || s1 < INT_MIN )
-    return 0;
-  else if( '\0' != *end_ptr )
-    return 0;
-  *pres = s1;
-  return 1;  
-}
-
-// Local strndup function to compensate the lack of strndup in Windows
-static char* l_strndup( const char* s, size_t n )
-{
-  char* p;
-  
-  if( ( p = ( char* )malloc( n + 1 ) ) == NULL )
-    return NULL;
-  p [ 0 ] = p[ n ] = '\0';
-  strncpy( p, s, n );
-  return p;
-} 
-
 // Transport parser
 static int parse_transport( const char* s )
 {
@@ -154,7 +114,6 @@ static int parse_transport( const char* s )
   tser.pname = l_strndup( s, c - s );
   transport_data = &tser;
   transport_send = transport_ser_send;
-  transport_recv = transport_ser_recv;
   transport_init = transport_ser_init;
   return 1;
 }
@@ -171,18 +130,23 @@ int main( int argc, char **argv )
 {
   unsigned i;
   SERVICE_DATA *tservice;
-  int c;
-  int temp, sdata;
+  int c, prev_sent = -1;
+  int temp;
   int got_esc = 0;
-  fd_set fds;
   char* rfs_dir_name;
+  ser_handler *phandlers;
+  int selidx;
+  u16 rfs_size = 0;
+  u8 *rfs_ptr;
 
   // Interpret arguments
   setvbuf( stdout, NULL, _IONBF, 0 );  
   if( argc < MIN_ARGC_COUNT )
   {
     log_err( "Usage: %s <mode> <transport> <vcom1> [<vcom2>] ... [<vcomn>] [-v]\n", argv[ 0 ] );
-    log_err( "  mode: 'mux' for multiplexer mode, 'rfsmux:<directory>' for combined RFS and multiplexer mode.\n" );
+    log_err( "  mode: \n" );
+    log_err( "    'mux':                 serial multiplexer mode\n" );
+    log_err( "    'rfsmux:<directory>:   combined RFS and multiplexer mode.\n" );
     log_err( "  transport: '<port>,<baud>.\n" );
     log_err( "  vcom1, ..., vcomn: multiplexer serial ports." );
     log_err( "  Use '-v' for verbose output.\n" );
@@ -196,6 +160,8 @@ int main( int argc, char **argv )
   {
     rfs_dir_name = argv[ MODE_IDX ] + strlen( "rfsmux:" );
     mux_mode = MODE_RFSMUX;
+    rfs_service_id = SERMUX_SERVICE_ID_FIRST;
+    service_offset = 1;
   }
   else
   {
@@ -233,6 +199,12 @@ int main( int argc, char **argv )
     log_err( "Not enough memory\n" );
     return 1;
   }
+  if( ( phandlers = ( ser_handler* )malloc( sizeof( ser_handler ) * ( vport_num + 1 ) ) ) == NULL )
+  {
+    log_err( "Not enough memory\n" );
+    return 1;  
+  }
+  phandlers[ HND_TRANSPORT_OFFSET ] = transport_hnd;
 
   memset( services, 0, sizeof( SERVICE_DATA ) * vport_num );
   for( i = 0; i < vport_num; i ++ ) 
@@ -249,6 +221,7 @@ int main( int argc, char **argv )
       return 1;
     }
     tservice->pname = argv[ i + FIRST_SERVICE_IDX ];
+    phandlers[ i + HND_FIRST_VOFFSET ] = tservice->fd;
   }
   
   // Setup RFS server in RFSMUX mode
@@ -257,36 +230,64 @@ int main( int argc, char **argv )
     char *args[] = { "dummy", "mem", rfs_dir_name, NULL };
     if( verbose_mode )
       args[ 3 ] = "-v";
-    if( rfs_init( verbose_mode ? 4 : 3, args ) != 0 )      
+    if( rfs_init( verbose_mode ? 4 : 3, ( const char ** )args ) != 0 )      
       return 1;
   }
 
   log_msg( "Starting service multiplexer on %u port(s)\n", vport_num );
-/*  
+  
   // Main service thread
   while( 1 )
   {
-    FD_ZERO( &fds );
-    FD_SET( transport_hnd, &fds );
-    for( i = 0; i < vport_num; i ++ )
-      FD_SET( ports[ i ].fd, &fds );
-    if( select( maxfd + 1, &fds, NULL, NULL, NULL ) <= 0 )
-      continue;
-    if( FD_ISSET( transport_hnd, &fds ) )
+    if( rfs_size > 0 ) // Response packet from RFS
     {
-      c = transport_read_byte();
-      // Read one byte, interpret it
-      if( c != ESCAPE_CHAR )
+      c = *rfs_ptr ++;
+      rfs_size --;
+      selidx = RFS_PSEUDO_SELIDX;
+    }
+    else
+    {
+      if( ( c = ser_select_byte( phandlers, vport_num + 1, SER_INF_TIMEOUT ) ) == -1 )
       {
-        if( c >= SERVICE_ID_FIRST && c <= SERVICE_ID_LAST )
+        log_err( "Error on select, aborting program\n" );
+        return 1;
+      }
+      selidx = c >> 8;
+      c = c & 0xFF;
+    }
+    //log_msg( "Got byte %d from idx %d\n", c, selidx );
+    if( selidx == HND_TRANSPORT_OFFSET ) // Got byte on transport interface
+    {
+      // Interpret byte
+      if( c != SERMUX_ESCAPE_CHAR )
+      {
+        if( c >= SERMUX_SERVICE_ID_FIRST && c <= SERMUX_SERVICE_ID_LAST )
+        {
+          log_msg( "Changed service_id_in from %d(%X) to %d(%X).\n", service_id_in, service_id_in, c, c );
           service_id_in = c;
+        } 
+        else if( c == SERMUX_FORCE_SID_CHAR )
+        {
+          if( prev_sent == -1 )
+          {
+            log_err( "Protocol error: got request to resend service ID when the last char sent was not set.\n" );
+            return 1;
+          }
+          log_msg( "Got request to resend service_id_out %d(%X).\n", service_id_out, service_id_out );
+          // Re-transmit the last data AND the service ID
+          transport_send_byte( service_id_out );
+          if( prev_sent & SERMUX_ESC_MASK )
+            transport_send_byte( SERMUX_ESCAPE_CHAR );
+          transport_send_byte( prev_sent & 0xFF );
+          prev_sent = -1;
+        }          
         else
         {
           if( got_esc )
           {
             // Got an escape last time, check the char now (with the 5th bit flipped)
-            c ^= ESCAPE_XOR_MASK;
-            if( c != ESCAPE_CHAR && c < SERVICE_ID_FIRST && c > SERVICE_ID_LAST )
+            c ^= SERMUX_ESCAPE_XOR_MASK;
+            if( c != SERMUX_ESCAPE_CHAR && c != SERMUX_FORCE_SID_CHAR && ( c < SERMUX_SERVICE_ID_FIRST || c > SERMUX_SERVICE_ID_LAST ) )
             {
                log_err( "Protocol error: invalid escape sequence\n" );
                return 1;
@@ -295,52 +296,58 @@ int main( int argc, char **argv )
           }  
           if( service_id_in == -1 )
           {
-            log_err( "Protocol error: service ID not specified\n" );
-            return 1;
+            transport_send_byte( SERMUX_FORCE_SID_CHAR );
+            log_msg( "Requested resend of service ID.\n" );
           }
-          ser_write_byte( ports[ service_id_in - SERVICE_ID_FIRST ].fd, c );
+          else
+          {
+            if( service_id_in == rfs_service_id ) // this request is for the RFS server
+            {
+              rfs_mem_read_request_packet( c );
+              if( rfs_mem_has_response() ) // we have a response from the RFS server
+              {
+                rfs_mem_write_response( &rfs_size, &rfs_ptr );                  
+                rfs_mem_start_request(); // initialize the RFS server for a new request  
+              }
+            }
+            else
+            {
+              //log_msg( "Sending byte %d to %s\n", c, services[ service_id_in - SERMUX_SERVICE_ID_FIRST - service_offset ].pname );
+              ser_write_byte( services[ service_id_in - SERMUX_SERVICE_ID_FIRST - service_offset ].fd, c );
+            }
+          }
         }
       }
       else
-        got_esc = 1;
+        got_esc = 1;                          
     }
     else
     {
-      // No byte to read, check if there's something to send
-      // Favour the service that sent data previously (if any)
-      temp = service_id_out != -1 ? service_id_out : SERVICE_ID_FIRST;
-      if( FD_ISSET( ports[ temp - SERVICE_ID_FIRST ].fd, &fds ) )
-        sdata = ser_read_byte( ports[ temp - SERVICE_ID_FIRST ].fd, SER_NO_TIMEOUT );
+      // No byte to read, there must be something to send
+      if( selidx == RFS_PSEUDO_SELIDX )
+        temp = SERMUX_SERVICE_ID_FIRST;
+      else        
+        temp = SERMUX_SERVICE_ID_FIRST + selidx - HND_FIRST_VOFFSET + service_offset;
+      prev_sent = c;
+      // Send the service ID first if needed
+      if( temp != service_id_out )
+      {
+        log_msg( "Changed service_id_out to %d(%X).\n", temp, temp );
+        transport_send_byte( temp );
+      }
+      // Then send the actual data byte, escaping it if needed
+      if( c == SERMUX_ESCAPE_CHAR || c == SERMUX_FORCE_SID_CHAR || ( c >= SERMUX_SERVICE_ID_FIRST && c <= SERMUX_SERVICE_ID_LAST ) )
+      {
+        transport_send_byte( SERMUX_ESCAPE_CHAR );
+        transport_send_byte( ( u8 )c ^ SERMUX_ESCAPE_XOR_MASK );
+        prev_sent = SERMUX_ESC_MASK | ( ( u8 )c ^ SERMUX_ESCAPE_XOR_MASK );
+      }
       else
-      {
-        temp = -1;
-        for( i = SERVICE_ID_FIRST; i < SERVICE_ID_FIRST + vport_num; i ++ )
-          if( FD_ISSET( ports[ i - SERVICE_ID_FIRST ].fd, &fds ) )
-          {
-            temp = ( int )i;
-            sdata = ser_read_byte( ports[ i - SERVICE_ID_FIRST ].fd, SER_NO_TIMEOUT );
-            break;
-          }
-      }
-      if( temp != -1 )
-      {
-        // We have something to send
-        // Send the service ID first if needed
-        if( temp != service_id_out )
-          transport_send_byte( temp );
-        // Then send the actual data byte, escaping it if needed
-        if( sdata == ESCAPE_CHAR || ( sdata >= SERVICE_ID_FIRST && sdata <= SERVICE_ID_LAST ) )
-        {
-          transport_send_byte( ESCAPE_CHAR );
-          transport_send_byte( ( u8 )sdata ^ ESCAPE_XOR_MASK );
-        }
-        else
-          transport_send_byte( sdata );
-        service_id_out = temp;
-      }
+        transport_send_byte( c );
+      service_id_out = temp;
     }
   }
-*/
+
   return 0;
 }
 

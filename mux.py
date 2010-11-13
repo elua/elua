@@ -2,7 +2,7 @@ import os, sys, platform
 
 flist = "main.c"
 rfs_flist = ''
-rfs_flist = "main.c server.c log.c"
+rfs_flist = "main.c server.c log.c deskutils.c"
 cdefs = "-DRFS_UDP_TRANSPORT -DRFS_INSIDE_MUX_MODE"
 socklib = ''
 ptlib = ''

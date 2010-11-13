@@ -19,6 +19,7 @@ typedef struct
 {
   HANDLE hnd;
   OVERLAPPED o;
+  OVERLAPPED o_wr;
   BOOL fWaitingOnRead;
   u8 databuf;
 } SERIAL_DATA;

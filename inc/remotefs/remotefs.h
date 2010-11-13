@@ -5,12 +5,6 @@
 
 #include "type.h"
 
-#define   PACKET_SIG      0x18AFC284UL
-
-// Error codes
-#define   REMOTEFS_OK     0
-#define   REMOTEFS_ERR    1
-
 // Operation IDs
 #define   RFS_OP_OPEN     0x01
 #define   RFS_OP_FIRST    RFS_OP_OPEN
@@ -23,17 +17,6 @@
 #define   RFS_OP_CLOSEDIR 0x08
 #define   RFS_OP_LAST     RFS_OP_CLOSEDIR
 #define   RFS_OP_RES_MOD  0x80
-
-// Protocol constants
-#define   RFS_START_OFFSET    4
-#define   RFS_START_SIZE      6
-#define   RFS_END_SIZE        6
-#define   RFS_RESPONSE_SIZE   1
-#define   RFS_PTR_HEADER_SIZE 6
-#define   RFS_U32_SIZE        5
-#define   RFS_OP_ID_SIZE      2
-#define   RFS_READ_BUF_OFFSET ( RFS_START_OFFSET + RFS_START_SIZE + RFS_RESPONSE_SIZE + RFS_PTR_HEADER_SIZE )
-#define   RFS_WRITE_REQUEST_EXTRA ( RFS_START_OFFSET + RFS_START_SIZE + RFS_OP_ID_SIZE + RFS_U32_SIZE + RFS_PTR_HEADER_SIZE + RFS_END_SIZE )
 
 // Platform independent constants for "flags" in "open"
 #define   RFS_OPEN_FLAG_APPEND      0x01
@@ -56,16 +39,6 @@
 
 // Max filename size on a RFS instance
 #define   RFS_MAX_FNAME_SIZE        31
-
-// Public interface
-// Get request ID
-int remotefs_get_request_id( const u8 *p, u8 *pid );
-
-// Replace a flag with another flag
-u32 remotefs_replace_flag( u32 val, u32 origflag, u32 newflag );
-
-// Get packet size
-int remotefs_get_packet_size( const u8 *p, u16 *psize );
 
 // Function: int open(const char *pathname,int flags, mode_t mode)
 void remotefs_open_write_response( u8 *p, int result );

@@ -61,8 +61,8 @@ static const buf_desc* buf_desc_array[ BUF_ID_TOTAL ] =
 #ifdef BUILD_SERMUX
 static unsigned bufh_check_resnum( unsigned resid, unsigned resnum )
 {
-  if( resid == BUF_ID_UART && resnum >= SERVICE_ID_FIRST )
-    return resnum - SERVICE_ID_FIRST + NUM_UART;
+  if( resid == BUF_ID_UART && resnum >= SERMUX_SERVICE_ID_FIRST )
+    return resnum - SERMUX_SERVICE_ID_FIRST + NUM_UART;
   else
     return resnum;
 }

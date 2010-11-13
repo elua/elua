@@ -3,12 +3,13 @@
 #ifndef __NETINIT_H__
 #define __NETINIT_H__
 
+typedef int net_ssize_t;
+
 #ifdef WIN32_BUILD
 
 #include <winsock2.h>
 #include <windows.h>
 typedef int socklen_t;
-typedef int ssize_t;
 #define INVALID_SOCKET_VALUE  NULL
 typedef struct 
 {
@@ -36,8 +37,8 @@ typedef int net_sync_object;
 
 int net_init();
 NET_SOCKET net_create_socket( int domain, int type, int protocol );
-ssize_t net_recvfrom( NET_SOCKET s, void *buf, size_t len, int flags, struct sockaddr* from, socklen_t *fromlen, int timeout );
-ssize_t net_sendto( NET_SOCKET s, const void *buf, size_t len, int flags, const struct sockaddr *to, socklen_t tolen );
+net_ssize_t net_recvfrom( NET_SOCKET s, void *buf, size_t len, int flags, struct sockaddr* from, socklen_t *fromlen, int timeout );
+net_ssize_t net_sendto( NET_SOCKET s, const void *buf, size_t len, int flags, const struct sockaddr *to, socklen_t tolen );
 int net_close( NET_SOCKET s );
 net_sync_object net_get_sync_object( NET_SOCKET s );
 

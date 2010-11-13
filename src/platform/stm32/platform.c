@@ -553,25 +553,12 @@ static void usart_init(u32 id, USART_InitTypeDef * initVals)
 
 static void uarts_init()
 {
-  USART_InitTypeDef USART_InitStructure;
-
   // Enable clocks.
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART4, ENABLE);
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART5, ENABLE);
-
-  // Configure the U(S)ART
-  USART_InitStructure.USART_BaudRate = CON_UART_SPEED;
-  USART_InitStructure.USART_WordLength = USART_WordLength_8b;
-  USART_InitStructure.USART_StopBits = USART_StopBits_1;
-  USART_InitStructure.USART_Parity = USART_Parity_No;
-  USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-  USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
-
-  usart_init(CON_UART_ID, &USART_InitStructure);
-
 }
 
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )

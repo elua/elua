@@ -39,3 +39,4 @@ u32 ser_write_byte( ser_handler id, u8 data );
 int ser_select_byte( ser_handler *pobjects, unsigned nobjects, int timeout );
 
 #endif
+

@@ -15,6 +15,7 @@
 #include "xmodem.h"
 #include "elua_int.h"
 
+// [TODO] the new builder should automatically do this
 #if defined( BUILD_LUA_INT_HANDLERS ) || defined( BUILD_C_INT_HANDLERS )
 #define BUILD_INT_HANDLERS
 
@@ -26,9 +27,15 @@ extern elua_int_descriptor elua_int_table[ INT_ELUA_LAST ];
 
 #endif // #if defined( BUILD_LUA_INT_HANDLERS ) || defined( BUILD_C_INT_HANDLERS )
 
+// [TODO] the new builder should automatically do this
 #ifndef VTMR_NUM_TIMERS
 #define VTMR_NUM_TIMERS       0
 #endif // #ifndef VTMR_NUM_TIMERS
+
+// [TODO] the new builder should automatically do this
+#ifndef CON_BUF_SIZE
+#define CON_BUF_SIZE          0
+#endif // #ifndef CON_BUF_SIZE
 
 // ****************************************************************************
 // XMODEM support code
@@ -143,6 +150,25 @@ void cmn_platform_init()
 #ifdef BUILD_INT_HANDLERS
   platform_int_init();
 #endif
+  
+#ifdef BUILD_SERMUX
+  unsigned i;
+  unsigned bufsizes[] = SERMUX_BUFFER_SIZES;
+
+  // Setup the serial multiplexer
+  platform_uart_setup( SERMUX_PHYS_ID, SERMUX_PHYS_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
+  cmn_uart_setup_sermux();
+
+  // Set buffers for all virtual UARTs 
+  for( i = 0; i < sizeof( bufsizes ) / sizeof( unsigned ); i ++ )
+    platform_uart_set_buffer( i + SERMUX_SERVICE_ID_FIRST, bufsizes[ i ] );    
+#endif
+
+#if defined( CON_UART_ID ) && CON_UART_ID < SERMUX_SERVICE_ID_FIRST
+  // Setup console UART
+  platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );  
+  platform_uart_set_buffer( CON_UART_ID, CON_BUF_SIZE );
+#endif // #if defined( CON_UART_ID ) && CON_UART_ID < SERMUX_SERVICE_ID_FIRST
 
   // Set the send/recv functions                          
   std_set_send_func( uart_send );
@@ -156,20 +182,6 @@ void cmn_platform_init()
 #ifdef BUILD_TERM  
   // Initialize terminal
   term_init( TERM_LINES, TERM_COLS, term_out, term_in, term_translate );
-#endif
-
-#ifdef BUILD_SERMUX
-  // Set buffers for all virtual UARTs
-  unsigned i;
-  unsigned bufsizes [] = SERMUX_BUFFER_SIZES;
-
-  for( i = 0; i < sizeof( bufsizes ) / sizeof( unsigned ); i ++ )
-    buf_set( BUF_ID_UART, i + SERVICE_ID_FIRST, bufsizes[ i ], BUF_DSIZE_U8 );
-#endif
-
-#if defined( CON_BUF_SIZE ) && ( CON_UART_ID < SERMUX_SERVICE_ID_FIRST )
-  // Set console buffer if the console is on a physical UART
-  platform_uart_set_buffer( CON_UART_ID, intlog2( CON_BUF_SIZE ) );
 #endif
 }
 

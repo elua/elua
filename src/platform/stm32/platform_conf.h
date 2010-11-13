@@ -8,6 +8,7 @@
 #include "stacks.h"
 #include "stm32f10x.h"
 #include "elua_int.h"
+#include "sermux.h"
 
 // *****************************************************************************
 // Define here what components you want for this platform
@@ -22,20 +23,22 @@
 //#define BUILD_DNS
 #define BUILD_CON_GENERIC
 #define BUILD_ADC
-#define BUILD_RPC
-//#define BUILD_RFS
+//#define BUILD_RPC
+#define BUILD_RFS
 //#define BUILD_CON_TCP
 #define BUILD_C_INT_HANDLERS
 #define BUILD_LUA_INT_HANDLERS
+#define BUILD_SERMUX
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 
-#define CON_UART_ID           0
-#define CON_UART_SPEED        115200
-#define CON_TIMER_ID          0
 #define TERM_LINES            25
 #define TERM_COLS             80
+#define CON_UART_ID           ( SERMUX_SERVICE_ID_FIRST + 1 )
+//#define CON_UART_ID           0
+#define CON_UART_SPEED        115200
+#define CON_TIMER_ID          0
 
 // *****************************************************************************
 // Auxiliary libraries that will be compiled for this platform
@@ -85,30 +88,6 @@
 // *****************************************************************************
 // Configuration data
 
-// Static TCP/IP configuration
-#define ELUA_CONF_IPADDR0     192
-#define ELUA_CONF_IPADDR1     168
-#define ELUA_CONF_IPADDR2     1
-#define ELUA_CONF_IPADDR3     13
-
-#define ELUA_CONF_NETMASK0    255
-#define ELUA_CONF_NETMASK1    255
-#define ELUA_CONF_NETMASK2    255
-#define ELUA_CONF_NETMASK3    0
-
-#define ELUA_CONF_DEFGW0      192
-#define ELUA_CONF_DEFGW1      168
-#define ELUA_CONF_DEFGW2      1
-#define ELUA_CONF_DEFGW3      1
-
-#define ELUA_CONF_DNS0        192
-#define ELUA_CONF_DNS1        168
-#define ELUA_CONF_DNS2        1
-#define ELUA_CONF_DNS3        1
-
-// *****************************************************************************
-// Configuration data
-
 #define EGC_INITIAL_MODE      1
 
 // Virtual timers (0 if not used)
@@ -126,7 +105,7 @@
 
 // Enable RX buffering on UART
 #define BUF_ENABLE_UART
-#define CON_BUF_SIZE          BUF_SIZE_128
+#define CON_BUF_SIZE          BUF_SIZE_128                                                                                                    
 
 // ADC Configuration Params
 #define ADC_BIT_RESOLUTION    12
@@ -164,10 +143,15 @@ u32 platform_s_cpu_get_frequency();
 
 // Remote file system data
 #define RFS_BUFFER_SIZE       BUF_SIZE_512
-#define RFS_UART_ID           0
+#define RFS_UART_ID           ( SERMUX_SERVICE_ID_FIRST )
 #define RFS_TIMER_ID          0
 #define RFS_TIMEOUT           100000
 #define RFS_UART_SPEED        115200
+
+#define SERMUX_PHYS_ID        0
+#define SERMUX_PHYS_SPEED     115200
+#define SERMUX_NUM_VUART      2
+#define SERMUX_BUFFER_SIZES   { RFS_BUFFER_SIZE, CON_BUF_SIZE }
 
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)

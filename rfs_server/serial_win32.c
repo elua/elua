@@ -12,6 +12,7 @@
 #define MAX_HANDLES   1024
 
 static HANDLE sel_handlers[ MAX_HANDLES ];
+static int sel_handler_map[ MAX_HANDLES ];
 
 // Helper: set timeout
 static int ser_win32_set_timeouts( HANDLE hComm, DWORD ri, DWORD rtm, DWORD rtc, DWORD wtm, DWORD wtc )
@@ -68,8 +69,11 @@ ser_handler ser_open( const char* sername )
     return SER_HANDLER_INVALID;
   memset( hnd, 0, sizeof( SERIAL_DATA ) );
   hnd->hnd = hComm;
+  hnd->fWaitingOnRead = FALSE;
   if( ( hnd->o.hEvent = CreateEvent( NULL, TRUE, FALSE, NULL ) ) == NULL )
     return SER_HANDLER_INVALID;
+  if( ( hnd->o_wr.hEvent = CreateEvent( NULL, TRUE, FALSE, NULL ) ) == NULL )
+    return SER_HANDLER_INVALID;    
   return hnd;
 }
 
@@ -77,6 +81,7 @@ ser_handler ser_open( const char* sername )
 void ser_close( ser_handler id )
 {
   CloseHandle( id->o.hEvent );
+  CloseHandle( id->o_wr.hEvent );  
   CloseHandle( id->hnd );
   free( id );
 }
@@ -146,8 +151,7 @@ u32 ser_read( ser_handler id, u8* dest, u32 maxsize, u32 timeout )
       
   if( id->fWaitingOnRead )
   {
-    DWORD dwRes = WaitForSingleObject( id->o.hEvent, timeout == SER_INF_TIMEOUT ? INFINITE : timeout );
-    ResetEvent( id->o.hEvent );    
+    DWORD dwRes = WaitForSingleObject( id->o.hEvent, timeout == SER_INF_TIMEOUT ? INFINITE : timeout ); 
     if( dwRes == WAIT_OBJECT_0 ) 
     {
       if( !GetOverlappedResult( hComm, &id->o, &readbytes, TRUE ) )
@@ -159,6 +163,7 @@ u32 ser_read( ser_handler id, u8* dest, u32 maxsize, u32 timeout )
       GetOverlappedResult( hComm, &id->o, &readbytes, TRUE );
       readbytes = 0;
     }
+    ResetEvent( id->o.hEvent );   
   }  
   id->fWaitingOnRead = FALSE;  
   return readbytes;
@@ -179,9 +184,11 @@ u32 ser_write( ser_handler id, const u8 *src, u32 size )
   HANDLE hComm = id->hnd;
   DWORD written = 0;
   BOOL fWaitingOnWrite = FALSE;
+	HANDLE temp = id->o_wr.hEvent;
 	
-  ResetEvent( id->o.hEvent );
-  if( WriteFile( hComm, src, size, &written, &id->o ) == FALSE )
+	memset( &id->o_wr, 0, sizeof( OVERLAPPED ) );
+	id->o_wr.hEvent = temp;
+  if( WriteFile( hComm, src, size, &written, &id->o_wr ) == FALSE )
   {
     if( GetLastError() != ERROR_IO_PENDING )    
       return 0;
@@ -192,14 +199,15 @@ u32 ser_write( ser_handler id, const u8 *src, u32 size )
     return written;
 
   if( fWaitingOnWrite )
-  {
-    DWORD dwRes = WaitForSingleObject( id->o.hEvent, INFINITE );
+  {                              
+    DWORD dwRes = WaitForSingleObject( id->o_wr.hEvent, INFINITE );      
     if( dwRes == WAIT_OBJECT_0 )
-      if( !GetOverlappedResult( hComm, &id->o, &written, FALSE ) )
+      if( !GetOverlappedResult( hComm, &id->o_wr, &written, FALSE ) )
         written = 0;
+    ResetEvent( id->o_wr.hEvent );        
   }
 
-  return written;
+  return written; 
 }
 
 // Write a byte to the serial port
@@ -213,23 +221,30 @@ u32 ser_write_byte( ser_handler id, u8 data )
 // otherwise
 int ser_select_byte( ser_handler *pobjects, unsigned nobjects, int timeout )
 {
-  unsigned i;
-  int wait_on_read = 0;
+  int i, idx;
   DWORD readbytes;
-  int res;
+  int res = -1;
+  unsigned num_wait = 0;
+  ser_handler hnd;
+  HANDLE temp;
   
   // Try to read directly first
   for( i = 0; i < nobjects; i ++ )
+  {   
+    temp = pobjects[ i ]->o.hEvent;
+    memset( &pobjects[ i ]->o, 0, sizeof( OVERLAPPED ) );
+    pobjects[ i ]->o.hEvent = temp;
     if( !pobjects[ i ]->fWaitingOnRead )
     {
       if( ReadFile( pobjects[ i ]->hnd, &pobjects[ i ]->databuf, 1, &readbytes, &pobjects[ i ]->o ) == FALSE )
       {
-        if( GetLastError() != ERROR_IO_PENDING )   
+        if( GetLastError() != ERROR_IO_PENDING )
           return -1;
         else
         {
           pobjects[ i ]->fWaitingOnRead = TRUE;
-          wait_on_read = 1;
+          sel_handler_map[ num_wait ] = i;
+          sel_handlers[ num_wait ++ ] = pobjects[ i ]->o.hEvent;
         }
       }
       else
@@ -239,36 +254,40 @@ int ser_select_byte( ser_handler *pobjects, unsigned nobjects, int timeout )
         else
           return -1;
       }    
-    }
-    
-  // Populate handler array  
-  for( i = 0; i < nobjects; i ++ )
-    sel_handlers[ i ] = pobjects[ i ]->o.hEvent;
-    
-  if( wait_on_read )
-  {
-    DWORD dwRes = WaitForMultipleObjects( nobjects, sel_handlers, FALSE, timeout == SER_INF_TIMEOUT ? INFINITE : timeout );
-    if( dwRes >= WAIT_OBJECT_0 && dwRes < WAIT_OBJECT_0 + nobjects ) 
+    }  
+    else
     {
-      i = dwRes - WAIT_OBJECT_0;
-      pobjects[ i ]->fWaitingOnRead = FALSE;
-      if( !GetOverlappedResult( pobjects[ i ]->hnd, &pobjects[ i ]->o, &readbytes, TRUE ) )
-        res = -1;
-      else if( readbytes == 1 )
-        res = pobjects[ i ]->databuf | ( i << 8 );
-      ResetEvent( pobjects[ i ]->o.hEvent );        
+      sel_handler_map[ num_wait ] = i;
+      sel_handlers[ num_wait ++ ] = pobjects[ i ]->o.hEvent;
+    }  
+  }
+    
+  if( num_wait > 0 )
+  {
+    idx = -1;
+    DWORD dwRes = WaitForMultipleObjects( num_wait, sel_handlers, FALSE, timeout == SER_INF_TIMEOUT ? INFINITE : timeout );
+    if( dwRes >= WAIT_OBJECT_0 && dwRes < WAIT_OBJECT_0 + num_wait ) 
+    {
+      i = idx = dwRes - WAIT_OBJECT_0;
+      hnd = pobjects[ sel_handler_map[ i ] ];
+      hnd->fWaitingOnRead = FALSE;
+      if( GetOverlappedResult( hnd->hnd, &hnd->o, &readbytes, TRUE ) && readbytes == 1 )
+        res = hnd->databuf | ( sel_handler_map[ i ] << 8 );
+      ResetEvent( hnd->o.hEvent );        
     }
     else if( dwRes == WAIT_TIMEOUT )
     {
-      for( i = 0; i < nobjects; i ++ )
+      for( i = 0; i < num_wait; i ++ )
       {
-        CancelIo( pobjects[ i ]->hnd );
-        GetOverlappedResult( pobjects[ i ]->hnd, &pobjects[ i ]->o, &readbytes, TRUE );
-        pobjects[ i ]->fWaitingOnRead = FALSE;
-        ResetEvent( pobjects[ i ]->o.hEvent );
-      }
-    }
+        hnd = pobjects[ sel_handler_map[ i ] ];      
+        hnd->fWaitingOnRead = FALSE;      
+        CancelIo( hnd->hnd );
+        GetOverlappedResult( hnd->hnd, &hnd->o, &readbytes, TRUE );
+        ResetEvent( hnd->o.hEvent );
+      } 
+    }  
   }  
-  
+    
   return res;    
 }
+

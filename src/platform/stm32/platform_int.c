@@ -16,8 +16,8 @@ extern USART_TypeDef *const stm32_usart[];
 
 static void all_usart_irqhandler( int resnum )
 {
-  USART_ClearITPendingBit( stm32_usart[ resnum ], USART_IT_RXNE );
   cmn_int_handler( INT_UART_RX, resnum );
+  USART_ClearITPendingBit( stm32_usart[ resnum ], USART_IT_RXNE );  
 }
 
 void USART1_IRQHandler()

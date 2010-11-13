@@ -16,16 +16,18 @@ int uart_service_id_out = -1;
 u8 uart_got_esc = 0;
 int uart_last_sent = -1;
 // [TODO] add interrupt support for virtual UARTs
-#endif
+#else // #ifdef BUILD_SERMUX
+#define SERMUX_PHYS_ID        ( 0xFFFF )
+#endif // #ifdef BUILD_SERMUX
 
 // The platform UART functions
 int platform_uart_exists( unsigned id )
 {
 #ifdef BUILD_SERMUX
-  return id < NUM_UART || ( id >= SERVICE_ID_FIRST && id < SERVICE_ID_FIRST + SERMUX_NUM_VUART );
-#else
+  return id < NUM_UART || ( id >= SERMUX_SERVICE_ID_FIRST && id < SERMUX_SERVICE_ID_FIRST + SERMUX_NUM_VUART );
+#else // #ifdef BUILD_SERMUX
   return id < NUM_UART;
-#endif
+#endif // #ifdef BUILD_SERMUX
 }
 
 // Helper function for buffers
@@ -48,7 +50,7 @@ static int cmn_recv_helper( unsigned id, s32 timeout )
     return ( int )data;
   }
   else
-#endif
+#endif // #ifdef BUF_ENABLE_UART
   return platform_s_uart_recv( id, timeout );
 }
 
@@ -82,16 +84,16 @@ static void cmn_rx_handler( int usart_id, u8 data )
 #ifdef BUILD_SERMUX
   if( usart_id == SERMUX_PHYS_ID )
   {
-    if( data != ESCAPE_CHAR )
+    if( data != SERMUX_ESCAPE_CHAR )
     {
-      if( ( data >= SERVICE_ID_FIRST ) && data < ( SERVICE_ID_FIRST + SERMUX_NUM_VUART ) )
+      if( ( data >= SERMUX_SERVICE_ID_FIRST ) && data < ( SERMUX_SERVICE_ID_FIRST + SERMUX_NUM_VUART ) )
         uart_service_id_in = data;
-      else if( ( data == FORCE_SID_CHAR ) && ( uart_last_sent != -1 ) )
+      else if( ( data == SERMUX_FORCE_SID_CHAR ) && ( uart_last_sent != -1 ) )
       {
         // Retransmit service ID and last char
         platform_s_uart_send( SERMUX_PHYS_ID, uart_service_id_out );
-        if( uart_last_sent & ESC_MASK )
-          platform_s_uart_send( SERMUX_PHYS_ID, ESCAPE_CHAR );
+        if( uart_last_sent & SERMUX_ESC_MASK )
+          platform_s_uart_send( SERMUX_PHYS_ID, SERMUX_ESCAPE_CHAR );
         platform_s_uart_send( SERMUX_PHYS_ID, uart_last_sent & 0xFF );
       }
       else
@@ -99,11 +101,11 @@ static void cmn_rx_handler( int usart_id, u8 data )
         // Check for an escaped char
         if( uart_got_esc )
         {
-          data ^= ESCAPE_XOR_MASK;
+          data ^= SERMUX_ESCAPE_XOR_MASK;
           uart_got_esc = 0;
         }
         if( uart_service_id_in == -1 ) // request full restransmit if needed
-          platform_s_uart_send( SERMUX_PHYS_ID, FORCE_SID_CHAR );
+          platform_s_uart_send( SERMUX_PHYS_ID, SERMUX_FORCE_SID_CHAR );
         else
           buf_write( BUF_ID_UART, uart_service_id_in, ( t_buf_data* )&data );
       }
@@ -112,16 +114,40 @@ static void cmn_rx_handler( int usart_id, u8 data )
       uart_got_esc = 1;
   }
   else
-#endif
+#endif // #ifdef BUILD_SERMUX
   buf_write( BUF_ID_UART, usart_id, ( t_buf_data* )&data );
+}
+
+// Send: version with and without mux
+void platform_uart_send( unsigned id, u8 data ) 
+{
+#ifdef BUILD_SERMUX
+  if( id >= SERMUX_SERVICE_ID_FIRST && id < SERMUX_SERVICE_ID_FIRST + SERMUX_NUM_VUART )
+  {
+    if( id != uart_service_id_out )
+      platform_s_uart_send( SERMUX_PHYS_ID, id );
+    uart_last_sent = data;
+    if( data == SERMUX_ESCAPE_CHAR || data == SERMUX_FORCE_SID_CHAR || ( data >= SERMUX_SERVICE_ID_FIRST && data <= SERMUX_SERVICE_ID_LAST ) )
+    {
+      platform_s_uart_send( SERMUX_PHYS_ID, SERMUX_ESCAPE_CHAR );
+      platform_s_uart_send( SERMUX_PHYS_ID, data ^ SERMUX_ESCAPE_XOR_MASK );
+      uart_last_sent = SERMUX_ESC_MASK | ( data ^ SERMUX_ESCAPE_XOR_MASK );
+    }
+    else
+      platform_s_uart_send( SERMUX_PHYS_ID, data );
+    uart_service_id_out = id;
+  }
+  else
+#endif // #ifdef BUILD_SERMUX
+  platform_s_uart_send( id, data );
 }
 
 #ifdef BUF_ENABLE_UART
 static elua_int_c_handler prev_uart_rx_handler;
 
-static void cmn_uart_rx_handler( elua_int_resnum resnum )
-{
-  if( buf_is_enabled( BUF_ID_UART, resnum ) )
+static void cmn_uart_rx_inthandler( elua_int_resnum resnum )
+{   
+  if( buf_is_enabled( BUF_ID_UART, resnum ) || resnum == SERMUX_PHYS_ID )
     cmn_rx_handler( resnum, platform_s_uart_recv( resnum, 0 ) );
   
   // Chain to previous handler
@@ -132,6 +158,8 @@ static void cmn_uart_rx_handler( elua_int_resnum resnum )
 
 int platform_uart_set_buffer( unsigned id, unsigned log2size )
 {
+  if( id == SERMUX_PHYS_ID ) // mere mortals aren't allowed to mess with VUART physical interface buffering
+    return PLATFORM_ERR;
 #ifdef BUF_ENABLE_UART
   if( log2size == 0 )
   {
@@ -151,36 +179,28 @@ int platform_uart_set_buffer( unsigned id, unsigned log2size )
     if( platform_cpu_set_interrupt( INT_UART_RX, id, PLATFORM_CPU_ENABLE ) != PLATFORM_INT_OK )
       return PLATFORM_ERR;
     // Setup our C handler
-    if( elua_int_get_c_handler( INT_UART_RX ) != cmn_uart_rx_handler )
-      prev_uart_rx_handler = elua_int_set_c_handler( INT_UART_RX, cmn_uart_rx_handler );      
+    if( elua_int_get_c_handler( INT_UART_RX ) != cmn_uart_rx_inthandler )
+      prev_uart_rx_handler = elua_int_set_c_handler( INT_UART_RX, cmn_uart_rx_inthandler );
   }
   return PLATFORM_OK;
-#else
+#else // BUF_ENABLE_UART
   return PLATFORM_ERR;
-#endif
+#endif // BUF_ENABLE_UART
 }
 
-// Send: version with and without mux
-void platform_uart_send( unsigned id, u8 data ) 
-{
 #ifdef BUILD_SERMUX
-  if( id >= SERVICE_ID_FIRST && id < SERVICE_ID_FIRST + SERMUX_NUM_VUART )
+// Setup the serial multiplexer
+void cmn_uart_setup_sermux()
+{
+  // Enable UART RX interrupt 
+  if( platform_cpu_set_interrupt( INT_UART_RX, SERMUX_PHYS_ID, PLATFORM_CPU_ENABLE ) == PLATFORM_INT_OK )
   {
-    if( id != uart_service_id_out )
-      platform_s_uart_send( SERMUX_PHYS_ID, id );
-    uart_last_sent = data;
-    if( data == ESCAPE_CHAR || data == FORCE_SID_CHAR || ( data >= SERVICE_ID_FIRST && data <= SERVICE_ID_LAST ) )
-    {
-      platform_s_uart_send( SERMUX_PHYS_ID, ESCAPE_CHAR );
-      platform_s_uart_send( SERMUX_PHYS_ID, data ^ ESCAPE_XOR_MASK );
-      uart_last_sent = ESC_MASK | ( data ^ ESCAPE_XOR_MASK );
-    }
-    else
-      platform_s_uart_send( SERMUX_PHYS_ID, data );
-    uart_service_id_out = id;
+    // Setup our C handler
+    if( elua_int_get_c_handler( INT_UART_RX ) != cmn_uart_rx_inthandler )
+      prev_uart_rx_handler = elua_int_set_c_handler( INT_UART_RX, cmn_uart_rx_inthandler );
   }
-  else
-#endif
-  platform_s_uart_send( id, data );
+  else // We don't have a choice but to get stuck here, as we can't print an error anyway, since the console most likely lives on a virtual UART
+    while( 1 );      
 }
+#endif // #ifdef BUILD_SERMUX
 

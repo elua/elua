@@ -13,6 +13,7 @@
 #include <string.h>
 
 #define MAX_VTIMER_NAME_LEN     6
+#define MIN_VTIMER_NAME_LEN     5
 
 // Helper function for the read/start functions
 static int tmrh_timer_op( lua_State* L, int op )
@@ -147,7 +148,7 @@ static int tmr_mt_index( lua_State* L )
   char* pend;
   long res;
   
-  if( strlen( key ) > MAX_VTIMER_NAME_LEN || strlen( key ) < 5 )
+  if( strlen( key ) > MAX_VTIMER_NAME_LEN || strlen( key ) < MIN_VTIMER_NAME_LEN )
     return 0;
   if( strncmp( key, "VIRT", 4 ) )
     return 0;  
