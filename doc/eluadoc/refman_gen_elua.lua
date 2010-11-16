@@ -23,6 +23,11 @@ data_en =
         "$memlimit$ - required only when $elua.EGC_ON_MEM_LIMIT$ is specified in $mode$, specifies the EGC upper memory limit."
       },
     },
+    
+    { sig = "#elua.save_history#( filename )",
+      desc = "Save the interpreter line history. Only available if linenoise is enabled, check @linenoise.html@here@ for details.",
+      args = "$filename$ - the name of the file where the history will be saved. *CAUTION*: the file will be overwritten.",
+    },    
   },
 }
 

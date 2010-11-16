@@ -102,6 +102,7 @@ local menu =
           { { "Over TCP/IP", "Console via TCP/IP" }, "using.html#tcpip" },
           { { "On PC", "Num PC" }, "using.html#pc" },
           { { "The shell", "O Shell" }, "using.html#shell" },
+          { "Linenoise", "linenoise.html" },
           { "Cross-compiling", "using.html#cross" },
           { "LuaRPC", "using.html#rpc" },
         },

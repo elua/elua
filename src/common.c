@@ -81,16 +81,34 @@ static int term_translate( int data )
       return KC_ESC;
     if( ( c = platform_uart_recv( CON_UART_ID, CON_TIMER_ID, TERM_TIMEOUT ) ) == -1 )
       return KC_UNKNOWN;
-    switch( c )
+    if( c >= 0x41 && c <= 0x44 )
+      switch( c )
+      {
+        case 0x41:
+          return KC_UP;
+        case 0x42:
+          return KC_DOWN;
+        case 0x43:
+          return KC_RIGHT;
+        case 0x44:
+          return KC_LEFT;               
+      }
+    else if( c > 48 && c < 55 )
     {
-      case 0x41:
-        return KC_UP;
-      case 0x42:
-        return KC_DOWN;
-      case 0x43:
-        return KC_RIGHT;
-      case 0x44:
-        return KC_LEFT;               
+      // Extended sequence: read another byte
+      if( platform_uart_recv( CON_UART_ID, CON_TIMER_ID, TERM_TIMEOUT ) != 126 )
+        return KC_UNKNOWN;
+      switch( c )
+      {
+        case 49:
+          return KC_HOME;
+        case 52:
+          return KC_END;
+        case 53:
+          return KC_PAGEUP;
+        case 54:
+          return KC_PAGEDOWN;  
+      }
     }
   }
   else if( data == 0x0D )
@@ -105,17 +123,24 @@ static int term_translate( int data )
     {
       case 0x09:
         return KC_TAB;
-      case 0x16:
-        return KC_PAGEDOWN;
-      case 0x15:
-        return KC_PAGEUP;
-      case 0x05:
-        return KC_END;
-      case 0x01:
-        return KC_HOME;
       case 0x7F:
+        return KC_DEL;
       case 0x08:
         return KC_BACKSPACE;
+      case 26:
+        return KC_CTRL_Z;
+      case 1:
+        return KC_CTRL_A;
+      case 5:
+        return KC_CTRL_E;
+      case 3:
+        return KC_CTRL_C;
+      case 20:
+        return KC_CTRL_T;
+      case 21:
+        return KC_CTRL_U;
+      case 11:
+        return KC_CTRL_K; 
     }
   }
   return KC_UNKNOWN;

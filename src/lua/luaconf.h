@@ -277,7 +277,7 @@
 ** CHANGE it if you need longer lines.
 */
 #define LUA_MAXINPUT	128
-
+               
 
 /*
 @@ lua_readline defines how to show a prompt and then read a line from
@@ -287,6 +287,7 @@
 ** CHANGE them if you want to improve this functionality (e.g., by using
 ** GNU readline and history facilities).
 */
+#if defined(LUA_CROSS_COMPILER)
 #if defined(LUA_USE_READLINE)
 #include <stdio.h>
 #include <readline/readline.h>
@@ -296,13 +297,24 @@
 	if (lua_strlen(L,idx) > 0)  /* non-empty line? */ \
 	  add_history(lua_tostring(L, idx));  /* add it to history */
 #define lua_freeline(L,b)	((void)L, free(b))
-#else
+#else // #if defined(LUA_USE_READLINE)
 #define lua_readline(L,b,p)	\
 	((void)L, fputs(p, stdout), fflush(stdout),  /* show prompt */ \
 	fgets(b, LUA_MAXINPUT, stdin) != NULL)  /* get line */
 #define lua_saveline(L,idx)	{ (void)L; (void)idx; }
 #define lua_freeline(L,b)	{ (void)L; (void)b; }
-#endif
+#endif // #if defined(LUA_USE_READLINE)
+
+#else // #if defined(LUA_CROSS_COMPILER)
+
+#include "linenoise.h"
+#define lua_readline(L,b,p)	((void)L, (linenoise_getline(b,p)) != -1)
+#define lua_saveline(L,idx) \
+	if (lua_strlen(L,idx) > 0)  /* non-empty line? */ \
+	  linenoise_addhistory(lua_tostring(L, idx));  /* add it to history */
+#define lua_freeline(L,b)	{ (void)L; (void)b; }
+
+#endif // #if defined(LUA_CROSS_COMPILER)
 
 #endif
 

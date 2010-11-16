@@ -24,6 +24,7 @@
 #define BUILD_RPC
 //#define BUILD_RFS
 //#define BUILD_CON_TCP
+#define BUILD_LINENOISE
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
@@ -168,6 +169,9 @@ u32 platform_s_cpu_get_frequency();
 #define RFS_TIMER_ID          0
 #define RFS_TIMEOUT           100000
 #define RFS_UART_SPEED        115200
+
+// Linenoise buffer size
+#define LINENOISE_HISTORY_SIZE  50
 
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)

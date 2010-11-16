@@ -28,6 +28,8 @@
 #include "elua_int.h"
 #include "platform.h"
 #endif
+// BogdanM: linenoise clenaup
+#include "linenoise.h"
 
 #define state_size(x)	(sizeof(x) + LUAI_EXTRASPACE)
 #define fromstate(l)	(cast(lu_byte *, (l)) - LUAI_EXTRASPACE)
@@ -228,7 +230,6 @@ lua_State *lua_open(void) {
 lua_State *lua_getstate(void) {
   return lua_crtstate;
 }
-
 LUA_API void lua_close (lua_State *L) {
 #ifndef LUA_CROSS_COMPILER  
   int oldstate = platform_cpu_set_global_interrupts( PLATFORM_CPU_DISABLE );
@@ -238,6 +239,7 @@ LUA_API void lua_close (lua_State *L) {
   lua_rawseti( L, LUA_REGISTRYINDEX, LUA_INT_HANDLER_KEY );
   elua_int_cleanup();
   platform_cpu_set_global_interrupts( oldstate );
+  linenoise_cleanup();
 #endif  
   L = G(L)->mainthread;  /* only the main thread can be closed */
   lua_lock(L);

@@ -50,4 +50,11 @@
   #endif // #ifndef BUILD_UIP
 #endif // #ifdef BUILD_DNS
 
+// For linenoise we need term
+#ifdef BUILD_LINENOISE
+  #ifndef BUILD_TERM
+  #error "linenoise needs term support, define BUILD_TERM"
+  #endif // #ifndef BUILD_TERM
+#endif // #ifdef BUILD_LINENOISE
+
 #endif // #ifndef __VALIDATE_H__

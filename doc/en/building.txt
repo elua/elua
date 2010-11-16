@@ -131,10 +131,21 @@ o|BUILD_RPC         |Define this to build support for LuaRPC. This must be enabl
 
 link:#static[Static configuration data dependencies]: (ONLY if built with boot=luarpc): *RPC_UART_ID, RPC_TIMER_ID*
 
-o|BUILD_C_INT_HANDLERS |Enable generic interrupt support in the C code, check link:inthandlers.html[here] for details.
+o|BUILD_C_INT_HANDLERS |Enable generic interrupt support in the C code, check link:inthandlers.html[here] for details. To enable:
 
-o|BUILD_LUA_INT_HANDLERS |Enable generic interrupt support in the Lua code, check link:inthandlers.html[here] for details. +
+  #define BUILD_C_INT_HANDLERS
+
+o|BUILD_LUA_INT_HANDLERS |Enable generic interrupt support in the Lua code, check link:inthandlers.html[here] for details. To enable:
+
+  #define BUILD_LUA_INT_HANDLERS
+  
 xref:static[Static configuration data dependencies]: *PLATFORM_INT_QUEUE_LOG_SIZE*
+
+o|BUILD_LINENOISE        |Enables linenoise support, check link:linenoise.html[here] for details. To enable:
+
+  #define BUILD_LINENOISE
+  
+xref:static[Static configuration data dependencies]: *LINENOISE_HISTORY_SIZE, LINENOISE_AUTOSAVE_FNAME*
 |===================================================================
 
 [[confmodules]]
@@ -244,6 +255,11 @@ EGC_INITIAL_MEMLIMIT |**(version 0.7 or above)**Configure the default (compile t
 about the EGC patch). If not specified, *EGC_INITIAL_MODE* defaults to *EGC_NOT_ACTIVE* (emergency garbage collector disabled) and *EGC_INITIAL_MEMLIMIT* defaults to 0.
 
 o|PLATFORM_INT_QUEUE_LOG_SIZE  |If Lua interrupt support is enabled, this defines the base 2 logarithm of the size of the interrupt queue. Check link:inthandlers.html[here] for details.
+
+o|LINENOISE_HISTORY_SIZE       |If linenoise support is enabled, this defines the number of lines kept in history. Check link:linenoise.html[here] for details.
+
+o|LINENOISE_AUTOSAVE_FNAME  |If linenoise support is enabled, the history will automatically be saved everytime the Lua interpreter exits in the filename specified 
+by this macro. Check link:linenoise.html[here] for details. This macro is optional; if it's not defined, the history will not be saved automatically.
 |===================================================================
 
 The rest of the static configuration data parameters are meant to be modified mainly by developers and thus they're not listed here. +

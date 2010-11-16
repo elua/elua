@@ -245,6 +245,9 @@ Manufacturer provided CPU support libraries are licensed under their
 own terms. Check src/platform/*platform-name* for details of each
 license.
 
+https://github.com/antirez/linenoise[linenoise] (eLua's readline replacement) 
+is released under a BSD license. 
+
 The rest of the eLua code is licensed under MIT.
 
 // $$FOOTER$$

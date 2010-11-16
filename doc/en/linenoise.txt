@@ -1,0 +1,41 @@
+// $$HEADER$$
+What is linenoise?
+------------------
+Technically speaking, https://github.com/antirez/linenoise[Linenoise] is a small
+replacement library for GNU's http://tiswww.case.edu/php/chet/readline/rltop.html[readline]
+library, which is already supported by standard Lua. What it actually does is
+give you a nice way to edit your Lua commands inside the Lua interpreter
+(by using the arrow keys and different other key sequences presented below),
+recall a line that was already entered, and save the history of the lines you
+entered. It's very convenient when prototyping within the Lua interpreter, because
+all the lines entered at the Lua prompt can be saved and turned into a proper
+application by editing the save file. It also takes the Lua interpreter much
+closer to its desktop counterpart with regards to ease of use.
+
+Linenoise in eLua
+-----------------
+Starting with version 0.8 eLua contains a port of the linenoise library. To use it make sure it is included 
+in the build, reffer to the link:build.html[build instructions] for details. Note that linenoise requires
+ANSI terminal support (*BUILD_TERM*), so you need to enable that too. To use it, simply start the Lua interpreter.
+The table below contains a list of keys that can be used to take advantage of linenoise:
+
+[width="100%", cols="<2,<5", options="header"]
+|=============================================
+^| Key(s)                    ^| Action
+| Left and right              | Move left and right in the current prompt line
+| Up                          | Recall the previous line
+| Down                        | Recall the next line
+| CTRL+C                      | Abandon the current line
+| Delete (not backspace)      | Delete the character under the cursor
+| Home                        | Go to the beginning of the line
+| End                         | Go to the end of the line
+| CTRL+K                      | Delete from the cursor to the end of the line
+| CTRL+U                      | Delete the current line 
+|=============================================
+
+To save the history, simply call *elua.save_history* with the name of the file in which the history will be saved
+(check link:refman_gen_elua.html[here] for details). Be careful, the file will be overwritten. +
+The reason why this component isn't enabled by default is that it takes RAM (like all good things in eLua :) ) so
+keep this in mind when deciding if you want it or not.      
+ 
+// $$FOOTER$$
