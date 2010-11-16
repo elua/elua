@@ -320,7 +320,7 @@ div.tableblock, div.imageblock, div.exampleblock, div.verseblock,
 div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
 div.admonitionblock {
   margin-top: 1.0em;
-  margin-bottom: 1.5em;
+  margin-bottom: 1.0em;
 }
 div.admonitionblock {
   margin-top: 2.0em;
@@ -408,6 +408,10 @@ div.admonitionblock .icon {
 div.admonitionblock td.content {
   padding-left: 0.5em;
   border-left: 3px solid #aaaaaa;
+}
+
+div.tableblock {
+  margin-right: 1em;
 }
 
 div.exampleblock > div.content {
@@ -679,4 +683,19 @@ span.bblue {
 dd {
   display: block;
   margin-left: 20px;
+}
+
+div.tableblock div.paragraph p {
+	padding: 0;
+	margin: 0;
+}
+
+div.literalblock div.content pre {
+  border: 0px;
+  background: #ffffff;
+	font-family: "Courier New",Courier,monospace;
+	font-size: 110%;
+	overflow: auto;
+	padding: 0;
+  margin-left: 1em;
 }

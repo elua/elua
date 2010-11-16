@@ -24,8 +24,10 @@
 #include "ltm.h"
 #include "platform_conf.h"
 // BogdanM: modified for Lua interrupt support
+#ifndef LUA_CROSS_COMPILER
 #include "elua_int.h"
 #include "platform.h"
+#endif
 
 #define state_size(x)	(sizeof(x) + LUAI_EXTRASPACE)
 #define fromstate(l)	(cast(lu_byte *, (l)) - LUAI_EXTRASPACE)
@@ -226,11 +228,14 @@ lua_State *lua_open(void) {
 lua_State *lua_getstate(void) {
   return lua_crtstate;
 }
+
 LUA_API void lua_close (lua_State *L) {
 #ifndef LUA_CROSS_COMPILER  
   int oldstate = platform_cpu_set_global_interrupts( PLATFORM_CPU_DISABLE );
   lua_sethook( L, NULL, 0, 0 );
   lua_crtstate = NULL;
+  lua_pushnil( L );
+  lua_rawseti( L, LUA_REGISTRYINDEX, LUA_INT_HANDLER_KEY );
   elua_int_cleanup();
   platform_cpu_set_global_interrupts( oldstate );
 #endif  
@@ -247,6 +252,5 @@ LUA_API void lua_close (lua_State *L) {
   lua_assert(G(L)->tmudata == NULL);
   luai_userstateclose(L);
   close_state(L);
-  // BogdanM: modified for eLua interrupt support
 }
 
