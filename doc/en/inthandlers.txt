@@ -94,22 +94,29 @@ end
 [bblue]*cpu.sei( cpu.INT_TMR_MATCH, vtmrid )*
 
 local tmrid, count = 0, 0
--- Enter an infinite loop that prints "Outside interrupt" every second
--- This output will be interleaved with the interrupt handler timeout:
---   the timer interrupt message will appear every 1.5 seconds
---   the GPIO message will appear each time pin 0 of port 0 changes state from 1 to 0
 while true do
   print "Outside interrupt" 
-  for i = 1, 1000 do 
-    tmr.delay( tmrid, 1000 )
-    count = count + 1 
-  end
-  if count == 5 then -- Set new handler after 5 seconds
-    print "Setting new handler for INT_TMR_MATCH"
+  for i = 1, 1000 do tmr.delay( tmrid, 1000 ) end
+  if uart.getchar( uartid, 0 ) ~= "" then break end 
+  count = count + 1
+  if count == 5 then
+    print "Changing timer interrupt handler"
     [bblue]*new_prev_tmr = cpu.set_int_handler( cpu.INT_TMR_MATCH, new_tmr_handler )*
   end
 end
--------------------------------
+
+-- Cleanup
+-- Stop the timer from generating periodic interrupts
+[bblue]*tmr.set_match_int( vtmrid, 0, tmr.INT_CYCLIC );*
+-- Disable the GPIO interrupt on change (negative edge) interrupt 
+[bblue]*cpu.cli( cpu.INT_GPIO_NEGEDGE, pio.P0_0 )*
+-- Disable the timer interrupt on match interrupt
+[bblue]*cpu.cli( cpu.INT_TMR_MATCH, vtmrid )*
+-- Clear the timer interrupt handler
+[bblue]*cpu.set_int_handler( cpu.INT_TMR_MATCH, nil );*
+-- Clear the GPIO interrupt handler
+[bblue]*cpu.set_int_handler( cpu.INT_GPIO_NEGEDGE, nil );*
+------------------------------
 
 This is the most common use case for Lua interrupts, but it's not the only one. Another way to use interrupts from eLua uses *polling* instead of interrupt handlers: directly 
 check the interrupt flags and execute a certain action when one of them becomes set. For this, use the _cpu.get_int_flag( id, resnum, [clear] )_ function from the _mcpu module, 
