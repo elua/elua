@@ -26,7 +26,6 @@ The table below contains a list of keys that can be used to take advantage of li
 | Up                          | Recall the previous line
 | Down                        | Recall the next line
 | CTRL+C                      | Abandon the current line
-| Delete (not backspace)      | Delete the character under the cursor
 | Home                        | Go to the beginning of the line
 | End                         | Go to the end of the line
 | CTRL+K                      | Delete from the cursor to the end of the line
@@ -35,6 +34,8 @@ The table below contains a list of keys that can be used to take advantage of li
 
 To save the history, simply call *elua.save_history* with the name of the file in which the history will be saved
 (check link:refman_gen_elua.html[here] for details). Be careful, the file will be overwritten. +
+The exact same keys presented in the table above can be used by the eLua shell if linenoise is enabled for it. 
+However, you won't be able to save history from the eLua shell. +
 The reason why this component isn't enabled by default is that it takes RAM (like all good things in eLua :) ) so
 keep this in mind when deciding if you want it or not.      
  

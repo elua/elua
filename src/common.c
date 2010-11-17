@@ -124,7 +124,7 @@ static int term_translate( int data )
       case 0x09:
         return KC_TAB;
       case 0x7F:
-        return KC_DEL;
+//        return KC_DEL; // bogdanm: some terminal emulators (for example screen) return 0x7F for BACKSPACE :(
       case 0x08:
         return KC_BACKSPACE;
       case 26:

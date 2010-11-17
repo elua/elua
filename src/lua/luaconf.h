@@ -308,10 +308,10 @@
 #else // #if defined(LUA_CROSS_COMPILER)
 
 #include "linenoise.h"
-#define lua_readline(L,b,p)	((void)L, (linenoise_getline(b,p)) != -1)
+#define lua_readline(L,b,p)	((void)L, (linenoise_getline(LINENOISE_ID_LUA,b,LUA_MAXINPUT,p)) != -1)
 #define lua_saveline(L,idx) \
 	if (lua_strlen(L,idx) > 0)  /* non-empty line? */ \
-	  linenoise_addhistory(lua_tostring(L, idx));  /* add it to history */
+	  linenoise_addhistory(LINENOISE_ID_LUA, lua_tostring(L, idx));  /* add it to history */
 #define lua_freeline(L,b)	{ (void)L; (void)b; }
 
 #endif // #if defined(LUA_CROSS_COMPILER)

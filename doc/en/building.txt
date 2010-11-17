@@ -145,7 +145,7 @@ o|BUILD_LINENOISE        |Enables linenoise support, check link:linenoise.html[h
 
   #define BUILD_LINENOISE
   
-xref:static[Static configuration data dependencies]: *LINENOISE_HISTORY_SIZE, LINENOISE_AUTOSAVE_FNAME*
+xref:static[Static configuration data dependencies]: *LINENOISE_HISTORY_SIZE_LUA, LINENOISE_HISTORY_SIZE_SHELL, LINENOISE_AUTOSAVE_FNAME*
 |===================================================================
 
 [[confmodules]]
@@ -256,7 +256,11 @@ about the EGC patch). If not specified, *EGC_INITIAL_MODE* defaults to *EGC_NOT_
 
 o|PLATFORM_INT_QUEUE_LOG_SIZE  |If Lua interrupt support is enabled, this defines the base 2 logarithm of the size of the interrupt queue. Check link:inthandlers.html[here] for details.
 
-o|LINENOISE_HISTORY_SIZE       |If linenoise support is enabled, this defines the number of lines kept in history. Check link:linenoise.html[here] for details.
+o|LINENOISE_HISTORY_SIZE_LUA   |If linenoise support is enabled, this defines the number of lines kept in history for the Lua interpreter. Check link:linenoise.html[here] for details. If history
+support in Lua is not needed, define this as 0.
+
+o|LINENOISE_HISTORY_SIZE_SHELL  |If linenoise support is enabled, this defines the number of lines kept in history for the eLua shell. Check link:linenoise.html[here] for details. If history
+support in the eLua shell is not needed, define this as 0.
 
 o|LINENOISE_AUTOSAVE_FNAME  |If linenoise support is enabled, the history will automatically be saved everytime the Lua interpreter exits in the filename specified 
 by this macro. Check link:linenoise.html[here] for details. This macro is optional; if it's not defined, the history will not be saved automatically.

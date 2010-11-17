@@ -37,9 +37,15 @@ static int elua_save_history( lua_State *L )
 {
 #ifdef BUILD_LINENOISE
   const char* fname = luaL_checkstring( L, 1 );
+  int res;
   
-  if( linenoise_savehistory( fname ) == 0 )
+  res = linenoise_savehistory( LINENOISE_ID_LUA, fname );
+  if( res == 0 )
     printf( "History saved to %s.\n", fname );
+  else if( res == LINENOISE_HISTORY_NOT_ENABLED )
+    printf( "linenoise not enabled for Lua.\n" );
+  else if( res == LINENOISE_HISTORY_EMPTY )
+    printf( "History empty, nothing to save.\n" );
   else
     printf( "Unable to save history to %s.\n", fname );
   return 0;  

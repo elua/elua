@@ -12,8 +12,9 @@
 #include "platform.h"
 #include "elua_net.h"
 #include "devman.h"
-
+#include "linenoise.h"
 #include "platform_conf.h"
+
 #ifdef BUILD_SHELL
 
 // Shell alternate ' ' char
@@ -252,7 +253,7 @@ static const SHELL_COMMAND shell_commands[] =
 // Execute the eLua "shell" in an infinite loop
 void shell_start()
 {
-  char cmd[ SHELL_MAXSIZE ];
+  char cmd[ SHELL_MAXSIZE + 1 ];
   char *p, *temp;
   const SHELL_COMMAND* pcmd;
   int i, inside_quotes;
@@ -261,12 +262,16 @@ void shell_start()
   printf( SHELL_WELCOMEMSG, ELUA_STR_VERSION );
   while( 1 )
   {
-    // Show prompt
-    printf( SHELL_PROMPT );
-
-    // Read command
-    while( fgets( cmd, SHELL_MAXSIZE, stdin ) == NULL )
+    while( linenoise_getline( LINENOISE_ID_SHELL, cmd, SHELL_MAXSIZE, SHELL_PROMPT ) == -1 )
+    {
+      printf( "\n" );
       clearerr( stdin );
+    }
+    if( strlen( cmd ) == 0 )
+      continue;
+    linenoise_addhistory( LINENOISE_ID_SHELL, cmd );
+    if( cmd[ strlen( cmd ) - 1 ] != '\n' )
+      strcat( cmd, "\n" );
 
     // Change '\r' and '\n' chars to ' ' to ease processing
     p = cmd;
