@@ -395,7 +395,7 @@ int linenoise_getline( char* buffer, const char* prompt )
 {
 	fputs( prompt, stdout );
   fflush( stdout );
-	return fgets( buffer, LUA_MAXINPUT, stdin ) != NULL;
+	return fgets( buffer, LUA_MAXINPUT, stdin ) == NULL ? -1 : 0;
 }
 
 int linenoise_addhistory( const char *line )
