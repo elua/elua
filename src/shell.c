@@ -285,7 +285,7 @@ static void shell_cp( char *args )
                 if( datalen < SHELL_COPY_BUFSIZE )
                   break;
               }
-              printf( "%u bytes copied\n", total );
+              printf( "%u bytes copied\n", ( unsigned int )total );
               res = 1;
             }
           }

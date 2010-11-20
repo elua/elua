@@ -151,10 +151,10 @@ void cmn_platform_init()
 #ifdef BUILD_INT_HANDLERS
   platform_int_init();
 #endif
-  
+
 #ifdef BUILD_SERMUX
   unsigned i;
-  unsigned bufsizes[] = SERMUX_BUFFER_SIZES;
+  unsigned bufsizes[] = SERMUX_BUFFER_SIZES;  
 
   // Setup the serial multiplexer
   platform_uart_setup( SERMUX_PHYS_ID, SERMUX_PHYS_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
@@ -162,10 +162,10 @@ void cmn_platform_init()
 
   // Set buffers for all virtual UARTs 
   for( i = 0; i < sizeof( bufsizes ) / sizeof( unsigned ); i ++ )
-    platform_uart_set_buffer( i + SERMUX_SERVICE_ID_FIRST, bufsizes[ i ] );    
+    platform_uart_set_buffer( i + SERMUX_SERVICE_ID_FIRST, bufsizes[ i ] );
 #endif
 
-#if CON_UART_ID < SERMUX_SERVICE_ID_FIRST
+#if defined( CON_UART_ID ) && CON_UART_ID < SERMUX_SERVICE_ID_FIRST
   // Setup console UART
   platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );  
   platform_uart_set_buffer( CON_UART_ID, CON_BUF_SIZE );
