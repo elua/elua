@@ -139,9 +139,6 @@ int platform_init()
   platform_setup_timers();
   platform_setup_pwm();
   
-  // Initialize console UART
-  platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
-  
 #ifdef BUILD_ADC
   // Setup ADCs
   platform_setup_adcs();

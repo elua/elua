@@ -236,7 +236,7 @@ void platform_int_init()
 // Interrupt table
 // Must have a 1-to-1 correspondence with the interrupt enum in platform_conf.h!
 
-elua_int_descriptor elua_int_table[ INT_ELUA_LAST ] = 
+const elua_int_descriptor elua_int_table[ INT_ELUA_LAST ] = 
 {
   { int_gpio_posedge_set_status, int_gpio_posedge_get_status, int_gpio_posedge_get_flag },
   { int_gpio_negedge_set_status, int_gpio_negedge_get_status, int_gpio_negedge_get_flag }

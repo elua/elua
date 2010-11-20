@@ -10,9 +10,13 @@
 #include "irq.h"
 #include "LPC23xx.h"
 #include "target.h"
+#include "uart.h"
 
 // ****************************************************************************
 // Interrupt handlers
+
+// ----------------------------------------------------------------------------
+// GPIO
 
 static PREG const posedge_status[] = { ( PREG )&IO0_INT_STAT_R, ( PREG )&IO2_INT_STAT_R };
 static PREG const negedge_status[] = { ( PREG )&IO0_INT_STAT_F, ( PREG )&IO2_INT_STAT_F };
@@ -47,6 +51,40 @@ static void int_handler_eint3()
   // Run the interrupt through eLua
   cmn_int_handler( id, resnum );
   VICVectAddr = 0; // ACK interrupt    
+}
+
+// ----------------------------------------------------------------------------
+// UART
+
+static PREG const uart_ier[] = { ( PREG )&U0IER, ( PREG )&U1IER, ( PREG )&U2IER, ( PREG )&U3IER };
+static PREG const uart_iir[] = { ( PREG )&U0IIR, ( PREG )&U1IIR, ( PREG )&U2IIR, ( PREG )&U3IIR };
+
+// Common UART interrupt handler
+static void uart_rx_common_handler( elua_int_resnum resnum )
+{
+  cmn_int_handler( INT_UART_RX, resnum );
+  VICVectAddr = 0;
+}
+
+// Interrupt handlers for individual UARTs
+static void int_handler_uart0()
+{
+  uart_rx_common_handler( 0 );
+}
+
+static void int_handler_uart1()
+{
+  uart_rx_common_handler( 1 );
+}
+
+static void int_handler_uart2()
+{
+  uart_rx_common_handler( 2 );
+}
+
+static void int_handler_uart3()
+{
+  uart_rx_common_handler( 3 );
 }
 
 // ****************************************************************************
@@ -151,35 +189,75 @@ static int int_gpio_negedge_get_flag( elua_int_resnum resnum, int clear )
 
 static int int_tmr_match_set_status( elua_int_resnum resnum, int status )
 {
-  return PLATFORM_INT_NOT_HANDLED;
+  return PLATFORM_INT_BAD_RESNUM;
 }
 
 static int int_tmr_match_get_status( elua_int_resnum resnum )
 {
-  return PLATFORM_INT_NOT_HANDLED;
+  return PLATFORM_INT_BAD_RESNUM;
 }
 
 static int int_tmr_match_get_flag( elua_int_resnum resnum, int clear )
 {
-  return PLATFORM_INT_NOT_HANDLED;
+  return PLATFORM_INT_BAD_RESNUM;
+}
+
+// ****************************************************************************
+// Interrupt: INT_UART_RX
+
+static int int_uart_rx_get_status( elua_int_resnum resnum )
+{
+  PREG UxIER = uart_ier[ resnum ];
+
+  return ( *UxIER & IER_RBR ) ? 1 : 0; 
+}
+
+static int int_uart_rx_set_status( elua_int_resnum resnum, int status )
+{
+  PREG UxIER = uart_ier[ resnum ];
+  int prev = int_uart_rx_get_status( resnum );
+
+  if( status == PLATFORM_CPU_ENABLE )
+    *UxIER |= IER_RBR;
+  else
+    *UxIER &= ~IER_RBR; 
+  return prev;
+}
+
+static int int_uart_rx_get_flag( elua_int_resnum resnum, int clear )
+{
+  PREG UxIIR = uart_iir[ resnum ];
+
+  // 'clear' is not needed here, the interrupt will be cleared when reading the RBR register
+  ( void )clear;
+  if( ( *UxIIR & IIR_PEND ) == 0 )
+    return ( ( *UxIIR >> 1 ) & 0x07 ) == IIR_RDA;
+  return 0;
 }
 
 // ****************************************************************************
 // Interrupt initialization
 
+typedef void ( *p_handler )();
+
 void platform_int_init()
 {
-  install_irq( EINT3_INT, int_handler_eint3, HIGHEST_PRIORITY - 1 );   
+  install_irq( EINT3_INT, int_handler_eint3, HIGHEST_PRIORITY + 1 );   
+  install_irq( UART0_INT, int_handler_uart0, HIGHEST_PRIORITY + 2 );
+  install_irq( UART1_INT, int_handler_uart1, HIGHEST_PRIORITY + 3 );
+  install_irq( UART2_INT, int_handler_uart2, HIGHEST_PRIORITY + 4 );
+  install_irq( UART3_INT, int_handler_uart3, HIGHEST_PRIORITY + 5 );
 }
 
 // ****************************************************************************
 // Interrupt table
 // Must have a 1-to-1 correspondence with the interrupt enum in platform_conf.h!
 
-elua_int_descriptor elua_int_table[ INT_ELUA_LAST ] = 
+const elua_int_descriptor elua_int_table[ INT_ELUA_LAST ] = 
 {
   { int_gpio_posedge_set_status, int_gpio_posedge_get_status, int_gpio_posedge_get_flag },
   { int_gpio_negedge_set_status, int_gpio_negedge_get_status, int_gpio_negedge_get_flag },
-  { int_tmr_match_set_status, int_tmr_match_get_status, int_tmr_match_get_flag }
+  { int_tmr_match_set_status, int_tmr_match_get_status, int_tmr_match_get_flag },
+  { int_uart_rx_set_status, int_uart_rx_get_status, int_uart_rx_get_flag }
 };
 

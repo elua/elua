@@ -132,7 +132,6 @@ int platform_init()
     
   // UART setup
   platform_gpio_uart_setup();
-  platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
 
   // Initialize timers
   for( i = 0; i < 4; i ++ )

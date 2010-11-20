@@ -28,9 +28,6 @@ int platform_init()
   // Initialize CPU
   lpc288x_init();
   
-  // Initialize UART
-  uart_init( CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
-  
   // Initialize timers
   T0CTRL = 0;
   T1CTRL = 0;
@@ -112,6 +109,7 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )
 {
+  ( void )id;
   return uart_init( baud, databits, parity, stopbits );
 }
 

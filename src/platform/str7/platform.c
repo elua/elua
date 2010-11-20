@@ -49,9 +49,6 @@ int platform_init()
   // Initialize clocks
   clock_init();
   
-  // Setup UART1 for operation
-  platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
-  
   // Initialize Timer 0 for XMODEM
   platform_timer_op( 0, PLATFORM_TIMER_OP_SET_CLOCK, 39000 ); 
   

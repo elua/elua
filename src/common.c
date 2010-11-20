@@ -14,6 +14,7 @@
 #include "term.h"
 #include "xmodem.h"
 #include "elua_int.h"
+#include "sermux.h"
 
 // [TODO] the new builder should automatically do this
 #if defined( BUILD_LUA_INT_HANDLERS ) || defined( BUILD_C_INT_HANDLERS )
@@ -23,7 +24,7 @@
 #define INT_TMR_MATCH         ELUA_INT_INVALID_INTERRUPT
 #endif
 
-extern elua_int_descriptor elua_int_table[ INT_ELUA_LAST ];
+extern const elua_int_descriptor elua_int_table[ INT_ELUA_LAST ];
 
 #endif // #if defined( BUILD_LUA_INT_HANDLERS ) || defined( BUILD_C_INT_HANDLERS )
 
@@ -164,7 +165,7 @@ void cmn_platform_init()
     platform_uart_set_buffer( i + SERMUX_SERVICE_ID_FIRST, bufsizes[ i ] );    
 #endif
 
-#if defined( CON_UART_ID ) && CON_UART_ID < SERMUX_SERVICE_ID_FIRST
+#if CON_UART_ID < SERMUX_SERVICE_ID_FIRST
   // Setup console UART
   platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );  
   platform_uart_set_buffer( CON_UART_ID, CON_BUF_SIZE );

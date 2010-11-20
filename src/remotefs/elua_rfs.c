@@ -152,7 +152,7 @@ static u32 rfs_send( const u8 *p, u32 size )
   return ( u32 )hostif_write( rfs_write_fd, p, size );
 }
 
-static u32 rfs_recv( u8 *p, u32 size, u32 timeout )
+static u32 rfs_recv( u8 *p, u32 size, s32 timeout )
 {
   timeout = timeout;
   return ( u32 )hostif_read( rfs_read_fd, p, size );

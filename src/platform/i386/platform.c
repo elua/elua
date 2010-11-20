@@ -168,6 +168,19 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
 }
 
 // ****************************************************************************
+// "Dummy" CPU functions
+
+int platform_cpu_set_global_interrupts( int status )
+{
+  return 0;
+}
+
+int platform_cpu_get_global_interrupts()
+{
+  return 0;
+}
+
+// ****************************************************************************
 // Allocator support
 
 u32 platform_get_lastmem()

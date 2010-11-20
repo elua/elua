@@ -78,8 +78,8 @@
 #define RPC_UART_SPEED        CON_UART_SPEED
 
 // Enable RX buffering on UART
-#define BUF_ENABLE_UART
-#define CON_BUF_SIZE          BUF_SIZE_128
+//#define BUF_ENABLE_UART
+//#define CON_BUF_SIZE          BUF_SIZE_128
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 #define CPU_FREQUENCY         BOARD_MCK

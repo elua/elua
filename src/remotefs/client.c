@@ -10,6 +10,8 @@
 #include "platform_conf.h"
 #include "buf.h"
 
+#ifdef BUILD_RFS
+
 #if 0
 #define RFSDEBUG        printf
 #else
@@ -39,7 +41,6 @@ static int rfsch_send_request_read_response()
   while( rfsc_recv( rfsc_buffer, 1, 0 ) == 1 );
 #endif
 
-  RFSDEBUG( "[RFS] before send request: %d\n", buf_get_count( BUF_ID_UART, RFS_UART_ID ) );
   // Send request
   if( eluarpc_get_packet_size( rfsc_buffer, &temp16 ) == ELUARPC_ERR )
   {
@@ -217,3 +218,4 @@ int rfsc_closedir( u32 d )
   return res;
 }  
 
+#endif // #ifdef BUILD_RFS
