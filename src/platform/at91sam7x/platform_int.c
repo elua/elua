@@ -46,7 +46,7 @@ void __uart0_rx_handler_helper()
 
 static void __attribute__((naked)) uart0_rx_handler()
 {
-    INT_STUB( __uart0_rx_handler_helper );
+  INT_STUB( __uart0_rx_handler_helper );
 }
 
 void __uart1_rx_handler_helper()
@@ -56,7 +56,7 @@ void __uart1_rx_handler_helper()
 
 static void __attribute__((naked)) uart1_rx_handler()
 {
-    INT_STUB( __uart1_rx_handler_helper );
+  INT_STUB( __uart1_rx_handler_helper );
 }
 
 // ****************************************************************************
