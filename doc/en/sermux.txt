@@ -1,0 +1,264 @@
+// $$HEADER$$
+The eLua serial multiplexer
+---------------------------
+*(v0.8 and above)* The *serial multiplexer* is an optional eLua component that allows
+using several serial ports over a single physical serial link connection. It can be a 
+very convenient feature, since some eLua components (such as link:using.html#rpc[the RPC mechanism] 
+or link:arfs_rfs.html[the remote file system]) need a serial link to the PC and 
+it's very incovenient (or even impossible sometimes) to connect the eLua board 
+to the PC with 2 or more serial cables. A common use scenario for the serial
+multiplexer is to have the eLua shell and RFS running over a single physical 
+connection to the PC, a very convenient method that will probably appeal to most
+eLua users.
+
+How does it work?
+~~~~~~~~~~~~~~~~~
+On the eLua side a number of virtual serial ports are defined. The eLua code
+can use these ports just like they would use a physical port, simply by specifing 
+a virtual port ID instead of a physical port ID. On the PC side, two things are 
+needed:
+
+- a program that can (de)multiplex UART requests from the eLua board. It is called
+  *mux* and it is part of the standard eLua distribution.
+- a mechanism for creating and using "virtual serial ports" on the PC itself. These
+  are actually pairs of virtual UARTs that are connected internally (inside
+  the OS) via a null-modem cable mechanism, which means that when you type something
+  on one port you can see its output on its pair (and the other way around).
+  
+See below for details on how to use virtual serial ports in Linux and Windows.  
+  
+Virtual serial ports in Linux
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Linux already supports the virtual serial port mechanism described above via the
+standard UNIX pseudo terminals, see http://en.wikipedia.org/wiki/Pseudo_terminal[here]
+for details. Note that the multiplexer supports only BSD PTYs (*dev/ttypx*) and not
+Unix98 PTYs (*/dev/ptmx*). They are quite standard (although they are becoming 
+obsolete in some Linux distributions) so you shouldn't have any problems with them.
+A quick check for BSD PTYs is to look in your */dev* directory for *ttypx* and *ptypx* files.
+If they aren't there, you need to enable support for BSD PTYs in your system. How to
+do this is OS dependent and beyond the scope of this tutorial, so google is your friend.
+For an example on how to enable them in Ubuntu check 
+http://ubuntuforums.org/showthread.php?t=1147994[this link].
+
+Once they are enabled you can get a quick feel of how their work. */dev/ttypx* and */dev/ptypx* 
+are paired by default, so any transmit/receive at one end is mirrored at the other end.
+A simple experiment:
+
+- start two shell sessions
+- execute *screen /dev/ttyp0 115200* in one of the shells
+- execute *screen /dev/ptyp0 115200* in the other shell
+
+Now everything you type in one of the shell sessions should be visible in the other one.
+
+Virtual serial ports in Windows
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
+Windows doesn't have out-of-the-box support for virtual serial ports, but
+fortunately there's an extremely nice open source program that does exactly 
+what eLua needs. It is called http://com0com.sourceforge.net/[com0com]. Download it,
+install it, then open the com0com serial port manager to create your virtual
+serial port pairs. Then give it a little spin to get used to how it works. Supposing
+that you created COM10 and COM11 as a virtual serial port pair, try this:
+
+- start your terminal emulator program. My preffered terminal emulator program in 
+  Windows is http://www.ayera.com/teraterm/[TeraTerm], but you can use any emulator 
+  you want. Open COM10 at baud 115200.
+- start another instance of the terminal emulator, but this time open COM11 at baud 115200.
+
+Now everything you type in one of the terminal emulators should be visible in the other one.
+
+NOTE: com0com can create pairs of serial ports with unusual names, for example *CNCA1* and *CNCB1*.
+While they work fine with eLua's serial multiplexer, they might not work equally well with terminal 
+emulator programs, so you're advised to stick with standard port names (*COMx*).
+
+Enabling the serial multiplexer in Lua
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+This is the easy part, just follow the instruction in the link:building.html[building page]. 
+You need to define the following macros for the serial multiplexer:
+
+[width="90%", cols="<2s,<5", options="header"]
+|===================================================================
+^|  Option           ^| Meaning                                    
+| BUILD_SERMUX        | Enable serial multiplexer support in eLua. 
+| SERMUX_PHYS_ID      | The ID of the physical UART interface used by the serial multiplexer.
+| SERMUX_PHYS_SPEED   | Communication speed of the multiplexer UART interface. 
+| SERMUX_NUM_VUART    | The number of virtual UART interfaces. This number can't be higher than 8. 
+| SERMUX_BUFFER_SIZES | An array of *SERMUX_NUM_VUART* integers that specify the buffer sizes for the virtual
+UART interfaces. Note that a virtual UART *MUST* have a buffer associated with it. The sizes are specified as
+*BUF_SIZE_xxx* constants defined in _inc/buf.h_                       
+|===================================================================
+
+As a simple example, let's change the configuration of an eLua board that uses UART 0 
+as its console UART to use a serial multiplexer with 2 ports (one for RFS and the other
+one for console) over UART 0. The original configuration (in _src/platform/<platform>/platform_conf.h_)
+will look like this:
+
+------------------------------------
+#define CON_UART_ID           0
+#define CON_UART_SPEED        115200
+------------------------------------
+
+The new configuration should be similar to the one below:
+
+[subs="quotes"]
+------------------------------------
+#include "sermux.h"                                             [bblue]**// for virtual uart IDs**
+#include "buf.h"                                                [bblue]**// for buffer sizes**
+
+#define BUILD_SERMUX                                            [bblue]**// enable serial multiplexer support**
+#define CON_UART_ID         ( SERMUX_SERVICE_ID_FIRST + 1 )     [bblue]**// console runs on the second virtual UART**
+#define CON_BUF_SIZE        BUF_SIZE_128                        [bblue]**// size of console UART buffer, cannot be 0**
+#define RFS_UART_ID         ( SERMUX_SERVICE_ID_FIRST )         [bblue]**// RFS runs on the first virtual UART**   
+#define RFS_BUFFER_SIZE     BUF_SIZE_512                        [bblue]**// size of the RFS UART buffer, cannot be 0**
+// Serial multiplexer data
+#define SERMUX_PHYS_ID      0                                   [bblue]**// multiplexer runs on UART 0**
+#define SERMUX_PHYS_SPEED   115200                              [bblue]**// multiplexer runs at 115200 baud**
+#define SERMUX_NUM_VUART    2                                   [bblue]**// multiplexer creates 2 virtual UARTs**
+#define SERMUX_BUFFER_SIZES { RFS_BUFFER_SIZE, CON_BUF_SIZE }   [bblue]**// buffer sizes for the virtual UARTs**
+------------------------------------
+
+IMPORTANT: when using the RFS in a virtual UART configuration, remember that *RFS_UART_ID must be the
+first virtual UART ID in the system (SERMUX_SERVICE_ID_FIRST)*. Otherwise, the serial multiplexer will 
+NOT work properly in *rfsmux* mode. Check xref:rfsmux[here] for details, and link:arch_rfs.html[here] 
+for more details about the RFS.
+
+Serial multiplexer on the PC side
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The serial multiplexer needs a program running on the PC side, the *mux server*. This is 
+the program that implements the actual serial port multiplexing (eLua connects to this program via
+the *SERMUX_PHYS_ID* UART). The mux server was succesfully built and tested under 
+Windows 7 (32 bit) and Linux (Ubuntu 64 bit). To build it you need: 
+
+- a build environment. This means gcc under Linux (see for example link:tc_arm.html[here] for instruction on how to install a toolchain in 
+  Ubuntu Linux) and a gcc-based development environment under Windows. How to install a gcc-based development environment under Windows is
+  beyond the scope of this tutorial, but check http://www.mingw.org/[here] and http://tdm-gcc.tdragon.net/[here] for possible solution
+  (mux server was compiled and tested under Win32 using the second soluation, the tdm gcc compiler).
+- scons. See link:building_win.html[here] for details on how to install scons on Windows, or link:building_unix.html[here] for details on how
+  to install scons on Linux.
+
+If the above requirements are met, building the mux server is a simple matter of invoking this command from the eLua source tree base directory:
+
+---------------
+scons -f mux.py  
+---------------
+
+After this you should end up with a *mux.exe* file in Windows, or a *mux.elf* file in Linux. Running it without arguments prints
+the usage help:
+
+---------------
+Usage: mux <mode> <transport> <vcom1> [<vcom2>] ... [<vcomn>] [-v]
+  mode:
+    'mux':                 serial multiplexer mode
+    'rfsmux:<directory>:   combined RFS and multiplexer mode.
+  transport: '<port>,<baud>.
+  vcom1, ..., vcomn: multiplexer serial ports.  Use '-v' for verbose output.
+---------------
+
+Using the multiplexer in "mux" mode
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+This is the basic use scenario for the serial multiplexer. Im this mode *mux* will
+simply multiplex the serial connection with the eLua board with a number of virtual
+serial ports in the system. 
+
+This is best understood by an example. We'll ask *mux*
+to multiplex two serial ports for us, these will be *dev/ptyp0* (and its pair */dev/ttyp0*)
+and */dev/ptyp1* (and its pair */dev/ttyp1*) in Linux and COM10 (and its pair COM11) 
+and COM20 (and its pair COM21) in Windows. The physical UART is /dev/ttyUSB0 in 
+Linux and COM5 in Windows. So, to run it in Linux, execute this:
+
+-------------------------------------------------------
+./mux.exe mux /dev/ttyUSB0,115200 /dev/ptyp0 /dev/ptyp1
+-------------------------------------------------------
+
+In Windows:
+
+-------------------------------
+mux mux com5,115200 com10 com20
+-------------------------------
+
+And now let's put this to good use. Remember that in the previous paragraph we 
+built an eLua configuration that assigned RFS to the first virtual UART (which corresponds
+to the *vcom1* argument of *mux*) and the console to the second one (which corresponds
+to the *vcom2* argument of *mux*). To make this happen on the PC, we start
+the respective services on the UART pairs of the *vcomx* arguments of *mux*.
+In Linux:
+
+-----------------------------------------------------
+./rfs_server.elf /dev/ttyp0:115200 /home/user/work/fs
+screen /dev/ttyp1 115200 
+-----------------------------------------------------
+
+In Windows:
+
+----------
+rfs_server ser:com11,115200 c:\elua\fs
+(also run TeraTerm or your preffered terminal emulator on port COM21 at 115200 baud)
+----------
+
+Reset your eLua board, and you're ready to go! *mux* will send all the RFS requests
+to */dev/ptyp0* (or COM10) which in turn gets automatically redirected to */dev/ttyp0*
+(or COM11) and will redirect all console I/O to */dev/ptyp1* (or COM20)
+which in turn gets automatically redirected to */dev/ptyp1* (or COM21). +
+Although this works, there is a simpler, more convenient way to do it if RFS 
+support is needed: use the *rfsmux* mode instead.
+
+[[rfsmux]]
+Using the multiplexer in "rfsmux" mode
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+To make things easier for RFS users *mux* includes a special operation mode (*rfsmux*) 
+that automatically "talks" to the RFS server. The user doesn't need to manually assign
+a virtual UART for the RFS server and start the RFS server. In this mode *mux* uses a special
+internal communication channel to the RFS server (that doesn't require a virtual UART).
+A strict requirement for this mode is that *eLua must be configured to assign the first
+virtual UART ID (SERMUX_SERVICE_ID_FIRST) to the RFS server (RFS_UART_ID)*. If this
+doesn't happen, *rfsmux* mode will not work anymore (but note that you still can use the
+*mux* mode as described above). 
+
+This is best understood by an example. We'll ask *mux* to share a directory and
+to multiplex one single serial port for us (we'll use it for the console), this
+will be *dev/ptyp0* (and its pair */dev/ttyp0*) in Linux and COM10 (and its pair COM11) 
+in Windows. The physical UART is /dev/ttyUSB0 in Linux and COM5 in Windows. 
+So, to run it in Linux, execute this:
+
+------------------------------------------------------------------
+./mux.exe rfsmux:/home/user/work/fs /dev/ttyUSB0,115200 /dev/ptyp0
+------------------------------------------------------------------
+
+In Windows:
+
+---------------------------------------
+mux rfsmux:c:\elua\fs com5,115200 com10
+---------------------------------------
+
+All that's left now is to run the terminal emulator. In Linux:
+
+------------------------
+screen /dev/ttyp0 115200 
+------------------------
+
+In Windows simply start TeraTerm or your preffered terminal emulator on port COM11 at 115200 baud.
+
+Reset your eLua board, and you're ready to go! *mux* will send all the RFS requests
+to the RFS server via its internal channel and will redirect all console I/O to */dev/ptyp0* (or COM10)
+which in turn gets automatically redirected to */dev/ttyp0* (or COM11).
+
+Notes
+~~~~~
+Some things you should consider when using the serial multiplexer:
+
+- the code is still in beta. It works very well most of the time, but sometimes it simply crashes. If this happens, please consider submitting a 
+  bug report.
+- the serial multiplexer "protocol" is an extremely simple one, it doesn't make provisions for error correction or detection, and it might loose
+  synchronization if there are errors on the serial line. So, if it starts behaving abnormally, you might want to restart *mux* (and *rfs_server*
+  if you're running it with *mux*) and reset your eLua board.
+- some serial ports built around USB to RS232 adapters seem to confuse *mux* sometimes. If *mux* won't work after you tried all the above
+  instructions, or if *mux* terminates unexpectedly, unplugging and plugging the USB cable of the RS232 adapter and restarting *mux* 
+  will most likely solve your problem. 
+- if you get an *"Error on select, aborting program"* error from *mux*, keep in mind that this is normal if you run a terminal emulator (*screen*)
+  under Linux on a virtual UART and then close it (by exiting *screen*). However, it is not normal if it happens under other circumstances in Linux, 
+  or if it happens in Windows. In these cases, please consider submitting a bug report.
+- if the serial multiplexer is enabled on the eLua board it's not possible to use the board with a regular terminal emulator anymore (without 
+  running *mux*), although it might appear so. eLua will send some output to the terminal emulator, but it won't be able to accept any input from it.     
+- if you find a bug in *mux* and wish to report it, try to reproduce the problem again, but this time run *mux* with *-v* (verbose).
+  The resulting logs may help us identify the problem.  
+
+// $$FOOTER$$

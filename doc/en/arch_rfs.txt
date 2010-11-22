@@ -19,7 +19,7 @@ You need to define the following macros for RFS:
 |===================================================================
 ^|  Option           ^| Meaning                                    
 | BUILD_RFS           | Enable RFS support in eLua 
-| RFS_BUFFER_SIZE     | Size of the RFS buffer. Needs to be one of the *BUF_SIZE_xxx* constants from _inc/buf.h_
+| RFS_BUFFER_SIZE     | Size of the RFS buffer. Needs to be one of the *BUF_SIZE_xxx* constants defined in _inc/buf.h_
 | RFS_UART_ID         | The ID of the UART that will be used by RFS. This is the physical connection over which the PC directory will be shared.
 | RFS_UART_SPEED      | Communication speed of the RFS UART interface. 
 | RFS_TIMER_ID        | The ID of a timer that will be used by RFS for internal operations
@@ -97,6 +97,8 @@ Some things you should consider when using the RFS:
 - some serial ports built around USB to RS232 adapters seem to confuse *rfs_server* sometimes. If RFS won't work after you tried all the above
   instructions, or if *rfs_server* terminates unexpectedly, unplugging and plugging the USB cable of the RS232 adapter and restarting *rfs_server* 
   will most likely solve your problem.
+- if you find a bug in the RFS server and wish to report it, try to reproduce the problem again, but this time run *rfs_server* with *-v* (verbose).
+  The resulting logs may help us identify the problem.  
   
 If you like the RFS, but dislike the idea of having to connect your eLua board to the PC with two serial connections (one for the console and another
 one for the RFS) check link:sermux.html[here] for a possible solution to this. 

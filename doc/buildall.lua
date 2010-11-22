@@ -21,6 +21,7 @@ for k, v in ipairs( languages ) do
 end
 
 local sf = string.format
+local cache_invalid = false
 
 -------------------------------------------------------------------------------
 -- Indexes into our menu table (defined in docdata.lua)
@@ -169,6 +170,35 @@ local function copy_dir( src, dst )
   local newdir = string.format( "%s/%s", dst, src )
   lfs.mkdir( newdir )
   copy_dir_rec( src, newdir )
+end
+
+-------------------------------------------------------------------------------
+-- Cache helpers
+
+local function read_md5( filename )
+  local fullname = string.format( "cache/%s.cache", filename )
+  local f = io.open( fullname, "rb" )
+  if not f then return "" end
+  local d = f:read( "*a" )
+  f:close()
+  return d
+end
+
+local function write_md5( filename, d )
+  local fullname = string.format( "cache/%s.cache", filename )
+  local f = io.open( fullname, "wb" )
+  if not f then return false end
+  f:write( d )
+  f:close()
+  return true
+end
+
+local function file_md5( filename )
+  local f = io.open( filename, "rb" )
+  if not f then return "" end
+  local d = f:read( "*a" )
+  f:close()
+  return md5.sumhexa( d ) 
 end
 
 -------------------------------------------------------------------------------
@@ -377,25 +407,17 @@ local function gen_html_page( fname, lang )
   f:close()
   
   -- Check cache
-  local cfilename = string.format( "cache/%s_%s.cache", lang, fname )
-  local cfile = io.open( cfilename, "rb" )
-  local oldsum = ""
+  local cfilename = string.format( "%s_%s", lang, fname )
+  local oldsum = read_md5( cfilename )
   local crtsum = md5.sumhexa( orig )
-  if cfile then 
-    oldsum = cfile:read()
-    cfile:close() 
-  end  
   if oldsum == crtsum then
-    return nil, "#cached#"
-  end  
-  -- Write the MD5 cache to cfile
-  cfile = io.open( cfilename, "wb" )
-  if not cfile then
-    return nil, string.format( "Unable to open cache file %s in write mode", cfilename )
-  end 
-  cfile:write( crtsum )
-  cfile:close()
-  
+    if not cache_invalid then 
+      return nil, "#cached#"
+    end
+  else
+    write_md5( cfilename, crtsum )
+  end
+      
   local asciimode = fullname:find( "%.txt" )
 
   -- Check the presence of $$HEADER$$ and $$FOOTER$$
@@ -511,13 +533,17 @@ local args = { ... }
 local destdir = "dist"
 local destdiridx = 1
 if #args > 2 then
-  print "Usage: buildall.lua [destdir] [-online]"
+  print "Usage: buildall.lua [destdir] [-online] [-clean]"
   print "Use -online to generate online documentation (includes BerliOS logo and counter)"
+  print "Use -clean to clear the cache and generate clean documentation"
   return
 end
+local cleancache = false
 for i = 1, #args do
   if args[ i ] == "-online" then
     is_offline = false
+  elseif args[ i ] == "-clean" then
+    cleancache = true
   else 
     destdir = args[ i ]
   end
@@ -560,12 +586,20 @@ else
     print( string.format( "%s is not a directory", destdir ) )
     return
   end
-  for k in lfs.dir( destdir ) do
-    if k ~= "." and k ~= ".." then
-      rm_dir_rec( destdir )
-      lfs.mkdir( destdir )
-      break
+  rm_dir_rec( destdir )
+  lfs.mkdir( destdir )
+end
+
+-- If the cache must be cleared, do it now
+if cleancache then
+  local attr = lfs.attributes( 'cache' )
+  if attr then
+    if attr.mode ~= "directory" then
+      print( "'cache' is not a directory" )
+      return
     end
+    rm_dir_rec( 'cache' )
+    lfs.mkdir( 'cache' )
   end
 end
 
@@ -577,6 +611,13 @@ if not attr then
     return
   end
 end  
+
+-- Set the global "cache invalid" flag
+-- It is set to 'true' if the content of docdata.lua changes
+local crtdocsum = file_md5( "docdata.lua" )
+local oldsum = read_md5( "docdata.lua" )
+cache_invalid = crtdocsum ~= oldsum
+if cache_invalid then write_md5( "docdata.lua", crtdocsum ) end
 
 print "\nProcessing HTML templates..."
 indent_print()

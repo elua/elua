@@ -104,6 +104,7 @@ local menu =
           { { "The shell", "O Shell" }, "using.html#shell" },
           { "Cross-compiling", "using.html#cross" },
           { "LuaRPC", "using.html#rpc" },
+          { "The serial multiplexer", "sermux.html" }
         },
       },
       { { "Code examples", "Exemplos de Código" }, "examples.html" },
