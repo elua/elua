@@ -1,5 +1,6 @@
 require "lfs"
 require "eluadoc"
+require "md5"
 
 -- Uncomment this when generating offline docs
 local is_offline = true
@@ -374,6 +375,27 @@ local function gen_html_page( fname, lang )
   end
   local orig = f:read( "*a" )
   f:close()
+  
+  -- Check cache
+  local cfilename = string.format( "cache/%s_%s.cache", lang, fname )
+  local cfile = io.open( cfilename, "rb" )
+  local oldsum = ""
+  local crtsum = md5.sumhexa( orig )
+  if cfile then 
+    oldsum = cfile:read()
+    cfile:close() 
+  end  
+  if oldsum == crtsum then
+    return nil, "#cached#"
+  end  
+  -- Write the MD5 cache to cfile
+  cfile = io.open( cfilename, "wb" )
+  if not cfile then
+    return nil, string.format( "Unable to open cache file %s in write mode", cfilename )
+  end 
+  cfile:write( crtsum )
+  cfile:close()
+  
   local asciimode = fullname:find( "%.txt" )
 
   -- Check the presence of $$HEADER$$ and $$FOOTER$$
@@ -547,6 +569,15 @@ else
   end
 end
 
+-- Create the cache directory if it doesn't exist
+local attr = lfs.attributes( 'cache' )
+if not attr then
+  if not lfs.mkdir( 'cache' ) then
+    print( "Unable to create cache directory" )
+    return
+  end
+end  
+
 print "\nProcessing HTML templates..."
 indent_print()
 flist = get_file_list()
@@ -554,10 +585,13 @@ for _, lang in ipairs( languages ) do
   for fname, entry in pairs( flist ) do
     io.write( string.format( "Processing %s %s...", fname, entry.item[ name_idx ] and "" or "(hidden entry)" ) )
     local res, err = gen_html_page( fname, lang )
-    if not res then
-      print( "***" .. err )
+    if err == "#cached#" then
+      -- Thie file is already in the cache
+      print( " (cached)" )         
+    elseif not res then
+      print( "***" .. err ) 
     else
-      local g = io.open( string.format( "%s/%s_%s", destdir, lang, fname ), "wb" )
+      local g = io.open( string.format( "cache/%s_%s", lang, fname ), "wb" )
       if not g then
         print( string.format( "Unable to open %s for writing", fname ) )
       else
@@ -565,6 +599,17 @@ for _, lang in ipairs( languages ) do
         g:close()
       end
     end
+    -- Copy file from cache to destination directory
+    local srcf = io.open( string.format( "cache/%s_%s", lang, fname ), "rb" )
+    local destf = io.open( string.format( "%s/%s_%s", destdir, lang, fname ), "wb" )
+    if not srcf or not destf then
+      print "Unable to copy file from cache to dist"
+      return
+    end
+    local content = srcf:read( "*a" )
+    destf:write( content )
+    srcf:close()
+    destf:close()    
   end
 end
 regular_print()
