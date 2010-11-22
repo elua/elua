@@ -18,7 +18,7 @@ data_en =
     { text = [[// eLua CAN ID types
 enum
 {
-  ELUA_CAN_ID_STD = 0,      // exported as $net.ID_STD$
+  ELUA_CAN_ID_STD = 0,      // exported as $can.ID_STD$
   ELUA_CAN_ID_EXT,          // exported as $can.ID_EXT$
 };]],
       name = "CAN ID types",
