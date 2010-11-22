@@ -40,7 +40,16 @@ enum
 #define PLATFORM_UART_INFINITE_TIMEOUT        (-1)]],
       name = "UART timeout",
       desc = "This constant is used as a special timeout value (infinite timeout) in the UART functions that expect a timeout as argument.",
-    }
+    },
+
+     { text = [[// Virtual UART IDs
+#define SERMUX_SERVICE_ID_FIRST  0xD0
+#define SERMUX_SERVICE_ID_LAST   0xD7
+]],
+      name = "Virtual UART IDs",
+      desc = "If @sermux.html@virtual UART@ support is enabled these constants define the IDs of the virtual UARTs in the system (defined in %inc/sermux.h%).",
+    },
+   
   },
 
   -- Functions
@@ -69,7 +78,19 @@ enum
     },
 
     { sig = "void #platform_uart_send#( unsigned id, u8 data );",
-      desc = "Send data to an UART interface.",
+      desc = [[Send data to an UART interface. This is a blocking operation (it doesn't return until the data was sent).<br>
+      This function is "split" in two parts: a platform-independent part that is implemented in %src/common.c% and a platform-dependent part that must be implemented
+      by each platform in a function named @#platform_s_uart_send@platform_s_uart_send@.]],
+      args = 
+      {
+        "$id$ - UART interface ID.",
+        "$data$ - data to be sent.",
+      },
+    },
+
+    { sig = "void #platform_s_uart_send#( unsigned id, u8 data );",
+      desc = [[This is the platform-dependent part of @#platform_uart_send@platform_uart_send@. It doesn't need to take care of @sermux.html@virtual UARTs@ or other system
+      configuration parameters, it just needs to instruct the CPU to send the data on the specified ID. This function will always be called with a physical uart ID.]],
       args = 
       {
         "$id$ - UART interface ID.",
@@ -80,7 +101,7 @@ enum
     { sig = "int #platform_uart_recv#( unsigned id, unsigned timer_id, s32 timeout );",
       link = "platform_uart_recv",
       desc = [[Receive data from the UART interface (blocking/non blocking with timeout/immediate).<br>
-  This function is "split" in two parts: a platform-independent part that is implemented in %src/common.c%, and a platform-dependent part that must be implemented by each
+  This function is "split" in two parts: a platform-independent part that is implemented in %src/common.c% and a platform-dependent part that must be implemented by each
   platform in a function named @#platform_s_uart_recv@platform_s_uart_recv@.]],
       args = 
       {
@@ -120,7 +141,18 @@ enum
         "if $timeout = 0$ and data from the UART is available when the function is called it is returned, otherwise -1 is returned",
         "if $timeout$ = @#uart_timeout@PLATFORM_UART_INIFINITE_TIMEOUT@ it returns the data read from the UART after it becomes available"
       }
-    }
+    },
+
+    { sig = "int #platform_uart_set_buffer#( unsigned id, unsigned log2size );",
+      desc = "Sets the buffer for the specified UART. This function is fully implemented in %src/common.c%.",
+      args = 
+      {
+        "$id$ - UART interface ID.",
+        "$data$ - the base 2 logarithm of the buffer size or 0 to disable buffering on the UART. Note that disabling buffering on a virtual UART is an invalid operation."
+      },
+      ret = "$PLATFORM_OK$ if the operation succeeded, $PLATFORM_ERR$ otherwise."
+    },
+   
   }
 }
 

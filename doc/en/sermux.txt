@@ -116,6 +116,11 @@ The new configuration should be similar to the one below:
 #define SERMUX_BUFFER_SIZES { RFS_BUFFER_SIZE, CON_BUF_SIZE }   [bblue]**// buffer sizes for the virtual UARTs**
 ------------------------------------
 
+This sequence of macro definitions will enable serial multiplexer support in eLua and will allow the
+code to use two *virtual UARTs*. The virtual UART IDs start at *SERMUX_SERVICE_ID_FIRST*. A maximum
+of 8 virtual UARTs are supported by the system. In this particular example the first virtual UART
+is assigned to RFS and the second one to the system console.
+
 IMPORTANT: when using the RFS in a virtual UART configuration, remember that *RFS_UART_ID must be the
 first virtual UART ID in the system (SERMUX_SERVICE_ID_FIRST)*. Otherwise, the serial multiplexer will 
 NOT work properly in *rfsmux* mode. Check xref:rfsmux[here] for details, and link:arch_rfs.html[here] 
@@ -131,7 +136,7 @@ Windows 7 (32 bit) and Linux (Ubuntu 64 bit). To build it you need:
 - a build environment. This means gcc under Linux (see for example link:tc_arm.html[here] for instruction on how to install a toolchain in 
   Ubuntu Linux) and a gcc-based development environment under Windows. How to install a gcc-based development environment under Windows is
   beyond the scope of this tutorial, but check http://www.mingw.org/[here] and http://tdm-gcc.tdragon.net/[here] for possible solution
-  (mux server was compiled and tested under Win32 using the second soluation, the tdm gcc compiler).
+  (the mux server was compiled and tested under Win32 using the second soluation, the tdm gcc compiler).
 - scons. See link:building_win.html[here] for details on how to install scons on Windows, or link:building_unix.html[here] for details on how
   to install scons on Linux.
 
@@ -197,7 +202,8 @@ rfs_server ser:com11,115200 c:\elua\fs
 Reset your eLua board, and you're ready to go! *mux* will send all the RFS requests
 to */dev/ptyp0* (or COM10) which in turn gets automatically redirected to */dev/ttyp0*
 (or COM11) and will redirect all console I/O to */dev/ptyp1* (or COM20)
-which in turn gets automatically redirected to */dev/ptyp1* (or COM21). +
+which in turn gets automatically redirected to */dev/ptyp1* (or COM21).
+
 Although this works, there is a simpler, more convenient way to do it if RFS 
 support is needed: use the *rfsmux* mode instead.
 
@@ -211,7 +217,7 @@ internal communication channel to the RFS server (that doesn't require a virtual
 A strict requirement for this mode is that *eLua must be configured to assign the first
 virtual UART ID (SERMUX_SERVICE_ID_FIRST) to the RFS server (RFS_UART_ID)*. If this
 doesn't happen, *rfsmux* mode will not work anymore (but note that you still can use the
-*mux* mode as described above). 
+*mux* mode described above with this setup). 
 
 This is best understood by an example. We'll ask *mux* to share a directory and
 to multiplex one single serial port for us (we'll use it for the console), this

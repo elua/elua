@@ -12,11 +12,24 @@ data_en =
   -- Overview
   overview = [[This module contains functions for accessing the serial ports (UARTs) of the eLua CPU.]],
 
+   -- Data structures, constants and types
+  structures = 
+  {
+    { text = [[uart.VUART0
+uart.VUART1
+.............
+uart.VUART7]],
+      name = "UART constants",
+      desc = [[If @sermux.html@virtual UART@ support is enabled in eLua these constants are automatically defined
+to the IDs of the virtual UARTs in the system.]]       
+    }
+  }, 
+
   -- Functions
   funcs = 
   {
     { sig = "baud = #uart.setup#( id, baud, databits, parity, stopbits )",
-      desc = "Setup the serial port",
+      desc = "Setup the serial port. Note that you can't call this function for a @sermux.html@virtual UART@.",
       args = 
       {
         "$id$ - the ID of the serial port",
@@ -72,7 +85,16 @@ blocking operation, or a positive number that specifies the inter-char timeout i
 $timeout$ is neither $uart.NO_TIMEOUT$, nor $uart.INF_TIMEOUT$).]]
       },
       ret = [[The data read from the serial port as a string (or as a number if $format$ is $'*n'$). If a timeout occures, only the data read before the timeout is returned. If the function times out while trying to read the first character, the empty string is returned]]
-    }
+    },
+
+    { sig = "#uart.set_buffer#( id, bufsize )",
+      desc = "Sets the size of the UART buffer. Note that calling this function with bufsize = 0 for a @sermux.html@virtual UART@ is not allowed.",
+      args =
+      {
+        "$id$ - the ID of the serial port",
+        "$bufsize$ - the size of the buffer (must be a power of 2) or 0 to disable buffering on the specified UART."
+      },
+    },
    
   },
 
