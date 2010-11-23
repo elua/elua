@@ -202,6 +202,45 @@ local function file_md5( filename )
 end
 
 -------------------------------------------------------------------------------
+-- Table utils (from http://lua-users.org/wiki/TableUtils)
+
+function table.val_to_str( v )
+  if "string" == type( v ) then
+    v = string.gsub( v, "\n", "\\n" )
+    if string.match( string.gsub(v,"[^'\"]",""), '^"+$' ) then
+      return "'" .. v .. "'"
+    end
+    return '"' .. string.gsub(v,'"', '\\"' ) .. '"'
+  else
+    return "table" == type( v ) and table.tostring( v ) or tostring( v )
+  end
+end
+
+function table.key_to_str ( k )
+  if "string" == type( k ) and string.match( k, "^[_%a][_%a%d]*$" ) then
+    return k
+  else
+    return "[" .. table.val_to_str( k ) .. "]"
+  end
+end
+
+function table.tostring( tbl )
+  local result, done = {}, {}
+  for k, v in ipairs( tbl ) do
+    table.insert( result, table.val_to_str( v ) )
+    done[ k ] = true
+  end
+  for k, v in pairs( tbl ) do
+    if not done[ k ] then
+      table.insert( result,
+        table.key_to_str( k ) .. "=" .. table.val_to_str( v ) )
+    end
+  end
+  return "{" .. table.concat( result, "," ) .. "}"
+end
+
+
+-------------------------------------------------------------------------------
 -- Build the list of files that must be processed starting from the menu data
 
 -- Traverse a second (or higher) level menu and add relevant information to flist
@@ -614,10 +653,13 @@ end
 
 -- Set the global "cache invalid" flag
 -- It is set to 'true' if the content of docdata.lua changes
-local crtdocsum = file_md5( "docdata.lua" )
-local oldsum = read_md5( "docdata.lua" )
+local crtdocsum = md5.sumhexa( table.tostring( themenu ) )
+local oldsum = read_md5( "docdata" )
 cache_invalid = crtdocsum ~= oldsum
-if cache_invalid then write_md5( "docdata.lua", crtdocsum ) end
+if cache_invalid then 
+  write_md5( "docdata", crtdocsum )
+  print "Cache invalidated" 
+end
 
 print "\nProcessing HTML templates..."
 indent_print()
@@ -627,7 +669,7 @@ for _, lang in ipairs( languages ) do
     io.write( string.format( "Processing %s %s...", fname, entry.item[ name_idx ] and "" or "(hidden entry)" ) )
     local res, err = gen_html_page( fname, lang )
     if err == "#cached#" then
-      -- Thie file is already in the cache
+      -- This file is already in the cache
       print( " (cached)" )         
     elseif not res then
       print( "***" .. err ) 
