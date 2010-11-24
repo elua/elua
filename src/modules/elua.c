@@ -9,6 +9,8 @@
 #include "legc.h"
 #include "version.h"
 #include <string.h>
+#include "platform_conf.h"
+#include "udl.h"
 
 // Lua: elua.egc_setup( mode, [ memlimit ] )
 static int egc_setup( lua_State *L )
@@ -30,6 +32,15 @@ static int version( lua_State *L )
   return 1;
 }
 
+extern u32 uld_endflash[];
+static int testlookup( lua_State *L )
+{
+  int id = luaL_checkinteger( L, 1 );
+  
+  printf( "Address for symbol %d is %08X\n", id, ( unsigned int )udl_get_elua_symbol( id ) );
+  printf( "Base table address is %08X\n", ( unsigned int )uld_endflash ); 
+  return 0;
+}
 
 // Module function map
 #define MIN_OPT_LEVEL 2
@@ -38,6 +49,7 @@ const LUA_REG_TYPE elua_map[] =
 {
   { LSTRKEY( "egc_setup" ), LFUNCVAL( egc_setup ) },
   { LSTRKEY( "version" ), LFUNCVAL( version ) },
+  { LSTRKEY( "testlookup" ), LFUNCVAL( testlookup ) }, 
 #if LUA_OPTIMIZE_MEMORY > 0
   { LSTRKEY( "EGC_NOT_ACTIVE" ), LNUMVAL( EGC_NOT_ACTIVE ) },
   { LSTRKEY( "EGC_ON_ALLOC_FAILURE" ), LNUMVAL( EGC_ON_ALLOC_FAILURE ) },

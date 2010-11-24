@@ -17,7 +17,7 @@ lua_iscfunction
 lua_isuserdata
 lua_type
 lua_typename
-lua_equal
+// lua_equal
 lua_rawequal
 lua_lessthan
 lua_tonumber
@@ -25,7 +25,7 @@ lua_tointeger
 lua_toboolean
 lua_tolstring
 lua_objlen
-lua_tocfunction
+// lua_tocfunction
 lua_touserdata
 lua_tothread
 lua_topointer
@@ -68,7 +68,7 @@ lua_gc
 lua_error
 lua_next
 lua_concat
-lua_getallocf
+// lua_getallocf
 lua_setallocf
 lua_setlevel
 lua_getstack

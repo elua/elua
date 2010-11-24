@@ -28,10 +28,13 @@ SECTIONS
 				*(.fini)
 
     } >flash
+    PROVIDE( uld_endflash = . );
 
     .data : AT (_etext)
     {
         . = ALIGN(4);
+        /* Dynamic loader data is always at the beginning of RAM */
+        *(.uld .uld.*)
         _sdata = .;
         *(.ramfunc .ramfunc.* .fastrun .fastrun.*)
         *(.data .data.*)

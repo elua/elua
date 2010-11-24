@@ -368,7 +368,7 @@ if not GetOption( 'help' ):
   local_libs = ''
 
   # Application files
-  app_files = " src/main.c src/romfs.c src/semifs.c src/xmodem.c src/shell.c src/term.c src/common.c src/buf.c src/elua_adc.c src/dlmalloc.c src/salloc.c src/luarpc_elua_uart.c "
+  app_files = " src/main.c src/romfs.c src/semifs.c src/xmodem.c src/shell.c src/term.c src/common.c src/buf.c src/elua_adc.c src/dlmalloc.c src/salloc.c src/luarpc_elua_uart.c src/udl.c "
 
   # Newlib related files
   newlib_files = " src/newlib/devman.c src/newlib/stubs.c src/newlib/genstd.c src/newlib/stdtcp.c"
@@ -404,6 +404,7 @@ if not GetOption( 'help' ):
   # Complete file list
   source_files = Split( app_files + specific_files + newlib_files + uip_files + lua_full_files + module_files + rfs_files )
   
+  comp.Append(LINKFLAGS = ['-Wl,-Map=elua.map'])  
   comp = conf.Finish()
 
   # Make ROM File System first
