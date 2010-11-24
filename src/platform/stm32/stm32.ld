@@ -1,6 +1,6 @@
 MEMORY
 {
-    sram (W!RX) : ORIGIN = 0x20000000, LENGTH = 64k
+    sram (W!RX) : ORIGIN = 0x20000004, LENGTH = 64k
     flash (RX) : ORIGIN = 0x08000000, LENGTH = 512k
 }
 
@@ -28,13 +28,11 @@ SECTIONS
 				*(.fini)
 
     } >flash
-    PROVIDE( uld_endflash = . );
 
     .data : AT (_etext)
     {
         . = ALIGN(4);
         /* Dynamic loader data is always at the beginning of RAM */
-        *(.uld .uld.*)
         _sdata = .;
         *(.ramfunc .ramfunc.* .fastrun .fastrun.*)
         *(.data .data.*)
@@ -42,7 +40,8 @@ SECTIONS
         . = ALIGN(4);
         _edata = .;
     } >sram
-		
+
+
 		.ARM.extab :
 		{
 		    *(.ARM.extab*)
@@ -54,6 +53,8 @@ SECTIONS
 		    *(.ARM.exidx*)
 		} >sram
 		__exidx_end = .;
+
+    PROVIDE( udl_functable = _etext + SIZEOF( .data ) + SIZEOF( .ARM.extab ) + SIZEOF( .ARM.exidx ) );
 		
     .bss (NOLOAD) : {
 		. = ALIGN(4);

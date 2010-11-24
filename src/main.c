@@ -14,6 +14,7 @@
 #include "term.h"
 #include "platform_conf.h"
 #include "elua_rfs.h"
+#include "udl.h"
 #ifdef ELUA_SIMULATOR
 #include "hostif.h"
 #endif
@@ -102,6 +103,9 @@ int main( void )
   // Register the remote filesystem
   dm_register( remotefs_init() );
 
+  // Initialize the dyanmic loader
+  udl_init();
+
   // Search for autorun files in the defined order and execute the 1st if found
   for( i = 0; i < sizeof( boot_order )/sizeof( *boot_order ); i++ ){
     if( ( fp = fopen( boot_order[i], "r" ) ) != NULL )
@@ -136,3 +140,4 @@ int main( void )
   while( 1 );
 #endif
 }
+

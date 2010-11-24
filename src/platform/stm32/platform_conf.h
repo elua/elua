@@ -14,7 +14,7 @@
 #define BUILD_XMODEM
 #define BUILD_SHELL
 #define BUILD_ROMFS
-#define BUILD_MMCFS
+//#define BUILD_MMCFS
 #define BUILD_TERM
 //#define BUILD_UIP
 //#define BUILD_DHCPC
@@ -172,6 +172,7 @@ u32 platform_s_cpu_get_frequency();
 
 // Loader data
 #define UDL_MAX_MODULES       8
+#define UDL_FTABLE_ADDRESS    0x20000000
 
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)

@@ -32,13 +32,16 @@ static int version( lua_State *L )
   return 1;
 }
 
-extern u32 uld_endflash[];
+extern u32 udl_functable[];
+extern int printf_test( const char *format, ... );
 static int testlookup( lua_State *L )
 {
   int id = luaL_checkinteger( L, 1 );
   
   printf( "Address for symbol %d is %08X\n", id, ( unsigned int )udl_get_elua_symbol( id ) );
-  printf( "Base table address is %08X\n", ( unsigned int )uld_endflash ); 
+  printf( "Base table address is %08X\n", ( unsigned int )udl_functable ); 
+  printf( "Calling printf via pointer...\n" );
+  printf_test( "If this works, I'm %s ID is %d\n", "GOOOOOOD!!!!", id );
   return 0;
 }
 

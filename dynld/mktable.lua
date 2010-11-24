@@ -6,7 +6,7 @@ require "pack"
 local big_endian = false
 
 local function put_number( s, n )
-  return big_endian and s .. string.pack( ">L", n ) or s .. string.pack( "<L", n )
+  return big_endian and s .. string.pack( ">I", n ) or s .. string.pack( "<I", n )
 end
 
 local p = require( "dynld.gcc_symbol_parser" )
@@ -32,7 +32,7 @@ for l in f:lines() do
       end
     end
     outdata = put_number( outdata, addr ) 
-    gen:add_function( l2, addr, nsym - 1 )
+    gen:add_function( l2, addr, addr > 0 and nsym or 0 )
     nsym = nsym + 1   
   end
 end

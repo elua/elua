@@ -185,7 +185,9 @@ static struct dm_dirent* romfs_readdir_r( struct _reent *r, void *d )
   pent->fname = dm_shared_fname;
   pent->fsize = romfs_read( off ) + ( romfs_read( off + 1 ) << 8 );
   pent->ftime = 0;
-  *( u32* )d = off + 2 + pent->fsize;
+  off += 2;
+  off = ( off + 3 ) & ~3;
+  *( u32* )d = off + pent->fsize;
   return pent;
 }
 

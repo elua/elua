@@ -6,13 +6,14 @@ import struct
 _crtline = '  '
 _numdata = 0
 _bytecnt = 0
-
+_fcnt = 0
 maxlen = 30
 
 # Line output function
 def _add_data( data, outfile, moredata = True ):
-  global _crtline, _numdata, _bytecnt
+  global _crtline, _numdata, _bytecnt, _fcnt
   _bytecnt = _bytecnt + 1
+  _fcnt = _fcnt + 1
   if moredata:
     _crtline = _crtline + "0x%02X, " % data
   else:
@@ -41,7 +42,7 @@ def mkfs( dirname, outname, flist, mode, compcmd ):
     print "Unable to create output file"
     return False
   
-  global _crtline, _numdata, _bytecnt
+  global _crtline, _numdata, _bytecnt, _fcnt
   _crtline = '  '
   _numdata = 0
   _bytecnt = 0
@@ -107,6 +108,7 @@ def mkfs( dirname, outname, flist, mode, compcmd ):
       os.remove( newname )
 
     # Write name, size, id, numpars
+    _fcnt = 0
     for c in fname:
       _add_data( ord( c ), outfile )
     _add_data( 0, outfile ) # ASCIIZ
@@ -116,7 +118,7 @@ def mkfs( dirname, outname, flist, mode, compcmd ):
     _add_data( size_h, outfile )
     # Round to a multiple of 4
     actual = len( filedata )
-    while _bytecnt & 4 != 0:
+    while _bytecnt & 3 != 0:
       _add_data( 0, outfile )
       actual = actual + 1
     # Then write the rest of the file
@@ -124,7 +126,7 @@ def mkfs( dirname, outname, flist, mode, compcmd ):
       _add_data( ord( c ), outfile )
     
     # Report
-    print "Encoded file %s (%d bytes real size, %d bytes after rounding)" % ( fname, len( filedata ), actual )
+    print "Encoded file %s (%d bytes real size, %d bytes after rounding, %d bytes total)" % ( fname, len( filedata ), actual, _fcnt )
     
   # All done, write the final "0" (terminator)
   _add_data( 0, outfile, False )

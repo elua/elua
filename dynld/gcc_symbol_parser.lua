@@ -28,7 +28,7 @@ new = function( elfname )
   for l in f:lines() do
     if l:find( "FUNC" ) then
       l = l:gsub( "%s+", " " )
-      local _, __, v, n = l:find( "%s%d-:%s(%x+)%s%d-%s[^%d]+%d-%s(.*)%s+$" )
+      local _, __, v, n = l:find( "%s%d-:%s(%x+)%s%d-%s[^%d]+%d-%s(.*)%s*$" )
       syms[ n ] = tonumber( "0x" .. v )
       nsyms = nsyms + 1
     end
