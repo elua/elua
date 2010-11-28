@@ -10,6 +10,7 @@ SECTIONS
         . = ALIGN(4);
         KEEP(*(.modtext .modtext.*))
         *(.text .text.*)
+        KEEP(*(.modltrmap .modltrmap.*))
         *(.rodata .rodata.*)    
         . = ALIGN(4);
     } >flash

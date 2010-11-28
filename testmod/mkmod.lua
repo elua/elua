@@ -1,9 +1,48 @@
 require "pack"
 
 local big_endian = false
-local modname = "test"
-
+local modsrcname = "testmod.c"
+local modname
 local sign = 0x15AF29C8
+
+local function printf( fmt, ... )
+  io.write( string.format( fmt, ... ) )
+end
+
+-- Parse a #define line from C
+local function parse_define( l )
+  l = l:gsub( "%s+", " " )
+  if l:find( "#define" ) ~= 1 then return nil end
+  l = l:gsub( "^%s*", "" )
+  l = l:gsub( "//.*$", "" ) .. " "
+  local _, __, ___, n, v = l:find( "(#.-)%s(.-)%s(.-)%s+" )
+  if n and v and v:sub( 1, 1 ) == '"' and v:sub( -1, -1 ) == '"' then v = v:sub( 2, -2 ) end
+  return n, v 
+end
+
+-- Look for UDL_MOD_NAME and UDL_MOD_VERSION in the source file
+local cf = io.open( modsrcname, "rb" )
+assert( cf )
+for l in cf:lines() do
+  local n, v = parse_define( l )
+  if n and v then
+    if n == "UDL_MOD_NAME" then
+      modname = v
+      break
+    end
+  end
+end
+cf:close()
+
+if not modname then
+  print "UDL_MOD_NAME not defined in the source file"
+  return 1
+end
+if #modname > 15 then
+  print "UDL_MOD_NAME must be maximum 15 chars in length"
+  return 1
+end
+printf( "Module name is '%s'\n", modname )
 
 local function put_number( n )
   return big_endian and string.pack( ">I", n ) or string.pack( "<I", n )
@@ -26,13 +65,20 @@ for l in f:lines() do
 end  
 f:close()
 
--- Write module name
-local mod = modname .. "\0"
+-- Read binary image
+f = io.open( "udlimage.bin", "rb" )
+assert( f )
+local modbin = f:read( "*a" )
+f:close()
+
+-- Write module name (always 16 bytes)
+while #modname < 16 do modname = modname .. "\0" end
+local mod = ""
 
 -- Write symbol table
 for k, v in parser:iter() do 
   local name, address, isfunction, isglobal = unpack( v )
-  if isfunction and isglobal and not implist[ name ] and name:find( "udl_" ) ~= 1 then
+  if isglobal and not implist[ name ] and name:find( "udl_" ) ~= 1 then
     mod = mod .. name .. "\0"
     while #mod % 4 ~= 0 do mod = mod .. "\0" end
     mod = mod .. put_number( address )
@@ -45,13 +91,8 @@ mod = mod .. "\0"
 -- Align to 4 bytes
 while #mod % 4 ~= 0 do mod = mod .. "\0" end
 
--- Get back and write signature and offset
-mod = put_number( sign ) .. put_number( #mod + 8 ) .. mod
-
--- Append binary image
-f = io.open( "udlimage.bin", "rb" )
-mod = mod .. f:read( "*a" )
-f:close()
+-- Structure: signature, size (symtable+data), data offset, name, symbol table, actual data
+mod = put_number( sign ) .. put_number( #mod + #modbin ) .. put_number( #mod + 16 ) .. modname .. mod .. modbin
 
 -- Write it to file
 local outf = io.open( "testmod.ebm", "wb" )

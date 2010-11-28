@@ -7,6 +7,8 @@
 #include "lstring.h"
 #include "lobject.h"
 #include "lapi.h"
+#include "udl.h"
+#include "platform_conf.h"
 
 /* Local defines */
 #define LUAR_FINDFUNCTION     0
@@ -15,12 +17,26 @@
 /* Externally defined read-only table array */
 extern const luaR_table lua_rotable[];
 
+extern char stext[];
+extern char etext[];
+
+/* Is the rotable really in ROM? */
+static int luaR_is_in_rom( void *p )
+{
+  return ( stext <= ( char* )p && ( char* )p <= etext );
+}
+
 /* Find a global "read only table" in the constant lua_rotable array */
 void* luaR_findglobal(const char *name, unsigned len) {
-  unsigned i;    
-  
+  int i;
   if (strlen(name) > LUA_MAX_ROTABLE_NAME)
     return NULL;
+  // Look at the dynamically loaded modules first
+  i = -1;
+  while ((i = udl_ltr_find_next_module(i)) != -1 )
+    if (!strncmp(udl_get_module_name(i), name, len))
+      return udl_ltr_get_rotable(i);
+  // Then at the static list of modules 
   for (i=0; lua_rotable[i].name; i ++)
     if (*lua_rotable[i].name != '\0' && strlen(lua_rotable[i].name) == len && !strncmp(lua_rotable[i].name, name, len)) {
       return (void*)(lua_rotable[i].pentries);
@@ -28,15 +44,29 @@ void* luaR_findglobal(const char *name, unsigned len) {
   return NULL;
 }
 
+// Helper: offset a value and return the new value
+static TValue* luaR_offsetValue(const TValue *r, unsigned offset) {
+  static TValue v;
+
+  if( r == NULL )
+    return NULL;
+  v = *r;
+  if (offset && !ttisnil(r) && !ttisnumber(r) && !ttisboolean(r))
+    v.value.p = ( char* )v.value.p + offset;
+  return &v;
+}
+
 /* Find an entry in a rotable and return it */
 static const TValue* luaR_auxfind(const luaR_entry *pentry, const char *strkey, luaR_numkey numkey, unsigned *ppos) {
   const TValue *res = NULL;
   unsigned i = 0;
+  u32 offset;
   
   if (pentry == NULL)
-    return NULL;  
+    return NULL; 
+  offset = luaR_is_in_rom((void*)pentry) ? 0 : udl_get_offset(udl_get_id((u32)pentry));
   while(pentry->key.type != LUA_TNIL) {
-    if ((strkey && (pentry->key.type == LUA_TSTRING) && (!strcmp(pentry->key.id.strkey, strkey))) || 
+    if ((strkey && (pentry->key.type == LUA_TSTRING) && (!strcmp(pentry->key.id.strkey+offset, strkey))) || 
         (!strkey && (pentry->key.type == LUA_TNUMBER) && ((luaR_numkey)pentry->key.id.numkey == numkey))) {
       res = &pentry->value;
       break;
@@ -44,15 +74,15 @@ static const TValue* luaR_auxfind(const luaR_entry *pentry, const char *strkey, 
     i ++; pentry ++;
   }
   if (res && ppos)
-    *ppos = i;   
-  return res;
+    *ppos = i;  
+  return luaR_offsetValue(res, offset);
 }
 
 int luaR_findfunction(lua_State *L, const luaR_entry *ptable) {
   const TValue *res = NULL;
   const char *key = luaL_checkstring(L, 2);
-    
-  res = luaR_auxfind(ptable, key, 0, NULL);  
+
+  res = luaR_auxfind(ptable, key, 0, NULL);
   if (res && ttislightfunction(res)) {
     luaA_pushobject(L, res);
     return 1;
@@ -79,17 +109,19 @@ void* luaR_getmeta(void *data) {
 }
 
 static void luaR_next_helper(lua_State *L, const luaR_entry *pentries, int pos, TValue *key, TValue *val) {
+  u32 offset = luaR_is_in_rom((void*)pentries) ? 0 : udl_get_offset(udl_get_id((u32)pentries));
   setnilvalue(key);
   setnilvalue(val);
   if (pentries[pos].key.type != LUA_TNIL) {
     /* Found an entry */
     if (pentries[pos].key.type == LUA_TSTRING)
-      setsvalue(L, key, luaS_new(L, pentries[pos].key.id.strkey))
+      setsvalue(L, key, luaS_new(L, pentries[pos].key.id.strkey+offset))
     else
       setnvalue(key, (lua_Number)pentries[pos].key.id.numkey)
-   setobj2s(L, val, &pentries[pos].value);
+   setobj2s(L, val, luaR_offsetValue(&pentries[pos].value, offset));
   }
 }
+
 /* next (used for iteration) */
 void luaR_next(lua_State *L, void *data, TValue *key, TValue *val) {
   const luaR_entry* pentries = (const luaR_entry*)data;
@@ -126,9 +158,8 @@ void luaR_getcstr(char *dest, const TString *src, size_t maxsize) {
 
 /* Return 1 if the given pointer is a rotable */
 #ifdef LUA_META_ROTABLES
-extern char stext[];
-extern char etext[];
 int luaR_isrotable(void *p) {
-  return stext <= ( char* )p && ( char* )p <= etext;
+  return luaR_is_in_rom( p ) || udl_ltr_is_rotable( p );
 }
 #endif
+

@@ -11,5 +11,7 @@ arm-none-eabi-objcopy -O binary testmod.elf udlimage.bin
 
 lua mkmod.lua
 
+./modhash testmod.ebm
+
 cp testmod.ebm ../romfs
 

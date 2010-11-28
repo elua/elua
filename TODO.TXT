@@ -1,0 +1,8 @@
+x udl_load should keep a reference counter and not load modules that were already loaded
+  x find a suitable key for this. an idea is <modname>_<modver>_<modsize> (or some sort of hash/checksum instead of size, or simply a hash altogheter)
+  - allow a module to be force loaded
+x udl_unload should unload the module only if the reference count is 0. Not sure this is actually needed, but it is definitely safer.
+- reserve space for module's globals pointer at the beginning of RAM and write a suitable set of macros for accessing the "globals".
+x udl_load should call udl_module_init automatically if found
+x udl_unload shoulc call udl_module_cleanup automatically if found
+  x udl_module_cleanup should be able to prevent module unloading if needed (for example when chained interrupt handlers are used).
