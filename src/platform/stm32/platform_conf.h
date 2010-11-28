@@ -171,7 +171,7 @@ u32 platform_s_cpu_get_frequency();
 #define RFS_UART_SPEED        115200
 
 // Loader data
-#define UDL_MAX_MODULES       8
+#define UDL_MAX_MODULES       4
 #define UDL_FTABLE_ADDRESS    0x20000000
 
 // Allocator data: define your free memory zones here in two arrays

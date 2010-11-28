@@ -46,7 +46,8 @@ static void ll_unloadlib (void *lib);
 static void *ll_load (lua_State *L, const char *path);
 static lua_CFunction ll_sym (lua_State *L, void *lib, const char *sym);
 
-
+// BogdanM: added for eLua support
+#include "platform_conf.h"
 
 #if defined(LUA_DL_DLOPEN)
 /*
@@ -222,13 +223,44 @@ static lua_CFunction ll_sym (lua_State *L, void *lib, const char *sym) {
 
 
 
+#elif defined( BUILD_UDL )
+
+// BogdanM: added support for eLua module loader
+
+/*
+** {======================================================
+** eLua binary module loader
+** =======================================================
+*/
+
+#include "udl.h"
+
+static void ll_unloadlib (void *lib) {
+  udl_unload((int)lib - 1 );
+}
+
+
+static void *ll_load (lua_State *L, const char *path) {
+  int id = udl_load(path);
+  if (id < 0) lua_pushstring(L, "cannot load module");
+  return (void*)( id + 1 );
+}
+
+
+static lua_CFunction ll_sym (lua_State *L, void *lib, const char *sym) {
+  lua_CFunction f = (lua_CFunction)(udl_find_symbol((int)lib - 1, sym));
+  if (f == NULL) lua_pushstring(L, "cannot find function");
+  return f;
+}
+
+
 #else
+
 /*
 ** {======================================================
 ** Fallback for other systems
 ** =======================================================
 */
-
 #undef LIB_FAIL
 #define LIB_FAIL	"absent"
 

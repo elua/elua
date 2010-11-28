@@ -43,15 +43,17 @@ gen.add_function = function( self, name, address, index )
   local f = self.f  
   f:write( sf( [[
   .global     %s
+  .section    .text.%s, "ax", %%progbits
+  .thumb
   .thumb_func
 %s:
   push        {r0}
-  ldr         r0, =UDL_FTABLE_ADDRESS
+  mov         r0, #UDL_FTABLE_ADDRESS
   ldr         r0, [r0]
   ldr.w       r0, [r0, %d]
   b           _udl_common
 
-]], name, name, ( index - 1 ) * 4 ) )
+]], name, name, name, ( index - 1 ) * 4 ) )
 end
 
 gen.finalize = function( self )

@@ -1,0 +1,36 @@
+// eLua dynamic loader test module
+
+#include <stdio.h>
+#include <stdlib.h>
+#include "type.h"
+
+#define UDL_MODNAME           "test"
+#define UDL_MOD_FUNC          __attribute__ ((section(".modtext")))
+
+typedef u32 ( *p_udl_get_offset )( int );
+#define UDL_DECL_ID           int udl_id = udl_get_id()
+#define UDL_DECL_GET_OFFSET   p_udl_get_offset udl_get_offset = ( p_udl_get_offset )*( u32* )0x20000008
+#defome UDL_PTR( x )          ( ( x ) + udl_get_offset( udl_id ) )
+
+extern int udl_get_id();
+
+UDL_MOD_FUNC int udl_init_module()
+{
+  UDL_DECL_ID;
+  UDL_DECL_GET_OFFSET;
+
+  printf( "module_init() called for id=%d\n" + udl_get_offset( id ), id );
+  return 1;
+}
+
+UDL_MOD_FUNC void module_test1()
+{
+  UDL_DECL_ID;
+  UDL_DECL_GET_OFFSET;
+  int i;
+
+  printf( "module_test1 function\n" + udl_get_offset( id ) );
+  for( i = 0; i < 20; i ++ )
+    printf( "%d id = %d\n" + udl_get_offset( id ), i, id );
+}
+

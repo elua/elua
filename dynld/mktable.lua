@@ -25,10 +25,12 @@ for l in f:lines() do
       print( string.format( "Skipping lookup for obsolete symbol %s", l2 ) )
       addr = 0
     else 
-      addr = parser:lookup( l2 )
-      if not addr then
+      s = parser:lookup( l2 )
+      if not s or not s.isfunction then
         print( string.format( "WARNING: symbol %s not found", l2 ) )
         addr = 0
+      else
+        addr = s.address
       end
     end
     outdata = put_number( outdata, addr ) 
@@ -42,3 +44,4 @@ f = io.open( "symaddr.bin", "wb" )
 f:write( outdata )
 f:close()
 print( string.format( "Processed %d symbols", nsym - 1 ) )
+

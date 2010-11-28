@@ -24,21 +24,22 @@ new = function( elfname )
   --   16: 08004a9e     0 NOTYPE  LOCAL  DEFAULT    1 Infinite_Loop 
   --   16: 08004a9e 0 NOTYPE LOCAL DEFAULT 1 Infinite_Loop 
   local syms = {}
-  local nsyms = 0
+  local symmap = {}
   for l in f:lines() do
-    if l:find( "FUNC" ) then
-      l = l:gsub( "%s+", " " )
-      local _, __, v, n = l:find( "%s%d-:%s(%x+)%s%d-%s[^%d]+%d-%s(.*)%s*$" )
-      syms[ n ] = tonumber( "0x" .. v )
-      nsyms = nsyms + 1
+    l = l:gsub( "%s+", " " )
+    local _, __, v, t, g, n = l:find( "%s%d-:%s(%x+)%s%d-%s(.-)%s(.-)%s[^%d]+%d-%s(.*)%s*$" )
+    if #n > 0 and t ~= "NOTYPE" then
+      syms[ n ] = { address = tonumber( "0x" .. v ), isfunction = t == 'FUNC', isglobal = g == 'GLOBAL' }
+      symmap[ #symmap + 1 ] = { n, syms[ n ] }
     end
   end
   f:close()
-  print( string.format( "done, found %d function symbols", nsyms ) )
+  print( string.format( "done, found %d symbols", #symmap ) )
        
   local self = {}
   setmetatable( self, { __index = parser } )
   self.syms = syms
+  self.symmap = symmap
   return self
 end
 
@@ -46,3 +47,12 @@ parser.lookup = function( self, symbol )
   return self.syms[ symbol ]
 end
 
+parser._iterfunc = function( self, i )
+  i = i + 1
+  local v = self.symmap[ i ]
+  if v then return i, { v[ 1 ], v[ 2 ].address, v[ 2 ].isfunction, v[ 2 ].isglobal } end
+end
+
+parser.iter = function( self )
+  return parser._iterfunc, self, 0
+end

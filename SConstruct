@@ -125,7 +125,8 @@ romfs = { 'bisect' : [ 'bisect.lua' ],
           'spaceship' : [ 'spaceship.lua' ],
           'tetrives' : [ 'tetrives.lua' ],
           'snake' : [ 'snake.lua' ],
-          'pachube' : [ 'pachube_demo.lua' ]
+          'pachube' : [ 'pachube_demo.lua' ],
+          'udl' : [ 'testmod.ebm' ]
         }
 
 # List of board/romfs data combinations
@@ -141,7 +142,7 @@ file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'i
               'MOD711' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'dualpwm' ],
               'STM3210E-EVAL' : [ 'bisect', 'hello', 'info' ],
               'ATEVK1100' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
-              'ET-STM32' : [ 'hello', 'hangman', 'info', 'bisect','adcscope','adcpoll', 'dualpwm', 'pwmled' ],
+              'ET-STM32' : [ 'hello', 'hangman', 'info', 'bisect', 'udl' ],
               'EAGLE-100' : [ 'bisect', 'hangman', 'lhttpd', 'led', 'hello', 'info' ],
               'ELUA-PUC' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'pwmled' ],
               'MBED' : [ 'bisect', 'hangman', 'hello', 'info', 'led', 'pwmled', 'dualpwm', 'life', 'adcscope','adcpoll' ],

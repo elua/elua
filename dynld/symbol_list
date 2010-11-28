@@ -81,6 +81,8 @@ lua_sethook
 lua_gethook
 lua_gethookmask
 lua_gethookcount
+luaL_register
+luaL_checklstring
 
 // libc/libm symbols
 atoi

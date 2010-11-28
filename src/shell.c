@@ -12,6 +12,7 @@
 #include "platform.h"
 #include "elua_net.h"
 #include "devman.h"
+#include "udl.h"
 
 #include "platform_conf.h"
 #ifdef BUILD_SHELL
@@ -54,6 +55,7 @@ static void shell_help( char* args )
   printf( "  lua [args]  - run Lua with the given arguments\n" );
   printf( "  recv        - receive a file via XMODEM and execute it\n" );
   printf( "  ver         - print eLua version\n" );
+  printf( "  modtest     - loadable modules test\n" );
 }
 
 // 'lua' handler
@@ -234,6 +236,27 @@ static void shell_cat( char *args )
       printf( "Usage: cat (or type) <filename1> [<filename2> ...]\n" );
 }    
 
+// 'modtest' handler
+typedef int( *pp )();
+static void shell_modtest( char *args )
+{
+/*  u32 addr;
+  unsigned i;
+
+  udl_load( "/rom/testmod.bin" );
+  addr = udl_find_symbol( "test", "udl_init_module" );
+  printf( "Function found at address %08X\n", addr );
+  pp p = ( pp )( addr | 1 );
+  p();
+
+  printf( "\n" );
+
+  addr = udl_find_symbol( "test", "module_test1" );
+  printf( "Function found at address %08X\n", addr );
+  p = ( pp )( addr | 1 );
+  p();*/
+}
+
 // Insert shell commands here
 static const SHELL_COMMAND shell_commands[] =
 {
@@ -246,6 +269,7 @@ static const SHELL_COMMAND shell_commands[] =
   { "dir", shell_ls },
   { "cat", shell_cat },
   { "type", shell_cat },
+  { "modtest", shell_modtest },
   { NULL, NULL }
 };
 

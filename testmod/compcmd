@@ -1,0 +1,15 @@
+#!/bin/bash
+
+arm-none-eabi-gcc -o test.o -c -mcpu=cortex-m3 -mthumb -Os -fomit-frame-pointer -ffunction-sections -fdata-sections -fno-strict-aliasing -Wall -DLUA_OPTIMIZE_MEMORY=2 -D__BUFSIZ__=128 -Dgcc -I../inc -I../inc/newlib -I../inc/remotefs -I../src/platform -I../src/lua -I../src/modules -I../src/platform/str9 -I../src/uip -I../src/fatfs testmod.c
+
+arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb -x assembler-with-cpp -ffunction-sections -fdata-sections -c -Wall -Dgcc -o cortex_m3_stubs.o ../cortex_m3_stubs.s
+arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb -x assembler-with-cpp -ffunction-sections -fdata-sections -c -Wall -Dgcc -o udl_get_id.o udl_get_id.s
+
+arm-none-eabi-gcc -o testmod.elf -mcpu=cortex-m3 -mthumb -Wl,-e,0 -Wl,-static -nostartfiles -nostdlib -T linker.ld -Wl,--gc-sections -Wl,--allow-multiple-definition test.o cortex_m3_stubs.o udl_get_id.o -lc -lgcc -lm
+
+arm-none-eabi-objcopy -O binary testmod.elf udlimage.bin
+
+lua mkmod.lua
+
+cp testmod.ebm ../romfs
+

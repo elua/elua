@@ -40,6 +40,8 @@ def progfunc_stm32( target, source, env ):
   os.system( "%s %s" % ( toolset[ 'size' ], outname ) )
   print "Generating binary image..."
   os.system( "%s -O binary %s %s.bin" % ( toolset[ 'bin' ], outname, output ) )
+  os.system( "lua dynld/mktable.lua" )
+  os.system( "cat %s.bin symaddr.bin > final.bin" % output )
   os.system( "%s -O ihex %s %s.hex" % ( toolset[ 'bin' ], outname, output ) )
   
 tools[ 'stm32' ][ 'progfunc' ] = progfunc_stm32

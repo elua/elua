@@ -1,6 +1,6 @@
 MEMORY
 {
-    sram (W!RX) : ORIGIN = 0x20000004, LENGTH = 64k
+    sram (W!RX) : ORIGIN = 0x20000010, LENGTH = 64k
     flash (RX) : ORIGIN = 0x08000000, LENGTH = 512k
 }
 

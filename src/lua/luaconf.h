@@ -91,30 +91,32 @@
 //## Defaults search modules path to our ROM File System
 #ifndef LUA_RPC
 #define LUA_PATH_DEFAULT "/mmc/?.lua;/mmc/?.lc;/rom/?.lua;/rom/?.lc"
-#else
+#define LUA_CPATH_DEFAULT "/rom/?.ebm"
+#else // #ifndef LUA_RPC
 #define LUA_PATH_DEFAULT  \
 		".\\?.lua;"  LUA_LDIR"?.lua;"  LUA_LDIR"?\\init.lua;" \
 		             LUA_CDIR"?.lua;"  LUA_CDIR"?\\init.lua"
-#endif	             
+#endif // #ifndef LUA_RPC
 #define LUA_CPATH_DEFAULT \
 	".\\?.dll;"  LUA_CDIR"?.dll;" LUA_CDIR"loadall.dll"
 
-#else
+#else // #if defined(_WIN32)
 #define LUA_ROOT	"/usr/local/"
 #define LUA_LDIR	LUA_ROOT "share/lua/5.1/"
 #define LUA_CDIR	LUA_ROOT "lib/lua/5.1/"
 
 #ifndef LUA_RPC
 #define LUA_PATH_DEFAULT  "/mmc/?.lua;/mmc/?.lc;/rom/?.lua;/rom/?.lc"
-#else
+#define LUA_CPATH_DEFAULT "/rom/?.ebm"
+#else // #ifndef LUA_RPC
 
 #define LUA_PATH_DEFAULT  \
 		"./?.lua;"  LUA_LDIR"?.lua;"  LUA_LDIR"?/init.lua;" \
 		            LUA_CDIR"?.lua;"  LUA_CDIR"?/init.lua"
-#endif
-#define LUA_CPATH_DEFAULT \
-	"./?.so;"  LUA_CDIR"?.so;" LUA_CDIR"loadall.so"
-#endif
+#endif // #ifndef LUA_RPC
+/*#define LUA_CPATH_DEFAULT \
+	"./?.so;"  LUA_CDIR"?.so;" LUA_CDIR"loadall.so"*/
+#endif // #if defined(_WIN32)
 
 
 /*
