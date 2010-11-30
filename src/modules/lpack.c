@@ -152,8 +152,10 @@ static int l_unpack(lua_State *L) 		/** unpack(s,f,[init]) */
    UNPACKSTRING(OP_WSTRING, unsigned short)
    UNPACKSTRING(OP_SSTRING, size_t)
    UNPACKNUMBER(OP_NUMBER, lua_Number)
+#ifndef LUA_NUMBER_INTEGRAL   
    UNPACKNUMBER(OP_DOUBLE, double)
    UNPACKNUMBER(OP_FLOAT, float)
+#endif   
    UNPACKNUMBER(OP_CHAR, char)
    UNPACKNUMBER(OP_BYTE, unsigned char)
    UNPACKNUMBER(OP_SHORT, short)
@@ -234,8 +236,10 @@ static int l_pack(lua_State *L) 		/** pack(f,...) */
    PACKSTRING(OP_WSTRING, unsigned short)
    PACKSTRING(OP_SSTRING, size_t)
    PACKNUMBER(OP_NUMBER, lua_Number)
+#ifndef LUA_NUMBER_INTEGRAL   
    PACKNUMBER(OP_DOUBLE, double)
    PACKNUMBER(OP_FLOAT, float)
+#endif
    PACKNUMBER(OP_CHAR, char)
    PACKNUMBER(OP_BYTE, unsigned char)
    PACKNUMBER(OP_SHORT, short)

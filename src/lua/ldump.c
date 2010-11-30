@@ -118,6 +118,9 @@ static void DumpSize(int32_t x, DumpState* D)
 
 static void DumpNumber(lua_Number x, DumpState* D)
 {
+#if defined( LUA_NUMBER_INTEGRAL ) && !defined( LUA_CROSS_COMPILER )
+  DumpIntWithSize(x,D->target.sizeof_lua_Number,D);
+#else // #if defined( LUA_NUMBER_INTEGRAL ) && !defined( LUA_CROSS_COMPILER )
  if (D->target.lua_Number_integral)
  {
   if (((float)(int)x)!=x) D->status=LUA_ERR_CC_NOTINTEGER;
@@ -137,7 +140,7 @@ static void DumpNumber(lua_Number x, DumpState* D)
     double y=x;
     // ARM FPA mode: keep endianness, but swap high and low parts of the 
     // memory representation. This is the default compilation mode for ARM 
-    // targets (at least with GCC)
+    // targets with non-EABI gcc
     if(D->target.is_arm_fpa)
     {
       char *pnum=(char*)&y, temp[4];
@@ -151,6 +154,7 @@ static void DumpNumber(lua_Number x, DumpState* D)
    default: lua_assert(0);
   }
  }
+#endif // #if defined( LUA_NUMBER_INTEGRAL ) && !defined( LUA_CROSS_COMPILER )
 }
 
 static void DumpCode(const Proto *f, DumpState* D)
