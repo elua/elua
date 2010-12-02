@@ -52,13 +52,14 @@
 #define ADCLINE
 #endif
 
-#if defined( BUILD_RPC ) || defined( ELUA_BOOT_RPC )
+#if defined( ELUA_BOOT_RPC ) && !defined( BUILD_RPC )
+#define BUILD_RPC
+#endif
+
+#if defined( BUILD_RPC ) 
 #define RPCLINE _ROM( AUXLIB_RPC, luaopen_rpc, rpc_map )
 #else
 #define RPCLINE
-#if !defined( BUILD_RPC )
-#define BUILD_RPC
-#endif
 #endif
 
 #define LUA_PLATFORM_LIBS_ROM\
