@@ -240,13 +240,14 @@ void CANIntHandler(void)
     status = CANStatusGet(CAN0_BASE, CAN_STS_CONTROL);
     can_err_flag = 1;
   }
-
-  else if( status == 1 )
+  else if( status == 1 ) // Message receive
   {
     CANIntClear(CAN0_BASE, 1);
     can_rx_flag = 1;
     can_err_flag = 0;
   }
+  else
+    CANIntClear(CAN0_BASE, status);
 }
 
 
@@ -277,6 +278,7 @@ u32 platform_can_setup( unsigned id, u32 clock )
   MAP_CANDisable(CAN0_BASE);
   CANBitRateSet(CAN0_BASE, SysCtlClockGet(), clock );
   MAP_CANEnable(CAN0_BASE);
+  return clock;
 }
 
 void platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *data )
@@ -291,7 +293,7 @@ void platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *dat
   msg_tx.ulMsgIDMask = 0;
   msg_tx.ulMsgID = canid;
   msg_tx.ulMsgLen = len;
-  msg_tx.pucMsgData = d;
+  msg_tx.pucMsgData = ( u8 * )can_tx_buf;
 
   d = can_tx_buf;
   DUFF_DEVICE_8( len,  *d++ = *s++ );
