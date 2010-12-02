@@ -28,9 +28,11 @@
 #include "hw_types.h"
 #include "hw_pwm.h"
 #include "hw_nvic.h"
+#include "hw_can.h"
 #include "hw_ethernet.h"
 #include "debug.h"
 #include "gpio.h"
+#include "can.h"
 #include "interrupt.h"
 #include "sysctl.h"
 #include "uart.h"
@@ -82,6 +84,7 @@ static void pios_init();
 static void pwms_init();
 static void eth_init();
 static void adcs_init();
+static void cans_init();
 
 int platform_init()
 {
@@ -110,6 +113,11 @@ int platform_init()
 #ifdef BUILD_ADC
   // Setup ADCs
   adcs_init();
+#endif
+
+#ifdef BUILD_CAN
+  // Setup CANs
+  cans_init();
 #endif
 
   // Setup ethernet (TCP/IP)
@@ -212,6 +220,97 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
       break;
   }
   return retval;
+}
+
+
+// ****************************************************************************
+// CAN
+
+volatile u32 can_rx_flag = 0;
+volatile u32 can_err_flag = 0;
+char can_tx_buf[8];
+tCANMsgObject can_msg_rx;
+
+void CANIntHandler(void)
+{
+  u32 status = CANIntStatus(CAN0_BASE, CAN_INT_STS_CAUSE);
+
+  if(status == CAN_INT_INTID_STATUS)
+  {
+    status = CANStatusGet(CAN0_BASE, CAN_STS_CONTROL);
+    can_err_flag = 1;
+  }
+
+  else if( status == 1 )
+  {
+    CANIntClear(CAN0_BASE, 1);
+    can_rx_flag = 1;
+    can_err_flag = 0;
+  }
+}
+
+
+void cans_init( void )
+{
+  GPIOPinConfigure(GPIO_PD0_CAN0RX);
+  GPIOPinConfigure(GPIO_PD1_CAN0TX);
+  MAP_GPIOPinTypeCAN(GPIO_PORTD_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+
+  MAP_SysCtlPeripheralEnable( SYSCTL_PERIPH_CAN0 ); 
+  MAP_CANInit( CAN0_BASE );
+  CANBitRateSet(CAN0_BASE, SysCtlClockGet(), 500000);
+  MAP_CANIntEnable( CAN0_BASE, CAN_INT_MASTER | CAN_INT_ERROR | CAN_INT_STATUS );
+  MAP_IntEnable(INT_CAN0);
+  MAP_CANEnable(CAN0_BASE);
+
+  // Configure default catch-all message object
+  can_msg_rx.ulMsgID = 0;
+  can_msg_rx.ulMsgIDMask = 0;
+  can_msg_rx.ulFlags = MSG_OBJ_RX_INT_ENABLE | MSG_OBJ_USE_ID_FILTER;
+  can_msg_rx.ulMsgLen = 8;
+  MAP_CANMessageSet(CAN0_BASE, 1, &can_msg_rx, MSG_OBJ_TYPE_RX);
+}
+
+
+u32 platform_can_setup( unsigned id, u32 clock )
+{  
+  MAP_CANDisable(CAN0_BASE);
+  CANBitRateSet(CAN0_BASE, SysCtlClockGet(), clock );
+  MAP_CANEnable(CAN0_BASE);
+}
+
+void platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *data )
+{
+  tCANMsgObject msg_tx;
+  const char *s = ( char * )data;
+  char *d;
+  
+  if( idtype )
+    msg_tx.ulFlags |= MSG_OBJ_EXTENDED_ID;
+  
+  msg_tx.ulMsgIDMask = 0;
+  msg_tx.ulMsgID = canid;
+  msg_tx.ulMsgLen = len;
+  msg_tx.pucMsgData = d;
+
+  d = can_tx_buf;
+  DUFF_DEVICE_8( len,  *d++ = *s++ );
+  
+  CANMessageSet(CAN0_BASE, 2, &msg_tx, MSG_OBJ_TYPE_TX);
+}
+
+void platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )
+{
+  // wait for a message
+  while( can_rx_flag == 0 );
+
+  can_msg_rx.pucMsgData = data;
+  CANMessageGet(CAN0_BASE, 1, &can_msg_rx, 0);
+  can_rx_flag = 0;
+
+  *canid = ( u32 )can_msg_rx.ulMsgID;
+  *idtype = (can_msg_rx.ulFlags & MSG_OBJ_EXTENDED_ID)? 1 : 0;
+  *len = can_msg_rx.ulMsgLen;
 }
 
 // ****************************************************************************

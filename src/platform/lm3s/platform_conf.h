@@ -45,6 +45,13 @@
 #define PS_LIB_TABLE_NAME   "lm3s"
 #endif
 
+#if defined( FORLM3S8962 ) || defined( FORLM3S9B92 )
+#define CANLINE  _ROM( AUXLIB_CAN, luaopen_can, can_map )
+#define BUILD_CAN
+#else
+#define CANLINE
+#endif
+
 #ifdef FORLM3S6918
 #define PWMLINE
 #else
@@ -78,6 +85,8 @@
 #define PLATLINE
 #endif
 
+
+
 #define LUA_PLATFORM_LIBS_ROM\
   _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
   _ROM( AUXLIB_SPI, luaopen_spi, spi_map )\
@@ -93,6 +102,7 @@
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
   _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )\
   ADCLINE\
+  CANLINE\
   RPCLINE\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
   PLATLINE
@@ -151,7 +161,7 @@
   #define NUM_PWM             0
 #endif  
 #define NUM_ADC               4
-#define NUM_CAN               0
+#define NUM_CAN               1
 
 // Enable RX buffering on UART
 //#define BUF_ENABLE_UART
