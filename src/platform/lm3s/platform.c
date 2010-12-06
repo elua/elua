@@ -287,7 +287,7 @@ void platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *dat
   const char *s = ( char * )data;
   char *d;
   
-  if( idtype )
+  if( idtype == ELUA_CAN_ID_EXT )
     msg_tx.ulFlags |= MSG_OBJ_EXTENDED_ID;
   
   msg_tx.ulMsgIDMask = 0;
@@ -301,18 +301,22 @@ void platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *dat
   CANMessageSet(CAN0_BASE, 2, &msg_tx, MSG_OBJ_TYPE_TX);
 }
 
-void platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )
+int platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )
 {
   // wait for a message
-  while( can_rx_flag == 0 );
+  if( can_rx_flag != 0 )
+  {
+    can_msg_rx.pucMsgData = data;
+    CANMessageGet(CAN0_BASE, 1, &can_msg_rx, 0);
+    can_rx_flag = 0;
 
-  can_msg_rx.pucMsgData = data;
-  CANMessageGet(CAN0_BASE, 1, &can_msg_rx, 0);
-  can_rx_flag = 0;
-
-  *canid = ( u32 )can_msg_rx.ulMsgID;
-  *idtype = (can_msg_rx.ulFlags & MSG_OBJ_EXTENDED_ID)? 1 : 0;
-  *len = can_msg_rx.ulMsgLen;
+    *canid = ( u32 )can_msg_rx.ulMsgID;
+    *idtype = ( can_msg_rx.ulFlags & MSG_OBJ_EXTENDED_ID )? ELUA_CAN_ID_EXT : ELUA_CAN_ID_STD;
+    *len = can_msg_rx.ulMsgLen;
+    return PLATFORM_OK;
+  }
+  else
+    return PLATFORM_UNDERFLOW;
 }
 
 // ****************************************************************************

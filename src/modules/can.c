@@ -52,12 +52,16 @@ static int can_recv( lua_State* L )
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( can, id );
   
-  platform_can_recv( id, &canid, &idtype, &len, data );
-  lua_pushinteger( L, canid );
-  lua_pushinteger( L, idtype );
-  lua_pushlstring (L, ( const char * )data, ( size_t )len);
+  if( platform_can_recv( id, &canid, &idtype, &len, data ) == PLATFORM_OK )
+  {
+    lua_pushinteger( L, canid );
+    lua_pushinteger( L, idtype );
+    lua_pushlstring( L, ( const char * )data, ( size_t )len );
   
-  return 3;
+    return 3;
+  }
+  else
+    return 0;
 }
 
 

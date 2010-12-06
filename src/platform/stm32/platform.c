@@ -377,12 +377,12 @@ void platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *dat
   
   switch( idtype )
   {
-    case 0: /* Standard ID Type  */
+    case ELUA_CAN_ID_STD:
       TxMessage.IDE = CAN_ID_STD;
       TxMessage.StdId = canid;
       break;
-    case 1: /* Extended ID Type */
-      TxMessage.IDE=CAN_ID_EXT;
+    case ELUA_CAN_ID_EXT:
+      TxMessage.IDE = CAN_ID_EXT;
       TxMessage.ExtId = canid;
       break;
   }
@@ -422,39 +422,36 @@ void USB_LP_CAN_RX0_IRQHandler(void)
   }*/
 }
 
-void platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )
+int platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )
 {
   CanRxMsg RxMessage;
   const char *s;
   char *d;
-  u32 i = 0;
-  
-  // Check up to 256 times for message
-  while( ( CAN_MessagePending(CAN1, CAN_FIFO0) < 1 ) && ( i++ != 0xFF ) );
-    
-  RxMessage.StdId=0x00;
-  RxMessage.IDE=CAN_ID_STD;
-  RxMessage.DLC=0;
-  RxMessage.Data[0]=0x00;
-  RxMessage.Data[1]=0x00;
-  CAN_Receive(CAN1, CAN_FIFO0, &RxMessage);
-  
-  if( RxMessage.IDE == CAN_ID_STD )
+
+  if( CAN_MessagePending( CAN1, CAN_FIFO0 ) > 0 )
   {
-    *canid = ( u32 )RxMessage.StdId;
-    *idtype = 0;
+    CAN_Receive(CAN1, CAN_FIFO0, &RxMessage);
+
+    if( RxMessage.IDE == CAN_ID_STD )
+    {
+      *canid = ( u32 )RxMessage.StdId;
+      *idtype = ELUA_CAN_ID_STD;
+    }
+    else
+    {
+      *canid = ( u32 )RxMessage.ExtId;
+      *idtype = ELUA_CAN_ID_EXT;
+    }
+
+    *len = RxMessage.DLC;
+
+    s = ( const char * )RxMessage.Data;
+    d = ( char* )data;
+    DUFF_DEVICE_8( RxMessage.DLC,  *d++ = *s++ );
+    return PLATFORM_OK;
   }
   else
-  {
-    *canid = ( u32 )RxMessage.ExtId;
-    *idtype = 1;
-  }
-  
-  *len = RxMessage.DLC;
-  
-  s = ( const char * )RxMessage.Data;
-  d = ( char* )data;
-  DUFF_DEVICE_8( RxMessage.DLC,  *d++ = *s++ );
+    return PLATFORM_UNDERFLOW;
 }
 
 // ****************************************************************************
