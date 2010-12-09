@@ -227,9 +227,17 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 // CAN
 
 volatile u32 can_rx_flag = 0;
+volatile u32 can_tx_flag = 0;
 volatile u32 can_err_flag = 0;
 char can_tx_buf[8];
 tCANMsgObject can_msg_rx;
+
+// LM3S9Bxx MCU CAN seems to run off of system clock, LM3S8962 has 8 MHz clock
+#if defined( FORLM3S8962 )
+#define LM3S_CAN_CLOCK  8000000
+#else
+#define LM3S_CAN_CLOCK  SysCtlClockGet()
+#endif
 
 void CANIntHandler(void)
 {
@@ -246,6 +254,12 @@ void CANIntHandler(void)
     can_rx_flag = 1;
     can_err_flag = 0;
   }
+  else if( status == 2 ) // Message send
+  {
+    CANIntClear(CAN0_BASE, 2);
+    can_tx_flag = 0;
+    can_err_flag = 0;
+  }
   else
     CANIntClear(CAN0_BASE, status);
 }
@@ -259,7 +273,7 @@ void cans_init( void )
 
   MAP_SysCtlPeripheralEnable( SYSCTL_PERIPH_CAN0 ); 
   MAP_CANInit( CAN0_BASE );
-  CANBitRateSet(CAN0_BASE, SysCtlClockGet(), 500000);
+  CANBitRateSet(CAN0_BASE, LM3S_CAN_CLOCK, 500000);
   MAP_CANIntEnable( CAN0_BASE, CAN_INT_MASTER | CAN_INT_ERROR | CAN_INT_STATUS );
   MAP_IntEnable(INT_CAN0);
   MAP_CANEnable(CAN0_BASE);
@@ -276,7 +290,7 @@ void cans_init( void )
 u32 platform_can_setup( unsigned id, u32 clock )
 {  
   MAP_CANDisable(CAN0_BASE);
-  CANBitRateSet(CAN0_BASE, SysCtlClockGet(), clock );
+  CANBitRateSet(CAN0_BASE, LM3S_CAN_CLOCK, clock );
   MAP_CANEnable(CAN0_BASE);
   return clock;
 }
@@ -286,6 +300,11 @@ void platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *dat
   tCANMsgObject msg_tx;
   const char *s = ( char * )data;
   char *d;
+
+  // Wait for outgoing messages to clear
+  while( can_tx_flag == 1 );
+
+  msg_tx.ulFlags = MSG_OBJ_TX_INT_ENABLE;
   
   if( idtype == ELUA_CAN_ID_EXT )
     msg_tx.ulFlags |= MSG_OBJ_EXTENDED_ID;
@@ -297,7 +316,8 @@ void platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *dat
 
   d = can_tx_buf;
   DUFF_DEVICE_8( len,  *d++ = *s++ );
-  
+
+  can_tx_flag = 1;
   CANMessageSet(CAN0_BASE, 2, &msg_tx, MSG_OBJ_TYPE_TX);
 }
 
