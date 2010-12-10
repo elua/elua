@@ -32,7 +32,7 @@ RFS server on the PC side
 RFS needs a program running on the PC side, the *RFS server*. This is the program
 that implements the actual directory sharing (eLua connects to this program via
 the *RFS_UART_ID* UART). The RFS server was succesfully built and tested under 
-Windows 7 (32 bit) and Linux (Ubuntu 64 bit). To build it you need: 
+Windows 7 (32 bit) and Linux (Ubuntu 10.10 64 bit). To build it you need: 
 
 - a build environment. This means gcc under Linux (see for example link:tc_arm.html[here] for instruction on how to install a toolchain in 
   Ubuntu Linux) and a gcc-based development environment under Windows. How to install a gcc-based development environment under Windows is
@@ -93,6 +93,14 @@ Some things you should consider when using the RFS:
   until it wakes up and during this time RFS will most likely time out (see *RFS_TIMEOUT* macro above). This, in turn, might confuse RFS completely and
   give strange errors, like being unable to list the contents of the directory on the eLua board. If this happens, restart *rfs_server*, reset the
   eLua board and try again.       
+- for reasons similar to the above, if you're running your server on a
+  hosted virtual machine (ex: Virtualbox, VMWare, ...), make sure the VM
+  host has a steady clock and does not keep entering and leaving some
+  energy-saving mode that changes the clock speed. If you work on this
+  configuration (usually on laptops), just go to your energy-savings
+  preferences and chose one that will not change the clock during the serial
+  transfers. This is not mandatory for all scenarios. Just keep this in mind
+  if you have some issues and change it only if needed.
 - the larger *RFS_BUFFER_SIZE* is, the better the performance, but obviously RAM consumption also increases.
 - some serial ports built around USB to RS232 adapters seem to confuse *rfs_server* sometimes. If RFS won't work after you tried all the above
   instructions, or if *rfs_server* terminates unexpectedly, unplugging and plugging the USB cable of the RS232 adapter and restarting *rfs_server* 
