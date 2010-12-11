@@ -15,7 +15,8 @@
 --    returns true if the arg button is pressed, false otherwise
 
 local pio = pio
-  
+local lm3s = lm3s
+
 module(...)
 
 BTN_UP      = pio.PE_0

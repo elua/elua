@@ -15,6 +15,7 @@
 --    returns true if the arg button is pressed, false otherwise
 
 local pio = pio
+local lm3s = lm3s 
   
 module(...)
 
