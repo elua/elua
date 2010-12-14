@@ -37,6 +37,23 @@ assert(slave.test:get(), "couldn't get remote table")
 -- check that we can get entry on remote table
 assert(test_local.sval == slave.test:get().sval, "table field not equivalent")
 
+-- ensure that we're not loosing critical objects in GC
+tval = 5
+y={}
+y.z={}
+y.z.x = tval
+slave.y=y
+
+a={}
+for i=1,2 do
+  a[i]=slave.y.z
+  collectgarbage("collect")
+end
+for idx,val in ipairs(a) do
+  assert(val:get().x == tval, "missing parent helper")
+  assert(val.x:get() == tval, "missing parent helper")
+end
+
 print("Memory Used: " .. slave.collectgarbage("count") .. " kB")
 
 -- adc = slave.adc

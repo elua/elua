@@ -103,8 +103,9 @@ struct _Handle
 typedef struct _Helper Helper;
 struct _Helper {
   Handle *handle;                     // pointer to handle object
-	Helper *parent;                     // parent helper
-	u8 nparents;                        // number of parents
+  Helper *parent;                     // parent helper
+  int pref;                           // Parent reference idx in registry
+  u8 nparents;                        // number of parents
   char funcname[NUM_FUNCNAME_CHARS];  // name of the function
 };
 

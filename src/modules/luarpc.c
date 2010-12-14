@@ -762,10 +762,13 @@ static Helper *helper_create( lua_State *L, Handle *handle, const char *funcname
   Helper *h = ( Helper * )lua_newuserdata( L, sizeof( Helper ) );
   luaL_getmetatable( L, "rpc.helper" );
   lua_setmetatable( L, -2 );
+
+  lua_pushvalue( L, 1 ); // push parent handle
+  h->pref = luaL_ref( L, LUA_REGISTRYINDEX ); // put ref into struct
   h->handle = handle;
   h->parent = NULL;
   h->nparents = 0;
-  strncpy ( h->funcname, funcname, NUM_FUNCNAME_CHARS );
+  strncpy( h->funcname, funcname, NUM_FUNCNAME_CHARS );
   return h;
 }
 
@@ -775,7 +778,7 @@ static int handle_index (lua_State *L)
 {
   const char *s;
 
-  MYASSERT( lua_gettop( L ) == 2 );
+  check_num_args( L, 2 );
   MYASSERT( lua_isuserdata( L, 1 ) && ismetatable_type( L, 1, "rpc.handle" ) );
 
   if( lua_type( L, 2 ) != LUA_TSTRING )
@@ -797,7 +800,7 @@ static int handle_newindex( lua_State *L )
 {
   const char *s;
 
-  MYASSERT( lua_gettop( L ) == 3 );
+  check_num_args( L, 3 );
   MYASSERT( lua_isuserdata( L, 1 ) && ismetatable_type( L, 1, "rpc.handle" ) );
 
   if( lua_type( L, 2 ) != LUA_TSTRING )
@@ -928,11 +931,10 @@ static int helper_call (lua_State *L)
   int freturn = 0;
   Helper *h;
   Transport *tpt;
-  MYASSERT( lua_gettop( L ) >= 1 );
-  MYASSERT( lua_isuserdata( L, 1 ) && ismetatable_type( L, 1, "rpc.helper" ) );
-  
-  // get helper object and its transport 
-  h = ( Helper * )lua_touserdata( L, 1 );
+
+  h = ( Helper * )luaL_checkudata(L, 1, "rpc.helper");
+  luaL_argcheck(L, h, 1, "helper expected");
+
   tpt = &h->handle->tpt;
   
   // capture special calls, otherwise execute normal remote call
@@ -1001,9 +1003,7 @@ static int helper_call (lua_State *L)
   return freturn;
 }
 
-
-
-
+// __newindex even on helper
 static int helper_newindex( lua_State *L )
 {
   struct exception e;
@@ -1011,16 +1011,17 @@ static int helper_newindex( lua_State *L )
   int ret_code;
   Helper *h;
   Transport *tpt;
-  MYASSERT( lua_isuserdata( L, -3 ) && ismetatable_type( L, -3, "rpc.helper" ) );
-  MYASSERT( lua_isstring( L, -2 ) );
-  
-  // get helper object and its transport
-  h = ( Helper * )lua_touserdata( L, -3 );
+
+  h = ( Helper * )luaL_checkudata(L, -3, "rpc.helper");
+  luaL_argcheck(L, h, -3, "helper expected");
+ 
+  luaL_checktype(L, -2, LUA_TSTRING );
+
   tpt = &h->handle->tpt;
   
   Try
   {  
-    // write function name
+    // index destination on remote side
     helper_wait_ready( tpt, RPC_CMD_NEWINDEX );
     helper_remote_index( h );
 
@@ -1055,6 +1056,9 @@ static Helper *helper_append( lua_State *L, Helper *helper, const char *funcname
   Helper *h = ( Helper * )lua_newuserdata( L, sizeof( Helper ) );
   luaL_getmetatable( L, "rpc.helper" );
   lua_setmetatable( L, -2 );
+
+  lua_pushvalue( L, 1 ); // push parent
+  h->pref = luaL_ref( L, LUA_REGISTRYINDEX ); // put ref into struct
   h->handle = helper->handle;
   h->parent = helper;
   h->nparents = helper->nparents + 1;
@@ -1062,12 +1066,12 @@ static Helper *helper_append( lua_State *L, Helper *helper, const char *funcname
   return h;
 }
 
-// indexing a handle returns a helper 
+// indexing a helper returns a helper 
 static int helper_index( lua_State *L )
 {
   const char *s;
 
-  MYASSERT( lua_gettop( L ) == 2 );
+  check_num_args( L, 2 );
   MYASSERT( lua_isuserdata( L, 1 ) && ismetatable_type( L, 1, "rpc.helper" ) );
 
   if( lua_type( L, 2 ) != LUA_TSTRING )
@@ -1080,6 +1084,17 @@ static int helper_index( lua_State *L )
 
   return 1;
 }
+
+static int helper_close (lua_State *L)
+{
+  Helper *h = ( Helper * )luaL_checkudata(L, 1, "rpc.helper");
+  luaL_argcheck(L, h, 1, "helper expected");
+  
+  luaL_unref(L, LUA_REGISTRYINDEX, h->pref);
+  h->pref = LUA_REFNIL;
+  return 0;
+}
+
 
 // **************************************************************************
 // server side handle userdata objects. 
@@ -1543,8 +1558,8 @@ static int rpc_dispatch( lua_State *L )
   ServerHandle *handle;
   check_num_args( L, 1 );
 
-  if ( ! ( lua_isuserdata( L, 1 ) && ismetatable_type( L, 1, "rpc.server_handle" ) ) )
-    return luaL_error( L, "arg must be server handle" );
+  handle = ( ServerHandle * )luaL_checkudata(L, 1, "rpc.server_handle");
+  luaL_argcheck(L, handle, 1, "server handle expected");
 
   handle = ( ServerHandle * )lua_touserdata( L, 1 );
 
@@ -1625,6 +1640,7 @@ const LUA_REG_TYPE rpc_helper[] =
   { LSTRKEY( "__call" ), LFUNCVAL( helper_call ) },
   { LSTRKEY( "__index" ), LFUNCVAL( helper_index ) },
   { LSTRKEY( "__newindex" ), LFUNCVAL( helper_newindex ) },
+  { LSTRKEY( "__gc" ), LFUNCVAL( helper_close ) },
   { LNILKEY, LNILVAL }
 };
 
@@ -1686,6 +1702,7 @@ static const luaL_reg rpc_helper[] =
   { "__call", helper_call },
   { "__index", helper_index },
   { "__newindex", helper_newindex },
+  { "__gc", helper_close },
   { NULL, NULL }
 };
 
