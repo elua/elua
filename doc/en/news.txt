@@ -2,6 +2,37 @@
 eLua Project News
 -----------------
 
+?????  ??th, 201?
+~~~~~~~~~~~~~~~~
+. Version 0.8 is released. Here's the changelog:
+added EVK1100 and SPI support for AVR32
+Added I2C support for STR-E912 (STR912)
+Added generic I2C support and doc
+Added ADC support for mbed (LPC17xx)
+Added support for require() and autorun from SD/MMC
+Added external memory support for STR912
+Fixed open files count on closing files
+Added long filename support for SD/MMC
+Added version() function to elua module
+Added (partial) PWM support for LPC17xx  ##
+Added support for Remote File System
+Added timer support for mbed (LPC17xx)
+
+Added support for new platforms:  mbed, EVK-1101, STR-E912,  STM32, ...........
+
+Scons build structure and options enhanced
+Support for new toolchains, which ?
+Build in Windows ?
+
+demo files not part of the distro anymore. Point to eLua User Labs
+
+Many doc and ref manual enhances
+Tutorials on eLua User Labs
+
+New games and examples (Simon, .... point to User Labs...)
+
+
+
 August 4th, 2010
 ~~~~~~~~~~~~~~~~
 .eLua Web Builder
