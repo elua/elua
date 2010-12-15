@@ -47,6 +47,7 @@ local menu =
       { "IRC", "comunity.html#irc" },
       { "User Labs Wiki", "comunity.html#userswiki" },      
       { { "Credits", "Créditos" }, "comunity.html#credits" },
+      { "Donations", "comunity.html#donations" },
       { nil, "forum.html", nil, "Forum" } -- "hidden" entry (doesn't appear in the menu)
     }
   },

@@ -31,32 +31,39 @@ eLua users maintain a wiki with projects, code examples, tutorials and media at 
 [[credits]]
 Credits
 -------
-The authors of eLua would like to thank the colaborative help from the community for the continuous development of the project. 
+The authors of eLua would like to thank the collaborative help from the community for the continuous development of the project. 
 Here's an alphabetically ordered non-exhaustive list of contributors:
 
 - Fréderic Thomas - Previous site hosting, LM3S enhancements
-- James Snyder - ADC, CAN, LuaRPC (http://q12.org/lua/index.html[originaly by Russell Smith]), sd/mmc, doc/site menu CSS, testing, planning, ...
+- James Snyder - ADC, CAN, LuaRPC (http://q12.org/lua/index.html[originaly by Russell Smith]), sd/mmc, doc/site menu CSS, testing, planning
 - Jesus Alvarez - Initial SD/MMC support
-- Mike Panetta - STM32 port
-- Pedro Bittencourt - RIT OLED display support, testing ...
-- Raul Nunes - The fundamental support from http://www.puc-rio.br[PUC-Rio].
-- Robert Jakabosky - for porting his link:elua_egc.html[excellent emergency garbage collector] patch to eLua
-- Vagner Nascimento and Carlos Eduardo Deodoro - eLua Web Builder
-- Renaud Cerrato - Initial EVK1101 port
-- Cristina Sampaio and http://www.ti.com/ww/br[Texas Instruments Brasil] - Kits donation and support
-- Sergio Sorrenti, Martin Guy and http://www.simplemachines.it[SimpleMachines] - Kits donation, AVR32 support, testing
-- Roberto Ierusalimschy, Luiz Henrique Figueiredo, Waldemar Celles - for http://www.lua.org[Lua] :)
-- Téo Benjamin, Ives Cunha, Rafael Barmak - Pong, TetrIves, SpaceShip games and http://wiki.eluaproject.net/Manfredo[Manfredo], a GPS guided robot, powered by eLua.
 - joritzel (THC4k on http://freenode.net[freenode]) for the web-based IRC logs.
-- The whole community of users on our eLua list at https://lists.berlios.de/mailman/listinfo/elua-dev.
+- Mike Panetta - STM32 port
+- Pedro Bittencourt - RIT OLED display support, testing
+- Raul Nunes - The fundamental support from http://www.puc-rio.br[PUC-Rio].
+- Renaud Cerrato - Initial EVK1101 port
+- Robert Jakabosky - for porting his excellent link:elua_egc.html[emergency garbage collector] patch to eLua
+- Roberto Ierusalimschy, Luiz Henrique Figueiredo, Waldemar Celles - for http://www.lua.org[Lua] :)
+- Sergio Sorrenti and Martin Guy - AVR32 support, http://www.simplemachines.it/index.php?option=com_content&view=article&id=13&Itemid=24[Mizar32] port, testing
+- Téo Benjamin, Ives Cunha, Rafael Barmak - Pong, TetrIves, SpaceShip games and http://wiki.eluaproject.net/Manfredo[Manfredo], a GPS guided robot, powered by eLua.
+- Vagner Nascimento and Carlos Eduardo Deodoro - eLua Web Builder
+- The eLua users community on our https://lists.berlios.de/mailman/listinfo/elua-dev[discussion list] and http://wiki.eluaproject.net[eLua User Labs]
 
 \... and the constant help and support from:
  
 Alberto Fabiano, André Carregal, Ângelo Santos, Asko Kauppi, Carlos Eduardo Deodoro,
-Cosmin Filip, Dean Hall, Diego Sueiro, Eduardo von Ristow, Fabio Pereira,
-Giovani Balduino, Guilherme Sanchez Pacheco, John Hind, Luiz de Barros, Marcelo
-Tílio, Marco Meggiolaro, Owen Woollaston, Patrick Donnelly, Paul Verbeke, Ralph Hempel,
+Cosmin Filip, Cristina Sampaio, Dean Hall, Diego Sueiro, Eduardo von Ristow,
+Fabien Fleutot, Fabio Pereira, Flavio Nogueira, Flavio Ribeiro, Giovani Balduino, 
+Guilherme Sanchez Pacheco, John Hind, Luiz de Barros, Marcelo Tílio, 
+Marco Meggiolaro, Owen Woollaston, Patrick Donnelly, Paul Verbeke, Ralph Hempel,
 ...
+
+[[donations]]
+Donations
+---------
+- http://www.olimex.com[Olimex] - STR-E912 ARM9 kit
+- Cristina Sampaio and http://www.ti.com/ww/br[Texas Instruments Brasil] - EK-LM3S6965 LM3S Cortex-M3 kits
+- Sergio Sorrenti and http://www.simplemachines.it[SimpleMachines] - EVK-1101 AVR32 and AVR Dragon (programmers) kits
 
 // $$FOOTER$$
 
