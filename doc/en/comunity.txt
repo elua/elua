@@ -34,14 +34,17 @@ Credits
 The authors of eLua would like to thank the colaborative help from the community for the continuous development of the project. 
 Here's an alphabetically ordered non-exhaustive list of contributors:
 
-- Everson Denis and Flávio Nogueira - Portuguese translation for the site&doc
-- Robert Jakabosky - for porting his link:elua_egc.html[excellent emergency garbage collector] patch to eLua
 - Fréderic Thomas - Previous site hosting, LM3S enhancements
-- Jesus Alvarez - Initial SD/MMC support
 - James Snyder - ADC, CAN, LuaRPC (http://q12.org/lua/index.html[originaly by Russell Smith]), sd/mmc, doc/site menu CSS, testing, planning, ...
+- Jesus Alvarez - Initial SD/MMC support
 - Mike Panetta - STM32 port
 - Pedro Bittencourt - RIT OLED display support, testing ...
 - Raul Nunes - The fundamental support from http://www.puc-rio.br[PUC-Rio].
+- Robert Jakabosky - for porting his link:elua_egc.html[excellent emergency garbage collector] patch to eLua
+- Vagner Nascimento and Carlos Eduardo Deodoro - eLua Web Builder
+- Renaud Cerrato - Initial EVK1101 port
+- Cristina Sampaio and http://www.ti.com/ww/br[Texas Instruments Brasil] - Kits donation and support
+- Sergio Sorrenti, Martin Guy and http://www.simplemachines.it[SimpleMachines] - Kits donation, AVR32 support, testing
 - Roberto Ierusalimschy, Luiz Henrique Figueiredo, Waldemar Celles - for http://www.lua.org[Lua] :)
 - Téo Benjamin, Ives Cunha, Rafael Barmak - Pong, TetrIves, SpaceShip games and http://wiki.eluaproject.net/Manfredo[Manfredo], a GPS guided robot, powered by eLua.
 - joritzel (THC4k on http://freenode.net[freenode]) for the web-based IRC logs.
@@ -52,7 +55,8 @@ Here's an alphabetically ordered non-exhaustive list of contributors:
 Alberto Fabiano, André Carregal, Ângelo Santos, Asko Kauppi, Carlos Eduardo Deodoro,
 Cosmin Filip, Dean Hall, Diego Sueiro, Eduardo von Ristow, Fabio Pereira,
 Giovani Balduino, Guilherme Sanchez Pacheco, John Hind, Luiz de Barros, Marcelo
-Tílio, Marco Meggiolaro, Ralph Hempel, Vagner Nascimento, Yuri Takhteyev, ....
+Tílio, Marco Meggiolaro, Owen Woollaston, Patrick Donnelly, Paul Verbeke, Ralph Hempel,
+...
 
 // $$FOOTER$$
 
