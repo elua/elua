@@ -187,10 +187,10 @@ int platform_init()
     spiopt.modfdis = TRUE;
     spiopt.pcs_decode = FALSE;
     spiopt.delay = 0;
-    spi_initMaster(&AVR32_SPI0, &spiopt, REQ_PBA_FREQ);
+    spi_initMaster(&AVR32_SPI0, &spiopt, REQ_CPU_FREQ);
     
 #if NUM_SPI > 4
-    spi_initMaster(&AVR32_SPI1, &spiopt, REQ_PBA_FREQ);
+    spi_initMaster(&AVR32_SPI1, &spiopt, REQ_CPU_FREQ);
 #endif    
 
 #endif
@@ -576,12 +576,14 @@ static const gpio_map_t spi_pins =
   { BOARD_SPI0_SCK_PIN, BOARD_SPI0_SCK_PIN_FUNCTION },
   { BOARD_SPI0_MISO_PIN, BOARD_SPI0_MISO_PIN_FUNCTION },
   { BOARD_SPI0_MOSI_PIN, BOARD_SPI0_MOSI_PIN_FUNCTION },
+  { BOARD_SPI0_CS_PIN, BOARD_SPI0_CS_PIN_FUNCTION },
   
   // SPI1
 #if NUM_SPI > 4  
   { BOARD_SPI1_SCK_PIN, BOARD_SPI1_SCK_PIN_FUNCTION },
   { BOARD_SPI1_MISO_PIN, BOARD_SPI1_MISO_PIN_FUNCTION },
   { BOARD_SPI1_MOSI_PIN, BOARD_SPI1_MOSI_PIN_FUNCTION },
+  { BOARD_SPI1_CS_PIN, BOARD_SPI1_CS_PIN_FUNCTION },
 #endif  
 };
 
@@ -605,8 +607,8 @@ u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigne
     opt.mode = ((cpol & 1) << 1) | (cpha & 1);
 
     // Set actual interface
-    gpio_enable_module(spi_pins + (id >> 2) * 3, 3);
-    spi_setupChipReg((volatile avr32_spi_t *) spireg[id >> 2], id % 4, &opt, REQ_PBA_FREQ);
+    gpio_enable_module(spi_pins + (id >> 2) * 4, 4);
+    spi_setupChipReg((volatile avr32_spi_t *) spireg[id >> 2], id % 4, &opt, REQ_CPU_FREQ);
     
     // TODO: return the actual baudrate.
     return clock;
@@ -626,9 +628,14 @@ spi_data_type platform_spi_send_recv( unsigned id, spi_data_type data )
 
 void platform_spi_select( unsigned id, int is_select )
 {
-    // Unsupported.
-}
+  volatile avr32_spi_t * spi = (volatile avr32_spi_t *) spireg[id >> 2];
 
+  if(is_select == PLATFORM_SPI_SELECT_ON)
+    spi_selectChip(spi, id % 4);
+  else
+    spi_unselectChip(spi, id % 4);
+
+}
 // ****************************************************************************
 // CPU functions
 

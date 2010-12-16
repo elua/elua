@@ -193,23 +193,32 @@ int spi_unselectChip(volatile avr32_spi_t *spi, unsigned char chip)
 
   return 0;
 }
+//! Time-out value (number of attempts).
+#define SPI_TIMEOUT       10000
 /*-----------------------------------------------------------*/
 U16 spi_single_transfer(volatile avr32_spi_t *spi, U16 txdata)
 {
   U16 ret;
+  unsigned int timeout = SPI_TIMEOUT;
 
   /* Wait for any pending TX */
-  while (!(spi->sr & AVR32_SPI_SR_TDRE_MASK))
-	  continue;
-
+  while (!(spi->sr & AVR32_SPI_SR_TDRE_MASK)) {
+    if (!timeout--) {
+      return 0XFF;
+    }
+  }
   // Discard data in buffer if any
   ret = (spi->rdr >> AVR32_SPI_RDR_RD_OFFSET);
 
   spi->tdr = txdata << AVR32_SPI_TDR_TD_OFFSET;
 
   while ((spi->sr & (AVR32_SPI_SR_RDRF_MASK | AVR32_SPI_SR_TXEMPTY_MASK)) !=
-           (AVR32_SPI_SR_RDRF_MASK | AVR32_SPI_SR_TXEMPTY_MASK))
-	  continue;
+         (AVR32_SPI_SR_RDRF_MASK | AVR32_SPI_SR_TXEMPTY_MASK)) {
+    if (!timeout--) {
+      return 0xFF;
+    }
+  }
+
 
   ret = (spi->rdr >> AVR32_SPI_RDR_RD_OFFSET);
 

@@ -6,6 +6,7 @@
 // *****************************************************************************
 // Define here what components you want for this platform
 
+//#define BUILD_MMCFS
 #define BUILD_XMODEM
 #define BUILD_SHELL
 #define BUILD_ROMFS
@@ -31,6 +32,8 @@
 #define BOARD_SPI0_MISO_PIN_FUNCTION        0
 #define BOARD_SPI0_MOSI_PIN                 AVR32_PIN_PA14
 #define BOARD_SPI0_MOSI_PIN_FUNCTION        0
+#define BOARD_SPI0_CS_PIN                   AVR32_PIN_PA10
+#define BOARD_SPI0_CS_PIN_FUNCTION          0
 
 // *****************************************************************************
 // Auxiliary libraries that will be compiled for this platform
@@ -88,6 +91,11 @@
 #define CON_BUF_SIZE          BUF_SIZE_128
 // REMEMBER to change next line if buffering is enabled and CON_UART_ID is not 0!
 #define CON_UART_IRQ          AVR32_USART1_IRQ
+
+// SD/MMC Filesystem Setup
+#define MMCFS_TICK_HZ     10
+#define MMCFS_TICK_MS     ( 1000 / MMCFS_TICK_HZ )
+#define MMCFS_SPI_NUM     1
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 #define CPU_FREQUENCY         REQ_CPU_FREQ
