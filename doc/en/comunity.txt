@@ -51,11 +51,10 @@ Here's an alphabetically ordered non-exhaustive list of contributors:
 
 \... and the constant help and support from:
  
-Alberto Fabiano, André Carregal, Ângelo Santos, Asko Kauppi, Carlos Eduardo Deodoro,
-Cosmin Filip, Cristina Sampaio, Dean Hall, Diego Sueiro, Eduardo von Ristow,
-Fabien Fleutot, Fabio Pereira, Flavio Nogueira, Flavio Ribeiro, Giovani Balduino, 
-Guilherme Sanchez Pacheco, John Hind, Luiz de Barros, Marcelo Tílio, 
-Marco Meggiolaro, Owen Woollaston, Patrick Donnelly, Paul Verbeke, Ralph Hempel,
+Alberto Fabiano, André Carregal, Dean Hall, Eduardo von Ristow,
+Fabien Fleutot, Fernando Araujo, Flavio Nogueira, Guilherme Sanchez Pacheco, John Hind, 
+Luiz de Barros, Marcelo Politzer, Marcelo Tílio, Marco Meggiolaro, Owen Woollaston, Paul Verbeke, 
+Ralph Hempel, Thiago Naves,
 ...
 
 [[donations]]
