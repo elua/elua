@@ -28,6 +28,7 @@
 
 // Bogus defines for common.c
 #define CON_UART_ID           0
+#define CON_UART_SPEED        0
 #define CON_TIMER_ID          0
 
 // *****************************************************************************

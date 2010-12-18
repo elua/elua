@@ -72,6 +72,7 @@ int ser_setup( ser_handler id, u32 baud, int databits, int parity, int stopbits 
 
   usleep( 200000 );
   tcgetattr( hnd, &termdata );
+  tcdrain( hnd );
 
   // Baud rate
   cfsetispeed( &termdata, ser_baud_to_id( baud ) );
@@ -106,6 +107,7 @@ int ser_setup( ser_handler id, u32 baud, int databits, int parity, int stopbits 
   // Disable HW and SW flow control
   termdata.c_cflag &= ~CRTSCTS;
   termdata.c_iflag &= ~( IXON | IXOFF | IXANY );
+  termdata.c_iflag |= IGNBRK;
 
   // Raw input
   termdata.c_lflag &= ~( ICANON | ECHO | ECHOE | ISIG );
@@ -168,6 +170,7 @@ u32 ser_write( ser_handler id, const u8 *src, u32 size )
   u32 res;
   
   res = ( u32 )write( ( int )id, src, size );
+  tcdrain( ( int )id );
   return res;
 }
 

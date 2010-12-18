@@ -16,8 +16,13 @@ extern USART_TypeDef *const stm32_usart[];
 
 static void all_usart_irqhandler( int resnum )
 {
+  int temp;
+
+  temp = USART_GetFlagStatus( stm32_usart[ resnum ], USART_FLAG_ORE );
   cmn_int_handler( INT_UART_RX, resnum );
-  USART_ClearITPendingBit( stm32_usart[ resnum ], USART_IT_RXNE );  
+  if( temp == SET )
+    for( temp = 0; temp < 10; temp ++ )
+      platform_s_uart_send( temp, '@' );
 }
 
 void USART1_IRQHandler()
@@ -104,8 +109,8 @@ void platform_int_init()
   unsigned i;
   
   // Enable all USART interrupts in the NVIC
-
-  nvic_init_structure.NVIC_IRQChannelSubPriority = 2;
+  nvic_init_structure.NVIC_IRQChannelPreemptionPriority = 0;
+  nvic_init_structure.NVIC_IRQChannelSubPriority = 0;
   nvic_init_structure.NVIC_IRQChannelCmd = ENABLE;  
   for( i = 0; i < sizeof( uart_irq_table ) / sizeof( u8 ); i ++ )
   {
