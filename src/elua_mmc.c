@@ -35,16 +35,14 @@
 static
 void SELECT (void)
 {
-  platform_pio_op( MMCFS_CS_PORT , ( ( u32 ) 1 << MMCFS_CS_PIN ), PLATFORM_IO_PIN_CLEAR ); 
-	//platform_spi_select( MMCFS_SPI_NUM, PLATFORM_SPI_SELECT_ON ); // select sd card pin
+    platform_pio_op( MMCFS_CS_PORT , ( ( u32 ) 1 << MMCFS_CS_PIN ), PLATFORM_IO_PIN_CLEAR );    
 }
 
 // de-asserts the CS pin to the card
 static
 void DESELECT (void)
 {
-  platform_pio_op( MMCFS_CS_PORT, ( ( u32 ) 1 << MMCFS_CS_PIN ), PLATFORM_IO_PIN_SET );
-	//platform_spi_select( MMCFS_SPI_NUM, PLATFORM_SPI_SELECT_OFF ); // deselect sd card pin
+    platform_pio_op( MMCFS_CS_PORT, ( ( u32 ) 1 << MMCFS_CS_PIN ), PLATFORM_IO_PIN_SET );
 }
 
 
@@ -152,7 +150,7 @@ void power_on (void)
     platform_pio_op( MMCFS_CS_PORT, ( ( u32 ) 1 << MMCFS_CS_PIN ), PLATFORM_IO_PIN_DIR_OUTPUT );
     //platform_pio_op( MMCFS_CS_PORT, ( ( u32 ) 1 << MMCFS_CS_PIN ), PLATFORM_IO_PIN_PULLUP );
     DESELECT();
-
+    
     // Setup SPI
     platform_spi_setup( MMCFS_SPI_NUM, PLATFORM_SPI_MASTER, 400000, 0, 0, 8 );
 
