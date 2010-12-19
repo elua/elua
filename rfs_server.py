@@ -15,21 +15,21 @@ if platform.system() == "Windows":
     os.exit( 1 )
   flist = "main.c server.c os_io_win32.c log.c net_win32.c serial_win32.c deskutils.c"
   cdefs = cdefs + " -DWIN32_BUILD"
-  exeprefix = "exe"
+  exeprefix = ".exe"
   socklib = '-lws2_32'
 else:
   flist = "%s server.c os_io_posix.c log.c net_posix.c serial_posix.c deskutils.c" % mainname
-  exeprefix = "elf"
+  exeprefix = ""
 
 if sim == '0':
-  output = 'rfs_server.%s' % exeprefix
+  output = 'rfs_server%s' % exeprefix
 else:
-  output = 'rfs_sim_server.%s' % exeprefix
+  output = 'rfs_sim_server%s' % exeprefix
 #endif
 
-full_files = " " + " ".join( [ "rfs_server/%s" % name for name in flist.split() ] )
+full_files = " " + " ".join( [ "rfs_server_src/%s" % name for name in flist.split() ] )
 full_files = full_files + " src/remotefs/remotefs.c src/eluarpc.c"
-local_include = "-Irfs_server -Iinc/remotefs -Iinc"
+local_include = "-Irfs_server_src -Iinc/remotefs -Iinc"
 
 # Compiler/linker options
 cccom = "gcc -m32 -O0 -g %s -Wall %s -c $SOURCE -o $TARGET" % ( local_include, cdefs )

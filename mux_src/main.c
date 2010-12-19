@@ -42,6 +42,7 @@ typedef struct {
   ser_handler fd;
   const char *pname;
   long speed;
+  int flow;
 } TRANSPORT_SER;
 
 static SERVICE_DATA *services;
@@ -77,7 +78,7 @@ static int transport_ser_init()
     log_err( "Unable to open %s\n", pser->pname );
     return 0;
   }
-  if( ser_setup( pser->fd, pser->speed, 8, SER_PARITY_NONE, SER_STOPBITS_1 ) != SER_OK )
+  if( ser_setup( pser->fd, pser->speed, 8, SER_PARITY_NONE, SER_STOPBITS_1, pser->flow ) != SER_OK )
   {
     log_err( "Unable to setup serial port %s\n", pser->pname );
     return 0;
@@ -99,20 +100,37 @@ static void transport_send_byte( u8 data )
 // Transport parser
 static int parse_transport( const char* s )
 {
-  const char *c;
-  static TRANSPORT_SER tser; 
+  const char *c, *c2;
+  static TRANSPORT_SER tser;
+  char *temp;
 
   if( ( c = strchr( s, ',' ) ) == NULL )
   {
     log_err( "Invalid serial transport syntax.\n" );
     return 0;
   }
-  if( secure_atoi( c + 1, &tser.speed ) == 0 )
+  tser.pname = l_strndup( s, c - s );
+  if( ( c2 = strchr( c + 1, ',' ) ) == NULL )
+  {
+    log_err( "Invalid serial transport syntax.\n" );
+    return 0;
+  }
+  temp = l_strndup( c + 1, c2 - c - 1 );
+  if( secure_atoi( temp, &tser.speed ) == 0 )
   {
     log_err( "Invalid port speed\n" );
     return 0;
   }
-  tser.pname = l_strndup( s, c - s );
+  free( temp );
+  if( !strcmp( c2 + 1, "none" ) )
+    tser.flow = SER_FLOW_NONE;
+  else if( !strcmp( c2 + 1, "rtscts" ) )
+    tser.flow = SER_FLOW_RTSCTS;
+  else
+  {
+    log_err( "Invalid flow control type.\n" );
+    return 0;
+  }
   transport_data = &tser;
   transport_send = transport_ser_send;
   transport_init = transport_ser_init;
@@ -148,7 +166,7 @@ int main( int argc, char **argv )
     log_err( "  mode: \n" );
     log_err( "    'mux':                 serial multiplexer mode\n" );
     log_err( "    'rfsmux:<directory>:   combined RFS and multiplexer mode.\n" );
-    log_err( "  transport: '<port>,<baud>.\n" );
+    log_err( "  transport: '<port>,<baud>,<flow> ('flow' specifies the flow control type and can be 'none' or 'rtscts').\n" );
     log_err( "  vcom1, ..., vcomn: multiplexer serial ports." );
     log_err( "  Use '-v' for verbose output.\n" );
     return 1;
@@ -216,7 +234,7 @@ int main( int argc, char **argv )
       log_err( "Unable to open port %s\n", argv[ i + FIRST_SERVICE_IDX ] );
       return 1;
     }
-    if( ser_setup( tservice->fd, transport_data->speed, SER_DATABITS_8, SER_PARITY_NONE, SER_STOPBITS_1 ) != SER_OK )
+    if( ser_setup( tservice->fd, transport_data->speed, SER_DATABITS_8, SER_PARITY_NONE, SER_STOPBITS_1, SER_FLOW_NONE ) != SER_OK )
     {
       log_err( "Unable to setup serial port %s\n", argv[ i + FIRST_SERVICE_IDX ] );
       return 1;

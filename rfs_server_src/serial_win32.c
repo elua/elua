@@ -86,7 +86,7 @@ void ser_close( ser_handler id )
   free( id );
 }
 
-int ser_setup( ser_handler id, u32 baud, int databits, int parity, int stopbits )
+int ser_setup( ser_handler id, u32 baud, int databits, int parity, int stopbits, int flow )
 {
   HANDLE hComm = id->hnd;
   DCB dcb;
@@ -107,12 +107,19 @@ int ser_setup( ser_handler id, u32 baud, int databits, int parity, int stopbits 
   dcb.fInX = FALSE;
   dcb.fNull = FALSE;
   /**/ dcb.fAbortOnError = FALSE;
-  dcb.fOutxCtsFlow = FALSE;
   dcb.fOutxDsrFlow = FALSE;
   dcb.fDtrControl = DTR_CONTROL_DISABLE;
   dcb.fDsrSensitivity = FALSE;
-  dcb.fRtsControl = RTS_CONTROL_DISABLE;
-  dcb.fOutxCtsFlow = FALSE;
+  if( flow == SER_FLOW_NONE )
+  {
+    dcb.fRtsControl = RTS_CONTROL_DISABLE;
+    dcb.fOutxCtsFlow = FALSE;
+  }
+  else
+  {
+    dcb.fRtsControl = RTS_CONTROL_HANDSHAKE;
+    dcb.fOutxCtsFlow = TRUE;
+  }
   if( SetCommState( hComm, &dcb ) == 0 )
   {
     CloseHandle( hComm );

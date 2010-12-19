@@ -95,7 +95,7 @@ static void ser_send_response_packet()
   }
 }
 
-static int ser_server_init( const char *portname, int serspeed )
+static int ser_server_init( const char *portname, int serspeed, int flow )
 {
   // Setup serial port
   if( ( ser = ser_open( portname ) ) == SER_HANDLER_INVALID )
@@ -103,7 +103,7 @@ static int ser_server_init( const char *portname, int serspeed )
     log_err( "Cannot open port %s\n", portname );
     return 0;
   }
-  if( ser_setup( ser, ( u32 )serspeed, SER_DATABITS_8, SER_PARITY_NONE, SER_STOPBITS_1 ) != SER_OK )
+  if( ser_setup( ser, ( u32 )serspeed, SER_DATABITS_8, SER_PARITY_NONE, SER_STOPBITS_1, flow ) != SER_OK )
   {
     log_err( "Unable to initialize serial port\n" );
     return 0;
@@ -317,9 +317,10 @@ static const RFS_TRANSPORT_DATA mem_transport_data = { NULL, NULL, NULL };
 // Transport parser
 static int parse_transport_and_init( const char* s )
 {
-  const char *c;
-  char *temps;
+  const char *c, *c2;
+  char *temps, *tempb;
   long tempi;
+  int flow;
   
   if( strstr( s, "ser:" ) == s )
   {
@@ -330,13 +331,29 @@ static int parse_transport_and_init( const char* s )
       log_err( "Invalid serial transport syntax\n" );
       return 0;
     }
-    if( secure_atoi( c + 1, &tempi ) == 0 )
+    temps = l_strndup( s, c - s );
+    if( ( c2 = strchr( c + 1, ',' ) ) == NULL )
+    {
+      log_err( "Invalid serial transport syntax.\n" );
+      return 0;
+    }
+    tempb = l_strndup( c + 1, c2 - c - 1 );
+    if( secure_atoi( tempb, &tempi ) == 0 )
     {
       log_err( "Invalid port speed\n" );
       return 0;
     }
-    temps = l_strndup( s, c - s );
-    tempi = ser_server_init( temps, tempi );
+    free( tempb );   
+    if( !strcmp( c2 + 1, "none" ) )
+      flow = SER_FLOW_NONE;
+    else if( !strcmp( c2 + 1, "rtscts" ) )
+      flow = SER_FLOW_RTSCTS;
+    else
+    {
+      log_err( "Invalid flow control type.\n" );
+      return 0;
+    }
+    tempi = ser_server_init( temps, tempi, flow );
     free( temps );    
     return tempi;
   }
@@ -381,7 +398,7 @@ int rfs_init( int argc, const char **argv )
   if( argc < MIN_ARGC_COUNT )
   {
     log_err( "Usage: %s <transport> <dirname> [-v]\n", argv[ 0 ] );
-    log_err( "  Serial transport: 'ser:<sername>,<serspeed>'\n" );
+    log_err( "  Serial transport: 'ser:<sername>,<serspeed>,<flow> ('flow' defines the flow control and can be either 'none' or 'rtscts')\n" );
     log_err( "  UDP transport: 'udp:<port>'\n" );
     log_err( "Use -v for verbose output.\n" );
     return 1;

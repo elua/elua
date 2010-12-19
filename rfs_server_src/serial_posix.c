@@ -65,7 +65,7 @@ static int ser_number_of_bits_to_id( int nb )
   return 0;
 }
 
-int ser_setup( ser_handler id, u32 baud, int databits, int parity, int stopbits )
+int ser_setup( ser_handler id, u32 baud, int databits, int parity, int stopbits, int flow )
 {
   struct termios termdata;
   int hnd = ( int )id;
@@ -79,7 +79,7 @@ int ser_setup( ser_handler id, u32 baud, int databits, int parity, int stopbits 
   cfsetospeed( &termdata, ser_baud_to_id( baud ) );
 
   // Parity / stop bits
-  if ( stopbits == SER_STOPBITS_2)
+  if( stopbits == SER_STOPBITS_2 )
     termdata.c_cflag |= CSTOPB;
   else
     termdata.c_cflag &= ~CSTOPB;
@@ -105,7 +105,10 @@ int ser_setup( ser_handler id, u32 baud, int databits, int parity, int stopbits 
   termdata.c_cflag |= ser_number_of_bits_to_id( databits );
 
   // Disable HW and SW flow control
-  termdata.c_cflag &= ~CRTSCTS;
+  if( flow == SER_FLOW_NONE )
+    termdata.c_cflag &= ~CRTSCTS;
+  else
+    termdata.c_cflag |= CRTSCTS;
   termdata.c_iflag &= ~( IXON | IXOFF | IXANY );
   termdata.c_iflag |= IGNBRK;
 
