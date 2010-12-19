@@ -31,7 +31,7 @@ static int cpu_r32( lua_State *L )
 
   luaL_checkinteger( L, 1 );
   addr = ( u32 )luaL_checknumber( L, 1 );
-  lua_pushinteger( L, ( lua_Integer )( *( u32* )addr ) );  
+  lua_pushnumber( L, ( lua_Number )( *( u32* )addr ) );  
   return 1;
 }
 
@@ -54,7 +54,7 @@ static int cpu_r16( lua_State *L )
 
   luaL_checkinteger( L, 1 );
   addr = ( u32 )luaL_checknumber( L, 1 );
-  lua_pushinteger( L, ( lua_Integer )( *( u16* )addr ) );  
+  lua_pushnumber( L, ( lua_Number )( *( u16* )addr ) );  
   return 1;
 }
 
@@ -77,7 +77,7 @@ static int cpu_r8( lua_State *L )
 
   luaL_checkinteger( L, 1 );
   addr = ( u32 )luaL_checknumber( L, 1 );
-  lua_pushinteger( L, ( lua_Integer )( *( u8* )addr ) );  
+  lua_pushnumber( L, ( lua_Number )( *( u8* )addr ) );  
   return 1;
 }
 
