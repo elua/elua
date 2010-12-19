@@ -23,6 +23,8 @@ You need to define the following macros for RFS:
 | RFS_UART_ID         | The ID of the UART that will be used by RFS. This is the physical connection over which the PC directory will be shared.
 | RFS_UART_SPEED      | Communication speed of the RFS UART interface. 
 | RFS_TIMER_ID        | The ID of a timer that will be used by RFS for internal operations
+| RFS_FLOW_TYPE       | Flow control type on the serial RFS interface, see link:arch_platform_uart.html#flow_control_type[here] for details. 
+If not specified it defaults to \'no flow control'.
 | RFS_TIMEOUT         | RFS operations timeout (in microseconds). If during a RFS operation no data is received from the PC side for the
 specified timeout, the RFS operation terminates with error.                        
 |===================================================================
@@ -47,12 +49,12 @@ If the above requirements are met, building the RFS server is a simple matter of
 scons -f rfs_server.py  
 ----------------------
 
-After this you should end up with a *rfs_server.exe* file in Windows, or a *rfs_server.elf* file in Linux. Running it without arguments prints
+After this you should end up with a *rfs_server.exe* file in Windows or a *rfs_server* file in Linux. Running it without arguments prints
 the usage help:
 
 ----------------------------------------------
 Usage: rfs_server <transport> <dirname> [-v]
-  Serial transport: 'ser:<sername>,<serspeed>'
+  Serial transport: 'ser:<sername>,<serspeed>,<flow> ('flow' defines the flow control and can be either 'none' or 'rtscts') 
   UDP transport: 'udp:<port>'
 Use -v for verbose output.
 ----------------------------------------------
@@ -68,7 +70,7 @@ This shares the *c:\elua\fs* directory on COM5 at baud 115200 (note that the bau
 In Linux:
 
 -----------------------------------------------------------
-./rfs_server.elf ser:/dev/ttyUSB0,115200 /home/user/work/fs
+./rfs_server ser:/dev/ttyUSB0,115200,rtscts /home/user/work/fs
 -----------------------------------------------------------
 
 This shares the */home/user/work/fs* directory on port /dev/ttyUSB0 at baud 115200. +
@@ -83,7 +85,14 @@ Notes
 ~~~~~
 Some things you should consider when using the RFS:
 
-- eLua has a global filename size limit of 30 characters, so don't put files with longer names in the shared directory, it might lead to unexpected
+- the code is still in beta. It works well most of the time, but sometimes it simply crashes. If this happens, please consider submitting a bug report.
+- using hardware flow control is strongly encouraged. To do this:
+  1. make sure that your eLua board has support for hardware flow control (see link:refman_gen_uart.html#platform_uart_set_flow_control[here] for details).
+  2. specify the correct *RFS_FLOW_TYPE* value at build time (it should be *PLATFORM_UART_FLOW_RTS | PLATFORM_UART_FLOW_CTS*).
+  3. make sure that the serial cable connecting the PC and the eLua board also supports flow control. Some simple serial connection cables have only the RX, TX and GND wires. 
+     RTS/CTS flow control requires at least RX, TX, RTS, CTS and GND wires arranged in a null-modem configuration.
+  4. start *rfs_server* specifying _rtscts_ as part of the _<transport>_ parameter (see above).
+- eLua has a global filename size limit of 30 characters, so don't put files with longer names in the shared directory, it might lead to unexpec ted
   behaviour. 
 - the file sharing "protocol" is an extremely simple one, it doesn't make provisions for error correction and has only very basic error detection. 
   So, if there are serial communication problems on the connection used by RFS, you might encounter RFS errors (timeouts, invalid operations and so on). 

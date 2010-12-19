@@ -81,6 +81,8 @@ You need to define the following macros for the serial multiplexer:
 | BUILD_SERMUX        | Enable serial multiplexer support in eLua. 
 | SERMUX_PHYS_ID      | The ID of the physical UART interface used by the serial multiplexer.
 | SERMUX_PHYS_SPEED   | Communication speed of the multiplexer UART interface. 
+| SERMUX_FLOW_TYPE    | Flow control type on the physical serial multiplexer interface, see link:arch_platform_uart.html#flow_control_type[here] for details. 
+If not specified it defaults to \'no flow control'.
 | SERMUX_NUM_VUART    | The number of virtual UART interfaces. This number can't be higher than 8. 
 | SERMUX_BUFFER_SIZES | An array of *SERMUX_NUM_VUART* integers that specify the buffer sizes for the virtual
 UART interfaces. Note that a virtual UART *MUST* have a buffer associated with it. The sizes are specified as
@@ -146,7 +148,7 @@ If the above requirements are met, building the mux server is a simple matter of
 scons -f mux.py  
 ---------------
 
-After this you should end up with a *mux.exe* file in Windows, or a *mux.elf* file in Linux. Running it without arguments prints
+After this you should end up with a *mux.exe* file in Windows, or a *mux* file in Linux. Running it without arguments prints
 the usage help:
 
 ---------------
@@ -154,7 +156,7 @@ Usage: mux <mode> <transport> <vcom1> [<vcom2>] ... [<vcomn>] [-v]
   mode:
     'mux':                 serial multiplexer mode
     'rfsmux:<directory>:   combined RFS and multiplexer mode.
-  transport: '<port>,<baud>.
+  transport: '<port>,<baud>,<flow> ('flow' specifies the flow control type and can be 'none' or 'rtscts').
   vcom1, ..., vcomn: multiplexer serial ports.  Use '-v' for verbose output.
 ---------------
 
@@ -171,13 +173,13 @@ and COM20 (and its pair COM21) in Windows. The physical UART is /dev/ttyUSB0 in
 Linux and COM5 in Windows. So, to run it in Linux, execute this:
 
 -------------------------------------------------------
-./mux.exe mux /dev/ttyUSB0,115200 /dev/ptyp0 /dev/ptyp1
+./mux.exe mux /dev/ttyUSB0,115200,rtscts /dev/ptyp0 /dev/ptyp1
 -------------------------------------------------------
 
 In Windows:
 
 -------------------------------
-mux mux com5,115200 com10 com20
+mux mux com5,115200,rtscts com10 com20
 -------------------------------
 
 And now let's put this to good use. Remember that in the previous paragraph we 
@@ -188,14 +190,14 @@ the respective services on the UART pairs of the *vcomx* arguments of *mux*.
 In Linux:
 
 -----------------------------------------------------
-./rfs_server.elf /dev/ttyp0:115200 /home/user/work/fs
+./rfs_server ser:/dev/ttyp0,115200,none /home/user/work/fs
 screen /dev/ttyp1 115200 
 -----------------------------------------------------
 
 In Windows:
 
 ----------
-rfs_server ser:com11,115200 c:\elua\fs
+rfs_server ser:com11,115200,none c:\elua\fs
 (also run TeraTerm or your preffered terminal emulator on port COM21 at 115200 baud)
 ----------
 
@@ -226,13 +228,13 @@ in Windows. The physical UART is /dev/ttyUSB0 in Linux and COM5 in Windows.
 So, to run it in Linux, execute this:
 
 ------------------------------------------------------------------
-./mux.exe rfsmux:/home/user/work/fs /dev/ttyUSB0,115200 /dev/ptyp0
+./mux.exe rfsmux:/home/user/work/fs /dev/ttyUSB0,115200,rtscts /dev/ptyp0
 ------------------------------------------------------------------
 
 In Windows:
 
 ---------------------------------------
-mux rfsmux:c:\elua\fs com5,115200 com10
+mux rfsmux:c:\elua\fs com5,115200,rtscts com10
 ---------------------------------------
 
 All that's left now is to run the terminal emulator. In Linux:
@@ -251,8 +253,19 @@ Notes
 ~~~~~
 Some things you should consider when using the serial multiplexer:
 
-- the code is still in beta. It works very well most of the time, but sometimes it simply crashes. If this happens, please consider submitting a 
-  bug report.
+- the code is still in beta. It works well most of the time, but sometimes it simply crashes. If this happens, please consider submitting a bug report.
+- if your eLua board has two hardware serial ports that you can use and the PC has also two free serial ports, consider disabling the serial multiplexer completely. Run RFS on a hardware
+  port and the system console on the other hardware port instead. This is both more realiable and more efficient.
+- to avoid problems with the serial multiplexer use this sequence to start it:
+  1. start *mux*
+  2. start the terminal emulator
+  3. reset the eLua board
+- using hardware flow control is strongly encouraged. To do this:
+  1. make sure that your eLua board has support for hardware flow control (see link:refman_gen_uart.html#platform_uart_set_flow_control[here] for details).
+  2. specify the correct *SERMUX_FLOW_TYPE* value at build time (it should be *PLATFORM_UART_FLOW_RTS | PLATFORM_UART_FLOW_CTS*).
+  3. make sure that the serial cable connecting the PC and the eLua board also supports flow control. Some simple serial connection cables have only the RX, TX and GND wires. 
+     RTS/CTS flow control requires at least RX, TX, RTS, CTS and GND wires arranged in a null-modem configuration.
+  4. start *mux* specifying _rtscts_ as part of the _<transport>_ parameter (see above).
 - the serial multiplexer "protocol" is an extremely simple one, it doesn't make provisions for error correction or detection, and it might loose
   synchronization if there are errors on the serial line. So, if it starts behaving abnormally, you might want to restart *mux* (and *rfs_server*
   if you're running it with *mux*) and reset your eLua board.

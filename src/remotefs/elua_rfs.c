@@ -17,6 +17,11 @@
 
 #ifdef BUILD_RFS
 
+// [TODO] the new builder should automatically do this
+#ifndef RFS_FLOW_TYPE
+#define RFS_FLOW_TYPE        PLATFORM_UART_FLOW_NONE
+#endif
+
 // Our RFS buffer
 // Compute the usable buffer size starting from RFS_BUFFER_SIZE (which is the
 // size of the serial buffer). A complete packet must fit in RFS_BUFFER_SIZE
@@ -187,6 +192,7 @@ const DM_DEVICE *remotefs_init()
 #elif RFS_UART_ID < SERMUX_SERVICE_ID_FIRST  // if RFS runs on a virtual UART, buffers are already set in common.c
   // Initialize RFS UART
   platform_uart_setup( RFS_UART_ID, RFS_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
+  platform_uart_set_flow_control( RFS_UART_ID, RFS_FLOW_TYPE );
   if( platform_uart_set_buffer( RFS_UART_ID, RFS_BUFFER_SIZE ) == PLATFORM_ERR )
   {
     printf( "WARNING: unable to initialize RFS filesystem\n" );
