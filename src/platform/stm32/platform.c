@@ -648,6 +648,26 @@ int platform_s_uart_recv( unsigned id, s32 timeout )
   return USART_ReceiveData(stm32_usart[id]);
 }
 
+int platform_s_uart_set_flow_control( unsigned id, int type )
+{
+  USART_TypeDef *usart = stm32_usart[ id ]; 
+  int temp = 0;
+
+  if( type == PLATFORM_UART_FLOW_NONE )
+  {
+    usart->CR3 &= ~USART_HardwareFlowControl_RTS_CTS;
+    return PLATFORM_OK;
+  }
+  if( id >= 3 ) // on STM32 only USART1 through USART3 have hardware flow control ([TODO] but only on high density devices?)
+    return PLATFORM_ERR;
+  if( type & PLATFORM_UART_FLOW_RTS )
+    temp |= USART_HardwareFlowControl_RTS;
+  if( type & PLATFORM_UART_FLOW_CTS )
+    temp |= USART_HardwareFlowControl_CTS;
+  usart->CR3 |= temp;
+  return PLATFORM_OK;
+}
+
 // ****************************************************************************
 // Timers
 

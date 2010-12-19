@@ -38,6 +38,16 @@ extern const elua_int_descriptor elua_int_table[ INT_ELUA_LAST ];
 #define CON_BUF_SIZE          0
 #endif // #ifndef CON_BUF_SIZE
 
+// [TODO] the new builder should automatically do this
+#ifndef SERMUX_FLOW_TYPE
+#define SERMUX_FLOW_TYPE      PLATFORM_UART_FLOW_NONE
+#endif
+
+// [TODO] the new builder should automatically do this
+#ifndef CON_FLOW_TYPE
+#define CON_FLOW_TYPE        PLATFORM_UART_FLOW_NONE
+#endif
+
 // ****************************************************************************
 // XMODEM support code
 
@@ -158,16 +168,18 @@ void cmn_platform_init()
 
   // Setup the serial multiplexer
   platform_uart_setup( SERMUX_PHYS_ID, SERMUX_PHYS_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
+  platform_uart_set_flow_control( SERMUX_PHYS_ID, SERMUX_FLOW_TYPE );
   cmn_uart_setup_sermux();
 
   // Set buffers for all virtual UARTs 
   for( i = 0; i < sizeof( bufsizes ) / sizeof( unsigned ); i ++ )
     platform_uart_set_buffer( i + SERMUX_SERVICE_ID_FIRST, bufsizes[ i ] );
-#endif
+#endif // #ifdef BUILD_SERMUX
 
 #if defined( CON_UART_ID ) && CON_UART_ID < SERMUX_SERVICE_ID_FIRST
   // Setup console UART
   platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );  
+  platform_uart_set_flow_control( CON_UART_ID, CON_FLOW_TYPE );
   platform_uart_set_buffer( CON_UART_ID, CON_BUF_SIZE );
 #endif // #if defined( CON_UART_ID ) && CON_UART_ID < SERMUX_SERVICE_ID_FIRST
 

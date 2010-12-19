@@ -6,6 +6,7 @@
 #include <string.h>
 #include <errno.h>
 #include <limits.h>
+#include <ctype.h>
 #include "config.h"
 #include "log.h"
 #include "type.h"
@@ -297,7 +298,7 @@ int main( int argc, char **argv )
           if( service_id_in == -1 )
           {
             transport_send_byte( SERMUX_FORCE_SID_CHAR );
-            log_msg( "Requested resend of service ID.\n" );
+            log_msg( "Requested resend of service ID for byte %3d ('%c').\n", c, isprint( c ) ? c : ' ' );
           }
           else
           {
@@ -332,7 +333,7 @@ int main( int argc, char **argv )
       // Send the service ID first if needed
       if( temp != service_id_out )
       {
-        log_msg( "Changed service_id_out to %d(%X).\n", temp, temp );
+        log_msg( "Changed service_id_out from %d(%X) to %d(%X).\n", service_id_out, service_id_out, temp, temp );
         transport_send_byte( temp );
       }
       // Then send the actual data byte, escaping it if needed

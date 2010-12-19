@@ -30,6 +30,8 @@
 #define BUILD_LUA_INT_HANDLERS
 #define BUILD_SERMUX
 
+#define PLATFORM_UART_SET_FLOW_CONTROL
+
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 

@@ -95,6 +95,7 @@ static void cmn_rx_handler( int usart_id, u8 data )
         if( uart_last_sent & SERMUX_ESC_MASK )
           platform_s_uart_send( SERMUX_PHYS_ID, SERMUX_ESCAPE_CHAR );
         platform_s_uart_send( SERMUX_PHYS_ID, uart_last_sent & 0xFF );
+        uart_last_sent = -1;
       }
       else
       {
@@ -203,4 +204,15 @@ void cmn_uart_setup_sermux()
     while( 1 );      
 }
 #endif // #ifdef BUILD_SERMUX
+
+int platform_uart_set_flow_control( unsigned id, int type )
+{ 
+#ifndef PLATFORM_UART_SET_FLOW_CONTROL // the backend does not implement flow control
+  return PLATFORM_ERR;
+#else // #ifndef PLATFORM_UART_SET_FLOW_CONTROL
+  if( id >= SERMUX_SERVICE_ID_FIRST )
+    return PLATFORM_ERR;
+  return platform_s_uart_set_flow_control( id, type );
+#endif // #ifndef PLATFORM_UART_SET_FLOW_CONTROL
+}
 
