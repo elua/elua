@@ -95,7 +95,16 @@ $timeout$ is neither $uart.NO_TIMEOUT$, nor $uart.INF_TIMEOUT$).]]
         "$bufsize$ - the size of the buffer (must be a power of 2) or 0 to disable buffering on the specified UART."
       },
     },
-   
+
+    { sig = "#uart.set_flow_control#( id, type )",
+      desc = "Sets the flow control on the UART. Note that this function works only on physical ports, it will return an error if called on a virtual UART.",
+      args =
+      {
+        "$id$ - the ID of the serial port.",
+        [[$type$ - the flow control type, it can be either $uart.FLOW_NONE$ (no flow control), $uart.FLOW_RTS$ for RTS flow control, $uart.FLOW_CTS$ for CTS flow control or 
+          $uart.FLOW_RTS + uart.FLOW_CTS$ for full RTS/CTS flow control.]]
+      }
+    }
   },
 
 }
