@@ -101,6 +101,7 @@ board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
                'ELUA-PUC' : ['LPC2468' ],
                'MBED' : ['LPC1768'],
                'MIZAR32' : [ 'AT32UC3A0128' ],
+               'NETDUINO' : [ 'AT91SAM7X512' ],
             }
 
 cpu_list = sum([board_list[i] for i in board_list],[])

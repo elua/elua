@@ -876,10 +876,12 @@ int platform_adc_start_sequence()
 #endif // ifdef BUILD_ADC
 
 // ****************************************************************************
-// OLED Display specific functions
+// Support for specific onboard devices on 
+// Texas Instruments / Luminary Micro kits.
 //
-// Initially immplementing the funcionalities offered by the RIT128x96x4
-// OLED display driver.
+// FIXME: This was previously tied to the "disp" module but should be renamed in the future
+//        to include support for initialization of other onboard devices of the EK-LM3Sxxxx kits.
+//        Note that not all kits have all devices available.
 
 void lm3s_disp_init( unsigned long freq )
 {
@@ -922,6 +924,7 @@ void lm3s_disp_displayOff()
 {
   RIT128x96x4DisplayOff();
 }
+
 
 // ****************************************************************************
 // Ethernet functions
