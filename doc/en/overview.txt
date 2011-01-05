@@ -35,7 +35,7 @@ eLua are also portable by design, so one could run a Lua program
 platform.  This brings an unprecedent level of portability to the
 embedded aplications world. eLua inherits the minimalistic and
 functional design of Lua, staying in line with the well known *KISS*,
-_Keep It Small and Simple_ philosophy.
+_Keep it Small and Simple_ philosophy.
 
 The aim of the project is to have a fully functional Lua development
 environment *on the microcontroller itself*, without the need to
@@ -57,14 +57,13 @@ provided, for programming eLua microcontroller's peripherals.
 
 The following important features are ready or being implemented:
 
-* a flexible, configurable build system and a web build service under
-  development.
+* a flexible, configurable build system and a free web build service.
 
 * access to the Lua interpreter on the target MCU via a variety of
   physical transports (RS-232, Ethernet, ...).
 
 * a (mostly) platform independent MCU peripheral library (PIO, UART,
-  PWM, SPI, TMR, ADC, NET, CAN, DAC, I2C...)
+  PWM, SPI, TMR, ADC, NET, CAN, DAC, I2C, ...)
 
 * a very low footprint embedded ROM file system, easy to port to
   different types of memory chips and other storage devices
@@ -76,23 +75,27 @@ The following important features are ready or being implemented:
 
 * tcp/ip network support
 
-* remote procedure calls support. Distributed processing in the
+* RPC (remote procedure calls) support. Distributed processing in the
   embedded world
 
 * an embedded http server
 
 * extended (romable) Lua types, optimized for embedded performance
 
-* terminal/console over Serial and Ethernet protocols
+* terminal/console over serial and ethernet protocols
 
 * debugging (directly on the MCU or remotely with the PC)
 
-* rfs support. Remote file sharing on the embedded world
+* RFS support. Remote file sharing on the embedded world
 
 * full and stand alone implementation on all MCUs. No dependency on
-  embedded operating systems
+  embedded operating systems. eLua runs on bare-metal
 
 * online and offline access to (same format) documentation and tutorials
+
+* online user-maintained wiki with projects, tutorials, code and experience sharing, ...
+
+* online issue tracker service. Report issues, ask for features, follow closely the development community activity
 
 
 For more information about the functionality (implemented and planned)
@@ -174,8 +177,8 @@ the 2005 Renesas M16C Design Contest), and the Volta Project, managed
 by Dado Sutter at PUC-Rio from 2005 to 2007.
 
 eLua is developed in an fully open, distributed and colaborative
-model. An always growing list of collaborators, from all over the
-planet, can be found in our link:comunity.html#credits[Credits Page].
+model. An always growing list of collaborators from all over the
+planet can be found in our link:comunity.html#credits[Credits Page].
 
 [width="70%", align="center", cols="^,^", options="header"]
 |====================================================================================================================
@@ -187,7 +190,7 @@ planet, can be found in our link:comunity.html#credits[Credits Page].
 Contacts
 --------
 
-eLua authors can be contacted at:
+eLua authors and main developers can be contacted at:
 
 Bogdan Marinescu: bogdan.marinescu -at- eluaproject -dot- net
 

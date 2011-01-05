@@ -35,9 +35,11 @@ The authors of eLua would like to thank the collaborative help from the communit
 Here's an alphabetically ordered non-exhaustive list of contributors:
 
 - Fréderic Thomas - Previous site hosting, LM3S enhancements
+- Flavio Nogueira and Everson Denis - Doc translation to portuguese
 - James Snyder - ADC, CAN, LuaRPC (http://q12.org/lua/index.html[originaly by Russell Smith]), sd/mmc, doc/site menu CSS, testing, planning
 - Jesus Alvarez - Initial SD/MMC support
 - joritzel (THC4k on http://freenode.net[freenode]) for the web-based IRC logs.
+- Mauricio Bomfim - STR912 testing
 - Mike Panetta - STM32 port
 - Pedro Bittencourt - RIT OLED display support, testing
 - Raul Nunes - The fundamental support from http://www.puc-rio.br[PUC-Rio].
@@ -52,15 +54,13 @@ Here's an alphabetically ordered non-exhaustive list of contributors:
 \... and the constant help and support from:
  
 Alberto Fabiano, André Carregal, Dean Hall, Eduardo von Ristow,
-Fabien Fleutot, Fernando Araujo, Flavio Nogueira, Guilherme Sanchez Pacheco, John Hind, 
-Luiz de Barros, Marcelo Politzer, Marcelo Tílio, Marco Meggiolaro, Owen Woollaston, Paul Verbeke, 
-Ralph Hempel, Thiago Naves,
-...
+Fabien Fleutot, Fernando Araujo, Guilherme Sanchez Pacheco, John Hind, 
+Luiz de Barros, Marcelo Politzer, Marcelo Tílio, Marco Meggiolaro, Owen Woollaston, 
+Paul Verbeke, Ralph Hempel, Thiago Naves, ...
 
 [[donations]]
 Donations
 ---------
-- http://www.olimex.com[Olimex] - STR-E912 ARM9 kit
 - Cristina Sampaio and http://www.ti.com/ww/br[Texas Instruments Brasil] - EK-LM3S6965 LM3S Cortex-M3 kits
 - Sergio Sorrenti and http://www.simplemachines.it[SimpleMachines] - EVK-1101 AVR32 and AVR Dragon (programmers) kits
 
