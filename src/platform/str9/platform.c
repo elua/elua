@@ -28,7 +28,7 @@
 // ****************************************************************************
 // Platform initialization
 const GPIO_TypeDef* port_data[] = { GPIO0, GPIO1, GPIO2, GPIO3, GPIO4, GPIO5, GPIO6, GPIO7, GPIO8, GPIO9 };
-static const TIM_TypeDef* timer_data[] = { TIM0, TIM1, TIM2, TIM3 };
+const TIM_TypeDef* str9_timer_data[] = { TIM0, TIM1, TIM2, TIM3 };
 
 static void platform_setup_adcs();
 
@@ -122,9 +122,6 @@ int platform_init()
         
   // System configuration
   platform_config_scu();
-
-  // Initialize interrupt subsystem
-  platform_int_init();
   
   // PIO setup
   for( i = 0; i < 10; i ++ )
@@ -135,9 +132,9 @@ int platform_init()
   platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
 
   // Initialize timers
-  for( i = 0; i < 4; i ++ )
+  for( i = 0; i < NUM_PHYS_TIMER; i ++ )
   {
-    base = ( TIM_TypeDef* )timer_data[ i ];
+    base = ( TIM_TypeDef* )str9_timer_data[ i ];
     TIM_DeInit( base );
     TIM_StructInit( &tim );
     tim.TIM_Clock_Source = TIM_CLK_APB;
@@ -152,7 +149,9 @@ int platform_init()
 #endif
   
   cmn_platform_init();
-
+#ifdef VTMR_TIMER_ID
+  platform_s_timer_set_match_int( VTMR_TIMER_ID, 1000000 / VTMR_FREQ_HZ, PLATFORM_TIMER_INT_CYCLIC );
+#endif
   return PLATFORM_OK;
 }
 
@@ -290,17 +289,19 @@ int platform_s_uart_recv( unsigned id, s32 timeout )
 // ****************************************************************************
 // Timer
 
+u8 str9_timer_int_periodic_flag[ NUM_PHYS_TIMER ];
+
 // Helper: get timer clock
 static u32 platform_timer_get_clock( unsigned id )
 {
-  return ( SCU_GetPCLKFreqValue() * 1000 ) / ( TIM_GetPrescalerValue( ( TIM_TypeDef* )timer_data[ id ] ) + 1 );
+  return ( SCU_GetPCLKFreqValue() * 1000 ) / ( TIM_GetPrescalerValue( ( TIM_TypeDef* )str9_timer_data[ id ] ) + 1 );
 }
 
 // Helper: set timer clock
 static u32 platform_timer_set_clock( unsigned id, u32 clock )
 {
   u32 baseclk = SCU_GetPCLKFreqValue() * 1000;
-  TIM_TypeDef* base = ( TIM_TypeDef* )timer_data[ id ];      
+  TIM_TypeDef* base = ( TIM_TypeDef* )str9_timer_data[ id ];      
   u64 bestdiv;
   
   bestdiv = ( ( u64 )baseclk << 16 ) / clock;
@@ -315,7 +316,7 @@ static u32 platform_timer_set_clock( unsigned id, u32 clock )
 
 void platform_s_timer_delay( unsigned id, u32 delay_us )
 {
-  TIM_TypeDef* base = ( TIM_TypeDef* )timer_data[ id ];  
+  TIM_TypeDef* base = ( TIM_TypeDef* )str9_timer_data[ id ];  
   u32 freq;
   timer_data_type final;
   
@@ -337,7 +338,7 @@ void platform_s_timer_delay( unsigned id, u32 delay_us )
 u32 platform_s_timer_op( unsigned id, int op, u32 data )
 {
   u32 res = 0;
-  TIM_TypeDef* base = ( TIM_TypeDef* )timer_data[ id ];  
+  TIM_TypeDef* base = ( TIM_TypeDef* )str9_timer_data[ id ];  
 
   switch( op )
   {
@@ -373,7 +374,43 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
 
 int platform_s_timer_set_match_int( unsigned id, u32 period_us, int type )
 {
-  return PLATFORM_INT_NOT_HANDLED;
+  TIM_TypeDef* base = ( TIM_TypeDef* )str9_timer_data[ id ];  
+  u32 freq;
+  timer_data_type final;
+  TIM_InitTypeDef TIM_InitStructure;
+
+  if( period_us == 0 )
+  {
+    TIM_ITConfig( base, TIM_IT_OC1, DISABLE );
+    base->CR1 = 0;
+    base->CR2 = 0;
+    return PLATFORM_TIMER_INT_OK; 
+  }
+  platform_timer_set_clock( id, 1000000 );
+  freq = platform_timer_get_clock( id );
+  final = ( ( u64 )period_us * freq ) / 1000000;
+  if( final == 0 )
+    return PLATFORM_TIMER_INT_TOO_SHORT;
+  if( final > 0xFFFF )
+    return PLATFORM_TIMER_INT_TOO_LONG;
+
+  TIM_CounterCmd( base, TIM_STOP );
+  TIM_StructInit( &TIM_InitStructure );
+  TIM_InitStructure.TIM_Mode = TIM_OCM_CHANNEL_1;                           
+  TIM_InitStructure.TIM_OC1_Modes = TIM_TIMING;               
+  TIM_InitStructure.TIM_Clock_Source = TIM_CLK_APB;         
+  TIM_InitStructure.TIM_Clock_Edge = TIM_CLK_EDGE_FALLING;  
+  TIM_InitStructure.TIM_Prescaler = TIM_GetPrescalerValue( base );
+  TIM_InitStructure.TIM_Pulse_Length_1 = final;          
+  TIM_Init( base, &TIM_InitStructure );
+  str9_timer_int_periodic_flag[ id ] = type;
+
+  TIM_CounterCmd( base, TIM_CLEAR );  
+  TIM_CounterCmd( base, TIM_START );  
+  while( TIM_GetCounterValue( base ) >= 0xFFFC );
+  TIM_ITConfig( base, TIM_IT_OC1, ENABLE );
+
+  return PLATFORM_TIMER_INT_OK;
 }
 
 // *****************************************************************************
@@ -588,7 +625,7 @@ int platform_adc_start_sequence()
 
 u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
 {
-  TIM_TypeDef* p_timer = ( TIM_TypeDef* )timer_data[ id ];
+  TIM_TypeDef* p_timer = ( TIM_TypeDef* )str9_timer_data[ id ];
   u32 base = SCU_GetPCLKFreqValue() * 1000;
   u32 div = ( base / 256 ) / frequency;
   TIM_InitTypeDef tim;
@@ -608,7 +645,7 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
 
 static u32 platform_pwm_set_clock( unsigned id, u32 clock )
 {
-  TIM_TypeDef* p_timer = ( TIM_TypeDef* )timer_data[ id ];
+  TIM_TypeDef* p_timer = ( TIM_TypeDef* )str9_timer_data[ id ];
   u32 base = ( SCU_GetPCLKFreqValue() * 1000 );
   u32 div = base / clock;
 
@@ -619,7 +656,7 @@ static u32 platform_pwm_set_clock( unsigned id, u32 clock )
 u32 platform_pwm_op( unsigned id, int op, u32 data )
 {
   u32 res = 0;
-  TIM_TypeDef* p_timer = ( TIM_TypeDef* )timer_data[ id ];
+  TIM_TypeDef* p_timer = ( TIM_TypeDef* )str9_timer_data[ id ];
 
   switch( op )
   {

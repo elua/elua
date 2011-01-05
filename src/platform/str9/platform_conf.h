@@ -40,18 +40,25 @@
 // Configuration data
 
 // Virtual timers (0 if not used)
-#define VTMR_NUM_TIMERS       0
-#define VTMR_FREQ_HZ          4
+#define VTMR_NUM_TIMERS       4
+#define VTMR_FREQ_HZ          10
+#define VTMR_TIMER_ID         2
 
 // Number of resources (0 if not available/not implemented)
 #define NUM_PIO               10
 #define NUM_SPI               0
 #define NUM_UART              3
-#define NUM_TIMER             4
 #define NUM_PWM               4
 #define NUM_ADC               8
 #define NUM_CAN               0
 #define NUM_I2C               2
+
+#ifdef VTMR_TIMER_ID
+#define NUM_TIMER             3
+#else
+#define NUM_TIMER             4
+#endif
+#define NUM_PHYS_TIMER        4
 
 // ADC Configuration Params
 #define ADC_BIT_RESOLUTION    10
@@ -131,11 +138,13 @@ u32 SCU_GetMCLKFreqValue();
  // Interrupt list
 #define INT_GPIO_POSEDGE      ELUA_INT_FIRST_ID
 #define INT_GPIO_NEGEDGE      ( ELUA_INT_FIRST_ID + 1 )
-#define INT_ELUA_LAST         INT_GPIO_NEGEDGE
+#define INT_TMR_MATCH         ( ELUA_INT_FIRST_ID + 2 )
+#define INT_ELUA_LAST         INT_TMR_MATCH
 
 #define PLATFORM_CPU_CONSTANTS\
  _C( INT_GPIO_POSEDGE ),\
- _C( INT_GPIO_NEGEDGE )
+ _C( INT_GPIO_NEGEDGE ),\
+ _C( INT_TMR_MATCH )
 
 #endif // #ifndef __PLATFORM_CONF_H__
 

@@ -159,7 +159,8 @@ typedef u32 timer_data_type;
 // Match interrupt error codes
 #define PLATFORM_TIMER_INT_OK                 0
 #define PLATFORM_TIMER_INT_TOO_SHORT          1
-#define PLATFORM_TIMER_INT_INVALID_ID         2  
+#define PLATFORM_TIMER_INT_TOO_LONG           2
+#define PLATFORM_TIMER_INT_INVALID_ID         3  
 
 // Timer operations
 enum

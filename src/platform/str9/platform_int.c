@@ -9,6 +9,13 @@
 // Platform-specific headers
 #include "91x_vic.h"
 #include "91x_wiu.h"
+#include "91x_tim.h"
+
+#include <stdio.h>
+
+#ifndef VTMR_TIMER_ID
+#define VTMR_TIMER_ID         ( -1 )
+#endif
 
 // ****************************************************************************
 // Interrupt handlers
@@ -45,7 +52,9 @@ static int exint_gpio_to_src( pio_type piodata )
   return ( i << 3 ) + pin;
 }
 
+// ----------------------------------------------------------------------------
 // External interrupt handlers
+
 static void exint_irq_handler( int group )
 {
   u32 bmask;
@@ -68,9 +77,9 @@ static void exint_irq_handler( int group )
     {
       // Enqueue interrupt
       if( tr & bmask )
-        elua_int_add( INT_GPIO_POSEDGE, exint_src_to_gpio( shift + i ) );
+        cmn_int_handler( INT_GPIO_POSEDGE, exint_src_to_gpio( shift + i ) );
       else
-        elua_int_add( INT_GPIO_NEGEDGE, exint_src_to_gpio( shift + i ) );
+        cmn_int_handler( INT_GPIO_NEGEDGE, exint_src_to_gpio( shift + i ) );
       // Then clear it
       WIU->PR  = bmask;
     }
@@ -97,6 +106,47 @@ void EXTIT2_IRQHandler()
 void EXTIT3_IRQHandler()
 {
   exint_irq_handler( 3 );
+}
+
+// ----------------------------------------------------------------------------
+// Timer interrupt handlers
+
+extern TIM_TypeDef* const str9_timer_data[];
+extern u8 str9_timer_int_periodic_flag[ NUM_PHYS_TIMER ];
+
+static void tmr_int_handler( int id )
+{
+  TIM_TypeDef *base = ( TIM_TypeDef* )str9_timer_data[ id ];
+
+  TIM_ClearFlag( base, TIM_FLAG_OC1 );
+  TIM_CounterCmd( base, TIM_CLEAR );
+  if( id == VTMR_TIMER_ID )
+    cmn_virtual_timer_cb();
+  else
+    cmn_int_handler( INT_TMR_MATCH, id );
+  if( str9_timer_int_periodic_flag[ id ] != PLATFORM_TIMER_INT_CYCLIC )
+    TIM_ITConfig( base, TIM_IT_OC1, DISABLE );    
+  VIC0->VAR = 0xFF;
+}
+
+void TIM0_IRQHandler(void)
+{
+  tmr_int_handler( 0 );
+}
+
+void TIM1_IRQHandler(void)
+{
+  tmr_int_handler( 1 );
+}
+
+void TIM2_IRQHandler(void)
+{
+  tmr_int_handler( 2 );
+}
+
+void TIM3_IRQHandler(void)
+{
+  tmr_int_handler( 3 );
 }
 
 // ****************************************************************************
@@ -206,6 +256,35 @@ static int int_gpio_negedge_get_flag( elua_int_resnum resnum, int clear )
 }
 
 // ****************************************************************************
+// Interrupt: INT_TMR_MATCH
+
+static int int_tmr_match_get_status( elua_int_resnum resnum )
+{
+  TIM_TypeDef *base = ( TIM_TypeDef* )str9_timer_data[ resnum ];
+
+  return ( base->CR2 & TIM_IT_OC1 ) != 0;
+}
+
+static int int_tmr_match_set_status( elua_int_resnum resnum, int status )
+{
+  int previous = int_tmr_match_get_status( resnum );
+  TIM_TypeDef *base = ( TIM_TypeDef* )str9_timer_data[ resnum ];
+  
+  TIM_ITConfig( base, TIM_IT_OC1, status == PLATFORM_CPU_ENABLE ? ENABLE : DISABLE );
+  return previous;
+}
+
+static int int_tmr_match_get_flag( elua_int_resnum resnum, int clear )
+{
+  TIM_TypeDef *base = ( TIM_TypeDef* )str9_timer_data[ resnum ];
+  int status = TIM_GetFlagStatus( base, TIM_FLAG_OC1 );
+
+  if( clear )
+    TIM_ClearFlag( base, TIM_FLAG_OC1 );
+  return status;
+}
+
+// ****************************************************************************
 // Interrupt initialization
 
 void platform_int_init()
@@ -230,6 +309,17 @@ void platform_int_init()
 
   // Enable interrupt generation on WIU
   WIU->CTRL |= 2; 
+
+#ifdef INT_TMR_MATCH
+  VIC_Config( TIM0_ITLine, VIC_IRQ, 5 );
+  VIC_Config( TIM1_ITLine, VIC_IRQ, 6 );
+  VIC_Config( TIM2_ITLine, VIC_IRQ, 7 );
+  VIC_Config( TIM3_ITLine, VIC_IRQ, 8 );
+  VIC_ITCmd( TIM0_ITLine, ENABLE );
+  VIC_ITCmd( TIM1_ITLine, ENABLE );
+  VIC_ITCmd( TIM2_ITLine, ENABLE );
+  VIC_ITCmd( TIM3_ITLine, ENABLE );
+#endif
 }
 
 // ****************************************************************************
@@ -239,6 +329,7 @@ void platform_int_init()
 const elua_int_descriptor elua_int_table[ INT_ELUA_LAST ] = 
 {
   { int_gpio_posedge_set_status, int_gpio_posedge_get_status, int_gpio_posedge_get_flag },
-  { int_gpio_negedge_set_status, int_gpio_negedge_get_status, int_gpio_negedge_get_flag }
+  { int_gpio_negedge_set_status, int_gpio_negedge_get_status, int_gpio_negedge_get_flag },
+  { int_tmr_match_set_status, int_tmr_match_get_status, int_tmr_match_get_flag }
 };
 
