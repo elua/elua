@@ -192,11 +192,11 @@ Contacts
 
 eLua authors and main developers can be contacted at:
 
-Bogdan Marinescu: bogdan.marinescu -at- eluaproject -dot- net
+Bogdan Marinescu: bogdan.marinescu -at- gmail -dot- com
 
-Dado Sutter: dadosutter -at- eluaproject -dot- net
+Dado Sutter: dadosutter -at- gmail -dot- com
 
-James Snyder: jbsnyder -at- eluaproject -dot- net
+James Snyder: jbsnyder -at- gmail -dot- com
 
 You are also welcomed to share your questions and suggestions on our
 link:comunity.html#lists[Mail Discussion List]
