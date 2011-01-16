@@ -337,7 +337,7 @@ if not GetOption( 'help' ):
 
   # CPU/allocator mapping (if allocator not specified)
   if comp['allocator'] == 'auto':
-    if comp['board'] in ['LPC-H2888', 'ATEVK1100', 'MBED', 'MIZAR32']:
+    if comp['board'] in ['LPC-H2888', 'ATEVK1100', 'MBED']:
       comp['allocator'] = 'multiple'
     else:
       comp['allocator'] = 'newlib'

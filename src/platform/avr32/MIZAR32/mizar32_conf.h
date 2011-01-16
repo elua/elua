@@ -12,7 +12,7 @@
 // *****************************************************************************
 // Define here what components you want for this platform
 
-//#define BUILD_MMCFS
+#define BUILD_MMCFS
 //#define BUILD_XMODEM
 //#define BUILD_SHELL
 //#define BUILD_ROMFS
