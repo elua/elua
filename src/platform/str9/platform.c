@@ -129,7 +129,6 @@ int platform_init()
     
   // UART setup
   platform_gpio_uart_setup();
-  platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
 
   // Initialize timers
   for( i = 0; i < NUM_PHYS_TIMER; i ++ )
@@ -261,7 +260,7 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   return baud;
 }
 
-void platform_uart_send( unsigned id, u8 data )
+void platform_s_uart_send( unsigned id, u8 data )
 {
   UART_TypeDef* p_uart = ( UART_TypeDef* )uarts[ id ];
 

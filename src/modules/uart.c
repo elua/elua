@@ -6,8 +6,12 @@
 #include "platform.h"
 #include "auxmods.h"
 #include "lrotable.h"
+#include "common.h"
+#include "sermux.h"
 #include <string.h>
 #include <ctype.h>
+#include <stdlib.h>
+#include "platform_conf.h"
 
 // Modes for the UART read function
 enum
@@ -26,6 +30,8 @@ static int uart_setup( lua_State* L )
   
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( uart, id );
+  if( id >= SERMUX_SERVICE_ID_FIRST )
+    return luaL_error( L, "uart.setup can't be called on virtual UARTs" );
   baud = luaL_checkinteger( L, 2 );
   databits = luaL_checkinteger( L, 3 );
   parity = luaL_checkinteger( L, 4 );
@@ -64,6 +70,7 @@ static int uart_write( lua_State* L )
   }
   return 0;
 }
+
 static int uart_read( lua_State* L )
 {
   int id, res, mode, issign;
@@ -115,6 +122,8 @@ static int uart_read( lua_State* L )
     cres = ( char )res;
     count ++;
     issign = ( count == 1 ) && ( ( res == '-' ) || ( res == '+' ) );
+    // [TODO] this only works for lines that actually end with '\n', other line endings
+    // are not supported.
     if( ( cres == '\n' ) && ( mode == UART_READ_MODE_LINE ) )
       break;
     if( !isdigit( cres ) && !issign && ( mode == UART_READ_MODE_NUMBER ) )
@@ -168,6 +177,62 @@ static int uart_getchar( lua_State* L )
   return 1;  
 }
 
+
+// Lua: uart.set_buffer( id, size )
+static int uart_set_buffer( lua_State *L )
+{
+  int id = luaL_checkinteger( L, 1 );
+  u32 size = ( u32 )luaL_checkinteger( L, 2 );
+  
+  MOD_CHECK_ID( uart, id );
+  if( size && ( size & ( size - 1 ) ) )
+    return luaL_error( L, "the buffer size must be a power of 2 or 0" );
+  if( size == 0 && id >= SERMUX_SERVICE_ID_FIRST )
+    return luaL_error( L, "disabling buffers on virtual UARTs is not allowed" );
+  if( platform_uart_set_buffer( id, intlog2( size ) ) == PLATFORM_ERR )
+    return luaL_error( L, "unable to set UART buffer" );
+  return 0;
+}
+
+// Lua: uart.set_flow_control( id, type )
+static int uart_set_flow_control( lua_State *L )
+{
+  int id = luaL_checkinteger( L, 1 );
+  int type = luaL_checkinteger( L, 2 );
+
+  MOD_CHECK_ID( uart, id );
+  if( platform_uart_set_flow_control( id, type ) != PLATFORM_OK )
+    return luaL_error( L, "unable to set the flow control on interface %d", id );
+  return 0;
+}
+
+#ifdef BUILD_SERMUX
+
+#define MAX_VUART_NAME_LEN    6
+#define MIN_VUART_NAME_LEN    6
+
+// __index metafunction for UART
+// Look for all VUARTx timer identifiers
+static int uart_mt_index( lua_State* L )
+{
+  const char *key = luaL_checkstring( L ,2 );
+  char* pend;
+  long res;
+  
+  if( strlen( key ) > MAX_VUART_NAME_LEN || strlen( key ) < MIN_VUART_NAME_LEN )
+    return 0;
+  if( strncmp( key, "VUART", 5 ) )
+    return 0;  
+  res = strtol( key + 5, &pend, 10 );
+  if( *pend != '\0' )
+    return 0;
+  if( res >= SERMUX_NUM_VUART )
+    return 0;
+  lua_pushinteger( L, SERMUX_SERVICE_ID_FIRST + res );
+  return 1;
+}
+#endif // #ifdef BUILD_SERMUX
+
 // Module function map
 #define MIN_OPT_LEVEL   2
 #include "lrodefs.h"
@@ -177,6 +242,8 @@ const LUA_REG_TYPE uart_map[] =
   { LSTRKEY( "write" ), LFUNCVAL( uart_write ) },
   { LSTRKEY( "read" ), LFUNCVAL( uart_read ) },
   { LSTRKEY( "getchar" ), LFUNCVAL( uart_getchar ) },
+  { LSTRKEY( "set_buffer" ), LFUNCVAL( uart_set_buffer ) },
+  { LSTRKEY( "set_flow_control" ), LFUNCVAL( uart_set_flow_control ) },
 #if LUA_OPTIMIZE_MEMORY > 0
   { LSTRKEY( "PAR_EVEN" ), LNUMVAL( PLATFORM_UART_PARITY_EVEN ) },
   { LSTRKEY( "PAR_ODD" ), LNUMVAL( PLATFORM_UART_PARITY_ODD ) },
@@ -186,6 +253,13 @@ const LUA_REG_TYPE uart_map[] =
   { LSTRKEY( "STOP_2" ), LNUMVAL( PLATFORM_UART_STOPBITS_2 ) },
   { LSTRKEY( "NO_TIMEOUT" ), LNUMVAL( 0 ) },
   { LSTRKEY( "INF_TIMEOUT" ), LNUMVAL( PLATFORM_UART_INFINITE_TIMEOUT ) },
+  { LSTRKEY( "FLOW_NONE" ), LNUMVAL( PLATFORM_UART_FLOW_NONE ) },
+  { LSTRKEY( "FLOW_RTS" ), LNUMVAL( PLATFORM_UART_FLOW_RTS ) },
+  { LSTRKEY( "FLOW_CTS" ), LNUMVAL( PLATFORM_UART_FLOW_CTS ) },
+#endif
+#if LUA_OPTIMIZE_MEMORY > 0 && defined( BUILD_SERMUX )
+  { LSTRKEY( "__metatable" ), LROVAL( uart_map ) },
+  { LSTRKEY( "__index" ), LFUNCVAL( uart_mt_index ) },  
 #endif
   { LNILKEY, LNILVAL }
 };
@@ -208,7 +282,12 @@ LUALIB_API int luaopen_uart( lua_State *L )
   // Add the "none" and "infinite" constant used in recv()
   MOD_REG_NUMBER( L, "NO_TIMEOUT", 0 );
   MOD_REG_NUMBER( L, "INF_TIMEOUT", PLATFORM_UART_INFINITE_TIMEOUT );
+
+  // Add the UART flow constants
+  MOD_REG_NUMBER( L, "FLOW_RTS", PLATFORM_UART_FLOW_RTS );
+  MOD_REG_NUMBER( L, "FLOW_CTS", PLATFORM_UART_FLOW_CTS );
   
   return 1;
 #endif // #if LUA_OPTIMIZE_MEMORY > 0
 }
+

@@ -49,9 +49,6 @@ int platform_init()
   // Initialize clocks
   clock_init();
   
-  // Setup UART1 for operation
-  platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
-  
   // Initialize Timer 0 for XMODEM
   platform_timer_op( 0, PLATFORM_TIMER_OP_SET_CLOCK, 39000 ); 
   
@@ -176,7 +173,7 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   return baud;
 }
 
-void platform_uart_send( unsigned id, u8 data )
+void platform_s_uart_send( unsigned id, u8 data )
 {
   UART_TypeDef* pport = ( UART_TypeDef* )uart_periph[ id ];
   

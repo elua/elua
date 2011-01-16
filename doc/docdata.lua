@@ -106,6 +106,7 @@ local menu =
           { "Linenoise", "linenoise.html" },
           { "Cross-compiling", "using.html#cross" },
           { "LuaRPC", "using.html#rpc" },
+          { "The serial multiplexer", "sermux.html" }
         },
       },
       { { "Code examples", "Exemplos de Código" }, "examples.html" },
@@ -113,7 +114,8 @@ local menu =
       { "eLua file systems", "filesystems.html",
         {
           { { "Read-Only FS in MCU Flash", "O ROM File System em Flash" }, "arch_romfs.html" },
-          { "R/W FAT FS in SD/MMC Cards", "fatfs.html" }
+          { "R/W FAT FS in SD/MMC Cards", "fatfs.html" },
+          { "Remote file system (RFS)", "arch_rfs.html" }
         }
       },
       { "eLua interrupt handlers", "inthandlers.html",

@@ -13,6 +13,7 @@
 #define BUILD_TERM
 #define BUILD_CON_GENERIC
 //#define BUILD_RPC
+#define BUILD_C_INT_HANDLERS
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
@@ -89,8 +90,6 @@
 // Enable RX buffering on UART
 #define BUF_ENABLE_UART
 #define CON_BUF_SIZE          BUF_SIZE_128
-// REMEMBER to change next line if buffering is enabled and CON_UART_ID is not 0!
-#define CON_UART_IRQ          AVR32_USART1_IRQ
 
 // SD/MMC Filesystem Setup
 #define MMCFS_TICK_HZ     10
@@ -115,7 +114,13 @@
 #define MEM_START_ADDRESS     { ( void* )end }
 #define MEM_END_ADDRESS       { ( void* )( AVR32_SRAM_SIZE - STACK_SIZE_TOTAL - 1 ) }    
 
+// Interrupt list
+#define INT_UART_RX           ELUA_INT_FIRST_ID
+#define INT_ELUA_LAST         INT_UART_RX
 
+#define PLATFORM_CPU_CONSTANTS\
+ _C( INT_UART_RX )
+ 
 // *****************************************************************************
 // CPU constants that should be exposed to the eLua "cpu" module
 

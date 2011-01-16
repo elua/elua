@@ -139,9 +139,6 @@ int platform_init()
   platform_setup_timers();
   platform_setup_pwm();
   
-  // Initialize console UART
-  platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
-  
 #ifdef BUILD_ADC
   // Setup ADCs
   platform_setup_adcs();
@@ -381,7 +378,7 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   return ( Fpclk_UART >> 4 ) / temp;
 }
 
-void platform_uart_send( unsigned id, u8 data )
+void platform_s_uart_send( unsigned id, u8 data )
 {
   PREG UxTHR = ( PREG )uart_thr[ id ];
   PREG UxLSR = ( PREG )uart_lsr[ id ];

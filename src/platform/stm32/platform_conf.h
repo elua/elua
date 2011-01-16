@@ -7,6 +7,8 @@
 #include "type.h"
 #include "stacks.h"
 #include "stm32f10x.h"
+#include "elua_int.h"
+#include "sermux.h"
 
 // *****************************************************************************
 // Define here what components you want for this platform
@@ -25,6 +27,10 @@
 //#define BUILD_RFS
 //#define BUILD_CON_TCP
 #define BUILD_LINENOISE
+#define BUILD_C_INT_HANDLERS
+#define BUILD_LUA_INT_HANDLERS
+
+#define PLATFORM_UART_SET_FLOW_CONTROL
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
@@ -80,30 +86,6 @@
   LCDLINE\
   _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
-	
-// *****************************************************************************
-// Configuration data
-
-// Static TCP/IP configuration
-#define ELUA_CONF_IPADDR0     192
-#define ELUA_CONF_IPADDR1     168
-#define ELUA_CONF_IPADDR2     1
-#define ELUA_CONF_IPADDR3     13
-
-#define ELUA_CONF_NETMASK0    255
-#define ELUA_CONF_NETMASK1    255
-#define ELUA_CONF_NETMASK2    255
-#define ELUA_CONF_NETMASK3    0
-
-#define ELUA_CONF_DEFGW0      192
-#define ELUA_CONF_DEFGW1      168
-#define ELUA_CONF_DEFGW2      1
-#define ELUA_CONF_DEFGW3      1
-
-#define ELUA_CONF_DNS0        192
-#define ELUA_CONF_DNS1        168
-#define ELUA_CONF_DNS2        1
-#define ELUA_CONF_DNS3        1
 
 // *****************************************************************************
 // Configuration data
@@ -180,6 +162,18 @@ u32 platform_s_cpu_get_frequency();
 #define SRAM_SIZE             ( 64 * 1024 )
 #define MEM_START_ADDRESS     { ( void* )end }
 #define MEM_END_ADDRESS       { ( void* )( SRAM_BASE + SRAM_SIZE - STACK_SIZE_TOTAL - 1 ) }
+
+// Interrupt queue size
+#define PLATFORM_INT_QUEUE_LOG_SIZE 5
+
+// Interrupt list
+#define INT_TMR_MATCH         ELUA_INT_FIRST_ID
+#define INT_UART_RX           ( ELUA_INT_FIRST_ID + 1 )
+#define INT_ELUA_LAST         INT_UART_RX
+
+#define PLATFORM_CPU_CONSTANTS\
+  _C( INT_TMR_MATCH ),\
+  _C( INT_UART_RX )
 
 #endif // #ifndef __PLATFORM_CONF_H__
 

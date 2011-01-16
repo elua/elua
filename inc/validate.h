@@ -57,4 +57,32 @@
   #endif // #ifndef BUILD_TERM
 #endif // #ifdef BUILD_LINENOISE
 
+// For BUF_ENABLE_UART we also need C interrupt handlers support and specific INT_UART_RX support
+#if defined( BUF_ENABLE_UART ) 
+  #if !defined( BUILD_C_INT_HANDLERS )
+  #error "Buffering support on UART neeeds C interrupt handlers support, define BUILD_C_INT_HANDLERS in your platform_conf.h"
+  #endif
+  #if !defined( INT_UART_RX )
+  #error "Buffering support on UART needs support for the INT_UART_RX interrupt"
+  #endif
+#endif
+
+// Virtual UARTs need buffering and a few specific macros
+#if defined( BUILD_SERMUX )
+  #if !defined( BUF_ENABLE_UART )
+  #error "Virtual UARTs need buffering support, enable BUF_ENABLE_UART"  
+  #endif
+#endif
+
+// CON_BUF_SIZE needs BUF_ENABLE_UART and CON_UART_ID
+#if defined( CON_BUF_SIZE )
+  #if !defined( BUF_ENABLE_UART )
+  #error "Console buffering needs BUF_ENABLE_UART"
+  #endif
+  #if !defined( CON_UART_ID )
+  #error "Console buffering needs CON_UART_ID defined to the UART ID of the console device"
+  #endif
+#endif
+  
 #endif // #ifndef __VALIDATE_H__
+

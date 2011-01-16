@@ -5,20 +5,21 @@
 #include <fcntl.h>
 #include "os_io.h"
 #include "remotefs.h"
+#include "eluarpc.h"
 
 u32 os_open_sys_flags_to_rfs_flags( int sysflags )
 {
   int rfsflags = 0;
 
   // Translate RFS flags to POSIX flags
-  rfsflags = remotefs_replace_flag( sysflags, O_APPEND, RFS_OPEN_FLAG_APPEND );
-  rfsflags |= remotefs_replace_flag( sysflags, O_CREAT, RFS_OPEN_FLAG_CREAT );
-  rfsflags |= remotefs_replace_flag( sysflags, O_EXCL, RFS_OPEN_FLAG_EXCL );
-  rfsflags |= remotefs_replace_flag( sysflags, O_TRUNC, RFS_OPEN_FLAG_TRUNC );
-  rfsflags |= remotefs_replace_flag( sysflags, O_SYNC, RFS_OPEN_FLAG_SYNC );
-  rfsflags |= remotefs_replace_flag( sysflags, O_RDONLY, RFS_OPEN_FLAG_RDONLY );
-  rfsflags |= remotefs_replace_flag( sysflags, O_WRONLY, RFS_OPEN_FLAG_WRONLY );
-  rfsflags |= remotefs_replace_flag( sysflags, O_RDWR, RFS_OPEN_FLAG_RDWR );
+  rfsflags = eluarpc_replace_flag( sysflags, O_APPEND, RFS_OPEN_FLAG_APPEND );
+  rfsflags |= eluarpc_replace_flag( sysflags, O_CREAT, RFS_OPEN_FLAG_CREAT );
+  rfsflags |= eluarpc_replace_flag( sysflags, O_EXCL, RFS_OPEN_FLAG_EXCL );
+  rfsflags |= eluarpc_replace_flag( sysflags, O_TRUNC, RFS_OPEN_FLAG_TRUNC );
+  rfsflags |= eluarpc_replace_flag( sysflags, O_SYNC, RFS_OPEN_FLAG_SYNC );
+  rfsflags |= eluarpc_replace_flag( sysflags, O_RDONLY, RFS_OPEN_FLAG_RDONLY );
+  rfsflags |= eluarpc_replace_flag( sysflags, O_WRONLY, RFS_OPEN_FLAG_WRONLY );
+  rfsflags |= eluarpc_replace_flag( sysflags, O_RDWR, RFS_OPEN_FLAG_RDWR );
   return rfsflags;
 }
 

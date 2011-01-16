@@ -4,6 +4,21 @@
 #include "remotefs.h"
 #include "client.h"
 #include "os_io.h"
+#include "eluarpc.h"
+
+#include <stdio.h>
+#include "platform_conf.h"
+#include "buf.h"
+
+#ifdef BUILD_RFS
+
+#if 0
+#define RFSDEBUG        printf
+#else
+void RFSDEBUG( const char* dummy, ... )
+{
+}
+#endif
 
 // ****************************************************************************
 // Client local data
@@ -19,6 +34,7 @@ static u32 rfsc_timeout;
 static int rfsch_send_request_read_response()
 {
   u16 temp16;
+  u32 readbytes;
 
 #ifndef ELUA_CPU_LINUX
   // Empty receive buffer
@@ -26,19 +42,34 @@ static int rfsch_send_request_read_response()
 #endif
 
   // Send request
-  if( remotefs_get_packet_size( rfsc_buffer, &temp16 ) == REMOTEFS_ERR )
+  if( eluarpc_get_packet_size( rfsc_buffer, &temp16 ) == ELUARPC_ERR )
+  {
+    RFSDEBUG( "[RFS] get packet size error\n" );
     return CLIENT_ERR;
+  }
   if( rfsc_send( rfsc_buffer, temp16 ) != temp16 )
+  {
+    RFSDEBUG( "[RFS] rfsc_send error\n" );
     return CLIENT_ERR;
+  }
   
   // Get response
   // First the length, then the rest of the data
-  if( rfsc_recv( rfsc_buffer, RFS_START_OFFSET, rfsc_timeout ) != RFS_START_OFFSET )
+  if( ( readbytes = rfsc_recv( rfsc_buffer, ELUARPC_START_OFFSET, rfsc_timeout ) ) != ELUARPC_START_OFFSET )
+  {
+    RFSDEBUG( "[RFS] rfsc_recv (1) error: expected %u, got %u\n", ( unsigned )( temp16 - ELUARPC_START_OFFSET ), ( unsigned )readbytes );
     return CLIENT_ERR;
-  if( remotefs_get_packet_size( rfsc_buffer, &temp16 ) == REMOTEFS_ERR )
+  }
+  if( eluarpc_get_packet_size( rfsc_buffer, &temp16 ) == ELUARPC_ERR )
+  {
+    RFSDEBUG( "[RFS] eluarpc_get_packet_size() error\n" );
     return CLIENT_ERR;
-  if( rfsc_recv( rfsc_buffer + RFS_START_OFFSET, temp16 - RFS_START_OFFSET, rfsc_timeout ) != temp16 - RFS_START_OFFSET )
+  }
+  if( ( readbytes = rfsc_recv( rfsc_buffer + ELUARPC_START_OFFSET, temp16 - ELUARPC_START_OFFSET, rfsc_timeout ) ) != temp16 - ELUARPC_START_OFFSET )
+  {
+    RFSDEBUG( "[RFS] rfsc_recv (2) error: expected %u, got %u\n", ( unsigned )( temp16 - ELUARPC_START_OFFSET ), ( unsigned )readbytes );
     return CLIENT_ERR;
+  }
   return CLIENT_OK;
 }
 
@@ -70,7 +101,7 @@ int rfsc_open( const char* pathname, int flags, int mode )
     return -1;
 
   // Interpret the response
-  if( remotefs_open_read_response( rfsc_buffer, &fd ) == REMOTEFS_ERR )
+  if( remotefs_open_read_response( rfsc_buffer, &fd ) == ELUARPC_ERR )
     return -1;
   return fd;
 }
@@ -85,7 +116,7 @@ s32 rfsc_write( int fd, const void *buf, u32 count )
     return -1;
   
   // Interpret the response
-  if( remotefs_write_read_response( rfsc_buffer, &count ) == REMOTEFS_ERR )
+  if( remotefs_write_read_response( rfsc_buffer, &count ) == ELUARPC_ERR )
     return -1;
   return ( s32 )count;
 }
@@ -102,7 +133,7 @@ s32 rfsc_read( int fd, void *buf, u32 count )
     return -1;
 
   // Interpret the response
-  if( remotefs_read_read_response( rfsc_buffer, &resbuf, &count ) == REMOTEFS_ERR )
+  if( remotefs_read_read_response( rfsc_buffer, &resbuf, &count ) == ELUARPC_ERR )
     return -1;
   memcpy( buf, resbuf, count );
   return ( s32 )count;
@@ -120,7 +151,7 @@ s32 rfsc_lseek( int fd, s32 offset, int whence )
     return -1;
 
   // Interpret the response
-  if( remotefs_lseek_read_response( rfsc_buffer, &res ) == REMOTEFS_ERR )
+  if( remotefs_lseek_read_response( rfsc_buffer, &res ) == ELUARPC_ERR )
     return -1;
   return res;
 }
@@ -137,7 +168,7 @@ int rfsc_close( int fd )
     return -1;
 
   // Interpret the response
-  if( remotefs_close_read_response( rfsc_buffer, &res ) == REMOTEFS_ERR )
+  if( remotefs_close_read_response( rfsc_buffer, &res ) == ELUARPC_ERR )
     return -1;
   return res;
 }
@@ -152,7 +183,7 @@ u32 rfsc_opendir( const char* name )
     return 0;
 
   // Interpret the response
-  if( remotefs_opendir_read_response( rfsc_buffer, &res ) == REMOTEFS_ERR )
+  if( remotefs_opendir_read_response( rfsc_buffer, &res ) == ELUARPC_ERR )
     return 0;
   return res;
 }
@@ -168,7 +199,7 @@ void rfsc_readdir( u32 d, const char **pname, u32 *psize, u32 *ptime )
   }
 
   // Interpret the response
-  if( remotefs_readdir_read_response( rfsc_buffer, pname, psize, ptime ) == REMOTEFS_ERR )
+  if( remotefs_readdir_read_response( rfsc_buffer, pname, psize, ptime ) == ELUARPC_ERR )
     *pname = NULL;
 }
 
@@ -182,8 +213,9 @@ int rfsc_closedir( u32 d )
     return -1;
 
   // Interpret the response
-  if( remotefs_closedir_read_response( rfsc_buffer, &res ) == REMOTEFS_ERR )
+  if( remotefs_closedir_read_response( rfsc_buffer, &res ) == ELUARPC_ERR )
     return -1;
   return res;
 }  
 
+#endif // #ifdef BUILD_RFS

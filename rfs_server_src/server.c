@@ -1,27 +1,16 @@
 // Remote filesystem server implementation
 
 #include <string.h>
+#include <stdlib.h>
 #include "server.h"
 #include "remotefs.h"
+#include "eluarpc.h"
 #include "type.h"
 #include "os_io.h"
 #include "log.h"
 
 static char* server_basedir;
 static char server_fullname[ PLATFORM_MAX_FNAME_LEN + 1 ];
-
-#ifdef DEBUG
-#include <stdio.h>
-#define LOG0(str) printf( str"\n" )
-#define LOG1(str, arg1) printf( str"\n", arg1 )
-#define LOG2(str, arg1, arg2) printf( str"\n", arg1, arg2 )
-#define LOG3(str, arg1, arg2, arg3) printf( str"\n", arg1, arg2, arg3 )
-#else
-#define LOG0(str)
-#define LOG1(str, arg1)
-#define LOG2(str, arg1, arg2)
-#define LOG3(str, arg1, arg2, arg3)
-#endif
 
 typedef int ( *p_server_handler )( u8 *p );
 
@@ -36,7 +25,7 @@ static int server_open( u8 *p )
   
   // Validate request
   log_msg( "server_open: request handler starting\n" );
-  if( remotefs_open_read_request( p, &filename, &flags, &mode ) == REMOTEFS_ERR )
+  if( remotefs_open_read_request( p, &filename, &flags, &mode ) == ELUARPC_ERR )
   {
     log_msg( "server_open: unable to read request\n" );
     return SERVER_ERR;
@@ -64,7 +53,7 @@ static int server_write( u8 *p )
   u32 count;
   
   log_msg( "server_write: request handler starting\n" );
-  if( remotefs_write_read_request( p, &fd, &buf, &count ) == REMOTEFS_ERR )
+  if( remotefs_write_read_request( p, &fd, &buf, &count ) == ELUARPC_ERR )
   {
     log_msg( "server_write: unable to read request\n" );
     return SERVER_ERR;
@@ -82,13 +71,13 @@ static int server_read( u8 *p )
   u32 count;
   
   log_msg( "server_read: request handler starting\n" );
-  if( remotefs_read_read_request( p, &fd, &count ) == REMOTEFS_ERR )
+  if( remotefs_read_read_request( p, &fd, &count ) == ELUARPC_ERR )
   {
     log_msg( "server_read: unable to read request\n" );
     return SERVER_ERR;
   }
   log_msg( "server_read: fd = %d, count = %u\n", fd, ( unsigned )count );
-  count = ( u32 )os_read( fd, p + RFS_READ_BUF_OFFSET, count );
+  count = ( u32 )os_read( fd, p + ELUARPC_READ_BUF_OFFSET, count );
   log_msg( "server_read: OS response is %u\n", ( unsigned )count );
   remotefs_read_write_response( p, count );
   return SERVER_OK;
@@ -99,7 +88,7 @@ static int server_close( u8 *p )
   int fd;
   
   log_msg( "server_close: request handler starting\n" );
-  if( remotefs_close_read_request( p, &fd ) == REMOTEFS_ERR )
+  if( remotefs_close_read_request( p, &fd ) == ELUARPC_ERR )
   {
     log_msg( "server_close: unable to read request\n" );
     return SERVER_ERR;
@@ -117,7 +106,7 @@ static int server_lseek( u8 *p )
   s32 offset;
 
   log_msg( "server_lseek: request handler starting\n" );
-  if( remotefs_lseek_read_request( p, &fd, &offset, &whence ) == REMOTEFS_ERR )
+  if( remotefs_lseek_read_request( p, &fd, &offset, &whence ) == ELUARPC_ERR )
   {
     log_msg( "server_lseek: unable to read request\n" );
     return SERVER_ERR;
@@ -136,7 +125,7 @@ static int server_opendir( u8 *p )
   char separator[ 2 ] = { PLATFORM_PATH_SEPARATOR, 0 };
 
   log_msg( "server_opendir: request handler starting\n" );
-  if( remotefs_opendir_read_request( p, &name ) == REMOTEFS_ERR )
+  if( remotefs_opendir_read_request( p, &name ) == ELUARPC_ERR )
   {
     log_msg( "server_opendir: unable to read request\n" );
     return SERVER_ERR;
@@ -160,12 +149,12 @@ static int server_opendir( u8 *p )
 static int server_readdir( u8 *p )
 {
   const char* name;
-  u32 fsize, d;
+  u32 fsize = 0, d;
   int fd;
   char separator[ 2 ] = { PLATFORM_PATH_SEPARATOR, 0 };
 
   log_msg( "server_readdir: request handler starting\n" );
-  if( remotefs_readdir_read_request( p, &d ) == REMOTEFS_ERR )
+  if( remotefs_readdir_read_request( p, &d ) == ELUARPC_ERR )
   {
     log_msg( "server_readdir: unable to read request\n" );
     return SERVER_ERR;
@@ -207,7 +196,7 @@ static int server_closedir( u8 *p )
   int res;
 
   log_msg( "server_closedir: request handler starting\n" );
-  if( remotefs_closedir_read_request( p, &d ) == REMOTEFS_ERR )
+  if( remotefs_closedir_read_request( p, &d ) == ELUARPC_ERR )
   {
     log_msg( "server_closedir: unable to read request\n" );
     return SERVER_ERR;
@@ -232,12 +221,17 @@ void server_setup( const char* basedir )
   server_basedir = strdup( basedir );
 }
 
+void server_cleanup()
+{
+  free( server_basedir );
+  server_basedir = NULL;
+}
 int server_execute_request( u8 *pdata )
 {
   u8 req;
   
   // Decode request
-  if( remotefs_get_request_id( pdata, &req ) == REMOTEFS_ERR )
+  if( eluarpc_get_request_id( pdata, &req ) == ELUARPC_ERR )
     return SERVER_ERR;
   log_msg( "server_execute_request: got request with ID %d\n", req );
   if( req >= RFS_OP_FIRST && req <= RFS_OP_LAST ) 

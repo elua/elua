@@ -136,12 +136,21 @@ enum
 // "Infinite timeout" constant for recv
 #define PLATFORM_UART_INFINITE_TIMEOUT        (-1)
 
+// Flow control types (this is a bit mask, one can specify PLATFORM_UART_FLOW_RTS | PLATFORM_UART_FLOW_CTS )
+#define PLATFORM_UART_FLOW_NONE               0
+#define PLATFORM_UART_FLOW_RTS                1
+#define PLATFORM_UART_FLOW_CTS                2
+
 // The platform UART functions
 int platform_uart_exists( unsigned id );
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits );
+int platform_uart_set_buffer( unsigned id, unsigned size );
 void platform_uart_send( unsigned id, u8 data );
+void platform_s_uart_send( unsigned id, u8 data );
 int platform_uart_recv( unsigned id, unsigned timer_id, s32 timeout );
 int platform_s_uart_recv( unsigned id, s32 timeout );
+int platform_uart_set_flow_control( unsigned id, int type );
+int platform_s_uart_set_flow_control( unsigned id, int type );
 
 // *****************************************************************************
 // Timer subsection

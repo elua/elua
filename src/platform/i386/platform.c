@@ -146,7 +146,7 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   return 0;
 }
 
-void platform_uart_send( unsigned id, u8 data )
+void platform_s_uart_send( unsigned id, u8 data )
 {
 }
 
@@ -165,6 +165,19 @@ void platform_s_timer_delay( unsigned id, u32 delay_us )
 u32 platform_s_timer_op( unsigned id, int op, u32 data )
 {
  return 0;
+}
+
+// ****************************************************************************
+// "Dummy" CPU functions
+
+int platform_cpu_set_global_interrupts( int status )
+{
+  return 0;
+}
+
+int platform_cpu_get_global_interrupts()
+{
+  return 0;
 }
 
 // ****************************************************************************

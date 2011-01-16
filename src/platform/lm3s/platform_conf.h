@@ -8,6 +8,7 @@
 #include "hw_types.h"
 #include "stacks.h"
 #include "sysctl.h"
+#include "elua_int.h"
 
 // *****************************************************************************
 // Define here what components you want for this platform
@@ -26,6 +27,7 @@
 #define BUILD_ADC
 #define BUILD_RPC
 //#define BUILD_CON_TCP
+#define BUILD_C_INT_HANDLERS
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
@@ -165,8 +167,8 @@
 #define NUM_CAN               1
 
 // Enable RX buffering on UART
-//#define BUF_ENABLE_UART
-//#define CON_BUF_SIZE          BUF_SIZE_128
+#define BUF_ENABLE_UART
+#define CON_BUF_SIZE          BUF_SIZE_128
 
 // ADC Configuration Params
 #define ADC_BIT_RESOLUTION    10
@@ -236,6 +238,10 @@
 #define MEM_START_ADDRESS     { ( void* )end }
 #define MEM_END_ADDRESS       { ( void* )( SRAM_BASE + SRAM_SIZE - STACK_SIZE_TOTAL - 1 ) }
 
+// Interrupt list
+#define INT_UART_RX           ELUA_INT_FIRST_ID
+#define INT_ELUA_LAST         INT_UART_RX
+
 // *****************************************************************************
 // CPU constants that should be exposed to the eLua "cpu" module
 
@@ -289,6 +295,7 @@
   _C( INT_USB0 ),\
   _C( INT_PWM3 ),\
   _C( INT_UDMA ),\
-  _C( INT_UDMAERR )
+  _C( INT_UDMAERR ),\
+  _C( INT_UART_RX )
 
 #endif // #ifndef __PLATFORM_CONF_H__

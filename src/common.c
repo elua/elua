@@ -14,7 +14,9 @@
 #include "term.h"
 #include "xmodem.h"
 #include "elua_int.h"
+#include "sermux.h"
 
+// [TODO] the new builder should automatically do this
 #if defined( BUILD_LUA_INT_HANDLERS ) || defined( BUILD_C_INT_HANDLERS )
 #define BUILD_INT_HANDLERS
 
@@ -26,9 +28,25 @@ extern const elua_int_descriptor elua_int_table[ INT_ELUA_LAST ];
 
 #endif // #if defined( BUILD_LUA_INT_HANDLERS ) || defined( BUILD_C_INT_HANDLERS )
 
+// [TODO] the new builder should automatically do this
 #ifndef VTMR_NUM_TIMERS
 #define VTMR_NUM_TIMERS       0
 #endif // #ifndef VTMR_NUM_TIMERS
+
+// [TODO] the new builder should automatically do this
+#ifndef CON_BUF_SIZE
+#define CON_BUF_SIZE          0
+#endif // #ifndef CON_BUF_SIZE
+
+// [TODO] the new builder should automatically do this
+#ifndef SERMUX_FLOW_TYPE
+#define SERMUX_FLOW_TYPE      PLATFORM_UART_FLOW_NONE
+#endif
+
+// [TODO] the new builder should automatically do this
+#ifndef CON_FLOW_TYPE
+#define CON_FLOW_TYPE        PLATFORM_UART_FLOW_NONE
+#endif
 
 // ****************************************************************************
 // XMODEM support code
@@ -169,6 +187,27 @@ void cmn_platform_init()
   platform_int_init();
 #endif
 
+#ifdef BUILD_SERMUX
+  unsigned i;
+  unsigned bufsizes[] = SERMUX_BUFFER_SIZES;  
+
+  // Setup the serial multiplexer
+  platform_uart_setup( SERMUX_PHYS_ID, SERMUX_PHYS_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
+  platform_uart_set_flow_control( SERMUX_PHYS_ID, SERMUX_FLOW_TYPE );
+  cmn_uart_setup_sermux();
+
+  // Set buffers for all virtual UARTs 
+  for( i = 0; i < sizeof( bufsizes ) / sizeof( unsigned ); i ++ )
+    platform_uart_set_buffer( i + SERMUX_SERVICE_ID_FIRST, bufsizes[ i ] );
+#endif // #ifdef BUILD_SERMUX
+
+#if defined( CON_UART_ID ) && CON_UART_ID < SERMUX_SERVICE_ID_FIRST
+  // Setup console UART
+  platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );  
+  platform_uart_set_flow_control( CON_UART_ID, CON_FLOW_TYPE );
+  platform_uart_set_buffer( CON_UART_ID, CON_BUF_SIZE );
+#endif // #if defined( CON_UART_ID ) && CON_UART_ID < SERMUX_SERVICE_ID_FIRST
+
   // Set the send/recv functions                          
   std_set_send_func( uart_send );
   std_set_get_func( uart_recv );  
@@ -210,64 +249,6 @@ int platform_pio_has_pin( unsigned port, unsigned pin )
 #else
   #error "You must define either PIO_PINS_PER_PORT of PIO_PIN_ARRAY in platform_conf.h"
 #endif
-}
- 
-// ****************************************************************************
-// UART functions
-
-// The platform UART functions
-int platform_uart_exists( unsigned id )
-{
-  return id < NUM_UART;
-}
-
-// Helper function for buffers
-static int cmn_recv_helper( unsigned id, s32 timeout )
-{
-#ifdef BUF_ENABLE_UART
-  t_buf_data data;
-  
-  if( buf_is_enabled( BUF_ID_UART, id ) )
-  {
-    if( timeout == 0 )
-    {
-      if ( ( buf_read( BUF_ID_UART, id, &data ) ) == PLATFORM_UNDERFLOW )
-        return -1;
-    }
-    else
-    {
-      while( ( buf_read( BUF_ID_UART, id, &data ) ) == PLATFORM_UNDERFLOW );
-    }
-    return ( int )data;
-  }
-  else
-#endif
-  return platform_s_uart_recv( id, timeout );
-}
-
-int platform_uart_recv( unsigned id, unsigned timer_id, s32 timeout )
-{
-  timer_data_type tmr_start, tmr_crt;
-  int res;
-  
-  if( timeout == 0 )
-    return cmn_recv_helper( id, timeout );
-  else if( timeout == PLATFORM_UART_INFINITE_TIMEOUT )
-    return cmn_recv_helper( id, timeout );
-  else
-  {
-    // Receive char with the specified timeout
-    tmr_start = platform_timer_op( timer_id, PLATFORM_TIMER_OP_START, 0 );
-    while( 1 )
-    {
-      if( ( res = cmn_recv_helper( id, 0 ) ) >= 0 )
-        break;
-      tmr_crt = platform_timer_op( timer_id, PLATFORM_TIMER_OP_READ, 0 );
-      if( platform_timer_get_diff_us( timer_id, tmr_crt, tmr_start ) >= timeout )
-        break;
-    }
-    return res;
-  }
 }
 
 // ****************************************************************************

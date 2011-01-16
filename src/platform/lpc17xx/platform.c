@@ -61,9 +61,6 @@ int platform_init()
   platform_setup_timers();
   //platform_setup_pwm();
 
-  // Initialize console UART
-  platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
-
 #ifdef BUILD_ADC
   // Setup ADCs
   platform_setup_adcs();
@@ -212,7 +209,7 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   return baud; // FIXME: find a way to actually get baud
 }
 
-void platform_uart_send( unsigned id, u8 data )
+void platform_s_uart_send( unsigned id, u8 data )
 {
   UART_Send(uart[ id ], &data, 1, BLOCKING);
 }

@@ -18,6 +18,7 @@ void cmn_int_handler( elua_int_id id, elua_int_resnum resnum );
 int cmn_tmr_int_set_status( elua_int_resnum resnum, int status );
 int cmn_tmr_int_get_status( elua_int_resnum resnum );
 int cmn_tmr_int_get_flag( elua_int_resnum resnum, int clear );
+void cmn_uart_setup_sermux();
 
 unsigned int intlog2( unsigned int v );
 

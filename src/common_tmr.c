@@ -237,7 +237,7 @@ u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_typ
 #ifdef BUILD_INT_HANDLERS
 int platform_timer_set_match_int( unsigned id, u32 period_us, int type )
 {
-#if VTMR_NUM_TIMERS > 0
+#if VTMR_NUM_TIMERS > 0 && defined( CMN_TIMER_INT_SUPPORT )
   if( TIMER_IS_VIRTUAL( id ) )
     return vtmr_set_match_int( id, period_us, type );
   else
@@ -247,7 +247,7 @@ int platform_timer_set_match_int( unsigned id, u32 period_us, int type )
 
 int cmn_tmr_int_set_status( elua_int_resnum resnum, int status )
 {
-#if VTMR_NUM_TIMERS > 0
+#if VTMR_NUM_TIMERS > 00 && defined( CMN_TIMER_INT_SUPPORT )
   if( TIMER_IS_VIRTUAL( resnum ) )
     return vtmr_int_set_status( resnum, status );
 #endif
@@ -259,7 +259,7 @@ int cmn_tmr_int_set_status( elua_int_resnum resnum, int status )
 
 int cmn_tmr_int_get_status( elua_int_resnum resnum )
 {
-#if VTMR_NUM_TIMERS > 0
+#if VTMR_NUM_TIMERS > 00 && defined( CMN_TIMER_INT_SUPPORT )
   if( TIMER_IS_VIRTUAL( resnum ) )
     return vtmr_int_get_status( resnum );
 #endif
@@ -271,7 +271,7 @@ int cmn_tmr_int_get_status( elua_int_resnum resnum )
 
 int cmn_tmr_int_get_flag( elua_int_resnum resnum, int clear )
 {
-#if VTMR_NUM_TIMERS > 0
+#if VTMR_NUM_TIMERS > 00 && defined( CMN_TIMER_INT_SUPPORT )
   if( TIMER_IS_VIRTUAL( resnum ) )
     return vtmr_int_get_flag( resnum, clear );
 #endif

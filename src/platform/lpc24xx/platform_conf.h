@@ -8,6 +8,7 @@
 #include "target.h"
 #include "buf.h"
 #include "elua_int.h"
+#include "sermux.h"
 
 // *****************************************************************************
 // Define here what components you want for this platform
@@ -19,13 +20,16 @@
 #define BUILD_CON_GENERIC
 #define BUILD_ADC
 #define BUILD_RPC
+#define BUILD_RFS
+#define BUILD_SERMUX
 #define BUILD_LUA_INT_HANDLERS
 #define BUILD_C_INT_HANDLERS
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 
-#define CON_UART_ID           0
+#define CON_UART_ID           ( SERMUX_SERVICE_ID_FIRST + 1 )
+//#define CON_UART_ID           0
 #define CON_UART_SPEED        115200
 #define CON_TIMER_ID          0
 #define TERM_LINES            25
@@ -90,9 +94,8 @@
 // Interrupt data
 #define PLATFORM_INT_QUEUE_LOG_SIZE   BUF_SIZE_32
 // Enable RX buffering on UART
-// [TODO] make this happen
-//#define BUF_ENABLE_UART
-//#define CON_BUF_SIZE          BUF_SIZE_128
+#define BUF_ENABLE_UART
+#define CON_BUF_SIZE          BUF_SIZE_128
 
 // ADC Configuration Params
 #define ADC_BIT_RESOLUTION    10
@@ -118,6 +121,18 @@
 // #define PIO_PIN_ARRAY { n1, n2, ... } to define pins per port in an array
 // Use #define PIO_PINS_PER_PORT 0 if this isn't needed
 #define PIO_PINS_PER_PORT     32
+
+// Remote file system data
+#define RFS_BUFFER_SIZE       BUF_SIZE_512
+#define RFS_UART_ID           ( SERMUX_SERVICE_ID_FIRST )
+#define RFS_TIMER_ID          0
+#define RFS_TIMEOUT           100000
+#define RFS_UART_SPEED        115200
+
+#define SERMUX_PHYS_ID        0
+#define SERMUX_PHYS_SPEED     115200
+#define SERMUX_NUM_VUART      2
+#define SERMUX_BUFFER_SIZES   { RFS_BUFFER_SIZE, CON_BUF_SIZE }
 
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)
@@ -156,7 +171,8 @@
 #define INT_GPIO_POSEDGE      ELUA_INT_FIRST_ID
 #define INT_GPIO_NEGEDGE      ( ELUA_INT_FIRST_ID + 1 )
 #define INT_TMR_MATCH         ( ELUA_INT_FIRST_ID + 2 )
-#define INT_ELUA_LAST         INT_TMR_MATCH
+#define INT_UART_RX           ( ELUA_INT_FIRST_ID + 3 )
+#define INT_ELUA_LAST         INT_UART_RX
 
 #define PLATFORM_CPU_CONSTANTS\
  _C( IO_PINSEL0 ),\
@@ -172,7 +188,8 @@
  _C( IO_PINSEL10 ),\
  _C( INT_GPIO_POSEDGE ),\
  _C( INT_GPIO_NEGEDGE ),\
- _C( INT_TMR_MATCH )
+ _C( INT_TMR_MATCH ),\
+ _C( INT_UART_RX )
  
 #endif // #ifndef __PLATFORM_CONF_H__
 

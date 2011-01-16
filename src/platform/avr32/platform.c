@@ -47,7 +47,7 @@ __attribute__((__interrupt__)) static void tmr_int_handler()
 }                                
 #endif
 
-static const u32 uart_base_addr[ ] = { 
+const u32 uart_base_addr[ ] = { 
     AVR32_USART0_ADDRESS, 
     AVR32_USART1_ADDRESS, 
     AVR32_USART2_ADDRESS, 
@@ -55,20 +55,6 @@ static const u32 uart_base_addr[ ] = {
     AVR32_USART3_ADDRESS,
 #endif    
 };
-
-// Buffered UART support
-#ifdef BUF_ENABLE_UART
-__attribute__((__interrupt__)) static void uart_rx_handler()
-{
-  int c;
-  t_buf_data temp;
-  volatile avr32_usart_t *pusart = ( volatile avr32_usart_t* )uart_base_addr[ CON_UART_ID ];    
-  
-  usart_read_char( pusart, &c );
-  temp = ( t_buf_data )c;
-  buf_write( BUF_ID_UART, CON_UART_ID, &temp );
-}
-#endif
 
 extern void alloc_init();
 
@@ -124,19 +110,7 @@ int platform_init()
 #ifdef AVR32_SDRAMC
   sdramc_init( REQ_CPU_FREQ );
 #endif 
-  
-  // Setup UART for eLua
-  platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );  
-#if defined( BUF_ENABLE_UART ) && defined( CON_BUF_SIZE )
-  // Enable buffering on the console UART
-  buf_set( BUF_ID_UART, CON_UART_ID, CON_BUF_SIZE, BUF_DSIZE_U8 );
-  // Set interrupt handler and interrupt flag on UART
-  INTC_register_interrupt( &uart_rx_handler, CON_UART_IRQ, AVR32_INTC_INT0 );  
-  volatile avr32_usart_t *pusart = ( volatile avr32_usart_t* )uart_base_addr[ CON_UART_ID ];      
-  pusart->ier = AVR32_USART_IER_RXRDY_MASK;  
-  Enable_global_interrupt();
-#endif
-    
+      
   // Setup timers
   for( i = 0; i < 3; i ++ )
   {
@@ -439,11 +413,12 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   return baud;
 }
 
-void platform_uart_send( unsigned id, u8 data )
+void platform_s_uart_send( unsigned id, u8 data )
 {
   volatile avr32_usart_t *pusart = ( volatile avr32_usart_t* )uart_base_addr[ id ];  
   
-  usart_putchar( pusart, data );
+  while( !usart_tx_ready( pusart ) );
+  pusart->thr = ( data << AVR32_USART_THR_TXCHR_OFFSET ) & AVR32_USART_THR_TXCHR_MASK;
 }    
 
 int platform_s_uart_recv( unsigned id, s32 timeout )

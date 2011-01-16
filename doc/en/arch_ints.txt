@@ -67,6 +67,43 @@ const elua_int_descriptor elua_int_table[ INT_ELUA_LAST ] =
 _platform_int.c_ should implement a function named *platform_int_init* (defined in _inc/platform.h_) that must initialize all the required hardware and the internal data structures of
 the interrupt subsystem. This function should be called from *platform_init*.
 
+5. *Implement the interrupt handlers*
++
+There are two simple requirements for the interrupt handlers: clear the hardware interrupt flag (if needed) and call *cmn_int_handler* (_src/common.c_) to connect the handler with the
+eLua interrupt code. An example is given below:
++
+[subs="quotes"]
+-------------------------------
+// EINT3 (INT_GPIO) interrupt handler
+static void int_handler_eint3()
+{
+  elua_int_id id = ELUA_INT_INVALID_INTERRUPT;
+  pio_code resnum = 0;
+  int pidx, pin;
+  
+  EXTINT |= 1 << EINT3_BIT; // clear interrupt
+  // Look for interrupt source
+  // In can only be GPIO0/GPIO2, as the EXT interrupts are not (yet) used
+  pidx = ( IO_INT_STAT & 1 ) ? 0 : 1;
+  if( *posedge_status[ pidx ] )
+  {
+    id = INT_GPIO_POSEDGE;
+    pin = intlog2( *posedge_status[ pidx ] );
+  }
+  else
+  {
+    id = INT_GPIO_NEGEDGE;
+    pin = intlog2( *negedge_status[ pidx ] );
+  }
+  resnum = PLATFORM_IO_ENCODE( pidx * 2, pin, PLATFORM_IO_ENC_PIN );   
+ [bblue]** *intclr_regs[ pidx ] = 1 << pin**;
+  
+  // Run the interrupt through eLua
+  [bblue]**cmn_int_handler( id, resnum )**;
+  VICVectAddr = 0; // ACK interrupt    
+}
+-------------------------------
+
 That's it. If you followed all these steps correctly, your platform should be fully able to support interrupt handlers (as described link:inthandlers.html[here]). Check the *lpc24xx*
 platform implementation (_src/platform/lpc24xx_) for a full example.
 
@@ -93,7 +130,8 @@ The table below lists all the valid interrupt names currently known to eLua. If 
 ^|  Name              ^| Meaning                                    
 | INT_GPIO_POSEDGE    | Interrupt on a positive edge on a GPIO pin 
 | INT_GPIO_NEGEDGE    | Interrupt on a negative edge on a GPIO pin 
-| INT_TMR_MATCH       | Interrupt on timer match                   
+| INT_TMR_MATCH       | Interrupt on timer match
+| INT_UART_RX         | Interrupt on UART character received                            
 |===================================================================
 
 // $$FOOTER$$

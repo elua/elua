@@ -9,20 +9,21 @@
 #include <string.h>
 #include "os_io.h"
 #include "remotefs.h"
+#include "eluarpc.h"
 
 int os_open( const char *pathname, int flags, int mode )
 {
   int realflags = 0;
 
   // Translate RFS flags to POSIX flags
-  realflags = remotefs_replace_flag( flags, RFS_OPEN_FLAG_APPEND, O_APPEND );
-  realflags |= remotefs_replace_flag( flags, RFS_OPEN_FLAG_CREAT, O_CREAT );
-  realflags |= remotefs_replace_flag( flags, RFS_OPEN_FLAG_EXCL, O_EXCL );
-  realflags |= remotefs_replace_flag( flags, RFS_OPEN_FLAG_TRUNC, O_TRUNC );
-  realflags |= remotefs_replace_flag( flags, RFS_OPEN_FLAG_SYNC, O_SYNC );
-  realflags |= remotefs_replace_flag( flags, RFS_OPEN_FLAG_RDONLY, O_RDONLY );
-  realflags |= remotefs_replace_flag( flags, RFS_OPEN_FLAG_WRONLY, O_WRONLY );
-  realflags |= remotefs_replace_flag( flags, RFS_OPEN_FLAG_RDWR, O_RDWR );
+  realflags = eluarpc_replace_flag( flags, RFS_OPEN_FLAG_APPEND, O_APPEND );
+  realflags |= eluarpc_replace_flag( flags, RFS_OPEN_FLAG_CREAT, O_CREAT );
+  realflags |= eluarpc_replace_flag( flags, RFS_OPEN_FLAG_EXCL, O_EXCL );
+  realflags |= eluarpc_replace_flag( flags, RFS_OPEN_FLAG_TRUNC, O_TRUNC );
+  realflags |= eluarpc_replace_flag( flags, RFS_OPEN_FLAG_SYNC, O_SYNC );
+  realflags |= eluarpc_replace_flag( flags, RFS_OPEN_FLAG_RDONLY, O_RDONLY );
+  realflags |= eluarpc_replace_flag( flags, RFS_OPEN_FLAG_WRONLY, O_WRONLY );
+  realflags |= eluarpc_replace_flag( flags, RFS_OPEN_FLAG_RDWR, O_RDWR );
   return open( pathname, realflags, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH ); 
 }
 
@@ -31,14 +32,14 @@ u32 os_open_sys_flags_to_rfs_flags( int sysflags )
   int rfsflags = 0;
 
   // Translate RFS flags to POSIX flags
-  rfsflags = remotefs_replace_flag( sysflags, O_APPEND, RFS_OPEN_FLAG_APPEND );
-  rfsflags |= remotefs_replace_flag( sysflags, O_CREAT, RFS_OPEN_FLAG_CREAT );
-  rfsflags |= remotefs_replace_flag( sysflags, O_EXCL, RFS_OPEN_FLAG_EXCL );
-  rfsflags |= remotefs_replace_flag( sysflags, O_TRUNC, RFS_OPEN_FLAG_TRUNC );
-  rfsflags |= remotefs_replace_flag( sysflags, O_SYNC, RFS_OPEN_FLAG_SYNC );
-  rfsflags |= remotefs_replace_flag( sysflags, O_RDONLY, RFS_OPEN_FLAG_RDONLY );
-  rfsflags |= remotefs_replace_flag( sysflags, O_WRONLY, RFS_OPEN_FLAG_WRONLY );
-  rfsflags |= remotefs_replace_flag( sysflags, O_RDWR, RFS_OPEN_FLAG_RDWR );
+  rfsflags = eluarpc_replace_flag( sysflags, O_APPEND, RFS_OPEN_FLAG_APPEND );
+  rfsflags |= eluarpc_replace_flag( sysflags, O_CREAT, RFS_OPEN_FLAG_CREAT );
+  rfsflags |= eluarpc_replace_flag( sysflags, O_EXCL, RFS_OPEN_FLAG_EXCL );
+  rfsflags |= eluarpc_replace_flag( sysflags, O_TRUNC, RFS_OPEN_FLAG_TRUNC );
+  rfsflags |= eluarpc_replace_flag( sysflags, O_SYNC, RFS_OPEN_FLAG_SYNC );
+  rfsflags |= eluarpc_replace_flag( sysflags, O_RDONLY, RFS_OPEN_FLAG_RDONLY );
+  rfsflags |= eluarpc_replace_flag( sysflags, O_WRONLY, RFS_OPEN_FLAG_WRONLY );
+  rfsflags |= eluarpc_replace_flag( sysflags, O_RDWR, RFS_OPEN_FLAG_RDWR );
   return rfsflags;
 }
 

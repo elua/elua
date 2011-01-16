@@ -1,5 +1,6 @@
 require "lfs"
 require "eluadoc"
+require "md5"
 
 -- Uncomment this when generating offline docs
 local is_offline = true
@@ -20,6 +21,7 @@ for k, v in ipairs( languages ) do
 end
 
 local sf = string.format
+local cache_invalid = false
 
 -------------------------------------------------------------------------------
 -- Indexes into our menu table (defined in docdata.lua)
@@ -169,6 +171,74 @@ local function copy_dir( src, dst )
   lfs.mkdir( newdir )
   copy_dir_rec( src, newdir )
 end
+
+-------------------------------------------------------------------------------
+-- Cache helpers
+
+local function read_md5( filename )
+  local fullname = string.format( "cache/%s.cache", filename )
+  local f = io.open( fullname, "rb" )
+  if not f then return "" end
+  local d = f:read( "*a" )
+  f:close()
+  return d
+end
+
+local function write_md5( filename, d )
+  local fullname = string.format( "cache/%s.cache", filename )
+  local f = io.open( fullname, "wb" )
+  if not f then return false end
+  f:write( d )
+  f:close()
+  return true
+end
+
+local function file_md5( filename )
+  local f = io.open( filename, "rb" )
+  if not f then return "" end
+  local d = f:read( "*a" )
+  f:close()
+  return md5.sumhexa( d ) 
+end
+
+-------------------------------------------------------------------------------
+-- Table utils (from http://lua-users.org/wiki/TableUtils)
+
+function table.val_to_str( v )
+  if "string" == type( v ) then
+    v = string.gsub( v, "\n", "\\n" )
+    if string.match( string.gsub(v,"[^'\"]",""), '^"+$' ) then
+      return "'" .. v .. "'"
+    end
+    return '"' .. string.gsub(v,'"', '\\"' ) .. '"'
+  else
+    return "table" == type( v ) and table.tostring( v ) or tostring( v )
+  end
+end
+
+function table.key_to_str ( k )
+  if "string" == type( k ) and string.match( k, "^[_%a][_%a%d]*$" ) then
+    return k
+  else
+    return "[" .. table.val_to_str( k ) .. "]"
+  end
+end
+
+function table.tostring( tbl )
+  local result, done = {}, {}
+  for k, v in ipairs( tbl ) do
+    table.insert( result, table.val_to_str( v ) )
+    done[ k ] = true
+  end
+  for k, v in pairs( tbl ) do
+    if not done[ k ] then
+      table.insert( result,
+        table.key_to_str( k ) .. "=" .. table.val_to_str( v ) )
+    end
+  end
+  return "{" .. table.concat( result, "," ) .. "}"
+end
+
 
 -------------------------------------------------------------------------------
 -- Build the list of files that must be processed starting from the menu data
@@ -374,6 +444,19 @@ local function gen_html_page( fname, lang )
   end
   local orig = f:read( "*a" )
   f:close()
+  
+  -- Check cache
+  local cfilename = string.format( "%s_%s", lang, fname )
+  local oldsum = read_md5( cfilename )
+  local crtsum = md5.sumhexa( orig )
+  if oldsum == crtsum then
+    if not cache_invalid then 
+      return nil, "#cached#"
+    end
+  else
+    write_md5( cfilename, crtsum )
+  end
+      
   local asciimode = fullname:find( "%.txt" )
 
   -- Check the presence of $$HEADER$$ and $$FOOTER$$
@@ -489,13 +572,17 @@ local args = { ... }
 local destdir = "dist"
 local destdiridx = 1
 if #args > 2 then
-  print "Usage: buildall.lua [destdir] [-online]"
+  print "Usage: buildall.lua [destdir] [-online] [-clean]"
   print "Use -online to generate online documentation (includes BerliOS logo and counter)"
+  print "Use -clean to clear the cache and generate clean documentation"
   return
 end
+local cleancache = false
 for i = 1, #args do
   if args[ i ] == "-online" then
     is_offline = false
+  elseif args[ i ] == "-clean" then
+    cleancache = true
   else 
     destdir = args[ i ]
   end
@@ -538,13 +625,40 @@ else
     print( string.format( "%s is not a directory", destdir ) )
     return
   end
-  for k in lfs.dir( destdir ) do
-    if k ~= "." and k ~= ".." then
-      rm_dir_rec( destdir )
-      lfs.mkdir( destdir )
-      break
+  rm_dir_rec( destdir )
+  lfs.mkdir( destdir )
+end
+
+-- If the cache must be cleared, do it now
+if cleancache then
+  local attr = lfs.attributes( 'cache' )
+  if attr then
+    if attr.mode ~= "directory" then
+      print( "'cache' is not a directory" )
+      return
     end
+    rm_dir_rec( 'cache' )
+    lfs.mkdir( 'cache' )
   end
+end
+
+-- Create the cache directory if it doesn't exist
+local attr = lfs.attributes( 'cache' )
+if not attr then
+  if not lfs.mkdir( 'cache' ) then
+    print( "Unable to create cache directory" )
+    return
+  end
+end  
+
+-- Set the global "cache invalid" flag
+-- It is set to 'true' if the content of docdata.lua changes
+local crtdocsum = md5.sumhexa( table.tostring( themenu ) )
+local oldsum = read_md5( "docdata" )
+cache_invalid = crtdocsum ~= oldsum
+if cache_invalid then 
+  write_md5( "docdata", crtdocsum )
+  print "Cache invalidated" 
 end
 
 print "\nProcessing HTML templates..."
@@ -554,10 +668,13 @@ for _, lang in ipairs( languages ) do
   for fname, entry in pairs( flist ) do
     io.write( string.format( "Processing %s %s...", fname, entry.item[ name_idx ] and "" or "(hidden entry)" ) )
     local res, err = gen_html_page( fname, lang )
-    if not res then
-      print( "***" .. err )
+    if err == "#cached#" then
+      -- This file is already in the cache
+      print( " (cached)" )         
+    elseif not res then
+      print( "***" .. err ) 
     else
-      local g = io.open( string.format( "%s/%s_%s", destdir, lang, fname ), "wb" )
+      local g = io.open( string.format( "cache/%s_%s", lang, fname ), "wb" )
       if not g then
         print( string.format( "Unable to open %s for writing", fname ) )
       else
@@ -565,6 +682,17 @@ for _, lang in ipairs( languages ) do
         g:close()
       end
     end
+    -- Copy file from cache to destination directory
+    local srcf = io.open( string.format( "cache/%s_%s", lang, fname ), "rb" )
+    local destf = io.open( string.format( "%s/%s_%s", destdir, lang, fname ), "wb" )
+    if not srcf or not destf then
+      print "Unable to copy file from cache to dist"
+      return
+    end
+    local content = srcf:read( "*a" )
+    destf:write( content )
+    srcf:close()
+    destf:close()    
   end
 end
 regular_print()

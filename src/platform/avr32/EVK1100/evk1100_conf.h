@@ -4,6 +4,8 @@
 #define __EVK1100_CONF_H__
 
 #include "sdramc.h"
+#include "sermux.h"
+#include "buf.h"
 
 // *****************************************************************************
 // Define here what components you want for this platform
@@ -15,11 +17,16 @@
 #define BUILD_TERM
 #define BUILD_CON_GENERIC
 //#define BUILD_RPC
+#define BUILD_C_INT_HANDLERS
+#define BUILA_LUA_INT_HANDLERS
+#define BUILD_RFS
+#define BUILD_SERMUX
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 
-#define CON_UART_ID         0
+#define CON_UART_ID         ( SERMUX_SERVICE_ID_FIRST + 1 )
+//#define CON_UART_ID         0
 #define CON_UART_SPEED      115200
 #define CON_TIMER_ID        0
 #define TERM_LINES          25
@@ -101,8 +108,6 @@
 // Enable RX buffering on UART
 #define BUF_ENABLE_UART
 #define CON_BUF_SIZE          BUF_SIZE_128
-// REMEMBER to change next line if buffering is enabled and CON_UART_ID is not 0!
-#define CON_UART_IRQ          AVR32_USART0_IRQ
 
 // SD/MMC Filesystem Setup
 #define MMCFS_TICK_HZ     10
@@ -126,6 +131,24 @@
 // (start address and end address)
 #define MEM_START_ADDRESS     { ( void* )end, ( void* )SDRAM }
 #define MEM_END_ADDRESS       { ( void* )( 0x10000 - STACK_SIZE_TOTAL - 1 ), ( void* )( SDRAM + SDRAM_SIZE - 1 ) }
+
+#define RFS_BUFFER_SIZE       BUF_SIZE_512
+#define RFS_UART_ID           ( SERMUX_SERVICE_ID_FIRST )
+#define RFS_TIMER_ID          0
+#define RFS_TIMEOUT           100000
+#define RFS_UART_SPEED        115200
+
+#define SERMUX_PHYS_ID        0
+#define SERMUX_PHYS_SPEED     115200
+#define SERMUX_NUM_VUART      2
+#define SERMUX_BUFFER_SIZES   { RFS_BUFFER_SIZE, CON_BUF_SIZE }
+
+// Interrupt list
+#define INT_UART_RX           ELUA_INT_FIRST_ID
+#define INT_ELUA_LAST         INT_UART_RX
+
+#define PLATFORM_CPU_CONSTANTS\
+ _C( INT_UART_RX )
 
 // *****************************************************************************
 // CPU constants that should be exposed to the eLua "cpu" module
