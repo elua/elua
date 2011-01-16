@@ -170,6 +170,9 @@ int platform_init()
 #endif
 
   cmn_platform_init();
+#ifdef ELUA_BOARD_MIZAR32
+  platform_pio_op( 0, ( pio_type )1 << 0 , PLATFORM_IO_PIN_PULLUP );
+#endif
     
   // All done  
   return PLATFORM_OK;
