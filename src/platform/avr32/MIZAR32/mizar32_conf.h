@@ -8,6 +8,7 @@
 #define __MIZAR32_CONF_H__
 
 #include "sdramc.h"
+#include "buf.h"
 
 // *****************************************************************************
 // Define here what components you want for this platform
@@ -19,6 +20,8 @@
 //#define BUILD_TERM
 #define BUILD_CON_GENERIC
 //#define BUILD_RPC
+#define BUF_ENABLE_UART
+#define BUILD_C_INT_HANDLERS
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
@@ -101,27 +104,23 @@
 #define NUM_ADC               0
 #define NUM_CAN               0
 
+// As flow control seems not to work, we use a large buffer so that people
+// can copy/paste program fragments or data into the serial console.
+// An 80x25 screenful is 2000 characters so we use 2048 and the buffer is
+// allocated from the 32MB SDRAM so there is no effective limit.
+#define CON_BUF_SIZE          BUF_SIZE_2048
+
 // RPC boot options
 #define RPC_UART_ID           CON_UART_ID
 #define RPC_TIMER_ID          CON_TIMER_ID
 #define RPC_UART_SPEED        CON_UART_SPEED
 
-// On Mizar32, enabling RX buffering on UART requires the presence of a serial
-// board or a 1k resistor between pins 3 and 13 of P5; otherwise the open RX
-// input oscillates with the ambient EMI causing many spurious interrupts
-// and crashes the interpreter.  Therefore by default we disable the buffering
-// so that serial interrupts are not enabled.
-//#define BUF_ENABLE_UART
-//#define CON_BUF_SIZE          BUF_SIZE_128
-// REMEMBER to change next line if buffering is enabled and CON_UART_ID is not 0!
-//#define CON_UART_IRQ          AVR32_USART0_IRQ
-
 // SD/MMC Filesystem Setup
-#define MMCFS_TICK_HZ                10
-#define MMCFS_TICK_MS                ( 1000 / MMCFS_TICK_HZ )
-#define MMCFS_SPI_NUM                4
-#define MMCFS_CS_PORT                0
-#define MMCFS_CS_PIN                 SD_MMC_SPI_NPCS_PIN
+#define MMCFS_TICK_HZ          10
+#define MMCFS_TICK_MS          ( 1000 / MMCFS_TICK_HZ )
+#define MMCFS_SPI_NUM          4
+#define MMCFS_CS_PORT          0
+#define MMCFS_CS_PIN           SD_MMC_SPI_NPCS_PIN
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 #define CPU_FREQUENCY         REQ_CPU_FREQ
@@ -143,7 +142,12 @@
 #define MEM_START_ADDRESS     { ( void* )SDRAM }
 #define MEM_END_ADDRESS       { ( void* )( SDRAM + SDRAM_SIZE - 1 ) }
 
+// Interrupt list
+#define INT_UART_RX           ELUA_INT_FIRST_ID
+#define INT_ELUA_LAST         INT_UART_RX
+
 // *****************************************************************************
 // CPU constants that should be exposed to the eLua "cpu" module
 
 #endif // #ifndef __MIZAR32_CONF_H__
+

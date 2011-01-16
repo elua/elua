@@ -29,7 +29,7 @@
 
 extern const u32 uart_base_addr[];
 
-static int usart_irqs[] = { AVR32_USART0_IRQ, AVR32_USART1_IRQ, AVR32_USART2_IRQ, AVR32_USART3_IRQ };
+static const int usart_irqs[] = { AVR32_USART0_IRQ, AVR32_USART1_IRQ, AVR32_USART2_IRQ, AVR32_USART3_IRQ };
 
 static void uart_common_rx_handler( int resnum )
 {
@@ -90,14 +90,15 @@ static int int_uart_rx_get_flag( elua_int_resnum resnum, int clear )
 // Interrupt initialization
 
 typedef void ( *phandler )();
-static phandler phandlers[] = { uart0_rx_handler, uart1_rx_handler, uart2_rx_handler, uart3_rx_handler };
+static const phandler phandlers[] = { uart0_rx_handler, uart1_rx_handler, uart2_rx_handler, uart3_rx_handler };
 
 void platform_int_init()
 {
   unsigned i;
   
   for( i = 0; i < NUM_UART; i ++ )
-   INTC_register_interrupt( phandlers[ i ], usart_irqs[ i ], AVR32_INTC_INT0 );   
+    if( usart_irqs[ i ] != -1 )
+      INTC_register_interrupt( phandlers[ i ], usart_irqs[ i ], AVR32_INTC_INT0 );   
   Enable_global_interrupt();   
 }
 
