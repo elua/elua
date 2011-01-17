@@ -440,6 +440,18 @@ int platform_s_uart_recv( unsigned id, s32 timeout )
     return usart_getchar( pusart );
 }
 
+int platform_s_uart_set_flow_control( unsigned id, int type )
+{
+  volatile avr32_usart_t *pusart = ( volatile avr32_usart_t* )uart_base_addr[ id ];
+
+  // AVR32 only supports combined RTS/CTS flow control
+  if( type != PLATFORM_UART_FLOW_NONE && type != ( PLATFORM_UART_FLOW_RTS | PLATFORM_UART_FLOW_CTS ) )
+    return PLATFORM_ERR;
+  pusart->mr &= ~AVR32_USART_MR_MODE_MASK;
+  pusart->mr |= ( type == PLATFORM_UART_FLOW_NONE ? AVR32_USART_MR_MODE_NORMAL : AVR32_USART_MR_MODE_HARDWARE ) << AVR32_USART_MR_MODE_OFFSET;
+  return PLATFORM_OK;
+}
+
 // ****************************************************************************
 // Timer functions
 

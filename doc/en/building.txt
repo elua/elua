@@ -84,7 +84,7 @@ You need to enable this if you want to use the link:refman_gen_term.html[term mo
 
   #define BUILD_TERM
 
-link:#static[Static configuration data dependencies]: *CON_UART_ID, CON_UART_SPEED, CON_TIMER_ID, TERM_LINES, TERM_COLS*
+link:#static[Static configuration data dependencies]: *CON_UART_ID, CON_UART_SPEED, CON_TIMER_ID, CON_FLOW_TYPE, TERM_LINES, TERM_COLS*
 
 o|BUILD_UIP         |<Enable TCP/IP networking support. You need to enable this if you want to use the link:refman_gen_net.html[net module]. 
 Also, your platform must implement the uIP support functions (see the link:arch_platform.html[platform interface documentation] for details).
@@ -110,7 +110,7 @@ input/output over your RS-232 connection. Don't enable this if you need console 
 
   #define BUILD_CON_GENERIC
 
-link:#static[Static configuration data dependencies]: *CON_UART_ID, CON_UART_SPEED, CON_TIMER_ID*
+link:#static[Static configuration data dependencies]: *CON_UART_ID, CON_UART_SPEED, CON_TIMER_ID, CON_FLOW_TYPE*
 
 o|BUILD_CON_TCP     |Console input/output over TCP/IP connections only (details link:arch_con_term.html[here]). Enable this if you want to use 
 your eLua board over a telnet session. Don't enable this if you need console input/output over serial transports (see the previous option). To enable:
@@ -195,9 +195,12 @@ at run-time. The table below lists the static configuration parameters and their
 ^|Name             ^|Meaning                  
 o|CON_UART_ID +
 CON_UART_SPEED +
-CON_TIMER_ID        |Used to configure console input/output over UART. The specified UART id will be used for console input/output, at the
+CON_TIMER_ID +
+CON_FLOW_TYPE       |Used to configure console input/output over UART. The specified UART id will be used for console input/output, at the
 specified speed. The data format is always 8N1 (8 data bits, no parity, 1 stop bits)t. The specified timer ID will be used for the console subsystem. These
-variables are also used by the XMODEM and TERM implementations.
+variables are also used by the XMODEM and TERM implementations. If CON_FLOW_TYPE is defined the specified flow control is applied to the console UART
+interface (see link:arch_platform_uart.html#platform_uart_set_flow_control[this link] to find out how to specify the flow control). If not defined it
+defaults to no flow control.
 
 o|TERM_LINES +
 TERM_COLS           |Used to configure the ANSI terminal support (if enabled in the build). Used to specify (respectively) the number of lines and

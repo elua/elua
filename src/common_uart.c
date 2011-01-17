@@ -207,12 +207,8 @@ void cmn_uart_setup_sermux()
 
 int platform_uart_set_flow_control( unsigned id, int type )
 { 
-#ifndef PLATFORM_UART_SET_FLOW_CONTROL // the backend does not implement flow control
-  return PLATFORM_ERR;
-#else // #ifndef PLATFORM_UART_SET_FLOW_CONTROL
   if( id >= SERMUX_SERVICE_ID_FIRST )
     return PLATFORM_ERR;
   return platform_s_uart_set_flow_control( id, type );
-#endif // #ifndef PLATFORM_UART_SET_FLOW_CONTROL
 }
 
