@@ -30,8 +30,6 @@
 #define BUILD_C_INT_HANDLERS
 #define BUILD_LUA_INT_HANDLERS
 
-#define PLATFORM_UART_SET_FLOW_CONTROL
-
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 

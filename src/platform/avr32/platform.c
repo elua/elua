@@ -440,6 +440,59 @@ int platform_s_uart_recv( unsigned id, s32 timeout )
     return usart_getchar( pusart );
 }
 
+typedef struct
+{
+  u8 pin;
+  u8 function;
+} gpio_pin_data;
+
+static const gpio_pin_data uart_flow_control_pins[] = 
+{
+  // UART 0
+  { AVR32_USART0_RTS_0_0_PIN, AVR32_USART0_RTS_0_0_FUNCTION },
+  { AVR32_USART0_CTS_0_0_PIN, AVR32_USART0_CTS_0_0_FUNCTION },
+  
+  // UART 1
+  { AVR32_USART1_RTS_0_0_PIN, AVR32_USART1_RTS_0_0_FUNCTION },
+  { AVR32_USART1_CTS_0_0_PIN, AVR32_USART1_CTS_0_0_FUNCTION },
+  
+  // UART 2
+  { AVR32_USART2_RTS_0_0_PIN, AVR32_USART2_RTS_0_0_FUNCTION },
+  { AVR32_USART2_CTS_0_0_PIN, AVR32_USART2_CTS_0_0_FUNCTION },
+  
+#ifdef AVR32_USART3_ADDRESS  
+  // UART 3
+  { AVR32_USART3_RTS_0_0_PIN, AVR32_USART3_RTS_0_0_FUNCTION },
+  { AVR32_USART3_CTS_0_0_PIN, AVR32_USART3_CTS_0_0_FUNCTION },
+#endif  
+};
+
+
+int platform_s_uart_set_flow_control( unsigned id, int type )
+{
+  unsigned i;
+  volatile avr32_usart_t *pusart = ( volatile avr32_usart_t* )uart_base_addr[ id ];
+  volatile avr32_gpio_port_t *gpio_port;
+  const gpio_pin_data *ppindata = uart_flow_control_pins + id * 2;
+
+  // AVR32 only supports combined RTS/CTS flow control
+  if( type != PLATFORM_UART_FLOW_NONE && type != ( PLATFORM_UART_FLOW_RTS | PLATFORM_UART_FLOW_CTS ) )
+    return PLATFORM_ERR;
+  // Set UART mode register first
+  pusart->mr &= ~AVR32_USART_MR_MODE_MASK;
+  pusart->mr |= ( type == PLATFORM_UART_FLOW_NONE ? AVR32_USART_MR_MODE_NORMAL : AVR32_USART_MR_MODE_HARDWARE ) << AVR32_USART_MR_MODE_OFFSET;
+  // Then set GPIO pins
+  for( i = 0; i < 2; i ++, ppindata ++ )  
+    if( type != PLATFORM_UART_FLOW_NONE ) // enable pin for UART functionality
+      gpio_enable_module_pin( ppindata->pin, ppindata->function );
+    else // release pin to GPIO module
+    {
+      gpio_port = &GPIO.port[ ppindata->pin >> 5 ];
+      gpio_port->gpers = 1 << ( ppindata->pin & 0x1F );
+    }
+  return PLATFORM_OK;
+}
+
 // ****************************************************************************
 // Timer functions
 

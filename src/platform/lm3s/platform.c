@@ -463,6 +463,11 @@ int platform_s_uart_recv( unsigned id, s32 timeout )
   return MAP_UARTCharGet( base );
 }
 
+int platform_s_uart_set_flow_control( unsigned id, int type )
+{
+  return PLATFORM_ERR;
+}
+
 // ****************************************************************************
 // Timers
 // Same on LM3S8962, LM3S6965, LM3S6918 and LM3S9B92 (4 timers)

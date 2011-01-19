@@ -128,6 +128,11 @@ int platform_s_uart_recv( unsigned id, s32 timeout )
   return uart_read();
 }
 
+int platform_s_uart_set_flow_control( unsigned id, int type )
+{
+  return PLATFORM_ERR;
+}
+
 // ****************************************************************************
 // Timer
 

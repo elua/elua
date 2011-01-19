@@ -243,6 +243,11 @@ int platform_s_uart_recv( unsigned id, s32 timeout )
   return USART_Read( base, 0 );
 }
 
+int platform_s_uart_set_flow_control( unsigned id, int type )
+{
+  return PLATFORM_ERR;
+}
+
 // ****************************************************************************
 // Timer functions
 
