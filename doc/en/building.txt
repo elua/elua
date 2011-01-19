@@ -144,8 +144,21 @@ xref:static[Static configuration data dependencies]: *PLATFORM_INT_QUEUE_LOG_SIZ
 o|BUILD_LINENOISE        |Enables linenoise support, check link:linenoise.html[here] for details. To enable:
 
   #define BUILD_LINENOISE
-  
+
 xref:static[Static configuration data dependencies]: *LINENOISE_HISTORY_SIZE_LUA, LINENOISE_HISTORY_SIZE_SHELL, LINENOISE_AUTOSAVE_FNAME*
+
+o|BUILD_RFS              |Enables support for the remote file system, check link:arch_rfs.html[here] for details. To enable:
+
+  #define BUILD_RFS
+
+xref:static[Static configuration data dependencies]: *RFS_BUFFER_SIZE, RFS_UART_ID, RFS_UART_SPEED, RFS_TIMER_ID, RFS_FLOW_TYPE, RFS_TIMEOUT*
+
+o|BUILD_SERMUX           |Enables support for the serial multiplexer, check link:sermux.html[here] for details. To enable
+
+  #define BUILD_SERMUX
+
+xref:static[Static configuration data dependencies]: *SERMUX_PHYS_ID, SERMUX_PHYS_SPEED, SERMUX_FLOW_TYPE, SERMUX_NUM_VUART, SERMUX_BUFFER_SIZES*
+  
 |===================================================================
 
 [[confmodules]]
@@ -267,6 +280,27 @@ support in the eLua shell is not needed, define this as 0.
 
 o|LINENOISE_AUTOSAVE_FNAME  |If linenoise support is enabled, the history will automatically be saved everytime the Lua interpreter exits in the filename specified 
 by this macro. Check link:linenoise.html[here] for details. This macro is optional; if it's not defined, the history will not be saved automatically.
+
+o|RFS_BUFFER_SIZE     |Size of the RFS buffer. Needs to be one of the *BUF_SIZE_xxx* constants defined in _inc/buf.h_
+o|RFS_UART_ID         |The ID of the UART that will be used by RFS. This is the physical connection over which the PC directory will be shared.
+o|RFS_UART_SPEED      |Communication speed of the RFS UART interface. 
+o|RFS_TIMER_ID        |The ID of a timer that will be used by RFS for internal operations
+o|RFS_FLOW_TYPE       |Flow control type on the serial RFS interface, see link:arch_platform_uart.html#flow_control_type[here] for details. 
+If not specified it defaults to \'no flow control'.
+o|RFS_TIMEOUT         |RFS operations timeout (in microseconds). If during a RFS operation no data is received from the PC side for the
+specified timeout, the RFS operation terminates with error.                        
+
+o|BUILD_SERMUX         |Enable serial multiplexer support in eLua. 
+o|SERMUX_PHYS_ID       |The ID of the physical UART interface used by the serial multiplexer.
+o|SERMUX_PHYS_SPEED    |Communication speed of the multiplexer UART interface. 
+o|SERMUX_FLOW_TYPE     |Flow control type on the physical serial multiplexer interface, see link:arch_platform_uart.html#flow_control_type[here] for details. 
+If not specified it defaults to \'no flow control'.
+o|SERMUX_NUM_VUART     |The number of virtual UART interfaces. This number can't be higher than 8. 
+o|SERMUX_BUFFER_SIZES  |An array of *SERMUX_NUM_VUART* integers that specify the buffer sizes for the virtual
+UART interfaces. Note that a virtual UART *MUST* have a buffer associated with it. The sizes are specified as
+*BUF_SIZE_xxx* constants defined in _inc/buf.h_                       
+
+
 |===================================================================
 
 The rest of the static configuration data parameters are meant to be modified mainly by developers and thus they're not listed here. +
