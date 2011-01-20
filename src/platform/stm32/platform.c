@@ -18,6 +18,9 @@
 #include "common.h"
 #include "buf.h"
 #include "utils.h"
+#include "lua.h"
+#include "lauxlib.h"
+#include "lrotable.h"
 
 // Platform specific includes
 #include "stm32f10x.h"
@@ -699,9 +702,7 @@ static void timers_init()
 
   // Configure timers
   for( i = 0; i < NUM_TIMER; i ++ )
-  {
     timer_set_clock( i, TIM_STARTUP_CLOCK );
-  }
 }
 
 static u32 timer_get_clock( unsigned id )
@@ -782,6 +783,30 @@ int platform_s_timer_set_match_int( unsigned id, u32 period_us, int type )
 {
   return PLATFORM_TIMER_INT_INVALID_ID;
 }
+
+// ****************************************************************************
+// Quadrature Encoder Support (uses timers)
+// No pin configuration, many of the timers should work with default config if
+// pins aren't reconfigured for another peripheral
+
+void stm32_enc_init( unsigned id )
+{
+  TIM_TypeDef *ptimer = timer[ id ];
+
+  TIM_Cmd( ptimer, DISABLE );
+  TIM_DeInit( ptimer );
+  TIM_SetCounter( ptimer, 0 );
+  TIM_EncoderInterfaceConfig( ptimer, TIM_EncoderMode_TI12, TIM_ICPolarity_Rising, TIM_ICPolarity_Rising);
+  TIM_Cmd( ptimer, ENABLE );
+}
+
+void stm32_enc_set_counter( unsigned id, unsigned count )
+{
+  TIM_TypeDef *ptimer = timer[ id ];
+  
+  TIM_SetCounter( ptimer, ( u16 )count );
+}
+
 
 // ****************************************************************************
 // PWMs
@@ -1173,4 +1198,45 @@ int platform_adc_start_sequence( )
 
 #endif // ifdef BUILD_ADC
 
+// ****************************************************************************
+// Platform specific modules go here
+
+#ifdef ENABLE_ENC
+
+#define MIN_OPT_LEVEL 2
+#include "lrodefs.h"
+extern const LUA_REG_TYPE enc_map[];
+
+const LUA_REG_TYPE platform_map[] =
+{
+#if LUA_OPTIMIZE_MEMORY > 0
+  { LSTRKEY( "enc" ), LROVAL( enc_map ) },
+#endif
+  { LNILKEY, LNILVAL }
+};
+
+LUALIB_API int luaopen_platform( lua_State *L )
+{
+#if LUA_OPTIMIZE_MEMORY > 0
+  return 0;
+#else // #if LUA_OPTIMIZE_MEMORY > 0
+  luaL_register( L, PS_LIB_TABLE_NAME, platform_map );
+
+  // Setup the new tables inside platform table
+  lua_newtable( L );
+  luaL_register( L, NULL, enc_map );
+  lua_setfield( L, -2, "enc" );
+
+  return 1;
+#endif // #if LUA_OPTIMIZE_MEMORY > 0
+}
+
+#else // #ifdef ENABLE_ENC
+
+LUALIB_API int luaopen_platform( lua_State *L )
+{
+  return 0;
+}
+
+#endif // #ifdef ENABLE_ENC
 

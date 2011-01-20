@@ -29,6 +29,7 @@
 #define BUILD_LINENOISE
 #define BUILD_C_INT_HANDLERS
 #define BUILD_LUA_INT_HANDLERS
+#define ENABLE_ENC
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
@@ -50,6 +51,11 @@
 #define LCDLINE
 //#endif
 
+#ifdef ENABLE_ENC
+#define PS_LIB_TABLE_NAME "stm32"
+#endif
+
+
 #ifdef BUILD_ADC
 #define ADCLINE _ROM( AUXLIB_ADC, luaopen_adc, adc_map )
 #else
@@ -64,6 +70,12 @@
 #define RPCLINE _ROM( AUXLIB_RPC, luaopen_rpc, rpc_map )
 #else
 #define RPCLINE
+#endif
+
+#ifdef PS_LIB_TABLE_NAME
+#define PLATLINE _ROM( PS_LIB_TABLE_NAME, luaopen_platform, platform_map )
+#else
+#define PLATLINE
 #endif
 
 #define LUA_PLATFORM_LIBS_ROM\
@@ -83,7 +95,8 @@
   RPCLINE\
   LCDLINE\
   _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )\
-  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
+  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
+  PLATLINE
 
 // *****************************************************************************
 // Configuration data
