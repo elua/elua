@@ -533,6 +533,9 @@ static GPIO_TypeDef *const usart_gpio_rx_port[] = { GPIOA, GPIOA, GPIOB, GPIOC, 
 static GPIO_TypeDef *const usart_gpio_tx_port[] = { GPIOA, GPIOA, GPIOB, GPIOC, GPIOC };
 static const u16 usart_gpio_rx_pin[] = { GPIO_Pin_10, GPIO_Pin_3, GPIO_Pin_11, GPIO_Pin_11, GPIO_Pin_2 };
 static const u16 usart_gpio_tx_pin[] = { GPIO_Pin_9, GPIO_Pin_2, GPIO_Pin_10, GPIO_Pin_10, GPIO_Pin_12 };
+static GPIO_TypeDef *const usart_gpio_hwflow_port[] = { GPIOA, GPIOA, GPIOB };
+static const u16 usart_gpio_cts_pin[] = { GPIO_Pin_11, GPIO_Pin_0, GPIO_Pin_13 };
+static const u16 usart_gpio_rts_pin[] = { GPIO_Pin_12, GPIO_Pin_1, GPIO_Pin_14 };
 
 static void usart_init(u32 id, USART_InitTypeDef * initVals)
 {
@@ -649,21 +652,36 @@ int platform_s_uart_set_flow_control( unsigned id, int type )
 {
   USART_TypeDef *usart = stm32_usart[ id ]; 
   int temp = 0;
+  GPIO_InitTypeDef GPIO_InitStructure;
 
+  if( id >= 3 ) // on STM32 only USART1 through USART3 have hardware flow control ([TODO] but only on high density devices?)
+    return PLATFORM_ERR;  
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;  
   if( type == PLATFORM_UART_FLOW_NONE )
   {
     usart->CR3 &= ~USART_HardwareFlowControl_RTS_CTS;
+    GPIO_InitStructure.GPIO_Pin = usart_gpio_rts_pin[ id ] | usart_gpio_cts_pin[ id ];
+    GPIO_Init( usart_gpio_hwflow_port[ id ], &GPIO_InitStructure );      
     return PLATFORM_OK;
   }
-  if( id >= 3 ) // on STM32 only USART1 through USART3 have hardware flow control ([TODO] but only on high density devices?)
-    return PLATFORM_ERR;
   if( type & PLATFORM_UART_FLOW_RTS )
+  {
     temp |= USART_HardwareFlowControl_RTS;
+    GPIO_InitStructure.GPIO_Speed = usart_gpio_rts_pin[ id ];
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+    GPIO_Init( usart_gpio_hwflow_port[ id ], &GPIO_InitStructure );
+  }
   if( type & PLATFORM_UART_FLOW_CTS )
+  {
     temp |= USART_HardwareFlowControl_CTS;
+    GPIO_InitStructure.GPIO_Speed = usart_gpio_cts_pin[ id ];
+    GPIO_Init( usart_gpio_hwflow_port[ id ], &GPIO_InitStructure );
+  }
   usart->CR3 |= temp;
   return PLATFORM_OK;
 }
+
 
 // ****************************************************************************
 // Timers
