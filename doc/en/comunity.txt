@@ -39,12 +39,12 @@ Here's an alphabetically ordered non-exhaustive list of contributors:
 - James Snyder - ADC, CAN, LuaRPC (http://q12.org/lua/index.html[originaly by Russell Smith]), sd/mmc, doc/site menu CSS, testing, planning
 - Jesus Alvarez - Initial SD/MMC support
 - joritzel (THC4k on http://freenode.net[freenode]) for the web-based IRC logs.
-- Mauricio Bomfim - STR912 testing
+- Mauricio Bomfim - STR912 testing, new site and doc structure (future)
 - Mike Panetta - STM32 port
 - Pedro Bittencourt - RIT OLED display support, testing
 - Raul Nunes - The fundamental support from http://www.puc-rio.br[PUC-Rio].
-- Renaud Cerrato - Initial EVK1101 port
-- Robert Jakabosky - for porting his excellent link:elua_egc.html[emergency garbage collector] patch to eLua
+- Renaud Cerrato - Initial EVK1101 AVR32 port
+- Robert G. Jakabosky - for porting his excellent link:elua_egc.html[emergency garbage collector] patch to eLua
 - Roberto Ierusalimschy, Luiz Henrique Figueiredo, Waldemar Celles - for http://www.lua.org[Lua] :)
 - Sergio Sorrenti and Martin Guy - AVR32 support, http://www.simplemachines.it/index.php?option=com_content&view=article&id=13&Itemid=24[Mizar32] port, testing
 - Téo Benjamin, Ives Cunha, Rafael Barmak - Pong, TetrIves, SpaceShip games and http://wiki.eluaproject.net/Manfredo[Manfredo], a GPS guided robot, powered by eLua.
@@ -53,7 +53,7 @@ Here's an alphabetically ordered non-exhaustive list of contributors:
 
 \... and the constant help and support from:
  
-Alberto Fabiano, André Carregal, Dean Hall, Eduardo von Ristow,
+Alberto Fabiano, André Carregal, Dean Hall, Diego Sueiro, Eduardo von Ristow,
 Fabien Fleutot, Fernando Araujo, Guilherme Sanchez Pacheco, John Hind, 
 Luiz de Barros, Marcelo Politzer, Marcelo Tílio, Marco Meggiolaro, Owen Woollaston, 
 Paul Verbeke, Ralph Hempel, Thiago Naves, ...
@@ -62,7 +62,10 @@ Paul Verbeke, Ralph Hempel, Thiago Naves, ...
 Donations
 ---------
 - Cristina Sampaio and http://www.ti.com/ww/br[Texas Instruments Brasil] - EK-LM3S6965 LM3S Cortex-M3 kits
-- Sergio Sorrenti and http://www.simplemachines.it[SimpleMachines] - EVK-1101 AVR32 and AVR Dragon (programmers) kits
+- José Palazzi and http://www.freescale.com/webapp/sps/site/homepage.jsp?code=BRAZIL[Freescale Brazil] - Coldfire dev kits, eLua support
+- http://www.olimex.com/[Olimex] - Dev kits and accessories
+- Raul Nunes & http://www.puc-rio.br[PUC-Rio] - ET-STM32 and Netduino kits, PUC-Rio eLua Demo Board
+- Sergio Sorrenti and http://www.simplemachines.it[SimpleMachines] - EVK-1101 kits, Dragon AVR32 programmers, Mizar32 and shields, strong eLua support 
 
 // $$FOOTER$$
 
