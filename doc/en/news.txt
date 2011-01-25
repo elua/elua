@@ -2,6 +2,21 @@
 eLua Project News
 -----------------
 
+January 13, 2011
+~~~~~~~~~~~~~~~~
+We're glad to announce another eLua project service, the eLua Issue
+Tracker.
+It is a regular web service where users can follow up closely what
+developers are working on, features to come and, of course, report bugs and
+follow up fixes.
+The eLua Issue Tracker lives at http://tracker.eluaproject.net
+It is currently used to manage the development of two main projects; eLua
+itself and the eLua Web Builder.
+Other eLua-related projects can be added and the tool is available for the
+community for this.
+ Please feel free to register and to send comments and suggestions here to
+the list too. 
+
 
 August 4th, 2010
 ~~~~~~~~~~~~~~~~
