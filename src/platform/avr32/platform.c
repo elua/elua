@@ -446,20 +446,35 @@ typedef struct
   u8 function;
 } gpio_pin_data;
 
+// This is a complete hack and it will stay like this until eLua will be able
+// to specify what pins to use for a peripheral at runtime
 static const gpio_pin_data uart_flow_control_pins[] = 
 {
+#ifdef AVR32_USART0_RTS_0_0_PIN
   // UART 0
   { AVR32_USART0_RTS_0_0_PIN, AVR32_USART0_RTS_0_0_FUNCTION },
   { AVR32_USART0_CTS_0_0_PIN, AVR32_USART0_CTS_0_0_FUNCTION },
+#else  
+// UART 0
+  { AVR32_USART0_RTS_0_PIN, AVR32_USART0_RTS_0_FUNCTION },
+  { AVR32_USART0_CTS_0_PIN, AVR32_USART0_CTS_0_FUNCTION },
+#endif
   
   // UART 1
   { AVR32_USART1_RTS_0_0_PIN, AVR32_USART1_RTS_0_0_FUNCTION },
   { AVR32_USART1_CTS_0_0_PIN, AVR32_USART1_CTS_0_0_FUNCTION },
-  
+
+
+#ifdef AVR32_USART2_RTS_0_0_PIN
   // UART 2
   { AVR32_USART2_RTS_0_0_PIN, AVR32_USART2_RTS_0_0_FUNCTION },
   { AVR32_USART2_CTS_0_0_PIN, AVR32_USART2_CTS_0_0_FUNCTION },
-  
+#else
+   // UART 2
+  { AVR32_USART2_RTS_0_PIN, AVR32_USART2_RTS_0_FUNCTION },
+  { AVR32_USART2_CTS_0_PIN, AVR32_USART2_CTS_0_FUNCTION },
+#endif
+ 
 #ifdef AVR32_USART3_ADDRESS  
   // UART 3
   { AVR32_USART3_RTS_0_0_PIN, AVR32_USART3_RTS_0_0_FUNCTION },
