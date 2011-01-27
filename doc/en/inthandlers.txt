@@ -76,7 +76,7 @@ end
 end
 
 -- This is the GPIO interrupt on change (falling edge) interrupt
-[bblue]*local function gpio_negedge_handler( id, resnum )*
+[bblue]*local function gpio_negedge_handler( resnum )*
     local port, pin = pio.decode( resnum )
   print( string.format( "GPIO NEGEDGE interrupt on port %d, pin %d", port, pin ) )
   if prev_gpio then prev_gpio( resnum ) end
