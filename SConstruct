@@ -460,12 +460,6 @@ if not GetOption( 'help' ):
     flist = []
     for sample in file_list[ comp['board'] ]:
       flist += romfs[ sample ]
-    # Automatically includes the autorun.lua file in the ROMFS
-    if os.path.isfile( os.path.join( romdir, 'autorun.lua' ) ):
-      flist += [ 'autorun.lua' ]
-    # Automatically includes platform specific Lua module 
-    if os.path.isfile( os.path.join( romdir, comp['board'] + '.lua' ) ):
-      flist += [comp['board'] + '.lua']
     import mkfs
     mkfs.mkfs( romdir, "romfiles", flist, comp['romfs'], compcmd )
     print
