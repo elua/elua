@@ -142,18 +142,39 @@ static int gpioh_get_int_status( elua_int_id id, elua_int_resnum resnum )
 static int gpioh_set_int_status( elua_int_id id, elua_int_resnum resnum, int status )
 {
   int prev = gpioh_get_int_status( id, resnum );
+  u32 mask = 1 << exint_gpio_to_src( resnum );
   EXTI_InitTypeDef exti_init_struct;
   
-  GPIO_EXTILineConfig( PLATFORM_IO_GET_PORT( resnum ), PLATFORM_IO_GET_PIN( resnum ) );
+  if( status == PLATFORM_CPU_ENABLE )
+  {
+    // Configure port for interrupt line
+    GPIO_EXTILineConfig( PLATFORM_IO_GET_PORT( resnum ), PLATFORM_IO_GET_PIN( resnum ) );
 
-  EXTI_StructInit(&exti_init_struct);
-  exti_init_struct.EXTI_Line = exti_line[ exint_gpio_to_src( resnum ) ];
-  exti_init_struct.EXTI_Mode = EXTI_Mode_Interrupt;
-  exti_init_struct.EXTI_Trigger = id == INT_GPIO_POSEDGE ? EXTI_Trigger_Rising : EXTI_Trigger_Falling;
-  exti_init_struct.EXTI_LineCmd = ENABLE;
-  EXTI_Init(&exti_init_struct);
+    EXTI_StructInit(&exti_init_struct);
+    exti_init_struct.EXTI_Line = exti_line[ exint_gpio_to_src( resnum ) ];
+    exti_init_struct.EXTI_Mode = EXTI_Mode_Interrupt;
+    if( ( ( ( EXTI->RTSR & mask ) != 0 ) && ( id == INT_GPIO_NEGEDGE ) ) ||
+	( ( ( EXTI->FTSR & mask ) != 0 ) && ( id == INT_GPIO_POSEDGE ) ) )
+      exti_init_struct.EXTI_Trigger = EXTI_Trigger_Rising_Falling;
+    else
+      exti_init_struct.EXTI_Trigger = id == INT_GPIO_POSEDGE ? EXTI_Trigger_Rising : EXTI_Trigger_Falling;
+    exti_init_struct.EXTI_LineCmd = ENABLE;
+    EXTI_Init(&exti_init_struct);
 
-  EXTI_ClearITPendingBit( exti_line[ exint_gpio_to_src( resnum ) ] );
+    EXTI_ClearITPendingBit( exti_line[ exint_gpio_to_src( resnum ) ] );
+  }
+  else
+  {
+    //Disable edge
+    if( id == INT_GPIO_POSEDGE )
+      EXTI->RTSR &= ~mask;
+    else
+      EXTI->FTSR &= ~mask;
+    
+    //If no edges enabled, disable line interrupt
+    if( ( ( EXTI->RTSR | EXTI->FTSR ) & mask ) == 0 )
+      EXTI->IMR &= ~mask;
+  }
   return prev;
 }
 
