@@ -178,12 +178,16 @@ u32 platform_s_cpu_get_frequency();
 #define PLATFORM_INT_QUEUE_LOG_SIZE 5
 
 // Interrupt list
-#define INT_TMR_MATCH         ELUA_INT_FIRST_ID
-#define INT_UART_RX           ( ELUA_INT_FIRST_ID + 1 )
+#define INT_GPIO_POSEDGE      ELUA_INT_FIRST_ID
+#define INT_GPIO_NEGEDGE      ( ELUA_INT_FIRST_ID + 1 )
+#define INT_TMR_MATCH         ( ELUA_INT_FIRST_ID + 2 )
+#define INT_UART_RX           ( ELUA_INT_FIRST_ID + 3 )
 #define INT_ELUA_LAST         INT_UART_RX
 
 #define PLATFORM_CPU_CONSTANTS\
-  _C( INT_TMR_MATCH ),\
+  _C( INT_GPIO_POSEDGE ),     \
+  _C( INT_GPIO_NEGEDGE ),     \
+  _C( INT_TMR_MATCH ),        \
   _C( INT_UART_RX )
 
 #endif // #ifndef __PLATFORM_CONF_H__
