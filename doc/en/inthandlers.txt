@@ -124,8 +124,8 @@ which returns the specified interrupt's status for resource *resnum*. *clear* is
 It defaults to *true*, and in most cases it shouldn't be changed. Using this feature, it becomes easy to wait for one or more interrupt flag(s) to be set. To use interrupt 
 polling:
 
-* Enable/disable interrupts to be polled with _cpu.hw_sei_/_cpu.hw_cli_ instead of _cpu.sei_/_cpu.cli_. These functions enable/disable interrupts only in hardware, 
-  as opposed to _cpu.sei_/_cpu.cli_ that also set/clear an internal flag which makes the interrupt able to trigger a Lua handler. 
+* Disable the interrrupt(s) to be polled with _cpu.hw_cli_ or _cpu.cli_. _cpu.hw_cli_ disables interrupts only in hardware, as opposed to _cpu.cli_ that also clears
+  an internal flag which makes the interrupt able to trigger a Lua handler. Use _cpu.cli_ if you already set an interrupt handler with _cpu.hw_sei_ or _cpu.hw_cli_ otherwise.
 
 * Use _cpu.get_int_flag_ to get the interrupt flag.
 
@@ -144,15 +144,15 @@ function int_select( int_table )
  end
 end
 
-[bblue]*cpu.hw_sei( cpu.INT_GPIO_NEGEDGE, pio.P0_0 )*
-[bblue]*cpu.hw_sei( cpu.INT_TMR_MATCH, tmr.VIRT0 )*
+[bblue]*cpu.hw_cli( cpu.INT_GPIO_NEGEDGE, pio.P0_0 )*
+[bblue]*cpu.hw_cli( cpu.INT_TMR_MATCH, tmr.VIRT0 )*
 local ints = { { cpu.INT_GPIO_NEGEDGE, pio.P0_0 }, { cpu.INT_TMR_MATCH, tmr.VIRT0 } }
 -- int_select will wait for either INT_GPIO_NEGEDGE or INT_TMR_MATCH to become active
 print( int_select( ints ) )
 ------------------------------
 
-Note that the two mechanisms (interrupt handlers and polling) can be used in parallel as long as an interrupt is not set with both _cpu.hw_sei_ and _cpu.sei_, in which case the bevahiour
-is unpredictable. This is why it makes sense to write the *int_select* function above in Lua instead of C: it keeps the Lua VM running, so Lua interrupt handlers can be executed.
+Note that the two mechanisms (interrupt handlers and interrupt polling) can be used at the same time as long as they are applied to different interrupt id/resource number pairs.
+This is why it makes sense to write the *int_select* function above in Lua instead of C: it keeps the Lua VM running, so Lua interrupt handlers can be executed. 
 
 [[cints]]
 Interrupt handlers in C
