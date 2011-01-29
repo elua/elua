@@ -1,28 +1,13 @@
-??.??.201?  Bogdan Marinescu <bogdanm@eluaproject.net>
-            Dado Sutter      <dado@eluaproject.net>
-            James Snyder     <jbsnyder@fanplastic.org>
+??.???.???? Bogdan Marinescu <bogdanm@egmail.com>
+            Dado Sutter      <dadosutter@gmail.com>
+            James Snyder     <jbsnyder@gmail.com>
 
-  * Official release 0.8
-  * Added support for new platforms:  mbed, EVK-1101, STR-E912, STM32, ???? ##TODO
-  * Added Lua and C interrupt handlers support
-  * Added EVK1100 and EVK1101 SPI support
-  * Added I2C support for STR-E912 (STR912)
-  * Added generic I2C support and doc
-  * Added ADC support for mbed (LPC17xx)
-  * Added support for require() and autorun from SD/MMC
-  * Added external memory support for STR912
-  * Fixed open files count on closing files
-  * Added long filename support for SD/MMC
-  * Added version() function to elua module
-  * Added (partial) PWM support for LPC17xx
-  * Added support for Remote (PC) File System
-  * Added timer support for mbed (LPC17xx)
-  * Added platform specific support for str9 real time clock
-  * Support for new toolchains, which ???? ##TODO
-  * Added build support for Windows
-  * ASCIIDOC support added to the doc builder
-  * Tutorials added to the http://wiki.eluaproject.net[eLua User Labs]
-  * ????? ##TODO
+  * Changes after v0.8
+  * GPIO INT support for STM32
+  * 
+
+
+
 
 15.01.2010  Bogdan Marinescu <bogdanm@eluaproject.net>
             Dado Sutter      <dado@eluaproject.net>
