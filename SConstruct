@@ -139,7 +139,6 @@ cpu_list = sum([board_list[i] for i in board_list],[])
 #        }
 
 romfs = {
-
         }
 
 # List of board/romfs data combinations
@@ -159,7 +158,7 @@ romfs = {
 #              'STM3210E-EVAL' : [ 'bisect', 'hello', 'info' ],
 #              'ATEVK1100' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'dataflash' ],
 #              'ATEVK1101' : [ 'bisect', 'led', 'hello', 'info', 'dataflash' ],
-#              'ET-STM32' : [ 'hello', 'hangman', 'info', 'bisect','adcscope','adcpoll', 'dualpwm', 'pwmled' ],
+#              'ET-STM32' : [ 't' ],
 #              'EAGLE-100' : [ 'bisect', 'hangman', 'lhttpd', 'led', 'hello', 'info' ],
 #              'ELUA-PUC' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'pwmled', 'adcscope', 'adcpoll', 'inttest' ],
 #              'MBED' : [ 'bisect', 'hangman', 'hello', 'info', 'led', 'pwmled', 'dualpwm', 'life', 'adcscope', 'adcpoll' ],
