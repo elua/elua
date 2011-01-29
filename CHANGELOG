@@ -1,12 +1,12 @@
-??.??.201?  Bogdan Marinescu <bogdanm@eluaproject.net>
-            Dado Sutter      <dado@eluaproject.net>
-            James Snyder     <jbsnyder@fanplastic.org>
+01.Feb.2011 Bogdan Marinescu <bogdanm@egmail.com>
+            Dado Sutter      <dadosutter@gmail.com>
+            James Snyder     <jbsnyder@gmail.com>
 
   * Official release 0.8
-  * Added support for new platforms:  mbed, EVK-1101, STR-E912, STM32, ???? ##TODO
+  * Added support for new platforms:  mbed, EVK-1101, STR-E912, ET-STM32, Mizar32, FEZ Panda,
   * Added Lua and C interrupt handlers support
-  * Added EVK1100 and EVK1101 SPI support
-  * Added I2C support for STR-E912 (STR912)
+  * Added SPI and SD/MMC support for EVK1100 and EVK1101 (AVR32) 
+  * Added I2C support for STR-E912 (STR912) 
   * Added generic I2C support and doc
   * Added ADC support for mbed (LPC17xx)
   * Added support for require() and autorun from SD/MMC
@@ -17,11 +17,13 @@
   * Added (partial) PWM support for LPC17xx
   * Added support for Remote (PC) File System
   * Added timer support for mbed (LPC17xx)
-  * Added platform specific support for str9 real time clock
-  * Support for new toolchains, which ???? ##TODO
+  * Added RTC (real time clock) platform specific support for str9
+  * Added support for new toolchains, which ???? ##TODO
   * Added build support for Windows
-  * ASCIIDOC support added to the doc builder
-  * Tutorials added to the http://wiki.eluaproject.net[eLua User Labs]
+  * Added support to ASCIIDOC to the doc builder
+  * Tutorials and new projects added to the http://wiki.eluaproject.net[eLua User Labs
+  * wiki]
+  * Demo files were moved out of the distro to http://wiki.eluaproject.net/Projects
   * ????? ##TODO
 
 15.01.2010  Bogdan Marinescu <bogdanm@eluaproject.net>
