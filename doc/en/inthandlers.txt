@@ -2,7 +2,7 @@
 eLua interrupt handlers
 -----------------------
 
-Starting with version link:TODO[0.8], eLua supports interrupt handlers written in Lua. Once an interrupt handler is set in the Lua code, it will be called each time a supported 
+Starting with link:downloads.html[vesion 0.8] eLua supports interrupt handlers written in Lua. Once an interrupt handler is set in the Lua code, it will be called each time a supported 
 interrupt is generated. A *supported interrupt* is any interrupt that is handled by the platform C code (see link:arch_ints.html[here] for more details).
 
 [red]*IMPORTANT*: before learning how to use interrupt handlers in Lua, please keep in mind that Lua interrupt handlers don't work the same way as 
@@ -23,7 +23,7 @@ handler. After all the interrupts are handled and the queue is emptied, the hook
     are still recorded in the interrupt queue, but the Lua handler won't be called until the virtual machine runs again. In this case though, the "clock" of the Lua VM is a 
     C function that is executed for every VM instruction. If this function blocks for some reason, the VM instructions are not executed anymore. It's not hard to make
     this function block; for example, it blocks everytime the Lua code waits for some user input at the console, or when a link:refman_gen_tmr.html#tmr.delay[tmr.delay] is executed, 
-    or when TODO link:refman_gen_uart.html#uart.read[uart.read] is called  with an infinite or very large timeout; in general, any function from a Lua library that doesn't return 
+    or when link:refman_gen_uart.html#uart.read[uart.read] is called  with an infinite or very large timeout; in general, any function from a Lua library that doesn't return 
     immediately or after a short ammount of time will block the VM. Care must be taken to avoid such operations as much as possible, otherwise the interrupt support code won't run properly.
 
 * There is a single interrupt handler per interrupt type in Lua (the same holds true for C interrupt support), as opposed to the many hardware interrupts 
@@ -171,7 +171,7 @@ elua_int_c_handler elua_int_get_c_handler( elua_int_id inttype )::
 *elua_int_c_handler* is a function that doesn't return anything and receives a single parameter of type *elua_int_resnum* to differentiate between the sources (GPIO pin, UART id, timer id
 and so on) that can trigger the interrupt *inttype*. This is similar in functionality with the Lua handlers. 
 
-To work with interrupts from C code use these functions defined by the link:TODO[CPU platform interface]:
+To work with interrupts from C code use these functions defined by the link:arch_platform_cpu.html[CPU platform interface]:
 
 int platform_cpu_set_interrupt( elua_int_id id, elua_int_resnum resnum, int status )::
   Enable (*status* = *PLATFORM_CPU_ENABLE*) or disable (*status* = *PLATFORM_CPU_DISABLE*) interrupt *id* for resource *resnum*. 

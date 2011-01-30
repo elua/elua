@@ -15,7 +15,7 @@ closer to its desktop counterpart with regards to ease of use.
 Linenoise in eLua
 -----------------
 Starting with version 0.8 eLua contains a port of the linenoise library. To use it make sure it is included 
-in the build, reffer to the link:build.html[build instructions] for details. Note that linenoise requires
+in the build, reffer to the link:building.html[build instructions] for details. Note that linenoise requires
 ANSI terminal support (*BUILD_TERM*), so you need to enable that too. To use it, simply start the Lua interpreter.
 The table below contains a list of keys that can be used to take advantage of linenoise:
 

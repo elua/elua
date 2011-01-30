@@ -141,6 +141,11 @@ $ dir
 <pre><code>$ cat <i>filename1</i> [<i>filename2 filename3 ...</i>]
 $ type <i>filename1</i> [<i>filename2 filename3 ...</i>]</code></pre>
 
+<h2>cp</h2>
+<p>Copies a file to another file. This command can be used to copy files between different file systems (for example between the MMC file system and the RFS file system).</p>
+<pre><code>$ cp <i>source</i> <i>destination</i></code></pre>
+<p>Note that both <b>source</b> and <b>destination</b> must be file names.</p>
+
 <h2>exit</h2>
 <p>Exits the shell. This only makes sense if <b>eLua</b> is compiled with terminal support over TCP/IP , as it closes the telnet session to the <b>eLua</b> board. Otherwise it just
   terminates the shell and blocks forever until you reset your board.</p>
