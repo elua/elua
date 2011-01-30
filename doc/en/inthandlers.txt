@@ -34,8 +34,9 @@ handler. After all the interrupts are handled and the queue is emptied, the hook
 
 While this might seem restrictive, Lua interrupt handlers work quite well in practical situations. As an added bonus, since they are implemented by C support code, there's nothing
 preventing eLua from implementing "custom interrupts" (software generated interrupts that don't correspond to a hardware interrupt on the CPU), such as serial interrupt on
-char match (generate an interrupt when a certain char is received on the serial port, for example a newline), timer interrupts for link:arch_platform_timers.html#virtual_timers[virtual timers]
-, TCP/UDP data packet received interrupt and many others.
+char match (generate an interrupt when a certain char is received on the serial port, for example a newline), timer interrupts for link:arch_platform_timers.html#virtual_timers[virtual timers], TCP/UDP data packet received interrupt and many others.
+
+IMPORTANT: An up-to-date list of all interrupts supported by eLua can be found link:arch_ints.html#intlist[here].
 
 Using interrupt handlers in Lua
 --------------------------------
@@ -236,8 +237,7 @@ Disable your handlers when you don't need them anymore.::
   interrupt handler on the Lua side call _cpu.set_int_handler_ with *nil* for the \'handler' argument. After this the Lua interrupt subsystem will not queue 
   interrupts for the given interrupt ID and thus the handler won't be called anymore. You can re-enable the handler by calling _cpu.set_int_handler_ with an
   actual function for the \'handler' argument.
-
- ::
+  +
   The same holds true for the C side. To disable the handler on the C side call _elua_int_set_c_handler_ with NULL for the \'handler' argument. To re-enable the
   C handler call _elua_int_set_c_handler_ with an actual function for the \'handler' argument.
 

@@ -1,28 +1,25 @@
-01.Feb.2011 Bogdan Marinescu <bogdanm@egmail.com>
+TODO 01.Feb.2011 Bogdan Marinescu <bogdanm@egmail.com>
             Dado Sutter      <dadosutter@gmail.com>
             James Snyder     <jbsnyder@gmail.com>
 
   * Official release 0.8
-  * Added support for new platforms:  mbed, EVK-1101, STR-E912, ET-STM32, Mizar32, FEZ Panda,
-  * Added Lua and C interrupt handlers support
+  * Added the RFS (RemoTe File System), a new file system which allows sharing
+    a directory on the PC with the eLua board.
+  * Added Lua and C interrupt handlers support.
+  * Added generic I2C support and docs
+  * Added hardware flow control and runtime configurable buffers for UARTs.
+  * Added support for new boards: mbed, EVK-1101, Mizar32, FEZ Panda
   * Added SPI and SD/MMC support for EVK1100 and EVK1101 (AVR32) 
   * Added I2C support for STR-E912 (STR912) 
-  * Added generic I2C support and doc
-  * Added ADC support for mbed (LPC17xx)
   * Added support for require() and autorun from SD/MMC
-  * Added external memory support for STR912
+  * TODO Added external memory support for STR912
   * Fixed open files count on closing files
   * Added long filename support for SD/MMC
   * Added version() function to elua module
-  * Added (partial) PWM support for LPC17xx
-  * Added support for Remote (PC) File System
-  * Added timer support for mbed (LPC17xx)
   * Added RTC (real time clock) platform specific support for str9
   * Added support for new toolchains, which ???? ##TODO
-  * Added build support for Windows
-  * Added support to ASCIIDOC to the doc builder
-  * Tutorials and new projects added to the http://wiki.eluaproject.net[eLua User Labs
-  * wiki]
+  * Added support for AsciiDoc in the doc builder
+  * Tutorials and new projects added to the eLua User Labs wiki
   * Demo files were moved out of the distro to http://wiki.eluaproject.net/Projects
   * ????? ##TODO
 
