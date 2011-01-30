@@ -228,7 +228,7 @@ Always check your resource number.::
   resource number. The effect of this is that both interrupt handlers (in Lua and C) will be called with both resource numbers (since there is a single interrupt
   handler per interrupt ID). Thus each side should check for the resource number that it needs before acting on the interrupt.
 
-Disable your Lua handlers when you don't need them anymore.::
+Disable your handlers when you don't need them anymore.::
   Starting from the same scenario as above (a shared interrupt with a resource number on the C side and another resource number on the Lua side) let's assume that
   at some point you don't need to receive interrupts on the Lua side anymore. You might think that calling _cpu.cli_ with the Lua resource number is enough to acomplish this 
   but this is not the case. Since the C side still has a resource number active your Lua handler will still be called with the resource number from the C side. If you
@@ -238,8 +238,8 @@ Disable your Lua handlers when you don't need them anymore.::
   actual function for the \'handler' argument.
 
  ::
-  Note that this doesn't hold true for the C side. If an interrupt ID/resource number pair is disabled using _platform_cpu_set_interrupt_ the C side handler will
-  not be called anymore, calling _elua_int_set_c_handler_ with NULL is not needed.
+  The same holds true for the C side. To disable the handler on the C side call _elua_int_set_c_handler_ with NULL for the \'handler' argument. To re-enable the
+  C handler call _elua_int_set_c_handler_ with an actual function for the \'handler' argument.
 
 Use cpu.cli and cpu.sei carefully.::
   The _cpu.cli_ and _cpu.sei_ functions in the link:refman_gen_cpu.html[CPU module] are wrappers for the _platform_cpu_set_interrupt_ function described above.
