@@ -85,7 +85,7 @@ This mechanism is also used to expose interrupt IDs to the CPU module, check @in
     },
 
     { sig = "#cpu.cli#( [id], [resnum1], [resnum2], ... [resnumn])",
-      desc = "Disables the global CPU interrupt flag if called without arguments, or a specific interrupt (and the interrupt's capability of triggering Lua interrupt handlers) for a list of resource IDs if called with arguments.",
+      desc = "Disables the global CPU interrupt flag if called without arguments, or a specific interrupt for a list of resource IDs if called with arguments.",
       args =
       {
         "$id$ - the interrupt ID. If specified, at least one resource ID must also be specified.",
@@ -94,21 +94,9 @@ This mechanism is also used to expose interrupt IDs to the CPU module, check @in
         "$resnumn (optional)$ - the #n#-th resource ID."
       }
     },
-
-    { sig = "#cpu.hw_cli#( [id], [resnum1], [resnum2], ... [resnumn])",
-      desc = "Disables the global CPU interrupt flag if called without arguments, or a specific interrupt for a list of resource IDs if called with arguments. The interrupt is only disabled at hardware level, this function doesn't affect the interrupt's ability of triggering Lua interrupt handlers.",
-      args =
-      {
-        "$id$ - the interrupt ID. If specified, at least one resource ID must also be specified.",
-        "$resnum1$ - the first resource ID, required if $id$ is specified.",
-        "$resnum2 (optional)$ - the second resource ID.",
-        "$resnumn (optional)$ - the #n#-th resource ID."
-      }
-    },
-   
 
     { sig = "#cpu.sei#( [id], [resnum1], [resnum2], ... [resnumn])",
-      desc = "Enables the global CPU interrupt flag if called without arguments, or a specific interrupt (and the interrupt's capability of triggering Lua interrupt handlers) for a list of resource IDs if called with arguments.",
+      desc = "Enables the global CPU interrupt flag if called without arguments, or a specific interrupt for a list of resource IDs if called with arguments.",
       args =
       {
         "$id$ - the interrupt ID. If specified, at least one resource ID must also be specified.",
@@ -118,17 +106,6 @@ This mechanism is also used to expose interrupt IDs to the CPU module, check @in
       }     
     },
     
-    { sig = "#cpu.hw_sei#( [id], [resnum1], [resnum2], ... [resnumn])",
-      desc = "Enables the global CPU interrupt flag if called without arguments, or a specific interrupt for a list of resource IDs if called with arguments. The interrupt is only enabled at hardware level, this function doesn't affect the interrupt's ability of triggering Lua interrupt handlers.",
-      args =
-      {
-        "$id$ - the interrupt ID. If specified, at least one resource ID must also be specified.",
-        "$resnum1$ - the first resource ID, required if $id$ is specified.",
-        "$resnum2 (optional)$ - the second resource ID.",
-        "$resnumn (optional)$ - the #n#-th resource ID."
-      }     
-    },
-
     { sig = "clock = #cpu.clock#()",
       desc = "Get the CPU core frequency.",
       ret = "$clock$ - the CPU clock (in Hertz)."
