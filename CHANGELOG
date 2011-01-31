@@ -9,16 +9,14 @@ TODO 01.Feb.2011 Bogdan Marinescu <bogdan.marinescu@gmail.com>
   * Added linenoise support (eLua and Lua shell command line history and navigation)
   * Added generic I2C support and docs
   * Added hardware flow control and runtime configurable buffers for UARTs.
-  * Added support for new boards: mbed, EVK-1101, Mizar32, FEZ Panda [TODO], Netduino [TODO]
+  * Added support for new boards: mbed, EVK-1101, Mizar32
   * Added SPI and SD/MMC support for EVK1100 and EVK1101 (AVR32) 
   * Added I2C support for STR-E912 (STR912) 
   * Added support for require() and autorun from SD/MMC
-  * TODO Added external memory support for STR912
-  * Fixed open files count on closing files
+  * Added external memory support for STR912
   * Added long filename support for SD/MMC
   * Added version() function to elua module
   * Added RTC (real time clock) platform specific support for str9
-  * Added support for new toolchains, which ???? ##TODO
   * Added support for AsciiDoc in the doc builder
   * Tutorials and new projects added to the eLua User Labs wiki
   * Demo files were moved out of the distro to http://wiki.eluaproject.net/Projects
