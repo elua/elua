@@ -1,14 +1,15 @@
-TODO 01.Feb.2011 Bogdan Marinescu <bogdanm@egmail.com>
+TODO 01.Feb.2011 Bogdan Marinescu <bogdan.marinescu@gmail.com>
             Dado Sutter      <dadosutter@gmail.com>
             James Snyder     <jbsnyder@gmail.com>
 
   * Official release 0.8
-  * Added the RFS (RemoTe File System), a new file system which allows sharing
+  * Added the RFS (Remote File System), a new file system which allows sharing
     a directory on the PC with the eLua board.
   * Added Lua and C interrupt handlers support.
+  * Added linenoise support (eLua and Lua shell command line history and navigation)
   * Added generic I2C support and docs
   * Added hardware flow control and runtime configurable buffers for UARTs.
-  * Added support for new boards: mbed, EVK-1101, Mizar32, FEZ Panda
+  * Added support for new boards: mbed, EVK-1101, Mizar32, FEZ Panda [TODO], Netduino [TODO]
   * Added SPI and SD/MMC support for EVK1100 and EVK1101 (AVR32) 
   * Added I2C support for STR-E912 (STR912) 
   * Added support for require() and autorun from SD/MMC

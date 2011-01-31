@@ -19,7 +19,7 @@ in the build, reffer to the link:building.html[build instructions] for details. 
 ANSI terminal support (*BUILD_TERM*), so you need to enable that too. To use it, simply start the Lua interpreter.
 The table below contains a list of keys that can be used to take advantage of linenoise:
 
-[width="100%", cols="<2,<5", options="header"]
+[width="80%", cols="<2,<5", options="header"]
 |=============================================
 ^| Key(s)                    ^| Action
 | Left and right              | Move left and right in the current prompt line
@@ -38,5 +38,9 @@ The exact same keys presented in the table above can be used by the eLua shell i
 However, you won't be able to save history from the eLua shell. +
 The reason why this component isn't enabled by default is that it takes RAM (like all good things in eLua :) ) so
 keep this in mind when deciding if you want it or not.      
+
+IMPORTANT: linenoise support seems to be dependent on the terminal emulator used with eLua on the PC side. It was tested
+(and works properly) with http://www.ayera.com/teraterm/[TeraTerm] under Windows and with _screen_ in Linux. Other
+terminal emulators might not work equally well.
  
 // $$FOOTER$$

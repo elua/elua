@@ -5,25 +5,26 @@ eLua Project News
 February 1st, 2011 TODO
 ~~~~~~~~~~~~~~~~~~~~~~~
 .eLua v0.8 released
-We are proud to annunce the release of eLua v0.8! This is the changelog:
+We are proud to annunce the release of eLua v0.8 (codename "FINALLY! It was about time for a new release"). This is the changelog:
 
 * Added the link:arch_rfs.html[RFS] (Remoe File System), a new file system which allows sharing
   a directory on the PC with the eLua board.
 * Added Lua and C interrupt handlers support, see link:inthandlers.html[here] for more details.
+* Added https://github.com/antirez/linenoise[linenoise] support (eLua and Lua shell command line history and navigation,
+  more details link:linenoise.html[here]).
 * Added generic link:refman_gen_i2c.html[I2C support and docs]
 * Added hardware flow control and runtime configurable buffers for link:refman_gen_uart.html[UARTs].
 * Added support for new boards:  http://mbed.org[mbed], http://www.atmel.com/dyn/products/tools_card.asp?tool_id=4175[EVK-1101],
-      http://code.google.com/p/mizar32[Mizar32], TODO http://www.tinyclr.com/hardware/16/fez-panda[FEZ Panda]
+      http://code.google.com/p/mizar32[Mizar32], TODO http://www.tinyclr.com/hardware/16/fez-panda[FEZ Panda], [TODO] Netduino
 * Added SPI and SD/MMC support for EVK1100 and EVK1101 (AVR32) 
 * Added I2C support for STR-E912 (STR912) 
 * Added support for require() and autorun from SD/MMC
 * TODO Added external memory support for STR912
 * Fixed open files count on closing files
 * Added long filename support for SD/MMC
-* Added version() function to elua module
-* Added RTC (real time clock) platform specific support for str9
+* Added RTC (real time clock) platform specific support for str9 (see the documentation of the _mstr9rtc module).
 * Added support for new toolchains, which ???? ##TODO
-* Added support for http://www.methods.co.nz/asciidoc[AsciiDoc] in the doc builder
+* Added support for http://www.methods.co.nz/asciidoc[AsciiDoc] in the documentation system
 * Tutorials and new projects added to the http://wiki.eluaproject.net[eLua User Labs wiki]
 * Demo files were moved out of the distro to http://wiki.eluaproject.net/Projects
 * Added a link:media.html[media page] with eLua related media on the project site
