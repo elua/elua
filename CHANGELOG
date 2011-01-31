@@ -21,6 +21,7 @@ TODO 01.Feb.2011 Bogdan Marinescu <bogdanm@egmail.com>
   * Added support for AsciiDoc in the doc builder
   * Tutorials and new projects added to the eLua User Labs wiki
   * Demo files were moved out of the distro to http://wiki.eluaproject.net/Projects
+  * Added a 'media' page with eLua related media on the project site
   * ????? ##TODO
 
 15.01.2010  Bogdan Marinescu <bogdanm@eluaproject.net>

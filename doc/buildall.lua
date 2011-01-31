@@ -279,8 +279,16 @@ end
 
 -- Helper function: format a link starting from language and link
 -- Links marked as "#" ("null" links) are left alone
+-- Links that begin with "http(s)://" are unchanged
+
 local function get_link( lang, link )
-  return link == "#" and "#" or string.format( "%s_%s", lang, link )
+  if link == "#" then
+    return "#"
+  elseif link:find( "https?://" ) == 1 then
+    return link
+  else
+    return string.format( "%s_%s", lang, link )
+  end
 end
 
 -- Helper for gen_html_nav: generate the submenu(s) for a given top level menu item
@@ -666,33 +674,35 @@ indent_print()
 flist = get_file_list()
 for _, lang in ipairs( languages ) do
   for fname, entry in pairs( flist ) do
-    io.write( string.format( "Processing %s %s...", fname, entry.item[ name_idx ] and "" or "(hidden entry)" ) )
-    local res, err = gen_html_page( fname, lang )
-    if err == "#cached#" then
-      -- This file is already in the cache
-      print( " (cached)" )         
-    elseif not res then
-      print( "***" .. err ) 
-    else
-      local g = io.open( string.format( "cache/%s_%s", lang, fname ), "wb" )
-      if not g then
-        print( string.format( "Unable to open %s for writing", fname ) )
+    if fname:find( "https?://" ) ~= 1 then -- not a filename but a direct link
+      io.write( string.format( "Processing %s %s...", fname, entry.item[ name_idx ] and "" or "(hidden entry)" ) )
+      local res, err = gen_html_page( fname, lang )
+      if err == "#cached#" then
+        -- This file is already in the cache
+        print( " (cached)" )         
+      elseif not res then
+        print( "***" .. err ) 
       else
-        g:write( res )
-        g:close()
+        local g = io.open( string.format( "cache/%s_%s", lang, fname ), "wb" )
+        if not g then
+          print( string.format( "Unable to open %s for writing", fname ) )
+        else
+          g:write( res )
+          g:close()
+        end
       end
+      -- Copy file from cache to destination directory
+      local srcf = io.open( string.format( "cache/%s_%s", lang, fname ), "rb" )
+      local destf = io.open( string.format( "%s/%s_%s", destdir, lang, fname ), "wb" )
+      if not srcf or not destf then
+        print "Unable to copy file from cache to dist"
+        return
+      end
+      local content = srcf:read( "*a" )
+      destf:write( content )
+      srcf:close()
+      destf:close()    
     end
-    -- Copy file from cache to destination directory
-    local srcf = io.open( string.format( "cache/%s_%s", lang, fname ), "rb" )
-    local destf = io.open( string.format( "%s/%s_%s", destdir, lang, fname ), "wb" )
-    if not srcf or not destf then
-      print "Unable to copy file from cache to dist"
-      return
-    end
-    local content = srcf:read( "*a" )
-    destf:write( content )
-    srcf:close()
-    destf:close()    
   end
 end
 regular_print()
@@ -723,3 +733,4 @@ regular_print()
 print "done"
 
 print( string.format( "\nEnjoy your documentation in %s :)", destdir ) )
+
