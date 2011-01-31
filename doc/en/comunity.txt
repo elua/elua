@@ -58,6 +58,11 @@ Paul Verbeke, Ralph Hempel, Thiago Naves, ...
 [[donations]]
 Donations
 ---------
+We would like to thank the following donations for the development of the
+project. If you feel like contributing with any kind of donation, you can
+contact us in our
+https://lists.berlios.de/mailman/listinfo/elua-dev[Discussion List] or in
+link:overview.html#authors[pvt]
 
 - Cristina Sampaio and http://www.ti.com/ww/br[Texas Instruments Brasil] - EK-LM3S6965 LM3S Cortex-M3 kits
 - José Palazzi and http://www.freescale.com/webapp/sps/site/homepage.jsp?code=BRAZIL[Freescale Brazil] - Coldfire dev kits, eLua support
