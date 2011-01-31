@@ -5,8 +5,7 @@ eLua Project News
 February 1st, 2011 TODO
 ~~~~~~~~~~~~~~~~~~~~~~~
 .eLua v0.8 released
-We are proud to annunce the release of eLua v0.8 (codename "FINALLY! It was about time for a new
-release" :) ). This is the changelog:
+We are proud to annunce the release of eLua v0.8 (codename "FINALLY! It was about time for a new release" :) ). This is the changelog:
 
 * Added the link:arch_rfs.html[RFS] (Remote File System), a new file system which allows sharing
   a directory on the PC with the eLua board.
@@ -16,7 +15,7 @@ release" :) ). This is the changelog:
   more details link:linenoise.html[here]).
 * Added generic link:refman_gen_i2c.html[I2C support and docs]
 * Added hardware flow control and runtime configurable buffers for link:refman_gen_uart.html[UARTs].
-* Added support for new boards:  http://mbed.org[mbed], http://www.atmel.com/dyn/products/tools_card.asp?tool_id=4175[EVK-1101], http://www.simplemachines.it/index.php?option=com_content&view=article&id=13&Itemid=24[Mizar32]
+* Added support for new boards: _mbed, _ATEVK1101, _Mizar32, _EK-LM3S1968
 * Added SPI and SD/MMC support for EVK1100 and EVK1101 (AVR32) 
 * Added I2C support for STR-E912 (STR912) 
 * Added support for require() and autorun from SD/MMC
@@ -24,13 +23,14 @@ release" :) ). This is the changelog:
 * Added long filename support for SD/MMC
 * Added RTC (real time clock) platform specific support for str9 (see the documentation of the _mstr9rtc module).
 * Added support for http://www.methods.co.nz/asciidoc[AsciiDoc] in the documentation system
-* Tutorials and new projects added to the http://wiki.eluaproject.net[eLua wiki]
+* Tutorials and new projects added to the http://wiki.eluaproject.net[eLua User Labs wiki]
 * Demo files were moved out of the distro to http://wiki.eluaproject.net/Projects
 * Added a link:media.html[media page] with eLua related media on the project site
 * TODO
 
 January 13th, 2011
 ~~~~~~~~~~~~~~~~~~
+.eLua issue tracker
 We're glad to announce another eLua project service, the eLua Issue
 Tracker.
 It is a regular web service where users can follow up closely what
@@ -68,7 +68,6 @@ We're proud to announce the launch of a new cummnity site, the http://wiki.eluap
 project code, documentation and media.  This site also contains official code examples, tutorials, FAQs (Frequently Asked Questions) and other goodies maintained by project members. 
 Registered users are able to create new pages or make edits to many of the existing pages. We have prepared some initial content, and now welcome the rest of the
 eLua community to add, explore and refine.
-
 
 // $$FOOTER$$
 
