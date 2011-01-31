@@ -202,7 +202,8 @@ local menu =
   { { "Platform modules", "Módulos Específicos" }, "refman_dep.html", 
     {
       { "lm3s", "modules_lm3s.html", "refman_ps_lm3s" },
-      { "str9", "modules_str9.html", "refman_ps_str9" }
+      { "str9", "modules_str9.html", "refman_ps_str9" },
+      { "mbed", "modules_mbed.html", "refman_ps_mbed" }
     }
   }
 }
