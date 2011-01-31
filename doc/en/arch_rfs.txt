@@ -117,7 +117,7 @@ Some things you should consider when using the RFS:
 - if you find a bug in the RFS server and wish to report it, try to reproduce the problem again, but this time run *rfs_server* with *-v* (verbose).
   The resulting logs may help us identify the problem.  
   
-If you like the RFS, but dislike the idea of having to connect your eLua board to the PC with two serial connections (one for the console and another
+IMPORTANT: If you like the RFS, but dislike the idea of having to connect your eLua board to the PC with two serial connections (one for the console and another
 one for the RFS) check link:sermux.html[here] for a possible solution to this. 
 
 // $$FOOTER$$

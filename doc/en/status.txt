@@ -38,6 +38,7 @@ The list of CPUs and boards currently supported by eLua is given below:
 | _STR912FAW44   |  ARM966E-S    o|    STR9               |  _STR-E912        | _sok
 | _STM32F103ZE   |  Cortex-M3    o|    STM32              |  _STM3210E-EVAL   | _sok
 | _STM32F103RE   |  Cortex-M3    o|    STM32              |  _ET-STM32Stamp   | _sok
+| _AT32UC3A0128  |  AVR32        o|    AVR32              |  _Mizar32         | _sok
 | _i386          |  x86          o|    i386               |  PCs/emulators    | _sok
 |=====================================================================================
 
@@ -55,6 +56,7 @@ The relationship between a module and its implementation on a particular platfor
 | _LM3S6918      | _sok  | _snt  | _sok   | _sok  | _sna  | _snt  | _sok  | _snt  | _sok  | _sok  | _sok  | _sok  | _sna  | _snt  | _sni
 | _LM3S9B92      | _sok  | _snt  | _sok   | _sok  | _sok  | _sok  | _sok  | _snt  | _sok  | _sok  | _sok  | _sok  | _sni  | _snt  | _sok
 | _AT32UC3A0512  | _sok  | _sni  | _sok   | _sok  | _sni  | _sni  | _sok  | _sni  | _sok  | _sok  | _sok  | _sok  | _sna  | _sni  | _sni
+| _AT32IC3A0128  | _sok  | _sni  | _sok   | _sok  | _sni  | _sni  | _sok  | _sni  | _sok  | _sok  | _sok  | _sok  | _sna  | _sni  | _sni
 | _AT32UC3B0256  | _sok  | _sni  | _sok   | _sok  | _sni  | _sni  | _sok  | _sni  | _sok  | _sok  | _sok  | _sok  | _sna  | _sni  | _sni
 | _AT91SAM7X256  | _sok  | _sni  | _sok   | _sok  | _sok  | _sni  | _sok  | _sni  | _sok  | _sok  | _sok  | _sok  | _sni  | _sni  | _sni
 | _AT91SAM7X512  | _snt  | _sni  | _snt   | _snt  | _snt  | _sni  | _sok  | _sni  | _sok  | _sok  | _sok  | _sok  | _sni  | _sni  | _sni
@@ -74,30 +76,29 @@ eLua modules
 The following table shows a list of the generic modules currently implemented (and planned to be implemented) in eLua.
 
 [width="70%", cols="<1, <5, ^1", options="header"]
-|=========================================================================
-|Name     ^|Description                                           | Status 
-o|pio      | programmable input/output                            | _sok
-o|tmr      | periodic timer                                       | _sok
-o|pwm 	   | pulse width modulation                               | _sok
-o|uart 	   | universal asynchronous receiver transmitter          | _sok
-o|spi 	   | serial peripheral interface                          | _sok
-o|net  	   | TCP/IP networking                                    | _sok
-o|adc 	   | analog to digital converter                          | _sok 
-o|dac 	   | digital to analog converter                          | _sni
-o|cpu 	   | low level system access                              | _sok
-o|pd 	   | platform data                                        | _sok
-o|term 	   | ANSI terminal access                                 | _sok
-o|bit 	   | bitwise operations                                   | _sok
-o|pack 	   | pack/unpack binary data                              | _sok
-o|cmp 	   | analog comparator                                    | _sni
-o|i2c 	   | inter-integrated circuit protocol                    | _sni
-o|cnt 	   | event counter                                        | _sni
-o|can 	   | controller area network                              | _snt
-o|rpc 	   | remote procedure call                                | _snt
-o|i2s 	   | inter-IC sound                                       | _sni
-o|mmc 	   | SD/MMC card FAT file system                          | _sok
-o|disp 	   | LCD, OLED and other displays support                 | _sok
-|=========================================================================
+|===========================================================================
+|Name       ^|Description                                           | Status 
+o|_mpio      | Programmable input/output                            | _sok
+o|_mtmr      | Physical and virtual timers                          | _sok
+o|_mpwm 	   | Pulse width modulation                               | _sok
+o|_muart 	   | Universal asynchronous receiver transmitter          | _sok
+o|_mspi 	   | Serial peripheral interface                          | _sok
+o|_mnet  	   | TCP/IP networking                                    | _sok
+o|_madc 	   | Analog to digital converter                          | _sok 
+o|dac 	     | Digital to analog converter                          | _sni
+o|_mcpu 	   | Low level system access                              | _sok
+o|_mpd       | Platform data                                        | _sok
+o|_mterm 	   | ANSI terminal access                                 | _sok
+o|_mbit 	   | Bitwise operations                                   | _sok
+o|_mpack 	   | Pack/unpack binary data                              | _sok
+o|cmp 	     | Analog comparator                                    | _sni
+o|_mi2c 	   | Inter-integrated circuit protocol                    | _sok
+o|cnt 	     | Event counter                                        | _sni
+o|_mcan 	   | Controller area network                              | _snt
+o|_mrpc 	   | Remote procedure call                                | _sok
+o|i2s 	     | Inter-IC sound                                       | _sni
+o|_melua     | eLua system control                                  | _sok
+|===========================================================================
 
 For some platforms, a number of platform dependent modules are implemented (or in the works) and are listed below. To understand the difference between generic 
 modules and platform specific modules, check link:arch_overview.html[the eLua architecture page].
@@ -105,10 +106,10 @@ modules and platform specific modules, check link:arch_overview.html[the eLua ar
 [width="70%", cols="<.^1, <.^4, <.^3, ^.^1", options="header"]
 |=======================================================================================
 ^|    Name   ^| Description                   ^|      Boards                   ^| Status
-o| disp       | OLED display support           | _EK-LM3S8962 _br _EK-LM3S6965  | _sok
-o| str9.pio   | Extended PIO configuration     | _STR-E912 _br _STR9-comStick   | _sok
-o| str9.rtc   | Real time clock                | _STR-E912                      | _sok
-o| str9.rtc   | Real time clock                |  _STR9-comStick                | _snt
+o| _mlm3sdisp | OLED display support           | _EK-LM3S8962 _br _EK-LM3S6965  | _sok
+o| _mstr9pio  | Extended PIO configuration     | _STR-E912 _br _STR9-comStick   | _sok
+o| _mmbedpio  | Extended PIO configuration     | _mbed                          | _sok
+o| _mstr9rtc  | Real time clock                | _STR-E912 _br _STR9-comStick   | _sok
 |=======================================================================================
 
 [[roadmap]]
@@ -124,23 +125,23 @@ The following table shows the status of some existing and planned eLua features.
 | Various Lua examples and eLua apps running properly                 | _sok
 | Lua floating point or integer number selection                      | _sok
 | eLua FP module (for integer Lua)                                    | _sni
-| XMODEM protocol support for console file transfer                   | _sok
-| Embedded ROM (Flash) file system                                    | _sok
+| link:using.html#shell[XMODEM protocol support for console file transfer] | _sok
+| link:arch_romfs.html[Embedded ROM (Flash) file system]              | _sok
 | link:fatfs.html[FAT File System layer for mmc/sd cards]             | _sok
 | link:using.html#rpc[LuaRPC - Remote Procedure Calls]                | _snt
 | link:using.html#uart[Terminal / Console over UART or Ethernet]      | _sok
 | link:using.html#shell[eLua command shell]                           | _sok
-| Lua interrupt handlers                                              | _snt
-| C interrupt handlers                                                | _snt
+| link:inthandlers.html[Lua interrupt handlers]                       | _sok
+| link:inthandlers.html[C interrupt handlers]                         | _sok
 | link:arch_ltr.html[eLua LTR (Lua Tiny RAM) patch]                   | _sok
 | link:elua_egc.html[eLua EGC (Emergency Garbage Collection) patch]   | _sok
 | Loadable binary modules                                             | _sni
 | Embedded text editor                                                | _sni
 | Embedded help/doc subsystem                                         | _sni
 | Lua debugging (remote/on target)                                    | _sni
-| Remote (PC) File Sharing                                            | _snt
+| link:arch_rfs.html[Remote (PC) File Sharing]                        | _sok
 | GUI/IDE interface for eLua                                          | _sni
-| eLua web build service                                              | _sok
+| http://builder.eluaproject.net[eLua web build service]              | _sok
 |=============================================================================
 
 // $$FOOTER$$                                                    
