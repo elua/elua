@@ -59,13 +59,13 @@ local menu =
   { "Media", "media.html" },  
 
   -- Wiki
-  { "Wiki", "http://wiki.eluaproject.net" },
+  { "eLua Wiki", "http://wiki.eluaproject.net" },
 
   -- Web builder
   { "eLua Web builder", "http://builder.eluaproject.net" },
 
   -- Tracker
-  { "Bug tracker", "http://tracker.eluaproject.net" },
+  { "eLua bug tracker", "http://tracker.eluaproject.net" },
 
   -- "Status"
   { "Status", "status.html", 

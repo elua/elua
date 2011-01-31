@@ -5,6 +5,8 @@ TODO 01.Feb.2011 Bogdan Marinescu <bogdan.marinescu@gmail.com>
   * Official release 0.8
   * Added the RFS (Remote File System), a new file system which allows sharing
     a directory on the PC with the eLua board.
+  * Added a serial multiplexer which allows using more virtual serial ports over a single 
+    physical UART connection.
   * Added Lua and C interrupt handlers support.
   * Added linenoise support (eLua and Lua shell command line history and navigation)
   * Added generic I2C support and docs

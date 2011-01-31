@@ -9,6 +9,7 @@ We are proud to annunce the release of eLua v0.8 (codename "FINALLY! It was abou
 
 * Added the link:arch_rfs.html[RFS] (Remote File System), a new file system which allows sharing
   a directory on the PC with the eLua board.
+* Added a link:sermux.html[serial multiplexer] which allows using more virtual serial ports over a single physical UART connection.
 * Added Lua and C interrupt handlers support, see link:inthandlers.html[here] for more details.
 * Added https://github.com/antirez/linenoise[linenoise] support (eLua and Lua shell command line history and navigation,
   more details link:linenoise.html[here]).
