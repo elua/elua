@@ -20,6 +20,12 @@ your firewall blocks IRC ports) you can still try to access the IRC channel usin
 The conversations on the IRC channel are logged and are available at http://irclogs.ls-themes.org/freenode/elua/logs. + 
 And since you're on frenode, you might want to check the `#lua` channel as well (for discussions regarding the Lua language in general).
 
+[[twitter]]
+Twitter
+-------
+You can follow eLua news on our http://twitter.com/#!/eluaproject[Twitter
+channel]
+
 [[userswiki]]
 eLua User Labs
 --------------
