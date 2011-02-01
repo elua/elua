@@ -73,6 +73,7 @@ authors link:overview.html#authors[privately]
 - Cristina Sampaio and http://www.ti.com/ww/br[Texas Instruments Brasil] - EK-LM3S6965 LM3S Cortex-M3 kits
 - José Palazzi and http://www.freescale.com/webapp/sps/site/homepage.jsp?code=BRAZIL[Freescale Brazil] - Coldfire dev kits, eLua support
 - http://www.luminarymicro.com/[Luminary Micro] - LM3S evaluation kits
+- http://mbed.org/[mbed] - NXP1768 mbed kit
 - Raul Nunes & http://www.puc-rio.br[PUC-Rio] - ET-STM32 and Netduino kits, PUC-Rio eLua Demo Board
 - Sergio Sorrenti and http://www.simplemachines.it[SimpleMachines] - EVK-1101 kits, Dragon AVR32 programmers, Mizar32 and shields, strong eLua support
 - http://www.st.com[ST Microelectronics] - a STM3210E-EVAL and a STR9-comStick

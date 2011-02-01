@@ -26,7 +26,6 @@ We are proud to annunce the release of eLua v0.8 (codename "FINALLY! It was abou
 * Tutorials and new projects added to the http://wiki.eluaproject.net[eLua User Labs wiki]
 * Demo files were moved out of the distro to http://wiki.eluaproject.net/Projects
 * Added a link:media.html[media page] with eLua related media on the project site
-* TODO
 
 January 13th, 2011
 ~~~~~~~~~~~~~~~~~~
