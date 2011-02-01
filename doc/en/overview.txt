@@ -5,136 +5,78 @@ What is eLua?
 
 eLua stands for *Embedded Lua* and the project aims to offer the full
 implementation of the http://www.lua.org[Lua Programming Language] to
-the embedded world.
-
-eLua is not a stripped down set of Lua to fit in the embedded
-environment. Much on the contrary, it strives to offer the same
-features as the desktop version of Lua, complementing them with
-specific features for embedded use and discarting the need of an
-operating system running on the microcontrollers.  Besides offering
-different flavors of the full Lua implementation (like the possibility
-of choosing between an integer-only and a floating point numbers
-implementation), a lot of work was and will be done in the direction
-of making Lua more "embedded-friendly" by augmenting the core language
-with features that allow lower memory requirements and faster embedded
-performance.
-
-Why Lua? Extremely well crafted, Lua is the perfect example of a
-minimal, yet fully functional language.  Although generally advertised
-as a "scripting language" (and used accordingly especially in the game
-industry), it is also fully capable of running stand-alone programs
-and web services (ex: Adobe Lightroom, World of Warcraft, ...). Its
-limited resource requirements make it suitable to a lot of
-microcontroller families. The intrinsic high portability of the
-original Lua code (which is ANSI C and runs virtually on every
-platform), combined with the highly portable software architecture of
-eLua, allow for easy porting of the project to a large variety of
-architectures. The peripheral access libraries/modules exported by
-eLua are also portable by design, so one could run a Lua program
-(without or with very few modifications) on every eLua supported
-platform.  This brings an unprecedent level of portability to the
-embedded aplications world. eLua inherits the minimalistic and
-functional design of Lua, staying in line with the well known *KISS*,
-_Keep it Small and Simple_ philosophy.
-
-The aim of the project is to have a fully functional Lua development
-environment *on the microcontroller itself*, without the need to
-install a specific development environment on the PC side, other than
-a serial or ehternet console/terminal emulator.
-
-We can't end this short presentation without presenting our project
-motto: No matter what you do with eLua, always remember to have Fun
-with it :)
+the embedded world, extending it with
+specific features for efficient software embedded development.
 
 [[features]]
 General Features
 ----------------
 
-As already stated, eLua allows you to run Lua completely on the target
-microcontroller. A fast-growing set of complementary modules is also
-provided, for programming eLua microcontroller's peripherals.
+*eLua* allows you to run Lua completely on the target
+microcontroller.
 
+Some aspects of eLua are:
 
-The following important features are ready or being implemented:
-
-* a flexible, configurable build system and a free web build service.
-
-* access to the Lua interpreter on the target MCU via a variety of
-  physical transports (RS-232, Ethernet, ...).
-
-* a (mostly) platform independent MCU peripheral library (PIO, UART,
-  PWM, SPI, TMR, ADC, NET, CAN, DAC, I2C, ...)
-
-* a very low footprint embedded ROM file system, easy to port to
-  different types of memory chips and other storage devices
-
-* a small FAT R/W file system layer for SD/MMC cards
-
-* a minimal command "shell", for file operations, environment
-  configuration and other facilities
-
-* tcp/ip network support
-
-* RPC (remote procedure calls) support. Distributed processing in the
-  embedded world
-
-* an embedded http server
-
-* extended (romable) Lua types, optimized for embedded performance
-
-* terminal/console over serial and ethernet protocols
-
-* debugging (directly on the MCU or remotely with the PC)
-
-* RFS support. Remote file sharing on the embedded world
-
-* full and stand alone implementation on all MCUs. No dependency on
-  embedded operating systems. eLua runs on bare-metal
-
-* online and offline access to (same format) documentation and tutorials
-
-* online user-maintained wiki with projects, tutorials, code and experience sharing, ...
-
-* online issue tracker service. Report issues, ask for features, follow closely the development community activity
-
+* *Transforms hardware in commodity:* Design and code your products for
+  eLua and make them as hardware-independent as possible. Upgrade or
+  completely change your hardware in the future and save time and money,
+  using the approved source code with little or no modifications.
+* *Source code portability:* Like in Lua, you program in C, Lua or a
+  mixture of both and your program runs in a wide varied of (sometimes
+  radically different) platforms and architectures supported.
+  Full control of the platform.: eLua runs on the "bare-metal".  There
+  is no Operating System between your programs and the microcontroller.
+  Develop on targets: fully functional Lua and a dedicated shell on the
+  microcontroller itself. No need to install a specific development
+  environment on the PC side, other than a serial or ehternet
+  console/terminal emulator. You can also use any text editor, save your
+  programs in sd/mmc and other media and use them directly in your
+  platforms.
+* *Flexible products:* Add modern high level script-language capabilities
+  to your projects, resulting in highly adaptable, field-programable and
+  reconfigurable designs. Efficient (and cheap!) future evolution to
+  your systems.
+* *Learn embedded:* Simple interactive and interpreted experimenting
+  cycle. Use your desktop programming skills to become an embedded
+  systems developer in no time and with a lot of fun.
+* *Embedded RAD:* Prototype and experiment on a Rapid Aplication Develop
+  model. Test your ideas directly on the target platforms and cheap
+  development kits. No need for simulators or future code adaptations.
+* *Ready to use kits:* A big (and growing!) number of Open Source hardware
+  and commercially available platforms supported. Prototype cheap and
+  fast and design your final hardware later using the produced code.
+* *Longevity:* Add user configuration and scripting capabilities to your
+  projects, making them adaptable to the always changing contexts of
+  industrial processes, evolving engineering, automation standards,
+  field optimizations etc...
+* *Worry-free Licence:* eLua is free and open-source software and we
+  promote it as much as we can. But our MIT licence (the same as Lua's)
+  allows you to use eLua in your commercial and private-code products as
+  well. Nothing to ask, no royalties to pay, just tell the world you're
+  using eLua.
 
 For more information about the functionality (implemented and planned)
 in eLua check link:status.html[our status page].
 
-Porting eLua to another compatible platform should be as easy and
-painless as possible. Currently this is restricted to platforms for
-which the gcc+newlib combo is available. This restriction will
-disappear in the near future, as eLua will have its own libc and thus
-it will be available on a much broader range of MCUs.
-
-The Lua implementation is the full desktop Lua version and comes in
-two flavors: "regular Lua" (using floating point as the number type)
-and "integer Lua" (using integers). "Regular Lua" will be able to
-perform floating point operations (slower because the floating point
-operations will be emulated in software on the MCU), while "integer
-Lua" will only be able to perform operations with integer numbers (but
-support for fixed and even floating point can be added with separate
-modules) and thus will be faster.
 
 [[audience]]
 Audience
 --------
 
-eLua has a wide and varied audience, starting from newcomers to the
-embedded world who want an easy and powerful environment for
-prototyping, rapid application development and quick production, and
-ranging towards highly skilled developers that want to extend their
-programs with the Lua library facilities and portable features.
+*eLua* has a wide and varied audience, starting from newcomers to the embedded
+world who want an easy and powerful environment for prototyping, rapid
+application development and quick production, and ranging towards highly
+skilled developers that want to extend their programs with the high-level
+Lua libraries and portable features.
 
-eLua allows embedded-oriented programmers to use the simplicity and
-power of the Lua programming language and to hide the low-level
-complexities and platform/architecture-dependent features. With eLua,
-the programmer can focus on the actual implementation of his program,
-without having to worry about accessing the low-level peripheral
-configuration and data registers, as the platform libraries already
-take care of this. This increases productivity and eliminates the
-often frustrating task of dealing with platform-specific drivers.
-
+*eLua* allows embedded-oriented programmers to use the simplicity and power of
+the Lua programming language and to hide the low-level complexities and
+platform/architecture-dependent features. With eLua, the programmer can
+focus on the actual implementation of his program, without having to worry
+about accessing the low-level peripheral configuration and data registers,
+as the platform libraries already take care of this. This increases
+productivity and eliminates the often frustrating task of dealing with
+platform-specific drivers.
 
 The list below summarizes eLua's target audience:
 
@@ -160,6 +102,19 @@ The list below summarizes eLua's target audience:
   using eLua, replacing field sensor and actuator controllers by
   diferent models, brands and architectures have no impact on the main
   application software.
+
+Current Status
+--------------
+The project is very active and the worldwide distributed collaboration has 
+been growing steadly. Manufacturers, user's companies and other organizations also
+starting to collaborate and support the project.
+
+The current official version is *eLua v0.8* and we have released 9 versions
+since the project was published.
+
+Supported platforms and features include a wide range of microcontroller
+families and architectures. A list of currently supported platforms, peripherals and features can be
+seen in our link:status.html[Status page]
 
 [[authors]]
 Authors
