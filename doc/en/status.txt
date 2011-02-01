@@ -72,6 +72,18 @@ The relationship between a module and its implementation on a particular platfor
 | _I386          | _sna  | _sna  | _sni   | _sni  | _sna  | _sni  | _sni  | _sna  | _sok  | _sok  | _sok  | _sok  | _sna  | _sni  | _sna  | _sna
 |================================================================================================================================================
 
+[[plat_notes]]
+Platform Status Notes
+~~~~~~~~~~~~~~~~~~~~~
+The eLua peripheral modules attempt to provide similar functionality on all platforms for which they are implemented, however some module function varies between platforms. Some known inconsistencies are listed below.
+
+.adc
+* STM32: Only timer 2 is supported for clocked conversions.
+* STR9: Clocked conversions are not supported by hardware.
+* LPC17xx: Only timer 1 is supported for clocked conversions.
+* LPC24xx: Only timer 1 is supported for clocked conversions.
+
+
 [[gen_modules]]
 eLua modules
 ------------
@@ -82,22 +94,22 @@ The following table shows a list of the generic modules currently implemented (a
 |Name       ^|Description                                           | Status 
 o|_mpio      | Programmable input/output                            | _sok
 o|_mtmr      | Physical and virtual timers                          | _sok
-o|_mpwm 	   | Pulse width modulation                               | _sok
-o|_muart 	   | Universal asynchronous receiver transmitter          | _sok
-o|_mspi 	   | Serial peripheral interface                          | _sok
-o|_mnet  	   | TCP/IP networking                                    | _sok
-o|_madc 	   | Analog to digital converter                          | _sok 
+o|_mpwm      | Pulse width modulation                               | _sok
+o|_muart     | Universal asynchronous receiver transmitter          | _sok
+o|_mspi      | Serial peripheral interface                          | _sok
+o|_mnet      | TCP/IP networking                                    | _sok
+o|_madc      | Analog to digital converter                          | _sok 
 o|dac 	     | Digital to analog converter                          | _sni
-o|_mcpu 	   | Low level system access                              | _sok
+o|_mcpu      | Low level system access                              | _sok
 o|_mpd       | Platform data                                        | _sok
-o|_mterm 	   | ANSI terminal access                                 | _sok
-o|_mbit 	   | Bitwise operations                                   | _sok
-o|_mpack 	   | Pack/unpack binary data                              | _sok
+o|_mterm     | ANSI terminal access                                 | _sok
+o|_mbit      | Bitwise operations                                   | _sok
+o|_mpack     | Pack/unpack binary data                              | _sok
 o|cmp 	     | Analog comparator                                    | _sni
-o|_mi2c 	   | Inter-integrated circuit protocol                    | _sok
+o|_mi2c      | Inter-integrated circuit protocol                    | _sok
 o|cnt 	     | Event counter                                        | _sni
-o|_mcan 	   | Controller area network                              | _snt
-o|_mrpc 	   | Remote procedure call                                | _sok
+o|_mcan      | Controller area network                              | _snt
+o|_mrpc      | Remote procedure call                                | _sok
 o|i2s 	     | Inter-IC sound                                       | _sni
 o|_melua     | eLua system control                                  | _sok
 |===========================================================================
