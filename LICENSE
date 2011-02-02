@@ -33,6 +33,9 @@ A copy of the Lua-RPC license can be found in the LICENSE.luarpc file.
 Manufacturer provided CPU support libraries are licensed under their own
 terms, check src/platform/*platform-name* for details.
 
+linenoise (https://github.com/antirez/linenoise, eLua's readline replacement) 
+is released under a BSD license. 
+
 The rest of the eLua code is licensed under MIT, listed below:
 
 The MIT License

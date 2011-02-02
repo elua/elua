@@ -206,7 +206,7 @@ license.
 https://github.com/antirez/linenoise[linenoise] (eLua's readline replacement) 
 is released under a BSD license. 
 
-The rest of the eLua code is licensed under MIT.
+The rest of the eLua code is licensed under http://en.wikipedia.org/wiki/MIT_License[MIT].
 
 // $$FOOTER$$
 

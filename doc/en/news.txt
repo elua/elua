@@ -2,8 +2,8 @@
 eLua Project News
 -----------------
 
-February 1st, 2011 TODO
-~~~~~~~~~~~~~~~~~~~~~~~
+February 2nd, 2011
+~~~~~~~~~~~~~~~~~~
 .eLua v0.8 released
 We are proud to annunce the release of eLua v0.8 (codename "FINALLY! It was about time for a new release" :) ). This is the changelog:
 
