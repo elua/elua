@@ -164,7 +164,7 @@ eLua is Open Source and is freely distributed under the MIT license.
 
 The Lua code (with all the eLua specific changes) is included in the
 source tree and is, of course, licensed under the same 
-http://en.wikipedia.org/wiki/MIT_License:[MIT license that Lua uses].
+http://en.wikipedia.org/wiki/MIT_License[MIT license that Lua uses].
 
 Other (few) components have different licenses. Please see the file
 LICENSE in the source distribution for details.

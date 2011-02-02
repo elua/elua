@@ -15,11 +15,11 @@ and we will add to the list.
 | http://www.youtube.com/watch?v=MRcIIrxZ4BI 
 | http://www.youtube.com/watch?v=pIP1FdYoGvY
 | http://www.youtube.com/watch?v=G8dojuUDQ1c
-| eLua spaceship game                            | http://www.youtube.com/watch?v=QtokEt3-ZII
-| eLua pong game                                 | http://www.youtube.com/watch?v=gvlW0_CjSIw
-| eLua tetrives game                             | http://www.youtube.com/watch?v=6y8HEjA6k7U
-| eLua snake game                                | http://www.youtube.com/watch?v=_d9dcU4hu1U
-| eLua logo and LED examples                     | http://www.youtube.com/watch?v=3MZy6QyuyxU
+| http://wiki.eluaproject.net/Spaceship[eLua spaceship game]          | http://www.youtube.com/watch?v=QtokEt3-ZII
+| http://wiki.eluaproject.net/Pong[eLua pong game]                    | http://www.youtube.com/watch?v=gvlW0_CjSIw
+| http://wiki.eluaproject.net/TetrIves[eLua tetrives game]            | http://www.youtube.com/watch?v=6y8HEjA6k7U
+| http://wiki.eluaproject.net/Snake[eLua snake game]                  | http://www.youtube.com/watch?v=_d9dcU4hu1U
+| http://wiki.eluaproject.net/Logo[eLua logo and LED examples]        | http://www.youtube.com/watch?v=3MZy6QyuyxU
 | http://www.circuitcellar.com/iMCU/winners/003185.html[eLua based programmable LED display] | http://www.youtube.com/watch?v=s63d34uMN_I
 |=============================================================================================
 
