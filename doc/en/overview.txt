@@ -6,14 +6,13 @@ What is eLua?
 eLua stands for *Embedded Lua* and the project aims to offer the full
 implementation of the http://www.lua.org[Lua Programming Language] to
 the embedded world, extending it with
-specific features for efficient software embedded development.
+specific features for efficient and portable software embedded development.
 
 [[features]]
 General Features
 ----------------
 
-*eLua* allows you to run Lua completely on the target
-microcontroller.
+*eLua* allows you to develop and run Lua programs on a wide variety of microcontrollers.
 
 Some aspects of eLua are:
 
@@ -106,15 +105,15 @@ The list below summarizes eLua's target audience:
 Current Status
 --------------
 The project is very active and the worldwide distributed collaboration has 
-been growing steadly. Manufacturers, user's companies and other organizations also
-starting to collaborate and support the project.
+been growing steadly. Manufacturers, user's companies and other organizations
+are also starting to collaborate and support the project.
 
 The current official version is *eLua v0.8* and we have released 9 versions
 since the project was published.
 
 Supported platforms and features include a wide range of microcontroller
-families and architectures. A list of currently supported platforms, peripherals and features can be
-seen in our link:status.html[Status page]
+families and architectures. A list of currently supported platforms, 
+peripherals and features can be seen in our link:status.html[Status page]
 
 [[authors]]
 Authors
