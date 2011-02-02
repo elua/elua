@@ -27,7 +27,7 @@ You can follow eLua news on our http://twitter.com/#!/eluaproject[Twitter
 channel]
 
 [[userswiki]]
-eLua User Labs
+eLua Wiki
 --------------
 eLua users maintain a wiki with projects, code examples, tutorials and media at http://wiki.eluaproject.net.
 
@@ -52,7 +52,7 @@ Here's an alphabetically ordered non-exhaustive list of contributors:
 - Sergio Sorrenti and Martin Guy - AVR32 support, http://www.simplemachines.it/index.php?option=com_content&view=article&id=13&Itemid=24[Mizar32] port, testing
 - Téo Benjamin, Ives Cunha, Rafael Barmak - Pong, TetrIves, SpaceShip games and http://wiki.eluaproject.net/Manfredo[Manfredo], a GPS guided robot, powered by eLua.
 - Vagner Nascimento and Carlos Eduardo Deodoro - eLua Web Builder
-- The eLua users community on our https://lists.berlios.de/mailman/listinfo/elua-dev[discussion list] and http://wiki.eluaproject.net[eLua User Labs]
+- The eLua users community on our https://lists.berlios.de/mailman/listinfo/elua-dev[discussion list] and http://wiki.eluaproject.net[eLua Wiki]
 
 \... and the constant help and support from:
  
