@@ -23,7 +23,7 @@ We are proud to annunce the release of eLua v0.8 (codename "FINALLY! It was abou
 * Added long filename support for SD/MMC
 * Added RTC (real time clock) platform specific support for str9 (see the documentation of the _mstr9rtc module).
 * Added support for http://www.methods.co.nz/asciidoc[AsciiDoc] in the documentation system
-* Tutorials and new projects added to the http://wiki.eluaproject.net[eLua User Labs wiki]
+* Tutorials and new projects added to the http://wiki.eluaproject.net[eLua Wiki]
 * Demo files were moved out of the distro to http://wiki.eluaproject.net/Projects
 * Added a link:media.html[media page] with eLua related media on the project site
 
