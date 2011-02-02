@@ -1,0 +1,114 @@
+// $$HEADER$$
+
+Downloading eLua
+----------------
+You have a few options for downloading eLua:
+
+- download a binary eLua image for the platform of your choice. Binary images are provided with each official release. This is generally the best option if you have a
+  board that's officially supported by eLua (see link:status.html[here] for details) and you want to have eLua up and running on your board as quickly as possible.
+- download the source code to build eLua yourself. You can either download the source code of an official release or get the "bleeding edge" version from the SVN repository. 
+  Download the source code instead of a binary image if you need to make adjustments to the source code to support your board, or if you want to customize the eLua image, 
+  or if you simply want to take a look at what  happens behind the _eLua#_ prompt :)
+
+[[binaries]]
+Binary images
+-------------
+Pre-built images of eLua can be downloaded for each official release. Only the latest official eLua release is covered in this paragraph. If you want to download a 
+pre-built image from an older release (although this isn't generally advisable), check link:dl_old.html[this page]. +
+ +
+Choose the corresponding image file from the table below, flash it into your board, connect a serial terminal (or Ethernet if you board supports it) and enjoy eLua. +
+ +
+If you need a customized binary image for an already supported platform (for example with an autorun program, with some code of yours in the file system, with your LAN IP settings) 
+and the link:building.html[instructions for building eLua] didn't work for you, feel free to ask for one in https://lists.berlios.de/mailman/listinfo/elua-dev[our discussion
+list] explaining what you need. We may find some time to build one for you and eventually make it available here too. Alternatively you can try our 
+http://builder.eluaproject.net[web builder service] that makes building an eLua image much easier.
+
+Latest official release binaries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+To understand what's in a file name (for example _elua_lualong_lm3s8962.bin_) check our link:building.html[building eLua] page.
+
+[width="80%", cols="<1, <2, <3, <3, <4", options="header"]
+|=====================================================================================
+^| Version ^| MCU           ^|    Board             ^| Lua number type  ^| Image file
+| 0.8       |  _LM3S8962     |    _EK-LM3S8962       |  double           | http://prdownload.berlios.de/elua/elua0.8_lua_lm3s8962.bin[elua0.8_lua_lm3s8962.bin]
+| 0.8       |  _LM3S6965     |    _EK-LM3S6965       |  double           | http://prdownload.berlios.de/elua/elua0.8_lua_lm3s6965.bin[elua0.8_lua_lm3s6965.bin]
+| 0.8       |  _LM3S6918     |    _Eagle-100         |  double           | http://prdownload.berlios.de/elua/elua0.8_lua_lm3s6918.bin[elua0.8_lua_lm3s6918.bin]
+| 0.8       |  _LM3S9B92     |    _EK-LM3S9B92       |  double           | http://prdownload.berlios.de/elua/elua0.8_lua_lm3s9b92.bin[elua0.8_lua_lm3s9b92.bin]
+| 0.8       |  _LM3S1968     |    _EK-LM3S1968       |  double           | http://prdownload.berlios.de/elua/elua0.8_lua_lm3s1968.bin[elua0.8_lua_lm3s1968.bin]
+| 0.8       |  _AT91SAM7X256 |    _SAM7-EX256        |  double           | http://prdownload.berlios.de/elua/elua0.8_lua_at91sam7x256.bin[elua0.8_lua_at91sam7x256.bin]
+| 0.8       |  _AT91SAM7X512 |    None               |  double           | http://prdownload.berlios.de/elua/elua0.8_lua_at91sam7x512.bin[elua0.8_lua_at91sam7x512.bin]
+| 0.8       |  _AT32UC3A0512 |    _ATEVK1100         |  double           | http://prdownload.berlios.de/elua/elua0.8_lua_at32uc3a0512.hex[elua0.8_lua_at32uc3a0512.hex]
+| 0.8       |  _AT32UC3B0256 |    _ATEVK1101         |  double           | http://prdownload.berlios.de/elua/elua0.8_lua_at32uc3b0256.hex[elua0.8_lua_at32uc3b0256.hex]
+| 0.8       |  _AT32UC3A0128 |    _Mizar32           |  long             | http://prdownload.berlios.de/elua/elua0.8_lualong_at32uc3a0128.hex[elua0.8_lualong_at32uc3a0128.hex]
+| 0.8       |  _LPC2888      |    _LPC-H2888         |  double           | http://prdownload.berlios.de/elua/elua0.8_lua_lpc2888.bin[elua0.8_lua_lpc2888.bin]
+| 0.8       |  _LPC2468      |    _PUC-RioDemo       |  double           | http://prdownload.berlios.de/elua/elua0.8_lua_lpc2468.hex[elua0.8_lua_lpc2468.hex]
+| 0.8       |  _STR711FR2    |    _MOD711            |  double           | http://prdownload.berlios.de/elua/elua0.8_lua_str711fr2.bin[elua0.8_lua_str711fr2.bin]
+| 0.8       |  _STR912FAW44  |    _STR-E912          |  double           | http://prdownload.berlios.de/elua/elua0.8_lua_str912faw44.bin[elua0.8_lua_str912faw44.bin]
+| 0.8       |  _STM32F103RE  |    _ET-STM32Stamp     |  double           | http://prdownload.berlios.de/elua/elua0.8_lua_stm32f103re.bin[elua0.8_lua_stm32f103re.bin]
+| 0.8       |  _STM32F103ZE  |    _STM3210E-EVAL     |  double           | http://prdownload.berlios.de/elua/elua0.8_lua_stm32f103ze.bin[elua0.8_lua_stm32f103ze.bin]
+| 0.8       |  _I386         |    PCs/emulators      |  double           | http://prdownload.berlios.de/elua/elua0.8_lua_i386.elf[elua0.8_lua_i386.elf]
+|=====================================================================================
+
+NOTE: __Lua number type__ refers to the built Lua interpreter number type, float or integer, as explained in the link:building.html[building eLua] page.
+
+[[source]]
+Source code
+-----------
+If all you want is to take a quick peek at eLua's source code, but you don't need to download it, it's probably enough to use the 
+http://svn.berlios.de/wsvn/elua[BerliOS WebSVN interface]. You can browse through the complete source of eLua using this method. +
+If you need to download the source code of eLua you can either:
+
+- download the source code archive of an official release
+- checkout the latest (bleeding edge) source code from the SVN repository in read-only mode (anonymous) mode
+- checkout the latest (bleeding edge) source code from the SVN repository in read-write mode (for developers)
+
+[[official]]
+Source code archives
+~~~~~~~~~~~~~~~~~~~~
+Check the table below for the download link of the source code associated with the latest official release of eLua. If you want to get the source
+code of an older version check out link:dl_old.html[this page].
+
+[width="35%", cols="<1, <3", options="header"]
+|=================================
+^| Version ^| Source code archive
+| 0.8       | http://prdownload.berlios.de/elua/elua0.8.tgz[eLua 0.8]
+|=====================================================================================
+
+[[svnpublic]]
+SVN public repository (anonymous read-only mode)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+If you'd rather have the very last development ("bleeding edge") version, just check it out from our Subversion Repository:
+
+----------------------------------------------
+$ svn checkout svn://svn.berlios.de/elua/trunk
+----------------------------------------------
+
+Once checked out, the repository can be easily updated by the svn client command:
+
+------------
+$ svn update
+------------
+
+[[svndev]]
+SVN public repository (authenticated login r/w mode, for developers)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Follow the steps below if you need write access to the eLua repository:
+
+- if you don't have an account on http://developer.berlios.de[developer.berlios.de] and you plan to contribute with code for the project, please create one.
+- link:overview.html#contacts[contact us] specifying your BerliOS ID and we'll give you write (commit) access to the subversion repository.
+
+Then checkout the repository:
+
+----------------------------------------------------------------
+$ export SVN_SSH='ssh -l <your_berlios_id>'
+$ svn checkout svn+ssh://svn.berlios.de/svnroot/repos/elua/trunk
+----------------------------------------------------------------
+
+Once checked out, the repository can be easily updated:
+
+------------
+$ svn update
+------------
+
+// $$FOOTER$$ 
+

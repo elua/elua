@@ -26,8 +26,13 @@ data_en =
     
     { sig = "#elua.save_history#( filename )",
       desc = "Save the interpreter line history. Only available if linenoise is enabled, check @linenoise.html@here@ for details.",
-      args = "$filename$ - the name of the file where the history will be saved. *CAUTION*: the file will be overwritten.",
+      args = "$filename$ - the name of the file where the history will be saved. $CAUTION$: the file will be overwritten.",
     },    
+
+    { sig = "version = #elua.version#()",
+      desc = "Returns the current eLua version as a string",
+      ret = "the eLua version currently running."
+    },
   },
 }
 

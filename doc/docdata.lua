@@ -45,7 +45,8 @@ local menu =
       { { "Discussion Lists", "Listas de Discussão" }, "comunity.html#lists" },
       { "Forums", "comunity.html#forums" },
       { "IRC", "comunity.html#irc" },
-      { "User Labs Wiki", "comunity.html#userswiki" },      
+      { "Twitter", "comunity.html#twitter" }, 
+      { "Wiki", "comunity.html#userswiki" },      
       { { "Credits", "Créditos" }, "comunity.html#credits" },
       { "Donations", "comunity.html#donations" },
       { nil, "forum.html", nil, "Forum" } -- "hidden" entry (doesn't appear in the menu)
@@ -57,6 +58,15 @@ local menu =
   
   -- Media
   { "Media", "media.html" },  
+
+  -- Wiki
+  { "eLua Wiki", "http://wiki.eluaproject.net" },
+
+  -- Web builder
+  { "eLua Web builder", "http://builder.eluaproject.net" },
+
+  -- Tracker
+  { "eLua bug tracker", "http://tracker.eluaproject.net" },
 
   -- "Status"
   { "Status", "status.html", 
@@ -83,6 +93,7 @@ local menu =
       },
       { { "Old versions", "Versões Anteriores" }, "dl_old.html", 
         {
+          { "0.7", "dl_old.html#v070" },
           { "0.6", "dl_old.html#v060" },
           { "0.5", "dl_old.html#v050" },
           { "0.4.1", "dl_old.html#v041" },
@@ -202,7 +213,8 @@ local menu =
   { { "Platform modules", "Módulos Específicos" }, "refman_dep.html", 
     {
       { "lm3s", "modules_lm3s.html", "refman_ps_lm3s" },
-      { "str9", "modules_str9.html", "refman_ps_str9" }
+      { "str9", "modules_str9.html", "refman_ps_str9" },
+      { "mbed", "modules_mbed.html", "refman_ps_mbed" }
     }
   }
 }

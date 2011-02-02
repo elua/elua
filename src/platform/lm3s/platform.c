@@ -247,6 +247,7 @@ void CANIntHandler(void)
   {
     status = CANStatusGet(CAN0_BASE, CAN_STS_CONTROL);
     can_err_flag = 1;
+    can_tx_flag = 0;
   }
   else if( status == 1 ) // Message receive
   {

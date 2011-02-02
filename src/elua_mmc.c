@@ -59,6 +59,9 @@ static volatile UINT Timer1 = 0;
 static volatile UINT Timer2 = 0;    /* decrement timer */
 
 static
+BYTE TriesLeft = 2;
+
+static
 BYTE CardType;            /* b0:MMC, b1:SDC, b2:Block addressing */
 
 static
@@ -316,46 +319,53 @@ DSTATUS disk_initialize (
     if (drv) return STA_NOINIT;            /* Supports only single drive */
     if (Stat & STA_NODISK) return Stat;    /* No card in the socket */
     
-    power_on();                           /* Force socket power on */
+    do
+    {
+      power_on();                           /* Force socket power on */
 
-    SELECT();                /* CS = L */
-    ty = 0;
-    if (send_cmd(CMD0, 0) == 1) {            /* Enter Idle state */
+      SELECT();                /* CS = L */
+      ty = 0;
+      if (send_cmd(CMD0, 0) == 1) {            /* Enter Idle state */
         Timer1 = 1000/MMCFS_TICK_MS;     /* Initialization timeout of 1000 msec */
         if (send_cmd(CMD8, 0x1AA) == 1) {    /* SDC Ver2+ */
-            for (n = 0; n < 4; n++) ocr[n] = rcvr_spi();
-            if (ocr[2] == 0x01 && ocr[3] == 0xAA) {    /* The card can work at vdd range of 2.7-3.6V */
-                do {
-                    if (send_cmd(CMD55, 0) <= 1 && send_cmd(CMD41, 1UL << 30) == 0)    break;    /* ACMD41 with HCS bit */
-                } while (Timer1);
-                if (Timer1 && send_cmd(CMD58, 0) == 0) {    /* Check CCS bit */
-                    for (n = 0; n < 4; n++) ocr[n] = rcvr_spi();
-                    ty = (ocr[0] & 0x40) ? 6 : 2;
-                }
-            }
+	  for (n = 0; n < 4; n++) ocr[n] = rcvr_spi();
+	  if (ocr[2] == 0x01 && ocr[3] == 0xAA) {    /* The card can work at vdd range of 2.7-3.6V */
+	    do {
+	      if (send_cmd(CMD55, 0) <= 1 && send_cmd(CMD41, 1UL << 30) == 0)    break;    /* ACMD41 with HCS bit */
+	    } while (Timer1);
+	    if (Timer1 && send_cmd(CMD58, 0) == 0) {    /* Check CCS bit */
+	      for (n = 0; n < 4; n++) ocr[n] = rcvr_spi();
+	      ty = (ocr[0] & 0x40) ? 6 : 2;
+	    }
+	  }
         } else {                            /* SDC Ver1 or MMC */
-            ty = (send_cmd(CMD55, 0) <= 1 && send_cmd(CMD41, 0) <= 1) ? 2 : 1;    /* SDC : MMC */
-            do {
-                if (ty == 2) {
-                    if (send_cmd(CMD55, 0) <= 1 && send_cmd(CMD41, 0) == 0) break;    /* ACMD41 */
-                } else {
-                    if (send_cmd(CMD1, 0) == 0) break;                                /* CMD1 */
-                }
-            } while (Timer1);
-            if (!Timer1 || send_cmd(CMD16, 512) != 0)    /* Select R/W block length */
-                ty = 0;
+	  ty = (send_cmd(CMD55, 0) <= 1 && send_cmd(CMD41, 0) <= 1) ? 2 : 1;    /* SDC : MMC */
+	  do {
+	    if (ty == 2) {
+	      if (send_cmd(CMD55, 0) <= 1 && send_cmd(CMD41, 0) == 0) break;    /* ACMD41 */
+	    } else {
+	      if (send_cmd(CMD1, 0) == 0) break;                                /* CMD1 */
+	    }
+	  } while (Timer1);
+	  if (!Timer1 || send_cmd(CMD16, 512) != 0)    /* Select R/W block length */
+	    ty = 0;
         }
-    }
-    CardType = ty;
-    DESELECT();            /* CS = H */
-    rcvr_spi();            /* Idle (Release DO) */
+      }
+      CardType = ty;
+      DESELECT();            /* CS = H */
+      rcvr_spi();            /* Idle (Release DO) */
 
-    if (ty) {            /* Initialization succeded */
-        Stat &= ~STA_NOINIT;        /* Clear STA_NOINIT */
-        set_max_speed();
-    } else {            /* Initialization failed */
-        power_off();
-    }
+      if (TriesLeft)
+	TriesLeft--;
+
+      if (ty) {            /* Initialization succeded */
+	Stat &= ~STA_NOINIT;        /* Clear STA_NOINIT */
+	set_max_speed();
+      } else {            /* Initialization failed */
+	power_off();
+      }
+
+    } while( TriesLeft > 0 && ty == 0 );
 
     return Stat;
 }

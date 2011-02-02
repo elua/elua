@@ -4,7 +4,7 @@ The eLua serial multiplexer
 *(v0.8 and above)* The *serial multiplexer* is an optional eLua component that allows
 using several serial ports over a single physical serial link connection. It can be a 
 very convenient feature, since some eLua components (such as link:using.html#rpc[the RPC mechanism] 
-or link:arfs_rfs.html[the remote file system]) need a serial link to the PC and 
+or link:arch_rfs.html[the remote file system]) need a serial link to the PC and 
 it's very incovenient (or even impossible sometimes) to connect the eLua board 
 to the PC with 2 or more serial cables. A common use scenario for the serial
 multiplexer is to have the eLua shell and RFS running over a single physical 
