@@ -28,7 +28,7 @@ channel]
 
 [[userswiki]]
 eLua Wiki
---------------
+---------
 eLua users maintain a wiki with projects, code examples, tutorials and media at http://wiki.eluaproject.net.
 
 [[credits]]
