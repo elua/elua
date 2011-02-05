@@ -20,13 +20,13 @@
 #define BUILD_C_INT_HANDLERS
 #define BUILA_LUA_INT_HANDLERS
 #define BUILD_RFS
-#define BUILD_SERMUX
+//#define BUILD_SERMUX
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 
-#define CON_UART_ID         ( SERMUX_SERVICE_ID_FIRST + 1 )
-//#define CON_UART_ID         0
+//#define CON_UART_ID         ( SERMUX_SERVICE_ID_FIRST + 1 )
+#define CON_UART_ID         0
 #define CON_UART_SPEED      115200
 #define CON_TIMER_ID        0
 #define TERM_LINES          25
