@@ -195,7 +195,7 @@ static void s_init()
 
   while( ( pstart = platform_get_first_free_ram( i ) ) != NULL )
   {
-    memset( pstart, 0, memspace = ( u32 )platform_get_last_free_ram( i ) - ( u32 )pstart );
+    memspace = ( u32 )platform_get_last_free_ram( i ) - ( u32 )pstart;
     g1 = ( char* )pstart;
     crt = g1 + DYN_SIZE_MULT;
     g2 = g1 + memspace - DYN_SIZE_MULT;
