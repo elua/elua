@@ -1,6 +1,6 @@
 $$HEADER$$
 <h3>Porting eLua</h3>
-<p>So, you realized how cool <b>eLua</b> is :), and you'd like to give it a try. Unfortunately, <b>eLua</b> doesn't have a port on your CPU or board of choice.
+<p>So, you realized how cool <b>eLua</b> is :), and you'd like to give it a try. Unfortunately, <b>eLua</b> doesn't have a port for your CPU or board of choice.
   The solution is simple: write the port yourself. This might seem as a daunting task at first, but it's actually easier than it sounds. <b>eLua</b> was
   designed to make the task of implementing new ports as easy and intuitive as possible. This section gives an overview of the porting process. It's not
   an exhaustive guide, but it should be enough to point you in the right direction. Before diving into this, it's highly recommended that you take a look
@@ -9,7 +9,7 @@ $$HEADER$$
 <p>Before starting to work on the port, make sure that:</p>
 <ul>
   <li>your CPU has enough resources to run <b>eLua</b>. A very rough estimation (based on ARM Thumb code only) is that you'd need at least 256k
-  of program memory and 32k of RAM for a complete <b>eLua</b> image, and 128k of program memory for a basic image. It's possible to run <b>eLua</b> in
+  of program memory and 32k of RAM for a complete <b>eLua</b> image, and 128k of program memory for a basic image. It's possible to run <b>eLua</b> with
   less than 32k of RAM (especially when <a href="arch_ltr.html">LTR</a> is enabled), but you'll probably run out of memory fast.
   64k of RAM (or more) is recommended.</li>
   <li><a target="_blank" href="http://sourceware.org/newlib">Newlib</a> is available for your CPU. <b>eLua</b> depends on Newlib currently
@@ -18,13 +18,13 @@ $$HEADER$$
   <a href="arch_ltr.html">LTR</a> needs a C99 C compiler (or at least a partially C99 compliant C compiler than supports C99-style union initialization). 
   </li>
   <li>you have a platform library (it usually comes from the CPU manufacturer) that you can use to implement (at least part of) the platform interface.
-  It's also highly recommended to gain at least a basic understanding of your platform, it will help a lot while writing the port.</li>
+  It's also highly recommended to gain at least a basic understanding of your platform. It will help a lot while writing the port.</li>
 </ul>
-<p>If all of the above are true, you should continue reading this document to bring your port to life. If not, we're sorry, but (at least at this point)
+<p>If all of the above is true, you should continue reading this document to bring your port to life. If not, we're sorry, but (at least at this point)
 <b>eLua</b> can't be ported to your CPU. If, on the other hand, you're good to go, please take a bit of time and read 
   <a href="arch_overview.html#platforms">this section</a> first, as it details the structure of a port and might simplify your work quite a bit.</p>
 <a name="newboard" /><h3>Adding a new board</h3>
-<p>If all you need is to add a new board that uses a CPU already supported by <b>eLua</b> (check <a href="status.html">here</a> for a complete list), it's
+<p>If all you need is to add a new board that uses a CPU that's already supported by <b>eLua</b> (check <a href="status.html">here</a> for a complete list), then it's
 fairly easy to accomplish this:</p>
 <ol>
   <li>choose a good name for your board :)</li>
@@ -45,7 +45,7 @@ file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'i
               ...............................
             }</code></pre></li>
   <li>if your board has external memory, you'll probably want to use the "multiple" allocator by default to take advantage of that (see <a href="building.html">building</a>)
-  for details. If so, you need to modify the CPU/allocator mapping code from <b>SConstruct</b>:
+  for details. If so, you need to modify the CPU/allocator mapping code in <b>SConstruct</b>:
 <pre><code># CPU/allocator mapping (if allocator not specified)
 if allocator == '':
   if <b>boardname == 'LPC-H2888'</b> or <b>boardname == 'ATEVK1100'</b>:
@@ -60,7 +60,7 @@ elif allocator not in [ 'newlib', 'multiple', 'simple' ]:
   </li>
   <li>customize the <b>eLua</b> image for this new board. You can use the variable <b>boardname</b> in <b>conf.py</b> to define new preprocessor macros specifically for your board
   (that you can use later in <b>platform_conf.h</b>, for example), or to include or exclude certain files from the build, or change the build flags and so on. An example taken from 
-  the <b>lm3s</b> port is given below (part of <b>conf.py</b>):
+  the <b>lm3s</b> port is shown below (part of <b>conf.py</b>):
 <pre><code>if boardname == 'EK-LM3S6965' or boardname == 'EK-LM3S8962':
   specific_files = specific_files + " rit128x96x4.c disp.c"
   cdefs = cdefs + " -DENABLE_DISP"
@@ -79,7 +79,7 @@ else:
 <p>If you want to add a new CPU to <b>eLua</b> and the new CPU happens to be supported by a platform on which <b>eLua</b> already runs (see <a href="status.html">here</a> for a full
 list), your task is still quite easy. Follow the steps below:</p>
 <ol>
-  <li>edit <b>SConstruct</b> and add your new CPU to the <b>platform_list</b> dictionary. Use the "official" name of the CPU (as it appears in its datasheet). An example is given below:
+  <li>edit <b>SConstruct</b> and add your new CPU to the <b>platform_list</b> dictionary. Use the "official" name of the CPU (as it appears in its datasheet). An example is shown below:
 <pre><code># List of platform/CPU/toolchains combinations
 # The first toolchain in the toolchains list is the default one
 # (the one that will be used if none is specified)
@@ -94,7 +94,7 @@ platform_list = {
   your new board.</li>
   <li>customize the <b>eLua</b> image for this new CPU. You can use the variable <b>cputype</b> in <b>conf.py</b> to define new preprocessor macros specifically for your CPU
   (that you can use later in <b>platform_conf.h</b>, for example), or to include or exclude certain files from the build, or change the build flags and so on. An example taken from 
-  the <b>at91sam7x</b> port is given below (part of <b>conf.py</b>):
+  the <b>at91sam7x</b> port is shown below (part of <b>conf.py</b>):
 <pre><code>if cputype == 'AT91SAM7X256':
   ldscript = "flash256.lds"
   cdefs = cdefs + " -Dat91sam7x256"

@@ -1,12 +1,12 @@
 // $$HEADER$$
 Installing eLua on the AVR32 CPUs from Atmel
 --------------------------------------------
-http://www.atmel.com/products/AVR32/[AVR32] is a family of high performance 32-bit CPUs from "http://www.atmel.com[Atmel].
-They were built as direct competitors for the various ARM core implementation of the market, and offer very good
-performance (91 MIPS @ 66MHz) and power efficieny (1.3mW/MHz). Atmel claims that their AVR32 core outperforms ARMv5 
+http://www.atmel.com/products/AVR32/[AVR32] is a family of high performance 32-bit CPUs from http://www.atmel.com[Atmel].
+They were built as direct competitors for the various ARM core implementation on the market, and offer very good
+performance (91 MIPS @ 66MHz) and power efficiency (1.3mW/MHz). Atmel claims that their AVR32 core outperforms ARMv5 
 (in ARM and Thumb mode) in terms of both performance and code size. It's a proprietary architecture (so it's only implemented by Atmel), 
 yet it has a very good support package, and an open source toolchain based on GCC, which made it an ideal candidate for the first 
-non-ARM (and also the first big endian) eLua target. Atmel also sells a number of development boards based on their AVR23 CPUs. 
+non-ARM (and also the first big-endian) eLua target. Atmel also sells a number of development boards based on their AVR23 CPUs. 
 The one used for eLua is the _ATEVK1100 board built around the _AT32UC3A0512 AVR32 MCU (512k internal Flash/64k internal ARM).
 It's a very powerful board, featuring (among other things) an external 32 MByte SDRAM memory, which is more than enough to run lots and
 lots of eLua programs.
@@ -18,18 +18,18 @@ Prerequisites
 -------------
 Before you'll be able to use eLua on the AT32UC3A0512 CPU, make sure that:
 
-* you're using Linux or Windows. It's easier to install and use Atmel's programming software on Windows, so use Windows version if you want to save
+* you're using Linux or Windows. It's easier to install and use Atmel's programming software on Windows, so use the Windows version if you want to save
   yourself from quite a bit of hassle.
-* you installed Atmel's http://www.atmel.com/dyn/products/tools_card.asp?tool_id=3886[FLIP programming software], which is what you need
-  in order to burn your eLua< image. Installation in easy under Windows (you just need to run a setup package), but quite tricky under Linux. 
-  The next paragraph outlines the procedure for installing FLIP in Linux.
-* you already have your eLua image for the AT32UC3A0512 CPU (link:building.html[built] or link:downloads.html[downloaded]). Note that unlike other 
-  platforms the ATEVK1100 needs a .hex file for programming, not a .bin.
+* you've installed Atmel's http://www.atmel.com/dyn/products/tools_card.asp?tool_id=3886[FLIP programming software], which is what you will need
+  in order to burn your eLua image. Installation in easy under Windows (you just need to run a setup package), but it's quite tricky under Linux. 
+  The next paragraph outlines the procedure for installing FLIP on Linux.
+* you have your eLua image for the AT32UC3A0512 CPU (link:building.html[built] or link:downloads.html[downloaded]). Note that unlike other 
+  platforms, the ATEVK1100 needs a .hex file for programming and not a .bin.
 
 Installing FLIP in Ubuntu Linux
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 [[buildnote]]
-IMPORTANT: The instructions below are somewhat hard to put in practice and reports suggests that they don't work well on all Ubuntu versions.
+IMPORTANT: The instructions below are somewhat hard to put into practice and reports suggest that they don't work well on all Ubuntu versions.
 For updated (and simpler) instructions on how to make FLIP work under Linux and for alternative Linux programming software check
 http://code.google.com/p/mizar32/wiki/FlashingFirmware[the Mizar32 wiki page].
 
@@ -67,8 +67,8 @@ if [ "$FLIP_HOME" = "" ]; then
 -------------------------------------------------
 
 5. you need to edit a binary file this time (_/usr/local/flip.3.2.1/libatlibusbdfu.so_). This happens because FLIP comes compiled for RedHat 
-   by default and Ubuntu some different system paths. See http://www.avrfreaks.net/index.php?name=PNphpBB2&amp;file=viewtopic&amp;t=56562[this topic]
-   for full details. All you have to do is change all the */sys/bus/usb* strings inside _libatlibusbdfu.so<_ to */dev/bus/usb*.
+   by default and Ubuntu has different system paths. See http://www.avrfreaks.net/index.php?name=PNphpBB2&amp;file=viewtopic&amp;t=56562[this topic]
+   for full details. All you have to do is change all the */sys/bus/usb* strings inside _libatlibusbdfu.so_ to */dev/bus/usb*.
 
 6. add the FLIP directory to your PATH:
 +
@@ -87,7 +87,7 @@ Burning eLua to the EVK1100 board
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 After you installed FLIP and added it to your $PATH, burning the eLua image should be quite easy:
 
-* connect your ATEVK1100 board with the PC using an USB cable
+* connect your ATEVK1100 board with the PC using an USB cable.
 * put your board in DFU mode (this is required for FLIP interaction). To do this:
 +
   1. press *on* the on-board joystick and keep it pressed

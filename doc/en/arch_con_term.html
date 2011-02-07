@@ -1,22 +1,22 @@
 $$HEADER$$
 <h3>eLua consoles and terminals</h3>
-<p>In <b>eLua</b>, a <b>console</b> and a <b>terminal</b> serve two related, but different purposes:</p>
+<p>In <b>eLua</b>, a <b>console</b> and a <b>terminal</b> serve two related but different purposes:</p>
 <ul>
   <li>the <b>console</b> takes care of basic user input/output. They come in two flavours: serial consoles and TCP/IP consoles (note that the two can't coexist at the same time).</li>
-  <li>the <b>terminal</b> enhances the console in order to take advantage of ANSI terminals and their advanced control functions, like explicit cursor positioning, clear screen and others. At this
-  time, terminals work only over serial connections, not over TCP/IP (like consoles).</li>
+  <li>the <b>terminal</b> enhances the console in order to take advantage of ANSI terminals and their advanced control functions like explicit cursor positioning, clear screen, and others. At this
+  time, terminals work only over serial connections and not over TCP/IP (like consoles).</li>
 </ul>
 <p>Both components can be enabled and disabled as needed (they don't rely on each other). See <a href="building.html">building eLua</a> for details on how to enable and disable components.</p>
 <h2>Serial consoles</h2>
 <p>The serial console input/output is handled by a generic layer (<i>src/newlib/genstd.c</i>) that can be used to easily adapt the console subsystem to a variety of input/output devices. 
-  It needs just two functions, one for displaying characters and another one for receiving input with timeout:</p>
+  It needs just two functions, one for displaying characters and another one for receiving input with a timeout:</p>
 <pre><code>// Send/receive function types
 typedef void ( *p_std_send_char )( int fd, char c );
 typedef int ( *p_std_get_char )( s32 to );
 </code></pre>
-<p>(the <b>send</b> faction gets an additional <b>fd</b> parameter that you can use to  differentiate between the standard C stdout and stderr output streams).</p>
-<p>To set them, use <b>std_set_send_func</b> and <b>std_set_get_func</b>, both defined in <i>inc/newlib/getstd.h</i>. Usually they are called from <i>src/common.c</i> and configured to work
-  over UART by default:</p>
+<p>(the <b>send</b> function gets an additional <b>fd</b> parameter that you can use to  differentiate between the standard C stdout and stderr output streams).</p>
+<p>To set them, use <b>std_set_send_func</b> and <b>std_set_get_func</b>, both are defined in <i>inc/newlib/getstd.h</i>. Usually they are called from <i>src/common.c</i> and configured to work
+  over the UART by default:</p>
 <pre><code>// *****************************************************************************
 // std functions and platform initialization
 
@@ -38,7 +38,7 @@ void cmn_platform_init()
   std_set_get_func( uart_recv );  
 }
 </code></pre>
-<p>If you need another type of serial console device (for example a dedicated console running over a SPI connection) just call <i>std_set_send_func/std_set_get_func</i> with the appropriate 
+<p>If you need another type of serial console device (for example, a dedicated console running over a SPI connection) just call <i>std_set_send_func/std_set_get_func</i> with the appropriate 
   function pointers.</p>
 <p>To enable serial consoles, define the <b>BUILD_CON_GENERIC</b> macro in your platform's <b>platform_conf.h</b> file.</p>
 <h2>TCP/IP consoles</h2>
