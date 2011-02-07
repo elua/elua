@@ -70,7 +70,7 @@ contact us in our
 https://lists.berlios.de/mailman/listinfo/elua-dev[Discussion List] or the
 authors link:overview.html#authors[privately]
 
-- Cristina Sampaio and http://www.ti.com/ww/br[Texas Instruments Brasil] - EK-LM3S6965 LM3S Cortex-M3 kits
+- Cristina Sampaio and http://www.ti.com/ww/br[Texas Instruments Brazil] - EK-LM3S6965 LM3S Cortex-M3 kits
 - José Palazzi and http://www.freescale.com/webapp/sps/site/homepage.jsp?code=BRAZIL[Freescale Brazil] - Coldfire dev kits, eLua support
 - http://www.luminarymicro.com/[Luminary Micro] - LM3S evaluation kits
 - http://mbed.org/[mbed] - NXP1768 mbed kit
