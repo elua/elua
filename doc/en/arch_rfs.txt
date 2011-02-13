@@ -92,7 +92,7 @@ Some things you should consider when using the RFS:
   3. make sure that the serial cable connecting the PC and the eLua board also supports flow control. Some simple serial connection cables have only the RX, TX and GND wires. 
      RTS/CTS flow control requires at least RX, TX, RTS, CTS and GND wires arranged in a null-modem configuration.
   4. start *rfs_server* specifying _rtscts_ as part of the _<transport>_ parameter (see above).
-- eLua has a global filename size limit of 30 characters, so don't put files with longer names in the shared directory, it might lead to unexpec ted
+- eLua has a global filename size limit of 30 characters, so don't put files with longer names in the shared directory, it might lead to unexpected
   behaviour. 
 - the file sharing "protocol" is an extremely simple one, it doesn't make provisions for error correction and has only very basic error detection. 
   So, if there are serial communication problems on the connection used by RFS, you might encounter RFS errors (timeouts, invalid operations and so on). 
