@@ -36,8 +36,7 @@ end
 
 -- 'Liniarize' a file name by replacing its path separators indicators with '_'
 local function linearize_fname( s )
-  local fmt = "%" .. dir_sep
-  return ( s:gsub( fmt, "__" ) )
+  return ( s:gsub( "[\\/]", "__" ) )
 end
 
 -- Helper: transform a table into a string if needed
@@ -517,7 +516,7 @@ builder._show_help = function( self )
     if values then
       print( sf( "    Possible values: %s", values ) )
     end
-    print( sf( "    Default value: %s", default ) )
+    print( sf( "    Default value: %s", default or "none (changes at runtime)" ) )
   end
 end
 
@@ -572,6 +571,12 @@ end
 -- Return the target arguments
 builder.get_target_args = function( self )
   return self.targetargs
+end
+
+-- Set a specific dependency generation command for the assembler
+-- Pass 'false' to skip dependency generation for assembler files
+builder.set_asm_dep_cmd = function( self, asm_dep_cmd ) 
+  self.asm_dep_cmd = asm_dep_cmd
 end
 
 ---------------------------------------
@@ -701,9 +706,14 @@ builder.make_depends = function( self, ftable, deptargets )
   deptargets = deptargets or {}
   for i = 1, #ftable do
     local isasm = ftable[ i ]:find( "%.c$" ) == nil
-    local cmd = isasm and self.asm_cmd or self.comp_cmd
-    local target = self:dep_target( ftable[ i ], initdep[ ftable[ i ] ], cmd:gsub( "-c ", "-E -MM " ) )
-    table.insert( deptargets, target )
+    -- Skip assembler targets if 'asm_dep_cmd' is set to 'false'
+    if not isasm or self.asm_dep_cmd ~= false then
+      local cmd = isasm and self.asm_cmd or self.comp_cmd
+      local depcmd = cmd:gsub( "-c ", "-E -MM " )
+      if isasm and self.asm_dep_cmd then depcmd = self.asm_dep_cmd end
+      local target = self:dep_target( ftable[ i ], initdep[ ftable[ i ] ], depcmd )
+      table.insert( deptargets, target )
+    end
   end
   local t = self:target( "#phony:deps", deptargets )
   t:build()
@@ -728,10 +738,11 @@ builder.create_compile_targets = function( self, ftable, res )
   -- Build dependencies for all targets
   for i = 1, #ftable do
     local target 
+    local deps = self.dtable and self.dtable[ ftable[ i ] ]
     if ftable[ i ]:find( "%.c$" ) then
-      target = self:c_target( self:obj_name( ftable[ i ] ), self.dtable and self.dtable[ ftable[ i ] ] )
+      target = self:c_target( self:obj_name( ftable[ i ] ), deps )
     else
-      target = self:asm_target( self:obj_name( ftable[ i ] ), self.dtable and self.dtable[ ftable[ i ] ] )
+      target = self:asm_target( self:obj_name( ftable[ i ] ), deps )
     end
     table.insert( res, target )
   end

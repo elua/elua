@@ -31,6 +31,15 @@ function addcf( data )
   table.insert( cflags, data )
 end
 
+-- Delete a compiler flag
+function delcf( data )
+  cflags = utils.linearize_array( cflags )
+  for _, v in pairs( data ) do
+    local i = utils.array_element_index( cflags, v )
+    if i then table.remove( cflags, i ) end
+  end
+end
+
 -- Add a linker flag
 function addlf( data )
   table.insert( lflags, data )
@@ -264,6 +273,7 @@ builder:add_option( 'toolchain', 'specifies toolchain to use (auto=search for us
 builder:add_option( 'optram', 'enables Lua Tiny RAM enhancements', true )
 builder:add_option( 'boot', 'boot mode, standard will boot to shell, luarpc boots to an rpc server', 'standard', { 'standard' , 'luarpc' } )
 builder:add_option( 'romfs', 'ROMFS compilation mode', 'verbatim', { 'verbatim' , 'compress', 'compile' } )
+builder:add_option( 'cpumode', 'ARM CPU compilation mode (only affects certain ARM targets)', nil, { 'arm', 'thumb' } )
 builder:init( args )
 builder:set_build_mode( builder.BUILD_DIR_LINEARIZED )
 
@@ -356,7 +366,7 @@ if comp.allocator == 'auto' then
 end    
 
 -- Build the compilation command now
-local compcmd = ''
+local fscompcmd = ''
 if comp.romfs == 'compile' then
   local suffix = ''
   if utils.is_windows() then
@@ -369,10 +379,9 @@ if comp.romfs == 'compile' then
     os.exit( -1 )
   end
   local cmdpath = { lfs.currentdir(), sf( 'luac.cross%s -ccn %s -cce %s -o %%s -s %%s', suffix, toolset[ "cross_" .. comp.target:lower() ], toolset.cross_cpumode:lower() ) }
-  compcmd = table.concat( cmdpath, utils.dir_sep )
-  print( compcmd )
+  fscompcmd = table.concat( cmdpath, utils.dir_sep )
 elseif comp.romfs == 'compress' then
-  compcmd = 'lua luasrcdiet.lua --quiet --maximum --opt-comments --opt-whitespace --opt-emptylines --opt-eols --opt-strings --opt-numbers --opt-locals -o %s %s'
+  fscompcmd = 'lua luasrcdiet.lua --quiet --maximum --opt-comments --opt-whitespace --opt-emptylines --opt-eols --opt-strings --opt-numbers --opt-locals -o %s %s'
 end
 
 -- Output file
@@ -484,7 +493,7 @@ local function make_romfs()
     table.insert( flist, romfs[ sample ] )
   end
   flist = utils.linearize_array( flist )  
-  if not mkfs.mkfs( romdir, "romfiles", flist, comp.romfs, compcmd ) then return -1 end
+  if not mkfs.mkfs( romdir, "romfiles", flist, comp.romfs, fscompcmd ) then return -1 end
   if utils.is_file( "inc/romfiles.h" ) then
     -- Read both the old and the new file
     local oldfile = io.open( "inc/romfiles.h", "rb" )
@@ -507,9 +516,9 @@ local function make_romfs()
 end
 
 -- Command lines for the tools (compiler, linker, assembler)
-compcmd = builder:compile_cmd{ flags = cflags, defines = cdefs, includes = includes, compiler = toolset.compile }
-linkcmd = builder:link_cmd{ flags = lflags, libraries = libs, linker = toolset.compile }
-ascmd = builder:asm_cmd{ flags = asflags, defines = cdefs, includes = includes, assembler = toolset.asm }
+compcmd = compcmd or builder:compile_cmd{ flags = cflags, defines = cdefs, includes = includes, compiler = toolset.compile }
+linkcmd = linkcmd or builder:link_cmd{ flags = lflags, libraries = libs, linker = toolset.compile }
+ascmd = ascmd or builder:asm_cmd{ flags = asflags, defines = cdefs, includes = includes, assembler = toolset.asm }
 builder:set_compile_cmd( compcmd )
 builder:set_link_cmd( linkcmd )
 builder:set_asm_cmd( ascmd )
