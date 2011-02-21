@@ -22,15 +22,12 @@ end
 local full_files = utils.prepend_path( flist, "mux_src" ) .. utils.prepend_path( rfs_flist, "rfs_server_src" ) .. "src/remotefs/remotefs.c src/eluarpc.c"
 local local_include = "mux_src rfs_server_src inc inc/remotefs"
 local compcmd = builder:compile_cmd{ flags = "-m32 -O0 -Wall -g", defines = cdefs, includes = local_include }
-local depcmd =  builder:dep_cmd{ flags = "-m32 -O0 -Wall -g", defines = cdefs, includes = local_include }
 local linkcmd = builder:link_cmd{ flags = "-m32", libraries = socklib }
-builder:set_dep_cmd( depcmd )
 builder:set_compile_cmd( compcmd )
 builder:set_link_cmd( linkcmd )
 builder:set_exe_extension( exeprefix )
 
 -- Build everyting
-builder:make_depends( full_files )
-local odeps = builder:create_compile_targets( full_files )
-builder:build_c_target( "mux", odeps )
+builder:make_exe_target( "mux", full_files )
+builder:build()
 

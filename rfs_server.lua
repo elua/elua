@@ -2,11 +2,14 @@ local args = { ... }
 local b = require "utils.build"
 local builder = b.new_builder( ".build/rfs_server" )
 local utils = b.utils
+
+-- Set builder options BEFORE calling builder:init
+builder:add_option( 'sim', 'run under the eLua simulator', false )
 builder:init( args )
 builder:set_build_mode( builder.BUILD_DIR_LINEARIZED )
 
-sim = builder:get_arg( 'sim' )
-sim = sim and tonumber( sim ) or 0
+local sim = builder:get_option( 'sim' )
+sim = sim and 1 or 0
 
 local flist, socklib
 local cdefs = "RFS_STANDALONE_MODE"
@@ -29,15 +32,12 @@ local output = sim == 0 and 'rfs_server' or 'rfs_sim_server'
 local local_include = "rfs_server_src inc/remotefs inc"
 local full_files = utils.prepend_path( flist, 'rfs_server_src' ) .. " src/remotefs/remotefs.c src/eluarpc.c"
 local compcmd = builder:compile_cmd{ flags = "-m32 -O0 -Wall -g", defines = cdefs, includes = local_include }
-local depcmd =  builder:dep_cmd{ flags = "-m32 -O0 -Wall -g", defines = cdefs, includes = local_include }
 local linkcmd = builder:link_cmd{ flags = "-m32", libraries = socklib }
-builder:set_dep_cmd( depcmd )
 builder:set_compile_cmd( compcmd )
 builder:set_link_cmd( linkcmd )
 builder:set_exe_extension( exeprefix )
 
 -- Build everything
-builder:make_depends( full_files )
-local odeps = builder:create_compile_targets( full_files )
-builder:build_c_target( "rfs_server", odeps )
+builder:make_exe_target( "rfs_server", full_files )
+builder:build()
 

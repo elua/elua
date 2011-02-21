@@ -1,4 +1,5 @@
 -- eLua build system
+
 module( ..., package.seeall )
 
 local lfs = require "lfs"
@@ -55,14 +56,15 @@ utils = { dir_sep = dir_sep }
 utils.string_to_table = function( s, sep )
   sep = sep or ' '
   if s:sub( -1, -1 ) ~= sep then s = s .. sep end
+  s = s:gsub( sf( "^%s*", sep ), "" )
   local t = {}
   local fmt = sf( "(.-)%s+", sep )
   for w in s:gmatch( fmt ) do table.insert( t, w ) end
   return t
 end
 
--- Replace the extension of a give file name
-utils.replace_extension = function( s, newext )
+-- Split a file name into 'path part' and 'extension part'
+utils.split_path = function( s )
   local pos
   for i = #s, 1, -1 do
     if s:sub( i, i ) == "." then
@@ -70,7 +72,14 @@ utils.replace_extension = function( s, newext )
       break
     end
   end
-  if pos then s = s:sub( 1, pos ) .. newext end
+  if pos then return s:sub( 1, pos - 1 ), s:sub( pos ) end
+  return s
+end
+
+-- Replace the extension of a give file name
+utils.replace_extension = function( s, newext )
+  local p, e = utils.split_path( s )
+  if e then s = p .. "." .. newext end
   return s
 end
 
@@ -81,7 +90,7 @@ end
 
 -- Prepend each component of a 'pat'-separated string with 'prefix'
 utils.prepend_string = function( s, prefix, pat )  
-  if not s then return "" end
+  if not s or #s == 0 then return "" end
   pat = pat or ' '
   local res = ''
   local st = utils.string_to_table( s, pat )
@@ -110,6 +119,56 @@ end
 -- Concatenate the given paths to form a complete path
 utils.concat_path = function( paths )
   return table.concat( paths, dir_sep )
+end
+
+-- Return true if the given array contains the given element, false otherwise
+utils.array_element_index = function( arr, element )
+  for i = 1, #arr do
+    if arr[ i ] == element then return i end
+  end
+end
+
+-- Linearize an array with (possibly) embedded arrays into a simple array
+utils._linearize_array = function( arr, res )
+  if type( arr ) ~= "table" then return end
+  for i = 1, #arr do
+    local e = arr[ i ]
+    if type( e ) == 'table' then
+      utils._linearize_array( e, res )
+    else
+      table.insert( res, e )
+    end
+  end 
+end
+
+utils.linearize_array = function( arr )
+  local res = {}
+  utils._linearize_array( arr, res )
+  return res
+end
+
+-- Return an array with the keys of a table
+utils.table_keys = function( t )
+  local keys = {}
+  for k, _ in pairs( t ) do table.insert( keys, k ) end
+  return keys
+end
+
+-- Returns true if 'path' is a regular file, false otherwise
+utils.is_file = function( path )
+  return lfs.attributes( path, "mode" ) == "file"
+end
+
+-- Return a list of files in the given directory matching a given mask
+utils.get_files = function( path, mask )
+  local t = ''
+  for f in lfs.dir( path ) do
+    local fname = path .. dir_sep .. f
+    if lfs.attributes( fname, "mode" ) == "file" and fname:find( mask ) then
+      t = t .. ' ' .. fname
+    end
+  end
+  return t
 end
 
 -------------------------------------------------------------------------------
@@ -144,7 +203,7 @@ end
 
 local _target = {}
 
-_target.new = function( target, dep, command )
+_target.new = function( target, dep, command, isclean )
   local self = {}
   setmetatable( self, { __index = _target } )
   self.target = target
@@ -163,6 +222,8 @@ _target.new = function( target, dep, command )
   end
   self.dep = dep
   self._force_rebuild = #dep == 0
+  self._clean_mode = isclean
+  if isclean then self.command = _target._cleaner end
   return self
 end
 
@@ -171,11 +232,22 @@ _target.force_rebuild = function( self, flag )
   self._force_rebuild = flag
 end
 
+-- Function to execute in clean mode
+_target._cleaner = function( target, deps )
+  if is_phony( target ) then return 0 end
+  io.write( sf( "Removing %s ... ", target ) )
+  if os.remove( target ) then
+    print "done."
+  else
+    print "failed!"
+  end
+  return 0
+end
+
 -- Build the given target
 _target.build = function( self )
   local docmd = self:target_name() and lfs.attributes( self:target_name(), "mode" ) ~= "file"
-  local depends = ''
-  local dep = self.dep
+  local depends, dep = '', self.dep
   -- Iterate through all dependencies, execute each one in turn
   for i = 1, #dep do
     local res = dep[ i ]:build()
@@ -183,11 +255,11 @@ _target.build = function( self )
     local t = dep[ i ]:target_name()
     if t then depends = depends .. t .. " " end
   end
-  docmd = docmd or self._force_rebuild
   -- If at least one dependency is new rebuild the target
+  docmd = docmd or self._force_rebuild or self._clean_mode
+  local keep_flag = true
   if docmd and self.command then
-    local cmd = self.command
-    local code
+    local cmd, code = self.command
     if type( cmd ) == 'string' then
       cmd = expand_key( cmd, "TARGET", self.target )
       cmd = expand_key( cmd, "DEPENDS", depends )
@@ -196,10 +268,17 @@ _target.build = function( self )
       code = os.execute( cmd )   
     else
       code = cmd( self.target, self.dep )
+      if code == 1 then -- this means 'mark target as 'not executed'
+        keep_flag = false
+        code = 0
+      end
     end
-    if code ~= 0 then return nil, "Error building target " .. self.target end
+    if code ~= 0 then 
+      print( "Error building target" )
+      os.exit( 1 ) 
+    end
   end
-  return docmd
+  return docmd and keep_flag
 end
 
 _target.target_name = function( self )
@@ -211,17 +290,114 @@ end
 
 builder = { KEEP_DIR = 0, BUILD_DIR = 1, BUILD_DIR_LINEARIZED = 2 }    
 
+---------------------------------------
+-- Initialization and option handling
+
 -- Create a new builder object with the output in 'build_dir' and with the 
 -- specified compile, dependencies and link command
-builder.new = function( build_dir, comp_cmd, dep_cmd, link_cmd )
+builder.new = function( build_dir )
   self = {}
   setmetatable( self, { __index = builder } )
   self.build_dir = build_dir or ".build"
-  self.comp_cmd = comp_cmd
-  self.dep_cmd = dep_cmd
-  self.link_cmd = link_cmd
   self.exe_extension = utils.is_windows() and "exe" or ""
-  -- Create 'builds' directory if needed
+  self.clean_mode = false
+  self.options = {}
+  self.args = {}
+  self.build_mode = self.KEEP_DIR
+  self.targets = {}
+  return self
+end
+
+-- Argument validator: boolean value
+builder._bool_validator = function( v )
+  if v == '0' or v:upper() == 'FALSE' then
+    return false
+  elseif v == '1' or v:upper() == 'TRUE' then
+    return true
+  end
+end
+
+-- Argument validator: choice value
+builder._choice_validator = function( v, allowed )
+  for i = 1, #allowed do
+    if v:upper() == allowed[ i ]:upper() then return allowed[ i ] end
+  end
+end
+
+-- Argument validator: choice map (argument value maps to something)
+builder._choice_map_validator = function( v, allowed )
+  for k, value in pairs( allowed ) do
+    if v:upper() == k:upper() then return value end
+  end
+end
+
+-- Argument validator: string value (no validation)
+builder._string_validator = function( v )
+  return v
+end
+
+-- Argument printer: boolean value
+builder._bool_printer = function( o )
+  return "true|false", o.default and "true" or "false"
+end
+
+-- Argument printer: choice value
+builder._choice_printer = function( o )
+  local clist, opts  = '', o.data
+  for i = 1, #opts do
+    clist = clist .. ( i ~= 1 and "|" or "" ) .. opts[ i ]
+  end
+  return clist, o.default
+end
+
+-- Argument printer: choice map printer
+builder._choice_map_printer = function( o )
+  local clist, opts, def = '', o.data
+  local i = 1
+  for k, v in pairs( opts ) do
+    clist = clist .. ( i ~= 1 and "|" or "" ) .. k
+    if o.default == v then def = k end
+    i = i + 1
+  end
+  return clist, def
+end
+
+-- Argument printer: string printer
+builder._string_printer = function( o )
+  return nil, o.default
+end
+
+-- Add an option of the specified type
+builder._add_option = function( self, optname, opttype, help, default, data )
+  local validators = 
+  { 
+    string = builder._string_validator, choice = builder._choice_validator, 
+    boolean = builder._bool_validator, choice_map = builder._choice_map_validator
+  }
+  local printers = 
+  { 
+    string = builder._string_printer, choice = builder._choice_printer, 
+    boolean = builder._bool_printer, choice_map = builder._choice_map_printer
+  }
+  if not validators[ opttype ] then
+    print( sf( "Invalid option type '%s'", opttype ) )
+    os.exit( 1 )
+  end
+  table.insert( self.options, { name = optname, help = help, validator = validators[ opttype ], printer = printers[ opttype ], data = data, default = default } )
+end
+
+-- Find an option with the given name
+builder._find_option = function( self, optname )
+  for i = 1, #self.options do
+    local o = self.options[ i ]
+    if o.name:upper() == optname:upper() then return self.options[ i ] end
+  end
+end
+
+-- Helper: create the build output directory
+builder._create_outdir = function( self )
+  if self.output_dir_created then return end
+   -- Create builds directory if needed
   local mode = lfs.attributes( self.build_dir, "mode" )
   if not mode or mode ~= "directory" then
     if not utils.full_mkdir( self.build_dir ) then
@@ -229,52 +405,112 @@ builder.new = function( build_dir, comp_cmd, dep_cmd, link_cmd )
       os.exit( 1 )
     end
   end
-  self.clean_mode = false
-  self.build_mode = self.KEEP_DIR
-  return self
+  self.output_dir_created = true
+end
+
+-- 'add option' helper (automatically detects option type)
+builder.add_option = function( self, name, help, default, data )
+  local otype
+  if type( default ) == 'boolean' then
+    otype = 'boolean'
+  elseif data and type( data ) == 'table' and #data == 0 then
+    otype = 'choice_map'
+  elseif data and type( data ) == 'table' then
+    otype = 'choice'
+    data = utils.linearize_array( data )
+  elseif type( default ) == 'string' then
+    otype = 'string'
+  else
+    print( sf( "Cannot detect option type for '%s'", name ) )
+    os.exit( 1 )
+  end
+  self:_add_option( name, otype, help, default, data )
 end
 
 -- Initialize builder from the given command line
 builder.init = function( self, args )
-  self.args = args
-  -- Look for '-c' first
+  -- Add the default options
+  self:add_option( "build_mode", 'choose location of the object files', self.KEEP_DIR,
+                   { keep_dir = self.KEEP_DIR, build_dir = self.BUILD_DIR, build_dir_linearized = self.BUILD_DIR_LINEARIZED } )
+  self:add_option( "build_dir", 'choose build directory', self.build_dir )
+  -- Apply default values to all options
+  for i = 1, #self.options do
+    local o = self.options[ i ]
+    self.args[ o.name:upper() ] = o.default
+  end
+  -- Read and interpret command line
   for i = 1, #args do
-    local a = args[ i ]:upper()
-    if a == "-C" then
+    local a = args[ i ]
+    if a:upper() == "-C" then                   -- clean option (-c)
       self.clean_mode = true  
+    elseif a:upper() == '-H' then               -- help option (-h)
+      self:_show_help()
+      os.exit( 1 )
+    elseif a:find( '=' ) then                   -- builder argument (key=value)
+      local si, ei, k, v = a:find( "([^=]+)=(.*)$" )
+      local opt = self:_find_option( k )
+      if not opt then
+        print( sf( "Invalid option '%s'", k ) )
+        self:_show_help()
+        os.exit( 1 )
+      end
+      local optv = opt.validator( v, opt.data )
+      if optv == nil then
+        print( sf( "Invalid value '%s' for option '%s'", v, k ) )
+        self:_show_help()
+        os.exit( 1 )
+      end
+      self.args[ k:upper() ] = optv
+    else                                        -- this must be the target name
+      if self.targetname ~= nil then            
+        print( sf( "Invalid option '%s'", a ) )
+        os.exit( 1 )
+      end
+      self.targetname = a
     end
   end
-  -- Then look for 'build_mode' spec
-  local v = self:get_arg( 'build_mode', 'KEEP_DIR' ):upper()
-  self.build_mode = self[ v ] or self.KEEP_DIR
+  -- Read back the default options
+  self.build_mode = self.args.BUILD_MODE
+  self.build_dir = self.args.BUILD_DIR
 end
 
--- Get the given argument or the default value if not found
--- Arguments are given in the form 'arg=value'
-builder.get_arg = function( self, name, default )
-  local args = self.args
-  name = name:upper()
-  for i = 1, #args do
-    local arg = args[ i ]
-    local si, ei, k, v = arg:find( "([^=]+)=(.*)$" )
-    if si and k:upper() == name then return v end
-  end
-  return default
+-- Return the value of the option with the given name
+builder.get_option = function( self, optname )
+  return self.args[ optname:upper() ]
 end
+
+-- Show builder help
+builder._show_help = function( self )
+  print( "Valid options:" )
+  print( "  -h: help (this text)" )
+  print( "  -c: clean target" )
+  for i = 1, #self.options do
+    local o = self.options[ i ]
+    print( sf( "\n  %s: %s", o.name, o.help ) )
+    local values, default = o.printer( o )
+    if values then
+      print( sf( "    Possible values: %s", values ) )
+    end
+    print( sf( "    Default value: %s", default ) )
+  end
+end
+
+---------------------------------------
+-- Builder configuration
 
 -- Set the compile command
 builder.set_compile_cmd = function( self, cmd )
   self.comp_cmd = cmd
 end
 
--- Set the dependencies command
-builder.set_dep_cmd = function( self, cmd )
-  self.dep_cmd = cmd
-end
-
 -- Set the link command
 builder.set_link_cmd = function( self, cmd )
   self.link_cmd = cmd
+end
+
+-- Set the assembler command
+builder.set_asm_cmd = function( self, cmd )
+  self.asm_cmd = cmd
 end
 
 -- Set (actually force) the object file extension
@@ -292,19 +528,69 @@ builder.set_clean_mode = function( self, isclean )
   self.clean_mode = isclean
 end
 
--- Is the builder in clean mode?
-builder.is_cleaning = function( self )
-  return self.clean_mode
-end
-
 -- Sets the build mode
 builder.set_build_mode = function( self, mode )
   self.build_mode = mode
 end
 
+-- Set the output directory
+builder.set_output_dir = function( self, dir )
+  if self.output_dir_created then
+    print "Error: output directory already created"
+    os.exit( 1 )
+  end
+  self.build_dir = dir
+  self:_create_outdir()
+end
+
+---------------------------------------
+-- Command line builders
+
+-- Internal helper
+builder._generic_cmd = function( self, args )
+  local compcmd = args.compiler or "gcc"
+  compcmd = compcmd .. " "
+  local flags = table_to_string( utils.linearize_array( args.flags ) )
+  local defines = table_to_string( utils.linearize_array( args.defines ) )
+  local includes = table_to_string( utils.linearize_array( args.includes ) )
+  local comptype = table_to_string( args.comptype ) or "-c"
+  compcmd = compcmd .. utils.prepend_string( defines, "-D" )
+  compcmd = compcmd .. utils.prepend_string( includes, "-I" )
+  return compcmd .. flags .. " " .. comptype .. " -o $(TARGET) $(FIRST)"
+end
+
+-- Return a compile command based on the specified args
+builder.compile_cmd = function( self, args )
+  return self:_generic_cmd( args )
+end
+
+-- Return an assembler command based on the specified args
+builder.asm_cmd = function( self, args )
+  args.compiler = args.assembler
+  return self:_generic_cmd( args )
+end
+
+-- Return a link command based on the specified args
+builder.link_cmd = function( self, args )
+  local flags = table_to_string( utils.linearize_array( args.flags ) )
+  local libraries = table_to_string( utils.linearize_array( args.libraries ) )
+  local linkcmd = args.linker or "gcc"
+  linkcmd = linkcmd .. " " .. flags .. " -o $(TARGET) $(DEPENDS)"
+  linkcmd = linkcmd .. " " .. utils.prepend_string( libraries, "-l" )
+  return linkcmd
+end
+
+---------------------------------------
+-- Target handling
+
 -- Create a return a new C to object target
 builder.c_target = function( self, target, deps, comp_cmd )
-  return _target.new( target, deps, comp_cmd or self.comp_cmd )
+  return _target.new( target, deps, comp_cmd or self.comp_cmd, self.clean_mode )
+end
+
+-- Create a return a new ASM to object target
+builder.asm_target = function( self, target, deps, asm_cmd )
+  return _target.new( target, deps, asm_cmd or self.asm_cmd, self.clean_mode )
 end
 
 -- Return the name of a dependency file name corresponding to a C source
@@ -315,7 +601,7 @@ end
 -- Create a return a new C dependency target
 builder.dep_target = function( self, dep, depdeps, dep_cmd )
   local depname = self:get_dep_filename( dep )
-  return _target.new( depname, depdeps, dep_cmd or self.dep_cmd )
+  return _target.new( depname, depdeps, dep_cmd, self.clean_mode )
 end
 
 -- Create and return a new link target
@@ -323,47 +609,12 @@ builder.link_target = function( self, out, dep, link_cmd )
   if not out:find( "%." ) and self.exe_extension and #self.exe_extension > 0 then
     out = out .. self.exe_extension
   end
-  return _target.new( out, dep, link_cmd or self.link_cmd )
+  return _target.new( out, dep, link_cmd or self.link_cmd, self.clean_mode )
 end
 
 -- Create and return a new generic target
 builder.target = function( self, dest_target, deps, cmd )
-  return _target.new( dest_target, deps, cmd )
-end
-
--- Internal helper
-builder._generic_cmd = function( self, args )
-  local compcmd = args.compiler or "gcc"
-  compcmd = compcmd .. " "
-  local flags = table_to_string( args.flags )
-  local defines = table_to_string( args.defines )
-  local includes = table_to_string( args.includes )
-  local comptype = table_to_string( args.comptype ) or "-c"
-  compcmd = compcmd .. utils.prepend_string( defines, "-D" )
-  compcmd = compcmd .. utils.prepend_string( includes, "-I" )
-  return compcmd .. flags .. " " .. comptype .. " -o $(TARGET) $(FIRST)"
-end
-
--- Return a compile command based on the specified args
-
-builder.compile_cmd = function( self, args )
-  return self:_generic_cmd( args )
-end
-
--- Return a dependency generation command based on the specified args
-builder.dep_cmd = function( self, args )
-  args.comptype = "-E -MM"
-  return self:_generic_cmd( args )
-end
-
--- Return a link command based on the specified args
-builder.link_cmd = function( self, args )
-  local flags = table_to_string( args.flags )
-  local libraries = table_to_string( args.libraries )
-  local linkcmd = args.linker or "gcc"
-  linkcmd = linkcmd .. " " .. flags .. " -o $(TARGET) $(DEPENDS)"
-  linkcmd = linkcmd .. utils.prepend_string( libraries, "-l" )
-  return linkcmd
+  return _target.new( dest_target, deps, cmd, self.clean_mode )
 end
 
 -- Return the object name corresponding to a source file name
@@ -387,12 +638,6 @@ builder.obj_name = function( self, name )
   end
 end
 
--- Helper: remove the target (used in clean mode)
-builder._clean = function( target, deps )
-  print( "Removing " .. target )
-  os.remove( target )
-end
-
 -- Read and interpret dependencies for each file specified in "ftable"
 -- "ftable" is either a space-separated string with all the source files or an array
 builder.read_depends = function( self, ftable )
@@ -414,20 +659,22 @@ end
 
 -- Build and interpret dependencies for the given source files
 -- "flable" is either a space-separated string with all the source files or an array
-builder.make_depends = function( self, ftable )
+builder.make_depends = function( self, ftable, deptargets )
   if type( ftable ) == 'string' then ftable = utils.string_to_table( ftable )end
+  self:_create_outdir()
 
   -- Start with initial dependency data (this might be nil when generated initially)
   local initdep = self:read_depends( ftable )
 
   -- Build dependencies for all targets
-  local deptargets = {}
+  deptargets = deptargets or {}
   for i = 1, #ftable do
-    local target = self:dep_target( ftable[ i ], initdep[ ftable[ i ] ], self.clean_mode and builder._clean or nil )
-    target:force_rebuild( self.clean_mode )
+    local isasm = ftable[ i ]:find( "%.c$" ) == nil
+    local cmd = isasm and self.asm_cmd or self.comp_cmd
+    local target = self:dep_target( ftable[ i ], initdep[ ftable[ i ] ], cmd:gsub( "-c ", "-E -MM " ) )
     table.insert( deptargets, target )
   end
-  local t = builder:target( "#phony.deps", deptargets )
+  local t = self:target( "#phony:deps", deptargets )
   t:build()
   if self.clean_mode then return end
 
@@ -435,7 +682,7 @@ builder.make_depends = function( self, ftable )
   self.dtable = self:read_depends( ftable )
 end
 
--- Create compile targets for the given sources
+-- Create and return compile targets for the given sources
 builder.create_compile_targets = function( self, ftable, res )
   if not self.dtable then
     if not self.clean_mode then
@@ -447,29 +694,67 @@ builder.create_compile_targets = function( self, ftable, res )
   if type( ftable ) == 'string' then
     ftable = utils.string_to_table( ftable )
   end
-
   -- Build dependencies for all targets
   for i = 1, #ftable do
-    local target = self:c_target( self:obj_name( ftable[ i ] ), self.dtable and self.dtable[ ftable[ i ] ], self.clean_mode and builder._clean or nil )
-    target:force_rebuild( self.clean_mode )
+    local target 
+    if ftable[ i ]:find( "%.c$" ) then
+      target = self:c_target( self:obj_name( ftable[ i ] ), self.dtable and self.dtable[ ftable[ i ] ] )
+    else
+      target = self:asm_target( self:obj_name( ftable[ i ] ), self.dtable and self.dtable[ ftable[ i ] ] )
+    end
     table.insert( res, target )
   end
-
   return res
 end
 
--- Build the specified target starting from the given deps
--- This links in regular mode and cleans in clean mode
-builder.build_c_target = function( self, out, odeps )
-  local t = self:link_target( out, odeps, self.clean_mode and builder._clean or nil )
-  t:force_rebuild( self.clean_mode )
-  t:build()
+-- Add a target to the list of builder targets
+builder.add_target = function( self, target, alias )
+  self.targets[ target.target ] = target
+  alias = alias or {}
+  for _, v in ipairs( alias ) do
+    self.targets[ v ] = target
+  end
+  return target
+end
+
+-- Make a target the default one
+builder.default = function( self, target, alias )
+  self:add_target( target, alias )
+  self.deftarget = target.target
+end
+
+-- Build everything
+builder.build = function( self, target )
+  local t = self.targetname or self.deftarget
+  if not t then
+    print( "Error: build target not specified" )
+    os.exit( 1 )
+  end
+  if not self.targets[ t ] then
+    print( sf( "Error: target '%s' not found", t ) )
+    os.exit( 1 )
+  end
+  self:_create_outdir()
+  local res = self.targets[ t ]:build()
+  if not res then print( sf( '%s: up to date', t ) ) end
+  print "Done building targets."
+  return res
+end
+
+
+-- Create dependencies, create object files, link final object
+builder.make_exe_target = function( self, target, file_list )
+  self:make_depends( file_list )
+  local odeps = self:create_compile_targets( file_list )
+  local exetarget = self:link_target( target, odeps )
+  self:default( self:add_target( exetarget ) )
+  return exetarget
 end
 
 -------------------------------------------------------------------------------
 -- Other exported functions
 
-function new_builder( build_dir, comp_cmd, dep_cmd, link_cmd )
-  return builder.new( build_dir, comp_cmd, dep_cmd, link_cmd )
+function new_builder( build_dir )
+  return builder.new( build_dir )
 end
 
