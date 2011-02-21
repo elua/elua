@@ -41,6 +41,30 @@ tools.stm32.progfunc = function( target, deps )
   return 0
 end
 
+-- Image burn function (stm32ld)
+-- args[1]: COM port name
+local function burnfunc( target, deps, args )
+  if type( args ) ~= "table" or #args == 0 then
+    print "Error: stm32ld needs the port name, specify it as a target argument"
+    return -1
+  end
+  print "Burning image to target ..."
+  local cmd = sf( 'stm32ld %s 115200 %s', args[ 1 ], output .. ".bin" )
+  local res = os.execute( cmd )
+  return res == 0 and 0 or -1
+end
+
+-- Add a 'burn' target before the build starts
+tools.stm32.pre_build = function()
+  local burntarget = builder:target( "#phony:burn", { progtarget }, burnfunc )
+  burntarget:force_rebuild( true )
+  burntarget:set_target_args( builder:get_target_args() )
+  builder:add_target( burntarget, "burn image to board using stm32ld (use COM port name as argument)", { "burn" } )
+end
+
+-- Array of file names that will be checked against the 'prog' target; their absence will force a rebuild
+tools.stm32.prog_flist = { output .. ".bin", output .. ".hex" }
+
 -- We use 'gcc' as the assembler
 toolset.asm = toolset.compile
 

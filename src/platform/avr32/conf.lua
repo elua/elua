@@ -41,9 +41,6 @@ tools.avr32.progfunc = function( target, deps )
   print "Generating binary image..."
   os.execute( sf( "%s -O ihex %s %s.hex", toolset.bin, outname, output ) )
   return 0
-
-  -- print "Programming..."
-  -- os.system( "batchisp -hardware usb -device %s -operation erase f memory flash blankcheck loadbuffer %s program verify start reset 0" % ( comp[ 'cpu' ].lower(), output + ".hex" ) )
 end
 
 -- Image burn function (DFU)
@@ -54,20 +51,17 @@ local function burnfunc( target, deps )
   local res
   if utils.is_windows() then -- use batchisp in Windows
     res = os.execute( sf( "batchisp -hardware usb -device %s -operation erase f memory flash blankcheck loadbuffer %s program verify start reset 0", comp.cpu:lower(), fname ) )
-  else -- use "dfu-programmer" in Windows
+  else -- use "dfu-programmer" if not running in Windows
     res = utils.check_command( "dfu-programmer at32uc3a0512 version" )
     if res ~= 0 then
       print "Cannot find 'dfu-programmer', install it first"
       return -1
     end
     local basecmd = "dfu-programmer " .. comp.cpu:lower()
-    print( basecmd .. " erase" )
     res = os.execute( basecmd .. " erase" )
     if res == 0 then
-      print( basecmd .. " flash " .. fname )
       res = os.execute( basecmd .. " flash " .. fname )
       if res == 0 then
-        print( basecmd .. " start" )
         os.execute( basecmd .. " start" )
       end
     end
@@ -81,6 +75,9 @@ tools.avr32.pre_build = function()
   burntarget:force_rebuild( true )
   builder:add_target( burntarget, "burn image to AVR32 board using the DFU bootloader", { "burn" } )
 end
+
+-- Array of file names that will be checked against the 'prog' target; their absence will force a rebuild
+tools.avr32.prog_flist = { output .. ".hex" }
 
 -- We use 'gcc' as the assembler
 toolset.asm = toolset.compile

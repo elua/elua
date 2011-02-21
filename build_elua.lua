@@ -526,6 +526,7 @@ builder:default( builder:add_target( exetarget, 'build eLua executable' ) )
 -- Create 'prog' target
 progtarget = builder:target( "#phony:prog", { exetarget }, tools[ platform ].progfunc )
 builder:add_target( progtarget, "build eLua firmware image", { "prog" } )
+progtarget:set_explicit_deps( tools[ platform ].prog_flist )
 
 -- If the backend needs to do more processing before the build starts, do it now
 if tools[ platform ].pre_build then

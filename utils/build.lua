@@ -239,6 +239,11 @@ _target.force_rebuild = function( self, flag )
   self._force_rebuild = flag
 end
 
+-- Set additional arguments to send to the builder function if it is a callable
+_target.set_target_args = function( self, args )
+  self._target_args = args
+end
+
 -- Function to execute in clean mode
 _target._cleaner = function( target, deps )
   if is_phony( target ) then return 0 end
@@ -254,6 +259,12 @@ end
 -- Build the given target
 _target.build = function( self )
   local docmd = self:target_name() and lfs.attributes( self:target_name(), "mode" ) ~= "file"
+  -- Check explicit dependencies
+  if type( self._explicit_deps ) == "table" then
+    for _, v in pairs( self._explicit_deps ) do
+      if not utils.is_file( v ) then docmd = true end
+    end
+  end
   local depends, dep = '', self.dep
   -- Iterate through all dependencies, execute each one in turn
   for i = 1, #dep do
@@ -274,7 +285,7 @@ _target.build = function( self )
       print( cmd )
       code = os.execute( cmd )   
     else
-      code = cmd( self.target, self.dep )
+      code = cmd( self.target, self.dep, self._target_args )
       if code == 1 then -- this means 'mark target as 'not executed'
         keep_flag = false
         code = 0
@@ -288,8 +299,15 @@ _target.build = function( self )
   return docmd and keep_flag
 end
 
+-- Return the actual target name (taking into account phony targets)
 _target.target_name = function( self )
   return get_target_name( self.target )
+end
+
+-- Set 'explicit dependencies' for this target
+-- The target will rebuild itself if these don't exist
+_target.set_explicit_deps = function( self, deps )
+  self._explicit_deps = deps
 end
 
 -------------------------------------------------------------------------------
@@ -312,6 +330,7 @@ builder.new = function( build_dir )
   self.args = {}
   self.build_mode = self.KEEP_DIR
   self.targets = {}
+  self.targetargs = {}
   return self
 end
 
@@ -468,12 +487,12 @@ builder.init = function( self, args )
         os.exit( 1 )
       end
       self.args[ k:upper() ] = optv
-    else                                        -- this must be the target name
-      if self.targetname ~= nil then            
-        print( sf( "Invalid option '%s'", a ) )
-        os.exit( 1 )
+    else                                        -- this must be the target name / target arguments
+      if self.targetname == nil then            
+        self.targetname = a
+      else
+        table.insert( self.targetargs, a )
       end
-      self.targetname = a
     end
   end
   -- Read back the default options
@@ -548,6 +567,11 @@ builder.set_output_dir = function( self, dir )
   end
   self.build_dir = dir
   self:_create_outdir()
+end
+
+-- Return the target arguments
+builder.get_target_args = function( self )
+  return self.targetargs
 end
 
 ---------------------------------------
