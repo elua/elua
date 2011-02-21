@@ -76,9 +76,9 @@ function mkfs( dirname, outname, flist, mode, compcmd )
           return false
         end
         -- Do we need to process the file?
-        local fextpart = ''
+        local fextpart, fnamepart = ''
         if mode == "compile" or mode == "compress" then
-          local fnamepart, fextpart = utils.split_path( realname )
+          fnamepart, fextpart = utils.split_path( realname )
           local newext = mode == "compress" and ".lua.tmp" or ".lc"
           if fextpart == ".lua" then
             newname = fnamepart .. newext
@@ -94,7 +94,7 @@ function mkfs( dirname, outname, flist, mode, compcmd )
               return false
             end
             crtfile:close()
-            crtile = io.open( newname, "rb" )
+            crtfile = io.open( newname, "rb" )
             if not crtfile then
               outfile:close()
               os.remove( outfname )
@@ -103,7 +103,7 @@ function mkfs( dirname, outname, flist, mode, compcmd )
             end
             if mode == "compile" then
               fnamepart, fextpart = utils.split_path( fname )
-              fname = fnamepart + ".lc"
+              fname = fnamepart .. ".lc"
             end
           end
         end
@@ -118,8 +118,8 @@ function mkfs( dirname, outname, flist, mode, compcmd )
         end
         _add_data( 0, outfile ) -- ASCIIZ
         local plen = string.pack( "<h", #filedata )
-        _add_data( plen[ 1 ], outfile )
-        _add_data( plen[ 2 ], outfile )
+        _add_data( plen:byte( 1 ), outfile )
+        _add_data( plen:byte( 2 ), outfile )
         -- Then write the rest of the file
         for i = 1, #filedata do
           _add_data( filedata:byte( i ), outfile )
