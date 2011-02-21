@@ -171,6 +171,13 @@ utils.get_files = function( path, mask )
   return t
 end
 
+-- Check if the given command can be executed properly
+utils.check_command = function( cmd )
+  local res = os.execute( cmd .. " > .build.temp 2>&1" )
+  os.remove( ".build.temp" )
+  return res
+end
+
 -------------------------------------------------------------------------------
 -- Dummy 'builder': simply checks the date of a file
 
@@ -708,19 +715,19 @@ builder.create_compile_targets = function( self, ftable, res )
 end
 
 -- Add a target to the list of builder targets
-builder.add_target = function( self, target, alias )
-  self.targets[ target.target ] = target
+builder.add_target = function( self, target, help, alias )
+  self.targets[ target.target ] = { target = target, help = help }
   alias = alias or {}
   for _, v in ipairs( alias ) do
-    self.targets[ v ] = target
+    self.targets[ v ] = { target = target, help = help }
   end
   return target
 end
 
 -- Make a target the default one
-builder.default = function( self, target, alias )
-  self:add_target( target, alias )
+builder.default = function( self, target )
   self.deftarget = target.target
+  self.targets.default = { target = target, help = "default target" }
 end
 
 -- Build everything
@@ -732,10 +739,19 @@ builder.build = function( self, target )
   end
   if not self.targets[ t ] then
     print( sf( "Error: target '%s' not found", t ) )
+    print( "Available targets: " )
+    for k, v in pairs( self.targets ) do
+      if not is_phony( k ) then 
+        print( sf( "  %s - %s", k, v.help or "(no help available)" ) )
+      end
+    end
+    if self.deftarget and not is_phony( self.deftarget ) then
+      print( sf( "Default target is '%s'", self.deftarget ) )
+    end
     os.exit( 1 )
   end
   self:_create_outdir()
-  local res = self.targets[ t ]:build()
+  local res = self.targets[ t ].target:build()
   if not res then print( sf( '%s: up to date', t ) ) end
   print "Done building targets."
   return res

@@ -331,10 +331,9 @@ else
   for i = 1, #usable_chains do
     local c = usable_chains[ i ]
     local t = toolchain_list[ c ]
-    local res = os.execute( t.compile .. " " .. t.version .. " > .build.temp 2>&1" )
+    local res = utils.check_command( t.compile .. " " .. t.version )
     if res == 0 then chain = c break end
   end
-  os.remove( ".build.temp" )
   if chain then
     comp.toolchain = chain
     comp.CC = toolchain_list[ chain ].compile
@@ -507,25 +506,31 @@ local function make_romfs()
   return 0
 end
 
-local compcmd = builder:compile_cmd{ flags = cflags, defines = cdefs, includes = includes, compiler = toolset.compile }
-local linkcmd = builder:link_cmd{ flags = lflags, libraries = libs, linker = toolset.compile }
-local ascmd = builder:asm_cmd{ flags = asflags, defines = cdefs, includes = includes, assembler = toolset.asm }
+-- Command lines for the tools (compiler, linker, assembler)
+compcmd = builder:compile_cmd{ flags = cflags, defines = cdefs, includes = includes, compiler = toolset.compile }
+linkcmd = builder:link_cmd{ flags = lflags, libraries = libs, linker = toolset.compile }
+ascmd = builder:asm_cmd{ flags = asflags, defines = cdefs, includes = includes, assembler = toolset.asm }
 builder:set_compile_cmd( compcmd )
 builder:set_link_cmd( linkcmd )
 builder:set_asm_cmd( ascmd )
 builder:set_exe_extension( ".elf" )
 
 -- Create executable target 
-local romtarget = builder:target( "inc/romfiles.h", nil, make_romfs )
+romtarget = builder:target( "inc/romfiles.h", nil, make_romfs )
 builder:make_depends( source_files, { romtarget } )
-local odeps = builder:create_compile_targets( source_files )
-local exetarget = builder:link_target( output, odeps )
+odeps = builder:create_compile_targets( source_files )
+exetarget = builder:link_target( output, odeps )
 -- This is also the default target
-builder:default( builder:add_target( exetarget ) )
+builder:default( builder:add_target( exetarget, 'build eLua executable' ) )
 
 -- Create 'prog' target
-local progtarget = builder:target( "#phony:prog", { exetarget }, tools[ platform ].progfunc )
-builder:add_target( progtarget, { "prog" } )
+progtarget = builder:target( "#phony:prog", { exetarget }, tools[ platform ].progfunc )
+builder:add_target( progtarget, "build eLua firmware image", { "prog" } )
+
+-- If the backend needs to do more processing before the build starts, do it now
+if tools[ platform ].pre_build then
+  tools[ platform ].pre_build()
+end
 
 -- Finally build everything
 builder:build()
