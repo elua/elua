@@ -107,7 +107,7 @@
 // #define PIO_PINS_PER_PORT (n) if each port has the same number of pins, or
 // #define PIO_PIN_ARRAY { n1, n2, ... } to define pins per port in an array
 // Use #define PIO_PINS_PER_PORT 0 if this isn't needed
-#define PIO_PIN_ARRAY         { 31, 11 }
+#define PIO_PIN_ARRAY         { 32, 12 }
 
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)

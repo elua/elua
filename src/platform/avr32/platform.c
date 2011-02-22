@@ -181,33 +181,6 @@ int platform_init()
 // ****************************************************************************
 // PIO functions
 
-/* Note about AVR32 GPIO
-PIOs on AVR32 are a weird deal. They aren't really organized in ports, but 
-rather they are numbered from 0 to a maximum number (which also give the total
-number of GPIOs in the system) then you do operations on that pin number. 
-We need to organize this in ports though, so here's our organization:
-PA: 31 bits, direct mapping to AVR GPIO0 ... GPIO30
-PB: 32 bits, direct mapping to AVR GPIO32 ... GPIO63
-PC: 6 bits, direct mapping to AVR GPIO64 ... GPIO69
-PX: this is where all hell breaks loose. PX seems to be a quite random mapping
-between the rest of the GPIOs and some "port" that has 40 bits and a very 
-imaginative mapping to the GPIOs (PX0 is GPIO100, PX1 is GPIO99, PX2 is GPIO98 ...
-and PX11 is GPIO109, just to give a few examples). So let's make some sense out of
-this. We define two pseudo ports: a 32 bits one (GPIO70-GPIO101) and an 8 bits one 
-(GPIO102-GPIO109).
-PD: 32 bits, GPIO70-GPIO101
-PE:  8 bits, GPIO102-GPIO109
-(note that GPIO32 doesn't seem to exist at all in the system).
-Beceause these are pseudo-ports, operations on them will be slower than operation
-on the hardware ports (PA, PB, PC).
-*/
-
-// Port data
-#define PA            0
-#define PB            1
-#define PC            2
-#define PD            3
-#define PE            4
 // Reg types for our helper function
 #define PIO_REG_PVR   0
 #define PIO_REG_OVR   1
@@ -242,32 +215,9 @@ static volatile unsigned long* platform_pio_get_port_reg_addr( unsigned port, in
 // Helper function: get port value, get direction, get pullup, ...
 static pio_type platform_pio_get_port_reg( unsigned port, int reg )
 {
-  pio_type v;
   volatile unsigned long *pv = platform_pio_get_port_reg_addr( port, reg );
   
-  switch( port )
-  {
-    case PA:   // PA - 31 bits
-      return *pv & 0x7FFFFFFF;
-      
-    case PB:   // PB - 32 bits
-      return *pv;
-      
-    case PC:   // PC - 6 bits
-      return *pv & 0x3F;      
-      
-    case PD:   // PD - pseudo port (70-101, has 26 bits on P2 and 6 bits on P3)
-      pv = platform_pio_get_port_reg_addr( 2, reg );
-      v = ( *pv & 0xFFFFFFC0 ) >> 6;
-      pv = platform_pio_get_port_reg_addr( 3, reg );
-      return ( ( *pv & 0x3F ) << 26 ) | v;
-      
-    case PE:   // PE - pseudo port (102-109, 8 bits on P3)
-      pv = platform_pio_get_port_reg_addr( 3, reg );
-      return ( *pv & 0x3FC0 ) >> 6;
-  }
-  // Will never get here
-  return 0;
+  return *pv;
 }
 
 // Helper function: set port value, set direction, set pullup ...
@@ -275,32 +225,7 @@ static void platform_pio_set_port_reg( unsigned port, pio_type val, int reg )
 {
   volatile unsigned long *pv = platform_pio_get_port_reg_addr( port, reg );
     
-  switch( port )
-  {
-    case PA:   // PA - 31 bits
-      *pv = val & 0x7FFFFFFF;
-      break;
-            
-    case PB:   // PB - 32 bits
-      *pv = val;
-      break;
-      
-    case PC:   // PC - 6 bits
-      *pv = ( *pv & ~0x3F ) | ( val & 0x3F );
-      break;
-      
-    case PD:  // PD - pseudo port (70-101, has 26 bits on P2 and 6 bits on P3)
-      pv = platform_pio_get_port_reg_addr( 2, reg );
-      *pv = ( *pv & ~0xFFFFFFC0 ) | ( val << 6 );
-      pv = platform_pio_get_port_reg_addr( 3, reg );
-      *pv = ( *pv & ~0x3F ) | ( val >> 26 );
-      break;
-    
-    case PE:  // PE - pseudo port (102-109, 8 bits on P3)
-      pv = platform_pio_get_port_reg_addr( 3, reg );
-      *pv = ( *pv & ~0x3FC0 ) | ( ( val & 0xFF ) << 6 );   
-      break;
-  }
+  *pv = val;
 }
 
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )

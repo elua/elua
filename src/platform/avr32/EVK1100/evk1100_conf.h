@@ -88,7 +88,7 @@
 #define VTMR_FREQ_HZ          4
 
 // Number of resources (0 if not available/not implemented)
-#define NUM_PIO               5
+#define NUM_PIO               4
 #define NUM_SPI               8
 #define NUM_UART              4
 #if VTMR_NUM_TIMERS > 0
@@ -125,7 +125,7 @@
 // #define PIO_PINS_PER_PORT (n) if each port has the same number of pins, or
 // #define PIO_PIN_ARRAY { n1, n2, ... } to define pins per port in an array
 // Use #define PIO_PINS_PER_PORT 0 if this isn't needed
-#define PIO_PIN_ARRAY         { 31, 32, 6, 32, 8 }
+#define PIO_PIN_ARRAY         { 31, 32, 32, 14 }
 
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)
