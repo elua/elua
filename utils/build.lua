@@ -244,23 +244,27 @@ _target.set_target_args = function( self, args )
 end
 
 -- Function to execute in clean mode
-_target._cleaner = function( target, deps )
-  if is_phony( target ) then return 0 end
-  io.write( sf( "Removing %s ... ", target ) )
-  if os.remove( target ) then
-    print "done."
-  else
-    print "failed!"
+_target._cleaner = function( target, deps, dummy, explicit_targets )
+  local cleaner = function( fname )
+    io.write( sf( "Removing %s ... ", fname ) )
+    if os.remove( fname ) then print "done." else print "failed!" end
+    end
+  -- Clean explicit targets
+  if type( explicit_targets ) == "table" then
+    for _, v in pairs( explicit_targets ) do cleaner( v ) end
   end
+  -- Clean the main target if it is not a phony target
+  if is_phony( target ) then return 0 end
+  cleaner( target )
   return 0
 end
 
 -- Build the given target
 _target.build = function( self )
   local docmd = self:target_name() and lfs.attributes( self:target_name(), "mode" ) ~= "file"
-  -- Check explicit dependencies
-  if type( self._explicit_deps ) == "table" then
-    for _, v in pairs( self._explicit_deps ) do
+  -- Check explicit targets
+  if type( self._explicit_targets ) == "table" then
+    for _, v in pairs( self._explicit_targets ) do
       if not utils.is_file( v ) then docmd = true end
     end
   end
@@ -284,7 +288,7 @@ _target.build = function( self )
       print( cmd )
       code = os.execute( cmd )   
     else
-      code = cmd( self.target, self.dep, self._target_args )
+      code = cmd( self.target, self.dep, self._target_args, self._explicit_targets )
       if code == 1 then -- this means 'mark target as 'not executed'
         keep_flag = false
         code = 0
@@ -303,10 +307,10 @@ _target.target_name = function( self )
   return get_target_name( self.target )
 end
 
--- Set 'explicit dependencies' for this target
+-- Set 'explicit targets'
 -- The target will rebuild itself if these don't exist
-_target.set_explicit_deps = function( self, deps )
-  self._explicit_deps = deps
+_target.set_explicit_targets = function( self, targets )
+  self._explicit_targets = targets
 end
 
 -------------------------------------------------------------------------------
@@ -579,6 +583,12 @@ builder.set_asm_dep_cmd = function( self, asm_dep_cmd )
   self.asm_dep_cmd = asm_dep_cmd
 end
 
+-- Set a specific dependency generation command for the compiler
+-- Pass 'false' to skip dependency generation for C files
+builder.set_c_dep_cmd = function( self, c_dep_cmd )
+  self.c_dep_cmd = c_dep_cmd
+end
+
 ---------------------------------------
 -- Command line builders
 
@@ -707,10 +717,14 @@ builder.make_depends = function( self, ftable, deptargets )
   for i = 1, #ftable do
     local isasm = ftable[ i ]:find( "%.c$" ) == nil
     -- Skip assembler targets if 'asm_dep_cmd' is set to 'false'
-    if not isasm or self.asm_dep_cmd ~= false then
+    -- Skip C targets if 'c_dep_cmd' is set to 'false'
+    local skip = isasm and self.asm_dep_cmd == false
+    skip = skip or ( not isasm and self.c_dep_cmd == false )
+    if not skip then
       local cmd = isasm and self.asm_cmd or self.comp_cmd
       local depcmd = cmd:gsub( "-c ", "-E -MM " )
       if isasm and self.asm_dep_cmd then depcmd = self.asm_dep_cmd end
+      if not isasm and self.c_dep_cmd then depcmd = self.c_dep_cmd end
       local target = self:dep_target( ftable[ i ], initdep[ ftable[ i ] ], depcmd )
       table.insert( deptargets, target )
     end

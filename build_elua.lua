@@ -358,7 +358,7 @@ end
 
 -- CPU/allocator mapping (if allocator not specified)
 if comp.allocator == 'auto' then
-  if utils.array_element_index( comp.board:upper(), { 'LPC-H2888', 'ATEVK1100', 'MBED' } ) then
+  if utils.array_element_index( { 'LPC-H2888', 'ATEVK1100', 'MBED' }, comp.board:upper() ) then
     comp.allocator = 'multiple'
   else
     comp.allocator = 'newlib'
@@ -535,7 +535,7 @@ builder:default( builder:add_target( exetarget, 'build eLua executable' ) )
 -- Create 'prog' target
 progtarget = builder:target( "#phony:prog", { exetarget }, tools[ platform ].progfunc )
 builder:add_target( progtarget, "build eLua firmware image", { "prog" } )
-progtarget:set_explicit_deps( tools[ platform ].prog_flist )
+progtarget:set_explicit_targets( tools[ platform ].prog_flist )
 
 -- If the backend needs to do more processing before the build starts, do it now
 if tools[ platform ].pre_build then
