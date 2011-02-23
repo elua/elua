@@ -46,6 +46,46 @@ local function table_to_string( t )
   return t
 end
 
+---------------------------------------
+-- Table utils 
+-- (from http://lua-users.org/wiki/TableUtils)
+
+function table.val_to_str( v )
+  if "string" == type( v ) then
+    v = string.gsub( v, "\n", "\\n" )
+    if string.match( string.gsub(v,"[^'\"]",""), '^"+$' ) then
+      return "'" .. v .. "'"
+    end
+    return '"' .. string.gsub(v,'"', '\\"' ) .. '"'
+  else
+    return "table" == type( v ) and table.tostring( v ) or tostring( v )
+  end
+end
+
+function table.key_to_str ( k )
+  if "string" == type( k ) and string.match( k, "^[_%a][_%a%d]*$" ) then
+    return k
+  else
+    return "[" .. table.val_to_str( k ) .. "]"
+  end
+end
+
+function table.tostring( tbl )
+  local result, done = {}, {}
+  for k, v in ipairs( tbl ) do
+    table.insert( result, table.val_to_str( v ) )
+    done[ k ] = true
+  end
+  for k, v in pairs( tbl ) do
+    if not done[ k ] then
+      table.insert( result,
+        table.key_to_str( k ) .. "=" .. table.val_to_str( v ) )
+    end
+  end
+  return "{" .. table.concat( result, "," ) .. "}"
+end
+
+
 -------------------------------------------------------------------------------
 -- Public utilities
 
@@ -93,9 +133,7 @@ utils.prepend_string = function( s, prefix, pat )
   pat = pat or ' '
   local res = ''
   local st = utils.string_to_table( s, pat )
-  for i = 1, #st do
-    res = res .. prefix .. st[ i ] .. " "
-  end
+  utils.foreach( st, function( k, v ) res = res .. prefix .. v .. " " end )
   return res
 end
 
@@ -149,7 +187,7 @@ end
 -- Return an array with the keys of a table
 utils.table_keys = function( t )
   local keys = {}
-  for k, _ in pairs( t ) do table.insert( keys, k ) end
+  utils.foreach( t, function( k, v ) table.insert( keys, k ) end )
   return keys
 end
 
@@ -175,6 +213,12 @@ utils.check_command = function( cmd )
   local res = os.execute( cmd .. " > .build.temp 2>&1" )
   os.remove( ".build.temp" )
   return res
+end
+
+-- Execute the given command for each value in a table
+utils.foreach = function ( t, cmd )
+  if type( t ) ~= "table" then return end
+  for k, v in pairs( t ) do cmd( k, v ) end
 end
 
 -------------------------------------------------------------------------------
@@ -209,7 +253,7 @@ end
 
 local _target = {}
 
-_target.new = function( target, dep, command, isclean )
+_target.new = function( target, dep, command, builder )
   local self = {}
   setmetatable( self, { __index = _target } )
   self.target = target
@@ -228,8 +272,7 @@ _target.new = function( target, dep, command, isclean )
   end
   self.dep = dep
   self._force_rebuild = #dep == 0
-  self._clean_mode = isclean
-  if isclean then self.command = _target._cleaner end
+  self.builder = builder
   return self
 end
 
@@ -246,16 +289,13 @@ end
 -- Function to execute in clean mode
 _target._cleaner = function( target, deps, dummy, explicit_targets )
   local cleaner = function( fname )
-    io.write( sf( "Removing %s ... ", fname ) )
+    io.write( sf( "[builder] Removing %s ... ", fname ) )
     if os.remove( fname ) then print "done." else print "failed!" end
     end
   -- Clean explicit targets
-  if type( explicit_targets ) == "table" then
-    for _, v in pairs( explicit_targets ) do cleaner( v ) end
-  end
+  utils.foreach( explicit_targets, function( k, v ) cleaner( v ) end )
   -- Clean the main target if it is not a phony target
-  if is_phony( target ) then return 0 end
-  cleaner( target )
+  if not is_phony( target ) then cleaner( target ) end
   return 0
 end
 
@@ -264,9 +304,7 @@ _target.build = function( self )
   local docmd = self:target_name() and lfs.attributes( self:target_name(), "mode" ) ~= "file"
   -- Check explicit targets
   if type( self._explicit_targets ) == "table" then
-    for _, v in pairs( self._explicit_targets ) do
-      if not utils.is_file( v ) then docmd = true end
-    end
+    utils.foreach( self._explicit_targets, function( k, v ) if not utils.is_file( v ) then docmd = true end end )
   end
   local depends, dep = '', self.dep
   -- Iterate through all dependencies, execute each one in turn
@@ -277,10 +315,11 @@ _target.build = function( self )
     if t then depends = depends .. t .. " " end
   end
   -- If at least one dependency is new rebuild the target
-  docmd = docmd or self._force_rebuild or self._clean_mode
+  docmd = docmd or self._force_rebuild or self.builder.clean_mode
   local keep_flag = true
   if docmd and self.command then
     local cmd, code = self.command
+    if self.builder.clean_mode then cmd = _target._cleaner end
     if type( cmd ) == 'string' then
       cmd = expand_key( cmd, "TARGET", self.target )
       cmd = expand_key( cmd, "DEPENDS", depends )
@@ -289,13 +328,13 @@ _target.build = function( self )
       code = os.execute( cmd )   
     else
       code = cmd( self.target, self.dep, self._target_args, self._explicit_targets )
-      if code == 1 then -- this means 'mark target as 'not executed'
+      if code == 1 then -- this means "mark target as 'not executed'"
         keep_flag = false
         code = 0
       end
     end
     if code ~= 0 then 
-      print( "Error building target" )
+      print( "[builder] Error building target" )
       os.exit( 1 ) 
     end
   end
@@ -334,6 +373,8 @@ builder.new = function( build_dir )
   self.build_mode = self.KEEP_DIR
   self.targets = {}
   self.targetargs = {}
+  -- 'State fields' are used to check if a change in different fields should force a rebuild
+  self.state_fields = { 'link_cmd', 'comp_cmd', 'asm_cmd', 'asm_dep_cmd', 'c_dep_cmd', 'obj_extension' }
   return self
 end
 
@@ -409,7 +450,7 @@ builder._add_option = function( self, optname, opttype, help, default, data )
     boolean = builder._bool_printer, choice_map = builder._choice_map_printer
   }
   if not validators[ opttype ] then
-    print( sf( "Invalid option type '%s'", opttype ) )
+    print( sf( "[builder] Invalid option type '%s'", opttype ) )
     os.exit( 1 )
   end
   table.insert( self.options, { name = optname, help = help, validator = validators[ opttype ], printer = printers[ opttype ], data = data, default = default } )
@@ -430,7 +471,7 @@ builder._create_outdir = function( self )
   local mode = lfs.attributes( self.build_dir, "mode" )
   if not mode or mode ~= "directory" then
     if not utils.full_mkdir( self.build_dir ) then
-      print( "Unable to create directory " .. self.build_dir )
+      print( "[builder] Unable to create directory " .. self.build_dir )
       os.exit( 1 )
     end
   end
@@ -450,7 +491,7 @@ builder.add_option = function( self, name, help, default, data )
   elseif type( default ) == 'string' then
     otype = 'string'
   else
-    print( sf( "Cannot detect option type for '%s'", name ) )
+    print( sf( "[builder] Cannot detect option type for '%s'", name ) )
     os.exit( 1 )
   end
   self:_add_option( name, otype, help, default, data )
@@ -479,13 +520,13 @@ builder.init = function( self, args )
       local si, ei, k, v = a:find( "([^=]+)=(.*)$" )
       local opt = self:_find_option( k )
       if not opt then
-        print( sf( "Invalid option '%s'", k ) )
+        print( sf( "[builder] Invalid option '%s'", k ) )
         self:_show_help()
         os.exit( 1 )
       end
       local optv = opt.validator( v, opt.data )
       if optv == nil then
-        print( sf( "Invalid value '%s' for option '%s'", v, k ) )
+        print( sf( "[builder] Invalid value '%s' for option '%s'", v, k ) )
         self:_show_help()
         os.exit( 1 )
       end
@@ -510,7 +551,7 @@ end
 
 -- Show builder help
 builder._show_help = function( self )
-  print( "Valid options:" )
+  print( "[builder] Valid options:" )
   print( "  -h: help (this text)" )
   print( "  -c: clean target" )
   for i = 1, #self.options do
@@ -565,7 +606,7 @@ end
 -- Set the output directory
 builder.set_output_dir = function( self, dir )
   if self.output_dir_created then
-    print "Error: output directory already created"
+    print "[ builder] Error: output directory already created"
     os.exit( 1 )
   end
   self.build_dir = dir
@@ -587,6 +628,19 @@ end
 -- Pass 'false' to skip dependency generation for C files
 builder.set_c_dep_cmd = function( self, c_dep_cmd )
   self.c_dep_cmd = c_dep_cmd
+end
+
+-- Save the builder configuration to a string
+builder._config_to_string = function( self )
+  local ctable = {}
+  utils.foreach( self.state_fields, function( k, v ) ctable[ v ] = self[ v ] end )
+  return table.tostring( ctable )
+end
+
+-- Load the builder configuration from a string and return it as a table
+builder._config_from_string = function( self, s )
+  local f = loadstring( s )
+  return f and f() 
 end
 
 ---------------------------------------
@@ -631,12 +685,12 @@ end
 
 -- Create a return a new C to object target
 builder.c_target = function( self, target, deps, comp_cmd )
-  return _target.new( target, deps, comp_cmd or self.comp_cmd, self.clean_mode )
+  return _target.new( target, deps, comp_cmd or self.comp_cmd, self )
 end
 
 -- Create a return a new ASM to object target
 builder.asm_target = function( self, target, deps, asm_cmd )
-  return _target.new( target, deps, asm_cmd or self.asm_cmd, self.clean_mode )
+  return _target.new( target, deps, asm_cmd or self.asm_cmd, self )
 end
 
 -- Return the name of a dependency file name corresponding to a C source
@@ -647,7 +701,7 @@ end
 -- Create a return a new C dependency target
 builder.dep_target = function( self, dep, depdeps, dep_cmd )
   local depname = self:get_dep_filename( dep )
-  return _target.new( depname, depdeps, dep_cmd, self.clean_mode )
+  return _target.new( depname, depdeps, dep_cmd, self )
 end
 
 -- Create and return a new link target
@@ -655,12 +709,12 @@ builder.link_target = function( self, out, dep, link_cmd )
   if not out:find( "%." ) and self.exe_extension and #self.exe_extension > 0 then
     out = out .. self.exe_extension
   end
-  return _target.new( out, dep, link_cmd or self.link_cmd, self.clean_mode )
+  return _target.new( out, dep, link_cmd or self.link_cmd, self )
 end
 
 -- Create and return a new generic target
 builder.target = function( self, dest_target, deps, cmd )
-  return _target.new( dest_target, deps, cmd, self.clean_mode )
+  return _target.new( dest_target, deps, cmd, self )
 end
 
 -- Return the object name corresponding to a source file name
@@ -741,7 +795,7 @@ end
 builder.create_compile_targets = function( self, ftable, res )
   if not self.dtable then
     if not self.clean_mode then
-      print "Error: call make_depends before compile_targets"
+      print "[builder] Error: call make_depends before compile_targets"
       os.exit( 1 )
     end
   end
@@ -783,11 +837,11 @@ end
 builder.build = function( self, target )
   local t = self.targetname or self.deftarget
   if not t then
-    print( "Error: build target not specified" )
+    print( "[builder] Error: build target not specified" )
     os.exit( 1 )
   end
   if not self.targets[ t ] then
-    print( sf( "Error: target '%s' not found", t ) )
+    print( sf( "[builder] Error: target '%s' not found", t ) )
     print( "Available targets: " )
     for k, v in pairs( self.targets ) do
       if not is_phony( k ) then 
@@ -800,12 +854,32 @@ builder.build = function( self, target )
     os.exit( 1 )
   end
   self:_create_outdir()
+  -- At this point check if we have a change in the state that would require a rebuild
+  if not self.clean_mode then
+    local fconf = io.open( self.build_dir .. dir_sep .. ".builddata", "rb" )
+    if fconf then
+      local oldstate = fconf:read( "*a" )
+      fconf:close()
+      local crtstate = self:_config_to_string()
+      if oldstate:lower() ~= crtstate:lower() then -- Need to rebuild
+        print "[builder] Forcing clean due to configuration change"
+        self.clean_mode = true
+        self.targets[ t ].target:build()
+        self.clean_mode = false
+      end
+    end
+  end
+  -- Write state to build dir
+  fconf = io.open( self.build_dir .. dir_sep .. ".builddata", "wb" )
+  fconf:write( self:_config_to_string() )
+  fconf:close()
+  -- Do the actual build
   local res = self.targets[ t ].target:build()
-  if not res then print( sf( '%s: up to date', t ) ) end
-  print "Done building targets."
+  if not res then print( sf( '[builder] %s: up to date', t ) ) end
+  if self.clean_mode then os.remove( self.build_dir .. dir_sep .. ".builddata" ) end
+  print "[builder] Done building targets."
   return res
 end
-
 
 -- Create dependencies, create object files, link final object
 builder.make_exe_target = function( self, target, file_list )
