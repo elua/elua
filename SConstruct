@@ -49,6 +49,16 @@ toolchain_list = {
     'cross_lua' : 'float 64',
     'cross_lualong' : 'int 32'
   },
+  'avr32-unknown-none-gcc' : {
+    'compile' : 'avr32-unknown-none-gcc',
+    'link' : 'avr32-unknown-none-ld',
+    'asm' : 'avr32-unknown-none-as',
+    'bin' : 'avr32-unknown-none-objcopy',
+    'size' : 'avr32-unknown-none-size',
+    'cross_cpumode' : 'big',
+    'cross_lua' : 'float 64',
+    'cross_lualong' : 'int 32'
+  },
   'i686-gcc' : { 
     'compile' : 'i686-elf-gcc', 
     'link' : 'i686-elf-ld', 
@@ -76,7 +86,7 @@ platform_list = {
   'lpc288x' : { 'cpus' : [ 'LPC2888' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
   'str7' : { 'cpus' : [ 'STR711FR2' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
   'stm32' : { 'cpus' : [ 'STM32F103ZE', 'STM32F103RE' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
-  'avr32' : { 'cpus' : [ 'AT32UC3A0512', 'AT32UC3A0128', 'AT32UC3B0256' ], 'toolchains' : [ 'avr32-gcc' ] },
+  'avr32' : { 'cpus' : [ 'AT32UC3A0512', 'AT32UC3A0128', 'AT32UC3B0256' ], 'toolchains' : [ 'avr32-gcc', 'avr32-unknown-none-gcc' ] },
   'lpc24xx' : { 'cpus' : [ 'LPC2468' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
   'lpc17xx' : { 'cpus' : [ 'LPC1768' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] }
 }
