@@ -35,15 +35,6 @@ addlf( '-Wl,-e,crt0' )
 -- Toolset data
 tools.avr32 = {}
 
--- Programming function
-tools.avr32.progfunc = function( target, deps )
-  local outname = deps[ 1 ]:target_name()
-  os.execute( sf( "%s %s", toolset.size, outname ) )
-  print "Generating binary image..."
-  os.execute( sf( "%s -O ihex %s %s.hex", toolset.bin, outname, output ) )
-  return 0
-end
-
 -- Image burn function (DFU)
 local function burnfunc( target, deps )
   print "Burning image to target ..."

@@ -31,16 +31,6 @@ addaf( target_flags )
 -- Toolset data
 tools.stm32 = {}
 
--- Programming function
-tools.stm32.progfunc = function( target, deps )
-  local outname = deps[ 1 ]:target_name()
-  os.execute( sf( "%s %s", toolset.size, outname ) )
-  print "Generating binary image..."
-  os.execute( sf( "%s -O binary %s %s.bin", toolset.bin, outname, output ) )
-  os.execute( sf( "%s -O ihex %s %s.hex", toolset.bin, outname, output ) )
-  return 0
-end
-
 -- Image burn function (stm32ld)
 -- args[1]: COM port name
 local function burnfunc( target, deps, args )

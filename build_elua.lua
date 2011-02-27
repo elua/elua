@@ -515,6 +515,23 @@ local function make_romfs()
   return 0
 end
 
+-- Generic 'prog' action function
+local function genprog( target, deps )
+  local outname = deps[ 1 ]:target_name()
+  local outtype = target:find( "%.hex$" ) and "ihex" or "binary"
+  print( sf( "Generating binary image %s...", target ) )
+  os.execute( sf( "%s %s", toolset.size, outname ) )
+  os.execute( sf( "%s -O %s %s %s", toolset.bin, outtype, outname, target ) )
+  return 0
+end
+
+-- Generic 'size' action function
+local function sizefunc( target, deps )
+  local outname = deps[ 1 ]:target_name()
+  os.execute( sf( "%s %s", toolset.size, outname ) )
+  return 0
+end
+
 -- Command lines for the tools (compiler, linker, assembler)
 compcmd = compcmd or builder:compile_cmd{ flags = cflags, defines = cdefs, includes = includes, compiler = toolset.compile }
 linkcmd = linkcmd or builder:link_cmd{ flags = lflags, libraries = libs, linker = toolset.compile }
@@ -524,18 +541,31 @@ builder:set_link_cmd( linkcmd )
 builder:set_asm_cmd( ascmd )
 builder:set_exe_extension( ".elf" )
 
--- Create executable target 
-romtarget = builder:target( "inc/romfiles.h", nil, make_romfs )
-builder:make_depends( source_files, { romtarget } )
+-- Create the ROM file system
+make_romfs()
+-- Creaate executable targets
+builder:make_depends( source_files )
 odeps = builder:create_compile_targets( source_files )
 exetarget = builder:link_target( output, odeps )
 -- This is also the default target
 builder:default( builder:add_target( exetarget, 'build eLua executable' ) )
 
--- Create 'prog' target
-progtarget = builder:target( "#phony:prog", { exetarget }, tools[ platform ].progfunc )
-builder:add_target( progtarget, "build eLua firmware image", { "prog" } )
-progtarget:set_explicit_targets( tools[ platform ].prog_flist )
+-- Create 'prog' target(s)
+local ptargets = {}
+local progfunc = tools[ platform ].progfunc or genprog
+utils.foreach( tools[ platform ].prog_flist, function( _, t )
+  local target = builder:target( t, { exetarget }, progfunc )
+  table.insert( ptargets, target )
+end )
+if #ptargets > 0 then
+  progtarget = builder:target( "#phony:prog", ptargets )
+  builder:add_target( progtarget, "build eLua firmware image", { "prog" } )
+end
+
+-- Create generic 'size' target
+local size_target = builder:target( "#phony:size", { exetarget }, sizefunc )
+size_target:force_rebuild( true )
+builder:add_target( size_target, "shows the size of the eLua firmware", { "size" } )
 
 -- If the backend needs to do more processing before the build starts, do it now
 if tools[ platform ].pre_build then

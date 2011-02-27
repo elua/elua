@@ -36,3 +36,9 @@ tools.sim.progfunc = function( target, deps )
   return 0
 end
 
+-- Add the programming function explicitly for this target
+tools.sim.pre_build = function()
+  local t = builder:target( "#phony:prog", { exetarget }, tools.sim.progfunc )
+  builder:add_target( t, "build eLua firmware image", { "prog" } )
+end
+

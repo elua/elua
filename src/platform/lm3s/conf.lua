@@ -39,15 +39,6 @@ addaf( target_flags )
 -- Toolset data
 tools.lm3s = {}
 
--- Programming function
-tools.lm3s.progfunc = function( target, deps )
-  local outname = deps[ 1 ]:target_name()
-  os.execute( sf( "%s %s", toolset.size, outname ) )
-  print "Generating binary image..."
-  os.execute( sf( "%s -O binary %s %s.bin", toolset.bin, outname, output ) )
-  return 0
-end
-
 -- Array of file names that will be checked against the 'prog' target; their absence will force a rebuild
 tools.lm3s.prog_flist = { output .. ".bin" }
 

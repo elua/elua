@@ -35,15 +35,6 @@ addaf{ target_flags, '-D___ASSEMBLY__' }
 -- Toolset data
 tools.lpc24xx = {}
 
--- Programming function
-tools.lpc24xx.progfunc = function( target, deps )
-  local outname = deps[ 1 ]:target_name()
-  os.execute( sf( "%s %s", toolset.size, outname ) )
-  print "Generating binary image..."
-  os.execute( sf( "%s -O ihex %s %s.hex", toolset.bin, outname, output ) )
-  return 0
-end
-
 -- Array of file names that will be checked against the 'prog' target; their absence will force a rebuild
 tools.lpc24xx.prog_flist = { output .. ".hex" }
 

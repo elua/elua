@@ -36,15 +36,6 @@ addaf{ target_flags,'-D__ASSEMBLY__' }
 -- Toolset data
 tools.lpc288x = {}
 
--- Programming function for AT91SAM7X
-tools.lpc288x.progfunc = function( target, deps )
-  local outname = deps[ 1 ]:target_name()
-  os.execute( sf( "%s %s", toolset.size, outname ) )
-  print "Generating binary image..."
-  os.execute( sf( "%s -O binary %s %s.bin", toolset.bin, outname, output ) )
-  return 0
-end
- 
 -- Array of file names that will be checked against the 'prog' target; their absence will force a rebuild
 tools.lpc288x.prog_flist = { output .. ".bin" }
 

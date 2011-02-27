@@ -93,6 +93,7 @@ utils = { dir_sep = dir_sep }
 
 -- Converts a string with items separated by 'sep' into a table
 utils.string_to_table = function( s, sep )
+  if type( s ) ~= "string" then return end
   sep = sep or ' '
   if s:sub( -1, -1 ) ~= sep then s = s .. sep end
   s = s:gsub( sf( "^%s*", sep ), "" )
@@ -248,6 +249,11 @@ _fbuilder.target_name = function( self )
   return get_target_name( self.dep )
 end
 
+-- Object type
+_fbuilder.objtype = function()
+  return "_fbuilder"
+end
+
 -------------------------------------------------------------------------------
 -- Target object
 
@@ -258,6 +264,16 @@ _target.new = function( target, dep, command, builder )
   setmetatable( self, { __index = _target } )
   self.target = target
   self.command = command
+  self:set_dependencies( dep )
+  self._force_rebuild = #self.dep == 0
+  self.builder = builder
+  builder.tlist[ target ] = self
+  builder.runlist[ target ] = false
+  return self
+end
+
+-- Set dependencies
+_target.set_dependencies = function( self, dep )
   -- Transform 'dep' into a list of objects that support the 'build' method
   if type( dep ) == 'string' then 
     dep = utils.string_to_table( dep ) 
@@ -267,13 +283,20 @@ _target.new = function( target, dep, command, builder )
   -- Iterate through 'dep' transforming file names in _fbuilder targets
   for i = 1, #dep do
     if type( dep[ i ] ) == "string" then
-      dep[ i ] = _fbuilder.new( target, dep[ i ] )
+      dep[ i ] = _fbuilder.new( self.target, dep[ i ] )
     end
   end
   self.dep = dep
-  self._force_rebuild = #dep == 0
-  self.builder = builder
-  return self
+end
+
+-- Set pre-build function
+_target.set_pre_build_function = function( self, f )
+  self._pre_build_function = f
+end
+
+-- Set post-build function
+_target.set_post_build_function = function( self, f )
+  self._post_build_function = f
 end
 
 -- Force rebuild
@@ -287,32 +310,42 @@ _target.set_target_args = function( self, args )
 end
 
 -- Function to execute in clean mode
-_target._cleaner = function( target, deps, dummy, explicit_targets )
-  local cleaner = function( fname )
-    io.write( sf( "[builder] Removing %s ... ", fname ) )
-    if os.remove( fname ) then print "done." else print "failed!" end
-    end
-  -- Clean explicit targets
-  utils.foreach( explicit_targets, function( k, v ) cleaner( v ) end )
+_target._cleaner = function( target, deps, dummy )
   -- Clean the main target if it is not a phony target
-  if not is_phony( target ) then cleaner( target ) end
+  if not is_phony( target ) then 
+    io.write( sf( "[builder] Removing %s ... ", target ) )
+    if os.remove( target ) then print "done." else print "failed!" end
+  end
   return 0
 end
 
 -- Build the given target
 _target.build = function( self )
+  if self.builder.runlist[ self.target ] then return end
   local docmd = self:target_name() and lfs.attributes( self:target_name(), "mode" ) ~= "file"
-  -- Check explicit targets
-  if type( self._explicit_targets ) == "table" then
-    utils.foreach( self._explicit_targets, function( k, v ) if not utils.is_file( v ) then docmd = true end end )
-  end
+  docmd = docmd or self.builder.global_force_rebuild
+  local initdocmd = docmd
   local depends, dep = '', self.dep
   -- Iterate through all dependencies, execute each one in turn
-  for i = 1, #dep do
-    local res = dep[ i ]:build()
-    docmd = docmd or res
-    local t = dep[ i ]:target_name()
-    if t then depends = depends .. t .. " " end
+  local deprunner = function()
+    for i = 1, #dep do
+      local res = dep[ i ]:build()
+      docmd = docmd or res
+      local t = dep[ i ]:target_name()
+      if dep[ i ]:objtype() == "_target" and t then
+        docmd = docmd or get_ftime( t ) > get_ftime( self.target )
+      end
+      if t then depends = depends .. t .. " " end
+    end
+  end
+  deprunner()
+  -- Execute the preb-build function if needed
+  if self._pre_build_function then self._pre_build_function( self, docmd ) end
+  -- If the dependencies changed as a result of running the pre-build function
+  -- run through them again
+  if dep ~= self.dep then
+     depends, dep, docmd = '', self.dep, initdocmd
+     deprunner()
   end
   -- If at least one dependency is new rebuild the target
   docmd = docmd or self._force_rebuild or self.builder.clean_mode
@@ -327,7 +360,7 @@ _target.build = function( self )
       print( cmd )
       code = os.execute( cmd )   
     else
-      code = cmd( self.target, self.dep, self._target_args, self._explicit_targets )
+      code = cmd( self.target, self.dep, self._target_args )
       if code == 1 then -- this means "mark target as 'not executed'"
         keep_flag = false
         code = 0
@@ -338,6 +371,10 @@ _target.build = function( self )
       os.exit( 1 ) 
     end
   end
+  -- Execute the post-build function if needed
+  if self._post_build_function then self._post_build_function( self, docmd ) end
+  -- Marked target as "already ran" so it won't run again
+  self.builder.runlist[ self.target ] = true
   return docmd and keep_flag
 end
 
@@ -346,10 +383,9 @@ _target.target_name = function( self )
   return get_target_name( self.target )
 end
 
--- Set 'explicit targets'
--- The target will rebuild itself if these don't exist
-_target.set_explicit_targets = function( self, targets )
-  self._explicit_targets = targets
+-- Object type
+_target.objtype = function()
+  return "_target"
 end
 
 -------------------------------------------------------------------------------
@@ -373,8 +409,8 @@ builder.new = function( build_dir )
   self.build_mode = self.KEEP_DIR
   self.targets = {}
   self.targetargs = {}
-  -- 'State fields' are used to check if a change in different fields should force a rebuild
-  self.state_fields = { 'link_cmd', 'comp_cmd', 'asm_cmd', 'asm_dep_cmd', 'c_dep_cmd', 'obj_extension' }
+  self.tlist = {}
+  self.runlist = {}
   return self
 end
 
@@ -580,7 +616,7 @@ end
 
 -- Set the assembler command
 builder.set_asm_cmd = function( self, cmd )
-  self.asm_cmd = cmd
+  self._asm_cmd = cmd
 end
 
 -- Set (actually force) the object file extension
@@ -630,17 +666,42 @@ builder.set_c_dep_cmd = function( self, c_dep_cmd )
   self.c_dep_cmd = c_dep_cmd
 end
 
--- Save the builder configuration to a string
-builder._config_to_string = function( self )
+-- Save the builder configuration for a given component to a string
+builder._config_to_string = function( self, what )
   local ctable = {}
-  utils.foreach( self.state_fields, function( k, v ) ctable[ v ] = self[ v ] end )
+  local state_fields 
+  if what == 'comp' then
+    state_fields = { 'comp_cmd', '_asm_cmd', 'c_dep_cmd', 'asm_dep_cmd', 'obj_extension' }
+  elseif what == 'link' then
+    state_fields = { 'link_cmd' }
+  else
+    print( sf( "Invalid argument '%s' to _config_to_string", what ) )
+    os.exit( 1 )
+  end
+  utils.foreach( state_fields, function( k, v ) ctable[ v ] = self[ v ] end )
   return table.tostring( ctable )
 end
 
--- Load the builder configuration from a string and return it as a table
-builder._config_from_string = function( self, s )
-  local f = loadstring( s )
-  return f and f() 
+-- Check the configuration of the given component against the previous one
+-- Return true if the configuration has changed
+builder._compare_config = function( self, what )
+  local res = false
+  local crtstate = self:_config_to_string( what )
+  if not self.clean_mode then
+    local fconf = io.open( self.build_dir .. dir_sep .. ".builddata." .. what, "rb" )
+    if fconf then
+      local oldstate = fconf:read( "*a" )
+      fconf:close()
+      if oldstate:lower() ~= crtstate:lower() then res = true end
+    end
+  end
+  -- Write state to build dir
+  fconf = io.open( self.build_dir .. dir_sep .. ".builddata." .. what, "wb" )
+  if fconf then
+    fconf:write( self:_config_to_string( what ) )
+    fconf:close()
+  end
+  return res
 end
 
 ---------------------------------------
@@ -650,9 +711,9 @@ end
 builder._generic_cmd = function( self, args )
   local compcmd = args.compiler or "gcc"
   compcmd = compcmd .. " "
-  local flags = table_to_string( utils.linearize_array( args.flags ) )
-  local defines = table_to_string( utils.linearize_array( args.defines ) )
-  local includes = table_to_string( utils.linearize_array( args.includes ) )
+  local flags = type( args.flags ) == 'table' and table_to_string( utils.linearize_array( args.flags ) ) or args.flags
+  local defines = type( args.defines ) == 'table' and table_to_string( utils.linearize_array( args.defines ) ) or args.defines
+  local includes = type( args.includes ) == 'table' and table_to_string( utils.linearize_array( args.includes ) ) or args.includes
   local comptype = table_to_string( args.comptype ) or "-c"
   compcmd = compcmd .. utils.prepend_string( defines, "-D" )
   compcmd = compcmd .. utils.prepend_string( includes, "-I" )
@@ -672,8 +733,8 @@ end
 
 -- Return a link command based on the specified args
 builder.link_cmd = function( self, args )
-  local flags = table_to_string( utils.linearize_array( args.flags ) )
-  local libraries = table_to_string( utils.linearize_array( args.libraries ) )
+  local flags = type( args.flags ) == 'table' and table_to_string( utils.linearize_array( args.flags ) ) or args.flags
+  local libraries = type( args.libraries ) == 'table' and table_to_string( utils.linearize_array( args.libraries ) ) or args.libraries
   local linkcmd = args.linker or "gcc"
   linkcmd = linkcmd .. " " .. flags .. " -o $(TARGET) $(DEPENDS)"
   linkcmd = linkcmd .. " " .. utils.prepend_string( libraries, "-l" )
@@ -690,7 +751,7 @@ end
 
 -- Create a return a new ASM to object target
 builder.asm_target = function( self, target, deps, asm_cmd )
-  return _target.new( target, deps, asm_cmd or self.asm_cmd, self )
+  return _target.new( target, deps, asm_cmd or self._asm_cmd, self )
 end
 
 -- Return the name of a dependency file name corresponding to a C source
@@ -709,7 +770,9 @@ builder.link_target = function( self, out, dep, link_cmd )
   if not out:find( "%." ) and self.exe_extension and #self.exe_extension > 0 then
     out = out .. self.exe_extension
   end
-  return _target.new( out, dep, link_cmd or self.link_cmd, self )
+  local t = _target.new( out, dep, link_cmd or self.link_cmd, self )
+  if self:_compare_config( 'link' ) then t:force_rebuild( true ) end
+  return t
 end
 
 -- Create and return a new generic target
@@ -759,15 +822,14 @@ end
 
 -- Build and interpret dependencies for the given source files
 -- "flable" is either a space-separated string with all the source files or an array
-builder.make_depends = function( self, ftable, deptargets )
-  if type( ftable ) == 'string' then ftable = utils.string_to_table( ftable )end
-  self:_create_outdir()
+builder.make_depends = function( self, ftable )
+  if type( ftable ) == 'string' then ftable = utils.string_to_table( ftable ) end
 
   -- Start with initial dependency data (this might be nil when generated initially)
   local initdep = self:read_depends( ftable )
 
   -- Build dependencies for all targets
-  deptargets = deptargets or {}
+  self.dtable = {}
   for i = 1, #ftable do
     local isasm = ftable[ i ]:find( "%.c$" ) == nil
     -- Skip assembler targets if 'asm_dep_cmd' is set to 'false'
@@ -775,43 +837,45 @@ builder.make_depends = function( self, ftable, deptargets )
     local skip = isasm and self.asm_dep_cmd == false
     skip = skip or ( not isasm and self.c_dep_cmd == false )
     if not skip then
-      local cmd = isasm and self.asm_cmd or self.comp_cmd
+      local cmd = isasm and self._asm_cmd or self.comp_cmd
       local depcmd = cmd:gsub( "-c ", "-E -MM " )
       if isasm and self.asm_dep_cmd then depcmd = self.asm_dep_cmd end
       if not isasm and self.c_dep_cmd then depcmd = self.c_dep_cmd end
       local target = self:dep_target( ftable[ i ], initdep[ ftable[ i ] ], depcmd )
-      table.insert( deptargets, target )
+      -- The post build function will read the generated dependencies and save
+      -- them into an instance-related field (dtable)
+      target:set_post_build_function( function( t, _ ) 
+        if not self.clean_mode then
+          local tname = t.dep[ 1 ]:target_name()
+          if tname then
+            local fres = self:read_depends( tname )
+            self.dtable[ tname ] = fres[ tname ] 
+          end
+        end
+      end )
     end
   end
-  local t = self:target( "#phony:deps", deptargets )
-  t:build()
-  if self.clean_mode then return end
-
-  -- Read dependency data
-  self.dtable = self:read_depends( ftable )
 end
 
 -- Create and return compile targets for the given sources
 builder.create_compile_targets = function( self, ftable, res )
-  if not self.dtable then
-    if not self.clean_mode then
-      print "[builder] Error: call make_depends before compile_targets"
-      os.exit( 1 )
-    end
-  end
+  if type( ftable ) == 'string' then ftable = utils.string_to_table( ftable ) end
   res = res or {}
-  if type( ftable ) == 'string' then
-    ftable = utils.string_to_table( ftable )
-  end
   -- Build dependencies for all targets
   for i = 1, #ftable do
     local target 
-    local deps = self.dtable and self.dtable[ ftable[ i ] ]
+    local deps = self:get_dep_filename( ftable[ i ] )
     if ftable[ i ]:find( "%.c$" ) then
-      target = self:c_target( self:obj_name( ftable[ i ] ), deps )
+      target = self:c_target( self:obj_name( ftable[ i ] ), { self.tlist[ deps ] or ftable[ i ] } )
     else
-      target = self:asm_target( self:obj_name( ftable[ i ] ), deps )
+      target = self:asm_target( self:obj_name( ftable[ i ] ), { self.tlist[ deps ] or ftable[ i ] } )
     end
+    -- Post build step: replace dependencies with the ones generated by 'make_depends'
+    target:set_pre_build_function( function( t, _ ) 
+      if not self.clean_mode then
+        t:set_dependencies( self.dtable[ ftable[ i ] ] or ftable[ i ] )
+      end
+    end )
     table.insert( res, target )
   end
   return res
@@ -855,29 +919,20 @@ builder.build = function( self, target )
   end
   self:_create_outdir()
   -- At this point check if we have a change in the state that would require a rebuild
-  if not self.clean_mode then
-    local fconf = io.open( self.build_dir .. dir_sep .. ".builddata", "rb" )
-    if fconf then
-      local oldstate = fconf:read( "*a" )
-      fconf:close()
-      local crtstate = self:_config_to_string()
-      if oldstate:lower() ~= crtstate:lower() then -- Need to rebuild
-        print "[builder] Forcing clean due to configuration change"
-        self.clean_mode = true
-        self.targets[ t ].target:build()
-        self.clean_mode = false
-      end
-    end
+  if self:_compare_config( 'comp' ) then
+    print "[builder] Forcing rebuild due to configuration change"
+    self.global_force_rebuild = true
+  else
+    self.global_force_rebuild = false
   end
-  -- Write state to build dir
-  fconf = io.open( self.build_dir .. dir_sep .. ".builddata", "wb" )
-  fconf:write( self:_config_to_string() )
-  fconf:close()
   -- Do the actual build
   local res = self.targets[ t ].target:build()
   if not res then print( sf( '[builder] %s: up to date', t ) ) end
-  if self.clean_mode then os.remove( self.build_dir .. dir_sep .. ".builddata" ) end
-  print "[builder] Done building targets."
+  if self.clean_mode then 
+    os.remove( self.build_dir .. dir_sep .. ".builddata.comp" ) 
+    os.remove( self.build_dir .. dir_sep .. ".builddata.link" ) 
+  end
+  print "[builder] Done building target."
   return res
 end
 

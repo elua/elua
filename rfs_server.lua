@@ -38,6 +38,6 @@ builder:set_link_cmd( linkcmd )
 builder:set_exe_extension( exeprefix )
 
 -- Build everything
-builder:make_exe_target( "rfs_server", full_files )
+builder:make_exe_target( output, full_files )
 builder:build()
 

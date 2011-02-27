@@ -30,15 +30,6 @@ addaf{ target_flags }
 -- Toolset data
 tools.lpc17xx = {}
 
--- Programming function
-tools.lpc17xx.progfunc = function( target, deps )
-  local outname = deps[ 1 ]:target_name()
-  os.execute( sf( "%s %s", toolset.size, outname ) )
-  print "Generating binary image..."
-  os.execute( sf( "%s -O binary %s %s.bin", toolset.bin, outname, output ) )
-  return 0
-end
-
 -- Array of file names that will be checked against the 'prog' target; their absence will force a rebuild
 tools.lpc17xx.prog_flist = { output .. ".bin" }
 
