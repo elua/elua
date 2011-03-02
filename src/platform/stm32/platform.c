@@ -79,7 +79,7 @@ int platform_init()
   // Setup ADCs
   adcs_init();
 #endif
-  
+
   // Setup CANs
   cans_init();
   
@@ -269,7 +269,10 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 
 void cans_init( void )
 {
-  /* CAN Periph clock enable */
+  // Remap CAN to PB8/9
+  GPIO_PinRemapConfig( GPIO_Remap1_CAN1, ENABLE );
+
+  // CAN Periph clock enable
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_CAN1, ENABLE);
 }
 
@@ -303,8 +306,6 @@ u32 platform_can_setup( unsigned id, u32 clock )
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_Init( GPIOB, &GPIO_InitStructure );
-  
-  GPIO_PinRemapConfig( GPIO_Remap1_CAN1, ENABLE );
 
   // Select baud rate up to requested rate, except for below min, where min is selected
   if ( clock >= can_baud_rate[ CAN_BAUD_COUNT - 1 ] ) // round down to peak rate if >= peak rate
@@ -658,9 +659,11 @@ int platform_s_uart_set_flow_control( unsigned id, int type )
   GPIO_InitTypeDef GPIO_InitStructure;
 
   if( id >= 3 ) // on STM32 only USART1 through USART3 have hardware flow control ([TODO] but only on high density devices?)
-    return PLATFORM_ERR;  
+    return PLATFORM_ERR;
+
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;  
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+
   if( type == PLATFORM_UART_FLOW_NONE )
   {
     usart->CR3 &= ~USART_HardwareFlowControl_RTS_CTS;
@@ -668,17 +671,17 @@ int platform_s_uart_set_flow_control( unsigned id, int type )
     GPIO_Init( usart_gpio_hwflow_port[ id ], &GPIO_InitStructure );      
     return PLATFORM_OK;
   }
-  if( type & PLATFORM_UART_FLOW_RTS )
-  {
-    temp |= USART_HardwareFlowControl_RTS;
-    GPIO_InitStructure.GPIO_Speed = usart_gpio_rts_pin[ id ];
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-    GPIO_Init( usart_gpio_hwflow_port[ id ], &GPIO_InitStructure );
-  }
   if( type & PLATFORM_UART_FLOW_CTS )
   {
     temp |= USART_HardwareFlowControl_CTS;
-    GPIO_InitStructure.GPIO_Speed = usart_gpio_cts_pin[ id ];
+    GPIO_InitStructure.GPIO_Pin = usart_gpio_cts_pin[ id ];
+    GPIO_Init( usart_gpio_hwflow_port[ id ], &GPIO_InitStructure );
+  }
+  if( type & PLATFORM_UART_FLOW_RTS )
+  {
+    temp |= USART_HardwareFlowControl_RTS;
+    GPIO_InitStructure.GPIO_Pin = usart_gpio_rts_pin[ id ];
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
     GPIO_Init( usart_gpio_hwflow_port[ id ], &GPIO_InitStructure );
   }
   usart->CR3 |= temp;
