@@ -141,3 +141,29 @@ foreach = function ( t, cmd )
   for k, v in pairs( t ) do cmd( k, v ) end
 end
 
+---------------------------------------
+-- Color-related funtions
+-- Currently disabled when running in Windows
+
+local dcoltable = { 'black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white' }
+local coltable = {}
+foreach( dcoltable, function( k, v ) coltable[ v ] = k - 1 end )
+
+local _col_builder = function( col )
+  local _col_maker = function( s )
+    if is_os_windows then
+      return s
+    else
+      return( sf( "\027[%dm%s\027[m", coltable[ col ] + 30, s ) )
+    end
+  end
+  return _col_maker
+end
+
+col_funcs = {}
+foreach( coltable, function( k, v ) 
+  local fname = "col_" .. k
+  _G[ fname ] = _col_builder( k ) 
+  col_funcs[ k ] = _G[ fname ]
+end )
+

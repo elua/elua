@@ -126,7 +126,7 @@ end
 
 local _target = {}
 
-_target.new = function( target, dep, command, builder )
+_target.new = function( target, dep, command, builder, ttype )
   local self = {}
   setmetatable( self, { __index = _target } )
   self.target = target
@@ -137,11 +137,28 @@ _target.new = function( target, dep, command, builder )
   self.dep = self:_build_dependencies( self.origdep )
   self._force_rebuild = #self.dep == 0
   builder.runlist[ target ] = false
+  self:set_type( ttype )
   return self
 end
 
+-- Set dependencies as a string; actual dependencies are computed by _build_dependencies
+-- (below) when 'build' is called
 _target.set_dependencies = function( self, dep )
   self.origdep = dep
+end
+
+-- Set the target type
+-- This is only for displaying actions
+_target.set_type = function( self, ttype )
+  local atable = { comp = { "[COMPILE]", 'blue' } , dep = { "[DEPENDS]", 'magenta' }, link = { "[LINK]", 'yellow' }, asm = { "[ASM]", 'white' } }
+  local tdata = atable[ ttype ]
+  if not tdata then
+    self.dispstr = is_phony( self.target ) and "[PHONY]" or "[TARGET]"
+    self.dispcol = 'green'
+  else
+    self.dispstr = tdata[ 1 ]
+    self.dispcol = tdata[ 2 ]
+  end
 end
 
 -- Set dependencies
@@ -231,15 +248,25 @@ _target.build = function( self )
   docmd = docmd or self._force_rebuild or self.builder.clean_mode
   local keep_flag = true
   if docmd and self.command then
+    if self.builder.disp_mode ~= 'all' and not self.builder.clean_mode then
+      io.write( utils.col_funcs[ self.dispcol ]( self.dispstr ) .." " )
+    end
     local cmd, code = self.command
     if self.builder.clean_mode then cmd = _target._cleaner end
     if type( cmd ) == 'string' then
       cmd = expand_key( cmd, "TARGET", self.target )
       cmd = expand_key( cmd, "DEPENDS", depends )
       cmd = expand_key( cmd, "FIRST", dep[ 1 ]:target_name() )
-      print( cmd )
+      if self.builder.disp_mode == 'all' then
+        print( cmd )
+      else
+        print( self.target )
+      end
       code = os.execute( cmd )   
     else
+      if not self.builder.clean_mode and self.builder.disp_mode ~= "all" then
+        print( self.target )
+      end
       code = cmd( self.target, self.dep, self._target_args )
       if code == 1 then -- this means "mark target as 'not executed'"
         keep_flag = false
@@ -247,7 +274,11 @@ _target.build = function( self )
       end
     end
     if code ~= 0 then 
-      print( "[builder] Error building target" )
+      print( utils.col_red( "[builder] Error building target" ) )
+      if self.builder.disp_mode ~= 'all' then
+        print( utils.col_red( "[builder] Last executed command was: " ) )
+        print( cmd )
+      end
       os.exit( 1 ) 
     end
   end
@@ -271,7 +302,7 @@ end
 -------------------------------------------------------------------------------
 -- Builder public interface
 
-builder = { KEEP_DIR = 0, BUILD_DIR = 1, BUILD_DIR_LINEARIZED = 2 }    
+builder = { KEEP_DIR = 0, BUILD_DIR = 1, BUILD_DIR_LINEARIZED = 2 }
 
 ---------------------------------------
 -- Initialization and option handling
@@ -291,6 +322,7 @@ builder.new = function( build_dir )
   self.targetargs = {}
   self._tlist = {}
   self.runlist = {}
+  self.disp_mode = 'all'
   return self
 end
 
@@ -419,6 +451,7 @@ builder.init = function( self, args )
   self:add_option( "build_mode", 'choose location of the object files', self.KEEP_DIR,
                    { keep_dir = self.KEEP_DIR, build_dir = self.BUILD_DIR, build_dir_linearized = self.BUILD_DIR_LINEARIZED } )
   self:add_option( "build_dir", 'choose build directory', self.build_dir )
+  self:add_option( "disp_mode", 'set builder display mode', 'all', { 'all', 'summary' } )
   -- Apply default values to all options
   for i = 1, #self.options do
     local o = self.options[ i ]
@@ -458,6 +491,7 @@ builder.init = function( self, args )
   -- Read back the default options
   self.build_mode = self.args.BUILD_MODE
   self.build_dir = self.args.BUILD_DIR
+  self.disp_mode = self.args.DISP_MODE
 end
 
 -- Return the value of the option with the given name
@@ -584,6 +618,16 @@ builder._compare_config = function( self, what )
   return res
 end
 
+-- Sets the way commands are displayed
+builder.set_disp_mode = function( self, mode )
+  mode = mode:lower()
+  if mode ~= 'all' and mode ~= 'summary' then
+    print( sf( "[builder] Invalid display mode '%s'", mode ) )
+    os.exit( 1 )
+  end
+  self.disp_mode = mode
+end
+
 ---------------------------------------
 -- Command line builders
 
@@ -626,12 +670,12 @@ end
 
 -- Create a return a new C to object target
 builder.c_target = function( self, target, deps, comp_cmd )
-  return _target.new( target, deps, comp_cmd or self.comp_cmd, self )
+  return _target.new( target, deps, comp_cmd or self.comp_cmd, self, 'comp' )
 end
 
 -- Create a return a new ASM to object target
 builder.asm_target = function( self, target, deps, asm_cmd )
-  return _target.new( target, deps, asm_cmd or self._asm_cmd, self )
+  return _target.new( target, deps, asm_cmd or self._asm_cmd, self, 'asm' )
 end
 
 -- Return the name of a dependency file name corresponding to a C source
@@ -642,7 +686,7 @@ end
 -- Create a return a new C dependency target
 builder.dep_target = function( self, dep, depdeps, dep_cmd )
   local depname = self:get_dep_filename( dep )
-  return _target.new( depname, depdeps, dep_cmd, self )
+  return _target.new( depname, depdeps, dep_cmd, self, 'dep' )
 end
 
 -- Create and return a new link target
@@ -650,7 +694,7 @@ builder.link_target = function( self, out, dep, link_cmd )
   if not out:find( "%." ) and self.exe_extension and #self.exe_extension > 0 then
     out = out .. self.exe_extension
   end
-  local t = _target.new( out, dep, link_cmd or self.link_cmd, self )
+  local t = _target.new( out, dep, link_cmd or self.link_cmd, self, 'link' )
   if self:_compare_config( 'link' ) then t:force_rebuild( true ) end
   return t
 end
