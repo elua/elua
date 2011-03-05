@@ -4,10 +4,7 @@ module( ..., package.seeall )
 
 local lfs = require "lfs"
 local sf = string.format
-
--- Taken from Lake
-local dir_sep = package.config:sub( 1, 1 )
-local is_windows = dir_sep == '\\'
+utils = require "utils.utils"
 
 -------------------------------------------------------------------------------
 -- Various helpers
@@ -43,6 +40,13 @@ end
 local function table_to_string( t )
   if not t then return nil end
   if type( t ) == "table" then t = table.concat( t, " " ) end
+  return t
+end
+
+-- Helper: return the extended type of an object (takes into account __type)
+local function exttype( o )
+  local t = type( o )
+  if t == "table" and o.__type then t = o:__type() end
   return t
 end
 
@@ -85,143 +89,6 @@ function table.tostring( tbl )
   return "{" .. table.concat( result, "," ) .. "}"
 end
 
-
--------------------------------------------------------------------------------
--- Public utilities
-
-utils = { dir_sep = dir_sep }
-
--- Converts a string with items separated by 'sep' into a table
-utils.string_to_table = function( s, sep )
-  if type( s ) ~= "string" then return end
-  sep = sep or ' '
-  if s:sub( -1, -1 ) ~= sep then s = s .. sep end
-  s = s:gsub( sf( "^%s*", sep ), "" )
-  local t = {}
-  local fmt = sf( "(.-)%s+", sep )
-  for w in s:gmatch( fmt ) do table.insert( t, w ) end
-  return t
-end
-
--- Split a file name into 'path part' and 'extension part'
-utils.split_path = function( s )
-  local pos
-  for i = #s, 1, -1 do
-    if s:sub( i, i ) == "." then
-      pos = i
-      break
-    end
-  end
-  if pos then return s:sub( 1, pos - 1 ), s:sub( pos ) end
-  return s
-end
-
--- Replace the extension of a give file name
-utils.replace_extension = function( s, newext )
-  local p, e = utils.split_path( s )
-  if e then s = p .. "." .. newext end
-  return s
-end
-
--- Return 'true' if building from Windows, false otherwise
-utils.is_windows = function()
-  return is_windows
-end
-
--- Prepend each component of a 'pat'-separated string with 'prefix'
-utils.prepend_string = function( s, prefix, pat )  
-  if not s or #s == 0 then return "" end
-  pat = pat or ' '
-  local res = ''
-  local st = utils.string_to_table( s, pat )
-  utils.foreach( st, function( k, v ) res = res .. prefix .. v .. " " end )
-  return res
-end
-
--- Like above but consider 'prefix' a path
-utils.prepend_path = function( s, prefix, pat )
-  return utils.prepend_string( s, prefix .. dir_sep, pat )
-end
-
--- full mkdir: create all the paths needed for a multipath
-utils.full_mkdir = function( path )
-  local ptables = utils.string_to_table( path, dir_sep )
-  local p, res = ''
-  for i = 1, #ptables do
-    p = ( i ~= 1 and p .. dir_sep or p ) .. ptables[ i ]
-    res = lfs.mkdir( p )
-  end
-  return res
-end
-
--- Concatenate the given paths to form a complete path
-utils.concat_path = function( paths )
-  return table.concat( paths, dir_sep )
-end
-
--- Return true if the given array contains the given element, false otherwise
-utils.array_element_index = function( arr, element )
-  for i = 1, #arr do
-    if arr[ i ] == element then return i end
-  end
-end
-
--- Linearize an array with (possibly) embedded arrays into a simple array
-utils._linearize_array = function( arr, res )
-  if type( arr ) ~= "table" then return end
-  for i = 1, #arr do
-    local e = arr[ i ]
-    if type( e ) == 'table' then
-      utils._linearize_array( e, res )
-    else
-      table.insert( res, e )
-    end
-  end 
-end
-
-utils.linearize_array = function( arr )
-  local res = {}
-  utils._linearize_array( arr, res )
-  return res
-end
-
--- Return an array with the keys of a table
-utils.table_keys = function( t )
-  local keys = {}
-  utils.foreach( t, function( k, v ) table.insert( keys, k ) end )
-  return keys
-end
-
--- Returns true if 'path' is a regular file, false otherwise
-utils.is_file = function( path )
-  return lfs.attributes( path, "mode" ) == "file"
-end
-
--- Return a list of files in the given directory matching a given mask
-utils.get_files = function( path, mask )
-  local t = ''
-  for f in lfs.dir( path ) do
-    local fname = path .. dir_sep .. f
-    if lfs.attributes( fname, "mode" ) == "file" and fname:find( mask ) then
-      t = t .. ' ' .. fname
-    end
-  end
-  return t
-end
-
--- Check if the given command can be executed properly
-utils.check_command = function( cmd )
-  local res = os.execute( cmd .. " > .build.temp 2>&1" )
-  os.remove( ".build.temp" )
-  return res
-end
-
--- Execute the given command for each value in a table
-utils.foreach = function ( t, cmd )
-  if type( t ) ~= "table" then return end
-  for k, v in pairs( t ) do cmd( k, v ) end
-end
-
 -------------------------------------------------------------------------------
 -- Dummy 'builder': simply checks the date of a file
 
@@ -250,7 +117,7 @@ _fbuilder.target_name = function( self )
 end
 
 -- Object type
-_fbuilder.objtype = function()
+_fbuilder.__type = function()
   return "_fbuilder"
 end
 
@@ -264,29 +131,40 @@ _target.new = function( target, dep, command, builder )
   setmetatable( self, { __index = _target } )
   self.target = target
   self.command = command
-  self:set_dependencies( dep )
-  self._force_rebuild = #self.dep == 0
   self.builder = builder
-  builder.tlist[ target ] = self
+  builder:register_target( target, self )
+  self:set_dependencies( dep )
+  self.dep = self:_build_dependencies( self.origdep )
+  self._force_rebuild = #self.dep == 0
   builder.runlist[ target ] = false
   return self
 end
 
--- Set dependencies
 _target.set_dependencies = function( self, dep )
-  -- Transform 'dep' into a list of objects that support the 'build' method
-  if type( dep ) == 'string' then 
-    dep = utils.string_to_table( dep ) 
-  elseif type( dep ) ~= 'table' then
-    dep = {}
+  self.origdep = dep
+end
+
+-- Set dependencies
+-- This uses a proxy table and returns string deps dynamically according
+-- to the targets currently registered in the builder
+_target._build_dependencies = function( self, dep )
+  -- Step 1: start with an array
+  if type( dep ) == "string" then dep = utils.string_to_table( dep ) end
+  -- Step 2: linearize "dep" array keeping targets
+  local filter = function( e )
+    local t = exttype( e )
+    return t ~= "_ftarget" and t ~= "_target"
   end
-  -- Iterate through 'dep' transforming file names in _fbuilder targets
+  dep = utils.linearize_array( dep, filter )
+  -- Step 3: strings are turned into _fbuilder objects if not found as targets;
+  -- otherwise the corresponding target object is used
   for i = 1, #dep do
-    if type( dep[ i ] ) == "string" then
-      dep[ i ] = _fbuilder.new( self.target, dep[ i ] )
+    if type( dep[ i ] ) == 'string' then
+      local t = self.builder:get_registered_target( dep[ i ] )
+      dep[ i ] = t or _fbuilder.new( self.target, dep[ i ] )
     end
   end
-  self.dep = dep
+  return dep
 end
 
 -- Set pre-build function
@@ -325,14 +203,15 @@ _target.build = function( self )
   local docmd = self:target_name() and lfs.attributes( self:target_name(), "mode" ) ~= "file"
   docmd = docmd or self.builder.global_force_rebuild
   local initdocmd = docmd
-  local depends, dep = '', self.dep
+  self.dep = self:_build_dependencies( self.origdep )
+  local depends, dep, previnit = '', self.dep, self.origdep
   -- Iterate through all dependencies, execute each one in turn
   local deprunner = function()
     for i = 1, #dep do
       local res = dep[ i ]:build()
       docmd = docmd or res
       local t = dep[ i ]:target_name()
-      if dep[ i ]:objtype() == "_target" and t then
+      if exttype( dep[ i ] ) == "_target" and t then
         docmd = docmd or get_ftime( t ) > get_ftime( self.target )
       end
       if t then depends = depends .. t .. " " end
@@ -343,9 +222,10 @@ _target.build = function( self )
   if self._pre_build_function then self._pre_build_function( self, docmd ) end
   -- If the dependencies changed as a result of running the pre-build function
   -- run through them again
-  if dep ~= self.dep then
-     depends, dep, docmd = '', self.dep, initdocmd
-     deprunner()
+  if previnit ~= self.origdep then
+    self.dep = self:_build_dependencies( self.origdep )
+    depends, dep, docmd = '', self.dep, initdocmd
+    deprunner()
   end
   -- If at least one dependency is new rebuild the target
   docmd = docmd or self._force_rebuild or self.builder.clean_mode
@@ -384,7 +264,7 @@ _target.target_name = function( self )
 end
 
 -- Object type
-_target.objtype = function()
+_target.__type = function()
   return "_target"
 end
 
@@ -409,7 +289,7 @@ builder.new = function( build_dir )
   self.build_mode = self.KEEP_DIR
   self.targets = {}
   self.targetargs = {}
-  self.tlist = {}
+  self._tlist = {}
   self.runlist = {}
   return self
 end
@@ -688,7 +568,7 @@ builder._compare_config = function( self, what )
   local res = false
   local crtstate = self:_config_to_string( what )
   if not self.clean_mode then
-    local fconf = io.open( self.build_dir .. dir_sep .. ".builddata." .. what, "rb" )
+    local fconf = io.open( self.build_dir .. utils.dir_sep .. ".builddata." .. what, "rb" )
     if fconf then
       local oldstate = fconf:read( "*a" )
       fconf:close()
@@ -696,7 +576,7 @@ builder._compare_config = function( self, what )
     end
   end
   -- Write state to build dir
-  fconf = io.open( self.build_dir .. dir_sep .. ".builddata." .. what, "wb" )
+  fconf = io.open( self.build_dir .. utils.dir_sep .. ".builddata." .. what, "wb" )
   if fconf then
     fconf:write( self:_config_to_string( what ) )
     fconf:close()
@@ -756,7 +636,7 @@ end
 
 -- Return the name of a dependency file name corresponding to a C source
 builder.get_dep_filename = function( self, srcname )
-  return utils.replace_extension( self.build_dir .. dir_sep .. linearize_fname( srcname ), "d" )
+  return utils.replace_extension( self.build_dir .. utils.dir_sep .. linearize_fname( srcname ), "d" )
 end
 
 -- Create a return a new C dependency target
@@ -780,6 +660,19 @@ builder.target = function( self, dest_target, deps, cmd )
   return _target.new( dest_target, deps, cmd, self )
 end
 
+-- Register a target (called from _target.new)
+builder.register_target = function( self, name, obj )
+  self._tlist[ name:gsub( "\\", "/" ) ] = obj
+end
+
+-- Returns a registered target (nil if not found)
+builder.get_registered_target = function( self, name )
+  return self._tlist[ name:gsub( "\\", "/" ) ] 
+end
+
+---------------------------------------
+-- Actual building functions
+
 -- Return the object name corresponding to a source file name
 builder.obj_name = function( self, name )
   local r = self.obj_extension
@@ -793,11 +686,11 @@ builder.obj_name = function( self, name )
   if self.build_mode == self.KEEP_DIR then 
     return objname
   elseif self.build_mode == self.BUILD_DIR_LINEARIZED then
-    return self.build_dir .. dir_sep .. linearize_fname( objname )
+    return self.build_dir .. utils.dir_sep .. linearize_fname( objname )
   else
     local si, ei, path, fname = objname:find( "(.+)/(.-)$" )
     if not si then fname = objname end
-    return self.build_dir .. dir_sep .. fname 
+    return self.build_dir .. utils.dir_sep .. fname 
   end
 end
 
@@ -866,9 +759,9 @@ builder.create_compile_targets = function( self, ftable, res )
     local target 
     local deps = self:get_dep_filename( ftable[ i ] )
     if ftable[ i ]:find( "%.c$" ) then
-      target = self:c_target( self:obj_name( ftable[ i ] ), { self.tlist[ deps ] or ftable[ i ] } )
+      target = self:c_target( self:obj_name( ftable[ i ] ), { self:get_registered_target( deps ) or ftable[ i ] } )
     else
-      target = self:asm_target( self:obj_name( ftable[ i ] ), { self.tlist[ deps ] or ftable[ i ] } )
+      target = self:asm_target( self:obj_name( ftable[ i ] ), { self:get_registered_target( deps ) or ftable[ i ] } )
     end
     -- Post build step: replace dependencies with the ones generated by 'make_depends'
     target:set_pre_build_function( function( t, _ ) 
@@ -929,8 +822,8 @@ builder.build = function( self, target )
   local res = self.targets[ t ].target:build()
   if not res then print( sf( '[builder] %s: up to date', t ) ) end
   if self.clean_mode then 
-    os.remove( self.build_dir .. dir_sep .. ".builddata.comp" ) 
-    os.remove( self.build_dir .. dir_sep .. ".builddata.link" ) 
+    os.remove( self.build_dir .. utils.dir_sep .. ".builddata.comp" ) 
+    os.remove( self.build_dir .. utils.dir_sep .. ".builddata.link" ) 
   end
   print "[builder] Done building target."
   return res
