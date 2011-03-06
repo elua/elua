@@ -117,12 +117,20 @@ is_file = function( path )
 end
 
 -- Return a list of files in the given directory matching a given mask
-get_files = function( path, mask )
+get_files = function( path, mask, norec )
   local t = ''
   for f in lfs.dir( path ) do
     local fname = path .. dir_sep .. f
-    if lfs.attributes( fname, "mode" ) == "file" and fname:find( mask ) then
-      t = t .. ' ' .. fname
+    if lfs.attributes( fname, "mode" ) == "file" then
+      local include
+      if type( mask ) == "string" then
+        include = fname:find( mask )
+      else
+        include = mask( fname )
+      end
+      if include then t = t .. ' ' .. fname end
+    elseif lfs.attributes( fname, "mode" ) == "directory" and not fname:find( "%.+$" ) and not norec then
+      t = t .. " " .. get_files( fname, mask, norec )
     end
   end
   return t

@@ -249,7 +249,7 @@ _target.build = function( self )
   local keep_flag = true
   if docmd and self.command then
     if self.builder.disp_mode ~= 'all' and not self.builder.clean_mode then
-      io.write( utils.col_funcs[ self.dispcol ]( self.dispstr ) .." " )
+      io.write( utils.col_funcs[ self.dispcol ]( self.dispstr ) .. " " )
     end
     local cmd, code = self.command
     if self.builder.clean_mode then cmd = _target._cleaner end
@@ -275,7 +275,7 @@ _target.build = function( self )
     end
     if code ~= 0 then 
       print( utils.col_red( "[builder] Error building target" ) )
-      if self.builder.disp_mode ~= 'all' then
+      if self.builder.disp_mode ~= 'all' and type( cmd ) == "string" then
         print( utils.col_red( "[builder] Last executed command was: " ) )
         print( cmd )
       end
@@ -451,7 +451,7 @@ builder.init = function( self, args )
   self:add_option( "build_mode", 'choose location of the object files', self.KEEP_DIR,
                    { keep_dir = self.KEEP_DIR, build_dir = self.BUILD_DIR, build_dir_linearized = self.BUILD_DIR_LINEARIZED } )
   self:add_option( "build_dir", 'choose build directory', self.build_dir )
-  self:add_option( "disp_mode", 'set builder display mode', 'all', { 'all', 'summary' } )
+  self:add_option( "disp_mode", 'set builder display mode', 'summary', { 'all', 'summary' } )
   -- Apply default values to all options
   for i = 1, #self.options do
     local o = self.options[ i ]

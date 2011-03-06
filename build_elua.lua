@@ -419,56 +419,26 @@ if comp.allocator == 'multiple' then
 elseif comp.allocator == 'simple' then
    addm( "USE_SIMPLE_ALLOCATOR" )
 end
-
-if comp.boot == 'luarpc' then
-  addm( "ELUA_BOOT_RPC" )
-end
+if comp.boot == 'luarpc' then addm( "ELUA_BOOT_RPC" ) end
+if comp.target == 'lualong' then addm( "LUA_NUMBER_INTEGRAL" ) end
 
 -- Special macro definitions for the SYM target
-if platform == 'sim' then
-  addm( { "ELUA_SIMULATOR", "ELUA_SIM_" .. cnorm( comp.cpu ) } )
-end
+if platform == 'sim' then addm( { "ELUA_SIMULATOR", "ELUA_SIM_" .. cnorm( comp.cpu ) } ) end
 
 -- Lua source files and include path
-local lua_files = ([[lapi.c lcode.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c lobject.c lopcodes.c
-  lparser.c lstate.c lstring.c ltable.c ltm.c lundump.c lvm.c lzio.c lauxlib.c lbaselib.c
-  ldblib.c liolib.c lmathlib.c loslib.c ltablib.c lstrlib.c loadlib.c linit.c lua.c lrotable.c legc.c]]):gsub( "\n", "" )
-local lua_full_files = utils.prepend_path( lua_files, "src/lua" )
+exclude_patterns = { "^src/platform", "^src/uip", "^src/serial", "^src/luarpc_desktop_serial.c", "^src/lua/print.c", "^src/lua/luac.c" }
+local source_files = utils.get_files( "src", function( fname ) 
+  local include = fname:find( ".*%.c$" )
+  if include then
+    utils.foreach( exclude_patterns, function( k, v ) if fname:match( v ) then include = false end end )
+  end
+  return include
+end )
+-- Add uIP files manually because not all of them are included in the build ([TODO] why?)
+local uip_files = " " .. utils.prepend_path( "uip_arp.c uip.c uiplib.c dhcpc.c psock.c resolv.c", "src/uip" )
 
-addi( { 'inc', 'inc/newlib',  'inc/remotefs', 'src/platform', 'src/lua' } )
-
-if comp.target == 'lualong' then
-  addm( "LUA_NUMBER_INTEGRAL" )
-end
-
-addi( { 'src/modules', 'src/platform/' .. platform } )
+addi{ { 'inc', 'inc/newlib',  'inc/remotefs', 'src/platform', 'src/lua' }, { 'src/modules', 'src/platform/' .. platform }, "src/uip", "src/fatfs" }
 addm( "LUA_OPTIMIZE_MEMORY=" .. ( comp.optram and "2" or "0" ) )
-
--- Application files
-local app_files = ([[ src/main.c src/romfs.c src/semifs.c src/xmodem.c src/shell.c src/term.c src/common.c src/common_tmr.c src/buf.c src/elua_adc.c src/dlmalloc.c 
-                src/salloc.c src/luarpc_elua_uart.c src/elua_int.c src/linenoise.c src/common_uart.c src/eluarpc.c ]]):gsub( "\n", "" )
-
--- Newlib related files
-local newlib_files = " src/newlib/devman.c src/newlib/stubs.c src/newlib/genstd.c src/newlib/stdtcp.c"
-
--- UIP files
-local uip_files = "uip_arp.c uip.c uiplib.c dhcpc.c psock.c resolv.c"
-uip_files = " src/elua_uip.c " .. utils.prepend_path( uip_files, "src/uip" )
-addi( "src/uip" )
-
--- FatFs files
-app_files = app_files .. "src/elua_mmc.c src/mmcfs.c src/fatfs/ff.c src/fatfs/ccsbcs.c "
-addi( "src/fatfs" )
-
--- Lua module files
-local module_names = "pio.c spi.c tmr.c pd.c uart.c term.c pwm.c lpack.c bit.c net.c cpu.c adc.c can.c luarpc.c bitarray.c elua.c i2c.c"
-local module_files = " " .. utils.prepend_path( module_names, 'src/modules' )
-
--- Remote file system files
-local rfs_names = "remotefs.c client.c elua_os_io.c elua_rfs.c"
-local rfs_files = " " .. utils.prepend_path( rfs_names, "src/remotefs" )
-
--- Optimizer flags (speed or size)
 addcf( { '-Os','-fomit-frame-pointer' } )
 
 -- Toolset data (filled by each platform in part)
@@ -479,7 +449,7 @@ specific_files = ''
 dofile( sf( "src/platform/%s/conf.lua", platform ) )
 
 -- Complete file list
-local source_files = app_files .. specific_files .. newlib_files .. uip_files .. lua_full_files .. module_files .. rfs_files 
+source_files = source_files .. uip_files .. specific_files
 
 -------------------------------------------------------------------------------
 -- Create compiler/linker/assembler command lines and build
