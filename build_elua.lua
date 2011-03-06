@@ -427,7 +427,8 @@ if platform == 'sim' then addm( { "ELUA_SIMULATOR", "ELUA_SIM_" .. cnorm( comp.c
 
 -- Lua source files and include path
 exclude_patterns = { "^src/platform", "^src/uip", "^src/serial", "^src/luarpc_desktop_serial.c", "^src/lua/print.c", "^src/lua/luac.c" }
-local source_files = utils.get_files( "src", function( fname ) 
+local source_files = utils.get_files( "src", function( fname )
+  fname = fname:gsub( "\\", "/" ) 
   local include = fname:find( ".*%.c$" )
   if include then
     utils.foreach( exclude_patterns, function( k, v ) if fname:match( v ) then include = false end end )

@@ -159,7 +159,7 @@ foreach( dcoltable, function( k, v ) coltable[ v ] = k - 1 end )
 
 local _col_builder = function( col )
   local _col_maker = function( s )
-    if is_os_windows then
+    if is_os_windows and not os.getenv( "WIN_ANSI_TERM" ) then
       return s
     else
       return( sf( "\027[%dm%s\027[m", coltable[ col ] + 30, s ) )
