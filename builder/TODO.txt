@@ -1,0 +1,10 @@
+The LM3S9B92 GPIO configuration seems to be wrong in platform_conf.h
+as NUM_PIO is defined as 7 but the pin_array has 9 entries. Also the manual
+suggests that LM3S9B92 has indeed 9 ports, but it skips PI for some reason
+and goes directly to PJ. The code should be modified to handle this kind of 
+irregular mapping. Right now it will appear with a 0 in the pin array table.
+Maybe define a "bitmask" if individual pins instead of whole ports are missing.
+
+Add explicit pin mapping for ALL peripherals in the configuration files. And
+add runtime pin mapping support in eLua based on this.
+
