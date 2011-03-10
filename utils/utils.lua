@@ -111,6 +111,13 @@ table_keys = function( t )
   return keys
 end
 
+-- Return an array with the values of a table
+table_values = function( t )
+  local values = {}
+  foreach( t, function( k, v ) table.insert( values, v ) end )
+  return values
+end
+
 -- Returns true if 'path' is a regular file, false otherwise
 is_file = function( path )
   return lfs.attributes( path, "mode" ) == "file"
@@ -149,6 +156,21 @@ foreach = function ( t, cmd )
   for k, v in pairs( t ) do cmd( k, v ) end
 end
 
+-- Check and return a field in a table
+tget = function ( t, f, ttype )
+  if type( t ) ~= "table" then return nil end
+  local e = t[ f ]
+  if not e then return nil end
+  if ttype and type( e ) ~= ttype then return nil end
+  return e
+end
+
+-- Pad a string to the specified length with spaces
+strpad = function( s, len )
+  if #s >= len then return s end
+  return s .. string.rep( ' ', len - #s )
+end
+
 ---------------------------------------
 -- Color-related funtions
 -- Currently disabled when running in Windows
@@ -162,7 +184,7 @@ local _col_builder = function( col )
     if is_os_windows and not os.getenv( "WIN_ANSI_TERM" ) then
       return s
     else
-      return( sf( "\027[%dm%s\027[m", coltable[ col ] + 30, s ) )
+      return( sf( "\027[1;%dm%s\027[m", coltable[ col ] + 30, s ) )
     end
   end
   return _col_maker
