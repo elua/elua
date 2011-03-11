@@ -19,7 +19,7 @@ cgen.new = function( ctable, peripheral )
 end
 
 cgen.__type = function( self )
-  return "gen-" .. self.peripheral
+  return "gen-io-" .. self.peripheral
 end
 
 -------------------------------------------------------------------------------

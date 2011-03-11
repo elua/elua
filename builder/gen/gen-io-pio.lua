@@ -61,7 +61,7 @@ cgen.generate = function( self, dest )
 end
 
 cgen.__type = function()
-  return "gen-pio"
+  return "gen-io-pio"
 end
 
 -------------------------------------------------------------------------------
