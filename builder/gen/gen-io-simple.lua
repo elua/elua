@@ -1,4 +1,4 @@
--- UART generator
+-- Generator for simple peripherals that expose only the "num" parameter
 
 module( ..., package.seeall )
 local sf = string.format
@@ -9,22 +9,23 @@ local cgen = {}
 local base = iogen.iogen
 setmetatable( cgen, { __index = base } )
 
-cgen.new = function( ctable )
+cgen.new = function( ctable, peripheral )
   local self = {}
   setmetatable( self, { __index = cgen } )
-  base.init_instance( self, 'uart', ctable )
+  self.peripheral = peripheral
+  base.init_instance( self, peripheral, ctable )
   base.init( self )
   return self
 end
 
-cgen.__type = function()
-  return "gen-uart"
+cgen.__type = function( self )
+  return "gen-" .. self.peripheral
 end
 
 -------------------------------------------------------------------------------
 -- Public interface
 
-function new( ctable )
-  return cgen.new( ctable )
+function new( ctable, peripheral )
+  return cgen.new( ctable, peripheral )
 end
 

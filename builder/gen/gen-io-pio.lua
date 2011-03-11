@@ -47,7 +47,7 @@ end
 -- Generator function
 cgen.generate = function( self, dest )
   base.generate( self, dest, true )
-  if self.is_available then
+  if self.enabled then
     self.strout( dest, "#define PIO_PREFIX", sf( "'%s'\n", self.prefix ) )
     if self.pins_per_port then
       self.strout( dest, "#define PIO_PINS_PER_PORT", sf( "%d\n", self.pins_per_port ) )

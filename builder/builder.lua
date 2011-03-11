@@ -2,12 +2,20 @@
 
 package.path = package.path .. ";utils/?.lua;builder/?.lua;builder/gen/?.lua"
 local utils = require "utils"
-local gen = require "gen-pio"
+local generators = {}
 
 local c = require "builder.platforms.lpc24xx"
 c = c.cpu_list.lpc2468
-local g = gen.new( c )
-g:generate( io.stdout )
-gen = require "gen-uart"
-g = gen.new( c )
-g:generate( io.stdout )
+
+-- First create all I/O generators
+local io_gens = { 'gen-pio', 'gen-pwm', 'gen-uart' }
+utils.foreach( io_gens, function( k, v ) 
+  local m = require( v )
+  table.insert( generators, { name = v, gen = m.new( c ) } )
+end )
+
+-- Then run them
+utils.foreach( generators, function( k, v )
+  v.gen:generate( io.stdout )  
+end )
+

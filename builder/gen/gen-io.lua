@@ -20,28 +20,35 @@ iogen.init_instance = function( self, component, ctable )
   base.init_instance( self, 'gen-io-' .. component )
   self.component = component
   self.ctable = ctable
-  -- IO components are always enabled
-  self.is_enabled = true
 end
 
 -- Generic IO subsystem initialization: check if the component is available
 -- Return the component's initialization table or nil
 iogen.init = function( self, t )
   self.ctable = t or self.ctable
-  self.is_available = false
+  self.enabled = false
   if not utils.tget( self.ctable, self.component, "table" ) then return end
   t = self.ctable[ self.component ]
   self.num = utils.tget( t, "num", "number" )
   if not self.num or self.num <= 0 then return end
-  self.is_available = true
+  self.enabled = true
   return t
 end
 
 -- Simple generator: just write the "num" component
 iogen.generate = function( self, dest, moredata )
   dest:write( sf( "// %s configuration\n", self.component:upper() ) )
-  self.strout( dest, sf( "#define NUM_%s", self.component:upper() ), sf( "%d\n", self.is_available and self.num or 0 ) )
+  self.strout( dest, sf( "#define NUM_%s", self.component:upper() ), sf( "%d\n", self.enabled and self.num or 0 ) )
   if not moredata then dest:write( "\n" ) end
+end
+
+-- An IO subsystem is either implemented or not, so it can't be enabled
+iogen.enable = function( self, mode )
+  return false
+end
+
+iogen.can_enable = function( self )
+  return false
 end
 
 iogen.__type = function()
