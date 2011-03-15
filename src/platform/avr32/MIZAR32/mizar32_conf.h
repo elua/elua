@@ -137,10 +137,8 @@
 // (start address and end address)
 // On Mizar32, we just use the 32MB SDRAM without trying to use the 8K that is
 // free in the onboard 32KB RAM, thereby simplifying the memory management.
-//#define MEM_START_ADDRESS     { ( void* )end, ( void* )SDRAM }
-//#define MEM_END_ADDRESS       { ( void* )( 0x8000 - STACK_SIZE_TOTAL - 1 ), ( void* )( SDRAM + SDRAM_SIZE - 1 ) }
-#define MEM_START_ADDRESS     { ( void* )SDRAM }
-#define MEM_END_ADDRESS       { ( void* )( SDRAM + SDRAM_SIZE - 1 ) }
+#define MEM_START_ADDRESS     { ( void* )end, ( void* )SDRAM }
+#define MEM_END_ADDRESS       { ( void* )( 0x8000 - STACK_SIZE_TOTAL - 1 ), ( void* )( SDRAM + SDRAM_SIZE - 1 ) }
 
 // Interrupt list
 #define INT_UART_RX           ELUA_INT_FIRST_ID
