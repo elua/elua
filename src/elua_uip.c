@@ -40,13 +40,17 @@ static u32 periodic_timer, arp_timer;
 
 static void device_driver_send()
 {
+#ifdef ELUA_PLATFORM_AVR32
+    platform_eth_send_packet( uip_buf, uip_len, TRUE);
+#else
   if( uip_len <= TOTAL_HEADER_LENGTH )
-    platform_eth_send_packet( uip_buf, uip_len );
+    platform_eth_send_packet( uip_buf, uip_len, TRUE);
   else
   {
-    platform_eth_send_packet( uip_buf, TOTAL_HEADER_LENGTH );
-    platform_eth_send_packet( ( u8* )uip_appdata, uip_len - TOTAL_HEADER_LENGTH );
+    platform_eth_send_packet( uip_buf, TOTAL_HEADER_LENGTH, FALSE );
+    platform_eth_send_packet( ( u8* )uip_appdata, uip_len - TOTAL_HEADER_LENGTH, TRUE );
   }
+#endif
 }
 
 // This gets called on both Ethernet RX interrupts and timer requests,
@@ -272,7 +276,7 @@ volatile static elua_net_ip elua_uip_accept_remote;
 
 void elua_uip_appcall()
 {
-  struct elua_uip_state *s;
+  volatile struct elua_uip_state *s;
   elua_net_size temp;
   int sockno;
   

@@ -15,6 +15,16 @@
 #include "common.h"
 #include "buf.h"
 #include "spi.h"
+#ifdef BUILD_MMCFS
+#include "diskio.h"
+#endif
+
+#ifdef  BUILD_UIP
+#include "ethernet.h"
+#include "uip_arp.h"
+#include "elua_uip.h"
+#include "uip-conf.h"
+#endif
 
 // Platform-specific includes
 #include <avr32/io.h>
@@ -27,8 +37,21 @@
 #include "tc.h"
 #include "intc.h"
 
+// UIP sys tick data
+// NOTE: when using virtual timers, SYSTICKHZ and VTMR_FREQ_HZ should have the
+// same value, as they're served by the same timer (the systick)
+#define SYSTICKHZ               4
+#define SYSTICKMS               (1000 / SYSTICKHZ)
+
+#ifdef BUILD_UIP
+static int eth_timer_fired;
+#endif
+
 // ****************************************************************************
 // Platform initialization
+#ifdef BUILD_UIP
+u32  platform_ethernet_setup(void);
+#endif
 
 extern int pm_configure_clocks( pm_freq_param_t *param );
 
@@ -44,6 +67,19 @@ __attribute__((__interrupt__)) static void tmr_int_handler()
   
   tc_read_sr( tc, VTMR_CH );
   cmn_virtual_timer_cb();
+
+#ifdef BUILD_MMCFS
+  disk_timerproc();
+#endif
+
+#ifdef BUILD_UIP
+  // Indicate that a SysTick interrupt has occurred.
+  eth_timer_fired = 1;
+
+  // Generate a fake Ethernet interrupt.  This will perform the actual work
+  // of incrementing the timers and taking the appropriate actions.
+  platform_eth_force_interrupt();
+#endif
 }                                
 #endif
 
@@ -167,6 +203,11 @@ int platform_init()
     spi_initMaster(&AVR32_SPI1, &spiopt, REQ_CPU_FREQ);
 #endif    
 
+#endif
+
+
+#ifdef BUILD_UIP
+    platform_ethernet_setup();
 #endif
 
   cmn_platform_init();
@@ -625,4 +666,88 @@ int platform_cpu_get_global_interrupts()
 {
   return Is_global_interrupt_enabled();
 }
+// ****************************************************************************
+// Network support
 
+
+#ifdef BUILD_UIP
+static const gpio_map_t MACB_GPIO_MAP =
+{
+  {AVR32_MACB_MDC_0_PIN,    AVR32_MACB_MDC_0_FUNCTION   },
+  {AVR32_MACB_MDIO_0_PIN,   AVR32_MACB_MDIO_0_FUNCTION  },
+  {AVR32_MACB_RXD_0_PIN,    AVR32_MACB_RXD_0_FUNCTION   },
+  {AVR32_MACB_TXD_0_PIN,    AVR32_MACB_TXD_0_FUNCTION   },
+  {AVR32_MACB_RXD_1_PIN,    AVR32_MACB_RXD_1_FUNCTION   },
+  {AVR32_MACB_TXD_1_PIN,    AVR32_MACB_TXD_1_FUNCTION   },
+  {AVR32_MACB_TX_EN_0_PIN,  AVR32_MACB_TX_EN_0_FUNCTION },
+  {AVR32_MACB_RX_ER_0_PIN,  AVR32_MACB_RX_ER_0_FUNCTION },
+  {AVR32_MACB_RX_DV_0_PIN,  AVR32_MACB_RX_DV_0_FUNCTION },
+  {AVR32_MACB_TX_CLK_0_PIN, AVR32_MACB_TX_CLK_0_FUNCTION}
+};
+
+u32  platform_ethernet_setup()
+{
+	  static struct uip_eth_addr sTempAddr;
+	  // Assign GPIO to MACB
+	  gpio_enable_module(MACB_GPIO_MAP, sizeof(MACB_GPIO_MAP) / sizeof(MACB_GPIO_MAP[0]));
+
+	  // initialize MACB & Phy Layers
+	  if (xMACBInit(&AVR32_MACB) == FALSE ) {
+		  return PLATFORM_ERR;
+	  }
+
+	  sTempAddr.addr[0] = ETHERNET_CONF_ETHADDR0;
+	  sTempAddr.addr[1] = ETHERNET_CONF_ETHADDR1;
+	  sTempAddr.addr[2] = ETHERNET_CONF_ETHADDR2;
+	  sTempAddr.addr[3] = ETHERNET_CONF_ETHADDR3;
+	  sTempAddr.addr[4] = ETHERNET_CONF_ETHADDR4;
+	  sTempAddr.addr[5] = ETHERNET_CONF_ETHADDR5;
+
+	  // Initialize the eLua uIP layer
+	  elua_uip_init( &sTempAddr );
+
+	  return PLATFORM_OK;
+
+}
+
+void platform_eth_send_packet( const void* src, u32 size, u8 endframe )
+{
+   lMACBSend(&AVR32_MACB,src, size, endframe);
+}
+
+u32 platform_eth_get_packet_nb( void* buf, u32 maxlen )
+{
+	u32    len;
+
+    /* Obtain the size of the packet. */
+    len = ulMACBInputLength();
+
+    if (len > maxlen) {
+    	return 0;
+    }
+
+    if( len ) {
+        /* Let the driver know we are going to read a new packet. */
+    	vMACBRead( NULL, 0, len );
+    	vMACBRead( buf, len, len );
+    }
+
+ return len;
+}
+
+void platform_eth_force_interrupt()
+{
+    elua_uip_mainloop();
+}
+
+u32 platform_eth_get_elapsed_time()
+{
+    if( eth_timer_fired )
+    {
+      eth_timer_fired = 0;
+      return SYSTICKMS;
+    }
+    else
+      return 0;
+}
+#endif
