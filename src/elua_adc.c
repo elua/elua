@@ -42,7 +42,7 @@ void adc_update_dev_sequence( unsigned dev_id  )
     {
       if ( ( d->ch_active & ( ( u32 )1 << ( id ) ) ) > 0 )
       {
-	s = adc_get_ch_state( id );
+        s = adc_get_ch_state( id );
         d->ch_state[ d->seq_ctr ] = s;
         s->value_ptr = &( d->sample_buf[ d->seq_ctr ] );
         s->value_fresh = 0;

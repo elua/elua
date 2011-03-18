@@ -715,8 +715,6 @@ __attribute__((__interrupt__)) static void adc_int_handler()
       // Read LCDR to signal that conversion has been captured
       i = adc->lcdr;
 
-      //printf("Value: %d\n", d->sample_buf[ d->seq_ctr ]);
-
       if ( s->logsmoothlen > 0 && s->smooth_ready == 0)
 	adc_smooth_data( s->id );
 #if defined( BUF_ENABLE_ADC )
