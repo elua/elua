@@ -11,10 +11,12 @@
 #include <ctype.h>
 #include <stdio.h>
 #include "utils.h"
+#include "elua_adc.h"
 #include "platform_conf.h"
 #include "common.h"
 #include "buf.h"
 #include "spi.h"
+#include "adc.h"
 
 // Platform-specific includes
 #include <avr32/io.h>
@@ -33,6 +35,8 @@
 extern int pm_configure_clocks( pm_freq_param_t *param );
 
 static u32 platform_timer_set_clock( unsigned id, u32 clock );
+
+__attribute__((__interrupt__)) static void adc_int_handler();
 
 // Virtual timers support
 #if VTMR_NUM_TIMERS > 0
@@ -167,6 +171,14 @@ int platform_init()
     spi_initMaster(&AVR32_SPI1, &spiopt, REQ_CPU_FREQ);
 #endif    
 
+#endif
+
+#if NUM_ADC > 0
+   (&AVR32_ADC)->ier = AVR32_ADC_DRDY_MASK; 
+   INTC_register_interrupt( &adc_int_handler, AVR32_ADC_IRQ, AVR32_INTC_INT0); 
+
+   for( i = 0; i < NUM_ADC; i++ )
+     adc_init_ch_state( i );
 #endif
 
   cmn_platform_init();
@@ -626,3 +638,139 @@ int platform_cpu_get_global_interrupts()
   return Is_global_interrupt_enabled();
 }
 
+// ****************************************************************************
+// ADC functions
+
+#ifdef BUILD_ADC
+
+static const gpio_map_t adc_pins = 
+{ 
+  {AVR32_ADC_AD_0_PIN, AVR32_ADC_AD_0_FUNCTION},
+  {AVR32_ADC_AD_1_PIN, AVR32_ADC_AD_1_FUNCTION},
+  {AVR32_ADC_AD_2_PIN, AVR32_ADC_AD_2_FUNCTION},
+  {AVR32_ADC_AD_3_PIN, AVR32_ADC_AD_3_FUNCTION},
+  {AVR32_ADC_AD_4_PIN, AVR32_ADC_AD_4_FUNCTION},
+  {AVR32_ADC_AD_5_PIN, AVR32_ADC_AD_5_FUNCTION},
+  {AVR32_ADC_AD_6_PIN, AVR32_ADC_AD_6_FUNCTION},
+  {AVR32_ADC_AD_7_PIN, AVR32_ADC_AD_7_FUNCTION}
+}; 
+
+volatile avr32_adc_t *adc = &AVR32_ADC;
+
+int platform_adc_check_timer_id( unsigned id, unsigned timer_id )
+{
+  return 0; // no timers supported initially
+}
+
+void platform_adc_stop( unsigned id )
+{
+  elua_adc_ch_state *s = adc_get_ch_state( id );
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  
+  s->op_pending = 0;
+  INACTIVATE_CHANNEL( d, id );
+
+  // If there are no more active channels, stop the sequencer
+  if( d->ch_active == 0 )
+    d->running = 0;
+}
+
+int platform_adc_update_sequence( )
+{  
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+
+  adc->cr = AVR32_ADC_SWRST_MASK;
+  adc->ier = AVR32_ADC_DRDY_MASK; 
+
+  adc_configure( adc );
+
+  d->seq_ctr = 0;
+  while( d->seq_ctr < d->seq_len )
+  {
+    adc_enable( adc, d->ch_state[ d->seq_ctr ]->id );
+    gpio_enable_module( adc_pins + d->ch_state[ d->seq_ctr ]->id, 1 );
+    d->seq_ctr++;
+  }
+  d->seq_ctr = 0;
+
+  return PLATFORM_OK;
+}
+
+__attribute__((__interrupt__)) static void adc_int_handler()
+{
+  int i; 
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  elua_adc_ch_state *s;
+  
+  d->seq_ctr = 0;
+  while( d->seq_ctr < d->seq_len )
+  { 
+    s = d->ch_state[ d->seq_ctr ];
+
+    if( adc_check_eoc( adc, s->id ) ) 
+    { 
+      d->sample_buf[ d->seq_ctr ] = ( u16 )adc_get_value(adc, s->id );
+      s->value_fresh = 1;
+      
+      // Read LCDR to signal that conversion has been captured
+      i = adc->lcdr;
+
+      //printf("Value: %d\n", d->sample_buf[ d->seq_ctr ]);
+
+      if ( s->logsmoothlen > 0 && s->smooth_ready == 0)
+	adc_smooth_data( s->id );
+#if defined( BUF_ENABLE_ADC )
+      else if ( s->reqsamples > 1 )
+      {
+	buf_write( BUF_ID_ADC, s->id, ( t_buf_data* )s->value_ptr );
+	s->value_fresh = 0;
+      }
+#endif
+    
+      // If we have the number of requested samples, stop sampling
+      if ( adc_samples_available( s->id ) >= s->reqsamples && s->freerunning == 0 )
+	platform_adc_stop( s->id );
+    }
+
+    d->seq_ctr++;
+  }
+  d->seq_ctr = 0;
+
+  // Only attempt to refresh sequence order if still running
+  // This allows us to "cache" an old sequence if all channels
+  // finish at the same time
+  if ( d->running == 1 )
+    adc_update_dev_sequence( 0 );
+
+  if ( d->clocked == 0 && d->running == 1 )
+    adc_start( adc );
+}                                
+
+
+u32 platform_adc_setclock( unsigned id, u32 frequency )
+{
+  return 0;
+}
+
+
+int platform_adc_start_sequence( )
+{ 
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  
+  // Only force update and initiate if we weren't already running
+  // changes will get picked up during next interrupt cycle
+  if ( d->running != 1 )
+  {
+    adc_update_dev_sequence( 0 );
+
+    d->seq_ctr = 0; 
+    d->running = 1;
+
+    if( d->clocked == 0 )
+      adc_start(adc);
+  }
+
+  return PLATFORM_OK;
+}
+
+#endif

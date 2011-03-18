@@ -39,24 +39,24 @@ void adc_update_dev_sequence( unsigned dev_id  )
     // Update channel sequence
     d->seq_ctr = 0;
     for( id = 0; id < NUM_ADC; id ++ )
-  	{
-  	  if ( ( d->ch_active & ( ( u32 )1 << ( id ) ) ) > 0 )
-  	  {
-  	    s = adc_get_ch_state( id );
+    {
+      if ( ( d->ch_active & ( ( u32 )1 << ( id ) ) ) > 0 )
+      {
+	s = adc_get_ch_state( id );
         d->ch_state[ d->seq_ctr ] = s;
         s->value_ptr = &( d->sample_buf[ d->seq_ctr ] );
         s->value_fresh = 0;
         if( s->id == previd )
           tmp_seq_ctr = d->seq_ctr;
         d->seq_ctr++;
-  	  }
+      }
     }
     d->seq_len = d->seq_ctr;
 
     // Null out remainder of sequence
     while( d->seq_ctr < NUM_ADC )
       d->ch_state[ d->seq_ctr++ ] = NULL;
-
+    
     d->seq_ctr = 0;
 
     // Sync up hardware
@@ -89,7 +89,7 @@ int adc_setup_channel( unsigned id, u8 logcount )
   }
 #endif
 
-  s->reqsamples = (u16) 1 << logcount;
+  s->reqsamples = ( u16 )1 << logcount;
   s->op_pending = 1;
   
   ACTIVATE_CHANNEL( d, id );
@@ -132,7 +132,7 @@ void adc_init_ch_state( unsigned id )
 void adc_init_dev_state( unsigned dev_id )
 {
   elua_adc_dev_state *d = adc_get_dev_state( dev_id );
-	d->seq_id = 0;
+  d->seq_id = 0;
   d->running = 0;
   d->ch_active = 0;
   d->last_ch_active = 0;

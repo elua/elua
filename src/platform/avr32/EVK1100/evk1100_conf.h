@@ -21,6 +21,7 @@
 #define BUILA_LUA_INT_HANDLERS
 //#define BUILD_RFS
 //#define BUILD_SERMUX
+#define BUILD_ADC
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
@@ -60,6 +61,12 @@
 #define BUILD_RPC
 #endif
 
+#ifdef BUILD_ADC
+#define ADCLINE _ROM( AUXLIB_ADC, luaopen_adc, adc_map )
+#else
+#define ADCLINE
+#endif
+
 #if defined( BUILD_RPC ) 
 #define RPCLINE _ROM( AUXLIB_RPC, luaopen_rpc, rpc_map )
 #else
@@ -72,6 +79,7 @@
   _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
   _ROM( AUXLIB_SPI, luaopen_spi, spi_map )\
   _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
+  ADCLINE\
   _ROM( AUXLIB_TERM, luaopen_term, term_map )\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
   _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )\
@@ -97,7 +105,7 @@
 #define NUM_TIMER             3
 #endif
 #define NUM_PWM               0
-#define NUM_ADC               0
+#define NUM_ADC               8
 #define NUM_CAN               0
 
 // RPC boot options
@@ -108,6 +116,15 @@
 // Enable RX buffering on UART
 #define BUF_ENABLE_UART
 #define CON_BUF_SIZE          BUF_SIZE_128
+
+// ADC Configuration Params
+#define ADC_BIT_RESOLUTION    10
+#define BUF_ENABLE_ADC
+#define ADC_BUF_SIZE          BUF_SIZE_2
+
+// These should be adjusted to support multiple ADC devices
+#define ADC_TIMER_FIRST_ID    0
+#define ADC_NUM_TIMERS        0
 
 // SD/MMC Filesystem Setup
 #define MMCFS_TICK_HZ     10
