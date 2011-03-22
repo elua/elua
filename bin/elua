@@ -1,0 +1,107 @@
+#!/usr/bin/python
+import sys
+import os
+
+conf_name = 'conf.py'
+
+def print_help ():
+	print "usage:"
+	print "elua --build"
+	print "elua --create <project_name> <board_name>"
+	print "elua --recreate <project_name> <board_name>"
+	print """\n\n\
+build: build an eLua image from the "%s" file from the current folder.
+create: create a new romfs and a configuration file for the project.
+""" % (conf_name)
+
+def print_licence ():
+	print """\
+--------------------------------------------------------------------------------
+The MIT License
+
+Copyright (c) 2011 LedLab-dev
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+--------------------------------------------------------------------------------
+"""
+
+def get_template (board):
+	# Create a template for a given board.
+	template = """
+BOARD = "%s"
+""" % board.upper ()
+	return template
+
+def write_template (board, projdir):
+	f = open (projdir + '/' + conf_name, 'w')
+	f.write (get_template (board))
+	f.close ()
+
+def create(board, proj, projdir):
+	try:
+		os.makedirs (projdir + '/romfs')
+		print ('creating project %s' % proj)
+	except:
+		print ('unable to create the folder "%s"' % projdir)
+		print ('check if already exists')
+		exit (2)
+	write_template (board, projdir)
+
+def main ():
+	elua_home = os.path.dirname (sys.argv[0]) + "/.."
+	projdir = os.getcwd ()
+	
+	print_licence ()
+	
+	try:
+		cmd = sys.argv[1]
+	except:
+		print "invalid argument\n"
+		print_help ()
+		exit (1)
+	if cmd == '--build':
+		os.system ("scons -C%s toolchain=codesourcery prog project=%s/" % (elua_home, projdir))
+	elif cmd == '--create':
+		try:
+			proj = sys.argv[2]
+			board = sys.argv[3]
+		except:
+			print ('invalid project name or board')
+			exit (3)
+		create (board, proj, projdir+'/'+proj)
+	elif cmd == '--recreate':
+		try:
+			proj = sys.argv[2]
+			board = sys.argv[3]
+		except:
+			print ('invalid project name or board')
+			print_help ()
+			exit (3)
+		print ('conf.py overwriten')
+		projdir = project_folder + '/' + proj
+		write_template (board, projdir)
+	elif cmd == '--help':
+		print_help ()
+		exit (0)
+	else:
+		print ('invalid command: %s' % cmd)
+		print_help ()
+
+if __name__ == "__main__":
+	    main()
