@@ -51,7 +51,9 @@ static volatile u8 vtmr_int_flag[ ( VTMR_NUM_TIMERS + 7 ) >> 3 ];
 void cmn_virtual_timer_cb()
 {
   unsigned i;
+#ifdef CMN_TIMER_INT_SUPPORT
   u8 msk;
+#endif
 
   for( i = 0; i < VTMR_NUM_TIMERS; i ++ )
   {
