@@ -172,13 +172,19 @@ static int term_translate( int data )
 
 static void uart_send( int fd, char c )
 {
+#if defined( CON_UART_ID )
   fd = fd;
   platform_uart_send( CON_UART_ID, c );
+#endif  
 }
 
 static int uart_recv( s32 to )
 {
+#if defined( CON_UART_ID )
   return platform_uart_recv( CON_UART_ID, CON_TIMER_ID, to );
+#else
+  return -1;  
+#endif  
 }
 
 void cmn_platform_init()
