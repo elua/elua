@@ -12,7 +12,7 @@
 // *****************************************************************************
 // Define here what components you want for this platform
 
-//#define BUILD_XMODEM
+#define BUILD_XMODEM
 #define BUILD_SHELL
 #define BUILD_ROMFS
 //#define BUILD_MMCFS
@@ -53,12 +53,37 @@
 #endif
 
 #define LUA_PLATFORM_LIBS_ROM\
+  _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
   _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
+  _ROM( AUXLIB_UART, luaopen_uart, uart_map )\
+  _ROM( AUXLIB_TERM, luaopen_term, term_map )\
   _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
   _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )\
+  _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
+  
+#if 0  
+  _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
+  _ROM( AUXLIB_SPI, luaopen_spi, spi_map )\
+  _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
+  _ROM( AUXLIB_UART, luaopen_uart, uart_map )\
+  _ROM( AUXLIB_TERM, luaopen_term, term_map )\
+  _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
+  _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
+  _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
+  _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )\
+  _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
+  ADCLINE\
+  _ROM( AUXLIB_CAN, luaopen_can, can_map )\
+  _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map )\
+  RPCLINE\
+  LCDLINE\
+  _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )\
+  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
+  PLATLINE  
+#endif
 
 // *****************************************************************************
 // Configuration data
@@ -68,10 +93,10 @@
 //#define VTMR_FREQ_HZ          10
 
 // Number of resources (0 if not available/not implemented)
-#define NUM_PIO               0
+#define NUM_PIO               5
 #define NUM_SPI               0
 #define NUM_UART              6
-#define NUM_TIMER             5
+#define NUM_TIMER             4
 #define NUM_PWM               0
 #define NUM_ADC               0
 #define NUM_CAN               0
@@ -95,7 +120,7 @@ u32 platform_s_cpu_get_frequency();
 // #define PIO_PINS_PER_PORT (n) if each port has the same number of pins, or
 // #define PIO_PIN_ARRAY { n1, n2, ... } to define pins per port in an array
 // Use #define PIO_PINS_PER_PORT 0 if this isn't needed
-#define PIO_PINS_PER_PORT     16
+#define PIO_PINS_PER_PORT     32
 
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)

@@ -11,61 +11,6 @@
 
 /********************************************************************/
 /*
- * Initialize the UART for 8N1 operation, interrupts disabled, and
- * no hardware flow-control
- *
- * NOTE: Since the UARTs are pinned out in multiple locations on most
- *       Kinetis devices, this driver does not enable UART pin functions.
- *       The desired pins should be enabled before calling this init function.
- *
- * Parameters:
- *  uartch      UART channel to initialize
- *  sysclk      UART module Clock in kHz(used to calculate baud)
- *  baud        UART baud rate
- */
-void uart_init (UART_MemMapPtr uartch, int sysclk, int baud)
-{
-    register uint16 ubd;
-    
-	/* Enable the clock to the selected UART */    
-    if(uartch == UART0_BASE_PTR)
-		SIM_SCGC4 |= SIM_SCGC4_UART0_MASK;
-    else
-    	if (uartch == UART1_BASE_PTR)
-			SIM_SCGC4 |= SIM_SCGC4_UART1_MASK;
-    	else
-    		if (uartch == UART2_BASE_PTR)
-    			SIM_SCGC4 |= SIM_SCGC4_UART2_MASK;
-    		else
-    			if(uartch == UART3_BASE_PTR)
-    				SIM_SCGC4 |= SIM_SCGC4_UART3_MASK;
-    			else
-    				if(uartch == UART4_BASE_PTR)
-    					SIM_SCGC1 |= SIM_SCGC1_UART4_MASK;
-    				else
-    					SIM_SCGC1 |= SIM_SCGC1_UART5_MASK;
-                                
-    /* Make sure that the transmitter and reciever are disabled while we 
-     * change settings.
-     */
-    UART_C2_REG(uartch) &= ~(UART_C2_TE_MASK
-				| UART_C2_RE_MASK );
-
-    /* Configure the UART for 8-bit mode, no parity */
-    UART_C1_REG(uartch) = 0;	/* We need all default settings, so entire register is cleared */
-    
-    /* Calculate baud settings */
-    ubd = (uint16)((sysclk*1000)/(baud * 16));
-    
-    UART_BDH_REG(uartch) |= UART_BDH_SBR(((ubd & 0x1F00) >> 8));
-    UART_BDL_REG(uartch) = (uint8)(ubd & UART_BDL_SBR_MASK);
-
-    /* Enable receiver and transmitter */
-	UART_C2_REG(uartch) |= (UART_C2_TE_MASK
-				| UART_C2_RE_MASK );
-}
-/********************************************************************/
-/*
  * Wait for a character to be received on the specified UART
  *
  * Parameters:
