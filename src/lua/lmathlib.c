@@ -24,7 +24,13 @@
 
 
 static int math_abs (lua_State *L) {
+#ifdef LUA_NUMBER_INTEGRAL
+  lua_Number x = luaL_checknumber(L, 1);
+  if (x < 0) x = -x;	//fails for -2^31
+  lua_pushnumber(L, x);
+#else
   lua_pushnumber(L, fabs(luaL_checknumber(L, 1)));
+#endif
   return 1;
 }
 
@@ -101,8 +107,38 @@ static int math_modf (lua_State *L) {
   return 2;
 }
 
+#ifdef LUA_NUMBER_INTEGRAL
+// Integer square root for integer version
+static lua_Number isqrt(lua_Number x)
+{
+  lua_Number op, res, one;
+
+  op = x; res = 0;
+
+  /* "one" starts at the highest power of four <= than the argument. */
+  one = 1 << 30;  /* second-to-top bit set */
+  while (one > op) one >>= 2;
+
+  while (one != 0) {
+    if (op >= res + one) {
+      op = op - (res + one);
+      res = res +  2 * one;
+    }
+    res >>= 1;
+    one >>= 2;
+  }
+  return(res);
+}
+#endif
+
 static int math_sqrt (lua_State *L) {
+#ifdef LUA_NUMBER_INTEGRAL
+  lua_Number x = luaL_checknumber(L, 1);
+  luaL_argcheck(L, 0<=x, 1, "negative");
+  lua_pushnumber(L, isqrt(x));
+#else
   lua_pushnumber(L, sqrt(luaL_checknumber(L, 1)));
+#endif
   return 1;
 }
 
@@ -178,6 +214,36 @@ static int math_max (lua_State *L) {
 }
 
 
+#ifdef LUA_NUMBER_INTEGRAL
+
+static int math_random (lua_State *L) {
+  lua_Number r = (lua_Number)(rand()%RAND_MAX);
+
+  switch (lua_gettop(L)) {  /* check number of arguments */
+    case 0: {  /* no arguments */
+      lua_pushnumber(L, 0);  /* Number between 0 and 1 - always 0 with ints */
+      break;
+    }
+    case 1: {  /* only upper limit */
+      int u = luaL_checkint(L, 1);
+      luaL_argcheck(L, 1<=u, 1, "interval is empty");
+      lua_pushnumber(L, (r % u)+1);  /* int between 1 and `u' */
+      break;
+    }
+    case 2: {  /* lower and upper limits */
+      int l = luaL_checkint(L, 1);
+      int u = luaL_checkint(L, 2);
+      luaL_argcheck(L, l<=u, 2, "interval is empty");
+      lua_pushnumber(L, (r%(u-l+1))+l);  /* int between `l' and `u' */
+      break;
+    }
+    default: return luaL_error(L, "wrong number of arguments");
+  }
+  return 1;
+}
+
+#else
+
 static int math_random (lua_State *L) {
   /* the `%' avoids the (rare) case of r==1, and is needed also because on
      some systems (SunOS!) `rand()' may return a value larger than RAND_MAX */
@@ -205,6 +271,8 @@ static int math_random (lua_State *L) {
   return 1;
 }
 
+#endif
+
 
 static int math_randomseed (lua_State *L) {
   srand(luaL_checkint(L, 1));
@@ -214,7 +282,17 @@ static int math_randomseed (lua_State *L) {
 #define MIN_OPT_LEVEL 1
 #include "lrodefs.h"
 const LUA_REG_TYPE math_map[] = {
-#ifndef LUA_NUMBER_INTEGRAL
+#ifdef LUA_NUMBER_INTEGRAL
+  {LSTRKEY("abs"),   LFUNCVAL(math_abs)},
+  {LSTRKEY("max"),   LFUNCVAL(math_max)},
+  {LSTRKEY("min"),   LFUNCVAL(math_min)},
+  {LSTRKEY("random"),     LFUNCVAL(math_random)},
+  {LSTRKEY("randomseed"), LFUNCVAL(math_randomseed)},
+  {LSTRKEY("sqrt"),  LFUNCVAL(math_sqrt)},
+#if LUA_OPTIMIZE_MEMORY > 0
+  {LSTRKEY("huge"),  LNUMVAL(LONG_MAX)},
+#endif
+#else
   {LSTRKEY("abs"),   LFUNCVAL(math_abs)},
   {LSTRKEY("acos"),  LFUNCVAL(math_acos)},
   {LSTRKEY("asin"),  LFUNCVAL(math_asin)},
@@ -250,7 +328,7 @@ const LUA_REG_TYPE math_map[] = {
   {LSTRKEY("pi"),    LNUMVAL(PI)},
   {LSTRKEY("huge"),  LNUMVAL(HUGE_VAL)},
 #endif // #if LUA_OPTIMIZE_MEMORY > 0
-#endif // #ifndef LUA_NUMBER_INTEGRAL
+#endif // #ifdef LUA_NUMBER_INTEGRAL
   {LNILKEY, LNILVAL}
 };
 
@@ -258,23 +336,29 @@ const LUA_REG_TYPE math_map[] = {
 /*
 ** Open math library
 */
+
+#if defined LUA_NUMBER_INTEGRAL
+# include <limits.h>		/* for LONG_MAX */
+#endif
+
 LUALIB_API int luaopen_math (lua_State *L) {
-#if !defined LUA_NUMBER_INTEGRAL
 #if LUA_OPTIMIZE_MEMORY > 0
   return 0;
-#else // #if LUA_OPTIMIZE_MEMORY > 0
+#else
   luaL_register(L, LUA_MATHLIBNAME, math_map);
+# if defined LUA_NUMBER_INTEGRAL
+  lua_pushnumber(L, LONG_MAX);
+  lua_setfield(L, -2, "huge");
+# else
   lua_pushnumber(L, PI);
   lua_setfield(L, -2, "pi");
   lua_pushnumber(L, HUGE_VAL);
   lua_setfield(L, -2, "huge");
-#if defined(LUA_COMPAT_MOD)
+#  if defined(LUA_COMPAT_MOD)
   lua_getfield(L, -1, "fmod");
   lua_setfield(L, -2, "mod");
-#endif // #if defined(LUA_COMPAT_MOD)
+#  endif
+# endif
   return 1;
-#endif // #if LUA_OPTIMIZE_MEMORY > 0
-#else // #if !defined LUA_NUMBER_INTEGRAL
-  return 0;
-#endif // #if !defined LUA_NUMBER_INTEGRAL
+#endif
 }
