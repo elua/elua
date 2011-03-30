@@ -62,6 +62,7 @@
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
   _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )\
   _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
+  _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map )\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
   
 #if 0  
@@ -97,7 +98,7 @@
 #define NUM_SPI               0
 #define NUM_UART              6
 #define NUM_TIMER             4
-#define NUM_PWM               0
+#define NUM_PWM               6
 #define NUM_ADC               0
 #define NUM_CAN               0
 

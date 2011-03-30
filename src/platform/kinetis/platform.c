@@ -27,6 +27,7 @@ extern int periph_clk_khz;
 static void uarts_init();
 static void timers_init();
 static void gpios_init();
+static void pwms_init();
 
 // ****************************************************************************
 // Platform initialization
@@ -38,6 +39,7 @@ int platform_init()
   gpios_init();
   uarts_init();
   timers_init();
+  pwms_init();
   
   // Common platform initialization code
   cmn_platform_init();
@@ -258,6 +260,111 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
 int platform_s_timer_set_match_int( unsigned id, u32 period_us, int type )
 {
   return PLATFORM_TIMER_INT_INVALID_ID;
+}
+
+// *****************************************************************************
+// PWM functions
+// The current PWM channels are allocated as follows:
+// 2 channels on FTM0 - 0 (PA3) and 1 (PA4)
+// 2 channels on FTM1 - 0 (PA8) and 1 (PA9)
+// 2 channels on FTM2 - 0 (PA10) and 1 (PA11)
+// This is almost arbitrary and it might change in future versions
+
+#define PWM_PORT              0
+static FTM_MemMapPtr const pwms[] = { FTM0_BASE_PTR, FTM1_BASE_PTR, FTM2_BASE_PTR };
+static const u8 pwm_pins[] = { 3, 4, 8, 9, 10, 11 };
+
+static void pwms_init()
+{
+  FTM_MemMapPtr tmr;
+  unsigned i;
+  
+  // Enable clocks
+  SIM_SCGC3 |= SIM_SCGC3_FTM2_MASK;
+  SIM_SCGC6 |= SIM_SCGC6_FTM0_MASK;
+  SIM_SCGC6 |= SIM_SCGC6_FTM1_MASK;
+  // Set FTM clocks to system clock
+  for( i = 0; i < sizeof( pwms ) / sizeof( FTM_MemMapPtr ); i ++ )
+  {
+    tmr = pwms[ i ];
+    FTM_SC_REG( tmr ) &= ~FTM_SC_CLKS_MASK;
+    FTM_SC_REG( tmr ) |= 1 << FTM_SC_CLKS_SHIFT;
+    FTM_MODE_REG( tmr ) |= FTM_MODE_FTMEN_MASK;
+    FTM_CnSC_REG( tmr, 0 ) |= FTM_CnSC_MSB_MASK;
+    FTM_CnSC_REG( tmr, 1 ) |= FTM_CnSC_MSB_MASK;    
+  }
+}
+
+// Helper function: return the PWM clock
+static u32 platform_pwm_get_clock( unsigned id )
+{
+  FTM_MemMapPtr tmr = pwms[ id >> 1 ];
+  
+  return ( periph_clk_khz * 1000 ) / ( 1 << ( FTM_SC_REG( tmr ) & FTM_SC_PS_MASK ) );
+}
+
+// Helper function: set the PWM clock
+static u32 platform_pwm_set_clock( unsigned id, u32 clock )
+{
+  FTM_MemMapPtr tmr = pwms[ id >> 1 ];
+  u32 baseclk = periph_clk_khz * 1000;
+  unsigned i, mini;
+  
+  for( i = 1, mini = 0; i < 8; i ++ )
+    if( ABSDIFF( baseclk / ( 1 << i ), clock ) < ABSDIFF( baseclk / ( 1 << mini ), clock ) )
+      mini = i;
+  FTM_SC_REG( tmr ) &= ~FTM_SC_PS_MASK;
+  FTM_SC_REG( tmr ) |= mini;        
+  return platform_pwm_get_clock( id );
+}
+
+u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
+{
+  FTM_MemMapPtr tmr = pwms[ id >> 1 ];
+  int ch = id & 1;
+  u32 basefreq = platform_pwm_get_clock( id );
+  u32 modval;
+  
+  // Stop timer while the updates are made
+  FTM_SC_REG( tmr ) &= ~FTM_SC_CLKS_MASK;
+  modval = basefreq / frequency;
+  FTM_MOD_REG( tmr ) = modval - 1;
+  FTM_CnV_REG( tmr, ch ) = ( duty * modval ) / 100;
+  FTM_CNT_REG( tmr ) = 0; 
+  // Restart timer 
+  FTM_SC_REG( tmr ) |= 1 << FTM_SC_CLKS_SHIFT;  
+  return basefreq / modval;
+}
+
+u32 platform_pwm_op( unsigned id, int op, u32 data )
+{
+  FTM_MemMapPtr tmr = pwms[ id >> 1 ];
+  int ch = id & 1;
+  PORT_MemMapPtr pwm_port = ports[ PWM_PORT ];   
+  u32 res = 0;
+
+  switch( op )
+  {
+    case PLATFORM_PWM_OP_SET_CLOCK:
+      res = platform_pwm_set_clock( id, data );
+      break;
+
+    case PLATFORM_PWM_OP_GET_CLOCK:
+      res = platform_pwm_get_clock( id );
+      break;
+
+    case PLATFORM_PWM_OP_START:
+      pwm_port->PCR[ pwm_pins[ id ] ] = PORT_PCR_MUX( 0x03 );
+      FTM_CnSC_REG( tmr, ch ) |= FTM_CnSC_ELSB_MASK;
+      break;
+
+    case PLATFORM_PWM_OP_STOP:
+      FTM_CnSC_REG( tmr, ch ) &= ~FTM_CnSC_ELSB_MASK;    
+      pwm_port->PCR[ pwm_pins[ id ] ] = PORT_PCR_MUX( 0x01 );     
+      break;
+  }
+
+  return res;
 }
 
 // *****************************************************************************
