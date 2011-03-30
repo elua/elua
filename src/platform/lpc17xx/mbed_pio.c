@@ -84,8 +84,7 @@ static int mbed_pio_mt_index( lua_State* L )
 // Module function map
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h" 
-const LUA_REG_TYPE mbed_pio_map[] =
-{
+LHEADER( mbed_pio_map )
 #if LUA_OPTIMIZE_MEMORY > 0
   { LSTRKEY( "__metatable" ), LROVAL( mbed_pio_map ) },
   { LSTRKEY(  "RES_PULLUP" ), LNUMVAL( PINSEL_PINMODE_PULLUP )},
@@ -101,7 +100,7 @@ const LUA_REG_TYPE mbed_pio_map[] =
   { LSTRKEY( "configpin" ),  LFUNCVAL( configpin ) },
   { LSTRKEY( "__index" ), LFUNCVAL( mbed_pio_mt_index ) },
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
 LUALIB_API int luaopen_pio( lua_State *L )
 {

@@ -1232,15 +1232,14 @@ int platform_adc_start_sequence( )
 
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
-extern const LUA_REG_TYPE enc_map[];
+LEXTERN( enc_map );
 
-const LUA_REG_TYPE platform_map[] =
-{
+LHEADER( platform_map )
 #if LUA_OPTIMIZE_MEMORY > 0
   { LSTRKEY( "enc" ), LROVAL( enc_map ) },
 #endif
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
 LUALIB_API int luaopen_platform( lua_State *L )
 {

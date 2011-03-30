@@ -57,8 +57,7 @@ static int elua_save_history( lua_State *L )
 // Module function map
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
-const LUA_REG_TYPE elua_map[] = 
-{
+LHEADER( elua_map )
   { LSTRKEY( "egc_setup" ), LFUNCVAL( elua_egc_setup ) },
   { LSTRKEY( "version" ), LFUNCVAL( elua_version ) },  
   { LSTRKEY( "save_history" ), LFUNCVAL( elua_save_history ) },
@@ -69,7 +68,7 @@ const LUA_REG_TYPE elua_map[] =
   { LSTRKEY( "EGC_ALWAYS" ), LNUMVAL( EGC_ALWAYS ) },
 #endif
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
 LUALIB_API int luaopen_elua( lua_State *L )
 {

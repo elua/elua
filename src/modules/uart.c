@@ -236,8 +236,7 @@ static int uart_mt_index( lua_State* L )
 // Module function map
 #define MIN_OPT_LEVEL   2
 #include "lrodefs.h"
-const LUA_REG_TYPE uart_map[] = 
-{
+LHEADER( uart_map )
   { LSTRKEY( "setup" ),  LFUNCVAL( uart_setup ) },
   { LSTRKEY( "write" ), LFUNCVAL( uart_write ) },
   { LSTRKEY( "read" ), LFUNCVAL( uart_read ) },
@@ -262,7 +261,7 @@ const LUA_REG_TYPE uart_map[] =
   { LSTRKEY( "__index" ), LFUNCVAL( uart_mt_index ) },  
 #endif
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
 LUALIB_API int luaopen_uart( lua_State *L )
 {

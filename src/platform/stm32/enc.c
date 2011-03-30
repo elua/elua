@@ -75,13 +75,12 @@ static void index_handler( elua_int_resnum resnum )
 #include "lrodefs.h"  
 
 // Module function map
-const LUA_REG_TYPE enc_map[] =
-{ 
+LHEADER( enc_map )
   { LSTRKEY( "init" ),  LFUNCVAL( enc_init ) },
   { LSTRKEY( "setcounter" ),  LFUNCVAL( enc_set_counter ) },
   { LSTRKEY( "setidxtrig" ),  LFUNCVAL( enc_set_index_handler ) },
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
 LUALIB_API int luaopen_enc( lua_State *L )
 {

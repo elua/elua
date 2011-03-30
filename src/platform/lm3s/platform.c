@@ -1058,15 +1058,14 @@ void EthernetIntHandler()
 
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
-extern const LUA_REG_TYPE disp_map[];
+LEXTERN( disp_map );
 
-const LUA_REG_TYPE platform_map[] =
-{
+LHEADER( platform_map )
 #if LUA_OPTIMIZE_MEMORY > 0
   { LSTRKEY( "disp" ), LROVAL( disp_map ) },
 #endif
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
 LUALIB_API int luaopen_platform( lua_State *L )
 {

@@ -1628,29 +1628,25 @@ static int rpc_on_error( lua_State *L )
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
 
-const LUA_REG_TYPE rpc_handle[] =
-{
+LHEADER( rpc_handle )
   { LSTRKEY( "__index" ), LFUNCVAL( handle_index ) },
   { LSTRKEY( "__newindex"), LFUNCVAL( handle_newindex )},
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
-const LUA_REG_TYPE rpc_helper[] =
-{
+LHEADER( rpc_helper )
   { LSTRKEY( "__call" ), LFUNCVAL( helper_call ) },
   { LSTRKEY( "__index" ), LFUNCVAL( helper_index ) },
   { LSTRKEY( "__newindex" ), LFUNCVAL( helper_newindex ) },
   { LSTRKEY( "__gc" ), LFUNCVAL( helper_close ) },
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
-const LUA_REG_TYPE rpc_server_handle[] =
-{
+LHEADER( rpc_server_handle )
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
-const LUA_REG_TYPE rpc_map[] =
-{
+LHEADER( rpc_map )
   {  LSTRKEY( "connect" ), LFUNCVAL( rpc_connect ) },
   {  LSTRKEY( "close" ), LFUNCVAL( rpc_close ) },
   {  LSTRKEY( "server" ), LFUNCVAL( rpc_server ) },
@@ -1663,15 +1659,15 @@ const LUA_REG_TYPE rpc_map[] =
 // {  LSTRKEY("mode"), LSTRVAL( LUARPC_MODE ) }, 
 #endif // #if LUA_OPTIMIZE_MEMORY > 0
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
 
 LUALIB_API int luaopen_rpc(lua_State *L)
 {
 #if LUA_OPTIMIZE_MEMORY > 0
-  luaL_rometatable(L, "rpc.helper", (void*)rpc_helper);
-  luaL_rometatable(L, "rpc.handle", (void*)rpc_handle);
-  luaL_rometatable(L, "rpc.server_handle", (void*)rpc_server_handle);
+  luaL_rometatable(L, "rpc.helper", (void*)&rpc_helper);
+  luaL_rometatable(L, "rpc.handle", (void*)&rpc_handle);
+  luaL_rometatable(L, "rpc.server_handle", (void*)&rpc_server_handle);
 #else
   luaL_register( L, "rpc", rpc_map );
   lua_pushstring( L, LUARPC_MODE );

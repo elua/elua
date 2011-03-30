@@ -790,15 +790,14 @@ int platform_i2c_recv_byte( unsigned id, int ack )
 
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
-extern const LUA_REG_TYPE str9_pio_map[];
+LEXTERN( str9_pio_map );
 
-const LUA_REG_TYPE platform_map[] =
-{
+LHEADER( platform_map )
 #if LUA_OPTIMIZE_MEMORY > 0
   { LSTRKEY( "pio" ), LROVAL( str9_pio_map ) },
 #endif
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
 LUALIB_API int luaopen_platform( lua_State *L )
 {

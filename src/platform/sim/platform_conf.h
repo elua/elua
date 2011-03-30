@@ -27,7 +27,7 @@
   _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
   _ROM( AUXLIB_TERM, luaopen_term, term_map )\
-  _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )
+  _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )\
 
 // Bogus defines for common.c
 #define CON_UART_ID           0

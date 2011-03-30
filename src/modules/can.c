@@ -68,8 +68,7 @@ static int can_recv( lua_State* L )
 // Module function map
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
-const LUA_REG_TYPE can_map[] = 
-{
+LHEADER( can_map )
   { LSTRKEY( "setup" ),  LFUNCVAL( can_setup ) },
   { LSTRKEY( "send" ),  LFUNCVAL( can_send ) },  
   { LSTRKEY( "recv" ),  LFUNCVAL( can_recv ) },
@@ -78,7 +77,7 @@ const LUA_REG_TYPE can_map[] =
   { LSTRKEY( "ID_EXT" ), LNUMVAL( ELUA_CAN_ID_EXT ) },
 #endif
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
 LUALIB_API int luaopen_can( lua_State *L )
 {

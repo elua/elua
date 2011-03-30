@@ -242,8 +242,7 @@ static int cpu_get_int_flag( lua_State *L )
 // Module function map
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
-const LUA_REG_TYPE cpu_map[] = 
-{
+LHEADER( cpu_map )
   { LSTRKEY( "w32" ), LFUNCVAL( cpu_w32 ) },
   { LSTRKEY( "r32" ), LFUNCVAL( cpu_r32 ) },
   { LSTRKEY( "w16" ), LFUNCVAL( cpu_w16 ) },
@@ -265,7 +264,7 @@ const LUA_REG_TYPE cpu_map[] =
   { LSTRKEY( "__index" ), LFUNCVAL( cpu_mt_index ) },
 #endif
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
 LUALIB_API int luaopen_cpu( lua_State *L )
 {

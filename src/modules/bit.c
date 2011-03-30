@@ -126,7 +126,7 @@ static int bit_clear( lua_State* L )
 
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
-const LUA_REG_TYPE bit_map[] = {
+LHEADER( bit_map )
   { LSTRKEY( "bnot" ),    LFUNCVAL( bit_bnot ) },
   { LSTRKEY( "band" ),    LFUNCVAL( bit_band ) },
   { LSTRKEY( "bor" ),     LFUNCVAL( bit_bor ) },
@@ -140,7 +140,7 @@ const LUA_REG_TYPE bit_map[] = {
   { LSTRKEY( "isset" ),   LFUNCVAL( bit_isset ) },
   { LSTRKEY( "isclear" ), LFUNCVAL( bit_isclear ) },
   { LNILKEY, LNILVAL}
-};
+LFOOTER
 
 LUALIB_API int luaopen_bit (lua_State *L) {
   LREGISTER( L, "bit", bit_map );

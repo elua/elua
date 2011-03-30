@@ -165,8 +165,7 @@ static int tmr_mt_index( lua_State* L )
 // Module function map
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
-const LUA_REG_TYPE tmr_map[] = 
-{
+LHEADER( tmr_map )
   { LSTRKEY( "delay" ), LFUNCVAL( tmr_delay ) },
   { LSTRKEY( "read" ), LFUNCVAL( tmr_read ) },
   { LSTRKEY( "start" ), LFUNCVAL( tmr_start ) },
@@ -189,7 +188,7 @@ const LUA_REG_TYPE tmr_map[] =
   { LSTRKEY( "INT_CYCLIC" ), LNUMVAL( PLATFORM_TIMER_INT_CYCLIC ) },
 #endif
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
 LUALIB_API int luaopen_tmr( lua_State *L )
 {

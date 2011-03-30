@@ -187,8 +187,7 @@ static int net_lookup( lua_State* L )
 // Module function map
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
-const LUA_REG_TYPE net_map[] = 
-{
+LHEADER( net_map )
   { LSTRKEY( "accept" ), LFUNCVAL( net_accept ) },
   { LSTRKEY( "packip" ), LFUNCVAL( net_packip ) },
   { LSTRKEY( "unpackip" ), LFUNCVAL( net_unpackip ) },
@@ -208,7 +207,7 @@ const LUA_REG_TYPE net_map[] =
   { LSTRKEY( "ERR_OVERFLOW" ), LNUMVAL( ELUA_NET_ERR_OVERFLOW ) },
 #endif
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
 LUALIB_API int luaopen_net( lua_State *L )
 {

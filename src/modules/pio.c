@@ -368,8 +368,7 @@ static int pio_decode( lua_State *L )
 
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
-static const LUA_REG_TYPE pio_pin_map[] =
-{
+LHEADER_S( pio_pin_map )
   { LSTRKEY( "setdir" ), LFUNCVAL ( pio_pin_setdir ) },
   { LSTRKEY( "setpull" ), LFUNCVAL( pio_pin_setpull ) },
   { LSTRKEY( "setval" ), LFUNCVAL( pio_pin_setval ) },
@@ -377,10 +376,9 @@ static const LUA_REG_TYPE pio_pin_map[] =
   { LSTRKEY( "setlow" ), LFUNCVAL( pio_pin_setlow ) },
   { LSTRKEY( "getval" ), LFUNCVAL( pio_pin_getval ) },
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
-static const LUA_REG_TYPE pio_port_map[] =
-{
+LHEADER_S( pio_port_map )
   { LSTRKEY( "setdir" ), LFUNCVAL ( pio_port_setdir ) },
   { LSTRKEY( "setpull" ), LFUNCVAL( pio_port_setpull ) },
   { LSTRKEY( "setval" ), LFUNCVAL( pio_port_setval ) },
@@ -388,10 +386,9 @@ static const LUA_REG_TYPE pio_port_map[] =
   { LSTRKEY( "setlow" ), LFUNCVAL( pio_port_setlow ) },
   { LSTRKEY( "getval" ), LFUNCVAL( pio_port_getval ) },
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
-const LUA_REG_TYPE pio_map[] =
-{
+LHEADER( pio_map )
 #if LUA_OPTIMIZE_MEMORY > 0
   { LSTRKEY( "pin" ), LROVAL( pio_pin_map ) },
   { LSTRKEY( "port" ), LROVAL( pio_port_map ) },
@@ -405,7 +402,7 @@ const LUA_REG_TYPE pio_map[] =
 #endif
   { LSTRKEY( "__index" ), LFUNCVAL( pio_mt_index ) },
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
 LUALIB_API int luaopen_pio( lua_State *L )
 {

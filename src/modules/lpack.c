@@ -261,12 +261,11 @@ static int l_pack(lua_State *L) 		/** pack(f,...) */
 
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
-const LUA_REG_TYPE pack_map[] =
-{
+LHEADER( pack_map )
 	{ LSTRKEY( "pack" ),  LFUNCVAL( l_pack ) },
 	{ LSTRKEY( "unpack" ), LFUNCVAL( l_unpack ) },
 	{ LNILKEY, LNILVAL }
-};
+LFOOTER
 
 int luaopen_pack( lua_State *L )
 {

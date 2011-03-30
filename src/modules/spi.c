@@ -108,8 +108,7 @@ static int spi_readwrite( lua_State* L )
 // Module function map
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
-const LUA_REG_TYPE spi_map[] = 
-{
+LHEADER( spi_map )
   { LSTRKEY( "setup" ),  LFUNCVAL( spi_setup ) },
   { LSTRKEY( "sson" ),  LFUNCVAL( spi_sson ) },
   { LSTRKEY( "ssoff" ),  LFUNCVAL( spi_ssoff ) },
@@ -120,7 +119,7 @@ const LUA_REG_TYPE spi_map[] =
   { LSTRKEY( "SLAVE" ), LNUMVAL( PLATFORM_SPI_SLAVE ) },
 #endif
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
 LUALIB_API int luaopen_spi( lua_State *L )
 {

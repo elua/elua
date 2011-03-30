@@ -133,8 +133,7 @@ static int i2c_read( lua_State *L )
 // Module function map
 #define MIN_OPT_LEVEL   2
 #include "lrodefs.h"
-const LUA_REG_TYPE i2c_map[] = 
-{
+LHEADER( i2c_map )
   { LSTRKEY( "setup" ),  LFUNCVAL( i2c_setup ) },
   { LSTRKEY( "start" ), LFUNCVAL( i2c_start ) },
   { LSTRKEY( "stop" ), LFUNCVAL( i2c_stop ) },
@@ -148,7 +147,7 @@ const LUA_REG_TYPE i2c_map[] =
   { LSTRKEY( "RECEIVER" ), LNUMVAL( PLATFORM_I2C_DIRECTION_RECEIVER ) },
 #endif
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
 LUALIB_API int luaopen_i2c( lua_State *L )
 {

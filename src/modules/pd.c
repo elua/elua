@@ -34,13 +34,12 @@ static int pd_board( lua_State* L )
 // Module function map
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
-const LUA_REG_TYPE pd_map[] = 
-{
+LHEADER( pd_map )
   { LSTRKEY( "platform" ), LFUNCVAL( pd_platform ) }, 
   { LSTRKEY( "cpu" ), LFUNCVAL( pd_cpu ) },
   { LSTRKEY( "board" ), LFUNCVAL( pd_board ) },
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
 LUALIB_API int luaopen_pd( lua_State* L )
 {
