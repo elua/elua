@@ -16,7 +16,7 @@
 #include "buf.h"
 
 // Platform includes
-#include "mk60n512vmd100.h"
+#include "MK60N512VMD100.h"
 #include "sysinit.h"
 #include "uart.h"
 
