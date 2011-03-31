@@ -49,7 +49,12 @@
 //
 //*****************************************************************************
 
-#ifdef FORLM3S6965
+#if defined(FORLM3S1968)
+  #define SYSCTL_PERIPH_GPIO_OLEDDC   SYSCTL_PERIPH_GPIOH
+  #define GPIO_OLEDDC_BASE            GPIO_PORTH_BASE
+  #define GPIO_OLEDDC_PIN             GPIO_PIN_2
+  #define GPIO_OLEDEN_PIN             GPIO_PIN_3
+#elif defined(FORLM3S6965)
   #define SYSCTL_PERIPH_GPIO_OLEDDC   SYSCTL_PERIPH_GPIOC
   #define GPIO_OLEDDC_BASE            GPIO_PORTC_BASE
   #define GPIO_OLEDDC_PIN             GPIO_PIN_7

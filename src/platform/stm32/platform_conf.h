@@ -7,6 +7,8 @@
 #include "type.h"
 #include "stacks.h"
 #include "stm32f10x.h"
+#include "elua_int.h"
+#include "sermux.h"
 
 // *****************************************************************************
 // Define here what components you want for this platform
@@ -25,6 +27,10 @@
 //#define BUILD_RFS
 //#define BUILD_CON_TCP
 #define BUILD_UDL
+#define BUILD_LINENOISE
+#define BUILD_C_INT_HANDLERS
+#define BUILD_LUA_INT_HANDLERS
+#define ENABLE_ENC
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
@@ -46,19 +52,31 @@
 #define LCDLINE
 //#endif
 
+#ifdef ENABLE_ENC
+#define PS_LIB_TABLE_NAME "stm32"
+#endif
+
+
 #ifdef BUILD_ADC
 #define ADCLINE _ROM( AUXLIB_ADC, luaopen_adc, adc_map )
 #else
 #define ADCLINE
 #endif
 
-#if defined( BUILD_RPC ) || defined( ELUA_BOOT_RPC )
+#if defined( ELUA_BOOT_RPC ) && !defined( BUILD_RPC )
+#define BUILD_RPC
+#endif
+
+#if defined( BUILD_RPC ) 
 #define RPCLINE _ROM( AUXLIB_RPC, luaopen_rpc, rpc_map )
 #else
 #define RPCLINE
-#if !defined( BUILD_RPC )
-#define BUILD_RPC
 #endif
+
+#ifdef PS_LIB_TABLE_NAME
+#define PLATLINE _ROM( PS_LIB_TABLE_NAME, luaopen_platform, platform_map )
+#else
+#define PLATLINE
 #endif
 
 #define LUA_PLATFORM_LIBS_ROM\
@@ -78,31 +96,8 @@
   RPCLINE\
   LCDLINE\
   _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )\
-  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
-	
-// *****************************************************************************
-// Configuration data
-
-// Static TCP/IP configuration
-#define ELUA_CONF_IPADDR0     192
-#define ELUA_CONF_IPADDR1     168
-#define ELUA_CONF_IPADDR2     1
-#define ELUA_CONF_IPADDR3     13
-
-#define ELUA_CONF_NETMASK0    255
-#define ELUA_CONF_NETMASK1    255
-#define ELUA_CONF_NETMASK2    255
-#define ELUA_CONF_NETMASK3    0
-
-#define ELUA_CONF_DEFGW0      192
-#define ELUA_CONF_DEFGW1      168
-#define ELUA_CONF_DEFGW2      1
-#define ELUA_CONF_DEFGW3      1
-
-#define ELUA_CONF_DNS0        192
-#define ELUA_CONF_DNS1        168
-#define ELUA_CONF_DNS2        1
-#define ELUA_CONF_DNS3        1
+  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
+  PLATLINE
 
 // *****************************************************************************
 // Configuration data
@@ -173,12 +168,31 @@ u32 platform_s_cpu_get_frequency();
 // Loader data
 #define UDL_MAX_MODULES       4
 #define UDL_FTABLE_ADDRESS    0x20000000
+// Linenoise buffer sizes
+#define LINENOISE_HISTORY_SIZE_LUA    50
+#define LINENOISE_HISTORY_SIZE_SHELL  10
 
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)
 #define SRAM_SIZE             ( 64 * 1024 )
 #define MEM_START_ADDRESS     { ( void* )end }
 #define MEM_END_ADDRESS       { ( void* )( SRAM_BASE + SRAM_SIZE - STACK_SIZE_TOTAL - 1 ) }
+
+// Interrupt queue size
+#define PLATFORM_INT_QUEUE_LOG_SIZE 5
+
+// Interrupt list
+#define INT_GPIO_POSEDGE      ELUA_INT_FIRST_ID
+#define INT_GPIO_NEGEDGE      ( ELUA_INT_FIRST_ID + 1 )
+#define INT_TMR_MATCH         ( ELUA_INT_FIRST_ID + 2 )
+#define INT_UART_RX           ( ELUA_INT_FIRST_ID + 3 )
+#define INT_ELUA_LAST         INT_UART_RX
+
+#define PLATFORM_CPU_CONSTANTS\
+  _C( INT_GPIO_POSEDGE ),     \
+  _C( INT_GPIO_NEGEDGE ),     \
+  _C( INT_TMR_MATCH ),        \
+  _C( INT_UART_RX )
 
 #endif // #ifndef __PLATFORM_CONF_H__
 

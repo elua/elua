@@ -474,17 +474,17 @@ static int luaB_newproxy (lua_State *L) {
 #if LUA_OPTIMIZE_MEMORY == 2
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
-const LUA_REG_TYPE base_funcs_list[] = {
+LHEADER(base_funcs_list)
   LUA_BASELIB_FUNCLIST,
   {LNILKEY, LNILVAL}
-};
+LFOOTER
 #endif
 
 
 static int luaB_index(lua_State *L) {
 #if LUA_OPTIMIZE_MEMORY == 2
   int fres;
-  if ((fres = luaR_findfunction(L, base_funcs_list)) != 0)
+  if ((fres = luaR_findfunction(L, &base_funcs_list)) != 0)
     return fres;
 #endif  
   const char *keyname = luaL_checkstring(L, 2);
@@ -644,7 +644,7 @@ static int luaB_corunning (lua_State *L) {
 #undef MIN_OPT_LEVEL
 #define MIN_OPT_LEVEL 1
 #include "lrodefs.h"
-const LUA_REG_TYPE co_funcs[] = {
+LHEADER(co_funcs)
   {LSTRKEY("create"), LFUNCVAL(luaB_cocreate)},
   {LSTRKEY("resume"), LFUNCVAL(luaB_coresume)},
   {LSTRKEY("running"), LFUNCVAL(luaB_corunning)},
@@ -652,8 +652,7 @@ const LUA_REG_TYPE co_funcs[] = {
   {LSTRKEY("wrap"), LFUNCVAL(luaB_cowrap)},
   {LSTRKEY("yield"), LFUNCVAL(luaB_yield)},
   {LNILKEY, LNILVAL}
-};
-
+LFOOTER  
 /* }====================================================== */
 
 

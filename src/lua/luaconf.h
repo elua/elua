@@ -90,17 +90,18 @@
 //## Modified for eLua
 //## Defaults search modules path to our ROM File System
 #ifndef LUA_RPC
-#define LUA_PATH_DEFAULT "/mmc/?.lua;/mmc/?.lc;/rom/?.lua;/rom/?.lc"
+#define LUA_PATH_DEFAULT  "/rfs/?.lua;/rfs/?.lc;/mmc/?.lua;/mmc/?.lc;/rom/?.lua;/rom/?.lc"
 #define LUA_CPATH_DEFAULT "/rom/?.ebm"
 #else // #ifndef LUA_RPC
 #define LUA_PATH_DEFAULT  \
 		".\\?.lua;"  LUA_LDIR"?.lua;"  LUA_LDIR"?\\init.lua;" \
 		             LUA_CDIR"?.lua;"  LUA_CDIR"?\\init.lua"
-#endif // #ifndef LUA_RPC
 #define LUA_CPATH_DEFAULT \
 	".\\?.dll;"  LUA_CDIR"?.dll;" LUA_CDIR"loadall.dll"
+#endif // #ifndef LUA_RPC
 
 #else // #if defined(_WIN32)
+
 #define LUA_ROOT	"/usr/local/"
 #define LUA_LDIR	LUA_ROOT "share/lua/5.1/"
 #define LUA_CDIR	LUA_ROOT "lib/lua/5.1/"
@@ -109,13 +110,13 @@
 #define LUA_PATH_DEFAULT  "/mmc/?.lua;/mmc/?.lc;/rom/?.lua;/rom/?.lc"
 #define LUA_CPATH_DEFAULT "/rom/?.ebm"
 #else // #ifndef LUA_RPC
-
 #define LUA_PATH_DEFAULT  \
 		"./?.lua;"  LUA_LDIR"?.lua;"  LUA_LDIR"?/init.lua;" \
 		            LUA_CDIR"?.lua;"  LUA_CDIR"?/init.lua"
+#define LUA_CPATH_DEFAULT \
+	"./?.so;"  LUA_CDIR"?.so;" LUA_CDIR"loadall.so"
 #endif // #ifndef LUA_RPC
-/*#define LUA_CPATH_DEFAULT \
-	"./?.so;"  LUA_CDIR"?.so;" LUA_CDIR"loadall.so"*/
+
 #endif // #if defined(_WIN32)
 
 
@@ -279,7 +280,7 @@
 ** CHANGE it if you need longer lines.
 */
 #define LUA_MAXINPUT	128
-
+               
 
 /*
 @@ lua_readline defines how to show a prompt and then read a line from
@@ -289,6 +290,7 @@
 ** CHANGE them if you want to improve this functionality (e.g., by using
 ** GNU readline and history facilities).
 */
+#if defined(LUA_CROSS_COMPILER)
 #if defined(LUA_USE_READLINE)
 #include <stdio.h>
 #include <readline/readline.h>
@@ -298,13 +300,24 @@
 	if (lua_strlen(L,idx) > 0)  /* non-empty line? */ \
 	  add_history(lua_tostring(L, idx));  /* add it to history */
 #define lua_freeline(L,b)	((void)L, free(b))
-#else
+#else // #if defined(LUA_USE_READLINE)
 #define lua_readline(L,b,p)	\
 	((void)L, fputs(p, stdout), fflush(stdout),  /* show prompt */ \
 	fgets(b, LUA_MAXINPUT, stdin) != NULL)  /* get line */
 #define lua_saveline(L,idx)	{ (void)L; (void)idx; }
 #define lua_freeline(L,b)	{ (void)L; (void)b; }
-#endif
+#endif // #if defined(LUA_USE_READLINE)
+
+#else // #if defined(LUA_CROSS_COMPILER)
+
+#include "linenoise.h"
+#define lua_readline(L,b,p)	((void)L, (linenoise_getline(LINENOISE_ID_LUA,b,LUA_MAXINPUT,p)) != -1)
+#define lua_saveline(L,idx) \
+	if (lua_strlen(L,idx) > 0)  /* non-empty line? */ \
+	  linenoise_addhistory(LINENOISE_ID_LUA, lua_tostring(L, idx));  /* add it to history */
+#define lua_freeline(L,b)	{ (void)L; (void)b; }
+
+#endif // #if defined(LUA_CROSS_COMPILER)
 
 #endif
 

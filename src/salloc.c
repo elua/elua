@@ -12,7 +12,7 @@
 // Macros for the dynamic size allocator
 // Dynamic structure: pointer to next, pointer to prev
 // First bit of pointer is 0 if block free, 1 if block taken
-// Pointer must be multiplied by DYN_MIN_SIZE to get actual address
+// Pointer must be multiplied by DYN_SIZE_MULT to get actual address
 // There are two 'guards' (at the beginning and at the end) 
 #define DYN_SIZE_MULT           8
 #define DYN_SIZE_MULT_SHIFT     3
@@ -195,7 +195,7 @@ static void s_init()
 
   while( ( pstart = platform_get_first_free_ram( i ) ) != NULL )
   {
-    memset( pstart, 0, memspace = ( u32 )platform_get_last_free_ram( i ) - ( u32 )pstart );
+    memspace = ( u32 )platform_get_last_free_ram( i ) - ( u32 )pstart;
     g1 = ( char* )pstart;
     crt = g1 + DYN_SIZE_MULT;
     g2 = g1 + memspace - DYN_SIZE_MULT;

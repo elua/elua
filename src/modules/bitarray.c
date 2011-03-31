@@ -302,27 +302,25 @@ static int bitarray_totable( lua_State *L )
 // Module function map
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
-const LUA_REG_TYPE bitarray_map[] = 
-{
+LHEADER( bitarray_map )
   { LSTRKEY( "new" ), LFUNCVAL( bitarray_new ) },
   { LSTRKEY( "pairs" ), LFUNCVAL( bitarray_pairs ) },
   { LSTRKEY( "tostring" ), LFUNCVAL( bitarray_tostring ) },
   { LSTRKEY( "totable" ), LFUNCVAL( bitarray_totable ) },
   { LNILKEY, LNILVAL } 
-};
+LFOOTER
 
-static const LUA_REG_TYPE bitarray_mt_map[] = 
-{
+LHEADER_S( bitarray_mt_map )
   { LSTRKEY( "__index" ), LFUNCVAL( bitarray_get ) },
   { LSTRKEY( "__newindex" ), LFUNCVAL( bitarray_set ) },
   { LSTRKEY( "__len" ), LFUNCVAL( bitarray_len ) },
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
 LUALIB_API int luaopen_bitarray( lua_State* L )
 {
 #if LUA_OPTIMIZE_MEMORY > 0
-  luaL_rometatable( L, META_NAME, ( void* )bitarray_mt_map );
+  luaL_rometatable( L, META_NAME, ( void* )&bitarray_mt_map );
   return 0;
 #else // #if LUA_OPTIMIZE_MEMORY > 0
   luaL_newmetatable( L, META_NAME );

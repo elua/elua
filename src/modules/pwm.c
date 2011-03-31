@@ -76,15 +76,14 @@ static int pwm_getclock( lua_State* L )
 // Module function map
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
-const LUA_REG_TYPE pwm_map[] = 
-{
+LHEADER( pwm_map )
   { LSTRKEY( "setup" ), LFUNCVAL( pwm_setup ) },
   { LSTRKEY( "start" ), LFUNCVAL( pwm_start ) },
   { LSTRKEY( "stop" ), LFUNCVAL( pwm_stop ) },
   { LSTRKEY( "setclock" ), LFUNCVAL( pwm_setclock ) },
   { LSTRKEY( "getclock" ), LFUNCVAL( pwm_getclock ) },
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
 LUALIB_API int luaopen_pwm( lua_State *L )
 {

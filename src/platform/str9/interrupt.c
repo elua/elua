@@ -174,9 +174,8 @@ void MC_IRQHandler(void)
 * Function Name  : ADC_IRQHandler
 * Description    : This function handles the ADC interrupt request
 *******************************************************************************/
-void ADC_IRQHandler(void)
-{
-}
+extern void ADC_IRQHandler(void);
+
 /*******************************************************************************
 * Function Name  : UART0_IRQHandler
 * Description    : This function handles the UART0 interrupt request
@@ -251,30 +250,30 @@ void WIU_IRQHandler(void)
 * Function Name  : EXTIT0_IRQHandler
 * Description    : This function handles the EXTIT0 interrupt request
 *******************************************************************************/
-void EXTIT0_IRQHandler(void)
+/*void EXTIT0_IRQHandler(void)
 {
-}
+}*/
 /*******************************************************************************
 * Function Name  : EXTIT1_IRQHandler
 * Description    : This function handles the EXTIT1 interrupt request
 *******************************************************************************/
-void EXTIT1_IRQHandler(void)
+/*void EXTIT1_IRQHandler(void)
 {
-}
+}*/
 /*******************************************************************************
 * Function Name  : EXTIT2_IRQHandler
 * Description    : This function handles the EXTIT2 interrupt request
 *******************************************************************************/
-void EXTIT2_IRQHandler(void)
+/*void EXTIT2_IRQHandler(void)
 {
-}
+}*/
 /*******************************************************************************
 * Function Name  : EXTIT3_IRQHandler
 * Description    : This function handles the EXTIT3 interrupt request
 *******************************************************************************/
-void EXTIT3_IRQHandler(void)
+/*void EXTIT3_IRQHandler(void)
 {
-}
+}*/
 /*******************************************************************************
 * Function Name  : USBWU_IRQHandler
 * Description    : This function handles the USBWU interrupt request

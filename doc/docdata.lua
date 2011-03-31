@@ -35,23 +35,38 @@ local menu =
       { { "Audience", "Público Alvo" }, "overview.html#audience" },
       { { "Authors", "Autores" }, "overview.html#authors" },
       { { "Contacts","Contatos" }, "overview.html#contacts" },
-      { { "License", "Licença" },"overview.html#license" }
+      { { "License", "Licença" },"overview.html#license" },
     }
   },
 
   -- "Community"
   { { "Community", "Comunidade" }, "comunity.html", 
     {
-      { { "Lists", "Listas de Discussão" }, "comunity.html#lists" },
+      { { "Discussion Lists", "Listas de Discussão" }, "comunity.html#lists" },
       { "Forums", "comunity.html#forums" },
-      { "User Labs", "comunity.html#userswiki" },      
+      { "IRC", "comunity.html#irc" },
+      { "Twitter", "comunity.html#twitter" }, 
+      { "Wiki", "comunity.html#userswiki" },      
       { { "Credits", "Créditos" }, "comunity.html#credits" },
+      { "Donations", "comunity.html#donations" },
       { nil, "forum.html", nil, "Forum" } -- "hidden" entry (doesn't appear in the menu)
     }
   },
 
   -- News
   { { "News", "Notícias" }, "news.html" },
+  
+  -- Media
+  { "Media", "media.html" },  
+
+  -- Wiki
+  { "eLua Wiki", "http://wiki.eluaproject.net" },
+
+  -- Web builder
+  { "eLua Web builder", "http://builder.eluaproject.net" },
+
+  -- Tracker
+  { "eLua bug tracker", "http://tracker.eluaproject.net" },
 
   -- "Status"
   { "Status", "status.html", 
@@ -78,6 +93,7 @@ local menu =
       },
       { { "Old versions", "Versões Anteriores" }, "dl_old.html", 
         {
+          { "0.7", "dl_old.html#v070" },
           { "0.6", "dl_old.html#v060" },
           { "0.5", "dl_old.html#v050" },
           { "0.4.1", "dl_old.html#v041" },
@@ -98,8 +114,10 @@ local menu =
           { { "Over TCP/IP", "Console via TCP/IP" }, "using.html#tcpip" },
           { { "On PC", "Num PC" }, "using.html#pc" },
           { { "The shell", "O Shell" }, "using.html#shell" },
+          { "Linenoise", "linenoise.html" },
           { "Cross-compiling", "using.html#cross" },
           { "LuaRPC", "using.html#rpc" },
+          { "The serial multiplexer", "sermux.html" }
         },
       },
       { { "Code examples", "Exemplos de Código" }, "examples.html" },
@@ -107,7 +125,14 @@ local menu =
       { "eLua file systems", "filesystems.html",
         {
           { { "Read-Only FS in MCU Flash", "O ROM File System em Flash" }, "arch_romfs.html" },
-          { "R/W FAT FS in SD/MMC Cards", "fatfs.html" }
+          { "R/W FAT FS in SD/MMC Cards", "fatfs.html" },
+          { "Remote file system (RFS)", "arch_rfs.html" }
+        }
+      },
+      { "eLua interrupt handlers", "inthandlers.html",
+        {
+          { "In Lua", "inthandlers.html" },
+          { "In C", "inthandlers.html#cints" },
         }
       },
       { { "Building eLua", "Build de eLua" }, "building.html",
@@ -145,6 +170,11 @@ local menu =
       { { "Booting eLua", "O Boot de eLua" }, "arch_overview.html#boot" },
       { { "Platforms and ports", "Portabilização" }, "arch_overview.html#platforms" },
       { { "Adding a new port", "Portando eLua" }, "arch_newport.html" },
+      { "Implementing interrupts", "arch_ints.html",
+        {
+          { "Interrupt list", "arch_ints.html#intlist" }
+        }
+      }
     }
   },
 
@@ -183,7 +213,8 @@ local menu =
   { { "Platform modules", "Módulos Específicos" }, "refman_dep.html", 
     {
       { "lm3s", "modules_lm3s.html", "refman_ps_lm3s" },
-      { "str9", "modules_str9.html", "refman_ps_str9" }
+      { "str9", "modules_str9.html", "refman_ps_str9" },
+      { "mbed", "modules_mbed.html", "refman_ps_mbed" }
     }
   }
 }

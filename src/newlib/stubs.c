@@ -367,7 +367,7 @@ void std_set_get_func( p_std_get_char pfunc )
 {
 }
 
-DM_DEVICE* std_get_desc()
+const DM_DEVICE* std_get_desc()
 {
   return NULL;
 }

@@ -1,0 +1,211 @@
+// $$HEADER$$
+[[overview]]
+What is eLua?
+-------------
+
+eLua stands for *Embedded Lua* and the project aims to offer the full
+implementation of the http://www.lua.org[Lua Programming Language] to
+the embedded world, extending it with
+specific features for efficient and portable software embedded development.
+
+[[features]]
+General Features
+----------------
+
+*eLua* allows you to develop and run Lua programs on a wide variety of microcontrollers.
+
+Some aspects of eLua are:
+
+* *Transforms hardware in commodity:* Design and code your products for
+  eLua and make them as hardware-independent as possible. Upgrade or
+  completely change your hardware in the future and save time and money,
+  using the approved source code with little or no modifications.
+* *Source code portability:* Like in Lua, you program in C, Lua or a
+  mixture of both and your program runs in a wide varied of (sometimes
+  radically different) platforms and architectures supported.
+  Full control of the platform.: eLua runs on the "bare-metal".  There
+  is no Operating System between your programs and the microcontroller.
+  Develop on targets: fully functional Lua and a dedicated shell on the
+  microcontroller itself. No need to install a specific development
+  environment on the PC side, other than a serial or ehternet
+  console/terminal emulator. You can also use any text editor, save your
+  programs in sd/mmc and other media and use them directly in your
+  platforms.
+* *Flexible products:* Add modern high level script-language capabilities
+  to your projects, resulting in highly adaptable, field-programable and
+  reconfigurable designs. Efficient (and cheap!) future evolution to
+  your systems.
+* *Learn embedded:* Simple interactive and interpreted experimenting
+  cycle. Use your desktop programming skills to become an embedded
+  systems developer in no time and with a lot of fun.
+* *Embedded RAD:* Prototype and experiment on a Rapid Aplication Develop
+  model. Test your ideas directly on the target platforms and cheap
+  development kits. No need for simulators or future code adaptations.
+* *Ready to use kits:* A big (and growing!) number of Open Source hardware
+  and commercially available platforms supported. Prototype cheap and
+  fast and design your final hardware later using the produced code.
+* *Longevity:* Add user configuration and scripting capabilities to your
+  projects, making them adaptable to the always changing contexts of
+  industrial processes, evolving engineering, automation standards,
+  field optimizations etc...
+* *Worry-free Licence:* eLua is free and open-source software and we
+  promote it as much as we can. But our MIT licence (the same as Lua's)
+  allows you to use eLua in your commercial and private-code products as
+  well. Nothing to ask, no royalties to pay, just tell the world you're
+  using eLua.
+
+For more information about the functionality (implemented and planned)
+in eLua check link:status.html[our status page].
+
+
+[[audience]]
+Audience
+--------
+
+*eLua* has a wide and varied audience, starting from newcomers to the embedded
+world who want an easy and powerful environment for prototyping, rapid
+application development and quick production, and ranging towards highly
+skilled developers that want to extend their programs with the high-level
+Lua libraries and portable features.
+
+*eLua* allows embedded-oriented programmers to use the simplicity and power of
+the Lua programming language and to hide the low-level complexities and
+platform/architecture-dependent features. With eLua, the programmer can
+focus on the actual implementation of his program, without having to worry
+about accessing the low-level peripheral configuration and data registers,
+as the platform libraries already take care of this. This increases
+productivity and eliminates the often frustrating task of dealing with
+platform-specific drivers.
+
+The list below summarizes eLua's target audience:
+
+* Embedded developers that are looking for a fast, easy to use and
+  powerful way of coding.
+
+* First-time embedded programmers (or simply first time programmers)
+  who are looking for an easy way to "dive" into the embedded
+  programming world. eLua is a great learning tool.
+
+* People that aren't really developers, but still want to be able to
+  prototype an embedded system fast and painless, without having to
+  learn C for that.  Embedded developers who need powerful
+  meta-language mechanisms for complex code algorithms and data
+  description.
+
+* Field engineers that can go to their customer site and debug an eLua
+  module on site, without any preparation at all, since the whole
+  development environment resides on chip already.
+
+* Final clients and decision makers, who benefits from the fact that
+  eLua portability transforms hardware into comodities. In systems
+  using eLua, replacing field sensor and actuator controllers by
+  diferent models, brands and architectures have no impact on the main
+  application software.
+
+Current Status
+--------------
+The project is very active and the worldwide distributed collaboration has 
+been growing steadly. Manufacturers, user's companies and other organizations
+are also starting to collaborate and support the project.
+
+The current official version is *eLua v0.8* and we have released 9 versions
+since the project was published.
+
+Supported platforms and features include a wide range of microcontroller
+families and architectures. A list of currently supported platforms, 
+peripherals and features can be seen in our link:status.html[Status page]
+
+[[authors]]
+Authors
+-------
+
+eLua is a joint project of link:overview.html#contacts[Bogdan Marinescu], a
+software developer from Bucharest, Romania and
+link:overview.html#contacts[Dado Sutter], head of the Led Lab at PUC-Rio
+University, in Rio de Janeiro, Brazil.
+
+Its origins come from the
+http://www.circuitcellar.com/renesas2005m16c/winners/1685.htm[ReVaLuaTe]
+project, also developed by Bogdan Marinescu (as a contest entry for
+the 2005 Renesas M16C Design Contest), and the Volta Project, managed
+by Dado Sutter at PUC-Rio from 2005 to 2007.
+
+eLua is developed in an fully open, distributed and colaborative
+model. An always growing list of collaborators from all over the
+planet can be found in our link:comunity.html#credits[Credits Page].
+
+[width="70%", align="center", cols="^,^", options="header"]
+|====================================================================================================================
+| *ReVaLuaTe Project*                                           | *Volta Project*
+| image:images/terminalreneseas.jpg[ReVaLuaTe project picture] | image:images/volta-small.jpg[Volta project picture]
+|====================================================================================================================
+
+[[contacts]]
+Contacts
+--------
+
+eLua authors and main developers can be contacted at:
+
+Bogdan Marinescu: bogdan.marinescu -at- gmail -dot- com
+
+Dado Sutter: dadosutter -at- gmail -dot- com
+
+James Snyder: jbsnyder -at- gmail -dot- com
+
+You are also welcomed to share your questions and suggestions on our
+link:comunity.html#lists[Mail Discussion List]
+
+[[license]]
+License
+-------
+
+eLua is Open Source and is freely distributed under the MIT license.
+
+The Lua code (with all the eLua specific changes) is included in the
+source tree and is, of course, licensed under the same 
+http://en.wikipedia.org/wiki/MIT_License[MIT license that Lua uses].
+
+Other (few) components have different licenses. Please see the file
+LICENSE in the source distribution for details.
+
+The Lua part of eLua is licensed under the Lua licensing terms, which 
+you can find at http://www.lua.org/license.html.
+
+The XMODEM code is adapted from the FreeBSD at91 library, which was
+written by M. Warner Losh and is released under the BSD license.
+
+The "pack" module is adapted from the "lpack" module by Luiz Henrique
+de Figueiredo and it's placed in the public domain.
+
+The "bit" module is adapted from the "bitlib" library by Reuben
+Thomas, distributed under a MIT license.
+
+The "integer only lua" is based on the "Go Long Lua!" patch by
+John D. Ramsdell (from the Lua Power Patches page) and is placed in
+the public domain.
+
+The multiple memory allocator (dlmalloc) is written by Doug Lea and is
+placed on the public domain.
+
+The TCP/IP stack is adapted from uIP, written by Adam Dunkels and
+released under a BSD license.
+
+The FAT file sistem is based on FatFs, written by 
+http://elm-chan.org/[Elm Chan]. A copy of the FatFs license can be
+found in the LICENSE.fatfs file.
+
+The RPC implementation is based on Russell Smith's
+http://q12.org/lua/index.html[Lua-RPC] A copy of the Lua-RPC license 
+can be found in the LICENSE.luarpc file.
+
+Manufacturer provided CPU support libraries are licensed under their
+own terms. Check src/platform/*platform-name* for details of each
+license.
+
+https://github.com/antirez/linenoise[linenoise] (eLua's readline replacement) 
+is released under a BSD license. 
+
+The rest of the eLua code is licensed under http://en.wikipedia.org/wiki/MIT_License[MIT].
+
+// $$FOOTER$$
+

@@ -38,31 +38,34 @@ static const luaL_Reg lualibs[] = {
   {NULL, NULL}
 };
 
-extern const luaR_entry strlib[];
-extern const luaR_entry syslib[];
-extern const luaR_entry tab_funcs[];
-extern const luaR_entry dblib[];
-extern const luaR_entry co_funcs[];
+extern const luaR_table strlib;
+extern const luaR_table syslib;
+extern const luaR_table tab_funcs;
+extern const luaR_table dblib;
+extern const luaR_table co_funcs;
 #if defined(LUA_PLATFORM_LIBS_ROM) && LUA_OPTIMIZE_MEMORY == 2
 #undef _ROM
-#define _ROM( name, openf, table ) extern const luaR_entry table[];
+#define _ROM( name, openf, table ) extern const luaR_table table;
 LUA_PLATFORM_LIBS_ROM;
 #endif
-const luaR_table lua_rotable[] = 
-{
+
+#define MIN_OPT_LEVEL 2
+#include "lrodefs.h"
+LHEADER( lua_rotables )
 #if LUA_OPTIMIZE_MEMORY > 0
-  {LUA_STRLIBNAME, strlib},
-  {LUA_TABLIBNAME, tab_funcs},
-  {LUA_DBLIBNAME, dblib},
-  {LUA_COLIBNAME, co_funcs},
+  {LSTRKEY(LUA_STRLIBNAME), LROVAL(strlib)},
+  {LSTRKEY(LUA_TABLIBNAME), LROVAL(tab_funcs)},
+  {LSTRKEY(LUA_DBLIBNAME), LROVAL(dblib)},
+  {LSTRKEY(LUA_COLIBNAME), LROVAL(co_funcs)},
 #if defined(LUA_PLATFORM_LIBS_ROM) && LUA_OPTIMIZE_MEMORY == 2
 #undef _ROM
-#define _ROM( name, openf, table ) { name, table },
+#define _ROM( name, openf, table ) { LSTRKEY(name), LROVAL(table) },
   LUA_PLATFORM_LIBS_ROM
 #endif
 #endif
-  {NULL, NULL}
-};
+  {LSTRKEY("_R"), LROVAL(lua_rotables)},
+  {LNILKEY, LNILVAL}
+LFOOTER
 
 LUALIB_API void luaL_openlibs (lua_State *L) {
   const luaL_Reg *lib = lualibs;

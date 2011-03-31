@@ -12,7 +12,9 @@ data_en =
   -- Overview
   overview = [[This module contains functions that access analog to digital converter (ADC) peripherals.</p>
   <p>When utilizing this module, acquiring ADC data is a two step process: requesting sample conversions (using $adc.sample$) and extraction of conversion results from a conversion buffer (using $adc.getsample$, $adc.getsamples$ or $adc.insertsamples$). Various configuration parameters are available to set conversion rate, how results are extracted from the buffer and how these results are processed prior to extraction.</p>
-  <p>This module can be utilized if the device in use has a supported ADC peripheral (see @status.html@status@ for details) and if ADC functionality is enabled at build time (see @building.html@building@).]],
+  <p>This module can be utilized if the device in use has a supported ADC peripheral (see @status.html@status@ for details) and if ADC functionality is enabled at build time (see @building.html@building@).</p>
+<p><span class="warning">IMPORTANT</span>: Platform support varies for this module (see @status.html#plat_notes@status notes@ for details) .
+  ]],
 
   -- Functions
   funcs = 

@@ -8,15 +8,17 @@ comp.Append(CPPPATH = ['src/platform/%s/FWLib/library/inc' % platform])
 fwlib_files = " ".join(glob.glob("src/platform/%s/FWLib/library/src/*.c" % platform))
 #print "FWLib: %s " % fwlib_files 
 
-specific_files = "core_cm3.c system_stm32f10x.c startup_stm32f10x_hd.s platform.c stm32f10x_it.c lcd.c lua_lcd.c"
+specific_files = "core_cm3.c system_stm32f10x.c startup_stm32f10x_hd.s platform.c stm32f10x_it.c lcd.c lua_lcd.c platform_int.c enc.c"
 
 ldscript = "stm32.ld"
   
 # Prepend with path
 specific_files = fwlib_files + " " + " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )
+specific_files += " src/platform/cortex_utils.s src/platform/arm_cortex_interrupts.c"
 ldscript = "src/platform/%s/%s" % ( platform, ldscript )
 
 comp.Append(CPPDEFINES = ["FOR" + cnorm( comp[ 'cpu' ] ),"FOR" + cnorm( comp[ 'board' ] ),'gcc'])
+comp.Append(CPPDEFINES = ['CORTEX_M3'])
 
 # Standard GCC Flags
 comp.Append(CCFLAGS = ['-ffunction-sections','-fdata-sections','-fno-strict-aliasing','-Wall'])

@@ -2,7 +2,7 @@
 
 cpumode = ARGUMENTS.get( 'cpumode', 'arm' ).lower()
 
-specific_files = "startup912.s startup_generic.s platform.c 91x_scu.c 91x_fmi.c 91x_gpio.c 91x_uart.c 91x_tim.c 91x_vic.c interrupt.c str9_pio.c"
+specific_files = "startup912.s startup_generic.s platform.c 91x_scu.c 91x_fmi.c 91x_gpio.c 91x_uart.c 91x_tim.c 91x_vic.c interrupt.c str9_pio.c 91x_i2c.c 91x_wiu.c 91x_adc.c platform_int.c"
 
 # Check CPU
 if comp[ 'cpu' ] == 'STR912FAW44':
@@ -13,6 +13,7 @@ else:
   
 # Prepend with path
 specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )
+specific_files += " src/platform/arm_utils.s src/platform/arm_cortex_interrupts.c"
 ldscript = "src/platform/%s/%s" % ( platform, ldscript )
 
 comp.Append(CPPDEFINES = ["FOR" + comp[ 'cpu' ],'gcc'])
@@ -27,6 +28,9 @@ comp.Append(LIBS = ['c','gcc','m'])
 TARGET_FLAGS = ['-mcpu=arm966e-s']
 if cpumode == 'thumb':
   TARGET_FLAGS += ['-mthumb']
+  comp.Append(CPPDEFINES = ['CPUMODE_THUMB'])
+else:
+  comp.Append(CPPDEFINES = ['CPUMODE_ARM'])
 
 # toolchain 'arm-gcc' requires '-mfpu=fpa' for some reason
 if comp['toolchain'] == 'arm-gcc':

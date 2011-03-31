@@ -15,7 +15,7 @@
 #define LUAR_FINDVALUE        1
 
 /* Externally defined read-only table array */
-extern const luaR_table lua_rotable[];
+extern const luaR_table lua_rotables;
 
 extern char stext[];
 extern char etext[];
@@ -28,19 +28,25 @@ static int luaR_is_in_rom( void *p )
 
 /* Find a global "read only table" in the constant lua_rotable array */
 void* luaR_findglobal(const char *name, unsigned len) {
-  int i;
+  const luaR_entry *pentry;
+  const char *keyname;
+  int i = -1;
+
   if (strlen(name) > LUA_MAX_ROTABLE_NAME)
     return NULL;
   // Look at the dynamically loaded modules first
-  i = -1;
-  while ((i = udl_ltr_find_next_module(i)) != -1 )
+   while ((i = udl_ltr_find_next_module(i)) != -1 )
     if (!strncmp(udl_get_module_name(i), name, len))
       return udl_ltr_get_rotable(i);
-  // Then at the static list of modules 
-  for (i=0; lua_rotable[i].name; i ++)
-    if (*lua_rotable[i].name != '\0' && strlen(lua_rotable[i].name) == len && !strncmp(lua_rotable[i].name, name, len)) {
-      return (void*)(lua_rotable[i].pentries);
+  // Then look at the static list of modules
+  for (pentry=lua_rotables.entries; pentry->key.type != LUA_TNIL; pentry ++) {
+    if (pentry->key.type == LUA_TSTRING) {
+      keyname = pentry->key.id.strkey;
+      if (*keyname != '\0' && strlen(keyname) == len && !strncmp(keyname, name, len)) {
+        return (void*)(rvalue(&pentry->value));
+      }
     }
+  }
   return NULL;
 }
 
@@ -78,11 +84,11 @@ static const TValue* luaR_auxfind(const luaR_entry *pentry, const char *strkey, 
   return luaR_offsetValue(res, offset);
 }
 
-int luaR_findfunction(lua_State *L, const luaR_entry *ptable) {
+int luaR_findfunction(lua_State *L, const luaR_table *ptable) {
   const TValue *res = NULL;
   const char *key = luaL_checkstring(L, 2);
-
-  res = luaR_auxfind(ptable, key, 0, NULL);
+    
+  res = luaR_auxfind(ptable->entries, key, 0, NULL);  
   if (res && ttislightfunction(res)) {
     luaA_pushobject(L, res);
     return 1;
@@ -95,13 +101,13 @@ int luaR_findfunction(lua_State *L, const luaR_entry *ptable) {
    If "strkey" is not NULL, the function will look for a string key,
    otherwise it will look for a number key */
 const TValue* luaR_findentry(void *data, const char *strkey, luaR_numkey numkey, unsigned *ppos) {
-  return luaR_auxfind((const luaR_entry*)data, strkey, numkey, ppos);
+  return luaR_auxfind(((const luaR_table*)data)->entries, strkey, numkey, ppos);
 }
 
 /* Find the metatable of a given table */
 void* luaR_getmeta(void *data) {
 #ifdef LUA_META_ROTABLES
-  const TValue *res = luaR_auxfind((const luaR_entry*)data, "__metatable", 0, NULL);
+  const TValue *res = luaR_auxfind(((const luaR_table*)data)->entries, "__metatable", 0, NULL);
   return res && ttisrotable(res) ? rvalue(res) : NULL;
 #else
   return NULL;
@@ -124,7 +130,7 @@ static void luaR_next_helper(lua_State *L, const luaR_entry *pentries, int pos, 
 
 /* next (used for iteration) */
 void luaR_next(lua_State *L, void *data, TValue *key, TValue *val) {
-  const luaR_entry* pentries = (const luaR_entry*)data;
+  const luaR_entry* pentries = ((const luaR_table*)data)->entries;
   char strkey[LUA_MAX_ROTABLE_NAME + 1], *pstrkey = NULL;
   luaR_numkey numkey = 0;
   unsigned keypos;
@@ -133,7 +139,7 @@ void luaR_next(lua_State *L, void *data, TValue *key, TValue *val) {
   if (ttisnil(key)) 
     luaR_next_helper(L, pentries, 0, key, val);
   else if (ttisstring(key) || ttisnumber(key)) {
-    /* Find the previoud key again */  
+    /* Find the previous key again */  
     if (ttisstring(key)) {
       luaR_getcstr(strkey, rawtsvalue(key), LUA_MAX_ROTABLE_NAME);          
       pstrkey = strkey;
@@ -159,7 +165,8 @@ void luaR_getcstr(char *dest, const TString *src, size_t maxsize) {
 /* Return 1 if the given pointer is a rotable */
 #ifdef LUA_META_ROTABLES
 int luaR_isrotable(void *p) {
-  return luaR_is_in_rom( p ) || udl_ltr_is_rotable( p );
+  Table *ptable = (Table*)p;
+  return ( ptable->tt == LUA_TROTABLE ) && ( ptable->marked & ( 1 << LROTABLEBIT ) );
 }
 #endif
 

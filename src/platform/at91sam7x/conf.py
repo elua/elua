@@ -2,7 +2,7 @@
 
 cpumode = ARGUMENTS.get( 'cpumode', 'thumb' ).lower()
 
-specific_files = "board_cstartup.s board_lowlevel.c board_memories.c usart.c pmc.c pio.c platform.c tc.c pwmc.c aic.c"
+specific_files = "board_cstartup.s board_lowlevel.c board_memories.c usart.c pmc.c pio.c platform.c tc.c pwmc.c aic.c platform_int.c"
 if comp[ 'cpu' ] == 'AT91SAM7X256':
   ldscript = "flash256.lds"
   comp.Append(CPPDEFINES = 'at91sam7x256')
@@ -17,6 +17,7 @@ comp.Append(CPPDEFINES = ['NOASSERT','NOTRACE'])
   
 # Prepend with path
 specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )
+specific_files += " src/platform/arm_utils.s src/platform/arm_cortex_interrupts.c"
 ldscript = "src/platform/%s/%s" % ( platform, ldscript )
 
 comp.Append(CCFLAGS = ['-ffunction-sections','-fdata-sections','-fno-strict-aliasing','-Wall'])
@@ -27,6 +28,9 @@ comp.Append(LIBS = ['c','gcc','m'])
 TARGET_FLAGS = ['-mcpu=arm7tdmi']
 if cpumode == 'thumb':
   TARGET_FLAGS += ['-mthumb']
+  comp.Append(CPPDEFINES = ['CPUMODE_THUMB'])
+else:
+  comp.Append(CPPDEFINES = ['CPUMODE_ARM'])
 
 # Configure General Flags for Target
 comp.Prepend(CCFLAGS = [TARGET_FLAGS])

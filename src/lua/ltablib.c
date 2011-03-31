@@ -269,7 +269,7 @@ static int sort (lua_State *L) {
 
 #define MIN_OPT_LEVEL 1
 #include "lrodefs.h"
-const LUA_REG_TYPE tab_funcs[] = {
+LHEADER(tab_funcs)
   {LSTRKEY("concat"), LFUNCVAL(tconcat)},
   {LSTRKEY("foreach"), LFUNCVAL(foreach)},
   {LSTRKEY("foreachi"), LFUNCVAL(foreachi)},
@@ -280,7 +280,7 @@ const LUA_REG_TYPE tab_funcs[] = {
   {LSTRKEY("setn"), LFUNCVAL(setn)},
   {LSTRKEY("sort"), LFUNCVAL(sort)},
   {LNILKEY, LNILVAL}
-};
+LFOOTER
 
 LUALIB_API int luaopen_table (lua_State *L) {
   LREGISTER(L, LUA_TABLIBNAME, tab_funcs);

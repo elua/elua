@@ -85,10 +85,18 @@ $NOTE:$ this function does not work with virtual timers.]]
       desc = "Get the timer clock (the clock used to increment the timer counter register).",
       args = "$id$ - the timer ID.",
       ret = "The timer clock (in Hz)."
-    }
-   
-  }
+    },
 
+    { sig = "#tmr.set_match_int#( id, period, type )",
+      desc = "Setup the timer match interrupt. Only available if interrupt support is enabled, check @inthandlers.html@here@ for details.",
+      args = 
+      {
+        "$id$ - the timer ID.",
+        "$period$ - the interrupt period in microseconds. Setting this to 0 disabled the timer match interrupt.",
+        "$type$ - $tmr.INT_ONESHOT$ to generate a single interrupt after *period* microseconds, or $tmr.INT_CYCLIC$ to generate interrupts every $period$ microseconds."
+      }
+    }
+
+  }
 }
 
-data_pt = data_en

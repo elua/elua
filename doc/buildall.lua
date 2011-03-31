@@ -1,8 +1,9 @@
 require "lfs"
 require "eluadoc"
+require "md5"
 
 -- Uncomment this when generating offline docs
--- local is_offline = true
+local is_offline = true
 
 -- Languages in the system
 -- NOTE: "en" must ALWAYS be the first entry in this array!
@@ -18,6 +19,9 @@ local langidx = {}
 for k, v in ipairs( languages ) do
   langidx[ v ] = k
 end
+
+local sf = string.format
+local cache_invalid = false
 
 -------------------------------------------------------------------------------
 -- Indexes into our menu table (defined in docdata.lua)
@@ -136,7 +140,7 @@ local function copy_dir_rec( src, dst )
   for f in lfs.dir( src ) do
     local oldf = string.format( "%s/%s", src, f )
     local attrs = lfs.attributes( oldf )
-    if attrs.mode == 'directory' and f ~= "." and f ~= ".." and f ~= ".svn" then
+    if attrs.mode == 'directory' and f ~= "." and f ~= ".." and f ~= ".svn" and f ~= ".git" then
       local newdir = string.format( "%s/%s", dst, f )
       lfs.mkdir( newdir )
       copy_dir_rec( oldf, newdir )
@@ -167,6 +171,74 @@ local function copy_dir( src, dst )
   lfs.mkdir( newdir )
   copy_dir_rec( src, newdir )
 end
+
+-------------------------------------------------------------------------------
+-- Cache helpers
+
+local function read_md5( filename )
+  local fullname = string.format( "cache/%s.cache", filename )
+  local f = io.open( fullname, "rb" )
+  if not f then return "" end
+  local d = f:read( "*a" )
+  f:close()
+  return d
+end
+
+local function write_md5( filename, d )
+  local fullname = string.format( "cache/%s.cache", filename )
+  local f = io.open( fullname, "wb" )
+  if not f then return false end
+  f:write( d )
+  f:close()
+  return true
+end
+
+local function file_md5( filename )
+  local f = io.open( filename, "rb" )
+  if not f then return "" end
+  local d = f:read( "*a" )
+  f:close()
+  return md5.sumhexa( d ) 
+end
+
+-------------------------------------------------------------------------------
+-- Table utils (from http://lua-users.org/wiki/TableUtils)
+
+function table.val_to_str( v )
+  if "string" == type( v ) then
+    v = string.gsub( v, "\n", "\\n" )
+    if string.match( string.gsub(v,"[^'\"]",""), '^"+$' ) then
+      return "'" .. v .. "'"
+    end
+    return '"' .. string.gsub(v,'"', '\\"' ) .. '"'
+  else
+    return "table" == type( v ) and table.tostring( v ) or tostring( v )
+  end
+end
+
+function table.key_to_str ( k )
+  if "string" == type( k ) and string.match( k, "^[_%a][_%a%d]*$" ) then
+    return k
+  else
+    return "[" .. table.val_to_str( k ) .. "]"
+  end
+end
+
+function table.tostring( tbl )
+  local result, done = {}, {}
+  for k, v in ipairs( tbl ) do
+    table.insert( result, table.val_to_str( v ) )
+    done[ k ] = true
+  end
+  for k, v in pairs( tbl ) do
+    if not done[ k ] then
+      table.insert( result,
+        table.key_to_str( k ) .. "=" .. table.val_to_str( v ) )
+    end
+  end
+  return "{" .. table.concat( result, "," ) .. "}"
+end
+
 
 -------------------------------------------------------------------------------
 -- Build the list of files that must be processed starting from the menu data
@@ -207,8 +279,16 @@ end
 
 -- Helper function: format a link starting from language and link
 -- Links marked as "#" ("null" links) are left alone
+-- Links that begin with "http(s)://" are unchanged
+
 local function get_link( lang, link )
-  return link == "#" and "#" or string.format( "%s_%s", lang, link )
+  if link == "#" then
+    return "#"
+  elseif link:find( "https?://" ) == 1 then
+    return link
+  else
+    return string.format( "%s_%s", lang, link )
+  end
 end
 
 -- Helper for gen_html_nav: generate the submenu(s) for a given top level menu item
@@ -287,6 +367,20 @@ local function gen_html_nav( parentid, lang )
   return htmlstr
 end
 
+-- Helper function: replace local links with links prefixed by language
+local function language_for_links( lang, orig )
+    -- Iterate through all the links in the document and change the local ones with
+    -- the correct language option
+    orig = orig:gsub( [==[<a href=["'](.-)["']>]==], function( link )
+      if beginswith( link, "#" ) or beginswith( link, "http://" ) or beginswith( link, "https://" ) or beginswith( link, "ftp://" ) then
+        return string.format( '<a href="%s">', link )
+      else
+        return string.format( '<a href="%s_%s">', lang, link )
+      end
+    end )
+    return orig
+end
+
 -------------------------------------------------------------------------------
 -- Build the logo for a given language
 
@@ -350,33 +444,59 @@ local function gen_html_page( fname, lang )
   local fullname = string.format( "%s/%s", lang, fname )
   local f = io.open( fullname, "rb" )
   if not f then
-    return nil, string.format( "Error opening %s", fullname )
+    fullname = fullname:gsub( "%.html", "%.txt" )
+    f = io.open( fullname, "rb" )
+    if not f then
+      return nil, string.format( "Error opening %s", fullname )
+    end
   end
   local orig = f:read( "*a" )
   f:close()
+  
+  -- Check cache
+  local cfilename = string.format( "%s_%s", lang, fname )
+  local oldsum = read_md5( cfilename )
+  local crtsum = md5.sumhexa( orig )
+  if oldsum == crtsum then
+    if not cache_invalid then 
+      return nil, "#cached#"
+    end
+  else
+    write_md5( cfilename, crtsum )
+  end
+      
+  local asciimode = fullname:find( "%.txt" )
 
   -- Check the presence of $$HEADER$$ and $$FOOTER$$
   if not orig:find( "%$%$HEADER%$%$" ) or not orig:find( "%$%$FOOTER%$%$" ) then
     return nil, string.format( "%s not formated properly ($$HEADER$$ or $$FOOTER$$ not found)", fullname )
   end
 
-  -- Iterate through all the links in the document and change the local ones with
-  -- the correct language option
-  orig = orig:gsub( [==[<a href=["'](.-)["']>]==], function( link )
-    if beginswith( link, "#" ) or beginswith( link, "http://" ) or beginswith( link, "https://" ) or beginswith( link, "ftp://" ) then
-      return string.format( '<a href="%s">', link )
-    else
-      return string.format( '<a href="%s_%s">', lang, link )
+  if not asciimode then
+    print ""
+    -- Anticipate some common errors and fix them directly
+    orig = orig:gsub( "<br>", "<br />" )
+    orig = orig:gsub( '(<a name=["\'][^\'"]-["\']>)([^\n]-)</a>%s-\n', function( anchor, data )
+      return anchor:gsub( ">", " />" ) .. data .. "\n"
+    end )
+    orig = orig:gsub( '<p><pre><code>(.-)</code></pre></p>', "<pre><code>%1</code></pre>" )
+    orig = orig:gsub( 'target="_blank"', "" )
+  else
+    print( "(AsciiDoc mode)" )
+    -- Call "asciidoc" to generate the actual HTML
+    local tempname = fullname .. '.temp' 
+    os.execute( sf( "asciidoc -s -a icons -a 'newline=\\n' -b xhtml11 -o %s %s", tempname, fullname ) )
+    local resfile = io.open( tempname, "rb" )
+    if not resfile then
+      return nil, sf( "Unable to find the AsciiDoc generated file %s", tempname )
     end
-  end )
-
-  -- Anticipate some common errors and fix them directly
-  orig = orig:gsub( "<br>", "<br />" )
-  orig = orig:gsub( '(<a name=["\'][^\'"]-["\']>)([^\n]-)</a>%s-\n', function( anchor, data )
-    return anchor:gsub( ">", " />" ) .. data .. "\n"
-  end )
-  orig = orig:gsub( '<p><pre><code>(.-)</code></pre></p>', "<pre><code>%1</code></pre>" )
-  orig = orig:gsub( 'target="_blank"', "" )
+    orig = resfile:read( "*a" )
+    resfile:close()
+    orig = "$$HEADER$$\n" .. orig .. "$$FOOTER$$\n"
+    os.remove( tempname )
+  end
+  -- Replace local links with language-dependent links
+  orig = language_for_links( lang, orig )
 
   -- Generate actual data
   local header = string.format( [=[
@@ -391,7 +511,7 @@ local function gen_html_page( fname, lang )
 <meta name="Keywords" content="eLua, lua, embedded, ARM, Cortex-M3, AVR32, ARM7TDMI, microcontroller, mcu, programming, electronics, tools, development" />
 <link href="menu.css" rel="stylesheet" type="text/css" />
 <link href="style1.css" rel="stylesheet" type="text/css" />
-<link REL="SHORTCUT ICON" HREF="./images/eLua_16x16.ico">
+<link REL="SHORTCUT ICON" HREF="images/eLua_16x16.ico">
 <script type="text/javascript"><!--//--><![CDATA[//><!--
 
 sfHover = function() {
@@ -410,12 +530,13 @@ if (window.attachEvent) window.attachEvent("onload", sfHover);
 //--><!]]></script>
 </head>
 
+
 <body>
 ]=], get_menu_title( item, lang ) )
   header = header .. gen_logo( fname, lang ) .. "\n"
   local menuitems = gen_html_nav( parentid, lang )
-  header = header .. menuitems .. '<div id="content">\n'
-  local footer = [[
+  header = header .. menuitems .. '<div id="content">\n' .. ( asciimode and "" or '<div class="sectionbody">' )
+  local footer = ( asciimode and "" or '</div>' ) .. [[
 </div>
 <script type="text/javascript">
 var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
@@ -456,13 +577,25 @@ end
 
 -- Argument check
 local args = { ... }
-local destdir
-if #args ~= 1 then
-  print "Using 'dist/' as the destination directory"
-  destdir = "dist"
-else
-  destdir = args[ 1 ]
+local destdir = "dist"
+local destdiridx = 1
+if #args > 2 then
+  print "Usage: buildall.lua [destdir] [-online] [-clean]"
+  print "Use -online to generate online documentation (includes BerliOS logo and counter)"
+  print "Use -clean to clear the cache and generate clean documentation"
+  return
 end
+local cleancache = false
+for i = 1, #args do
+  if args[ i ] == "-online" then
+    is_offline = false
+  elseif args[ i ] == "-clean" then
+    cleancache = true
+  else 
+    destdir = args[ i ]
+  end
+end
+print( sf( "Using '%s' as the destination directory", destdir ) );
 
 -- Read the documentation data
 themenu, translations, fixed = dofile( "docdata.lua" )
@@ -500,13 +633,40 @@ else
     print( string.format( "%s is not a directory", destdir ) )
     return
   end
-  for k in lfs.dir( destdir ) do
-    if k ~= "." and k ~= ".." then
-      rm_dir_rec( destdir )
-      lfs.mkdir( destdir )
-      break
+  rm_dir_rec( destdir )
+  lfs.mkdir( destdir )
+end
+
+-- If the cache must be cleared, do it now
+if cleancache then
+  local attr = lfs.attributes( 'cache' )
+  if attr then
+    if attr.mode ~= "directory" then
+      print( "'cache' is not a directory" )
+      return
     end
+    rm_dir_rec( 'cache' )
+    lfs.mkdir( 'cache' )
   end
+end
+
+-- Create the cache directory if it doesn't exist
+local attr = lfs.attributes( 'cache' )
+if not attr then
+  if not lfs.mkdir( 'cache' ) then
+    print( "Unable to create cache directory" )
+    return
+  end
+end  
+
+-- Set the global "cache invalid" flag
+-- It is set to 'true' if the content of docdata.lua changes
+local crtdocsum = md5.sumhexa( table.tostring( themenu ) )
+local oldsum = read_md5( "docdata" )
+cache_invalid = crtdocsum ~= oldsum
+if cache_invalid then 
+  write_md5( "docdata", crtdocsum )
+  print "Cache invalidated" 
 end
 
 print "\nProcessing HTML templates..."
@@ -514,18 +674,34 @@ indent_print()
 flist = get_file_list()
 for _, lang in ipairs( languages ) do
   for fname, entry in pairs( flist ) do
-    print( string.format( "Processing %s %s...", fname, entry.item[ name_idx ] and "" or "(hidden entry)" ) )
-    local res, err = gen_html_page( fname, lang )
-    if not res then
-      print( "***" .. err )
-    else
-      local g = io.open( string.format( "%s/%s_%s", destdir, lang, fname ), "wb" )
-      if not g then
-        print( string.format( "Unable to open %s for writing", fname ) )
+    if fname:find( "https?://" ) ~= 1 then -- not a filename but a direct link
+      io.write( string.format( "Processing %s %s...", fname, entry.item[ name_idx ] and "" or "(hidden entry)" ) )
+      local res, err = gen_html_page( fname, lang )
+      if err == "#cached#" then
+        -- This file is already in the cache
+        print( " (cached)" )         
+      elseif not res then
+        print( "***" .. err ) 
       else
-        g:write( res )
-        g:close()
+        local g = io.open( string.format( "cache/%s_%s", lang, fname ), "wb" )
+        if not g then
+          print( string.format( "Unable to open %s for writing", fname ) )
+        else
+          g:write( res )
+          g:close()
+        end
       end
+      -- Copy file from cache to destination directory
+      local srcf = io.open( string.format( "cache/%s_%s", lang, fname ), "rb" )
+      local destf = io.open( string.format( "%s/%s_%s", destdir, lang, fname ), "wb" )
+      if not srcf or not destf then
+        print "Unable to copy file from cache to dist"
+        return
+      end
+      local content = srcf:read( "*a" )
+      destf:write( content )
+      srcf:close()
+      destf:close()    
     end
   end
 end
@@ -557,3 +733,4 @@ regular_print()
 print "done"
 
 print( string.format( "\nEnjoy your documentation in %s :)", destdir ) )
+

@@ -373,7 +373,7 @@ static int db_errorfb (lua_State *L) {
 
 #define MIN_OPT_LEVEL 1
 #include "lrodefs.h"
-const LUA_REG_TYPE dblib[] = {
+LHEADER(dblib)
   {LSTRKEY("debug"), LFUNCVAL(db_debug)},
   {LSTRKEY("getfenv"), LFUNCVAL(db_getfenv)},
   {LSTRKEY("gethook"), LFUNCVAL(db_gethook)},
@@ -389,7 +389,7 @@ const LUA_REG_TYPE dblib[] = {
   {LSTRKEY("setupvalue"), LFUNCVAL(db_setupvalue)},
   {LSTRKEY("traceback"), LFUNCVAL(db_errorfb)},
   {LNILKEY, LNILVAL}
-};
+LFOOTER
 
 LUALIB_API int luaopen_debug (lua_State *L) {
   LREGISTER(L, LUA_DBLIBNAME, dblib);

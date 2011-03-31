@@ -227,8 +227,7 @@ static int adc_insertsamples( lua_State* L )
 // Module function map
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
-const LUA_REG_TYPE adc_map[] = 
-{
+LHEADER( adc_map )
   { LSTRKEY( "sample" ), LFUNCVAL( adc_sample ) },
   { LSTRKEY( "maxval" ), LFUNCVAL( adc_maxval ) },
   { LSTRKEY( "setclock" ), LFUNCVAL( adc_setclock ) },
@@ -241,7 +240,7 @@ const LUA_REG_TYPE adc_map[] =
   { LSTRKEY( "insertsamples" ), LFUNCVAL( adc_insertsamples ) },
 #endif
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
 LUALIB_API int luaopen_adc( lua_State *L )
 {

@@ -86,8 +86,7 @@ static int lcd_mt_index( lua_State *L )
 
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
-const LUA_REG_TYPE lcd_map[] =
-{
+LHEADER( lcd_map )
 	{ LSTRKEY( "init" ), LFUNCVAL( lcd_init ) },
 	{ LSTRKEY( "setforecolor" ), LFUNCVAL( lcd_setforecolor ) },
 	{ LSTRKEY( "setbackcolor" ), LFUNCVAL( lcd_setbackcolor ) },
@@ -99,7 +98,7 @@ const LUA_REG_TYPE lcd_map[] =
 #endif
   { LSTRKEY( "__index" ), LFUNCVAL( lcd_mt_index ) },
 	{ LNILKEY, LNILVAL }
-};
+LFOOTER
 
 LUALIB_API int luaopen_lcd(lua_State * L)
 {
@@ -117,3 +116,4 @@ LUALIB_API int luaopen_lcd(lua_State * L)
 }
 
 #endif // #ifdef FORSTM3210E_EVAL
+

@@ -11,9 +11,12 @@
 #include <ctype.h>
 #include <stdio.h>
 #include "utils.h"
+#include "elua_adc.h"
 #include "platform_conf.h"
 #include "common.h"
 #include "buf.h"
+#include "spi.h"
+#include "adc.h"
 
 // Platform-specific includes
 #include <avr32/io.h>
@@ -25,12 +28,15 @@
 #include "gpio.h"
 #include "tc.h"
 #include "intc.h"
-#include "sdramc.h"
 
 // ****************************************************************************
 // Platform initialization
 
 extern int pm_configure_clocks( pm_freq_param_t *param );
+
+static u32 platform_timer_set_clock( unsigned id, u32 clock );
+
+__attribute__((__interrupt__)) static void adc_int_handler();
 
 // Virtual timers support
 #if VTMR_NUM_TIMERS > 0
@@ -45,21 +51,14 @@ __attribute__((__interrupt__)) static void tmr_int_handler()
 }                                
 #endif
 
-static const u32 uart_base_addr[ NUM_UART ] = { AVR32_USART0_ADDRESS, AVR32_USART1_ADDRESS, AVR32_USART2_ADDRESS, AVR32_USART3_ADDRESS };
-
-// Buffered UART support
-#ifdef BUF_ENABLE_UART
-__attribute__((__interrupt__)) static void uart_rx_handler()
-{
-  int c;
-  t_buf_data temp;
-  volatile avr32_usart_t *pusart = ( volatile avr32_usart_t* )uart_base_addr[ CON_UART_ID ];    
-  
-  usart_read_char( pusart, &c );
-  temp = ( t_buf_data )c;
-  buf_write( BUF_ID_UART, CON_UART_ID, &temp );
-}
-#endif
+const u32 uart_base_addr[ ] = { 
+    AVR32_USART0_ADDRESS, 
+    AVR32_USART1_ADDRESS, 
+    AVR32_USART2_ADDRESS, 
+#ifdef AVR32_USART3_ADDRESS
+    AVR32_USART3_ADDRESS,
+#endif    
+};
 
 extern void alloc_init();
 
@@ -111,26 +110,21 @@ int platform_init()
   // Enable the 32-kHz clock
   pm_enable_clk32_no_wait( &AVR32_PM, AVR32_PM_OSCCTRL32_STARTUP_0_RCOSC );    
   
-  // Initialize external memory
+  // Initialize external memory if any.
+#ifdef AVR32_SDRAMC
   sdramc_init( REQ_CPU_FREQ );
-  
-  // Setup UART for eLua
-  platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );  
-#if defined( BUF_ENABLE_UART ) && defined( CON_BUF_SIZE )
-  // Enable buffering on the console UART
-  buf_set( BUF_ID_UART, CON_UART_ID, CON_BUF_SIZE, BUF_DSIZE_U8 );
-  // Set interrupt handler and interrupt flag on UART
-  INTC_register_interrupt( &uart_rx_handler, CON_UART_IRQ, AVR32_INTC_INT0 );  
-  volatile avr32_usart_t *pusart = ( volatile avr32_usart_t* )uart_base_addr[ CON_UART_ID ];      
-  pusart->ier = AVR32_USART_IER_RXRDY_MASK;  
-  Enable_global_interrupt();
-#endif
-    
+#endif 
+      
   // Setup timers
   for( i = 0; i < 3; i ++ )
   {
     tmropt.channel = i;
     tc_init_waveform( tc, &tmropt );
+#ifndef FOSC32
+    // At reset, timers run from the 32768Hz crystal. If there is no such clock
+    // then run them all at the lowest frequency available (PBA_FREQ / 128)
+    platform_timer_set_clock( i, REQ_PBA_FREQ / 128 );
+#endif
   }
   
   // Setup timer interrupt for the virtual timers if needed
@@ -150,13 +144,47 @@ int platform_init()
     0,              // Load overrun interrupt.
     0               // Counter overflow interrupt.
   };
-  tc_write_rc( tc, VTMR_CH, 32768 / VTMR_FREQ_HZ );
+# ifdef FOSC32
+  tc_write_rc( tc, VTMR_CH, FOSC32 / VTMR_FREQ_HZ );
+# else
+  // Run VTMR from the slowest available PBA clock divisor
+  { u32 vt_clock_freq = platform_timer_set_clock( VTMR_CH, REQ_PBA_FREQ / 128 );
+    u32 div = vt_clock_freq / VTMR_FREQ_HZ;
+    if (div > 0xffff) div = 0xffff;
+    tc_write_rc( tc, VTMR_CH, div );
+  }
+# endif
   tc_configure_interrupts( tc, VTMR_CH, &tmrint );
   Enable_global_interrupt();
   tc_start( tc, VTMR_CH );  
 #endif
 
+    // Setup spi controller(s) : up to 4 slave by controller.
+#if NUM_SPI > 0
+    spi_master_options_t spiopt;
+    spiopt.modfdis = TRUE;
+    spiopt.pcs_decode = FALSE;
+    spiopt.delay = 0;
+    spi_initMaster(&AVR32_SPI0, &spiopt, REQ_CPU_FREQ);
+    
+#if NUM_SPI > 4
+    spi_initMaster(&AVR32_SPI1, &spiopt, REQ_CPU_FREQ);
+#endif    
+
+#endif
+
+#if NUM_ADC > 0
+   (&AVR32_ADC)->ier = AVR32_ADC_DRDY_MASK; 
+   INTC_register_interrupt( &adc_int_handler, AVR32_ADC_IRQ, AVR32_INTC_INT0); 
+
+   for( i = 0; i < NUM_ADC; i++ )
+     adc_init_ch_state( i );
+#endif
+
   cmn_platform_init();
+#ifdef ELUA_BOARD_MIZAR32
+  platform_pio_op( 0, ( pio_type )1 << 0 , PLATFORM_IO_PIN_PULLUP );
+#endif
     
   // All done  
   return PLATFORM_OK;
@@ -165,33 +193,6 @@ int platform_init()
 // ****************************************************************************
 // PIO functions
 
-/* Note about AVR32 GPIO
-PIOs on AVR32 are a weird deal. They aren't really organized in ports, but 
-rather they are numbered from 0 to a maximum number (which also give the total
-number of GPIOs in the system) then you do operations on that pin number. 
-We need to organize this in ports though, so here's our organization:
-PA: 31 bits, direct mapping to AVR GPIO0 ... GPIO30
-PB: 32 bits, direct mapping to AVR GPIO32 ... GPIO63
-PC: 6 bits, direct mapping to AVR GPIO64 ... GPIO69
-PX: this is where all hell breaks loose. PX seems to be a quite random mapping
-between the rest of the GPIOs and some "port" that has 40 bits and a very 
-imaginative mapping to the GPIOs (PX0 is GPIO100, PX1 is GPIO99, PX2 is GPIO98 ...
-and PX11 is GPIO109, just to give a few examples). So let's make some sense out of
-this. We define two pseudo ports: a 32 bits one (GPIO70-GPIO101) and an 8 bits one 
-(GPIO102-GPIO109).
-PD: 32 bits, GPIO70-GPIO101
-PE:  8 bits, GPIO102-GPIO109
-(note that GPIO32 doesn't seem to exist at all in the system).
-Beceause these are pseudo-ports, operations on them will be slower than operation
-on the hardware ports (PA, PB, PC).
-*/
-
-// Port data
-#define PA            0
-#define PB            1
-#define PC            2
-#define PD            3
-#define PE            4
 // Reg types for our helper function
 #define PIO_REG_PVR   0
 #define PIO_REG_OVR   1
@@ -226,32 +227,9 @@ static volatile unsigned long* platform_pio_get_port_reg_addr( unsigned port, in
 // Helper function: get port value, get direction, get pullup, ...
 static pio_type platform_pio_get_port_reg( unsigned port, int reg )
 {
-  pio_type v;
   volatile unsigned long *pv = platform_pio_get_port_reg_addr( port, reg );
   
-  switch( port )
-  {
-    case PA:   // PA - 31 bits
-      return *pv & 0x7FFFFFFF;
-      
-    case PB:   // PB - 32 bits
-      return *pv;
-      
-    case PC:   // PC - 6 bits
-      return *pv & 0x3F;      
-      
-    case PD:   // PD - pseudo port (70-101, has 26 bits on P2 and 6 bits on P3)
-      pv = platform_pio_get_port_reg_addr( 2, reg );
-      v = ( *pv & 0xFFFFFFC0 ) >> 6;
-      pv = platform_pio_get_port_reg_addr( 3, reg );
-      return ( ( *pv & 0x3F ) << 26 ) | v;
-      
-    case PE:   // PE - pseudo port (102-109, 8 bits on P3)
-      pv = platform_pio_get_port_reg_addr( 3, reg );
-      return ( *pv & 0x3FC0 ) >> 6;
-  }
-  // Will never get here
-  return 0;
+  return *pv;
 }
 
 // Helper function: set port value, set direction, set pullup ...
@@ -259,32 +237,7 @@ static void platform_pio_set_port_reg( unsigned port, pio_type val, int reg )
 {
   volatile unsigned long *pv = platform_pio_get_port_reg_addr( port, reg );
     
-  switch( port )
-  {
-    case PA:   // PA - 31 bits
-      *pv = val & 0x7FFFFFFF;
-      break;
-            
-    case PB:   // PB - 32 bits
-      *pv = val;
-      break;
-      
-    case PC:   // PC - 6 bits
-      *pv = ( *pv & ~0x3F ) | ( val & 0x3F );
-      break;
-      
-    case PD:  // PD - pseudo port (70-101, has 26 bits on P2 and 6 bits on P3)
-      pv = platform_pio_get_port_reg_addr( 2, reg );
-      *pv = ( *pv & ~0xFFFFFFC0 ) | ( val << 6 );
-      pv = platform_pio_get_port_reg_addr( 3, reg );
-      *pv = ( *pv & ~0x3F ) | ( val >> 26 );
-      break;
-    
-    case PE:  // PE - pseudo port (102-109, 8 bits on P3)
-      pv = platform_pio_get_port_reg_addr( 3, reg );
-      *pv = ( *pv & ~0x3FC0 ) | ( ( val & 0xFF ) << 6 );   
-      break;
-  }
+  *pv = val;
 }
 
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
@@ -351,15 +304,20 @@ static const gpio_map_t uart_pins =
   // UART 0
   { AVR32_USART0_RXD_0_0_PIN, AVR32_USART0_RXD_0_0_FUNCTION },
   { AVR32_USART0_TXD_0_0_PIN, AVR32_USART0_TXD_0_0_FUNCTION },
+  
   // UART 1
   { AVR32_USART1_RXD_0_0_PIN, AVR32_USART1_RXD_0_0_FUNCTION },
   { AVR32_USART1_TXD_0_0_PIN, AVR32_USART1_TXD_0_0_FUNCTION },
+  
   // UART 2
   { AVR32_USART2_RXD_0_0_PIN, AVR32_USART2_RXD_0_0_FUNCTION },
   { AVR32_USART2_TXD_0_0_PIN, AVR32_USART2_TXD_0_0_FUNCTION },
+  
+#ifdef AVR32_USART3_ADDRESS  
   // UART 3
   { AVR32_USART3_RXD_0_0_PIN, AVR32_USART3_RXD_0_0_FUNCTION },
-  { AVR32_USART3_TXD_0_0_PIN, AVR32_USART3_TXD_0_0_FUNCTION }
+  { AVR32_USART3_TXD_0_0_PIN, AVR32_USART3_TXD_0_0_FUNCTION },
+#endif  
 };
 
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )
@@ -395,11 +353,12 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   return baud;
 }
 
-void platform_uart_send( unsigned id, u8 data )
+void platform_s_uart_send( unsigned id, u8 data )
 {
   volatile avr32_usart_t *pusart = ( volatile avr32_usart_t* )uart_base_addr[ id ];  
   
-  usart_putchar( pusart, data );
+  while( !usart_tx_ready( pusart ) );
+  pusart->thr = ( data << AVR32_USART_THR_TXCHR_OFFSET ) & AVR32_USART_THR_TXCHR_MASK;
 }    
 
 int platform_s_uart_recv( unsigned id, s32 timeout )
@@ -418,6 +377,74 @@ int platform_s_uart_recv( unsigned id, s32 timeout )
     return usart_getchar( pusart );
 }
 
+typedef struct
+{
+  u8 pin;
+  u8 function;
+} gpio_pin_data;
+
+// This is a complete hack and it will stay like this until eLua will be able
+// to specify what pins to use for a peripheral at runtime
+static const gpio_pin_data uart_flow_control_pins[] = 
+{
+#ifdef AVR32_USART0_RTS_0_0_PIN
+  // UART 0
+  { AVR32_USART0_RTS_0_0_PIN, AVR32_USART0_RTS_0_0_FUNCTION },
+  { AVR32_USART0_CTS_0_0_PIN, AVR32_USART0_CTS_0_0_FUNCTION },
+#else  
+// UART 0
+  { AVR32_USART0_RTS_0_PIN, AVR32_USART0_RTS_0_FUNCTION },
+  { AVR32_USART0_CTS_0_PIN, AVR32_USART0_CTS_0_FUNCTION },
+#endif
+  
+  // UART 1
+  { AVR32_USART1_RTS_0_0_PIN, AVR32_USART1_RTS_0_0_FUNCTION },
+  { AVR32_USART1_CTS_0_0_PIN, AVR32_USART1_CTS_0_0_FUNCTION },
+
+
+#ifdef AVR32_USART2_RTS_0_0_PIN
+  // UART 2
+  { AVR32_USART2_RTS_0_0_PIN, AVR32_USART2_RTS_0_0_FUNCTION },
+  { AVR32_USART2_CTS_0_0_PIN, AVR32_USART2_CTS_0_0_FUNCTION },
+#else
+   // UART 2
+  { AVR32_USART2_RTS_0_PIN, AVR32_USART2_RTS_0_FUNCTION },
+  { AVR32_USART2_CTS_0_PIN, AVR32_USART2_CTS_0_FUNCTION },
+#endif
+ 
+#ifdef AVR32_USART3_ADDRESS  
+  // UART 3
+  { AVR32_USART3_RTS_0_0_PIN, AVR32_USART3_RTS_0_0_FUNCTION },
+  { AVR32_USART3_CTS_0_0_PIN, AVR32_USART3_CTS_0_0_FUNCTION },
+#endif  
+};
+
+
+int platform_s_uart_set_flow_control( unsigned id, int type )
+{
+  unsigned i;
+  volatile avr32_usart_t *pusart = ( volatile avr32_usart_t* )uart_base_addr[ id ];
+  volatile avr32_gpio_port_t *gpio_port;
+  const gpio_pin_data *ppindata = uart_flow_control_pins + id * 2;
+
+  // AVR32 only supports combined RTS/CTS flow control
+  if( type != PLATFORM_UART_FLOW_NONE && type != ( PLATFORM_UART_FLOW_RTS | PLATFORM_UART_FLOW_CTS ) )
+    return PLATFORM_ERR;
+  // Set UART mode register first
+  pusart->mr &= ~AVR32_USART_MR_MODE_MASK;
+  pusart->mr |= ( type == PLATFORM_UART_FLOW_NONE ? AVR32_USART_MR_MODE_NORMAL : AVR32_USART_MR_MODE_HARDWARE ) << AVR32_USART_MR_MODE_OFFSET;
+  // Then set GPIO pins
+  for( i = 0; i < 2; i ++, ppindata ++ )  
+    if( type != PLATFORM_UART_FLOW_NONE ) // enable pin for UART functionality
+      gpio_enable_module_pin( ppindata->pin, ppindata->function );
+    else // release pin to GPIO module
+    {
+      gpio_port = &GPIO.port[ ppindata->pin >> 5 ];
+      gpio_port->gpers = 1 << ( ppindata->pin & 0x1F );
+    }
+  return PLATFORM_OK;
+}
+
 // ****************************************************************************
 // Timer functions
 
@@ -429,7 +456,11 @@ static u32 platform_timer_get_clock( unsigned id )
   volatile avr32_tc_t *tc = &AVR32_TC;
   unsigned int clksel = tc->channel[ id ].CMR.waveform.tcclks;
         
-  return clksel == 0 ? 32768 : REQ_PBA_FREQ / clkdivs[ clksel ];
+#ifdef FOSC32
+  return clksel == 0 ? FOSC32 : REQ_PBA_FREQ / clkdivs[ clksel ];
+#else
+  return REQ_PBA_FREQ / clkdivs[ clksel ];
+#endif
 }
 
 // Helper: set timer clock
@@ -439,11 +470,22 @@ static u32 platform_timer_set_clock( unsigned id, u32 clock )
   volatile avr32_tc_t *tc = &AVR32_TC;
   volatile unsigned long *pclksel = &tc->channel[ id ].cmr;
   
+#ifdef FOSC32
   for( i = mini = 0; i < 5; i ++ )
-    if( ABSDIFF( clock, i == 0 ? 32768 : REQ_PBA_FREQ / clkdivs[ i ] ) < ABSDIFF( clock, mini == 0 ? 32768 : REQ_PBA_FREQ / clkdivs[ mini ] ) )
+    if( ABSDIFF( clock, i == 0 ? FOSC32 : REQ_PBA_FREQ / clkdivs[ i ] ) <
+        ABSDIFF( clock, mini == 0 ? FOSC32 : REQ_PBA_FREQ / clkdivs[ mini ] ) )
       mini = i;
   *pclksel = ( *pclksel & ~0x07 ) | mini;
-  return mini == 0 ? 32768 : REQ_PBA_FREQ / clkdivs[ mini ];
+  return mini == 0 ? FOSC32 : REQ_PBA_FREQ / clkdivs[ mini ];
+#else
+  // There is no 32768Hz clock so choose from the divisors of PBA.
+  for( i = mini = 1; i < 5; i ++ )
+    if( ABSDIFF( clock, REQ_PBA_FREQ / clkdivs[ i ] ) <
+        ABSDIFF( clock, REQ_PBA_FREQ / clkdivs[ mini ] ) )
+      mini = i;
+  *pclksel = ( *pclksel & ~0x07 ) | mini;
+  return REQ_PBA_FREQ / clkdivs[ mini ];
+#endif
 }
 
 void platform_s_timer_delay( unsigned id, u32 delay_us )
@@ -502,15 +544,231 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
 }
 
 // ****************************************************************************
+// SPI functions
+
+/* Note about AVR32 SPI
+ *
+ * Each controller can handle up to 4 different settings.
+ * Here, for convenience, we don't use the builtin chip select lines, 
+ * it's up to the user to drive the corresponding GPIO lines.
+ *
+*/
+static const gpio_map_t spi_pins = 
+{
+  // SPI0
+  { BOARD_SPI0_SCK_PIN, BOARD_SPI0_SCK_PIN_FUNCTION },
+  { BOARD_SPI0_MISO_PIN, BOARD_SPI0_MISO_PIN_FUNCTION },
+  { BOARD_SPI0_MOSI_PIN, BOARD_SPI0_MOSI_PIN_FUNCTION },
+  { BOARD_SPI0_CS_PIN, BOARD_SPI0_CS_PIN_FUNCTION },
+  
+  // SPI1
+#if NUM_SPI > 4  
+  { BOARD_SPI1_SCK_PIN, BOARD_SPI1_SCK_PIN_FUNCTION },
+  { BOARD_SPI1_MISO_PIN, BOARD_SPI1_MISO_PIN_FUNCTION },
+  { BOARD_SPI1_MOSI_PIN, BOARD_SPI1_MOSI_PIN_FUNCTION },
+  { BOARD_SPI1_CS_PIN, BOARD_SPI1_CS_PIN_FUNCTION },
+#endif  
+};
+
+static const
+u32 spireg[] = 
+{ 
+    AVR32_SPI0_ADDRESS, 
+#ifdef AVR32_SPI1_ADDRESS    
+    AVR32_SPI1_ADDRESS,
+#endif
+};
+
+u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigned cpha, unsigned databits )
+{
+    spi_options_t opt;
+    
+    opt.baudrate = clock;
+    opt.bits = min(databits, 16);
+    opt.spck_delay = 0;
+    opt.trans_delay = 0;
+    opt.mode = ((cpol & 1) << 1) | (cpha & 1);
+
+    // Set actual interface
+    gpio_enable_module(spi_pins + (id >> 2) * 4, 4);
+    spi_setupChipReg((volatile avr32_spi_t *) spireg[id >> 2], id % 4, &opt, REQ_CPU_FREQ);
+    
+    // TODO: return the actual baudrate.
+    return clock;
+}
+
+spi_data_type platform_spi_send_recv( unsigned id, spi_data_type data )
+{
+    volatile avr32_spi_t * spi = (volatile avr32_spi_t *) spireg[id >> 2];
+    
+    /* Since none of the builtin chip select lines are externally wired,
+     * spi_selectChip() just ensure that the correct spi settings are 
+     * used for the transfer.
+     */
+    spi_selectChip(spi, id % 4);
+    return spi_single_transfer(spi, (u16) data);
+}
+
+void platform_spi_select( unsigned id, int is_select )
+{
+  volatile avr32_spi_t * spi = (volatile avr32_spi_t *) spireg[id >> 2];
+
+  if(is_select == PLATFORM_SPI_SELECT_ON)
+    spi_selectChip(spi, id % 4);
+  else
+    spi_unselectChip(spi, id % 4);
+
+}
+// ****************************************************************************
 // CPU functions
 
-void platform_cpu_enable_interrupts()
+int platform_cpu_set_global_interrupts( int status )
 {
-  Enable_global_interrupt();
+  int previous = Is_global_interrupt_enabled();
+
+  if( status == PLATFORM_CPU_ENABLE )
+    Enable_global_interrupt();
+  else
+    Disable_global_interrupt();
+  return previous;
 }
 
-void platform_cpu_disable_interrupts()
+int platform_cpu_get_global_interrupts()
 {
-  Disable_global_interrupt();
+  return Is_global_interrupt_enabled();
 }
 
+// ****************************************************************************
+// ADC functions
+
+#ifdef BUILD_ADC
+
+static const gpio_map_t adc_pins = 
+{ 
+  {AVR32_ADC_AD_0_PIN, AVR32_ADC_AD_0_FUNCTION},
+  {AVR32_ADC_AD_1_PIN, AVR32_ADC_AD_1_FUNCTION},
+  {AVR32_ADC_AD_2_PIN, AVR32_ADC_AD_2_FUNCTION},
+  {AVR32_ADC_AD_3_PIN, AVR32_ADC_AD_3_FUNCTION},
+  {AVR32_ADC_AD_4_PIN, AVR32_ADC_AD_4_FUNCTION},
+  {AVR32_ADC_AD_5_PIN, AVR32_ADC_AD_5_FUNCTION},
+  {AVR32_ADC_AD_6_PIN, AVR32_ADC_AD_6_FUNCTION},
+  {AVR32_ADC_AD_7_PIN, AVR32_ADC_AD_7_FUNCTION}
+}; 
+
+volatile avr32_adc_t *adc = &AVR32_ADC;
+
+int platform_adc_check_timer_id( unsigned id, unsigned timer_id )
+{
+  return 0; // no timers supported initially
+}
+
+void platform_adc_stop( unsigned id )
+{
+  elua_adc_ch_state *s = adc_get_ch_state( id );
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  
+  s->op_pending = 0;
+  INACTIVATE_CHANNEL( d, id );
+
+  // If there are no more active channels, stop the sequencer
+  if( d->ch_active == 0 )
+    d->running = 0;
+}
+
+int platform_adc_update_sequence( )
+{  
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+
+  adc->cr = AVR32_ADC_SWRST_MASK;
+  adc->ier = AVR32_ADC_DRDY_MASK; 
+
+  adc_configure( adc );
+
+  d->seq_ctr = 0;
+  while( d->seq_ctr < d->seq_len )
+  {
+    adc_enable( adc, d->ch_state[ d->seq_ctr ]->id );
+    gpio_enable_module( adc_pins + d->ch_state[ d->seq_ctr ]->id, 1 );
+    d->seq_ctr++;
+  }
+  d->seq_ctr = 0;
+
+  return PLATFORM_OK;
+}
+
+__attribute__((__interrupt__)) static void adc_int_handler()
+{
+  int i; 
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  elua_adc_ch_state *s;
+  
+  d->seq_ctr = 0;
+  while( d->seq_ctr < d->seq_len )
+  { 
+    s = d->ch_state[ d->seq_ctr ];
+
+    if( adc_check_eoc( adc, s->id ) ) 
+    { 
+      d->sample_buf[ d->seq_ctr ] = ( u16 )adc_get_value(adc, s->id );
+      s->value_fresh = 1;
+      
+      // Read LCDR to signal that conversion has been captured
+      i = adc->lcdr;
+
+      if ( s->logsmoothlen > 0 && s->smooth_ready == 0)
+	adc_smooth_data( s->id );
+#if defined( BUF_ENABLE_ADC )
+      else if ( s->reqsamples > 1 )
+      {
+	buf_write( BUF_ID_ADC, s->id, ( t_buf_data* )s->value_ptr );
+	s->value_fresh = 0;
+      }
+#endif
+    
+      // If we have the number of requested samples, stop sampling
+      if ( adc_samples_available( s->id ) >= s->reqsamples && s->freerunning == 0 )
+	platform_adc_stop( s->id );
+    }
+
+    d->seq_ctr++;
+  }
+  d->seq_ctr = 0;
+
+  // Only attempt to refresh sequence order if still running
+  // This allows us to "cache" an old sequence if all channels
+  // finish at the same time
+  if ( d->running == 1 )
+    adc_update_dev_sequence( 0 );
+
+  if ( d->clocked == 0 && d->running == 1 )
+    adc_start( adc );
+}                                
+
+
+u32 platform_adc_setclock( unsigned id, u32 frequency )
+{
+  return 0;
+}
+
+
+int platform_adc_start_sequence( )
+{ 
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+  
+  // Only force update and initiate if we weren't already running
+  // changes will get picked up during next interrupt cycle
+  if ( d->running != 1 )
+  {
+    adc_update_dev_sequence( 0 );
+
+    d->seq_ctr = 0; 
+    d->running = 1;
+
+    if( d->clocked == 0 )
+      adc_start(adc);
+  }
+
+  return PLATFORM_OK;
+}
+
+#endif

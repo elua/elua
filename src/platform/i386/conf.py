@@ -25,7 +25,7 @@ comp.Prepend(ASFLAGS = ['-felf'])
 tools[ 'i386' ] = {}
 
 # Programming function for i386 (not needed, empty function)
-def progfunc_i386( comp[ 'target' ], source, env ):
+def progfunc_i386( target, source, env ):
   outname = output + ".elf"
   os.system( "%s %s" % ( toolset[ 'size' ], outname ) )
   print "Visit http://www.eluaproject.net for instructions on how to use your eLua ELF file"

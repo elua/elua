@@ -1,4 +1,5 @@
 import os, sys, shutil, string
+import platform  as syspl
 
 # Helper: "normalize" a name to make it a suitable C macro name
 def cnorm( name ):
@@ -48,6 +49,16 @@ toolchain_list = {
     'cross_lua' : 'float 64',
     'cross_lualong' : 'int 32'
   },
+  'avr32-unknown-none-gcc' : {
+    'compile' : 'avr32-unknown-none-gcc',
+    'link' : 'avr32-unknown-none-ld',
+    'asm' : 'avr32-unknown-none-as',
+    'bin' : 'avr32-unknown-none-objcopy',
+    'size' : 'avr32-unknown-none-size',
+    'cross_cpumode' : 'big',
+    'cross_lua' : 'float 64',
+    'cross_lualong' : 'int 32'
+  },
   'i686-gcc' : { 
     'compile' : 'i686-elf-gcc', 
     'link' : 'i686-elf-ld', 
@@ -68,20 +79,21 @@ toolchain_list['devkitarm'] = toolchain_list['arm-eabi-gcc']
 # (the one that will be used if none is specified)
 platform_list = {  
   'at91sam7x' : { 'cpus' : [ 'AT91SAM7X256', 'AT91SAM7X512' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
-  'lm3s' : { 'cpus' : [ 'LM3S8962', 'LM3S6965', 'LM3S6918', 'LM3S9B92' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
+  'lm3s' : { 'cpus' : [ 'LM3S1968', 'LM3S8962', 'LM3S6965', 'LM3S6918', 'LM3S9B92' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
   'str9' : { 'cpus' : [ 'STR912FAW44' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
   'i386' : { 'cpus' : [ 'I386' ], 'toolchains' : [ 'i686-gcc' ] },
   'sim' : { 'cpus' : [ 'LINUX' ], 'toolchains' : [ 'i686-gcc' ] },
   'lpc288x' : { 'cpus' : [ 'LPC2888' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
   'str7' : { 'cpus' : [ 'STR711FR2' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
   'stm32' : { 'cpus' : [ 'STM32F103ZE', 'STM32F103RE' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
-  'avr32' : { 'cpus' : [ 'AT32UC3A0512' ], 'toolchains' : [ 'avr32-gcc' ] },
+  'avr32' : { 'cpus' : [ 'AT32UC3A0512', 'AT32UC3A0128', 'AT32UC3B0256' ], 'toolchains' : [ 'avr32-gcc', 'avr32-unknown-none-gcc' ] },
   'lpc24xx' : { 'cpus' : [ 'LPC2468' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
   'lpc17xx' : { 'cpus' : [ 'LPC1768' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] }
 }
 
 # List of board/CPU combinations
 board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
+               'EK-LM3S1968' : [ 'LM3S1968' ],
                'EK-LM3S8962' : [ 'LM3S8962' ],
                'EK-LM3S6965' : [ 'LM3S6965' ],
                'EK-LM3S9B92' : [ 'LM3S9B92' ],
@@ -93,10 +105,13 @@ board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
                'MOD711' : [ 'STR711FR2' ],
                'STM3210E-EVAL' : [ 'STM32F103ZE' ],
                'ATEVK1100' : [ 'AT32UC3A0512' ],
+               'ATEVK1101' : [ 'AT32UC3B0256' ],
                'ET-STM32' : [ 'STM32F103RE' ],
                'EAGLE-100' : [ 'LM3S6918' ],
                'ELUA-PUC' : ['LPC2468' ],
-               'MBED' : ['LPC1768']
+               'MBED' : ['LPC1768'],
+               'MIZAR32' : [ 'AT32UC3A0128' ],
+               'NETDUINO' : [ 'AT91SAM7X512' ],
             }
 
 cpu_list = sum([board_list[i] for i in board_list],[])
@@ -148,6 +163,7 @@ file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'i
               'MBED' : [ 'bisect', 'hangman', 'hello', 'info', 'led', 'pwmled', 'dualpwm', 'life', 'adcscope','adcpoll' ],
 }
 
+
 comp = Environment( tools = [],
                     OBJSUFFIX = ".o",
                     PROGSUFFIX = ".elf",
@@ -184,7 +200,7 @@ def MatchEnumVariable(key, help, default, allowed_values, map={}):
 
 
 # Add Configurable Variables
-vars = Variables('build-setup.conf')
+vars = Variables()
 
 vars.AddVariables(
   MatchEnumVariable('target',
@@ -221,7 +237,6 @@ vars.AddVariables(
 
 
 vars.Update(comp)
-vars.Save('build-setup.conf', comp)
 
 if not GetOption( 'help' ):
 
@@ -304,12 +319,16 @@ if not GetOption( 'help' ):
   # Build the compilation command now
   compcmd = ''
   if comp['romfs'] == 'compile':
+    if syspl.system() == 'Windows':
+      suffix = '.exe'
+    else:
+      suffix = '.elf'
     # First check for luac.cross in the current directory
-    if not os.path.isfile( "luac.cross" ):
+    if not os.path.isfile( "luac.cross" + suffix ):
       print "The eLua cross compiler was not found."
       print "Build it by running 'scons -f cross-lua.py'"
       Exit( -1 )
-    compcmd = os.path.join( os.getcwd(), 'luac.cross -ccn %s -cce %s -o %%s -s %%s' % ( toolset[ 'cross_%s' % comp['target'] ], toolset[ 'cross_cpumode' ] ) )
+    compcmd = os.path.join( os.getcwd(), 'luac.cross%s -ccn %s -cce %s -o %%s -s %%s' % ( suffix, toolset[ 'cross_%s' % comp['target'] ], toolset[ 'cross_cpumode' ] ) )
   elif comp['romfs'] == 'compress':
     compcmd = 'lua luasrcdiet.lua --quiet --maximum --opt-comments --opt-whitespace --opt-emptylines --opt-eols --opt-strings --opt-numbers --opt-locals -o %s %s'
 
@@ -358,7 +377,7 @@ if not GetOption( 'help' ):
 
   lua_full_files = " " + " ".join( [ "src/lua/%s" % name for name in lua_files.split() ] )
   
-  comp.Append(CPPPATH = ['inc', 'inc/newlib',  'inc/remotefs', 'src/lua'])
+  comp.Append(CPPPATH = ['inc', 'inc/newlib',  'inc/remotefs', 'src/platform', 'src/lua'])
   if comp['target'] == 'lualong':
     conf.env.Append(CPPDEFINES = ['LUA_NUMBER_INTEGRAL'])
 
@@ -369,8 +388,8 @@ if not GetOption( 'help' ):
   local_libs = ''
 
   # Application files
-  app_files = """ src/main.c src/romfs.c src/semifs.c src/xmodem.c src/shell.c src/term.c src/common.c src/buf.c src/elua_adc.c src/dlmalloc.c 
-                  src/salloc.c src/luarpc_elua_uart.c src/udl.c """
+  app_files = """ src/main.c src/romfs.c src/semifs.c src/xmodem.c src/shell.c src/term.c src/common.c src/common_tmr.c src/buf.c src/elua_adc.c src/dlmalloc.c 
+                  src/salloc.c src/luarpc_elua_uart.c src/elua_int.c src/linenoise.c src/common_uart.c src/eluarpc.c src/udl.c """
 
   # Newlib related files
   newlib_files = " src/newlib/devman.c src/newlib/stubs.c src/newlib/genstd.c src/newlib/stdtcp.c"
@@ -385,7 +404,7 @@ if not GetOption( 'help' ):
   comp.Append(CPPPATH = ['src/fatfs'])
 
   # Lua module files
-  module_names = "pio.c spi.c tmr.c pd.c uart.c term.c pwm.c lpack.c bit.c net.c cpu.c adc.c can.c luarpc.c bitarray.c elua.c"
+  module_names = "pio.c spi.c tmr.c pd.c uart.c term.c pwm.c lpack.c bit.c net.c cpu.c adc.c can.c luarpc.c bitarray.c elua.c i2c.c"
   module_files = " " + " ".join( [ "src/modules/%s" % name for name in module_names.split() ] )
 
   # Remote file system files
@@ -416,12 +435,6 @@ if not GetOption( 'help' ):
     flist = []
     for sample in file_list[ comp['board'] ]:
       flist += romfs[ sample ]
-    # Automatically includes the autorun.lua file in the ROMFS
-    if os.path.isfile( os.path.join( romdir, 'autorun.lua' ) ):
-      flist += [ 'autorun.lua' ]
-    # Automatically includes platform specific Lua module 
-    if os.path.isfile( os.path.join( romdir, comp['board'] + '.lua' ) ):
-      flist += [comp['board'] + '.lua']
     import mkfs
     mkfs.mkfs( romdir, "romfiles", flist, comp['romfs'], compcmd )
     print

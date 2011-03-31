@@ -46,7 +46,7 @@ list</a>
       alive.</li>
   <li>telnet to the address of the board (or simply "telnet elua" if DHCP is used), and you'll be greeted with the shell prompt (if the shell is
       enabled; see the next paragraph for details). 
-  Note that you can only have an active telnet session to the <b>eLua</b> board at a given time.</li>
+  Note that you can only have one active telnet session to the <b>eLua</b> board at a given time.</li>
 </ul>
 
 <p>If you're under Windows, make sure you're using a proper telnet client, which basically means "just about everything <b>but</b> the
@@ -140,6 +140,11 @@ $ dir
 <p>Prints the content of (usually text) files on the console.</p>
 <pre><code>$ cat <i>filename1</i> [<i>filename2 filename3 ...</i>]
 $ type <i>filename1</i> [<i>filename2 filename3 ...</i>]</code></pre>
+
+<h2>cp</h2>
+<p>Copies a file to another file. This command can be used to copy files between different file systems (for example between the MMC file system and the RFS file system).</p>
+<pre><code>$ cp <i>source</i> <i>destination</i></code></pre>
+<p>Note that both <b>source</b> and <b>destination</b> must be file names.</p>
 
 <h2>exit</h2>
 <p>Exits the shell. This only makes sense if <b>eLua</b> is compiled with terminal support over TCP/IP , as it closes the telnet session to the <b>eLua</b> board. Otherwise it just
@@ -247,7 +252,7 @@ You can omit the <i>-s</i> (strip) parameter from compilation, but this will res
 </ul>
 
 <a name="rpc"><h3>Controlling eLua with LuaRPC</h3></a>
-<p><i>Remote procedure calls</i> (RPC) allow one program to communicate with another and call functions or subroutines within the second program. For example one might want to programmatically control an array of LEDs connected to an eLua embedded device from a desktop Lua state.  A simple implementation might be a protocol that would allow one to send commands numeric or text-based commands that would cause code to be executed in eLua that would change the state of the LEDs. As one needs new commands to change these LEDs, one would need to upload a new Lua program to handle changing functionality.  In contrast to this ad-hoc method for remote calls, LuaRPC provides a more general way to manipulate the state and execution of a remote Lua environment.</p>
+<p><i>Remote procedure calls</i> (RPC) allow one program to communicate with another and call functions or subroutines within the second program. For example one might want to programmatically control an array of LEDs connected to an eLua embedded device from a desktop Lua state.  A simple implementation might be a protocol that would allow one to send numeric or text-based commands that would cause code to be executed in eLua that would change the state of the LEDs. As one needs new commands to change these LEDs, one would need to upload a new Lua program to handle changing functionality.  In contrast to this ad-hoc method for remote calls, LuaRPC provides a more general way to manipulate the state and execution of a remote Lua environment.</p>
   <p>When a client is connected to a LuaRPC server, it can interact with it in the following ways:</p>
 <ul>
   <li>assign values to new or existing variables in the server state</li>

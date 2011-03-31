@@ -170,8 +170,7 @@ static int term_mt_index( lua_State* L )
 // Module function map
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
-const LUA_REG_TYPE term_map[] = 
-{
+LHEADER( term_map )
   { LSTRKEY( "clrscr" ), LFUNCVAL( luaterm_clrscr ) },
   { LSTRKEY( "clreol" ), LFUNCVAL( luaterm_clreol ) },
   { LSTRKEY( "moveto" ), LFUNCVAL( luaterm_moveto ) },
@@ -192,7 +191,7 @@ const LUA_REG_TYPE term_map[] =
 #endif
   { LSTRKEY( "__index" ), LFUNCVAL( term_mt_index ) },
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
 LUALIB_API int luaopen_term( lua_State* L )
 {

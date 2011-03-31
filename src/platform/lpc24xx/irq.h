@@ -27,8 +27,8 @@
 
 #define	WDT_INT			0
 #define SWI_INT			1
-#define ARM_CORE0_INT	2
-#define	ARM_CORE1_INT	3
+#define ARM_CORE0_INT           2
+#define	ARM_CORE1_INT	        3
 #define	TIMER0_INT		4
 #define TIMER1_INT		5
 #define UART0_INT		6

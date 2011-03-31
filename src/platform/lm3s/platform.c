@@ -20,6 +20,7 @@
 #include "lua.h"
 #include "lauxlib.h"
 #include "lrotable.h"
+#include "elua_int.h" 
 
 // Platform specific includes
 #include "hw_ints.h"
@@ -27,9 +28,11 @@
 #include "hw_types.h"
 #include "hw_pwm.h"
 #include "hw_nvic.h"
+#include "hw_can.h"
 #include "hw_ethernet.h"
 #include "debug.h"
 #include "gpio.h"
+#include "can.h"
 #include "interrupt.h"
 #include "sysctl.h"
 #include "uart.h"
@@ -81,6 +84,7 @@ static void pios_init();
 static void pwms_init();
 static void eth_init();
 static void adcs_init();
+static void cans_init();
 
 int platform_init()
 {
@@ -109,6 +113,11 @@ int platform_init()
 #ifdef BUILD_ADC
   // Setup ADCs
   adcs_init();
+#endif
+
+#ifdef BUILD_CAN
+  // Setup CANs
+  cans_init();
 #endif
 
   // Setup ethernet (TCP/IP)
@@ -213,6 +222,124 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
   return retval;
 }
 
+
+// ****************************************************************************
+// CAN
+
+volatile u32 can_rx_flag = 0;
+volatile u32 can_tx_flag = 0;
+volatile u32 can_err_flag = 0;
+char can_tx_buf[8];
+tCANMsgObject can_msg_rx;
+
+// LM3S9Bxx MCU CAN seems to run off of system clock, LM3S8962 has 8 MHz clock
+#if defined( FORLM3S8962 )
+#define LM3S_CAN_CLOCK  8000000
+#else
+#define LM3S_CAN_CLOCK  SysCtlClockGet()
+#endif
+
+void CANIntHandler(void)
+{
+  u32 status = CANIntStatus(CAN0_BASE, CAN_INT_STS_CAUSE);
+
+  if(status == CAN_INT_INTID_STATUS)
+  {
+    status = CANStatusGet(CAN0_BASE, CAN_STS_CONTROL);
+    can_err_flag = 1;
+    can_tx_flag = 0;
+  }
+  else if( status == 1 ) // Message receive
+  {
+    CANIntClear(CAN0_BASE, 1);
+    can_rx_flag = 1;
+    can_err_flag = 0;
+  }
+  else if( status == 2 ) // Message send
+  {
+    CANIntClear(CAN0_BASE, 2);
+    can_tx_flag = 0;
+    can_err_flag = 0;
+  }
+  else
+    CANIntClear(CAN0_BASE, status);
+}
+
+
+void cans_init( void )
+{
+  GPIOPinConfigure(GPIO_PD0_CAN0RX);
+  GPIOPinConfigure(GPIO_PD1_CAN0TX);
+  MAP_GPIOPinTypeCAN(GPIO_PORTD_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+
+  MAP_SysCtlPeripheralEnable( SYSCTL_PERIPH_CAN0 ); 
+  MAP_CANInit( CAN0_BASE );
+  CANBitRateSet(CAN0_BASE, LM3S_CAN_CLOCK, 500000);
+  MAP_CANIntEnable( CAN0_BASE, CAN_INT_MASTER | CAN_INT_ERROR | CAN_INT_STATUS );
+  MAP_IntEnable(INT_CAN0);
+  MAP_CANEnable(CAN0_BASE);
+
+  // Configure default catch-all message object
+  can_msg_rx.ulMsgID = 0;
+  can_msg_rx.ulMsgIDMask = 0;
+  can_msg_rx.ulFlags = MSG_OBJ_RX_INT_ENABLE | MSG_OBJ_USE_ID_FILTER;
+  can_msg_rx.ulMsgLen = 8;
+  MAP_CANMessageSet(CAN0_BASE, 1, &can_msg_rx, MSG_OBJ_TYPE_RX);
+}
+
+
+u32 platform_can_setup( unsigned id, u32 clock )
+{  
+  MAP_CANDisable(CAN0_BASE);
+  CANBitRateSet(CAN0_BASE, LM3S_CAN_CLOCK, clock );
+  MAP_CANEnable(CAN0_BASE);
+  return clock;
+}
+
+void platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *data )
+{
+  tCANMsgObject msg_tx;
+  const char *s = ( char * )data;
+  char *d;
+
+  // Wait for outgoing messages to clear
+  while( can_tx_flag == 1 );
+
+  msg_tx.ulFlags = MSG_OBJ_TX_INT_ENABLE;
+  
+  if( idtype == ELUA_CAN_ID_EXT )
+    msg_tx.ulFlags |= MSG_OBJ_EXTENDED_ID;
+  
+  msg_tx.ulMsgIDMask = 0;
+  msg_tx.ulMsgID = canid;
+  msg_tx.ulMsgLen = len;
+  msg_tx.pucMsgData = ( u8 * )can_tx_buf;
+
+  d = can_tx_buf;
+  DUFF_DEVICE_8( len,  *d++ = *s++ );
+
+  can_tx_flag = 1;
+  CANMessageSet(CAN0_BASE, 2, &msg_tx, MSG_OBJ_TYPE_TX);
+}
+
+int platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )
+{
+  // wait for a message
+  if( can_rx_flag != 0 )
+  {
+    can_msg_rx.pucMsgData = data;
+    CANMessageGet(CAN0_BASE, 1, &can_msg_rx, 0);
+    can_rx_flag = 0;
+
+    *canid = ( u32 )can_msg_rx.ulMsgID;
+    *idtype = ( can_msg_rx.ulFlags & MSG_OBJ_EXTENDED_ID )? ELUA_CAN_ID_EXT : ELUA_CAN_ID_STD;
+    *len = can_msg_rx.ulMsgLen;
+    return PLATFORM_OK;
+  }
+  else
+    return PLATFORM_UNDERFLOW;
+}
+
 // ****************************************************************************
 // SPI
 // Same configuration on LM3S8962, LM3S6965, LM3S6918 and LM3S9B92 (2 SPI ports)
@@ -276,27 +403,10 @@ void platform_spi_select( unsigned id, int is_select )
 // Different configurations for LM3S8962, LM3S6918 (2 UARTs) and LM3S6965, LM3S9B92 (3 UARTs)
 
 // All possible LM3S uarts defs
-static const u32 uart_base[] = { UART0_BASE, UART1_BASE, UART2_BASE };
+const u32 uart_base[] = { UART0_BASE, UART1_BASE, UART2_BASE };
 static const u32 uart_sysctl[] = { SYSCTL_PERIPH_UART0, SYSCTL_PERIPH_UART1, SYSCTL_PERIPH_UART2 };
 static const u32 uart_gpio_base[] = { GPIO_PORTA_BASE, GPIO_PORTD_BASE, GPIO_PORTG_BASE };
 static const u8 uart_gpio_pins[] = { GPIO_PIN_0 | GPIO_PIN_1, GPIO_PIN_2 | GPIO_PIN_3, GPIO_PIN_0 | GPIO_PIN_1 };
-
-#ifdef BUF_ENABLE_UART
-void UARTIntHandler()
-{
-  u32 temp;
-  int c;
-
-  temp = MAP_UARTIntStatus(uart_base[ CON_UART_ID ], true);
-  MAP_UARTIntClear(uart_base[ CON_UART_ID ], temp);
-  while( MAP_UARTCharsAvail( uart_base[ CON_UART_ID ] ) )
-  {
-    c = MAP_UARTCharGetNonBlocking( uart_base[ CON_UART_ID ] );
-    buf_write( BUF_ID_UART, CON_UART_ID, ( t_buf_data* )&c );
-  }
-}
-#endif
-
 
 static void uarts_init()
 {
@@ -304,24 +414,6 @@ static void uarts_init()
 
   for( i = 0; i < NUM_UART; i ++ )
     MAP_SysCtlPeripheralEnable(uart_sysctl[ i ]);
-
-  // Special case for UART 0
-  // Configure the UART for 115,200, 8-N-1 operation.
-  MAP_GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
-  MAP_UARTConfigSetExpClk(UART0_BASE, SysCtlClockGet(), CON_UART_SPEED,
-                     (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
-                      UART_CONFIG_PAR_NONE));
-                      
-                      
-#if defined( BUF_ENABLE_UART ) && defined( CON_BUF_SIZE )
-  // Enable buffering on the console UART
-  buf_set( BUF_ID_UART, CON_UART_ID, CON_BUF_SIZE, BUF_DSIZE_U8 );
-  // Set interrupt handler and interrupt flag on UART
-  
-  IntEnable(INT_UART0);
-
-  MAP_UARTIntEnable( uart_base[ CON_UART_ID ], UART_INT_RX | UART_INT_RT );
-#endif
 }
 
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )
@@ -358,7 +450,7 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   return baud;
 }
 
-void platform_uart_send( unsigned id, u8 data )
+void platform_s_uart_send( unsigned id, u8 data )
 {
   MAP_UARTCharPut( uart_base[ id ], data );
 }
@@ -370,6 +462,11 @@ int platform_s_uart_recv( unsigned id, s32 timeout )
   if( timeout == 0 )
     return MAP_UARTCharGetNonBlocking( base );
   return MAP_UARTCharGet( base );
+}
+
+int platform_s_uart_set_flow_control( unsigned id, int type )
+{
+  return PLATFORM_ERR;
 }
 
 // ****************************************************************************
@@ -446,15 +543,20 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
 const static u32 pwm_div_ctl[] = { SYSCTL_PWMDIV_1, SYSCTL_PWMDIV_2, SYSCTL_PWMDIV_4, SYSCTL_PWMDIV_8, SYSCTL_PWMDIV_16, SYSCTL_PWMDIV_32, SYSCTL_PWMDIV_64 };
 const static u8 pwm_div_data[] = { 1, 2, 4, 8, 16, 32, 64 };
 // Port/pin information for all channels
-#ifdef FORLM3S6965
+#if defined(FORLM3S1968)
+  const static u32 pwm_ports[] =  { GPIO_PORTG_BASE, GPIO_PORTD_BASE, GPIO_PORTH_BASE, GPIO_PORTH_BASE, GPIO_PORTF_BASE, GPIO_PORTF_BASE };
+  const static u8 pwm_pins[] = { GPIO_PIN_2, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_2, GPIO_PIN_3 };
+#elif defined(FORLM3S6965)
   const static u32 pwm_ports[] =  { GPIO_PORTF_BASE, GPIO_PORTD_BASE, GPIO_PORTB_BASE, GPIO_PORTB_BASE, GPIO_PORTE_BASE, GPIO_PORTE_BASE };
-#elif FORLM3S9B92
+  const static u8 pwm_pins[] = { GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1 };
+#elif defined(FORLM3S9B92)
   const static u32 pwm_ports[] =  { GPIO_PORTD_BASE, GPIO_PORTD_BASE, GPIO_PORTB_BASE, GPIO_PORTB_BASE, GPIO_PORTE_BASE, GPIO_PORTE_BASE };
+  const static u8 pwm_pins[] = { GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1 };
   // GPIOPCTL probably needs modification to do PWM for 2&3, Digital Function 2
 #else
   const static u32 pwm_ports[] =  { GPIO_PORTF_BASE, GPIO_PORTG_BASE, GPIO_PORTB_BASE, GPIO_PORTB_BASE, GPIO_PORTE_BASE, GPIO_PORTE_BASE };
+  const static u8 pwm_pins[] = { GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1 };
 #endif
-const static u8 pwm_pins[] = { GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1 };
 
 // PWM generators
 #ifdef FORLM3S9B92
@@ -543,19 +645,6 @@ u32 platform_pwm_op( unsigned id, int op, u32 data )
   }
 
   return res;
-}
-
-// *****************************************************************************
-// CPU specific functions
-
-void platform_cpu_enable_interrupts()
-{
-  MAP_IntMasterEnable();
-}
-
-void platform_cpu_disable_interrupts()
-{
-  MAP_IntMasterDisable();
 }
 
 // *****************************************************************************
@@ -758,10 +847,12 @@ int platform_adc_start_sequence()
 #endif // ifdef BUILD_ADC
 
 // ****************************************************************************
-// OLED Display specific functions
+// Support for specific onboard devices on 
+// Texas Instruments / Luminary Micro kits.
 //
-// Initially immplementing the funcionalities offered by the RIT128x96x4
-// OLED display driver.
+// FIXME: This was previously tied to the "disp" module but should be renamed in the future
+//        to include support for initialization of other onboard devices of the EK-LM3Sxxxx kits.
+//        Note that not all kits have all devices available.
 
 void lm3s_disp_init( unsigned long freq )
 {
@@ -804,6 +895,7 @@ void lm3s_disp_displayOff()
 {
   RIT128x96x4DisplayOff();
 }
+
 
 // ****************************************************************************
 // Ethernet functions
@@ -966,15 +1058,14 @@ void EthernetIntHandler()
 
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
-extern const LUA_REG_TYPE disp_map[];
+LEXTERN( disp_map );
 
-const LUA_REG_TYPE platform_map[] =
-{
+LHEADER( platform_map )
 #if LUA_OPTIMIZE_MEMORY > 0
   { LSTRKEY( "disp" ), LROVAL( disp_map ) },
 #endif
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
 LUALIB_API int luaopen_platform( lua_State *L )
 {

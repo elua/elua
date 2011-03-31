@@ -58,6 +58,14 @@ static int mmcfs_open_r( struct _reent *r, const char *path, int flags, int mode
   flags &= ~O_BINARY;
 #endif
 
+#if _FS_READONLY
+  if ((flags & O_ACCMODE) != O_RDONLY)
+  {
+    r->_errno = EROFS;
+    return -1;
+  }
+  mmc_mode = FA_OPEN_EXISTING & FA_READ;
+#else
   // Translate fcntl.h mode to FatFs mode (by jcwren@jcwren.com)
   if (((flags & (O_CREAT | O_TRUNC)) == (O_CREAT | O_TRUNC)) && (flags & (O_RDWR | O_WRONLY)))
     mmc_mode = FA_CREATE_ALWAYS;
@@ -84,6 +92,7 @@ static int mmcfs_open_r( struct _reent *r, const char *path, int flags, int mode
     r->_errno = EINVAL;
     return -1;
   }
+#endif  // _FS_READONLY
 
   // Open the file for reading
   if (f_open(&mmc_fileObject, mmc_pathBuf, mmc_mode) != FR_OK)
@@ -112,6 +121,12 @@ static int mmcfs_close_r( struct _reent *r, int fd )
 
 static _ssize_t mmcfs_write_r( struct _reent *r, int fd, const void* ptr, size_t len )
 {
+#if _FS_READONLY
+  {
+    r->_errno = EIO;
+    return -1;
+  }
+#else
   UINT bytesWritten;
 
   if (f_write(mmcfs_fd_table + fd, ptr, len, &bytesWritten) != FR_OK)
@@ -121,6 +136,7 @@ static _ssize_t mmcfs_write_r( struct _reent *r, int fd, const void* ptr, size_t
   }
 
   return (_ssize_t) bytesWritten;
+#endif // _FS_READONLY
 }
 
 static _ssize_t mmcfs_read_r( struct _reent *r, int fd, void* ptr, size_t len )

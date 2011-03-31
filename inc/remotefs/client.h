@@ -11,7 +11,7 @@
 
 // RFS client send/receive functions
 typedef u32 ( *p_rfsc_send )( const u8 *p, u32 size );
-typedef u32 ( *p_rfsc_recv )( u8 *p, u32 size, u32 timeout );
+typedef u32 ( *p_rfsc_recv )( u8 *p, u32 size, s32 timeout );
 
 // Public interface
 void rfsc_setup( u8 *pbuf, p_rfsc_send rfsc_send_func, p_rfsc_recv rfsc_recv_func, u32 timeout );

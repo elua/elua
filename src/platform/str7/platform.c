@@ -49,13 +49,13 @@ int platform_init()
   // Initialize clocks
   clock_init();
   
-  // Setup UART1 for operation
-  platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
-  
   // Initialize Timer 0 for XMODEM
   platform_timer_op( 0, PLATFORM_TIMER_OP_SET_CLOCK, 39000 ); 
   
   cmn_platform_init();
+
+  // If interrupts are needed, uncomment the line below
+  // EIC->ICR |= 0x03;
       
   return PLATFORM_OK;
 } 
@@ -173,7 +173,7 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   return baud;
 }
 
-void platform_uart_send( unsigned id, u8 data )
+void platform_s_uart_send( unsigned id, u8 data )
 {
   UART_TypeDef* pport = ( UART_TypeDef* )uart_periph[ id ];
   
@@ -193,6 +193,11 @@ int platform_s_uart_recv( unsigned id, s32 timeout )
       return -1;
   }
   return UART_ByteReceive( pport );
+}
+
+int platform_s_uart_set_flow_control( unsigned id, int type )
+{
+  return PLATFORM_ERR;
 }
 
 // ****************************************************************************
@@ -342,15 +347,3 @@ u32 platform_pwm_op( unsigned id, int op, u32 data )
   return res;
 }
 
-// ****************************************************************************
-// CPU functions
-
-void platform_cpu_enable_interrupts()
-{
-  EIC->ICR |= 0x03;
-}
-
-void platform_cpu_disable_interrupts()
-{
-  EIC->ICR &= ~0x03;
-}

@@ -31,7 +31,8 @@ $_C$. For example, to get the constants listed above declare your $PLATFORM_CPU_
   _C( INT_GPIOB ),\
   .................
   _C( INT_UDMA )~
-<p>It's worth to note that adding more constants does not increas RAM usage, only Flash usage, so you can expose as much constants as you need without worrying about RAM consumption.]]
+<p>It's worth to note that adding more constants does not increas RAM usage, only Flash usage, so you can expose as much constants as you need without worrying about RAM consumption.<br />
+This mechanism is also used to expose interrupt IDs to the CPU module, check @inthandlers.html@here@ for an overview of eLua interrupt support.]]
     },
   },
 
@@ -83,19 +84,58 @@ $_C$. For example, to get the constants listed above declare your $PLATFORM_CPU_
       ret = "$data$ - the byte read from memory."
     },
 
-    { sig = "#cpu.cli#()",
-      desc = "Disable CPU interrupts."
+    { sig = "#cpu.cli#( [id], [resnum1], [resnum2], ... [resnumn])",
+      desc = "Disables the global CPU interrupt flag if called without arguments, or a specific interrupt for a list of resource IDs if called with arguments.",
+      args =
+      {
+        "$id$ - the interrupt ID. If specified, at least one resource ID must also be specified.",
+        "$resnum1$ - the first resource ID, required if $id$ is specified.",
+        "$resnum2 (optional)$ - the second resource ID.",
+        "$resnumn (optional)$ - the #n#-th resource ID."
+      }
     },
 
-    { sig = "#cpu.sei#()",
-      desc = "Enable CPU interrupts."
+    { sig = "#cpu.sei#( [id], [resnum1], [resnum2], ... [resnumn])",
+      desc = "Enables the global CPU interrupt flag if called without arguments, or a specific interrupt for a list of resource IDs if called with arguments.",
+      args =
+      {
+        "$id$ - the interrupt ID. If specified, at least one resource ID must also be specified.",
+        "$resnum1$ - the first resource ID, required if $id$ is specified.",
+        "$resnum2 (optional)$ - the second resource ID.",
+        "$resnumn (optional)$ - the #n#-th resource ID."
+      }     
     },
-
+    
     { sig = "clock = #cpu.clock#()",
       desc = "Get the CPU core frequency.",
       ret = "$clock$ - the CPU clock (in Hertz)."
+    },
+
+    { sig = "prev_handler = #cpu.set_int_handler#( id, handler )",
+      desc = "Sets the Lua interrupt handler for interrupt *id* to function *handler*. *handler* can be #nil# to disable the interrupt handler. Only available if interrupt support is enabled, check @inthandlers.html@here@ for details.",
+      args = 
+      {
+        "$id$ - the interrup ID.",
+        "$handler$ - the Lua interrupt handler function, or *nil* to disable the Lua interrupt handler feature."
+      },
+      ret = "$prev_handler$ - the previous interrupt handler for interrupt *id*, or *nil* if an interrupt handler was not set for interrupt *id*."
+    },
+
+     { sig = "handler = #cpu.get_int_handler#( id )",
+      desc = "Returns the Lua interrupt handler for interrupt *id*",
+      args = "$id$ - the interrup ID.",
+      ret = "$handler$ - the interrupt handler for interrupt *id*, or *nil* if an interrupt handler is not set for interrupt *id*."
+    },
+
+   { sig = "#cpu.get_int_flag#( id, resnum, [clear] )",
+      desc = "Get the interrupt pending flag of an interrupt ID/resource ID combination, and optionally clear the pending flag. Only available if interrupt support is enabled, check @inthandlers.html@here@ for details.",
+      args = 
+      {
+        "$id$ - the interrupt ID.",
+        "$resnum$ - the resource ID.",
+        "$clear (optional)$ - $true$ to clear the interrupt pending flag or $false$ to leave the interrupt pending flag untouched. Defaults to $true$ if not specified."
+      }
     }
-  },
+  }
 }
 
-data_pt = data_en

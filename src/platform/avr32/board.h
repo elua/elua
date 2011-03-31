@@ -65,6 +65,7 @@
 #define NGW100            7   //!< AT32AP7000 NGW100 board.
 #define STK600_RCUC3L0    8   //!< STK600 RCUC3L0 board.
 #define UC3L_EK           9   //!< AT32UC3L-EK board.
+#define MIZAR32           98  //!< Simplemachines.it MIZAR32 board.
 #define USER_BOARD        99  //!< User-reserved board (if any).
 //! @}
 
@@ -94,6 +95,8 @@
   #include "STK600/RCUC3L0/stk600_rcuc3l0.h"
 #elif BOARD == UC3L_EK
   #include "UC3L_EK/uc3l_ek.h"
+#elif BOARD == MIZAR32
+  #include "MIZAR32/mizar32.h"
 #elif BOARD == USER_BOARD
   // User-reserved area: #include the header file of your board here (if any).
   #include "user_board.h"

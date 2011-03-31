@@ -5,6 +5,7 @@
 #include "platform.h"
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
 
 #include "platform_conf.h"
 #ifdef BUILD_TERM
@@ -31,7 +32,7 @@ static void term_ansi( const char* fmt, ... )
   va_start( ap, fmt );
   vsnprintf( seq + 2, TERM_MAX_ANSI_SIZE - 2, fmt, ap );
   va_end( ap );
-  term_putstr( seq );
+  term_putstr( seq, strlen( seq ) );
 }
 
 // Clear the screen
@@ -108,14 +109,16 @@ void term_putch( u8 ch )
 }
 
 // Write a string to the terminal
-void term_putstr( const char* str )
+void term_putstr( const char* str, unsigned size )
 {
-  while( *str )
+  while( size )
   {
-    term_out( *str );
-    str ++;
+    term_out( *str ++ );
+    size --;
   }
 }
+
+// Write a string of 
  
 // Return the cursor "x" position
 unsigned term_get_cx()

@@ -13,6 +13,7 @@
 #include <string.h>
 
 #define MAX_VTIMER_NAME_LEN     6
+#define MIN_VTIMER_NAME_LEN     5
 
 // Helper function for the read/start functions
 static int tmrh_timer_op( lua_State* L, int op )
@@ -120,6 +121,24 @@ static int tmr_getclock( lua_State* L )
   return 1;
 }
 
+#ifdef BUILD_LUA_INT_HANDLERS
+// Lua: set_match_int( id, timeout, type )
+static int tmr_set_match_int( lua_State *L )
+{
+  unsigned id;
+  u32 res;
+  
+  id = luaL_checkinteger( L, 1 );
+  MOD_CHECK_ID( timer, id );
+  res = platform_timer_set_match_int( id, ( u32 )luaL_checknumber( L, 2 ), ( int )luaL_checkinteger( L, 3 ) );
+  if( res == PLATFORM_TIMER_INT_TOO_SHORT )
+    return luaL_error( L, "timer interval too small" );
+  else if( res == PLATFORM_TIMER_INT_INVALID_ID )
+    return luaL_error( L, "mach interrupt cannot be set on this timer" );
+  return 0;
+}
+#endif // #ifdef BUILD_LUA_INT_HANDLERS
+
 #if VTMR_NUM_TIMERS > 0
 // __index metafunction for TMR
 // Look for all VIRTx timer identifiers
@@ -129,7 +148,7 @@ static int tmr_mt_index( lua_State* L )
   char* pend;
   long res;
   
-  if( strlen( key ) > MAX_VTIMER_NAME_LEN || strlen( key ) < 5 )
+  if( strlen( key ) > MAX_VTIMER_NAME_LEN || strlen( key ) < MIN_VTIMER_NAME_LEN )
     return 0;
   if( strncmp( key, "VIRT", 4 ) )
     return 0;  
@@ -146,8 +165,7 @@ static int tmr_mt_index( lua_State* L )
 // Module function map
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
-const LUA_REG_TYPE tmr_map[] = 
-{
+LHEADER( tmr_map )
   { LSTRKEY( "delay" ), LFUNCVAL( tmr_delay ) },
   { LSTRKEY( "read" ), LFUNCVAL( tmr_read ) },
   { LSTRKEY( "start" ), LFUNCVAL( tmr_start ) },
@@ -156,14 +174,21 @@ const LUA_REG_TYPE tmr_map[] =
   { LSTRKEY( "getmaxdelay" ), LFUNCVAL( tmr_getmaxdelay ) },
   { LSTRKEY( "setclock" ), LFUNCVAL( tmr_setclock ) },
   { LSTRKEY( "getclock" ), LFUNCVAL( tmr_getclock ) },
+#ifdef BUILD_LUA_INT_HANDLERS
+  { LSTRKEY( "set_match_int" ), LFUNCVAL( tmr_set_match_int ) },
+#endif  
 #if LUA_OPTIMIZE_MEMORY > 0 && VTMR_NUM_TIMERS > 0
   { LSTRKEY( "__metatable" ), LROVAL( tmr_map ) },
 #endif
 #if VTMR_NUM_TIMERS > 0  
   { LSTRKEY( "__index" ), LFUNCVAL( tmr_mt_index ) },
 #endif  
+#if LUA_OPTIMIZE_MEMORY > 0 && defined( BUILD_LUA_INT_HANDLERS )
+  { LSTRKEY( "INT_ONESHOT" ), LNUMVAL( PLATFORM_TIMER_INT_ONESHOT ) },
+  { LSTRKEY( "INT_CYCLIC" ), LNUMVAL( PLATFORM_TIMER_INT_CYCLIC ) },
+#endif
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
 LUALIB_API int luaopen_tmr( lua_State *L )
 {

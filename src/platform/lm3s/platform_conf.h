@@ -8,6 +8,7 @@
 #include "hw_types.h"
 #include "stacks.h"
 #include "sysctl.h"
+#include "elua_int.h"
 
 // *****************************************************************************
 // Define here what components you want for this platform
@@ -17,13 +18,16 @@
 #define BUILD_ROMFS
 #define BUILD_MMCFS
 #define BUILD_TERM
-#define BUILD_UIP
+#ifndef FORLM3S1968
+  #define BUILD_UIP
 //#define BUILD_DHCPC
-#define BUILD_DNS
+  #define BUILD_DNS
+#endif  
 #define BUILD_CON_GENERIC
 #define BUILD_ADC
 #define BUILD_RPC
 //#define BUILD_CON_TCP
+#define BUILD_C_INT_HANDLERS
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
@@ -41,6 +45,13 @@
 // FIXME: should handle partial or no inclusion of platform specific modules per conf.py
 #ifdef ENABLE_DISP
 #define PS_LIB_TABLE_NAME   "lm3s"
+#endif
+
+#if defined( FORLM3S8962 ) || defined( FORLM3S9B92 )
+#define CANLINE  _ROM( AUXLIB_CAN, luaopen_can, can_map )
+#define BUILD_CAN
+#else
+#define CANLINE
 #endif
 
 #ifdef FORLM3S6918
@@ -61,13 +72,14 @@
 #define ADCLINE
 #endif
 
-#if defined( BUILD_RPC ) || defined( ELUA_BOOT_RPC )
+#if defined( ELUA_BOOT_RPC ) && !defined( BUILD_RPC )
+#define BUILD_RPC
+#endif
+
+#if defined( BUILD_RPC ) 
 #define RPCLINE _ROM( AUXLIB_RPC, luaopen_rpc, rpc_map )
 #else
 #define RPCLINE
-#if !defined( BUILD_RPC )
-#define BUILD_RPC
-#endif
 #endif
 
 #ifdef PS_LIB_TABLE_NAME
@@ -75,6 +87,8 @@
 #else
 #define PLATLINE
 #endif
+
+
 
 #define LUA_PLATFORM_LIBS_ROM\
   _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
@@ -91,6 +105,7 @@
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
   _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )\
   ADCLINE\
+  CANLINE\
   RPCLINE\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
   PLATLINE
@@ -127,7 +142,9 @@
 #define VTMR_FREQ_HZ          4
 
 // Number of resources (0 if not available/not implemented)
-#ifdef FORLM3S9B92
+#if defined(FORLM3S1968)
+  #define NUM_PIO             8
+#elif defined(FORLM3S9B92)
   #define NUM_PIO             7
 #else
   #define NUM_PIO             7
@@ -147,11 +164,11 @@
   #define NUM_PWM             0
 #endif  
 #define NUM_ADC               4
-#define NUM_CAN               0
+#define NUM_CAN               1
 
 // Enable RX buffering on UART
-//#define BUF_ENABLE_UART
-//#define CON_BUF_SIZE          BUF_SIZE_128
+#define BUF_ENABLE_UART
+#define CON_BUF_SIZE          BUF_SIZE_128
 
 // ADC Configuration Params
 #define ADC_BIT_RESOLUTION    10
@@ -201,7 +218,9 @@
 // #define PIO_PINS_PER_PORT (n) if each port has the same number of pins, or
 // #define PIO_PIN_ARRAY { n1, n2, ... } to define pins per port in an array
 // Use #define PIO_PINS_PER_PORT 0 if this isn't needed
-#ifdef FORLM3S9B92
+#if defined(FORLM3S1968)
+  #define PIO_PIN_ARRAY         { 8, 8, 8, 4, 4, 8, 8, 4}
+#elif defined(FORLM3S9B92)
   #define PIO_PIN_ARRAY         { 8, 8, 8, 8, 8, 6, 8, 8, 8 }
 #else
   #define PIO_PIN_ARRAY         { 8, 8, 8, 8, 4, 4, 2 }
@@ -218,6 +237,10 @@
 // (start address and end address)
 #define MEM_START_ADDRESS     { ( void* )end }
 #define MEM_END_ADDRESS       { ( void* )( SRAM_BASE + SRAM_SIZE - STACK_SIZE_TOTAL - 1 ) }
+
+// Interrupt list
+#define INT_UART_RX           ELUA_INT_FIRST_ID
+#define INT_ELUA_LAST         INT_UART_RX
 
 // *****************************************************************************
 // CPU constants that should be exposed to the eLua "cpu" module
@@ -272,6 +295,7 @@
   _C( INT_USB0 ),\
   _C( INT_PWM3 ),\
   _C( INT_UDMA ),\
-  _C( INT_UDMAERR )
+  _C( INT_UDMAERR ),\
+  _C( INT_UART_RX )
 
 #endif // #ifndef __PLATFORM_CONF_H__

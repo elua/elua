@@ -93,9 +93,9 @@ void ConfigurePLL ( void )
 
   if ( PLLSTAT & (1 << 25) )
   {
-	PLLCON = 1;			/* Enable PLL, disconnected */
-	PLLFEED = 0xaa;
-	PLLFEED = 0x55;
+    PLLCON = 1;			/* Enable PLL, disconnected */
+    PLLFEED = 0xaa;
+    PLLFEED = 0x55;
   }
 
   PLLCON = 0;				/* Disable PLL, disconnected */
@@ -175,6 +175,7 @@ void TargetResetInit(void)
 
   /* Set memory accelerater module*/
   MAMCR = 0;
+
 #if Fcclk < 20000000
   MAMTIM = 1;
 #else

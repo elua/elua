@@ -61,9 +61,6 @@ int platform_init()
   platform_setup_timers();
   //platform_setup_pwm();
 
-  // Initialize console UART
-  platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
-
 #ifdef BUILD_ADC
   // Setup ADCs
   platform_setup_adcs();
@@ -212,7 +209,7 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   return baud; // FIXME: find a way to actually get baud
 }
 
-void platform_uart_send( unsigned id, u8 data )
+void platform_s_uart_send( unsigned id, u8 data )
 {
   UART_Send(uart[ id ], &data, 1, BLOCKING);
 }
@@ -231,6 +228,11 @@ int platform_s_uart_recv( unsigned id, s32 timeout )
   
   UART_Receive(uart[ id ], &buffer, 1, BLOCKING);
   return ( int )buffer;
+}
+
+int platform_s_uart_set_flow_control( unsigned id, int type )
+{
+  return PLATFORM_ERR;
 }
 
 // ****************************************************************************
@@ -320,20 +322,6 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
   }
   return res;
 }
-
-// ****************************************************************************
-// CPU functions
-
-void platform_cpu_enable_interrupts()
-{
-  __enable_irq();  
-}
-
-void platform_cpu_disable_interrupts()
-{
-  __disable_irq();
-}
-
 
 // *****************************************************************************
 // ADC specific functions and variables
@@ -561,8 +549,8 @@ static u32 platform_pwm_set_clock( unsigned id, u32 clock )
   PWM_TIMERCFG_Type PWMCfgDat;
   
   PWMCfgDat.PrescaleOption = PWM_TIMER_PRESCALE_USVAL;
-	PWMCfgDat.PrescaleValue = 1000000ULL / clock;
-	PWM_Init(LPC_PWM1, PWM_MODE_TIMER, &PWMCfgDat);
+  PWMCfgDat.PrescaleValue = 1000000ULL / clock;
+  PWM_Init( LPC_PWM1, PWM_MODE_TIMER, &PWMCfgDat );
 	
   return clock;
 }
@@ -573,14 +561,14 @@ static void platform_setup_pwm()
   PWM_MATCHCFG_Type PWMMatchCfgDat;
   
   // Keep clock in reset, set PWM code
-  PWM_ResetCounter(LPC_PWM1);
+  PWM_ResetCounter( LPC_PWM1 );
   
   // Set match mode (reset on MR0 match)
   PWMMatchCfgDat.IntOnMatch = DISABLE;
-	PWMMatchCfgDat.MatchChannel = 0;
-	PWMMatchCfgDat.ResetOnMatch = ENABLE;
-	PWMMatchCfgDat.StopOnMatch = DISABLE;
-	PWM_ConfigMatch(LPC_PWM1, &PWMMatchCfgDat);
+  PWMMatchCfgDat.MatchChannel = 0;
+  PWMMatchCfgDat.ResetOnMatch = ENABLE;
+  PWMMatchCfgDat.StopOnMatch = DISABLE;
+  PWM_ConfigMatch( LPC_PWM1, &PWMMatchCfgDat );
 
   // Set base frequency to 1MHz
   platform_pwm_set_clock( 0, 1000000 );
@@ -591,22 +579,22 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
   PWM_MATCHCFG_Type PWMMatchCfgDat;
   u32 divisor = platform_pwm_get_clock( id ) / frequency - 1;
     
-  PWM_MatchUpdate(LPC_PWM1, 0, divisor, PWM_MATCH_UPDATE_NOW); // PWM1 cycle rate
-  PWM_MatchUpdate(LPC_PWM1, id, ( divisor * duty ) / 100, PWM_MATCH_UPDATE_NOW); // PWM1 channel edge position
+  PWM_MatchUpdate( LPC_PWM1, 0, divisor, PWM_MATCH_UPDATE_NOW ); // PWM1 cycle rate
+  PWM_MatchUpdate( LPC_PWM1, id, ( divisor * duty ) / 100, PWM_MATCH_UPDATE_NOW ); // PWM1 channel edge position
   
   if ( id > 1 ) // Channel one is permanently single-edge
     PWM_ChannelConfig( LPC_PWM1, id, PWM_CHANNEL_SINGLE_EDGE );
   
   PWMMatchCfgDat.IntOnMatch = DISABLE;
-	PWMMatchCfgDat.MatchChannel = id;
-	PWMMatchCfgDat.ResetOnMatch = DISABLE;
-	PWMMatchCfgDat.StopOnMatch = DISABLE;
-	PWM_ConfigMatch(LPC_PWM1, &PWMMatchCfgDat);
-	
-	PWM_ResetCounter(LPC_PWM1);
-	PWM_CounterCmd(LPC_PWM1, ENABLE);
-	
-	PWM_ChannelCmd(LPC_PWM1, id, ENABLE);
+  PWMMatchCfgDat.MatchChannel = id;
+  PWMMatchCfgDat.ResetOnMatch = DISABLE;
+  PWMMatchCfgDat.StopOnMatch = DISABLE;
+  PWM_ConfigMatch(LPC_PWM1, &PWMMatchCfgDat);
+
+  PWM_ResetCounter(LPC_PWM1);
+  PWM_CounterCmd(LPC_PWM1, ENABLE);
+
+  PWM_ChannelCmd(LPC_PWM1, id, ENABLE);
 
   return platform_pwm_get_clock( id ) / divisor;
 }
@@ -642,15 +630,14 @@ u32 platform_pwm_op( unsigned id, int op, u32 data )
 
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
-extern const LUA_REG_TYPE mbed_pio_map[];
+LEXTERN( mbed_pio_map );
 
-const LUA_REG_TYPE platform_map[] =
-{
+LHEADER( platform_map )
 #if LUA_OPTIMIZE_MEMORY > 0
   { LSTRKEY( "pio" ), LROVAL( mbed_pio_map ) },
 #endif
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
 LUALIB_API int luaopen_platform( lua_State *L )
 {

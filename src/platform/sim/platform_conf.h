@@ -15,7 +15,7 @@
 #define BUILD_ROMFS
 #define BUILD_CON_GENERIC
 #define BUILD_TERM
-#define BUILD_RFS
+//#define BUILD_RFS
 
 #define TERM_LINES    25
 #define TERM_COLS     80
@@ -27,10 +27,11 @@
   _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
   _ROM( AUXLIB_TERM, luaopen_term, term_map )\
-  _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )
+  _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )\
 
 // Bogus defines for common.c
 #define CON_UART_ID           0
+#define CON_UART_SPEED        0
 #define CON_TIMER_ID          0
 
 // *****************************************************************************

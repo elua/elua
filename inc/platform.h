@@ -5,6 +5,7 @@
 
 #include "devman.h"
 #include "type.h"
+#include "elua_int.h"
 
 // Error / status codes
 enum
@@ -16,6 +17,7 @@ enum
 
 // Platform initialization
 int platform_init();
+void platform_int_init();
 
 // *****************************************************************************
 // PIO subsection
@@ -82,7 +84,7 @@ enum
 int platform_can_exists( unsigned id );
 u32 platform_can_setup( unsigned id, u32 clock );
 void platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *data );
-void platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data );
+int platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data );
 
 // *****************************************************************************
 // SPI subsection
@@ -134,12 +136,21 @@ enum
 // "Infinite timeout" constant for recv
 #define PLATFORM_UART_INFINITE_TIMEOUT        (-1)
 
+// Flow control types (this is a bit mask, one can specify PLATFORM_UART_FLOW_RTS | PLATFORM_UART_FLOW_CTS )
+#define PLATFORM_UART_FLOW_NONE               0
+#define PLATFORM_UART_FLOW_RTS                1
+#define PLATFORM_UART_FLOW_CTS                2
+
 // The platform UART functions
 int platform_uart_exists( unsigned id );
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits );
+int platform_uart_set_buffer( unsigned id, unsigned size );
 void platform_uart_send( unsigned id, u8 data );
+void platform_s_uart_send( unsigned id, u8 data );
 int platform_uart_recv( unsigned id, unsigned timer_id, s32 timeout );
 int platform_s_uart_recv( unsigned id, s32 timeout );
+int platform_uart_set_flow_control( unsigned id, int type );
+int platform_s_uart_set_flow_control( unsigned id, int type );
 
 // *****************************************************************************
 // Timer subsection
@@ -149,6 +160,16 @@ int platform_s_uart_recv( unsigned id, s32 timeout );
 
 // Data types
 typedef u32 timer_data_type;
+
+// Interrupt types
+#define PLATFORM_TIMER_INT_ONESHOT            1
+#define PLATFORM_TIMER_INT_CYCLIC             2
+
+// Match interrupt error codes
+#define PLATFORM_TIMER_INT_OK                 0
+#define PLATFORM_TIMER_INT_TOO_SHORT          1
+#define PLATFORM_TIMER_INT_TOO_LONG           2
+#define PLATFORM_TIMER_INT_INVALID_ID         3  
 
 // Timer operations
 enum
@@ -167,6 +188,8 @@ void platform_timer_delay( unsigned id, u32 delay_us );
 void platform_s_timer_delay( unsigned id, u32 delay_us );
 u32 platform_timer_op( unsigned id, int op, u32 data );
 u32 platform_s_timer_op( unsigned id, int op, u32 data );
+int platform_timer_set_match_int( unsigned id, u32 period_us, int type );
+int platform_s_timer_set_match_int( unsigned id, u32 period_us, int type );
 u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_type start );
 
 // *****************************************************************************
@@ -192,8 +215,21 @@ u32 platform_pwm_op( unsigned id, int op, u32 data );
 // *****************************************************************************
 // CPU specific functions
 
-void platform_cpu_enable_interrupts();
-void platform_cpu_disable_interrupts();
+#define PLATFORM_CPU_DISABLE            0
+#define PLATFORM_CPU_ENABLE             1
+
+// Interrupt functions return status
+#define PLATFORM_INT_OK                 0
+#define PLATFORM_INT_GENERIC_ERROR      ( -1 )
+#define PLATFORM_INT_INVALID            ( -2 )
+#define PLATFORM_INT_NOT_HANDLED        ( -3 )
+#define PLATFORM_INT_BAD_RESNUM         ( -4 )
+
+int platform_cpu_set_global_interrupts( int status );
+int platform_cpu_get_global_interrupts();
+int platform_cpu_set_interrupt( elua_int_id id, elua_int_resnum resnum, int status );
+int platform_cpu_get_interrupt( elua_int_id id, elua_int_resnum resnum );
+int platform_cpu_get_interrupt_flag( elua_int_id id, elua_int_resnum resnum, int clear );
 u32 platform_cpu_get_frequency();
 
 // *****************************************************************************
@@ -211,8 +247,8 @@ enum
 };
 
 // Functions requiring platform-specific implementation
-int platform_adc_update_sequence(  );
-int platform_adc_start_sequence(  );
+int platform_adc_update_sequence();
+int platform_adc_start_sequence();
 void platform_adc_stop( unsigned id );
 u32 platform_adc_setclock( unsigned id, u32 frequency);
 
@@ -220,6 +256,31 @@ u32 platform_adc_setclock( unsigned id, u32 frequency);
 int platform_adc_exists( unsigned id );
 int platform_adc_check_timer_id( unsigned id, unsigned timer_id );
 u32 platform_adc_op( unsigned id, int op, u32 data );
+
+// *****************************************************************************
+// I2C platform interface
+
+// I2C speed
+enum
+{
+  PLATFORM_I2C_SPEED_SLOW = 100000,
+  PLATFORM_I2C_SPEED_FAST = 400000
+};
+
+// I2C direction
+enum
+{
+  PLATFORM_I2C_DIRECTION_TRANSMITTER,
+  PLATFORM_I2C_DIRECTION_RECEIVER
+};
+
+int platform_i2c_exists( unsigned id );
+u32 platform_i2c_setup( unsigned id, u32 speed );
+void platform_i2c_send_start( unsigned id );
+void platform_i2c_send_stop( unsigned id );
+int platform_i2c_send_address( unsigned id, u16 address, int direction );
+int platform_i2c_send_byte( unsigned id, u8 data );
+int platform_i2c_recv_byte( unsigned id, int ack );
 
 // *****************************************************************************
 // Ethernet specific functions

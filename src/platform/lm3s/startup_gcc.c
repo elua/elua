@@ -41,9 +41,15 @@ extern void EthernetIntHandler();
 extern void SysTickIntHandler();
 extern void ADCIntHandler();
 extern void UARTIntHandler();
+extern void CANIntHandler();
 
 #include "hw_memmap.h"
 #include "platform_conf.h"
+
+extern void uart0_handler();
+extern void uart1_handler();
+extern void uart2_handler();
+
 
 //*****************************************************************************
 //
@@ -83,12 +89,16 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // GPIO Port C
     IntDefaultHandler,                      // GPIO Port D
     IntDefaultHandler,                      // GPIO Port E
-#ifdef BUF_ENABLE_UART
-    UARTIntHandler,                         // UART0 Rx and Tx
+#if defined( BUILD_C_INT_HANDLERS ) || defined( BUILD_LUA_INT_HANDLERS )
+    uart0_handler,                          // UART0 Rx and Tx
 #else
     IntDefaultHandler,
 #endif
+#if defined( BUILD_C_INT_HANDLERS ) || defined( BUILD_LUA_INT_HANDLERS )
+    uart1_handler,                          // UART1 Rx and Tx
+#else
     IntDefaultHandler,                      // UART1 Rx and Tx
+#endif    
     IntDefaultHandler,                      // SSI0 Rx and Tx
     IntDefaultHandler,                      // I2C0 Master and Slave
     IntDefaultHandler,                      // PWM Fault
@@ -122,13 +132,17 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // GPIO Port F
     IntDefaultHandler,                      // GPIO Port G
     IntDefaultHandler,                      // GPIO Port H
+#if defined( BUILD_C_INT_HANDLERS ) || defined( BUILD_LUA_INT_HANDLERS )
+    uart2_handler,                          // UART2 Rx and Tx
+#else    
     IntDefaultHandler,                      // UART2 Rx and Tx
+#endif    
     IntDefaultHandler,                      // SSI1 Rx and Tx
     IntDefaultHandler,                      // Timer 3 subtimer A
     IntDefaultHandler,                      // Timer 3 subtimer B
     IntDefaultHandler,                      // I2C1 Master and Slave
     IntDefaultHandler,                      // Quadrature Encoder 1
-    IntDefaultHandler,                      // CAN0
+    CANIntHandler,                          // CAN0
     IntDefaultHandler,                      // CAN1
     IntDefaultHandler,                      // CAN2
     EthernetIntHandler,                     // Ethernet

@@ -221,7 +221,7 @@ static int os_exit (lua_State *L) {
 
 #define MIN_OPT_LEVEL 1
 #include "lrodefs.h"
-const LUA_REG_TYPE syslib[] = {
+LHEADER(syslib)
   {LSTRKEY("clock"),     LFUNCVAL(os_clock)},
   {LSTRKEY("date"),      LFUNCVAL(os_date)},
 #if !defined LUA_NUMBER_INTEGRAL
@@ -236,7 +236,7 @@ const LUA_REG_TYPE syslib[] = {
   {LSTRKEY("time"),      LFUNCVAL(os_time)},
   {LSTRKEY("tmpname"),   LFUNCVAL(os_tmpname)},
   {LNILKEY, LNILVAL}
-};
+LFOOTER
 
 /* }====================================================== */
 

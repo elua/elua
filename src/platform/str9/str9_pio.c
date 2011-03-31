@@ -56,8 +56,7 @@ static int setpin( lua_State *L )
 // Module function map
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h" 
-const LUA_REG_TYPE str9_pio_map[] =
-{
+LHEADER( str9_pio_map )
 #if LUA_OPTIMIZE_MEMORY > 0
   { LSTRKEY( "INPUT" ), LNUMVAL( GPIO_DIR_INPUT ) },
   { LSTRKEY( "OUTPUT" ), LNUMVAL( GPIO_DIR_OUTPUT ) },
@@ -70,7 +69,7 @@ const LUA_REG_TYPE str9_pio_map[] =
 #endif
   { LSTRKEY( "setpin" ),  LFUNCVAL( setpin) },
   { LNILKEY, LNILVAL }
-};
+LFOOTER
 
 LUALIB_API int luaopen_disp( lua_State *L )
 {
