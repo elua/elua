@@ -14,6 +14,7 @@ cgen.new = function( ctable )
   setmetatable( self, { __index = cgen } )
   base.init_instance( self, 'pio', ctable )
   self:init( ctable )
+  self:set_friendly_name( 'GPIO' )
   return self
 end
 

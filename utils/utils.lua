@@ -118,6 +118,14 @@ table_values = function( t )
   return values
 end
 
+-- Return all the values of a table in a string format
+table_values_string = function( t, sep )
+  sep = sep or ' '
+  local s = ''
+  table.foreach( t, function( k, v ) s = s .. v .. ( k < #t and sep or "" ) end )
+  return s
+end
+
 -- Returns true if 'path' is a regular file, false otherwise
 is_file = function( path )
   return lfs.attributes( path, "mode" ) == "file"
@@ -169,6 +177,37 @@ end
 strpad = function( s, len )
   if #s >= len then return s end
   return s .. string.rep( ' ', len - #s )
+end
+
+-- Report a function as "abstract" (no implementation)
+abstract = function()
+  error( sf( "Function '%s' does not have an implementation", debug.getinfo( 2, "n" ).name ) )
+end
+
+-- Check if a table is an array
+is_array = function( t )
+  if type( t ) ~= "table" then return false end
+  local total, numkeys = 0
+  for k, _ in pairs( t ) do
+    if type( k ) ~= "number" then return false end
+    if k ~= math.floor( k ) then return false end
+    if k <= 0 or k > #t then return false end
+    total = total + k
+    numkeys = numkeys + 1
+  end
+  return numkeys == #t and total == ( #t * ( #t + 1 ) ) / 2
+end
+
+-- Get the 'extended type' of an element
+exttype = function( t )
+  if type( t ) ~= "table" then return type( t ) end
+  if t.__type then
+    if type( t.__type ) == "string" then 
+      return t.__type
+    else
+      return t.__type()
+    end
+  end
 end
 
 ---------------------------------------

@@ -1,5 +1,9 @@
 -- Configuration file for eLua platform 'lm3s'
 
+module( ..., package.seeall )
+
+family = 'cortex-m3'
+
 -- List of associated CPUs
 cpu_list = { lm3s1968 = {}, lm3s8962 = {}, lm3s6965 = {}, lm3s6918 = {}, lm3s9b92 = {} }
 

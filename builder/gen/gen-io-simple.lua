@@ -15,6 +15,7 @@ cgen.new = function( ctable, peripheral )
   self.peripheral = peripheral
   base.init_instance( self, peripheral, ctable )
   base.init( self )
+  self:set_friendly_name( peripheral:upper() )
   return self
 end
 

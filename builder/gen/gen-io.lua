@@ -51,7 +51,25 @@ iogen.can_enable = function( self )
   return false
 end
 
+iogen.can_disable = function( self )
+  return false
+end
+
+-- Get number of resources
+iogen.get_num = function( self )
+  return self.num
+end
+
 iogen.__type = function()
   return "gen-io"
+end
+
+-- IO subsystems don't need configuration
+iogen.is_configured = function( self )
+  return true
+end
+
+iogen.set_configured = function( self, flag )
+  error( sf( "Attempt to call 'set_configured' on IO component '%s'", self.component ) )
 end
 
