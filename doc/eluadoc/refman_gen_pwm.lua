@@ -24,7 +24,7 @@ data_en =
         [[$duty$ - the duty cycle of the PWM module given in percents. This must be an integer between 0 and 100. $NOTE$: depending on the hardware, some
 duty cycles (particulary 0 and 100) might not be achievable.]]
       },
-      ret = "The actual frequenct set on the PWM module. Depending on the hardware, this might have a different value than the $frequency$ argument."
+      ret = "The actual frequency set on the PWM module. Depending on the hardware, this might have a different value than the $frequency$ argument."
     },
 
     { sig = "#pwm.start#( id )",
