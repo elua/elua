@@ -9,7 +9,7 @@ local cgen = {}
 local base = iogen.iogen
 setmetatable( cgen, { __index = base } )
 
-cgen.new = function( ctable )
+new = function( ctable )
   local self = {}
   setmetatable( self, { __index = cgen } )
   base.init_instance( self, 'pio', ctable )
@@ -54,21 +54,23 @@ cgen.generate = function( self, dest )
       self.strout( dest, "#define PIO_PINS_PER_PORT", sf( "%d\n", self.pins_per_port ) )
     else
       self.strout( dest, "#define PIO_PIN_ARRAY", "{ " )
-      utils.foreach( self.pin_array, function( k, v ) dest:write( sf( "%d%s ", v, k == #self.pin.array and "" or "," ) ) end )
+      utils.foreach( self.pin_array, function( k, v ) dest:write( sf( "%d%s ", v, k == #self.pin_array and "" or "," ) ) end )
       dest:write( "}\n" )
     end
   end
   dest:write( "\n" )
 end
 
-cgen.__type = function()
-  return "gen-io-pio"
+-- Get the number of pins in one port
+cgen.get_pins_in_port = function( self, port )
+  if self.pins_per_port then
+    return self.pins_per_port
+  else
+    return self.pin_array[ port + 1 ]
+  end
 end
 
--------------------------------------------------------------------------------
--- Public interface
-
-function new( ctable )
-  return cgen.new( ctable )
+cgen.__type = function()
+  return "gen-io-pio"
 end
 

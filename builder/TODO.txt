@@ -8,3 +8,7 @@ Maybe define a "bitmask" if individual pins instead of whole ports are missing.
 Add explicit pin mapping for ALL peripherals in the configuration files. And
 add runtime pin mapping support in eLua based on this.
 
+Use the new XMODEM_ constants in the code
+
+gen-comp-xmodem and gen-comp-console should probably derive from the same
+base class along with other components that share the same functionality

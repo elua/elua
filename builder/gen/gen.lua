@@ -8,6 +8,35 @@ gentable = {}
 gentable.MACROLEN = 42
 gentable.genarray = {}
 gentable.abstract = utils.abstract
+gentable.notification_actions = {}
+
+-------------------------------------------------------------------------------
+-- Public list of all their generators and their names
+
+-- First I/O subsysetms
+gentable.IO_TIMER = 'gen-io-timer'
+gentable.IO_UART = 'gen-io-uart'
+gentable.IO_PIO = 'gen-io-pio'
+gentable.IO_PWM = 'gen-io-pwm'
+gentable.IO_ETH = 'gen-io-eth'
+gentable.IO_SPI = 'gen-io-spi'
+
+-- Then components
+gentable.COMP_VTMR = 'gen-comp-vtmr'
+gentable.COMP_CONSOLE = 'gen-comp-console'
+gentable.COMP_XMODEM = 'gen-comp-xmodem'
+gentable.COMP_TERM = 'gen-comp-term'
+gentable.COMP_LINENOISE = 'gen-comp-linenoise'
+gentable.COMP_ROMFS = 'gen-comp-romfs'
+gentable.COMP_TCPIP = 'gen-comp-tcpip'
+gentable.COMP_TELNET = 'gen-comp-telnet'
+gentable.COMP_DHCPC = 'gen-comp-dhcpc'
+gentable.COMP_DNSC = 'gen-comp-dnsc'
+gentable.COMP_MMCFS = 'gen-comp-mmcfs'
+gentable.COMP_SHELL = 'gen-comp-shell'
+
+-------------------------------------------------------------------------------
+-- Generator interface implementation
 
 gentable.new = function( name )
   local self = {}
@@ -27,6 +56,11 @@ gentable.init_instance = function( self, name )
   self.disable_requesters = {}
   self.friendly_name = name
   self.last_notification_res = nil
+  self.optlist = {}
+  self.enabler_macro = nil
+  self.last_notification_res = ""
+  self.notification_actions = {}
+  self.is_io = false
   table.insert( gentable.genarray, { name = name, gen = self } )
 end
 
@@ -43,8 +77,7 @@ gentable.can_disable = function( self, mode )
 end
 
 gentable.enable = function( self, mode )
-  self.enabled = mode
-  return true
+  self:abstract()
 end
 
 gentable.is_enabled = function( self )
@@ -52,14 +85,6 @@ gentable.is_enabled = function( self )
 end
 
 gentable.generate = function( self, dest )
-  self:abstract()
-end
-
-gentable.is_configured = function( self )
-  self:abstract()
-end
-
-gentable.set_configured = function( self, flag )
   self:abstract()
 end
 
@@ -79,8 +104,25 @@ gentable.get_deps = function( self )
   return self.deps
 end
 
-gentable.add_option = function( self, options )
-  table.insert( self.options, options )
+gentable.add_option = function( self, option )
+  local pos = #self.options + 1
+  -- Is the option already added? If so, replace it
+  for k, v in pairs( self.optlist ) do
+    if option:get_name() == v.object:get_name() then
+      pos = v.position
+      break
+    end
+  end
+  self.options[ pos ] = option
+  self.optlist[ option:get_name() ] = { object = option, position = pos }
+end
+
+gentable.get_option_object = function( self, optname )
+  return utils.tget( self.optlist[ optname ], "object", "table" )
+end
+
+gentable.get_option_position = function( self, optname )
+  return utils.tget( self.optlist[ optname ], "position", 'number' )
 end
 
 gentable.get_options = function( self )
@@ -109,15 +151,22 @@ gentable.find_generator = function( name )
   return g
 end
 
+-- Extra dependency checking
+gentable.check_explicit_deps = function( self )
+  return true
+end
+
+gentable.get_explicit_deps_string = function( self )
+  return self.explicit_deps_string
+end
+
+gentable.set_explicit_deps_string = function( self, s )
+  self.explicit_deps_string = s
+end
+
 -- Get the state of the component
 gentable.get_state = function( self )
-  if self:is_configured() then
-    return 'configured'
-  elseif self:is_enabled() then
-    return 'enabled'
-  else
-    return 'disabled'
-  end
+  return self.enabled and "enabled" or "disabled"
 end    
 
 gentable.set_friendly_name = function( self, s )
@@ -132,25 +181,49 @@ gentable.__type = function()
   return "gen"
 end
 
-gentable.notification = function( self, component, enabled )
+-- Enabler macro accesors
+gentable.set_enable_macro = function( self, m )
+  self.enabler_macro = m
 end
 
-gentable.get_notification_res = function( self )
+gentable.get_enable_macro = function( self )
+  return self.enabler_macro
+end
+
+gentable.is_io_generator = function( self )
+  return self.is_io
+end
+
+-- Notifications on component state changes
+gentable.notification = function( self, component, state )
+end
+
+gentable.get_last_notification = function( self )
   local t = self.last_notification_res
-  self.last_notification_res = nil
+  self.last_notification_res = ""
   return t
 end
 
-gentable.set_notification_res = function( self, res )
-  self.last_notification_res = res
+gentable.execute_notification_actions = function( simulate )
+  utils.foreach( gentable.notification_actions, function( k, v ) if not simulate then v() end end )
+  gentable.notification_actions = {}
+end
+
+gentable.set_notification = function( self, res, action )
+  if res then
+    local c = "\n"
+    if #self.last_notification_res == 0 or self.last_notification_res:sub( -1, -1 ) == "\n" then c = "" end
+    self.last_notification_res = self.last_notification_res .. c .. res
+  end
+  if action then table.insert( gentable.notification_actions, action ) end
 end
 
 -- Notify all component that a component was changed
 -- (except for the changed component)
-gentable.notify_all = function( name, enabled )
+gentable.notify_all = function( name, state )
   utils.foreach( gentable.genarray, function( k, c )
     if c.name ~= name then
-      c.gen:notification( name, enabled )
+      c.gen:notification( name, state )
     end
   end )
 end

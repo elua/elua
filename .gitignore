@@ -11,4 +11,6 @@ inc/romfiles.h
 .sconf_temp/
 .sconsign.dblite
 config.log
+tempconf.h
+tempconf.lua
 

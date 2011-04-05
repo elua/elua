@@ -40,13 +40,15 @@ cmdui.choice = function( self, choices, default, title, body )
   end
 end
 
+-- The menu is the same as the choice in cmdline
+cmdui.menu = cmdui.choice
+
 -- Display an information 
 cmdui.info = function( self, text, title )
   print ""
-  if title then print( utils.col_red( title ) ) end
-  print( text )
+  if title then print( utils.col_white( title ) ) end
+  print( utils.col_white( text ) )
 end
-
 
 -- Show an "yes/no" prompt until a valid response is received
 cmdui.ask_yesno = function( self, text, title )
@@ -56,9 +58,9 @@ cmdui.ask_yesno = function( self, text, title )
     io.write( "Are you sure you want to continue? (y/n) [y]: " )
     resp = io.stdin:read( "*l" )
     if resp:lower() == 'y' then 
-      return true
+      return "y"
     elseif resp:lower() == 'n' then
-      return false
+      return "n"
     end
     print( utils.col_red( "Please enter 'y' or 'n'" ) )
   end
@@ -68,16 +70,17 @@ end
 cmdui.get_option = function( self, o )
   local resp, v, valid
   print( utils.col_yellow( o:get_name() ) )
-  if o:get_type() == "fixed" then
+  if o:get_type() == "fixedoption" then
     io.write( utils.col_blue( sf( "  %s: %s (fixed value)\n", o:get_help(), tostring( o:get_value() ) ) ) )
     return o:get_value()
   end
   while true do
-    io.write( sf( "  %s (%s) [%s]: ", o:get_help(), o:get_range_string(), tostring( o:get_value() ) ) )
+    io.write( sf( "  %s (%s) [%s]: ", o:get_help(), o:get_range_string(), tostring( o:get_value() or o:get_default() ) ) )
     resp = io.stdin:read( "*l" )
+    if #resp == 0 then return o:get_value() or o:get_default() end
     valid, v = o:validate( resp )
     if valid then break end
-    print( utils.col_red( "  Invalid value entered" ) )
+    print( utils.col_red( "Invalid value entered" .. ( type( v ) == "string" and ": " .. v or "" ) ) )
   end
   return v
 end
@@ -86,16 +89,6 @@ cmdui.configure = function( self, c )
   -- Print generic information (component name and help)
   print( sf( "%s: %s", utils.col_green( "COMPONENT" ), utils.col_red( c:get_component() ) ) )
   print( sf( "%s: %s", utils.col_green( "INFO     " ), utils.col_blue( c:get_help() ) ) )
-
-  -- If the component is already enabled, show a help message
-  -- Otherwise ask the user if the component should be enabled or not
-  if c:is_enabled() then
-    io.write( "Component is already enabled because it is needed by " .. utils.table_values_string( self:get_enable_requesters(), "," ) )
-  else
-    local resp = self:get_yesno( "Enable this component?" )
-    if resp == 'n' then return false end
-  end
-  c:enable( true )
 
   -- Enter a loop to get all the configuration values
   local opts = c:get_options()

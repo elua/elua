@@ -9,12 +9,12 @@ local cgen = {}
 local base = iogen.iogen
 setmetatable( cgen, { __index = base } )
 
-cgen.new = function( ctable )
+new = function( ctable )
   local self = {}
   setmetatable( self, { __index = cgen } )
   base.init_instance( self, 'timer', ctable )
   self:init( ctable )
-  self:set_friendly_name( "timers" )
+  self:set_friendly_name( "Timers" )
   return self
 end
 
@@ -30,12 +30,5 @@ end
 
 cgen.__type = function()
   return "gen-io-timer"
-end
-
--------------------------------------------------------------------------------
--- Public interface
-
-function new( ctable )
-  return cgen.new( ctable )
 end
 

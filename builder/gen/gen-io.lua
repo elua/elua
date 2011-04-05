@@ -20,6 +20,7 @@ iogen.init_instance = function( self, component, ctable )
   base.init_instance( self, 'gen-io-' .. component )
   self.component = component
   self.ctable = ctable
+  self.is_io = true
 end
 
 -- Generic IO subsystem initialization: check if the component is available
@@ -62,14 +63,5 @@ end
 
 iogen.__type = function()
   return "gen-io"
-end
-
--- IO subsystems don't need configuration
-iogen.is_configured = function( self )
-  return true
-end
-
-iogen.set_configured = function( self, flag )
-  error( sf( "Attempt to call 'set_configured' on IO component '%s'", self.component ) )
 end
 

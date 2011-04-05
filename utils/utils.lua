@@ -79,6 +79,7 @@ end
 
 -- Return true if the given array contains the given element, false otherwise
 array_element_index = function( arr, element )
+  if not arr then return false end
   for i = 1, #arr do
     if arr[ i ] == element then return i end
   end
@@ -122,8 +123,16 @@ end
 table_values_string = function( t, sep )
   sep = sep or ' '
   local s = ''
-  table.foreach( t, function( k, v ) s = s .. v .. ( k < #t and sep or "" ) end )
-  return s
+  table.foreach( t, function( k, v ) s = s .. v .. sep end )
+  return s:sub( 1, -2 )
+end
+
+-- Return all the keys of a table in a string format
+table_keys_string = function( t, sep )
+  sep = sep or ' '
+  local s = ''
+  table.foreach( t, function( k, v ) s = s .. k .. sep end )
+  return s:sub( 1, -2 )
 end
 
 -- Returns true if 'path' is a regular file, false otherwise
@@ -210,6 +219,15 @@ exttype = function( t )
   end
 end
 
+-- Read the file into a string
+read_file = function( fname )
+  local f = io.open( fname, "rb" )
+  if not f then return "" end
+  local s = f:read( "*a" )
+  f:close()
+  return s
+end
+
 ---------------------------------------
 -- Color-related funtions
 -- Currently disabled when running in Windows
@@ -236,3 +254,41 @@ foreach( coltable, function( k, v )
   col_funcs[ k ] = _G[ fname ]
 end )
 
+---------------------------------------
+-- Table utils
+-- (from http://lua-users.org/wiki/TableUtils)
+
+function table.val_to_str( v )
+  if "string" == type( v ) then
+    v = string.gsub( v, "\n", "\\n" )
+    if string.match( string.gsub(v,"[^'\"]",""), '^"+$' ) then
+      return "'" .. v .. "'"
+    end
+    return '"' .. string.gsub(v,'"', '\\"' ) .. '"'
+  else
+    return "table" == type( v ) and table.tostring( v ) or tostring( v )
+  end
+end
+
+function table.key_to_str ( k )
+  if "string" == type( k ) and string.match( k, "^[_%a][_%a%d]*$" ) then
+    return k
+  else
+    return "[" .. table.val_to_str( k ) .. "]"
+  end
+end
+
+function table.tostring( tbl )
+  local result, done = {}, {}
+  for k, v in ipairs( tbl ) do
+    table.insert( result, table.val_to_str( v ) )
+    done[ k ] = true
+  end
+  for k, v in pairs( tbl ) do
+    if not done[ k ] then
+      table.insert( result,
+        table.key_to_str( k ) .. "=" .. table.val_to_str( v ) )
+    end
+  end
+  return "{" .. table.concat( result, "," ) .. "}"
+end
