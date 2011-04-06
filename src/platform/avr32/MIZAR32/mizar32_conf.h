@@ -69,6 +69,7 @@
   _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
   _ROM( AUXLIB_UART, luaopen_uart, uart_map )\
   _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
+  _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map )\
   _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
   _ROM( AUXLIB_TERM, luaopen_term, term_map )\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
@@ -100,7 +101,7 @@
 #else
 #define NUM_TIMER             3
 #endif
-#define NUM_PWM               0
+#define NUM_PWM               7		// PWM7 is on GPIO50
 #define NUM_ADC               0
 #define NUM_CAN               0
 

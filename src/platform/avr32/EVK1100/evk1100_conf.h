@@ -77,6 +77,7 @@
   _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
   _ROM( AUXLIB_UART, luaopen_uart, uart_map )\
   _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
+  _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map )\
   _ROM( AUXLIB_SPI, luaopen_spi, spi_map )\
   _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
   ADCLINE\
@@ -104,7 +105,7 @@
 #else
 #define NUM_TIMER             3
 #endif
-#define NUM_PWM               0
+#define NUM_PWM               7
 #define NUM_ADC               8
 #define NUM_CAN               0
 

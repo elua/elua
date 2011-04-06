@@ -15,8 +15,6 @@
 #include "platform_conf.h"
 #include "common.h"
 #include "buf.h"
-#include "spi.h"
-#include "adc.h"
 
 // Platform-specific includes
 #include <avr32/io.h>
@@ -28,6 +26,9 @@
 #include "gpio.h"
 #include "tc.h"
 #include "intc.h"
+#include "spi.h"
+#include "adc.h"
+#include "pwm.h"
 
 // ****************************************************************************
 // Platform initialization
@@ -179,6 +180,10 @@ int platform_init()
 
   for( i = 0; i < NUM_ADC; i++ )
     adc_init_ch_state( i );
+#endif
+
+#if NUM_PWM > 0
+  pwm_init();
 #endif
 
   cmn_platform_init();
@@ -716,18 +721,18 @@ __attribute__((__interrupt__)) static void adc_int_handler()
       i = adc->lcdr;
 
       if ( s->logsmoothlen > 0 && s->smooth_ready == 0)
-	adc_smooth_data( s->id );
+        adc_smooth_data( s->id );
 #if defined( BUF_ENABLE_ADC )
       else if ( s->reqsamples > 1 )
       {
-	buf_write( BUF_ID_ADC, s->id, ( t_buf_data* )s->value_ptr );
-	s->value_fresh = 0;
+        buf_write( BUF_ID_ADC, s->id, ( t_buf_data* )s->value_ptr );
+        s->value_fresh = 0;
       }
 #endif
 
       // If we have the number of requested samples, stop sampling
       if ( adc_samples_available( s->id ) >= s->reqsamples && s->freerunning == 0 )
-	platform_adc_stop( s->id );
+        platform_adc_stop( s->id );
     }
 
     d->seq_ctr++;
@@ -772,3 +777,154 @@ int platform_adc_start_sequence( )
 }
 
 #endif
+
+
+// ****************************************************************************
+// PWM functions
+
+// Sanity check
+#if NUM_PWM > AVR32_PWM_CHANNEL_LENGTH
+# error "NUM_PWM > AVR32_PWM_CHANNEL_LENGTH"
+#endif
+
+static const gpio_map_t pwm_pins =
+{
+  { AVR32_PWM_0_PIN, AVR32_PWM_0_FUNCTION },
+  { AVR32_PWM_1_PIN, AVR32_PWM_1_FUNCTION },
+  { AVR32_PWM_2_PIN, AVR32_PWM_2_FUNCTION },
+  { AVR32_PWM_3_PIN, AVR32_PWM_3_FUNCTION },
+  { AVR32_PWM_4_1_PIN, AVR32_PWM_4_1_FUNCTION },	// PB27
+  { AVR32_PWM_5_1_PIN, AVR32_PWM_5_1_FUNCTION },	// PB28
+  { AVR32_PWM_6_PIN, AVR32_PWM_6_FUNCTION },
+};
+
+
+/*
+ * Configure a PWM channel to run at "frequency" Hz with a duty cycle of
+ * "duty" (0-100).  0 means low all the time, 100 high all the time.
+ */
+u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
+{
+  u32 pwmclk;        // base clock frequency for PWM counters
+  u32 period;        // number of base clocks per cycle
+  u32 duty_cycle;    // number of base clocks to be high (low?) for
+
+  // Sanity checks
+  if (id < 0 || id >= NUM_PWM
+      || duty < 0 || duty > 100)
+    return 0;    // Returning an actual frequency of 0 should worry them!
+
+  gpio_enable_module(pwm_pins + id, 1 );
+
+  pwmclk = pwm_get_clock_freq();
+
+  // Compute period and duty period in clock cycles.
+  //
+  // PWM output wave frequency is requested in Hz but programmed as a
+  // number of cycles of the master PWM clock frequency.
+  // The obvious but simple formulae to convert between these values:
+  // channel_period = pwmclk / frequency; return pwmclk / channel_period;
+  // return the same values as requested from 1 to just over sqrt(pwmclk)
+  // (up to 1031 for 1000000 Hz).
+  // In reality, they always set a frequency <= the one requested.
+  // A better formula would program the geometrically closest available
+  // actual frequency and return the geometrically closest integer frequency
+  // to that.
+  // Unfortunately we mustn't use floating point because that would pull
+  // the whole FP subsystem into the integer-only executable.
+
+  period = pwmclk / frequency;
+  duty_cycle = (period * duty) / 100;
+
+  // The AVR32 PWM duty cycle is upside down:
+  // duty_period==0 gives an all-active output, while
+  // duty_period==period gives an all-inactive output.
+  pwm_channel_set_period_and_duty_cycle( id, period, period - duty_cycle );
+
+  return pwmclk / period;    // Inaccurate. We Should return the nearest int.
+                             // TODO: Try (pwmclk + period/2) / period
+}
+
+/*
+ * Helper function:
+ * Find a prescaler/divisor couple to generate the closest available
+ * clock frequency.
+ * Dumps the "pre" and "div" values for MR in *pre and *div.
+ * If the configuration cannot be met (because freq is too high), set the
+ * maximum frequency possible.
+ *
+ * The algorithm is too simple: the actual frequency is always <= the one
+ * requested, not the closest possible.
+ */
+static void find_clock_configuration( u32 frequency,
+                                      unsigned *pre, unsigned *div )
+{
+  // prescalers[11] = { 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024 };
+#define prescalers( n ) ( 1 << n )
+  const unsigned nprescalers = 11;
+
+  unsigned prescaler;       // Select a prescaler
+  unsigned divisor = 0;
+
+  if ( frequency > REQ_PBA_FREQ )
+  {
+    *pre = 0;    // Select master clock frequency
+    *div = 1;    // divided by one
+    return;
+  }
+
+  // Find prescaler and divisor values
+  do
+    divisor = REQ_PBA_FREQ / ( prescalers( prescaler ) * frequency );
+  while ( ( divisor > 255 ) && ( ++prescaler < nprescalers ) );
+
+  // Return result
+  if ( prescaler < nprescalers )
+  {
+    *pre = prescaler;
+    *div = divisor;
+  } else {
+    // It failed because the frequency is too low.
+    // Set the lowest possible frequency.
+    *pre = nprescalers - 1;
+    *div = 255;
+  }
+  return;
+}
+#undef prescalers
+
+
+static u32 pwm_set_clock_freq( u32 freq )
+{
+  unsigned pre, div;
+
+  find_clock_configuration( freq, &pre, &div );
+  pwm_set_linear_divider( pre, div );
+
+  return pwm_get_clock_freq();
+}
+
+u32 platform_pwm_op( unsigned id, int op, u32 data)
+{
+  // Sanity check
+  if (id < 0 || id >= NUM_PWM)
+    return 0;
+
+  switch( op )
+  {
+    case PLATFORM_PWM_OP_SET_CLOCK:
+      return pwm_set_clock_freq( data );
+
+    case PLATFORM_PWM_OP_GET_CLOCK:
+      return pwm_get_clock_freq();
+
+    case PLATFORM_PWM_OP_START:
+      pwm_channel_start( id );
+      break;
+
+    case PLATFORM_PWM_OP_STOP:
+      pwm_channel_stop( id );
+      break;
+  }
+  return 0;
+}
