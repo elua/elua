@@ -71,25 +71,12 @@ int tc_configure_interrupts(volatile avr32_tc_t *tc, unsigned int channel, const
     return TC_INVALID_ARGUMENT;
 
   // Enable the appropriate interrupts.
-  tc->channel[channel].ier = bitfield->etrgs << AVR32_TC_ETRGS_OFFSET |
-                             bitfield->ldrbs << AVR32_TC_LDRBS_OFFSET |
-                             bitfield->ldras << AVR32_TC_LDRAS_OFFSET |
-                             bitfield->cpcs << AVR32_TC_CPCS_OFFSET |
-                             bitfield->cpbs << AVR32_TC_CPBS_OFFSET |
-                             bitfield->cpas << AVR32_TC_CPAS_OFFSET |
-                             bitfield->lovrs << AVR32_TC_LOVRS_OFFSET |
-                             bitfield->covfs << AVR32_TC_COVFS_OFFSET;
+  tc->channel[channel].ier = *(unsigned long *)bitfield;
 
   // Disable the appropriate interrupts.
   if (global_interrupt_enabled) Disable_global_interrupt();
-  tc->channel[channel].idr = (~bitfield->etrgs & 1) << AVR32_TC_ETRGS_OFFSET |
-                             (~bitfield->ldrbs & 1) << AVR32_TC_LDRBS_OFFSET |
-                             (~bitfield->ldras & 1) << AVR32_TC_LDRAS_OFFSET |
-                             (~bitfield->cpcs & 1) << AVR32_TC_CPCS_OFFSET |
-                             (~bitfield->cpbs & 1) << AVR32_TC_CPBS_OFFSET |
-                             (~bitfield->cpas & 1) << AVR32_TC_CPAS_OFFSET |
-                             (~bitfield->lovrs & 1) << AVR32_TC_LOVRS_OFFSET |
-                             (~bitfield->covfs & 1) << AVR32_TC_COVFS_OFFSET;
+  tc->channel[channel].idr = ~(*(unsigned long *)bitfield);
+
   tc->channel[channel].sr;
   if (global_interrupt_enabled) Enable_global_interrupt();
 
@@ -111,54 +98,31 @@ int tc_select_external_clock(volatile avr32_tc_t *tc, unsigned int channel, unsi
 }
 
 
-int tc_init_capture(volatile avr32_tc_t *tc, const tc_capture_opt_t *opt)
+int tc_init_capture(volatile avr32_tc_t *tc, unsigned int channel,
+                    tc_capture_opt_t *opt)
 {
   // Check for valid input.
-  if (opt->channel >= TC_NUMBER_OF_CHANNELS)
+  if (channel >= TC_NUMBER_OF_CHANNELS)
     return TC_INVALID_ARGUMENT;
 
   // MEASURE SIGNALS: Capture operating mode.
-  tc->channel[opt->channel].cmr = opt->ldrb << AVR32_TC_LDRB_OFFSET |
-                                  opt->ldra << AVR32_TC_LDRA_OFFSET |
-                                  0 << AVR32_TC_WAVE_OFFSET |
-                                  opt->cpctrg << AVR32_TC_CPCTRG_OFFSET |
-                                  opt->abetrg << AVR32_TC_ABETRG_OFFSET |
-                                  opt->etrgedg << AVR32_TC_ETRGEDG_OFFSET|
-                                  opt->ldbdis << AVR32_TC_LDBDIS_OFFSET |
-                                  opt->ldbstop << AVR32_TC_LDBSTOP_OFFSET |
-                                  opt->burst << AVR32_TC_BURST_OFFSET |
-                                  opt->clki << AVR32_TC_CLKI_OFFSET |
-                                  opt->tcclks << AVR32_TC_TCCLKS_OFFSET;
+  opt->capture.wave = 0;
+  tc->channel[channel].cmr = *(unsigned long *) opt;
 
   return 0;
 }
 
 
-int tc_init_waveform(volatile avr32_tc_t *tc, const tc_waveform_opt_t *opt)
+int tc_init_waveform(volatile avr32_tc_t *tc, unsigned int channel,
+                     tc_waveform_opt_t *opt)
 {
   // Check for valid input.
-  if (opt->channel >= TC_NUMBER_OF_CHANNELS)
+  if (channel >= TC_NUMBER_OF_CHANNELS)
     return TC_INVALID_ARGUMENT;
 
   // GENERATE SIGNALS: Waveform operating mode.
-  tc->channel[opt->channel].cmr = opt->bswtrg << AVR32_TC_BSWTRG_OFFSET |
-                                  opt->beevt << AVR32_TC_BEEVT_OFFSET |
-                                  opt->bcpc << AVR32_TC_BCPC_OFFSET |
-                                  opt->bcpb << AVR32_TC_BCPB_OFFSET |
-                                  opt->aswtrg << AVR32_TC_ASWTRG_OFFSET |
-                                  opt->aeevt << AVR32_TC_AEEVT_OFFSET |
-                                  opt->acpc << AVR32_TC_ACPC_OFFSET |
-                                  opt->acpa << AVR32_TC_ACPA_OFFSET |
-                                  1 << AVR32_TC_WAVE_OFFSET |
-                                  opt->wavsel << AVR32_TC_WAVSEL_OFFSET |
-                                  opt->enetrg << AVR32_TC_ENETRG_OFFSET |
-                                  opt->eevt << AVR32_TC_EEVT_OFFSET |
-                                  opt->eevtedg << AVR32_TC_EEVTEDG_OFFSET |
-                                  opt->cpcdis << AVR32_TC_CPCDIS_OFFSET |
-                                  opt->cpcstop << AVR32_TC_CPCSTOP_OFFSET |
-                                  opt->burst << AVR32_TC_BURST_OFFSET |
-                                  opt->clki << AVR32_TC_CLKI_OFFSET |
-                                  opt->tcclks << AVR32_TC_TCCLKS_OFFSET;
+  opt->waveform.wave = 1;
+  tc->channel[channel].cmr = *(unsigned long *) opt;
 
   return 0;
 }

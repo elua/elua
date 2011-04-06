@@ -74,28 +74,26 @@ int platform_init()
   };
   tc_waveform_opt_t tmropt =
   {
-    0,                                 // Channel selection.
+    .waveform.bswtrg = TC_EVT_EFFECT_NOOP, // Software trigger effect on TIOB.
+    .waveform.beevt  = TC_EVT_EFFECT_NOOP, // External event effect on TIOB.
+    .waveform.bcpc   = TC_EVT_EFFECT_NOOP, // RC compare effect on TIOB.
+    .waveform.bcpb   = TC_EVT_EFFECT_NOOP, // RB compare effect on TIOB.
 
-    TC_EVT_EFFECT_NOOP,                // Software trigger effect on TIOB.
-    TC_EVT_EFFECT_NOOP,                // External event effect on TIOB.
-    TC_EVT_EFFECT_NOOP,                // RC compare effect on TIOB.
-    TC_EVT_EFFECT_NOOP,                // RB compare effect on TIOB.
+    .waveform.aswtrg = TC_EVT_EFFECT_NOOP, // Software trigger effect on TIOA.
+    .waveform.aeevt  = TC_EVT_EFFECT_NOOP, // External event effect on TIOA.
+    .waveform.acpc   = TC_EVT_EFFECT_NOOP, // RC compare effect on TIOA: toggle.
+    .waveform.acpa   = TC_EVT_EFFECT_NOOP, // RA compare effect on TIOA: toggle (other possibilities are none, set and clear).
 
-    TC_EVT_EFFECT_NOOP,                // Software trigger effect on TIOA.
-    TC_EVT_EFFECT_NOOP,                // External event effect on TIOA.
-    TC_EVT_EFFECT_NOOP,                // RC compare effect on TIOA: toggle.
-    TC_EVT_EFFECT_NOOP,                // RA compare effect on TIOA: toggle (other possibilities are none, set and clear).
+    .waveform.wavsel = TC_WAVEFORM_SEL_UP_MODE, // Waveform selection: Up mode
+    .waveform.enetrg = FALSE,              // External event trigger enable.
+    .waveform.eevt   = 0,                  // External event selection.
+    .waveform.eevtedg= TC_SEL_NO_EDGE,     // External event edge selection.
+    .waveform.cpcdis = FALSE,              // Counter disable when RC compare.
+    .waveform.cpcstop= FALSE,              // Counter clock stopped with RC compare.
 
-    TC_WAVEFORM_SEL_UP_MODE,           // Waveform selection: Up mode
-    FALSE,                             // External event trigger enable.
-    0,                                 // External event selection.
-    TC_SEL_NO_EDGE,                    // External event edge selection.
-    FALSE,                             // Counter disable when RC compare.
-    FALSE,                             // Counter clock stopped with RC compare.
-
-    FALSE,                             // Burst signal selection.
-    FALSE,                             // Clock inversion.
-    TC_CLOCK_SOURCE_TC1                // Internal source clock 1 (32768Hz)
+    .waveform.burst  = FALSE,              // Burst signal selection.
+    .waveform.clki   = FALSE,              // Clock inversion.
+    .waveform.tcclks = TC_CLOCK_SOURCE_TC1 // Internal source clock 1 (32768Hz)
   };
   volatile avr32_tc_t *tc = &AVR32_TC;
   unsigned i;
@@ -119,8 +117,7 @@ int platform_init()
   // Setup timers
   for( i = 0; i < 3; i ++ )
   {
-    tmropt.channel = i;
-    tc_init_waveform( tc, &tmropt );
+    tc_init_waveform( tc, i, &tmropt );
 #ifndef FOSC32
     // At reset, timers run from the 32768Hz crystal. If there is no such clock
     // then run them all at the lowest frequency available (PBA_FREQ / 128)
@@ -131,9 +128,8 @@ int platform_init()
   // Setup timer interrupt for the virtual timers if needed
 #if VTMR_NUM_TIMERS > 0
   INTC_register_interrupt( &tmr_int_handler, AVR32_TC_IRQ2, AVR32_INTC_INT0 );
-  tmropt.channel = VTMR_CH;
-  tmropt.wavsel = TC_WAVEFORM_SEL_UP_MODE_RC_TRIGGER;
-  tc_init_waveform( tc, &tmropt );
+  tmropt.waveform.wavsel = TC_WAVEFORM_SEL_UP_MODE_RC_TRIGGER;
+  tc_init_waveform( tc, VTMR_CH, &tmropt );
   tc_interrupt_t tmrint =
   {
     0,              // External trigger interrupt.

@@ -167,235 +167,13 @@
 
 
 //! Timer/counter interrupts.
-typedef struct
-{
-  unsigned int                 :24;
-
-  //! External trigger interrupt.
-  unsigned int etrgs           : 1;
-
-  //! RB load interrupt.
-  unsigned int ldrbs           : 1;
-
-  //! RA load interrupt.
-  unsigned int ldras           : 1;
-
-  //! RC compare interrupt.
-  unsigned int cpcs            : 1;
-
-  //! RB compare interrupt.
-  unsigned int cpbs            : 1;
-
-  //! RA compare interrupt.
-  unsigned int cpas            : 1;
-
-  //! Load overrun interrupt.
-  unsigned int lovrs           : 1;
-
-  //! Counter overflow interrupt.
-  unsigned int covfs           : 1;
-} tc_interrupt_t;
+typedef avr32_tc_ier_t tc_interrupt_t;
 
 //! Parameters when initializing a timer/counter in capture mode.
-typedef struct
-{
-  //! Channel to initialize.
-  unsigned int channel            ;
-
-  unsigned int                 :12;
-
-  //! RB loading selection:\n
-  //!   - \ref TC_SEL_NO_EDGE;\n
-  //!   - \ref TC_SEL_RISING_EDGE;\n
-  //!   - \ref TC_SEL_FALLING_EDGE;\n
-  //!   - \ref TC_SEL_EACH_EDGE.
-  unsigned int ldrb            : 2;
-
-  //! RA loading selection:\n
-  //!   - \ref TC_SEL_NO_EDGE;\n
-  //!   - \ref TC_SEL_RISING_EDGE;\n
-  //!   - \ref TC_SEL_FALLING_EDGE;\n
-  //!   - \ref TC_SEL_EACH_EDGE.
-  unsigned int ldra            : 2;
-
-  unsigned int                 : 1;
-
-  //! RC compare trigger enable:\n
-  //!   - \ref TC_NO_TRIGGER_COMPARE_RC;\n
-  //!   - \ref TC_TRIGGER_COMPARE_RC.
-  unsigned int cpctrg          : 1;
-
-  unsigned int                 : 3;
-
-  //! TIOA or TIOB external trigger selection:\n
-  //!   - \ref TC_EXT_TRIG_SEL_TIOA;\n
-  //!   - \ref TC_EXT_TRIG_SEL_TIOB.
-  unsigned int abetrg          : 1;
-
-  //! External trigger edge selection:\n
-  //!   - \ref TC_SEL_NO_EDGE;\n
-  //!   - \ref TC_SEL_RISING_EDGE;\n
-  //!   - \ref TC_SEL_FALLING_EDGE;\n
-  //!   - \ref TC_SEL_EACH_EDGE.
-  unsigned int etrgedg         : 2;
-
-  //! Counter clock disable with RB loading:\n
-  //!   - \c FALSE;\n
-  //!   - \c TRUE.
-  unsigned int ldbdis          : 1;
-
-  //! Counter clock stopped with RB loading:\n
-  //!   - \c FALSE;\n
-  //!   - \c TRUE.
-  unsigned int ldbstop         : 1;
-
-  //! Burst signal selection:\n
-  //!   - \ref TC_BURST_NOT_GATED;\n
-  //!   - \ref TC_BURST_CLK_AND_XC0;\n
-  //!   - \ref TC_BURST_CLK_AND_XC1;\n
-  //!   - \ref TC_BURST_CLK_AND_XC2.
-  unsigned int burst           : 2;
-
-  //! Clock invert:\n
-  //!   - \ref TC_CLOCK_RISING_EDGE;\n
-  //!   - \ref TC_CLOCK_FALLING_EDGE.
-  unsigned int clki            : 1;
-
-  //! Clock selection:\n
-  //!   - \ref TC_CLOCK_SOURCE_TC1;\n
-  //!   - \ref TC_CLOCK_SOURCE_TC2;\n
-  //!   - \ref TC_CLOCK_SOURCE_TC3;\n
-  //!   - \ref TC_CLOCK_SOURCE_TC4;\n
-  //!   - \ref TC_CLOCK_SOURCE_TC5;\n
-  //!   - \ref TC_CLOCK_SOURCE_XC0;\n
-  //!   - \ref TC_CLOCK_SOURCE_XC1;\n
-  //!   - \ref TC_CLOCK_SOURCE_XC2.
-  unsigned int tcclks          : 3;
-} tc_capture_opt_t;
+typedef avr32_tc_cmr_t tc_capture_opt_t;
 
 //! Parameters when initializing a timer/counter in waveform mode.
-typedef struct
-{
-  //! Channel to initialize.
-  unsigned int channel            ;
-
-  //! Software trigger effect on TIOB:\n
-  //!   - \ref TC_EVT_EFFECT_NOOP;\n
-  //!   - \ref TC_EVT_EFFECT_SET;\n
-  //!   - \ref TC_EVT_EFFECT_CLEAR;\n
-  //!   - \ref TC_EVT_EFFECT_TOGGLE.
-  unsigned int bswtrg          : 2;
-
-  //! External event effect on TIOB:\n
-  //!   - \ref TC_EVT_EFFECT_NOOP;\n
-  //!   - \ref TC_EVT_EFFECT_SET;\n
-  //!   - \ref TC_EVT_EFFECT_CLEAR;\n
-  //!   - \ref TC_EVT_EFFECT_TOGGLE.
-  unsigned int beevt           : 2;
-
-  //! RC compare effect on TIOB:\n
-  //!   - \ref TC_EVT_EFFECT_NOOP;\n
-  //!   - \ref TC_EVT_EFFECT_SET;\n
-  //!   - \ref TC_EVT_EFFECT_CLEAR;\n
-  //!   - \ref TC_EVT_EFFECT_TOGGLE.
-  unsigned int bcpc            : 2;
-
-  //! RB compare effect on TIOB:\n
-  //!   - \ref TC_EVT_EFFECT_NOOP;\n
-  //!   - \ref TC_EVT_EFFECT_SET;\n
-  //!   - \ref TC_EVT_EFFECT_CLEAR;\n
-  //!   - \ref TC_EVT_EFFECT_TOGGLE.
-  unsigned int bcpb            : 2;
-
-  //! Software trigger effect on TIOA:\n
-  //!   - \ref TC_EVT_EFFECT_NOOP;\n
-  //!   - \ref TC_EVT_EFFECT_SET;\n
-  //!   - \ref TC_EVT_EFFECT_CLEAR;\n
-  //!   - \ref TC_EVT_EFFECT_TOGGLE.
-  unsigned int aswtrg          : 2;
-
-  //! External event effect on TIOA:\n
-  //!   - \ref TC_EVT_EFFECT_NOOP;\n
-  //!   - \ref TC_EVT_EFFECT_SET;\n
-  //!   - \ref TC_EVT_EFFECT_CLEAR;\n
-  //!   - \ref TC_EVT_EFFECT_TOGGLE.
-  unsigned int aeevt           : 2;
-
-  //! RC compare effect on TIOA:\n
-  //!   - \ref TC_EVT_EFFECT_NOOP;\n
-  //!   - \ref TC_EVT_EFFECT_SET;\n
-  //!   - \ref TC_EVT_EFFECT_CLEAR;\n
-  //!   - \ref TC_EVT_EFFECT_TOGGLE.
-  unsigned int acpc            : 2;
-
-  //! RA compare effect on TIOA:\n
-  //!   - \ref TC_EVT_EFFECT_NOOP;\n
-  //!   - \ref TC_EVT_EFFECT_SET;\n
-  //!   - \ref TC_EVT_EFFECT_CLEAR;\n
-  //!   - \ref TC_EVT_EFFECT_TOGGLE.
-  unsigned int acpa            : 2;
-
-  unsigned int                 : 1;
-
-  //! Waveform selection:\n
-  //!   - \ref TC_WAVEFORM_SEL_UP_MODE;\n
-  //!   - \ref TC_WAVEFORM_SEL_UP_MODE_RC_TRIGGER;\n
-  //!   - \ref TC_WAVEFORM_SEL_UPDOWN_MODE;\n
-  //!   - \ref TC_WAVEFORM_SEL_UPDOWN_MODE_RC_TRIGGER.
-  unsigned int wavsel          : 2;
-
-  //! External event trigger enable:\n
-  //!   - \c FALSE;\n
-  //!   - \c TRUE.
-  unsigned int enetrg          : 1;
-
-  //! External event selection:\n
-  //!   - \ref TC_EXT_EVENT_SEL_TIOB_INPUT;\n
-  //!   - \ref TC_EXT_EVENT_SEL_XC0_OUTPUT;\n
-  //!   - \ref TC_EXT_EVENT_SEL_XC1_OUTPUT;\n
-  //!   - \ref TC_EXT_EVENT_SEL_XC2_OUTPUT.
-  unsigned int eevt            : 2;
-
-  //! External event edge selection:\n
-  //!   - \ref TC_SEL_NO_EDGE;\n
-  //!   - \ref TC_SEL_RISING_EDGE;\n
-  //!   - \ref TC_SEL_FALLING_EDGE;\n
-  //!   - \ref TC_SEL_EACH_EDGE.
-  unsigned int eevtedg         : 2;
-
-  //! Counter clock disable with RC compare:\n
-  //!   - \c FALSE;\n
-  //!   - \c TRUE.
-  unsigned int cpcdis          : 1;
-
-  //! Counter clock stopped with RC compare:\n
-  //!   - \c FALSE;\n
-  //!   - \c TRUE.
-  unsigned int cpcstop         : 1;
-
-  //! Burst signal selection:\n
-  //!   - \ref TC_BURST_NOT_GATED;\n
-  //!   - \ref TC_BURST_CLK_AND_XC0;\n
-  //!   - \ref TC_BURST_CLK_AND_XC1;\n
-  //!   - \ref TC_BURST_CLK_AND_XC2.
-  unsigned int burst           : 2;
-
-  //! Clock invert:\n
-  //!   - \ref TC_CLOCK_RISING_EDGE;\n
-  //!   - \ref TC_CLOCK_FALLING_EDGE.
-  unsigned int clki            : 1;
-
-  //! Clock selection:\n
-  //!   - \ref TC_CLOCK_SOURCE_TC1;\n
-  //!   - \ref TC_CLOCK_SOURCE_TC2;\n
-  //!   - \ref TC_CLOCK_SOURCE_TC3;\n
-  //!   - \ref TC_CLOCK_SOURCE_TC4;\n
-  //!   - \ref TC_CLOCK_SOURCE_TC5;\n
-  //!   - \ref TC_CLOCK_SOURCE_XC0;\n
-  //!   - \ref TC_CLOCK_SOURCE_XC1;\n
-  //!   - \ref TC_CLOCK_SOURCE_XC2.
-  unsigned int tcclks          : 3;
-} tc_waveform_opt_t;
+typedef avr32_tc_cmr_t tc_waveform_opt_t;
 
 
 /*! \brief Reads timer/counter interrupt settings.
@@ -450,7 +228,8 @@ extern int tc_select_external_clock(volatile avr32_tc_t *tc, unsigned int channe
  * \retval 0 Success.
  * \retval TC_INVALID_ARGUMENT Invalid argument(s).
  */
-extern int tc_init_capture(volatile avr32_tc_t *tc, const tc_capture_opt_t *opt);
+extern int tc_init_capture(volatile avr32_tc_t *tc, const unsigned int channel,
+                           tc_capture_opt_t *opt);
 
 /*! \brief Sets options for timer/counter waveform initialization.
  *
@@ -460,7 +239,8 @@ extern int tc_init_capture(volatile avr32_tc_t *tc, const tc_capture_opt_t *opt)
  * \retval 0 Success.
  * \retval TC_INVALID_ARGUMENT Invalid argument(s).
  */
-extern int tc_init_waveform(volatile avr32_tc_t *tc, const tc_waveform_opt_t *opt);
+extern int tc_init_waveform(volatile avr32_tc_t *tc, const unsigned int channel,
+                            tc_waveform_opt_t *opt);
 
 /*! \brief Starts a timer/counter.
  *
