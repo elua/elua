@@ -146,7 +146,7 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
             
     case PLATFORM_IO_PORT_GET_VALUE:
       pin->mask = 0x7FFFFFFF;
-      pin->type = pinmask == PLATFORM_IO_READ_IN_MASK ? PIO_INPUT : PIO_OUTPUT_0;
+      pin->type = PIO_INPUT;
       retval = PIO_Get( pin );
       break;
       

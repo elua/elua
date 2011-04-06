@@ -274,7 +274,7 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
       break;
 
     case PLATFORM_IO_PORT_GET_VALUE:
-      retval = platform_pio_get_port_reg( port, pinmask == PLATFORM_IO_READ_IN_MASK ? PIO_REG_PVR : PIO_REG_OVR );
+      retval = platform_pio_get_port_reg( port, PIO_REG_PVR );
       break;
 
     case PLATFORM_IO_PIN_GET:
