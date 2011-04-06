@@ -1,5 +1,5 @@
 /*
-** $Id: lvm.c,v 2.63.1.3 2007/12/28 15:32:23 roberto Exp $
+** $Id: lvm.c,v 2.63.1.4 2009/07/01 21:10:33 roberto Exp $
 ** Lua virtual machine
 ** See Copyright Notice in lua.h
 */
@@ -127,6 +127,7 @@ static void callTM (lua_State *L, const TValue *f, const TValue *p1,
 
 void luaV_gettable (lua_State *L, const TValue *t, TValue *key, StkId val) {
   int loop;
+  TValue temp;
   for (loop = 0; loop < MAXTAGLOOP; loop++) {
     const TValue *tm;
     if (ttistable(t) || ttisrotable(t)) {  /* `t' is a table? */
@@ -145,7 +146,9 @@ void luaV_gettable (lua_State *L, const TValue *t, TValue *key, StkId val) {
       callTMres(L, val, tm, t, key);
       return;
     }
-    t = tm;  /* else repeat with `tm' */ 
+    /* else repeat with `tm' */
+    setobj(L, &temp, tm);  /* avoid pointing inside table (may rehash) */
+    t = &temp;
   }
   luaG_runerror(L, "loop in gettable");
 }
