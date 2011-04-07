@@ -134,9 +134,15 @@
 // Use #define PIO_PINS_PER_PORT 0 if this isn't needed
 #define PIO_PIN_ARRAY         { 31, 32, 32, 14 }
 
+#ifdef BOOTLOADER_EMBLOD
+# define ELUA_FIRMWARE_SIZE 0x80000
+#else
+# define ELUA_FIRMWARE_SIZE 0
+#endif
+
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)
-#define MEM_START_ADDRESS     { ( void* )end, ( void* )SDRAM }
+#define MEM_START_ADDRESS     { ( void* )end, ( void* )( SDRAM + ELUA_FIRMWARE_SIZE ) }
 #define MEM_END_ADDRESS       { ( void* )( 0x8000 - STACK_SIZE_TOTAL - 1 ), ( void* )( SDRAM + SDRAM_SIZE - 1 ) }
 
 // Interrupt list

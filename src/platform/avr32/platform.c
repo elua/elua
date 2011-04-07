@@ -111,7 +111,9 @@ int platform_init()
 
   // Initialize external memory if any.
 #ifdef AVR32_SDRAMC
+# ifndef BOOTLOADER_EMBLOD
   sdramc_init( REQ_CPU_FREQ );
+# endif
 #endif
 
   // Setup timers

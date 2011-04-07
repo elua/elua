@@ -82,8 +82,12 @@ int pm_configure_clocks(pm_freq_param_t *param)
   unsigned long pll_freq, rest;
   Bool b_div2_pba, b_div2_cpu;
 
-  // Switch to external Oscillator 0
+  // Switch to external Oscillator 0.
+  // If the bootloader emBLOD is used, we are already running PLL0 from OSC0
+  // and clocks should not be set again
+#ifndef BOOTLOADER_EMBLOD
   pm_switch_to_osc0(&AVR32_PM, in_osc0_f, param->osc0_startup);
+#endif
 
   // Start with CPU freq config
   if (in_cpu_f == in_osc0_f)
@@ -143,6 +147,9 @@ int pm_configure_clocks(pm_freq_param_t *param)
   param->cpu_f = pll_freq / (1 << div2_cpu);
   mul--;
 
+  // If the bootlaoder emBLOD is used, we are already running PLL0 from OSC0
+  // and clocks should not be set again
+#ifndef BOOTLOADER_EMBLOD
   pm_pll_setup(&AVR32_PM
   , 0   // pll
   , mul // mul
@@ -158,6 +165,7 @@ int pm_configure_clocks(pm_freq_param_t *param)
   , div2_en // pll_div2
   , 0 // pll_wbwdisable
   );
+#endif
 
   rest = pll_freq;
   while (rest > AVR32_PM_PBA_MAX_FREQ ||
@@ -172,11 +180,13 @@ int pm_configure_clocks(pm_freq_param_t *param)
   // Update real PBA Frequency
   param->pba_f = pll_freq / (1 << div2_pba);
 
+#ifndef BOOTLOADER_EMBLOD
   // Enable PLL0
   pm_pll_enable(&AVR32_PM, 0);
 
   // Wait for PLL0 locked
   pm_wait_for_pll0_locked(&AVR32_PM);
+#endif
 
   if (div2_cpu)
   {
@@ -194,11 +204,13 @@ int pm_configure_clocks(pm_freq_param_t *param)
   else
     b_div2_pba = FALSE;
 
+#ifndef BOOTLOADER_EMBLOD
   pm_cksel(&AVR32_PM
   , b_div2_pba, div2_pba // PBA
   , b_div2_cpu, div2_cpu // PBB
   , b_div2_cpu, div2_cpu // HSB
   );
+#endif
 
   if (param->cpu_f > AVR32_FLASHC_FWS_0_MAX_FREQ)
   {
@@ -221,7 +233,9 @@ int pm_configure_clocks(pm_freq_param_t *param)
 #endif
   }
 
+#ifndef BOOTLOADER_EMBLOD
   pm_switch_to_clock(&AVR32_PM, AVR32_PM_MCCTRL_MCSEL_PLL0);
+#endif
 
   return PM_FREQ_STATUS_OK;
 }

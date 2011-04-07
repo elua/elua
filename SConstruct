@@ -238,6 +238,10 @@ def MatchEnumVariable(key, help, default, allowed_values, map={}):
 vars = Variables()
 
 vars.AddVariables(
+  MatchEnumVariable('bootloader',
+                    'Build for bootloader usage, default is none.',
+                    'none',
+                    allowed_values = [ 'none', 'emblod' ] ),
   MatchEnumVariable('target',
                     'build "regular" float lua or integer-only "lualong"', 
                     'lua',
