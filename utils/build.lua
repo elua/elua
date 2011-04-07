@@ -22,6 +22,7 @@ end
 
 -- Return a string with $(key) replaced with 'value'
 local function expand_key( s, key, value )
+  if not value then return s end
   local fmt = sf( "%%$%%(%s%%)", key )
   return ( s:gsub( fmt, value ) )
 end
@@ -135,6 +136,7 @@ _target.new = function( target, dep, command, builder, ttype )
   builder:register_target( target, self )
   self:set_dependencies( dep )
   self.dep = self:_build_dependencies( self.origdep )
+  self.dont_clean = false
   self._force_rebuild = #self.dep == 0
   builder.runlist[ target ] = false
   self:set_type( ttype )
@@ -205,9 +207,13 @@ _target.set_target_args = function( self, args )
 end
 
 -- Function to execute in clean mode
-_target._cleaner = function( target, deps, dummy )
+_target._cleaner = function( target, deps, tobj )
   -- Clean the main target if it is not a phony target
   if not is_phony( target ) then 
+    if tobj.dont_clean then
+      print( sf( "[builder] Target '%s' will not be deleted", target ) )
+      return 0
+    end
     io.write( sf( "[builder] Removing %s ... ", target ) )
     if os.remove( target ) then print "done." else print "failed!" end
   end
@@ -228,7 +234,7 @@ _target.build = function( self )
       local res = dep[ i ]:build()
       docmd = docmd or res
       local t = dep[ i ]:target_name()
-      if exttype( dep[ i ] ) == "_target" and t then
+      if exttype( dep[ i ] ) == "_target" and t and not is_phony( self.target )then
         docmd = docmd or get_ftime( t ) > get_ftime( self.target )
       end
       if t then depends = depends .. t .. " " end
@@ -267,7 +273,7 @@ _target.build = function( self )
       if not self.builder.clean_mode and self.builder.disp_mode ~= "all" then
         print( self.target )
       end
-      code = cmd( self.target, self.dep, self._target_args )
+      code = cmd( self.target, self.dep, self.builder.clean_mode and self or self._target_args )
       if code == 1 then -- this means "mark target as 'not executed'"
         keep_flag = false
         code = 0
@@ -294,6 +300,11 @@ _target.target_name = function( self )
   return get_target_name( self.target )
 end
 
+-- Restrict cleaning this target
+_target.prevent_clean = function( self, flag )
+  self.dont_clean = flag
+end
+
 -- Object type
 _target.__type = function()
   return "_target"
@@ -315,7 +326,7 @@ builder.new = function( build_dir )
   self.build_dir = build_dir or ".build"
   self.exe_extension = utils.is_windows() and "exe" or ""
   self.clean_mode = false
-  self.options = {}
+  self.opts = utils.options_handler()
   self.args = {}
   self.build_mode = self.KEEP_DIR
   self.targets = {}
@@ -323,138 +334,42 @@ builder.new = function( build_dir )
   self._tlist = {}
   self.runlist = {}
   self.disp_mode = 'all'
+  self.cmdline_macros = {}
   return self
-end
-
--- Argument validator: boolean value
-builder._bool_validator = function( v )
-  if v == '0' or v:upper() == 'FALSE' then
-    return false
-  elseif v == '1' or v:upper() == 'TRUE' then
-    return true
-  end
-end
-
--- Argument validator: choice value
-builder._choice_validator = function( v, allowed )
-  for i = 1, #allowed do
-    if v:upper() == allowed[ i ]:upper() then return allowed[ i ] end
-  end
-end
-
--- Argument validator: choice map (argument value maps to something)
-builder._choice_map_validator = function( v, allowed )
-  for k, value in pairs( allowed ) do
-    if v:upper() == k:upper() then return value end
-  end
-end
-
--- Argument validator: string value (no validation)
-builder._string_validator = function( v )
-  return v
-end
-
--- Argument printer: boolean value
-builder._bool_printer = function( o )
-  return "true|false", o.default and "true" or "false"
-end
-
--- Argument printer: choice value
-builder._choice_printer = function( o )
-  local clist, opts  = '', o.data
-  for i = 1, #opts do
-    clist = clist .. ( i ~= 1 and "|" or "" ) .. opts[ i ]
-  end
-  return clist, o.default
-end
-
--- Argument printer: choice map printer
-builder._choice_map_printer = function( o )
-  local clist, opts, def = '', o.data
-  local i = 1
-  for k, v in pairs( opts ) do
-    clist = clist .. ( i ~= 1 and "|" or "" ) .. k
-    if o.default == v then def = k end
-    i = i + 1
-  end
-  return clist, def
-end
-
--- Argument printer: string printer
-builder._string_printer = function( o )
-  return nil, o.default
-end
-
--- Add an option of the specified type
-builder._add_option = function( self, optname, opttype, help, default, data )
-  local validators = 
-  { 
-    string = builder._string_validator, choice = builder._choice_validator, 
-    boolean = builder._bool_validator, choice_map = builder._choice_map_validator
-  }
-  local printers = 
-  { 
-    string = builder._string_printer, choice = builder._choice_printer, 
-    boolean = builder._bool_printer, choice_map = builder._choice_map_printer
-  }
-  if not validators[ opttype ] then
-    print( sf( "[builder] Invalid option type '%s'", opttype ) )
-    os.exit( 1 )
-  end
-  table.insert( self.options, { name = optname, help = help, validator = validators[ opttype ], printer = printers[ opttype ], data = data, default = default } )
-end
-
--- Find an option with the given name
-builder._find_option = function( self, optname )
-  for i = 1, #self.options do
-    local o = self.options[ i ]
-    if o.name:upper() == optname:upper() then return self.options[ i ] end
-  end
 end
 
 -- Helper: create the build output directory
 builder._create_outdir = function( self )
   if self.output_dir_created then return end
-   -- Create builds directory if needed
-  local mode = lfs.attributes( self.build_dir, "mode" )
-  if not mode or mode ~= "directory" then
-    if not utils.full_mkdir( self.build_dir ) then
-      print( "[builder] Unable to create directory " .. self.build_dir )
-      os.exit( 1 )
+  if self.build_mode ~= self.KEEP_DIR then
+     -- Create builds directory if needed
+    local mode = lfs.attributes( self.build_dir, "mode" )
+    if not mode or mode ~= "directory" then
+      if not utils.full_mkdir( self.build_dir ) then
+        print( "[builder] Unable to create directory " .. self.build_dir )
+        os.exit( 1 )
+      end
     end
   end
   self.output_dir_created = true
 end
 
--- 'add option' helper (automatically detects option type)
+-- Add an options to the builder
 builder.add_option = function( self, name, help, default, data )
-  local otype
-  if type( default ) == 'boolean' then
-    otype = 'boolean'
-  elseif data and type( data ) == 'table' and #data == 0 then
-    otype = 'choice_map'
-  elseif data and type( data ) == 'table' then
-    otype = 'choice'
-    data = utils.linearize_array( data )
-  elseif type( default ) == 'string' then
-    otype = 'string'
-  else
-    print( sf( "[builder] Cannot detect option type for '%s'", name ) )
-    os.exit( 1 )
-  end
-  self:_add_option( name, otype, help, default, data )
+  self.opts:add_option( name, help, default, data )
 end
 
 -- Initialize builder from the given command line
 builder.init = function( self, args )
   -- Add the default options
-  self:add_option( "build_mode", 'choose location of the object files', self.KEEP_DIR,
+  local opts = self.opts
+  opts:add_option( "build_mode", 'choose location of the object files', self.KEEP_DIR,
                    { keep_dir = self.KEEP_DIR, build_dir = self.BUILD_DIR, build_dir_linearized = self.BUILD_DIR_LINEARIZED } )
-  self:add_option( "build_dir", 'choose build directory', self.build_dir )
-  self:add_option( "disp_mode", 'set builder display mode', 'summary', { 'all', 'summary' } )
+  opts:add_option( "build_dir", 'choose build directory', self.build_dir )
+  opts:add_option( "disp_mode", 'set builder display mode', 'summary', { 'all', 'summary' } )
   -- Apply default values to all options
-  for i = 1, #self.options do
-    local o = self.options[ i ]
+  for i = 1, opts:get_num_opts() do
+    local o = opts:get_option( i )
     self.args[ o.name:upper() ] = o.default
   end
   -- Read and interpret command line
@@ -465,21 +380,15 @@ builder.init = function( self, args )
     elseif a:upper() == '-H' then               -- help option (-h)
       self:_show_help()
       os.exit( 1 )
+    elseif a:find( '-D' ) == 1 and #a > 2 then  -- this is a macro definition that will be auomatically added to the compiler flags
+      table.insert( self.cmdline_macros, a:sub( 3 ) ) 
     elseif a:find( '=' ) then                   -- builder argument (key=value)
-      local si, ei, k, v = a:find( "([^=]+)=(.*)$" )
-      local opt = self:_find_option( k )
-      if not opt then
-        print( sf( "[builder] Invalid option '%s'", k ) )
+      local k, v = opts:handle_arg( a )
+      if not k then
         self:_show_help()
         os.exit( 1 )
       end
-      local optv = opt.validator( v, opt.data )
-      if optv == nil then
-        print( sf( "[builder] Invalid value '%s' for option '%s'", v, k ) )
-        self:_show_help()
-        os.exit( 1 )
-      end
-      self.args[ k:upper() ] = optv
+      self.args[ k:upper() ] = v
     else                                        -- this must be the target name / target arguments
       if self.targetname == nil then            
         self.targetname = a
@@ -504,15 +413,7 @@ builder._show_help = function( self )
   print( "[builder] Valid options:" )
   print( "  -h: help (this text)" )
   print( "  -c: clean target" )
-  for i = 1, #self.options do
-    local o = self.options[ i ]
-    print( sf( "\n  %s: %s", o.name, o.help ) )
-    local values, default = o.printer( o )
-    if values then
-      print( sf( "    Possible values: %s", values ) )
-    end
-    print( sf( "    Default value: %s", default or "none (changes at runtime)" ) )
-  end
+  self.opts:show_help()
 end
 
 ---------------------------------------
@@ -646,11 +547,13 @@ end
 
 -- Return a compile command based on the specified args
 builder.compile_cmd = function( self, args )
+  args.defines = { args.defines, self.cmdline_macros }
   return self:_generic_cmd( args )
 end
 
 -- Return an assembler command based on the specified args
 builder.asm_cmd = function( self, args )
+  args.defines = { args.defines, self.cmdline_macros }
   args.compiler = args.assembler
   return self:_generic_cmd( args )
 end
@@ -718,8 +621,8 @@ end
 -- Actual building functions
 
 -- Return the object name corresponding to a source file name
-builder.obj_name = function( self, name )
-  local r = self.obj_extension
+builder.obj_name = function( self, name, ext )
+  local r = ext or self.obj_extension
   if not r then
     r = utils.is_windows() and "obj" or "o"
   end

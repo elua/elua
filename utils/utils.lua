@@ -116,9 +116,15 @@ is_file = function( path )
   return lfs.attributes( path, "mode" ) == "file"
 end
 
+-- Returns true if 'path' is a directory, false otherwise
+is_dir = function( path )
+  return lfs.attributes( path, "mode" ) == "directory"
+end
+
 -- Return a list of files in the given directory matching a given mask
-get_files = function( path, mask, norec )
+get_files = function( path, mask, norec, level )
   local t = ''
+  level = level or 0
   for f in lfs.dir( path ) do
     local fname = path .. dir_sep .. f
     if lfs.attributes( fname, "mode" ) == "file" then
@@ -130,10 +136,10 @@ get_files = function( path, mask, norec )
       end
       if include then t = t .. ' ' .. fname end
     elseif lfs.attributes( fname, "mode" ) == "directory" and not fname:find( "%.+$" ) and not norec then
-      t = t .. " " .. get_files( fname, mask, norec )
+      t = t .. " " .. get_files( fname, mask, norec, level + 1 )
     end
   end
-  return t
+  return level > 0 and t or t:gsub( "^%s+", "" )
 end
 
 -- Check if the given command can be executed properly
@@ -149,9 +155,10 @@ foreach = function ( t, cmd )
   for k, v in pairs( t ) do cmd( k, v ) end
 end
 
----------------------------------------
+-------------------------------------------------------------------------------
 -- Color-related funtions
 -- Currently disabled when running in Windows
+-- (they can be enabled by setting WIN_ANSI_TERM)
 
 local dcoltable = { 'black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white' }
 local coltable = {}
@@ -162,7 +169,7 @@ local _col_builder = function( col )
     if is_os_windows and not os.getenv( "WIN_ANSI_TERM" ) then
       return s
     else
-      return( sf( "\027[%dm%s\027[m", coltable[ col ] + 30, s ) )
+      return( sf( "\027[%d;1m%s\027[m", coltable[ col ] + 30, s ) )
     end
   end
   return _col_maker
@@ -174,4 +181,168 @@ foreach( coltable, function( k, v )
   _G[ fname ] = _col_builder( k ) 
   col_funcs[ k ] = _G[ fname ]
 end )
+
+-------------------------------------------------------------------------------
+-- Option handling
+
+local options = {}
+
+options.new = function()
+  local self = {}
+  self.options = {}
+  setmetatable( self, { __index = options } )
+  return self
+end
+
+-- Argument validator: boolean value
+options._bool_validator = function( v )
+  if v == '0' or v:upper() == 'FALSE' then
+    return false
+  elseif v == '1' or v:upper() == 'TRUE' then
+    return true
+  end
+end
+
+-- Argument validator: choice value
+options._choice_validator = function( v, allowed )
+  for i = 1, #allowed do
+    if v:upper() == allowed[ i ]:upper() then return allowed[ i ] end
+  end
+end
+
+-- Argument validator: choice map (argument value maps to something)
+options._choice_map_validator = function( v, allowed )
+  for k, value in pairs( allowed ) do
+    if v:upper() == k:upper() then return value end
+  end
+end
+
+-- Argument validator: string value (no validation)
+options._string_validator = function( v )
+  return v
+end
+
+-- Argument printer: boolean value
+options._bool_printer = function( o )
+  return "true|false", o.default and "true" or "false"
+end
+
+-- Argument printer: choice value
+options._choice_printer = function( o )
+  local clist, opts  = '', o.data
+  for i = 1, #opts do
+    clist = clist .. ( i ~= 1 and "|" or "" ) .. opts[ i ]
+  end
+  return clist, o.default
+end
+
+-- Argument printer: choice map printer
+options._choice_map_printer = function( o )
+  local clist, opts, def = '', o.data
+  local i = 1
+  for k, v in pairs( opts ) do
+    clist = clist .. ( i ~= 1 and "|" or "" ) .. k
+    if o.default == v then def = k end
+    i = i + 1
+  end
+  return clist, def
+end
+
+-- Argument printer: string printer
+options._string_printer = function( o )
+  return nil, o.default
+end
+
+-- Add an option of the specified type
+options._add_option = function( self, optname, opttype, help, default, data )
+  local validators = 
+  { 
+    string = options._string_validator, choice = options._choice_validator, 
+    boolean = options._bool_validator, choice_map = options._choice_map_validator
+  }
+  local printers = 
+  { 
+    string = options._string_printer, choice = options._choice_printer, 
+    boolean = options._bool_printer, choice_map = options._choice_map_printer
+  }
+  if not validators[ opttype ] then
+    print( sf( "[builder] Invalid option type '%s'", opttype ) )
+    os.exit( 1 )
+  end
+  table.insert( self.options, { name = optname, help = help, validator = validators[ opttype ], printer = printers[ opttype ], data = data, default = default } )
+end
+
+-- Find an option with the given name
+options._find_option = function( self, optname )
+  for i = 1, #self.options do
+    local o = self.options[ i ]
+    if o.name:upper() == optname:upper() then return self.options[ i ] end
+  end
+end
+
+-- 'add option' helper (automatically detects option type)
+options.add_option = function( self, name, help, default, data )
+  local otype
+  if type( default ) == 'boolean' then
+    otype = 'boolean'
+  elseif data and type( data ) == 'table' and #data == 0 then
+    otype = 'choice_map'
+  elseif data and type( data ) == 'table' then
+    otype = 'choice'
+    data = linearize_array( data )
+  elseif type( default ) == 'string' then
+    otype = 'string'
+  else
+    print( sf( "Error: cannot detect option type for '%s'", name ) )
+    os.exit( 1 )
+  end
+  self:_add_option( name, otype, help, default, data )
+end
+
+options.get_num_opts = function( self )
+  return #self.options
+end
+
+options.get_option = function( self, i )
+  return self.options[ i ]
+end
+
+-- Handle an option of type 'key=value'
+-- Returns both the key and the value or nil for error
+options.handle_arg = function( self, a )
+  local si, ei, k, v = a:find( "([^=]+)=(.*)$" )
+  if not k or not v then 
+    print( sf( "Error: invalid syntax in '%s'", a ) )
+    return
+  end
+  local opt = self:_find_option( k )
+  if not opt then
+    print( sf( "Error: invalid option '%s'", k ) )
+    return
+  end
+  local optv = opt.validator( v, opt.data )
+  if optv == nil then
+    print( sf( "Error: invalid value '%s' for option '%s'", v, k ) )
+    return
+  end
+  return k, optv
+end
+
+-- Show help for all the registered options
+options.show_help = function( self )
+  for i = 1, #self.options do
+    local o = self.options[ i ]
+    print( sf( "\n  %s: %s", o.name, o.help ) )
+    local values, default = o.printer( o )
+    if values then
+      print( sf( "    Possible values: %s", values ) )
+    end
+    print( sf( "    Default value: %s", default or "none (changes at runtime)" ) )
+  end
+end
+
+-- Create a new option handler
+function options_handler()
+  return options.new()
+end
 
