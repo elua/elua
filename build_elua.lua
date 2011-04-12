@@ -1,4 +1,22 @@
 #! /usr/bin/env lua
+
+--[[
+   build_elua.lua: A build script for eLua written in Lua.
+ 
+   The command line syntax is the same as for the old scons/SConstruct system.
+   See http://www.eluaproject.net/en_building.html
+
+   The only required option is the target board or CPU. e.g.:
+     lua build_elua.lua board=MIZAR32
+  
+   This script requires some well-known Lua libraries to run.
+   To install them on Ubuntu/Debian, go (as root):
+       apt-get install luarocks
+       luarocks install luafilesystem
+       luarocks install lpack
+       luarocks install md5
+--]]
+
 local args = { ... }
 local b = require "utils.build"
 local mkfs = require "utils.mkfs"
@@ -299,7 +317,7 @@ setmetatable( comp, { __index = function( t, key ) return builder:get_option( ke
 --           cpu = <cpuname>
 --           board = <board> cpu=<cpuname>
 if comp.board == 'auto' and comp.cpu == 'auto' then
-  print "Must specifiy board, cpu, or both"
+  print "You must specify board, cpu, or both"
   os.exit( -1 )
 elseif comp.board ~= 'auto' and comp.cpu ~= 'auto' then
   -- Check if the board, cpu pair is correct
