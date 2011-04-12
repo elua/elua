@@ -1,3 +1,4 @@
+#! /usr/bin/env lua
 local args = { ... }
 local b = require "utils.build"
 local mkfs = require "utils.mkfs"
