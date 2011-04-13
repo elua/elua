@@ -37,9 +37,7 @@ extern int pm_configure_clocks( pm_freq_param_t *param );
 
 static u32 platform_timer_set_clock( unsigned id, u32 clock );
 
-#if NUM_ADC > 0
 __attribute__((__interrupt__)) static void adc_int_handler();
-#endif
 
 // Virtual timers support
 #if VTMR_NUM_TIMERS > 0
