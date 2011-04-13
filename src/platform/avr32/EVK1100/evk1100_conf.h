@@ -99,7 +99,7 @@
 // Number of resources (0 if not available/not implemented)
 #define NUM_PIO               4
 #define NUM_SPI               8
-#define NUM_UART              4
+#define NUM_UART              2
 #if VTMR_NUM_TIMERS > 0
 #define NUM_TIMER             2
 #else
