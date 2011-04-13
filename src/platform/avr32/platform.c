@@ -57,9 +57,11 @@ __attribute__((__interrupt__)) static void tmr_int_handler()
 const u32 uart_base_addr[ ] = {
   AVR32_USART0_ADDRESS,
   AVR32_USART1_ADDRESS,
+#if NUM_UART > 2
   AVR32_USART2_ADDRESS,
 #ifdef AVR32_USART3_ADDRESS
   AVR32_USART3_ADDRESS,
+#endif
 #endif
 };
 
@@ -321,6 +323,8 @@ static const gpio_map_t uart_pins =
   { AVR32_USART1_RXD_0_0_PIN, AVR32_USART1_RXD_0_0_FUNCTION },
   { AVR32_USART1_TXD_0_0_PIN, AVR32_USART1_TXD_0_0_FUNCTION },
 
+#if NUM_UART > 2
+
   // UART 2
   { AVR32_USART2_RXD_0_0_PIN, AVR32_USART2_RXD_0_0_FUNCTION },
   { AVR32_USART2_TXD_0_0_PIN, AVR32_USART2_TXD_0_0_FUNCTION },
@@ -329,6 +333,8 @@ static const gpio_map_t uart_pins =
   // UART 3
   { AVR32_USART3_RXD_0_0_PIN, AVR32_USART3_RXD_0_0_FUNCTION },
   { AVR32_USART3_TXD_0_0_PIN, AVR32_USART3_TXD_0_0_FUNCTION },
+#endif
+
 #endif
 };
 
@@ -413,6 +419,7 @@ static const gpio_pin_data uart_flow_control_pins[] =
   { AVR32_USART1_RTS_0_0_PIN, AVR32_USART1_RTS_0_0_FUNCTION },
   { AVR32_USART1_CTS_0_0_PIN, AVR32_USART1_CTS_0_0_FUNCTION },
 
+#if NUM_UART > 2
 
 #ifdef AVR32_USART2_RTS_0_0_PIN
   // UART 2
@@ -428,6 +435,8 @@ static const gpio_pin_data uart_flow_control_pins[] =
   // UART 3
   { AVR32_USART3_RTS_0_0_PIN, AVR32_USART3_RTS_0_0_FUNCTION },
   { AVR32_USART3_CTS_0_0_PIN, AVR32_USART3_CTS_0_0_FUNCTION },
+#endif
+
 #endif
 };
 
