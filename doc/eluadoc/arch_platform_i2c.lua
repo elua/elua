@@ -49,7 +49,7 @@ enum
       ret = "1 if the I2C interface exists, 0 otherwise"
     },
 
-    { sig = "u32 #platform_i2c_setup#( unsigned id, u23 speed );",
+    { sig = "u32 #platform_i2c_setup#( unsigned id, u32 speed );",
       desc = [[This function is used to initialize the parameters of the I2C interface. <span class="warning">NOTE</span>: currently, only master I2C mode is implemented in eLua.]],
       args = 
       {
