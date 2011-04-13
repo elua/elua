@@ -184,10 +184,17 @@ int platform_init()
   pwm_init();
 #endif
 
-  cmn_platform_init();
 #ifdef ELUA_BOARD_MIZAR32
+  // If BUF_ENABLE_UART is enabled on Mizar32 (which it is by default) but the
+  // serial board is not plugged in, we get an infinite number of interrupts
+  // due to the RX pin picking up electrical noise and crashing the board.
+  // We avoid this by enabling the internal pull-up resistor on that pin
+  // before the UART interrupt is enabled.
+  // UART0 RX pin is on GPIO port A pin 0, hence port 0, pin mask (1 << 0)
   platform_pio_op( 0, ( pio_type )1 << 0 , PLATFORM_IO_PIN_PULLUP );
 #endif
+
+  cmn_platform_init();
 
   // All done
   return PLATFORM_OK;
