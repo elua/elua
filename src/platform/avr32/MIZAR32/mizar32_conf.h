@@ -22,6 +22,7 @@
 //#define BUILD_RPC
 #define BUF_ENABLE_UART
 #define BUILD_C_INT_HANDLERS
+//#define BUILD_ADC
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
@@ -59,6 +60,12 @@
 #define BUILD_RPC
 #endif
 
+#ifdef BUILD_ADC
+#define ADCLINE _ROM( AUXLIB_ADC, luaopen_adc, adc_map )
+#else
+#define ADCLINE
+#endif
+
 #if defined( BUILD_RPC ) 
 #define RPCLINE _ROM( AUXLIB_RPC, luaopen_rpc, rpc_map )
 #else
@@ -74,6 +81,7 @@
   _ROM( AUXLIB_TERM, luaopen_term, term_map )\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
   _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )\
+  ADCLINE\
   RPCLINE\
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
@@ -102,7 +110,7 @@
 #define NUM_TIMER             3
 #endif
 #define NUM_PWM               7		// PWM7 is on GPIO50
-#define NUM_ADC               0
+#define NUM_ADC               8		// Though ADC3 pin is the Ethernet IRQ
 #define NUM_CAN               0
 
 // As flow control seems not to work, we use a large buffer so that people
@@ -115,6 +123,15 @@
 #define RPC_UART_ID           CON_UART_ID
 #define RPC_TIMER_ID          CON_TIMER_ID
 #define RPC_UART_SPEED        CON_UART_SPEED
+
+// ADC Configuration Params
+#define ADC_BIT_RESOLUTION    10
+#define BUF_ENABLE_ADC
+#define ADC_BUF_SIZE          BUF_SIZE_2
+
+// These should be adjusted to support multiple ADC devices
+#define ADC_TIMER_FIRST_ID    0
+#define ADC_NUM_TIMERS        0
 
 // SD/MMC Filesystem Setup
 #define MMCFS_TICK_HZ          10
