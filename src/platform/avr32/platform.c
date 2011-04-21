@@ -37,7 +37,7 @@ extern int pm_configure_clocks( pm_freq_param_t *param );
 
 static u32 platform_timer_set_clock( unsigned id, u32 clock );
 
-#if NUM_ADC > 0
+#ifdef BUILD_ADC
 __attribute__((__interrupt__)) static void adc_int_handler();
 #endif
 
@@ -176,7 +176,7 @@ int platform_init()
 
 #endif
 
-#if NUM_ADC > 0
+#ifdef BUILD_ADC
   (&AVR32_ADC)->ier = AVR32_ADC_DRDY_MASK;
   INTC_register_interrupt( &adc_int_handler, AVR32_ADC_IRQ, AVR32_INTC_INT0);
 
