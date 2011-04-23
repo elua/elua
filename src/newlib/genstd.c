@@ -80,7 +80,7 @@ static _ssize_t std_read( struct _reent *r, int fd, void* vptr, size_t len )
     }
     ptr[ i ++ ] = c;
   }
-  return len;
+  return i;
 }
 
 // 'write'
