@@ -130,7 +130,8 @@ romfs = { 'bisect' : [ 'bisect.lua' ],
           'hangman' : [ 'hangman.lua' ],
           'lhttpd' : [ 'index.pht', 'lhttpd.lua', 'test.lua' ],
           'led' : [ 'led.lua' ],
-          'kinled' : [ 'kinled.lua' ],
+          'kinexamples' : [ 'kinled.lua', 'kinpwm.lua', 'hello.lua', 'info.lua', 'bisect.lua', 'TWR-K60N512.lua' ],
+          'kingames' : [ 'hangman.lua', 'life.lua', 'kinsimon.lua' ],
           'piano' : [ 'piano.lua' ],
           'pwmled' : [ 'pwmled.lua' ],
           'tvbgone' : [ 'tvbgone.lua', 'codes.bin' ],
@@ -174,7 +175,7 @@ file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'i
               'MBED' : [ 'bisect', 'hangman', 'hello', 'info', 'led', 'pwmled', 'dualpwm', 'life', 'adcscope', 'adcpoll' ],
               'MIZAR32' : [ ],
               'NETDUINO': [ ],
-              'TWR-K60N512' : [ 'hello', 'info', 'kinled' ]
+              'TWR-K60N512' : [ 'kinexamples', 'kingames' ]
 }
 
 comp = Environment( tools = [],
