@@ -844,7 +844,12 @@ int usart_read_char(volatile avr32_usart_t *usart, int *c)
   if (usart->csr & (AVR32_USART_CSR_OVRE_MASK |
                     AVR32_USART_CSR_FRAME_MASK |
                     AVR32_USART_CSR_PARE_MASK))
+  {
+    // Clear the error flag
+    usart->cr = AVR32_USART_CR_RSTSTA_MASK;
+    // Signal failure
     return USART_RX_ERROR;
+  }
 
   // No error; if we really did receive a char, read it and return SUCCESS.
   if (usart_test_hit(usart))
