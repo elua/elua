@@ -59,6 +59,12 @@
 
 // For BUF_ENABLE_UART we also need C interrupt handlers support and specific INT_UART_RX support
 #if defined( BUF_ENABLE_UART ) 
+  #if !defined( CON_BUF_SIZE )
+  #error "To enable console buffering you also need to define CON_BUF_SIZE"
+  #endif
+  #if !defined( CON_UART_ID )
+  #error "Console buffering needs CON_UART_ID defined to the UART ID of the console device"
+  #endif
   #if !defined( BUILD_C_INT_HANDLERS )
   #error "Buffering support on UART neeeds C interrupt handlers support, define BUILD_C_INT_HANDLERS in your platform_conf.h"
   #endif
@@ -74,15 +80,5 @@
   #endif
 #endif
 
-// CON_BUF_SIZE needs BUF_ENABLE_UART and CON_UART_ID
-#if defined( CON_BUF_SIZE )
-  #if !defined( BUF_ENABLE_UART )
-  #error "Console buffering needs BUF_ENABLE_UART"
-  #endif
-  #if !defined( CON_UART_ID )
-  #error "Console buffering needs CON_UART_ID defined to the UART ID of the console device"
-  #endif
-#endif
-  
 #endif // #ifndef __VALIDATE_H__
 
