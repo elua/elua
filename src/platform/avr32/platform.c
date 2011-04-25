@@ -348,27 +348,42 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   opts.baudrate = baud;
 
   // Set stopbits
-  if( stopbits == PLATFORM_UART_STOPBITS_1 )
+  switch (stopbits) {
+  case PLATFORM_UART_STOPBITS_1:
     opts.stopbits = USART_1_STOPBIT;
-  else if( stopbits == PLATFORM_UART_STOPBITS_1_5 )
+    break;
+  case PLATFORM_UART_STOPBITS_1_5:
     opts.stopbits = USART_1_5_STOPBITS;
-  else
+    break;
+  case PLATFORM_UART_STOPBITS_2:
     opts.stopbits = USART_2_STOPBITS;
+    break;
+  default:
+    return 0;
+  }
 
   // Set parity
-  if( parity == PLATFORM_UART_PARITY_EVEN )
+  switch (parity) {
+  case PLATFORM_UART_PARITY_EVEN:
     opts.paritytype = USART_EVEN_PARITY;
-  else if( parity == PLATFORM_UART_PARITY_ODD )
+    break;
+  case PLATFORM_UART_PARITY_ODD:
     opts.paritytype = USART_ODD_PARITY;
-  else
+    break;
+  case PLATFORM_UART_PARITY_NONE:
     opts.paritytype = USART_NO_PARITY;
+    break;
+  default:
+    return 0;
+  }
 
   // Set actual interface
   gpio_enable_module(uart_pins + id * 2, 2 );
-  usart_init_rs232( pusart, &opts, REQ_PBA_FREQ );
+  if ( usart_init_rs232( pusart, &opts, REQ_PBA_FREQ ) != USART_SUCCESS )
+    return 0;
 
-  // [TODO] Return actual baud here
-  return baud;
+  // Return actual baud here
+  return usart_get_async_baudrate(pusart, REQ_PBA_FREQ);
 }
 
 void platform_s_uart_send( unsigned id, u8 data )
