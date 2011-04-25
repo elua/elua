@@ -342,7 +342,11 @@ void usart_reset(volatile avr32_usart_t *usart)
 int usart_init_rs232(volatile avr32_usart_t *usart, const usart_options_t *opt, long pba_hz)
 {
   // Reset the USART and shutdown TX and RX.
+  // This is too brutal for eLua, for which the power-on reset state is OK.
+  // Otherwise a buffered serial port stops receiving when you change baud rate.
+#ifndef ELUA_PLATFORM
   usart_reset(usart);
+#endif
 
   // Check input values.
   if (!opt || // Null pointer.
