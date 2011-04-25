@@ -34,6 +34,11 @@ extern const elua_int_descriptor elua_int_table[ INT_ELUA_LAST ];
 #endif // #ifndef VTMR_NUM_TIMERS
 
 // [TODO] the new builder should automatically do this
+#ifndef CON_BUF_SIZE
+#define CON_BUF_SIZE          0
+#endif // #ifndef CON_BUF_SIZE
+
+// [TODO] the new builder should automatically do this
 #ifndef SERMUX_FLOW_TYPE
 #define SERMUX_FLOW_TYPE      PLATFORM_UART_FLOW_NONE
 #endif
@@ -200,11 +205,7 @@ void cmn_platform_init()
   // Setup console UART
   platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );  
   platform_uart_set_flow_control( CON_UART_ID, CON_FLOW_TYPE );
-#ifdef BUF_ENABLE_UART
   platform_uart_set_buffer( CON_UART_ID, CON_BUF_SIZE );
-#else
-  platform_uart_set_buffer( CON_UART_ID, 0 );
-#endif
 #endif // #if defined( CON_UART_ID ) && CON_UART_ID < SERMUX_SERVICE_ID_FIRST
 
   // Set the send/recv functions                          
