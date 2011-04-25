@@ -16,6 +16,8 @@ int uart_service_id_out = -1;
 u8 uart_got_esc = 0;
 int uart_last_sent = -1;
 // [TODO] add interrupt support for virtual UARTs
+#else // #ifdef BUILD_SERMUX
+#define SERMUX_PHYS_ID        ( 0xFFFF )
 #endif // #ifdef BUILD_SERMUX
 
 // The platform UART functions
@@ -146,11 +148,7 @@ static elua_int_c_handler prev_uart_rx_handler;
 
 static void cmn_uart_rx_inthandler( elua_int_resnum resnum )
 {   
-  if( buf_is_enabled( BUF_ID_UART, resnum )
-#ifdef BUILD_SERMUX
-                                            || resnum == SERMUX_PHYS_ID
-#endif // #ifdef BUILD_SERMUX
-                                                                        )
+  if( buf_is_enabled( BUF_ID_UART, resnum ) || resnum == SERMUX_PHYS_ID )
     cmn_rx_handler( resnum, platform_s_uart_recv( resnum, 0 ) );
   
   // Chain to previous handler
@@ -161,21 +159,13 @@ static void cmn_uart_rx_inthandler( elua_int_resnum resnum )
 
 int platform_uart_set_buffer( unsigned id, unsigned log2size )
 {
-#ifdef BUILD_SERMUX
-  // mere mortals aren't allowed to mess with VUART physical interface buffering
-  if( id == SERMUX_PHYS_ID )
+  if( id == SERMUX_PHYS_ID ) // mere mortals aren't allowed to mess with VUART physical interface buffering
     return PLATFORM_ERR;
-#endif // #ifdef BUILD_SERMUX
-
 #ifdef BUF_ENABLE_UART
   if( log2size == 0 )
   {
-#ifdef BUILD_SERMUX
-    // Virtual UARTs need buffers no matter what
-    if( id >= SERMUX_SERVICE_ID_FIRST )
+    if( id >= SERMUX_SERVICE_ID_FIRST ) // Virtual UARTs need buffers no matter what
       return PLATFORM_ERR; 
-#endif // #ifdef BUILD_SERMUX
-
     // Disable buffering
     buf_set( BUF_ID_UART, id, BUF_SIZE_NONE, BUF_DSIZE_U8 );
   }  
@@ -184,17 +174,11 @@ int platform_uart_set_buffer( unsigned id, unsigned log2size )
     // Enable buffering
     if( buf_set( BUF_ID_UART, id, log2size, BUF_DSIZE_U8 ) == PLATFORM_ERR )
       return PLATFORM_ERR;
-
-#ifdef BUILD_SERMUX
-    // No need for additional setup on virtual UARTs
-    if( id >= SERMUX_SERVICE_ID_FIRST )
+    if( id >= SERMUX_SERVICE_ID_FIRST ) // No need for aditional setup on virtual UARTs
       return PLATFORM_OK;    
-#endif // #ifdef BUILD_SERMUX
-
     // Enable UART RX interrupt 
     if( platform_cpu_set_interrupt( INT_UART_RX, id, PLATFORM_CPU_ENABLE ) != PLATFORM_INT_OK )
       return PLATFORM_ERR;
-
     // Setup our C handler
     if( elua_int_get_c_handler( INT_UART_RX ) != cmn_uart_rx_inthandler )
       prev_uart_rx_handler = elua_int_set_c_handler( INT_UART_RX, cmn_uart_rx_inthandler );
@@ -223,10 +207,8 @@ void cmn_uart_setup_sermux()
 
 int platform_uart_set_flow_control( unsigned id, int type )
 { 
-#ifdef BUILD_SERMUX
   if( id >= SERMUX_SERVICE_ID_FIRST )
     return PLATFORM_ERR;
-#endif // #ifdef BUILD_SERMUX
-
   return platform_s_uart_set_flow_control( id, type );
 }
+

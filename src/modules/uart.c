@@ -30,10 +30,8 @@ static int uart_setup( lua_State* L )
   
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( uart, id );
-#ifdef BUILD_SERMUX
   if( id >= SERMUX_SERVICE_ID_FIRST )
     return luaL_error( L, "uart.setup can't be called on virtual UARTs" );
-#endif
   baud = luaL_checkinteger( L, 2 );
   databits = luaL_checkinteger( L, 3 );
   parity = luaL_checkinteger( L, 4 );
@@ -189,10 +187,8 @@ static int uart_set_buffer( lua_State *L )
   MOD_CHECK_ID( uart, id );
   if( size && ( size & ( size - 1 ) ) )
     return luaL_error( L, "the buffer size must be a power of 2 or 0" );
-#ifdef BUILD_SERMUX
   if( size == 0 && id >= SERMUX_SERVICE_ID_FIRST )
     return luaL_error( L, "disabling buffers on virtual UARTs is not allowed" );
-#endif
   if( platform_uart_set_buffer( id, intlog2( size ) ) == PLATFORM_ERR )
     return luaL_error( L, "unable to set UART buffer" );
   return 0;
