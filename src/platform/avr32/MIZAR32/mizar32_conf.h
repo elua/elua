@@ -162,6 +162,9 @@
 #define MEM_START_ADDRESS     { ( void* )end, ( void* )( SDRAM + ELUA_FIRMWARE_SIZE ) }
 #define MEM_END_ADDRESS       { ( void* )( 0x8000 - STACK_SIZE_TOTAL - 1 ), ( void* )( SDRAM + SDRAM_SIZE - 1 ) }
 
+// Interrupt queue size
+#define PLATFORM_INT_QUEUE_LOG_SIZE 5
+
 // Interrupt list
 #define INT_UART_RX           ELUA_INT_FIRST_ID
 #define INT_ELUA_LAST         INT_UART_RX

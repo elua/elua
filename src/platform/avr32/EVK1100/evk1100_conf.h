@@ -18,7 +18,7 @@
 #define BUILD_CON_GENERIC
 //#define BUILD_RPC
 #define BUILD_C_INT_HANDLERS
-#define BUILA_LUA_INT_HANDLERS
+#define BUILD_LUA_INT_HANDLERS
 //#define BUILD_RFS
 //#define BUILD_SERMUX
 #define BUILD_ADC
@@ -160,6 +160,9 @@
 //#define SERMUX_PHYS_SPEED     115200
 //#define SERMUX_NUM_VUART      2
 //#define SERMUX_BUFFER_SIZES   { RFS_BUFFER_SIZE, CON_BUF_SIZE }
+
+// Interrupt queue size
+#define PLATFORM_INT_QUEUE_LOG_SIZE 5
 
 // Interrupt list
 #define INT_UART_RX           ELUA_INT_FIRST_ID

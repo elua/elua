@@ -579,6 +579,11 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
   return res;
 }
 
+int platform_s_timer_set_match_int( unsigned id, u32 period_us, int type )
+{
+  return PLATFORM_TIMER_INT_INVALID_ID;
+}
+
 // ****************************************************************************
 // SPI functions
 
