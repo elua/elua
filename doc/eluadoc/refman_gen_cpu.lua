@@ -91,7 +91,7 @@ This mechanism is also used to expose interrupt IDs to the CPU module, check @in
         "$id$ - the interrupt ID. If specified, at least one resource ID must also be specified.",
         "$resnum1$ - the first resource ID, required if $id$ is specified.",
         "$resnum2 (optional)$ - the second resource ID.",
-        "$resnumn (optional)$ - the #n#-th resource ID."
+        "$resnumn (optional)$ - the $n$-th resource ID."
       }
     },
 
@@ -102,7 +102,7 @@ This mechanism is also used to expose interrupt IDs to the CPU module, check @in
         "$id$ - the interrupt ID. If specified, at least one resource ID must also be specified.",
         "$resnum1$ - the first resource ID, required if $id$ is specified.",
         "$resnum2 (optional)$ - the second resource ID.",
-        "$resnumn (optional)$ - the #n#-th resource ID."
+        "$resnumn (optional)$ - the $n$-th resource ID."
       }     
     },
     
@@ -112,19 +112,19 @@ This mechanism is also used to expose interrupt IDs to the CPU module, check @in
     },
 
     { sig = "prev_handler = #cpu.set_int_handler#( id, handler )",
-      desc = "Sets the Lua interrupt handler for interrupt *id* to function *handler*. *handler* can be #nil# to disable the interrupt handler. Only available if interrupt support is enabled, check @inthandlers.html@here@ for details.",
+      desc = "Sets the Lua interrupt handler for interrupt $id$ to function $handler$. $handler$ can be $nil$ to disable the interrupt handler. Only available if interrupt support is enabled, check @inthandlers.html@here@ for details.",
       args = 
       {
         "$id$ - the interrupt ID.",
-        "$handler$ - the Lua interrupt handler function, or *nil* to disable the Lua interrupt handler feature."
+        "$handler$ - the Lua interrupt handler function, or $nil$ to disable the Lua interrupt handler feature."
       },
-      ret = "$prev_handler$ - the previous interrupt handler for interrupt *id*, or *nil* if an interrupt handler was not set for interrupt *id*."
+      ret = "$prev_handler$ - the previous interrupt handler for interrupt $id$, or $nil$ if an interrupt handler was not set for interrupt $id$."
     },
 
      { sig = "handler = #cpu.get_int_handler#( id )",
-      desc = "Returns the Lua interrupt handler for interrupt *id*",
+      desc = "Returns the Lua interrupt handler for interrupt $id$",
       args = "$id$ - the interrupt ID.",
-      ret = "$handler$ - the interrupt handler for interrupt *id*, or *nil* if an interrupt handler is not set for interrupt *id*."
+      ret = "$handler$ - the interrupt handler for interrupt $id$, or $nil$ if an interrupt handler is not set for interrupt $id$."
     },
 
    { sig = "#cpu.get_int_flag#( id, resnum, [clear] )",
