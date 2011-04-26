@@ -10,7 +10,7 @@ data_en =
   menu_name = "pack",
 
   -- Overview
-  overview = [[This module allows for arbitrary packing of data into Lua strings and unpacking data from Lua strings. In this way, a string can be used to store data in a platform-indepdendent 
+  overview = [[This module allows for arbitrary packing of data into Lua strings and unpacking data from Lua strings. In this way, a string can be used to store data in a platform-independent 
 manner. It is based on the ^http://www.tecgraf.puc-rio.br/~~lhf/ftp/lua/#lpack^lpack^ module from Luiz Henrique de Figueiredo (with some minor tweaks). </p>
 <p>Both methods of this module (@#pack@pack@ and @#unpack@unpack@) use a $format string$ to describe how to pack/unpack the data. The format string contains one or more $data specifiers$, each
 data specifier is applied to a single variable that must be packed/unpacked. The data specifier has the following general format:</p>
