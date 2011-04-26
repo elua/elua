@@ -2,7 +2,7 @@
 eLua interrupt handlers
 -----------------------
 
-Starting with link:downloads.html[vesion 0.8] eLua supports interrupt handlers written in Lua. Once an interrupt handler is set in the Lua code, it will be called each time a supported 
+Starting with link:downloads.html[version 0.8] eLua supports interrupt handlers written in Lua. Once an interrupt handler is set in the Lua code, it will be called each time a supported 
 interrupt is generated. A *supported interrupt* is any interrupt that is handled by the platform C code (see link:arch_ints.html[here] for more details).
 
 [red]*IMPORTANT*: before learning how to use interrupt handlers in Lua, please keep in mind that Lua interrupt handlers don't work the same way as 
