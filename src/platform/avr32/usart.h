@@ -230,6 +230,16 @@ extern void usart_reset(volatile avr32_usart_t *usart);
  */
 extern int usart_init_rs232(volatile avr32_usart_t *usart, const usart_options_t *opt, long pba_hz);
 
+/*! \brief Returns the actual baud rate set into the USART in async mode
+ *
+ * \param usart   Base address of the USART instance.
+ * \param pba_hz  USART module input clock frequency (PBA clock, Hz).
+ *
+ * \retval baudrate             The nearest integer to the actual baud rate
+ * \retval 0                    No baudrate is being generated or some error
+ */
+extern unsigned int usart_get_async_baudrate(volatile avr32_usart_t *usart, unsigned long pba_hz);
+
 /*! \brief Sets up the USART to use the standard RS232 protocol in TX-only mode.
  *
  * Compared to \ref usart_init_rs232, this function allows very high baud rates

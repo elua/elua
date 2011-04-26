@@ -111,6 +111,60 @@ static int usart_set_async_baudrate(volatile avr32_usart_t *usart, unsigned int 
 }
 
 
+/*! \brief Return the actual baud rate set into the USART
+ *
+ * Baud rate calculation:
+ * \f$ Baudrate = \frac{SelectedClock}{Over \times (CD + \frac{FP}{8})} \f$, \e Over being 16 or 8.
+ *
+ * \param usart     Base address of the USART instance.
+ * \param pba_hz    USART module input clock frequency (PBA clock, Hz).
+ *
+ * \retval baudrate The closest integer to the actual baud rate
+ * \retval 0        UART clock is off or there was some error on our part
+ */
+unsigned int usart_get_async_baudrate(volatile avr32_usart_t *usart, unsigned long pba_hz)
+{
+  unsigned int clock;	// Master clock frequency
+  unsigned int over;    // divisor of 8 or 16
+  unsigned int cd;      // clock divider (0-65535)
+  unsigned int fp;      // fractional part of clock divider (0-7)
+  unsigned int divisor; // What the master clock is divided by to get
+                        // the final baud rate
+
+  // Find 
+  switch ((usart->mr & AVR32_USART_MR_USCLKS_MASK) >> AVR32_USART_MR_USCLKS_OFFSET)
+  {
+    case AVR32_USART_MR_USCLKS_MCK:
+      clock = pba_hz;
+      break;
+
+    case AVR32_USART_MR_USCLKS_MCK_DIV:
+      // I can't figure out where the divider is defined.  The datasheet
+      // section 26.7.1 says it is "product dependent, but generally set to 8".
+      // Fortunately, the code above always selects MCK.
+    case AVR32_USART_MR_USCLKS_SCK:
+      // If we have an external clock, we don't know its frequency here.
+    default:
+      return 0;	
+  }
+
+  over = usart->mr & AVR32_USART_MR_OVER_MASK;
+  cd = (usart->brgr & AVR32_USART_BRGR_CD_MASK) >> AVR32_USART_BRGR_CD_OFFSET;
+  fp = (usart->brgr & AVR32_USART_BRGR_FP_MASK) >> AVR32_USART_BRGR_FP_OFFSET;
+
+  // if CD==0, no baud rate is generated.
+  // if CD==1, the clock divider and fractional part are bypassed.
+  if (cd == 0) return 0;   
+  if (cd == 1) fp = 0;
+
+  // Rewriting "divisor = 8 * (2 - over) * (cd + fp/8)" for integer math:
+  divisor = (2 - over) * (8 * cd + fp);
+
+  // Round to the integer that is closest to the actual result
+  return (clock + divisor/2) / divisor;
+}
+
+
 /*! \brief Calculates a clock divider (\e CD) for the USART synchronous master
  *         modes to generate a baud rate as close as possible to the baud rate
  *         set point.
@@ -288,7 +342,11 @@ void usart_reset(volatile avr32_usart_t *usart)
 int usart_init_rs232(volatile avr32_usart_t *usart, const usart_options_t *opt, long pba_hz)
 {
   // Reset the USART and shutdown TX and RX.
+  // This is too brutal for eLua, for which the power-on reset state is OK.
+  // Otherwise a buffered serial port stops receiving when you change baud rate.
+#ifndef ELUA_PLATFORM
   usart_reset(usart);
+#endif
 
   // Check input values.
   if (!opt || // Null pointer.
@@ -844,7 +902,12 @@ int usart_read_char(volatile avr32_usart_t *usart, int *c)
   if (usart->csr & (AVR32_USART_CSR_OVRE_MASK |
                     AVR32_USART_CSR_FRAME_MASK |
                     AVR32_USART_CSR_PARE_MASK))
+  {
+    // Clear the error flag
+    usart->cr = AVR32_USART_CR_RSTSTA_MASK;
+    // Signal failure
     return USART_RX_ERROR;
+  }
 
   // No error; if we really did receive a char, read it and return SUCCESS.
   if (usart_test_hit(usart))
