@@ -63,6 +63,8 @@ If you need to download the source code of eLua you can either:
 - checkout the latest (bleeding edge) source code from the Git repository in read-only mode (anonymous) mode
 - checkout the latest (bleeding edge) source code from the Git repository in read-write mode (for developers)
 
+Our sources were originally tracked using SVN and have moved to Git.  For those familiar with SVN and not Git, the following link:http://git.or.cz/course/svn.html[crash course] in Git for SVN users may prove useful.
+
 [[official]]
 Source code archives
 ~~~~~~~~~~~~~~~~~~~~
