@@ -95,8 +95,8 @@ Git public repository (authenticated login r/w mode, for developers)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Follow the steps below if you need write access to the eLua repository:
 
-- link:http://help.github.com/set-up-git-redirect[set up Git for GitHub]
 - if you don't have an account on https://github.com/[GitHub] and you plan to contribute with code for the project, please link:https://github.com/signup/free[create one].
+- link:http://help.github.com/set-up-git-redirect[set up Git for GitHub]
 - link:overview.html#contacts[contact us] specifying your GitHub ID and we'll give you write (commit) access to the Git repository.
 
 Then checkout the repository:
