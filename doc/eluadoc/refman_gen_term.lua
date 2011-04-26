@@ -100,51 +100,51 @@ data_en =
   <th style="text-align: left;">Meaning</th>
 </tr>
 <tr>
-  <td>$KC_UP$</td>
+  <td>$term.KC_UP$</td>
   <td>the UP key on the terminal</td>
 </tr>
 <tr>
-  <td>$KC_DOWN$</td>
+  <td>$term.KC_DOWN$</td>
   <td>the DOWN key on the terminal</td>
 </tr>
 <tr>
-  <td>$KC_LEFT$</td>
+  <td>$term.KC_LEFT$</td>
   <td>the LEFT key on the terminal</td>
 </tr>
 <tr>
-  <td>$KC_RIGHT$</td>
+  <td>$term.KC_RIGHT$</td>
   <td>the RIGHT key on the terminal</td>
 </tr>
 <tr>
-  <td>$KC_HOME$</td>
+  <td>$term.KC_HOME$</td>
   <td>the HOME key on the terminal</td>
 </tr>
 <tr>
-  <td>$KC_END$</td>
+  <td>$term.KC_END$</td>
   <td>the END key on the terminal</td>
 </tr>
 <tr>
-  <td>$KC_PAGEUP$</td>
+  <td>$term.KC_PAGEUP$</td>
   <td>the PAGE UP key on the terminal</td>
 </tr>
 <tr>
-  <td>$KC_PAGEDOWN$</td>
+  <td>$term.KC_PAGEDOWN$</td>
   <td>the PAGE DOWN key on the terminal</td>
 </tr>
 <tr>
-  <td>$KC_ENTER$</td>
+  <td>$term.KC_ENTER$</td>
   <td>the ENTER (CR) key on the terminal</td>
 </tr>
 <tr>
-  <td>$KC_TAB$</td>
+  <td>$term.KC_TAB$</td>
   <td>the TAB key on the terminal</td>
 </tr>
 <tr>
-  <td>$KC_BACKSPACE$</td>
+  <td>$term.KC_BACKSPACE$</td>
   <td>the BACKSPACE key on the terminal</td>
 </tr>
 <tr>
-  <td>$KC_ESC$</td>
+  <td>$term.KC_ESC$</td>
   <td>the ESC (escape) key on the terminal</td>
 </tr>
 </tbody>
