@@ -6,7 +6,8 @@ You have a few options for downloading eLua:
 
 - download a binary eLua image for the platform of your choice. Binary images are provided with each official release. This is generally the best option if you have a
   board that's officially supported by eLua (see link:status.html[here] for details) and you want to have eLua up and running on your board as quickly as possible.
-- download the source code to build eLua yourself. You can either download the source code of an official release or get the "bleeding edge" version from the SVN repository. 
+
+- download the source code to build eLua yourself. You can either download the source code of an official release or get the "bleeding edge" version from the link:http://git-scm.com/[Git] repository. 
   Download the source code instead of a binary image if you need to make adjustments to the source code to support your board, or if you want to customize the eLua image, 
   or if you simply want to take a look at what  happens behind the _eLua#_ prompt :)
 
@@ -55,12 +56,14 @@ NOTE: __Lua number type__ refers to the built Lua interpreter number type, float
 Source code
 -----------
 If all you want is to take a quick peek at eLua's source code, but you don't need to download it, it's probably enough to use the 
-http://svn.berlios.de/wsvn/elua[BerliOS WebSVN interface]. You can browse through the complete source of eLua using this method. +
+https://github.com/elua/elua[GitHub web interface]. You can browse through the complete source of eLua using this method. +
 If you need to download the source code of eLua you can either:
 
 - download the source code archive of an official release
-- checkout the latest (bleeding edge) source code from the SVN repository in read-only mode (anonymous) mode
-- checkout the latest (bleeding edge) source code from the SVN repository in read-write mode (for developers)
+- checkout the latest (bleeding edge) source code from the Git repository in read-only mode (anonymous) mode
+- checkout the latest (bleeding edge) source code from the Git repository in read-write mode (for developers)
+
+Our sources were originally tracked using SVN and have moved to Git.  For those familiar with SVN and not Git, the following link:http://git.or.cz/course/svn.html[crash course] in Git for SVN users may prove useful.
 
 [[official]]
 Source code archives
@@ -74,41 +77,41 @@ code of an older version check out link:dl_old.html[this page].
 | 0.8       | http://prdownload.berlios.de/elua/elua0.8.tgz[eLua 0.8]
 |=====================================================================================
 
-[[svnpublic]]
-SVN public repository (anonymous read-only mode)
+[[gitpublic]]
+Git public repository (anonymous read-only mode)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-If you'd rather have the very last development ("bleeding edge") version, just check it out from our Subversion Repository:
+If you'd rather have the very last development ("bleeding edge") version, just check it out from our Git Repository:
 
 ----------------------------------------------
-$ svn checkout svn://svn.berlios.de/elua/trunk
+$ git clone git://github.com/elua/elua.git
 ----------------------------------------------
 
-Once checked out, the repository can be easily updated by the svn client command:
+Once checked out, the repository can be easily updated by the Git client command:
 
-------------
-$ svn update
-------------
+----------
+$ git pull
+----------
 
-[[svndev]]
-SVN public repository (authenticated login r/w mode, for developers)
+[[gitdev]]
+Git public repository (authenticated login r/w mode, for developers)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Follow the steps below if you need write access to the eLua repository:
 
-- if you don't have an account on http://developer.berlios.de[developer.berlios.de] and you plan to contribute with code for the project, please create one.
-- link:overview.html#contacts[contact us] specifying your BerliOS ID and we'll give you write (commit) access to the subversion repository.
+- if you don't have an account on https://github.com/[GitHub] and you plan to contribute with code for the project, please link:https://github.com/signup/free[create one].
+- link:http://help.github.com/set-up-git-redirect[set up Git for GitHub]
+- link:overview.html#contacts[contact us] specifying your GitHub ID and we'll give you write (commit) access to the Git repository.
 
 Then checkout the repository:
 
-----------------------------------------------------------------
-$ export SVN_SSH='ssh -l <your_berlios_id>'
-$ svn checkout svn+ssh://svn.berlios.de/svnroot/repos/elua/trunk
-----------------------------------------------------------------
+----------------------------------------
+$ git clone git@github.com:elua/elua.git
+----------------------------------------
 
 Once checked out, the repository can be easily updated:
 
-------------
-$ svn update
-------------
+----------
+$ git pull
+----------
 
 // $$FOOTER$$ 
 
