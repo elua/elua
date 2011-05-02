@@ -3,7 +3,7 @@
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
-#include "platform.h"
+#include "type.h"
 #include "auxmods.h"
 #include "lrotable.h"
 #include <string.h>
