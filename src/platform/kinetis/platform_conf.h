@@ -28,7 +28,7 @@
 //#define BUILD_LINENOISE
 //#define BUILD_C_INT_HANDLERS
 //#define BUILD_LUA_INT_HANDLERS
-//#define ENABLE_ENC
+#define ENABLE_TSI
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
@@ -41,6 +41,11 @@
 
 // *****************************************************************************
 // Auxiliary libraries that will be compiled for this platform
+
+#ifdef ENABLE_TSI
+#define PS_LIB_TABLE_NAME "kin"
+#endif
+
 
 #if defined( ELUA_BOOT_RPC ) && !defined( BUILD_RPC )
 #define BUILD_RPC

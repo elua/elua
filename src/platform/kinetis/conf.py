@@ -1,5 +1,5 @@
 # Configuration file for the kinetis microcontroller
-specific_files = "startup_kinetis.c platform.c cpu/arm_cm4.c cpu/sysinit.c drivers/uart/uart.c drivers/mcg/mcg.c drivers/wdog/wdog.c"
+specific_files = "startup_kinetis.c platform.c cpu/arm_cm4.c cpu/sysinit.c drivers/uart/uart.c drivers/mcg/mcg.c drivers/wdog/wdog.c tsi.c"
 specific_includes = 'cpu cpu/headers platforms drivers/mcg drivers/uart drivers/wdog'
 ldscript = "mk60n512md100.ld"
                                          

@@ -14,6 +14,8 @@
 #include "common.h"
 #include "platform_conf.h"
 #include "buf.h"
+#include "tsi.h"
+#include "lrotable.h"
 
 // Platform includes
 #include "MK60N512VMD100.h"
@@ -28,6 +30,7 @@ static void uarts_init();
 static void timers_init();
 static void gpios_init();
 static void pwms_init();
+static void tsi_init();
 
 // ****************************************************************************
 // Platform initialization
@@ -40,6 +43,7 @@ int platform_init()
   uarts_init();
   timers_init();
   pwms_init();
+  tsi_init();
   
   // Common platform initialization code
   cmn_platform_init();
@@ -374,3 +378,130 @@ u32 platform_s_cpu_get_frequency()
 {
   return core_clk_mhz * 1000000;
 }
+
+// *****************************************************************************
+// TSI specific functions
+
+static const u8 tsi_pins[] = { 4, 3, 2, 16 };
+
+static void tsi_init()
+{
+  // Enable clock
+  SIM_SCGC5 |= SIM_SCGC5_TSI_MASK;
+
+  // 4 uA external current, 32 uA ref current, 800mV delta
+  TSI_SCANC_REG(TSI0_BASE_PTR) |= ( TSI_SCANC_EXTCHRG( 3 ) | TSI_SCANC_REFCHRG( 31 ) |
+                                    TSI_SCANC_DELVOL( 7 )  | TSI_SCANC_SMOD( 0 ) | 
+                                    TSI_SCANC_AMPSC( 0 ) );
+
+  //                              prescaler=4         scans=16               enable TSI
+  TSI_GENCS_REG(TSI0_BASE_PTR) |= TSI_GENCS_PS(4-1) | TSI_GENCS_NSCN(16-1);
+
+
+}
+
+
+u32 enc_tsi_init( unsigned id )
+{
+  // Disable TSI while making changes
+  TSI_GENCS_REG( TSI0_BASE_PTR) &= ~TSI_GENCS_STM_MASK;
+
+  // Set electrode pin to analog
+  PORT_PCR_REG( PORTA_BASE_PTR, tsi_pins[ id ] ) |= PORT_PCR_MUX( 0 );
+
+  // enable electrode pin
+  TSI_PEN_REG( TSI0_BASE_PTR ) |= 1 << id;
+
+  TSI_THRESHLD_REG(TSI0_BASE_PTR, id) = TSI_THRESHLD_HTHH(0xFF) | TSI_THRESHLD_LTHH(0x00);
+
+  // Enable continuous scan mode
+  TSI_GENCS_REG( TSI0_BASE_PTR) |= TSI_GENCS_STM_MASK | TSI_GENCS_TSIEN_MASK;
+}
+
+
+u16 enc_tsi_read( unsigned id )
+{
+  return *(( u16* )&TSI_CNTR1_REG(TSI0_BASE_PTR) + id);
+}
+
+
+/*
+u32 platform_tsi_op( unsigned id, int op, u32 data )
+{
+  u32 res = 0;
+
+  data = data;
+  switch( op )
+  {
+    case PLATFORM_TSI_OP_ENABLE:
+      PORT_PCR_REG( PORTA_BASE_PTR, tsi_pins[ id ] ) |= PORT_PCR_MUX( MUX_ALT0 );
+      TSI_PEN_REG( TSI0_BASE_PTR ) |= 1 << id;
+      break;
+
+    case PLATFORM_TSI_OP_DISABLE:
+      TSI_PEN_REG( TSI0_BASE_PTR ) &= ~(1 << ( id & 0xF ));
+      break;
+
+    case PLATFORM_TSI_OP_SET_THRESHOLD:
+      TSI_THRESHLD_REG(TSI0_BASE_PTR, id) = data
+
+
+    case PLATFORM_TIMER_OP_READ:
+      res = PIT_CVAL_REG( PIT_BASE_PTR, id );
+      break;
+
+    case PLATFORM_TIMER_OP_GET_MAX_DELAY:
+      res = platform_timer_get_diff_us( id, 0, 0xFFFFFFFF );
+      break;
+
+    case PLATFORM_TIMER_OP_GET_MIN_DELAY:
+      res = platform_timer_get_diff_us( id, 0, 1 );    
+      break;
+
+    case PLATFORM_TIMER_OP_SET_CLOCK:
+    case PLATFORM_TIMER_OP_GET_CLOCK:    
+      res = periph_clk_khz * 1000;
+      break;
+  }
+  return res;
+  }*/
+
+
+#ifdef ENABLE_TSI
+
+#define MIN_OPT_LEVEL 2
+#include "lrodefs.h"
+extern const LUA_REG_TYPE tsi_map[];
+
+const LUA_REG_TYPE platform_map[] =
+{
+#if LUA_OPTIMIZE_MEMORY > 0
+  { LSTRKEY( "tsi" ), LROVAL( tsi_map ) },
+#endif
+  { LNILKEY, LNILVAL }
+};
+
+LUALIB_API int luaopen_platform( lua_State *L )
+{
+#if LUA_OPTIMIZE_MEMORY > 0
+  return 0;
+#else // #if LUA_OPTIMIZE_MEMORY > 0
+  luaL_register( L, PS_LIB_TABLE_NAME, platform_map );
+
+  // Setup the new tables inside platform table
+  lua_newtable( L );
+  luaL_register( L, NULL, enc_map );
+  lua_setfield( L, -2, "tsi" );
+
+  return 1;
+#endif // #if LUA_OPTIMIZE_MEMORY > 0
+}
+
+#else // #ifdef ENABLE_TSI
+
+LUALIB_API int luaopen_platform( lua_State *L )
+{
+  return 0;
+}
+
+#endif // #ifdef ENABLE_TSI
