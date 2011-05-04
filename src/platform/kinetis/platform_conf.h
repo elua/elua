@@ -57,6 +57,12 @@
 #define RPCLINE
 #endif
 
+#ifdef PS_LIB_TABLE_NAME
+#define PLATLINE _ROM( PS_LIB_TABLE_NAME, luaopen_platform, platform_map )
+#else
+#define PLATLINE
+#endif
+
 #define LUA_PLATFORM_LIBS_ROM\
   _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
   _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
@@ -69,7 +75,8 @@
   _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
   _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map )\
   RPCLINE\
-  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
+  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
+  PLATLINE
   
 #if 0  
   _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\

@@ -37,7 +37,7 @@ static int tsi_read( lua_State *L )
 #include "lrodefs.h"  
 
 // Module function map
-const LUA_REG_TYPE enc_map[] =
+const LUA_REG_TYPE tsi_map[] =
 { 
   { LSTRKEY( "init" ),  LFUNCVAL( tsi_init ) },
   { LSTRKEY( "read" ),  LFUNCVAL( tsi_read ) },

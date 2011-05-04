@@ -401,7 +401,7 @@ static void tsi_init()
 }
 
 
-u32 enc_tsi_init( unsigned id )
+void kin_tsi_init( unsigned id )
 {
   // Disable TSI while making changes
   TSI_GENCS_REG( TSI0_BASE_PTR) &= ~TSI_GENCS_STM_MASK;
@@ -419,7 +419,7 @@ u32 enc_tsi_init( unsigned id )
 }
 
 
-u16 enc_tsi_read( unsigned id )
+u16 kin_tsi_read( unsigned id )
 {
   return *(( u16* )&TSI_CNTR1_REG(TSI0_BASE_PTR) + id);
 }
