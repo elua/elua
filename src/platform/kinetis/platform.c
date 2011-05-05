@@ -382,7 +382,9 @@ u32 platform_s_cpu_get_frequency()
 // *****************************************************************************
 // TSI specific functions
 
-static const u8 tsi_pins[] = { 4, 3, 2, 16 };
+static const u8 tsi_pins[] =  { 0, 0, 1, 2, 3, 4, 1, 2, 3, 16, 17, 18, 19, 0, 1, 2 };
+static const u8 tsi_ports[] = { 1, 0, 0, 0, 0, 0, 1, 1, 1, 1,  1,  1,  1, 2, 2, 2 };
+
 
 static void tsi_init()
 {
@@ -390,37 +392,43 @@ static void tsi_init()
   SIM_SCGC5 |= SIM_SCGC5_TSI_MASK;
 
   // 4 uA external current, 32 uA ref current, 800mV delta
-  TSI_SCANC_REG(TSI0_BASE_PTR) |= ( TSI_SCANC_EXTCHRG( 3 ) | TSI_SCANC_REFCHRG( 31 ) |
+  TSI_SCANC_REG(TSI0_BASE_PTR) |= ( TSI_SCANC_EXTCHRG( 15 ) | TSI_SCANC_REFCHRG( 11 ) |
                                     TSI_SCANC_DELVOL( 7 )  | TSI_SCANC_SMOD( 0 ) | 
                                     TSI_SCANC_AMPSC( 0 ) );
 
-  //                              prescaler=4         scans=16               enable TSI
-  TSI_GENCS_REG(TSI0_BASE_PTR) |= TSI_GENCS_PS(4-1) | TSI_GENCS_NSCN(16-1);
-
-
+  //                              prescaler=4         scans=11
+  TSI_GENCS_REG(TSI0_BASE_PTR) |= TSI_GENCS_PS(1) | TSI_GENCS_NSCN(16);
 }
 
 
 void kin_tsi_init( unsigned id )
 {
-  // Disable TSI while making changes
-  TSI_GENCS_REG( TSI0_BASE_PTR) &= ~TSI_GENCS_STM_MASK;
 
-  // Set electrode pin to analog
-  PORT_PCR_REG( PORTA_BASE_PTR, tsi_pins[ id ] ) |= PORT_PCR_MUX( 0 );
 
-  // enable electrode pin
-  TSI_PEN_REG( TSI0_BASE_PTR ) |= 1 << id;
+  //TSI_THRESHLD_REG(TSI0_BASE_PTR, id) = TSI_THRESHLD_HTHH(0xFF) | TSI_THRESHLD_LTHH(0x00);
 
-  TSI_THRESHLD_REG(TSI0_BASE_PTR, id) = TSI_THRESHLD_HTHH(0xFF) | TSI_THRESHLD_LTHH(0x00);
 
-  // Enable continuous scan mode
-  TSI_GENCS_REG( TSI0_BASE_PTR) |= TSI_GENCS_STM_MASK | TSI_GENCS_TSIEN_MASK;
 }
 
 
 u16 kin_tsi_read( unsigned id )
 {
+  // Set electrode pin to analog
+  PORT_PCR_REG( ports[ tsi_ports [ id ] ], tsi_pins[ id ] ) |= PORT_PCR_MUX( 0 );
+
+  // enable electrode pin
+  TSI_PEN_REG( TSI0_BASE_PTR ) = 1 << id;
+
+  // Enable TSI
+  TSI_GENCS_REG( TSI0_BASE_PTR) |=  TSI_GENCS_TSIEN_MASK;
+
+  // Fire software scan
+  TSI_GENCS_REG( TSI0_BASE_PTR) |=  TSI_GENCS_SWTS_MASK;
+
+  // Wait for end of scan
+  while( ! ( TSI0_GENCS & TSI_GENCS_EOSF_MASK ) );
+
+
   return *(( u16* )&TSI_CNTR1_REG(TSI0_BASE_PTR) + id);
 }
 
