@@ -1,0 +1,38 @@
+$$HEADER$$
+<h3>Using the EGC patch with eLua</h3>
+<p>The EGC (Emergency Garbage Collector) patch was originally written for Lua by Robert Jakabosky, who was kind enough to port it to <b>eLua</b>. You can find the author's detailed
+description of the patch <a href="http://lua-users.org/wiki/EmergencyGarbageCollector">here</a>. In short, what it does is that it lets you run a garbage collection cycle in Lua in a low memory
+situation, from inside Lua's memory allocation function (something that the current version of Lua can't do out of the box). By forcing a garbage collection cycle, Lua can reclaim memory that's
+not in use anymore, thus making more memory available for your program. The downside is reduced execution speed, as a direct result of running the gargabe collector when needed. For some
+applications, reducing the execution speed to fit the application in memory might be acceptable, and for other applications it might not. As usual, it all depends on your application. As a generic
+guideline, if your application isn't concerned with realtime processing, you should be fine with sacrifing execution speed to get more memory in many real life scenarios.</p>
+<p>In <b>eLua</b>, the EGC patch can be configured to run in 4 different modes:</p>
+<ol>
+<li><b>disabled</b>: EGC inactive, no collection cycle will be forced in low memory situations.</li>
+<li><b>run on allocation failure</b>: try to allocate a new block of memory, and run the garbage collector if the allocation fails. If the allocation fails even after running the garbage
+collector, the allocator will return with error. </li>
+<li><b>run on memory limit</b>: run the garbage collector when the memory used by the Lua script goes beyond an upper limit. If the upper limit can't be satisfied even after running
+the garbage collector, the allocator will return with error.</li>
+<li><b>run before each allocation</b>: run the garbage collector before each memory allocation. If the allocation fails even after running the garbage collector, the allocator will
+return with error. This mode is very efficient with regards to memory savings, but it's also the slowest.</li>
+</ol>
+<p><b>eLua</b> lets you use any of the above modes, or combine modes 2-4 above as needed. The C code API for EGC interfacing is defined in <i>src/lua/legc.h</i>, shown partially below:</p>
+<p><pre><code>// EGC operations modes
+#define EGC_NOT_ACTIVE        0   // EGC disabled
+#define EGC_ON_ALLOC_FAILURE  1   // run EGC on allocation failure
+#define EGC_ON_MEM_LIMIT      2   // run EGC when an upper memory limit is hit
+#define EGC_ALWAYS            4   // always run EGC before an allocation
+
+void legc_set_mode(lua_State *L, int mode, unsigned limit);</code></pre></p>
+<p>To set the EGC operation mode, call <i>legc_set_mode</i> above with 3 parameters:</p>
+<ul>
+<li><b>L</b>: a pointer to a Lua state structure.</li>
+<li><b>mode</b>: EGC operation mode, as described by the <b>#define</b> section above. You can specifiy a single mode, or a bitwise OR combination between <b>EGC_ON_ALLOC_FAILURE</b>,
+<b>EGC_ON_MEM_LIMIT</b> and <b>EGC_ALWAYS</b>.</li>
+<li><b>memlimit</b>: the upper memory limit used by the <b>EGC_ON_MEM_LIMIT</b> mode. Must be higher than 0 for this mode to run properly, can be 0 for any other mode.</li>
+</ul>
+
+<p>The functionality of this C function is mirrored by the <b>elua</b> generic module <b>egc_setup</b> function, see <a href="refman_gen_elua.html#elua.egc_setup">here</a> for more details. 
+Also, see <a href="building.html#static">here</a> for details on how to configure the default (compile time) EGC behaviour.</p>
+$$FOOTER$$
+
