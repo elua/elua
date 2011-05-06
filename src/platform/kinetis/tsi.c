@@ -1,4 +1,4 @@
-// eLua Module for STM32 timer encoder mode support tsi is a
+// eLua Module for Kinetis touch sensing interface
 // platform-dependent (Kinetis) module, that binds to Lua to a basic API to
 // control the touch-sensitive interface on kinetis
 

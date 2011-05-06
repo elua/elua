@@ -39,11 +39,12 @@ int platform_init()
 {
   sysinit();
   
+  tsi_init();
   gpios_init();
   uarts_init();
   timers_init();
   pwms_init();
-  tsi_init();
+
   
   // Common platform initialization code
   cmn_platform_init();
@@ -392,12 +393,12 @@ static void tsi_init()
   SIM_SCGC5 |= SIM_SCGC5_TSI_MASK;
 
   // 4 uA external current, 32 uA ref current, 800mV delta
-  TSI_SCANC_REG(TSI0_BASE_PTR) |= ( TSI_SCANC_EXTCHRG( 15 ) | TSI_SCANC_REFCHRG( 11 ) |
+  TSI_SCANC_REG(TSI0_BASE_PTR) |= ( TSI_SCANC_EXTCHRG( 3 ) | TSI_SCANC_REFCHRG( 31 ) |
                                     TSI_SCANC_DELVOL( 7 )  | TSI_SCANC_SMOD( 0 ) | 
                                     TSI_SCANC_AMPSC( 0 ) );
 
-  //                              prescaler=4         scans=11
-  TSI_GENCS_REG(TSI0_BASE_PTR) |= TSI_GENCS_PS(1) | TSI_GENCS_NSCN(16);
+  //                              prescaler=4         scans=16
+  TSI_GENCS_REG(TSI0_BASE_PTR) |= TSI_GENCS_PS( 3 ) | TSI_GENCS_NSCN( 10 );
 }
 
 
@@ -413,23 +414,34 @@ void kin_tsi_init( unsigned id )
 
 u16 kin_tsi_read( unsigned id )
 {
+  u16 res = 0;
+  u32 i;
+
   // Set electrode pin to analog
   PORT_PCR_REG( ports[ tsi_ports [ id ] ], tsi_pins[ id ] ) |= PORT_PCR_MUX( 0 );
-
+  
   // enable electrode pin
-  TSI_PEN_REG( TSI0_BASE_PTR ) = 1 << id;
+  TSI0_PEN = ( ( u32 )1 ) << id;
 
   // Enable TSI
-  TSI_GENCS_REG( TSI0_BASE_PTR) |=  TSI_GENCS_TSIEN_MASK;
+  TSI0_GENCS |=  TSI_GENCS_TSIEN_MASK;
 
-  // Fire software scan
-  TSI_GENCS_REG( TSI0_BASE_PTR) |=  TSI_GENCS_SWTS_MASK;
+  // Start scan & wait for completion
+  TSI_GENCS_REG( TSI0_BASE_PTR ) |=  TSI_GENCS_SWTS_MASK;
 
-  // Wait for end of scan
   while( ! ( TSI0_GENCS & TSI_GENCS_EOSF_MASK ) );
 
+  // Errata for 0M33Z parts: EOSF flag may get set 0.25 ms too early
+  for(i=250000;i;i--) 
 
-  return *(( u16* )&TSI_CNTR1_REG(TSI0_BASE_PTR) + id);
+  res = *(( u16* )&TSI_CNTR1_REG( TSI0_BASE_PTR ) + id);
+
+  TSI0_STATUS = 0xFFFFFFFF;
+
+  // Disable TSI
+  TSI0_GENCS &= ~TSI_GENCS_TSIEN_MASK;
+
+  return res;
 }
 
 
