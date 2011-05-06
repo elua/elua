@@ -1,7 +1,0 @@
-// $$HEADER$$
-Reference manual - MBED platform dependent modules
---------------------------------------------------
-
-This paragraph presents all the modules specific to the link:status.html[lpc17xx] (mbed) platform.
-
-// $$FOOTER$$
