@@ -145,7 +145,12 @@ static int parse_transport( const char* s )
 #define FIRST_SERVICE_IDX     3
 #define MIN_ARGC_COUNT        4
 
+#ifdef _MSC_VER
+#define strcasecmp _stricmp
+int main( int argc, char *argv[] )
+#else
 int main( int argc, char **argv )
+#endif
 {
   unsigned i;
   SERVICE_DATA *tservice;

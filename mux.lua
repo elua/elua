@@ -6,7 +6,7 @@ builder:init( args )
 builder:set_build_mode( builder.BUILD_DIR_LINEARIZED )
 
 local flist = "main.c"
-local rfs_flist = "main.c server.c log.c deskutils.c"
+local rfs_flist = "main.c server.c log.c deskutils.c rfs_transports.c"
 local cdefs = "RFS_UDP_TRANSPORT RFS_INSIDE_MUX_MODE"
 local socklib
 if utils.is_windows() then

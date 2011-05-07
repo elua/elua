@@ -232,7 +232,7 @@ u32 ser_write_byte( ser_handler id, u8 data )
 int ser_select_byte( ser_handler *pobjects, unsigned nobjects, int timeout )
 {
   int i;
-  DWORD readbytes;
+  DWORD readbytes, dwRes;
   int res = -1;
   unsigned num_wait = 0;
   ser_handler hnd;
@@ -259,7 +259,7 @@ int ser_select_byte( ser_handler *pobjects, unsigned nobjects, int timeout )
   if( num_wait == 0 )
     return -1;
 
-  DWORD dwRes = WaitForMultipleObjects( num_wait, sel_handlers, FALSE, timeout == SER_INF_TIMEOUT ? INFINITE : timeout );
+  dwRes = WaitForMultipleObjects( num_wait, sel_handlers, FALSE, timeout == SER_INF_TIMEOUT ? INFINITE : timeout );
   if( dwRes >= WAIT_OBJECT_0 && dwRes < WAIT_OBJECT_0 + num_wait )
   {
     i = dwRes - WAIT_OBJECT_0;
