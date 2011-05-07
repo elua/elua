@@ -165,9 +165,9 @@ int main( int argc, char **argv )
     log_err( "Usage: %s <mode> <transport> <vcom1> [<vcom2>] ... [<vcomn>] [-v]\n", argv[ 0 ] );
     log_err( "  mode: \n" );
     log_err( "    'mux':                 serial multiplexer mode\n" );
-    log_err( "    'rfsmux:<directory>:   combined RFS and multiplexer mode.\n" );
-    log_err( "  transport: '<port>,<baud>,<flow> ('flow' specifies the flow control type and can be 'none' or 'rtscts').\n" );
-    log_err( "  vcom1, ..., vcomn: multiplexer serial ports." );
+    log_err( "    'rfsmux:<directory>':  combined RFS and multiplexer mode.\n" );
+    log_err( "  transport: '<port>,<baud>,<flow>' ('flow' specifies the flow control type and can be 'none' or 'rtscts').\n" );
+    log_err( "  vcom1, ..., vcomn: multiplexer serial ports.\n" );
     log_err( "  Use '-v' for verbose output.\n" );
     return 1;
   }
