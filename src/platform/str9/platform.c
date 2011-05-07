@@ -24,6 +24,8 @@
 #include "buf.h"
 #include "elua_adc.h"
 #include "91x_adc.h"
+#include "91x_ssp.h"
+#include "utils.h"
 
 // ****************************************************************************
 // Platform initialization
@@ -51,6 +53,8 @@ static void platform_config_scu()
   SCU_PCLKDivisorConfig(SCU_PCLK_Div2);
   /* Set the HCLK Clock to MCLK */
   SCU_HCLKDivisorConfig(SCU_HCLK_Div1);
+  /* Set the BRCLK Clock to MCLK */
+  SCU_BRCLKDivisorConfig(SCU_BRCLK_Div1);
   
   // Enable VIC clock
   SCU_AHBPeriphClockConfig(__VIC, ENABLE);
@@ -80,6 +84,12 @@ static void platform_config_scu()
   
   // Enable the ADC clocks
   SCU_APBPeriphClockConfig(__ADC, ENABLE);
+
+  // Enable the SSP clocks
+  SCU_APBPeriphClockConfig(__SSP0,ENABLE);
+  SCU_APBPeriphReset(__SSP0,DISABLE);
+  SCU_APBPeriphClockConfig(__SSP1,ENABLE);
+  SCU_APBPeriphReset(__SSP1,DISABLE);
 }
 
 // Port/pin definitions of the eLua UART connection for different boards
@@ -786,6 +796,99 @@ int platform_i2c_recv_byte( unsigned id, int ack )
 }
 
 // ****************************************************************************
+// SPI
+
+#define SPI_MAX_PRESCALER     ( 254 * 256 )
+#define SPI_MIN_PRESCALER     2
+
+u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigned cpha, unsigned databits )
+{
+  const u32 basefreq = CPU_FREQUENCY;
+  u32 prescaler, divider = 1, temp, mindiff = 0xFFFFFFFF, minp;
+  GPIO_InitTypeDef  GPIO_InitStructure;
+  SSP_InitTypeDef SSP_InitStructure;
+
+  clock = UMIN( clock, basefreq >> 1 );
+  prescaler = UMIN( basefreq / clock, SPI_MAX_PRESCALER );
+  if( basefreq / prescaler > clock )
+    prescaler ++;
+  if( prescaler & 1 )
+    prescaler ++;
+  if( prescaler > 254 )
+  {
+    temp = prescaler;
+    for( prescaler = minp = 2; prescaler <= 254; prescaler += 2 )
+    {
+      divider = temp / prescaler;
+      if( divider <= 255 )
+      {
+        if( ABSDIFF( divider * prescaler, temp ) < mindiff )
+        {
+          mindiff = ABSDIFF( divider * prescaler, temp );
+          minp = prescaler;
+          if( mindiff == 0 )
+            break;
+        }
+      }
+    }
+    prescaler = minp;
+    divider = temp / prescaler;
+  }
+
+  // GPIO setup
+  // Fixed assignment:
+  // P5.4 - SCLK
+  // P5.5 - MOSI
+  // P5.6 - MISO
+  // P5.7 - CS (not explicitly handled by the SPI module)
+  GPIO_InitStructure.GPIO_Direction = GPIO_PinOutput;
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4 | GPIO_Pin_5;
+  GPIO_InitStructure.GPIO_Type = GPIO_Type_PushPull ;
+  GPIO_InitStructure.GPIO_Alternate = GPIO_OutputAlt2  ;
+  GPIO_Init(GPIO5, &GPIO_InitStructure);
+  GPIO_InitStructure.GPIO_Direction = GPIO_PinInput;
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
+  GPIO_InitStructure.GPIO_IPConnected = GPIO_IPConnected_Enable;
+  GPIO_InitStructure.GPIO_Alternate = GPIO_InputAlt1  ;
+  GPIO_Init(GPIO5, &GPIO_InitStructure);
+
+  // Actual SPI setup
+  SSP_DeInit(SSP0);
+  SSP_InitStructure.SSP_FrameFormat = SSP_FrameFormat_Motorola;
+  SSP_InitStructure.SSP_Mode = SSP_Mode_Master;
+  SSP_InitStructure.SSP_CPOL = cpol == 0 ? SSP_CPOL_Low : SSP_CPOL_High;
+  SSP_InitStructure.SSP_CPHA = cpha == 0 ? SSP_CPHA_1Edge : SSP_CPHA_2Edge;
+  SSP_InitStructure.SSP_DataSize = databits - 1;
+  SSP_InitStructure.SSP_ClockRate = divider - 1;
+  SSP_InitStructure.SSP_ClockPrescaler = prescaler;
+  SSP_Init(SSP0, &SSP_InitStructure);
+
+  // Enable peripheral   
+  SSP_Cmd(SSP0, ENABLE);
+  
+  // All done
+  return basefreq / ( prescaler * divider );
+}
+
+spi_data_type platform_spi_send_recv( unsigned id, spi_data_type data )
+{
+  // Send byte through the SSP0 peripheral
+  SSP0->DR = data;
+  // Loop while Transmit FIFO is full
+  while(SSP_GetFlagStatus(SSP0, SSP_FLAG_TxFifoEmpty) == RESET);
+  // Loop while Receive FIFO is empty
+  while(SSP_GetFlagStatus(SSP0, SSP_FLAG_RxFifoNotEmpty) == RESET); 
+  // Return the byte read from the SSP bus
+  return SSP0->DR;
+}
+
+void platform_spi_select( unsigned id, int is_select )
+{
+  id = id;
+  is_select = is_select;
+}
+
+// ****************************************************************************
 // Platform specific modules go here
 
 #define MIN_OPT_LEVEL 2
@@ -811,7 +914,6 @@ LUALIB_API int luaopen_platform( lua_State *L )
   lua_newtable( L );
   luaL_register( L, NULL, str9_pio_map );
   lua_setfield( L, -2, "pio" );
-
   return 1;
 #endif // #if LUA_OPTIMIZE_MEMORY > 0
 }
