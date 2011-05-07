@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="server.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="deskutils.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\eluarpc.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="log.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="main.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="net_win32.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="os_io_win32.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\remotefs\remotefs.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="rfs_transports.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="serial_win32.c">
+      <Filter>source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="deskutils.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="rfs_transports.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="serial.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="server.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="type.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="net.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="rfs.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="log.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="headers">
+      <UniqueIdentifier>{337cdfd6-7a94-45a7-9773-202c632d5000}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source">
+      <UniqueIdentifier>{ed41819a-7341-42c2-b1ee-525a54aeeee1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

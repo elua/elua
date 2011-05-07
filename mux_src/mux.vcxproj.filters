@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\rfs_server_src\deskutils.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\rfs_server_src\server.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\eluarpc.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\rfs_server_src\log.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="main.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\rfs_server_src\net_win32.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\rfs_server_src\os_io_win32.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\remotefs\remotefs.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\rfs_server_src\rfs_transports.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\rfs_server_src\serial_win32.c">
+      <Filter>source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="config.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rfs_server_src\deskutils.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rfs_server_src\log.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rfs_server_src\net.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rfs_server_src\rfs.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rfs_server_src\rfs_transports.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rfs_server_src\serial.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rfs_server_src\server.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="source">
+      <UniqueIdentifier>{edd07642-0c4f-4725-9e8f-641858b5e631}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="headers">
+      <UniqueIdentifier>{7234826d-2dcc-404c-9472-998da14f1314}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
