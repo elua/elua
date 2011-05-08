@@ -1,0 +1,36 @@
+$$HEADER$$
+<h3>Installing <b>eLua</b> on the LPC2888 CPU from NXP</h3>
+<p>The <a href="http://www.standardics.nxp.com/products/lpc2000/all/~LPC2888/">LPC2888 CPU</a> from <a href="http://www.nxp.com">NXP</a> packs some interesting features: huge internal 1Mbyte flash memory,
+  on-chip USB 2.0 high speed interface, and the most complex (by far) clocking network that I've ever seen on an ATM7TDMI chip. Also, it implements the USB DFU (Device Firmware Update) profile over
+  its USB interface, so it's quite easy to program it in-circuit. I'm using the <a href="http://www.olimex.com/dev/lpc-h2888.html">Olimex LPC-H2888</a> development board built around this chip, which packs
+  32MBytes of external SDRAM and also 2MBytes of external flash, which is more than enough for my needs. However, it does have its fair share of downsides. For starters, its support package (from NXP) is very poot when
+  compared to other targets on which <b>eLua</b> runs. You don't even get drivers for all your peripherals, just a a few (quite incomplete) examples. Its datasheet could be much more explit at times, especially when
+  referring to the clocking section (which is quite complicated). On my board, the DFU download mode (firmware upgrade via USB) stopped working out of the blue, without any apparent reasons, and I was unable to
+  use DFU on the chip since then, I had to resort to using OpenOCD (and come up with a configuration file, since it was impossible to find one for LPC2888). The CPU itself has a very interesting limitation: because of a silicon 
+  error, it's impossible to run Thumb code from the on-chip flash, you can only run regular ARM code (?!). Also, the board that I got from Olimex completely ignores the fact that this chip can run in DFU mode (it doesn't include 
+  any kind of jumper and/or switch to enable this mode), so I had to build a support board for it. Which is something I had to do also because the board doesn't export a RS232 interface, I had to build one around a MAX232 chip. 
+  All in all, my experience with this chip (and with the Olimex board) wasn't that pleasant, but this doesn't change the fact that the LPC-H2888 is one of the most powerful (resource-wise) boards on which <b>eLua</b> runs.    
+ </p>
+ <h3>Prerequisites</h3> 
+ <p>Before you'll be able to use <b>eLua</b> on the LPC2888 CPU, make sure that:</p>
+ <ul>
+ <li>if you're going to use DFU for firmware programming, you'll need Windows (although I heard reports of Linux programs that can program this chip in DFU mode, but I won't cover them here). If you're going to use OpenOCD, Linux, Windows, 
+ or any other OS that has support for <a href="http://openocd.berlios.de/web/">OpenOCD</a> will do. In this case, you might want to have a look at my <a href="tut_openocd.html">OpenOCD tutorial</a> before continuing.</li>
+ <li>also, if you're going to use DFU, you'll need a way to boot the chip in DFU firmware upgrade mode. This is done by pulling up (tie to VCC) the P2.3 pin at startup. On my board I included a switch for this. Press the switch, press RESET
+ while holding the switch pressed, then release the switch. You chip is now in DFU mode.</li>
+ <li>if you're using DFU, you have installed the LPC2888 flash programming utility from <a href="http://www.standardics.nxp.com/support/documents/microcontrollers/zip/flash.utility.mass.dfu.lpc2888.zip">here</a> (the package also
+ contains the Windows DFU drivers).</li>
+ <li>if you're using OpenOCD, you have followed the instructions from my <a href="tut_openocd.html">OpenOCD</a> tutorial.</li>
+ <li>you already have your <b>eLua</b> image for the LPC2888 CPU (<a href="building.html">built</a> or <a href="downloads.html">downloaded</a>).</li>
+ </ul>
+ <h3>Burning <b>eLua</b> to the LPC2888 using the DFU tool from NXP</h3>
+ <p>The DFU flashing application doesn't work directly on the .bin files you get after building <b>eLua</b>, you need to run them though NXP's "hostcrypt" program (which is part of the LPC2888 DFU package). After you have your <b>eLua</b> .bin file,
+ do this from a Windows command prompt (make sure that hostcryptv2.exe is in the path):</p>
+ <pre>C:&gt; hostcryptv2 elua_lua_lpc2888.bin elua.ebn -K0 -F0</pre>
+ <p>As a result, you'll have a new file (<i>elua.ebn</i>). Now boot your chip in DFU firmware upgrade mode (see above) and use the DFU utility (<i>MassDFUApplication.exe</i>) to load <i>elua.ebn</i> into your chip (the instructions on
+ using MassDFUApplication are in a PDF file that's included in the LPC2888 DFU package). Reset the board and enjoy.
+ </p>
+ <h3>Burning <b>eLua</b> to the LPC2888 using OpenOCD</h3>
+ <p>If you're as lucky as me and your board refuses to use DFU anymore, follow my <a href="tut_openocd.html">OpenOCD tutorial</a> to burn your image using OpenOCD.</p>
+$$FOOTER$$
+

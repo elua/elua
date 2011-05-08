@@ -1,0 +1,53 @@
+$$HEADER$$
+<h3>Using <b>eLua</b> with the STM32 CPUs from ST</h3>
+ <p>The <a href="http://www.st.com/mcu/inchtml-pages-stm32.html">STM32 family</a> of MCUs from 
+ <a href="http://www.st.com">ST</a> is a line of Cortex-M3 based chips with a lot of neat features, including (but not limited to) high
+ amounts of on-chip Flash/RAM (up to 512k Flash and 64k RAM), external memory controller that covers (P)SRAM, NAND Flash and NOR flash, integrated ADC and
+ DACs, advanced timers and many others. They also feature an integrated serial boot loader, so it's extremely easy to program them from anything that has
+ a serial port. ST provides a tool that can be used to download a program to the STM32 using this serial bootloader, but it only works in Windows. Their
+ bootloader protocol is documented in a separate application note though, so one can easily write a programming application for any other OS.</p>
+ <p><b>eLua</b> currently works on two STM32F103 variants of the STM32 family, specifically on these boards:
+ <a href="http://www.st.com/mcu/contentid-100-110-STM3210E_EVAL.html">the STM3210E-EVAL</a> from 
+ <a href="http://www.st.com">ST</a> and the 
+ <a href="http://www.futurlec.com/ET-STM32_Stamp.shtml">ETM-STM32 stamp</a> 
+ from <a href="http://www.futurlec.com">Futurlec</a>. Instruction for installing <b>eLua</b> on each of them are provided below.
+ </p>
+ <h3> Prerequisites</h3> 
+ <p>Before you'll be able to use <b>eLua</b> on the STM32F103 CPU, make sure that:</p>
+ <ul>
+ <li>you're using Windows. As already explained, the software provided by ST for serial firmware downloading works only under Windows. It's quite likely
+ that similar tools for Linux and other operating systems already exist or will be available shortly.</li>
+ <li>you have installed the "Flash loader demonstrator" from <a href="http://www.st.com/mcu/modules.php?name=mcu&amp;file=familiesdocs&amp;FAM=110">
+this page</a> (look for it in the "Software - PC" section).</li>
+ <li>you already have your <b>eLua</b> image for the STM32F103 CPU (<a href="building.html">built</a> or <a href="downloads.html">downloaded</a>).</li>
+ </ul>
+ <h3>Programming eLUa on the STM3210E-EVAL board</h3>
+ <p>Follow the steps below to install <b>eLua</b> on your STM3210-EVAL board:</p>
+ <ul>
+   <li>make sure you have a proper cable. You need a null modem cable for this board (a cable with two DB-9 female connectors, that connects RX to TX and TX to RX). 
+   <li>connect the board to one of your PC serial ports using the null modem cable.</li>
+   <li>locate the two adjacent BOOT0 and BOOT1 switches, make sure that BOOT0 is set to 1 and BOOT1 to 0.</li> 
+   <li>reset the board by pressing on the RESET button.</li>
+   <li>start the ST Flash loader demonstrator. Choose your serial port in the first screen, make sure that the communication parameters are 57600 8E1 and press "Next" 3 times.</li>
+   <li>select the "Download to device" radio button, then choose your <b>eLua</b> image file and hit "Next".</li>
+   <li>wait until programming is over and press "Finish".</li>
+   <li>move the BOOT0 switch to position 0.</li>
+   <li>reset the board by pressing the RESET button again.</li>
+ </ul>
+ <h3>Programming eLua on the ET-STM32 stamp</h3>
+ <p>Follow the steps below to install <b>eLua</b> on your ET-STM32 stamp:</p>
+ <ul>
+   <li>connect the board to one of your PC serial ports using the provided serial cable.</li>
+   <li>put the BOOT1 jumper on your board in the ISP position (it should come like that from the factory, and must likely you won't need to change this).</li> 
+   <li>press on the BOOT0 switch. The green "BOOT0=1" LED should light up.</li>
+   <li>reset the board by pressing on the RESET button.</li>
+   <li>start the ST Flash loader demonstrator. Choose your serial port in the first screen, make sure that the communication parameters are 57600 8E1 and press "Next" 3 times.</li>
+   <li>select the "Download to device" radio button, then choose your <b>eLua</b> image file and hit "Next".</li>
+   <li>wait until programming is over and press "Finish".</li>
+   <li>press on the BOOT0 switch again.</li>
+   <li>reset the board by pressing the RESET button again.</li>
+ </ul>
+ <p>Now you have <b>eLua</b> installed on your board, and you can choose the same port you used for programming as a general purpose serial port for <b>eLua</b> (but remember to use 115200
+8N1 as the communication parameters this time).</p>
+$$FOOTER$$
+

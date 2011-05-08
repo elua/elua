@@ -1,0 +1,55 @@
+$$HEADER$$
+<h3>Installing <b>eLua</b> on the LPC2468 CPU from NXP</h3>
+<p>The <a href="http://ics.nxp.com/products/lpc2000/lpc24xx/">LPC2468 CPU</a> from <a href="http://www.nxp.com">NXP</a> is one of the CPUs on which <b>eLua</b> is very happy to run, because of its
+very generous resources: 512k of Flash and 96k of SRAM on-chip memory, loads of peripherals, up to 72MHz operating frequency, external memory bus and other goodies. <b>eLua</b> is so happy with
+this chip, in fact, that a board designed specifically for <b>eLua</b> was built around it. You can find the full specifications of the board 
+<a href="http://www.giga.puc-rio.br/site/embedded/eluademoboard">here</a>. This is the board that we're going to use in this tutorial.</p>
+ <h3>Prerequisites</h3> 
+ <p>Before you'll be able to use <b>eLua</b> on the LPC2468 CPU, make sure that:</p>
+ <ul>
+ <li>you're using Windows. Using this board under Linux or other operating systems should be possible, but we're going to cover only Windows here.</li>
+ <li>you downloaded the latest FTDI VCP drivers from <a href="http://www.ftdichip.com/Drivers/VCP.htm">here</a>.</li>
+ <li>you downloaded and installed the FTDI FT_PROG tool from <a href="http://www.ftdichip.com/Resources/Utilities.htm">here</a>.</li>
+ <li>you downloaded and installed the Flash Magic programming software from <a href="http://www.flashmagictool.com/">here</a>.</li>
+ <li>you already have your <b>eLua</b> image for the LPC2468 CPU (<a href="building.html">built</a> or <a href="downloads.html">downloaded</a>).</li>
+ </ul>
+ <h3>Burning <b>eLua</b> to the LPC2468 using the Flash Magic software</h3>
+ <p>Before actually downloading the <b>eLua</b> image to the CPU, the board must be configured for proper USB operation (note that this should be done only once, not everytime you need to program
+ a new <b>eLua</b> image). The steps for this procedure are listed below:</p>
+<ol>
+  <li>make sure that jumper JP1 on the board is set to position "USB" (2-3) if you want to power your board from the USB bus.</li>
+  <li>connect your board to the PC using an USB cable.</li>
+  <li>if needed, install the FTDI drivers you downloaded earlier.</li>
+  <li>once the drivers are properly installed, start the FTDI FT_PROG software downloaded earlier and choose "Devices", "Scan and Parse". If everything is OK, your device should show up in the 
+  left part of the FT_PROG window, under "Device Tree".</li>
+  <li>in "Device Tree", select "USB_Config_Descriptor", then enter "500" in the "Max Bus Power" field in the upper right part of the FT_PROG window. It should look like below:
+  <img src="images/ft_prog_power.png" alt="FT_PROG power settings" style="margin-top: 10px;" />
+  </li>
+  <li><b>(optional)</b> now it's a good time to give your <b>eLua</b> board a good description :) In "Device Tree", select "USB_String_Descriptors", then enter "eluaproject.net" in the 
+  "Manufacturer" field in the upper right part of the FT_PROG window, and "eLua demo board" in the "Product Description" field. It should look like below:
+  <img src="images/ft_prog_strings.png" alt="FT_PROG strings" style="margin-top: 10px;" />
+  </li>
+  <li>choose "Devices", "Program". The new settings will be written to the FTDI chip internal memory, and the board will automatically re-enumerate.</li>
+</ol>
+<p>Once your board is properly configured (remember, you only need to do this ONCE!), follow the next steps to program your <b>eLua</b> image to the board as many times as you need to:</p>
+<ol>
+  <li>make sure that jumper JP1 on the board is set to position "USB" (2-3) if you want to power your board from the USB bus.</li>
+  <li>make sure that JP2 (ISP), JP3 (RST), JP6 (RDX0) and JP7 (TDX0) are connected on the board.</li>
+  <li>connect the board to the PC using an USB cable.</li>
+  <li>find the serial port used by the board. Open "Device Manager" in Windows, go to "Ports (COM &amp; LPT)" and look for a serial port named "USB serial port" or something similar. If unsure,
+      simply unplug the board. The serial port that disappears from the list after unplugging the board is your board's serial port.</li>
+  <li>start Flash Magic and click on "Select Device" under "Step 1 - Communications". In the "Device Database" window that appears, select "ARM7" and then double click on "LPC2468" 
+  (<b>NOT</b> "LPC2468 Ethernet").</li>
+  <li>select the COM port from step 4 in "COM Port", set the baud rate to 230400, "Interface" to "None (ISP)", and "Oscillator (MHZ)" to 12.</li>
+  <li>under "Step 2 - Erase", select "Erase blocks used by Hex File".</li>
+  <li>under "Step 3 - Hex File", select your LPC2468 </b>eLua</b> hex file.</li>
+  <li><b>(optional)</b> under "Step 4 - Options", select "Verify after programming" if you want to verify your downloaded image.</li>
+</ol>
+<p>After all the steps above, the Flash Magic windows should look similar to the image below (my LPC2468 serial port is COM14):</p>
+<img src="images/flashmagic.png" alt="Flash Magic Settings" style="margin-left: 10px;" />
+<p>All that's left to do is hit the "Start" button, and wait (the whole process takes a while). When it's finished, close Flash Magic and remove the JP2 (ISP) and JP3 (RST) jumpers from the
+board, then reset it.</p>
+<p>That's it! You now have <b>eLua</b> programmed on your board, so you can start your terminal emulator and enjoy it, as described in <a href="using.html">using eLua</a>.</p>
+
+$$FOOTER$$
+
