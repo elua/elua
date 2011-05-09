@@ -432,7 +432,7 @@ u16 kin_tsi_read( unsigned id )
   while( ! ( TSI0_GENCS & TSI_GENCS_EOSF_MASK ) );
 
   // Errata for 0M33Z parts: EOSF flag may get set 0.25 ms too early
-  for(i=250000;i;i--) 
+  for(i=250000;i;i--);
 
   res = *(( u16* )&TSI_CNTR1_REG( TSI0_BASE_PTR ) + id);
 
