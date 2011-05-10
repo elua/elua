@@ -21,6 +21,7 @@
 #include "MK60N512VMD100.h"
 #include "sysinit.h"
 #include "uart.h"
+#include "arm_cm4.h"
 
 extern int core_clk_mhz;
 extern int core_clk_khz;
@@ -39,12 +40,11 @@ int platform_init()
 {
   sysinit();
   
-  tsi_init();
   gpios_init();
   uarts_init();
   timers_init();
   pwms_init();
-
+  tsi_init();
   
   // Common platform initialization code
   cmn_platform_init();
@@ -74,7 +74,7 @@ void gpios_init()
     port = ports[ i ];
     for( j = 0; j < 32; j ++ )
       PORT_PCR_REG( port, j ) |= PORT_PCR_MUX( 1 );
-  }      
+  }    
 }
 
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
@@ -391,14 +391,7 @@ static void tsi_init()
 {
   // Enable clock
   SIM_SCGC5 |= SIM_SCGC5_TSI_MASK;
-
-  // 4 uA external current, 32 uA ref current, 800mV delta
-  TSI_SCANC_REG(TSI0_BASE_PTR) |= ( TSI_SCANC_EXTCHRG( 3 ) | TSI_SCANC_REFCHRG( 31 ) |
-                                    TSI_SCANC_DELVOL( 7 )  | TSI_SCANC_SMOD( 0 ) | 
-                                    TSI_SCANC_AMPSC( 0 ) );
-
-  //                              prescaler=4         scans=16
-  TSI_GENCS_REG(TSI0_BASE_PTR) |= TSI_GENCS_PS( 3 ) | TSI_GENCS_NSCN( 10 );
+  SIM_SCGC5 |= SIM_SCGC5_PORTA_MASK;
 }
 
 
@@ -408,7 +401,6 @@ void kin_tsi_init( unsigned id )
 
   //TSI_THRESHLD_REG(TSI0_BASE_PTR, id) = TSI_THRESHLD_HTHH(0xFF) | TSI_THRESHLD_LTHH(0x00);
 
-
 }
 
 
@@ -417,9 +409,22 @@ u16 kin_tsi_read( unsigned id )
   u16 res = 0;
   u32 i;
 
+  // Disable TSI
+  TSI0_GENCS &= ~TSI_GENCS_TSIEN_MASK;
+  
+  //Make sure no pending scans are running
+  while( ( TSI0_GENCS & TSI_GENCS_SCNIP_MASK ) );
+
   // Set electrode pin to analog
   PORT_PCR_REG( ports[ tsi_ports [ id ] ], tsi_pins[ id ] ) |= PORT_PCR_MUX( 0 );
   
+  // 4 uA external current, 32 uA ref current, 600mV delta
+  TSI_SCANC_REG(TSI0_BASE_PTR) |= ( TSI_SCANC_EXTCHRG( 3 ) | TSI_SCANC_REFCHRG( 31 ) |
+                                    TSI_SCANC_DELVOL( 7 )  | TSI_SCANC_SMOD( 0 ) | 
+                                    TSI_SCANC_AMPSC( 0 ) );
+
+  TSI_GENCS_REG(TSI0_BASE_PTR) |= TSI_GENCS_PS( 3 ) | TSI_GENCS_NSCN( 10 );
+
   // enable electrode pin
   TSI0_PEN = ( ( u32 )1 ) << id;
 
@@ -427,12 +432,16 @@ u16 kin_tsi_read( unsigned id )
   TSI0_GENCS |=  TSI_GENCS_TSIEN_MASK;
 
   // Start scan & wait for completion
-  TSI_GENCS_REG( TSI0_BASE_PTR ) |=  TSI_GENCS_SWTS_MASK;
+  TSI0_GENCS |=  TSI_GENCS_SWTS_MASK;
 
+  //TSI0_GENCS |= TSI_GENCS_STM_MASK;
   while( ! ( TSI0_GENCS & TSI_GENCS_EOSF_MASK ) );
 
   // Errata for 0M33Z parts: EOSF flag may get set 0.25 ms too early
   for(i=250000;i;i--);
+
+  //printf ("TSI0_STATUS = %x\n", (*((volatile unsigned  *)(0x4004500C))));
+  //printf ("TSI0_GENCS = %x\n", (*((volatile unsigned  *)(0x40045000))));
 
   res = *(( u16* )&TSI_CNTR1_REG( TSI0_BASE_PTR ) + id);
 
@@ -440,6 +449,7 @@ u16 kin_tsi_read( unsigned id )
 
   // Disable TSI
   TSI0_GENCS &= ~TSI_GENCS_TSIEN_MASK;
+
 
   return res;
 }

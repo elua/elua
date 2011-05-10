@@ -17,18 +17,29 @@ static int tsi_init( lua_State *L )
   unsigned id;
   
   id = luaL_checkinteger( L, 1 );
-  kin_tsi_init( id );
-  return 0;
+  lua_pushinteger( L, kin_tsi_read( id ) );
+  return 1;
 }
 
 //Lua: setcounter(id, count)
 static int tsi_read( lua_State *L )
 {
-  unsigned id;
+  unsigned id, baseline;
+  u8 i, cnt = 0;
 
   id = luaL_checkinteger( L, 1 );
+  baseline = luaL_checkinteger( L, 2 );
+  
+  for( i = 0; i < KIN_TSI_DBOUNCE_COUNTS; i++ )
+  {
+    if( kin_tsi_read( id ) >= baseline + KIN_TSI_TOUCH_LEVEL )
+      cnt++;
+  }
+  if( cnt == KIN_TSI_DBOUNCE_COUNTS )
+    lua_pushinteger( L, 1 );
+  else
+    lua_pushinteger( L, 0 );
 
-  lua_pushinteger( L, kin_tsi_read( id ) );
   return 1;
 }
 
