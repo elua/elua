@@ -28,33 +28,33 @@ local menu =
  --[[ { { "eLua project", "Projeto eLua" } },
 
   -- "Overview"
-  { { "Overview", "ApresentaÁ„o" }, "overview.html", 
+  { { "Overview", "Apresenta√ß√£o" }, "overview.html", 
     {
-      { { "What is eLua?", "O que È eLua ?" }, "overview.html#whatis" },
-      { { "Features", "CaracterÌsticas" }, "overview.html#features" },
-      { { "Audience", "P˙blico Alvo" }, "overview.html#audience" },
+      { { "What is eLua?", "O que √© eLua ?" }, "overview.html#whatis" },
+      { { "Features", "Caracter√≠sticas" }, "overview.html#features" },
+      { { "Audience", "P√∫blico Alvo" }, "overview.html#audience" },
       { { "Authors", "Autores" }, "overview.html#authors" },
       { { "Contacts","Contatos" }, "overview.html#contacts" },
-      { { "License", "LicenÁa" },"overview.html#license" },
+      { { "License", "Licen√ßa" },"overview.html#license" },
     }
   },
 
   -- "Community"
   { { "Community", "Comunidade" }, "comunity.html", 
     {
-      { { "Discussion Lists", "Listas de Discuss„o" }, "comunity.html#lists" },
+      { { "Discussion Lists", "Listas de Discuss√£o" }, "comunity.html#lists" },
       { "Forums", "comunity.html#forums" },
       { "IRC", "comunity.html#irc" },
       { "Twitter", "comunity.html#twitter" }, 
       { "Wiki", "comunity.html#userswiki" },      
-      { { "Credits", "CrÈditos" }, "comunity.html#credits" },
+      { { "Credits", "Cr√©ditos" }, "comunity.html#credits" },
       { "Donations", "comunity.html#donations" },
       { nil, "forum.html", nil, "Forum" } -- "hidden" entry (doesn't appear in the menu)
     }
   },
 
   -- News
-  { { "News", "NotÌcias" }, "news.html" },
+  { { "News", "Not√≠cias" }, "news.html" },
   
   -- Media
   { "Media", "media.html" },  
@@ -72,8 +72,8 @@ local menu =
   { "Status", "status.html", 
     {
       { { "Supported platforms", "Plataformas Suportadas" }, "status.html" },
-      { { "Modules per platform table", "MÛdulos por plataforma" }, "status.html#plat_modules" },
-      { { "Modules overview status", "Vis„o geral dos mÛdulos" }, "status.html#gen_modules" },
+      { { "Modules per platform table", "M√≥dulos por plataforma" }, "status.html#plat_modules" },
+      { { "Modules overview status", "Vis√£o geral dos m√≥dulos" }, "status.html#gen_modules" },
       { { "Roadmap", "Planejamento Futuro" }, "status.html#roadmap" }
     }
   },
@@ -83,15 +83,15 @@ local menu =
 
   { "Downloads", "downloads.html",    -- ### How come it opens downloads.html without specifying here ? :) Nice but unclear.
     {
-      { { "Binaries", "Bin·rios" }, "downloads.html#binaries" },
-      { { "Source code", "CÛdigo Fonte" }, "downloads.html#source", 
+      { { "Binaries", "Bin√°rios" }, "downloads.html#binaries" },
+      { { "Source code", "C√≥digo Fonte" }, "downloads.html#source", 
         {
-          { { "Official releases", "Versıes Oficiais" }, "downloads.html#official" },
+          { { "Official releases", "Vers√µes Oficiais" }, "downloads.html#official" },
           { "Bleeding edge (SVN)", "downloads.html#svnpublic" },
           { { "Developers", "Desenvolvedores" }, "downloads.html#svndev" },
         }
       },
-      { { "Old versions", "Versıes Anteriores" }, "dl_old.html", 
+      { { "Old versions", "Vers√µes Anteriores" }, "dl_old.html", 
         {
           { "0.7", "dl_old.html#v070" },
           { "0.6", "dl_old.html#v060" },
@@ -101,7 +101,7 @@ local menu =
           { "0.3", "dl_old.html#v03" },
           { "0.2", "dl_old.html#v02" },
           { "0.1", "dl_old.html#v01" },
-          { { "Version history", "HistÛrico das Versıes" }, "versionhistory.html" },
+          { { "Version history", "Hist√≥rico das Vers√µes" }, "versionhistory.html" },
         }
       },
     },
@@ -110,7 +110,7 @@ local menu =
   { { "Introduction"}, "index.html"},
  -- "Using eLua" -- Menu Separator
     
-  { { "Generic info", "Doc GenÈrica" }, "using.html", 
+  { { "Generic info", "Doc Gen√©rica" }, "using.html", 
     {
       { { "Using eLua", "Usando eLua" }, "using.html", 
         {
@@ -124,7 +124,7 @@ local menu =
           { "The serial multiplexer", "sermux.html" }
         },
       },
-      { { "Code examples", "Exemplos de CÛdigo" }, "examples.html" },
+      { { "Code examples", "Exemplos de C√≥digo" }, "examples.html" },
       { { "FAQ", "Perguntas Frequentes (FAQ)" }, "faq.html" },     
       { "eLua file systems", "filesystems.html",
         {
@@ -147,7 +147,7 @@ local menu =
       },
     },
   }, 
-  { { "Platform info", "Doc EspecÌfica" }, "installing.html", 
+  { { "Platform info", "Doc Espec√≠fica" }, "installing.html", 
     {
       { "AT91SAM7x", "installing_at91sam7x.html" },
       { "AVR32", "installing_avr32.html" },
@@ -166,13 +166,13 @@ local menu =
   { { "eLua internals" },"",
     { 
       { -- "Overview"      
-        { "Overview", "Vis„o Geral" }, "arch_overview.html", 
+        { "Overview", "Vis√£o Geral" }, "arch_overview.html", 
         {
           { { "eLua's Architecture", "Arquitetura de eLua" }, "arch_overview.html#structure" },
-          { { "Common code", "CÛdigo B·sico" }, "arch_overview.html#common" },
+          { { "Common code", "C√≥digo B√°sico" }, "arch_overview.html#common" },
           { { "Interface architecture", "Interfaceamento" }, "arch_overview.html#platform" },
           { { "Booting eLua", "O Boot de eLua" }, "arch_overview.html#boot" },
-          { { "Platforms and ports", "PortabilizaÁ„o" }, "arch_overview.html#platforms" },
+          { { "Platforms and ports", "Portabiliza√ß√£o" }, "arch_overview.html#platforms" },
           { { "Adding a new port", "Portando eLua" }, "arch_newport.html" },
           { "Implementing interrupts", "arch_ints.html",
             {
@@ -185,7 +185,7 @@ local menu =
       { { "Platform interface", "Interfaceamento" }, "arch_platform.html", "arch_platform" },
 
       -- Other WRITE THE arch_platform_other.html file
-      { { "More information", "InformaÁıes Adicionais" }, "#", 
+      { { "More information", "Informa√ß√µes Adicionais" }, "#", 
         {
           { { "Consoles and terminals", "Consoles e Terminais" }, "arch_con_term.html" },
           { { "TCP/IP in eLua", "TCP/IP em eLua" }, "arch_tcpip.html" },
@@ -202,20 +202,20 @@ local menu =
               { "i386", "tc_386.html" }
             },
           },
-          { { "eLua coding style", "Regras de CodificaÁ„o" }, "arch_coding.html" },
+          { { "eLua coding style", "Regras de Codifica√ß√£o" }, "arch_coding.html" },
         }
       },
     }
   },
   
   {  -- "Reference manual" (menu separator)
-    { "Reference Manual", "Manual de ReferÍncia" },"",
+    { "Reference Manual", "Manual de Refer√™ncia" },"",
     {
       -- "Generic modules" (automatically generated)
-      { { "Generic modules", "MÛdulos GenÈricos" }, "refman_gen.html", "refman_gen" },
+      { { "Generic modules", "M√≥dulos Gen√©ricos" }, "refman_gen.html", "refman_gen" },
 
       -- "Platform modules" (automatically generated)
-      { { "Platform modules", "MÛdulos EspecÌficos" }, "refman_dep.html", 
+      { { "Platform modules", "M√≥dulos Espec√≠ficos" }, "refman_dep.html", 
         {
           { "lm3s", "modules_lm3s.html", "refman_ps_lm3s" },
           { "str9", "modules_str9.html", "refman_ps_str9" },
@@ -231,9 +231,9 @@ local menu =
 -- defined at the beginning of buildall.lua
 local translations = 
 {
-  { "Overview", "ApresentaÁ„o" },
+  { "Overview", "Apresenta√ß√£o" },
   { "Data structures", "Estrutura" },
-  { "Functions", "FunÁıes" },
+  { "Functions", "Fun√ß√µes" },
   { "eLua - Embedded Lua", "eLua - Embedded Lua" },
   { "Search", "Pesquisar" },
   { "Language", "Idioma" }
@@ -246,7 +246,10 @@ local fixed =
   "images/",
   "js/",
   "css/",
+  "index.html"
+  
 }
 
 -- Return our whole data defined above
 return menu, translations, fixed
+
