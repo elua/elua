@@ -9,7 +9,6 @@
 
 #include "common_kinetis.h"
 #include "sysinit.h"
-#include "wdog.h"
 #include "uart.h"
 
 /********************************************************************/
@@ -46,8 +45,8 @@ void sysinit (void)
   	 * we'll be able to monitor clocks and know the PLL is at the frequency
   	 * that we expect.
   	 */
-	trace_clk_init();
-  	fb_clk_init();
+	  //trace_clk_init();
+  	//fb_clk_init();
 }
 /********************************************************************/
 void trace_clk_init(void)
