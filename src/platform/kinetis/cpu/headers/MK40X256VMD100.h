@@ -3,14 +3,14 @@
 **     Processor:           MK40X256VMD100
 **     Compilers:           Freescale C/C++ for Embedded ARM
 **                          IAR ANSI C/C++ Compiler for ARM
-**     Reference manual:    K40P144M100SF2RM, Rev. 2, 15 Oct 2010
-**     Version:             rev. 0.8, 2010-10-27
+**     Reference manual:    K40P144M100SF2RM, Rev. 3, 4 Nov 2010
+**     Version:             rev. 1.0, 2011-01-14
 **
 **     Abstract:
 **         This header file implements peripheral memory map for MK40X256VMD100
 **         processor.
 **
-**     Copyright: 1997 - 2010 Freescale Semiconductor, Inc. All Rights Reserved.
+**     Copyright: 1997 - 2011 Freescale Semiconductor, Inc. All Rights Reserved.
 **
 **     http:                 www.freescale.com
 **     mail:                 support@freescale.com
@@ -59,13 +59,29 @@
 **         USB - Peripheral base pointer define macro name has been changed USBOTG0_BASE_PTR to USB0_BASE_PTR.
 **         USB - Prefix of register names changed from "USBOTG0_" to "USB0_".
 **         VREF - Peripheral register TRM removed.
+**     - rev. 0.9 (2010-11-11)
+**         Registers updated according to the new reference manual revision - Rev. 3, 4 Nov 2010
+**         CAN - Individual Matching Element Update (IMEU) feature has been removed.
+**         CAN - Support for INT_CANx_IMEU, INT_CANx_Lost_Rx interrupts has been removed.
+**         CAN - Peripheral register layout structure has been fixed, registers IMEUR, LRFR have been removed.
+**         CAN - Peripheral register CTRL2 bit definition has been fixed, bits IMEUMASK, LOSTRMMSK, LOSTRLMSK, IMEUEN have been removed.
+**         CAN - Peripheral register ESR2 bit definition has been fixed, bits IMEUF, LOSTRMF, LOSTRLF have been removed.
+**         NV - Fixed offset address of BACKKEYx, FPROTx registers.
+**         TSI - Peripheral register layout structure has been fixed, register WUCNTR has been removed.
+**     - rev. 0.10 (2010-11-30)
+**         EWM - Peripheral base pointer EWM_BASE_PTR address has been fixed from 0x4005F000u to 0x40061000u (#MTWX44776).
+**     - rev. 0.11 (2010-12-17)
+**         AIPS0, AIPS1 - Fixed offset of PACRE-PACRP registers (#MTWX45259).
+**     - rev. 1.0 (2011-01-14)
+**         Added BITBAND_REG() macro to provide access to register bits using bit band region.
+**         Added checking of memory map version if two memory map files are included in a project (#MTWX45472).
 **
 ** ###################################################################
 */
 
 /*! \file MK40X256VMD100.h */
-/*! \version 0.8 */
-/*! \date 2010-10-27 */
+/*! \version 1.0 */
+/*! \date 2011-01-14 */
 /*! \brief Peripheral memory map for MK40X256VMD100 */
 /*! \detailed This header file implements peripheral memory map for MK40X256VMD100
       processor. */
@@ -75,22 +91,29 @@
    -- MCU activation
    ---------------------------------------------------------------------------- */
 
-/* Activation of the proper MCU and prevention from activation of multiple MCU libraries */
+/* Prevention from multiple including the same memory map */
+#if !defined(MCU_MK40X256VMD100)  /* Check if memory map has not been already included */
+#define MCU_MK40X256VMD100
 
-#if !defined(MCU_MK40X256VMD100)  /* Check if this MCU has not been already activated... */
-
-/* Check if another MCU has not been activated yet */
+/* Check if another memory map has not been also included */
 #if (defined(MCU_ACTIVE))
-  #error MK40X256VMD100 MCU library: There is already active another MCU library. Do #include of one "*_MCU.h" only.
-#else /* (!defined(MCU_ACTIVE)) */
-  #define MCU_ACTIVE  /* Mark there is some MCU already active */
-  #define MCU_MK40X256VMD100  /* Mark specific MCU as active */
-#endif /* (!defined(MCU_ACTIVE)) */
+  #error MK40X256VMD100 memory map: There is already included another memory map. Only one memory map can be included.
+#endif /* (defined(MCU_ACTIVE)) */
+#define MCU_ACTIVE
 
 #include <stdint.h>
 
-/*! Memory map version 0.8 */
-#define MCU_MEM_MAP_VERSION ((0 << 8) | 8)
+/*! Memory map version 1.0 */
+#define MCU_MEM_MAP_VERSION ((1 << 8) | 0)
+
+/*!
+ * \def BITBAND_REG(reg,bit)
+ * \brief Macro to access a single bit of a peripheral register (bit band region 0x40000000 to 0x400FFFFF) using the bit-band alias region access.
+ * \param Reg Register to access
+ * \param Bit Bit number to access
+ * \return Value of the targeted bit in the bit band region.
+ */
+#define BITBAND_REG(Reg,Bit) (*((uint32_t volatile*)(0x42000000u + (32u*((uint32_t)&(Reg) - (uint32_t)0x40000000u)) + (4u*((uint32_t)(Bit))))))
 
 /* ----------------------------------------------------------------------------
    -- Interrupt vector numbers
@@ -152,16 +175,16 @@ typedef enum {
   INT_CAN0_Tx_Warning          = 48,               /*!< CAN0 Tx Warning Interrupt */
   INT_CAN0_Rx_Warning          = 49,               /*!< CAN0 Rx Warning Interrupt */
   INT_CAN0_Wake_Up             = 50,               /*!< CAN0 Wake Up Interrupt */
-  INT_CAN0_IMEU                = 51,               /*!< CAN0 Individual Matching Elements Update (IMEU) Interrupt */
-  INT_CAN0_Lost_Rx             = 52,               /*!< CAN0 Lost Receive Interrupt */
+  INT_Reserved51               = 51,               /*!< Reserved interrupt 51 */
+  INT_Reserved52               = 52,               /*!< Reserved interrupt 52 */
   INT_CAN1_ORed_Message_buffer = 53,               /*!< CAN1 OR'd Message Buffers Interrupt */
   INT_CAN1_Bus_Off             = 54,               /*!< CAN1 Bus Off Interrupt */
   INT_CAN1_Error               = 55,               /*!< CAN1 Error Interrupt */
   INT_CAN1_Tx_Warning          = 56,               /*!< CAN1 Tx Warning Interrupt */
   INT_CAN1_Rx_Warning          = 57,               /*!< CAN1 Rx Warning Interrupt */
   INT_CAN1_Wake_Up             = 58,               /*!< CAN1 Wake Up Interrupt */
-  INT_CAN1_IMEU                = 59,               /*!< CAN1 Individual Matching Elements Update (IMEU) Interrupt */
-  INT_CAN1_Lost_Rx             = 60,               /*!< CAN1 Lost Receive Interrupt */
+  INT_Reserved59               = 59,               /*!< Reserved interrupt 59 */
+  INT_Reserved60               = 60,               /*!< Reserved interrupt 60 */
   INT_UART0_RX_TX              = 61,               /*!< UART0 Receive/Transmit interrupt */
   INT_UART0_ERR                = 62,               /*!< UART0 Error interrupt */
   INT_UART1_RX_TX              = 63,               /*!< UART1 Receive/Transmit interrupt */
@@ -583,18 +606,19 @@ typedef struct AIPS_MemMap {
   uint32_t PACRB;                                  /*!< Peripheral Access Control Register, offset: 0x24 */
   uint32_t PACRC;                                  /*!< Peripheral Access Control Register, offset: 0x28 */
   uint32_t PACRD;                                  /*!< Peripheral Access Control Register, offset: 0x2C */
-  uint32_t PACRE;                                  /*!< Peripheral Access Control Register, offset: 0x30 */
-  uint32_t PACRF;                                  /*!< Peripheral Access Control Register, offset: 0x34 */
-  uint32_t PACRG;                                  /*!< Peripheral Access Control Register, offset: 0x38 */
-  uint32_t PACRH;                                  /*!< Peripheral Access Control Register, offset: 0x3C */
-  uint32_t PACRI;                                  /*!< Peripheral Access Control Register, offset: 0x40 */
-  uint32_t PACRJ;                                  /*!< Peripheral Access Control Register, offset: 0x44 */
-  uint32_t PACRK;                                  /*!< Peripheral Access Control Register, offset: 0x48 */
-  uint32_t PACRL;                                  /*!< Peripheral Access Control Register, offset: 0x4C */
-  uint32_t PACRM;                                  /*!< Peripheral Access Control Register, offset: 0x50 */
-  uint32_t PACRN;                                  /*!< Peripheral Access Control Register, offset: 0x54 */
-  uint32_t PACRO;                                  /*!< Peripheral Access Control Register, offset: 0x58 */
-  uint32_t PACRP;                                  /*!< Peripheral Access Control Register, offset: 0x5C */
+  uint8_t RESERVED_1[16];
+  uint32_t PACRE;                                  /*!< Peripheral Access Control Register, offset: 0x40 */
+  uint32_t PACRF;                                  /*!< Peripheral Access Control Register, offset: 0x44 */
+  uint32_t PACRG;                                  /*!< Peripheral Access Control Register, offset: 0x48 */
+  uint32_t PACRH;                                  /*!< Peripheral Access Control Register, offset: 0x4C */
+  uint32_t PACRI;                                  /*!< Peripheral Access Control Register, offset: 0x50 */
+  uint32_t PACRJ;                                  /*!< Peripheral Access Control Register, offset: 0x54 */
+  uint32_t PACRK;                                  /*!< Peripheral Access Control Register, offset: 0x58 */
+  uint32_t PACRL;                                  /*!< Peripheral Access Control Register, offset: 0x5C */
+  uint32_t PACRM;                                  /*!< Peripheral Access Control Register, offset: 0x60 */
+  uint32_t PACRN;                                  /*!< Peripheral Access Control Register, offset: 0x64 */
+  uint32_t PACRO;                                  /*!< Peripheral Access Control Register, offset: 0x68 */
+  uint32_t PACRP;                                  /*!< Peripheral Access Control Register, offset: 0x6C */
 } volatile *AIPS_MemMapPtr;
 
 /* ----------------------------------------------------------------------------
@@ -1686,19 +1710,18 @@ typedef struct CAN_MemMap {
   uint32_t IFLAG1;                                 /*!< Interrupt Flags 1 Register, offset: 0x30 */
   uint32_t CTRL2;                                  /*!< Control 2 Register, offset: 0x34 */
   uint32_t ESR2;                                   /*!< Error and Status 2 Register, offset: 0x38 */
-  uint32_t IMEUR;                                  /*!< Individual Matching Elements Update Register, offset: 0x3C */
-  uint32_t LRFR;                                   /*!< Lost Rx Frames Register, offset: 0x40 */
+  uint8_t RESERVED_1[8];
   uint32_t CRCR;                                   /*!< CRC Register, offset: 0x44 */
   uint32_t RXFGMASK;                               /*!< Rx FIFO Global Mask Register, offset: 0x48 */
   uint32_t RXFIR;                                  /*!< Rx FIFO Information Register, offset: 0x4C */
-  uint8_t RESERVED_1[48];
+  uint8_t RESERVED_2[48];
   struct {                                         /* offset: 0x80, array step: 0x10 */
     uint32_t CS;                                     /*!< Message Buffer 0 CS Register..Message Buffer 15 CS Register, array offset: 0x80, array step: 0x10 */
     uint32_t ID;                                     /*!< Message Buffer 0 ID Register..Message Buffer 15 ID Register, array offset: 0x84, array step: 0x10 */
     uint32_t WORD0;                                  /*!< Message Buffer 0 WORD0 Register..Message Buffer 15 WORD0 Register, array offset: 0x88, array step: 0x10 */
     uint32_t WORD1;                                  /*!< Message Buffer 0 WORD1 Register..Message Buffer 15 WORD1 Register, array offset: 0x8C, array step: 0x10 */
   } MB[16];
-  uint8_t RESERVED_2[1792];
+  uint8_t RESERVED_3[1792];
   uint32_t RXIMR[16];                              /*!< Rx Individual Mask Registers, array offset: 0x880, array step: 0x4 */
 } volatile *CAN_MemMapPtr;
 
@@ -1725,8 +1748,6 @@ typedef struct CAN_MemMap {
 #define CAN_IFLAG1_REG(base)                     ((base)->IFLAG1)
 #define CAN_CTRL2_REG(base)                      ((base)->CTRL2)
 #define CAN_ESR2_REG(base)                       ((base)->ESR2)
-#define CAN_IMEUR_REG(base)                      ((base)->IMEUR)
-#define CAN_LRFR_REG(base)                       ((base)->LRFR)
 #define CAN_CRCR_REG(base)                       ((base)->CRCR)
 #define CAN_RXFGMASK_REG(base)                   ((base)->RXFGMASK)
 #define CAN_RXFIR_REG(base)                      ((base)->RXFIR)
@@ -1912,12 +1933,6 @@ typedef struct CAN_MemMap {
 #define CAN_IFLAG1_BUF31TO8I_SHIFT               8
 #define CAN_IFLAG1_BUF31TO8I(x)                  (((uint32_t)(((uint32_t)(x))<<CAN_IFLAG1_BUF31TO8I_SHIFT))&CAN_IFLAG1_BUF31TO8I_MASK)
 /* CTRL2 Bit Fields */
-#define CAN_CTRL2_IMEUMASK_MASK                  0x1u
-#define CAN_CTRL2_IMEUMASK_SHIFT                 0
-#define CAN_CTRL2_LOSTRMMSK_MASK                 0x2u
-#define CAN_CTRL2_LOSTRMMSK_SHIFT                1
-#define CAN_CTRL2_LOSTRLMSK_MASK                 0x4u
-#define CAN_CTRL2_LOSTRLMSK_SHIFT                2
 #define CAN_CTRL2_EACEN_MASK                     0x10000u
 #define CAN_CTRL2_EACEN_SHIFT                    16
 #define CAN_CTRL2_RRS_MASK                       0x20000u
@@ -1932,15 +1947,7 @@ typedef struct CAN_MemMap {
 #define CAN_CTRL2_RFFN(x)                        (((uint32_t)(((uint32_t)(x))<<CAN_CTRL2_RFFN_SHIFT))&CAN_CTRL2_RFFN_MASK)
 #define CAN_CTRL2_WRMFRZ_MASK                    0x10000000u
 #define CAN_CTRL2_WRMFRZ_SHIFT                   28
-#define CAN_CTRL2_IMEUEN_MASK                    0x80000000u
-#define CAN_CTRL2_IMEUEN_SHIFT                   31
 /* ESR2 Bit Fields */
-#define CAN_ESR2_IMEUF_MASK                      0x1u
-#define CAN_ESR2_IMEUF_SHIFT                     0
-#define CAN_ESR2_LOSTRMF_MASK                    0x2u
-#define CAN_ESR2_LOSTRMF_SHIFT                   1
-#define CAN_ESR2_LOSTRLF_MASK                    0x4u
-#define CAN_ESR2_LOSTRLF_SHIFT                   2
 #define CAN_ESR2_IMB_MASK                        0x2000u
 #define CAN_ESR2_IMB_SHIFT                       13
 #define CAN_ESR2_VPS_MASK                        0x4000u
@@ -1948,23 +1955,6 @@ typedef struct CAN_MemMap {
 #define CAN_ESR2_LPTM_MASK                       0x7F0000u
 #define CAN_ESR2_LPTM_SHIFT                      16
 #define CAN_ESR2_LPTM(x)                         (((uint32_t)(((uint32_t)(x))<<CAN_ESR2_LPTM_SHIFT))&CAN_ESR2_LPTM_MASK)
-/* IMEUR Bit Fields */
-#define CAN_IMEUR_IMEUP_MASK                     0x7Fu
-#define CAN_IMEUR_IMEUP_SHIFT                    0
-#define CAN_IMEUR_IMEUP(x)                       (((uint32_t)(((uint32_t)(x))<<CAN_IMEUR_IMEUP_SHIFT))&CAN_IMEUR_IMEUP_MASK)
-#define CAN_IMEUR_IMEUREQ_MASK                   0x100u
-#define CAN_IMEUR_IMEUREQ_SHIFT                  8
-#define CAN_IMEUR_IMEUACK_MASK                   0x200u
-#define CAN_IMEUR_IMEUACK_SHIFT                  9
-/* LRFR Bit Fields */
-#define CAN_LRFR_LOSTRMP_MASK                    0x1FFu
-#define CAN_LRFR_LOSTRMP_SHIFT                   0
-#define CAN_LRFR_LOSTRMP(x)                      (((uint32_t)(((uint32_t)(x))<<CAN_LRFR_LOSTRMP_SHIFT))&CAN_LRFR_LOSTRMP_MASK)
-#define CAN_LRFR_LFIFOMTC_MASK                   0x8000u
-#define CAN_LRFR_LFIFOMTC_SHIFT                  15
-#define CAN_LRFR_LOSTRLP_MASK                    0x7F0000u
-#define CAN_LRFR_LOSTRLP_SHIFT                   16
-#define CAN_LRFR_LOSTRLP(x)                      (((uint32_t)(((uint32_t)(x))<<CAN_LRFR_LOSTRLP_SHIFT))&CAN_LRFR_LOSTRLP_MASK)
 /* CRCR Bit Fields */
 #define CAN_CRCR_TXCRC_MASK                      0x7FFFu
 #define CAN_CRCR_TXCRC_SHIFT                     0
@@ -2070,8 +2060,6 @@ typedef struct CAN_MemMap {
 #define CAN0_IFLAG1                              CAN_IFLAG1_REG(CAN0_BASE_PTR)
 #define CAN0_CTRL2                               CAN_CTRL2_REG(CAN0_BASE_PTR)
 #define CAN0_ESR2                                CAN_ESR2_REG(CAN0_BASE_PTR)
-#define CAN0_IMEUR                               CAN_IMEUR_REG(CAN0_BASE_PTR)
-#define CAN0_LRFR                                CAN_LRFR_REG(CAN0_BASE_PTR)
 #define CAN0_CRCR                                CAN_CRCR_REG(CAN0_BASE_PTR)
 #define CAN0_RXFGMASK                            CAN_RXFGMASK_REG(CAN0_BASE_PTR)
 #define CAN0_RXFIR                               CAN_RXFIR_REG(CAN0_BASE_PTR)
@@ -2170,8 +2158,6 @@ typedef struct CAN_MemMap {
 #define CAN1_IFLAG1                              CAN_IFLAG1_REG(CAN1_BASE_PTR)
 #define CAN1_CTRL2                               CAN_CTRL2_REG(CAN1_BASE_PTR)
 #define CAN1_ESR2                                CAN_ESR2_REG(CAN1_BASE_PTR)
-#define CAN1_IMEUR                               CAN_IMEUR_REG(CAN1_BASE_PTR)
-#define CAN1_LRFR                                CAN_LRFR_REG(CAN1_BASE_PTR)
 #define CAN1_CRCR                                CAN_CRCR_REG(CAN1_BASE_PTR)
 #define CAN1_RXFGMASK                            CAN_RXFGMASK_REG(CAN1_BASE_PTR)
 #define CAN1_RXFIR                               CAN_RXFIR_REG(CAN1_BASE_PTR)
@@ -2259,12 +2245,12 @@ typedef struct CAN_MemMap {
 /* CAN - Register array accessors */
 #define CAN0_CS(index)                           CAN_CS_REG(CAN0_BASE_PTR,index)
 #define CAN1_CS(index)                           CAN_CS_REG(CAN1_BASE_PTR,index)
-#define CAN1_ID(index)                           CAN_ID_REG(CAN1_BASE_PTR,index)
 #define CAN0_ID(index)                           CAN_ID_REG(CAN0_BASE_PTR,index)
-#define CAN1_WORD0(index)                        CAN_WORD0_REG(CAN1_BASE_PTR,index)
+#define CAN1_ID(index)                           CAN_ID_REG(CAN1_BASE_PTR,index)
 #define CAN0_WORD0(index)                        CAN_WORD0_REG(CAN0_BASE_PTR,index)
-#define CAN1_WORD1(index)                        CAN_WORD1_REG(CAN1_BASE_PTR,index)
+#define CAN1_WORD0(index)                        CAN_WORD0_REG(CAN1_BASE_PTR,index)
 #define CAN0_WORD1(index)                        CAN_WORD1_REG(CAN0_BASE_PTR,index)
+#define CAN1_WORD1(index)                        CAN_WORD1_REG(CAN1_BASE_PTR,index)
 #define CAN0_RXIMR(index)                        CAN_RXIMR_REG(CAN0_BASE_PTR,index)
 #define CAN1_RXIMR(index)                        CAN_RXIMR_REG(CAN1_BASE_PTR,index)
 
@@ -4088,7 +4074,7 @@ typedef struct EWM_MemMap {
 
 /* EWM - Peripheral instance base addresses */
 /*! Peripheral EWM base pointer */
-#define EWM_BASE_PTR                             ((EWM_MemMapPtr)0x4005F000u)
+#define EWM_BASE_PTR                             ((EWM_MemMapPtr)0x40061000u)
 
 /* ----------------------------------------------------------------------------
    -- EWM - Register accessor macros
@@ -4788,18 +4774,18 @@ typedef struct FTFL_MemMap {
 
 /*! NV - Peripheral register structure */
 typedef struct NV_MemMap {
-  uint8_t BACKKEY0;                                /*!< Backdoor Comparison Key 0., offset: 0x0 */
-  uint8_t BACKKEY1;                                /*!< Backdoor Comparison Key 1., offset: 0x1 */
-  uint8_t BACKKEY2;                                /*!< Backdoor Comparison Key 2., offset: 0x2 */
-  uint8_t BACKKEY3;                                /*!< Backdoor Comparison Key 3., offset: 0x3 */
-  uint8_t BACKKEY4;                                /*!< Backdoor Comparison Key 4., offset: 0x4 */
-  uint8_t BACKKEY5;                                /*!< Backdoor Comparison Key 5., offset: 0x5 */
-  uint8_t BACKKEY6;                                /*!< Backdoor Comparison Key 6., offset: 0x6 */
-  uint8_t BACKKEY7;                                /*!< Backdoor Comparison Key 7., offset: 0x7 */
-  uint8_t FPROT0;                                  /*!< Non-volatile P-Flash Protection 0 - High Register, offset: 0x8 */
-  uint8_t FPROT1;                                  /*!< Non-volatile P-Flash Protection 0 - Low Register, offset: 0x9 */
-  uint8_t FPROT2;                                  /*!< Non-volatile P-Flash Protection 1 - High Register, offset: 0xA */
-  uint8_t FPROT3;                                  /*!< Non-volatile P-Flash Protection 1 - Low Register, offset: 0xB */
+  uint8_t BACKKEY3;                                /*!< Backdoor Comparison Key 3., offset: 0x0 */
+  uint8_t BACKKEY2;                                /*!< Backdoor Comparison Key 2., offset: 0x1 */
+  uint8_t BACKKEY1;                                /*!< Backdoor Comparison Key 1., offset: 0x2 */
+  uint8_t BACKKEY0;                                /*!< Backdoor Comparison Key 0., offset: 0x3 */
+  uint8_t BACKKEY7;                                /*!< Backdoor Comparison Key 7., offset: 0x4 */
+  uint8_t BACKKEY6;                                /*!< Backdoor Comparison Key 6., offset: 0x5 */
+  uint8_t BACKKEY5;                                /*!< Backdoor Comparison Key 5., offset: 0x6 */
+  uint8_t BACKKEY4;                                /*!< Backdoor Comparison Key 4., offset: 0x7 */
+  uint8_t FPROT3;                                  /*!< Non-volatile P-Flash Protection 1 - Low Register, offset: 0x8 */
+  uint8_t FPROT2;                                  /*!< Non-volatile P-Flash Protection 1 - High Register, offset: 0x9 */
+  uint8_t FPROT1;                                  /*!< Non-volatile P-Flash Protection 0 - Low Register, offset: 0xA */
+  uint8_t FPROT0;                                  /*!< Non-volatile P-Flash Protection 0 - High Register, offset: 0xB */
   uint8_t FSEC;                                    /*!< Non-volatile Flash Security Register, offset: 0xC */
   uint8_t FOPT;                                    /*!< Non-volatile Flash Option Register, offset: 0xD */
   uint8_t FEPROT;                                  /*!< Non-volatile EERAM Protection Register, offset: 0xE */
@@ -4815,18 +4801,18 @@ typedef struct NV_MemMap {
 
 
 /* NV - Register accessors */
-#define NV_BACKKEY0_REG(base)                    ((base)->BACKKEY0)
-#define NV_BACKKEY1_REG(base)                    ((base)->BACKKEY1)
-#define NV_BACKKEY2_REG(base)                    ((base)->BACKKEY2)
 #define NV_BACKKEY3_REG(base)                    ((base)->BACKKEY3)
-#define NV_BACKKEY4_REG(base)                    ((base)->BACKKEY4)
-#define NV_BACKKEY5_REG(base)                    ((base)->BACKKEY5)
-#define NV_BACKKEY6_REG(base)                    ((base)->BACKKEY6)
+#define NV_BACKKEY2_REG(base)                    ((base)->BACKKEY2)
+#define NV_BACKKEY1_REG(base)                    ((base)->BACKKEY1)
+#define NV_BACKKEY0_REG(base)                    ((base)->BACKKEY0)
 #define NV_BACKKEY7_REG(base)                    ((base)->BACKKEY7)
-#define NV_FPROT0_REG(base)                      ((base)->FPROT0)
-#define NV_FPROT1_REG(base)                      ((base)->FPROT1)
-#define NV_FPROT2_REG(base)                      ((base)->FPROT2)
+#define NV_BACKKEY6_REG(base)                    ((base)->BACKKEY6)
+#define NV_BACKKEY5_REG(base)                    ((base)->BACKKEY5)
+#define NV_BACKKEY4_REG(base)                    ((base)->BACKKEY4)
 #define NV_FPROT3_REG(base)                      ((base)->FPROT3)
+#define NV_FPROT2_REG(base)                      ((base)->FPROT2)
+#define NV_FPROT1_REG(base)                      ((base)->FPROT1)
+#define NV_FPROT0_REG(base)                      ((base)->FPROT0)
 #define NV_FSEC_REG(base)                        ((base)->FSEC)
 #define NV_FOPT_REG(base)                        ((base)->FOPT)
 #define NV_FEPROT_REG(base)                      ((base)->FEPROT)
@@ -4842,54 +4828,54 @@ typedef struct NV_MemMap {
 /*! \addtogroup NV_Register_Masks NV Register Masks */
 /*! \{ */
 
-/* BACKKEY0 Bit Fields */
-#define NV_BACKKEY0_KEY_MASK                     0xFFu
-#define NV_BACKKEY0_KEY_SHIFT                    0
-#define NV_BACKKEY0_KEY(x)                       (((uint8_t)(((uint8_t)(x))<<NV_BACKKEY0_KEY_SHIFT))&NV_BACKKEY0_KEY_MASK)
-/* BACKKEY1 Bit Fields */
-#define NV_BACKKEY1_KEY_MASK                     0xFFu
-#define NV_BACKKEY1_KEY_SHIFT                    0
-#define NV_BACKKEY1_KEY(x)                       (((uint8_t)(((uint8_t)(x))<<NV_BACKKEY1_KEY_SHIFT))&NV_BACKKEY1_KEY_MASK)
-/* BACKKEY2 Bit Fields */
-#define NV_BACKKEY2_KEY_MASK                     0xFFu
-#define NV_BACKKEY2_KEY_SHIFT                    0
-#define NV_BACKKEY2_KEY(x)                       (((uint8_t)(((uint8_t)(x))<<NV_BACKKEY2_KEY_SHIFT))&NV_BACKKEY2_KEY_MASK)
 /* BACKKEY3 Bit Fields */
 #define NV_BACKKEY3_KEY_MASK                     0xFFu
 #define NV_BACKKEY3_KEY_SHIFT                    0
 #define NV_BACKKEY3_KEY(x)                       (((uint8_t)(((uint8_t)(x))<<NV_BACKKEY3_KEY_SHIFT))&NV_BACKKEY3_KEY_MASK)
-/* BACKKEY4 Bit Fields */
-#define NV_BACKKEY4_KEY_MASK                     0xFFu
-#define NV_BACKKEY4_KEY_SHIFT                    0
-#define NV_BACKKEY4_KEY(x)                       (((uint8_t)(((uint8_t)(x))<<NV_BACKKEY4_KEY_SHIFT))&NV_BACKKEY4_KEY_MASK)
-/* BACKKEY5 Bit Fields */
-#define NV_BACKKEY5_KEY_MASK                     0xFFu
-#define NV_BACKKEY5_KEY_SHIFT                    0
-#define NV_BACKKEY5_KEY(x)                       (((uint8_t)(((uint8_t)(x))<<NV_BACKKEY5_KEY_SHIFT))&NV_BACKKEY5_KEY_MASK)
-/* BACKKEY6 Bit Fields */
-#define NV_BACKKEY6_KEY_MASK                     0xFFu
-#define NV_BACKKEY6_KEY_SHIFT                    0
-#define NV_BACKKEY6_KEY(x)                       (((uint8_t)(((uint8_t)(x))<<NV_BACKKEY6_KEY_SHIFT))&NV_BACKKEY6_KEY_MASK)
+/* BACKKEY2 Bit Fields */
+#define NV_BACKKEY2_KEY_MASK                     0xFFu
+#define NV_BACKKEY2_KEY_SHIFT                    0
+#define NV_BACKKEY2_KEY(x)                       (((uint8_t)(((uint8_t)(x))<<NV_BACKKEY2_KEY_SHIFT))&NV_BACKKEY2_KEY_MASK)
+/* BACKKEY1 Bit Fields */
+#define NV_BACKKEY1_KEY_MASK                     0xFFu
+#define NV_BACKKEY1_KEY_SHIFT                    0
+#define NV_BACKKEY1_KEY(x)                       (((uint8_t)(((uint8_t)(x))<<NV_BACKKEY1_KEY_SHIFT))&NV_BACKKEY1_KEY_MASK)
+/* BACKKEY0 Bit Fields */
+#define NV_BACKKEY0_KEY_MASK                     0xFFu
+#define NV_BACKKEY0_KEY_SHIFT                    0
+#define NV_BACKKEY0_KEY(x)                       (((uint8_t)(((uint8_t)(x))<<NV_BACKKEY0_KEY_SHIFT))&NV_BACKKEY0_KEY_MASK)
 /* BACKKEY7 Bit Fields */
 #define NV_BACKKEY7_KEY_MASK                     0xFFu
 #define NV_BACKKEY7_KEY_SHIFT                    0
 #define NV_BACKKEY7_KEY(x)                       (((uint8_t)(((uint8_t)(x))<<NV_BACKKEY7_KEY_SHIFT))&NV_BACKKEY7_KEY_MASK)
-/* FPROT0 Bit Fields */
-#define NV_FPROT0_PROT_MASK                      0xFFu
-#define NV_FPROT0_PROT_SHIFT                     0
-#define NV_FPROT0_PROT(x)                        (((uint8_t)(((uint8_t)(x))<<NV_FPROT0_PROT_SHIFT))&NV_FPROT0_PROT_MASK)
-/* FPROT1 Bit Fields */
-#define NV_FPROT1_PROT_MASK                      0xFFu
-#define NV_FPROT1_PROT_SHIFT                     0
-#define NV_FPROT1_PROT(x)                        (((uint8_t)(((uint8_t)(x))<<NV_FPROT1_PROT_SHIFT))&NV_FPROT1_PROT_MASK)
-/* FPROT2 Bit Fields */
-#define NV_FPROT2_PROT_MASK                      0xFFu
-#define NV_FPROT2_PROT_SHIFT                     0
-#define NV_FPROT2_PROT(x)                        (((uint8_t)(((uint8_t)(x))<<NV_FPROT2_PROT_SHIFT))&NV_FPROT2_PROT_MASK)
+/* BACKKEY6 Bit Fields */
+#define NV_BACKKEY6_KEY_MASK                     0xFFu
+#define NV_BACKKEY6_KEY_SHIFT                    0
+#define NV_BACKKEY6_KEY(x)                       (((uint8_t)(((uint8_t)(x))<<NV_BACKKEY6_KEY_SHIFT))&NV_BACKKEY6_KEY_MASK)
+/* BACKKEY5 Bit Fields */
+#define NV_BACKKEY5_KEY_MASK                     0xFFu
+#define NV_BACKKEY5_KEY_SHIFT                    0
+#define NV_BACKKEY5_KEY(x)                       (((uint8_t)(((uint8_t)(x))<<NV_BACKKEY5_KEY_SHIFT))&NV_BACKKEY5_KEY_MASK)
+/* BACKKEY4 Bit Fields */
+#define NV_BACKKEY4_KEY_MASK                     0xFFu
+#define NV_BACKKEY4_KEY_SHIFT                    0
+#define NV_BACKKEY4_KEY(x)                       (((uint8_t)(((uint8_t)(x))<<NV_BACKKEY4_KEY_SHIFT))&NV_BACKKEY4_KEY_MASK)
 /* FPROT3 Bit Fields */
 #define NV_FPROT3_PROT_MASK                      0xFFu
 #define NV_FPROT3_PROT_SHIFT                     0
 #define NV_FPROT3_PROT(x)                        (((uint8_t)(((uint8_t)(x))<<NV_FPROT3_PROT_SHIFT))&NV_FPROT3_PROT_MASK)
+/* FPROT2 Bit Fields */
+#define NV_FPROT2_PROT_MASK                      0xFFu
+#define NV_FPROT2_PROT_SHIFT                     0
+#define NV_FPROT2_PROT(x)                        (((uint8_t)(((uint8_t)(x))<<NV_FPROT2_PROT_SHIFT))&NV_FPROT2_PROT_MASK)
+/* FPROT1 Bit Fields */
+#define NV_FPROT1_PROT_MASK                      0xFFu
+#define NV_FPROT1_PROT_SHIFT                     0
+#define NV_FPROT1_PROT(x)                        (((uint8_t)(((uint8_t)(x))<<NV_FPROT1_PROT_SHIFT))&NV_FPROT1_PROT_MASK)
+/* FPROT0 Bit Fields */
+#define NV_FPROT0_PROT_MASK                      0xFFu
+#define NV_FPROT0_PROT_SHIFT                     0
+#define NV_FPROT0_PROT(x)                        (((uint8_t)(((uint8_t)(x))<<NV_FPROT0_PROT_SHIFT))&NV_FPROT0_PROT_MASK)
 /* FSEC Bit Fields */
 #define NV_FSEC_SEC_MASK                         0x3u
 #define NV_FSEC_SEC_SHIFT                        0
@@ -5563,11 +5549,11 @@ typedef struct FTM_MemMap {
 
 /* FTM - Register array accessors */
 #define FTM0_CnSC(index)                         FTM_CnSC_REG(FTM0_BASE_PTR,index)
-#define FTM2_CnSC(index)                         FTM_CnSC_REG(FTM2_BASE_PTR,index)
 #define FTM1_CnSC(index)                         FTM_CnSC_REG(FTM1_BASE_PTR,index)
-#define FTM2_CnV(index)                          FTM_CnV_REG(FTM2_BASE_PTR,index)
+#define FTM2_CnSC(index)                         FTM_CnSC_REG(FTM2_BASE_PTR,index)
 #define FTM0_CnV(index)                          FTM_CnV_REG(FTM0_BASE_PTR,index)
 #define FTM1_CnV(index)                          FTM_CnV_REG(FTM1_BASE_PTR,index)
+#define FTM2_CnV(index)                          FTM_CnV_REG(FTM2_BASE_PTR,index)
 
 /*! \} */ /* end of group FTM_Register_Accessor_Macros */
 
@@ -10129,7 +10115,7 @@ typedef struct GPIO_MemMap {
 
 /*! RFSYS - Peripheral register structure */
 typedef struct RFSYS_MemMap {
-  uint32_t REG[8];                                 /*!< VBAT register file register, array offset: 0x0, array step: 0x4 */
+  uint32_t REG[8];                                 /*!< Register file register, array offset: 0x0, array step: 0x4 */
 } volatile *RFSYS_MemMapPtr;
 
 /* ----------------------------------------------------------------------------
@@ -12139,8 +12125,7 @@ typedef struct TSI_MemMap {
   uint32_t SCANC;                                  /*!< SCAN control register, offset: 0x4 */
   uint32_t PEN;                                    /*!< Pin enable register, offset: 0x8 */
   uint32_t STATUS;                                 /*!< Status Register, offset: 0xC */
-  uint32_t WUCNTR;                                 /*!< Wake-Up Channel Counter Register, offset: 0x10 */
-  uint8_t RESERVED_0[236];
+  uint8_t RESERVED_0[240];
   uint32_t CNTR1;                                  /*!< Counter Register, offset: 0x100 */
   uint32_t CNTR3;                                  /*!< Counter Register, offset: 0x104 */
   uint32_t CNTR5;                                  /*!< Counter Register, offset: 0x108 */
@@ -12165,7 +12150,6 @@ typedef struct TSI_MemMap {
 #define TSI_SCANC_REG(base)                      ((base)->SCANC)
 #define TSI_PEN_REG(base)                        ((base)->PEN)
 #define TSI_STATUS_REG(base)                     ((base)->STATUS)
-#define TSI_WUCNTR_REG(base)                     ((base)->WUCNTR)
 #define TSI_CNTR1_REG(base)                      ((base)->CNTR1)
 #define TSI_CNTR3_REG(base)                      ((base)->CNTR3)
 #define TSI_CNTR5_REG(base)                      ((base)->CNTR5)
@@ -12347,10 +12331,6 @@ typedef struct TSI_MemMap {
 #define TSI_STATUS_ERROF14_SHIFT                 30
 #define TSI_STATUS_ERROF15_MASK                  0x80000000u
 #define TSI_STATUS_ERROF15_SHIFT                 31
-/* WUCNTR Bit Fields */
-#define TSI_WUCNTR_WUCNT_MASK                    0xFFFFu
-#define TSI_WUCNTR_WUCNT_SHIFT                   0
-#define TSI_WUCNTR_WUCNT(x)                      (((uint32_t)(((uint32_t)(x))<<TSI_WUCNTR_WUCNT_SHIFT))&TSI_WUCNTR_WUCNT_MASK)
 /* CNTR1 Bit Fields */
 #define TSI_CNTR1_CNTN_MASK                      0xFFFFu
 #define TSI_CNTR1_CNTN_SHIFT                     0
@@ -12436,7 +12416,6 @@ typedef struct TSI_MemMap {
 #define TSI0_SCANC                               TSI_SCANC_REG(TSI0_BASE_PTR)
 #define TSI0_PEN                                 TSI_PEN_REG(TSI0_BASE_PTR)
 #define TSI0_STATUS                              TSI_STATUS_REG(TSI0_BASE_PTR)
-#define TSI0_WUCNTR                              TSI_WUCNTR_REG(TSI0_BASE_PTR)
 #define TSI0_CNTR1                               TSI_CNTR1_REG(TSI0_BASE_PTR)
 #define TSI0_CNTR3                               TSI_CNTR3_REG(TSI0_BASE_PTR)
 #define TSI0_CNTR5                               TSI_CNTR5_REG(TSI0_BASE_PTR)
@@ -13809,6 +13788,13 @@ typedef struct WDOG_MemMap {
 /*! \} */ /* end of group Backward_Compatibility_Symbols */
 
 
+#else /* #if !defined(MCU_MK40X256VMD100) */
+  /* There is already included the same memory map. Check if it is the same version */
+  #if (MCU_MEM_MAP_VERSION != ((1 << 8) | 0))
+    #if (!defined(MCU_MEM_MAP_SUPPRESS_VERSION_WARNING))
+      #warning There are included two different versions of memory maps. Please check possible differences.
+    #endif /* (!defined(MCU_MEM_MAP_SUPPRESS_VERSION_WARNING)) */
+  #endif /* (MCU_MEM_MAP_VERSION != ((1 << 8) | 0)) */
 #endif  /* #if !defined(MCU_MK40X256VMD100) */
 
 /* MK40X256VMD100.h, eof. */
