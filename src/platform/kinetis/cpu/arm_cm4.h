@@ -8,13 +8,19 @@
 #ifndef _CPU_ARM_CM4_H
 #define _CPU_ARM_CM4_H
 
-#include "common.h"
+#include "common_kinetis.h"
+
+/*ARM Cortex M4 implementation for interrupt priority shift*/
+#define ARM_INTERRUPT_LEVEL_BITS          4
 
 /***********************************************************************/
 // function prototypes for arm_cm4.c
 void stop (void);
 void wait (void);
 void write_vtor (int);
+void enable_irq (int);
+void disable_irq (int);
+void set_irq_priority (int, int);
 
 /***********************************************************************/
   /*!< Macro to enable all interrupts. */
