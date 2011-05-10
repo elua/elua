@@ -8,7 +8,10 @@
 #define __MCG_H__
 /********************************************************************/
 
+
 unsigned char pll_init(unsigned char, unsigned char);
+
+
 
 enum clk_option
 {
