@@ -94,7 +94,7 @@ float:left;
 #header .sections li a{font-family:'fonte_chamada_2', Helvetica, Arial, sans-serif;padding:5px 5px 5px 5px;-moz-border-radius:7px;-webkitborder-radius:7px;border-radius:7px;display:block;float:left;background:#02174a;border:1px solid #0b245b;text-shadow: 2px 2px 0px #000;text-decoration:none;margin:10px 5px 0 0;}
 #header .sections li a[href]:hover{padding:5px 5px 5px 5px;display:block;float:left;background:#01103b;border:1px solid #1a366f;text-decoration:none;}
 #header .sections li .selected{padding:5px 5px 5px 5px;display:block;float:left;background:#01103b;border:1px solid #1a366f;text-decoration:none;color:#fff;}
-#header h2,h2  a{font-size:30px;color:#fff;text-shadow: 2px 1px 0px #022140;font-family:'fonte_chamada', Helvetica, Arial, sans-serif;text-decoration:none;}
+#header h2,#header h2  a{font-size:30px;color:#fff;text-shadow: 2px 1px 0px #022140;font-family:'fonte_chamada', Helvetica, Arial, sans-serif;text-decoration:none;}
 #header h2  a[href]:hover{text-decoration:underline;}
 #header .chamada_elua{font-weight:normal;font-size:23px;text-shadow: 2px 1px 0px #022140;line-height:1.3; padding:30px;font-family:'fonte_chamada', Helvetica, Arial, sans-serif;}
 
@@ -184,6 +184,9 @@ margin:10px;
 #interna_2 .section_conteudo ul li{
   line-height:22px;
 }
+#interna_2 .section_conteudo h2{
+ font-size:19px;font-family:'fonte_chamada', Helvetica, Arial, sans-serif;
+}
 
 #interna_2 .section  h1{font-size:23px;font-family:'fonte_chamada', Helvetica, Arial, sans-serif;
 }
@@ -236,6 +239,30 @@ color:#03121c;
 
 #article .section_conteudo img{margin:7px 0px 7px 0px;}
 
+#article .functions{display:block;background: none repeat scroll 0 0 #EDEDEA;border: 1px solid #566D82;padding:10px; -moz-border-radius: 5px 5px 5px 5px;}
+
+#article .functions a[href]{font-weight:normal;padding:0px 15px 0px 0px;}
+
+.function-block {
+   
+    background: none repeat scroll 0 0 #EDEDEA;
+    border: 1px solid #566D82;
+    margin: 20px 0 20px;
+    padding: 0px;
+}
+
+.function-block h2 {
+    background: none repeat scroll 0 0 #EDEDEA;
+    border-left: 4px solid #566D82;
+    border-bottom: 1px dashed #566D82;
+    margin: 0px;
+    padding: 8px 0 12px 10px;
+    overflow: auto;
+    font-size:19px;
+}
+
+.function-block p {margin:15px;}
+
 pre {
     background: none repeat scroll 0 0 #EDEDEA;
     border-left: 4px solid #566D82;
@@ -259,7 +286,7 @@ pre, code {
 #interna_2 #article .section_conteudo{width:auto;float:left;margin:10px 10px 0px 0;padding:10px;text-align:normal;}
 #interna_2 #article .section_size{width:700px;}
 #interna_2 #article .section_conteudo h1{font-size:25px;font-family:'fonte_chamada', Helvetica, Arial, sans-serif;text-align:bold;margin-bottom:10px;}
-#interna_2 #article .section_conteudo h3{font-size:19px;border-bottom: 1px solid #8EBBD0;margin:15px 0px 17px 0px;}
+#interna_2 #article .section_conteudo h3{font-size:19px;border-bottom: 1px solid #566D82;margin:15px 0px 17px 0px;}
 #interna_2 #article .section_conteudo b{color:#0b75aa;}
 
 

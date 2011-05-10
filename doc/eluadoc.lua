@@ -181,7 +181,13 @@ local function build_file( fname )
       return false, "funcs not found"
     end
     local funcs = r.funcs
-    page = page .. '<a name="funcs" /><h3>Functions</h3>\n<div class="docdiv">\n'
+    local functions_name = "<div class='functions'>" 
+    for _,f in pairs(funcs)do
+      functions_name = functions_name.."<a href='#"..namefromsig( f.sig ) .."'>"..namefromsig( f.sig ) .."</a> "
+    end
+
+    page = page .. '<a name="funcs" /><h3>Functions</h3>\n<div class="docdiv">\n'.. functions_name.."</div>\n"
+    
     
 	menu.funcs = {}
     
@@ -200,7 +206,7 @@ local function build_file( fname )
       -- signature
 	  
       page = page .. string.format( '<a name="%s" />', funcname )
-      page = page .. "inicio<pre><code>" .. f.sig:gsub( '#', '' ) .. "</code></pre>"
+      page = page .. "<div class='function-block'><h2>" .. f.sig:gsub( '#', '' ) .. "</h2>\n"
       -- description
       page = page .. "\n<p>" .. dot( format_string( f.desc ) ) .. "</p>\n"
       -- arguments
@@ -234,7 +240,7 @@ local function build_file( fname )
       else
         page = page .. "nothing.</p>"
       end
-      page = page .. "\n\nxxxxfim"
+      page = page .. "\n\n</div>"
     end
     page = page .. "</div>\n"
 

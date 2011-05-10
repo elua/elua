@@ -506,7 +506,7 @@ local function gen_html_page( fname, lang )
 				<input class="searchbutton" type="submit" value="Go" />
     </form>
 	
-  		<h1><a href="index.htm" title="eLua Project"><img src="images/logo_eLua_menor.png" alt="eLua Project"/></a></h1>
+  		<h1><a href="en_index.htm" title="eLua Project"><img src="images/logo_elua_menor.png" alt="eLua Project"/></a></h1>
   		
   		<!--navegação-->
   		<div id="nav_top">
