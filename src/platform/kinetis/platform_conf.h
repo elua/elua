@@ -25,7 +25,7 @@
 #define BUILD_RPC
 //#define BUILD_RFS
 //#define BUILD_CON_TCP
-//#define BUILD_LINENOISE
+#define BUILD_LINENOISE
 //#define BUILD_C_INT_HANDLERS
 //#define BUILD_LUA_INT_HANDLERS
 #define ENABLE_TSI
@@ -135,6 +135,10 @@ u32 platform_s_cpu_get_frequency();
 // #define PIO_PIN_ARRAY { n1, n2, ... } to define pins per port in an array
 // Use #define PIO_PINS_PER_PORT 0 if this isn't needed
 #define PIO_PINS_PER_PORT     32
+
+// Linenoise buffer sizes
+#define LINENOISE_HISTORY_SIZE_LUA    50
+#define LINENOISE_HISTORY_SIZE_SHELL  10
 
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)
