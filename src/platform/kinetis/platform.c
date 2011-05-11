@@ -432,7 +432,7 @@ u16 kin_tsi_read( unsigned id )
   // enable electrode pin
   TSI0_PEN = ( ( u32 )1 ) << id;
 
-  //TSI_THRESHLD_REG(TSI0_BASE_PTR, id) = TSI_THRESHLD_HTHH(0xFF) | TSI_THRESHLD_LTHH(0x00);
+  TSI_THRESHLD_REG(TSI0_BASE_PTR, id) = TSI_THRESHLD_HTHH(0xFF) | TSI_THRESHLD_LTHH(0x00);
 
   // Enable TSI
   TSI0_GENCS |=  TSI_GENCS_TSIEN_MASK;
