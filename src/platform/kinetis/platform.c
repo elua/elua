@@ -416,10 +416,7 @@ u16 kin_tsi_read( unsigned id )
   while( ( TSI0_GENCS & TSI_GENCS_SCNIP_MASK ) );
 
   // Set electrode pin to analog
-  if( id == 5 )
-    PORTA_PCR4 = PORT_PCR_MUX( 0 );
-  else
-    PORT_PCR_REG( ports[ tsi_ports [ id ] ], tsi_pins[ id ] ) |= PORT_PCR_MUX( 0 );
+  PORT_PCR_REG( ports[ tsi_ports[ id ] ], tsi_pins[ id ] ) = PORT_PCR_MUX( 0 );
   
   
   // 4 uA external current, 32 uA ref current, 600mV delta
