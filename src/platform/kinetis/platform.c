@@ -424,7 +424,7 @@ u16 kin_tsi_read( unsigned id )
                                     TSI_SCANC_DELVOL( 7 )  | TSI_SCANC_SMOD( 0 ) | 
                                     TSI_SCANC_AMPSC( 0 ) );
 
-  TSI_GENCS_REG(TSI0_BASE_PTR) |= TSI_GENCS_PS( 3 ) | TSI_GENCS_NSCN( 10 );
+  TSI_GENCS_REG(TSI0_BASE_PTR) |= TSI_GENCS_PS( 2 ) | TSI_GENCS_NSCN( 10 );
 
   // enable electrode pin
   TSI0_PEN = ( ( u32 )1 ) << id;
