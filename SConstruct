@@ -117,64 +117,8 @@ board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
 cpu_list = sum([board_list[i] for i in board_list],[])
 
 
-# ROMFS file list "groups"
-# To include a file in a ROMFS build, include it in a group here (or create one
-# if you need) and make sure the group is included on your platform's file_list
-# definition (right after this).
-
-# The following table will be left here just as an example
-# eLua examples were removed from the distro since v0.8
-#romfs = { 'bisect' : [ 'bisect.lua' ],
-#          'hangman' : [ 'hangman.lua' ],
-#          'lhttpd' : [ 'index.pht', 'lhttpd.lua', 'test.lua' ],
-#          'led' : [ 'led.lua' ],
-#          'piano' : [ 'piano.lua' ],
-#          'pwmled' : [ 'pwmled.lua' ],
-#          'tvbgone' : [ 'tvbgone.lua', 'codes.bin' ],
-#          'hello' : [ 'hello.lua' ],
-#          'info' : [ 'info.lua' ],
-#          'morse' : [ 'morse.lua' ],
-#          'dualpwm' : [ 'dualpwm.lua' ],
-#          'adcscope' : [ 'adcscope.lua' ],
-#          'adcpoll' : [ 'adcpoll.lua' ],
-#          'life' : [ 'life.lua' ],
-#          'logo' : ['logo.lua', 'logo.bin' ],
-#          'pong' : [ 'pong.lua' ],
-#          'spaceship' : [ 'spaceship.lua' ],
-#          'tetrives' : [ 'tetrives.lua' ],
-#          'snake' : [ 'snake.lua' ],
-#          'dataflash' : [ 'dataflash.lua' ],
-#          'pachube' : [ 'pachube_demo.lua' ],
-#          'inttest' : [ 'inttest.lua' ]
-#        }
-
 romfs = {
         }
-
-# List of board/romfs data combinations
-# The following table will be left here just as an example
-# eLua examples were removed from the distro since v0.8
-#file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'info', 'morse' ],
-#              'EK-LM3S1968' : [ 'bisect', 'hangman', 'pong', 'led', 'piano', 'pwmled', 'hello', 'info', 'morse', 'adcscope', 'adcpoll', 'logo', 'spaceship', 'tetrives', 'snake' ],
-#              'EK-LM3S8962' : [ 'lhttpd','bisect', 'led', 'pachube' ],
-#              'EK-LM3S6965' : [ 'bisect', 'hangman', 'pong', 'led', 'piano', 'pwmled', 'hello', 'info', 'morse', 'adcscope', 'adcpoll', 'logo', 'tetrives' ],
-#              'EK-LM3S9B92' : [ 'bisect', 'hangman', 'led', 'pwmled', 'hello', 'info', 'adcscope','adcpoll', 'life' ],
-#              'STR9-COMSTICK' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
-#              'STR-E912' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'piano', 'adcscope' ],
-#              'PC' : [ 'bisect', 'hello', 'info', 'life', 'hangman' ],
-#              'SIM' : [ 'bisect', 'hello', 'info', 'life', 'hangman' ],
-#              'LPC-H2888' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
-#              'MOD711' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'dualpwm' ],
-#              'STM3210E-EVAL' : [ 'bisect', 'hello', 'info' ],
-#              'ATEVK1100' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'dataflash' ],
-#              'ATEVK1101' : [ 'bisect', 'led', 'hello', 'info', 'dataflash' ],
-#              'ET-STM32' : [ 't' ],
-#              'EAGLE-100' : [ 'bisect', 'hangman', 'lhttpd', 'led', 'hello', 'info' ],
-#              'ELUA-PUC' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'pwmled', 'adcscope', 'adcpoll', 'inttest' ],
-#              'MBED' : [ 'bisect', 'hangman', 'hello', 'info', 'led', 'pwmled', 'dualpwm', 'life', 'adcscope', 'adcpoll' ],
-#              'MIZAR32' : [ ],
-#              'NETDUINO': [ ],
-#}
 
 file_list = { 'SAM7-EX256' : [ ],
               'EK-LM3S1968' : [ ],
@@ -274,8 +218,15 @@ vars.AddVariables(
                     'verbatim',
                     allowed_values=[ 'verbatim' , 'compress', 'compile' ] ) )
 
-
 vars.Update(comp)
+
+project = ARGUMENTS.get ('project', '')
+try:
+	execfile (project + '/conf.py')
+	comp['board']=BOARD
+except:
+	print ('invalid project ' + project)
+	exit (1)
 
 if not GetOption( 'help' ):
 
@@ -387,7 +338,7 @@ if not GetOption( 'help' ):
     print "*********************************"
     print
 
-  output = 'elua_' + comp['target'] + '_' + comp['cpu'].lower()
+  output = project + 'elua_' + comp['target'] + '_' + comp['cpu'].lower()
 
   comp.Append(CPPDEFINES = { 'ELUA_CPU' : comp['cpu'],
                              'ELUA_BOARD' : comp['board'],
@@ -469,10 +420,10 @@ if not GetOption( 'help' ):
   # Make ROM File System first
   if not GetOption( 'clean' ):
     print "Building ROM File System..."
-    romdir = "romfs"
+    romdir = project + "romfs/"
     flist = []
-    for sample in file_list[ comp['board'] ]:
-      flist += romfs[ sample ]
+    for file in os.listdir (romdir):
+      flist += [file]
     import mkfs
     mkfs.mkfs( romdir, "romfiles", flist, comp['romfs'], compcmd )
     print
