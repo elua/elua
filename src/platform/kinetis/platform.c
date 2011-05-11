@@ -399,7 +399,7 @@ void kin_tsi_init( unsigned id )
 {
 
 
-  //TSI_THRESHLD_REG(TSI0_BASE_PTR, id) = TSI_THRESHLD_HTHH(0xFF) | TSI_THRESHLD_LTHH(0x00);
+  //
 
 }
 
@@ -416,7 +416,11 @@ u16 kin_tsi_read( unsigned id )
   while( ( TSI0_GENCS & TSI_GENCS_SCNIP_MASK ) );
 
   // Set electrode pin to analog
-  PORT_PCR_REG( ports[ tsi_ports [ id ] ], tsi_pins[ id ] ) |= PORT_PCR_MUX( 0 );
+  if( id == 5 )
+    PORTA_PCR4 = PORT_PCR_MUX( 0 );
+  else
+    PORT_PCR_REG( ports[ tsi_ports [ id ] ], tsi_pins[ id ] ) |= PORT_PCR_MUX( 0 );
+  
   
   // 4 uA external current, 32 uA ref current, 600mV delta
   TSI_SCANC_REG(TSI0_BASE_PTR) |= ( TSI_SCANC_EXTCHRG( 3 ) | TSI_SCANC_REFCHRG( 31 ) |
@@ -427,6 +431,8 @@ u16 kin_tsi_read( unsigned id )
 
   // enable electrode pin
   TSI0_PEN = ( ( u32 )1 ) << id;
+
+  //TSI_THRESHLD_REG(TSI0_BASE_PTR, id) = TSI_THRESHLD_HTHH(0xFF) | TSI_THRESHLD_LTHH(0x00);
 
   // Enable TSI
   TSI0_GENCS |=  TSI_GENCS_TSIEN_MASK;

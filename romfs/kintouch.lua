@@ -1,5 +1,5 @@
-local ledpins = { pio.PA_28, pio.PA_29, pio.PA_10 }
-local touchchans = {8, 7, 9}
+local ledpins = { pio.PA_11, pio.PA_28, pio.PA_29, pio.PA_10 }
+local touchchans = {5, 8, 7, 9}
 local baselines = {}
 local ledstate = {1,1,1,1}
 local laststate = {0,0,0,0}
