@@ -1,3 +1,9 @@
+--------------------------------------------------------------------------------
+--
+-- A Touch Demo for the Kinitis K60 Freescale Tower
+--
+--------------------------------------------------------------------------------
+
 local ledpins = { pio.PA_11, pio.PA_28, pio.PA_29, pio.PA_10 }
 local touchchans = {5, 8, 7, 9}
 local baselines = {}
@@ -7,26 +13,19 @@ local laststate = {0,0,0,0}
 tmr_id = 1
 delay_time = 50000
 
--- Auxiliary functions
-function leds_off()
-  for i=1, #ledpins do
-    pio.pin.sethigh( ledpins[ i ] )
-  end
-end
-
 -- Initializations
 tmr.start(tmr_id)
 
 for i = 1, #ledpins do
-  pio.pin.sethigh( i )
   pio.pin.setdir( pio.OUTPUT, ledpins[ i ] )
+  pio.pin.sethigh( ledpins[ i ] )
 end
 
-for i = 1, #touchchans do
+for i = 1, #touchchans do -- collect baselines
   baselines[i] = kin.tsi.init(touchchans[i])
 end
 
-leds_off()
+print("Press ESC to exit")
 
 while true do
   for i = 1, #touchchans do
@@ -39,6 +38,10 @@ while true do
     else
        laststate[i] = 0
     end
- end
- tmr.delay ( tmr_id, delay_time )
+  end
+  tmr.delay ( tmr_id, delay_time )
+
+  -- Exit if user hits Escape
+  key = term.getchar( term.NOWAIT )
+  if key == term.KC_ESC then break end 
 end
