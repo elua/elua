@@ -11,4 +11,7 @@ inc/romfiles.h
 .sconf_temp/
 .sconsign.dblite
 config.log
+lua
+luarpc
+*.*~
 
