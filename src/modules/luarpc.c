@@ -52,7 +52,7 @@ void *alloca(size_t);
 // Prototypes for Local Functions  
 LUALIB_API int luaopen_rpc( lua_State *L );
 Handle *handle_create( lua_State *L );
-
+static void rpc_dispatch_helper( lua_State *L, ServerHandle *handle );
 
 struct exception_context the_exception_context[ 1 ];
 
@@ -1391,6 +1391,9 @@ static ServerHandle *rpc_listen_helper( lua_State *L )
 
     // make listening transport 
     transport_open_listener( L, handle );
+
+    // Wait for connection
+    rpc_dispatch_helper( L, handle );  
   }
   Catch( e )
   {
@@ -1444,7 +1447,7 @@ static int rpc_peek( lua_State *L )
   if ( transport_is_open( &handle->ltpt ) )
   {
     if ( transport_readable( &handle->ltpt ) )
-      lua_pushnumber ( L, 1 );
+      lua_pushnumber ( L, 2 ); // testing, was 1
     else
       lua_pushnil( L );
       
@@ -1567,6 +1570,31 @@ static int rpc_dispatch( lua_State *L )
   return 0;
 }
 
+static int rpc_adispatch( lua_State *L )
+{
+  int c;
+
+  ServerHandle *handle = 0;
+  Transport * t;
+
+  handle = ( ServerHandle * )luaL_checkudata(L, 1, "rpc.server_handle");
+  luaL_argcheck(L, handle, 1, "server handle expected");
+
+  handle = ( ServerHandle * )lua_touserdata( L, 1 );
+
+  t = &handle->atpt;
+
+  c = platform_uart_recv( t->fd, t->tmr_id, 100000 );
+
+  if ( c < 0 )
+    return 0;
+
+  set_adispatch_buff( c );
+
+  rpc_dispatch_helper( L, handle );
+
+  return 0;
+}  
 
 // rpc_server( transport_identifier )
 static int rpc_server( lua_State *L )
@@ -1658,6 +1686,7 @@ const LUA_REG_TYPE rpc_map[] =
   {  LSTRKEY( "listen" ), LFUNCVAL( rpc_listen ) },
   {  LSTRKEY( "peek" ), LFUNCVAL( rpc_peek ) },
   {  LSTRKEY( "dispatch" ), LFUNCVAL( rpc_dispatch ) },
+  {  LSTRKEY( "adispatch" ), LFUNCVAL( rpc_adispatch ) },
 //  {  LSTRKEY( "rpc_async" ), LFUNCVAL( rpc_async ) },
 #if LUA_OPTIMIZE_MEMORY > 0
 // {  LSTRKEY("mode"), LSTRVAL( LUARPC_MODE ) }, 
@@ -1720,6 +1749,7 @@ static const luaL_reg rpc_map[] =
   { "listen", rpc_listen },
   { "peek", rpc_peek },
   { "dispatch", rpc_dispatch },
+  { "adispatch", rpc_adispatch },
 //  { "rpc_async", rpc_async },
   { NULL, NULL }
 };

@@ -7,6 +7,14 @@
 
 #if defined( BUILD_RPC )
 
+// Buffer for async dispatch
+int adispatch_buff = -1;
+
+void set_adispatch_buff( int i )
+{
+  adispatch_buff = i;
+}
+
 // Setup Transport
 void transport_init (Transport *tpt)
 {
@@ -72,23 +80,29 @@ void transport_accept (Transport *tpt, Transport *atpt)
 	atpt->fd = tpt->fd;
 }
 
-
-
 void transport_read_buffer (Transport *tpt, u8 *buffer, int length)
 {
 	int n = 0;
 	int c;
 	struct exception e;
 	int uart_timeout = PLATFORM_UART_INFINITE_TIMEOUT; // not sure whether we should always follow this
+//	int uart_timeout = 100000;
 	
 	while( n < length )
 	{
 		TRANSPORT_VERIFY_OPEN;
-		c = platform_uart_recv( tpt->fd, tpt->tmr_id, uart_timeout );
-				
+
+    if ( adispatch_buff < 0 )
+  		c = platform_uart_recv( tpt->fd, tpt->tmr_id, uart_timeout );
+    else
+    {
+      c = adispatch_buff;
+      adispatch_buff = -1;
+    }
+
     if( c < 0 )
 		{
-		  // uart_timeout = 1000000;  // Reset and use timeout of 1s
+      // uart_timeout = 1000000;  // Reset and use timeout of 1s
 			e.errnum = ERR_NODATA;
 			e.type = nonfatal;
 			Throw( e );

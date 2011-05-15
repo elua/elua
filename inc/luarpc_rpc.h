@@ -165,3 +165,6 @@ int transport_is_open (Transport *tpt);
 
 // Shut down connection
 void transport_close (Transport *tpt);
+
+// Buffer for async dispatch
+void set_adispatch_buff( int i );
