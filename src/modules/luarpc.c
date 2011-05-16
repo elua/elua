@@ -1584,7 +1584,7 @@ static int rpc_adispatch( lua_State *L )
 
   t = &handle->atpt;
 
-  c = platform_uart_recv( t->fd, t->tmr_id, 100000 );
+  c = platform_uart_recv( t->fd, t->tmr_id, 0 );
 
   if ( c < 0 )
     return 0;
