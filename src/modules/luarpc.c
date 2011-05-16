@@ -1392,10 +1392,6 @@ static ServerHandle *rpc_listen_helper( lua_State *L )
 
     // make listening transport 
     transport_open_listener( L, handle );
-
-    // Wait for connection
-//    rpc_adispatch_helper( L, handle );  
-   // rpc_dispatch_helper( L, handle );  
   }
   Catch( e )
   {
@@ -1405,7 +1401,6 @@ static ServerHandle *rpc_listen_helper( lua_State *L )
     deal_with_error( L, 0, errorString( e.errnum ) );
     return 0;
   }
-  //rpc_adispatch_helper( L, handle );  
   return handle;
 }
 
