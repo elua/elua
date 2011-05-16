@@ -1576,20 +1576,40 @@ static int rpc_dispatch( lua_State *L )
 static int rpc_adispatch_helper( lua_State *L, ServerHandle * handle )
 {
   int c;
+  char connect = 0;
   Transport * t;
 
   t = &handle->atpt;
 
-  if ( transport_is_open( t ) )
+  if ( ! transport_is_open( t ) )
   {
-    c = platform_uart_recv( t->fd, t->tmr_id, 0 );
-
-    if ( c < 0 )
-      return 0;
-
-    set_adispatch_buff( c );
+    // if accepting transport is not open, accept a new connection from the
+    // listening transport
+    transport_accept( &handle->ltpt, &handle->atpt );
+    connect = 1;
   }
 
+  c = platform_uart_recv( t->fd, t->tmr_id, 0 );
+
+  if ( c < 0 )
+  {
+    if ( connect ) // Are we connecting ?
+      // No connection avaliable, undo accept
+      (&handle->atpt)->fd = INVALID_TRANSPORT;
+
+    return 0;
+  }
+
+  if ( connect ) // Are we connecting ?
+  {
+    // We got a connection
+    if ( transport_read_u8( &handle->atpt ) == RPC_CMD_CON )
+      server_negotiate( &handle->atpt );
+
+    return 0;
+  }
+
+  set_adispatch_buff( c );
   rpc_dispatch_helper( L, handle );
 
   return 0;
