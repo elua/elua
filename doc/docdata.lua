@@ -107,9 +107,17 @@ local menu =
     },
   },
   --]]
-  { { "Introduction"}, "index.html"},
- -- "Using eLua" -- Menu Separator
-    
+--  { { "Introduction"}, "index.html"},
+
+  -- "Status"
+  { {"Status"}, "status.html", 
+    {
+      { { "Supported platforms", "Plataformas Suportadas" }, "status.html" },
+      { { "Modules per platform table", "Módulos por plataforma" }, "status.html#plat_modules" },
+      { { "Modules overview status", "Visão geral dos módulos" }, "status.html#gen_modules" },
+      { { "Roadmap", "Planejamento Futuro" }, "status.html#roadmap" }
+    },
+  },
   { { "Generic info", "Doc Genérica" }, "using.html", 
     {
       { { "Using eLua", "Usando eLua" }, "using.html", 
