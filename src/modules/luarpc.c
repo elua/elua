@@ -53,6 +53,7 @@ void *alloca(size_t);
 LUALIB_API int luaopen_rpc( lua_State *L );
 Handle *handle_create( lua_State *L );
 static void rpc_dispatch_helper( lua_State *L, ServerHandle *handle );
+static int rpc_adispatch_helper( lua_State *L, ServerHandle * handle );
 
 struct exception_context the_exception_context[ 1 ];
 
@@ -1393,7 +1394,8 @@ static ServerHandle *rpc_listen_helper( lua_State *L )
     transport_open_listener( L, handle );
 
     // Wait for connection
-    rpc_dispatch_helper( L, handle );  
+    rpc_adispatch_helper( L, handle );  
+   // rpc_dispatch_helper( L, handle );  
   }
   Catch( e )
   {
@@ -1403,6 +1405,7 @@ static ServerHandle *rpc_listen_helper( lua_State *L )
     deal_with_error( L, 0, errorString( e.errnum ) );
     return 0;
   }
+  //rpc_adispatch_helper( L, handle );  
   return handle;
 }
 
@@ -1570,17 +1573,10 @@ static int rpc_dispatch( lua_State *L )
   return 0;
 }
 
-static int rpc_adispatch( lua_State *L )
+static int rpc_adispatch_helper( lua_State *L, ServerHandle * handle )
 {
   int c;
-
-  ServerHandle *handle = 0;
   Transport * t;
-
-  handle = ( ServerHandle * )luaL_checkudata(L, 1, "rpc.server_handle");
-  luaL_argcheck(L, handle, 1, "server handle expected");
-
-  handle = ( ServerHandle * )lua_touserdata( L, 1 );
 
   t = &handle->atpt;
 
@@ -1592,6 +1588,20 @@ static int rpc_adispatch( lua_State *L )
   set_adispatch_buff( c );
 
   rpc_dispatch_helper( L, handle );
+
+  return 0;
+}
+
+static int rpc_adispatch( lua_State *L )
+{
+
+  ServerHandle *handle = 0;
+
+  handle = ( ServerHandle * )luaL_checkudata(L, 1, "rpc.server_handle");
+  luaL_argcheck(L, handle, 1, "server handle expected");
+
+  handle = ( ServerHandle * )lua_touserdata( L, 1 );
+  rpc_adispatch_helper( L, handle );
 
   return 0;
 }  
