@@ -1394,7 +1394,7 @@ static ServerHandle *rpc_listen_helper( lua_State *L )
     transport_open_listener( L, handle );
 
     // Wait for connection
-    rpc_adispatch_helper( L, handle );  
+//    rpc_adispatch_helper( L, handle );  
    // rpc_dispatch_helper( L, handle );  
   }
   Catch( e )
@@ -1580,12 +1580,15 @@ static int rpc_adispatch_helper( lua_State *L, ServerHandle * handle )
 
   t = &handle->atpt;
 
-  c = platform_uart_recv( t->fd, t->tmr_id, 0 );
+  if ( transport_is_open( t ) )
+  {
+    c = platform_uart_recv( t->fd, t->tmr_id, 0 );
 
-  if ( c < 0 )
-    return 0;
+    if ( c < 0 )
+      return 0;
 
-  set_adispatch_buff( c );
+    set_adispatch_buff( c );
+  }
 
   rpc_dispatch_helper( L, handle );
 
