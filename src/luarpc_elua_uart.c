@@ -22,6 +22,12 @@ void transport_init (Transport *tpt)
   tpt->tmr_id = 0;
 }
 
+// Read a char from serial buffer
+int transport_get_char(Transport *t)
+{
+  return platform_uart_recv( t->fd, t->tmr_id, 0 );
+}
+
 // Open Listener / Server
 void transport_open_listener(lua_State *L, ServerHandle *handle)
 {

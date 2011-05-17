@@ -1584,7 +1584,8 @@ static int rpc_adispatch_helper( lua_State *L, ServerHandle * handle )
     connect = 1;
   }
 
-  c = platform_uart_recv( t->fd, t->tmr_id, 0 );
+//  c = platform_uart_recv( t->fd, t->tmr_id, 0 );
+  c = transport_get_char( t );
 
   if ( c < 0 )
   {

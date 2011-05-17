@@ -168,3 +168,6 @@ void transport_close (Transport *tpt);
 
 // Buffer for async dispatch
 void set_adispatch_buff( int i );
+
+// Read a char from serial buffer
+int transport_get_char(Transport *t);
