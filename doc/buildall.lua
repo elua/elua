@@ -506,17 +506,17 @@ local function gen_html_page( fname, lang )
 				<input class="searchbutton" type="submit" value="Go" />
     </form>
 	
-  		<h1><a href="en_index.htm" title="eLua Project"><img src="images/logo_elua_menor.png" alt="eLua Project"/></a></h1>
+  		<h1><a href="en_index.html" title="eLua Project"><img src="images/logo_elua_menor.png" alt="eLua Project"/></a></h1>
   		
   		<!--navegação-->
   		<div id="nav_top">
   			<ul class="sections">
-          <li><a href="http://www.eluaproject.net" target="_blank">Site</a></li>
-  				<li><a href="/" class="selected">Doc</a></li>
-  				<li><a href="http://wiki.eluaproject.net" target="_blank">Wiki</a></li>
-  				<li><a href="http://builder.eluaproject.net" target="_blank">Builder</a></li>
-  				<li><a href="http://tracker.eluaproject.net" target="_blank">Tracker</a></li>
-  				<li><a href="http://www.github.com/elua" target="_blank">Repository</a></li>
+          <li><a href="http://www.eluaproject.net" >Site</a></li>
+  				<li><a href="http://www.eluaproject.net/doc" class="selected">Doc</a></li>
+  				<li><a href="http://wiki.eluaproject.net" >Wiki</a></li>
+  				<li><a href="http://builder.eluaproject.net" >Builder</a></li>
+  				<li><a href="http://tracker.eluaproject.net" >Tracker</a></li>
+  				<li><a href="http://www.github.com/elua" >Repository</a></li>
   			</ul>
   		</div>
   		<!--navegação-->
