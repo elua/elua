@@ -40,13 +40,7 @@ static u32 periodic_timer, arp_timer;
 
 static void device_driver_send()
 {
-  if( uip_len <= TOTAL_HEADER_LENGTH )
-    platform_eth_send_packet( uip_buf, uip_len );
-  else
-  {
-    platform_eth_send_packet( uip_buf, TOTAL_HEADER_LENGTH );
-    platform_eth_send_packet( ( u8* )uip_appdata, uip_len - TOTAL_HEADER_LENGTH );
-  }
+  platform_eth_send_packet( uip_buf, uip_len );
 }
 
 // This gets called on both Ethernet RX interrupts and timer requests,
@@ -202,7 +196,7 @@ static int elua_uip_telnet_socket = -1;
 // Utility function for TELNET: parse input buffer, skipping over
 // TELNET specific sequences
 // Returns the length of the buffer after processing
-static void elua_uip_telnet_handle_input( struct elua_uip_state* s )
+static void elua_uip_telnet_handle_input( volatile struct elua_uip_state* s )
 {
   u8 *dptr = ( u8* )uip_appdata;
   char *orig = ( char* )s->ptr;
@@ -272,7 +266,7 @@ volatile static elua_net_ip elua_uip_accept_remote;
 
 void elua_uip_appcall()
 {
-  struct elua_uip_state *s;
+  volatile struct elua_uip_state *s;
   elua_net_size temp;
   int sockno;
   

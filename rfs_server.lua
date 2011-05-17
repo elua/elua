@@ -20,12 +20,12 @@ if utils.is_windows() then
     print "SIM target not supported under Windows"
     os.exit( 1 )
   end
-  flist = "main.c server.c os_io_win32.c log.c net_win32.c serial_win32.c deskutils.c"
+  flist = "main.c server.c os_io_win32.c log.c net_win32.c serial_win32.c deskutils.c rfs_transports.c"
   cdefs = cdefs .. " WIN32_BUILD"
-  exeprefix = "exe"
+  exeprefix = ".exe"
   socklib = 'ws2_32'
 else
-  flist = mainname .. " server.c os_io_posix.c log.c net_posix.c serial_posix.c deskutils.c"
+  flist = mainname .. " server.c os_io_posix.c log.c net_posix.c serial_posix.c deskutils.c rfs_transports.c"
 end
 
 local output = sim == 0 and 'rfs_server' or 'rfs_sim_server'
