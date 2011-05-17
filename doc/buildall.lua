@@ -512,11 +512,12 @@ local function gen_html_page( fname, lang )
   		<div id="nav_top">
   			<ul class="sections">
           <li><a href="http://www.eluaproject.net" >Site</a></li>
+  				<li><a href="http://www.eluaproject.net/get-started/downloads" >Downloads</a></li>
   				<li><a href="http://www.eluaproject.net/doc" class="selected">Doc</a></li>
   				<li><a href="http://wiki.eluaproject.net" >Wiki</a></li>
   				<li><a href="http://builder.eluaproject.net" >Builder</a></li>
   				<li><a href="http://tracker.eluaproject.net" >Tracker</a></li>
-  				<li><a href="http://www.github.com/elua" >Repository</a></li>
+  				<li><a href="http://www.github.com/elua" >Repos</a></li>
   			</ul>
   		</div>
   		<!--navegação-->
