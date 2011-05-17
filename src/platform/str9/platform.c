@@ -152,12 +152,13 @@ int platform_init()
     TIM_CounterCmd( base, TIM_START );
   }
   
+ cmn_platform_init();
+
 #ifdef BUILD_ADC
   // Setup ADCs
   platform_setup_adcs();
 #endif
-  
-  cmn_platform_init();
+ 
 #ifdef VTMR_TIMER_ID
   platform_s_timer_set_match_int( VTMR_TIMER_ID, 1000000 / VTMR_FREQ_HZ, PLATFORM_TIMER_INT_CYCLIC );
 #endif
