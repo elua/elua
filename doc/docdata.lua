@@ -107,7 +107,7 @@ local menu =
     },
   },
   --]]
---  { { "Introduction"}, "index.html"},
+  { { "Introduction"}, "index.html"},
 
   -- "Status"
   { {"Status"}, "status.html", 
