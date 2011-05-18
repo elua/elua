@@ -1142,6 +1142,8 @@ static int rpc_connect( lua_State *L )
     handle = handle_create ( L );
     transport_open_connection( L, handle );
     
+    set_adispatch_buff( -1 ); 
+
     transport_write_u8( &handle->tpt, RPC_CMD_CON );
     client_negotiate( &handle->tpt );
   }
@@ -1584,7 +1586,6 @@ static int rpc_adispatch_helper( lua_State *L, ServerHandle * handle )
     connect = 1;
   }
 
-//  c = platform_uart_recv( t->fd, t->tmr_id, 0 );
   c = transport_get_char( t );
 
   if ( c < 0 )
@@ -1599,6 +1600,7 @@ static int rpc_adispatch_helper( lua_State *L, ServerHandle * handle )
   if ( connect ) // Are we connecting ?
   {
     // We got a connection
+    set_adispatch_buff( c );
     if ( transport_read_u8( &handle->atpt ) == RPC_CMD_CON )
       server_negotiate( &handle->atpt );
 
