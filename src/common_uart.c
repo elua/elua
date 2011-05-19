@@ -147,10 +147,15 @@ void platform_uart_send( unsigned id, u8 data )
 static elua_int_c_handler prev_uart_rx_handler;
 
 static void cmn_uart_rx_inthandler( elua_int_resnum resnum )
-{   
+{
+  int data;
+
   if( buf_is_enabled( BUF_ID_UART, resnum ) || resnum == SERMUX_PHYS_ID )
-    cmn_rx_handler( resnum, platform_s_uart_recv( resnum, 0 ) );
-  
+  {
+    while( -1 != ( data = platform_s_uart_recv( resnum, 0 ) ) )
+      cmn_rx_handler( resnum, ( u8 )data );
+  }
+
   // Chain to previous handler
   if( prev_uart_rx_handler != NULL )
     prev_uart_rx_handler( resnum );  
