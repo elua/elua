@@ -470,7 +470,8 @@ local function gen_html_page( fname, lang )
   end
   -- Replace local links with language-dependent links
   orig = language_for_links( lang, orig )
-
+  local main_header_title = "eLua Doc"
+  
   -- Generate actual data
   local header = [=[
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
@@ -524,7 +525,7 @@ local function gen_html_page( fname, lang )
   		
   		<!--chamada-->
   		<div class="chamada_elua">
-  				<h2>]=]..get_menu_name( item, lang )..[=[</h2>
+  				<h2>]=]..main_header_title..[=[</h2>
 			</div>
   			<!--chamada-->
 	
