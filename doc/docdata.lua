@@ -155,6 +155,7 @@ local menu =
       },
     },
   }, 
+--[[
   { { "Platform info", "Doc Específica" }, "installing.html", 
     {
       { "AT91SAM7x", "installing_at91sam7x.html" },
@@ -168,6 +169,7 @@ local menu =
       { "LPC2468", "installing_lpc2468.html" }
     },
   },        
+--]]
           
   
   -- "eLua internals" (menu separator)
