@@ -1,0 +1,72 @@
+// $$HEADER$$
+eLua Project News
+-----------------
+
+February 2nd, 2011
+~~~~~~~~~~~~~~~~~~
+.eLua v0.8 released
+We are proud to annunce the release of eLua v0.8 (codename "FINALLY! It was about time for a new release" :) ). This is the changelog:
+
+* Added the link:arch_rfs.html[RFS] (Remote File System), a new file system which allows sharing
+  a directory on the PC with the eLua board.
+* Added a link:sermux.html[serial multiplexer] which allows using more virtual serial ports over a single physical UART connection.
+* Added Lua and C interrupt handlers support, see link:inthandlers.html[here] for more details.
+* Added https://github.com/antirez/linenoise[linenoise] support (eLua and Lua shell command line history and navigation,
+  more details link:linenoise.html[here]).
+* Added generic link:refman_gen_i2c.html[I2C support and docs]
+* Added hardware flow control and runtime configurable buffers for link:refman_gen_uart.html[UARTs].
+* Added support for new boards: _mbed, _ATEVK1101, _Mizar32, _EK-LM3S1968
+* Added SPI and SD/MMC support for EVK1100 and EVK1101 (AVR32) 
+* Added I2C support for STR-E912 (STR912) 
+* Added support for require() and autorun from SD/MMC
+* Added external memory support for STR912
+* Added long filename support for SD/MMC
+* Added RTC (real time clock) platform specific support for str9 (see the documentation of the _mstr9rtc module).
+* Added support for http://www.methods.co.nz/asciidoc[AsciiDoc] in the documentation system
+* Tutorials and new projects added to the http://wiki.eluaproject.net[eLua Wiki]
+* Demo files were moved out of the distro to http://wiki.eluaproject.net/Projects
+* Added a link:media.html[media page] with eLua related media on the project site
+
+January 13th, 2011
+~~~~~~~~~~~~~~~~~~
+.eLua issue tracker
+We're glad to announce another eLua project service, the eLua Issue
+Tracker.
+It is a regular web service where users can follow up closely what
+developers are working on, features to come and, of course, report bugs and
+follow up fixes. +
+The eLua Issue Tracker lives at http://tracker.eluaproject.net
+It is currently used to manage the development of two main projects; eLua
+itself and the eLua Web Builder.
+Other eLua-related projects can be added and the tool is available for the
+community for this. +
+ Please feel free to register and to send comments and suggestions here to
+the list too. 
+
+August 4th, 2010
+~~~~~~~~~~~~~~~~
+.eLua Web Builder
+We're proud to announce a web service that builds eLua images ready to be flashed on supported platforms. While we still don't have an IDE for eLua, this should help 
+newcomers to quickly generate firmware images without the need to install any local toolchain. +
+This is a beta version and we count on the community to help us refine it. +
+The generated images, together with some other info (build options used, error/warning reports, ...) are made available for download and are also stored in the user's area. 
+Most of the current build and configuration options can be defined and stored as a named "build". Builds are automatically stored in the user's area and can be reused (for config variations and new builds). 
+Users can upload and store files (Lua sources or compiled programs, modules, ...) in their user's areas too. These can be optionally included in each build 
+by simply checking boxes on the build configuration. +
+There are some "?" icons with help and instructions for each section. Please let us know if they are clear enough or send us new texts and we'll be glad to add it. We hope to find 
+some time to make a tutorial for the wiki too. +
+The eLua version currently built by the Web Builder is v0.7, the latest officially released version. Again, if anybody needs a more recent (trunk) version, please ask us and 
+we'll be glad to build and send one. +
+The eLua Web Builder is (and will always be) free to use and is already online at http://builder.eluaproject.net +
+The builder code is a work of Vagner Nascimento, Carlos Eduardo Deodoro and is currently maintained in a Subversion repository at `svn://svn.giga.puc-rio.br/elua_builder`.
+
+March 24th, 2010
+~~~~~~~~~~~~~~~~
+.eLua User Labs launch
+We're proud to announce the launch of a new cummnity site, the http://wiki.eluaproject.net[eLua User Labs].This Wiki-based site provides a centralized area where users can share
+project code, documentation and media.  This site also contains official code examples, tutorials, FAQs (Frequently Asked Questions) and other goodies maintained by project members. 
+Registered users are able to create new pages or make edits to many of the existing pages. We have prepared some initial content, and now welcome the rest of the
+eLua community to add, explore and refine.
+
+// $$FOOTER$$
+

@@ -8,15 +8,20 @@
 
 #include "platform_conf.h"
 
+// The maximum 32 GPIO ports limitation is given by the port_mask variable in src/modules/pio.c
+#if NUM_PIO > 32
+#error "Can't have more than 32 GPIO ports"
+#endif
+
 // Can't define more than one console devices
 #if defined( BUILD_CON_TCP ) && defined( BUILD_CON_GENERIC )
-#error "Can't have two console devices (don't enable BUILD_CON_TCP and BUILD_CON_GENERIC in build.h at the same time)"
+#error "Can't have two console devices (don't enable BUILD_CON_TCP and BUILD_CON_GENERIC in platform_conf.h at the same time)"
 #endif // #if defined( BUILD_CON_TCP ) && defined( BUILD_CON_GENERIC )
 
 // For TCP console we need to enable TCP support
 #ifdef BUILD_CON_TCP
   #ifndef BUILD_UIP
-  #error "BUILD_CON_TCP requires BUILD_UIP to be defined in build.h" 
+  #error "BUILD_CON_TCP requires BUILD_UIP to be defined in platform_conf.h" 
   #endif // #ifndef BUILD_UIP
 #endif // #ifdef BUILD_CON_TCP
 
@@ -24,18 +29,60 @@
 // (they can still function separately over UART, but this doesn't make sense)
 #ifdef BUILD_CON_TCP
   #ifdef BUILD_XMODEM
-  #error "XMODEM doesn't work with TCP console. Disable BUILD_XMODEM in build.h"
+  #error "XMODEM doesn't work with TCP console. Disable BUILD_XMODEM in platform_conf.h"
   #endif // #ifdef BUILD_XMODME
   #ifdef BUILD_TERM
-  #error "ANSI terminal support doesn't work (yet) with TCP console. Disable BUILD_TERM in build.h"
+  #error "ANSI terminal support doesn't work (yet) with TCP console. Disable BUILD_TERM in platform_conf.h"
   #endif // #ifdef BUILD_TERM
 #endif // #ifdef BUILD_CON_TCP
 
 // For DHCP we need to have TCP/IP support
 #ifdef BUILD_DHCPC
   #ifndef BUILD_UIP
-  #error "DHCP client requires TCP/IP support (enable BUILD_UIP in build.h)"
+  #error "DHCP client requires TCP/IP support (enable BUILD_UIP in platform_conf.h)"
   #endif // #ifndef BUILD_UIP
 #endif // #ifdef BUILD_DHCPC
 
+// For DNS we need to have TCP/IP support
+#ifdef BUILD_DNS
+  #ifndef BUILD_UIP
+  #error "DNS resolver requires TCP/IP support (enable BUILD_UIP in platform_conf.h)"
+  #endif // #ifndef BUILD_UIP
+#endif // #ifdef BUILD_DNS
+
+// For linenoise we need term
+#ifdef BUILD_LINENOISE
+  #ifndef BUILD_TERM
+  #error "linenoise needs term support, define BUILD_TERM"
+  #endif // #ifndef BUILD_TERM
+#endif // #ifdef BUILD_LINENOISE
+
+// For BUF_ENABLE_UART we also need C interrupt handlers support and specific INT_UART_RX support
+#if defined( BUF_ENABLE_UART ) 
+  #if !defined( BUILD_C_INT_HANDLERS )
+  #error "Buffering support on UART neeeds C interrupt handlers support, define BUILD_C_INT_HANDLERS in your platform_conf.h"
+  #endif
+  #if !defined( INT_UART_RX )
+  #error "Buffering support on UART needs support for the INT_UART_RX interrupt"
+  #endif
+#endif
+
+// Virtual UARTs need buffering and a few specific macros
+#if defined( BUILD_SERMUX )
+  #if !defined( BUF_ENABLE_UART )
+  #error "Virtual UARTs need buffering support, enable BUF_ENABLE_UART"  
+  #endif
+#endif
+
+// CON_BUF_SIZE needs BUF_ENABLE_UART and CON_UART_ID
+#if defined( CON_BUF_SIZE )
+  #if !defined( BUF_ENABLE_UART )
+  #error "Console buffering needs BUF_ENABLE_UART"
+  #endif
+  #if !defined( CON_UART_ID )
+  #error "Console buffering needs CON_UART_ID defined to the UART ID of the console device"
+  #endif
+#endif
+  
 #endif // #ifndef __VALIDATE_H__
+

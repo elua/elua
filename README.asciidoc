@@ -1,0 +1,78 @@
+eLua - Lua for microcontrollers
+===============================
+
+*eLua* stands for *Embedded Lua* and the project aims to offer the full
+implementation of the http://www.lua.org[Lua Programming Language] to the
+embedded world, extending it with specific features for efficient and portable
+software embedded development. For more details please visit the link:http://www.eluaproject.net[project page].
+
+If you've just downloaded *eLua* and are looking to get started check out link:http://www.eluaproject.net/en_using.html[using eLua].
+
+
+General Features
+----------------
+
+*eLua* allows you to develop and run Lua programs on a wide variety of
+microcontrollers.
+
+Some aspects of eLua are:
+
+* *Transforms hardware into a commodity:* Design and code your products for
+  eLua and make them as hardware-independent as possible. Upgrade or
+  completely change your hardware in the future and save time and money, using
+  the approved source code with little or no modifications.
+
+* *Source code portability:* Like in Lua, you program in C, Lua or a mixture
+  of both and your program runs in a wide varied of (sometimes radically
+  different) platforms and architectures supported. Full control of the
+  platform.: eLua runs on the "bare-metal". There is no Operating System
+  between your programs and the microcontroller. Develop on targets: fully
+  functional Lua and a dedicated shell on the microcontroller itself. No need
+  to install a specific development environment on the PC side, other than a
+  serial or ehternet console/terminal emulator. You can also use any text
+  editor, save your programs in sd/mmc and other media and use them directly
+  in your platforms.
+
+* *Flexible products:* Add modern high level script-language capabilities to
+  your projects, resulting in highly adaptable, field-programable and
+  reconfigurable designs. Efficient (and cheap!) future evolution to your
+  systems.
+
+* *Learn embedded:* Simple interactive and interpreted experimenting cycle.
+  Use your desktop programming skills to become an embedded systems developer
+  in no time and with a lot of fun.
+
+* *Embedded RAD:* Prototype and experiment on a Rapid Aplication Develop
+  model. Test your ideas directly on the target platforms and cheap
+  development kits. No need for simulators or future code adaptations.
+
+* *Ready to use kits:* A big (and growing!) number of Open Source hardware and
+  commercially available platforms supported. Prototype cheap and fast and
+  design your final hardware later using the produced code.
+
+* *Longevity:* Add user configuration and scripting capabilities to your
+  projects, making them adaptable to the always changing contexts of
+  industrial processes, evolving engineering, automation standards, field
+  optimizations etc...
+
+* *Worry-free Licence:* eLua is free and open-source software and we promote
+  it as much as we can. But our MIT licence (the same as Lua's) allows you to
+  use eLua in your commercial and private-code products as well. Nothing to
+  ask, no royalties to pay, just tell the world you're using eLua.
+
+For more information about the functionality (implemented and planned) in eLua
+check link:http://www.eluaproject.net/en_status.html[our status page].
+
+Contacts
+--------
+
+eLua authors and main developers can be contacted at:
+
+Bogdan Marinescu: bogdan.marinescu -at- gmail -dot- com
+
+Dado Sutter: dadosutter -at- gmail -dot- com
+
+James Snyder: jbsnyder -at- gmail -dot- com
+
+You are also welcomed to share your questions and suggestions on our
+link:http://www.eluaproject.net/en_comunity.html#lists[Mail Discussion List]

@@ -37,12 +37,30 @@
 #define test2bits(x,b1,b2)	testbits(x, (bit2mask(b1, b2)))
 
 
+/*
+** Possible Garbage Collector flags.
+** Layout for bit use in 'gsflags' field in global_State structure.
+** bit 0 - Protect GC from recursive calls.
+** bit 1 - Don't try to shrink string table if EGC was called during a string table resize.
+*/
+#define GCFlagsNone          0
+#define GCBlockGCBit         0
+#define GCResizingStringsBit 1
+
+
+#define is_block_gc(L)    testbit(G(L)->gcflags, GCBlockGCBit)
+#define set_block_gc(L)   l_setbit(G(L)->gcflags, GCBlockGCBit)
+#define unset_block_gc(L) resetbit(G(L)->gcflags, GCBlockGCBit)
+#define is_resizing_strings_gc(L)    testbit(G(L)->gcflags, GCResizingStringsBit)
+#define set_resizing_strings_gc(L)   l_setbit(G(L)->gcflags, GCResizingStringsBit)
+#define unset_resizing_strings_gc(L) resetbit(G(L)->gcflags, GCResizingStringsBit)
 
 /*
 ** Layout for bit use in `marked' field:
 ** bit 0 - object is white (type 0)
 ** bit 1 - object is white (type 1)
 ** bit 2 - object is black
+** bit 3 - for thread: Don't resize thread's stack
 ** bit 3 - for userdata: has been finalized
 ** bit 3 - for tables: has weak keys
 ** bit 4 - for tables: has weak values
@@ -54,6 +72,7 @@
 #define WHITE0BIT	0
 #define WHITE1BIT	1
 #define BLACKBIT	2
+#define FIXEDSTACKBIT	3
 #define FINALIZEDBIT	3
 #define KEYWEAKBIT	3
 #define VALUEWEAKBIT	4
@@ -76,6 +95,9 @@
 
 #define luaC_white(g)	cast(lu_byte, (g)->currentwhite & WHITEBITS)
 
+#define isfixedstack(x)	testbit((x)->marked, FIXEDSTACKBIT)
+#define fixedstack(x)	l_setbit((x)->marked, FIXEDSTACKBIT)
+#define unfixedstack(x)	resetbit((x)->marked, FIXEDSTACKBIT)
 
 #define luaC_checkGC(L) { \
   condhardstacktests(luaD_reallocstack(L, L->stacksize - EXTRA_STACK - 1)); \
@@ -101,6 +123,7 @@ LUAI_FUNC void luaC_callGCTM (lua_State *L);
 LUAI_FUNC void luaC_freeall (lua_State *L);
 LUAI_FUNC void luaC_step (lua_State *L);
 LUAI_FUNC void luaC_fullgc (lua_State *L);
+LUAI_FUNC void luaC_marknew (lua_State *L, GCObject *o);
 LUAI_FUNC void luaC_link (lua_State *L, GCObject *o, lu_byte tt);
 LUAI_FUNC void luaC_linkupval (lua_State *L, UpVal *uv);
 LUAI_FUNC void luaC_barrierf (lua_State *L, GCObject *o, GCObject *v);

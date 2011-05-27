@@ -1,0 +1,285 @@
+$$HEADER$$
+<h3><a name="title" href="http://www.eluaproject.net/en/Building_GCC_for_Cortex" class="local">Construindo GCC para o Cortex</a></h3>
+
+<p>Este tutorial explica como criar um CCG+Newlib toolchain que poder&aacute; ser usado para compilar programas na arquitetura Cortex(Thumb2), tornando assim poss&iacute;vel a compila&ccedil;&atilde;o de programas para um grande n&uacute;mero de CPUs Cortex(<a href="http://www.luminarymicro.com/">Luminary Micro</a>, <a href="http://www.st.com/mcu/inchtml-pages-stm32.html">ST</a>, com nova CPU Cortex sendo anunciada pela Atmel e outras companhias). Estou escrevendo este tutorial porque eu precisei trabalhar com uma CPU Cortex para o projeto eLua e n&atilde;o consegui encontrar em lugar nenhum, alguma ajuda para construir uma GCC para essa arquitetura. Voc&ecirc; precisar&aacute; de uma toolchain se quiser compilar eLua  para CPUs Cortex-M3.</p>
+
+<p><strong>
+AVISO: N&atilde;o sou um especialista no processo de compila&ccedil;&atilde;o de CGC/newlib/binutils. Tenho certeza de que existem melhores formas de realizar o que estou descrevendo aqui, no entanto desejo apenas uma maneira r&aacute;pida de construir um toolchain, n&atilde;o tenho nenhuma inten&ccedil;&atilde;o de ficar muito &iacute;ntimo do processo de constru&ccedil;&atilde;o. Se voc&ecirc; acha que o que fiz aqui est&aacute; errado, impreciso ou, simplesmente, escandalosamente feio, n&atilde;o hesite em <a href="http://www.eluaproject.net/en/Contact">contactar-me</a> e farei as correc&ccedil;&otilde;es necess&aacute;rias. E claro, este tutorial &eacute; fornecido sem qualquer garantia.</strong></p>
+
+<h2>Pr&eacute;-requisitos</h2>
+<p>Para construir seu toolchain voc&ecirc; precisar&aacute; de:</p>
+
+<ul>
+
+<li>Um computador rodando Linux: Eu uso Ubuntu 8.04, mas qualquer Linux ir&aacute; fazer desde que voc&ecirc; saiba como encontrar o equivalente do "apt-get" para a sua distribui&ccedil;&atilde;o. N&atilde;o entrarei em detalhes sobre isso, pesquise no Google e voc&ecirc; encontrar&aacute; o que voc&ecirc; precisa. Assumimos tamb&eacute;m que o  Linux j&aacute; tem uma "base" nativa toolchain instalada (gcc/make e afins). Isto &eacute; verdadeiro para o Ubuntu ap&oacute;s a sua instala&ccedil;&atilde;o. Novamente, voc&ecirc; precisa verificar a sua distribui&ccedil;&atilde;o espec&iacute;fica.</li>
+
+
+<li>GNU binutils: fa&ccedil;a o download clicando <a href="http://ftp.gnu.org/gnu/binutils/">aqui</a>. No momento em que escrevia este tutorial, as vers&otilde;es mais recentes eram 2,18, que por algum motivo estranho recusou-se a compilar no meu sistema, por isso estou usando a vers&atilde;o 2,17. UPDATE: voc&ecirc; deve usar a nova distribui&ccedil;&atilde;o binutils 2.19 para o Cortex toolchain, desde que este corrigiu alguns problemas do compilador. Voc&ecirc; n&atilde;o conseguir&aacute; compilar o eLua 0.5 ou maior se n&atilde;o utilizar binutils 2.19.</li>
+
+<li>GCC: A partir do suporte para Cortex (Thumb2) iniciado na vers&atilde;o 4.3.0, voc&ecirc; deve fazer o download desta vers&atilde;o ou mais recente. Enquanto preparava esse tutorial, a vers&atilde;o mais recente era a 4.3.1, a qual foi utilizada para esse tutorial. Fa&ccedil;a o download <a href="http://gcc.gnu.org/mirrors.html">aqui</a> depois de escolher um bom servidor mirror.</li>
+
+<li>Newlib: Enquanto escrevia este tutorial, a vers&atilde;o mais recentes era a 1.16.0. Entretanto, a vers&atilde;o CVS cont&ecirc;m algumas corre&ccedil;&otilde;es para a arquitetura Thumb2, algumas delas muito importantes (como setjmp/longjmp), logo voc&ecirc; precisar&aacute; obter os fontes do CVS(isto mudar&aacute; bastante quando a nova vers&atilde;o oficial da NewLib for liberada). Ent&atilde;o fa&ccedil;a o download do diret&oacute;rio <a href="http://sourceware.org/newlib/download.html">http://sourceware.org/newlib/download.html</a> e siga as instru&ccedil;&otilde;es para obter os fontes CVS mais recentes.</li>
+
+<li>Al&eacute;m disso, o tutorial assume que voc&ecirc; est&aacute; usando o bash como seu shell. Se voc&ecirc; usar qualquer outra coisa, talvez seja necess&aacute;rio ajustar alguns comandos do shell espec&iacute;fico.</li>
+
+</ul>
+
+
+<p>Voc&ecirc; ainda precisar&aacute; de outros programas e bibliotecas a fim de montar o toolchain. Para instal&aacute;-los execute o seguinte comando:</p>
+
+<p><br></p>
+
+<table class="table_cod">
+     <tbody><tr>
+        <th>$ sudo apt-get install flex bison libgmp3-dev libmpfr-dev autoconf texinfo build-essential</th>
+     </tr>
+</tbody></table>   
+
+
+<p>Em seguida, decida onde pretende instalar o seu toolchain. Eles geralmente s&atilde;o instalados no diret&oacute;rio /usr/local/, logo, assumiremos o diret&oacute;rio /usr/local/cross-cortex para este tutorial. Para agilizar a digita&ccedil;&atilde;o, defina este caminho como padr&atilde;o na vari&aacute;vel do ambiente:</p>
+
+<p><br></p>
+
+<table class="table_cod">
+     <tbody><tr>
+        <th>$ export TOOLPATH=/usr/local/cross-cortex</th>
+     </tr>
+</tbody></table> 
+
+
+
+<h2>Passo 1: binutils</h2>
+
+<p>Este &eacute; o passo mais f&aacute;cil: descompactar, configurar, montar.</p>
+
+<p><br></p>
+
+<table class="table_cod">
+     <tbody><tr align="left">
+        <th>$ tar -xvjf binutils-2.19.tar.bz2</th>
+     </tr>
+     <tr align="left">
+        <th>$ cd binutils-2.19</th>
+     </tr>
+     <tr align="left">
+        <th>$ mkdir build</th>
+     </tr>
+     <tr align="left">
+        <th>$ cd build</th>
+     </tr>
+     <tr align="left">
+        <th>$
+../configure --target=arm-elf --prefix=$TOOLPATH --enable-interwork
+--enable-multilib --with-gnu-as --with-gnu-ld --disable-nls</th>
+     </tr>
+     <tr align="left">
+        <th>$ make all</th>
+     </tr>
+     <tr align="left">
+        <th>$ sudo make install</th>
+     </tr>
+     <tr align="left">
+        <th>$ export PATH=${TOOLPATH}/bin:$PATH</th>
+     </tr>
+</tbody></table> 
+
+
+
+<p>Agora voc&ecirc; tem os "binutils" da CPU Cortex(assembler, linker, disassembler ...) em seu PATH. Eles funcionam com a arquitetura Thumb2.</p>
+
+<h2>Passo 2: GCC b&aacute;sico</h2>
+
+<p>Nesta etapa vamos construir um GCC "b&aacute;sico" (ou seja, uma GCC sem nenhuma lib, a qual usaremos, a fim de criar todas as bibliotecas para o nosso objetivo). Mas primeiro temos de fazer uma r&aacute;pida modifica&ccedil;&atilde;o nos arquivos de configura&ccedil;&atilde;o. Fora desse ambiente, o pacote GCC 4.3.1/newlib n&atilde;o compilar&aacute; corretamente, dando um erro muito estranho "Link tests are not allowed after GCC_NO_EXECUTABLES". Ap&oacute;s googlear um pouco, encontrei a solu&ccedil;&atilde;o para isso:</p>
+
+<p><br></p>
+
+<table class="table_cod">
+     <tbody><tr align="left">
+        <th>$ tar -xvjf gcc-4.3.1.tar.bz2</th>
+     </tr>
+     <tr align="left">
+        <th>$ cd gcc-4.3.1/libstdc++-v3</th>
+     </tr>
+     <tr align="left">
+        <th>$ joe configure.ac </th>
+     </tr>
+</tbody></table>   
+
+
+<p>Estou usando "joe" aqui como meu editor de texto Linux favorito, voc&ecirc; pode usar qualquer outro editor de texto. Agora encontre a linha que tem "AC_LIBTOOL_DLOPEN" e adicione um "#" no inicio da linha:</p>
+
+
+<code># AC_LIBTOOL_DLOPEN<br></code>
+
+<p>Salve o arquivo e saia do editor de texto.</p>
+
+<p><br></p>
+
+<table class="table_cod">
+     <tbody><tr>
+        <th>$ autoconf</th>
+     </tr>
+     <tr>
+        <th style="text-align: left;">$ cd ..</th>
+     </tr>
+</tbody></table> 
+
+
+
+<p>&Oacute;timo, agora sabemos que podemos compilar, ent&atilde;o vamos em frente:</p>
+
+
+<p><br></p>
+
+<table class="table_cod">
+     <tbody><tr align="left">
+        <th>$ mkdir build</th>
+     </tr>
+     <tr align="left">
+        <th>$ cd build</th>
+     </tr>
+     <tr align="left">
+        <th>$
+../configure --target=arm-elf --prefix=$TOOLPATH --enable-interwork
+--enable-multilib --enable-languages="c,c++" --with-newlib
+--without-headers --disable-shared --with-gnu-as --with-gnu-ld</th>
+     </tr>
+     <tr align="left">
+        <th>$ make all-gcc</th>
+     </tr>
+     <tr align="left">
+        <th>$ sudo make install-gcc</th>
+     </tr>
+</tbody></table> 
+
+
+
+<p>No meu sistema, a execu&ccedil;&atilde;o da &uacute;ltima linha acima(sudo make install-gcc) gera um erro, devido a impossibilidade de encontrar o arquivo binutils. Se isso tamb&eacute;m acontece no seu sistema, aqui est&aacute; uma maneira r&aacute;pida de resolver:</p>
+
+
+<p><br></p>
+
+<table style="width: 376px; height: 157px;" class="table_cod">
+     <tbody><tr>
+        <th>$ sudo -s -H</th>
+     </tr><tr><td align="undefined" valign="undefined"><code># export PATH=/usr/local/cross-cortex/bin:$PATH</code></td></tr><tr><td align="undefined" valign="undefined"><code># make install-gcc</code></td></tr><tr><td align="undefined" valign="undefined"><code># exit</code></td></tr>
+</tbody></table> 
+
+
+<code><br><br><br></code>
+
+
+<h2>Passo 3: Newlib</h2>
+
+<p>Mais uma vez, algumas modifica&ccedil;&otilde;es s;&atilde;o necess&aacute;rias antes de come&ccedil;armos a compila&ccedil;&atilde;o. Devido a versão CVS da NewLib parecer n&atilde;o permitir o suporte necess&aacute;rio para o Thumb2, precisamos fazer a NewLib saltar algumas de suas libraries durante a compila&ccedil;&atilde;o:</p>
+
+
+<p><br></p>
+
+<table class="table_cod">
+     <tbody><tr>
+        <th>$ cd [directory where the newlib CVS is located]</th>
+     </tr>
+     <tr>
+        <th style="text-align: left;">$ joe configure.ac</th>
+     </tr>
+</tbody></table> 
+
+
+
+<p>Localize o c&oacute;digo abaixo:</p>
+
+<pre><code>   arm-*-elf* | strongarm-*-elf* | xscale-*-elf* | arm*-*-eabi* )<br>    noconfigdirs="$noconfigdirs target-libffi target-qthreads"<br>    libgloss_dir=arm<br>    ;;<br><br> And add "target-libgloss" to the "noconfigdirs" variable:<br><br>    arm-*-elf* | strongarm-*-elf* | xscale-*-elf* | arm*-*-eabi* )<br>    noconfigdirs="$noconfigdirs target-libffi target-qthreads target-libgloss"<br>    libgloss_dir=arm<br>    ;;<br><br> Salve o arquivo e saia do editor<br> $ autoconf<br></code></pre>
+
+
+<p>Em um dos sistemas onde executei a sequ&ecirc;ncia acima, aconteceram erros, indicando que o arquivo autoconf 2.59 n&atilde;o tinha sido encontrado. N&atilde;o entendi porque isto aconteceu. Como a vers;&atilde;o 2.59 j&aacute; n&atilde;o &eacute; t&atilde;o recente, e a compila&ccedil;&atilde;o roda muito bem com a 2.61 (a vers;&atilde;o do autoconf no sistema que apresentou erro). Se isto acontece com voc&ecirc;,  execute inicialmente o autoconf --version para saber qual a vers&atilde;o corrente de seu autoconf, e ent&atilde;o fa&ccedil;a o seguinte:</p>
+
+
+<p><br></p>
+
+<table class="table_cod">
+     <tbody><tr>
+        <th></th>
+     </tr>
+</tbody></table> 
+
+<pre><code>$ joe config/override.m4<br><br> Localize esta linha:<br><br>   [m4_define([_GCC_AUTOCONF_VERSION], [2.59])])<br><br> E substitua 2.59 pela sua versão atual (no meu caso 2.61).<br> $ autoconf<br></code></pre>
+
+
+<p>Agora estamos prontos para compilar a Newlib. Mas &eacute; necess&aacute;rio informar que a compila&ccedil;&atilde;o ser&aacute; feita para Thumb2. Como j&aacute; foi dito antes, eu n&atilde;o sou um especialista, e quando se trata de montar uma Newlib, escolhi uma solu&ccedil;&atilde;o r&aacute;pida, por&eacute;m n&atilde;o t&atilde;o elegante para passar os parametros de compila&ccedil;&atilde;o diretamente na linha de comando. Al&eacute;m disso, como eu prefiro que a minha biblioteca tenha o menor tamanho poss&iacute;vel (em contraposi&ccedil;&atilde;o a maior performance poss&iacute;vel) e manter no programa execut&aacute;vel somente o necess&aacute;rio, acrescentei o parametro "-ffunction-seções-fdata-sections" para permitir que o linker possa executar dead code stripping:</p>
+
+
+<p><br></p>
+
+<table class="table_cod">
+     <tbody><tr align="left">
+        <th>$ mkdir build</th>
+     </tr>
+     <tr align="left">
+        <th>$ cd build</th>
+     </tr>
+     <tr align="left">
+        <th>$
+../configure --target=arm-elf --prefix=$TOOLPATH --enable-interwork
+--disable-newlib-supplied-syscalls --with-gnu-ld --with-gnu-as
+--disable-shared</th>
+     </tr>
+     <tr align="left">
+        <th>$ make
+CFLAGS_FOR_TARGET="-ffunction-sections -fdata-sections
+-DPREFER_SIZE_OVER_SPEED -D__OPTIMIZE_SIZE__ -Os -fomit-frame-pointer
+-mcpu=cortex-m3 -mthumb -D__thumb2__ -D__BUFSIZ__=256"
+CCASFLAGS="-mcpu=cortex-m3 -mthumb -D__thumb2__"</th>
+     </tr>
+     <tr align="left">
+        <th>$ sudo make install</th>
+     </tr>
+</tbody></table> 
+
+
+
+<p>Algumas observa&ccedil;&otilde;es sobre os par&acirc;metros usados na sequ&ecirc;ncia acima:</p>
+
+<ul>
+<li><code>--disable-newlib-supplied-syscalls:</code> isso merece um capítulo a parte, por&eacute;m n&&atilde;o agora. Apenas como esclarecimento, veja os exemplos  <a href="http://openhardware.net/Embedded_ARM/NewLib_Stubs/">nesta p&aacute;gina</a>.</li>
+
+<li><code>-DPREFER_SIZE_OVER_SPEED -D__OPTIMIZE_SIZE__:</code> compile a Newlib otimizando o tamanho, e n&atilde;o a performance (utilizado para Newlib espec&iacute;fica).</li>
+
+<li><code>-mcpu=cortex-m3 -mthumb:</code> indica para a GCC que a compila&ccedil;&atilde;o &eacute; para Cortex. &Eacute; necess&aacute;rio utilizar os dois flags.</li>
+
+<li><code>-D__thumb2__:</code> &Eacute; necess&aacute;rio quando compilando a Newlib para o Cortex.</li>
+
+<li><code>-Os -fomit-frame-pointer:</code> indica para a GCC para otimizar pelo tamanho, e n&atilde;o pela performance.</li>
+
+<li><code>-D__BUFSIZ__=256:</code>
+par&acirc;metro espec&iacute;fico navamente, este &eacute; o tamanho do buffer alocado por default para arquivos abertos via fopen(). O default &eacute; 1024, o qual acredito ser muito para eLua, logo utilizo aqui 256. Certamente, voc&ecirc; poder&aacute; mudar este valor.</li>
+
+</ul>
+
+
+<h2>Passo 4: GCC completa</h2>
+
+<p>Finalmente, no &uacute;ltimo passo deste nosso tutorial, completamos a montagem do GCC. Nesta etapa, v&aacute;rias bibliotecas de suporte do compilador foram montadas (sendo a mais importante a libgcc.a). Felizmente este &eacute; o passo mais simples para a montagem da NewLib, e como voc&ecirc; se lembra, ainda queremos montar nosso compilador para a arquitetura Cortex:</p>
+
+
+<p><br></p>
+
+<table class="table_cod">
+     <tbody><tr align="left">
+        <th>$ cd gcc-4.3.1/build</th>
+     </tr>
+     <tr align="left">
+        <th>$ make CFLAGS="-mcpu=cortex-m3 -mthumb" CXXFLAGS="-mcpu=cortex-m3 -mthumb" LIBCXXFLAGS="-mcpu=cortex-m3 -mthumb" all</th>
+     </tr>
+     <tr align="left">
+        <th>$ sudo make install</th>
+     </tr>
+</tbody></table> 
+
+
+
+
+<h2>Tudo pronto!</h2>
+<p>
+UFA! Esse tutorial foi um pouco confuso, com um monte de flags e linhas de comando muito longas :) No entanto, voc&ecirc; possui agora um GCC toolchain para Cortex funcionando, o que parece ser uma coisa bastante rara hoje, ent&atilde;o aproveite com orgulho. Se voc&ecirc; precisar de mais explica&ccedil;&otilde;es, ou se as instru&ccedil;&otilde;es acima n&atilde;o funcionaram para voc&ecirc;, sinta-se a vontade para <a href="http://www.eluaproject.net/en/Contact">contactar-me</a>.</p><p></p><p></p>
+$$FOOTER$$

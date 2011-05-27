@@ -20,30 +20,34 @@
 
 
 void luaS_resize (lua_State *L, int newsize) {
-  GCObject **newhash;
   stringtable *tb;
   int i;
-  if (G(L)->gcstate == GCSsweepstring)
-    return;  /* cannot resize during GC traverse */
-  newhash = luaM_newvector(L, newsize, GCObject *);
   tb = &G(L)->strt;
-  for (i=0; i<newsize; i++) newhash[i] = NULL;
+  if (G(L)->gcstate == GCSsweepstring || newsize == tb->size || is_resizing_strings_gc(L))
+    return;  /* cannot resize during GC traverse or doesn't need to be resized */
+  set_resizing_strings_gc(L);
+  if (newsize > tb->size) {
+    luaM_reallocvector(L, tb->hash, tb->size, newsize, GCObject *);
+    for (i=tb->size; i<newsize; i++) tb->hash[i] = NULL;
+  }
   /* rehash */
   for (i=0; i<tb->size; i++) {
     GCObject *p = tb->hash[i];
+    tb->hash[i] = NULL;
     while (p) {  /* for each node in the list */
       GCObject *next = p->gch.next;  /* save next */
       unsigned int h = gco2ts(p)->hash;
       int h1 = lmod(h, newsize);  /* new position */
       lua_assert(cast_int(h%newsize) == lmod(h, newsize));
-      p->gch.next = newhash[h1];  /* chain it */
-      newhash[h1] = p;
+      p->gch.next = tb->hash[h1];  /* chain it */
+      tb->hash[h1] = p;
       p = next;
     }
   }
-  luaM_freearray(L, tb->hash, tb->size, TString *);
+  if (newsize < tb->size)
+    luaM_reallocvector(L, tb->hash, tb->size, newsize, GCObject *);
   tb->size = newsize;
-  tb->hash = newhash;
+  unset_resizing_strings_gc(L);
 }
 
 
@@ -53,6 +57,9 @@ static TString *newlstr (lua_State *L, const char *str, size_t l,
   stringtable *tb;
   if (l+1 > (MAX_SIZET - sizeof(TString))/sizeof(char))
     luaM_toobig(L);
+  tb = &G(L)->strt;
+  if ((tb->nuse + 1) > cast(lu_int32, tb->size) && tb->size <= MAX_INT/2)
+    luaS_resize(L, tb->size*2);  /* too crowded */
   ts = cast(TString *, luaM_malloc(L, (l+1)*sizeof(char)+sizeof(TString)));
   ts->tsv.len = l;
   ts->tsv.hash = h;
@@ -61,13 +68,10 @@ static TString *newlstr (lua_State *L, const char *str, size_t l,
   ts->tsv.reserved = 0;
   memcpy(ts+1, str, l*sizeof(char));
   ((char *)(ts+1))[l] = '\0';  /* ending 0 */
-  tb = &G(L)->strt;
   h = lmod(h, tb->size);
   ts->tsv.next = tb->hash[h];  /* chain new entry */
   tb->hash[h] = obj2gco(ts);
   tb->nuse++;
-  if (tb->nuse > cast(lu_int32, tb->size) && tb->size <= MAX_INT/2)
-    luaS_resize(L, tb->size*2);  /* too crowded */
   return ts;
 }
 

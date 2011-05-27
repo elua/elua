@@ -1,0 +1,63 @@
+$$HEADER$$
+<h3>Instalando <b>eLua</b> nas CPUs AVR32 CPUs da Atmel</h3>
+<p><a href="http://www.atmel.com/products/AVR32/">AVR32</a> é uma família de CPUs de 32 bits de alta performance da <a href="http://www.atmel.com">Atmel</a>. Foram construídas visando a concorrência direta no mercado com a implementação da ARM, e oferece uma performance muito boa (91 MIPS com 66MHz) e fonte de energia eficiente (1.3mW/MHz). A Atmel alega que o seu núcleo AVR32 supera o ARMv5 (tanto em modo ARM como em Thumb) em termos de desempenho e tamanho do código. É uma arquitetura proprietária (só implementada pela Atmel), mas tem um pacote de software de apoio muito bom, e um conjunto de ferramentas de código aberto baseado em GCC, o que a faz ser uma candidata ideal para se usar eLua com uma CPU não-ARM. Atmel vende também várias placas de desenvolvimento com base em suas CPUs AVR23. A utilizada para eLua é a placa <a href="http://www.atmel.com/dyn/Products/tools_card.asp?tool_id=4114">ATEVK1100</a>, construída em torno do <a href="http://www.atmel.com/dyn/products/product_card.asp?part_id=4117">MCU AT32UC3A0512 AVR32</a> (512k Flash interno/64k RAM interno). É uma placa muito poderosa, com (entre outras coisas) 32 MBytes de memória SDRAM externa, o que é mais do que suficiente para rodar qualquer programa <b>eLua</b> que eu possa imaginar:).</p>
+
+
+<h3>Pré-requisitos</h3> 
+ <p>Antes de você usar <b>eLua</b> com a CPU AT32UC3A0512, certifique-se que:</p>
+ <ul>
+ <li>usando Linux ou Windows. É mais fácil instalar e usar o software de programação da Atmel no Windows, portanto use o Windows caso você não queira ter muitas dificuldades durante a instalação.</li>
+ <li>o programa <a href="http://www.atmel.com/dyn/products/tools_card.asp?tool_id=3886">FLIP da Atmel</a> instalado, é exatamente o que você precisa para instalar seu arquivo de imagem de <b>eLua</b>. De fácil instalação no Windows (é só executar o pacote de instalação), mas bastante complicado no Linux. 
+    No parágrafo abaixo, segue uma descrição dos procedimentos para instalação do FLIP em Linux..</li>
+ <li>Você já tem sua imagem de <b>eLua</b> para a CPU AT32UC3A0512 (<a href="building.html">gerada</a> ou <a href="downloads.html">baixada</a>). Note que ao contrário das outras plataformas, o ATEVK1100 precisa de um arquivo .hex para a programação, e não um .bin.</li>
+ </ul>
+
+<h2>Instalando FLIP no Linux Ubuntu</h2>
+<p>Siga os passos abaixo para instalar o FLIP no Linux:</p>
+<ol>
+  <li>baixe a versão do FLIP para Linux da <a href="http://www.atmel.com/dyn/products/tools_card.asp?tool_id=3886">página da Atmel</a>. Salve-o (ou mova-o depois) para a pasta <i>/usr/local/</i> (para isso é necessário privilégios de superusuário). No momento da elaboração deste tutorial, a última versão do FLIP é a 3.2.1, portanto vamos utilizar aqui esta versão.</li>
+  <li>descompacte o arquivo FLIP:
+  <pre><code>$ cd /usr/local
+$ sudo tar xvzf flip_linux_3-2-1.tgz</code></pre>
+  Isto criará o diretório <i>/usr/local/flip.3.2.1</i>.</li>
+  <li>é necessário instalar o OpenJDK caso ele não esteja instalado:
+  <pre><code>$ sudo apt-get install openjdk-6-jre</code></pre>
+  </li>
+  <li>edite <i>/usr/local/flip.3.2.1/bin/batchisp3.sh</i> e inclua as duas linhas em negrito no inicio do arquivo:
+  <pre><code>#!/bin/bash -f
+
+<b>export JAVA_HOME=/usr/lib/jvm/java-6-openjdk/jre/
+export FLIP_HOME=/usr/local/flip.3.2.1/bin/</b>
+
+if [ "$FLIP_HOME" = "" ]; then</code></pre>
+  </li>
+  <li>edite o arquivo binário <i>/usr/local/flip.3.2.1/libatlibusbdfu.so</i>. Isto é necessário, porque o programa FLIP vem compilado para o RedHat por default, e o Ubuntu possui algumas arquivos de sua instalação localizados em diretórios diferentes . Veja <a href="http://www.avrfreaks.net/index.php?name=PNphpBB2&amp;file=viewtopic&amp;t=56562">este tópico</a> para mais detalhes. Tudo que você tem a fazer, é alterar todas as referências do string <b>/sys/bus/usb</b> contidas no arquivo <i>libatlibusbdfu.so</i> para <b>/dev/bus/usb</b>.</li>
+  <li>inclua o diretório FLIP no seu PATH:
+  <pre><code>$ export PATH=/usr/local/flip.3.2.1/bin:$PATH</code></pre>
+  </li>
+  <li>FLIP interfere com um programa que vem pré-instalado no sistema Ubuntu, chamado <b>brltty</b>. Este programa é destinado a ajudar os deficientes visuais, por isso, se você não for um deles, basta removê-lo (como parece também interferir com uma série de outros dispositivos USB):
+
+  <pre><code>$ sudo apt-get remove brltty</code></pre>
+  </li>
+</ol>
+
+ <h3>Gravando <b>eLua</b> na placa EVK1100</h3>
+<p>Após a instalação do FLIP e de tê-lo incluído no seu PATH, gravar o arquivo imagem de <b>eLua</b> deve ser bem fácil:</p>
+<ul>
+  <li>conecte sua placa ATEVK1100 a um PC usando um cabo USB</li>
+  <li>coloque a placa no modo DFU (isto é necessário para a utilização do FLIP). Para fazer isso:
+    <ol>
+      <li>pressione o botão <b>on</b> do joystick (e mantenha-o pressionado)</li>
+      <li>pressione o  botão RESET da placa rapidamente</li>
+      <li>solte o botão RESET</li>
+      <li>solte o joystick</li>
+    </ol>
+  </li>
+  <li>Se você estiver usando o Windows e este lhe pedir um driver, você deve instalá-lo manualmente a partir de <i>c:\Program Files\Atmel\Flip&lt;version&gt;\usb\</i></li>
+  <li>chame o programa FLIP pela linha de comando (o comando é o mesmo no Windows e no Linux, com uma única exceção:, o nome do executável é FLIP <b>batchisp3</b> em Linux e <b>batchisp</b> (sem a 3) no Windows) abaixo:
+  <pre><code>$ batchisp3 -hardware usb -device at32uc3a0512 -operation erase f memory flash blankcheck 
+  loadbuffer &lt;image name&gt;.hex program verify start reset 0</code></pre></li>
+</ul>
+<p>Terminou, o arquivo imagem de <b>eLua</b> está finalmente instalado na sua placa ATEVK1100.</p>
+$$FOOTER$$
+

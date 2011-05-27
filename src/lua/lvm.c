@@ -1,5 +1,5 @@
 /*
-** $Id: lvm.c,v 2.63.1.3 2007/12/28 15:32:23 roberto Exp $
+** $Id: lvm.c,v 2.63.1.4 2009/07/01 21:10:33 roberto Exp $
 ** Lua virtual machine
 ** See Copyright Notice in lua.h
 */
@@ -25,7 +25,7 @@
 #include "ltable.h"
 #include "ltm.h"
 #include "lvm.h"
-
+#include "lrotable.h"
 
 
 /* limit for table tag-method chains (to avoid loops) */
@@ -68,9 +68,10 @@ int luaV_tostring (lua_State *L, StkId obj) {
     return 0;
   else {
     char s[LUAI_MAXNUMBER2STR];
+    ptrdiff_t objr = savestack(L, obj);
     lua_Number n = nvalue(obj);
     lua_number2str(s, n);
-    setsvalue2s(L, obj, luaS_new(L, s));
+    setsvalue2s(L, restorestack(L, objr), luaS_new(L, s));
     return 1;
   }
 }
@@ -126,25 +127,28 @@ static void callTM (lua_State *L, const TValue *f, const TValue *p1,
 
 void luaV_gettable (lua_State *L, const TValue *t, TValue *key, StkId val) {
   int loop;
+  TValue temp;
   for (loop = 0; loop < MAXTAGLOOP; loop++) {
     const TValue *tm;
-    if (ttistable(t)) {  /* `t' is a table? */
-      Table *h = hvalue(t);
-      const TValue *res = luaH_get(h, key); /* do a primitive get */
+    if (ttistable(t) || ttisrotable(t)) {  /* `t' is a table? */
+      void *h = ttistable(t) ? hvalue(t) : rvalue(t);
+      const TValue *res = ttistable(t) ? luaH_get((Table*)h, key) : luaH_get_ro(h, key); /* do a primitive get */
       if (!ttisnil(res) ||  /* result is no nil? */
-          (tm = fasttm(L, h->metatable, TM_INDEX)) == NULL) { /* or no TM? */
+          (tm = fasttm(L, ttistable(t) ? ((Table*)h)->metatable : (Table*)luaR_getmeta(h), TM_INDEX)) == NULL) { /* or no TM? */
         setobj2s(L, val, res);
         return;
-      }
+      }      
       /* else will try the tag method */
     }
     else if (ttisnil(tm = luaT_gettmbyobj(L, t, TM_INDEX)))
-      luaG_typeerror(L, t, "index");
-    if (ttisfunction(tm)) {
+        luaG_typeerror(L, t, "index");
+    if (ttisfunction(tm) || ttislightfunction(tm)) {
       callTMres(L, val, tm, t, key);
       return;
     }
-    t = tm;  /* else repeat with `tm' */ 
+    /* else repeat with `tm' */
+    setobj(L, &temp, tm);  /* avoid pointing inside table (may rehash) */
+    t = &temp;
   }
   luaG_runerror(L, "loop in gettable");
 }
@@ -152,26 +156,39 @@ void luaV_gettable (lua_State *L, const TValue *t, TValue *key, StkId val) {
 
 void luaV_settable (lua_State *L, const TValue *t, TValue *key, StkId val) {
   int loop;
+  TValue temp;
+  setnilvalue(L->top);
+  L->top++;
+  fixedstack(L);
   for (loop = 0; loop < MAXTAGLOOP; loop++) {
     const TValue *tm;
-    if (ttistable(t)) {  /* `t' is a table? */
-      Table *h = hvalue(t);
-      TValue *oldval = luaH_set(L, h, key); /* do a primitive set */
-      if (!ttisnil(oldval) ||  /* result is no nil? */
-          (tm = fasttm(L, h->metatable, TM_NEWINDEX)) == NULL) { /* or no TM? */
-        setobj2t(L, oldval, val);
-        luaC_barriert(L, h, val);
+    if (ttistable(t) || ttisrotable(t)) {  /* `t' is a table? */
+      void *h = ttistable(t) ? hvalue(t) : rvalue(t);
+      TValue *oldval = ttistable(t) ? luaH_set(L, (Table*)h, key) : NULL; /* do a primitive set */
+      if ((oldval && !ttisnil(oldval)) ||  /* result is no nil? */
+          (tm = fasttm(L, ttistable(t) ? ((Table*)h)->metatable : (Table*)luaR_getmeta(h), TM_NEWINDEX)) == NULL) { /* or no TM? */
+        if(oldval) {
+          L->top--;
+          unfixedstack(L);
+          setobj2t(L, oldval, val);
+          luaC_barriert(L, (Table*)h, val);
+        }
         return;
       }
       /* else will try the tag method */
     }
     else if (ttisnil(tm = luaT_gettmbyobj(L, t, TM_NEWINDEX)))
       luaG_typeerror(L, t, "index");
-    if (ttisfunction(tm)) {
+    if (ttisfunction(tm) || ttislightfunction(tm)) {
+      L->top--;
+      unfixedstack(L);
       callTM(L, tm, t, key, val);
       return;
     }
-    t = tm;  /* else repeat with `tm' */ 
+    /* else repeat with `tm' */
+    setobj(L, &temp, tm);  /* avoid pointing inside table (may rehash) */
+    t = &temp;
+    setobj2s(L, L->top-1, t);  /* need to protect value from EGC. */
   }
   luaG_runerror(L, "loop in settable");
 }
@@ -274,7 +291,10 @@ int luaV_equalval (lua_State *L, const TValue *t1, const TValue *t2) {
     case LUA_TNIL: return 1;
     case LUA_TNUMBER: return luai_numeq(nvalue(t1), nvalue(t2));
     case LUA_TBOOLEAN: return bvalue(t1) == bvalue(t2);  /* true must be 1 !! */
-    case LUA_TLIGHTUSERDATA: return pvalue(t1) == pvalue(t2);
+    case LUA_TLIGHTUSERDATA: 
+    case LUA_TROTABLE:
+    case LUA_TLIGHTFUNCTION:
+      return pvalue(t1) == pvalue(t2);
     case LUA_TUSERDATA: {
       if (uvalue(t1) == uvalue(t2)) return 1;
       tm = get_compTM(L, uvalue(t1)->metatable, uvalue(t2)->metatable,
@@ -295,12 +315,17 @@ int luaV_equalval (lua_State *L, const TValue *t1, const TValue *t2) {
 
 
 void luaV_concat (lua_State *L, int total, int last) {
+  lu_mem max_sizet = MAX_SIZET;
+  if (G(L)->memlimit < max_sizet) max_sizet = G(L)->memlimit;
   do {
     StkId top = L->base + last + 1;
     int n = 2;  /* number of elements handled in this pass (at least 2) */
     if (!(ttisstring(top-2) || ttisnumber(top-2)) || !tostring(L, top-1)) {
-      if (!call_binTM(L, top-2, top-1, top-2, TM_CONCAT))
+      if (!call_binTM(L, top-2, top-1, top-2, TM_CONCAT)) {
+        /* restore 'top' pointer, since stack might have been reallocted */
+        top = L->base + last + 1;
         luaG_concaterror(L, top-2, top-1);
+      }
     } else if (tsvalue(top-1)->len == 0)  /* second op is empty? */
       (void)tostring(L, top - 2);  /* result is first op (as string) */
     else {
@@ -308,12 +333,14 @@ void luaV_concat (lua_State *L, int total, int last) {
       size_t tl = tsvalue(top-1)->len;
       char *buffer;
       int i;
+      fixedstack(L);
       /* collect total length */
       for (n = 1; n < total && tostring(L, top-n-1); n++) {
         size_t l = tsvalue(top-n-1)->len;
-        if (l >= MAX_SIZET - tl) luaG_runerror(L, "string length overflow");
+        if (l >= max_sizet - tl) luaG_runerror(L, "string length overflow");
         tl += l;
       }
+      G(L)->buff.n = tl;
       buffer = luaZ_openspace(L, &G(L)->buff, tl);
       tl = 0;
       for (i=n; i>0; i--) {  /* concat all strings */
@@ -322,6 +349,8 @@ void luaV_concat (lua_State *L, int total, int last) {
         tl += l;
       }
       setsvalue2s(L, top-n, luaS_newlstr(L, buffer, tl));
+      luaZ_resetbuffer(&G(L)->buff);
+      unfixedstack(L);
     }
     total -= n-1;  /* got `n' strings to create 1 new */
     last -= n-1;
@@ -347,8 +376,13 @@ static void Arith (lua_State *L, StkId ra, const TValue *rb,
       default: lua_assert(0); break;
     }
   }
-  else if (!call_binTM(L, rb, rc, ra, op))
-    luaG_aritherror(L, rb, rc);
+  else {
+    ptrdiff_t br = savestack(L, rb);
+    ptrdiff_t cr = savestack(L, rc);
+    if (!call_binTM(L, rb, rc, ra, op)) {
+      luaG_aritherror(L, restorestack(L, br), restorestack(L, cr));
+    }
+  }
 }
 
 
@@ -476,7 +510,9 @@ void luaV_execute (lua_State *L, int nexeccalls) {
       case OP_NEWTABLE: {
         int b = GETARG_B(i);
         int c = GETARG_C(i);
-        sethvalue(L, ra, luaH_new(L, luaO_fb2int(b), luaO_fb2int(c)));
+        Table *h;
+        Protect(h = luaH_new(L, luaO_fb2int(b), luaO_fb2int(c)));
+        sethvalue(L, RA(i), h);
         Protect(luaC_checkGC(L));
         continue;
       }
@@ -529,8 +565,9 @@ void luaV_execute (lua_State *L, int nexeccalls) {
       case OP_LEN: {
         const TValue *rb = RB(i);
         switch (ttype(rb)) {
-          case LUA_TTABLE: {
-            setnvalue(ra, cast_num(luaH_getn(hvalue(rb))));
+          case LUA_TTABLE: 
+          case LUA_TROTABLE: {
+            setnvalue(ra, ttistable(rb) ? cast_num(luaH_getn(hvalue(rb))) : cast_num(luaH_getn_ro(rvalue(rb))));
             break;
           }
           case LUA_TSTRING: {
@@ -538,9 +575,10 @@ void luaV_execute (lua_State *L, int nexeccalls) {
             break;
           }
           default: {  /* try metamethod */
+            ptrdiff_t br = savestack(L, rb);
             Protect(
               if (!call_binTM(L, rb, luaO_nilobject, ra, TM_LEN))
-                luaG_typeerror(L, rb, "get length of");
+                luaG_typeerror(L, restorestack(L, br), "get length of");
             )
           }
         }
@@ -714,6 +752,7 @@ void luaV_execute (lua_State *L, int nexeccalls) {
         int c = GETARG_C(i);
         int last;
         Table *h;
+        fixedstack(L);
         if (n == 0) {
           n = cast_int(L->top - ra) - 1;
           L->top = L->ci->top;
@@ -729,6 +768,7 @@ void luaV_execute (lua_State *L, int nexeccalls) {
           setobj2t(L, luaH_setnum(L, h, last--), val);
           luaC_barriert(L, h, val);
         }
+        unfixedstack(L);
         continue;
       }
       case OP_CLOSE: {
@@ -741,7 +781,9 @@ void luaV_execute (lua_State *L, int nexeccalls) {
         int nup, j;
         p = cl->p->p[GETARG_Bx(i)];
         nup = p->nups;
+        fixedstack(L);
         ncl = luaF_newLclosure(L, nup, cl->env);
+        setclvalue(L, ra, ncl);
         ncl->l.p = p;
         for (j=0; j<nup; j++, pc++) {
           if (GET_OPCODE(*pc) == OP_GETUPVAL)
@@ -751,7 +793,7 @@ void luaV_execute (lua_State *L, int nexeccalls) {
             ncl->l.upvals[j] = luaF_findupval(L, base + GETARG_B(*pc));
           }
         }
-        setclvalue(L, ra, ncl);
+        unfixedstack(L);
         Protect(luaC_checkGC(L));
         continue;
       }

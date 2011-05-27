@@ -91,24 +91,24 @@ static void DumpInt(int x, DumpState* D)
  DumpIntWithSize(x,D->target.sizeof_int,D);
 }
 
-static void DumpSize(size_t x, DumpState* D)
+static void DumpSize(int32_t x, DumpState* D)
 {
  /* dump unsigned integer */
- switch(D->target.sizeof_size_t) {
+ switch(D->target.sizeof_strsize_t) {
   case 1: {
    if (x>0xFF) D->status=LUA_ERR_CC_INTOVERFLOW; 
    DumpChar(x,D);
   } break;
   case 2: {
    if (x>0xFFFF) D->status=LUA_ERR_CC_INTOVERFLOW;
-   unsigned short y=x;
+   uint16_t y=(uint16_t)x;
    MaybeByteSwap((char*)&y,2,D);
    DumpVar(y,D);
   } break;
   case 4: {
    /* Reduce bounds to avoid messing 32-bit compilers up */
    if (x>0xFFFFFFFE) D->status=LUA_ERR_CC_INTOVERFLOW;
-   unsigned long y=x;
+   uint32_t y=x;
    MaybeByteSwap((char*)&y,4,D);
    DumpVar(y,D);
   } break;
@@ -118,6 +118,9 @@ static void DumpSize(size_t x, DumpState* D)
 
 static void DumpNumber(lua_Number x, DumpState* D)
 {
+#if defined( LUA_NUMBER_INTEGRAL ) && !defined( LUA_CROSS_COMPILER )
+  DumpIntWithSize(x,D->target.sizeof_lua_Number,D);
+#else // #if defined( LUA_NUMBER_INTEGRAL ) && !defined( LUA_CROSS_COMPILER )
  if (D->target.lua_Number_integral)
  {
   if (((float)(int)x)!=x) D->status=LUA_ERR_CC_NOTINTEGER;
@@ -137,7 +140,7 @@ static void DumpNumber(lua_Number x, DumpState* D)
     double y=x;
     // ARM FPA mode: keep endianness, but swap high and low parts of the 
     // memory representation. This is the default compilation mode for ARM 
-    // targets (at least with GCC)
+    // targets with non-EABI gcc
     if(D->target.is_arm_fpa)
     {
       char *pnum=(char*)&y, temp[4];
@@ -151,6 +154,7 @@ static void DumpNumber(lua_Number x, DumpState* D)
    default: lua_assert(0);
   }
  }
+#endif // #if defined( LUA_NUMBER_INTEGRAL ) && !defined( LUA_CROSS_COMPILER )
 }
 
 static void DumpCode(const Proto *f, DumpState* D)
@@ -170,12 +174,12 @@ static void DumpString(const TString* s, DumpState* D)
 {
  if (s==NULL || getstr(s)==NULL)
  {
-  size_t size=0;
+  strsize_t size=0;
   DumpSize(size,D);
  }
  else
  {
-  size_t size=s->tsv.len+1;		/* include trailing '\0' */
+  strsize_t size=s->tsv.len+1;		/* include trailing '\0' */
   DumpSize(size,D);
   DumpBlock(getstr(s),size,D);
  }
@@ -264,7 +268,7 @@ static void DumpHeader(DumpState* D)
  *h++=(char)LUAC_FORMAT;
  *h++=(char)D->target.little_endian;
  *h++=(char)D->target.sizeof_int;
- *h++=(char)D->target.sizeof_size_t;
+ *h++=(char)D->target.sizeof_strsize_t;
  *h++=(char)sizeof(Instruction);
  *h++=(char)D->target.sizeof_lua_Number;
  *h++=(char)D->target.lua_Number_integral;
@@ -298,7 +302,7 @@ int luaU_dump (lua_State* L, const Proto* f, lua_Writer w, void* data, int strip
  int test=1;
  target.little_endian=*(char*)&test;
  target.sizeof_int=sizeof(int);
- target.sizeof_size_t=sizeof(size_t);
+ target.sizeof_strsize_t=sizeof(strsize_t);
  target.sizeof_lua_Number=sizeof(lua_Number);
  target.lua_Number_integral=(((lua_Number)0.5)==0);
  target.is_arm_fpa=0;

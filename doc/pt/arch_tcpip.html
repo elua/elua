@@ -1,0 +1,90 @@
+$$HEADER$$
+<head><meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>    
+<h3>TCP/IP in eLua <span class="warning">(WIP)</span></h3>
+<p><b>eLua</b>'s TCP/IP support was designed with flexibility and ease of use in mind. It
+might not provide all the functions of a "full-fledged" TCP/IP stack, but it's 
+still fully functional, has a much smaller footprint and is probably easier to use than a "regular" (POSIX) TCP/IP
+stack. These are the services provided by the TCP/IP stack:</p>
+<ul>
+  <li>a set of functions for network access (defined in inc/elua_net.h)</li>
+  <li>a DHCP client</li>
+  <li>a DNS resolver</li>
+  <li>a module (<a href="refman_gen_net.html">net</a>) which can be used from Lua to access the network functions</li>
+  <li>a Telnet miniclient, which is used to support the eLua shell via TCP/IP instead of serial connections.</li>
+</ul>
+<br />
+
+<h2>TCP/IP configuration</h2>
+<p>To configure the TCP/IP subsystem, <i>edit src/platform/&lt;name&gt;platform_conf.h</i> and:</p>
+<ol>
+<li><b>#define BUILD_UIP</b> to enable TCP/IP support</li>
+<li>if you'll be using the DHCP client, just <b>#define BUILD_DHCPC</b> to build the 
+   DHCP client. In any case, you must also define a static network configuration:
+
+<p><b>#define ELUA_CONF_IPADDR0 ... ELUA_CONF_IPADDR3</b> : the IP address<br>
+  <b>#define ELUA_CONF_NETMASK0 ... ELUA_CONF_NETMASK3</b> : the network mask<br>
+  <b>#define ELUA_CONF_DEFGW0 ... ELUA_CONF_DEFGW3</b> : the default gateway<br>
+  <b>#define ELUA_CONF_DNS0 ... ELUA_CONF_DNS3</b> : the DNS server </p>
+
+  <p>Note that you must define both <b>BUILD_DHCPC</b> and the <b>ELUA_CONF_*</b> macros. If the
+  DHCP client fails to obtain a valid IP address, the static configuration will 
+  be used instead. To use only the static configuration (and make the eLua image
+  size a bit smaller) don't define the BUILD_DHCPC client.</p></li>
+
+<li><b>#define BUILD_DNSM</b> if you want support for the DNS server.</li>
+<li><b>#define BUILD_CON_TCP</b> if you want support for shell over telnet instead of
+   serial. Note that you must NOT define <b>BUILD_CON_GENERIC</b> in this case (see
+   <a href="arch_con_term.html">here</a> for details).</li>
+</ol>
+<p>You'll also need an uIP configuration file (<i>src/platform/&lt;name&gt;/uip-conf.h</i>) to configure the TCP/IP
+stack. For an example, look at <i>src/platform/&lt;lm3s&gt;/uip-conf.h</i>. The header if quite self-explanatory, below
+you have a list of parameters that you might want to change:</p>
+<ul>
+  <li><b>u8_t, u16_t</b>: define these types to match your platform.</li>
+  <li><b>UIP_CONF_MAX_CONNECTIONS</b>: the maximum number of TCP connections that can be active at a given time.</li>
+  <li><b>UIP_CONF_UDP_CONNS</b>: same thing for UDP connections.</li>
+  <li><b>UIP_CONF_BYTE_ORDER</b>: <b>LITTLE_ENDIAN</b> or <b>BIG_ENDIAN</b>, it's very important to match this with your architecture.</li>
+  <li><b>UIP_CONF_BUFFER_SIZE</b>: the size of the buffer used by uIP for all its connections. You should keep it small to avoid memory consumption,
+    but doing so when you have to transfer large amounts of data will slow the transfer speed. 1k seems to be a good compromise.</li>
+  <li><b>UIP_CONF_UDP</b>: turn off UDP support. While <b>eLua</b> doesn't have support for UDP via its <b>net</b> module at this time, UDP can still
+    be used (for example by DNS/DHCP), so be careful if you disable this.</li>
+  <li><b>ELUA_DHCP_TIMER_ID</b>: the timer ID used for the TCP/IP subsystem. Note that this should be a dedicated timer, not available to the rest 
+    of the system (or available in "read-only" mode).</li>
+</ul>
+<br />
+
+<h2>TCP/IP implementation internals</h2>
+<p>The TCP/IP support was designed in such a way that it doesn't require a specific
+TCP/IP stack implementation. To work with <b>eLua</b>, a TCP/IP stack must simply 
+implement all the functions defined in the inc/elua_net.h file. This allows for
+easy integration of more than one TCP/IP stack. Currently only uIP is used in 
+eLua, but lwIP (and possibly others) are planned to be added at some point.
+Another key point of the TCP/IP implementation (and of the whole <b>eLua</b> design
+for that matter) is that it should be as platform independent as possible: write
+everything in a platform-independent manner, except for some functions (as few as
+possible and as simple as possible) that must be implemented by each platform.
+To illustrate the above, a short overview of the uIP integration is given below.</p>
+
+<p><a  href="http://www.sics.se/~adam/uip/index.php/Main_Page">uIP</a> is a minimalistic TCP/IP
+stack designed specifically for resource constrained embedded systems. While the
+design and implementation of uIP are an excellent example of what can be done
+with a few kilobytes of memory, it has a number of quirks that make it hard to
+integrate with <b>eLua</b>. First, it uses a callback approach, as opposed to the 
+sequential approach of "regular" TCP/IP stacks. It provides a "protosocket" 
+library that can be used to write uIP applications in a more "traditional" way,
+but it's quite restrictive. So, to use it with <b>eLua</b>, a translation layer was
+needed. It is implemented in <i>src/elua_uip.c</i>, and its sole purpose is to "adapt"
+the uIP stack to the <b>eLua</b> model: implement the functions in <i>inc/elua_net.h</i> and
+you're ready to use the stack. In this case the "adaption layer" is quite large
+because of uIP's callback-based design.</p>
+
+<p>To make the uIP implementation as platform-independent as possible, a special
+<a href="arch_platform_eth.html">networking layer</a> is added to the <a href="arch_platform.html">platform interface</a>. 
+There are only 4 functions that must be implemented by a backend
+to use the networking layer. They might change as more TCP/IP stacks are added
+to eLua, but probably the networking layer won't get much bigger than it is now.<br>
+For a more in-depth understanding of how the networking layer is implemented,
+look at the LM3S implementation in <i>src/platform/lm3s/platform.c</i>. 
+</p>
+$$FOOTER$$
+

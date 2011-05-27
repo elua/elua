@@ -1,0 +1,204 @@
+// $$HEADER$$
+The eLua coding style
+---------------------
+This section presents the eLua coding style that should be followed by every developer working on eLua. The following rules apply:
+
+1. Everything should be spaced out properly. Examples (please note the spacing rules, which is basically "space out everything for readability"):
++
+---------------
+i = 3 (not i=3)
+a = ( a + 5 ) / 3
+for( i = 0; i &lt; 10; i ++ ) ...
+if( ( i == 5 ) && ( a == 10 ) ) ...
+unsigned i = ( unsigned )p;
+void func( int arg1, const char* arg2 ) ...
+---------------
+
+2. *Indentation*: indent everything at 2 SPACES. Again, *SPACES*. [warning]#DO NOT USE TABS#. This is important (and fortunately pretty easy to remember :) ). 
+  There are too many examples where tabs completely destroyed the readability of source code. Most editors have an "insert
+  spaces instead of tabs" option; use it, and set your "tab size" to 2. +
+  Also, indent "{" and "}" on their own lines:
++
+------------
+if( i == 2 )
+{
+  // some code here
+}
+else
+{
+  // some other code here
+}
+-----------
++
+      Or:
++
+---------------
+void f( int i )
+{
+  // function code
+}
+---------------
++
+Do not enclose single statements in {} when given a choice. For example, do this:
++
+------------
+if( i == 2 )
+  return;
+------------
++
+instead of this:
++
+------------
+if( i == 2 )
+{
+  return;
+}
+------------
++
+Also, follow the "one statement per line" rule. In other words, don't do this:
++
+------------------
+if( i == 2 ) return;
+------------------
++
+Do this instead:
++
+-----------------
+if( i == 2 )
+  return;
+-----------------
++
+Note that eLua code does not use a space between the function name and its parameter list when calling/defining it (like in the Lua code, for example). So do this:
++
+---------------
+void f( int i )
+{
+  // function code here
+}
+
+f( 2 ); // function call
+---------------
++
+instead of this:
++
+
+---------------
+void f ( int i )
+{
+  // function code here
+}
+
+f ( 2 ); // function call
+---------------
+
+3. *line terminators*: [warning]#THIS IS IMPORTANT# Use UNIX style (LF) line terminators, not DOS (CR/LF) or old Mac (CR) line terminators.
+
+4. *identifier names*: use a "GNU-style" here, with underlines and all lowercase:
++
+------------------
+int simple;
+double another_identifier;
+char yes_this_is_OK_although_quite_stupid;
+------------------
++
+As opposed to:
++
+------------------
+int Simple1;
+double AnotherIdentifier;
+char DontEvenThinkAboutWritingSomethingLikeThis;
+------------------
+
+5. *DO NOT USE HUNGARIAN NOTATION* (like iNumber, sString, fFloat ... if you don't know what that is, it's fine, as it means that we don't need to worry about it :) ). It has its advantages
+when used properly, it's just not for eLua.
+
+6. *constants in code*: don't ever write something like this:
++
+-------------
+if( key == 10 )
+  sys_ok();
+else if( key == 5 )
+  phone_dial( "911" );
+else if( key == 666 )
+{
+  while( user_is_evil() )
+    exorcize_user();
+}
+else if( key == 0 )
+ sys_retry();
+else
+ sys_error();
+-------------
++
+Instead, define some constants with meaningful names (via enums or even #define) and write like this:
++
+-------------
+if( key == KEY_CODE_OK )
+  sys_ok();
+else if( key == KEY_CODE_FATAL_ERROR )
+  phone_dial( "911" );
+else if( key == KEY_CODE_COMPLETELY_EVIL )
+{
+  while( user_is_evil() )
+    exorcize_user();
+}
+else if( key == KEY_CODE_NONE )
+  sys_retry();
+else
+  sys_error();
+-------------
++
+You can see in this example an accepted violation of the "one statement per line" rule: it's OK to write "else if (newcondition)" on the same line.
+
+7. use specific data types as much as possible. In this context, *specific data types* refers to generic types that have the same size on all 
+  platforms. They are defined by each platform in turn and their meaning is given below:
++
+--
+  * *s8*: signed 8-bit integer
+  * *u8*: unsigned 8-bit integer
+  * *s16*: signed 16-bit integer
+  * *u16*: unsigned 16-bit integer
+  * *s32*: signed 32-bit integer
+  * *u32*: unsigned 32-bit integer
+  * *s64*: signed 64-bit integer
+  * *u64*: unsigned 64-bit integer
+
+By writing your code to take advantage of these specific data types you ensure high portability of the code amongst different hardware platforms. Don't
+overuse this rule though. For example, a *for* loop has generally an *int* index, which is perfectly fine. But when you specify a timeout that
+must fit in 32 bits, definitely declare it as *u32* instead of *unsigned int*.
+--
+
+8. *endianness*: remember that eLua runs on both little endian and big endian architectures so write your code accordingly.
+
+9. *comments*: we generally favor C++ style comments (//), but it's perfectly OK to use C style (/\**/) comments. The use of automatic documentation generators like Doxygen isn’t encouraged, 
+  since they tend to make the programmer over-document the code to the point where it becomes hard to read because of the documentation alone. Ideally, you'd neither over-document, nor 
+  under-document your code; just document it as much as you think is needed, without getting into too much details, but also without omitting important information. In particular, DON'T do this:
++
+-----------------
+// This function returns the sum of two numbers
+// Input: n1 - first number
+// Input: n2 - the second number
+// Output: the sum of n1 and n2
+int sum( int n1, int n2 )
+{
+  return n1 + n2;
+}
+-----------------
++
+When something is self-obvious from the context, documenting it more is pointless and decreases readability.
+
+10. *pseudo name-spaces*: since we don't have namespaces in C, I like to "emulate" them by prefixing anything (constants, variables, functions) in a file with something that identifies that 
+  file uniquely (most likely its name, but this is not a definite rule). For example, a file called "uart.c" would look like this:
++
+-------------------------------
+int uart_tx_count, uart_rx_count;
+
+int uart_receive( unsigned limit )...
+unsigned uart_send( const char *buf, unsigned size )...
+-------------------------------
+
+Also, if you're using 3rd party code (from a library/support package for example) making it follow the above rules is nice, but not mandatory. Focus on functionality and writing your own 
+code properly, and come back to indent other people's code when you really don't have anything better to do with your time.
+
+// $$FOOTER$$
+

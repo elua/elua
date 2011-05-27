@@ -7,14 +7,18 @@
 #ifndef lundump_h
 #define lundump_h
 
+#include <stdint.h>
+
 #include "lobject.h"
 #include "lzio.h"
+
+typedef uint32_t strsize_t;
 
 /* info about target machine for cross-compilation */
 typedef struct {
  int little_endian;
  int sizeof_int;
- int sizeof_size_t;
+ int sizeof_strsize_t;
  int sizeof_lua_Number;
  int lua_Number_integral;
  int is_arm_fpa;

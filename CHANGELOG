@@ -1,3 +1,67 @@
+02.02.2011  Bogdan Marinescu <bogdan.marinescu@gmail.com>
+            Dado Sutter      <dadosutter@gmail.com>
+            James Snyder     <jbsnyder@gmail.com>
+
+  * Official release 0.8
+  * Added the RFS (Remote File System), a new file system which allows sharing
+    a directory on the PC with the eLua board.
+  * Added a serial multiplexer which allows using more virtual serial ports over a single 
+    physical UART connection.
+  * Added Lua and C interrupt handlers support.
+  * Added linenoise support (eLua and Lua shell command line history and navigation)
+  * Added generic I2C support and docs
+  * Added hardware flow control and runtime configurable buffers for UARTs.
+  * Added support for new boards: mbed, EVK-1101, Mizar32, EK-LM3S1968
+  * Added SPI and SD/MMC support for EVK1100 and EVK1101 (AVR32) 
+  * Added I2C support for STR-E912 (STR912) 
+  * Added support for require() and autorun from SD/MMC
+  * Added external memory support for STR912
+  * Added long filename support for SD/MMC
+  * Added version() function to elua module
+  * Added RTC (real time clock) platform specific support for str9
+  * Added support for AsciiDoc in the doc builder
+  * Tutorials and new projects added to the eLua User Labs wiki
+  * Demo files were moved out of the distro to http://wiki.eluaproject.net/Projects
+  * Added a 'media' page with eLua related media on the project site
+
+15.01.2010  Bogdan Marinescu <bogdanm@eluaproject.net>
+            Dado Sutter      <dado@eluaproject.net>
+            James Snyder     <jbsnyder@fanplastic.org>
+
+  * Official release 0.7
+  * Added Robert Jakabosky's EGC (Emergency Garbage Collector) patch to eLua
+  * Added generic and portable SD/MMC Card FAT File System support
+  * Added LuaRPC support (remote procedure calls in the embedded world)
+  * New eLua shell cat/type command, lists text file contents
+  * Added support for Olimex STR-E912 board
+  * Added the STR9 platform specific pio module
+  * Added support for the PUC-Rio eLua board, NXP LPC2468 MCU
+  * Added basic CAN module
+  * Compiling eLua under Windows is now officially supported
+  * New ROMFS build modes: compress and compile
+  * More portuguese content translations
+  * ADC module and doc enhancements
+
+
+06.10.2009  Bogdan Marinescu <bogdanm@eluaproject.net>
+            Dado Sutter      <dado@eluaproject.net>
+            James Snyder     <jbsnyder@fanplastic.org>
+
+  * Official release 0.6
+  * License changed to MIT
+  * Web page and documentation completely redesigned
+  * Documentation available offline
+  * Added support for AVR32 CPUs 
+  * Added support for STM32 Cortex-M3 CPUs
+  * Added ADC module with support for moving average filters
+  * Added support for multiple toolchains
+  * Added an ls (or dir) shell command
+  * Added new examples: pong, tetrives, spaceship (games), logo
+    (graphics), adcpoll, adcscope (ADC operations)
+  * Added the LTR (Lua Tiny RAM) patch
+  * ROM FS content can be specified per board now
+  * API semantic revisions (old code might not be compatible)
+
 01.11.2008 Bogdan Marinescu <bogdanm@users.berlios.de>
            Dado Sutter <dadosutter@esp.puc-rio.br> 
 

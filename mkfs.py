@@ -6,6 +6,9 @@ import struct
 _crtline = '  '
 _numdata = 0
 _bytecnt = 0
+
+maxlen = 30
+
 # Line output function
 def _add_data( data, outfile, moredata = True ):
   global _crtline, _numdata, _bytecnt
@@ -20,20 +23,17 @@ def _add_data( data, outfile, moredata = True ):
     _crtline = '  '
     _numdata = 0
 
-# dirname - the directory where the web page is located. It is assumed that
-#           the directory contains all the files required by the web page, and
-#           nothing more
+# dirname - the directory where the files are located.
 # outname - the name of the C output
+# flist - list of files
+# mode - preprocess the file system:
+#   "verbatim" - copy the files directly to the FS as they are
+#   "compile" - precompile all files to Lua bytecode and then copy them
+#   "compress" - keep the source code, but compress it with LuaSrcDiet
+# compcmd - the command to use for compiling if "mode" is "compile"
 # Returns True for OK, False for error
-def mkfs( dirname, outname ):
-  # Try to list the directory
-  try:
-    flist = os.listdir( dirname )
-  except:
-    print "Unable to list directory %s" % dirname
-    return False
-
-  # Then try to create the output files
+def mkfs( dirname, outname, flist, mode, compcmd ):
+  # Try to create the output files
   outfname = outname + ".h"
   try:
     outfile = file( outfname, "wb" )
@@ -53,24 +53,59 @@ def mkfs( dirname, outname ):
   
   # Process all files
   for fname in flist:
+    if len( fname ) > maxlen:
+      print "Skipping %s (name longer than %d chars)" % ( fname, maxlen )
+      continue 
+      
     # Get actual file name
     realname = os.path.join( dirname, fname )
     
     # Ensure it actually is a file
     if not os.path.isfile( realname ):
-      print "Skipping %s ... (not a regular file)" % fname
+      print "Skipping %s ... (not found or not a regular file)" % fname
       continue
       
     # Try to open and read the file
     try:
       crtfile = file( realname, "rb" )
-      filedata = crtfile.read()
     except:
       outfile.close()
       os.remove( outfname )
       print "Unable to read %s" % fname    
       return False
-        
+    
+    # Do we need to process the file?
+    fextpart = ''
+    if mode == "compile" or mode == "compress":
+      fnamepart, fextpart = os.path.splitext( realname )
+      if mode == "compress":
+        newext = ".lua.tmp"
+      else:
+        newext = ".lc"
+      if fextpart == ".lua":
+        newname = fnamepart + newext
+        if mode == "compress":
+          print "Compressing %s to %s ..." % ( realname, newname )
+        else:
+          print "Cross compiling %s to %s ..." % ( realname, newname )
+        os.system( compcmd % ( newname, realname ) )
+        # TODO: this assumes that the cross compiler ended OK
+        crtfile.close()
+        try:
+          crtfile = file( newname, "rb" )
+        except:
+          outfile.close()
+          os.remove( outfname )
+          print "Unable to read %s" % newname
+          return False
+        if mode == "compile":
+          fnamepart, fextpart = os.path.splitext( fname )
+          fname = fnamepart + ".lc"
+    filedata = crtfile.read()
+    crtfile.close()
+    if fextpart == ".lua" and mode != "verbatim":
+      os.remove( newname )
+
     # Write name, size, id, numpars
     for c in fname:
       _add_data( ord( c ), outfile )
@@ -93,9 +128,3 @@ def mkfs( dirname, outname ):
   print "Done, total size is %d bytes" % _bytecnt
   return True
 
-if __name__ == "__main__":
-  if len( sys.argv ) != 3:
-    print "Usage: mkfs <dirname> <outname>"
-    sys.exit( -2 )
-    
-  mkfs( sys.argv[ 1 ], sys.argv[ 2 ] )

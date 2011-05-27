@@ -2,43 +2,50 @@
 
 cpumode = ARGUMENTS.get( 'cpumode', 'thumb' ).lower()
 
-specific_files = "board_cstartup.s board_lowlevel.c board_memories.c usart.c pmc.c pio.c platform.c tc.c pwmc.c"
-if cputype == 'AT91SAM7X256':
+specific_files = "board_cstartup.s board_lowlevel.c board_memories.c usart.c pmc.c pio.c platform.c tc.c pwmc.c aic.c platform_int.c"
+if comp[ 'cpu' ] == 'AT91SAM7X256':
   ldscript = "flash256.lds"
-  cdefs = cdefs + " -Dat91sam7x256"
-elif cputype == 'AT91SAM7X512':
+  comp.Append(CPPDEFINES = 'at91sam7x256')
+elif comp[ 'cpu' ] == 'AT91SAM7X512':
   ldscript = "flash512.lds"
-  cdefs = cdefs + " -Dat91sam7x512"
+  comp.Append(CPPDEFINES = 'at91sam7x512')
 else:
-  print "Invalid AT91SAM7X CPU %s" % cputype
-  sys.exit( -1 )  
+  print "Invalid AT91SAM7X CPU %s" % comp[ 'cpu' ]
+  Exit( -1 )
   
-# Check CPU mode
-if cpumode == 'arm':
-  modeflag = ''
-elif cpumode == 'thumb':
-  modeflag = '-mthumb'
-else:
-  print "Invalid CPU mode %s", cpumode
-  sys.exit( -1 )
-  
-cdefs = cdefs + ' -DNOASSERT -DNOTRACE'
+comp.Append(CPPDEFINES = ['NOASSERT','NOTRACE'])
   
 # Prepend with path
 specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )
+specific_files += " src/platform/arm_utils.s src/platform/arm_cortex_interrupts.c"
 ldscript = "src/platform/%s/%s" % ( platform, ldscript )
+
+comp.Append(CCFLAGS = ['-ffunction-sections','-fdata-sections','-fno-strict-aliasing','-Wall'])
+comp.Append(LINKFLAGS = ['-nostartfiles','-nostdlib','-T',ldscript,'-Wl,--gc-sections','-Wl,--allow-multiple-definition'])
+comp.Append(ASFLAGS = ['-x','assembler-with-cpp','-c','-Wall','$_CPPDEFFLAGS'])
+comp.Append(LIBS = ['c','gcc','m'])
+
+TARGET_FLAGS = ['-mcpu=arm7tdmi']
+if cpumode == 'thumb':
+  TARGET_FLAGS += ['-mthumb']
+  comp.Append(CPPDEFINES = ['CPUMODE_THUMB'])
+else:
+  comp.Append(CPPDEFINES = ['CPUMODE_ARM'])
+
+# Configure General Flags for Target
+comp.Prepend(CCFLAGS = [TARGET_FLAGS])
+comp.Prepend(LINKFLAGS = [TARGET_FLAGS,'-Wl,-e,entry'])
+comp.Prepend(ASFLAGS = [TARGET_FLAGS,'-D__ASSEMBLY__'])
 
 # Toolset data
 tools[ 'at91sam7x' ] = {}
-tools[ 'at91sam7x' ][ 'cccom' ] = "arm-elf-gcc -mcpu=arm7tdmi %s %s %s -ffunction-sections -fdata-sections %s -Wall -c $SOURCE -o $TARGET" % ( modeflag, opt, local_include, cdefs )
-tools[ 'at91sam7x' ][ 'linkcom' ] = "arm-elf-gcc -nostartfiles -nostdlib %s -T %s -Wl,--gc-sections -Wl,-e,entry -Wl,--allow-multiple-definition -o $TARGET $SOURCES %s -lc -lgcc -lm" % ( modeflag, ldscript, local_libs )
-tools[ 'at91sam7x' ][ 'ascom' ] = "arm-elf-gcc -x assembler-with-cpp %s -mcpu=arm7tdmi %s %s -D__ASSEMBLY__ -Wall -c $SOURCE -o $TARGET" % ( local_include, modeflag, cdefs )
 
 # Programming function for LPC2888
 def progfunc_at91sam7x( target, source, env ):
   outname = output + ".elf"
-  os.system( "arm-elf-size %s" % outname )
+  os.system( "%s %s" % ( toolset[ 'size' ], outname ) )
   print "Generating binary image..."
-  os.system( "arm-elf-objcopy -O binary %s %s.bin" % ( outname, output ) )
+  os.system( "%s -O binary %s %s.bin" % ( toolset[ 'bin' ], outname, output ) )
   
 tools[ 'at91sam7x' ][ 'progfunc' ] = progfunc_at91sam7x
+

@@ -22,8 +22,14 @@
 
 #include "lua.h"
 
-#include "lauxlib.h"
+#include "lrotable.h"
 
+#include "lauxlib.h"
+#include "lgc.h"
+#include "ldo.h"
+#include "lobject.h"
+#include "lstate.h"
+#include "legc.h"
 
 #define FREELIST_REF	0	/* free list of references */
 
@@ -32,6 +38,9 @@
 #define abs_index(L, i)		((i) > 0 || (i) <= LUA_REGISTRYINDEX ? (i) : \
 					lua_gettop(L) + (i) + 1)
 
+// Parameters for luaI_openlib
+#define LUA_USECCLOSURES          0
+#define LUA_USELIGHTFUNCTIONS     1
 
 /*
 ** {======================================================
@@ -120,6 +129,16 @@ LUALIB_API int luaL_newmetatable (lua_State *L, const char *tname) {
   return 1;
 }
 
+LUALIB_API int luaL_rometatable (lua_State *L, const char* tname, void *p) {
+  lua_getfield(L, LUA_REGISTRYINDEX, tname);  /* get registry.name */
+  if (!lua_isnil(L, -1))  /* name already in use? */
+    return 0;  /* leave previous value on top, but return 0 */
+  lua_pop(L, 1);
+  lua_pushrotable(L, p);
+  lua_pushvalue(L, -1);
+  lua_setfield(L, LUA_REGISTRYINDEX, tname);  /* registry.name = metatable */
+  return 1;
+}
 
 LUALIB_API void *luaL_checkudata (lua_State *L, int ud, const char *tname) {
   void *p = lua_touserdata(L, ud);
@@ -146,6 +165,22 @@ LUALIB_API void luaL_checkstack (lua_State *L, int space, const char *mes) {
 LUALIB_API void luaL_checktype (lua_State *L, int narg, int t) {
   if (lua_type(L, narg) != t)
     tag_error(L, narg, t);
+}
+
+LUALIB_API void luaL_checkanyfunction (lua_State *L, int narg) {
+  if (lua_type(L, narg) != LUA_TFUNCTION && lua_type(L, narg) != LUA_TLIGHTFUNCTION) {
+    const char *msg = lua_pushfstring(L, "function or lightfunction expected, got %s",
+                                      luaL_typename(L, narg));
+    luaL_argerror(L, narg, msg);    
+  }
+}
+
+LUALIB_API void luaL_checkanytable (lua_State *L, int narg) {
+  if (lua_type(L, narg) != LUA_TTABLE && lua_type(L, narg) != LUA_TROTABLE) {
+    const char *msg = lua_pushfstring(L, "table or rotable expected, got %s",
+                                      luaL_typename(L, narg));
+    luaL_argerror(L, narg, msg);    
+  }
 }
 
 
@@ -228,9 +263,17 @@ LUALIB_API int luaL_callmeta (lua_State *L, int obj, const char *event) {
 
 LUALIB_API void (luaL_register) (lua_State *L, const char *libname,
                                 const luaL_Reg *l) {
-  luaI_openlib(L, libname, l, 0);
+  luaI_openlib(L, libname, l, 0, LUA_USECCLOSURES);
 }
 
+LUALIB_API void (luaL_register_light) (lua_State *L, const char *libname,
+                                const luaL_Reg *l) {
+#if LUA_OPTIMIZE_MEMORY > 0                              
+  luaI_openlib(L, libname, l, 0, LUA_USELIGHTFUNCTIONS);
+#else
+  luaI_openlib(L, libname, l, 0, LUA_USECCLOSURES);
+#endif  
+}
 
 static int libsize (const luaL_Reg *l) {
   int size = 0;
@@ -240,7 +283,7 @@ static int libsize (const luaL_Reg *l) {
 
 
 LUALIB_API void luaI_openlib (lua_State *L, const char *libname,
-                              const luaL_Reg *l, int nup) {
+                              const luaL_Reg *l, int nup, int ftype) {
   if (libname) {
     int size = libsize(l);
     /* check whether lib already exists */
@@ -261,7 +304,10 @@ LUALIB_API void luaI_openlib (lua_State *L, const char *libname,
     int i;
     for (i=0; i<nup; i++)  /* copy upvalues to the top */
       lua_pushvalue(L, -nup);
-    lua_pushcclosure(L, l->func, nup);
+    if (ftype == LUA_USELIGHTFUNCTIONS)
+      lua_pushlightfunction(L, l->func);
+    else
+      lua_pushcclosure(L, l->func, nup);
     lua_setfield(L, -(nup+2), l->name);
   }
   lua_pop(L, nup);  /* remove upvalues */
@@ -363,6 +409,14 @@ LUALIB_API const char *luaL_findtable (lua_State *L, int idx,
     if (e == NULL) e = fname + strlen(fname);
     lua_pushlstring(L, fname, e - fname);
     lua_rawget(L, -2);
+    if (lua_isnil(L, -1)) {
+      /* If looking for a global variable, check the rotables too */
+      void *ptable = luaR_findglobal(fname, e - fname);
+      if (ptable) {
+        lua_pop(L, 1);
+        lua_pushrotable(L, ptable);
+      }
+    }
     if (lua_isnil(L, -1)) {  /* no such field? */
       lua_pop(L, 1);  /* remove this nil */
       lua_createtable(L, 0, (*e == '.' ? 1 : szhint)); /* new table for field */
@@ -370,7 +424,7 @@ LUALIB_API const char *luaL_findtable (lua_State *L, int idx,
       lua_pushvalue(L, -2);
       lua_settable(L, -4);  /* set new table into field */
     }
-    else if (!lua_istable(L, -1)) {  /* field has a non-table value? */
+    else if (!lua_istable(L, -1) && !lua_isrotable(L, -1)) {  /* field has a non-table value? */
       lua_pop(L, 2);  /* remove table and value */
       return fname;  /* return problematic part of the name */
     }
@@ -624,15 +678,43 @@ LUALIB_API int (luaL_loadstring) (lua_State *L, const char *s) {
 /* }====================================================== */
 
 
+static int l_check_memlimit(lua_State *L, size_t needbytes) {
+  global_State *g = G(L);
+  int cycle_count = 0;
+  lu_mem limit = g->memlimit - needbytes;
+  /* make sure the GC is not disabled. */
+  if (!is_block_gc(L)) {
+    while (g->totalbytes >= limit) {
+      /* only allow the GC to finished atleast 1 full cycle. */
+      if (g->gcstate == GCSpause && ++cycle_count > 1) break;
+      luaC_step(L);
+    }
+  }
+  return (g->totalbytes >= limit) ? 1 : 0;
+}
+
+
 static void *l_alloc (void *ud, void *ptr, size_t osize, size_t nsize) {
-  (void)ud;
-  (void)osize;
+  lua_State *L = (lua_State *)ud;
+  int mode = L == NULL ? 0 : G(L)->egcmode;
+  void *nptr;
+
   if (nsize == 0) {
     free(ptr);
     return NULL;
   }
-  else
-    return realloc(ptr, nsize);
+  if (L != NULL && (mode & EGC_ALWAYS)) /* always collect memory if requested */
+    luaC_fullgc(L);
+  if(nsize > osize && L != NULL) {
+    if(G(L)->memlimit > 0 && (mode & EGC_ON_MEM_LIMIT) && l_check_memlimit(L, nsize - osize))
+      return NULL;
+  }
+  nptr = realloc(ptr, nsize);
+  if (nptr == NULL && L != NULL && (mode & EGC_ON_ALLOC_FAILURE)) {
+    luaC_fullgc(L); /* emergency full collection. */
+    nptr = realloc(ptr, nsize); /* try allocation again */
+  }
+  return nptr;
 }
 
 
@@ -646,6 +728,7 @@ static int panic (lua_State *L) {
 
 LUALIB_API lua_State *luaL_newstate (void) {
   lua_State *L = lua_newstate(l_alloc, NULL);
+  lua_setallocf(L, l_alloc, L); /* allocator need lua_State. */
   if (L) lua_atpanic(L, &panic);
   return L;
 }

@@ -1,0 +1,138 @@
+// $$HEADER$$
+eLua interrupt support implementation
+-------------------------------------
+
+To add interrupt support for an eLua platform follow the steps below:
+
+1. *Define your interrupts*
++
+Your interrupt sources should be defined in link:arch_platform.html[platform_conf.h] with macros (don't use C enumerations). The first one should have the value *ELUA_INT_FIRST_ID* 
+(defined in _inc/elua_int.h_), the next one *ELUA_INT_FIRST_ID + 1* and so on. Also, there should be a definition for a macro called *INT_ELUA_LAST* that must be equal to the largest 
+interrupt source value. An example is given below:
++
+------------------------------
+#define INT_GPIO_POSEDGE      ELUA_INT_FIRST_ID
+#define INT_GPIO_NEGEDGE      ( ELUA_INT_FIRST_ID + 1 )
+#define INT_TMR_MATCH         ( ELUA_INT_FIRST_ID + 2 )
+#define INT_ELUA_LAST         INT_TMR_MATCH
+------------------------------
++
+Note that the interrupt names aren't random, they should follow a well defined pattern. Check <<intlist, here>> for details.
+
+2. *Add them to the list of constants from the CPU module*
++
+Check the documentation of the _mcpu module for details.
+
+3. *Implement your support functions*
++
+The actual implementation of the interrupt handlers is of course platform specific, so it can stay in the _platform.c_ file. However, since interrupt handlers might require quite a bit
+of code, it is recommended to implement them in a separate file. The eLua convention is to use the _platform_int.c_ file for this purpose. For each interrupt defined in step 1 above, 3
+functions need to be implemented:
++
+--
+* A function that enables or disables the interrupt and returns its previous state (enabled or disabled).
+* A function that checks if the interrupt is enabled or disabled.
+* A function that checks the interrupt pending flag and optionally clears it.
+--
++
+These functions are defined in _inc/elua_int.h_, which also defines an "int descriptor" type:
++
+------------------------------
+// Interrupt functions and descriptor
+typedef int ( *elua_int_p_set_status )( elua_int_resnum resnum, int state ); 
+typedef int ( *elua_int_p_get_status )( elua_int_resnum resnum );
+typedef int ( *elua_int_p_get_flag )( elua_int_resnum resnum, int clear );
+typedef struct 
+{
+  elua_int_p_set_status int_set_status;
+  elua_int_p_get_status int_get_status;
+  elua_int_p_get_flag int_get_flag;
+} elua_int_descriptor;
+------------------------------
++
+_platform_int.c_ must have an array of *elua_int_descriptor* types named *elua_int_table* (remember to make it _const_ to save RAM). The elements of this array must be in the same 
+order as the interrupt sources. The interrupt table for the example from step 1 above might look like this:
++
+------------------------------
+const elua_int_descriptor elua_int_table[ INT_ELUA_LAST ] = 
+{
+  { int_gpio_posedge_set_status, int_gpio_posedge_get_status, int_gpio_posedge_get_flag },
+  { int_gpio_negedge_set_status, int_gpio_negedge_get_status, int_gpio_negedge_get_flag },
+  { int_tmr_match_set_status, int_tmr_match_get_status, int_tmr_match_get_flag }
+};
+------------------------------
+
+4. *Implement the init function*
++
+_platform_int.c_ should implement a function named *platform_int_init* (defined in _inc/platform.h_) that must initialize all the required hardware and the internal data structures of
+the interrupt subsystem. This function should be called from *platform_init*.
+
+5. *Implement the interrupt handlers*
++
+There are two simple requirements for the interrupt handlers: clear the hardware interrupt flag (if needed) and call *cmn_int_handler* (_src/common.c_) to connect the handler with the
+eLua interrupt code. An example is given below:
++
+[subs="quotes"]
+-------------------------------
+// EINT3 (INT_GPIO) interrupt handler
+static void int_handler_eint3()
+{
+  elua_int_id id = ELUA_INT_INVALID_INTERRUPT;
+  pio_code resnum = 0;
+  int pidx, pin;
+  
+  EXTINT |= 1 << EINT3_BIT; // clear interrupt
+  // Look for interrupt source
+  // In can only be GPIO0/GPIO2, as the EXT interrupts are not (yet) used
+  pidx = ( IO_INT_STAT & 1 ) ? 0 : 1;
+  if( *posedge_status[ pidx ] )
+  {
+    id = INT_GPIO_POSEDGE;
+    pin = intlog2( *posedge_status[ pidx ] );
+  }
+  else
+  {
+    id = INT_GPIO_NEGEDGE;
+    pin = intlog2( *negedge_status[ pidx ] );
+  }
+  resnum = PLATFORM_IO_ENCODE( pidx * 2, pin, PLATFORM_IO_ENC_PIN );   
+ [bblue]** *intclr_regs[ pidx ] = 1 << pin**;
+  
+  // Run the interrupt through eLua
+  [bblue]**cmn_int_handler( id, resnum )**;
+  VICVectAddr = 0; // ACK interrupt    
+}
+-------------------------------
+
+That's it. If you followed all these steps correctly, your platform should be fully able to support interrupt handlers (as described link:inthandlers.html[here]). Check the *lpc24xx*
+platform implementation (_src/platform/lpc24xx_) for a full example.
+
+[[intlist]]
+Interrupt list and naming conventions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To ensure maximum portability and correct system behaviour, interrupt names (as defined in _platform_conf.h_) *must* follow a well-defined naming pattern. Please note that this isn't
+merely a convention, many times the names must be properly chosen for the system to work properly. For example, the timer interrupt match will never happen on virtual timers if the 
+timer interrupt match name isn't *INT_TMR_MATCH* (see link:arch_platform_timers.html[here] for more details on how to use the timer match interrupt). 
+
+The naming rule is that the interrupt name must have the format *INT_<peripheral>_<type>_*, where:
+
+* *peripheral* is a symbolic name of the peripheral to which the interrupt applies.
+* *type* is a symbolic name of the interrupt type.
+
+This restriction applies only to interrupt *names*. The value associated with the interrupt name (as defined in _platform_conf.h_) can vary from platform to platform, as long as 
+it follows the rules outlined in step 1 above.
+
+The table below lists all the valid interrupt names currently known to eLua. If you add a new interrupt don't forget to update the table below.
+
+[width="70%", cols="<2s,<5", options="header"]
+|===================================================================
+^|  Name              ^| Meaning                                    
+| INT_GPIO_POSEDGE    | Interrupt on a positive edge on a GPIO pin 
+| INT_GPIO_NEGEDGE    | Interrupt on a negative edge on a GPIO pin 
+| INT_TMR_MATCH       | Interrupt on timer match
+| INT_UART_RX         | Interrupt on UART character received                            
+|===================================================================
+
+// $$FOOTER$$
+

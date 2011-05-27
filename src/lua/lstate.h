@@ -56,9 +56,9 @@ typedef struct CallInfo {
 
 
 
-#define curr_func(L)	(clvalue(L->ci->func))
-#define ci_func(ci)	(clvalue((ci)->func))
-#define f_isLua(ci)	(!ci_func(ci)->c.isC)
+#define curr_func(L)	(ttisfunction(L->ci->func) ? clvalue(L->ci->func) : NULL)
+#define ci_func(ci)	(ttisfunction((ci)->func) ? clvalue((ci)->func) : NULL)
+#define f_isLua(ci)	(!ttislightfunction((ci)->func) && !ci_func(ci)->c.isC)
 #define isLua(ci)	(ttisfunction((ci)->func) && f_isLua(ci))
 
 
@@ -71,6 +71,7 @@ typedef struct global_State {
   void *ud;         /* auxiliary data to `frealloc' */
   lu_byte currentwhite;
   lu_byte gcstate;  /* state of garbage collector */
+  lu_byte gcflags;  /* flags for the garbage collector */
   int sweepstrgc;  /* position of sweep in `strt' */
   GCObject *rootgc;  /* list of all collectable objects */
   GCObject **sweepgc;  /* position of sweep in `rootgc' */
@@ -81,10 +82,12 @@ typedef struct global_State {
   Mbuffer buff;  /* temporary buffer for string concatentation */
   lu_mem GCthreshold;
   lu_mem totalbytes;  /* number of bytes currently allocated */
+  lu_mem memlimit;  /* maximum number of bytes that can be allocated, 0 = no limit. */
   lu_mem estimate;  /* an estimate of number of bytes actually in use */
   lu_mem gcdept;  /* how much GC is `behind schedule' */
   int gcpause;  /* size of pause between successive GCs */
   int gcstepmul;  /* GC `granularity' */
+  int egcmode;    /* emergency garbage collection operation mode */
   lua_CFunction panic;  /* to be called in unprotected errors */
   TValue l_registry;
   struct lua_State *mainthread;
@@ -160,7 +163,6 @@ union GCObject {
 
 /* macro to convert any Lua object into a GCObject */
 #define obj2gco(v)	(cast(GCObject *, (v)))
-
 
 LUAI_FUNC lua_State *luaE_newthread (lua_State *L);
 LUAI_FUNC void luaE_freethread (lua_State *L, lua_State *L1);

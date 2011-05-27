@@ -5,16 +5,18 @@
 
 #include <unistd.h>
 extern void* elua_sbrk( ptrdiff_t incr );
-#define MORECORE                  elua_sbrk 
+#define MORECORE                  elua_sbrk  
 #define USE_DL_PREFIX 
-#define HAVE_MORECORE             1 
-#define MORECORE_CONTIGUOUS       1 
+#define MSPACES                   0
+#define HAVE_MORECORE             1
+#define MORECORE_CONTIGUOUS       1
 #define MORECORE_CANNOT_TRIM 
 #define HAVE_MMAP                 0 
 #define HAVE_MREMAP               0 
 #define MMAP_CLEARS               0 
 #define DEFAULT_GRANULARITY       256 
 #define malloc_getpagesize        256
+#define REALLOC_ZERO_BYTES_FREES
 
 /*
   This is a version (aka dlmalloc) of malloc/free/realloc written by

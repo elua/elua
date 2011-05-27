@@ -1,0 +1,92 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html><head>
+</head>
+<h3><a name="over"></a>spi</h3>
+<span style="font-weight: bold;"></span><br>
+<big><span style="font-family: Helvetica,Arial,sans-serif;"></span><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big><a name="setup"></a>Actual_clock = spi.setup( id,
+spi.MASTER | spi.SLAVE, clock, cpol, cpha,</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
+</span><br style="font-family: Helvetica,Arial,sans-serif;">
+<span style="font-family: Helvetica,Arial,sans-serif;">
+  </span><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>databits):
+configura a interface SPI com os parâmetros fornecidos, retorna o clock</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
+</span><br style="font-family: Helvetica,Arial,sans-serif;">
+<span style="font-family: Helvetica,Arial,sans-serif;">
+  </span><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>que
+foi configurado para a interface.</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
+</span><br style="font-family: Helvetica,Arial,sans-serif;">
+<span style="font-family: Helvetica,Arial,sans-serif;">
+ 
+</span><br style="font-family: Helvetica,Arial,sans-serif;">
+<font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big><a name="select"></a>spi.select(
+</big></font><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>id</big></font><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>
+): configura a SPI selecionada como ativa (configura a linha SS da interface em questão).</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
+</span><br style="font-family: Helvetica,Arial,sans-serif;">
+<font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big> </big></font><span style="font-family: Helvetica,Arial,sans-serif;">
+</span><br style="font-family: Helvetica,Arial,sans-serif;">
+<font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big><a name="unselect"></a>spi.unselect(
+id ): inicializa a linha SS da interface em questão.</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
+</span><br style="font-family: Helvetica,Arial,sans-serif;">
+<font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big> </big></font><span style="font-family: Helvetica,Arial,sans-serif;">
+</span><br style="font-family: Helvetica,Arial,sans-serif;">
+<font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big><a name="send"></a>spi.send(
+id, Data1, Data2, ... ): envia todos os dados para a interface SPI especificada.</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
+</span><br style="font-family: Helvetica,Arial,sans-serif;">
+<span style="font-family: Helvetica,Arial,sans-serif;">
+  </span><font style="font-family: Helvetica,Arial,sans-serif;" size="2"></font><span style="font-family: Helvetica,Arial,sans-serif;">
+</span><br style="font-family: Helvetica,Arial,sans-serif;">
+<span style="font-family: Helvetica,Arial,sans-serif;">
+ 
+</span><br style="font-family: Helvetica,Arial,sans-serif;">
+<font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big><a name="sendrecv"></a>[</big></font><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>spi.sendrecv(</big></font><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>id,
+Out1, Out2, ...</big></font><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>)]    
+</big></font><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>In1,
+In2, ... = spi.send_recv( id, Out1, Out2, ... ): envia todos os "out"
+bytes</big></font><span style="font-family: Helvetica,Arial,sans-serif;"> </span><font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>para
+a interface SPI especificada e retorna o dado lido a cada byte enviado.</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
+</span><br style="font-family: Helvetica,Arial,sans-serif;">
+<br style="font-family: Helvetica,Arial,sans-serif;">
+<font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>Retornando
+diversos valôres dessa forma, facilitaria algumas futuras implementações ? (ok, isso poderia ser uma outra função :)</big></font><span style="font-family: Helvetica,Arial,sans-serif;">
+</span><br style="font-family: Helvetica,Arial,sans-serif;">
+<br style="font-family: Helvetica,Arial,sans-serif;">
+<font style="font-family: Helvetica,Arial,sans-serif;" size="2"><big>Enviando múltiplos data/chars em uma única
+chamada e não usando 
+uma tabela como argumento, evita que os dados sejam montados em tempo de execução
+(claro que sem menhum string de mensagem :)</big></font><br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br style="font-family: Helvetica,Arial,sans-serif;">
+<br style="font-family: Helvetica,Arial,sans-serif;">
+<br style="font-family: Helvetica,Arial,sans-serif;">
+<span style="font-family: Helvetica,Arial,sans-serif;">
+ 
+</span></big> <br>
+<br style="font-family: Verdana;">
+</body></html>

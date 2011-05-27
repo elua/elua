@@ -1,0 +1,16 @@
+.build/
+*.hex
+*.elf
+*.o
+*.obj
+*.exe
+*.bin
+*.pyc
+inc/romfiles.h
+*.swp
+.sconf_temp/
+.sconsign.dblite
+config.log
+mux
+rfs_server
+

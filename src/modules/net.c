@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stddef.h>
+#include "lrotable.h"
 
 #include "platform_conf.h"
 #ifdef BUILD_UIP
@@ -139,7 +140,6 @@ static int net_unpackip( lua_State *L )
     return luaL_error( L, "invalid format" );                                      
 }
 
-static luaL_Buffer net_recv_buff;
 // Lua: res, err = recv( sock, maxsize, [ timer_id, timeout ] ) or
 //      res, err = recv( sock, "*l", [ timer_id, timeout ] )
 static int net_recv( lua_State *L )
@@ -149,7 +149,8 @@ static int net_recv( lua_State *L )
   s16 lastchar = ELUA_NET_NO_LASTCHAR;
   unsigned timer_id = 0;
   u32 timeout = 0;
-  
+  luaL_Buffer net_recv_buff;
+
   if( lua_isnumber( L, 2 ) ) // invocation with maxsize
     maxsize = ( elua_net_size )luaL_checkinteger( L, 2 );
   else // invocation with line mode
@@ -184,31 +185,49 @@ static int net_lookup( lua_State* L )
 }
 
 // Module function map
-static const luaL_reg net_map[] = 
+#define MIN_OPT_LEVEL 2
+#include "lrodefs.h"
+const LUA_REG_TYPE net_map[] = 
 {
-  { "accept", net_accept },
-  { "packip", net_packip },
-  { "unpackip", net_unpackip },
-  { "connect", net_connect },
-  { "socket", net_socket },
-  { "close", net_close },
-  { "send", net_send },
-  { "recv", net_recv },
-  { "lookup", net_lookup },
-  { NULL, NULL }
+  { LSTRKEY( "accept" ), LFUNCVAL( net_accept ) },
+  { LSTRKEY( "packip" ), LFUNCVAL( net_packip ) },
+  { LSTRKEY( "unpackip" ), LFUNCVAL( net_unpackip ) },
+  { LSTRKEY( "connect" ), LFUNCVAL( net_connect ) },
+  { LSTRKEY( "socket" ), LFUNCVAL( net_socket ) },
+  { LSTRKEY( "close" ), LFUNCVAL( net_close ) },
+  { LSTRKEY( "send" ), LFUNCVAL( net_send ) },
+  { LSTRKEY( "recv" ), LFUNCVAL( net_recv ) },
+  { LSTRKEY( "lookup" ), LFUNCVAL( net_lookup ) },
+#if LUA_OPTIMIZE_MEMORY > 0
+  { LSTRKEY( "SOCK_STREAM" ), LNUMVAL( ELUA_NET_SOCK_STREAM ) },
+  { LSTRKEY( "SOCK_DGRAM" ), LNUMVAL( ELUA_NET_SOCK_DGRAM ) },
+  { LSTRKEY( "ERR_OK" ), LNUMVAL( ELUA_NET_ERR_OK ) },
+  { LSTRKEY( "ERR_TIMEOUT" ), LNUMVAL( ELUA_NET_ERR_TIMEDOUT ) },
+  { LSTRKEY( "ERR_CLOSED" ), LNUMVAL( ELUA_NET_ERR_CLOSED ) },
+  { LSTRKEY( "ERR_ABORTED" ), LNUMVAL( ELUA_NET_ERR_ABORTED ) },
+  { LSTRKEY( "ERR_OVERFLOW" ), LNUMVAL( ELUA_NET_ERR_OVERFLOW ) },
+#endif
+  { LNILKEY, LNILVAL }
 };
 
 LUALIB_API int luaopen_net( lua_State *L )
 {
+#if LUA_OPTIMIZE_MEMORY > 0
+  return 0;
+#else // #if LUA_OPTIMIZE_MEMORY > 0
   luaL_register( L, AUXLIB_NET, net_map );  
 
   // Module constants  
-  lua_pushnumber( L, ELUA_NET_SOCK_STREAM );
-  lua_setfield( L, -2, "SOCK_STREAM" );
-  lua_pushnumber( L, ELUA_NET_SOCK_DGRAM );
-  lua_setfield( L, -2, "SOCK_DGRAM" );  
+  MOD_REG_NUMBER( L, "SOCK_STREAM", ELUA_NET_SOCK_STREAM );
+  MOD_REG_NUMBER( L, "SOCK_DGRAM", ELUA_NET_SOCK_DGRAM ); 
+  MOD_REG_NUMBER( L, "ERR_OK", ELUA_NET_ERR_OK );
+  MOD_REG_NUMBER( L, "ERR_TIMEDOUT", ELUA_NET_ERR_TIMEDOUT );
+  MOD_REG_NUMBER( L, "ERR_CLOSED", ELUA_NET_ERR_CLOSED );
+  MOD_REG_NUMBER( L, "ERR_ABORTED", ELUA_NET_ERR_ABORTED );
+  MOD_REG_NUMBER( L, "ERR_OVERFLOW", ELUA_NET_ERR_OVERFLOW );
   
   return 1;
+#endif // #if LUA_OPTIMIZE_MEMORY > 0  
 }
 
 #else // #ifdef BUILD_UIP
@@ -219,3 +238,4 @@ LUALIB_API int luaopen_net( lua_State *L )
 }
 
 #endif // #ifdef BUILD_UIP
+

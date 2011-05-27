@@ -1,0 +1,181 @@
+$$HEADER$$
+<h3>eLua Project News</h3>
+
+<h2>18 de Janeiro de 2010</h2>
+<p>Lançada a versão 0.7 de <strong>eLua</strong>. As principais características adicionadas estão descritas a seguir. 
+Para uma lista mais completa das novidades, por favor consulte nossa página de <a href="versionhistory.html">Histórico das Versões:</a>
+</p>
+<ul>
+  <li>Suporte oficial à <b>eLua</b> em Windows, com novo tutorial (por enquanto apenas em inglês) <a href="building_win.html">aqui</a>.</li>
+  <li>Suporte ao kit <a href="http://www.giga.puc-rio.br/site/embedded/eluademoboard">PUC-Rio <b>eLua</b> Demo Board</a>, com MCU NXP LPC2468.</li>
+  <li>Suporte ao kit <a href="http://www.olimex.com/dev/str-e912.html">Olimex STR-E912</a>, com MCU ST Electronics STR912FW44X.</li>
+  <li>Novo FAT File System para SD/MMC Cards, genérico e portátil. Mais detalhes <a href="fatfs.html">aqui</a>.</li>
+  <li>Suporte ao patch Lua EGC (Emergency Garbage Collection). Mais detalhes <a href="elua_egc.html">aqui</a>.</li>
+  <li>Suporte à <a href="http://fanplastic.org/2009/05/11/lua-rpc/">LuaRPC</a>. Remote Procedure Calls no mundo embedded (!!!).</li>
+  <li>Novo comando <a href="using.html#shell"cat/type</a> para o shell de eLua. Lista o conteúdo de arquivos de texto.</li>
+  <li>Novos modos de build do ROM File System: Compress e Compile. Mais detalhes <a href="arch_romfs.html#mode">aqui</a>.</li>
+  <li>Novo site/doc Menu, totalmente baseado em CSS</li>
+  <li>Reestruturação dos diretórios da geração do Manual de Referência da doc/site</li>
+  <li>Mais conteúdo traduzido para Português.</li>
+  <li>Novas funcionalidades do Módulo ADC (conversor analógico-digital) e sua doc melhorada.</li>
+  <li>Mais tutoriais e melhorias gerais na documentação e no site.</li>
+</ul>
+
+<h2>06 de Outubro de 2009</h2>
+<p>A versão 0.6 de <strong>eLua</strong> foi lançada. As principais
+características estão descritas a seguir. Para uma lista mais completa das
+novidades, por favor consulte nossa página de <a href="versionhistory.html">Histórico das Versões:</a></p>
+<ul>
+  <li>Licença alterada para MIT</li>
+  <li>Estrutura do site/doc completamente redesenhada</li>
+  <li>Documentação incluída na doc das distros para acesso offline</li>
+  <li>Adicionado suporte para CPUs AVR32</li>
+  <li>Adicionado suporte para CPUs STM32 Cortex-M3</li>
+  <li>Adicionado módulo ADC (conversor analógico-digital) com suporte a filtros de média móvel</li>
+  <li>Adicionado suporte a múltiplos toolchains</li>
+  <li>Novo comando ls (ou dir) para o shell</li>
+  <li>Novos exemplos de código incluídos na distro: pong, tetrives, spaceship (games), logo (graphics), adcpoll, adcscope</li>
+  <li>LTR (Lua Tiny RAM) patch adicionado (opcionalmente) à Lua</li>
+  <li>O conteúdo do ROM File System agora pode ser detalhado por
+  placa/kit</li>
+  <li>Semântica de funções da API revisada (código anterior pode precisar de adaptações)</li>
+</ul>
+
+<h2>27 de Julho de 2009</h2>
+<p>Gostaríamos de convidar toda a comunidade de <b>eLua</b> para o Lua
+Workshop 2009, o primeiro a ser realizado no Brasil, nos dias 6 e 7 de
+outubro próximos. Bogdan e Dado farão apresentarão uma palestra e
+demonstrações no primeiro dia do evento. Outras demonstrações também serão
+apresentadas no segundo dia do evento, dedicado ao uso de Lua em jogos, como
+parte do Lua Games 2009, um pré-evento do SBGames 2009.<br />
+Teremos também o prazer de oferecer uma pequena surpresa para a comunidade
+<b>eLua</b> :)</p>
+
+<h2>02 de Fevereiro de 2009</h2>
+<p>Ainda não temos uma versão oficial liberada, no entanto, estamos avançando muito com o projeto.
+Esperamos publicar a próxima versão até o final deste mês e ela virá com uma grande quantidade de novos recursos, incluindo suporte para duas novas plataformas, o sistema 
+de documentação foi totalmente redesenhado, e mais surpresas como sempre :) </p>
+
+<h2>01 de Novembro de 2008</h2>
+
+<p>A versão 0.5 foi lançada! Dentre outras novidades, essa versão vem com suporte TCP/IP para eLua (!!!!). Segue a lista das atualizações:</p>
+
+<ul>
+<li>Suporte para microcontroladores STR7 da ST Microeletronics</li>
+<li>Suporte TCP/IP usando o stack uIP</li>
+<li>Suporte do console e do *shell* sobre TCP/IP além da conexão serial.</li>
+<li>Módulo "net" (interface **eLua** para as funções TCP/IP)</li> 
+<li>Módulo "cpu" (interface **eLua** para o dados do microcontrolador escolhido)</li>
+<li>Novos exemplos: morse.lua (código morse), lhttpd.lua (script Lua para servidor HTTP)</li>
+<li>Cross Compiling Lua (compila no computador, roda na plataforma)</li>
+<li>XMODEM pode agora receber o *bytecode*, além de código fonte Lua</li>
+<li>Um *buffer* dinâmico para o XMODEM (cresce se necessário) ao invés de tamanho fixo</li>
+<li>Documentação atualizada do projeto</li>
+</ul>
+
+<p>Adicionado também um novo tutorial sobre como usar <a href="installing_str7.html"><strong>eLua</strong> com o microcontrolador STR7</a> da ST. O restante da página do projeto foi atualizada refletindo o Status atual do projeto (isso fica mais evidente nas páginas de <a href="faq.html">Perguntas mais frequentes</a>, <a href="examples.html">Exemplos</a> e <a href="status.html">Status</a>.</p>
+
+<p><strong>Importante:</strong> não é necessário atualizar o binutils para a versão 2.19 para os microcontroladores Cortex. O tutorial do <a href="tc_cortex.html">Cortex GCC para Cortex</a> já foi atualizado com esta informação.</p>
+
+<p>Desfrute dessa nova atualização. A próxima versão será focada na redução das memórias Flash e RAM de <strong>eLua</strong>, além de muitas outras surpresas :)</p>
+
+<h2>16 de Outubro de 2008</h2>
+<p>O <a href="tut_openocd.html">tutorial OpenOCD</a> foi atualizado com uma nova seção sobre como usar o OpenOCD com CPU's STR7 da ST. Além disso, a <a href="overview.html">página sobre</a> foi atualizada com mais informações sobre os autores de eLua. É esperada uma nova versão de eLua para até o fim de Outubro.</p>
+
+<h2>10 de Setembro de 2008</h2>
+<p>Foi liberada a versão 0.4.1! É uma atualização de pouca importância, pois seu propósito principal é se manter atualizada com Lua,
+dessa forma, eLua está agora com a mais recente versão de Lua (5.1.4).
+Provavelmente você não precisa fazer a atualização para esta versão (já que a 5.1.4 corrige alguns poucos e exóticos problemas da 5.1.3), logo,
+ estou disponibilizando somente os fontes, sem nenhum executável. Segue abaixo o log das alterações:</p>
+
+<ul>
+<li>Alterada a estrutura do sistema de arquivos; agora você pode gerar executáveis de ambas as versões de Lua (ponto flutuante e somente inteiro) a partir do mesmo diretório;</li>
+<li>Feita uma biblioteca matemática configurável usando-se o próprio mecanismo de bibliotecas já eistentes na plataforma;</li>
+<li>Os módulos "os" and "package" não são mais carregados por Lua, uma vêz que não podem mais ser utilizados. Devido a isso, o tamanho do código Lua ficou reduzido;</li>
+<li>A documentação do projeto foi atualizada.</li>
+</ul>
+
+
+<h2>02 de Setembro de 2008</h2>
+<p>Foi liberada a versão 0.4! Segue abaixo o log das alterações:</p>
+
+<ul>
+<li>Criado suporte para LPC2888 (preliminarmente);</li>
+<li>Criado o módulo PWM;</li>
+<li>Novos exemplos: TV-B-Gone (desliga a sua TV), piano (toca piano a partir do teclado de seu PC),
+ pwmled (apaga/acende led), todas baseadas no novo módulo PWM;</li>
+<li>Criado suporte para múltiplos espaços de memória (este recurso pode ser usado para obter vantagens tanto de memória RAM interna da CPU quanto de chips externos de memória RAM em placas com memória RAM);</li>
+<li>Autorun: Caso o arquivo "autorun.lua" exista no sistema de arquivos, este é executado antes do inicio do shell;</li>
+<li>Criado os módulos "pack" (compactação/descompactação de dados binários) e "bit" (operações binárias);</li>
+<li>Atualizado o compilador do sistema, que agora está mais fácil de utilizar e sabendo como lidar com "placas", como também CPUs;</li>
+<li>Foram modificados os módulos da plataforma existente para utilizar menos RAM e retornar uma mensagem de erro quando da tentativa de uso de um recurso não disponível no sistema;</li>
+<li>A documentação do projeto foi atualizada.</li>
+</ul>
+
+
+<h2>02 de Setembro de 2008</h2>
+<p>O site eLua foi atualizado antes da liberação da nova versão 0.4, a qual estará em breve disponível (muito breve por sinal). Existe agora uma <a href="faq.html">página FAQ</a>. Além disso, as páginas <a href="status.html">status e mapa do site</a>, <a href="building.html">compilando eLua</a>, <a href="examples.html">exemplos de programas</a> e <a href="tut_openocd.html">usando OpenOCD</a> foram atualizadas. E existe ainda uma outra página chamada <a href="installing_lpc2888.html">Como usar eLua com CPUs LPC2888</a>. Esperada ainda hoje a liberação da versão 0.4.</p>
+
+<h2>09 de Agosto de 2008</h2>
+<p>OK, está levando mais tempo do que esperava :) Está disponível a página sobre como utilizar eLua com CPUs STR9 <a href="installing_str9.html">aqui</a>.</p>
+
+<h2>09 de Agosto de 2008</h2>
+<p>Foi liberada a versão 0.3! O página do projeto foi atualizada, e mais seções estarão disponíveis em breve, incluindo um tutorial sobre como utilizar eLua com CPUs STR9. Segue abaixo o log das alterações da versão 0.3:</p>
+
+<ul>
+<li>Agora você pode jogar hangman diretamente de eLua :), graças ao novo módulo "term" que é capaz de tratar sequências de "escape" ANSI;</li>
+<li>Criado suporte para o ST STR912FW44</li>
+<li>Criado suporte para o Cortex LM3S6965</li>
+<li>Sistema de compilação mais intuitivo e flexível (nova sintaxe, seleção de componentes em tempo de compilação)</li>
+<li>Examples de eLua esão agora fazendo parte do repositório</li>
+<li>A documentação do projeto foi atualizada.</li>
+</ul>
+
+<h2>06 de Agosto de 2008</h2>
+<p>A página de web foi atualizada com o <a href="tut_openocd.html">tutorial OpenOCD</a>
+o qual continuará sendo revisado toda vêz que novas plataformas forem adicionadas. Esta atualização é também um anúncio informal da liberação em breve da versão 0.3, a qual (entre outras coisas) traz o suporte para o <a href="http://www.hitex.com/index.php?id=383">STR9-comStick</a>.</p>
+
+<h2>29 de Julho de 2008</h2>
+<p>eLua possui um novo repositório no BerliOS. Além do novo menu da página da web, a novidade é que o repositório de código está baseado no SVN (ao contrário do CVS utilizado até o momento).
+Caso você seja um desenvolvedor, provavelmente esta é uma boa notícia. Caso contrário, verifique a página de download para conhecer os novos locais para download.</p>
+
+<h2>28 de Julho de 2008</h2>
+<p>Recebi um relato sobre erros de linker após a execução de <a href="tc_cortex.html">minhas intruções</a> durante a compilação de um simples programa C++ para a CPU Cortex com compilador.
+ Verifiquei e descobri que a biblioteca gcc's C++ (libstdc++) não estava gerando código corretamente para Cortex-M3. Minha culpa. Corrigi a página do tutorial. Foi necessário uma única alteração no passo 4,
+onde era preciso fornecer mais parametros para os comandos "make", e não somente o -CFLAGS. Obrigado pelo aviso.</p>
+
+<h2>27 de Julho de 2008</h2>
+<p>Foi liberada a versão 0.2! Além disso, como você já deve ter percebido, a página do projeto foi bastante modificada. Segue abaixo o log das alterações da versão 0.2:</p>
+
+<ul>
+<li>Criado suporte para o Cortex LM3S8962</li>
+<li>Módulos para novas plataformas (UART, SPI, Timer, platform data)</li>
+<li>Primeiro versão do eLua shell</li>
+<li>Arquivos fontes de Lua podem agora serem enviados para processadores com XMODEM</li>
+<li>Pode-se baixar arquivos binários de imagem a partir de seções de "arquivos", logo, você não precisa recompilar eLua</li>
+</ul>
+
+<h2>25 de Julho de 2008</h2>
+<p>A página do projeto fo atualizada para refletir o atual <a href="status.html">status e roadmap</a> de eLua.
+Atualmente as páginas de status e de roadmap são separadas. Além disso, a versão 0.2 está sendo liberada em breve, com vários novos recursos, melhoramentos e 
+suporte para novas plataformas. Novas documentações estão sendo preparadas.</p>
+
+<h2>15 de Julho de 2008</h2>
+<p>Criado um <a href="tut_bootstick.html">tutorial</a> sobre como preparar um pendrive USB de boot com eLua! Acesse-o enquanto está quente! :)</p>
+
+<h2>11 July 2008</h2>
+<p>A versão 0.1 finalmente saiu! Certifique-se de verificar a <a href="downloads.html">página de download</a>,
+e também a página do projeto. A instruções de como fazer estão incluídas nos arquivos eLua. Além disso, novos tutoriais (construindo compiladores para o ARM e para o i386) foram criados, e a página <a href="tut_bootpc.html">boot em Lua</a> fo atualizada para refletir o fato de que agora você mesmo pode construir um arquivo ELF!</p>
+
+<h2>07 de Julho de 2008</h2>
+<p>Estou ainda "polindo" os códigos fontes e criando mais documentação antes de atualizar a promeira versão par o CVS. Enquanto isso, Preparei uma ótima surpresa para todos voces que se mostraram interessados em eLua (e par voces que não se interessaram também, pois desejo muito que a partir de agora voces fiquem curiosos:) ). Logo, se você sempre quis iniciar seu PC com Lua, dê uma olhada <a href="tut_bootpc.html">aqui</a>.
+É isso mesmo: sem OS, simplesmente o GRUB carrega um arquivo de boot tipo ELF!
+O arquivo tipo ELF é construido de acordo com a mesma estrutura em árvore que utilizei para montar dispositivos embarcados em eLua, precisei mudar somente a camada da plataforma
+(mais informações após a próxima atualização dos fontes e inclusão de novas documentações).
+Desejo que tenham gostado, da mesma maneira que eu. Enquanto isso é apenas uma prova de conceitos, não irei abandonar a idéia do "standalone Lua on PC", pois devem ter aplicações interesantes (pense em 
+"BIOS scripting with Lua", <a href="http://en.wikipedia.org/wiki/Open_Firmware">Open Firmware</a> com Lua ao invés de Forth, aplicações educacionais e muias outras.)</p>
+
+<h2>05 de Julho de 2008</h2>
+<p>Inaugurada a página na web! Por enquanto você pode ler as <a href="overview.html">descrições dos projetos</a>. Além disso, está disponível um tutorial que explica como compilar um toolchain GCC para a arquitetura Cortex <a href="tc_cortex.html">aqui</a>.</p>
+$$FOOTER$$
+

@@ -75,6 +75,9 @@
 .equ   APB0_NBUF_BASE  ,     0x58000000      /* APB Bridge 0 Non-buffered Base Address    */
 .equ   APB1_BUF_BASE   ,     0x4C000000      /* APB Bridge 1 Buffered Base Address       */
 .equ   APB1_NBUF_BASE  ,     0x5C000000      /* APB Bridge 1 Non-buffered Base Address    */
+
+# Interrupt controller vector address
+.equ   VECTOR_ADDRESS ,      0xFFFFF030      
     
 #*************************************************************************
 # Stack definitions
@@ -88,10 +91,12 @@
 # STARTUP EXECUTABLE CODE
 #*************************************************************************
 
-      .text
+      .align 4
       .arm
       .extern main
       .global _startup
+
+      .section .vectors, "a"
 
 _startup:
 
@@ -105,7 +110,7 @@ Vectors:
         LDR     PC, PAbt_Addr       /* 0x000C */
         LDR     PC, DAbt_Addr       /* 0x0010 */
         NOP                         /* 0x0014 Reserved Vector */
-        LDR     PC, [PC, #-0xFF0]   /* 0x0018 wraps around address space to 0xFFFFFF030. Vector from VicVECAddr */
+        LDR     PC, IRQ_Addr        /* IRQ handler */
         LDR     PC, FIQ_Addr        /* 0x001C FIQ has no VIC vector slot!   */
 
 #*************************************************************************
@@ -127,9 +132,19 @@ Undefined_Handler:  B       Undefined_Handler
 SWI_Handler:        B       SWI_Handler
 PAbt_Handler:       B       PAbt_Handler
 DAbt_Handler:       B       DAbt_Handler
-IRQ_Handler:        B       IRQ_Handler       /* should never get here as IRQ is via VIC slot... */
+IRQ_Handler:        B       ASM_IRQ_Handler       /* should never get here as IRQ is via VIC slot... */
 FIQ_Handler:        B       FIQ_Handler
 
+# Generic IRQ handler
+ASM_IRQ_Handler:
+            sub       lr, lr ,#4
+            stmfd     sp!, {r0-r3, r12, lr}
+            ldr       r0, =VECTOR_ADDRESS
+            ldr       r0, [r0] 
+            mov       lr, pc                          
+            bx        r0               
+            ldmfd     sp!, {r0-r3, r12, pc}^
+ 
 
 #*************************************************************************
 # Reset Handler Entry Point
@@ -247,13 +262,8 @@ PLL_LOCK_LOOP:
               sub     r0, r0, #STACK_SIZE_IRQ                  
 
 #    Set up Supervisor Mode and set Supervisor Mode Stack
-              msr     CPSR_c, #Mode_SVC|I_BIT|F_BIT
+              msr     CPSR_c, #Mode_SVC|F_BIT
               mov     r13, r0
-              sub     r0, r0, #STACK_SIZE_SVC
-
-#    Set up User Mode and set User Mode Stack
-              msr     CPSR_c, #Mode_USR   /* Leave interrupts enabled in user mode                 */
-              mov     r13, r0             /* Note: interrupts will not happen until VIC is enabled */
 
 #*************************************************************************
 # Initialise RAM For Compiler Variables

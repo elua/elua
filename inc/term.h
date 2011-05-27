@@ -13,7 +13,7 @@ typedef void ( *p_term_out )( u8 );
 // Terminal input function
 typedef int ( *p_term_in )( int );
 // Terminal translate input function
-typedef int ( *p_term_translate )( u8 );
+typedef int ( *p_term_translate )( int );
 
 // Terminal input mode (parameter of p_term_in and term_getch())
 #define TERM_INPUT_DONT_WAIT      0
@@ -40,7 +40,7 @@ void term_right( unsigned delta );
 unsigned term_get_lines();
 unsigned term_get_cols();
 void term_putch( u8 ch );
-void term_putstr( const char* str );
+void term_putstr( const char* str, unsigned size );
 unsigned term_get_cx();
 unsigned term_get_cy();
 
@@ -57,6 +57,14 @@ unsigned term_get_cy();
   _D( KC_TAB ),\
   _D( KC_BACKSPACE ),\
   _D( KC_ESC ),\
+  _D( KC_CTRL_Z ),\
+  _D( KC_CTRL_A ),\
+  _D( KC_CTRL_E ),\
+  _D( KC_CTRL_C ),\
+  _D( KC_CTRL_T ),\
+  _D( KC_CTRL_U ),\
+  _D( KC_CTRL_K ),\
+  _D( KC_DEL ),\
   _D( KC_UNKNOWN )
   
 // Terminal input functions

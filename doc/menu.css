@@ -1,0 +1,133 @@
+.rightarrowpointer {
+  border:0 none;
+  left: 149px;
+  width: 12px;
+  height: 12px;
+  padding-top: 3px;
+  position: absolute;
+}
+
+#nav {
+  font: bold 12px "Lucida Grande", "Trebuchet MS", Verdana, Helvetica, sans-serif;
+  float: left;
+  margin-left: 8px;
+  padding-top: 5px;
+}
+
+#nav ul { /* all lists */
+	padding: 0;
+  margin: 0;
+  margin-top: 5px;
+  margin-bottom: 10px;
+	list-style: none;
+	float : left;
+	border: 1px solid #9A9A9A;
+	width: 164px;
+}
+
+#nav li { /* all list items */
+	position : relative;
+	float : left;
+	line-height : 1.25em;
+	background: #F2F2F2; /*light gray background*/
+	width: 164px;
+}
+
+#nav li ul { /* second-level lists */
+  font-size:11px;
+  font-weight:normal;
+  color: black;
+  border-color:black;
+  border-style:solid;
+	position : absolute;
+	left: -999em;
+	margin-top : -21px;
+	margin-left: 164px;
+}
+#nav li ul a { /* second-level lists */
+  padding:4px 5px;
+  color: black;
+}
+
+#nav li ul ul { /* third-and-above-level lists */
+	left: -999em;
+}
+
+#nav li ul ul ul, #nav li ul ul ul li  { /* third-and-above-level lists */
+	width: 200px;
+}
+
+#nav li ul ul ul li ul  {
+	margin-left: 200px;
+}
+
+#nav li ul ul ul .rightarrowpointer  { /* third-and-above-level lists */
+	left: 185px;
+}
+
+#nav li a {
+  display: block;
+  width: auto;
+  color: #00014e;
+  padding: 2px 0;
+  padding-left: 5px;
+  text-decoration: none;
+  border-bottom: 1px solid #B5B5B5;
+}
+
+#nav li a.current{
+  text-decoration: none;
+  text-align: left;
+  background: #FFCC33;
+  color: #00014e;
+}
+
+#nav ul li.sep {
+  padding: 2px 0;
+  text-decoration: none;
+  text-align: center;
+  border-bottom: 1px solid #B5B5B5;
+  background: #0B0C79;
+  color: white;
+}
+
+#nav ul li.current{
+  padding: 2px 0;
+  padding-left: 5px;
+  width: 159px;
+  text-decoration: none;
+  text-align: left;
+  border-bottom: 1px solid #B5B5B5;
+  background: #FFCC33;
+  color: #00014e;
+}
+
+#nav li a:hover {
+	color : white;
+	background-color : black;
+}
+
+#nav ul li a:visited, #nav ul li a:active{
+color: #00014e;
+}
+
+#nav li ul a:visited, #nav li ul a:active{
+color: black;
+}
+
+#nav li:hover ul ul, #nav li:hover ul ul ul, #nav li.sfhover ul ul, #nav li.sfhover ul ul ul {
+	left: -999em;
+}
+
+#nav li:hover ul, #nav li li:hover ul, #nav li li li:hover ul, #nav li.sfhover ul, #nav li li.sfhover ul, #nav li li li.sfhover ul { /* lists nested under hovered list items */
+	left: auto;
+}
+
+#nav li a:hover, #nav li a.selected{
+/* color: white; */
+/* background-color: black; */
+/* save   ##### */
+background: #FFCC33;
+color: #00014e;
+}
+

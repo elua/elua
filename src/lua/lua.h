@@ -19,7 +19,7 @@
 #define LUA_VERSION	"Lua 5.1"
 #define LUA_RELEASE	"Lua 5.1.4"
 #define LUA_VERSION_NUM	501
-#define LUA_COPYRIGHT	"Copyright (C) 1994-2008 Lua.org, PUC-Rio"
+#define LUA_COPYRIGHT	"Copyright (C) 1994-2011 Lua.org, PUC-Rio"
 #define LUA_AUTHORS 	"R. Ierusalimschy, L. H. de Figueiredo & W. Celes"
 
 
@@ -73,15 +73,15 @@ typedef void * (*lua_Alloc) (void *ud, void *ptr, size_t osize, size_t nsize);
 
 #define LUA_TNIL		0
 #define LUA_TBOOLEAN		1
-#define LUA_TLIGHTUSERDATA	2
-#define LUA_TNUMBER		3
-#define LUA_TSTRING		4
-#define LUA_TTABLE		5
-#define LUA_TFUNCTION		6
-#define LUA_TUSERDATA		7
-#define LUA_TTHREAD		8
-
-
+#define LUA_TROTABLE  2
+#define LUA_TLIGHTFUNCTION  3
+#define LUA_TLIGHTUSERDATA	4
+#define LUA_TNUMBER		5
+#define LUA_TSTRING		6
+#define LUA_TTABLE		7
+#define LUA_TFUNCTION		8
+#define LUA_TUSERDATA		9
+#define LUA_TTHREAD		10
 
 /* minimum Lua stack available to a C function */
 #define LUA_MINSTACK	20
@@ -168,6 +168,8 @@ LUA_API const char *(lua_pushfstring) (lua_State *L, const char *fmt, ...);
 LUA_API void  (lua_pushcclosure) (lua_State *L, lua_CFunction fn, int n);
 LUA_API void  (lua_pushboolean) (lua_State *L, int b);
 LUA_API void  (lua_pushlightuserdata) (lua_State *L, void *p);
+LUA_API void  (lua_pushlightfunction) (lua_State *L, void *p);
+LUA_API void  (lua_pushrotable) (lua_State *L, void *p);
 LUA_API int   (lua_pushthread) (lua_State *L);
 
 
@@ -226,6 +228,8 @@ LUA_API int  (lua_status) (lua_State *L);
 #define LUA_GCSTEP		5
 #define LUA_GCSETPAUSE		6
 #define LUA_GCSETSTEPMUL	7
+#define LUA_GCSETMEMLIMIT	8
+#define LUA_GCGETMEMLIMIT	9
 
 LUA_API int (lua_gc) (lua_State *L, int what, int data);
 
@@ -262,7 +266,9 @@ LUA_API void lua_setallocf (lua_State *L, lua_Alloc f, void *ud);
 #define lua_strlen(L,i)		lua_objlen(L, (i))
 
 #define lua_isfunction(L,n)	(lua_type(L, (n)) == LUA_TFUNCTION)
+#define lua_islightfunction(L,n) (lua_type(L, (n)) == LUA_TLIGHTFUNCTION)
 #define lua_istable(L,n)	(lua_type(L, (n)) == LUA_TTABLE)
+#define lua_isrotable(L,n)	(lua_type(L, (n)) == LUA_TROTABLE)
 #define lua_islightuserdata(L,n)	(lua_type(L, (n)) == LUA_TLIGHTUSERDATA)
 #define lua_isnil(L,n)		(lua_type(L, (n)) == LUA_TNIL)
 #define lua_isboolean(L,n)	(lua_type(L, (n)) == LUA_TBOOLEAN)
@@ -284,7 +290,10 @@ LUA_API void lua_setallocf (lua_State *L, lua_Alloc f, void *ud);
 ** compatibility macros and functions
 */
 
-#define lua_open()	luaL_newstate()
+// BogdanM: modified for eLua interrupt support
+//#define lua_open()	luaL_newstate()
+lua_State* lua_open(void);
+lua_State* lua_getstate(void);
 
 #define lua_getregistry(L)	lua_pushvalue(L, LUA_REGISTRYINDEX)
 

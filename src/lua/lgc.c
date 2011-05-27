@@ -21,7 +21,7 @@
 #include "lstring.h"
 #include "ltable.h"
 #include "ltm.h"
-
+#include "lrotable.h"
 
 #define GCSTEPSIZE	1024u
 #define GCSWEEPMAX	40
@@ -76,7 +76,7 @@ static void reallymarkobject (global_State *g, GCObject *o) {
     case LUA_TUSERDATA: {
       Table *mt = gco2u(o)->metatable;
       gray2black(o);  /* udata are never gray */
-      if (mt) markobject(g, mt);
+      if (mt && !luaR_isrotable(mt)) markobject(g, mt);
       markobject(g, gco2u(o)->env);
       return;
     }
@@ -160,7 +160,7 @@ static int traversetable (global_State *g, Table *h) {
   int weakkey = 0;
   int weakvalue = 0;
   const TValue *mode;
-  if (h->metatable)
+  if (h->metatable && !luaR_isrotable(h->metatable))
     markobject(g, h->metatable);
   mode = gfasttm(g, h->metatable, TM_MODE);
   if (mode && ttisstring(mode)) {  /* is there a weak mode? */
@@ -232,8 +232,10 @@ static void traverseclosure (global_State *g, Closure *cl) {
     int i;
     lua_assert(cl->l.nupvalues == cl->l.p->nups);
     markobject(g, cl->l.p);
-    for (i=0; i<cl->l.nupvalues; i++)  /* mark its upvalues */
-      markobject(g, cl->l.upvals[i]);
+    for (i=0; i<cl->l.nupvalues; i++) { /* mark its upvalues */
+      if(cl->l.upvals[i])
+        markobject(g, cl->l.upvals[i]);
+    }
   }
 }
 
@@ -258,6 +260,7 @@ static void traversestack (global_State *g, lua_State *l) {
   CallInfo *ci;
   markvalue(g, gt(l));
   lim = l->top;
+  if(l->stack == NULL) return; /* no stack to traverse */
   for (ci = l->base_ci; ci <= l->ci; ci++) {
     lua_assert(ci->top <= l->stack_last);
     if (lim < ci->top) lim = ci->top;
@@ -266,7 +269,8 @@ static void traversestack (global_State *g, lua_State *l) {
     markvalue(g, o);
   for (; o <= lim; o++)
     setnilvalue(o);
-  checkstacksizes(l, lim);
+  if (!isfixedstack(l)) /* if stack size is fixed, can't resize it. */
+    checkstacksizes(l, lim);
 }
 
 
@@ -419,8 +423,6 @@ static GCObject **sweeplist (lua_State *L, GCObject **p, lu_mem count) {
     else {  /* must erase `curr' */
       lua_assert(isdead(g, curr) || deadmask == bitmask(SFIXEDBIT));
       *p = curr->gch.next;
-      if (curr == g->rootgc)  /* is the first element of the list? */
-        g->rootgc = curr->gch.next;  /* adjust first */
       freeobj(L, curr);
     }
   }
@@ -434,6 +436,8 @@ static void checkSizes (lua_State *L) {
   if (g->strt.nuse < cast(lu_int32, g->strt.size/4) &&
       g->strt.size > MINSTRTABSIZE*2)
     luaS_resize(L, g->strt.size/2);  /* table is too big */
+  /* it is not safe to re-size the buffer if it is in use. */
+  if (luaZ_bufflen(&g->buff) > 0) return;
   /* check size of buffer */
   if (luaZ_sizebuffer(&g->buff) > LUA_MINBUFFER*2) {  /* buffer too big? */
     size_t newsize = luaZ_sizebuffer(&g->buff) / 2;
@@ -493,7 +497,7 @@ void luaC_freeall (lua_State *L) {
 static void markmt (global_State *g) {
   int i;
   for (i=0; i<NUM_TAGS; i++)
-    if (g->mt[i]) markobject(g, g->mt[i]);
+    if (g->mt[i] && !luaR_isrotable(g->mt[i])) markobject(g, g->mt[i]);
 }
 
 
@@ -609,10 +613,14 @@ static l_mem singlestep (lua_State *L) {
 
 void luaC_step (lua_State *L) {
   global_State *g = G(L);
+  if(is_block_gc(L)) return;
+  set_block_gc(L);
   l_mem lim = (GCSTEPSIZE/100) * g->gcstepmul;
   if (lim == 0)
     lim = (MAX_LUMEM-1)/2;  /* no limit */
   g->gcdept += g->totalbytes - g->GCthreshold;
+  if (g->estimate > g->totalbytes)
+    g->estimate = g->totalbytes;
   do {
     lim -= singlestep(L);
     if (g->gcstate == GCSpause)
@@ -630,11 +638,14 @@ void luaC_step (lua_State *L) {
     lua_assert(g->totalbytes >= g->estimate);
     setthreshold(g);
   }
+  unset_block_gc(L);
 }
 
 
 void luaC_fullgc (lua_State *L) {
   global_State *g = G(L);
+  if(is_block_gc(L)) return;
+  set_block_gc(L);
   if (g->gcstate <= GCSpropagate) {
     /* reset sweep marks to sweep all elements (returning them to white) */
     g->sweepstrgc = 0;
@@ -656,6 +667,7 @@ void luaC_fullgc (lua_State *L) {
     singlestep(L);
   }
   setthreshold(g);
+  unset_block_gc(L);
 }
 
 
@@ -680,6 +692,14 @@ void luaC_barrierback (lua_State *L, Table *t) {
   black2gray(o);  /* make table gray (again) */
   t->gclist = g->grayagain;
   g->grayagain = o;
+}
+
+
+void luaC_marknew (lua_State *L, GCObject *o) {
+  global_State *g = G(L);
+  o->gch.marked = luaC_white(g);
+  if (g->gcstate == GCSpropagate)
+    reallymarkobject(g, o);  /* mark new objects as gray during propagate state. */
 }
 
 

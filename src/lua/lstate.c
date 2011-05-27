@@ -22,7 +22,14 @@
 #include "lstring.h"
 #include "ltable.h"
 #include "ltm.h"
-
+#include "platform_conf.h"
+// BogdanM: modified for Lua interrupt support
+#ifndef LUA_CROSS_COMPILER
+#include "elua_int.h"
+#include "platform.h"
+#endif
+// BogdanM: linenoise clenaup
+#include "linenoise.h"
 
 #define state_size(x)	(sizeof(x) + LUAI_EXTRASPACE)
 #define fromstate(l)	(cast(lu_byte *, (l)) - LUAI_EXTRASPACE)
@@ -119,6 +126,8 @@ static void close_state (lua_State *L) {
 lua_State *luaE_newthread (lua_State *L) {
   lua_State *L1 = tostate(luaM_malloc(L, state_size(lua_State)));
   luaC_link(L, obj2gco(L1), LUA_TTHREAD);
+  setthvalue(L, L->top, L1); /* put thread on stack */
+  incr_top(L);
   preinit_state(L1, G(L));
   stack_init(L1, L);  /* init stack */
   setobj2n(L, gt(L1), gt(L));  /* share table of globals */
@@ -126,7 +135,8 @@ lua_State *luaE_newthread (lua_State *L) {
   L1->basehookcount = L->basehookcount;
   L1->hook = L->hook;
   resethookcount(L1);
-  lua_assert(iswhite(obj2gco(L1)));
+  lua_assert(!isdead(G(L), obj2gco(L1)));
+  L->top--; /* remove thread from stack */
   return L1;
 }
 
@@ -160,6 +170,7 @@ LUA_API lua_State *lua_newstate (lua_Alloc f, void *ud) {
   g->uvhead.u.l.prev = &g->uvhead;
   g->uvhead.u.l.next = &g->uvhead;
   g->GCthreshold = 0;  /* mark it as unfinished state */
+  g->estimate = 0;
   g->strt.size = 0;
   g->strt.nuse = 0;
   g->strt.hash = NULL;
@@ -167,6 +178,7 @@ LUA_API lua_State *lua_newstate (lua_Alloc f, void *ud) {
   luaZ_initbuffer(L, &g->buff);
   g->panic = NULL;
   g->gcstate = GCSpause;
+  g->gcflags = GCFlagsNone;
   g->rootgc = obj2gco(L);
   g->sweepstrgc = 0;
   g->sweepgc = &g->rootgc;
@@ -175,9 +187,20 @@ LUA_API lua_State *lua_newstate (lua_Alloc f, void *ud) {
   g->weak = NULL;
   g->tmudata = NULL;
   g->totalbytes = sizeof(LG);
+  g->memlimit = 0;
   g->gcpause = LUAI_GCPAUSE;
   g->gcstepmul = LUAI_GCMUL;
   g->gcdept = 0;
+#ifdef EGC_INITIAL_MODE
+  g->egcmode = EGC_INITIAL_MODE;
+#else
+  g->egcmode = 0;
+#endif
+#ifdef EGC_INITIAL_MEMLIMIT
+  g->memlimit = EGC_INITIAL_MEMLIMIT;
+#else
+  g->memlimit = 0;
+#endif
   for (i=0; i<NUM_TAGS; i++) g->mt[i] = NULL;
   if (luaD_rawrunprotected(L, f_luaopen, NULL) != 0) {
     /* memory allocation error: free partial state */
@@ -195,8 +218,29 @@ static void callallgcTM (lua_State *L, void *ud) {
   luaC_callGCTM(L);  /* call GC metamethods for all udata */
 }
 
+// BogdanM: modified for eLua interrupt support
+extern lua_State *luaL_newstate (void);
+static lua_State *lua_crtstate;
 
+lua_State *lua_open(void) {
+  lua_crtstate = luaL_newstate(); 
+  return lua_crtstate;
+}
+
+lua_State *lua_getstate(void) {
+  return lua_crtstate;
+}
 LUA_API void lua_close (lua_State *L) {
+#ifndef LUA_CROSS_COMPILER  
+  int oldstate = platform_cpu_set_global_interrupts( PLATFORM_CPU_DISABLE );
+  lua_sethook( L, NULL, 0, 0 );
+  lua_crtstate = NULL;
+  lua_pushnil( L );
+  lua_rawseti( L, LUA_REGISTRYINDEX, LUA_INT_HANDLER_KEY );
+  elua_int_cleanup();
+  platform_cpu_set_global_interrupts( oldstate );
+  linenoise_cleanup( LINENOISE_ID_LUA );
+#endif  
   L = G(L)->mainthread;  /* only the main thread can be closed */
   lua_lock(L);
   luaF_close(L, L->stack);  /* close all upvalues for this thread */

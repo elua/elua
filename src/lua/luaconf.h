@@ -86,22 +86,38 @@
 */
 #define LUA_LDIR	"!\\lua\\"
 #define LUA_CDIR	"!\\"
+
+//## Modified for eLua
+//## Defaults search modules path to our ROM File System
+#ifndef LUA_RPC
+#define LUA_PATH_DEFAULT  "/rfs/?.lua;/rfs/?.lc;/mmc/?.lua;/mmc/?.lc;/rom/?.lua;/rom/?.lc"
+#define LUA_CPATH_DEFAULT ""
+#else // #ifndef LUA_RPC
 #define LUA_PATH_DEFAULT  \
 		".\\?.lua;"  LUA_LDIR"?.lua;"  LUA_LDIR"?\\init.lua;" \
 		             LUA_CDIR"?.lua;"  LUA_CDIR"?\\init.lua"
 #define LUA_CPATH_DEFAULT \
 	".\\?.dll;"  LUA_CDIR"?.dll;" LUA_CDIR"loadall.dll"
+#endif // #ifndef LUA_RPC
 
-#else
+#else // #if defined(_WIN32)
+
 #define LUA_ROOT	"/usr/local/"
 #define LUA_LDIR	LUA_ROOT "share/lua/5.1/"
 #define LUA_CDIR	LUA_ROOT "lib/lua/5.1/"
+
+#ifndef LUA_RPC
+#define LUA_PATH_DEFAULT  "/mmc/?.lua;/mmc/?.lc;/rom/?.lua;/rom/?.lc"
+#define LUA_CPATH_DEFAULT ""
+#else // #ifndef LUA_RPC
 #define LUA_PATH_DEFAULT  \
 		"./?.lua;"  LUA_LDIR"?.lua;"  LUA_LDIR"?/init.lua;" \
 		            LUA_CDIR"?.lua;"  LUA_CDIR"?/init.lua"
 #define LUA_CPATH_DEFAULT \
 	"./?.so;"  LUA_CDIR"?.so;" LUA_CDIR"loadall.so"
-#endif
+#endif // #ifndef LUA_RPC
+
+#endif // #if defined(_WIN32)
 
 
 /*
@@ -263,8 +279,8 @@
 @* stand-alone interpreter.
 ** CHANGE it if you need longer lines.
 */
-#define LUA_MAXINPUT	256
-
+#define LUA_MAXINPUT	128
+               
 
 /*
 @@ lua_readline defines how to show a prompt and then read a line from
@@ -274,6 +290,7 @@
 ** CHANGE them if you want to improve this functionality (e.g., by using
 ** GNU readline and history facilities).
 */
+#if defined(LUA_CROSS_COMPILER)
 #if defined(LUA_USE_READLINE)
 #include <stdio.h>
 #include <readline/readline.h>
@@ -283,13 +300,24 @@
 	if (lua_strlen(L,idx) > 0)  /* non-empty line? */ \
 	  add_history(lua_tostring(L, idx));  /* add it to history */
 #define lua_freeline(L,b)	((void)L, free(b))
-#else
+#else // #if defined(LUA_USE_READLINE)
 #define lua_readline(L,b,p)	\
 	((void)L, fputs(p, stdout), fflush(stdout),  /* show prompt */ \
 	fgets(b, LUA_MAXINPUT, stdin) != NULL)  /* get line */
 #define lua_saveline(L,idx)	{ (void)L; (void)idx; }
 #define lua_freeline(L,b)	{ (void)L; (void)b; }
-#endif
+#endif // #if defined(LUA_USE_READLINE)
+
+#else // #if defined(LUA_CROSS_COMPILER)
+
+#include "linenoise.h"
+#define lua_readline(L,b,p)	((void)L, (linenoise_getline(LINENOISE_ID_LUA,b,LUA_MAXINPUT,p)) != -1)
+#define lua_saveline(L,idx) \
+	if (lua_strlen(L,idx) > 0)  /* non-empty line? */ \
+	  linenoise_addhistory(LINENOISE_ID_LUA, lua_tostring(L, idx));  /* add it to history */
+#define lua_freeline(L,b)	{ (void)L; (void)b; }
+
+#endif // #if defined(LUA_CROSS_COMPILER)
 
 #endif
 
@@ -303,7 +331,7 @@
 ** mean larger pauses which mean slower collection.) You can also change
 ** this value dynamically.
 */
-#define LUAI_GCPAUSE	200  /* 200% (wait memory to double before next GC) */
+#define LUAI_GCPAUSE	110  /* 110% (wait memory to grow 10% before next gc) */
 
 
 /*
@@ -476,14 +504,14 @@
 @@ LUAI_MAXVARS is the maximum number of local variables per function
 @* (must be smaller than 250).
 */
-#define LUAI_MAXVARS		200
+#define LUAI_MAXVARS		50
 
 
 /*
 @@ LUAI_MAXUPVALUES is the maximum number of upvalues per function
 @* (must be smaller than 250).
 */
-#define LUAI_MAXUPVALUES	60
+#define LUAI_MAXUPVALUES	10
 
 
 /*
@@ -686,7 +714,7 @@ union luai_Cast { double l_d; long l_l; };
 @* can do during pattern-matching.
 ** CHANGE it if you need more captures. This limit is arbitrary.
 */
-#define LUA_MAXCAPTURES		32
+#define LUA_MAXCAPTURES		10
 
 
 /*
@@ -804,6 +832,8 @@ union luai_Cast { double l_d; long l_l; };
 
 #endif
 
+
+
 /* =================================================================== */
 
 /*
@@ -811,9 +841,20 @@ union luai_Cast { double l_d; long l_l; };
 ** without modifying the main part of the file.
 */
 
-#ifndef LUA_CROSS_COMPILER
+#if !defined(LUA_CROSS_COMPILER)
 typedef short int16_t;
 typedef long int32_t;
+#endif
+
+/* If you define the next macro you'll get the ability to set rotables as
+   metatables for tables/userdata/types (but the VM might run slower)
+*/
+#if (LUA_OPTIMIZE_MEMORY == 2) && !defined(LUA_CROSS_COMPILER)
+#define LUA_META_ROTABLES 
+#endif
+
+#if LUA_OPTIMIZE_MEMORY == 2 && LUA_USE_POPEN
+#error "Pipes not supported in aggresive optimization mode (LUA_OPTIMIZE_MEMORY=2)"
 #endif
 
 #endif

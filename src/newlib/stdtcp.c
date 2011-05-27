@@ -83,18 +83,21 @@ void std_set_get_func( p_std_get_char pfunc )
 {
 }
 
-// Our UART device descriptor structure
-static DM_DEVICE std_device = 
+static const DM_DEVICE std_device = 
 {
   STD_DEV_NAME,
-  NULL,                 // we don't have 'open' on std
-  NULL,                 // we don't have 'close' on std
-  std_write,
-  std_read,
-  NULL                  // we don't have "ioctl" on std
+  NULL,                 // open
+  NULL,                 // close
+  std_write,            // write
+  std_read,             // read
+  NULL,                 // lseek
+  NULL,                 // opendir
+  NULL,                 // readdir
+  NULL                  // closedir
 };
 
-DM_DEVICE* std_get_desc()
+
+const DM_DEVICE* std_get_desc()
 {
   return &std_device;
 }

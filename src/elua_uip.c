@@ -40,13 +40,7 @@ static u32 periodic_timer, arp_timer;
 
 static void device_driver_send()
 {
-  if( uip_len <= TOTAL_HEADER_LENGTH )
-    platform_eth_send_packet( uip_buf, uip_len );
-  else
-  {
-    platform_eth_send_packet( uip_buf, TOTAL_HEADER_LENGTH );
-    platform_eth_send_packet( ( u8* )uip_appdata, uip_len - TOTAL_HEADER_LENGTH );
-  }
+  platform_eth_send_packet( uip_buf, uip_len );
 }
 
 // This gets called on both Ethernet RX interrupts and timer requests,
@@ -202,7 +196,7 @@ static int elua_uip_telnet_socket = -1;
 // Utility function for TELNET: parse input buffer, skipping over
 // TELNET specific sequences
 // Returns the length of the buffer after processing
-static void elua_uip_telnet_handle_input( struct elua_uip_state* s )
+static void elua_uip_telnet_handle_input( volatile struct elua_uip_state* s )
 {
   u8 *dptr = ( u8* )uip_appdata;
   char *orig = ( char* )s->ptr;
@@ -272,7 +266,7 @@ volatile static elua_net_ip elua_uip_accept_remote;
 
 void elua_uip_appcall()
 {
-  struct elua_uip_state *s;
+  volatile struct elua_uip_state *s;
   elua_net_size temp;
   int sockno;
   
@@ -513,12 +507,13 @@ int elua_net_socket( int type )
 {
   int i;
   struct uip_conn* pconn;
+  int old_status;
   
   // [TODO] add UDP support at some point.
   if( type == ELUA_NET_SOCK_DGRAM )
     return -1;
   
-  platform_cpu_disable_interrupts();
+  old_status = platform_cpu_set_global_interrupts( PLATFORM_CPU_DISABLE );
   // Iterate through the list of connections, looking for a free one
   for( i = 0; i < UIP_CONNS; i ++ )
   {
@@ -530,7 +525,7 @@ int elua_net_socket( int type )
       break;
     }
   }
-  platform_cpu_enable_interrupts();
+  platform_cpu_set_global_interrupts( old_status );
   return i == UIP_CONNS ? -1 : i;
 }
 
@@ -554,6 +549,7 @@ static elua_net_size elua_net_recv_internal( int s, void* buf, elua_net_size max
 {
   volatile struct elua_uip_state *pstate = ( volatile struct elua_uip_state* )&( uip_conns[ s ].appstate );
   u32 tmrstart = 0;
+  int old_status;
   
   if( !ELUA_UIP_IS_SOCK_OK( s ) || !uip_conn_active( s ) )
     return -1;
@@ -568,13 +564,13 @@ static elua_net_size elua_net_recv_internal( int s, void* buf, elua_net_size max
       break;
     if( to_us > 0 && platform_timer_get_diff_us( timer_id, tmrstart, platform_timer_op( timer_id, PLATFORM_TIMER_OP_READ, 0 ) ) >= to_us )
     {
-      platform_cpu_disable_interrupts();
+      old_status = platform_cpu_set_global_interrupts( PLATFORM_CPU_DISABLE );
       if( pstate->state != ELUA_UIP_STATE_IDLE )
       { 
         pstate->res = ELUA_NET_ERR_TIMEDOUT;
         pstate->state = ELUA_UIP_STATE_IDLE;
       }
-      platform_cpu_enable_interrupts();
+      platform_cpu_set_global_interrupts( old_status );
       break;
     }
   }
@@ -634,6 +630,7 @@ int elua_net_get_last_err( int s )
 int elua_accept( u16 port, unsigned timer_id, u32 to_us, elua_net_ip* pfrom )
 {
   u32 tmrstart = 0;
+  int old_status;
   
   if( !elua_uip_configured )
     return -1;
@@ -641,10 +638,10 @@ int elua_accept( u16 port, unsigned timer_id, u32 to_us, elua_net_ip* pfrom )
   if( port == ELUA_NET_TELNET_PORT )
     return -1;
 #endif  
-  platform_cpu_disable_interrupts();
+  old_status = platform_cpu_set_global_interrupts( PLATFORM_CPU_DISABLE );
   uip_unlisten( htons( port ) );
   uip_listen( htons( port ) );
-  platform_cpu_enable_interrupts();
+  platform_cpu_set_global_interrupts( old_status );
   elua_uip_accept_sock = -1;
   elua_uip_accept_request = 1;
   if( to_us > 0 )

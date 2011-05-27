@@ -37,6 +37,7 @@
 #include "lualib.h"
 #include "lauxlib.h"
 #include "auxmods.h"
+#include "lrotable.h"
 
 static void badcode(lua_State *L, int c)
 {
@@ -151,8 +152,10 @@ static int l_unpack(lua_State *L) 		/** unpack(s,f,[init]) */
    UNPACKSTRING(OP_WSTRING, unsigned short)
    UNPACKSTRING(OP_SSTRING, size_t)
    UNPACKNUMBER(OP_NUMBER, lua_Number)
+#ifndef LUA_NUMBER_INTEGRAL   
    UNPACKNUMBER(OP_DOUBLE, double)
    UNPACKNUMBER(OP_FLOAT, float)
+#endif   
    UNPACKNUMBER(OP_CHAR, char)
    UNPACKNUMBER(OP_BYTE, unsigned char)
    UNPACKNUMBER(OP_SHORT, short)
@@ -233,8 +236,10 @@ static int l_pack(lua_State *L) 		/** pack(f,...) */
    PACKSTRING(OP_WSTRING, unsigned short)
    PACKSTRING(OP_SSTRING, size_t)
    PACKNUMBER(OP_NUMBER, lua_Number)
+#ifndef LUA_NUMBER_INTEGRAL   
    PACKNUMBER(OP_DOUBLE, double)
    PACKNUMBER(OP_FLOAT, float)
+#endif
    PACKNUMBER(OP_CHAR, char)
    PACKNUMBER(OP_BYTE, unsigned char)
    PACKNUMBER(OP_SHORT, short)
@@ -254,15 +259,16 @@ static int l_pack(lua_State *L) 		/** pack(f,...) */
  return 1;
 }
 
-static const luaL_reg pack_map[] =
+#define MIN_OPT_LEVEL 2
+#include "lrodefs.h"
+const LUA_REG_TYPE pack_map[] =
 {
-	{"pack",	l_pack},
-	{"unpack",	l_unpack},
-	{NULL,	NULL}
+	{ LSTRKEY( "pack" ),  LFUNCVAL( l_pack ) },
+	{ LSTRKEY( "unpack" ), LFUNCVAL( l_unpack ) },
+	{ LNILKEY, LNILVAL }
 };
 
 int luaopen_pack( lua_State *L )
 {
-  luaL_register( L, AUXLIB_PACK, pack_map );
-  return 1;  
+  LREGISTER( L, AUXLIB_PACK, pack_map );
 }

@@ -2,8 +2,7 @@
 //
 // hw_types.h - Common types and macros.
 //
-// Copyright (c) 2005-2008 Luminary Micro, Inc.  All rights reserved.
-// 
+// Copyright (c) 2005-2009 Luminary Micro, Inc.  All rights reserved.
 // Software License Agreement
 // 
 // Luminary Micro, Inc. (LMI) is supplying this software for use solely and
@@ -22,7 +21,7 @@
 // LMI SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
 // CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
 // 
-// This is part of revision 2752 of the Stellaris Peripheral Driver Library.
+// This is part of revision 4781 of the Stellaris Firmware Development Package.
 //
 //*****************************************************************************
 
@@ -113,8 +112,20 @@ typedef unsigned char tBoolean;
          (SYSCTL_DID0_VER_1 | SYSCTL_DID0_CLASS_DUSTDEVIL))
 #endif
 
+#ifndef CLASS_IS_TEMPEST
+#define CLASS_IS_TEMPEST                                                     \
+        ((HWREG(SYSCTL_DID0) & (SYSCTL_DID0_VER_M | SYSCTL_DID0_CLASS_M)) == \
+         (SYSCTL_DID0_VER_1 | SYSCTL_DID0_CLASS_TEMPEST))
+#endif
+
 #ifndef REVISION_IS_A0
 #define REVISION_IS_A0                                                     \
+        ((HWREG(SYSCTL_DID0) & (SYSCTL_DID0_MAJ_M | SYSCTL_DID0_MIN_M)) == \
+         (SYSCTL_DID0_MAJ_REVA | SYSCTL_DID0_MIN_0))
+#endif
+
+#ifndef REVISION_IS_A1
+#define REVISION_IS_A1                                                     \
         ((HWREG(SYSCTL_DID0) & (SYSCTL_DID0_MAJ_M | SYSCTL_DID0_MIN_M)) == \
          (SYSCTL_DID0_MAJ_REVA | SYSCTL_DID0_MIN_0))
 #endif
@@ -123,6 +134,18 @@ typedef unsigned char tBoolean;
 #define REVISION_IS_A2                                                     \
         ((HWREG(SYSCTL_DID0) & (SYSCTL_DID0_MAJ_M | SYSCTL_DID0_MIN_M)) == \
          (SYSCTL_DID0_MAJ_REVA | SYSCTL_DID0_MIN_2))
+#endif
+
+#ifndef REVISION_IS_B0
+#define REVISION_IS_B0                                                     \
+        ((HWREG(SYSCTL_DID0) & (SYSCTL_DID0_MAJ_M | SYSCTL_DID0_MIN_M)) == \
+         (SYSCTL_DID0_MAJ_REVB | SYSCTL_DID0_MIN_0))
+#endif
+
+#ifndef REVISION_IS_B1
+#define REVISION_IS_B1                                                     \
+        ((HWREG(SYSCTL_DID0) & (SYSCTL_DID0_MAJ_M | SYSCTL_DID0_MIN_M)) == \
+         (SYSCTL_DID0_MAJ_REVB | SYSCTL_DID0_MIN_1))
 #endif
 
 #ifndef REVISION_IS_C1

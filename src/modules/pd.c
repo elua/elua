@@ -5,6 +5,7 @@
 #include "lauxlib.h"
 #include "platform.h"
 #include "auxmods.h"
+#include "lrotable.h"
 
 #define MACRO_NAME( x ) MACRO_AGAIN( x )
 #define MACRO_AGAIN( x ) #x
@@ -31,16 +32,17 @@ static int pd_board( lua_State* L )
 }
 
 // Module function map
-static const luaL_reg pd_map[] = 
+#define MIN_OPT_LEVEL 2
+#include "lrodefs.h"
+const LUA_REG_TYPE pd_map[] = 
 {
-  { "platform",  pd_platform }, 
-  { "cpu", pd_cpu },
-  { "board", pd_board },
-  { NULL, NULL }
+  { LSTRKEY( "platform" ), LFUNCVAL( pd_platform ) }, 
+  { LSTRKEY( "cpu" ), LFUNCVAL( pd_cpu ) },
+  { LSTRKEY( "board" ), LFUNCVAL( pd_board ) },
+  { LNILKEY, LNILVAL }
 };
 
 LUALIB_API int luaopen_pd( lua_State* L )
 {
-  luaL_register( L, AUXLIB_PD, pd_map );
-  return 1;
+  LREGISTER( L, AUXLIB_PD, pd_map );
 }

@@ -51,6 +51,7 @@ SECTIONS
     {
         . = ALIGN(4);
         _sfixed = .;
+        PROVIDE(stext = .);
         KEEP(*(.vectors))
         KEEP(*(.init))
         *(.text .text.*)        
@@ -63,6 +64,8 @@ SECTIONS
         . = ALIGN(4);
         _efixed = .;
         PROVIDE(etext = .);
+         _fini = .;
+        *(.fini)
     } >flash
 
     .relocate : AT (_efixed)
@@ -76,6 +79,18 @@ SECTIONS
         _erelocate = .;
     } >sram
 
+     .ARM.extab :
+    {
+        *(.ARM.extab*)
+    } >sram
+
+    __exidx_start = .;
+    .ARM.exidx :
+    {
+        *(.ARM.exidx*)
+    } >sram
+     __exidx_end = .;
+   
     .bss (NOLOAD) : {
         _szero = .;
         *(.bss .bss.*)

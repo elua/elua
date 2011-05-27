@@ -3,25 +3,25 @@
 // startup_gcc.c - Startup code for use with GNU tools.
 //
 // Copyright (c) 2007-2008 Luminary Micro, Inc.  All rights reserved.
-// 
+//
 // Software License Agreement
-// 
+//
 // Luminary Micro, Inc. (LMI) is supplying this software for use solely and
 // exclusively on LMI's microcontroller products.
-// 
+//
 // The software is owned by LMI and/or its suppliers, and is protected under
 // applicable copyright laws.  All rights are reserved.  You may not combine
 // this software with "viral" open-source software in order to form a larger
 // program.  Any use in violation of the foregoing restrictions may subject
 // the user to criminal sanctions under applicable laws, as well as to civil
 // liability for the breach of the terms and conditions of this license.
-// 
+//
 // THIS SOFTWARE IS PROVIDED "AS IS".  NO WARRANTIES, WHETHER EXPRESS, IMPLIED
 // OR STATUTORY, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE.
 // LMI SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
 // CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
-// 
+//
 // This is part of revision 2752 of the Stellaris Peripheral Driver Library.
 //
 //*****************************************************************************
@@ -36,11 +36,20 @@ static void NmiSR(void);
 static void FaultISR(void);
 static void IntDefaultHandler(void);
 
-// External interrupt handlers (used by Ethernet)
+// External interrupt handlers
 extern void EthernetIntHandler();
-extern void SysTickIntHandler(); 
+extern void SysTickIntHandler();
+extern void ADCIntHandler();
+extern void UARTIntHandler();
+extern void CANIntHandler();
 
 #include "hw_memmap.h"
+#include "platform_conf.h"
+
+extern void uart0_handler();
+extern void uart1_handler();
+extern void uart2_handler();
+
 
 //*****************************************************************************
 //
@@ -58,8 +67,7 @@ extern int main(void);
 __attribute__ ((section(".isr_vector")))
 void (* const g_pfnVectors[])(void) =
 {
-    //(void (*)(void))((unsigned long)pulStack + sizeof(pulStack)),
-    (void (*) (void))(SRAM_BASE + 64*1024),
+    (void (*) (void))( SRAM_BASE + SRAM_SIZE ),
                                             // The initial stack pointer
     ResetISR,                               // The reset handler
     NmiSR,                                  // The NMI handler
@@ -81,8 +89,16 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // GPIO Port C
     IntDefaultHandler,                      // GPIO Port D
     IntDefaultHandler,                      // GPIO Port E
-    IntDefaultHandler,                      // UART0 Rx and Tx
+#if defined( BUILD_C_INT_HANDLERS ) || defined( BUILD_LUA_INT_HANDLERS )
+    uart0_handler,                          // UART0 Rx and Tx
+#else
+    IntDefaultHandler,
+#endif
+#if defined( BUILD_C_INT_HANDLERS ) || defined( BUILD_LUA_INT_HANDLERS )
+    uart1_handler,                          // UART1 Rx and Tx
+#else
     IntDefaultHandler,                      // UART1 Rx and Tx
+#endif    
     IntDefaultHandler,                      // SSI0 Rx and Tx
     IntDefaultHandler,                      // I2C0 Master and Slave
     IntDefaultHandler,                      // PWM Fault
@@ -90,10 +106,17 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // PWM Generator 1
     IntDefaultHandler,                      // PWM Generator 2
     IntDefaultHandler,                      // Quadrature Encoder 0
-    IntDefaultHandler,                      // ADC Sequence 0
+#ifdef BUILD_ADC
+    ADCIntHandler,	                        // ADC Sequence 0
+    ADCIntHandler,                          // ADC Sequence 1
+    ADCIntHandler,                          // ADC Sequence 2
+    ADCIntHandler,                          // ADC Sequence 3
+#else
+    IntDefaultHandler,	                    // ADC Sequence 0
     IntDefaultHandler,                      // ADC Sequence 1
     IntDefaultHandler,                      // ADC Sequence 2
     IntDefaultHandler,                      // ADC Sequence 3
+#endif
     IntDefaultHandler,                      // Watchdog timer
     IntDefaultHandler,                      // Timer 0 subtimer A
     IntDefaultHandler,                      // Timer 0 subtimer B
@@ -109,13 +132,17 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // GPIO Port F
     IntDefaultHandler,                      // GPIO Port G
     IntDefaultHandler,                      // GPIO Port H
+#if defined( BUILD_C_INT_HANDLERS ) || defined( BUILD_LUA_INT_HANDLERS )
+    uart2_handler,                          // UART2 Rx and Tx
+#else    
     IntDefaultHandler,                      // UART2 Rx and Tx
+#endif    
     IntDefaultHandler,                      // SSI1 Rx and Tx
     IntDefaultHandler,                      // Timer 3 subtimer A
     IntDefaultHandler,                      // Timer 3 subtimer B
     IntDefaultHandler,                      // I2C1 Master and Slave
     IntDefaultHandler,                      // Quadrature Encoder 1
-    IntDefaultHandler,                      // CAN0
+    CANIntHandler,                          // CAN0
     IntDefaultHandler,                      // CAN1
     IntDefaultHandler,                      // CAN2
     EthernetIntHandler,                     // Ethernet
@@ -177,7 +204,7 @@ ResetISR(void)
     // Call the application's entry point.
     //
     main();
-    
+
     while(1);
 }
 
@@ -189,7 +216,7 @@ ResetISR(void)
 #include "gpio.h"
 #include "interrupt.h"
 #include "sysctl.h"
-#include "usart.h"
+#include "uart.h"
 
 //*****************************************************************************
 //
@@ -223,13 +250,13 @@ FaultISR(void)
     //
     // Enter an infinite loop.
     //
-   UARTCharPut( UART0_BASE, '#' );       
-   UARTCharPut( UART0_BASE, '#' );       
-   UARTCharPut( UART0_BASE, '#' );       
-   UARTCharPut( UART0_BASE, '#' );       
-   UARTCharPut( UART0_BASE, '#' );            
+   UARTCharPut( UART0_BASE, '#' );
+   UARTCharPut( UART0_BASE, '#' );
+   UARTCharPut( UART0_BASE, '#' );
+   UARTCharPut( UART0_BASE, '#' );
+   UARTCharPut( UART0_BASE, '#' );
    while(1)
-   { 
+   {
    }
 }
 
@@ -248,6 +275,6 @@ IntDefaultHandler(void)
     //
     while(1)
     {
-      UARTCharPut( UART0_BASE, '*' );    
+      UARTCharPut( UART0_BASE, '*' );
     }
 }

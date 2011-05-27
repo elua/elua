@@ -1,0 +1,131 @@
+$$HEADER$$
+<h3>Booting eLua from an USB stick</h3>
+<p>This is follow up of <a href="tut_bootpc.html">this tutorial</a>.
+After completing it you'll be able to boot <b>eLua</b> directly from your USB
+stick (provided, of course, that your computer can boot from an USB
+stick, which is true for most computers nowadays). You might want to
+check the <a href="tut_bootpc.html">boot your PC in eLua</a>
+tutorial first for more details. If you have an old USB stick that you
+don't use anymore, and/or the shear geekness of this idea makes you
+feel curious, this tutorial is definitely for you :)</p>
+
+<h2 style="background-color: orangered;">Disclaimer</h2>
+
+<p>As mentioned <a href="tut_bootpc.html">here</a>,
+the code won't try to access any kind of storage (HDD, CDROM, floppy),
+not even for reading, so you don't need to worry about that. Also it
+doesn't try to reprogram your video card registers, so it can't harm it
+or your monitor. It only implements a "protected mode keyboard driver"
+that can't physically damage anything in your system. In short, I made
+every effort to make the code as harmless as possible. I tested it on 5
+different computers and in 2 <a href="http://www.virtualbox.org/">VirtualBox</a>
+emulators, and nothing bad happened. That said, there are no warranties
+of any kind. In the very unlikely event that something bad does happen
+to your system, you have my sincere sympathy, but I can't be held
+responsible for that. Also, I can't be held responsible if you mess up
+your HDD by failing the GRUB installation procedure (even though, once
+again, this shouldn't be possible unless you really insist on messing
+it up). If you're new to computers or Linux, this tutorial might not be for you.
+Your call.</p>
+
+<h2>Prerequisites</h2>
+
+<p>To have your own bootable <b>eLua</b> USB stick you'll need:</p>
+
+<ul><li>an USB stick. I tested this on an 128M USB stick, because
+it's the smallest I could find. You should be OK with a 4M stick or
+even a 2M stick</li>
+<li>a computer running Linux. I use Ubuntu, but any other distribution is fine.</li>
+<li><a  href="http://www.gnu.org/software/grub/">GRUB</a>.
+Since you're running Linux, chances are you're already using GRUB as
+your bootloader. If not, you must install it on your HDD, or at least
+know how to install it directly on the USB stick. I won't go into
+details here, google it and you'll find lots of good articles about
+GRUB. This tutorial assumes that you're using GRUB as your bootloader.</li>
+<li>The <b>eLua</b> i386 ELF file, see <a href="downloads.html">here</a> for instructions on how to obtain it. OR <a href="downloads.html">download the eLua source distribution</a> and compile it 
+  for the i386 architecture using a toolchain that you can build by following <a href="tc_386.html">this tutorial</a>.</li>
+<li>a text editor to edit your GRUB configuration file.</li></ul>
+
+
+<p>The rest of this tutorial assumes that you're using Linux with GRUB,
+and that GRUB is located in <i>/boot/grub</i>, which is true for many Linux
+distributions.</p>
+<h2>Backup your stick</h2>
+
+<p>Since the stick is going to be formatted, make sure to backup the
+data from your stick first (you can copy it back after finishing the
+tutorial).</p>
+
+<h2>Partition and format your stick</h2>
+
+<p>Depending on your stick, this step might not be required, but
+chances are you'll need to re-partition and re-format your stick before
+installing GRUB on it. The problem is that many sticks have a very
+creative, non-standard partition table, and GRUB doesn't like that. I
+looked at the original partition table of my <b>eLua</b> USB stick and it scared me to
+death, so I had to follow this procedure. In short, you'll need to
+delete all the partitions from your stick, create a new partition, and
+then format it. For a step by step tutorial check <a  href="http://www.4p8.com/eric.brasseur/suse9.1_usb_stick.html">here</a>.</p>
+<h2>Install GRUB on your stick</h2>
+
+<p>First, mount your freshly formatted stick (I'm going to assume that the mount directory is <i>/mnt</i>):</p>
+
+<pre><code>$ sudo mount /dev/sda1 /mnt<br></code></pre>
+
+<p>(of course, you'll need to change <i>/dev/sda1</i> to reflect the physical location of your USB stick. You should know the physical location from the previous step).
+Then copy the required GRUB files to your stick:</p>
+
+<pre><code>$ cd /mnt
+$ mkdir boot
+$ mkdir boot/grub
+$ cd /boot/grub
+$ cp stage1 fat_stage1_5 stage2 /mnt/boot/grub</code></pre>
+
+<p>Copy the <b>eLua</b> ELF file (<i>elua_lua_i386.elf</i> in this example, change the name if needed) to the GRUB directory as well:</p>
+
+<pre><code>$ cp elua_lua_i386.elf /mnt/boot/grub</code></pre>
+
+<p>Create a <i>menu.lst</i> file for GRUB with you favorite text editori (I'm using vim):</p>
+
+<pre><code>$ cd /mnt/boot/grub
+$ vim menu.lst
+  title eLua
+  root (hd0,0)
+  kernel /boot/grub/elua_lua_i386.elf 
+  boot</code></pre>
+
+<p>Now it's time to actually install GRUB on the stick.</p>
+
+<pre><code>$ sudo -s -H
+# grub
+
+<b>Now we need to find the GRUB name of our USB stick. We'll use the "find" command from
+GRUB and our eLua ELF file to accomplish this:</b>  
+
+grub&gt; find /boot/grub/elua_lua_i386.elf
+(hd2,0)
+
+<b>GRUB should respond with a single line (like (hd2,0) above). If it gives you more
+than one line, something is wrong. Maybe you also installed eLua on your HDD? If so,
+delete the /boot/grub/elua_lua_i386.elf file from your HDD and try again. 
+You might get a different (hdx,y) line. If so, just use it instead of (hd2,0) in the 
+rest of this tutorial</b>.
+
+grub&gt; root (hd2,0)
+grub&gt; setup (hd2)
+  Checking if "/boot/grub/stage1" exists... yes
+  Checking if "/boot/grub/stage2" exists... yes
+  Checking if "/boot/grub/fat_stage1_5" exists... yes
+  Running "embed /boot/grub/fat_stage1_5 (hd2)"...  15 sectors are embedded.
+  succeeded 
+  Running "install /boot/grub/stage1 (hd2) (hd2)1+15 p (hd2,0)/boot/grub/stage2
+  /boot/grub/menu.lst"... succeeded
+  Done.
+grub&gt; quit</code></pre>
+
+<p>That's it! Now reboot your computer, make sure that your BIOS is set
+to boot from USB, and enjoy! See <a href="using.html">using eLua</a> for
+instructions on how to use your new toy :).</p>
+<p>As usual, if you need more details, you can <a href="overview.html#contacts">contact us</a>.</p>
+$$FOOTER$$
+

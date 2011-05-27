@@ -87,7 +87,7 @@ ZeroBSS:
  **************/
  
 /* Supervisor mode */
-        msr     CPSR_c, #ARM_MODE_SVC | F_BIT | I_BIT
+        msr     CPSR_c, #ARM_MODE_SVC
         ldr     r4, =_sstack        
         mov     sp, r4
 

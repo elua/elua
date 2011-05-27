@@ -2,8 +2,7 @@
 //
 // gpio.c - API for GPIO ports
 //
-// Copyright (c) 2005-2008 Luminary Micro, Inc.  All rights reserved.
-// 
+// Copyright (c) 2005-2009 Luminary Micro, Inc.  All rights reserved.
 // Software License Agreement
 // 
 // Luminary Micro, Inc. (LMI) is supplying this software for use solely and
@@ -22,7 +21,7 @@
 // LMI SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
 // CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
 // 
-// This is part of revision 2752 of the Stellaris Peripheral Driver Library.
+// This is part of revision 4781 of the Stellaris Peripheral Driver Library.
 //
 //*****************************************************************************
 
@@ -36,10 +35,59 @@
 #include "hw_gpio.h"
 #include "hw_ints.h"
 #include "hw_memmap.h"
+#include "hw_sysctl.h"
 #include "hw_types.h"
 #include "debug.h"
 #include "gpio.h"
 #include "interrupt.h"
+
+//*****************************************************************************
+//
+// The base addresses of all the GPIO modules.  Both the APB and AHB apertures
+// are provided.
+//
+//*****************************************************************************
+static const unsigned long g_pulGPIOBaseAddrs[] =
+{
+    GPIO_PORTA_BASE, GPIO_PORTA_AHB_BASE,
+    GPIO_PORTB_BASE, GPIO_PORTB_AHB_BASE,
+    GPIO_PORTC_BASE, GPIO_PORTC_AHB_BASE,
+    GPIO_PORTD_BASE, GPIO_PORTD_AHB_BASE,
+    GPIO_PORTE_BASE, GPIO_PORTE_AHB_BASE,
+    GPIO_PORTF_BASE, GPIO_PORTF_AHB_BASE,
+    GPIO_PORTG_BASE, GPIO_PORTG_AHB_BASE,
+    GPIO_PORTH_BASE, GPIO_PORTH_AHB_BASE,
+    GPIO_PORTJ_BASE, GPIO_PORTJ_AHB_BASE,
+};
+
+//*****************************************************************************
+//
+//! \internal
+//! Checks a GPIO base address.
+//!
+//! \param ulPort is the base address of the GPIO port.
+//!
+//! This function determines if a GPIO port base address is valid.
+//!
+//! \return Returns \b true if the base address is valid and \b false
+//! otherwise.
+//
+//*****************************************************************************
+#ifdef DEBUG
+static tBoolean
+GPIOBaseValid(unsigned long ulPort)
+{
+    return((ulPort == GPIO_PORTA_BASE) || (ulPort == GPIO_PORTA_AHB_BASE) ||
+           (ulPort == GPIO_PORTB_BASE) || (ulPort == GPIO_PORTB_AHB_BASE) ||
+           (ulPort == GPIO_PORTC_BASE) || (ulPort == GPIO_PORTC_AHB_BASE) ||
+           (ulPort == GPIO_PORTD_BASE) || (ulPort == GPIO_PORTD_AHB_BASE) ||
+           (ulPort == GPIO_PORTE_BASE) || (ulPort == GPIO_PORTE_AHB_BASE) ||
+           (ulPort == GPIO_PORTF_BASE) || (ulPort == GPIO_PORTF_AHB_BASE) ||
+           (ulPort == GPIO_PORTG_BASE) || (ulPort == GPIO_PORTG_AHB_BASE) ||
+           (ulPort == GPIO_PORTH_BASE) || (ulPort == GPIO_PORTH_AHB_BASE) ||
+           (ulPort == GPIO_PORTJ_BASE) || (ulPort == GPIO_PORTJ_AHB_BASE));
+}
+#endif
 
 //*****************************************************************************
 //
@@ -119,6 +167,13 @@ GPIOGetIntNumber(unsigned long ulPort)
             break;
         }
 
+        case GPIO_PORTJ_BASE:
+        case GPIO_PORTJ_AHB_BASE:
+        {
+            ulInt = INT_GPIOJ;
+            break;
+        }
+
         default:
         {
             return(-1);
@@ -170,14 +225,7 @@ GPIODirModeSet(unsigned long ulPort, unsigned char ucPins,
     //
     // Check the arguments.
     //
-    ASSERT((ulPort == GPIO_PORTA_BASE) || (ulPort == GPIO_PORTA_AHB_BASE) ||
-           (ulPort == GPIO_PORTB_BASE) || (ulPort == GPIO_PORTB_AHB_BASE) ||
-           (ulPort == GPIO_PORTC_BASE) || (ulPort == GPIO_PORTC_AHB_BASE) ||
-           (ulPort == GPIO_PORTD_BASE) || (ulPort == GPIO_PORTD_AHB_BASE) ||
-           (ulPort == GPIO_PORTE_BASE) || (ulPort == GPIO_PORTE_AHB_BASE) ||
-           (ulPort == GPIO_PORTF_BASE) || (ulPort == GPIO_PORTF_AHB_BASE) ||
-           (ulPort == GPIO_PORTG_BASE) || (ulPort == GPIO_PORTG_AHB_BASE) ||
-           (ulPort == GPIO_PORTH_BASE) || (ulPort == GPIO_PORTH_AHB_BASE));
+    ASSERT(GPIOBaseValid(ulPort));
     ASSERT((ulPinIO == GPIO_DIR_MODE_IN) || (ulPinIO == GPIO_DIR_MODE_OUT) ||
            (ulPinIO == GPIO_DIR_MODE_HW));
 
@@ -217,14 +265,7 @@ GPIODirModeGet(unsigned long ulPort, unsigned char ucPin)
     //
     // Check the arguments.
     //
-    ASSERT((ulPort == GPIO_PORTA_BASE) || (ulPort == GPIO_PORTA_AHB_BASE) ||
-           (ulPort == GPIO_PORTB_BASE) || (ulPort == GPIO_PORTB_AHB_BASE) ||
-           (ulPort == GPIO_PORTC_BASE) || (ulPort == GPIO_PORTC_AHB_BASE) ||
-           (ulPort == GPIO_PORTD_BASE) || (ulPort == GPIO_PORTD_AHB_BASE) ||
-           (ulPort == GPIO_PORTE_BASE) || (ulPort == GPIO_PORTE_AHB_BASE) ||
-           (ulPort == GPIO_PORTF_BASE) || (ulPort == GPIO_PORTF_AHB_BASE) ||
-           (ulPort == GPIO_PORTG_BASE) || (ulPort == GPIO_PORTG_AHB_BASE) ||
-           (ulPort == GPIO_PORTH_BASE) || (ulPort == GPIO_PORTH_AHB_BASE));
+    ASSERT(GPIOBaseValid(ulPort));
     ASSERT(ucPin < 8);
 
     //
@@ -282,14 +323,7 @@ GPIOIntTypeSet(unsigned long ulPort, unsigned char ucPins,
     //
     // Check the arguments.
     //
-    ASSERT((ulPort == GPIO_PORTA_BASE) || (ulPort == GPIO_PORTA_AHB_BASE) ||
-           (ulPort == GPIO_PORTB_BASE) || (ulPort == GPIO_PORTB_AHB_BASE) ||
-           (ulPort == GPIO_PORTC_BASE) || (ulPort == GPIO_PORTC_AHB_BASE) ||
-           (ulPort == GPIO_PORTD_BASE) || (ulPort == GPIO_PORTD_AHB_BASE) ||
-           (ulPort == GPIO_PORTE_BASE) || (ulPort == GPIO_PORTE_AHB_BASE) ||
-           (ulPort == GPIO_PORTF_BASE) || (ulPort == GPIO_PORTF_AHB_BASE) ||
-           (ulPort == GPIO_PORTG_BASE) || (ulPort == GPIO_PORTG_AHB_BASE) ||
-           (ulPort == GPIO_PORTH_BASE) || (ulPort == GPIO_PORTH_AHB_BASE));
+    ASSERT(GPIOBaseValid(ulPort));
     ASSERT((ulIntType == GPIO_FALLING_EDGE) ||
            (ulIntType == GPIO_RISING_EDGE) || (ulIntType == GPIO_BOTH_EDGES) ||
            (ulIntType == GPIO_LOW_LEVEL) || (ulIntType == GPIO_HIGH_LEVEL));
@@ -333,14 +367,7 @@ GPIOIntTypeGet(unsigned long ulPort, unsigned char ucPin)
     //
     // Check the arguments.
     //
-    ASSERT((ulPort == GPIO_PORTA_BASE) || (ulPort == GPIO_PORTA_AHB_BASE) ||
-           (ulPort == GPIO_PORTB_BASE) || (ulPort == GPIO_PORTB_AHB_BASE) ||
-           (ulPort == GPIO_PORTC_BASE) || (ulPort == GPIO_PORTC_AHB_BASE) ||
-           (ulPort == GPIO_PORTD_BASE) || (ulPort == GPIO_PORTD_AHB_BASE) ||
-           (ulPort == GPIO_PORTE_BASE) || (ulPort == GPIO_PORTE_AHB_BASE) ||
-           (ulPort == GPIO_PORTF_BASE) || (ulPort == GPIO_PORTF_AHB_BASE) ||
-           (ulPort == GPIO_PORTG_BASE) || (ulPort == GPIO_PORTG_AHB_BASE) ||
-           (ulPort == GPIO_PORTH_BASE) || (ulPort == GPIO_PORTH_AHB_BASE));
+    ASSERT(GPIOBaseValid(ulPort));
     ASSERT(ucPin < 8);
 
     //
@@ -412,14 +439,7 @@ GPIOPadConfigSet(unsigned long ulPort, unsigned char ucPins,
     //
     // Check the arguments.
     //
-    ASSERT((ulPort == GPIO_PORTA_BASE) || (ulPort == GPIO_PORTA_AHB_BASE) ||
-           (ulPort == GPIO_PORTB_BASE) || (ulPort == GPIO_PORTB_AHB_BASE) ||
-           (ulPort == GPIO_PORTC_BASE) || (ulPort == GPIO_PORTC_AHB_BASE) ||
-           (ulPort == GPIO_PORTD_BASE) || (ulPort == GPIO_PORTD_AHB_BASE) ||
-           (ulPort == GPIO_PORTE_BASE) || (ulPort == GPIO_PORTE_AHB_BASE) ||
-           (ulPort == GPIO_PORTF_BASE) || (ulPort == GPIO_PORTF_AHB_BASE) ||
-           (ulPort == GPIO_PORTG_BASE) || (ulPort == GPIO_PORTG_AHB_BASE) ||
-           (ulPort == GPIO_PORTH_BASE) || (ulPort == GPIO_PORTH_AHB_BASE));
+    ASSERT(GPIOBaseValid(ulPort));
     ASSERT((ulStrength == GPIO_STRENGTH_2MA) ||
            (ulStrength == GPIO_STRENGTH_4MA) ||
            (ulStrength == GPIO_STRENGTH_8MA) ||
@@ -503,14 +523,7 @@ GPIOPadConfigGet(unsigned long ulPort, unsigned char ucPin,
     //
     // Check the arguments.
     //
-    ASSERT((ulPort == GPIO_PORTA_BASE) || (ulPort == GPIO_PORTA_AHB_BASE) ||
-           (ulPort == GPIO_PORTB_BASE) || (ulPort == GPIO_PORTB_AHB_BASE) ||
-           (ulPort == GPIO_PORTC_BASE) || (ulPort == GPIO_PORTC_AHB_BASE) ||
-           (ulPort == GPIO_PORTD_BASE) || (ulPort == GPIO_PORTD_AHB_BASE) ||
-           (ulPort == GPIO_PORTE_BASE) || (ulPort == GPIO_PORTE_AHB_BASE) ||
-           (ulPort == GPIO_PORTF_BASE) || (ulPort == GPIO_PORTF_AHB_BASE) ||
-           (ulPort == GPIO_PORTG_BASE) || (ulPort == GPIO_PORTG_AHB_BASE) ||
-           (ulPort == GPIO_PORTH_BASE) || (ulPort == GPIO_PORTH_AHB_BASE));
+    ASSERT(GPIOBaseValid(ulPort));
     ASSERT(ucPin < 8);
 
     //
@@ -561,14 +574,7 @@ GPIOPinIntEnable(unsigned long ulPort, unsigned char ucPins)
     //
     // Check the arguments.
     //
-    ASSERT((ulPort == GPIO_PORTA_BASE) || (ulPort == GPIO_PORTA_AHB_BASE) ||
-           (ulPort == GPIO_PORTB_BASE) || (ulPort == GPIO_PORTB_AHB_BASE) ||
-           (ulPort == GPIO_PORTC_BASE) || (ulPort == GPIO_PORTC_AHB_BASE) ||
-           (ulPort == GPIO_PORTD_BASE) || (ulPort == GPIO_PORTD_AHB_BASE) ||
-           (ulPort == GPIO_PORTE_BASE) || (ulPort == GPIO_PORTE_AHB_BASE) ||
-           (ulPort == GPIO_PORTF_BASE) || (ulPort == GPIO_PORTF_AHB_BASE) ||
-           (ulPort == GPIO_PORTG_BASE) || (ulPort == GPIO_PORTG_AHB_BASE) ||
-           (ulPort == GPIO_PORTH_BASE) || (ulPort == GPIO_PORTH_AHB_BASE));
+    ASSERT(GPIOBaseValid(ulPort));
 
     //
     // Enable the interrupts.
@@ -598,14 +604,7 @@ GPIOPinIntDisable(unsigned long ulPort, unsigned char ucPins)
     //
     // Check the arguments.
     //
-    ASSERT((ulPort == GPIO_PORTA_BASE) || (ulPort == GPIO_PORTA_AHB_BASE) ||
-           (ulPort == GPIO_PORTB_BASE) || (ulPort == GPIO_PORTB_AHB_BASE) ||
-           (ulPort == GPIO_PORTC_BASE) || (ulPort == GPIO_PORTC_AHB_BASE) ||
-           (ulPort == GPIO_PORTD_BASE) || (ulPort == GPIO_PORTD_AHB_BASE) ||
-           (ulPort == GPIO_PORTE_BASE) || (ulPort == GPIO_PORTE_AHB_BASE) ||
-           (ulPort == GPIO_PORTF_BASE) || (ulPort == GPIO_PORTF_AHB_BASE) ||
-           (ulPort == GPIO_PORTG_BASE) || (ulPort == GPIO_PORTG_AHB_BASE) ||
-           (ulPort == GPIO_PORTH_BASE) || (ulPort == GPIO_PORTH_AHB_BASE));
+    ASSERT(GPIOBaseValid(ulPort));
 
     //
     // Disable the interrupts.
@@ -636,14 +635,7 @@ GPIOPinIntStatus(unsigned long ulPort, tBoolean bMasked)
     //
     // Check the arguments.
     //
-    ASSERT((ulPort == GPIO_PORTA_BASE) || (ulPort == GPIO_PORTA_AHB_BASE) ||
-           (ulPort == GPIO_PORTB_BASE) || (ulPort == GPIO_PORTB_AHB_BASE) ||
-           (ulPort == GPIO_PORTC_BASE) || (ulPort == GPIO_PORTC_AHB_BASE) ||
-           (ulPort == GPIO_PORTD_BASE) || (ulPort == GPIO_PORTD_AHB_BASE) ||
-           (ulPort == GPIO_PORTE_BASE) || (ulPort == GPIO_PORTE_AHB_BASE) ||
-           (ulPort == GPIO_PORTF_BASE) || (ulPort == GPIO_PORTF_AHB_BASE) ||
-           (ulPort == GPIO_PORTG_BASE) || (ulPort == GPIO_PORTG_AHB_BASE) ||
-           (ulPort == GPIO_PORTH_BASE) || (ulPort == GPIO_PORTH_AHB_BASE));
+    ASSERT(GPIOBaseValid(ulPort));
 
     //
     // Return the interrupt status.
@@ -689,14 +681,7 @@ GPIOPinIntClear(unsigned long ulPort, unsigned char ucPins)
     //
     // Check the arguments.
     //
-    ASSERT((ulPort == GPIO_PORTA_BASE) || (ulPort == GPIO_PORTA_AHB_BASE) ||
-           (ulPort == GPIO_PORTB_BASE) || (ulPort == GPIO_PORTB_AHB_BASE) ||
-           (ulPort == GPIO_PORTC_BASE) || (ulPort == GPIO_PORTC_AHB_BASE) ||
-           (ulPort == GPIO_PORTD_BASE) || (ulPort == GPIO_PORTD_AHB_BASE) ||
-           (ulPort == GPIO_PORTE_BASE) || (ulPort == GPIO_PORTE_AHB_BASE) ||
-           (ulPort == GPIO_PORTF_BASE) || (ulPort == GPIO_PORTF_AHB_BASE) ||
-           (ulPort == GPIO_PORTG_BASE) || (ulPort == GPIO_PORTG_AHB_BASE) ||
-           (ulPort == GPIO_PORTH_BASE) || (ulPort == GPIO_PORTH_AHB_BASE));
+    ASSERT(GPIOBaseValid(ulPort));
 
     //
     // Clear the interrupts.
@@ -730,14 +715,7 @@ GPIOPortIntRegister(unsigned long ulPort, void (*pfnIntHandler)(void))
     //
     // Check the arguments.
     //
-    ASSERT((ulPort == GPIO_PORTA_BASE) || (ulPort == GPIO_PORTA_AHB_BASE) ||
-           (ulPort == GPIO_PORTB_BASE) || (ulPort == GPIO_PORTB_AHB_BASE) ||
-           (ulPort == GPIO_PORTC_BASE) || (ulPort == GPIO_PORTC_AHB_BASE) ||
-           (ulPort == GPIO_PORTD_BASE) || (ulPort == GPIO_PORTD_AHB_BASE) ||
-           (ulPort == GPIO_PORTE_BASE) || (ulPort == GPIO_PORTE_AHB_BASE) ||
-           (ulPort == GPIO_PORTF_BASE) || (ulPort == GPIO_PORTF_AHB_BASE) ||
-           (ulPort == GPIO_PORTG_BASE) || (ulPort == GPIO_PORTG_AHB_BASE) ||
-           (ulPort == GPIO_PORTH_BASE) || (ulPort == GPIO_PORTH_AHB_BASE));
+    ASSERT(GPIOBaseValid(ulPort));
 
     //
     // Get the interrupt number associated with the specified GPIO.
@@ -778,14 +756,7 @@ GPIOPortIntUnregister(unsigned long ulPort)
     //
     // Check the arguments.
     //
-    ASSERT((ulPort == GPIO_PORTA_BASE) || (ulPort == GPIO_PORTA_AHB_BASE) ||
-           (ulPort == GPIO_PORTB_BASE) || (ulPort == GPIO_PORTB_AHB_BASE) ||
-           (ulPort == GPIO_PORTC_BASE) || (ulPort == GPIO_PORTC_AHB_BASE) ||
-           (ulPort == GPIO_PORTD_BASE) || (ulPort == GPIO_PORTD_AHB_BASE) ||
-           (ulPort == GPIO_PORTE_BASE) || (ulPort == GPIO_PORTE_AHB_BASE) ||
-           (ulPort == GPIO_PORTF_BASE) || (ulPort == GPIO_PORTF_AHB_BASE) ||
-           (ulPort == GPIO_PORTG_BASE) || (ulPort == GPIO_PORTG_AHB_BASE) ||
-           (ulPort == GPIO_PORTH_BASE) || (ulPort == GPIO_PORTH_AHB_BASE));
+    ASSERT(GPIOBaseValid(ulPort));
 
     //
     // Get the interrupt number associated with the specified GPIO.
@@ -830,14 +801,7 @@ GPIOPinRead(unsigned long ulPort, unsigned char ucPins)
     //
     // Check the arguments.
     //
-    ASSERT((ulPort == GPIO_PORTA_BASE) || (ulPort == GPIO_PORTA_AHB_BASE) ||
-           (ulPort == GPIO_PORTB_BASE) || (ulPort == GPIO_PORTB_AHB_BASE) ||
-           (ulPort == GPIO_PORTC_BASE) || (ulPort == GPIO_PORTC_AHB_BASE) ||
-           (ulPort == GPIO_PORTD_BASE) || (ulPort == GPIO_PORTD_AHB_BASE) ||
-           (ulPort == GPIO_PORTE_BASE) || (ulPort == GPIO_PORTE_AHB_BASE) ||
-           (ulPort == GPIO_PORTF_BASE) || (ulPort == GPIO_PORTF_AHB_BASE) ||
-           (ulPort == GPIO_PORTG_BASE) || (ulPort == GPIO_PORTG_AHB_BASE) ||
-           (ulPort == GPIO_PORTH_BASE) || (ulPort == GPIO_PORTH_AHB_BASE));
+    ASSERT(GPIOBaseValid(ulPort));
 
     //
     // Return the pin value(s).
@@ -869,14 +833,7 @@ GPIOPinWrite(unsigned long ulPort, unsigned char ucPins, unsigned char ucVal)
     //
     // Check the arguments.
     //
-    ASSERT((ulPort == GPIO_PORTA_BASE) || (ulPort == GPIO_PORTA_AHB_BASE) ||
-           (ulPort == GPIO_PORTB_BASE) || (ulPort == GPIO_PORTB_AHB_BASE) ||
-           (ulPort == GPIO_PORTC_BASE) || (ulPort == GPIO_PORTC_AHB_BASE) ||
-           (ulPort == GPIO_PORTD_BASE) || (ulPort == GPIO_PORTD_AHB_BASE) ||
-           (ulPort == GPIO_PORTE_BASE) || (ulPort == GPIO_PORTE_AHB_BASE) ||
-           (ulPort == GPIO_PORTF_BASE) || (ulPort == GPIO_PORTF_AHB_BASE) ||
-           (ulPort == GPIO_PORTG_BASE) || (ulPort == GPIO_PORTG_AHB_BASE) ||
-           (ulPort == GPIO_PORTH_BASE) || (ulPort == GPIO_PORTH_AHB_BASE));
+    ASSERT(GPIOBaseValid(ulPort));
 
     //
     // Write the pins.
@@ -911,14 +868,7 @@ GPIOPinTypeADC(unsigned long ulPort, unsigned char ucPins)
     //
     // Check the arguments.
     //
-    ASSERT((ulPort == GPIO_PORTA_BASE) || (ulPort == GPIO_PORTA_AHB_BASE) ||
-           (ulPort == GPIO_PORTB_BASE) || (ulPort == GPIO_PORTB_AHB_BASE) ||
-           (ulPort == GPIO_PORTC_BASE) || (ulPort == GPIO_PORTC_AHB_BASE) ||
-           (ulPort == GPIO_PORTD_BASE) || (ulPort == GPIO_PORTD_AHB_BASE) ||
-           (ulPort == GPIO_PORTE_BASE) || (ulPort == GPIO_PORTE_AHB_BASE) ||
-           (ulPort == GPIO_PORTF_BASE) || (ulPort == GPIO_PORTF_AHB_BASE) ||
-           (ulPort == GPIO_PORTG_BASE) || (ulPort == GPIO_PORTG_AHB_BASE) ||
-           (ulPort == GPIO_PORTH_BASE) || (ulPort == GPIO_PORTH_AHB_BASE));
+    ASSERT(GPIOBaseValid(ulPort));
 
     //
     // Make the pin(s) be inputs.
@@ -929,7 +879,6 @@ GPIOPinTypeADC(unsigned long ulPort, unsigned char ucPins)
     // Set the pad(s) for analog operation.
     //
     GPIOPadConfigSet(ulPort, ucPins, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_ANALOG);
-
 }
 
 //*****************************************************************************
@@ -960,14 +909,7 @@ GPIOPinTypeCAN(unsigned long ulPort, unsigned char ucPins)
     //
     // Check the arguments.
     //
-    ASSERT((ulPort == GPIO_PORTA_BASE) || (ulPort == GPIO_PORTA_AHB_BASE) ||
-           (ulPort == GPIO_PORTB_BASE) || (ulPort == GPIO_PORTB_AHB_BASE) ||
-           (ulPort == GPIO_PORTC_BASE) || (ulPort == GPIO_PORTC_AHB_BASE) ||
-           (ulPort == GPIO_PORTD_BASE) || (ulPort == GPIO_PORTD_AHB_BASE) ||
-           (ulPort == GPIO_PORTE_BASE) || (ulPort == GPIO_PORTE_AHB_BASE) ||
-           (ulPort == GPIO_PORTF_BASE) || (ulPort == GPIO_PORTF_AHB_BASE) ||
-           (ulPort == GPIO_PORTG_BASE) || (ulPort == GPIO_PORTG_AHB_BASE) ||
-           (ulPort == GPIO_PORTH_BASE) || (ulPort == GPIO_PORTH_AHB_BASE));
+    ASSERT(GPIOBaseValid(ulPort));
 
     //
     // Make the pin(s) be inputs.
@@ -1007,14 +949,7 @@ GPIOPinTypeComparator(unsigned long ulPort, unsigned char ucPins)
     //
     // Check the arguments.
     //
-    ASSERT((ulPort == GPIO_PORTA_BASE) || (ulPort == GPIO_PORTA_AHB_BASE) ||
-           (ulPort == GPIO_PORTB_BASE) || (ulPort == GPIO_PORTB_AHB_BASE) ||
-           (ulPort == GPIO_PORTC_BASE) || (ulPort == GPIO_PORTC_AHB_BASE) ||
-           (ulPort == GPIO_PORTD_BASE) || (ulPort == GPIO_PORTD_AHB_BASE) ||
-           (ulPort == GPIO_PORTE_BASE) || (ulPort == GPIO_PORTE_AHB_BASE) ||
-           (ulPort == GPIO_PORTF_BASE) || (ulPort == GPIO_PORTF_AHB_BASE) ||
-           (ulPort == GPIO_PORTG_BASE) || (ulPort == GPIO_PORTG_AHB_BASE) ||
-           (ulPort == GPIO_PORTH_BASE) || (ulPort == GPIO_PORTH_AHB_BASE));
+    ASSERT(GPIOBaseValid(ulPort));
 
     //
     // Make the pin(s) be inputs.
@@ -1052,14 +987,7 @@ GPIOPinTypeGPIOInput(unsigned long ulPort, unsigned char ucPins)
     //
     // Check the arguments.
     //
-    ASSERT((ulPort == GPIO_PORTA_BASE) || (ulPort == GPIO_PORTA_AHB_BASE) ||
-           (ulPort == GPIO_PORTB_BASE) || (ulPort == GPIO_PORTB_AHB_BASE) ||
-           (ulPort == GPIO_PORTC_BASE) || (ulPort == GPIO_PORTC_AHB_BASE) ||
-           (ulPort == GPIO_PORTD_BASE) || (ulPort == GPIO_PORTD_AHB_BASE) ||
-           (ulPort == GPIO_PORTE_BASE) || (ulPort == GPIO_PORTE_AHB_BASE) ||
-           (ulPort == GPIO_PORTF_BASE) || (ulPort == GPIO_PORTF_AHB_BASE) ||
-           (ulPort == GPIO_PORTG_BASE) || (ulPort == GPIO_PORTG_AHB_BASE) ||
-           (ulPort == GPIO_PORTH_BASE) || (ulPort == GPIO_PORTH_AHB_BASE));
+    ASSERT(GPIOBaseValid(ulPort));
 
     //
     // Make the pin(s) be inputs.
@@ -1097,14 +1025,7 @@ GPIOPinTypeGPIOOutput(unsigned long ulPort, unsigned char ucPins)
     //
     // Check the arguments.
     //
-    ASSERT((ulPort == GPIO_PORTA_BASE) || (ulPort == GPIO_PORTA_AHB_BASE) ||
-           (ulPort == GPIO_PORTB_BASE) || (ulPort == GPIO_PORTB_AHB_BASE) ||
-           (ulPort == GPIO_PORTC_BASE) || (ulPort == GPIO_PORTC_AHB_BASE) ||
-           (ulPort == GPIO_PORTD_BASE) || (ulPort == GPIO_PORTD_AHB_BASE) ||
-           (ulPort == GPIO_PORTE_BASE) || (ulPort == GPIO_PORTE_AHB_BASE) ||
-           (ulPort == GPIO_PORTF_BASE) || (ulPort == GPIO_PORTF_AHB_BASE) ||
-           (ulPort == GPIO_PORTG_BASE) || (ulPort == GPIO_PORTG_AHB_BASE) ||
-           (ulPort == GPIO_PORTH_BASE) || (ulPort == GPIO_PORTH_AHB_BASE));
+    ASSERT(GPIOBaseValid(ulPort));
 
     //
     // Make the pin(s) be outputs.
@@ -1142,14 +1063,7 @@ GPIOPinTypeGPIOOutputOD(unsigned long ulPort, unsigned char ucPins)
     //
     // Check the arguments.
     //
-    ASSERT((ulPort == GPIO_PORTA_BASE) || (ulPort == GPIO_PORTA_AHB_BASE) ||
-           (ulPort == GPIO_PORTB_BASE) || (ulPort == GPIO_PORTB_AHB_BASE) ||
-           (ulPort == GPIO_PORTC_BASE) || (ulPort == GPIO_PORTC_AHB_BASE) ||
-           (ulPort == GPIO_PORTD_BASE) || (ulPort == GPIO_PORTD_AHB_BASE) ||
-           (ulPort == GPIO_PORTE_BASE) || (ulPort == GPIO_PORTE_AHB_BASE) ||
-           (ulPort == GPIO_PORTF_BASE) || (ulPort == GPIO_PORTF_AHB_BASE) ||
-           (ulPort == GPIO_PORTG_BASE) || (ulPort == GPIO_PORTG_AHB_BASE) ||
-           (ulPort == GPIO_PORTH_BASE) || (ulPort == GPIO_PORTH_AHB_BASE));
+    ASSERT(GPIOBaseValid(ulPort));
 
     //
     // Make the pin(s) be outputs.
@@ -1189,14 +1103,7 @@ GPIOPinTypeI2C(unsigned long ulPort, unsigned char ucPins)
     //
     // Check the arguments.
     //
-    ASSERT((ulPort == GPIO_PORTA_BASE) || (ulPort == GPIO_PORTA_AHB_BASE) ||
-           (ulPort == GPIO_PORTB_BASE) || (ulPort == GPIO_PORTB_AHB_BASE) ||
-           (ulPort == GPIO_PORTC_BASE) || (ulPort == GPIO_PORTC_AHB_BASE) ||
-           (ulPort == GPIO_PORTD_BASE) || (ulPort == GPIO_PORTD_AHB_BASE) ||
-           (ulPort == GPIO_PORTE_BASE) || (ulPort == GPIO_PORTE_AHB_BASE) ||
-           (ulPort == GPIO_PORTF_BASE) || (ulPort == GPIO_PORTF_AHB_BASE) ||
-           (ulPort == GPIO_PORTG_BASE) || (ulPort == GPIO_PORTG_AHB_BASE) ||
-           (ulPort == GPIO_PORTH_BASE) || (ulPort == GPIO_PORTH_AHB_BASE));
+    ASSERT(GPIOBaseValid(ulPort));
 
     //
     // Make the pin(s) be peripheral controlled.
@@ -1237,14 +1144,7 @@ GPIOPinTypePWM(unsigned long ulPort, unsigned char ucPins)
     //
     // Check the arguments.
     //
-    ASSERT((ulPort == GPIO_PORTA_BASE) || (ulPort == GPIO_PORTA_AHB_BASE) ||
-           (ulPort == GPIO_PORTB_BASE) || (ulPort == GPIO_PORTB_AHB_BASE) ||
-           (ulPort == GPIO_PORTC_BASE) || (ulPort == GPIO_PORTC_AHB_BASE) ||
-           (ulPort == GPIO_PORTD_BASE) || (ulPort == GPIO_PORTD_AHB_BASE) ||
-           (ulPort == GPIO_PORTE_BASE) || (ulPort == GPIO_PORTE_AHB_BASE) ||
-           (ulPort == GPIO_PORTF_BASE) || (ulPort == GPIO_PORTF_AHB_BASE) ||
-           (ulPort == GPIO_PORTG_BASE) || (ulPort == GPIO_PORTG_AHB_BASE) ||
-           (ulPort == GPIO_PORTH_BASE) || (ulPort == GPIO_PORTH_AHB_BASE));
+    ASSERT(GPIOBaseValid(ulPort));
 
     //
     // Make the pin(s) be peripheral controlled.
@@ -1285,14 +1185,7 @@ GPIOPinTypeQEI(unsigned long ulPort, unsigned char ucPins)
     //
     // Check the arguments.
     //
-    ASSERT((ulPort == GPIO_PORTA_BASE) || (ulPort == GPIO_PORTA_AHB_BASE) ||
-           (ulPort == GPIO_PORTB_BASE) || (ulPort == GPIO_PORTB_AHB_BASE) ||
-           (ulPort == GPIO_PORTC_BASE) || (ulPort == GPIO_PORTC_AHB_BASE) ||
-           (ulPort == GPIO_PORTD_BASE) || (ulPort == GPIO_PORTD_AHB_BASE) ||
-           (ulPort == GPIO_PORTE_BASE) || (ulPort == GPIO_PORTE_AHB_BASE) ||
-           (ulPort == GPIO_PORTF_BASE) || (ulPort == GPIO_PORTF_AHB_BASE) ||
-           (ulPort == GPIO_PORTG_BASE) || (ulPort == GPIO_PORTG_AHB_BASE) ||
-           (ulPort == GPIO_PORTH_BASE) || (ulPort == GPIO_PORTH_AHB_BASE));
+    ASSERT(GPIOBaseValid(ulPort));
 
     //
     // Make the pin(s) be peripheral controlled.
@@ -1333,14 +1226,7 @@ GPIOPinTypeSSI(unsigned long ulPort, unsigned char ucPins)
     //
     // Check the arguments.
     //
-    ASSERT((ulPort == GPIO_PORTA_BASE) || (ulPort == GPIO_PORTA_AHB_BASE) ||
-           (ulPort == GPIO_PORTB_BASE) || (ulPort == GPIO_PORTB_AHB_BASE) ||
-           (ulPort == GPIO_PORTC_BASE) || (ulPort == GPIO_PORTC_AHB_BASE) ||
-           (ulPort == GPIO_PORTD_BASE) || (ulPort == GPIO_PORTD_AHB_BASE) ||
-           (ulPort == GPIO_PORTE_BASE) || (ulPort == GPIO_PORTE_AHB_BASE) ||
-           (ulPort == GPIO_PORTF_BASE) || (ulPort == GPIO_PORTF_AHB_BASE) ||
-           (ulPort == GPIO_PORTG_BASE) || (ulPort == GPIO_PORTG_AHB_BASE) ||
-           (ulPort == GPIO_PORTH_BASE) || (ulPort == GPIO_PORTH_AHB_BASE));
+    ASSERT(GPIOBaseValid(ulPort));
 
     //
     // Make the pin(s) be peripheral controlled.
@@ -1381,14 +1267,7 @@ GPIOPinTypeTimer(unsigned long ulPort, unsigned char ucPins)
     //
     // Check the arguments.
     //
-    ASSERT((ulPort == GPIO_PORTA_BASE) || (ulPort == GPIO_PORTA_AHB_BASE) ||
-           (ulPort == GPIO_PORTB_BASE) || (ulPort == GPIO_PORTB_AHB_BASE) ||
-           (ulPort == GPIO_PORTC_BASE) || (ulPort == GPIO_PORTC_AHB_BASE) ||
-           (ulPort == GPIO_PORTD_BASE) || (ulPort == GPIO_PORTD_AHB_BASE) ||
-           (ulPort == GPIO_PORTE_BASE) || (ulPort == GPIO_PORTE_AHB_BASE) ||
-           (ulPort == GPIO_PORTF_BASE) || (ulPort == GPIO_PORTF_AHB_BASE) ||
-           (ulPort == GPIO_PORTG_BASE) || (ulPort == GPIO_PORTG_AHB_BASE) ||
-           (ulPort == GPIO_PORTH_BASE) || (ulPort == GPIO_PORTH_AHB_BASE));
+    ASSERT(GPIOBaseValid(ulPort));
 
     //
     // Make the pin(s) be peripheral controlled.
@@ -1429,14 +1308,7 @@ GPIOPinTypeUART(unsigned long ulPort, unsigned char ucPins)
     //
     // Check the arguments.
     //
-    ASSERT((ulPort == GPIO_PORTA_BASE) || (ulPort == GPIO_PORTA_AHB_BASE) ||
-           (ulPort == GPIO_PORTB_BASE) || (ulPort == GPIO_PORTB_AHB_BASE) ||
-           (ulPort == GPIO_PORTC_BASE) || (ulPort == GPIO_PORTC_AHB_BASE) ||
-           (ulPort == GPIO_PORTD_BASE) || (ulPort == GPIO_PORTD_AHB_BASE) ||
-           (ulPort == GPIO_PORTE_BASE) || (ulPort == GPIO_PORTE_AHB_BASE) ||
-           (ulPort == GPIO_PORTF_BASE) || (ulPort == GPIO_PORTF_AHB_BASE) ||
-           (ulPort == GPIO_PORTG_BASE) || (ulPort == GPIO_PORTG_AHB_BASE) ||
-           (ulPort == GPIO_PORTH_BASE) || (ulPort == GPIO_PORTH_AHB_BASE));
+    ASSERT(GPIOBaseValid(ulPort));
 
     //
     // Make the pin(s) be peripheral controlled.
@@ -1453,13 +1325,17 @@ GPIOPinTypeUART(unsigned long ulPort, unsigned char ucPins)
 //
 //! Configures pin(s) for use by the USB peripheral.
 //!
-//! \param ulPort is the base address of the USB port.
+//! \param ulPort is the base address of the GPIO port.
 //! \param ucPins is the bit-packed representation of the pin(s).
 //!
-//! Some USB pins must be properly configured for the USB peripheral to
+//! Some USB digital pins must be properly configured for the USB peripheral to
 //! function correctly.  This function provides a typical configuration for
 //! the digital USB pin(s); other configurations may work as well depending
 //! upon the board setup (for example, using the on-chip pull-ups).
+//!
+//! This function should only be used with EPEN and PFAULT pins as all other
+//! USB pins are analog in nature or are not used in devices without OTG
+//! functionality.
 //!
 //! The pin(s) are specified using a bit-packed byte, where each bit that is
 //! set identifies the pin to be accessed, and where bit 0 of the byte
@@ -1477,14 +1353,7 @@ GPIOPinTypeUSBDigital(unsigned long ulPort, unsigned char ucPins)
     //
     // Check the arguments.
     //
-    ASSERT((ulPort == GPIO_PORTA_BASE) || (ulPort == GPIO_PORTA_AHB_BASE) ||
-           (ulPort == GPIO_PORTB_BASE) || (ulPort == GPIO_PORTB_AHB_BASE) ||
-           (ulPort == GPIO_PORTC_BASE) || (ulPort == GPIO_PORTC_AHB_BASE) ||
-           (ulPort == GPIO_PORTD_BASE) || (ulPort == GPIO_PORTD_AHB_BASE) ||
-           (ulPort == GPIO_PORTE_BASE) || (ulPort == GPIO_PORTE_AHB_BASE) ||
-           (ulPort == GPIO_PORTF_BASE) || (ulPort == GPIO_PORTF_AHB_BASE) ||
-           (ulPort == GPIO_PORTG_BASE) || (ulPort == GPIO_PORTG_AHB_BASE) ||
-           (ulPort == GPIO_PORTH_BASE) || (ulPort == GPIO_PORTH_AHB_BASE));
+    ASSERT(GPIOBaseValid(ulPort));
 
     //
     // Make the pin(s) be peripheral controlled.
@@ -1495,6 +1364,149 @@ GPIOPinTypeUSBDigital(unsigned long ulPort, unsigned char ucPins)
     // Set the pad(s) for standard push-pull operation.
     //
     GPIOPadConfigSet(ulPort, ucPins, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD);
+}
+
+//*****************************************************************************
+//
+//! Configures pin(s) for use by the USB peripheral.
+//!
+//! \param ulPort is the base address of the GPIO port.
+//! \param ucPins is the bit-packed representation of the pin(s).
+//!
+//! Some USB analog pins must be properly configured for the USB peripheral to
+//! function correctly.  This function provides the proper configuration for
+//! any USB pin(s).  This can also be used to configure the EPEN and PFAULT pins
+//! so that they are no longer used by the USB controller.
+//!
+//! The pin(s) are specified using a bit-packed byte, where each bit that is
+//! set identifies the pin to be accessed, and where bit 0 of the byte
+//! represents GPIO port pin 0, bit 1 represents GPIO port pin 1, and so on.
+//!
+//! \note This cannot be used to turn any pin into a USB pin; it only
+//! configures a USB pin for proper operation.
+//!
+//! \return None.
+//
+//*****************************************************************************
+void
+GPIOPinTypeUSBAnalog(unsigned long ulPort, unsigned char ucPins)
+{
+    //
+    // Check the arguments.
+    //
+    ASSERT(GPIOBaseValid(ulPort));
+
+    //
+    // Make the pin(s) be inputs.
+    //
+    GPIODirModeSet(ulPort, ucPins, GPIO_DIR_MODE_IN);
+
+    //
+    // Set the pad(s) for analog operation.
+    //
+    GPIOPadConfigSet(ulPort, ucPins, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_ANALOG);
+}
+
+//*****************************************************************************
+//
+//! Configures pin(s) for use by the I2S peripheral.
+//!
+//! \param ulPort is the base address of the GPIO port.
+//! \param ucPins is the bit-packed representation of the pin(s).
+//!
+//! Some I2S pins must be properly configured for the I2S peripheral to
+//! function correctly.  This function provides a typical configuration for
+//! the digital I2S pin(s); other configurations may work as well depending
+//! upon the board setup (for example, using the on-chip pull-ups).
+//!
+//! The pin(s) are specified using a bit-packed byte, where each bit that is
+//! set identifies the pin to be accessed, and where bit 0 of the byte
+//! represents GPIO port pin 0, bit 1 represents GPIO port pin 1, and so on.
+//!
+//! \note This cannot be used to turn any pin into a I2S pin; it only
+//! configures a I2S pin for proper operation.
+//!
+//! \return None.
+//
+//*****************************************************************************
+void
+GPIOPinTypeI2S(unsigned long ulPort, unsigned char ucPins)
+{
+    //
+    // Check the arguments.
+    //
+    ASSERT(GPIOBaseValid(ulPort));
+
+    //
+    // Make the pin(s) be peripheral controlled.
+    //
+    GPIODirModeSet(ulPort, ucPins, GPIO_DIR_MODE_HW);
+
+    //
+    // Set the pad(s) for standard push-pull operation.
+    //
+    GPIOPadConfigSet(ulPort, ucPins, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD);
+}
+
+//*****************************************************************************
+//
+//! Configures the alternate function of a GPIO pin.
+//!
+//! \param ulPinConfig is the pin configuration value, specified as one of the
+//! \b GPIO_P??_??? values.
+//!
+//! This function configures the pin mux that selects the peripheral function
+//! associated with a particular GPIO pin.  Only one peripheral function at a
+//! time can be associated with a GPIO pin, and each peripheral function should
+//! only be associated with a single GPIO pin at a time (despite the fact that
+//! many of them can be associated with more than one GPIO pin).
+//!
+//! \note This function is only valid on Tempest-class devices.
+//!
+//! \return None.
+//
+//*****************************************************************************
+void
+GPIOPinConfigure(unsigned long ulPinConfig)
+{
+    unsigned long ulBase, ulShift;
+
+    //
+    // Check the argument.
+    //
+    ASSERT(((ulPinConfig >> 16) & 0xff) < 9);
+    ASSERT(((ulPinConfig >> 8) & 0xe3) == 0);
+
+    //
+    // Extract the base address index from the input value.
+    //
+    ulBase = (ulPinConfig >> 16) & 0xff;
+
+    //
+    // Get the base address of the GPIO module, selecting either the APB or the
+    // AHB aperture as appropriate.
+    //
+    if(HWREG(SYSCTL_GPIOHSCTL) & (1 << ulBase))
+    {
+        ulBase = g_pulGPIOBaseAddrs[(ulBase << 1) + 1];
+    }
+    else
+    {
+        ulBase = g_pulGPIOBaseAddrs[ulBase << 1];
+    }
+
+    //
+    // Extract the shift from the input value.
+    //
+    ulShift = (ulPinConfig >> 8) & 0xff;
+
+    //
+    // Write the requested pin muxing value for this GPIO pin.
+    //
+    HWREG(ulBase + GPIO_O_PCTL) = ((HWREG(ulBase + GPIO_O_PCTL) &
+                                    ~(0xf << ulShift)) |
+                                   ((ulPinConfig & 0xf) << ulShift));
+
 }
 
 //*****************************************************************************

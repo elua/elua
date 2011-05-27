@@ -7,16 +7,27 @@ ldscript = "i386.ld"
 specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )
 ldscript = "src/platform/%s/%s" % ( platform, ldscript )
 
+
+# Standard GCC Flags
+comp.Append(CCFLAGS = ['-ffunction-sections','-fdata-sections','-fno-strict-aliasing','-Wall'])
+comp.Append(LINKFLAGS = ['-nostartfiles','-nostdlib','-T',ldscript,'-Wl,--gc-sections','-Wl,--allow-multiple-definition'])
+#comp.Append(ASFLAGS = ['-x','assembler-with-cpp','-c','-Wall','$_CPPDEFFLAGS'])
+comp.Append(LIBS = ['c','gcc','m'])
+
+TARGET_FLAGS = ['-march=i386','-mfpmath=387','-m32']
+
+comp.Prepend(CCFLAGS = [TARGET_FLAGS,'-fno-builtin','-fno-stack-protector'])
+comp.Prepend(LINKFLAGS = [TARGET_FLAGS,'-Wl,-e,start'])
+comp['AS'] = toolset[ 'asm' ]  # Need to force toolset
+comp.Prepend(ASFLAGS = ['-felf'])
+
 # Toolset data
 tools[ 'i386' ] = {}
-tools[ 'i386' ][ 'cccom' ] = "i686-elf-gcc %s %s -march=i386 -mfpmath=387 -m32 -ffunction-sections -fdata-sections -fno-builtin -fno-stack-protector %s -Wall -c $SOURCE -o $TARGET" % ( opt, local_include, cdefs )
-tools[ 'i386' ][ 'linkcom' ] = "i686-elf-gcc -nostartfiles -nostdlib -march=i386 -mfpmath=387 -m32 -T %s -Wl,--gc-sections -Wl,-e,start -Wl,--allow-multiple-definition -o $TARGET $SOURCES -lc -lgcc -lm %s" % ( ldscript, local_libs )
-tools[ 'i386' ][ 'ascom' ] = "nasm -felf $SOURCE"
 
 # Programming function for i386 (not needed, empty function)
 def progfunc_i386( target, source, env ):
   outname = output + ".elf"
-  os.system( "i686-elf-size %s" % outname )
-  print "Visit http://elua.berlios.de for instructions on how to use your eLua ELF file"
+  os.system( "%s %s" % ( toolset[ 'size' ], outname ) )
+  print "Visit http://www.eluaproject.net for instructions on how to use your eLua ELF file"
   
 tools[ 'i386' ][ 'progfunc' ] = progfunc_i386

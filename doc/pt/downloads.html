@@ -1,0 +1,177 @@
+$$HEADER$$
+<h3>Baixando eLua</h3>
+<p>Existem algumas opções para você fazer o download de <b>eLua</b>:</p>
+<ul>
+  <li>download do arquivo de imagem binário de <b>eLua</b> para a sua plataforma escolhida. Imagens binárias são fornecidas a cada lançamento de versão oficial e também para algumas aplicações específicas (ex: jogos). Esta é geralmente a melhor opção caso você tenha uma placa que é oficialmente suportada por <b>eLua</b> (veja <a href="status.html">aqui</a> para mais detalhes) e você quer ter <b>eLua</b> instalada e funcionando em sua placa o mais rápido possível.</li>
+  <li>download do código-fonte para a geração de <b>eLua</b>. Você pode tanto baixar o código fonte de uma versão oficial ou obter
+  a versão em desenvolvimento do repositório SVN. Baixe o código fonte em vez de uma imagem binária, caso você precise fazer ajustes no código fonte para suportar sua placa ou se você quiser personalizar a imagem de <b>eLua</b>, ou ainda se você simplesmente quer dar uma olhada no que acontece por trás do prompt <i>eLua# </i> :)</li>
+</ul>
+<a name="binaries" /><h3>Imagens Binárias</h3>
+<p>Imagens binárias  de <b>eLua</b> podem ser baixadas para a gravação
+direta nas diversas plataformas suportadas. Estão disponíveis aqui apenas as
+imagens da última versão oficial de <b>eLua</b>. Caso você precise baixar uma imagem de uma versão mais antiga visite <a href="dl_old.html">esta página</a>.
+</p>
+<p>
+Escolha o arquivo correspondente à sua plataforma na tabela abaixo, grave-o em sua placa, ligue um terminal serial (ou ethernet se sua placa aceitar) e aproveite <b>eLua</b>. 
+Observe que tanto os <b>arquivos binários</b> quanto a distribuição do código fonte de <b>eLua</b> incluem alguns programas de
+exemplos. Sendo assim, você poderá rodar programas e jogar (sim, nós temos jogos também! :), seguindo as instruções na nossa página <a href="using.html">Usando eLua</a>. 
+Os programas de exemplos disponíveis estão descritos na nossa <a href="examples.html">página de exemplos</a>.
+</p>
+<p>Se você precisa de uma imagem binária personalizada para uma plataforma já suportada (por exemplo, com um programa de execução automática
+(autorun), com algum código específico criado por você já incluído no sistema, com as configurações da sua rede IP etc...) 
+e as <a href="building.html">instruções para a geração eLua</a> não foram
+suficientes para você, sinta-se a vontade para <a href="overview.html#contacts">escrever-nos</a> explicando o que você precisa exatamente. 
+Tentaremos assim encontrar algum tempo para gerar uma imagem para você e, eventualmente, também disponibilizá-la aqui.
+Para entender como é feita a formação de um nome de arquivo (por exemplo <i>elua_lualong_lm3s8962.bin</i>) consulte nossa página <a href="building.html">Gerando eLua</a>.
+</p>
+<table class="table_center">
+<tbody>
+<tr>
+<th>Versão</th>
+<th>MCU</th>
+<th>Placa</th>
+<th>Tipo Num. Lua</th>
+<th>arquivo imagem</th>
+</tr>
+<tr>
+<td>0.6</td>
+<td><a href="http://www.atmel.com/dyn/products/Product_card.asp?part_id=3755">AT91SAM7X256</a></td>
+<td><a href="http://www.olimex.com/dev/sam7-ex256.html">SAM7-EX256</a></td>
+<td>double</td>
+<td><a href="http://prdownload.berlios.de/elua/elua0.6_lua_at91sam7x256.bin">elua0.6_lua_at91sam7x256.bin</a></td>
+</tr>
+<tr>
+<td>0.6</td>
+<td><a href="http://www.atmel.com/dyn/products/Product_card.asp?part_id=4104">AT91SAM7X512</a></td>
+<td>None</td>
+<td>double</td>
+<td><a href="http://prdownload.berlios.de/elua/elua0.6_lua_at91sam7x512.bin">elua0.6_lua_at91sam7x512.bin</a></td>
+</tr>
+<tr>
+<td>0.6</td>
+<td><a href="http://www.intel.com">i386 (generic)</a></td>
+<td>PCs/emulators</td>
+<td>double</td>
+<td><a href="http://prdownload.berlios.de/elua/elua0.6_lua_i386.elf">elua0.6_lua_i386.elf</a></td>
+</tr>
+<tr>
+<td>0.6</td>
+<td><a href="http://www.luminarymicro.com/products/lm3s6965.html">LM3S6965</a></td>
+<td><a href="http://www.luminarymicro.com/products/lm3s6965_ethernet_evaluation_kit.html">EKx-LM3S6965</a></td>
+<td>double</td>
+<td><a href="http://prdownload.berlios.de/elua/elua0.6_lua_lm3s6965.bin">elua0.6_lua_lm3s6965.bin</a></td>
+</tr>
+<tr>
+<td>0.6</td>
+<td><a href="http://www.luminarymicro.com/products/LM3S8962.html">LM3S8962</a></td>
+<td><a href="http://www.luminarymicro.com/products/lm3s8962_can_ethernet_evaluation_kit.html">EKx-LM3S8962</a></td>
+<td>double</td>
+<td><a href="http://prdownload.berlios.de/elua/elua0.6_lua_lm3s8962.bin">elua0.6_lua_lm3s8962.bin</a></td>
+</tr>
+<tr>
+<td>0.6</td>
+<td><a href="http://www.standardics.nxp.com/microcontrollers/to/pip/LPC2880FET180.html">LPC2888</a></td>
+<td><a href="http://www.olimex.com/dev/lpc-h2888.html">LPC-H2888</a></td>
+<td>double</td>
+<td><a href="http://prdownload.berlios.de/elua/elua0.6_lua_lpc2888.bin">elua0.6_lua_lpc2888.bin</a></td>
+</tr>
+<tr>
+<td>0.6</td>
+<td><a href="http://www.st.com/mcu/devicedocs-STR711FR2.html">STR711FR2</a></td>
+<td><a href="http://www.sctec.com.br/content/view/101/30/">MOD711</a></td>
+<td>double</td>
+<td><a href="http://prdownload.berlios.de/elua/elua0.6_lua_str711fr2.bin">elua0.6_lua_str711fr2.bin</a></td>
+</tr>
+<tr>
+<td>0.6</td>
+<td><a href="http://www.st.com/mcu/devicedocs-STR912FAW44-101.html">STR912FAW44</a></td>
+<td><a href="http://www.hitex.com/index.php?id=383">STR9-comStick</a></td>
+<td>double</td>
+<td><a href="http://prdownload.berlios.de/elua/elua0.6_lua_str912fw44.bin">elua0.6_lua_str912fw44.bin</a></td>
+</tr>
+<tr>
+<td>0.6</td>
+<td><a href="http://www.luminarymicro.com/products/LM3S6918.html">LM3S6918</a></td>
+<td><a href="http://www.micromint.com/index.php/SBC/eagle-100.html">Micromint Eagle 100</a></td>
+<td>double</td>
+<td><a href="http://prdownload.berlios.de/elua/elua0.6_lua_lm3s6918.bin">elua0.6_lua_lm3s918.bin</a></td>
+</tr>
+<tr>
+<td>0.6</td>
+<td><a href="http://www.atmel.com/dyn/products/product_card.asp?part_id=4117">AT32UC3A0512</a></td>
+<td><a href="http://www.atmel.com/dyn/Products/tools_card.asp?tool_id=4114">ATEVK1100</a></td>
+<td>double</td>
+<td><a href="http://prdownload.berlios.de/elua/elua0.6_lua_at32uc3a0512.hex">elua0.6_lua_at32uc3a0512.hex</a></td>
+</tr>
+<tr>
+<td>0.6</td>
+<td><a href="http://www.st.com/mcu/devicedocs-STM32F103RE-110.html">STM32F103RE</a></td>
+<td><a href="http://www.futurlec.com/ET-STM32_Stamp.shtml">ET-STM32 Stamp</a></td>
+<td>double</td>
+<td><a href="http://prdownload.berlios.de/elua/elua0.6_lua_stm32f103re.bin">elua0.6_lua_stm32f103re.bin</a></td>
+</tr>
+<tr>
+<td>0.6</td>
+<td><a href="http://www.st.com/mcu/devicedocs-STM32F103ZE-110.html">STM32F103ZE</a></td>
+<td><a href="http://www.st.com/mcu/contentid-100-110-STM3210E_EVAL.html">STM3210E-EVAL</a></td>
+<td>double</td>
+<td><a href="http://prdownload.berlios.de/elua/elua0.6_lua_stm32f103ze.bin">elua0.6_lua_stm32f103ze.bin</a></td>
+</tr>
+</tbody>
+</table>
+<p><b>NOTA:</b> <i>Tipo numérico de Lua</i> refere-se ao tipo numérico do interpretador Lua gerado, ponto-flutuante ou inteiro, como explicado na página <a href="building.html">Gerando eLua</a>.</p>
+<br />
+<br />
+<a name="source" /><h3>Código Fonte</h3>
+<p>Se tudo o que você quer é dar uma espiada no código-fonte de <b>eLua</b>
+sem ter que baixa-lo para sua máquina, você pode utilizar a <a href="http://svn.berlios.de/wsvn/elua">interface BerliOS WebSVN</a>. Você pode dessa maneira navegar através do fonte completo de
+<b>eLua</b>.</p>
+Se realmente você precisa baixar o código fonte de <b>eLua</b>, poderá tanto:</p>
+<ul>
+  <li>Baixar o código-fonte de uma versão oficial</li>
+  <li>Baixar o código-fonte do repositório SVN no modo só de leitura (modo anônimo)</li>
+  <li>Baixar o código-fonte do repositório SVN no modo de gravação (para desenvolvedores)</li>
+</ul>
+<br />
+<br />
+<a name="official" /><h2>Arquivos do código fonte</h2>
+<p>Verifique na tabela abaixo o link de download do código-fonte associado com a última versão oficial de <b>eLua</b>. Se você deseja obter o código fonte de uma versão mais antiga, confira <a href="dl_old.html">esta página</a>.</p>
+<!-- [NEWVER] -->
+<table class="table_center">
+<tbody>
+<tr>
+<th>Version</th>
+<th>Arquivos do código fonte</th>
+</tr>
+<tr>
+<td>0.6</td>
+<td><a href="http://prdownload.berlios.de/elua/elua-0.6.tgz">eLua 0.6</a></td>
+</tr>
+</tbody></table>
+<br />
+<br />
+<a name="svnpublic" /><h2>Repositório público SVN (modo anônimo somente-leitura)</h2>
+<p>Caso você prefira a última versão em desenvolvimento ("bleeding edge"), basta verificar em nosso repositório Subversion da seguinte maneira:</p>
+<pre>$ svn checkout svn://svn.berlios.de/elua/trunk</pre>
+<p>Uma vez feita a verificação, o repositório pode ser facilmente atualizado através do comando:</p>
+<pre>$ svn update</pre>
+<br />
+<br />
+<a name="svndev" /><h2>Repositório público SVN (modo de gravação com login de autenticação, para desenvolvedores)</h2>
+<p>Se você deseja contribuir com código para o projeto, siga os passos abaixo para receber
+autorização de gravação no repositório oficial de <b>eLua</b>:</p>
+<ul>
+  <li>Crie uma conta de acesso ao <a href="http://developer.berlios.de/">developer.berlios.de</a></li>
+  <li><a href="overview.html#contacts">Entre em contato conosco</a>, informando o ID
+  criado e lhe daremos acesso de gravação (commit) ao repositório subversion.</li>
+</ul>
+<p>Como o acesso autenticado ao repositório oficial de <b>eLua</b> é feito
+através de forma segura em protocolo ssh, você precisa criar uma variável de ambiente com seu login name criado no BerliOS:</p>
+<pre>$ export SVN_SSH='ssh -l &lt;yourberliosid&gt;'
+$ svn checkout svn+ssh://svn.berlios.de/svnroot/repos/elua/trunk</pre>
+<p>Uma vêz feito isto, o repositório poderá ser facilmente atualizado com:</p>
+<pre>$ svn update</pre>
+<p>e seu acesso de gravação estará autenticado com:
+<pre>$ svn commit</pre>
+$$FOOTER$$
+

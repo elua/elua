@@ -6,11 +6,14 @@
 #include <sys/stat.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <unistd.h>
 #include "devman.h"
 #include "ioctl.h"
 #include "platform.h"
 #include "platform_conf.h"
 #include "genstd.h"
+#include "utils.h"
+#include "salloc.h"
 
 #ifdef USE_MULTIPLE_ALLOCATOR
 #include "dlmalloc.h"
@@ -125,26 +128,21 @@ int _fstat_r( struct _reent *r, int file, struct stat *st )
 }
 
 // *****************************************************************************
-// ioctl (actually our call, not newlib's)
-static int _ioctl_r( struct _reent *r, int file, unsigned long request, void *ptr )
+// _lseek_r
+off_t _lseek_r( struct _reent *r, int file, off_t off, int whence )
 {
   const DM_DEVICE* pdev;
   
-  // Find device, check ioctl function
+  // Find device, check close function
   pdev = dm_get_device_at( DM_GET_DEVID( file ) );
-  if( pdev->p_ioctl_r == NULL )
+  if( pdev->p_lseek_r == NULL )
   {
     r->_errno = ENOSYS;
     return -1; 
   }
   
-  // And call the ioctl function
-  return pdev->p_ioctl_r( r, DM_GET_FD( file ), request, ptr );  
-}
-
-int ioctl( int file, unsigned long request, void *ptr )
-{
-  return _ioctl_r( _REENT, file, request, ptr );
+  // And call the close function
+  return pdev->p_lseek_r( r, DM_GET_FD( file ), off, whence );
 }
 
 // *****************************************************************************
@@ -183,81 +181,8 @@ _ssize_t _write_r( struct _reent *r, int file, const void *ptr, size_t len )
   return pdev->p_write_r( r, DM_GET_FD( file ), ptr, len );  
 }
 
-// *****************************************************************************
-// _sbrk_r (newlib) / elua_sbrk (multiple)
-static char *heap_ptr; 
-static int mem_index;
-
-#ifdef USE_MULTIPLE_ALLOCATOR
-void* elua_sbrk( ptrdiff_t incr )
-#else
-void* _sbrk_r( struct _reent* r, ptrdiff_t incr )
-#endif
-{
-  void* ptr;
-  
-  // If increment is 0 return the current break   
-  if( incr == 0 )
-    return heap_ptr;
-    
-  // Otherwise ask the platform about our memory space (if needed)
-  // We do this for all our memory spaces
-  while( 1 )
-  {
-    if( heap_ptr == NULL )  
-      heap_ptr = ( char* )platform_get_first_free_ram( mem_index );
-      
-    // If no more memory spaces are available, return with error    
-    if( heap_ptr == NULL )
-    {
-      ptr = ( void* )-1;
-      break;
-    }
-    
-    // Do we have space in the current memory space?
-    if( heap_ptr + incr > ( char* )platform_get_last_free_ram( mem_index ) ) 
-    {
-      // We don't, so try the next memory space
-      heap_ptr = NULL;
-      mem_index ++;
-    }
-    else
-    {
-      // Memory found in the current space
-      ptr = heap_ptr;
-      heap_ptr += incr;
-      break;
-    }
-  }
-  
-  return ptr;
-}  
-
-// *****************************************************************************
-// _lseek_r
-_off_t _lseek_r( struct _reent *r, int file, _off_t ptr, int dir )
-{
-  struct fd_seek seek;
-    
-  seek.off = ptr;
-  seek.dir = dir;
-  
-  if( ioctl( file, FDSEEK, &seek ) < 0 ) 
-    return (_off_t)-1;
-  else
-    return seek.off;
-}
-
-// *****************************************************************************
-// mallinfo()
-struct mallinfo mallinfo()
-{
-#ifdef USE_MULTIPLE_ALLOCATOR
-  return dlmallinfo();
-#else
-  return _mallinfo_r( _REENT );
-#endif
-}
+// ****************************************************************************
+// Miscalenous functions
 
 int _isatty_r( struct _reent* r, int fd )
 {
@@ -321,7 +246,8 @@ int _kill( int pid, int sig )
 }
 #endif
 
-// If LUA_NUMBER_INTEGRAL is defined, "redirect" printf/scanf calls to their integer counterparts
+// If LUA_NUMBER_INTEGRAL is defined, "redirect" printf/scanf calls to their 
+// integer counterparts
 #ifdef LUA_NUMBER_INTEGRAL
 int _vfprintf_r( struct _reent *r, FILE *stream, const char *format, va_list ap )
 {
@@ -335,32 +261,94 @@ int __svfscanf_r( struct _reent *r, FILE *stream, const char *format, va_list ap
 }
 #endif // #ifdef LUA_NUMBER_INTEGRAL
 
-#ifdef USE_MULTIPLE_ALLOCATOR
+// ****************************************************************************
+// Allocator support
 
-// Redirect all allocator calls to our dlmalloc
+// _sbrk_r (newlib) / elua_sbrk (multiple)
+static char *heap_ptr; 
+static int mem_index;
+
+#ifdef USE_MULTIPLE_ALLOCATOR
+void* elua_sbrk( ptrdiff_t incr )
+#else
+void* _sbrk_r( struct _reent* r, ptrdiff_t incr )
+#endif
+{
+  void* ptr;
+      
+  // If increment is negative, return -1
+  if( incr < 0 )
+    return ( void* )-1;
+    
+  // Otherwise ask the platform about our memory space (if needed)
+  // We do this for all our memory spaces
+  while( 1 )
+  {
+    if( heap_ptr == NULL )  
+    {
+      if( ( heap_ptr = ( char* )platform_get_first_free_ram( mem_index ) ) == NULL )
+      {
+        ptr = ( void* )-1;
+        break;
+      }
+    }
+      
+    // Do we have space in the current memory space?
+    if( heap_ptr + incr > ( char* )platform_get_last_free_ram( mem_index )  ) 
+    {
+      // We don't, so try the next memory space
+      heap_ptr = NULL;
+      mem_index ++;
+    }
+    else
+    {
+      // Memory found in the current space
+      ptr = heap_ptr;
+      heap_ptr += incr;
+      break;
+    }
+  }  
+
+  return ptr;
+} 
+
+// mallinfo()
+struct mallinfo mallinfo()
+{
+#ifdef USE_MULTIPLE_ALLOCATOR
+  return dlmallinfo();
+#else
+  return _mallinfo_r( _REENT );
+#endif
+} 
+
+#if defined( USE_MULTIPLE_ALLOCATOR ) || defined( USE_SIMPLE_ALLOCATOR )
+// Redirect all allocator calls to our dlmalloc/salloc 
+
+#ifdef USE_MULTIPLE_ALLOCATOR
+#define CNAME( func ) dl##func
+#else
+#define CNAME( func ) s##func
+#endif
+
 void* _malloc_r( struct _reent* r, size_t size )
 {
-  return dlmalloc( size );
+  return CNAME( malloc )( size );
 }
 
 void* _calloc_r( struct _reent* r, size_t nelem, size_t elem_size )
 {
-  return dlcalloc( nelem, elem_size );
+  return CNAME( calloc )( nelem, elem_size );
 }
 
 void _free_r( struct _reent* r, void* ptr )
 {
-  dlfree( ptr );
+  CNAME( free )( ptr );
 }
 
 void* _realloc_r( struct _reent* r, void* ptr, size_t size )
 {
-  return dlrealloc( ptr, size );
-}
-
-void* _memalign_r( struct _reent* r, size_t align, size_t nbytes )
-{
-  return dlmemalign( align, nbytes );
+  return CNAME( realloc )( ptr, size );
 }
 
 #endif // #ifdef USE_MULTIPLE_ALLOCATOR
@@ -379,9 +367,42 @@ void std_set_get_func( p_std_get_char pfunc )
 {
 }
 
-DM_DEVICE* std_get_desc()
+const DM_DEVICE* std_get_desc()
 {
   return NULL;
 }
 
 #endif // #if !defined( BUILD_CON_GENERIC ) && !defined( BUILD_CON_TCP )
+
+// ****************************************************************************
+// memcpy is broken on AVR32's Newlib, so impolement a simple version here
+// same goes for strcmp apparently
+#ifdef FORAVR32
+void* memcpy( void *dst, const void* src, size_t len )
+{
+  char *pdest = ( char* )dst;
+  const char* psrc = ( const char* )src;
+  
+  while( len )
+  {
+    *pdest ++ = *psrc ++;
+    len --;
+  }
+  return dst;
+}
+
+int strcmp(const char *s1, const char *s2)
+{
+  while( *s1 == *s2++ ) 
+  {
+    if( *s1++ == '\0' )
+      return 0;
+  }
+  if( *s1 == '\0' ) 
+    return -1;
+  if( *--s2 == '\0' ) 
+    return 1;
+  return ( unsigned char )*s1 - ( unsigned char )*s2;
+}
+
+#endif // #ifdef FORAVR32

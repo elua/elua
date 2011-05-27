@@ -1,6 +1,7 @@
 // Platform-dependent functions
 
 #include "platform.h"
+#include "platform_conf.h"
 #include "type.h"
 #include "devman.h"
 #include "genstd.h"
@@ -8,11 +9,55 @@
 #include <errno.h>
 #include <string.h>
 #include <ctype.h>
+#include "term.h"
 
 // Platform specific includes
 #include "monitor.h"
 #include "descriptor_tables.h"
 #include "kb.h"
+
+// ****************************************************************************
+// Terminal support code
+
+#ifdef BUILD_TERM
+
+static void i386_term_out( u8 data )
+{
+  monitor_put( data );
+}
+
+static int i386_term_in( int mode )
+{
+  if( mode == TERM_INPUT_DONT_WAIT )
+    return -1;
+  else
+    return keyboard_getch();
+}
+
+static int i386_term_translate( int data )
+{
+  int newdata = data;
+
+  if( data == 0 )
+    return KC_UNKNOWN;
+  else switch( data )
+  {
+    case '\n':
+      newdata = KC_ENTER;
+      break;
+
+    case '\t':
+      newdata = KC_TAB;
+      break;
+
+    case '\b':
+      newdata = KC_BACKSPACE;
+      break;
+  }
+  return newdata;
+}
+
+#endif // #ifdef BUILD_TERM
 
 // *****************************************************************************
 // std functions
@@ -22,9 +67,17 @@ static void scr_write( int fd, char c )
   monitor_put( c );
 }
 
-static int kb_read()
+static int kb_read( s32 to )
 {
-  return keyboard_getch();
+  int res;
+
+  if( to != STD_INFINITE_TIMEOUT )
+    return -1;
+  else
+  {
+    while( ( res = keyboard_getch() ) >= TERM_FIRST_KEY );
+    return res;
+  }
 }
 
 // ****************************************************************************
@@ -75,7 +128,12 @@ int platform_init()
   // Set the send/recv functions                          
   std_set_send_func( scr_write );
   std_set_get_func( kb_read );       
-  
+
+  // Set term functions
+#ifdef BUILD_TERM  
+  term_init( TERM_LINES, TERM_COLS, i386_term_out, i386_term_in, i386_term_translate );
+#endif
+ 
   // All done
   return PLATFORM_OK;
 }
@@ -83,36 +141,54 @@ int platform_init()
 // ****************************************************************************
 // "Dummy" UART functions
 
-int platform_uart_exists( unsigned id )
-{
-  return 0;
-}
-
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )
 {
   return 0;
 }
 
-void platform_uart_send( unsigned id, u8 data )
+void platform_s_uart_send( unsigned id, u8 data )
 {
 }
 
-int platform_uart_recv( unsigned id, unsigned timer_id, int timeout )
+int platform_s_uart_recv( unsigned id, s32 timeout )
 {
   return -1;
 }
 
-// ****************************************************************************
-// Allocator support
-extern char end[];
-
-void* platform_get_first_free_ram( unsigned id )
+int platform_s_uart_set_flow_control( unsigned id, int type )
 {
-  return id > 0  ? NULL : ( void* )end;
+  return PLATFORM_ERR;
 }
 
-#define MY_STACK_SIZE ( 16 * 1024 ) 
-void* platform_get_last_free_ram( unsigned id )
+// ****************************************************************************
+// "Dummy" timer functions
+
+void platform_s_timer_delay( unsigned id, u32 delay_us )
 {
-  return id > 0 ? NULL : ( void* )( lastmem - MY_STACK_SIZE - 1 );
+}
+
+u32 platform_s_timer_op( unsigned id, int op, u32 data )
+{
+ return 0;
+}
+
+// ****************************************************************************
+// "Dummy" CPU functions
+
+int platform_cpu_set_global_interrupts( int status )
+{
+  return 0;
+}
+
+int platform_cpu_get_global_interrupts()
+{
+  return 0;
+}
+
+// ****************************************************************************
+// Allocator support
+
+u32 platform_get_lastmem()
+{
+  return lastmem;
 }

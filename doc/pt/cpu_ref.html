@@ -1,0 +1,179 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html><head>
+</head>
+<h3><a name="over"></a>cpu</h3>
+<p class="MsoNormal" style="font-family: Verdana;"><br>
+</p>
+<p style="margin-bottom: 0in;"></p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="write32"></a>write32( address, data ) : grava
+dados de 32 bits no endere&ccedil;o especificado</font>
+</p>
+<p style="margin-bottom: 0in;">
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="write16"></a>write16( address, data ) : grava
+dados de 16 bits no endere&ccedil;o especificado</font>
+</p>
+<p style="margin-bottom: 0in;">
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="write8"></a>write8( address, data ) : grava
+dados de 8 bits no endere&ccedil;o especificado</font> <br>
+</p>
+<p style="margin-bottom: 0in;"><br>
+</p>
+<br>
+<font face="Bitstream Vera Sans Mono, sans-serif"><a name="read32"></a>Data =&nbsp;read32( endere&ccedil;o ) :
+l&ecirc; dados de 32 bits do endere&ccedil;o especificado</font>
+<p style="margin-bottom: 0in;"></p>
+<p style="margin-bottom: 0in;">
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="read16"></a>Data = read16( address ) : l&ecirc;
+dados de 16 bits do endere&ccedil;o especificado</font>
+</p>
+<p style="margin-bottom: 0in;">
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="read8"></a>Data = read8( address ) : l&ecirc;
+dados de 8 bits do endere&ccedil;o especificado</font></p>
+<p style="margin-bottom: 0in;"><br>
+</p>
+<br>
+<p style="margin-bottom: 0in;"><a name="disableinterrupts"></a>
+[cpu.disableinterrupts()]&nbsp;&nbsp; <font face="Bitstream Vera Sans Mono, sans-serif">cli(): desabilita
+interrup&ccedil;&otilde;s da CPU</font>
+</p>
+<p style="margin-bottom: 0in;"> <br>
+</p>
+<p style="margin-bottom: 0in;"> <br>
+</p>
+<p style="margin-bottom: 0in;"><a name="enableinterrupts"></a>
+[cpu.enableinterrupts()]&nbsp;&nbsp; <font face="Bitstream Vera Sans Mono, sans-serif">sei(): habilita
+interrup&ccedil;&otilde;s da CPU</font>
+</p>
+<p style="margin-bottom: 0in;"> <br>
+</p>
+<p style="margin-bottom: 0in;">
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><br>
+</font></p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"><a name="clockfrequency"></a>[cpu.clockfrequency()]&nbsp;&nbsp;&nbsp;&nbsp;
+Clock = clock(): retorna a frequ&ecirc;ncia da CPU</font>
+</p>
+<p style="margin-bottom: 0in;"> <br>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">Al&eacute;m disso, voc&ecirc; pode
+expor tantas constantes da CPU (por exemplo mem&oacute;ria registradores)</font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">quantas voc&ecirc; quiser para
+este m&oacute;dulo. Voc&ecirc; talvez queira usar este recurso para acessar algumas </font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">&aacute;reas de mem&oacute;ria usadas pela CPU
+(como est&aacute; definido nos arquivos de header da CPU do pacote de suporte </font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif"> da CPU)
+diretamente de Lua. Para realizar isso, voc&ecirc; precisar&aacute; definir a </font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">macro PLATFORM_CPU_CONSTANTS
+no arquivo platform_conf.h da plataforma </font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">(src/platform/&lt;platform
+name&gt;/platform_conf.h). Inclua todas as constantes na </font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">_C(
+&lt;nome da constante&gt; ) defini&ccedil;&atilde;o, e ent&atilde;o fa&ccedil;a seu projeto.</font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">Por exemplo,
+suponhamos que o controlador de interrup&ccedil;&otilde;es da CPU possua 3 registradores de</font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">mem&oacute;ria 
+mapeada: INT_REG_ENABLE, INT_REG_DISABLE and INT_REG_MASK. Se voc&ecirc; quiser</font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">acess&aacute;-los
+de Lua, localize o header que define os valores para esses</font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">registradores (assumirei
+seu nome como sendo "cpu.h") e acrescente essas linhas no arquivo</font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">platform_conf.h:</font>
+</p>
+<p style="margin-bottom: 0in;"> <br>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">#include "cpu.h"</font>
+</p>
+<p style="margin-bottom: 0in;"> <br>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">#define
+PLATFORM_CPU_CONSTANTS\</font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">_C(
+INT_REG_ENABLE ),\</font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">_C(
+INT_REG_DISABLE ),\</font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">_C( INT_REG_MASK
+)</font>
+</p>
+<p style="margin-bottom: 0in;"> <br>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">Depois disso
+voc&ecirc; poder&aacute; acessar os registradores diretamente, como segue:</font>
+</p>
+<p style="margin-bottom: 0in;"> <br>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">data = cpu.r32(
+cpu.INT_REG_ENABLE )</font>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">cpu.w32(
+cpu.INT_REG_ENABLE, data )</font>
+</p>
+<p style="margin-bottom: 0in;"> <br>
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">Como
+exemplo pr&aacute;tico, veja o arquivo src/platform/lm3s/platform_conf.h.</font>
+</p>
+<p style="margin-bottom: 0in;">
+</p>
+<p style="margin-bottom: 0in;"> <font face="Bitstream Vera Sans Mono, sans-serif">[uart.sendstring]
+uart.sendstr( id, str1, str2, ... ): este &eacute; semelhante ao "uart.send",
+por&eacute;m, seus par&acirc;metros s&atilde;o strings.&nbsp;</font>
+</p>
+<p style="margin-bottom: 0in;"> <br>
+</p>
+<p style="margin-bottom: 0in;"> <br>
+</p>
+<p style="margin-bottom: 0in;"> <br>
+</p>
+<br style="font-family: Verdana;">
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+</body></html>

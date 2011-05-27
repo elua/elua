@@ -9,153 +9,130 @@
 #include "xmodem.h"
 #include "shell.h"
 #include "lua.h"
+#include "lauxlib.h"
+#include "lualib.h"
 #include "term.h"
 #include "platform_conf.h"
+#include "elua_rfs.h"
+#ifdef ELUA_SIMULATOR
+#include "hostif.h"
+#endif
 
 // Validate eLua configuratin options
 #include "validate.h"
 
+#include "mmcfs.h"
+#include "romfs.h"
+#include "semifs.h"
+
+// Define here your autorun/boot files, 
+// in the order you want eLua to search for them
+char *boot_order[] = {
+#if defined(BUILD_MMCFS)
+  "/mmc/autorun.lua",
+  "/mmc/autorun.lc",
+#endif
+#if defined(BUILD_ROMFS)
+  "/rom/autorun.lua",
+  "/rom/autorun.lc",
+#endif
+};
+
 extern char etext[];
 
-// ****************************************************************************
-// XMODEM support code
 
-#ifdef BUILD_XMODEM
+#ifdef ELUA_BOOT_RPC
 
-static void xmodem_send( u8 data )
+#ifndef RPC_UART_ID
+  #define RPC_UART_ID     CON_UART_ID
+#endif
+
+#ifndef RPC_TIMER_ID
+  #define RPC_TIMER_ID    CON_TIMER_ID
+#endif
+
+#ifndef RPC_UART_SPEED
+  #define RPC_UART_SPEED  CON_UART_SPEED
+#endif
+
+void boot_rpc( void )
 {
-  platform_uart_send( XMODEM_UART_ID, data );
-}
-
-static int xmodem_recv( u32 timeout )
-{
-  return platform_uart_recv( XMODEM_UART_ID, XMODEM_TIMER_ID, timeout );
-}
-
-#endif // #ifdef BUILD_XMODEM
-
-// ****************************************************************************
-// Terminal support code
-
-#ifdef BUILD_TERM
-
-static void term_out( u8 data )
-{
-  platform_uart_send( TERM_UART_ID, data );
-}
-
-static int term_in( int mode )
-{
-  if( mode == TERM_INPUT_DONT_WAIT )
-    return platform_uart_recv( TERM_UART_ID, TERM_TIMER_ID, 0 );
-  else
-    return platform_uart_recv( TERM_UART_ID, TERM_TIMER_ID, PLATFORM_UART_INFINITE_TIMEOUT );
-}
-
-static int term_translate( u8 data )
-{
-  int c;
+  lua_State *L = lua_open();
+  luaL_openlibs(L);  /* open libraries */
   
-  if( isprint( data ) )
-    return data;
-  else if( data == 0x1B ) // escape sequence
-  {
-    // If we don't get a second char, we got a simple "ESC", so return KC_ESC
-    // If we get a second char it must be '[', the next one is relevant for us
-    if( platform_uart_recv( TERM_UART_ID, TERM_TIMER_ID, TERM_TIMEOUT ) == -1 )
-      return KC_ESC;
-    if( ( c = platform_uart_recv( TERM_UART_ID, TERM_TIMER_ID, TERM_TIMEOUT ) ) == -1 )
-      return KC_UNKNOWN;
-    switch( c )
-    {
-      case 0x41:
-        return KC_UP;
-      case 0x42:
-        return KC_DOWN;
-      case 0x43:
-        return KC_RIGHT;
-      case 0x44:
-        return KC_LEFT;               
-    }
-  }
-  else if( data == 0x0D )
-  {
-    // CR/LF sequence, read the second char (LF) if applicable
-    platform_uart_recv( TERM_UART_ID, TERM_TIMER_ID, TERM_TIMEOUT );
-    return KC_ENTER;
-  }
-  else
-  {
-    switch( data )
-    {
-      case 0x09:
-        return KC_TAB;
-      case 0x16:
-        return KC_PAGEDOWN;
-      case 0x15:
-        return KC_PAGEUP;
-      case 0x05:
-        return KC_END;
-      case 0x01:
-        return KC_HOME;
-      case 0x7F:
-      case 0x08:
-        return KC_BACKSPACE;
-    }
-  }
-  return KC_UNKNOWN;
+  // Set up UART for 8N1 w/ adjustable baud rate
+  platform_uart_setup( RPC_UART_ID, RPC_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
+  
+  // Start RPC Server
+  lua_getglobal( L, "rpc" );
+  lua_getfield( L, -1, "server" );
+  lua_pushnumber( L, RPC_UART_ID );
+  lua_pushnumber( L, RPC_TIMER_ID );
+  lua_pcall( L, 2, 0, 0 );
 }
-
-#endif // #ifdef BUILD_TERM
+#endif
 
 // ****************************************************************************
 //  Program entry point
 
 int main( void )
 {
+  int i;
   FILE* fp;
-  
+
   // Initialize platform first
   if( platform_init() != PLATFORM_OK )
   {
     // This should never happen
     while( 1 );
   }
-  
+
   // Initialize device manager
   dm_init();
-  
+
   // Register the ROM filesystem
-  dm_register( romfs_init() );  
+  dm_register( romfs_init() );
 
-#ifdef BUILD_XMODEM  
-  // Initialize XMODEM
-  xmodem_init( xmodem_send, xmodem_recv );    
-#endif
+  // Register the MMC filesystem
+  dm_register( mmcfs_init() );
 
-#ifdef BUILD_TERM  
-  // Initialize terminal
-  term_init( TERM_LINES, TERM_COLS, term_out, term_in, term_translate );
-#endif
+  // Register the Semihosting filesystem
+  dm_register( semifs_init() );
 
-  // Autorun: if "autorun.lua" is found in the ROM file system, run it first
-  if( ( fp = fopen( "/rom/autorun.lua", "r" ) ) != NULL )
+  // Register the remote filesystem
+  dm_register( remotefs_init() );
+
+  // Search for autorun files in the defined order and execute the 1st if found
+  for( i = 0; i < sizeof( boot_order ) / sizeof( *boot_order ); i++ )
   {
-    fclose( fp );
-    char* lua_argv[] = { "lua", "/rom/autorun.lua", NULL };
-    lua_main( 2, lua_argv );    
+    if( ( fp = fopen( boot_order[ i ], "r" ) ) != NULL )
+    {
+      fclose( fp );
+      char* lua_argv[] = { "lua", boot_order[i], NULL };
+      lua_main( 2, lua_argv );
+      break; // autoruns only the first found
+    }
   }
+
+#ifdef ELUA_BOOT_RPC
+  boot_rpc();
+#else
   
   // Run the shell
   if( shell_init() == 0 )
   {
-    printf( "Unable to initialize the eLua shell!\n" );
     // Start Lua directly
     char* lua_argv[] = { "lua", NULL };
     lua_main( 1, lua_argv );
   }
   else
     shell_start();
+#endif // #ifdef ELUA_BOOT_RPC
 
+#ifdef ELUA_SIMULATOR
+  hostif_exit(0);
+  return 0;
+#else
   while( 1 );
+#endif
 }

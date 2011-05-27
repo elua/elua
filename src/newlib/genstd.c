@@ -13,6 +13,7 @@
 
 static p_std_send_char std_send_char_func;
 static p_std_get_char std_get_char_func;
+int std_prev_char = -1;
 
 // 'read'
 static _ssize_t std_read( struct _reent *r, int fd, void* vptr, size_t len )
@@ -42,7 +43,14 @@ static _ssize_t std_read( struct _reent *r, int fd, void* vptr, size_t len )
   i = 0;
   while( i < len )
   {  
-    if( ( c = std_get_char_func() ) == -1 )
+    if( std_prev_char != -1 )
+    {
+      // We have a char from the previous run of std_read, so put it in the buffer
+      ptr[ i ++ ] = ( char )std_prev_char;
+      std_prev_char = -1;
+      continue;
+    }
+    if( ( c = std_get_char_func( STD_INFINITE_TIMEOUT ) ) == -1 )
       break;
     if( ( c == 8 ) || ( c == 0x7F ) ) // Backspace
     {
@@ -55,18 +63,24 @@ static _ssize_t std_read( struct _reent *r, int fd, void* vptr, size_t len )
       }      
       continue;
     }
-    if( !isprint( c ) && c != '\n' && c != STD_CTRLZ_CODE )
+    if( !isprint( c ) && c != '\n' && c != '\r' && c != STD_CTRLZ_CODE )
       continue;
     if( c == STD_CTRLZ_CODE )
       return 0;
-    else
-      std_send_char_func( DM_STDOUT_NUM, c );
-    ptr[ i ] = c;
-    if( c == '\n' )
-      return i + 1;    
-    i ++;
+    std_send_char_func( DM_STDOUT_NUM, c );
+    if( c == '\r' || c == '\n' )
+    {
+      // Handle both '\r\n' and '\n\r' here
+      std_prev_char = std_get_char_func( STD_INTER_CHAR_TIMEOUT ); // consume the next char (\r or \n) if any
+      if( std_prev_char + c == '\r' + '\n' ) // we must ignore this character
+        std_prev_char = -1;
+      std_send_char_func( DM_STDOUT_NUM, '\r' + '\n' - c );
+      ptr[ i ] = '\n';
+      return i + 1;
+    }
+    ptr[ i ++ ] = c;
   }
-  return len;
+  return i;
 }
 
 // 'write'
@@ -115,17 +129,20 @@ void std_set_get_func( p_std_get_char pfunc )
 }
 
 // Our UART device descriptor structure
-static DM_DEVICE std_device = 
+static const DM_DEVICE std_device = 
 {
   STD_DEV_NAME,
-  NULL,                 // we don't have 'open' on std
-  NULL,                 // we don't hace 'close' on std
-  std_write,
-  std_read,
-  NULL                  // we don't have "ioctl" on std
+  NULL,                 // open
+  NULL,                 // close
+  std_write,            // write
+  std_read,             // read
+  NULL,                 // lseek
+  NULL,                 // opendir
+  NULL,                 // readdir
+  NULL                  // closedir
 };
 
-DM_DEVICE* std_get_desc()
+const DM_DEVICE* std_get_desc()
 {
   return &std_device;
 }

@@ -1,25 +1,50 @@
 # Configuration file for the LM3S microcontroller
+specific_files = "startup_gcc.c platform.c uart.c sysctl.c gpio.c ssi.c timer.c pwm.c ethernet.c systick.c flash.c interrupt.c cpu.c adc.c can.c platform_int.c"
 
-specific_files = "startup_gcc.c platform.c usart.c sysctl.c gpio.c ssi.c timer.c pwm.c ethernet.c systick.c flash.c interrupt.c cpu.s"
-ldscript = "lm3s.ld"
-  
+if comp[ 'board' ] == 'EK-LM3S1968' or comp[ 'board' ] == 'EK-LM3S6965' or comp[ 'board' ] == 'EK-LM3S8962':
+  specific_files = specific_files + " rit128x96x4.c disp.c"
+  comp.Append(CPPDEFINES = 'ENABLE_DISP')
+
+
+# The default for the Eagle 100 board is to start the image at 0x2000,
+# so that the built in Ethernet boot loader can be used to upload it
+if comp[ 'board' ] == 'EAGLE-100':
+  comp.Append(LINKFLAGS = ['-Wl,-Ttext,0x2000'])
+
+if comp[ 'board' ] == 'EK-LM3S9B92':
+  ldscript = "lm3s-9b92.ld"
+else:
+  ldscript = "lm3s.ld"
+
 # Prepend with path
 specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )
+specific_files += " src/platform/cortex_utils.s src/platform/arm_cortex_interrupts.c"
 ldscript = "src/platform/%s/%s" % ( platform, ldscript )
 
-cdefs = cdefs + " -Dgcc"
+comp.Append(CPPDEFINES = ["FOR" + comp[ 'cpu' ],'gcc'])
+comp.Append(CPPDEFINES = ['CORTEX_M3'])
+
+# Standard GCC Flags
+comp.Append(CCFLAGS = ['-ffunction-sections','-fdata-sections','-fno-strict-aliasing','-Wall'])
+comp.Append(LINKFLAGS = ['-nostartfiles','-nostdlib','-T',ldscript,'-Wl,--gc-sections','-Wl,--allow-multiple-definition'])
+comp.Append(ASFLAGS = ['-x','assembler-with-cpp','-c','-Wall','$_CPPDEFFLAGS'])
+comp.Append(LIBS = ['c','gcc','m'])
+
+TARGET_FLAGS = ['-mcpu=cortex-m3','-mthumb']
+
+# Configure General Flags for Target
+comp.Prepend(CCFLAGS = [TARGET_FLAGS,'-mlittle-endian'])
+comp.Prepend(LINKFLAGS = [TARGET_FLAGS,'-Wl,-e,ResetISR','-Wl,-static'])
+comp.Prepend(ASFLAGS = TARGET_FLAGS)
 
 # Toolset data
 tools[ 'lm3s' ] = {}
-tools[ 'lm3s' ][ 'cccom' ] = "arm-elf-gcc -mcpu=cortex-m3 -mthumb  %s %s -ffunction-sections -fdata-sections %s -Wall -c $SOURCE -o $TARGET" % ( opt, local_include, cdefs )
-tools[ 'lm3s' ][ 'linkcom' ] = "arm-elf-gcc -nostartfiles -nostdlib -T %s -Wl,--gc-sections -Wl,-e,ResetISR -Wl,--allow-multiple-definition -o $TARGET $SOURCES -lc -lgcc -lm %s" % ( ldscript, local_libs )
-tools[ 'lm3s' ][ 'ascom' ] = "arm-elf-gcc -x assembler-with-cpp %s -mcpu=cortex-m3 -mthumb %s -Wall -c $SOURCE -o $TARGET" % ( local_include, cdefs )
 
 # Programming function
 def progfunc_lm3s( target, source, env ):
   outname = output + ".elf"
-  os.system( "arm-elf-size %s" % outname )
+  os.system( "%s %s" % ( toolset[ 'size' ], outname ) )
   print "Generating binary image..."
-  os.system( "arm-elf-objcopy -O binary %s %s.bin" % ( outname, output ) )
-  
+  os.system( "%s -O binary %s %s.bin" % ( toolset[ 'bin' ], outname, output ) )
+
 tools[ 'lm3s' ][ 'progfunc' ] = progfunc_lm3s

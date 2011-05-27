@@ -5,15 +5,15 @@
 
 #include "type.h"
 #include "devman.h"
-// Maximum length of a filename in the filesystem
-#define MAX_FNAME_LENGTH      14
 
 /*******************************************************************************
-We assume that the "filesystem" resides in a contiguous zone of memory, with the
-following structure:
+The Read-Only "filesystem" resides in a contiguous zone of memory, with the
+following structure, repeated for each file:
 
-filename (ASCIIZ, max length is MAX_FNAME_LENGTH defined in "netdefs.h", empty if last file)
-file size (2 bytes)
+Filename: ASCIIZ, max length is DM_MAX_FNAME_LENGTH defined here, empty if last file
+File size: (2 bytes)
+File data: (file size bytes)
+
 *******************************************************************************/
 
 enum
@@ -24,18 +24,19 @@ enum
  
 // This is the function used to read a byte at the given address from the file
 // system
-typedef u8 ( *p_read_fs_byte )( u16 );
+typedef u8 ( *p_read_fs_byte )( u32 );
 
 // A small "FILE" structure
 typedef struct 
 {
-  u16 baseaddr;
-  u16 offset;
+  u32 baseaddr;
+  u32 offset;
   u16 size;
   p_read_fs_byte p_read_func;
 } FS;
-
+  
 // FS functions
-DM_DEVICE* romfs_init();
+const DM_DEVICE* romfs_init();
 
 #endif
+

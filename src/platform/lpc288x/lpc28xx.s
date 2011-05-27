@@ -159,9 +159,11 @@
 @ Area Definition and Entry Point
 @ Startup Code must be linked first at Address at which it expects to run.
 
-            .section .text
             .arm
+            .align 4
             .global HardReset
+
+            .section  .vectors, "a"
 
 HardReset:
 
@@ -195,6 +197,8 @@ IRQ_Handler:    B       IRQ_Handler
 
 @ ==============================================================================
 @ Reset handler
+
+            .text
                         
 Reset_Handler:   
 
@@ -223,6 +227,8 @@ Reset_Handler:
             MOV     R1, #DAIFSR2_Val
             STR     R1, [R0, #DAIFSR2_OFS]            
 
+
+
 @ Setup Stack for each mode 
 
             LDR     R0, =IRAM_END
@@ -235,13 +241,7 @@ Reset_Handler:
 @ Enter Supervisor Mode and set its Stack Pointer
             MSR     CPSR_c, #Mode_SVC | I_Bit | F_Bit
             MOV     SP, R0
-            SUB     R0, R0, #STACK_SIZE_SVC
 
-@ Enter User Mode and set its Stack Pointer
-            MSR     CPSR_c, #Mode_USR | I_Bit | F_Bit
-            MOV     SP, R0
-            SUB     SL, SP, #STACK_SIZE_USR                                                                 
-                
 @ Relocate .data section (Copy from ROM to RAM)
             LDR     R1, =_efixed 
             LDR     R2, =_srelocate 
@@ -262,7 +262,7 @@ DataIsEmpty:
 LoopZI:     CMP     R1, R2 
             STRLO   R0, [R1], #4 
             BLO     LoopZI 
-BSSIsEmpty:                
+BSSIsEmpty:          
 
 @ Enter the main C code
             .extern main
@@ -275,4 +275,3 @@ forever:
             B       forever                
             
 .end
-          
