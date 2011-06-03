@@ -41,7 +41,7 @@ void transport_open( Transport *tpt, const char *path )
   }
   
   ser_setup( tpt->fd, 115200, SER_DATABITS_8, SER_PARITY_NONE, SER_STOPBITS_1 );
-  ser_set_timeout_ms( tpt->fd, 1000 );
+  ser_set_timeout_ms( tpt->fd, 10000 );
 }
 
 // Open Listener / Server 

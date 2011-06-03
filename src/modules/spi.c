@@ -58,7 +58,7 @@ static int spi_rw_helper( lua_State *L, int withread )
 {
   spi_data_type value;
   const char *sval; 
-  int total = lua_gettop( L ), i, id;
+  int total = lua_gettop( L ), i, j, id;
   size_t len, residx = 1;
   
   id = luaL_checkinteger( L, 1 );
@@ -79,9 +79,9 @@ static int spi_rw_helper( lua_State *L, int withread )
     else if( lua_isstring( L, i ) )
     {
       sval = lua_tolstring( L, i, &len );
-      for( i = 0; i < len; i ++ )
+      for( j = 0; j < len; j ++ )
       {
-        value = platform_spi_send_recv( id, sval[ i ] );
+        value = platform_spi_send_recv( id, sval[ j ] );
         if( withread )
         {
           lua_pushnumber( L, value );

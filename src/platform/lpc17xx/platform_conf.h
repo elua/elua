@@ -16,7 +16,7 @@
 #define BUILD_CON_GENERIC
 #define BUILD_ADC
 #define BUILD_SEMIFS
-#define BUILD_LUARPC
+#define BUILD_RPC
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
@@ -36,6 +36,13 @@
 #define ADCLINE
 #endif
 
+// RPC
+#if defined( BUILD_RPC ) 
+#define RPCLINE _ROM( AUXLIB_RPC, luaopen_rpc, rpc_map )
+#else
+#define RPCLINE
+#endif
+
 // The name of the platform specific libs table
 #define PS_LIB_TABLE_NAME   "mbed"
 
@@ -50,6 +57,7 @@
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
   _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map )\
+  RPCLINE\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
   _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )\
   _ROM( PS_LIB_TABLE_NAME, luaopen_platform, platform_map )

@@ -145,7 +145,12 @@ static int parse_transport( const char* s )
 #define FIRST_SERVICE_IDX     3
 #define MIN_ARGC_COUNT        4
 
+#ifdef _MSC_VER
+#define strcasecmp _stricmp
+int main( int argc, char *argv[] )
+#else
 int main( int argc, char **argv )
+#endif
 {
   unsigned i;
   SERVICE_DATA *tservice;
@@ -165,9 +170,9 @@ int main( int argc, char **argv )
     log_err( "Usage: %s <mode> <transport> <vcom1> [<vcom2>] ... [<vcomn>] [-v]\n", argv[ 0 ] );
     log_err( "  mode: \n" );
     log_err( "    'mux':                 serial multiplexer mode\n" );
-    log_err( "    'rfsmux:<directory>:   combined RFS and multiplexer mode.\n" );
-    log_err( "  transport: '<port>,<baud>,<flow> ('flow' specifies the flow control type and can be 'none' or 'rtscts').\n" );
-    log_err( "  vcom1, ..., vcomn: multiplexer serial ports." );
+    log_err( "    'rfsmux:<directory>':  combined RFS and multiplexer mode.\n" );
+    log_err( "  transport: '<port>,<baud>,<flow>' ('flow' specifies the flow control type and can be 'none' or 'rtscts').\n" );
+    log_err( "  vcom1, ..., vcomn: multiplexer serial ports.\n" );
     log_err( "  Use '-v' for verbose output.\n" );
     return 1;
   }

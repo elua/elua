@@ -135,8 +135,6 @@ DAbt_Handler:       B       DAbt_Handler
 IRQ_Handler:        B       ASM_IRQ_Handler       /* should never get here as IRQ is via VIC slot... */
 FIQ_Handler:        B       FIQ_Handler
 
-          .text
-
 # Generic IRQ handler
 ASM_IRQ_Handler:
             sub       lr, lr ,#4

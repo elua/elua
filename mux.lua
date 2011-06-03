@@ -6,13 +6,13 @@ builder:init( args )
 builder:set_build_mode( builder.BUILD_DIR_LINEARIZED )
 
 local flist = "main.c"
-local rfs_flist = "main.c server.c log.c deskutils.c"
+local rfs_flist = "main.c server.c log.c deskutils.c rfs_transports.c"
 local cdefs = "RFS_UDP_TRANSPORT RFS_INSIDE_MUX_MODE"
 local socklib
 if utils.is_windows() then
   cdefs = cdefs .. " WIN32_BUILD"
   rfs_flist = rfs_flist .. " os_io_win32.c serial_win32.c net_win32.c"
-  exeprefix = "exe"
+  exeprefix = ".exe"
   socklib = "ws2_32"
 else
   rfs_flist = rfs_flist .. " os_io_posix.c serial_posix.c net_posix.c"

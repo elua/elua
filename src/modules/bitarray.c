@@ -3,7 +3,7 @@
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
-#include "platform.h"
+#include "type.h"
 #include "auxmods.h"
 #include "lrotable.h"
 #include <string.h>
@@ -175,15 +175,15 @@ static int bitarray_set( lua_State *L )
     switch( pa->elsize )
     {
       case 8:
-        pa->values[ idx ] = val;;
+        pa->values[ idx ] = ( u8 )newval;
         break;
         
       case 16:
-        *( ( u16* )pa->values + idx ) = val;
+        *( ( u16* )pa->values + idx ) = ( u16 )newval;
         break;
         
       case 32:
-        *( ( u32* )pa->values + idx ) = val;
+        *( ( u32* )pa->values + idx ) = ( u32 )newval;
         break;  
     }    
   return 0;
