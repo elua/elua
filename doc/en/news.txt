@@ -2,6 +2,15 @@
 eLua Project News
 -----------------
 
+June 6th, 2011
+~~~~~~~~~~~~~~
+.New eLua website released
+We are glad to announce an experimental form of a new web site for the eLua community, which you can find online at: http://new.eluaproject.net
+
+It will be hosted at this temporary URL while we hear your comments, suggestions and implement corrections.  After this phase, it will become the new official site at the main site URL.
+
+Thank you all for the support
+
 February 2nd, 2011
 ~~~~~~~~~~~~~~~~~~
 .eLua v0.8 released
