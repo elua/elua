@@ -144,23 +144,36 @@ static void shell_recv( char* args )
   p ++;
   printf( "done, got %u bytes\n", ( unsigned )( p - shell_prog ) );          
   
-  // Execute
-  if( ( L = lua_open() ) == NULL )
+  /* If we've got a parameter, consider it the path to write, if not, run it. */
+  if (strcmp( args, "") != 0)
   {
-    printf( "Unable to create Lua state\n" );
-    free( shell_prog );
-    shell_prog = NULL;
-    return;
-  }
-  luaL_openlibs( L );
-  if( luaL_loadbuffer( L, shell_prog, p - shell_prog, "xmodem" ) != 0 )
-    printf( "Error: %s\n", lua_tostring( L, -1 ) );
-  else
-    if( lua_pcall( L, 0, LUA_MULTRET, 0 ) != 0 )
+    FILE *foutput = fopen( args, "w" );
+    if( foutput == NULL )
+    {
+      printf( "unable to open file %s\n", args);
+      return;
+    }
+    fwrite( shell_prog, sizeof (char), p - shell_prog, foutput );
+    printf ("received and saved as %s\n", args);
+    fclose( foutput );
+  } else {
+    if( ( L = lua_open() ) == NULL )
+    {
+      printf( "Unable to create Lua state\n" );
+      free( shell_prog );
+      shell_prog = NULL;
+      return;
+    }
+    luaL_openlibs( L );
+    if( luaL_loadbuffer( L, shell_prog, p - shell_prog, "xmodem" ) != 0 )
       printf( "Error: %s\n", lua_tostring( L, -1 ) );
-  lua_close( L );
-  free( shell_prog );
-  shell_prog = NULL;
+    else
+      if( lua_pcall( L, 0, LUA_MULTRET, 0 ) != 0 )
+        printf( "Error: %s\n", lua_tostring( L, -1 ) );
+    lua_close( L );
+  }
+	free( shell_prog );
+	shell_prog = NULL;
 #endif // #ifndef BUILD_XMODEM
 }
 
