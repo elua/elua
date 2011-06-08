@@ -56,7 +56,8 @@ static void shell_help( char* args )
   printf( "  ls or dir   - lists filesystems files and sizes\n" );
   printf( "  cat or type - lists file contents\n" );
   printf( "  lua [args]  - run Lua with the given arguments\n" );
-  printf( "  recv        - receive a file via XMODEM and execute it\n" );
+  printf( "  recv [path] - receive a file via XMODEM, if there is a path, save"
+          "                there, otherwise run it.");
   printf( "  cp <src> <dst> - copy source file 'src' to 'dst'\n" );
   printf( "  ver         - print eLua version\n" );
 }
@@ -144,7 +145,7 @@ static void shell_recv( char* args )
   p ++;
   printf( "done, got %u bytes\n", ( unsigned )( p - shell_prog ) );          
   
-  /* If we've got a parameter, consider it the path to write, if not, run it. */
+  /* if we have an argument, write to it, if there is no argument, run it. */
   if (strcmp( args, "") != 0)
   {
     FILE *foutput = fopen( args, "w" );
