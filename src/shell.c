@@ -145,19 +145,26 @@ static void shell_recv( char* args )
   p ++;
   printf( "done, got %u bytes\n", ( unsigned )( p - shell_prog ) );          
   
-  /* if we have an argument, write to it, if there is no argument, run it. */
-  if (strcmp( args, "") != 0)
+  // we've received an argument, try saving it to a file
+  if( strcmp( args, "") != 0 )
   {
     FILE *foutput = fopen( args, "w" );
+    size_t file_sz = p - shell_prog;
     if( foutput == NULL )
     {
       printf( "unable to open file %s\n", args);
+      free( shell_prog );
+      shell_prog = NULL;
       return;
     }
-    fwrite( shell_prog, sizeof (char), p - shell_prog, foutput );
-    printf ("received and saved as %s\n", args);
+    if( fwrite( shell_prog, sizeof( char ), file_sz, foutput ) == file_sz )
+      printf( "received and saved as %s\n", args );
+    else
+      printf( "disk full, unable to save file %s\n", args );
     fclose( foutput );
-  } else {
+  }
+  else // no arg, running the file with lua.
+  {
     if( ( L = lua_open() ) == NULL )
     {
       printf( "Unable to create Lua state\n" );
@@ -173,8 +180,8 @@ static void shell_recv( char* args )
         printf( "Error: %s\n", lua_tostring( L, -1 ) );
     lua_close( L );
   }
-	free( shell_prog );
-	shell_prog = NULL;
+  free( shell_prog );
+  shell_prog = NULL;
 #endif // #ifndef BUILD_XMODEM
 }
 
