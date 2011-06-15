@@ -11,6 +11,10 @@ inc/romfiles.h
 .sconf_temp/
 .sconsign.dblite
 config.log
-mux
-rfs_server
+mux*
+rfs_server*
+doc/dist
+doc/cache
+*~
+*.*~
 
