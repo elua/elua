@@ -1027,13 +1027,13 @@ static const gpio_map_t MACB_GPIO_MAP =
 u32 platform_ethernet_setup()
 {
   static struct uip_eth_addr sTempAddr = {
-    .addr[0] = ETHERNET_CONF_ETHADDR0;
-    .addr[1] = ETHERNET_CONF_ETHADDR1;
-    .addr[2] = ETHERNET_CONF_ETHADDR2;
-    .addr[3] = ETHERNET_CONF_ETHADDR3;
-    .addr[4] = ETHERNET_CONF_ETHADDR4;
-    .addr[5] = ETHERNET_CONF_ETHADDR5;
-  }
+    .addr[0] = ETHERNET_CONF_ETHADDR0,
+    .addr[1] = ETHERNET_CONF_ETHADDR1,
+    .addr[2] = ETHERNET_CONF_ETHADDR2,
+    .addr[3] = ETHERNET_CONF_ETHADDR3,
+    .addr[4] = ETHERNET_CONF_ETHADDR4,
+    .addr[5] = ETHERNET_CONF_ETHADDR5,
+  };
 
   // Assign GPIO to MACB
   gpio_enable_module( MACB_GPIO_MAP, sizeof(MACB_GPIO_MAP ) / sizeof( MACB_GPIO_MAP[0] ) );
