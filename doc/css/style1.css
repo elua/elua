@@ -44,6 +44,7 @@ html,body{
     height:100%;
 }
 
+img, div { behavior: url('../images/iepngfix.htc') }
 
 h1, h2, h3, h4, h5 {
 	color:#03121c;
@@ -96,7 +97,14 @@ float:left;
 #header .sections li .selected{padding:5px 5px 5px 5px;display:block;float:left;background:#01103b;border:1px solid #1a366f;text-decoration:none;color:#fff;}
 #header h2,#header h2  a{font-size:30px;color:#fff;text-shadow: 2px 1px 0px #022140;font-family:'fonte_chamada', Helvetica, Arial, sans-serif;text-decoration:none;}
 #header h2  a[href]:hover{text-decoration:underline;}
-#header .chamada_elua{font-weight:normal;font-size:23px;text-shadow: 2px 1px 0px #022140;line-height:1.3; padding:30px;font-family:'fonte_chamada', Helvetica, Arial, sans-serif;}
+#header .chamada_elua{
+  font-weight:normal;
+  font-size:23px;
+  _font-size:21px; /* IE6 only */
+  padding:30px;
+  _padding-top:15px;/* IE6 only */
+  text-shadow: 2px 1px 0px #022140;line-height:1.3; font-family:'fonte_chamada', Helvetica, Arial, sans-serif;
+}
 
 #header .divisoria{margin:-25px 0 10px 0;text-align:center;}
 #header .overview,.getstarted,.getbetter,.getinvolved{float:left;width:245px;text-align:center;}
@@ -128,7 +136,7 @@ float:left;
 #interna_2 #header .sections li a[href]:hover{padding:7px 5px 7px 5px;display:block;float:left;background:#01103b;border:1px solid #1a366f;text-decoration:none;}
 #interna_2 #header .sections li .selected{padding:7px 5px 7px 5px;display:block;float:left;background:#01103b;border:1px solid #1a366f;text-decoration:none;color:#fff;}
 #interna_2 #header h2 {margin:0px 0 0 30px;font-size:28px;color:#fff;text-shadow: 2px 1px 0px #022140;font-family:'fonte_chamada', Helvetica, Arial, sans-serif;}
-#interna_2 #header .chamada_elua{font-weight:normal;font-size:20px;width:800px;text-shadow: 2px 1px 0px #022140;line-height:1.3; padding:30px;font-family:'fonte_chamada', Helvetica, Arial, sans-serif;}
+#interna_2 #header .chamada_elua{font-weight:normal;font-size:20px;width:auto;text-shadow: 2px 1px 0px #022140;line-height:1.3; padding:30px;_padding-bottom:0px;font-family:'fonte_chamada', Helvetica, Arial, sans-serif;}
 #interna_2 #header .divisoria{margin:-25px 0 10px 0;text-align:center;}
 #interna_2 #header .overview,.getstarted,.getbetter,.getinvolved{float:left;width:245px;text-align:center;}
 #interna_2 #header ul{line-height:1;list-style:none;margin:0 0 0px 60px;padding:0;text-align:left;font-size:17px;}
@@ -162,6 +170,10 @@ margin:10px;
   font-weight:bold;
   font-size:12px;
 }
+
+#interna_2 #article .section_menu a:link{text-decoration:none;color:#0B75AA;font-weight:bold;}
+#interna_2 #article .section_menu a:hover{text-decoration:none;_text-decoration:underline;}
+#interna_2 #article .section_menu a[href]:hover{text-decoration:underline;}
 
 
 #interna_2 .section ul {}
@@ -210,7 +222,8 @@ color:#03121c;
 }
 
 #article a[href]{text-decoration:none;color:#0b75aa;font-weight:bold}
-#article a[href]:hover{text-decoration:underline;color:#0b75aa;}
+#article a:visited{text-decoration:none;color:#0b75aa;font-weight:bold}
+#article a[href]:hover {text-decoration:underline;color:#0b75aa;}
 
 #article a[href].selected {font-size:13px;color:#03121C;}
 .section b{color:#0b75aa;}
@@ -234,7 +247,11 @@ color:#03121c;
 .node_news p a{color:#0B75AA;}
 .node_news  a[href]:hover{color:#0B75AA;text-decoration:underline;}
 
-#article .section_conteudo{width:auto;height:100%;float:left;margin:10px 10px 10px 0;padding:10px;text-align:normal;}
+#article .section_conteudo{width:auto;float:left;margin:10px 10px 10px 0;padding:10px;text-align:normal;}
+#article .section_conteudo a:link{text-decoration:none;color:#0B75AA;font-weight:bold;}
+#article .section_conteudo a:hover{text-decoration:none;_text-decoration:underline;}
+#article .section_conteudo a[href]:hover{text-decoration:underline;}
+
 #article .section_conteudo h1{font-size:23px;font-family:'fonte_chamada', Helvetica, Arial, sans-serif;text-align:normal;}
 
 #article .section_conteudo img{margin:7px 0px 7px 0px;}
@@ -394,9 +411,10 @@ br{clear:both;}
 }
 .searchform .searchfield {
 	background: #fff;
-	padding: 0px 6px 0px 8px;*/
-	width: 120px;
-  height:25px;
+	padding: 0px 6px 0px 8px;
+	height:25px;
+  _padding: 6px 6px 0px 8px; /* IE6 only */
+  _height: 19px; /* IE6 only */
 	border: solid 1px #bcbbbb;
 	outline: none;
 
