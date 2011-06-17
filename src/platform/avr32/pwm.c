@@ -5,7 +5,7 @@
  */
 
 #include "pwm.h"
-#include "platform_conf.h"	// for REQ_PBA_FREQ
+#include "platform_conf.h"    // for REQ_PBA_FREQ
 
 /*
  * The AVR32 has 7 PWM channels, each of which chooses its clock from
@@ -91,7 +91,7 @@ void pwm_set_linear_divider( unsigned prea, unsigned diva )
 
   mr.prea = prea;
   mr.diva = diva;
-  mr.preb = 0;		// Turn clock B off
+  mr.preb = 0;             // Turn clock B off
   mr.divb = 0;
   AVR32_PWM.MR = mr;
 }
@@ -107,9 +107,9 @@ u32 pwm_get_clock_freq( void )
   if (divisor == 0)
   {
     // This clock is turned off. A frequency of 0 should surprise them.
-    return 0;   
+    return 0;
   }
-  
+
   return REQ_PBA_FREQ / ( ( 1<<prescaler ) * divisor );
 }
 
@@ -130,7 +130,7 @@ u32 pwm_get_clock_freq( void )
  *   the old frequency at the new duty period or vice versa.
  *   Worse, you have to be careful in which order you change them, since
  *   duty_period > cycle_period is not allowed by the hardware.
- * 
+ *
  * - To know when one value has been flushed to its register, you have to
  *   enable the per-channel PWM interrupt, clear its status flag and wait until
  *   that interrupt status flag goes high, which happens at the end of each
@@ -236,8 +236,8 @@ static void pwm_channel_set_period( unsigned id, u32 period )
 
   // Select updating of the period and write into the update register
   AVR32_PWM.channel[id].CMR.cpd = AVR32_PWM_CMR_CPD_UPDATE_CPRD;
-  update_has_flushed &= ~(1 << id);	// The update hasn't happened yet...
-  AVR32_PWM.channel[id].cupd = period;	// Schedule the update to be performed
+  update_has_flushed &= ~(1 << id);     // The update hasn't happened yet...
+  AVR32_PWM.channel[id].cupd = period;  // Schedule the update to be performed
 }
 
 static void pwm_channel_set_duty_cycle( unsigned id, u32 duty )

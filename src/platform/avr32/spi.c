@@ -117,7 +117,7 @@ int spi_initMaster(volatile avr32_spi_t *spi, const spi_master_options_t *opt, U
 }
 /*-----------------------------------------------------------*/
 int spi_setupChipReg(volatile avr32_spi_t *spi,
-		unsigned char reg, const spi_options_t *options, U32 pba_hz)
+                     unsigned char reg, const spi_options_t *options, U32 pba_hz)
 {
   u_avr32_spi_csr_t u_avr32_spi_csr;
 
@@ -167,11 +167,11 @@ int spi_selectChip(volatile avr32_spi_t *spi, unsigned char chip)
   spi->mr |= AVR32_SPI_MR_PCS_MASK;
 
   if (spi->mr & AVR32_SPI_MR_PCSDEC_MASK) {
-	// The signal is decoded; allow up to 15 chips.
+    // The signal is decoded; allow up to 15 chips.
     if (chip > 14) goto err;
     spi->mr &= ~AVR32_SPI_MR_PCS_MASK | (chip << AVR32_SPI_MR_PCS_OFFSET);
   }else {
-	  if (chip > 3) goto err;
+    if (chip > 3) goto err;
     spi->mr &= ~(1 << (AVR32_SPI_MR_PCS_OFFSET + chip));
   }
 
@@ -183,7 +183,7 @@ err:
 int spi_unselectChip(volatile avr32_spi_t *spi, unsigned char chip)
 {
   while (!(spi->sr & AVR32_SPI_SR_TXEMPTY_MASK))
-	  continue;
+    continue;
 
   // Assert all lines; no peripheral is selected.
   spi->mr |= AVR32_SPI_MR_PCS_MASK;
