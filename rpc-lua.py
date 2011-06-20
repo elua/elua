@@ -16,9 +16,8 @@ if platform.system() == "Windows":
   lua_full_files += " src/serial/serial_win32.c"
   cdefs += " -DWIN32_BUILD"
 else:
-  lua_full_files += " src/serial/serial_posix.c"
-  external_libs += " -lreadline"
-  cdefs += " -DLUA_USE_READLINE"
+  lua_full_files += " src/serial/serial_posix.c src/linenoise_posix.c"
+  cdefs += " -DLUA_USE_LINENOISE "
 
 local_include = "-Isrc/lua -Iinc -Isrc/modules -Iinc/desktop"
 
