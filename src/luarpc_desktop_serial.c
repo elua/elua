@@ -82,7 +82,7 @@ void transport_accept (Transport *tpt, Transport *atpt)
 // Read & Write to Transport
 void transport_read_buffer (Transport *tpt, u8 *buffer, int length)
 {
-  u32 n;
+  int n;
   struct exception e;
   TRANSPORT_VERIFY_OPEN;
   
