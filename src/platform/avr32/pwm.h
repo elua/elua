@@ -4,7 +4,7 @@
  *      Martin Guy <martinwguy@gmail.com>, March 2011
  */
 
-#include "platform.h"	// for u32
+#include "platform.h"   // for u32
 
 // Initialize the PWM system, called at startup
 void pwm_init( void );

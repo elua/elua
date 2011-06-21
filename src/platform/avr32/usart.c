@@ -124,14 +124,14 @@ static int usart_set_async_baudrate(volatile avr32_usart_t *usart, unsigned int 
  */
 unsigned int usart_get_async_baudrate(volatile avr32_usart_t *usart, unsigned long pba_hz)
 {
-  unsigned int clock;	// Master clock frequency
+  unsigned int clock;   // Master clock frequency
   unsigned int over;    // divisor of 8 or 16
   unsigned int cd;      // clock divider (0-65535)
   unsigned int fp;      // fractional part of clock divider (0-7)
   unsigned int divisor; // What the master clock is divided by to get
                         // the final baud rate
 
-  // Find 
+  // Find
   switch ((usart->mr & AVR32_USART_MR_USCLKS_MASK) >> AVR32_USART_MR_USCLKS_OFFSET)
   {
     case AVR32_USART_MR_USCLKS_MCK:
@@ -145,7 +145,7 @@ unsigned int usart_get_async_baudrate(volatile avr32_usart_t *usart, unsigned lo
     case AVR32_USART_MR_USCLKS_SCK:
       // If we have an external clock, we don't know its frequency here.
     default:
-      return 0;	
+      return 0;
   }
 
   over = usart->mr & AVR32_USART_MR_OVER_MASK;
@@ -154,7 +154,7 @@ unsigned int usart_get_async_baudrate(volatile avr32_usart_t *usart, unsigned lo
 
   // if CD==0, no baud rate is generated.
   // if CD==1, the clock divider and fractional part are bypassed.
-  if (cd == 0) return 0;   
+  if (cd == 0) return 0;
   if (cd == 1) fp = 0;
 
   // Rewriting "divisor = 8 * (2 - over) * (cd + fp/8)" for integer math:

@@ -34,7 +34,7 @@ typedef unsigned short uip_stats_t;
 //
 #define UIP_CONF_PINGADDRCONF       0
 
-// 
+//
 // TCP support on or off
 //
 #define UIP_CONF_TCP                1

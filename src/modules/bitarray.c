@@ -45,7 +45,7 @@ static int bitarray_new( lua_State *L )
   if( lua_isnumber( L, 1 ) )
   {
     // capacity, [element_size_bits], [fill]
-    capacity = luaL_checkinteger( L, 1 );
+    capacity = ( u32 )luaL_checkinteger( L, 1 );
     if( lua_isnumber( L, 2 ) )
       elsize = luaL_checkinteger( L, 2 );
     else
@@ -69,7 +69,7 @@ static int bitarray_new( lua_State *L )
       elsize = 8;
     if( ( temp << 3 ) % elsize )
       return luaL_error( L, "length is not a multiple of element size." );
-    capacity = ( temp << 3 ) / elsize;  
+    capacity = ( u32 )( temp << 3 ) / elsize;  
   }
   else 
     return luaL_error( L, "invalid arguments." );
@@ -141,7 +141,7 @@ static int bitarray_get( lua_State *L )
   u32 idx;
    
   pa = bitarray_check( L );
-  idx = luaL_checkinteger( L, 2 );
+  idx = ( u32 )luaL_checkinteger( L, 2 );
   if( ( idx <= 0 ) || ( idx > pa->capacity ) )
     return luaL_error( L, "invalid index." );
   lua_pushinteger( L, bitarray_getval( pa, idx ) );    
@@ -156,8 +156,8 @@ static int bitarray_set( lua_State *L )
   u8 rest, mask;
    
   pa = bitarray_check( L );
-  idx = luaL_checkinteger( L, 2 );
-  newval = luaL_checkinteger( L, 3 );
+  idx = ( u32 )luaL_checkinteger( L, 2 );
+  newval = ( u32 )luaL_checkinteger( L, 3 );
   if( ( idx <= 0 ) || ( idx > pa->capacity ) )
     return luaL_error( L, "invalid index." );
   idx --;
@@ -206,7 +206,7 @@ static int bitarray_iter( lua_State *L )
   u32 idx;
   
   pa = bitarray_check( L );
-  idx = luaL_checkinteger( L, 2 ) + 1;
+  idx = ( u32 )luaL_checkinteger( L, 2 ) + 1;
   if( idx <= pa->capacity )
   {
     lua_pushinteger( L, idx );

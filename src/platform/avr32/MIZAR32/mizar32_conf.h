@@ -81,7 +81,7 @@
 #define NETLINE
 #endif
 
-#if defined( BUILD_RPC ) 
+#if defined( BUILD_RPC )
 #define RPCLINE _ROM( AUXLIB_RPC, luaopen_rpc, rpc_map )
 #else
 #define RPCLINE
@@ -128,8 +128,8 @@
 #else
 #define NUM_TIMER             3
 #endif
-#define NUM_PWM               7		// PWM7 is on GPIO50
-#define NUM_ADC               8		// Though ADC3 pin is the Ethernet IRQ
+#define NUM_PWM               7         // PWM7 is on GPIO50
+#define NUM_ADC               8         // Though ADC3 pin is the Ethernet IRQ
 #define NUM_CAN               0
 
 // As flow control seems not to work, we use a large buffer so that people

@@ -51,7 +51,7 @@ static void MaybeByteSwap(char *number, size_t numbersize, DumpState *D)
  int platform_little_endian = *(char*)&x;
  if (platform_little_endian != D->target.little_endian)
  {
-  int i;
+  unsigned long i;
   for (i=0; i<numbersize/2; i++)
   {
    char temp = number[i];
@@ -91,7 +91,7 @@ static void DumpInt(int x, DumpState* D)
  DumpIntWithSize(x,D->target.sizeof_int,D);
 }
 
-static void DumpSize(int32_t x, DumpState* D)
+static void DumpSize(uint32_t x, DumpState* D)
 {
  /* dump unsigned integer */
  switch(D->target.sizeof_strsize_t) {
@@ -179,7 +179,7 @@ static void DumpString(const TString* s, DumpState* D)
  }
  else
  {
-  strsize_t size=s->tsv.len+1;		/* include trailing '\0' */
+  strsize_t size=( strsize_t )s->tsv.len+1;		/* include trailing '\0' */
   DumpSize(size,D);
   DumpBlock(getstr(s),size,D);
  }

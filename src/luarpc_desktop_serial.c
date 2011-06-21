@@ -100,7 +100,7 @@ int transport_get_char(Transport *t)
 // Read & Write to Transport
 void transport_read_buffer (Transport *tpt, u8 *buffer, int length)
 {
-  u32 n;
+  int n;
   struct exception e;
   TRANSPORT_VERIFY_OPEN;
   

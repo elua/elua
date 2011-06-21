@@ -62,7 +62,7 @@ static void doswap(int swap, void *p, size_t n)
  {
   char *a=p;
   int i,j;
-  for (i=0, j=n-1, n=n/2; n--; i++, j--)
+  for (i=0, j=( int )n-1, n=n/2; n--; i++, j--)
   {
    char t=a[i]; a[i]=a[j]; a[j]=t;
   }
@@ -74,7 +74,7 @@ static void doswap(int swap, void *p, size_t n)
    {					\
     T a;				\
     int m=sizeof(a);			\
-    if (i+m>len) goto done;		\
+    if (((unsigned long)i+m)>len) goto done;		\
     memcpy(&a,s+i,m);			\
     i+=m;				\
     doswap(swap,&a,m);			\
@@ -88,10 +88,10 @@ static void doswap(int swap, void *p, size_t n)
    {					\
     T l;				\
     int m=sizeof(l);			\
-    if (i+m>len) goto done;		\
+    if (((unsigned long)i+m)>len) goto done;		\
     memcpy(&l,s+i,m);			\
     doswap(swap,&l,m);			\
-    if (i+m+l>len) goto done;		\
+    if (((unsigned long)i+m+l)>len) goto done;		\
     i+=m;				\
     lua_pushlstring(L,s+i,l);		\
     i+=l;				\
@@ -131,7 +131,7 @@ static int l_unpack(lua_State *L) 		/** unpack(s,f,[init]) */
    case OP_STRING:
    {
     ++N;
-    if (i+N>len) goto done;
+    if (((unsigned long)i+N)>len) goto done;
     lua_pushlstring(L,s+i,N);
     i+=N;
     ++n;
@@ -141,7 +141,7 @@ static int l_unpack(lua_State *L) 		/** unpack(s,f,[init]) */
    case OP_ZSTRING:
    {
     size_t l;
-    if (i>=len) goto done;
+    if (((unsigned long)i)>=len) goto done;
     l=strlen(s+i);
     lua_pushlstring(L,s+i,l);
     i+=l+1;

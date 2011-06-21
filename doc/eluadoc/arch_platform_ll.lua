@@ -57,7 +57,7 @@ enum
       }, 
     },
 
-    { sig = "void* #platform_get_last_free_ram#( unsigned id );",
+    { sig = "void* #platform_get_first_free_ram#( unsigned id );",
       desc = [[Returns the start address of a free RAM area in the system (this is the RAM that will be used by any part of the code that uses malloc(), 
   a good example being the Lua interpreter itself). There can be multiple free RAM areas in the system (for example the internal MCU RAM and external 
   RAM chips).  Implemented in $src/common.c$, it uses the the $MEM_START_ADDRESS$ macro that must be defined in the platform's $platform_conf.h$
