@@ -52,6 +52,9 @@ void transport_open_listener(lua_State *L, ServerHandle *handle)
   
 	handle->ltpt.fd = ( int )uart_id;
 	handle->ltpt.tmr_id = tmr_id;
+
+  // Setup uart
+  platform_uart_setup( (unsigned int) uart_id, 115200, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
 }
 
 // Open Connection / Client
@@ -75,6 +78,10 @@ int transport_open_connection(lua_State *L, Handle *handle)
   
 	handle->tpt.fd = ( int )uart_id;
 	handle->tpt.tmr_id = tmr_id;
+
+  // Setup uart
+  platform_uart_setup( (unsigned int) uart_id, 115200, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
+
 	return 1;
 }
 
@@ -132,7 +139,8 @@ void transport_write_buffer( Transport *tpt, const u8 *buffer, int length )
 	TRANSPORT_VERIFY_OPEN;
 	
 	for( i = 0; i < length; i ++ )
-    platform_uart_send( CON_UART_ID, buffer[ i ] );
+    platform_uart_send( tpt->fd, buffer[ i ] );
+//    platform_uart_send( CON_UART_ID, buffer[ i ] );
 }
 
 // Check if data is available on connection without reading:
