@@ -402,7 +402,10 @@ local function make_romfs()
   local flist = {}
   flist = utils.string_to_table( utils.get_files( 'romfs', function( fname ) return not fname:find( "%.gitignore" ) end ) )
   flist = utils.linearize_array( flist )  
-  if not mkfs.mkfs( ".", "romfiles", flist, comp.romfs, fscompcmd ) then return -1 end
+  for k, v in pairs( flist ) do
+    flist[ k ] = v:gsub( "romfs" .. utils.dir_sep, "" )
+  end
+  if not mkfs.mkfs( "romfs", "romfiles", flist, comp.romfs, fscompcmd ) then return -1 end
   if utils.is_file( "inc/romfiles.h" ) then
     -- Read both the old and the new file
     local oldfile = io.open( "inc/romfiles.h", "rb" )
