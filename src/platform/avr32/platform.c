@@ -249,104 +249,59 @@ int platform_init()
 // ****************************************************************************
 // PIO functions
 
-// Reg types for our helper function
-#define PIO_REG_PVR   0
-#define PIO_REG_OVR   1
-#define PIO_REG_GPER  2
-#define PIO_REG_ODER  3
-#define PIO_REG_PUER  4
-
-#define GPIO          AVR32_GPIO
-
-// Helper function: for a given port, return the address of a specific register (value, direction, pullup ...)
-static volatile unsigned long* platform_pio_get_port_reg_addr( unsigned port, int regtype )
-{
-  volatile avr32_gpio_port_t *gpio_port = &GPIO.port[ port ];
-
-  switch( regtype )
-  {
-    case PIO_REG_PVR:
-      return ( unsigned long * )&gpio_port->pvr;
-    case PIO_REG_OVR:
-      return &gpio_port->ovr;
-    case PIO_REG_GPER:
-      return &gpio_port->gper;
-    case PIO_REG_ODER:
-      return &gpio_port->oder;
-    case PIO_REG_PUER:
-      return &gpio_port->puer;
-  }
-  // Should never get here
-  return ( unsigned long* )&gpio_port->pvr;
-}
-
-// Helper function: get port value, get direction, get pullup, ...
-static pio_type platform_pio_get_port_reg( unsigned port, int reg )
-{
-  volatile unsigned long *pv = platform_pio_get_port_reg_addr( port, reg );
-
-  return *pv;
-}
-
-// Helper function: set port value, set direction, set pullup ...
-static void platform_pio_set_port_reg( unsigned port, pio_type val, int reg )
-{
-  volatile unsigned long *pv = platform_pio_get_port_reg_addr( port, reg );
-
-  *pv = val;
-}
-
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 {
   pio_type retval = 1;
 
+  // Pointer to the register set for this GPIO port
+  volatile avr32_gpio_port_t *gpio_regs = &AVR32_GPIO.port[ port ];
+
   switch( op )
   {
     case PLATFORM_IO_PORT_SET_VALUE:
-      platform_pio_set_port_reg( port, pinmask, PIO_REG_OVR );
+      gpio_regs->ovr = pinmask;
       break;
 
     case PLATFORM_IO_PIN_SET:
-      platform_pio_set_port_reg( port, platform_pio_get_port_reg( port, PIO_REG_OVR ) | pinmask, PIO_REG_OVR );
+      gpio_regs->ovrs = pinmask;
       break;
 
     case PLATFORM_IO_PIN_CLEAR:
-      platform_pio_set_port_reg( port, platform_pio_get_port_reg( port, PIO_REG_OVR ) & ~pinmask, PIO_REG_OVR );
+      gpio_regs->ovrc = pinmask;
       break;
 
     case PLATFORM_IO_PORT_DIR_INPUT:
       pinmask = 0xFFFFFFFF;
     case PLATFORM_IO_PIN_DIR_INPUT:
-      platform_pio_set_port_reg( port, platform_pio_get_port_reg( port, PIO_REG_ODER ) & ~pinmask, PIO_REG_ODER );
-      platform_pio_set_port_reg( port, platform_pio_get_port_reg( port, PIO_REG_GPER ) | pinmask, PIO_REG_GPER );
+      gpio_regs->oderc = pinmask;  // Disable output drivers
+      gpio_regs->gpers = pinmask;  // Make GPIO control this pin
       break;
 
     case PLATFORM_IO_PORT_DIR_OUTPUT:
       pinmask = 0xFFFFFFFF;
     case PLATFORM_IO_PIN_DIR_OUTPUT:
-      platform_pio_set_port_reg( port, platform_pio_get_port_reg( port, PIO_REG_ODER ) | pinmask, PIO_REG_ODER );
-      platform_pio_set_port_reg( port, platform_pio_get_port_reg( port, PIO_REG_GPER ) | pinmask, PIO_REG_GPER );
+      gpio_regs->oders = pinmask;  // Enable output drivers
+      gpio_regs->gpers = pinmask;  // Make GPIO control this pin
       break;
 
     case PLATFORM_IO_PORT_GET_VALUE:
-      retval = platform_pio_get_port_reg( port, PIO_REG_PVR );
+      retval = gpio_regs->pvr;
       break;
 
     case PLATFORM_IO_PIN_GET:
-      retval = platform_pio_get_port_reg( port, PIO_REG_PVR ) & pinmask ? 1 : 0;
+      retval = gpio_regs->pvr & pinmask ? 1 : 0;
       break;
 
     case PLATFORM_IO_PIN_PULLUP:
-      platform_pio_set_port_reg( port, platform_pio_get_port_reg( port, PIO_REG_PUER ) | pinmask, PIO_REG_PUER );
+      gpio_regs->puers = pinmask;
       break;
 
     case PLATFORM_IO_PIN_NOPULL:
-      platform_pio_set_port_reg( port, platform_pio_get_port_reg( port, PIO_REG_PUER ) & ~pinmask, PIO_REG_PUER );
+      gpio_regs->puerc = pinmask;
       break;
 
     default:
       retval = 0;
-      break;
   }
   return retval;
 }
@@ -517,7 +472,7 @@ int platform_s_uart_set_flow_control( unsigned id, int type )
       gpio_enable_module_pin( ppindata->pin, ppindata->function );
     else // release pin to GPIO module
     {
-      gpio_port = &GPIO.port[ ppindata->pin >> 5 ];
+      gpio_port = &AVR32_GPIO.port[ ppindata->pin >> 5 ];
       gpio_port->gpers = 1 << ( ppindata->pin & 0x1F );
     }
   return PLATFORM_OK;
