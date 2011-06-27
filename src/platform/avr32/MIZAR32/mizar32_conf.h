@@ -16,28 +16,38 @@
 
 #define BUILD_MMCFS
 //#define BUILD_XMODEM
-#define BUILD_SHELL
-#define BUILD_ROMFS
-//#define BUILD_TERM
-//#define BUILD_CON_GENERIC
+//#define BUILD_SHELL
+//#define BUILD_ROMFS
+#define BUILD_CON_GENERIC
 //#define BUILD_RPC
 #define BUF_ENABLE_UART
 #define BUILD_C_INT_HANDLERS
-//#define BUILD_ADC
-#define BUILA_LUA_INT_HANDLERS
 //#define BUILD_RFS
 //#define BUILD_SERMUX
 
-#define BUILD_UIP
+#if ELUA_CPU == AT32UC3A0128
+  // Build options for 120KB image
+#else
+  // Build options for 256KB and 512KB flash
+# define BUILD_ADC
+# define BUILD_TERM
+# define BUILD_UIP
+#endif
+
+#ifdef BUILD_UIP
 //#define BUILD_DHCPC
 #define BUILD_DNS
 #define BUILD_CON_TCP
+#endif
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 
-//#define CON_UART_ID         ( SERMUX_SERVICE_ID_FIRST + 1 )
-#define CON_UART_ID         0
+#ifdef BUILD_SERMUX
+# define CON_UART_ID         ( SERMUX_SERVICE_ID_FIRST + 1 )
+#else
+# define CON_UART_ID         0
+#endif
 #define CON_UART_SPEED      115200
 #define CON_TIMER_ID        0
 #define TERM_LINES          25
@@ -75,6 +85,7 @@
 #else
 #define ADCLINE
 #endif
+
 #ifdef BUILD_UIP
 #define NETLINE  _ROM( AUXLIB_NET, luaopen_net, net_map )
 #else
@@ -86,6 +97,16 @@
 #else
 #define RPCLINE
 #endif
+
+#if ELUA_CPU == AT32UC3A0128
+
+// Minimal ROM modules, to fit in 120KB
+#define LUA_PLATFORM_LIBS_ROM\
+  _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
+  _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
+  _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
+
+#else
 
 #define LUA_PLATFORM_LIBS_ROM\
   _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
@@ -101,15 +122,9 @@
   RPCLINE\
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
+  _ROM( AUXLIB_TERM, luaopen_term, term_map )\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
 
-#if MINIMAL_ROM_MODULES_TO_FIT_IN_120KB
-/* Minimal ROM modules, to fit in 120KB */
-#undef  LUA_PLATFORM_LIBS_ROM
-#define LUA_PLATFORM_LIBS_ROM\
-  _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
-  _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
-  NETLINE
 #endif
 
 // *****************************************************************************
