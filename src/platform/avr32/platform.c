@@ -40,6 +40,7 @@
 #include "spi.h"
 #include "adc.h"
 #include "pwm.h"
+#include "i2c.h"
 
 // UIP sys tick data
 // NOTE: when using virtual timers, SYSTICKHZ and VTMR_FREQ_HZ should have the
@@ -960,6 +961,49 @@ u32 platform_pwm_op( unsigned id, int op, u32 data)
   }
   return 0;
 }
+
+// ****************************************************************************
+// I2C support
+
+u32 platform_i2c_setup( unsigned id, u32 speed )
+{
+  return i2c_setup(speed);
+}
+
+void platform_i2c_send_start( unsigned id )
+{
+  i2c_start_cond();
+}
+
+void platform_i2c_send_stop( unsigned id )
+{
+  i2c_stop_cond();
+}
+
+int platform_i2c_send_address( unsigned id, u16 address, int direction )
+{
+  // Convert enum codes to R/w bit value.
+  // If TX == 0 and RX == 1, this test will be removed by the compiler
+  if ( ! ( PLATFORM_I2C_DIRECTION_TRANSMITTER == 0 &&
+           PLATFORM_I2C_DIRECTION_RECEIVER == 1 ) ) {
+    direction = ( direction == PLATFORM_I2C_DIRECTION_TRANSMITTER ) ? 0 : 1;
+  }
+
+  // Low-level returns nack (0=acked); we return ack (1=acked).
+  return ! i2c_write_byte( (address << 1) | direction );
+}
+
+int platform_i2c_send_byte( unsigned id, u8 data )
+{
+  // Low-level returns nack (0=acked); we return ack (1=acked).
+  return ! i2c_write_byte( data );
+}
+
+int platform_i2c_recv_byte( unsigned id, int ack )
+{
+  return i2c_read_byte( !ack );
+}
+
 
 // ****************************************************************************
 // Network support

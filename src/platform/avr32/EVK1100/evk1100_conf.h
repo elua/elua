@@ -87,6 +87,7 @@
   _ROM( AUXLIB_UART, luaopen_uart, uart_map )\
   _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
   _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map )\
+  _ROM( AUXLIB_I2C, luaopen_i2c, i2c_map )\
   _ROM( AUXLIB_SPI, luaopen_spi, spi_map )\
   _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
   _ROM( AUXLIB_TERM, luaopen_term, term_map )\
@@ -116,6 +117,7 @@
 #define NUM_TIMER             3
 #endif
 #define NUM_PWM               7
+#define NUM_I2C               1
 #define NUM_ADC               8
 #define NUM_CAN               0
 
