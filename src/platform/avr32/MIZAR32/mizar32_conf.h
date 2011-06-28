@@ -25,7 +25,7 @@
 //#define BUILD_RFS
 //#define BUILD_SERMUX
 
-#if ELUA_CPU == AT32UC3A0128
+#if defined( ELUA_CPU_AT32UC3A0128 )
   // Build options for 120KB image
 #else
   // Build options for 256KB and 512KB flash
@@ -37,7 +37,7 @@
 #ifdef BUILD_UIP
 //#define BUILD_DHCPC
 #define BUILD_DNS
-#define BUILD_CON_TCP
+//#define BUILD_CON_TCP
 #endif
 
 // *****************************************************************************
@@ -98,7 +98,7 @@
 #define RPCLINE
 #endif
 
-#if ELUA_CPU == AT32UC3A0128
+#if defined( ELUA_CPU_AT32UC3A0128 )
 
 // Minimal ROM modules, to fit in 120KB
 #define LUA_PLATFORM_LIBS_ROM\
