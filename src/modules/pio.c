@@ -392,10 +392,10 @@ static const LUA_REG_TYPE pio_port_map[] =
 
 const LUA_REG_TYPE pio_map[] =
 {
+  { LSTRKEY( "decode" ), LFUNCVAL( pio_decode ) },  
 #if LUA_OPTIMIZE_MEMORY > 0
   { LSTRKEY( "pin" ), LROVAL( pio_pin_map ) },
   { LSTRKEY( "port" ), LROVAL( pio_port_map ) },
-  { LSTRKEY( "decode" ), LFUNCVAL( pio_decode ) },  
   { LSTRKEY( "INPUT" ), LNUMVAL( PIO_DIR_INPUT ) },
   { LSTRKEY( "OUTPUT" ), LNUMVAL( PIO_DIR_OUTPUT ) },
   { LSTRKEY( "PULLUP" ), LNUMVAL( PLATFORM_IO_PIN_PULLUP ) },
