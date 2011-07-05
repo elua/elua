@@ -129,7 +129,7 @@ u32 ser_write( ser_handler id, const u8 *src, u32 size )
 {
   HANDLE hComm = ( HANDLE )id;
   DWORD written;
-	
+
   if( !WriteFile( hComm, src, size, &written, NULL ) )
     return 0;
   return written;

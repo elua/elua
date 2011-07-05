@@ -154,7 +154,7 @@
 // *****************************************************************************
 // CPU constants that should be exposed to the eLua "cpu" module
 
-#define PINSEL_BASE_ADDR	      0xE002C000
+#define PINSEL_BASE_ADDR      0xE002C000
 #define IO_PINSEL0            ( PINSEL_BASE_ADDR + 0x00 )
 #define IO_PINSEL1            ( PINSEL_BASE_ADDR + 0x04 )
 #define IO_PINSEL2            ( PINSEL_BASE_ADDR + 0x08 )

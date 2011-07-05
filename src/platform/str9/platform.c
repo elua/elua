@@ -470,18 +470,18 @@ void ADC_IRQHandler( void )
     
       // Fill in smoothing buffer until warmed up
       if ( s->logsmoothlen > 0 && s->smooth_ready == 0)
-	adc_smooth_data( s->id );
+        adc_smooth_data( s->id );
 #if defined( BUF_ENABLE_ADC )
       else if ( s->reqsamples > 1 )
       {
-	buf_write( BUF_ID_ADC, s->id, ( t_buf_data* )s->value_ptr );
-	s->value_fresh = 0;
+        buf_write( BUF_ID_ADC, s->id, ( t_buf_data* )s->value_ptr );
+        s->value_fresh = 0;
       }
 #endif
 
       // If we have the number of requested samples, stop sampling
       if ( adc_samples_available( s->id ) >= s->reqsamples && s->freerunning == 0 )
-	platform_adc_stop( s->id );
+        platform_adc_stop( s->id );
 
       d->seq_ctr++;
     }

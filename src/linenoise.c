@@ -414,9 +414,9 @@ int linenoise_savehistory( int id, const char *filename )
 int linenoise_getline( int id, char* buffer, int maxinput, const char* prompt )
 {
   ( void )id;
-	fputs( prompt, stdout );
+  fputs( prompt, stdout );
   fflush( stdout );
-	return fgets( buffer, maxinput, stdin ) == NULL ? -1 : 0;
+  return fgets( buffer, maxinput, stdin ) == NULL ? -1 : 0;
 }
 
 int linenoise_addhistory( int id, const char *line )

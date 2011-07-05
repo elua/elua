@@ -43,13 +43,13 @@ int platform_init()
   // DeInit NVIC and SCBNVIC
   NVIC_DeInit();
   NVIC_SCBDeInit();
-	
+
   // Configure the NVIC Preemption Priority Bits:
   // two (2) bits of preemption priority, six (6) bits of sub-priority.
   // Since the Number of Bits used for Priority Levels is five (5), so the
   // actual bit number of sub-priority is three (3)
   NVIC_SetPriorityGrouping(0x05);
-	
+
   //  Set Vector table offset value
 #if (__RAM_MODE__==1)
   NVIC_SetVTOR(0x10000000);
@@ -145,7 +145,7 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   UART_FIFO_CFG_Type UARTFIFOConfigStruct;
   // Pin configuration for UART0
   PINSEL_CFG_Type PinCfg;
-	
+
   // UART0 Pin Config
   PinCfg.Funcnum = 1;
   PinCfg.OpenDrain = 0;
@@ -155,7 +155,7 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   PINSEL_ConfigPin(&PinCfg);
   PinCfg.Pinnum = 3;
   PINSEL_ConfigPin(&PinCfg);
-	
+
   UARTConfigStruct.Baud_rate = ( uint32_t )baud;
   
   switch( databits )
@@ -196,9 +196,9 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
       UARTConfigStruct.Parity = UART_PARITY_EVEN;
       break;
   }
-	
+
   UART_Init(uart[ id ], &UARTConfigStruct);
-	
+
   // Get default FIFO config and initialize
   UART_FIFOConfigStructInit(&UARTFIFOConfigStruct);
   UART_FIFOConfig(uart[ id ], &UARTFIFOConfigStruct);
@@ -256,8 +256,8 @@ static u32 platform_timer_set_clock( unsigned id, u32 clock )
 
   // Initialize timer 0, prescale count time of 1uS
   TIM_ConfigStruct.PrescaleOption = TIM_PRESCALE_USVAL;
-  TIM_ConfigStruct.PrescaleValue	= 1000000ULL / clock;
-	
+  TIM_ConfigStruct.PrescaleValue  = 1000000ULL / clock;
+
   TIM_Init( tmr[ id ], TIM_TIMER_MODE, &TIM_ConfigStruct );
   TIM_Cmd( tmr[ id ], ENABLE );
   TIM_ResetCounter( tmr[ id ] );
@@ -448,7 +448,7 @@ u32 platform_adc_setclock( unsigned id, u32 frequency )
         
     // Run timer at 1MHz
     TIM_ConfigStruct.PrescaleOption = TIM_PRESCALE_USVAL;
-    TIM_ConfigStruct.PrescaleValue	= 1;
+    TIM_ConfigStruct.PrescaleValue     = 1;
     
     TIM_MatchConfigStruct.MatchChannel = 1;
     TIM_MatchConfigStruct.IntOnMatch   = FALSE;
@@ -459,7 +459,7 @@ u32 platform_adc_setclock( unsigned id, u32 frequency )
     TIM_MatchConfigStruct.MatchValue   = ( 1000000ULL / ( frequency * 2 ) ) - 1;
         
     frequency = 1000000ULL / (TIM_MatchConfigStruct.MatchValue + 1);
-  	
+  
     // Set configuration for Tim_config and Tim_MatchConfig
     TIM_Init( tmr[ d->timer_id ], TIM_TIMER_MODE, &TIM_ConfigStruct );
     TIM_ConfigMatch( tmr[ d->timer_id ], &TIM_MatchConfigStruct );
@@ -551,7 +551,7 @@ static u32 platform_pwm_set_clock( unsigned id, u32 clock )
   PWMCfgDat.PrescaleOption = PWM_TIMER_PRESCALE_USVAL;
   PWMCfgDat.PrescaleValue = 1000000ULL / clock;
   PWM_Init( LPC_PWM1, PWM_MODE_TIMER, &PWMCfgDat );
-	
+
   return clock;
 }
 

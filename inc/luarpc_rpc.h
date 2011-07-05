@@ -67,7 +67,7 @@ enum exception_type { done, nonfatal, fatal };
 
 struct exception {
   enum exception_type type;
-	int errnum;
+  int errnum;
 };
 
 define_exception_type(struct exception);
@@ -113,7 +113,7 @@ typedef struct _ServerHandle ServerHandle;
 struct _ServerHandle {
   Transport ltpt;   // listening transport, always valid if no error
   Transport atpt;   // accepting transport, valid if connection established
-	int link_errs;
+  int link_errs;
 };
 
 
@@ -125,12 +125,12 @@ struct _ServerHandle {
 #endif
 
 #define TRANSPORT_VERIFY_OPEN \
-	if (tpt->fd == INVALID_TRANSPORT) \
-	{ \
-		e.errnum = ERR_CLOSED; \
-		e.type = fatal; \
-		Throw( e ); \
-	}
+  if (tpt->fd == INVALID_TRANSPORT) \
+  { \
+    e.errnum = ERR_CLOSED; \
+    e.type = fatal; \
+    Throw( e ); \
+  }
 
 // Arg & Error Checking Provided to Transport Mechanisms 
 int check_num_args (lua_State *L, int desired_n);
@@ -156,11 +156,11 @@ void transport_read_buffer (Transport *tpt, u8 *buffer, int length);
 void transport_write_buffer (Transport *tpt, const u8 *buffer, int length);
 
 // Check if data is available on connection without reading:
-// 		- 1 = data available, 0 = no data available
+//     - 1 = data available, 0 = no data available
 int transport_readable (Transport *tpt);
 
 // Check if transport is open:
-//		- 1 = connection open, 0 = connection closed
+//    - 1 = connection open, 0 = connection closed
 int transport_is_open (Transport *tpt);
 
 // Shut down connection
