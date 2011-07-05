@@ -10,7 +10,7 @@ data_en =
 
   -- Overview
   overview = [[This part of the platform interface groups functions related to the timers of the MCU. It also makes provisions for using $virtual timers$ on any platform, see @#virtual@this section@
-  for details. Keep in mind that in the following paragraphs a $timer id$ can reffer to both a hardware timer or a virtual timer.]],
+  for details. Keep in mind that in the following paragraphs a $timer id$ can refer to both a hardware timer or a virtual timer.]],
 
   -- Data structures, constants and types
   structures = 
