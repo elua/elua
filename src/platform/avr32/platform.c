@@ -146,10 +146,12 @@ int platform_init()
   // Setup clocks
   if( PM_FREQ_STATUS_FAIL == pm_configure_clocks( &pm_freq_param ) )
     return PLATFORM_ERR;
+#ifdef FOSC32
   // Select the 32-kHz oscillator crystal
   pm_enable_osc32_crystal (&AVR32_PM );
   // Enable the 32-kHz clock
   pm_enable_clk32_no_wait( &AVR32_PM, AVR32_PM_OSCCTRL32_STARTUP_0_RCOSC );
+#endif
 
   // Initialize external memory if any.
 #ifdef AVR32_SDRAMC
