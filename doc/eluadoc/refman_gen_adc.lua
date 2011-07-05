@@ -81,7 +81,7 @@ data_en =
       ret = "$status$ - 1 if no samples are being acquired, 0 if samples are pending acquisition."
     },
     { sig = "#adc.setblocking#( id, mode )",
-      desc = "Set whether or not functions that request converted samples should wait for requested samples or return immediately with what is available.",
+      desc = "Set whether or not functions that request converted samples should wait for requested samples or return immediately with what is available. If this function is not called, each channel starts in blocking mode.",
       args = 
       {
         "$id$ - ADC channel ID.",
