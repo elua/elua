@@ -49,7 +49,7 @@ Here's an alphabetically ordered non-exhaustive list of contributors:
 - Renaud Cerrato - Initial EVK1101 AVR32 port
 - Robert G. Jakabosky - for porting his excellent link:elua_egc.html[emergency garbage collector] patch to eLua
 - Roberto Ierusalimschy, Luiz Henrique Figueiredo, Waldemar Celles - for http://www.lua.org[Lua] :)
-- Sergio Sorrenti and Martin Guy - AVR32 support, http://www.simplemachines.it/index.php?option=com_content&view=article&id=13&Itemid=24[Mizar32] port, testing
+- http://simplemachines.it[SimpleMachines] - AVR32 support, http://www.simplemachines.it/index.php?option=com_content&view=article&id=13&Itemid=24[Mizar32] port, testing
 - Téo Benjamin, Ives Cunha, Rafael Barmak - Pong, TetrIves, SpaceShip games and http://wiki.eluaproject.net/Manfredo[Manfredo], a GPS guided robot, powered by eLua.
 - Vagner Nascimento and Carlos Eduardo Deodoro - eLua Web Builder
 - The eLua users community on our https://lists.berlios.de/mailman/listinfo/elua-dev[discussion list] and http://wiki.eluaproject.net[eLua Wiki]
