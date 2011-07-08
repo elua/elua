@@ -52,7 +52,7 @@ data_en =
       args = 
       {
         "$id$ - the ID of the I2C interface.",
-        "$data1$ - the data to send. It can be either a number between 0 and 255, a string or a table (array).",
+        "$data1$ - the data to send. It can be either a number between 0 and 255, a string or a table (array) of numbers.",
         "$data2 (optional)$ - the second data to send.",
         "$datan (optional)$ - the %n%-th data to send."
       },
