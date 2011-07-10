@@ -27,8 +27,10 @@
 
 #if defined( ELUA_CPU_AT32UC3A0128 )
   // Build options for 120KB image
+# define RAM_SIZE 0x8000
 #else
   // Build options for 256KB and 512KB flash
+# define RAM_SIZE 0x10000
 # define BUILD_ADC
 # define BUILD_TERM
 # define BUILD_UIP
@@ -196,7 +198,7 @@
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)
 #define MEM_START_ADDRESS     { ( void* )end, ( void* )( SDRAM + ELUA_FIRMWARE_SIZE ) }
-#define MEM_END_ADDRESS       { ( void* )( 0x8000 - STACK_SIZE_TOTAL - 1 ), ( void* )( SDRAM + SDRAM_SIZE - 1 ) }
+#define MEM_END_ADDRESS       { ( void* )( RAM_SIZE - STACK_SIZE_TOTAL - 1 ), ( void* )( SDRAM + SDRAM_SIZE - 1 ) }
 
 // Interrupt queue size
 #define PLATFORM_INT_QUEUE_LOG_SIZE 5
