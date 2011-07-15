@@ -1,0 +1,5 @@
+$$HEADER$$
+<h3>Reference manual - Mizar32 platform dependent modules</h3>
+<p>This paragraph presents all the modules specific to the <a href="status.html">Mizar32</a> platform.</p>
+$$FOOTER$$
+

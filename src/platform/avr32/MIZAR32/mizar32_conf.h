@@ -34,12 +34,21 @@
 # define BUILD_ADC
 # define BUILD_TERM
 # define BUILD_UIP
+# define ENABLE_DISP
 #endif
 
 #ifdef BUILD_UIP
 //#define BUILD_DHCPC
 #define BUILD_DNS
 //#define BUILD_CON_TCP
+#endif
+
+// ****************************************************************************
+// Auxiliary libraries that will be compiled for this platform
+
+// The name of the platform specific libs table
+#ifdef ENABLE_DISP
+#define PS_LIB_TABLE_NAME   "mizar32"
 #endif
 
 // *****************************************************************************
@@ -100,6 +109,12 @@
 #define RPCLINE
 #endif
 
+#ifdef PS_LIB_TABLE_NAME
+#define PLATLINE _ROM( PS_LIB_TABLE_NAME, luaopen_platform, platform_map )
+#else
+#define PLATLINE
+#endif
+
 #if defined( ELUA_CPU_AT32UC3A0128 )
 
 // Minimal ROM modules, to fit in 120KB
@@ -126,7 +141,8 @@
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
   _ROM( AUXLIB_TERM, luaopen_term, term_map )\
-  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
+  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
+  PLATLINE\
 
 #endif
 

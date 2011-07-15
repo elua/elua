@@ -1090,3 +1090,42 @@ u32 platform_eth_get_elapsed_time()
 }
 
 #endif
+
+// ****************************************************************************
+// Platform specific modules go here
+
+#ifdef PS_LIB_TABLE_NAME
+
+#define MIN_OPT_LEVEL 2
+#include "lua.h"
+#include "lauxlib.h"
+#include "lrotable.h"
+#include "lrodefs.h"
+
+extern const LUA_REG_TYPE disp_map[];
+
+const LUA_REG_TYPE platform_map[] =
+{
+#if LUA_OPTIMIZE_MEMORY > 0
+  { LSTRKEY( "disp" ), LROVAL( disp_map ) },
+#endif
+  { LNILKEY, LNILVAL }
+};
+
+LUALIB_API int luaopen_platform( lua_State *L )
+{
+#if LUA_OPTIMIZE_MEMORY > 0
+  return 0;
+#else // #if LUA_OPTIMIZE_MEMORY > 0
+  luaL_register( L, PS_LIB_TABLE_NAME, platform_map );
+
+  // Setup the new tables inside platform table
+  lua_newtable( L );
+  luaL_register( L, NULL, disp_map );
+  lua_setfield( L, -2, "disp" );
+
+  return 1;
+#endif // #if LUA_OPTIMIZE_MEMORY > 0
+}
+
+#endif // #ifdef PS_LIB_TABLE_NAME

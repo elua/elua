@@ -143,8 +143,10 @@ static volatile avr32_gpio_port_t *scl_regs =
         &AVR32_GPIO.port[ SCL_PORT ];
 
 // Half an I2C bus clock cycle, as a number of HSB(==CPU) clock cycles;
-// Be default, the slow mode setting
-static u32 delay = REQ_CPU_FREQ / 100000 / 2;
+// Be default, use the slow mode setting.
+// This is exported to the LCD display driver ("disp") so that it can
+// change the bus speed as required by the LCD, then restore it.
+u32 i2c_delay = REQ_CPU_FREQ / 100000 / 2;
 
 // Local functions used by the bit-banger
 static void I2CDELAY(void); // Pause for half an I2C bus clock cycle
@@ -175,7 +177,7 @@ u32 i2c_setup( u32 speed )
   scl_regs->gpers = SCL_PINMASK;
 
   // Figure out how many clock cycles correspond to half a clock waveform.
-  delay = REQ_CPU_FREQ / speed / 2;
+  i2c_delay = REQ_CPU_FREQ / speed / 2;
 
   return speed;
 }
@@ -294,7 +296,7 @@ static void I2CDELAY()
 
   // Use the CPU cycle counter (CPU and HSB clocks are the same).
   u32 delay_start_cycle = Get_system_register(AVR32_COUNT);
-  u32 delay_end_cycle = delay_start_cycle + delay;
+  u32 delay_end_cycle = delay_start_cycle + i2c_delay;
  
   // To be safer, the end of wait is based on an inequality test, so CPU cycle
   // counter wrap around is checked.

@@ -214,7 +214,8 @@ local menu =
     {
       { "lm3s", "modules_lm3s.html", "refman_ps_lm3s" },
       { "str9", "modules_str9.html", "refman_ps_str9" },
-      { "mbed", "modules_mbed.html", "refman_ps_mbed" }
+      { "mbed", "modules_mbed.html", "refman_ps_mbed" },
+      { "mizar32", "modules_mizar32.html", "refman_ps_mizar32" },
     }
   }
 }
