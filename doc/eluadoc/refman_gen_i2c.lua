@@ -21,7 +21,7 @@ data_en =
       args = 
       {
         "$id$ - the ID of the I2C interface.",
-        "$speed$ - the speed of the I2C interface. It can be either $i2c.FAST$ (400KHz) or $i2c.SLOW$ (100KHz).",
+        "$speed$ - the clock frequency of the I2C interface. It can be $i2c.FAST$ (400KHz), $i2c.SLOW$ (100KHz) or a number giving the required I2C bus clock speed in Hz.",
       },
       ret = "the actual speed of the I2C interface."
     },
