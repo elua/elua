@@ -15,7 +15,6 @@
 #include "platform_conf.h"
 #include "common.h"
 #include "buf.h"
-#include "spi.h"
 #ifdef BUILD_MMCFS
 #include "diskio.h"
 #endif
