@@ -17,7 +17,7 @@ data_en =
   {
     { text = "typedef u32 timer_data_type;",
       name = "Timer data type",
-      desc = "This defines the data type used to specify delays and time intervals (which are always specifide in $microseconds$)."
+      desc = "This defines the data type used to specify delays and time intervals (which are always specified in $microseconds$)."
     },
 
     { text = [[// Timer operations
@@ -130,7 +130,7 @@ enum
     }, 
 
     { sig = "u32 #platform_timer_get_diff_us#( unsigned id, timer_data_type end, timer_data_type start );",
-      desc = [[Return the time difference (in us) betweeen two timer values. This function is generic for all platforms, thus it is implemented in %src/common.c%.]],
+      desc = [[Return the time difference (in us) between two timer values. This function is generic for all platforms, thus it is implemented in %src/common.c%.]],
       args = 
       {
         "$id$ - the timer ID",
@@ -141,7 +141,7 @@ enum
     },
 
     { sig = "int #platform_timer_set_match_int#( unsigned id, u32 period_us, int type );",
-      desc = "Setup the timer match interrupt. Only available if interrupt support is enabed, check @inthandlers.html@here@ for details.",
+      desc = "Setup the timer match interrupt. Only available if interrupt support is enabled, check @inthandlers.html@here@ for details.",
       args = 
       {
         "$id$ - the timer ID",
