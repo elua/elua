@@ -41,15 +41,21 @@
 #include "pwm.h"
 #include "i2c.h"
 
+#ifdef BUILD_UIP
+
 // UIP sys tick data
 // NOTE: when using virtual timers, SYSTICKHZ and VTMR_FREQ_HZ should have the
 // same value, as they're served by the same timer (the systick)
-#define SYSTICKHZ 4
+#if !defined( VTMR_NUM_TIMERS ) || VTMR_NUM_TIMERS == 0
+# error "On AVR32, UIP needs virtual timer support. Define VTMR_NUM_TIMERS > 0."
+#endif
+
+#define SYSTICKHZ VTMR_FREQ_HZ
 #define SYSTICKMS (1000 / SYSTICKHZ)
 
-#ifdef BUILD_UIP
 static int eth_timer_fired;
-#endif
+
+#endif // BUILD_UIP
 
 // ****************************************************************************
 // Platform initialization
