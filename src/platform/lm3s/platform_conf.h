@@ -13,25 +13,26 @@
 // *****************************************************************************
 // Define here what components you want for this platform
 #if !defined( ELUA_BOARD_SOLDERCORE )
-#define BUILD_XMODEM
-#define BUILD_TERM
+  #define BUILD_XMODEM
+  #define BUILD_TERM
 #endif
+
 #define BUILD_SHELL
 #define BUILD_ROMFS
-#define BUILD_MMCFS
+//#define BUILD_MMCFS
 
 #ifndef FORLM3S1968
   #define BUILD_UIP
-//#define BUILD_DHCPC
+//  #define BUILD_DHCPC
   #define BUILD_DNS
 #endif  
 
 #define BUILD_ADC
 #define BUILD_RPC
 #if defined( ELUA_BOARD_SOLDERCORE )
-#define BUILD_CON_TCP
+  #define BUILD_CON_TCP
 #else
-#define BUILD_CON_GENERIC
+  #define BUILD_CON_GENERIC
 #endif
 #define BUILD_C_INT_HANDLERS
 
@@ -78,6 +79,12 @@
 #define ADCLINE
 #endif
 
+#ifdef BUILD_TERM
+#define TERMLINE _ROM( AUXLIB_TERM, luaopen_term, term_map )
+#else
+#define TERMLINE
+#endif
+
 #if defined( ELUA_BOOT_RPC ) && !defined( BUILD_RPC )
 #define BUILD_RPC
 #endif
@@ -103,7 +110,7 @@
   _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
   _ROM( AUXLIB_UART, luaopen_uart, uart_map )\
   PWMLINE\
-  _ROM( AUXLIB_TERM, luaopen_term, term_map )\
+  TERMLINE\
   _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_BITARRAY, luaopen_bitarray, bitarray_map )\
