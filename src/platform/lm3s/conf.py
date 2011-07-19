@@ -13,6 +13,8 @@ if comp[ 'board' ] == 'EAGLE-100':
 
 if comp[ 'board' ] == 'EK-LM3S9B92':
   ldscript = "lm3s-9b92.ld"
+elif comp[ 'board' ] == 'SOLDERCORE':
+  ldscript = "lm3s-9d92.ld"
 else:
   ldscript = "lm3s.ld"
 
