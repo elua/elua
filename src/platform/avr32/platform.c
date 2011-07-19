@@ -15,7 +15,6 @@
 #include "platform_conf.h"
 #include "common.h"
 #include "buf.h"
-#include "spi.h"
 #ifdef BUILD_MMCFS
 #include "diskio.h"
 #endif
@@ -40,6 +39,7 @@
 #include "spi.h"
 #include "adc.h"
 #include "pwm.h"
+#include "i2c.h"
 
 // UIP sys tick data
 // NOTE: when using virtual timers, SYSTICKHZ and VTMR_FREQ_HZ should have the
@@ -145,10 +145,12 @@ int platform_init()
   // Setup clocks
   if( PM_FREQ_STATUS_FAIL == pm_configure_clocks( &pm_freq_param ) )
     return PLATFORM_ERR;
+#ifdef FOSC32
   // Select the 32-kHz oscillator crystal
   pm_enable_osc32_crystal (&AVR32_PM );
   // Enable the 32-kHz clock
   pm_enable_clk32_no_wait( &AVR32_PM, AVR32_PM_OSCCTRL32_STARTUP_0_RCOSC );
+#endif
 
   // Initialize external memory if any.
 #ifdef AVR32_SDRAMC
@@ -962,6 +964,49 @@ u32 platform_pwm_op( unsigned id, int op, u32 data)
 }
 
 // ****************************************************************************
+// I2C support
+
+u32 platform_i2c_setup( unsigned id, u32 speed )
+{
+  return i2c_setup(speed);
+}
+
+void platform_i2c_send_start( unsigned id )
+{
+  i2c_start_cond();
+}
+
+void platform_i2c_send_stop( unsigned id )
+{
+  i2c_stop_cond();
+}
+
+int platform_i2c_send_address( unsigned id, u16 address, int direction )
+{
+  // Convert enum codes to R/w bit value.
+  // If TX == 0 and RX == 1, this test will be removed by the compiler
+  if ( ! ( PLATFORM_I2C_DIRECTION_TRANSMITTER == 0 &&
+           PLATFORM_I2C_DIRECTION_RECEIVER == 1 ) ) {
+    direction = ( direction == PLATFORM_I2C_DIRECTION_TRANSMITTER ) ? 0 : 1;
+  }
+
+  // Low-level returns nack (0=acked); we return ack (1=acked).
+  return ! i2c_write_byte( (address << 1) | direction );
+}
+
+int platform_i2c_send_byte( unsigned id, u8 data )
+{
+  // Low-level returns nack (0=acked); we return ack (1=acked).
+  return ! i2c_write_byte( data );
+}
+
+int platform_i2c_recv_byte( unsigned id, int ack )
+{
+  return i2c_read_byte( !ack );
+}
+
+
+// ****************************************************************************
 // Network support
 
 #ifdef BUILD_UIP
@@ -1045,3 +1090,42 @@ u32 platform_eth_get_elapsed_time()
 }
 
 #endif
+
+// ****************************************************************************
+// Platform specific modules go here
+
+#ifdef PS_LIB_TABLE_NAME
+
+#define MIN_OPT_LEVEL 2
+#include "lua.h"
+#include "lauxlib.h"
+#include "lrotable.h"
+#include "lrodefs.h"
+
+extern const LUA_REG_TYPE disp_map[];
+
+const LUA_REG_TYPE platform_map[] =
+{
+#if LUA_OPTIMIZE_MEMORY > 0
+  { LSTRKEY( "disp" ), LROVAL( disp_map ) },
+#endif
+  { LNILKEY, LNILVAL }
+};
+
+LUALIB_API int luaopen_platform( lua_State *L )
+{
+#if LUA_OPTIMIZE_MEMORY > 0
+  return 0;
+#else // #if LUA_OPTIMIZE_MEMORY > 0
+  luaL_register( L, PS_LIB_TABLE_NAME, platform_map );
+
+  // Setup the new tables inside platform table
+  lua_newtable( L );
+  luaL_register( L, NULL, disp_map );
+  lua_setfield( L, -2, "disp" );
+
+  return 1;
+#endif // #if LUA_OPTIMIZE_MEMORY > 0
+}
+
+#endif // #ifdef PS_LIB_TABLE_NAME

@@ -17,60 +17,60 @@
 
 static int lcd_init(lua_State * L)
 {
-	STM3210E_LCD_Init();
+  STM3210E_LCD_Init();
 
-	return 0;
+  return 0;
 }
 
 static int lcd_setforecolor(lua_State * L)
 {
-	u16 color = luaL_checkint(L, 1);
+  u16 color = luaL_checkint(L, 1);
 
-	LCD_SetTextColor(color);
+  LCD_SetTextColor(color);
 
-	return 0;
+  return 0;
 }
 
 static int lcd_setbackcolor(lua_State * L)
 {
-	u16 color = luaL_checkint(L, 1);
+  u16 color = luaL_checkint(L, 1);
 
-	LCD_SetBackColor(color);
+  LCD_SetBackColor(color);
 
-	return 0;
+  return 0;
 }
 
 static int lcd_clear(lua_State * L)
 {
-	u16 color;
+  u16 color;
 
-	if (lua_gettop(L) == 0)
-		color = 0x0000;
-	else
-		color = luaL_checkint(L, 1);
+  if (lua_gettop(L) == 0)
+    color = 0x0000;
+  else
+    color = luaL_checkint(L, 1);
 
-	LCD_Clear(color);
+  LCD_Clear(color);
 
-	return 0;
+  return 0;
 }
 
 static int lcd_clearline(lua_State * L)
 {
-	u8 line = luaL_checkint(L, 1);
+  u8 line = luaL_checkint(L, 1);
 
-	LCD_ClearLine(line);
+  LCD_ClearLine(line);
 
-	return 0;
+  return 0;
 }
 
 static int lcd_print(lua_State * L)
 {
-	u8   line = luaL_checkint(L, 1);
-	u8 * text = (u8 *)luaL_checkstring(L, 2);
+  u8   line = luaL_checkint(L, 1);
+  u8 * text = (u8 *)luaL_checkstring(L, 2);
 
-	LCD_DisplayStringLine(line, text);
+  LCD_DisplayStringLine(line, text);
 
-	return 0;
+  return 0;
 }
 
 static int lcd_mt_index( lua_State *L )
@@ -88,17 +88,17 @@ static int lcd_mt_index( lua_State *L )
 #include "lrodefs.h"
 const LUA_REG_TYPE lcd_map[] =
 {
-	{ LSTRKEY( "init" ), LFUNCVAL( lcd_init ) },
-	{ LSTRKEY( "setforecolor" ), LFUNCVAL( lcd_setforecolor ) },
-	{ LSTRKEY( "setbackcolor" ), LFUNCVAL( lcd_setbackcolor ) },
-	{ LSTRKEY( "clear" ), LFUNCVAL( lcd_clear ) },
-	{ LSTRKEY( "clearline" ), LFUNCVAL( lcd_clearline ) },
-	{ LSTRKEY( "print" ), LFUNCVAL( lcd_print ) },
+  { LSTRKEY( "init" ), LFUNCVAL( lcd_init ) },
+  { LSTRKEY( "setforecolor" ), LFUNCVAL( lcd_setforecolor ) },
+  { LSTRKEY( "setbackcolor" ), LFUNCVAL( lcd_setbackcolor ) },
+  { LSTRKEY( "clear" ), LFUNCVAL( lcd_clear ) },
+  { LSTRKEY( "clearline" ), LFUNCVAL( lcd_clearline ) },
+  { LSTRKEY( "print" ), LFUNCVAL( lcd_print ) },
 #if LUA_OPTIMIZE_MEMORY > 0
   { LSTRKEY( "__metatable" ), LROVAL( lcd_map ) },
 #endif
   { LSTRKEY( "__index" ), LFUNCVAL( lcd_mt_index ) },
-	{ LNILKEY, LNILVAL }
+  { LNILKEY, LNILVAL }
 };
 
 LUALIB_API int luaopen_lcd(lua_State * L)

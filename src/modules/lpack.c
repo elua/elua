@@ -10,25 +10,25 @@
 * Modified by BogdanM for eLua
 */
 
-#define	OP_ZSTRING	'z'		/* zero-terminated string */
-#define	OP_BSTRING	'p'		/* string preceded by length byte */
-#define	OP_WSTRING	'P'		/* string preceded by length word */
-#define	OP_SSTRING	'a'		/* string preceded by length size_t */
-#define	OP_STRING	'A'		/* string */
-#define	OP_FLOAT	'f'		/* float */
-#define	OP_DOUBLE	'd'		/* double */
-#define	OP_NUMBER	'n'		/* Lua number */
-#define	OP_CHAR		'c'		/* char */
-#define	OP_BYTE		'b'		/* byte = unsigned char */
-#define	OP_SHORT	'h'		/* short */
-#define	OP_USHORT	'H'		/* unsigned short */
-#define	OP_INT		'i'		/* int */
-#define	OP_UINT		'I'		/* unsigned int */
-#define	OP_LONG		'l'		/* long */
-#define	OP_ULONG	'L'		/* unsigned long */
-#define	OP_LITTLEENDIAN	'<'		/* little endian */
-#define	OP_BIGENDIAN	'>'		/* big endian */
-#define	OP_NATIVE	'='		/* native endian */
+#define OP_ZSTRING      'z'             /* zero-terminated string */
+#define OP_BSTRING      'p'             /* string preceded by length byte */
+#define OP_WSTRING      'P'             /* string preceded by length word */
+#define OP_SSTRING      'a'             /* string preceded by length size_t */
+#define OP_STRING       'A'             /* string */
+#define OP_FLOAT        'f'             /* float */
+#define OP_DOUBLE       'd'             /* double */
+#define OP_NUMBER       'n'             /* Lua number */
+#define OP_CHAR         'c'             /* char */
+#define OP_BYTE         'b'             /* byte = unsigned char */
+#define OP_SHORT        'h'             /* short */
+#define OP_USHORT       'H'             /* unsigned short */
+#define OP_INT          'i'             /* int */
+#define OP_UINT         'I'             /* unsigned int */
+#define OP_LONG         'l'             /* long */
+#define OP_ULONG        'L'             /* unsigned long */
+#define OP_LITTLEENDIAN '<'             /* little endian */
+#define OP_BIGENDIAN    '>'             /* big endian */
+#define OP_NATIVE       '='             /* native endian */
 
 #include <ctype.h>
 #include <string.h>
@@ -69,37 +69,37 @@ static void doswap(int swap, void *p, size_t n)
  }
 }
 
-#define UNPACKNUMBER(OP,T)		\
-   case OP:				\
-   {					\
-    T a;				\
-    int m=sizeof(a);			\
-    if (((unsigned long)i+m)>len) goto done;		\
-    memcpy(&a,s+i,m);			\
-    i+=m;				\
-    doswap(swap,&a,m);			\
-    lua_pushnumber(L,(lua_Number)a);	\
-    ++n;				\
-    break;				\
+#define UNPACKNUMBER(OP,T)                      \
+   case OP:                                     \
+   {                                            \
+    T a;                                        \
+    int m=sizeof(a);                            \
+    if (((unsigned long)i+m)>len) goto done;    \
+    memcpy(&a,s+i,m);                           \
+    i+=m;                                       \
+    doswap(swap,&a,m);                          \
+    lua_pushnumber(L,(lua_Number)a);            \
+    ++n;                                        \
+    break;                                      \
    }
 
-#define UNPACKSTRING(OP,T)		\
-   case OP:				\
-   {					\
-    T l;				\
-    int m=sizeof(l);			\
-    if (((unsigned long)i+m)>len) goto done;		\
-    memcpy(&l,s+i,m);			\
-    doswap(swap,&l,m);			\
-    if (((unsigned long)i+m+l)>len) goto done;		\
-    i+=m;				\
-    lua_pushlstring(L,s+i,l);		\
-    i+=l;				\
-    ++n;				\
-    break;				\
+#define UNPACKSTRING(OP,T)                      \
+   case OP:                                     \
+   {                                            \
+    T l;                                        \
+    int m=sizeof(l);                            \
+    if (((unsigned long)i+m)>len) goto done;    \
+    memcpy(&l,s+i,m);                           \
+    doswap(swap,&l,m);                          \
+    if (((unsigned long)i+m+l)>len) goto done;  \
+    i+=m;                                       \
+    lua_pushlstring(L,s+i,l);                   \
+    i+=l;                                       \
+    ++n;                                        \
+    break;                                      \
    }
 
-static int l_unpack(lua_State *L) 		/** unpack(s,f,[init]) */
+static int l_unpack(lua_State *L)               /** unpack(s,f,[init]) */
 {
  size_t len;
  const char *s=luaL_checklstring(L,1,&len);
@@ -112,7 +112,7 @@ static int l_unpack(lua_State *L) 		/** unpack(s,f,[init]) */
  {
   int c=*f++;
   int N=1;
-  if (isdigit(*f)) 
+  if (isdigit(*f))
   {
    N=0;
    while (isdigit(*f)) N=10*N+(*f++)-'0';
@@ -152,10 +152,10 @@ static int l_unpack(lua_State *L) 		/** unpack(s,f,[init]) */
    UNPACKSTRING(OP_WSTRING, unsigned short)
    UNPACKSTRING(OP_SSTRING, size_t)
    UNPACKNUMBER(OP_NUMBER, lua_Number)
-#ifndef LUA_NUMBER_INTEGRAL   
+#ifndef LUA_NUMBER_INTEGRAL
    UNPACKNUMBER(OP_DOUBLE, double)
    UNPACKNUMBER(OP_FLOAT, float)
-#endif   
+#endif
    UNPACKNUMBER(OP_CHAR, char)
    UNPACKNUMBER(OP_BYTE, unsigned char)
    UNPACKNUMBER(OP_SHORT, short)
@@ -177,28 +177,28 @@ done:
  return n+1;
 }
 
-#define PACKNUMBER(OP,T)			\
-   case OP:					\
-   {						\
-    T a=(T)luaL_checknumber(L,i++);		\
-    doswap(swap,&a,sizeof(a));			\
-    luaL_addlstring(&b,(void*)&a,sizeof(a));	\
-    break;					\
+#define PACKNUMBER(OP,T)                        \
+   case OP:                                     \
+   {                                            \
+    T a=(T)luaL_checknumber(L,i++);             \
+    doswap(swap,&a,sizeof(a));                  \
+    luaL_addlstring(&b,(void*)&a,sizeof(a));    \
+    break;                                      \
    }
 
-#define PACKSTRING(OP,T)			\
-   case OP:					\
-   {						\
-    size_t l;					\
-    const char *a=luaL_checklstring(L,i++,&l);	\
-    T ll=(T)l;					\
-    doswap(swap,&ll,sizeof(ll));		\
-    luaL_addlstring(&b,(void*)&ll,sizeof(ll));	\
-    luaL_addlstring(&b,a,l);			\
-    break;					\
+#define PACKSTRING(OP,T)                        \
+   case OP:                                     \
+   {                                            \
+    size_t l;                                   \
+    const char *a=luaL_checklstring(L,i++,&l);  \
+    T ll=(T)l;                                  \
+    doswap(swap,&ll,sizeof(ll));                \
+    luaL_addlstring(&b,(void*)&ll,sizeof(ll));  \
+    luaL_addlstring(&b,a,l);                    \
+    break;                                      \
    }
 
-static int l_pack(lua_State *L) 		/** pack(f,...) */
+static int l_pack(lua_State *L)                 /** pack(f,...) */
 {
  int i=2;
  const char *f=luaL_checkstring(L,1);
@@ -209,7 +209,7 @@ static int l_pack(lua_State *L) 		/** pack(f,...) */
  {
   int c=*f++;
   int N=1;
-  if (isdigit(*f)) 
+  if (isdigit(*f))
   {
    N=0;
    while (isdigit(*f)) N=10*N+(*f++)-'0';
@@ -236,7 +236,7 @@ static int l_pack(lua_State *L) 		/** pack(f,...) */
    PACKSTRING(OP_WSTRING, unsigned short)
    PACKSTRING(OP_SSTRING, size_t)
    PACKNUMBER(OP_NUMBER, lua_Number)
-#ifndef LUA_NUMBER_INTEGRAL   
+#ifndef LUA_NUMBER_INTEGRAL
    PACKNUMBER(OP_DOUBLE, double)
    PACKNUMBER(OP_FLOAT, float)
 #endif
@@ -263,9 +263,9 @@ static int l_pack(lua_State *L) 		/** pack(f,...) */
 #include "lrodefs.h"
 const LUA_REG_TYPE pack_map[] =
 {
-	{ LSTRKEY( "pack" ),  LFUNCVAL( l_pack ) },
-	{ LSTRKEY( "unpack" ), LFUNCVAL( l_unpack ) },
-	{ LNILKEY, LNILVAL }
+  { LSTRKEY( "pack" ),  LFUNCVAL( l_pack ) },
+  { LSTRKEY( "unpack" ), LFUNCVAL( l_unpack ) },
+  { LNILKEY, LNILVAL }
 };
 
 int luaopen_pack( lua_State *L )

@@ -90,18 +90,18 @@ void *memory_end_address = 0;
 
 void platform_ll_init()
 {
-	// Initialise heap memory region.
-	memory_start_address = hostif_getmem( MEM_LENGTH ); 
-	memory_end_address = memory_start_address + MEM_LENGTH;
+  // Initialise heap memory region.
+  memory_start_address = hostif_getmem( MEM_LENGTH ); 
+  memory_end_address = memory_start_address + MEM_LENGTH;
 }
 
 int platform_init()
 { 
-	if( memory_start_address == NULL ) 
+  if( memory_start_address == NULL ) 
   {
     hostif_putstr( "platform_init(): mmap failed\n" );
-		return PLATFORM_ERR;
-	}
+    return PLATFORM_ERR;
+  }
 
   // Set the std input/output functions
   // Set the send/recv functions                          

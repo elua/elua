@@ -770,14 +770,14 @@ static void adcs_init()
   elua_adc_dev_state *d = adc_get_dev_state( 0 );
   
   MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC);
-	
-	// Try ramping up max sampling rate
+
+  // Try ramping up max sampling rate
   MAP_SysCtlADCSpeedSet(SYSCTL_ADCSPEED_500KSPS);
   MAP_SysCtlADCSpeedSet(SYSCTL_ADCSPEED_1MSPS);
   
   for( id = 0; id < NUM_ADC; id ++ )
     adc_init_ch_state( id );
-	
+
   // Perform sequencer setup
   platform_adc_setclock( 0, 0 );
   MAP_ADCIntEnable( ADC_BASE, d->seq_id );

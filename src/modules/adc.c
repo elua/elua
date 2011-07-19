@@ -201,22 +201,22 @@ static int adc_insertsamples( lua_State* L )
   luaL_checktype(L, 2, LUA_TTABLE);
   
   startidx = luaL_checkinteger( L, 3 );
-	if  ( startidx <= 0 )
+  if  ( startidx <= 0 )
     return luaL_error( L, "idx must be > 0" );
 
   count = luaL_checkinteger(L, 4 );
-	if  ( count == 0 )
+  if  ( count == 0 )
     return luaL_error( L, "count must be > 0" );
   
   bcnt = adc_wait_samples( id, count );
   
   for( i = startidx; i < ( count + startidx ); i ++ )
   {
-		if ( i < bcnt + startidx )
-    	lua_pushinteger( L, adc_get_processed_sample( id ) );
-		else
-			lua_pushnil( L ); // nil-out values where we don't have enough samples
-		
+    if ( i < bcnt + startidx )
+      lua_pushinteger( L, adc_get_processed_sample( id ) );
+    else
+      lua_pushnil( L ); // nil-out values where we don't have enough samples
+
     lua_rawseti( L, 2, i );
   }
   

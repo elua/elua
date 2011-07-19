@@ -1098,7 +1098,7 @@ static void adcs_init()
   
   for( id = 0; id < NUM_ADC; id ++ )
     adc_init_ch_state( id );
-	
+
   RCC_APB2PeriphClockCmd( RCC_APB2Periph_ADC1, ENABLE );
   RCC_ADCCLKConfig( RCC_PCLK2_Div8 );
   

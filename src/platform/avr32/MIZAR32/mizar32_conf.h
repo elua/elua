@@ -25,19 +25,30 @@
 //#define BUILD_RFS
 //#define BUILD_SERMUX
 
-#if ELUA_CPU == AT32UC3A0128
+#if defined( ELUA_CPU_AT32UC3A0128 )
   // Build options for 120KB image
+# define RAM_SIZE 0x8000
 #else
   // Build options for 256KB and 512KB flash
+# define RAM_SIZE 0x10000
 # define BUILD_ADC
 # define BUILD_TERM
 # define BUILD_UIP
+# define ENABLE_DISP
 #endif
 
 #ifdef BUILD_UIP
 //#define BUILD_DHCPC
 #define BUILD_DNS
-#define BUILD_CON_TCP
+//#define BUILD_CON_TCP
+#endif
+
+// ****************************************************************************
+// Auxiliary libraries that will be compiled for this platform
+
+// The name of the platform specific libs table
+#ifdef ENABLE_DISP
+#define PS_LIB_TABLE_NAME   "mizar32"
 #endif
 
 // *****************************************************************************
@@ -98,7 +109,13 @@
 #define RPCLINE
 #endif
 
-#if ELUA_CPU == AT32UC3A0128
+#ifdef PS_LIB_TABLE_NAME
+#define PLATLINE _ROM( PS_LIB_TABLE_NAME, luaopen_platform, platform_map )
+#else
+#define PLATLINE
+#endif
+
+#if defined( ELUA_CPU_AT32UC3A0128 )
 
 // Minimal ROM modules, to fit in 120KB
 #define LUA_PLATFORM_LIBS_ROM\
@@ -113,6 +130,7 @@
   _ROM( AUXLIB_UART, luaopen_uart, uart_map )\
   _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
   _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map )\
+  _ROM( AUXLIB_I2C, luaopen_i2c, i2c_map )\
   _ROM( AUXLIB_SPI, luaopen_spi, spi_map )\
   _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
   NETLINE\
@@ -123,7 +141,8 @@
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
   _ROM( AUXLIB_TERM, luaopen_term, term_map )\
-  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
+  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
+  PLATLINE\
 
 #endif
 
@@ -132,7 +151,7 @@
 
 // Virtual timers (0 if not used)
 #define VTMR_NUM_TIMERS       4
-#define VTMR_FREQ_HZ          4
+#define VTMR_FREQ_HZ          10
 
 // Number of resources (0 if not available/not implemented)
 #define NUM_PIO               4
@@ -144,6 +163,7 @@
 #define NUM_TIMER             3
 #endif
 #define NUM_PWM               7         // PWM7 is on GPIO50
+#define NUM_I2C               1
 #define NUM_ADC               8         // Though ADC3 pin is the Ethernet IRQ
 #define NUM_CAN               0
 
@@ -194,7 +214,7 @@
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)
 #define MEM_START_ADDRESS     { ( void* )end, ( void* )( SDRAM + ELUA_FIRMWARE_SIZE ) }
-#define MEM_END_ADDRESS       { ( void* )( 0x8000 - STACK_SIZE_TOTAL - 1 ), ( void* )( SDRAM + SDRAM_SIZE - 1 ) }
+#define MEM_END_ADDRESS       { ( void* )( RAM_SIZE - STACK_SIZE_TOTAL - 1 ), ( void* )( SDRAM + SDRAM_SIZE - 1 ) }
 
 // Interrupt queue size
 #define PLATFORM_INT_QUEUE_LOG_SIZE 5

@@ -838,8 +838,8 @@ static void helper_remote_index( Helper *helper )
       hstack[ i - 1 ] = hstack[ i ]->parent;
       len += strlen( hstack[ i ]->funcname ) + 1;
     }
-	
-	  transport_write_u32( tpt, len );
+
+    transport_write_u32( tpt, len );
 
     // replay helper key names      
     for( i = 0 ; i < helper->nparents ; i ++ )
@@ -849,7 +849,7 @@ static void helper_remote_index( Helper *helper )
     }
   }
   else // If helper has no parents, just use length of global
-	  transport_write_u32( tpt, len );
+    transport_write_u32( tpt, len );
 
   transport_write_string( tpt, helper->funcname, ( int )strlen( helper->funcname ) );
 }

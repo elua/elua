@@ -224,7 +224,7 @@ u32 platform_timer_op( unsigned id, int op, u32 data )
 u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_type start )
 {
   timer_data_type temp;
-  u32 freq;
+  u32 freq, res;
     
   freq = platform_timer_op( id, PLATFORM_TIMER_OP_GET_CLOCK, 0 );
   if( start < end )
@@ -233,7 +233,17 @@ u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_typ
     end = start;
     start = temp;
   }
-  return ( ( u64 )( start - end ) * 1000000 ) / freq;
+
+  res = ( ( u64 )( start - end ) * 1000000 ) / freq;
+
+  // The result always ends up being given to lua_pushinteger() which turns
+  // 0x80000000-0xFFFFFFFF into negative numbers, so max out at 2^31-1 to
+  // avoid getting negative results from tmr.getmaxdelay(tmr.VIRT0) and
+  // tmr.gettimediff(N, small, large).
+#define MAX_U32 ( ~(u32)0 >> 1 )
+  if ( res > MAX_U32 ) res = MAX_U32;
+
+  return res;
 }
 
 #ifdef BUILD_INT_HANDLERS
