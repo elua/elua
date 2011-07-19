@@ -19,7 +19,7 @@
 
 #define BUILD_SHELL
 #define BUILD_ROMFS
-//#define BUILD_MMCFS
+#define BUILD_MMCFS
 
 #ifndef FORLM3S1968
   #define BUILD_UIP
@@ -158,11 +158,15 @@
 #if defined(FORLM3S1968)
   #define NUM_PIO             8
 #elif defined(FORLM3S9B92) || defined( FORLM3S9D92 )
-  #define NUM_PIO             7
+  #define NUM_PIO             9
 #else
   #define NUM_PIO             7
 #endif
-#define NUM_SPI               1
+#if defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
+  #define NUM_SPI            2
+#else
+  #define NUM_SPI            1
+#endif
 #if defined( FORLM3S6965 )
   #define NUM_UART            3
 #elif defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )

@@ -372,8 +372,14 @@ static void spis_init()
 {
   unsigned i;
 
+#if defined( ELUA_BOARD_SOLDERCORE )
+  GPIOPinConfigure( GPIO_PH4_SSI1CLK );
+  GPIOPinConfigure( GPIO_PF4_SSI1RX );
+  GPIOPinConfigure( GPIO_PF5_SSI1TX );
+#endif
+
   for( i = 0; i < NUM_SPI; i ++ )
-    MAP_SysCtlPeripheralEnable(spi_sysctl[ i ]);
+    MAP_SysCtlPeripheralEnable( spi_sysctl[ i ] );
 }
 
 u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigned cpha, unsigned databits )
@@ -386,16 +392,6 @@ u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigne
     protocol = cpha ? SSI_FRF_MOTO_MODE_3 : SSI_FRF_MOTO_MODE_2;
   mode = mode == PLATFORM_SPI_MASTER ? SSI_MODE_MASTER : SSI_MODE_SLAVE;
   MAP_SSIDisable( spi_base[ id ] );
-
-#if defined( ELUA_BOARD_SOLDERCORE )
-  if( id == 1 )
-  {
-    GPIOPinConfigure( GPIO_PH4_SSI1CLK );
-    GPIOPinConfigure( GPIO_PF4_SSI1RX );
-    GPIOPinConfigure( GPIO_PF5_SSI1TX );
-  }
-#endif
-
 
   MAP_GPIOPinTypeSSI( spi_gpio_base[ id ], spi_gpio_pins[ id ] );
   MAP_GPIOPinTypeSSI( spi_gpio_clk_base[ id ], spi_gpio_clk_pin[ id ] );
@@ -773,18 +769,18 @@ static void adcs_init()
   unsigned id;
   elua_adc_dev_state *d = adc_get_dev_state( 0 );
   
-	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC);
+  MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC);
 	
 	// Try ramping up max sampling rate
   MAP_SysCtlADCSpeedSet(SYSCTL_ADCSPEED_500KSPS);
   MAP_SysCtlADCSpeedSet(SYSCTL_ADCSPEED_1MSPS);
   
-	for( id = 0; id < NUM_ADC; id ++ )
+  for( id = 0; id < NUM_ADC; id ++ )
     adc_init_ch_state( id );
 	
   // Perform sequencer setup
   platform_adc_setclock( 0, 0 );
-	MAP_ADCIntEnable( ADC_BASE, d->seq_id );
+  MAP_ADCIntEnable( ADC_BASE, d->seq_id );
   MAP_IntEnable( adc_ints[ d->seq_id ] );
 }
 
