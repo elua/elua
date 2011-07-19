@@ -10,7 +10,7 @@ data_en =
   menu_name = "rtc",
 
   -- Overview
-  overview = [[This module contains functions for accesing the particular features of the RTC - Real Time Clock - subsystem of the STR9 family of CPUs.
+  overview = [[This module contains functions for accessing the particular features of the RTC - Real Time Clock - subsystem of the STR9 family of CPUs.
  This internal subsystem offers functions to keep track of a real time clock calendar, as well as some other features like alarms and auxiliar functions.
   Reference manual, available from ST at @http://www.st.com/mcu/devicedocs-STR912FAW44-101.html@this address@.]],
 
