@@ -1,5 +1,14 @@
 # Configuration file for the LM3S microcontroller
-specific_files = "startup_gcc.c platform.c uart.c sysctl.c gpio.c ssi.c timer.c pwm.c ethernet.c systick.c flash.c interrupt.c cpu.c adc.c can.c platform_int.c"
+import fnmatch
+import glob
+import os
+
+comp.Append(CPPPATH = ['src/platform/%s/inc' % platform])
+comp.Append(CPPPATH = ['src/platform/%s/driverlib' % platform])
+
+fwlib_files = " ".join(glob.glob("src/platform/%s/driverlib/*.c" % platform))
+
+specific_files = "startup_gcc.c platform.c platform_int.c"
 
 if comp[ 'board' ] == 'EK-LM3S1968' or comp[ 'board' ] == 'EK-LM3S6965' or comp[ 'board' ] == 'EK-LM3S8962':
   specific_files = specific_files + " rit128x96x4.c disp.c"
@@ -19,7 +28,7 @@ else:
   ldscript = "lm3s.ld"
 
 # Prepend with path
-specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )
+specific_files = fwlib_files + " " + " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )
 specific_files += " src/platform/cortex_utils.s src/platform/arm_cortex_interrupts.c"
 ldscript = "src/platform/%s/%s" % ( platform, ldscript )
 
