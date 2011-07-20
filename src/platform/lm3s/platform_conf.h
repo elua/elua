@@ -4,10 +4,10 @@
 #define __PLATFORM_CONF_H__
 
 #include "auxmods.h"
-#include "hw_memmap.h"
-#include "hw_types.h"
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
 #include "stacks.h"
-#include "sysctl.h"
+#include "driverlib/sysctl.h"
 #include "elua_int.h"
 
 // *****************************************************************************
@@ -23,7 +23,7 @@
 
 #ifndef FORLM3S1968
   #define BUILD_UIP
-//  #define BUILD_DHCPC
+  #define BUILD_DHCPC
   #define BUILD_DNS
 #endif  
 

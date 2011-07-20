@@ -23,39 +23,43 @@
 #include "elua_int.h" 
 
 // Platform specific includes
-#include "hw_ints.h"
-#include "hw_memmap.h"
-#include "hw_types.h"
-#include "hw_pwm.h"
-#include "hw_nvic.h"
-#include "hw_can.h"
-#include "hw_ethernet.h"
-#include "debug.h"
-#include "gpio.h"
-#include "can.h"
-#include "interrupt.h"
-#include "sysctl.h"
-#include "uart.h"
-#include "ssi.h"
-#include "timer.h"
-#include "pwm.h"
+#include "inc/hw_ints.h"
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
+#include "inc/hw_pwm.h"
+#include "inc/hw_nvic.h"
+#include "inc/hw_can.h"
+#include "inc/hw_ethernet.h"
+#include "driverlib/debug.h"
+#include "driverlib/gpio.h"
+#include "driverlib/can.h"
+#include "driverlib/interrupt.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/uart.h"
+#include "driverlib/ssi.h"
+#include "driverlib/timer.h"
+#include "driverlib/pwm.h"
 #include "utils.h"
-#include "ethernet.h"
-#include "systick.h"
-#include "flash.h"
-#include "interrupt.h"
+#include "driverlib/ethernet.h"
+#include "driverlib/systick.h"
+#include "driverlib/flash.h"
+#include "driverlib/interrupt.h"
 #include "elua_net.h"
 #include "dhcpc.h"
 #include "buf.h"
 #include "rit128x96x4.h"
 #include "disp.h"
-#include "adc.h"
+#include "driverlib/adc.h"
 
 
-#if defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
-//  #define TARGET_IS_TEMPEST_RB1
+#if defined( FORLM3S9B92 )
+  #define TARGET_IS_TEMPEST_RB1
 
   #include "lm3s9b92.h"
+#elif defined( FORLM3S9D92 )
+  #define TARGET_IS_FIRESTORM_RA2
+
+  #include "lm3s9d92.h"
 #elif defined( FORLM3S8962 )
   #include "lm3s8962.h"
 #elif defined( FORLM3S6965 )

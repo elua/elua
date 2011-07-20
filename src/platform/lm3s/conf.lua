@@ -1,6 +1,11 @@
 -- Configuration file for the LM3S microcontroller
 
-specific_files = "startup_gcc.c platform.c uart.c sysctl.c gpio.c ssi.c timer.c pwm.c ethernet.c systick.c flash.c interrupt.c cpu.c adc.c can.c platform_int.c"
+addi( sf( 'src/platform/%s/inc', platform ) )
+addi( sf( 'src/platform/%s/driverlib', platform ) )
+
+specific_files = "startup_gcc.c platform.c interrupt.c platform_int.c"
+local fwlib_files = utils.get_files( "src/platform/" .. platform .. "/driverlib", ".*%.c$" )
+
 
 local board = comp.board:upper()
 if board == 'EK-LM3S1968' or board == 'EK-LM3S6965' or board == 'EK-LM3S8962' then
@@ -25,7 +30,7 @@ end
 
 
 -- Prepend with path
-specific_files = utils.prepend_path( specific_files, sf( "src/platform/%s", platform) )
+specific_files = fwlib_files .. " " .. utils.prepend_path( specific_files, "src/platform/" .. platform )
 specific_files = specific_files .. " src/platform/cortex_utils.s src/platform/arm_cortex_interrupts.c"
 ldscript = sf( "src/platform/%s/%s", platform, ldscript )
 

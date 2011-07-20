@@ -50,6 +50,10 @@ extern void uart0_handler();
 extern void uart1_handler();
 extern void uart2_handler();
 
+#if defined( BUILD_USB_CDC )
+extern void USB0DeviceIntHandler(void);
+#endif
+
 
 //*****************************************************************************
 //
@@ -146,7 +150,26 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // CAN1
     IntDefaultHandler,                      // CAN2
     EthernetIntHandler,                     // Ethernet
+#if defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
+    IntDefaultHandler,                      // Hibernate
+#if defined( BUILD_USB_CDC )
+    USB0DeviceIntHandler,                   // USB0
+#else
+    IntDefaultHandler,                      // USB0
+#endif
+    IntDefaultHandler,                      // PWM Generator 3
+    IntDefaultHandler,                      // uDMA Software Transfer
+    IntDefaultHandler,                      // uDMA Error
+    IntDefaultHandler,                      // ADC1 Sequence 0
+    IntDefaultHandler,                      // ADC1 Sequence 1
+    IntDefaultHandler,                      // ADC1 Sequence 2
+    IntDefaultHandler,                      // ADC1 Sequence 3
+    IntDefaultHandler,                      // I2S0
+    IntDefaultHandler,                      // External Bus Interface 0
+    IntDefaultHandler                       // GPIO Port J    
+#else
     IntDefaultHandler                       // Hibernate
+#endif
 };
 
 //*****************************************************************************
