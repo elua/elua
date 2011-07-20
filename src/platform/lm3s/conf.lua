@@ -14,7 +14,15 @@ if board == 'EAGLE-100' then
   addlf '-Wl,-Ttext,0x2000'
 end
 
-local ldscript = board == 'EK-LM3S9B92' and "lm3s-9b92.ld" or "lm3s.ld"
+if board == 'EK-LM3S9B92' then
+   ldscript = "lm3s-9b92.ld"
+elseif board == 'SOLDERCORE' then
+   ldscript = "lm3s-9d92.ld"
+else
+   ldscript = "lm3s.ld"
+end
+
+
 
 -- Prepend with path
 specific_files = utils.prepend_path( specific_files, sf( "src/platform/%s", platform) )

@@ -157,7 +157,7 @@ toolchain_list[ 'devkitarm' ] = toolchain_list[ 'arm-eabi-gcc' ]
 local platform_list = 
 {  
   at91sam7x = { cpus = { 'AT91SAM7X256', 'AT91SAM7X512' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } },
-  lm3s = { cpus = { 'LM3S1968', 'LM3S8962', 'LM3S6965', 'LM3S6918', 'LM3S9B92' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } },
+  lm3s = { cpus = { 'LM3S1968', 'LM3S8962', 'LM3S6965', 'LM3S6918', 'LM3S9B92', 'LM3S9D92' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } },
   str9 = { cpus = { 'STR912FAW44' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } },
   i386 = { cpus = { 'I386' }, toolchains = { 'i686-gcc' } },
   sim = { cpus = { 'LINUX' }, toolchains = { 'i686-gcc' } },
@@ -177,6 +177,7 @@ local board_list =
   [ 'EK-LM3S8962' ]     = { 'LM3S8962' },
   [ 'EK-LM3S6965' ]     = { 'LM3S6965' },
   [ 'EK-LM3S9B92' ]     = { 'LM3S9B92' },
+  [ 'SOLDERCORE'  ]     = { 'LM3S9D92' },
   [ 'STR9-COMSTICK' ]   = { 'STR912FAW44' },
   [ 'STR-E912' ]        = { 'STR912FAW44' },
   [ 'PC' ]              = { 'I386' },

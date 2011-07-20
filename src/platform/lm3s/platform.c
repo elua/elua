@@ -52,15 +52,15 @@
 #include "adc.h"
 
 
-#ifdef FORLM3S9B92
-  #define TARGET_IS_TEMPEST_RB1
+#if defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
+//  #define TARGET_IS_TEMPEST_RB1
 
   #include "lm3s9b92.h"
-#elif FORLM3S8962
+#elif defined( FORLM3S8962 )
   #include "lm3s8962.h"
-#elif FORLM3S6965
+#elif defined( FORLM3S6965 )
   #include "lm3s6965.h"
-#elif FORLM3S6918
+#elif defined( FORLM3S6918 )
   #include "lm3s6918.h"
 #endif
 
@@ -89,7 +89,7 @@ static void cans_init();
 int platform_init()
 {
   // Set the clocking to run from PLL
-#ifdef FORLM3S9B92
+#if defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
   MAP_SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_16MHZ);
 #else
   MAP_SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_8MHZ);
@@ -144,7 +144,7 @@ int platform_init()
 // PIO
 // Same configuration on LM3S8962, LM3S6965, LM3S6918 (8 ports)
 // 9B92 has 9 ports (Port J in addition to A-H)
-#ifdef FORLM3S9B92
+#if defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
   static const u32 pio_base[] = { GPIO_PORTA_BASE, GPIO_PORTB_BASE, GPIO_PORTC_BASE, GPIO_PORTD_BASE,
                                   GPIO_PORTE_BASE, GPIO_PORTF_BASE, GPIO_PORTG_BASE, GPIO_PORTH_BASE, 
                                   GPIO_PORTJ_BASE };
@@ -349,18 +349,37 @@ int platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )
 //  PIN info extracted from LM3S6950 and 5769 datasheets
 static const u32 spi_base[] = { SSI0_BASE, SSI1_BASE };
 static const u32 spi_sysctl[] = { SYSCTL_PERIPH_SSI0, SYSCTL_PERIPH_SSI1 };
+
+#if defined( ELUA_BOARD_SOLDERCORE )
+static const u32 spi_gpio_base[] = { GPIO_PORTA_BASE, GPIO_PORTF_BASE };
+static const u8 spi_gpio_pins[] = {  GPIO_PIN_4 | GPIO_PIN_5,
+                                     GPIO_PIN_4 | GPIO_PIN_5 };
+//                                   SSIxRx       SSIxTx
+
+static const u32 spi_gpio_clk_base[] = { GPIO_PORTA_BASE, GPIO_PORTH_BASE };
+static const u8 spi_gpio_clk_pin[] = { GPIO_PIN_2, GPIO_PIN_4 };
+#else
 static const u32 spi_gpio_base[] = { GPIO_PORTA_BASE, GPIO_PORTE_BASE };
-static const u8 spi_gpio_pins[] = { GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5,
-                                    GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 };
+static const u8 spi_gpio_pins[] = { GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5,
+                                    GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 };
 //                                  SSIxClk      SSIxFss      SSIxRx       SSIxTx
+static const u32 spi_gpio_clk_base[] = { GPIO_PORTA_BASE, GPIO_PORTE_BASE };
 static const u8 spi_gpio_clk_pin[] = { GPIO_PIN_2, GPIO_PIN_0 };
+#endif
+
 
 static void spis_init()
 {
   unsigned i;
 
+#if defined( ELUA_BOARD_SOLDERCORE )
+  GPIOPinConfigure( GPIO_PH4_SSI1CLK );
+  GPIOPinConfigure( GPIO_PF4_SSI1RX );
+  GPIOPinConfigure( GPIO_PF5_SSI1TX );
+#endif
+
   for( i = 0; i < NUM_SPI; i ++ )
-    MAP_SysCtlPeripheralEnable(spi_sysctl[ i ]);
+    MAP_SysCtlPeripheralEnable( spi_sysctl[ i ] );
 }
 
 u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigned cpha, unsigned databits )
@@ -375,9 +394,11 @@ u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigne
   MAP_SSIDisable( spi_base[ id ] );
 
   MAP_GPIOPinTypeSSI( spi_gpio_base[ id ], spi_gpio_pins[ id ] );
+  MAP_GPIOPinTypeSSI( spi_gpio_clk_base[ id ], spi_gpio_clk_pin[ id ] );
 
   // FIXME: not sure this is always "right"
-  GPIOPadConfigSet(spi_gpio_base[ id ], spi_gpio_pins[ id ], GPIO_STRENGTH_4MA, GPIO_PIN_TYPE_STD_WPU);
+  GPIOPadConfigSet( spi_gpio_base[ id ], spi_gpio_pins[ id ], GPIO_STRENGTH_4MA, GPIO_PIN_TYPE_STD_WPU );
+  GPIOPadConfigSet( spi_gpio_clk_base[ id ], spi_gpio_clk_pin[ id ], GPIO_STRENGTH_4MA, GPIO_PIN_TYPE_STD_WPU );
 
   MAP_SSIConfigSetExpClk( spi_base[ id ], MAP_SysCtlClockGet(), protocol, mode, clock, databits );
   MAP_SSIEnable( spi_base[ id ] );
@@ -549,7 +570,7 @@ const static u8 pwm_div_data[] = { 1, 2, 4, 8, 16, 32, 64 };
 #elif defined(FORLM3S6965)
   const static u32 pwm_ports[] =  { GPIO_PORTF_BASE, GPIO_PORTD_BASE, GPIO_PORTB_BASE, GPIO_PORTB_BASE, GPIO_PORTE_BASE, GPIO_PORTE_BASE };
   const static u8 pwm_pins[] = { GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1 };
-#elif defined(FORLM3S9B92)
+#elif defined(FORLM3S9B92) || defined(FORLM3S9D92)
   const static u32 pwm_ports[] =  { GPIO_PORTD_BASE, GPIO_PORTD_BASE, GPIO_PORTB_BASE, GPIO_PORTB_BASE, GPIO_PORTE_BASE, GPIO_PORTE_BASE };
   const static u8 pwm_pins[] = { GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1 };
   // GPIOPCTL probably needs modification to do PWM for 2&3, Digital Function 2
@@ -559,7 +580,7 @@ const static u8 pwm_div_data[] = { 1, 2, 4, 8, 16, 32, 64 };
 #endif
 
 // PWM generators
-#ifdef FORLM3S9B92
+#if defined( FORLM3S9B92 ) || defined(FORLM3S9D92)
   const static u16 pwm_gens[] = { PWM_GEN_0, PWM_GEN_1, PWM_GEN_2, PWM_GEN_3 };
 #else
   const static u16 pwm_gens[] = { PWM_GEN_0, PWM_GEN_1, PWM_GEN_2 };
@@ -653,7 +674,7 @@ u32 platform_pwm_op( unsigned id, int op, u32 data )
 #ifdef BUILD_ADC
 
 // Pin configuration if necessary
-#ifdef FORLM3S9B92
+#if defined( FORLM3S9B92 ) || defined(FORLM3S9D92)
   const static u32 adc_ports[] =  { GPIO_PORTE_BASE, GPIO_PORTE_BASE, GPIO_PORTE_BASE, GPIO_PORTE_BASE,
                                     GPIO_PORTD_BASE, GPIO_PORTD_BASE, GPIO_PORTD_BASE, GPIO_PORTD_BASE,
                                     GPIO_PORTE_BASE, GPIO_PORTE_BASE, GPIO_PORTB_BASE, GPIO_PORTB_BASE,
@@ -910,7 +931,7 @@ static void eth_init()
   MAP_SysCtlPeripheralEnable( SYSCTL_PERIPH_ETH );
   MAP_SysCtlPeripheralReset( SYSCTL_PERIPH_ETH );
 
-#ifdef FORLM3S9B92
+#if defined( FORLM3S9B92 ) || defined(FORLM3S9D92)
   GPIOPinConfigure(GPIO_PF2_LED1);
   GPIOPinConfigure(GPIO_PF3_LED0);
 #endif

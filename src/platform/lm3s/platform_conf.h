@@ -12,21 +12,28 @@
 
 // *****************************************************************************
 // Define here what components you want for this platform
+#if !defined( ELUA_BOARD_SOLDERCORE )
+  #define BUILD_XMODEM
+  #define BUILD_TERM
+#endif
 
-#define BUILD_XMODEM
 #define BUILD_SHELL
 #define BUILD_ROMFS
 #define BUILD_MMCFS
-#define BUILD_TERM
+
 #ifndef FORLM3S1968
   #define BUILD_UIP
-//#define BUILD_DHCPC
+//  #define BUILD_DHCPC
   #define BUILD_DNS
 #endif  
-#define BUILD_CON_GENERIC
+
 #define BUILD_ADC
 #define BUILD_RPC
-//#define BUILD_CON_TCP
+#if defined( ELUA_BOARD_SOLDERCORE )
+  #define BUILD_CON_TCP
+#else
+  #define BUILD_CON_GENERIC
+#endif
 #define BUILD_C_INT_HANDLERS
 
 // *****************************************************************************
@@ -47,7 +54,7 @@
 #define PS_LIB_TABLE_NAME   "lm3s"
 #endif
 
-#if defined( FORLM3S8962 ) || defined( FORLM3S9B92 )
+#if defined( FORLM3S8962 ) || defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
 #define CANLINE  _ROM( AUXLIB_CAN, luaopen_can, can_map )
 #define BUILD_CAN
 #else
@@ -70,6 +77,12 @@
 #define ADCLINE _ROM( AUXLIB_ADC, luaopen_adc, adc_map )
 #else
 #define ADCLINE
+#endif
+
+#ifdef BUILD_TERM
+#define TERMLINE _ROM( AUXLIB_TERM, luaopen_term, term_map )
+#else
+#define TERMLINE
 #endif
 
 #if defined( ELUA_BOOT_RPC ) && !defined( BUILD_RPC )
@@ -97,7 +110,7 @@
   _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
   _ROM( AUXLIB_UART, luaopen_uart, uart_map )\
   PWMLINE\
-  _ROM( AUXLIB_TERM, luaopen_term, term_map )\
+  TERMLINE\
   _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_BITARRAY, luaopen_bitarray, bitarray_map )\
@@ -144,15 +157,19 @@
 // Number of resources (0 if not available/not implemented)
 #if defined(FORLM3S1968)
   #define NUM_PIO             8
-#elif defined(FORLM3S9B92)
-  #define NUM_PIO             7
+#elif defined(FORLM3S9B92) || defined( FORLM3S9D92 )
+  #define NUM_PIO             9
 #else
   #define NUM_PIO             7
 #endif
-#define NUM_SPI               1
-#ifdef FORLM3S6965
+#if defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
+  #define NUM_SPI            2
+#else
+  #define NUM_SPI            1
+#endif
+#if defined( FORLM3S6965 )
   #define NUM_UART            3
-#elif FORLM3S9B92
+#elif defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
   #define NUM_UART            3
 #else
   #define NUM_UART            2
@@ -203,6 +220,11 @@
   #define MMCFS_CS_PORT                6
   #define MMCFS_CS_PIN                 1
   #define MMCFS_SPI_NUM                0
+#elif defined( ELUA_BOARD_SOLDERCORE )
+  // Soldercore
+  #define MMCFS_CS_PORT                6
+  #define MMCFS_CS_PIN                 7
+  #define MMCFS_SPI_NUM                1
 #elif defined( BUILD_MMCFS ) && !defined( MMCFS_SPI_NUM )
   #warning "MMCFS was enabled, but required SPI & CS data are undefined, disabling MMCFS"
   #undef BUILD_MMCFS
@@ -220,14 +242,14 @@
 // Use #define PIO_PINS_PER_PORT 0 if this isn't needed
 #if defined(FORLM3S1968)
   #define PIO_PIN_ARRAY         { 8, 8, 8, 4, 4, 8, 8, 4}
-#elif defined(FORLM3S9B92)
+#elif defined(FORLM3S9B92) || defined( FORLM3S9D92 )
   #define PIO_PIN_ARRAY         { 8, 8, 8, 8, 8, 6, 8, 8, 8 }
 #else
   #define PIO_PIN_ARRAY         { 8, 8, 8, 8, 4, 4, 2 }
 #endif
 //                                A, B, C, D, E, F, G, H, J
 
-#ifdef FORLM3S9B92
+#if defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
   #define SRAM_SIZE ( 0x18000 )
 #else
   #define SRAM_SIZE ( 0x10000 )
