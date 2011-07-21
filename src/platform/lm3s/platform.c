@@ -39,7 +39,7 @@
 #include "driverlib/ssi.h"
 #include "driverlib/timer.h"
 #include "driverlib/pwm.h"
-#include "utils.h"
+#include "driverlib/adc.h"
 #include "driverlib/ethernet.h"
 #include "driverlib/systick.h"
 #include "driverlib/flash.h"
@@ -49,8 +49,7 @@
 #include "buf.h"
 #include "rit128x96x4.h"
 #include "disp.h"
-#include "driverlib/adc.h"
-
+#include "utils.h"
 
 #if defined( FORLM3S9B92 )
   #define TARGET_IS_TEMPEST_RB1
@@ -68,8 +67,17 @@
   #include "lm3s6918.h"
 #endif
 
-#include "rom.h"
-#include "rom_map.h"
+#include "driverlib/rom.h"
+#include "driverlib/rom_map.h"
+
+// USB CDC Stuff
+#include "driverlib/usb.h"
+#include "usblib/usblib.h"
+#include "usblib/usbcdc.h"
+#include "usblib/device/usbdevice.h"
+#include "usblib/device/usbdcdc.h"
+#include "usb_serial_structs.h"
+
 
 // UIP sys tick data
 // NOTE: when using virtual timers, SYSTICKHZ and VTMR_FREQ_HZ should have the
@@ -89,6 +97,7 @@ static void pwms_init();
 static void eth_init();
 static void adcs_init();
 static void cans_init();
+static void usb_init();
 
 int platform_init()
 {
@@ -122,6 +131,11 @@ int platform_init()
 #ifdef BUILD_CAN
   // Setup CANs
   cans_init();
+#endif
+
+#ifdef BUILD_USB_CDC
+  // Setup USB
+  usb_init();
 #endif
 
   // Setup ethernet (TCP/IP)
@@ -1075,6 +1089,181 @@ void EthernetIntHandler()
 {
 }
 #endif // #ifdef ELUA_UIP
+
+// ****************************************************************************
+// USB functions
+
+static void usb_init()
+{
+  USBBufferInit(&g_sTxBuffer);
+  USBBufferInit(&g_sRxBuffer);
+
+  // Pass the device information to the USB library and place the device
+  // on the bus.
+  USBDCDCInit(0, &g_sCDCDevice);
+}
+
+
+unsigned long
+TxHandler(void *pvCBData, unsigned long ulEvent, unsigned long ulMsgValue,
+          void *pvMsgData)
+{
+  //
+  // Which event was sent?
+  //
+  switch(ulEvent)
+  {
+    case USB_EVENT_TX_COMPLETE:
+    {
+        // Nothing to do, already handled by USBBuffer
+        break;
+    }
+      
+    default:
+        break;
+  }
+  
+  return(0);
+}
+
+unsigned long
+RxHandler(void *pvCBData, unsigned long ulEvent, unsigned long ulMsgValue,
+          void *pvMsgData)
+{
+  unsigned long ulCount;
+
+  // Which event was sent?
+  switch(ulEvent)
+  {
+    // A new packet has been received.
+    case USB_EVENT_RX_AVAILABLE:
+    {
+      // Feed some characters into the UART TX FIFO and enable the
+      // interrupt.
+      ulRead = USBBufferRead(&g_sRxBuffer, &ucChar, 1);
+      USBUARTPrimeTransmit();
+      ROM_UARTIntEnable(UART0_BASE, UART_INT_TX);
+      break;
+    }
+
+    //
+    // This is a request for how much unprocessed data is still waiting to
+    // be processed.  Return 0 if the UART is currently idle or 1 if it is
+    // in the process of transmitting something.  The actual number of
+    // bytes in the UART FIFO is not important here, merely whether or
+    // not everything previously sent to us has been transmitted.
+    //
+    case USB_EVENT_DATA_REMAINING:
+    {
+      //
+      // Get the number of bytes in the buffer and add 1 if some data
+      // still has to clear the transmitter.
+      //
+      ulCount = UARTBusy(UART0_BASE) ? 1 : 0;
+      return(ulCount);
+    }
+
+    //
+    // This is a request for a buffer into which the next packet can be
+    // read.  This mode of receiving data is not supported so let the
+    // driver know by returning 0.  The CDC driver should not be sending
+    // this message but this is included just for illustration and
+    // completeness.
+    //
+    case USB_EVENT_REQUEST_BUFFER:
+    {
+      return(0);
+    }
+
+    //
+    // Other events can be safely ignored.
+    //
+    default:
+    {
+      break;
+    }
+  }
+
+  return(0);
+}
+
+unsigned long
+ControlHandler(void *pvCBData, unsigned long ulEvent, unsigned long ulMsgValue,
+               void *pvMsgData)
+{
+  switch(ulEvent) // Check event
+  {
+    // The host has connected.
+    case USB_EVENT_CONNECTED:
+    {
+      USBBufferFlush(&g_sTxBuffer);
+      USBBufferFlush(&g_sRxBuffer);
+      break;
+    }
+
+    
+    // The host has disconnected.
+    
+    case USB_EVENT_DISCONNECTED:
+    {
+      break;
+    }
+    
+    // Return the current serial communication parameters.
+    case USBD_CDC_EVENT_GET_LINE_CODING:
+    {
+      break;
+    }
+
+    // Set the current serial communication parameters.
+    case USBD_CDC_EVENT_SET_LINE_CODING:
+    {
+      break;
+    }
+
+    
+    // Set the current serial communication parameters.
+    case USBD_CDC_EVENT_SET_CONTROL_LINE_STATE:
+    {
+      break;
+    }
+
+    //
+    // Send a break condition on the serial line.
+    //
+    case USBD_CDC_EVENT_SEND_BREAK:
+    {
+      break;
+    }
+
+    //
+    // Clear the break condition on the serial line.
+    //
+    case USBD_CDC_EVENT_CLEAR_BREAK:
+    {
+      break;
+    }
+
+    //
+    // Ignore SUSPEND and RESUME for now.
+    //
+    case USB_EVENT_SUSPEND:
+    case USB_EVENT_RESUME:
+    {
+      break;
+    }
+
+    //
+    // Other events can be safely ignored.
+    //
+    default:
+    {
+      break;
+    }
+  }
+
+  return(0);
+}
 
 // ****************************************************************************
 // Platform specific modules go here
