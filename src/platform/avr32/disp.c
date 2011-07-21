@@ -14,7 +14,7 @@
 extern u32 i2c_delay;
 static u32 old_i2c_delay;
 
-// Functions that bracket all I2C packets to the LCD module,
+// Two functions bracket all I2C packets to the LCD module
 // to save, change and restore the I2C clock rate.
 static void disp_start()
 {
@@ -80,20 +80,24 @@ static int disp_goto(lua_State *L) {
 
 //Lua: mizar32.disp.print( string )
 static int disp_print(lua_State *L) {
-  const char *str = luaL_checkstring( L, 1 );
-  int nbytes = 0;
+  size_t len;  // Number of chars in string
+  const char *str = luaL_checklstring( L, 1, &len );
 
   disp_start();
-  i2c_start_cond();
-  i2c_write_byte( DISP_DATA );
-  // Mizar32 LCD module has a maximum of 32 bytes per packet
-  while ( *str && nbytes < 32 ) {
-    i2c_write_byte( *str++ );
-    nbytes++;
+  while (len > 0) {
+    int nbytes = 0;	// number of bytes sent in this I2C packet
+
+    i2c_start_cond();
+    i2c_write_byte( DISP_DATA );
+    // Mizar32 LCD module has a maximum of 31 bytes per data packet
+    while ( len > 0 && nbytes < 31 ) {
+      i2c_write_byte( *str++ );
+      nbytes++; len--;
+    }
+    i2c_stop_cond();
+    disp_delay(nbytes);
   }
-  i2c_stop_cond();
   disp_stop();
-  disp_delay(nbytes);
   return 0;
 }
 
