@@ -52,7 +52,8 @@ void *alloca(size_t);
 // Prototypes for Local Functions  
 LUALIB_API int luaopen_rpc( lua_State *L );
 Handle *handle_create( lua_State *L );
-
+static void rpc_dispatch_helper( lua_State *L, ServerHandle *handle );
+static int rpc_adispatch_helper( lua_State *L, ServerHandle * handle );
 
 struct exception_context the_exception_context[ 1 ];
 
@@ -1142,6 +1143,8 @@ static int rpc_connect( lua_State *L )
     handle = handle_create ( L );
     transport_open_connection( L, handle );
     
+    set_adispatch_buff( -1 ); 
+
     transport_write_u8( &handle->tpt, RPC_CMD_CON );
     client_negotiate( &handle->tpt );
   }
@@ -1445,7 +1448,7 @@ static int rpc_peek( lua_State *L )
   if ( transport_is_open( &handle->ltpt ) )
   {
     if ( transport_readable( &handle->ltpt ) )
-      lua_pushnumber ( L, 1 );
+      lua_pushnumber ( L, 2 ); // testing, was 1
     else
       lua_pushnil( L );
       
@@ -1568,6 +1571,62 @@ static int rpc_dispatch( lua_State *L )
   return 0;
 }
 
+static int rpc_adispatch_helper( lua_State *L, ServerHandle * handle )
+{
+  int c;
+  char connect = 0;
+  Transport * t;
+
+  t = &handle->atpt;
+
+  if ( ! transport_is_open( t ) )
+  {
+    // if accepting transport is not open, accept a new connection from the
+    // listening transport
+    transport_accept( &handle->ltpt, &handle->atpt );
+    connect = 1;
+  }
+
+  c = transport_get_char( t );
+
+  if ( c < 0 )
+  {
+    if ( connect ) // Are we connecting ?
+      // No connection avaliable, undo accept
+      (&handle->atpt)->fd = INVALID_TRANSPORT;
+
+    return 0;
+  }
+
+  if ( connect ) // Are we connecting ?
+  {
+    // We got a connection
+    set_adispatch_buff( c );
+    if ( transport_read_u8( &handle->atpt ) == RPC_CMD_CON )
+      server_negotiate( &handle->atpt );
+
+    return 0;
+  }
+
+  set_adispatch_buff( c );
+  rpc_dispatch_helper( L, handle );
+
+  return 0;
+}
+
+static int rpc_adispatch( lua_State *L )
+{
+
+  ServerHandle *handle = 0;
+
+  handle = ( ServerHandle * )luaL_checkudata(L, 1, "rpc.server_handle");
+  luaL_argcheck(L, handle, 1, "server handle expected");
+
+  handle = ( ServerHandle * )lua_touserdata( L, 1 );
+  rpc_adispatch_helper( L, handle );
+
+  return 0;
+}  
 
 // rpc_server( transport_identifier )
 static int rpc_server( lua_State *L )
@@ -1659,6 +1718,7 @@ const LUA_REG_TYPE rpc_map[] =
   {  LSTRKEY( "listen" ), LFUNCVAL( rpc_listen ) },
   {  LSTRKEY( "peek" ), LFUNCVAL( rpc_peek ) },
   {  LSTRKEY( "dispatch" ), LFUNCVAL( rpc_dispatch ) },
+  {  LSTRKEY( "adispatch" ), LFUNCVAL( rpc_adispatch ) },
 //  {  LSTRKEY( "rpc_async" ), LFUNCVAL( rpc_async ) },
 #if LUA_OPTIMIZE_MEMORY > 0
 // {  LSTRKEY("mode"), LSTRVAL( LUARPC_MODE ) }, 
@@ -1721,6 +1781,7 @@ static const luaL_reg rpc_map[] =
   { "listen", rpc_listen },
   { "peek", rpc_peek },
   { "dispatch", rpc_dispatch },
+  { "adispatch", rpc_adispatch },
 //  { "rpc_async", rpc_async },
   { NULL, NULL }
 };
