@@ -16,7 +16,7 @@ void set_adispatch_buff( int i )
 }
 
 // Setup Transport
-void transport_init (Transport *tpt)
+void transport_init( Transport *tpt )
 {
   tpt->fd = INVALID_TRANSPORT;
   tpt->tmr_id = 0;
@@ -29,7 +29,7 @@ int transport_get_char(Transport *t)
 }
 
 // Open Listener / Server
-void transport_open_listener(lua_State *L, ServerHandle *handle)
+void transport_open_listener( lua_State *L, ServerHandle *handle )
 {
   // Get args & Set up connection
   unsigned uart_id, tmr_id;
@@ -87,14 +87,14 @@ int transport_open_connection(lua_State *L, Handle *handle)
 }
 
 // Accept Connection 
-void transport_accept (Transport *tpt, Transport *atpt)
+void transport_accept( Transport *tpt, Transport *atpt )
 {
   struct exception e;
   TRANSPORT_VERIFY_OPEN;
   atpt->fd = tpt->fd;
 }
 
-void transport_read_buffer (Transport *tpt, u8 *buffer, int length)
+void transport_read_buffer( Transport *tpt, u8 *buffer, int length )
 {
   int n = 0;
   int c;
@@ -144,20 +144,33 @@ void transport_write_buffer( Transport *tpt, const u8 *buffer, int length )
 
 // Check if data is available on connection without reading:
 //     - 1 = data available, 0 = no data available
-int transport_readable (Transport *tpt)
+int transport_readable( Transport *tpt )
 {
-  return 1; // no really easy way to check this unless platform support is added
+  int c;
+
+  if ( adispatch_buff >= 0 ) // if we have a char already
+    return 1;
+  else // check if a char is ready to be read
+  {
+    c = transport_get_char( tpt );
+    if( c > 0)
+    {
+      adispatch_buff = c;
+      return 1;
+    }
+  }
+  return 0;
 }
 
 // Check if transport is open:
 //    - 1 = connection open, 0 = connection closed
-int transport_is_open (Transport *tpt)
+int transport_is_open( Transport *tpt )
 {
   return ( tpt->fd != INVALID_TRANSPORT );
 }
 
 // Shut down connection
-void transport_close (Transport *tpt)
+void transport_close( Transport *tpt )
 {
   tpt->fd = INVALID_TRANSPORT;
 }
