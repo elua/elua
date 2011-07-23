@@ -126,7 +126,7 @@ void adc_init_ch_state( unsigned id )
 #endif
 
   // Set to run as fast as possible
-  platform_adc_setclock( id, 0 );
+  platform_adc_set_clock( id, 0 );
 }
 
 void adc_init_dev_state( unsigned dev_id )

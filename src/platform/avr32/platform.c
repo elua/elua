@@ -791,7 +791,7 @@ __attribute__((__interrupt__)) static void adc_int_handler()
 }
 
 
-u32 platform_adc_setclock( unsigned id, u32 frequency )
+u32 platform_adc_set_clock( unsigned id, u32 frequency )
 {
   return 0;
 }

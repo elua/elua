@@ -294,47 +294,41 @@ int platform_adc_exists( unsigned id )
 
 #ifdef BUILD_ADC
 
-u32 platform_adc_op( unsigned id, int op, u32 data )
-{  
-  elua_adc_ch_state *s = adc_get_ch_state( id );
-  elua_adc_dev_state *d = adc_get_dev_state( 0 );
-  u32 res = 0;
-
-  switch( op )
-  {
-    case PLATFORM_ADC_GET_MAXVAL:
-      res = pow( 2, ADC_BIT_RESOLUTION ) - 1;
-      break;
-
-    case PLATFORM_ADC_SET_SMOOTHING:
-      res = adc_update_smoothing( id, ( u8 )intlog2( ( unsigned ) data ) );
-      break;
-      
-    case PLATFORM_ADC_SET_BLOCKING:
-      s->blocking = data;
-      break;
-      
-    case PLATFORM_ADC_IS_DONE:
-      res = ( s->op_pending == 0 );
-      break;
-    
-    case PLATFORM_ADC_OP_SET_TIMER:
-      if ( d->timer_id != data )
-        d->running = 0;
-      platform_adc_stop( id );
-      d->timer_id = data;
-      break;
-    
-    case PLATFORM_ADC_OP_SET_CLOCK:
-      res = platform_adc_setclock( id, data );
-      break;
-      
-    case PLATFORM_ADC_SET_FREERUNNING:
-      s->freerunning = data;
-      break;
-  }
-  return res;
+u32 platform_adc_get_maxval( unsigned id )
+{
+  return pow( 2, ADC_BIT_RESOLUTION ) - 1;
 }
+
+u32 platform_adc_set_smoothing( unsigned id, u32 length )
+{
+  return adc_update_smoothing( id, ( u8 )intlog2( ( unsigned ) length ) );
+}
+
+void platform_adc_set_blocking( unsigned id, u32 mode )
+{
+  adc_get_ch_state( id )->blocking = mode;
+}
+
+void platform_adc_set_freerunning( unsigned id, u32 mode )
+{
+  adc_get_ch_state( id )->freerunning = mode;
+}
+
+u32 platform_adc_is_done( unsigned id )
+{
+  return adc_get_ch_state( id )->op_pending == 0;
+}
+
+void platform_adc_set_timer( unsigned id, u32 timer )
+{
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+
+  if ( d->timer_id != timer )
+    d->running = 0;
+  platform_adc_stop( id );
+  d->timer_id = timer;
+}
+
 #endif // #ifdef BUILD_ADC
 
 // ****************************************************************************

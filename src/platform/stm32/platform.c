@@ -1148,10 +1148,10 @@ static void adcs_init()
   DMA_Cmd( DMA1_Channel1, ENABLE );
   DMA_ITConfig( DMA1_Channel1, DMA1_IT_TC1 , ENABLE ); 
   
-  platform_adc_setclock( 0, 0 );
+  platform_adc_set_clock( 0, 0 );
 }
 
-u32 platform_adc_setclock( unsigned id, u32 frequency )
+u32 platform_adc_set_clock( unsigned id, u32 frequency )
 {
   TIM_TimeBaseInitTypeDef timer_base_struct;
   elua_adc_dev_state *d = adc_get_dev_state( 0 );

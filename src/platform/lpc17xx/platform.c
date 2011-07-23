@@ -427,12 +427,12 @@ static void platform_setup_adcs()
   // Default enables ADC interrupt only on global, switch to per-channel
   ADC_IntConfig( LPC_ADC, ADC_ADGINTEN, DISABLE );
     
-  platform_adc_setclock( 0, 0 );
+  platform_adc_set_clock( 0, 0 );
 }
 
 
 // NOTE: On this platform, there is only one ADC, clock settings apply to the whole device
-u32 platform_adc_setclock( unsigned id, u32 frequency )
+u32 platform_adc_set_clock( unsigned id, u32 frequency )
 {
   TIM_TIMERCFG_Type TIM_ConfigStruct;
   TIM_MATCHCFG_Type TIM_MatchConfigStruct ;

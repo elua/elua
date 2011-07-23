@@ -779,12 +779,12 @@ static void adcs_init()
     adc_init_ch_state( id );
 
   // Perform sequencer setup
-  platform_adc_setclock( 0, 0 );
+  platform_adc_set_clock( 0, 0 );
   MAP_ADCIntEnable( ADC_BASE, d->seq_id );
   MAP_IntEnable( adc_ints[ d->seq_id ] );
 }
 
-u32 platform_adc_setclock( unsigned id, u32 frequency )
+u32 platform_adc_set_clock( unsigned id, u32 frequency )
 {
   elua_adc_dev_state *d = adc_get_dev_state( 0 );
   
