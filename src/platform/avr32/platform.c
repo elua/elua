@@ -1108,12 +1108,12 @@ u32 platform_eth_get_elapsed_time()
 #include "lrotable.h"
 #include "lrodefs.h"
 
-extern const LUA_REG_TYPE disp_map[];
+extern const LUA_REG_TYPE lcd_map[];
 
 const LUA_REG_TYPE platform_map[] =
 {
 #if LUA_OPTIMIZE_MEMORY > 0
-  { LSTRKEY( "disp" ), LROVAL( disp_map ) },
+  { LSTRKEY( "lcd" ), LROVAL( lcd_map ) },
 #endif
   { LNILKEY, LNILVAL }
 };
@@ -1127,8 +1127,8 @@ LUALIB_API int luaopen_platform( lua_State *L )
 
   // Setup the new tables inside platform table
   lua_newtable( L );
-  luaL_register( L, NULL, disp_map );
-  lua_setfield( L, -2, "disp" );
+  luaL_register( L, NULL, lcd_map );
+  lua_setfield( L, -2, "lcd" );
 
   return 1;
 #endif // #if LUA_OPTIMIZE_MEMORY > 0

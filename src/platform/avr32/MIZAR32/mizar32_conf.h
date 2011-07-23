@@ -109,7 +109,7 @@
 #define RPCLINE
 #endif
 
-#ifdef PS_LIB_TABLE_NAME
+#if defined( PS_LIB_TABLE_NAME )
 #define PLATLINE _ROM( PS_LIB_TABLE_NAME, luaopen_platform, platform_map )
 #else
 #define PLATLINE

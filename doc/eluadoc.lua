@@ -19,7 +19,7 @@ local components =
   refman_ps_lm3s = { "disp" },
   refman_ps_str9 = { "pio", "rtc" },
   refman_ps_mbed = { "pio" },
-  refman_ps_mizar32 = { "disp" },
+  refman_ps_mizar32 = { "lcd" },
 }
 
 -------------------------------------------------------------------------------
