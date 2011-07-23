@@ -112,8 +112,3 @@ const LUA_REG_TYPE disp_map[] =
   { LSTRKEY( "goto" ),  LFUNCVAL( disp_goto ) },
   { LSTRKEY( "print" ),  LFUNCVAL( disp_print ) },
 };
-
-LUALIB_API int luaopen_disp( lua_State *L )
-{
-  LREGISTER( L, AUXLIB_DISP, disp_map );
-}
