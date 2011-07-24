@@ -32,9 +32,9 @@
   // Build options for 256KB and 512KB flash
 # define RAM_SIZE 0x10000
 # define BUILD_ADC
+# define BUILD_LCD
 # define BUILD_TERM
 # define BUILD_UIP
-# define ENABLE_DISP
 #endif
 
 #ifdef BUILD_UIP
@@ -47,7 +47,7 @@
 // Auxiliary libraries that will be compiled for this platform
 
 // The name of the platform specific libs table
-#ifdef ENABLE_DISP
+#ifdef BUILD_LCD
 #define PS_LIB_TABLE_NAME   "mizar32"
 #endif
 
