@@ -827,15 +827,27 @@ int platform_adc_start_sequence( )
 # error "NUM_PWM > AVR32_PWM_CHANNEL_LENGTH"
 #endif
 
+#if NUM_PWM > 0
+
 static const gpio_map_t pwm_pins =
 {
-  { AVR32_PWM_0_PIN, AVR32_PWM_0_FUNCTION },
-  { AVR32_PWM_1_PIN, AVR32_PWM_1_FUNCTION },
-  { AVR32_PWM_2_PIN, AVR32_PWM_2_FUNCTION },
-  { AVR32_PWM_3_PIN, AVR32_PWM_3_FUNCTION },
-  { AVR32_PWM_4_1_PIN, AVR32_PWM_4_1_FUNCTION },  // PB27
-  { AVR32_PWM_5_1_PIN, AVR32_PWM_5_1_FUNCTION },  // PB28
-  { AVR32_PWM_6_PIN, AVR32_PWM_6_FUNCTION },
+#if ( BOARD == ATEVK1100 ) || ( BOARD == MIZAR32 )
+  { AVR32_PWM_0_PIN, AVR32_PWM_0_FUNCTION },      // PB19 - LED4
+  { AVR32_PWM_1_PIN, AVR32_PWM_1_FUNCTION },      // PB20 - LED5
+  { AVR32_PWM_2_PIN, AVR32_PWM_2_FUNCTION },	  // PB21 - LED6
+  { AVR32_PWM_3_PIN, AVR32_PWM_3_FUNCTION },      // PB22 - LED7
+  { AVR32_PWM_4_1_PIN, AVR32_PWM_4_1_FUNCTION },  // PB27 - LED0
+  { AVR32_PWM_5_1_PIN, AVR32_PWM_5_1_FUNCTION },  // PB28 - LED1
+  { AVR32_PWM_6_PIN, AVR32_PWM_6_FUNCTION },      // PB18 - LCD_C / GPIO50
+#elif BOARD == ATEVK1101
+  { AVR32_PWM_0_0_PIN, AVR32_PWM_0_0_FUNCTION },  // PA7  LED0
+  { AVR32_PWM_1_0_PIN, AVR32_PWM_1_0_FUNCTION },  // PA8  LED1
+  { AVR32_PWM_2_0_PIN, AVR32_PWM_2_0_FUNCTION },  // PA21 LED2
+  { AVR32_PWM_3_0_PIN, AVR32_PWM_3_0_FUNCTION },  // PA14 ? or _1 PA25
+  { AVR32_PWM_4_1_PIN, AVR32_PWM_4_1_FUNCTION },  // PA28 - audio out
+  { AVR32_PWM_5_1_PIN, AVR32_PWM_5_1_FUNCTION },  // PB5: UART1-RTS & Nexus i/f EVTIn / _0 PA18=Xin0
+  { AVR32_PWM_6_0_PIN, AVR32_PWM_6_0_FUNCTION },  // PA22 - LED3 and audio out
+#endif
 };
 
 
@@ -968,6 +980,8 @@ u32 platform_pwm_op( unsigned id, int op, u32 data)
   }
   return 0;
 }
+
+#endif // #if NUM_PWM > 0
 
 // ****************************************************************************
 // I2C support

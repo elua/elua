@@ -1,5 +1,7 @@
 // Declarations for the low-level AVR32 I2C driver for eLua
 
+#include "type.h"	// for u32
+
 u32 i2c_setup( u32 speed );                // speed is in Hz
 void i2c_start_cond( void );
 void i2c_stop_cond( void );
