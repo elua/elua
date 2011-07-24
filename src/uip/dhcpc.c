@@ -276,17 +276,17 @@ PT_THREAD(handle_dhcp(void))
     s.timer_init = platform_timer_op( ELUA_DHCP_TIMER_ID, PLATFORM_TIMER_OP_START, 0 );
     PT_WAIT_UNTIL(&s.pt, uip_newdata() || platform_timer_get_diff_us( ELUA_DHCP_TIMER_ID, s.timer_init, platform_timer_op( ELUA_DHCP_TIMER_ID, PLATFORM_TIMER_OP_READ, 0 ) ) >= s.ticks );
     if(uip_newdata() && parse_msg() == DHCPOFFER) {
-	  uip_flags &= ~UIP_NEWDATA;
+      uip_flags &= ~UIP_NEWDATA;
       s.state = STATE_OFFER_RECEIVED;
       break;
     }
-	uip_flags &= ~UIP_NEWDATA;
+    uip_flags &= ~UIP_NEWDATA;
     if(s.ticks < CLOCK_SECOND * 60) {
       s.ticks *= 2;
     } else {
-	  s.ipaddr[0] = 0;
-	  goto dhcp_failed;
-	  }
+      s.ipaddr[0] = 0;
+      goto dhcp_failed;
+    }
   } while(s.state != STATE_OFFER_RECEIVED);
   
   s.ticks = CLOCK_SECOND;
@@ -297,7 +297,7 @@ PT_THREAD(handle_dhcp(void))
     PT_WAIT_UNTIL(&s.pt, uip_newdata() || platform_timer_get_diff_us( ELUA_DHCP_TIMER_ID, s.timer_init, platform_timer_op( ELUA_DHCP_TIMER_ID, PLATFORM_TIMER_OP_READ, 0 ) ) >= s.ticks );
     
     if(uip_newdata() && parse_msg() == DHCPACK) {
-	  uip_flags &= ~UIP_NEWDATA;
+      uip_flags &= ~UIP_NEWDATA;
       s.state = STATE_CONFIG_RECEIVED;
       break;
     }
