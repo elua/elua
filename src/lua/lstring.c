@@ -52,7 +52,7 @@ void luaS_resize (lua_State *L, int newsize) {
 
 
 static TString *newlstr (lua_State *L, const char *str, size_t l,
-                                       unsigned int h) {
+                                       unsigned int h, int readonly) {
   TString *ts;
   stringtable *tb;
   if (l+1 > (MAX_SIZET - sizeof(TString))/sizeof(char))
@@ -60,14 +60,19 @@ static TString *newlstr (lua_State *L, const char *str, size_t l,
   tb = &G(L)->strt;
   if ((tb->nuse + 1) > cast(lu_int32, tb->size) && tb->size <= MAX_INT/2)
     luaS_resize(L, tb->size*2);  /* too crowded */
-  ts = cast(TString *, luaM_malloc(L, (l+1)*sizeof(char)+sizeof(TString)));
+  ts = cast(TString *, luaM_malloc(L, readonly ? sizeof(char**)+sizeof(TString) : (l+1)*sizeof(char)+sizeof(TString)));
   ts->tsv.len = l;
   ts->tsv.hash = h;
   ts->tsv.marked = luaC_white(G(L));
   ts->tsv.tt = LUA_TSTRING;
   ts->tsv.reserved = 0;
-  memcpy(ts+1, str, l*sizeof(char));
-  ((char *)(ts+1))[l] = '\0';  /* ending 0 */
+  if (!readonly) {
+    memcpy(ts+1, str, l*sizeof(char));
+    ((char *)(ts+1))[l] = '\0';  /* ending 0 */
+  } else {
+    *(char **)(ts+1) = (char *)str;
+    luaS_readonly(ts);
+  }
   h = lmod(h, tb->size);
   ts->tsv.next = tb->hash[h];  /* chain new entry */
   tb->hash[h] = obj2gco(ts);
@@ -76,8 +81,9 @@ static TString *newlstr (lua_State *L, const char *str, size_t l,
 }
 
 
-TString *luaS_newlstr (lua_State *L, const char *str, size_t l) {
+static TString *luaS_newlstr_helper (lua_State *L, const char *str, size_t l, int readonly) {
   GCObject *o;
+  l=l-readonly; /* strings that are read-only include the '\0' terminator */
   unsigned int h = cast(unsigned int, l);  /* seed */
   size_t step = (l>>5)+1;  /* if string is too long, don't hash all its chars */
   size_t l1;
@@ -93,7 +99,17 @@ TString *luaS_newlstr (lua_State *L, const char *str, size_t l) {
       return ts;
     }
   }
-  return newlstr(L, str, l, h);  /* not found */
+  return newlstr(L, str, l, h, readonly);  /* not found */
+}
+
+
+TString *luaS_newlstr (lua_State *L, const char *str, size_t l) {
+  return luaS_newlstr_helper(L, str, l, 0);
+}
+
+
+LUAI_FUNC TString *luaS_newrolstr (lua_State *L, const char *str, size_t l) {
+  return luaS_newlstr_helper(L, str, l, 1);
 }
 
 

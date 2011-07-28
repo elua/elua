@@ -156,9 +156,16 @@ static TString* LoadString(LoadState* S)
   return NULL;
  else
  {
-  char* s=luaZ_openspace(S->L,S->b,size);
-  LoadBlock(S,s,size);
-  return luaS_newlstr(S->L,s,size-1);		/* remove trailing '\0' */
+  char* s;
+  if (!luaZ_direct_mode(S->Z)) {
+   s = luaZ_openspace(S->L,S->b,size);
+   LoadBlock(S,s,size);
+   return luaS_newlstr(S->L,s,size-1); /* remove trailing zero */
+  } else {
+   s = (char*)luaZ_get_crt_address(S->Z);
+   LoadBlock(S,NULL,size);
+   return luaS_newrolstr(S->L,s,size); /* keep trailing zero */
+  }
  }
 }
 

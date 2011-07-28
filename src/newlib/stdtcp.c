@@ -93,7 +93,8 @@ static const DM_DEVICE std_device =
   NULL,                 // lseek
   NULL,                 // opendir
   NULL,                 // readdir
-  NULL                  // closedir
+  NULL,                 // closedir
+  NULL                  // getaddr
 };
 
 

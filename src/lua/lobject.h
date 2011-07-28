@@ -222,7 +222,7 @@ typedef union TString {
 } TString;
 
 
-#define getstr(ts)	cast(const char *, (ts) + 1)
+#define getstr(ts)	(((ts)->tsv.marked & 128) ? cast(const char *, *(const char**)((ts) + 1)) : cast(const char *, (ts) + 1))
 #define svalue(o)       getstr(rawtsvalue(o))
 
 

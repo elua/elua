@@ -193,6 +193,14 @@ static int romfs_closedir_r( struct _reent *r, void *d )
   return 0;
 }
 
+// getaddr
+static const char* romfs_getaddr( struct _reent *r, int fd )
+{
+  FS* pfs = romfs_fd_table + fd;
+
+  return ( const char* )romfiles_fs + pfs->baseaddr;
+}
+
 // Our ROMFS device descriptor structure
 static const DM_DEVICE romfs_device = 
 {
@@ -204,7 +212,8 @@ static const DM_DEVICE romfs_device =
   romfs_lseek_r,        // lseek
   romfs_opendir_r,      // opendir
   romfs_readdir_r,      // readdir
-  romfs_closedir_r      // closedir
+  romfs_closedir_r,     // closedir
+  romfs_getaddr         // getbaseaddr
 };
 
 const DM_DEVICE* romfs_init()
