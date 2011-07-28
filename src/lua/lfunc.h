@@ -17,6 +17,8 @@
 #define sizeLclosure(n)	(cast(int, sizeof(LClosure)) + \
                          cast(int, sizeof(TValue *)*((n)-1)))
 
+#define proto_readonly(p) ((p)->marked |= 128)
+#define proto_is_readonly(p) (((p)->marked & 128) != 0)
 
 LUAI_FUNC Proto *luaF_newproto (lua_State *L);
 LUAI_FUNC Closure *luaF_newCclosure (lua_State *L, int nelems, Table *e);
