@@ -280,7 +280,7 @@ if not GetOption( 'help' ):
     if syspl.system() == 'Windows':
       suffix = '.exe'
     else:
-      suffix = '.elf'
+      suffix = ''
     # First check for luac.cross in the current directory
     if not os.path.isfile( "luac.cross" + suffix ):
       print "The eLua cross compiler was not found."

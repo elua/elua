@@ -12,6 +12,7 @@
 #ifdef BUILD_ROMFS
 
 #define ROMFS_MAX_FDS   4
+#define ROMFS_ALIGN     4
 #define fsmin( x , y ) ( ( x ) < ( y ) ? ( x ) : ( y ) )
 
 static FS romfs_fd_table[ ROMFS_MAX_FDS ];
@@ -65,17 +66,20 @@ u8 romfs_open_file( const char* fname, p_read_fs_byte p_read_func, FS* pfs )
     j = i + j + 1;
     // And read the size   
     fsize = p_read_func( j ) + ( p_read_func( j + 1 ) << 8 );
+    j += 2;
+    // Round to a multiple of ROMFS_ALIGN
+    j = ( j + ROMFS_ALIGN - 1 ) & ~( ROMFS_ALIGN - 1 );
     if( !strncasecmp( fname, fsname, DM_MAX_FNAME_LENGTH ) )
     {
       // Found the file
-      pfs->baseaddr = j + 2;
+      pfs->baseaddr = j;
       pfs->offset = 0;
       pfs->size = fsize;
       pfs->p_read_func = p_read_func;   
       return FS_FILE_OK;
     }
     // Move to next file
-    i = j + 2 + fsize;
+    i = j + fsize;
   }
   return FS_FILE_NOT_FOUND;
 }
@@ -182,7 +186,9 @@ static struct dm_dirent* romfs_readdir_r( struct _reent *r, void *d )
   pent->fname = dm_shared_fname;
   pent->fsize = romfs_read( off ) + ( romfs_read( off + 1 ) << 8 );
   pent->ftime = 0;
-  *( u32* )d = off + 2 + pent->fsize;
+  off += 2;
+  off = ( off + ROMFS_ALIGN - 1 ) & ~( ROMFS_ALIGN - 1 );
+  *( u32* )d = off + pent->fsize;
   return pent;
 }
 
@@ -213,7 +219,7 @@ static const DM_DEVICE romfs_device =
   romfs_opendir_r,      // opendir
   romfs_readdir_r,      // readdir
   romfs_closedir_r,     // closedir
-  romfs_getaddr         // getbaseaddr
+  romfs_getaddr         // getaddr
 };
 
 const DM_DEVICE* romfs_init()

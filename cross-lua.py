@@ -21,6 +21,6 @@ comp = Environment( CCCOM = cccom,
 if comp['PLATFORM'] == 'win32':
   suffix = ".exe"
 else:
-  suffix = ".elf"                    
+  suffix = ""
 Decider( 'MD5' )                  
 Default( comp.Program( output + suffix, Split( lua_full_files ) ) )
