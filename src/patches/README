@@ -1,0 +1,29 @@
+This directory contains some of the patches that were applied to stock Lua inside the
+eLua distribution.
+
+strings_and_protos_in_rom_v1.patch
+==================================
+DESCRIPTION:
+    - Adds the "dm_getaddr" operation which lets a filesystem return the base address 
+    of a file (an actual memory address where the file can be found and accessed via
+    regular memory read/write operations). Only filesystems that reside in a memory 
+    that is directly accesible to the CPU (for example the ROM filesystem inside the 
+    MPU Flash memory) can return a non-NULL result for this function and only for files 
+    that are contigous in memory (no chained blocks). NULL shuold be returned in all the
+    other cases.
+    - When loading bytecode from a file that has a base address (dm_getaddr() returns
+    a non-NULL result) it keeps the data part of a TString (the string itself) in ROM
+    and prevents it from being loaded to RAM. Also keeps the instructions and line size 
+    information array of a 'Proto' (function prototype structure) in ROM and prevents
+    them from being loaded to RAM.
+    - When loading Lua code from a file that has a base address (dm_getaddr() returns
+    a non-NULL result) it lets the parser read the Lua code directly from ROM.
+APPLIES TO:
+    Stock Lua 5.1.4 source tree
+AUTHOR:
+    Bogdan Marinescu <bogdan.marinescu@gmail.com>
+DATE:
+    July 29, 2011
+SOURCE:
+    eLua source repository (http://github.com/elua/elua)
+
