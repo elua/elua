@@ -13,7 +13,7 @@
 #include "lstate.h"
 
 
-#define sizestring(s)	(sizeof(union TString)+((s)->len+1)*sizeof(char))
+#define sizestring(s) (sizeof(union TString)+(luaS_isreadonly(s) ? sizeof(char **) : ((s)->len+1)*sizeof(char)))
 
 #define sizeudata(u)	(sizeof(union Udata)+(u)->len)
 
