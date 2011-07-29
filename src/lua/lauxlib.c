@@ -657,7 +657,11 @@ LUALIB_API int luaL_loadfile (lua_State *L, const char *filename) {
     lf.extraline = 0;
   }
   ungetc(c, lf.f);
-  lf.srcp = srcp == NULL ? NULL : srcp + ftell(lf.f);
+  if (srcp) {
+    lf.srcp = srcp + ftell(lf.f);
+    lf.totsize -= ftell(lf.f);
+  } else
+    lf.srcp = NULL;
   status = lua_load(L, getF, &lf, lua_tostring(L, -1));
   readstatus = ferror(lf.f);
   if (filename) fclose(lf.f);  /* close file (even in case of errors) */
