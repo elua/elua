@@ -66,7 +66,7 @@
 ** bit 4 - for tables: has weak values
 ** bit 5 - object is fixed (should not be collected)
 ** bit 6 - object is "super" fixed (only the main thread)
-** bit 7 - object is partially stored in read-only memory
+** bit 7 - object is (partially) stored in read-only memory
 */
 
 
