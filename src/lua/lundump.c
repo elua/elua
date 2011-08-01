@@ -164,7 +164,7 @@ static TString* LoadString(LoadState* S)
   } else {
    s = (char*)luaZ_get_crt_address(S->Z);
    LoadBlock(S,NULL,size);
-   return luaS_newrolstr(S->L,s,size); /* keep trailing zero */
+   return luaS_newrolstr(S->L,s,size-1);
   }
  }
 }

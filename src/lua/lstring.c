@@ -83,7 +83,6 @@ static TString *newlstr (lua_State *L, const char *str, size_t l,
 
 static TString *luaS_newlstr_helper (lua_State *L, const char *str, size_t l, int readonly) {
   GCObject *o;
-  l=l-readonly; /* strings that are read-only include the '\0' terminator */
   unsigned int h = cast(unsigned int, l);  /* seed */
   size_t step = (l>>5)+1;  /* if string is too long, don't hash all its chars */
   size_t l1;
