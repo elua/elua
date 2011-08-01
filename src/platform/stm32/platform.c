@@ -692,8 +692,10 @@ int platform_s_uart_set_flow_control( unsigned id, int type )
 // ****************************************************************************
 // Timers
 
+u8 stm32_timer_int_periodic_flag[ NUM_PHYS_TIMER ];
+
 // We leave out TIM6/TIM for now, as they are dedicated
-static TIM_TypeDef * const timer[] = { TIM1, TIM2, TIM3, TIM4, TIM5 };
+const TIM_TypeDef * const timer[] = { TIM1, TIM2, TIM3, TIM4, TIM5 };
 #define TIM_GET_PRESCALE( id ) ( ( id ) == 0 || ( id ) == 5 ? ( PCLK2_DIV ) : ( PCLK1_DIV ) )
 #define TIM_GET_BASE_CLK( id ) ( TIM_GET_PRESCALE( id ) == 1 ? ( HCLK / TIM_GET_PRESCALE( id ) ) : ( HCLK / ( TIM_GET_PRESCALE( id ) / 2 ) ) )
 #define TIM_STARTUP_CLOCK       50000
@@ -802,7 +804,44 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
 
 int platform_s_timer_set_match_int( unsigned id, u32 period_us, int type )
 {
-  return PLATFORM_TIMER_INT_INVALID_ID;
+  TIM_TypeDef* base = ( TIM_TypeDef* )timer[ id ];
+  u32 freq;
+  timer_data_type final;
+  TIM_OCInitTypeDef  TIM_OCInitStructure;
+
+  if( period_us == 0 )
+  {
+    TIM_ITConfig( base, TIM_IT_CC1, DISABLE );
+    base->CR1 = 0; // Why are we doing this?
+    base->CR2 = 0;
+    return PLATFORM_TIMER_INT_OK; 
+  }
+  timer_set_clock( id, 1000000 );
+  freq = timer_get_clock( id );
+  final = ( ( u64 )period_us * freq ) / 1000000;
+  if( final == 0 )
+    return PLATFORM_TIMER_INT_TOO_SHORT;
+  if( final > 0xFFFF )
+    return PLATFORM_TIMER_INT_TOO_LONG;
+
+  TIM_Cmd( base, DISABLE );
+
+  TIM_OCStructInit( &TIM_OCInitStructure );
+  TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_Timing;
+  TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+  TIM_OCInitStructure.TIM_Pulse = final;
+  TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
+  TIM_OC1Init( base, &TIM_OCInitStructure );
+
+  TIM_OC1PreloadConfig( base, TIM_OCPreload_Disable );
+
+  stm32_timer_int_periodic_flag[ id ] = type;
+  
+  TIM_SetCounter( base, 0 );
+  TIM_Cmd( base, ENABLE );
+  TIM_ITConfig( base, TIM_IT_CC1, ENABLE );
+
+  return PLATFORM_TIMER_INT_OK;
 }
 
 // ****************************************************************************
