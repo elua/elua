@@ -785,6 +785,9 @@ static UnOpr getunopr (int op) {
     case TK_NOT: return OPR_NOT;
     case '-': return OPR_MINUS;
     case '#': return OPR_LEN;
+#if defined(LUA_BITWISE_OPERATORS)
+    case '~': return OPR_BNOT;
+#endif
     default: return OPR_NOUNOPR;
   }
 }
@@ -798,6 +801,14 @@ static BinOpr getbinopr (int op) {
     case '/': return OPR_DIV;
     case '%': return OPR_MOD;
     case '^': return OPR_POW;
+#if defined(LUA_BITWISE_OPERATORS)
+    case '|': return OPR_BOR;
+    case '&': return OPR_BAND;
+    case TK_XOR: return OPR_BXOR;
+    case TK_LSHFT: return OPR_BLSHFT;
+    case TK_RSHFT: return OPR_BRSHFT;
+    case '\\': return OPR_INTDIV;
+#endif
     case TK_CONCAT: return OPR_CONCAT;
     case TK_NE: return OPR_NE;
     case TK_EQ: return OPR_EQ;
@@ -817,6 +828,9 @@ static const struct {
   lu_byte right; /* right priority */
 } priority[] = {  /* ORDER OPR */
    {6, 6}, {6, 6}, {7, 7}, {7, 7}, {7, 7},  /* `+' `-' `/' `%' */
+#if defined(LUA_BITWISE_OPERATORS)
+   {6, 6}, {6, 6}, {6, 6}, {7, 7}, {7, 7}, {7, 7}, /* `|' `&' `!' `<<' `>>' `\' */
+#endif
    {10, 9}, {5, 4},                 /* power and concat (right associative) */
    {3, 3}, {3, 3},                  /* equality and inequality */
    {3, 3}, {3, 3}, {3, 3}, {3, 3},  /* order */

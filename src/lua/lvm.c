@@ -373,6 +373,9 @@ static void Arith (lua_State *L, StkId ra, const TValue *rb,
       case TM_MOD: setnvalue(ra, luai_lnummod(nb, nc)); break;
       case TM_POW: setnvalue(ra, luai_numpow(nb, nc)); break;
       case TM_UNM: setnvalue(ra, luai_numunm(nb)); break;
+#if defined(LUA_BITWISE_OPERATORS)
+      case TM_INTDIV: setnvalue(ra, luai_numintdiv(nb, nc)); break;
+#endif
       default: lua_assert(0); break;
     }
   }
@@ -385,7 +388,30 @@ static void Arith (lua_State *L, StkId ra, const TValue *rb,
   }
 }
 
-
+#if defined(LUA_BITWISE_OPERATORS)
+static void Logic (lua_State *L, StkId ra, const TValue *rb,
+                   const TValue *rc, TMS op) {
+  TValue tempb, tempc;
+  const TValue *b, *c;
+  if ((b = luaV_tonumber(rb, &tempb)) != NULL &&
+      (c = luaV_tonumber(rc, &tempc)) != NULL) {
+    lua_Number nb = nvalue(b), nc = nvalue(c);
+    lua_Integer r;
+    switch (op) {
+      case TM_BLSHFT: luai_loglshft(r, nb, nc); break;
+      case TM_BRSHFT: luai_logrshft(r, nb, nc); break;
+      case TM_BOR: luai_logor(r, nb, nc); break;
+      case TM_BAND: luai_logand(r, nb, nc); break;
+      case TM_BXOR: luai_logxor(r, nb, nc); break;
+      case TM_BNOT: luai_lognot(r, nb); break;
+      default: lua_assert(0); r = 0; break;
+    }
+    setnvalue(ra, r);
+  }
+  else if (!call_binTM(L, rb, rc, ra, op))
+    luaG_logicerror(L, rb, rc);
+}
+#endif
 
 /*
 ** some macros for common tasks in `luaV_execute'
@@ -420,6 +446,22 @@ static void Arith (lua_State *L, StkId ra, const TValue *rb,
         else \
           Protect(Arith(L, ra, rb, rc, tm)); \
       }
+
+
+#if defined(LUA_BITWISE_OPERATORS)
+#define logic_op(op,tm) { \
+        TValue *rb = RKB(i); \
+        TValue *rc = RKC(i); \
+        if (ttisnumber(rb) && ttisnumber(rc)) { \
+          lua_Integer r; \
+          lua_Number nb = nvalue(rb), nc = nvalue(rc); \
+          op(r, nb, nc); \
+          setnvalue(ra, r); \
+        } \
+        else \
+          Protect(Logic(L, ra, rb, rc, tm)); \
+      }
+#endif
 
 
 
@@ -557,6 +599,45 @@ void luaV_execute (lua_State *L, int nexeccalls) {
         }
         continue;
       }
+#if defined(LUA_BITWISE_OPERATORS)
+      case OP_BOR: {
+        logic_op(luai_logor, TM_BOR);
+        continue;
+      }
+      case OP_BAND: {
+        logic_op(luai_logand, TM_BAND);
+        continue;
+      }
+      case OP_BXOR: {
+        logic_op(luai_logxor, TM_BXOR);
+        continue;
+      }
+      case OP_BLSHFT: {
+        logic_op(luai_loglshft, TM_BLSHFT);
+        continue;
+      }
+      case OP_BRSHFT: {
+        logic_op(luai_logrshft, TM_BRSHFT);
+        continue;
+      }
+      case OP_BNOT: {
+        TValue *rb = RB(i);
+        if (ttisnumber(rb)) {
+          lua_Integer r;
+          lua_Number nb = nvalue(rb);
+          luai_lognot(r, nb);
+          setnvalue(ra, r);
+        }
+        else {
+          Protect(Logic(L, ra, rb, rb, TM_BNOT));
+        }
+        continue;
+      }
+      case OP_INTDIV: {
+        arith_op(luai_numintdiv, TM_DIV);
+        continue;
+      }
+#endif
       case OP_NOT: {
         int res = l_isfalse(RB(i));  /* next assignment may change this value */
         setbvalue(ra, res);

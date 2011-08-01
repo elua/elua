@@ -30,4 +30,9 @@ LUAI_FUNC void luaG_errormsg (lua_State *L);
 LUAI_FUNC int luaG_checkcode (const Proto *pt);
 LUAI_FUNC int luaG_checkopenop (Instruction i);
 
+#if defined (LUA_BITWISE_OPERATORS)
+LUAI_FUNC void luaG_logicerror (lua_State *L, const TValue *p1,
+                                              const TValue *p2);
+#endif
+
 #endif

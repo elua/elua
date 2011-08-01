@@ -33,6 +33,15 @@ typedef enum {
   TM_LE,
   TM_CONCAT,
   TM_CALL,
+#if defined(LUA_BITWISE_OPERATORS)
+  TM_BOR,
+  TM_BAND,
+  TM_BXOR,
+  TM_BLSHFT,
+  TM_BRSHFT,
+  TM_BNOT,
+  TM_INTDIV,
+#endif
   TM_N		/* number of elements in the enum */
 } TMS;
 

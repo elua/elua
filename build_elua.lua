@@ -350,6 +350,7 @@ addm( "ELUA_CPU=" .. comp.cpu:upper() )
 addm( "ELUA_BOARD=" .. comp.board:upper() )
 addm( "ELUA_PLATFORM=" .. platform:upper() )
 addm( "__BUFSIZ__=128" )
+addm( "LUA_BITWISE_OPERATORS" )
 
 -- Also make the above into direct defines (to use in conditional C code)
 addm( "ELUA_CPU_" .. cnorm( comp.cpu ) )

@@ -620,18 +620,28 @@
    luai_nummod(a,b))
 LUA_NUMBER luai_ipow(LUA_NUMBER, LUA_NUMBER);
 #define luai_numpow(a,b)	(luai_ipow(a,b))
+#define luai_numintdiv(a,b) ((a)/(b)
 #else
 #define luai_numdiv(a,b)	((a)/(b))
 #define luai_nummod(a,b)	((a) - floor((a)/(b))*(b))
 #define luai_lnumdiv(a,b)	(luai_numdiv(a,b))
 #define luai_lnummod(a,b)	(luai_nummod(a,b))
 #define luai_numpow(a,b)	(pow(a,b))
+#define luai_numintdiv(a,b) (floor((a)/(b)))
 #endif
 #define luai_numunm(a)		(-(a))
 #define luai_numeq(a,b)		((a)==(b))
 #define luai_numlt(a,b)		((a)<(b))
 #define luai_numle(a,b)		((a)<=(b))
 #define luai_numisnan(a)	(!luai_numeq((a), (a)))
+#if defined(LUA_BITWISE_OPERATORS)
+#define luai_logor(r, a, b)    { lua_Integer ai,bi; lua_number2int(ai,a); lua_number2int(bi,b); r = ai|bi; }
+#define luai_logand(r, a,b)    { lua_Integer ai,bi; lua_number2int(ai,a); lua_number2int(bi,b); r = ai&bi; }
+#define luai_logxor(r, a,b)    { lua_Integer ai,bi; lua_number2int(ai,a); lua_number2int(bi,b); r = ai^bi; }
+#define luai_lognot(r,a)       { lua_Integer ai; lua_number2int(ai,a); r = ~ai; }
+#define luai_loglshft(r, a,b)  { lua_Integer ai,bi; lua_number2int(ai,a); lua_number2int(bi,b); r = ai<<bi; }
+#define luai_logrshft(r, a,b)  { lua_Integer ai,bi; lua_number2int(ai,a); lua_number2int(bi,b); r = ai>>bi; }
+#endif
 #endif
 
 

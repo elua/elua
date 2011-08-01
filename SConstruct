@@ -312,6 +312,7 @@ if not GetOption( 'help' ):
                              'ELUA_BOARD' : comp['board'],
                              'ELUA_PLATFORM' : platform.upper() } )
   comp.Append(CPPDEFINES = {'__BUFSIZ__' : 128})
+  comp.Append(CPPDEFINES = {'LUA_BITWISE_OPERATORS'}
 
   # Also make the above into direct defines (to use in conditional C code)
   conf.env.Append(CPPDEFINES = ["ELUA_CPU_" + cnorm( comp['cpu'] ), "ELUA_BOARD_" + cnorm( comp['board'] ), "ELUA_PLATFORM_" +  cnorm( platform )])
