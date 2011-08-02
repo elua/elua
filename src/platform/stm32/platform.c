@@ -844,16 +844,17 @@ static void pwms_init()
   // 
 }
 
-// Helper function: return the PWM clock
-// NOTE: Can't find a function to query for the period set for the timer, therefore using the struct.
-//       This may require adjustment if driver libraries are updated.
-static u32 platform_pwm_get_clock()
+// Return the PWM clock
+// NOTE: Can't find a function to query for the period set for the timer,
+// therefore using the struct.
+// This may require adjustment if driver libraries are updated.
+u32 platform_pwm_get_clock( unsigned id )
 {
   return ( ( TIM_GET_BASE_CLK( PWM_TIMER_ID ) / ( TIM_GetPrescaler( PWM_TIMER_NAME ) + 1 ) ) / ( PWM_TIMER_NAME->ARR + 1 ) );
 }
 
-// Helper function: set the PWM clock
-static u32 platform_pwm_set_clock( u32 clock )
+// Set the PWM clock
+u32 platform_pwm_set_clock( unsigned id, u32 clock )
 {
   TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
   TIM_TypeDef* ptimer = PWM_TIMER_NAME;
@@ -872,7 +873,7 @@ static u32 platform_pwm_set_clock( u32 clock )
   TIM_TimeBaseStructure.TIM_RepetitionCounter = 0x0000;
   TIM_TimeBaseInit( ptimer, &TIM_TimeBaseStructure );
     
-  return platform_pwm_get_clock();
+  return platform_pwm_get_clock( id );
 }
 
 u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
@@ -891,7 +892,7 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
   GPIO_Init(GPIOC, &GPIO_InitStructure);
   
-  clock = platform_pwm_set_clock( frequency );
+  clock = platform_pwm_set_clock( id, frequency );
   TIM_ARRPreloadConfig( ptimer, ENABLE );
   
   /* PWM Mode configuration */  
@@ -931,30 +932,14 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
   return clock;
 }
 
-u32 platform_pwm_op( unsigned id, int op, u32 data )
+void platform_pwm_start( unsigned id )
 {
-  u32 res = 0;
+  PWM_TIMER_NAME->CCER |= ( ( u16 )1 << 4 * id );
+}
 
-  switch( op )
-  {
-    case PLATFORM_PWM_OP_SET_CLOCK:
-      res = platform_pwm_set_clock( data );
-      break;
-
-    case PLATFORM_PWM_OP_GET_CLOCK:
-      res = platform_pwm_get_clock();
-      break;
-
-    case PLATFORM_PWM_OP_START:
-      PWM_TIMER_NAME->CCER |= ( ( u16 )1 << 4 * id );
-      break;
-
-    case PLATFORM_PWM_OP_STOP:
-      PWM_TIMER_NAME->CCER &= ~( ( u16 )1 << 4 * id );
-      break;
-  }
-
-  return res;
+void platform_pwm_stop( unsigned id )
+{
+  PWM_TIMER_NAME->CCER &= ~( ( u16 )1 << 4 * id );
 }
 
 // *****************************************************************************

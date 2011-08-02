@@ -595,8 +595,8 @@ static void pwms_init()
   MAP_SysCtlPWMClockSet( SYSCTL_PWMDIV_1 );
 }
 
-// Helper function: return the PWM clock
-static u32 platform_pwm_get_clock()
+// Return the PWM clock
+u32 platform_pwm_get_clock( unsigned id )
 {
   unsigned i;
   u32 clk;
@@ -608,8 +608,8 @@ static u32 platform_pwm_get_clock()
   return MAP_SysCtlClockGet() / pwm_div_data[ i ];
 }
 
-// Helper function: set the PWM clock
-static u32 platform_pwm_set_clock( u32 clock )
+// Set the PWM clock
+u32 platform_pwm_set_clock( unsigned id, u32 clock )
 {
   unsigned i, min_i;
   u32 sysclk;
@@ -624,7 +624,7 @@ static u32 platform_pwm_set_clock( u32 clock )
 
 u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
 {
-  u32 pwmclk = platform_pwm_get_clock();
+  u32 pwmclk = platform_pwm_get_clock( id );
   u32 period;
 
   // Set pin as PWM
@@ -640,32 +640,16 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
   return pwmclk / period;
 }
 
-u32 platform_pwm_op( unsigned id, int op, u32 data )
+void platform_pwm_start( unsigned id )
 {
-  u32 res = 0;
+  MAP_PWMOutputState( PWM_BASE, 1 << id, true );
+  MAP_PWMGenEnable( PWM_BASE, pwm_gens[ id >> 1 ] );
+}
 
-  switch( op )
-  {
-    case PLATFORM_PWM_OP_SET_CLOCK:
-      res = platform_pwm_set_clock( data );
-      break;
-
-    case PLATFORM_PWM_OP_GET_CLOCK:
-      res = platform_pwm_get_clock();
-      break;
-
-    case PLATFORM_PWM_OP_START:
-      MAP_PWMOutputState( PWM_BASE, 1 << id, true );
-      MAP_PWMGenEnable( PWM_BASE, pwm_gens[ id >> 1 ] );
-      break;
-
-    case PLATFORM_PWM_OP_STOP:
-      MAP_PWMOutputState( PWM_BASE, 1 << id, false );
-      MAP_PWMGenDisable( PWM_BASE, pwm_gens[ id >> 1 ] );
-      break;
-  }
-
-  return res;
+void platform_pwm_stop( unsigned id )
+{
+  MAP_PWMOutputState( PWM_BASE, 1 << id, false );
+  MAP_PWMGenDisable( PWM_BASE, pwm_gens[ id >> 1 ] );
 }
 
 // *****************************************************************************

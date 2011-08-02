@@ -658,7 +658,7 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
   return base / div;
 }
 
-static u32 platform_pwm_set_clock( unsigned id, u32 clock )
+u32 platform_pwm_set_clock( unsigned id, u32 clock )
 {
   TIM_TypeDef* p_timer = ( TIM_TypeDef* )str9_timer_data[ id ];
   u32 base = ( SCU_GetPCLKFreqValue() * 1000 );
@@ -668,31 +668,25 @@ static u32 platform_pwm_set_clock( unsigned id, u32 clock )
   return base / div;
 }
 
-u32 platform_pwm_op( unsigned id, int op, u32 data )
+u32 platform_pwm_get_clock( unsigned id )
 {
-  u32 res = 0;
   TIM_TypeDef* p_timer = ( TIM_TypeDef* )str9_timer_data[ id ];
 
-  switch( op )
-  {
-    case PLATFORM_PWM_OP_START:
-      TIM_CounterCmd( p_timer, TIM_START );
-      break;
+  return ( SCU_GetPCLKFreqValue() * 1000 ) / ( TIM_GetPrescalerValue( p_timer ) + 1 );
+}
 
-    case PLATFORM_PWM_OP_STOP:
-      TIM_CounterCmd( p_timer, TIM_STOP );
-      break;
+void platform_pwm_start( unsigned id )
+{
+  TIM_TypeDef* p_timer = ( TIM_TypeDef* )str9_timer_data[ id ];
 
-    case PLATFORM_PWM_OP_SET_CLOCK:
-      res = platform_pwm_set_clock( id, data );
-      break;
+  TIM_CounterCmd( p_timer, TIM_START );
+}
 
-    case PLATFORM_PWM_OP_GET_CLOCK:
-      res = ( SCU_GetPCLKFreqValue() * 1000 ) / ( TIM_GetPrescalerValue( p_timer ) + 1 );
-      break;
-  }
+void platform_pwm_stop( unsigned id )
+{
+  TIM_TypeDef* p_timer = ( TIM_TypeDef* )str9_timer_data[ id ];
 
-  return res;
+  TIM_CounterCmd( p_timer, TIM_STOP );
 }
 
 // ****************************************************************************

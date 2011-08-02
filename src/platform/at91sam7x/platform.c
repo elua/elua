@@ -338,8 +338,8 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
 // PWM pins
 static const Pin pwm_pins[] = { PIN_PWMC_PWM0, PIN_PWMC_PWM1, PIN_PWMC_PWM2, PIN_PWMC_PWM3 };
 
-// Helper function: return the PWM clock
-static u32 platform_pwm_get_clock( unsigned id )
+// Return the PWM clock
+u32 platform_pwm_get_clock( unsigned id )
 {
   u32 cfg = AT91C_BASE_PWMC->PWMC_CH[ id ].PWMC_CMR;
   u16 clkdata;
@@ -358,8 +358,8 @@ static u32 platform_pwm_get_clock( unsigned id )
   }
 }
 
-// Helper function: set the PWM clock
-static u32 platform_pwm_set_clock( unsigned id, u32 clock )
+// Set the PWM clock
+u32 platform_pwm_set_clock( unsigned id, u32 clock )
 {
   if( id < 2 )
     PWMC_ConfigureClocks( clock, 0, BOARD_MCK );
@@ -386,30 +386,14 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
   return pwmclk / period;
 }
 
-u32 platform_pwm_op( unsigned id, int op, u32 data )
+void platform_pwm_start( unsigned id )
 {
-  u32 res = 0;
-    
-  switch( op )
-  {
-    case PLATFORM_PWM_OP_SET_CLOCK:
-      res = platform_pwm_set_clock( id, data );
-      break;
-      
-    case PLATFORM_PWM_OP_GET_CLOCK:
-      res = platform_pwm_get_clock( id );
-      break;
-      
-    case PLATFORM_PWM_OP_START:
-      PIO_Configure( pwm_pins + id, 1 );    
-      res = AT91C_BASE_PWMC->PWMC_ISR;
-      break;
-      
-    case PLATFORM_PWM_OP_STOP:
-      platform_pio_op( 1, 1 << ( 19 + id ), PLATFORM_IO_PIN_DIR_INPUT );
-      break;
-  }
-  
-  return res;
+  volatile u32 dummy;
+  PIO_Configure( pwm_pins + id, 1 );    
+  dummy = AT91C_BASE_PWMC->PWMC_ISR;
 }
 
+void platform_pwm_stop( unsigned id )
+{
+  platform_pio_op( 1, 1 << ( 19 + id ), PLATFORM_IO_PIN_DIR_INPUT );
+}

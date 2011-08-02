@@ -946,7 +946,7 @@ static void find_clock_configuration( u32 frequency,
 #undef prescalers
 
 
-static u32 pwm_set_clock_freq( u32 freq )
+u32 platform_pwm_set_clock( unsigned id, u32 freq )
 {
   unsigned pre, div;
 
@@ -956,29 +956,19 @@ static u32 pwm_set_clock_freq( u32 freq )
   return pwm_get_clock_freq();
 }
 
-u32 platform_pwm_op( unsigned id, int op, u32 data)
+u32 platform_pwm_get_clock( unsigned id )
 {
-  // Sanity check
-  if (id < 0 || id >= NUM_PWM)
-    return 0;
+  return pwm_get_clock_freq();
+}
 
-  switch( op )
-  {
-    case PLATFORM_PWM_OP_SET_CLOCK:
-      return pwm_set_clock_freq( data );
+void platform_pwm_start( unsigned id )
+{
+  pwm_channel_start( id );
+}
 
-    case PLATFORM_PWM_OP_GET_CLOCK:
-      return pwm_get_clock_freq();
-
-    case PLATFORM_PWM_OP_START:
-      pwm_channel_start( id );
-      break;
-
-    case PLATFORM_PWM_OP_STOP:
-      pwm_channel_stop( id );
-      break;
-  }
-  return 0;
+void platform_pwm_stop( unsigned id )
+{
+  pwm_channel_stop( id );
 }
 
 #endif // #if NUM_PWM > 0
