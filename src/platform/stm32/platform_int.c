@@ -142,13 +142,16 @@ static void tmr_int_handler( int id )
 {
   TIM_TypeDef *base = ( TIM_TypeDef* )timer[ id ];
 
-  TIM_ClearITPendingBit( base, TIM_IT_CC1 );
-  if( id == VTMR_TIMER_ID )
-    cmn_virtual_timer_cb();
-  else
-    cmn_int_handler( INT_TMR_MATCH, id );
-  if( stm32_timer_int_periodic_flag[ id ] != PLATFORM_TIMER_INT_CYCLIC )\
-    TIM_ITConfig( base, TIM_IT_CC1, DISABLE );
+  if (TIM_GetITStatus( base, TIM_IT_CC1) != RESET)
+  {
+    TIM_ClearITPendingBit( base, TIM_IT_CC1 );
+    if( id == VTMR_TIMER_ID )
+      cmn_virtual_timer_cb();
+    else
+      cmn_int_handler( INT_TMR_MATCH, id );
+    if( stm32_timer_int_periodic_flag[ id ] != PLATFORM_TIMER_INT_CYCLIC );
+      //TIM_ITConfig( base, TIM_IT_CC1, DISABLE );
+  }
 }
 
 

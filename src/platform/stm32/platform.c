@@ -700,7 +700,7 @@ const TIM_TypeDef * const timer[] = { TIM1, TIM2, TIM3, TIM4, TIM5 };
 #define TIM_GET_BASE_CLK( id ) ( TIM_GET_PRESCALE( id ) == 1 ? ( HCLK / TIM_GET_PRESCALE( id ) ) : ( HCLK / ( TIM_GET_PRESCALE( id ) / 2 ) ) )
 #define TIM_STARTUP_CLOCK       50000
 
-static u32 timer_set_clock( unsigned id, u32 clock );
+static u32 platform_timer_set_clock( unsigned id, u32 clock );
 
 void SysTick_Handler( void )
 {
@@ -725,17 +725,17 @@ static void timers_init()
 
   // Configure timers
   for( i = 0; i < NUM_TIMER; i ++ )
-    timer_set_clock( i, TIM_STARTUP_CLOCK );
+    platform_timer_set_clock( i, TIM_STARTUP_CLOCK );
 }
 
-static u32 timer_get_clock( unsigned id )
+static u32 platform_timer_get_clock( unsigned id )
 {
   TIM_TypeDef* ptimer = timer[ id ];
 
   return TIM_GET_BASE_CLK( id ) / ( TIM_GetPrescaler( ptimer ) + 1 );
 }
 
-static u32 timer_set_clock( unsigned id, u32 clock )
+static u32 platform_timer_set_clock( unsigned id, u32 clock )
 {
   TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
   TIM_TypeDef *ptimer = timer[ id ];
@@ -758,7 +758,7 @@ void platform_s_timer_delay( unsigned id, u32 delay_us )
   volatile unsigned dummy;
   timer_data_type final;
 
-  final = ( ( u64 )delay_us * timer_get_clock( id ) ) / 1000000;
+  final = ( ( u64 )delay_us * platform_timer_get_clock( id ) ) / 1000000;
   TIM_SetCounter( ptimer, 0 );
   for( dummy = 0; dummy < 200; dummy ++ );
   while( TIM_GetCounter( ptimer ) < final );
@@ -791,11 +791,11 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
       break;
 
     case PLATFORM_TIMER_OP_SET_CLOCK:
-      res = timer_set_clock( id, data );
+      res = platform_timer_set_clock( id, data );
       break;
 
     case PLATFORM_TIMER_OP_GET_CLOCK:
-      res = timer_get_clock( id );
+      res = platform_timer_get_clock( id );
       break;
 
   }
@@ -805,7 +805,7 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
 int platform_s_timer_set_match_int( unsigned id, u32 period_us, int type )
 {
   TIM_TypeDef* base = ( TIM_TypeDef* )timer[ id ];
-  u32 freq;
+  u32 period, prescaler, freq;
   timer_data_type final;
   TIM_OCInitTypeDef  TIM_OCInitStructure;
 
@@ -814,11 +814,18 @@ int platform_s_timer_set_match_int( unsigned id, u32 period_us, int type )
     TIM_ITConfig( base, TIM_IT_CC1, DISABLE );
     base->CR1 = 0; // Why are we doing this?
     base->CR2 = 0;
-    return PLATFORM_TIMER_INT_OK; 
+    return PLATFORM_TIMER_INT_OK;
   }
-  timer_set_clock( id, 1000000 );
-  freq = timer_get_clock( id );
+
+  period = ( ( u64 )TIM_GET_BASE_CLK( id ) * period_us ) / 1000000;
+    
+  prescaler = ( period / 0x10000 ) + 1;
+  period /= prescaler;
+
+  platform_timer_set_clock( id, TIM_GET_BASE_CLK( id  ) / prescaler );
+  freq = platform_timer_get_clock( id );
   final = ( ( u64 )period_us * freq ) / 1000000;
+
   if( final == 0 )
     return PLATFORM_TIMER_INT_TOO_SHORT;
   if( final > 0xFFFF )
@@ -833,7 +840,7 @@ int platform_s_timer_set_match_int( unsigned id, u32 period_us, int type )
   TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
   TIM_OC1Init( base, &TIM_OCInitStructure );
 
-  TIM_OC1PreloadConfig( base, TIM_OCPreload_Disable );
+  TIM_OC1PreloadConfig( base, TIM_OCPreload_Enable );
 
   stm32_timer_int_periodic_flag[ id ] = type;
   
