@@ -17,4 +17,4 @@ doc/dist
 doc/cache
 *~
 *.*~
-
+luac.cross*
