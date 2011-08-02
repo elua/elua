@@ -133,8 +133,10 @@ static int tmr_set_match_int( lua_State *L )
   res = platform_timer_set_match_int( id, ( u32 )luaL_checknumber( L, 2 ), ( int )luaL_checkinteger( L, 3 ) );
   if( res == PLATFORM_TIMER_INT_TOO_SHORT )
     return luaL_error( L, "timer interval too small" );
+  else if( res == PLATFORM_TIMER_INT_TOO_LONG )
+    return luaL_error( L, "timer interval too long" );
   else if( res == PLATFORM_TIMER_INT_INVALID_ID )
-    return luaL_error( L, "mach interrupt cannot be set on this timer" );
+    return luaL_error( L, "match interrupt cannot be set on this timer" );
   return 0;
 }
 #endif // #ifdef BUILD_LUA_INT_HANDLERS
