@@ -839,6 +839,9 @@ int platform_s_timer_set_match_int( unsigned id, u32 period_us, int type )
   TIM_OCInitStructure.TIM_Pulse = final;
   TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
   TIM_OC1Init( base, &TIM_OCInitStructure );
+  
+  // Patch timer configuration to reload when period is reached
+  TIM_SetAutoreload( base, final );
 
   TIM_OC1PreloadConfig( base, TIM_OCPreload_Enable );
 
@@ -846,7 +849,7 @@ int platform_s_timer_set_match_int( unsigned id, u32 period_us, int type )
   
   TIM_SetCounter( base, 0 );
   TIM_Cmd( base, ENABLE );
-  TIM_ITConfig( base, TIM_IT_CC1, ENABLE );
+  //TIM_ITConfig( base, TIM_IT_CC1, ENABLE );
 
   return PLATFORM_TIMER_INT_OK;
 }
