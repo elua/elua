@@ -12,14 +12,15 @@
 
 // *****************************************************************************
 // Define here what components you want for this platform
-#if !defined( ELUA_BOARD_SOLDERCORE )
+//#if !defined( ELUA_BOARD_SOLDERCORE )
   #define BUILD_XMODEM
   #define BUILD_TERM
-#endif
+//#endif
 
 #define BUILD_SHELL
 #define BUILD_ROMFS
 #define BUILD_MMCFS
+#define BUILD_USB_CDC
 
 #ifndef FORLM3S1968
   #define BUILD_UIP
@@ -29,17 +30,17 @@
 
 #define BUILD_ADC
 #define BUILD_RPC
-#if defined( ELUA_BOARD_SOLDERCORE )
-  #define BUILD_CON_TCP
-#else
+//#if defined( ELUA_BOARD_SOLDERCORE )
+//  #define BUILD_CON_TCP
+//#else
   #define BUILD_CON_GENERIC
-#endif
+//#endif
 #define BUILD_C_INT_HANDLERS
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 
-#define CON_UART_ID           0
+#define CON_UART_ID           3
 #define CON_UART_SPEED        115200
 #define CON_TIMER_ID          0
 #define TERM_LINES            25
@@ -169,8 +170,8 @@
 #endif
 #if defined( FORLM3S6965 )
   #define NUM_UART            3
-#elif defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
-  #define NUM_UART            3
+#elif defined( FORLM3S9B92 ) || defined( FORLM3S9D92 ) // Last UART on these platforms is USB-CDC
+  #define NUM_UART            4
 #else
   #define NUM_UART            2
 #endif
@@ -184,8 +185,8 @@
 #define NUM_CAN               1
 
 // Enable RX buffering on UART
-#define BUF_ENABLE_UART
-#define CON_BUF_SIZE          BUF_SIZE_128
+//#define BUF_ENABLE_UART
+//#define CON_BUF_SIZE          BUF_SIZE_128
 
 // ADC Configuration Params
 #define ADC_BIT_RESOLUTION    10

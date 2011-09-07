@@ -2,8 +2,10 @@
 
 addi( sf( 'src/platform/%s/inc', platform ) )
 addi( sf( 'src/platform/%s/driverlib', platform ) )
+addi( sf( 'src/platform/%s/usblib', platform ) )
+addi( sf( 'src/platform/%s/usblib/device', platform ) )
 
-specific_files = "startup_gcc.c platform.c interrupt.c platform_int.c"
+specific_files = "startup_gcc.c platform.c platform_int.c"
 local fwlib_files = utils.get_files( "src/platform/" .. platform .. "/driverlib", ".*%.c$" )
 
 
@@ -21,13 +23,17 @@ end
 
 if board == 'EK-LM3S9B92' then
    ldscript = "lm3s-9b92.ld"
+   fwlib_files = fwlib_files .. " " .. utils.get_files( "src/platform/" .. platform .. "/usblib", ".*%.c$" ) 
+   fwlib_files = fwlib_files .. " " .. utils.get_files( "src/platform/" .. platform .. "/usblib/device", ".*%.c$" )
+   specific_files = specific_files .. "  usb_serial_structs.c"
 elseif board == 'SOLDERCORE' then
    ldscript = "lm3s-9d92.ld"
+   fwlib_files = fwlib_files .. " " .. utils.get_files( "src/platform/" .. platform .. "/usblib", ".*%.c$" ) 
+   fwlib_files = fwlib_files .. " " .. utils.get_files( "src/platform/" .. platform .. "/usblib/device", ".*%.c$" )
+   specific_files = specific_files .. " usb_serial_structs.c"
 else
    ldscript = "lm3s.ld"
 end
-
-
 
 -- Prepend with path
 specific_files = fwlib_files .. " " .. utils.prepend_path( specific_files, "src/platform/" .. platform )

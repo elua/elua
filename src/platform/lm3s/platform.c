@@ -450,14 +450,22 @@ static const u8 uart_gpio_pins[] = { GPIO_PIN_0 | GPIO_PIN_1, GPIO_PIN_2 | GPIO_
 static void uarts_init()
 {
   unsigned i;
-
+#if defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
+  for( i = 0; i < NUM_UART - 1; i ++ )
+#else
   for( i = 0; i < NUM_UART; i ++ )
+#endif
     MAP_SysCtlPeripheralEnable(uart_sysctl[ i ]);
 }
 
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )
 {
   u32 config;
+
+#if defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
+  if( id == ( NUM_UART - 1 ) )
+    return baud;
+#endif
 
   MAP_GPIOPinTypeUART(uart_gpio_base [ id ], uart_gpio_pins[ id ]);
 
@@ -491,16 +499,41 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
 
 void platform_s_uart_send( unsigned id, u8 data )
 {
+#if defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
+  if( id == ( NUM_UART - 1 ) )
+  {
+    USBBufferWrite(&g_sTxBuffer, &data, 1);
+  }
+  else
+#endif
   MAP_UARTCharPut( uart_base[ id ], data );
 }
 
 int platform_s_uart_recv( unsigned id, s32 timeout )
 {
   u32 base = uart_base[ id ];
-
+#if defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
+  unsigned char data;
+  unsigned long read;
+  if( id == ( NUM_UART - 1 ) )
+  {
+    do {
+      read = USBBufferRead(&g_sRxBuffer, &data, 1);
+    } while( read == 0 && timeout != 0 );
+     if( read == 0 )
+       return -1;
+     else
+       return data;
+  }
+  else
+  {
+#endif
   if( timeout == 0 )
     return MAP_UARTCharGetNonBlocking( base );
   return MAP_UARTCharGet( base );
+#if defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
+  }
+#endif
 }
 
 int platform_s_uart_set_flow_control( unsigned id, int type )
@@ -1131,6 +1164,9 @@ RxHandler(void *pvCBData, unsigned long ulEvent, unsigned long ulMsgValue,
           void *pvMsgData)
 {
   unsigned long ulCount;
+  unsigned char ucChar;
+  unsigned long ulRead;
+
 
   // Which event was sent?
   switch(ulEvent)
@@ -1138,11 +1174,6 @@ RxHandler(void *pvCBData, unsigned long ulEvent, unsigned long ulMsgValue,
     // A new packet has been received.
     case USB_EVENT_RX_AVAILABLE:
     {
-      // Feed some characters into the UART TX FIFO and enable the
-      // interrupt.
-      ulRead = USBBufferRead(&g_sRxBuffer, &ucChar, 1);
-      USBUARTPrimeTransmit();
-      ROM_UARTIntEnable(UART0_BASE, UART_INT_TX);
       break;
     }
 
@@ -1159,8 +1190,7 @@ RxHandler(void *pvCBData, unsigned long ulEvent, unsigned long ulMsgValue,
       // Get the number of bytes in the buffer and add 1 if some data
       // still has to clear the transmitter.
       //
-      ulCount = UARTBusy(UART0_BASE) ? 1 : 0;
-      return(ulCount);
+      return(0);
     }
 
     //
