@@ -66,24 +66,24 @@ enum
     },
 
     { sig = "u32 #platform_pwm_set_clock#( unsigned id, u32 clock );",
-      desc = "Sets the $base$ clock of the specified PWM channel
+      desc = [[Sets the $base$ clock of the specified PWM channel
         (which will be used to generate the frequencies requested by 
-        @#platform_pwm_setup@platform_pwm_setup@) to $data$ hertz.",
+        @#platform_pwm_setup@platform_pwm_setup@) to $data$ hertz.]],
       args = 
       {
         "$id$ - PWM channel ID",
-        "$clock$ - the desired frequency of the base clock.
+        "$clock$ - the desired frequency of the base clock."
       },
-      ret = "The actual value of the base clock, which might be different
-        from $data$ depending on the hardware",
+      ret = [[The actual value of the base clock, which might be different
+        from $data$ depending on the hardware]],
     },
 
     { sig = "u32 #platform_pwm_get_clock#( unsigned id );",
-      desc = "Gets the $base$ clock of the specified PWM channel"
+      desc = "Gets the $base$ clock of the specified PWM channel",
       args = 
       {
         "$id$ - PWM channel ID",
-        "$clock$ - the desired frequency of the base clock.
+        "$clock$ - the desired frequency of the base clock."
       },
       ret = "the value of the base clock"
     },
