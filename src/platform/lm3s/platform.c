@@ -450,11 +450,7 @@ static const u8 uart_gpio_pins[] = { GPIO_PIN_0 | GPIO_PIN_1, GPIO_PIN_2 | GPIO_
 static void uarts_init()
 {
   unsigned i;
-#if defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
-  for( i = 0; i < NUM_UART - 1; i ++ )
-#else
   for( i = 0; i < NUM_UART; i ++ )
-#endif
     MAP_SysCtlPeripheralEnable(uart_sysctl[ i ]);
 }
 
@@ -462,78 +458,52 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
 {
   u32 config;
 
-#if defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
-  if( id == ( NUM_UART - 1 ) )
-    return baud;
-#endif
-
-  MAP_GPIOPinTypeUART(uart_gpio_base [ id ], uart_gpio_pins[ id ]);
-
-  switch( databits )
+  if( id < NUM_UART )
   {
-    case 5:
-      config = UART_CONFIG_WLEN_5;
-      break;
-    case 6:
-      config = UART_CONFIG_WLEN_6;
-      break;
-    case 7:
-      config = UART_CONFIG_WLEN_7;
-      break;
-    default:
-      config = UART_CONFIG_WLEN_8;
-      break;
-  }
-  config |= ( stopbits == PLATFORM_UART_STOPBITS_1 ) ? UART_CONFIG_STOP_ONE : UART_CONFIG_STOP_TWO;
-  if( parity == PLATFORM_UART_PARITY_EVEN )
-    config |= UART_CONFIG_PAR_EVEN;
-  else if( parity == PLATFORM_UART_PARITY_ODD )
-    config |= UART_CONFIG_PAR_ODD;
-  else
-    config |= UART_CONFIG_PAR_NONE;
+    MAP_GPIOPinTypeUART(uart_gpio_base [ id ], uart_gpio_pins[ id ]);
 
-  MAP_UARTConfigSetExpClk( uart_base[ id ], MAP_SysCtlClockGet(), baud, config );
-  MAP_UARTConfigGetExpClk( uart_base[ id ], MAP_SysCtlClockGet(), &baud, &config );
+    switch( databits )
+    {
+      case 5:
+        config = UART_CONFIG_WLEN_5;
+        break;
+      case 6:
+        config = UART_CONFIG_WLEN_6;
+        break;
+      case 7:
+        config = UART_CONFIG_WLEN_7;
+        break;
+      default:
+        config = UART_CONFIG_WLEN_8;
+        break;
+    }
+    config |= ( stopbits == PLATFORM_UART_STOPBITS_1 ) ? UART_CONFIG_STOP_ONE : UART_CONFIG_STOP_TWO;
+    if( parity == PLATFORM_UART_PARITY_EVEN )
+      config |= UART_CONFIG_PAR_EVEN;
+    else if( parity == PLATFORM_UART_PARITY_ODD )
+      config |= UART_CONFIG_PAR_ODD;
+    else
+      config |= UART_CONFIG_PAR_NONE;
+
+    MAP_UARTConfigSetExpClk( uart_base[ id ], MAP_SysCtlClockGet(), baud, config );
+    MAP_UARTConfigGetExpClk( uart_base[ id ], MAP_SysCtlClockGet(), &baud, &config );
+  }
   return baud;
 }
 
 void platform_s_uart_send( unsigned id, u8 data )
 {
-#if defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
-  if( id == ( NUM_UART - 1 ) )
-  {
-    USBBufferWrite(&g_sTxBuffer, &data, 1);
-  }
-  else
-#endif
   MAP_UARTCharPut( uart_base[ id ], data );
 }
 
 int platform_s_uart_recv( unsigned id, s32 timeout )
 {
   u32 base = uart_base[ id ];
-#if defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
-  unsigned char data;
-  unsigned long read;
-  if( id == ( NUM_UART - 1 ) )
-  {
-    do {
-      read = USBBufferRead(&g_sRxBuffer, &data, 1);
-    } while( read == 0 && timeout != 0 );
-     if( read == 0 )
-       return -1;
-     else
-       return data;
-  }
-  else
-  {
-#endif
+
   if( timeout == 0 )
     return MAP_UARTCharGetNonBlocking( base );
+
   return MAP_UARTCharGet( base );
-#if defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
-  }
-#endif
 }
 
 int platform_s_uart_set_flow_control( unsigned id, int type )
@@ -1128,22 +1098,40 @@ void EthernetIntHandler()
 
 static void usb_init()
 {
-  USBBufferInit(&g_sTxBuffer);
-  USBBufferInit(&g_sRxBuffer);
+  USBBufferInit( &g_sTxBuffer );
+  USBBufferInit( &g_sRxBuffer );
 
   // Pass the device information to the USB library and place the device
   // on the bus.
-  USBDCDCInit(0, &g_sCDCDevice);
+  USBDCDCInit( 0, &g_sCDCDevice );
 }
 
-
-unsigned long
-TxHandler(void *pvCBData, unsigned long ulEvent, unsigned long ulMsgValue,
-          void *pvMsgData)
+void platform_usb_cdc_send( u8 data )
 {
-  //
+  USBBufferWrite( &g_sTxBuffer, &data, 1 );
+}
+
+int platform_usb_cdc_recv( s32 timeout )
+{
+  unsigned char data;
+  unsigned long read;
+
+  // Try to read one byte from buffer, if none available return -1 or
+  // retry if timeout
+  // FIXME: Respect requested timeout
+  do {
+    read = USBBufferRead(&g_sRxBuffer, &data, 1);
+  } while( read == 0 && timeout != 0 );
+
+  if( read == 0 )
+    return -1;
+  else
+    return data;
+}
+
+unsigned long TxHandler(void *pvCBData, unsigned long ulEvent, unsigned long ulMsgValue, void *pvMsgData)
+{
   // Which event was sent?
-  //
   switch(ulEvent)
   {
     case USB_EVENT_TX_COMPLETE:
@@ -1159,9 +1147,7 @@ TxHandler(void *pvCBData, unsigned long ulEvent, unsigned long ulMsgValue,
   return(0);
 }
 
-unsigned long
-RxHandler(void *pvCBData, unsigned long ulEvent, unsigned long ulMsgValue,
-          void *pvMsgData)
+unsigned long RxHandler(void *pvCBData, unsigned long ulEvent, unsigned long ulMsgValue, void *pvMsgData)
 {
   unsigned long ulCount;
   unsigned char ucChar;
@@ -1205,9 +1191,7 @@ RxHandler(void *pvCBData, unsigned long ulEvent, unsigned long ulMsgValue,
       return(0);
     }
 
-    //
     // Other events can be safely ignored.
-    //
     default:
     {
       break;

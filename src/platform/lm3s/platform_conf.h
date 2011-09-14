@@ -40,7 +40,7 @@
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 
-#define CON_UART_ID           3
+#define CON_UART_ID           CDC_UART_ID
 #define CON_UART_SPEED        115200
 #define CON_TIMER_ID          0
 #define TERM_LINES            25
@@ -170,8 +170,8 @@
 #endif
 #if defined( FORLM3S6965 )
   #define NUM_UART            3
-#elif defined( FORLM3S9B92 ) || defined( FORLM3S9D92 ) // Last UART on these platforms is USB-CDC
-  #define NUM_UART            4
+#elif defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
+  #define NUM_UART            3
 #else
   #define NUM_UART            2
 #endif
