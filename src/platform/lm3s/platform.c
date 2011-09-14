@@ -705,11 +705,17 @@ u32 platform_pwm_op( unsigned id, int op, u32 data )
                                     GPIO_PIN_7, GPIO_PIN_6, GPIO_PIN_5, GPIO_PIN_4,
                                     GPIO_PIN_3, GPIO_PIN_2, GPIO_PIN_4, GPIO_PIN_5,
                                     GPIO_PIN_3, GPIO_PIN_2, GPIO_PIN_1, GPIO_PIN_0 };
-                                    
+
+  const static u32 adc_ctls[] = { ADC_CTL_CH0, ADC_CTL_CH1, ADC_CTL_CH2, ADC_CTL_CH3,
+                                  ADC_CTL_CH4, ADC_CTL_CH5, ADC_CTL_CH6, ADC_CTL_CH7,
+                                  ADC_CTL_CH8, ADC_CTL_CH9, ADC_CTL_CH10, ADC_CTL_CH11,
+                                  ADC_CTL_CH12, ADC_CTL_CH13, ADC_CTL_CH14, ADC_CTL_CH15 };
+
   #define ADC_PIN_CONFIG
+#else
+const static u32 adc_ctls[] = { ADC_CTL_CH0, ADC_CTL_CH1, ADC_CTL_CH2, ADC_CTL_CH3 };
 #endif
 
-const static u32 adc_ctls[] = { ADC_CTL_CH0, ADC_CTL_CH1, ADC_CTL_CH2, ADC_CTL_CH3 };
 const static u32 adc_ints[] = { INT_ADC0, INT_ADC1, INT_ADC2, INT_ADC3 };
 
 int platform_adc_check_timer_id( unsigned id, unsigned timer_id )
@@ -802,7 +808,7 @@ static void adcs_init()
   // Perform sequencer setup
   platform_adc_setclock( 0, 0 );
   MAP_ADCIntEnable( ADC_BASE, d->seq_id );
-  MAP_IntEnable( adc_ints[ d->seq_id ] );
+  MAP_IntEnable( adc_ints[ 0 ] ); // Enable sequencer 0 int
 }
 
 u32 platform_adc_setclock( unsigned id, u32 frequency )

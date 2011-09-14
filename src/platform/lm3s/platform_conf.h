@@ -181,7 +181,11 @@
 #else
   #define NUM_PWM             0
 #endif  
+#if defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
+#define NUM_ADC               16
+#else
 #define NUM_ADC               4
+#endif
 #define NUM_CAN               1
 
 // Enable RX buffering on UART
