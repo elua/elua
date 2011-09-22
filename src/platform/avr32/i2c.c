@@ -196,6 +196,8 @@ void i2c_start_cond(void)
     while (READSCL() == 0)
       ;  // You can add a timeout to this loop to
          // recover from SCL being stuck low.
+    // Repeated start setup time, minimum 4.7us
+    I2CDELAY();
   }
   if (READSDA() == 0)
     ARBITRATION_LOST();
