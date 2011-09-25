@@ -286,10 +286,6 @@ void CANIntHandler(void)
 
 void cans_init( void )
 {
-  GPIOPinConfigure(GPIO_PD0_CAN0RX);
-  GPIOPinConfigure(GPIO_PD1_CAN0TX);
-  MAP_GPIOPinTypeCAN(GPIO_PORTD_BASE, GPIO_PIN_0 | GPIO_PIN_1);
-
   MAP_SysCtlPeripheralEnable( SYSCTL_PERIPH_CAN0 ); 
   MAP_CANInit( CAN0_BASE );
   CANBitRateSet(CAN0_BASE, LM3S_CAN_CLOCK, 500000);
@@ -308,6 +304,10 @@ void cans_init( void )
 
 u32 platform_can_setup( unsigned id, u32 clock )
 {  
+  GPIOPinConfigure(GPIO_PD0_CAN0RX);
+  GPIOPinConfigure(GPIO_PD1_CAN0TX);
+  MAP_GPIOPinTypeCAN(GPIO_PORTD_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+
   MAP_CANDisable(CAN0_BASE);
   CANBitRateSet(CAN0_BASE, LM3S_CAN_CLOCK, clock );
   MAP_CANEnable(CAN0_BASE);
@@ -591,10 +591,14 @@ const static u8 pwm_div_data[] = { 1, 2, 4, 8, 16, 32, 64 };
 #elif defined(FORLM3S6965)
   const static u32 pwm_ports[] =  { GPIO_PORTF_BASE, GPIO_PORTD_BASE, GPIO_PORTB_BASE, GPIO_PORTB_BASE, GPIO_PORTE_BASE, GPIO_PORTE_BASE };
   const static u8 pwm_pins[] = { GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1 };
-#elif defined(FORLM3S9B92) || defined(FORLM3S9D92)
-  const static u32 pwm_ports[] =  { GPIO_PORTD_BASE, GPIO_PORTD_BASE, GPIO_PORTB_BASE, GPIO_PORTB_BASE, GPIO_PORTE_BASE, GPIO_PORTE_BASE };
-  const static u8 pwm_pins[] = { GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1 };
-  // GPIOPCTL probably needs modification to do PWM for 2&3, Digital Function 2
+#elif defined( ELUA_BOARD_SOLDERCORE ) && defined( FORLM3S9D92 )
+  const static u32 pwm_ports[] =  { GPIO_PORTG_BASE, GPIO_PORTD_BASE, GPIO_PORTD_BASE, GPIO_PORTD_BASE, GPIO_PORTE_BASE, GPIO_PORTE_BASE, GPIO_PORTC_BASE, GPIO_PORTC_BASE };
+  const static u8 pwm_pins[] = { GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_2, GPIO_PIN_3, GPIO_PIN_6, GPIO_PIN_7,  GPIO_PIN_4,  GPIO_PIN_6 };
+  const static u32 pwm_configs[] = { GPIO_PG0_PWM0, GPIO_PD1_PWM1, GPIO_PD2_PWM2, GPIO_PD3_PWM3, GPIO_PE6_PWM4, GPIO_PE7_PWM5, GPIO_PC4_PWM6, GPIO_PC6_PWM7 };
+#elif defined( FORLM3S9B92 ) || ( defined(FORLM3S9D92) && !defined( ELUA_BOARD_SOLDERCORE ) )
+  const static u32 pwm_ports[] =  { GPIO_PORTD_BASE, GPIO_PORTD_BASE, GPIO_PORTD_BASE, GPIO_PORTD_BASE, GPIO_PORTE_BASE, GPIO_PORTE_BASE, GPIO_PORTC_BASE, GPIO_PORTC_BASE };
+  const static u8 pwm_pins[] = { GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_2, GPIO_PIN_3, GPIO_PIN_6, GPIO_PIN_7,  GPIO_PIN_4,  GPIO_PIN_6 };
+  const static u32 pwm_config[]s = { GPIO_PD0_PWM0, GPIO_PD1_PWM1, GPIO_PD2_PWM2, GPIO_PD3_PWM3, GPIO_PE6_PWM4, GPIO_PE7_PWM5, GPIO_PC4_PWM6, GPIO_PC6_PWM7 };
 #else
   const static u32 pwm_ports[] =  { GPIO_PORTF_BASE, GPIO_PORTG_BASE, GPIO_PORTB_BASE, GPIO_PORTB_BASE, GPIO_PORTE_BASE, GPIO_PORTE_BASE };
   const static u8 pwm_pins[] = { GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1 };
@@ -608,7 +612,11 @@ const static u8 pwm_div_data[] = { 1, 2, 4, 8, 16, 32, 64 };
 #endif
 
 // PWM outputs
+#if defined( FORLM3S9B92 ) || defined(FORLM3S9D92)
+const static u16 pwm_outs[] = { PWM_OUT_0, PWM_OUT_1, PWM_OUT_2, PWM_OUT_3, PWM_OUT_4, PWM_OUT_5, PWM_OUT_6, PWM_OUT_7};
+#else
 const static u16 pwm_outs[] = { PWM_OUT_0, PWM_OUT_1, PWM_OUT_2, PWM_OUT_3, PWM_OUT_4, PWM_OUT_5 };
+#endif
 
 static void pwms_init()
 {
@@ -647,6 +655,10 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
 {
   u32 pwmclk = platform_pwm_get_clock();
   u32 period;
+
+#if defined( FORLM3S9B92 ) || defined(FORLM3S9D92)
+  GPIOPinConfigure( pwm_configs[ id ] );
+#endif
 
   // Set pin as PWM
   MAP_GPIOPinTypePWM( pwm_ports[ id ], pwm_pins[ id ] );

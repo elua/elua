@@ -176,10 +176,12 @@
   #define NUM_UART            2
 #endif
 #define NUM_TIMER             4
-#ifndef FORLM3S6918
-  #define NUM_PWM             6
-#else
+#if defined( FORLM3S6918 )
   #define NUM_PWM             0
+#elif defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
+  #define NUM_PWM             8
+#else
+  #define NUM_PWM             6
 #endif  
 #if defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
 #define NUM_ADC               16
