@@ -22,6 +22,7 @@
 //#define BUILD_RPC
 #define BUF_ENABLE_UART
 #define BUILD_C_INT_HANDLERS
+#define BUILD_LUA_INT_HANDLERS
 //#define BUILD_RFS
 //#define BUILD_SERMUX
 
