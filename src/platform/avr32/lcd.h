@@ -23,8 +23,8 @@
 // Command address is followed by a dingle byte giving the command to perform
 // Data address is followed by multiple bytes of ASCII data to display
 // on the character display at the current cursor location.
-#define LCD_CMD  0xF6
-#define LCD_DATA 0xF2
+#define LCD_CMD  0x7C
+#define LCD_DATA 0x7E
 
 // Command bytes
 
