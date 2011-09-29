@@ -1017,7 +1017,15 @@ static void eth_init()
   // For the Ethernet Eval Kits, the MAC address will be stored in the
   // non-volatile USER0 and USER1 registers.  These registers can be read
   // using the FlashUserGet function, as illustrated below.
+
+
+#if defined( ELUA_BOARD_SOLDERCORE )
+  user0 = 0x00b61a00;
+  user1 = 0x006d0a00;
+#else
   MAP_FlashUserGet(&user0, &user1);
+#endif
+  
 
   // Convert the 24/24 split MAC address from NV ram into a 32/16 split MAC
   // address needed to program the hardware registers, then program the MAC
