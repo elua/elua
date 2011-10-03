@@ -7,7 +7,7 @@
 // and http://embeddedtutorial.com/2010/01/interfacing-lcd-with-8051/
 
 // I2C bus frequency that the LCD display runs at: 20kHz max
-#define LCD_BUS_FREQ 20000
+#define LCD_BUS_FREQ 60000
 
 // Pause required after every command byte, and n*delay when sending N
 // characters of data (or of commands): 5 milliseconds
