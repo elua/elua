@@ -143,12 +143,7 @@ static int lcd_reset( lua_State *L )
 {
   // Initialise the display to a known state
   static const char reset[] = {
-    LCD_CMD_ENTRYMODE_MOVE_RIGHT,
-    DEFAULT_CURSOR_TYPE, // Turn display on and set default cursor
-    LCD_CMD_FUNCTION | LCD_CMD_FUNCTION_DATABITS_4
-                      | LCD_CMD_FUNCTION_LINES_2
-                      | LCD_CMD_FUNCTION_FONT_5x8,
-    LCD_CMD_CLEAR,
+    0	/* reset */
   };
 
   // Set the static variables
