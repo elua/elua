@@ -6,18 +6,10 @@
 // See the Ampire datasheet http://home.comet.bg/datasheets/LCD/AC-162B.pdf
 // and http://embeddedtutorial.com/2010/01/interfacing-lcd-with-8051/
 
-// I2C bus frequency that the LCD display runs at: 20kHz max
-#define LCD_BUS_FREQ 60000
-
-// Pause required after every command byte, and n*delay when sending N
-// characters of data (or of commands): 5 milliseconds
-// Expressed in CPU clock ticks.
-// 5 and 6ms seem not to work when doing
-//   mizar32.disp.clear() mizar32.disp.print("Hello world")
-// or
-//   for i = 1,16 do mizar32.disp.goto(2,i) mizar32.disp.print("X") end
-// but 7ms works for both.
-#define LCD_DELAY_TICKS (REQ_CPU_FREQ * 7 / 1000)
+// I2C bus frequency that the LCD display runs at.
+// It works up to 54kHz, with another window at 67 to 68kHz.
+// For reliable operation, we set it to 10% less than the highest "normal" speed.
+#define LCD_BUS_FREQ 50000
 
 // I2C slave addresses for command bytes and data strings
 // Command address is followed by a dingle byte giving the command to perform
