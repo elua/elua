@@ -32,25 +32,6 @@ static void lcd_stop()
 }
 
 
-// Utility function to insert the necessary pause after sending n bytes.
-static void lcd_delay(unsigned long n)
-{
-  // Code stolen from sdramc.c::sdramc_ck_delay()
-
-  // Use the CPU cycle counter (CPU and HSB clocks are the same).
-  u32 delay_start_cycle = Get_system_register(AVR32_COUNT);
-  u32 delay_end_cycle = delay_start_cycle + n * LCD_DELAY_TICKS;
- 
-  // To be safer, the end of wait is based on an inequality test, so CPU cycle
-  // counter wrap around is checked.
-  if (delay_start_cycle > delay_end_cycle)
-  { 
-    while ((unsigned long)Get_system_register(AVR32_COUNT) > delay_end_cycle);
-  }
-  while ((unsigned long)Get_system_register(AVR32_COUNT) < delay_end_cycle);
-}
-
-
 // Low-level functions to send LCD commands or data.
 // The command and data packets differ only in the slave address used,
 // so we coalesce them into a single function, generating smaller code.
@@ -75,7 +56,6 @@ static int send_generic(char address, const char *data, int len)
       nbytes++; len--;
     }
     i2c_stop_cond();
-    lcd_delay( nbytes );
     lcd_stop();
   }
   return 0;
@@ -143,12 +123,7 @@ static int lcd_reset( lua_State *L )
 {
   // Initialise the display to a known state
   static const char reset[] = {
-    LCD_CMD_ENTRYMODE_MOVE_RIGHT,
-    DEFAULT_CURSOR_TYPE, // Turn display on and set default cursor
-    LCD_CMD_FUNCTION | LCD_CMD_FUNCTION_DATABITS_4
-                      | LCD_CMD_FUNCTION_LINES_2
-                      | LCD_CMD_FUNCTION_FONT_5x8,
-    LCD_CMD_CLEAR,
+    0	/* reset */
   };
 
   // Set the static variables
