@@ -764,6 +764,7 @@ uip_process(u8_t flag)
     if((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_ESTABLISHED &&
        !uip_outstanding(uip_connr)) {
         uip_flags = UIP_POLL;
+        uip_len = uip_slen = 0;
         UIP_APPCALL();
         goto appsend;
     }
@@ -1196,6 +1197,7 @@ uip_process(u8_t flag)
   goto drop;
   
  udp_found:
+  UIP_STAT(++uip_stat.udp.recv);
 #if UIP_TCP
   uip_conn = NULL;
 #endif /* UIP_TCP */
@@ -1231,7 +1233,7 @@ uip_process(u8_t flag)
   uip_ipaddr_copy(BUF->srcipaddr, uip_hostaddr);
   uip_ipaddr_copy(BUF->destipaddr, uip_udp_conn->ripaddr);
    
-  uip_appdata = &uip_buf[UIP_LLH_LEN + UIP_IPTCPH_LEN];
+  uip_appdata = &uip_buf[UIP_LLH_LEN + UIP_IPUDPH_LEN];
 
 #if UIP_UDP_CHECKSUMS
   /* Calculate UDP checksum. */
@@ -1241,6 +1243,7 @@ uip_process(u8_t flag)
   }
 #endif /* UIP_UDP_CHECKSUMS */
   
+  UIP_STAT(++uip_stat.udp.sent);
   goto ip_send_nolen;
 #endif /* UIP_UDP */
   
@@ -1268,6 +1271,10 @@ uip_process(u8_t flag)
        BUF->destport == uip_connr->lport &&
        BUF->srcport == uip_connr->rport &&
        uip_ipaddr_cmp(BUF->srcipaddr, uip_connr->ripaddr)) {
+      if ((uip_connr->tcpstateflags != UIP_SYN_RCVD) &&
+          (BUF->flags & TCP_CTL) == TCP_SYN) {
+        goto reset;
+      }
       goto found;
     }
   }
@@ -1479,9 +1486,13 @@ uip_process(u8_t flag)
 
   /* First, check if the sequence number of the incoming packet is
      what we're expecting next. If not, we send out an ACK with the
-     correct numbers in. */
-  if(!(((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_SENT) &&
-       ((BUF->flags & TCP_CTL) == (TCP_SYN | TCP_ACK)))) {
+     correct numbers in, unless we are in the SYN_RCVD state and
+     receive a SYN, in which case we should retransmit our SYNACK
+     (which is done futher down). */
+  if(!((((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_SENT) &&
+        ((BUF->flags & TCP_CTL) == (TCP_SYN | TCP_ACK))) ||
+       (((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_RCVD) &&
+        ((BUF->flags & TCP_CTL) == TCP_SYN)))) {
     if((uip_len > 0 || ((BUF->flags & (TCP_SYN | TCP_FIN)) != 0)) &&
        (BUF->seqno[0] != uip_connr->rcv_nxt[0] ||
         BUF->seqno[1] != uip_connr->rcv_nxt[1] ||
@@ -1557,6 +1568,10 @@ uip_process(u8_t flag)
       uip_slen = 0;
       UIP_APPCALL();
       goto appsend;
+    }
+    /* We need to retransmit the SYNACK */
+    if((BUF->flags & TCP_CTL) == TCP_SYN) {
+      goto tcp_send_synack;
     }
     goto drop;
 #if UIP_ACTIVE_OPEN
