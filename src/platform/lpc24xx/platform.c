@@ -663,7 +663,7 @@ static void platform_setup_adcs()
 
 
 // NOTE: On this platform, there is only one ADC, clock settings apply to the whole device
-u32 platform_adc_setclock( unsigned id, u32 frequency )
+u32 platform_adc_set_clock( unsigned id, u32 frequency )
 {
   elua_adc_dev_state *d = adc_get_dev_state( 0 );
 
@@ -799,8 +799,8 @@ enum
   PWM_ENABLE_6 = 1 << 14,
 };
 
-// Helper function: get timer clock
-static u32 platform_pwm_get_clock( unsigned id )
+// Get timer clock
+u32 platform_pwm_get_clock( unsigned id )
 {
   unsigned pwmid = id / 6;
   PREG PWMxPR = ( PREG )pwm_pr[ pwmid ];
@@ -808,8 +808,8 @@ static u32 platform_pwm_get_clock( unsigned id )
   return Fpclk / ( *PWMxPR + 1 );
 }
 
-// Helper function: set timer clock
-static u32 platform_pwm_set_clock( unsigned id, u32 clock )
+// Set timer clock
+u32 platform_pwm_set_clock( unsigned id, u32 clock )
 {
   u32 div = Fpclk / clock, prevtc;
   unsigned pwmid = id / 6;
@@ -860,34 +860,22 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
   return platform_pwm_get_clock( id ) / divisor;
 }
 
-u32 platform_pwm_op( unsigned id, int op, u32 data )
+void platform_pwm_start( unsigned id )
 {
-  u32 res = 0;
   unsigned pwmid = id / 6;
   PREG PWMxTCR = ( PREG )pwm_tcr[ pwmid ];
   PREG PWMxPCR = ( PREG )pwm_pcr[ pwmid ];
 
-  switch( op )
-  {
-    case PLATFORM_PWM_OP_START:
-      *PWMxPCR = PWM_ENABLE_1 | PWM_ENABLE_2 | PWM_ENABLE_3 | PWM_ENABLE_4 | PWM_ENABLE_5 | PWM_ENABLE_6;
-      *PWMxTCR = PWM_ENABLE | PWM_MODE;
-      break;
-
-    case PLATFORM_PWM_OP_STOP:
-      *PWMxPCR = 0;   
-      *PWMxTCR = PWM_RESET;
-      break;
-
-    case PLATFORM_PWM_OP_SET_CLOCK:
-      res = platform_pwm_set_clock( id, data );
-      break;
-
-    case PLATFORM_PWM_OP_GET_CLOCK:
-      res = platform_pwm_get_clock( id );
-      break;
-  }
-
-  return res;
+  *PWMxPCR = PWM_ENABLE_1 | PWM_ENABLE_2 | PWM_ENABLE_3 | PWM_ENABLE_4 | PWM_ENABLE_5 | PWM_ENABLE_6;
+  *PWMxTCR = PWM_ENABLE | PWM_MODE;
 }
 
+void platform_pwm_stop( unsigned id )
+{
+  unsigned pwmid = id / 6;
+  PREG PWMxTCR = ( PREG )pwm_tcr[ pwmid ];
+  PREG PWMxPCR = ( PREG )pwm_pcr[ pwmid ];
+
+  *PWMxPCR = 0;   
+  *PWMxTCR = PWM_RESET;
+}

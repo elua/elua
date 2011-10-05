@@ -111,8 +111,7 @@ argument. The IP is given as a string.]],
         "$port$ - the port to wait for connections from the remote system.",
         [[$timer_id (optional)$ - the timer ID of the timer used to timeout the accept function after a specified time. If this is specified, $timeout$ must also
 be specified.]],
-        [[$timeout (optional)$ - the timeout after which the accept function returns if no connection was requested. If this is specified, $timer_id$ must also
-be specified.]]
+        [[$timeout (optional)$ - the timeout, in microseconds, after which the accept function returns if no connection was requested.]]
       },
       ret =
       {
@@ -148,8 +147,7 @@ be specified.]]
 </ul>]],
         [[$timer_id (optional)$ - the timer ID of the timer used to timeout the recv function after a specified time. If this is specified, $timeout$ must also
 be specified.]],
-        [[$timeout (optional)$ - the timeout after which the recv function returns if no connection was requested. If this is specified, $timer_id$ must also
-be specified.]]
+        [[$timeout (optional)$ - the timeout, in microseconds, after which the recv function returns if no connection was requested.]]
       },
       ret =
       {

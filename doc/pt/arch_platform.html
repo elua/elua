@@ -9,7 +9,7 @@ $$HEADER$$
   0, PORTB will have 1 and so on. Similarly, the second SPI interface (SPI1) of the MCU will probably have an id equal to 1. However, this is not a strict
   rule. The implementation of the platform interface might choose to expose only some of the peripherals (components) of the MCU, thus this rule might be 
   broken. For example, if a board has 3 UARTs, but for some reason the second UART (UART1) is dedicated and can't be touched by <b>eLua</b>, then UART0 will have the id 0 and UART2 will
-  have the id 1, so UART1 won't ever be accesible to the code.</p>
+  have the id 1, so UART1 won't ever be accessible to the code.</p>
   <p>With some exceptions (most notably the low-level support functions), the different modules supported by the platform interface are 
   mirrored more or less accurately in separate Lua modules that can be used directly from <b>eLua</b>. Check <a href="refman_gen.html">the reference manual</a> for a 
   complete description of these modules.</p>

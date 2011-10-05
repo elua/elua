@@ -68,7 +68,9 @@ static int i2c_write( lua_State *L )
     return luaL_error( L, "invalid number of arguments" );
   for( argn = 2; argn <= lua_gettop( L ); argn ++ )
   {
-    if( lua_isnumber( L, argn ) )
+    // lua_isnumber() would silently convert a string of digits to an integer
+    // whereas here strings are handled separately.
+    if( lua_type( L, argn ) == LUA_TNUMBER )
     {
       numdata = ( int )luaL_checkinteger( L, argn );
       if( numdata < 0 || numdata > 255 )

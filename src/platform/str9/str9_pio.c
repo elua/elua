@@ -71,22 +71,3 @@ const LUA_REG_TYPE str9_pio_map[] =
   { LSTRKEY( "setpin" ),  LFUNCVAL( setpin) },
   { LNILKEY, LNILVAL }
 };
-
-LUALIB_API int luaopen_disp( lua_State *L )
-{
-#if LUA_OPTIMIZE_MEMORY > 0
-  return 0;
-#else
-  luaL_register( L, PS_LIB_TABLE_NAME, str9_pio_map );
-  MOD_REG_NUMBER( L, "INPUT", GPIO_DIR_INPUT );
-  MOD_REG_NUMBER( L, "OUTPUT", GPIO_DIR_OUTPUT );
-  MOD_REG_NUMBER( L, "ALT_INPUT", GPIO_ALT_INPUT );
-  MOD_REG_NUMBER( L, "ALT_OUTPUT1", GPIO_ALT_OUTPUT1 );
-  MOD_REG_NUMBER( L, "ALT_OUTPUT2", GPIO_ALT_OUTPUT2 );
-  MOD_REG_NUMBER( L, "ALT_OUTPUT3", GPIO_ALT_OUTPUT3 );
-  MOD_REG_NUMBER( L, "OUTPUT_PUSHPULL", GPIO_OUTPUT_PP );
-  MOD_REG_NUMBER( L, "OUTPUT_OC", GPIO_OUTPUT_OC );
-  return 1;  
-#endif
-}  
-

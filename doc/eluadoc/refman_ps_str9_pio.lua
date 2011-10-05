@@ -10,7 +10,7 @@ data_en =
   menu_name = "pio",
 
   -- Overview
-  overview = [[This module contains functions for accesing the particular features of the PIO subsystem of the STR9 family of CPUs. This subsystem is very flexible, allowing things like
+  overview = [[This module contains functions for accessing the particular features of the PIO subsystem of the STR9 family of CPUs. This subsystem is very flexible, allowing things like
   configurable output types (push-pull or open collector), multiple alternate functions for the PIO pins, and others. For a full description of the STR9 PIO module check the STR9 CPU
   Reference manual, available from ST at @http://www.st.com/mcu/devicedocs-STR912FAW44-101.html@this address@. Note that this module is a supplement of the platform independent 
   @refman_gen_pio.html@pio@ module, not a replacement. Use this module only for setting up the STR9 PIO pins, and the @refman_gen_pio.html@pio@ module for all the other PIO related operations.]],

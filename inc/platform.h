@@ -198,19 +198,13 @@ u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_typ
 // There are 16 "virtual" PWM channels (PWM0...PWM15)
 #define PLATFORM_PWM_TOTAL                    16
 
-// PWM operations
-enum
-{
-  PLATFORM_PWM_OP_START,
-  PLATFORM_PWM_OP_STOP,
-  PLATFORM_PWM_OP_SET_CLOCK,
-  PLATFORM_PWM_OP_GET_CLOCK
-};
-
 // The platform PWM functions
 int platform_pwm_exists( unsigned id );
 u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty );
-u32 platform_pwm_op( unsigned id, int op, u32 data );
+void platform_pwm_start( unsigned id );
+void platform_pwm_stop( unsigned id );
+u32 platform_pwm_set_clock( unsigned id, u32 data );
+u32 platform_pwm_get_clock( unsigned id );
 
 // *****************************************************************************
 // CPU specific functions
@@ -235,27 +229,22 @@ u32 platform_cpu_get_frequency();
 // *****************************************************************************
 // The platform ADC functions
 
-enum
-{
-  PLATFORM_ADC_GET_MAXVAL,
-  PLATFORM_ADC_SET_SMOOTHING,
-  PLATFORM_ADC_SET_BLOCKING,
-  PLATFORM_ADC_SET_FREERUNNING,
-  PLATFORM_ADC_IS_DONE,
-  PLATFORM_ADC_OP_SET_TIMER,
-  PLATFORM_ADC_OP_SET_CLOCK,
-};
-
 // Functions requiring platform-specific implementation
 int platform_adc_update_sequence();
 int platform_adc_start_sequence();
 void platform_adc_stop( unsigned id );
-u32 platform_adc_setclock( unsigned id, u32 frequency);
+u32 platform_adc_set_clock( unsigned id, u32 frequency);
 
 // ADC Common Functions
-int platform_adc_exists( unsigned id );
-int platform_adc_check_timer_id( unsigned id, unsigned timer_id );
-u32 platform_adc_op( unsigned id, int op, u32 data );
+int  platform_adc_exists( unsigned id );
+int  platform_adc_check_timer_id( unsigned id, unsigned timer_id );
+u32  platform_adc_get_maxval( unsigned id );
+u32  platform_adc_set_smoothing( unsigned id, u32 length );
+void platform_adc_set_blocking( unsigned id, u32 mode );
+void platform_adc_set_freerunning( unsigned id, u32 mode );
+u32  platform_adc_is_done( unsigned id );
+void platform_adc_set_timer( unsigned id, u32 timer );
+u32  platform_adc_set_clock( unsigned id, u32 freq );
 
 // *****************************************************************************
 // I2C platform interface

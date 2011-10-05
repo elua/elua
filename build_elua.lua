@@ -457,7 +457,6 @@ builder:set_exe_extension( ".elf" )
 -- Create the ROM file system
 make_romfs()
 -- Creaate executable targets
-builder:make_depends( source_files )
 odeps = builder:create_compile_targets( source_files )
 exetarget = builder:link_target( output, odeps )
 -- This is also the default target
