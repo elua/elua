@@ -1196,6 +1196,7 @@ uip_process(u8_t flag)
   goto drop;
   
  udp_found:
+  UIP_STAT(++uip_stat.udp.recv);
 #if UIP_TCP
   uip_conn = NULL;
 #endif /* UIP_TCP */
@@ -1241,6 +1242,7 @@ uip_process(u8_t flag)
   }
 #endif /* UIP_UDP_CHECKSUMS */
   
+  UIP_STAT(++uip_stat.udp.sent);
   goto ip_send_nolen;
 #endif /* UIP_UDP */
   
