@@ -14,6 +14,7 @@
 #define BUILD_CON_GENERIC
 //#define BUILD_RPC
 #define BUILD_C_INT_HANDLERS
+#define BUILD_ADC
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
@@ -43,6 +44,12 @@
 #define BUILD_RPC
 #endif
 
+#ifdef BUILD_ADC
+#define ADCLINE _ROM( AUXLIB_ADC, luaopen_adc, adc_map )
+#else
+#define ADCLINE
+#endif
+
 #if defined( BUILD_RPC ) 
 #define RPCLINE _ROM( AUXLIB_RPC, luaopen_rpc, rpc_map )
 #else
@@ -57,6 +64,7 @@
   _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
   _ROM( AUXLIB_TERM, luaopen_term, term_map )\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
+  ADCLINE\
   RPCLINE\
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
@@ -78,8 +86,8 @@
 #else
 #define NUM_TIMER             3
 #endif
-#define NUM_PWM               0
-#define NUM_ADC               0
+#define NUM_PWM               7
+#define NUM_ADC               8
 #define NUM_CAN               0
 
 // RPC boot options
@@ -90,6 +98,11 @@
 // Enable RX buffering on UART
 #define BUF_ENABLE_UART
 #define CON_BUF_SIZE          BUF_SIZE_128
+
+// ADC Configuration Params
+#define ADC_BIT_RESOLUTION    10
+#define BUF_ENABLE_ADC
+#define ADC_BUF_SIZE          BUF_SIZE_2
 
 // SD/MMC Filesystem Setup
 #define MMCFS_TICK_HZ     10

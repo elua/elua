@@ -63,7 +63,7 @@ data_en =
       desc = "Reads a number of bytes from a slave that has already acknowledged an @#i2c.address@i2c.address@ call. It acknowledges all the bytes received except for the last one.", 
       args =
       {
-        "$id$ - the ID of the SPI interface.",
+        "$id$ - the ID of the I2C interface.",
         "$numbytes$ - the number of bytes to read."
       },
       ret = "a string with all the data read from the I2C interface."

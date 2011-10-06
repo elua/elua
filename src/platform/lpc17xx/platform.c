@@ -427,12 +427,12 @@ static void platform_setup_adcs()
   // Default enables ADC interrupt only on global, switch to per-channel
   ADC_IntConfig( LPC_ADC, ADC_ADGINTEN, DISABLE );
     
-  platform_adc_setclock( 0, 0 );
+  platform_adc_set_clock( 0, 0 );
 }
 
 
 // NOTE: On this platform, there is only one ADC, clock settings apply to the whole device
-u32 platform_adc_setclock( unsigned id, u32 frequency )
+u32 platform_adc_set_clock( unsigned id, u32 frequency )
 {
   TIM_TIMERCFG_Type TIM_ConfigStruct;
   TIM_MATCHCFG_Type TIM_MatchConfigStruct ;
@@ -538,13 +538,13 @@ int platform_adc_start_sequence()
 
 
 // Helper function: get timer clock
-static u32 platform_pwm_get_clock( unsigned id )
+u32 platform_pwm_get_clock( unsigned id )
 {
   return CLKPWR_GetPCLK( CLKPWR_PCLKSEL_PWM1 ) / ( LPC_PWM1->PR + 1 );
 }
 
 // Helper function: set timer clock
-static u32 platform_pwm_set_clock( unsigned id, u32 clock )
+u32 platform_pwm_set_clock( unsigned id, u32 clock )
 {
   PWM_TIMERCFG_Type PWMCfgDat;
   
@@ -599,30 +599,14 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
   return platform_pwm_get_clock( id ) / divisor;
 }
 
-u32 platform_pwm_op( unsigned id, int op, u32 data )
+void platform_pwm_start( unsigned id )
 {
-  u32 res = 0;
+  PWM_Cmd(LPC_PWM1, ENABLE);
+}
 
-  switch( op )
-  {
-    case PLATFORM_PWM_OP_START:
-      PWM_Cmd(LPC_PWM1, ENABLE);
-      break;
-
-    case PLATFORM_PWM_OP_STOP:
-      PWM_Cmd(LPC_PWM1, DISABLE);
-      break;
-
-    case PLATFORM_PWM_OP_SET_CLOCK:
-      res = platform_pwm_set_clock( id, data );
-      break;
-
-    case PLATFORM_PWM_OP_GET_CLOCK:
-      res = platform_pwm_get_clock( id );
-      break;
-  }
-
-  return res;
+void platform_pwm_stop( unsigned id )
+{
+  PWM_Cmd(LPC_PWM1, DISABLE);
 }
 
 // ****************************************************************************

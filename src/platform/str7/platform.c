@@ -319,31 +319,26 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
   return pwmclk / period;
 }
 
-u32 platform_pwm_op( unsigned id, int op, u32 data )
+u32 platform_pwm_set_clock( unsigned id, u32 clock )
 {
-  u32 res = 0;
-  TIM_TypeDef *ptimer = ( TIM_TypeDef* )tim_periph[ id + 1 ];
-  
-  switch( op )
-  {
-    case PLATFORM_PWM_OP_SET_CLOCK:
-      res = platform_timer_set_clock( id + 1, data );
-      break;
-      
-    case PLATFORM_PWM_OP_GET_CLOCK:
-      res = platform_timer_get_clock( id + 1 );
-      break;
-      
-    case PLATFORM_PWM_OP_START:
-      TIM_CounterConfig( ptimer, TIM_START );
-      break;
-      
-    case PLATFORM_PWM_OP_STOP:
-      TIM_CounterConfig( ptimer, TIM_STOP );
-      platform_pio_op( pwm_ports[ id ], pwm_pins[ id ], PLATFORM_IO_PIN_DIR_INPUT );
-      break;
-  }
-  
-  return res;
+  return platform_timer_set_clock( id + 1, clock );
 }
 
+u32 platform_pwm_get_clock( unsigned id )
+{
+  return platform_timer_get_clock( id + 1 );
+}
+
+void platform_pwm_start( unsigned id )
+{
+  TIM_TypeDef *ptimer = ( TIM_TypeDef* )tim_periph[ id + 1 ];
+
+  TIM_CounterConfig( ptimer, TIM_START );
+}
+
+void platform_pwm_stop( unsigned id )
+{
+  TIM_TypeDef *ptimer = ( TIM_TypeDef* )tim_periph[ id + 1 ];
+
+  platform_pio_op( pwm_ports[ id ], pwm_pins[ id ], PLATFORM_IO_PIN_DIR_INPUT );
+}

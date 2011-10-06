@@ -112,6 +112,7 @@
 #define NUM_SPI               2
 #define NUM_UART              5
 #define NUM_TIMER             5
+#define NUM_PHYS_TIMER        5
 #define NUM_PWM               4
 #define NUM_ADC               16
 #define NUM_CAN               1

@@ -791,7 +791,7 @@ __attribute__((__interrupt__)) static void adc_int_handler()
 }
 
 
-u32 platform_adc_setclock( unsigned id, u32 frequency )
+u32 platform_adc_set_clock( unsigned id, u32 frequency )
 {
   return 0;
 }
@@ -827,15 +827,27 @@ int platform_adc_start_sequence( )
 # error "NUM_PWM > AVR32_PWM_CHANNEL_LENGTH"
 #endif
 
+#if NUM_PWM > 0
+
 static const gpio_map_t pwm_pins =
 {
-  { AVR32_PWM_0_PIN, AVR32_PWM_0_FUNCTION },
-  { AVR32_PWM_1_PIN, AVR32_PWM_1_FUNCTION },
-  { AVR32_PWM_2_PIN, AVR32_PWM_2_FUNCTION },
-  { AVR32_PWM_3_PIN, AVR32_PWM_3_FUNCTION },
-  { AVR32_PWM_4_1_PIN, AVR32_PWM_4_1_FUNCTION },  // PB27
-  { AVR32_PWM_5_1_PIN, AVR32_PWM_5_1_FUNCTION },  // PB28
-  { AVR32_PWM_6_PIN, AVR32_PWM_6_FUNCTION },
+#if ( BOARD == ATEVK1100 ) || ( BOARD == MIZAR32 )
+  { AVR32_PWM_0_PIN, AVR32_PWM_0_FUNCTION },      // PB19 - LED4
+  { AVR32_PWM_1_PIN, AVR32_PWM_1_FUNCTION },      // PB20 - LED5
+  { AVR32_PWM_2_PIN, AVR32_PWM_2_FUNCTION },	  // PB21 - LED6
+  { AVR32_PWM_3_PIN, AVR32_PWM_3_FUNCTION },      // PB22 - LED7
+  { AVR32_PWM_4_1_PIN, AVR32_PWM_4_1_FUNCTION },  // PB27 - LED0
+  { AVR32_PWM_5_1_PIN, AVR32_PWM_5_1_FUNCTION },  // PB28 - LED1
+  { AVR32_PWM_6_PIN, AVR32_PWM_6_FUNCTION },      // PB18 - LCD_C / GPIO50
+#elif BOARD == ATEVK1101
+  { AVR32_PWM_0_0_PIN, AVR32_PWM_0_0_FUNCTION },  // PA7  LED0
+  { AVR32_PWM_1_0_PIN, AVR32_PWM_1_0_FUNCTION },  // PA8  LED1
+  { AVR32_PWM_2_0_PIN, AVR32_PWM_2_0_FUNCTION },  // PA21 LED2
+  { AVR32_PWM_3_0_PIN, AVR32_PWM_3_0_FUNCTION },  // PA14 ? or _1 PA25
+  { AVR32_PWM_4_1_PIN, AVR32_PWM_4_1_FUNCTION },  // PA28 - audio out
+  { AVR32_PWM_5_1_PIN, AVR32_PWM_5_1_FUNCTION },  // PB5: UART1-RTS & Nexus i/f EVTIn / _0 PA18=Xin0
+  { AVR32_PWM_6_0_PIN, AVR32_PWM_6_0_FUNCTION },  // PA22 - LED3 and audio out
+#endif
 };
 
 
@@ -934,7 +946,7 @@ static void find_clock_configuration( u32 frequency,
 #undef prescalers
 
 
-static u32 pwm_set_clock_freq( u32 freq )
+u32 platform_pwm_set_clock( unsigned id, u32 freq )
 {
   unsigned pre, div;
 
@@ -944,30 +956,22 @@ static u32 pwm_set_clock_freq( u32 freq )
   return pwm_get_clock_freq();
 }
 
-u32 platform_pwm_op( unsigned id, int op, u32 data)
+u32 platform_pwm_get_clock( unsigned id )
 {
-  // Sanity check
-  if (id < 0 || id >= NUM_PWM)
-    return 0;
-
-  switch( op )
-  {
-    case PLATFORM_PWM_OP_SET_CLOCK:
-      return pwm_set_clock_freq( data );
-
-    case PLATFORM_PWM_OP_GET_CLOCK:
-      return pwm_get_clock_freq();
-
-    case PLATFORM_PWM_OP_START:
-      pwm_channel_start( id );
-      break;
-
-    case PLATFORM_PWM_OP_STOP:
-      pwm_channel_stop( id );
-      break;
-  }
-  return 0;
+  return pwm_get_clock_freq();
 }
+
+void platform_pwm_start( unsigned id )
+{
+  pwm_channel_start( id );
+}
+
+void platform_pwm_stop( unsigned id )
+{
+  pwm_channel_stop( id );
+}
+
+#endif // #if NUM_PWM > 0
 
 // ****************************************************************************
 // I2C support
@@ -1108,12 +1112,12 @@ u32 platform_eth_get_elapsed_time()
 #include "lrotable.h"
 #include "lrodefs.h"
 
-extern const LUA_REG_TYPE disp_map[];
+extern const LUA_REG_TYPE lcd_map[];
 
 const LUA_REG_TYPE platform_map[] =
 {
 #if LUA_OPTIMIZE_MEMORY > 0
-  { LSTRKEY( "disp" ), LROVAL( disp_map ) },
+  { LSTRKEY( "lcd" ), LROVAL( lcd_map ) },
 #endif
   { LNILKEY, LNILVAL }
 };
@@ -1127,8 +1131,8 @@ LUALIB_API int luaopen_platform( lua_State *L )
 
   // Setup the new tables inside platform table
   lua_newtable( L );
-  luaL_register( L, NULL, disp_map );
-  lua_setfield( L, -2, "disp" );
+  luaL_register( L, NULL, lcd_map );
+  lua_setfield( L, -2, "lcd" );
 
   return 1;
 #endif // #if LUA_OPTIMIZE_MEMORY > 0

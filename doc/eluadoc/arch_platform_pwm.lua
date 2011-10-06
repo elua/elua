@@ -49,28 +49,44 @@ enum
       ret = "The actual frequency set on the PWM channel, which might differ from the $frequency$ parameter, depeding on the hardware",
     },
 
-    { sig = "u32 #platform_pwm_op#( unsigned id, int op, u32 data );",
-      desc = "Executes an operation on a PWM channel",
+    { sig = "u32 #platform_pwm_start#( unsigned id );",
+      desc = "Starts PWM generation on the specified channel",
       args = 
       {
         "$id$ - PWM channel ID",
-        [[$op$ - the operation that must be executed. It can take any value from @#pwm_operations@this enum@, as follows:
-  <ul>
-    <li>$PLATFORM_PWM_OP_START$: starts PWM generation on the specified channel.</li>
-    <li>$PLATFORM_PWM_OP_STOP$: stops PWM generation on the specified channel.</li>  
-    <li>$PLATFORM_PWM_OP_SET_CLOCK$: sets the $base$ clock of the specified PWM channel (which will be used to generate the frequencies requested by 
-        @#platform_pwm_setup@platform_pwm_setup@) to $data$ hertz.</li>
-    <li>$PLATFORM_PWM_OP_GET_CLOCK$: get the $base$ clock of the specified PWM channel.</li>
-  </ul>]],
-        "$data$ - when used with $op$ == $PLATFORM_PWM_OP_SET_CLOCK$ it is used to specify the value of the base clock. Not used with other operations."
-      },
-      ret = 
+      }
+    },
+
+    { sig = "u32 #platform_pwm_stop#( unsigned id );",
+      desc = "Stops PWM generation on the specified channel",
+      args = 
       {
-        "the actual value of the base clock when $op$ == $PLATFORM_PWM_OP_SET_CLOCK$, which might be different than $data$ depending on the hardware",
-        "the value of the base clock when $op$ == $PLATFORM_PWM_OP_GET_CLOCK$",
-        "irrelevant for other operations"
-      }  
-    }
+        "$id$ - PWM channel ID",
+      }
+    },
+
+    { sig = "u32 #platform_pwm_set_clock#( unsigned id, u32 clock );",
+      desc = [[Sets the $base$ clock of the specified PWM channel
+        (which will be used to generate the frequencies requested by 
+        @#platform_pwm_setup@platform_pwm_setup@) to $data$ hertz.]],
+      args = 
+      {
+        "$id$ - PWM channel ID",
+        "$clock$ - the desired frequency of the base clock."
+      },
+      ret = [[The actual value of the base clock, which might be different
+        from $data$ depending on the hardware]],
+    },
+
+    { sig = "u32 #platform_pwm_get_clock#( unsigned id );",
+      desc = "Gets the $base$ clock of the specified PWM channel",
+      args = 
+      {
+        "$id$ - PWM channel ID",
+        "$clock$ - the desired frequency of the base clock."
+      },
+      ret = "the value of the base clock"
+    },
   }
 }
 

@@ -331,7 +331,7 @@ find_netif(void)
   /* Walk through every network interface to check for a match. */
   for(netif = netifs; netif != NULL; netif = netif->next) {
     if(ipaddr_maskcmp(BUF->destipaddr, netif->ipaddr,
-		      netif->netmask)) {
+                      netif->netmask)) {
       /* If there was a match, we break the loop. */
       return netif;
     }
@@ -385,8 +385,8 @@ uip_fw_output(void)
   
   netif = find_netif();
   /*  printf("uip_fw_output: netif %p ->output %p len %d\n", netif,
-	 netif->output,
-	 uip_len);*/
+         netif->output,
+         uip_len);*/
 
   if(netif == NULL) {
     return UIP_FW_NOROUTE;
