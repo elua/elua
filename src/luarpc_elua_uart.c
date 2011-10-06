@@ -76,6 +76,7 @@ int transport_open_connection(lua_State *L, Handle *handle)
   tmr_id = lua_tonumber( L, 1 );
   MOD_CHECK_ID( timer, tmr_id );
   
+  adispatch_buff = -1;
 
   handle->tpt.fd = ( int )uart_id;
   handle->tpt.tmr_id = tmr_id;

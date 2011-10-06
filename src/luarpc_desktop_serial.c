@@ -21,14 +21,6 @@ void transport_open( Transport *tpt, const char *path );
 
 #ifdef LUARPC_ENABLE_SERIAL
 
-// Buffer for async dispatch
-int adispatch_buff = -1;
-
-void set_adispatch_buff( int i )
-{
-  adispatch_buff = i;
-}
-
 // Setup Transport 
 void transport_init (Transport *tpt)
 {
@@ -86,16 +78,6 @@ void transport_accept (Transport *tpt, Transport *atpt)
   atpt->fd = tpt->fd;
 }
 
-// Read a char from serial buffer
-int transport_get_char(Transport *t)
-{
-  u8 n;
-  
-  if ( ser_read( t->fd, &n, 1 ) == 0 )
-    return 0;
-  else
-    return (int)n;
-}
 
 // Read & Write to Transport
 void transport_read_buffer (Transport *tpt, u8 *buffer, int length)

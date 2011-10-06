@@ -1143,8 +1143,6 @@ static int rpc_connect( lua_State *L )
     handle = handle_create ( L );
     transport_open_connection( L, handle );
     
-    set_adispatch_buff( -1 ); 
-
     transport_write_u8( &handle->tpt, RPC_CMD_CON );
     client_negotiate( &handle->tpt );
   }
