@@ -1573,7 +1573,7 @@ static int rpc_adispatch_helper( lua_State *L, ServerHandle * handle )
 {
   // Check if we have waiting data that we can dispatch on,
   // don't block if we don't have any data
-  if( transport_readable( &handle->atpt ) )
+  if( transport_readable( &handle->atpt ) || transport_readable( &handle->ltpt ) )
       rpc_dispatch_helper( L, handle );
 
   return 0;
