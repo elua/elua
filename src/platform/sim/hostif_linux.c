@@ -70,6 +70,6 @@ s64 hostif_gettime()
   struct timeval tv;
 
   host_gettimeofday( &tv, NULL );
-  return ( s64 )tv.tv_sec * 1000 + tv.tv_usec;
+  return ( s64 )tv.tv_sec * 1000000 + tv.tv_usec;
 }
 

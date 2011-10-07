@@ -8,6 +8,7 @@
 #include "buf.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <ctype.h>
 #include "math.h"
 #include "elua_adc.h"
@@ -443,5 +444,23 @@ unsigned int intlog2( unsigned int v )
     r++;
   }
   return r;
+}
+
+// 64-bits integer printf support seems to be broken in some versions of Newlib...
+const char* cmn_str64( u64 x )
+{
+  static char nr[ 32 ];
+  u64 q, r;
+  unsigned l = 30;
+
+  memset( nr, 0, 32 );
+  do
+  {
+    q = x / 10;
+    r = x % 10;
+    nr[ l -- ] = r + '0';
+    x = q;
+  } while( x != 0 );
+  return nr + l + 1;
 }
 

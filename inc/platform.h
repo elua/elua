@@ -155,11 +155,29 @@ int platform_s_uart_set_flow_control( unsigned id, int type );
 // *****************************************************************************
 // Timer subsection
 
-// There are 16 "virtual" timers (TMR0...TMR15)
-#define PLATFORM_TIMER_TOTAL                  16
+// The ID of the system timer
+#define PLATFORM_TIMER_SYS_ID                 0xFFFF
 
-// Data types
+// The ID of the timer which will be used for infinite timeouts
+// Specifying this timer ID always implies "infinite timeout"
+// This is just a convention, it doesn't have an associated timer
+// (not even a virtual one)
+#define PLATFORM_TIMER_INF_TIMEOUT_ID         0xFFFE
+
+#if defined( LUA_NUMBER_INTEGRAL ) && !defined( LUA_INTEGRAL_LONGLONG )
+// Maximum values of the system timer
+#define PLATFORM_TIMER_SYS_MAX                ( ( 1LL << 32 ) - 1 )
+// Timer data type
 typedef u32 timer_data_type;
+#else
+// Maximum values of the system timer
+  #define PLATFORM_TIMER_SYS_MAX              ( ( 1LL << 52 ) - 1 )
+// Timer data type
+typedef u64 timer_data_type;
+#endif // #if defined( LUA_NUMBER_INTEGRAL ) && !defined( LUA_INTEGRAL_LONGLONG )
+
+// System timer frequency
+#define PLATFORM_TIMER_SYS_FREQ               1000000
 
 // Interrupt types
 #define PLATFORM_TIMER_INT_ONESHOT            1
@@ -179,18 +197,20 @@ enum
   PLATFORM_TIMER_OP_SET_CLOCK,
   PLATFORM_TIMER_OP_GET_CLOCK,
   PLATFORM_TIMER_OP_GET_MAX_DELAY,
-  PLATFORM_TIMER_OP_GET_MIN_DELAY
+  PLATFORM_TIMER_OP_GET_MIN_DELAY,
+  PLATFORM_TIMER_OP_GET_MAX_CNT
 };
 
 // The platform timer functions
 int platform_timer_exists( unsigned id );
-void platform_timer_delay( unsigned id, u32 delay_us );
-void platform_s_timer_delay( unsigned id, u32 delay_us );
-u32 platform_timer_op( unsigned id, int op, u32 data );
-u32 platform_s_timer_op( unsigned id, int op, u32 data );
-int platform_timer_set_match_int( unsigned id, u32 period_us, int type );
-int platform_s_timer_set_match_int( unsigned id, u32 period_us, int type );
-u32 platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_type start );
+void platform_timer_delay( unsigned id, timer_data_type delay_us );
+void platform_s_timer_delay( unsigned id, timer_data_type delay_us );
+timer_data_type platform_timer_op( unsigned id, int op, timer_data_type data );
+timer_data_type platform_s_timer_op( unsigned id, int op, timer_data_type data );
+int platform_timer_set_match_int( unsigned id, timer_data_type period_us, int type );
+int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int type );
+timer_data_type platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_type start );
+timer_data_type platform_timer_read_sys();
 
 // *****************************************************************************
 // PWM subsection

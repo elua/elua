@@ -145,13 +145,18 @@ int platform_s_uart_set_flow_control( unsigned id, int type )
 // ****************************************************************************
 // "Dummy" timer functions
 
-void platform_s_timer_delay( unsigned id, u32 delay_us )
+void platform_s_timer_delay( unsigned id, timer_data_type delay_us )
 {
 }
 
-u32 platform_s_timer_op( unsigned id, int op, u32 data )
+timer_data_type platform_s_timer_op( unsigned id, int op, timer_data_type data )
 {
   return 0;
+}
+
+timer_data_type platform_timer_read_sys()
+{
+  return hostif_gettime();
 }
 
 // ****************************************************************************
