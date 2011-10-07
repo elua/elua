@@ -67,7 +67,7 @@ static void scr_write( int fd, char c )
   monitor_put( c );
 }
 
-static int kb_read( s32 to )
+static int kb_read( timer_data_type to )
 {
   int res;
 

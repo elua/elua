@@ -69,7 +69,7 @@ static void scr_write( int fd, char c )
   hostif_putc( c );
 }
 
-static int kb_read( s32 to )
+static int kb_read( timer_data_type to )
 {
   int res;
 
@@ -132,7 +132,7 @@ void platform_s_uart_send( unsigned id, u8 data )
 {
 }
 
-int platform_s_uart_recv( unsigned id, s32 timeout )
+int platform_s_uart_recv( unsigned id, timer_data_type timeout )
 {
   return -1;
 }

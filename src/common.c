@@ -16,6 +16,9 @@
 #include "xmodem.h"
 #include "elua_int.h"
 #include "sermux.h"
+#include "lua.h"
+#include "lapi.h"
+#include "lauxlib.h"
 
 // [TODO] the new builder should automatically do this
 #if defined( BUILD_LUA_INT_HANDLERS ) || defined( BUILD_C_INT_HANDLERS )
@@ -46,7 +49,12 @@ extern const elua_int_descriptor elua_int_table[ INT_ELUA_LAST ];
 
 // [TODO] the new builder should automatically do this
 #ifndef CON_FLOW_TYPE
-#define CON_FLOW_TYPE        PLATFORM_UART_FLOW_NONE
+#define CON_FLOW_TYPE         PLATFORM_UART_FLOW_NONE
+#endif
+
+// [TODO] the new builder should automatically do this
+#ifndef CON_TIMER_ID
+#define CON_TIMER_ID          PLATFORM_TIMER_SYS_ID
 #endif
 
 // ****************************************************************************
@@ -83,7 +91,7 @@ static int term_in( int mode )
   if( mode == TERM_INPUT_DONT_WAIT )
     return platform_uart_recv( CON_UART_ID, CON_TIMER_ID, 0 );
   else
-    return platform_uart_recv( CON_UART_ID, CON_TIMER_ID, PLATFORM_UART_INFINITE_TIMEOUT );
+    return platform_uart_recv( CON_UART_ID, CON_TIMER_ID, PLATFORM_TIMER_INF_TIMEOUT );
 }
 
 static int term_translate( int data )
@@ -177,7 +185,7 @@ static void uart_send( int fd, char c )
   platform_uart_send( CON_UART_ID, c );
 }
 
-static int uart_recv( s32 to )
+static int uart_recv( timer_data_type to )
 {
   return platform_uart_recv( CON_UART_ID, CON_TIMER_ID, to );
 }
@@ -462,5 +470,30 @@ const char* cmn_str64( u64 x )
     x = q;
   } while( x != 0 );
   return nr + l + 1;
+}
+
+// Read a timeout spec from the user and return it
+// The timeout spec has the format [timeout], [timer_id]. Both arguments are optional.
+// If none is specified -> defaults to infinite timeout
+// If timeout is PLATFORM_TIMER_INF_TIMEOUT -> also infinite timeout (see above)
+// If a timeout is specified -> timer_id might also be specified. If not, it defaults to
+// PLATFORM_TIMER_SYS_ID
+void cmn_get_timeout_data( lua_State *L, int pidx, timer_data_type *ptimeout, unsigned *pid )
+{
+  lua_Number tempn;
+
+  *ptimeout = PLATFORM_TIMER_INF_TIMEOUT;
+  *pid = PLATFORM_TIMER_SYS_ID;
+  if( lua_type( L, pidx ) == LUA_TNUMBER )
+  {
+    tempn = lua_tonumber( L, pidx );
+    if( tempn < 0 || tempn > PLATFORM_TIMER_INF_TIMEOUT )
+      luaL_error( L, "invalid timeout value" );
+    if( tempn != PLATFORM_TIMER_INF_TIMEOUT )
+    {
+      *ptimeout = ( timer_data_type )tempn;
+      *pid = ( unsigned )luaL_optinteger( L, pidx + 1, PLATFORM_TIMER_SYS_ID );
+    }
+  }
 }
 
