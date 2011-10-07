@@ -185,7 +185,7 @@ static int adc_getsamples( lua_State* L )
     lua_pushinteger( L, adc_get_processed_sample( id ) );
     lua_rawseti( L, -2, i );
   }
-  return 0;
+  return 1;
 }
 
 
