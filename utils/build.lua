@@ -685,7 +685,12 @@ builder.create_compile_targets = function( self, ftable, res )
       target:set_pre_build_function( function( t, _ )
         if not self.clean_mode then
           local fres = self:read_depends( ftable[ i ] )
-          t:set_dependencies( fres[ ftable[ i ] ]  or ftable[ i ] )
+          local fdeps = fres[ ftable[ i ] ]
+          if #fdeps:gsub( "%s+", "" ) == 0 then fdeps = ftable[ i ] end
+          t:set_dependencies( fdeps )
+        else
+          io.write( sf( "[builder] Removing %s ... ", deps ) )
+          if os.remove( deps ) then print "done." else print "failed!" end
         end
       end )
     end
