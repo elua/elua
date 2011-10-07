@@ -230,21 +230,20 @@ u32 platform_cpu_get_frequency();
 // The platform ADC functions
 
 // Functions requiring platform-specific implementation
-int platform_adc_update_sequence();
-int platform_adc_start_sequence();
+int  platform_adc_update_sequence();
+int  platform_adc_start_sequence();
 void platform_adc_stop( unsigned id );
-u32 platform_adc_set_clock( unsigned id, u32 frequency);
+u32  platform_adc_set_clock( unsigned id, u32 frequency);
+int  platform_adc_check_timer_id( unsigned id, unsigned timer_id );
 
 // ADC Common Functions
 int  platform_adc_exists( unsigned id );
-int  platform_adc_check_timer_id( unsigned id, unsigned timer_id );
 u32  platform_adc_get_maxval( unsigned id );
 u32  platform_adc_set_smoothing( unsigned id, u32 length );
 void platform_adc_set_blocking( unsigned id, u32 mode );
 void platform_adc_set_freerunning( unsigned id, u32 mode );
 u32  platform_adc_is_done( unsigned id );
 void platform_adc_set_timer( unsigned id, u32 timer );
-u32  platform_adc_set_clock( unsigned id, u32 freq );
 
 // *****************************************************************************
 // I2C platform interface

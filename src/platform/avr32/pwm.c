@@ -208,16 +208,14 @@ void pwm_channel_set_period_and_duty_cycle( unsigned id, u32 period, u32 duty )
     }
   }
 #else
-  // No nasty interrupts: just disable, configure and re-enable.
-  // In practice, it seems you don't even need to disable the channel
-  // like the User's Guide tells you to, so we don't bother.
+  // No nasty asynchronous stuff. just disable, configure and re-enable.
   {
-    //int was_enabled = AVR32_PWM.sr & (1 << id);
+    int was_enabled = AVR32_PWM.sr & (1 << id);
 
-    //if (was_enabled) AVR32_PWM.dis = 1 << id;
+    if (was_enabled) AVR32_PWM.dis = 1 << id;
     AVR32_PWM.channel[id].cprd = period;
     AVR32_PWM.channel[id].cdty = duty;
-    //if (was_enabled) AVR32_PWM.ena = 1 << id;
+    if (was_enabled) AVR32_PWM.ena = 1 << id;
   }
 #endif
 }
