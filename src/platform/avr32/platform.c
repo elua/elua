@@ -886,6 +886,7 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
   // the whole FP subsystem into the integer-only executable.
 
   period = (pwmclk + frequency/2) / frequency;
+  if (period == 0) period = 1;
   duty_cycle = (period * duty + 50) / 100;
 
   // The AVR32 PWM duty cycle is upside down:
