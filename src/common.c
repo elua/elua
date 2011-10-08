@@ -67,7 +67,7 @@ static void xmodem_send( u8 data )
   platform_uart_send( CON_UART_ID, data );
 }
 
-static int xmodem_recv( u32 timeout )
+static int xmodem_recv( timer_data_type timeout )
 {
   return platform_uart_recv( CON_UART_ID, CON_TIMER_ID, timeout );
 }
@@ -483,17 +483,13 @@ void cmn_get_timeout_data( lua_State *L, int pidx, timer_data_type *ptimeout, un
   lua_Number tempn;
 
   *ptimeout = PLATFORM_TIMER_INF_TIMEOUT;
-  *pid = PLATFORM_TIMER_SYS_ID;
+  *pid = ( unsigned )luaL_optinteger( L, pidx + 1, PLATFORM_TIMER_SYS_ID );
   if( lua_type( L, pidx ) == LUA_TNUMBER )
   {
     tempn = lua_tonumber( L, pidx );
     if( tempn < 0 || tempn > PLATFORM_TIMER_INF_TIMEOUT )
       luaL_error( L, "invalid timeout value" );
-    if( tempn != PLATFORM_TIMER_INF_TIMEOUT )
-    {
-      *ptimeout = ( timer_data_type )tempn;
-      *pid = ( unsigned )luaL_optinteger( L, pidx + 1, PLATFORM_TIMER_SYS_ID );
-    }
+    *ptimeout = ( timer_data_type )tempn;
   }
 }
 

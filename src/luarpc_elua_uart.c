@@ -100,7 +100,7 @@ void transport_read_buffer( Transport *tpt, u8 *buffer, int length )
   int n = 0;
   int c;
   struct exception e;
-  int uart_timeout = PLATFORM_UART_INFINITE_TIMEOUT; // not sure whether we should always follow this
+  timer_data_type uart_timeout = PLATFORM_TIMER_INF_TIMEOUT; // not sure whether we should always follow this
   // int uart_timeout = 100000;
 	
   while( n < length )

@@ -69,6 +69,74 @@ int platform_pio_has_pin( unsigned port, unsigned pin );
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op );
 
 // *****************************************************************************
+// Timer subsection
+
+// The ID of the system timer
+#define PLATFORM_TIMER_SYS_ID                 0x100
+
+#if defined( LUA_NUMBER_INTEGRAL ) && !defined( LUA_INTEGRAL_LONGLONG )
+// Maximum values of the system timer
+#define PLATFORM_TIMER_SYS_MAX                ( ( 1LL << 32 ) - 2 )
+// Timer data type
+typedef u32 timer_data_type;
+#else
+// Maximum values of the system timer
+#define PLATFORM_TIMER_SYS_MAX                ( ( 1LL << 52 ) - 2 )
+// Timer data type
+typedef u64 timer_data_type;
+#endif // #if defined( LUA_NUMBER_INTEGRAL ) && !defined( LUA_INTEGRAL_LONGLONG )
+
+// This constant means 'infinite timeout'
+#define PLATFORM_TIMER_INF_TIMEOUT            ( PLATFORM_TIMER_SYS_MAX + 1 )
+
+// System timer frequency
+#define PLATFORM_TIMER_SYS_FREQ               1000000
+
+// Interrupt types
+#define PLATFORM_TIMER_INT_ONESHOT            1
+#define PLATFORM_TIMER_INT_CYCLIC             2
+
+// Match interrupt error codes
+#define PLATFORM_TIMER_INT_OK                 0
+#define PLATFORM_TIMER_INT_TOO_SHORT          1
+#define PLATFORM_TIMER_INT_TOO_LONG           2
+#define PLATFORM_TIMER_INT_INVALID_ID         3
+
+// Timer operations
+enum
+{
+  PLATFORM_TIMER_OP_START,
+  PLATFORM_TIMER_OP_READ,
+  PLATFORM_TIMER_OP_SET_CLOCK,
+  PLATFORM_TIMER_OP_GET_CLOCK,
+  PLATFORM_TIMER_OP_GET_MAX_DELAY,
+  PLATFORM_TIMER_OP_GET_MIN_DELAY,
+  PLATFORM_TIMER_OP_GET_MAX_CNT
+};
+
+// The platform timer functions
+int platform_timer_exists( unsigned id );
+void platform_timer_delay( unsigned id, timer_data_type delay_us );
+void platform_s_timer_delay( unsigned id, timer_data_type delay_us );
+timer_data_type platform_timer_op( unsigned id, int op, timer_data_type data );
+timer_data_type platform_s_timer_op( unsigned id, int op, timer_data_type data );
+int platform_timer_set_match_int( unsigned id, timer_data_type period_us, int type );
+int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int type );
+timer_data_type platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_type start );
+// System timer functions
+timer_data_type platform_timer_read_sys();
+// The next 3 functions need to be implemented only if the generic system timer mechanism
+// (src/common.c:cmn_systimer*) is used by the backend
+u64 platform_timer_sys_raw_read();
+void platform_timer_sys_stop();
+void platform_timer_sys_start();
+
+// Convenience macros
+#define platform_timer_read( id )             platform_timer_op( id, PLATFORM_TIMER_OP_READ, 0 )
+#define platform_timer_start( id )            platform_timer_op( id, PLATFORM_TIMER_OP_START, 0 )
+#define platform_timer_get_diff_crt( id, v )  platform_timer_get_diff_us( id, platform_timer_read( id ), v )
+
+// *****************************************************************************
 // CAN subsection
 
 // Maximum length for any CAN message
@@ -133,9 +201,6 @@ enum
   PLATFORM_UART_STOPBITS_2
 };
 
-// "Infinite timeout" constant for recv
-#define PLATFORM_UART_INFINITE_TIMEOUT        (-1)
-
 // Flow control types (this is a bit mask, one can specify PLATFORM_UART_FLOW_RTS | PLATFORM_UART_FLOW_CTS )
 #define PLATFORM_UART_FLOW_NONE               0
 #define PLATFORM_UART_FLOW_RTS                1
@@ -147,70 +212,10 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
 int platform_uart_set_buffer( unsigned id, unsigned size );
 void platform_uart_send( unsigned id, u8 data );
 void platform_s_uart_send( unsigned id, u8 data );
-int platform_uart_recv( unsigned id, unsigned timer_id, s32 timeout );
-int platform_s_uart_recv( unsigned id, s32 timeout );
+int platform_uart_recv( unsigned id, unsigned timer_id, timer_data_type timeout );
+int platform_s_uart_recv( unsigned id, timer_data_type timeout );
 int platform_uart_set_flow_control( unsigned id, int type );
 int platform_s_uart_set_flow_control( unsigned id, int type );
-
-// *****************************************************************************
-// Timer subsection
-
-// The ID of the system timer
-#define PLATFORM_TIMER_SYS_ID                 0xFFFF
-
-// The ID of the timer which will be used for infinite timeouts
-// Specifying this timer ID always implies "infinite timeout"
-// This is just a convention, it doesn't have an associated timer
-// (not even a virtual one)
-#define PLATFORM_TIMER_INF_TIMEOUT_ID         0xFFFE
-
-#if defined( LUA_NUMBER_INTEGRAL ) && !defined( LUA_INTEGRAL_LONGLONG )
-// Maximum values of the system timer
-#define PLATFORM_TIMER_SYS_MAX                ( ( 1LL << 32 ) - 1 )
-// Timer data type
-typedef u32 timer_data_type;
-#else
-// Maximum values of the system timer
-  #define PLATFORM_TIMER_SYS_MAX              ( ( 1LL << 52 ) - 1 )
-// Timer data type
-typedef u64 timer_data_type;
-#endif // #if defined( LUA_NUMBER_INTEGRAL ) && !defined( LUA_INTEGRAL_LONGLONG )
-
-// System timer frequency
-#define PLATFORM_TIMER_SYS_FREQ               1000000
-
-// Interrupt types
-#define PLATFORM_TIMER_INT_ONESHOT            1
-#define PLATFORM_TIMER_INT_CYCLIC             2
-
-// Match interrupt error codes
-#define PLATFORM_TIMER_INT_OK                 0
-#define PLATFORM_TIMER_INT_TOO_SHORT          1
-#define PLATFORM_TIMER_INT_TOO_LONG           2
-#define PLATFORM_TIMER_INT_INVALID_ID         3  
-
-// Timer operations
-enum
-{
-  PLATFORM_TIMER_OP_START,
-  PLATFORM_TIMER_OP_READ,
-  PLATFORM_TIMER_OP_SET_CLOCK,
-  PLATFORM_TIMER_OP_GET_CLOCK,
-  PLATFORM_TIMER_OP_GET_MAX_DELAY,
-  PLATFORM_TIMER_OP_GET_MIN_DELAY,
-  PLATFORM_TIMER_OP_GET_MAX_CNT
-};
-
-// The platform timer functions
-int platform_timer_exists( unsigned id );
-void platform_timer_delay( unsigned id, timer_data_type delay_us );
-void platform_s_timer_delay( unsigned id, timer_data_type delay_us );
-timer_data_type platform_timer_op( unsigned id, int op, timer_data_type data );
-timer_data_type platform_s_timer_op( unsigned id, int op, timer_data_type data );
-int platform_timer_set_match_int( unsigned id, timer_data_type period_us, int type );
-int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int type );
-timer_data_type platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_type start );
-timer_data_type platform_timer_read_sys();
 
 // *****************************************************************************
 // PWM subsection

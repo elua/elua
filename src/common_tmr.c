@@ -228,7 +228,7 @@ timer_data_type platform_timer_op( unsigned id, int op, timer_data_type data )
         break;
 
       case PLATFORM_TIMER_OP_GET_MAX_DELAY:
-        res = PLATFORM_TIMER_SYS_MAX;
+        res = PLATFORM_TIMER_SYS_MAX + 1;
         break;
 
       case PLATFORM_TIMER_OP_GET_MAX_CNT:
@@ -236,7 +236,7 @@ timer_data_type platform_timer_op( unsigned id, int op, timer_data_type data )
         break;
 
       case PLATFORM_TIMER_OP_GET_MIN_DELAY:
-        res = 0;
+        res = 1;
         break;
     }
 
@@ -265,7 +265,7 @@ timer_data_type platform_timer_op( unsigned id, int op, timer_data_type data )
       break;
 
     case PLATFORM_TIMER_OP_GET_MAX_CNT:
-      res = VTMX_MAX_PERIOD;
+      res = VTMR_MAX_PERIOD;
       break;
       
     case PLATFORM_TIMER_OP_SET_CLOCK:
@@ -281,18 +281,16 @@ timer_data_type platform_timer_get_diff_us( unsigned id, timer_data_type end, ti
 {
   u32 freq;
   u64 tstart = ( u64 )start, tend = ( u64 )end;
-  timer_data_type res;
     
   freq = platform_timer_op( id, PLATFORM_TIMER_OP_GET_CLOCK, 0 );
   if( tstart > tend )
     tend += platform_timer_op( id, PLATFORM_TIMER_OP_GET_MAX_CNT, 0 ) + 1;
   tstart = ( ( tend - tstart ) * 1000000 ) / freq;
-  res = UMIN( tstart, PLATFORM_TIMER_SYS_MAX );
-  return res;
+  return UMIN( tstart, PLATFORM_TIMER_SYS_MAX );
 }
 
 #ifdef BUILD_INT_HANDLERS
-int platform_timer_set_match_int( unsigned id, u32 period_us, int type )
+int platform_timer_set_match_int( unsigned id, timer_data_type period_us, int type )
 {
 #if VTMR_NUM_TIMERS > 0 && defined( CMN_TIMER_INT_SUPPORT )
   if( TIMER_IS_VIRTUAL( id ) )
@@ -356,4 +354,48 @@ int platform_timer_set_match_int( unsigned id, timer_data_type period_us, int ty
 }
 
 #endif // #ifdef BUILD_INT_HANDLERS
+
+// ****************************************************************************
+// Generic system timer support
+
+static u32 cmn_systimer_ticks_for_us;
+static volatile u64 cmn_systimer_counter;
+static u32 cmn_systimer_us_per_interrupt;
+
+void cmn_systimer_set_base_freq( u32 freq_hz )
+{
+  cmn_systimer_ticks_for_us = freq_hz / 1000000;
+}
+
+void cmn_systimer_set_interrupt_freq( u32 freq_hz )
+{
+  cmn_systimer_us_per_interrupt = 1000000 / freq_hz;
+}
+
+void cmn_systimer_periodic()
+{
+  cmn_systimer_counter += cmn_systimer_us_per_interrupt;
+}
+
+timer_data_type cmn_systimer_get()
+{
+  u64 tempsys, tempcnt, crtsys;
+
+  tempcnt = platform_timer_sys_raw_read();
+  tempsys = cmn_systimer_counter;
+  while( ( crtsys = cmn_systimer_counter ) != tempsys )
+  {
+    tempcnt = platform_timer_sys_raw_read();
+    crtsys = tempsys;
+  }
+  crtsys += tempcnt / cmn_systimer_ticks_for_us;
+  if( crtsys > PLATFORM_TIMER_SYS_MAX ) // timer overflow
+  {
+    crtsys %= PLATFORM_TIMER_SYS_MAX;
+    platform_timer_sys_stop();
+    cmn_systimer_counter = 0;
+    platform_timer_sys_start();
+  }
+  return ( timer_data_type )crtsys;
+}
 
