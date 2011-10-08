@@ -19,6 +19,10 @@ static int pwm_setup( lua_State* L )
   duty = luaL_checkinteger( L, 3 );
   if( duty > 100 )
     duty = 100;
+  if( duty < 0 )
+    duty = 0;
+  if ( freq < 0 )
+    freq = 1;
   freq = platform_pwm_setup( id, freq, duty );
   lua_pushinteger( L, freq );
   return 1;  
