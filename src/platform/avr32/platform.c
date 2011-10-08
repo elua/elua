@@ -885,16 +885,15 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
   // Unfortunately we mustn't use floating point because that would pull
   // the whole FP subsystem into the integer-only executable.
 
-  period = pwmclk / frequency;
-  duty_cycle = (period * duty) / 100;
+  period = (pwmclk + frequency/2) / frequency;
+  duty_cycle = (period * duty + 50) / 100;
 
   // The AVR32 PWM duty cycle is upside down:
   // duty_period==0 gives an all-active output, while
   // duty_period==period gives an all-inactive output.
   pwm_channel_set_period_and_duty_cycle( id, period, period - duty_cycle );
 
-  return pwmclk / period;    // Inaccurate. We Should return the nearest int.
-                             // TODO: Try (pwmclk + period/2) / period
+  return (pwmclk + period/2) / period;
 }
 
 /*
