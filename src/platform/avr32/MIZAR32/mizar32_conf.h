@@ -61,7 +61,6 @@
 # define CON_UART_ID         0
 #endif
 #define CON_UART_SPEED      115200
-#define CON_TIMER_ID        0
 #define TERM_LINES          25
 #define TERM_COLS           80
 
@@ -163,7 +162,7 @@
 #else
 #define NUM_TIMER             3
 #endif
-#define NUM_PWM               7         // PWM7 is on GPIO50
+#define NUM_PWM               6         // PWM7 is on GPIO50
 #define NUM_I2C               1
 #define NUM_ADC               8         // Though ADC3 pin is the Ethernet IRQ
 #define NUM_CAN               0

@@ -21,7 +21,6 @@
 
 #define CON_UART_ID         1
 #define CON_UART_SPEED      115200
-#define CON_TIMER_ID        0
 #define TERM_LINES          25
 #define TERM_COLS           80
 
@@ -86,7 +85,7 @@
 #else
 #define NUM_TIMER             3
 #endif
-#define NUM_PWM               7
+#define NUM_PWM               6
 #define NUM_ADC               8
 #define NUM_CAN               0
 
