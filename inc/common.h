@@ -24,6 +24,7 @@ int cmn_tmr_int_get_flag( elua_int_resnum resnum, int clear );
 // System timer generic implemenation
 void cmn_systimer_set_base_freq( u32 freq_hz );
 void cmn_systimer_set_interrupt_freq( u32 freq_hz );
+void cmn_systimer_set_interrupt_period_us( u32 period );
 void cmn_systimer_periodic();
 timer_data_type cmn_systimer_get();
 

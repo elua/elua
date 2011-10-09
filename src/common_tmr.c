@@ -372,6 +372,11 @@ void cmn_systimer_set_interrupt_freq( u32 freq_hz )
   cmn_systimer_us_per_interrupt = 1000000 / freq_hz;
 }
 
+void cmn_systimer_set_interrupt_period_us( u32 period )
+{
+  cmn_systimer_us_per_interrupt = period;
+}
+
 void cmn_systimer_periodic()
 {
   cmn_systimer_counter += cmn_systimer_us_per_interrupt;
