@@ -887,6 +887,7 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
 
   period = (pwmclk + frequency/2) / frequency;
   if (period == 0) period = 1;
+  if (period >= 1<<20) period = (1<<20) - 1;
   duty_cycle = (period * duty + 50) / 100;
 
   // The AVR32 PWM duty cycle is upside down:
@@ -905,18 +906,18 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
  * If the configuration cannot be met (because freq is too high), set the
  * maximum frequency possible.
  *
- * The algorithm is too simple: the actual frequency is always <= the one
- * requested, not the closest possible.
+ * The algorithm is too simple: the actual clock frequency is always >=
+ * the one requested, not the closest possible.
  */
-static void find_clock_configuration( u32 frequency,
-                                      unsigned *pre, unsigned *div )
+static void pwm_find_clock_configuration( u32 frequency,
+                                          unsigned *pre, unsigned *div )
 {
   // prescalers[11] = { 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024 };
 #define prescalers( n ) ( 1 << n )
   const unsigned nprescalers = 11;
 
-  unsigned prescaler;       // Select a prescaler
-  unsigned divisor = 0;
+  unsigned prescaler;	// Which of the prescalers are we considering?
+  unsigned divisor;
 
   if ( frequency > REQ_PBA_FREQ )
   {
@@ -926,6 +927,7 @@ static void find_clock_configuration( u32 frequency,
   }
 
   // Find prescaler and divisor values
+  prescaler = 0;
   do
     divisor = REQ_PBA_FREQ / ( prescalers( prescaler ) * frequency );
   while ( ( divisor > 255 ) && ( ++prescaler < nprescalers ) );
@@ -950,7 +952,7 @@ u32 platform_pwm_set_clock( unsigned id, u32 freq )
 {
   unsigned pre, div;
 
-  find_clock_configuration( freq, &pre, &div );
+  pwm_find_clock_configuration( freq, &pre, &div );
   pwm_set_linear_divider( pre, div );
 
   return pwm_get_clock_freq();
