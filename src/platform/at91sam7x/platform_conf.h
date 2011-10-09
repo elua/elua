@@ -19,17 +19,16 @@
 #define BUILD_TERM
 #define BUILD_CON_GENERIC
 //#define BUILD_RPC
-#define BUILD_RFS
-#define BUILD_SERMUX
+//#define BUILD_RFS
+//#define BUILD_SERMUX
 #define BUILD_C_INT_HANDLERS
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 
-#define CON_UART_ID         ( SERMUX_SERVICE_ID_FIRST + 1 )
-//#define CON_UART_ID         0
+//#define CON_UART_ID         ( SERMUX_SERVICE_ID_FIRST + 1 )
+#define CON_UART_ID           0
 #define CON_UART_SPEED        115200
-#define CON_TIMER_ID          0
 #define TERM_LINES            25
 #define TERM_COLS             80
 
@@ -111,6 +110,7 @@
 #define MEM_START_ADDRESS     { ( void* )end }
 #define MEM_END_ADDRESS       { ( void* )( SRAM_ORIGIN + SRAM_SIZE - STACK_SIZE_TOTAL - 1 ) }
 
+/*
 #define RFS_BUFFER_SIZE       BUF_SIZE_512
 #define RFS_UART_ID           ( SERMUX_SERVICE_ID_FIRST )
 #define RFS_TIMER_ID          0
@@ -121,6 +121,7 @@
 #define SERMUX_PHYS_SPEED     115200
 #define SERMUX_NUM_VUART      2
 #define SERMUX_BUFFER_SIZES   { RFS_BUFFER_SIZE, CON_BUF_SIZE }
+*/
 
 // Interrupt list
 #define INT_UART_RX           ELUA_INT_FIRST_ID
