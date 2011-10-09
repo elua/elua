@@ -557,7 +557,7 @@ static elua_net_size elua_net_recv_internal( int s, void* buf, elua_net_size max
     return 0;
   elua_prep_socket_state( pstate, buf, maxsize, readto, with_buffer, ELUA_UIP_STATE_RECV );
   if( to_us > 0 )
-    tmrstart = platform_timer_read( timer_id );
+    tmrstart = platform_timer_start( timer_id );
   while( 1 )
   {
     if( pstate->state == ELUA_UIP_STATE_IDLE )
@@ -645,7 +645,7 @@ int elua_accept( u16 port, unsigned timer_id, timer_data_type to_us, elua_net_ip
   elua_uip_accept_sock = -1;
   elua_uip_accept_request = 1;
   if( to_us > 0 )
-    tmrstart = platform_timer_read( timer_id );
+    tmrstart = platform_timer_start( timer_id );
   while( 1 )
   {
     if( elua_uip_accept_request == 0 )

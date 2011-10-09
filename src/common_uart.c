@@ -31,7 +31,7 @@ int platform_uart_exists( unsigned id )
 }
 
 // Helper function for buffers
-static int cmn_recv_helper( unsigned id, s32 timeout )
+static int cmn_recv_helper( unsigned id, timer_data_type timeout )
 {
 #ifdef BUF_ENABLE_UART
   t_buf_data data;
@@ -66,7 +66,7 @@ int platform_uart_recv( unsigned id, unsigned timer_id, timer_data_type timeout 
   else
   {
     // Receive char with the specified timeout
-    tmr_start = platform_timer_read( timer_id );
+    tmr_start = platform_timer_start( timer_id );
     while( 1 )
     {
       if( ( res = cmn_recv_helper( id, 0 ) ) >= 0 )

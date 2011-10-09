@@ -277,7 +277,7 @@ PT_THREAD(handle_dhcp(void))
 
   do {
     send_discover();
-    s.timer_init = platform_timer_read( ELUA_DHCP_TIMER_ID );
+    s.timer_init = platform_timer_start( ELUA_DHCP_TIMER_ID );
     PT_WAIT_UNTIL(&s.pt, uip_newdata() || platform_timer_get_diff_crt( ELUA_DHCP_TIMER_ID, s.timer_init ) >= s.ticks );
     if(uip_newdata() && parse_msg() == DHCPOFFER) {
       uip_flags &= ~UIP_NEWDATA;
@@ -297,7 +297,7 @@ PT_THREAD(handle_dhcp(void))
 
   do {
     send_request();
-    s.timer_init = platform_timer_read( ELUA_DHCP_TIMER_ID );
+    s.timer_init = platform_timer_start( ELUA_DHCP_TIMER_ID );
     PT_WAIT_UNTIL(&s.pt, uip_newdata() || platform_timer_get_diff_crt( ELUA_DHCP_TIMER_ID, s.timer_init ) >= s.ticks );
     
     if(uip_newdata() && parse_msg() == DHCPACK) {
