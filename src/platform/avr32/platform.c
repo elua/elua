@@ -716,6 +716,8 @@ void platform_adc_stop( unsigned id )
   s->op_pending = 0;
   INACTIVATE_CHANNEL( d, id );
 
+  adc_disable( adc, s->id );
+
   // If there are no more active channels, stop the sequencer
   if( d->ch_active == 0 )
     d->running = 0;
@@ -758,9 +760,6 @@ __attribute__((__interrupt__)) static void adc_int_handler()
       d->sample_buf[ d->seq_ctr ] = ( u16 )adc_get_value(adc, s->id );
       s->value_fresh = 1;
 
-      // Read LCDR to signal that conversion has been captured
-      i = adc->lcdr;
-
       if ( s->logsmoothlen > 0 && s->smooth_ready == 0)
         adc_smooth_data( s->id );
 #if defined( BUF_ENABLE_ADC )
@@ -780,11 +779,7 @@ __attribute__((__interrupt__)) static void adc_int_handler()
   }
   d->seq_ctr = 0;
 
-  // Only attempt to refresh sequence order if still running
-  // This allows us to "cache" an old sequence if all channels
-  // finish at the same time
-  if ( d->running == 1 )
-    adc_update_dev_sequence( 0 );
+  adc_update_dev_sequence( 0 );
 
   if ( d->clocked == 0 && d->running == 1 )
     adc_start( adc );
