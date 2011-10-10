@@ -397,9 +397,9 @@ timer_data_type cmn_systimer_get()
   if( crtsys > PLATFORM_TIMER_SYS_MAX ) // timer overflow
   {
     crtsys %= PLATFORM_TIMER_SYS_MAX;
-    platform_timer_sys_stop();
+    platform_timer_sys_disable_int();
     cmn_systimer_counter = 0;
-    platform_timer_sys_start();
+    platform_timer_sys_enable_int();
   }
   return ( timer_data_type )crtsys;
 }

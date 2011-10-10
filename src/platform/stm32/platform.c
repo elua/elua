@@ -869,14 +869,14 @@ u64 platform_timer_sys_raw_read()
   return SysTick->LOAD - SysTick->VAL;
 }
 
-void platform_timer_sys_stop()
+void platform_timer_sys_disable_int()
 {
-  SysTick->CTRL &= ~( 1 << SYSTICK_ENABLE );
+  SysTick->CTRL &= ~( 1 << SYSTICK_TICKINT );
 }
 
-void platform_timer_sys_start()
+void platform_timer_sys_enable_int()
 {
-  SysTick->CTRL |= 1 << SYSTICK_ENABLE;
+  SysTick->CTRL |= 1 << SYSTICK_TICKINT;
 }
 
 timer_data_type platform_timer_read_sys()

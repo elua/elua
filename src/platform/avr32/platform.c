@@ -651,14 +651,14 @@ u64 platform_timer_sys_raw_read()
   return AVR32_PWM.channel[ SYSTIMER_PWM_CH ].ccnt;
 }
 
-void platform_timer_sys_stop()
+void platform_timer_sys_disable_int()
 {
-  AVR32_PWM.dis = 1 << SYSTIMER_PWM_CH;
+  AVR32_PWM.idr = 1 << SYSTIMER_PWM_CH;
 }
 
-void platform_timer_sys_start()
+void platform_timer_sys_enable_int()
 {
-  AVR32_PWM.ena = 1 << SYSTIMER_PWM_CH;
+  AVR32_PWM.ier = 1 << SYSTIMER_PWM_CH;
 }
 
 timer_data_type platform_timer_read_sys()

@@ -128,8 +128,8 @@ timer_data_type platform_timer_read_sys();
 // The next 3 functions need to be implemented only if the generic system timer mechanism
 // (src/common.c:cmn_systimer*) is used by the backend
 u64 platform_timer_sys_raw_read();
-void platform_timer_sys_stop();
-void platform_timer_sys_start();
+void platform_timer_sys_enable_int();
+void platform_timer_sys_disable_int();
 
 // Convenience macros
 #define platform_timer_read( id )             platform_timer_op( id, PLATFORM_TIMER_OP_READ, 0 )

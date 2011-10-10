@@ -568,14 +568,14 @@ u64 platform_timer_sys_raw_read()
   return MAP_SysTickPeriodGet() - 1 - MAP_SysTickValueGet();
 }
 
-void platform_timer_sys_stop()
+void platform_timer_sys_disable_int()
 {
-  MAP_SysTickDisable();
+  MAP_SysTickIntDisable();
 }
 
-void platform_timer_sys_start()
+void platform_timer_sys_enable_int()
 {
-  MAP_SysTickEnable();
+  MAP_SysTickIntEnable();
 }
 
 timer_data_type platform_timer_read_sys()

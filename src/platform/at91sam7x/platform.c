@@ -379,14 +379,14 @@ u64 platform_timer_sys_raw_read()
   return PIT_GetPIIR() & SYSTIMER_MASK;
 }
 
-void platform_timer_sys_stop()
+void platform_timer_sys_disable_int()
 {
-  PIT_Disable();
+  PIT_DisableIT();
 }
 
-void platform_timer_sys_start()
+void platform_timer_sys_enable_int()
 {
-  PIT_Enable();
+  PIT_EnableIT();
 }
 
 timer_data_type platform_timer_read_sys()
