@@ -87,11 +87,7 @@ void adc_disable(volatile avr32_adc_t * adc, unsigned short channel)
   Assert( adc!=NULL );
   Assert( channel <= AVR32_ADC_CHANNELS_MSB ); // check if channel exist
 
-  if (adc_get_status(adc, channel) == ENABLED)
-  {
-    // disable channel
-    adc->chdr |= (1 << channel);
-  }
+  adc->chdr = (1 << channel);
 }
 
 Bool adc_get_status(volatile avr32_adc_t * adc, unsigned short channel)
