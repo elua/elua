@@ -22,7 +22,7 @@ static int tmrh_timer_op( lua_State* L, int op )
   timer_data_type res;
     
   id = ( unsigned )luaL_optinteger( L, 1, PLATFORM_TIMER_SYS_ID );
-  MOD_CHECK_ID( timer, id );
+  MOD_CHECK_TIMER( id );
   res = platform_timer_op( id, op, 0 );
   lua_pushnumber( L, ( lua_Number )res );
   return 1;  
@@ -36,7 +36,7 @@ static int tmr_delay( lua_State* L )
   
   period = ( timer_data_type )luaL_checknumber( L, 1 );
   id = ( unsigned )luaL_optinteger( L, 2, PLATFORM_TIMER_SYS_ID );
-  MOD_CHECK_ID( timer, id );
+  MOD_CHECK_TIMER( id );
   platform_timer_delay( id, period );
   return 0;
 }
@@ -60,7 +60,7 @@ static int tmr_gettimediff( lua_State* L )
   unsigned id;
     
   id = ( unsigned )luaL_optinteger( L, 3, PLATFORM_TIMER_SYS_ID ); 
-  MOD_CHECK_ID( timer, id );
+  MOD_CHECK_TIMER( id );
   end = ( timer_data_type )luaL_checknumber( L, 1 );
   start = ( timer_data_type )luaL_checknumber( L, 2 );  
   res = platform_timer_get_diff_us( id, end, start );
@@ -75,7 +75,7 @@ static int tmr_getmindelay( lua_State* L )
   unsigned id;
   
   id = ( unsigned )luaL_optinteger( L, 1, PLATFORM_TIMER_SYS_ID );
-  MOD_CHECK_ID( timer, id );
+  MOD_CHECK_TIMER( id );
   res = platform_timer_op( id, PLATFORM_TIMER_OP_GET_MIN_DELAY, 0 );
   lua_pushnumber( L, ( lua_Number )res );
   return 1;
@@ -88,7 +88,7 @@ static int tmr_getmaxdelay( lua_State* L )
   unsigned id;
   
   id = ( unsigned )luaL_optinteger( L, 1, PLATFORM_TIMER_SYS_ID );
-  MOD_CHECK_ID( timer, id );
+  MOD_CHECK_TIMER( id );
   res = platform_timer_op( id, PLATFORM_TIMER_OP_GET_MAX_DELAY, 0 );
   lua_pushnumber( L, ( lua_Number )res );
   return 1;
@@ -101,7 +101,7 @@ static int tmr_setclock( lua_State* L )
   unsigned id;
   
   id = ( unsigned )luaL_optinteger( L, 2, PLATFORM_TIMER_SYS_ID );
-  MOD_CHECK_ID( timer, id );
+  MOD_CHECK_TIMER( id );
   clock = ( u32 )luaL_checkinteger( L, 1 );
   clock = platform_timer_op( id, PLATFORM_TIMER_OP_SET_CLOCK, clock );
   lua_pushinteger( L, clock );
@@ -115,7 +115,7 @@ static int tmr_getclock( lua_State* L )
   unsigned id;
   
   id = ( unsigned )luaL_optinteger( L, 1, PLATFORM_TIMER_SYS_ID );
-  MOD_CHECK_ID( timer, id );
+  MOD_CHECK_TIMER( id );
   res = platform_timer_op( id, PLATFORM_TIMER_OP_GET_CLOCK, 0 );
   lua_pushinteger( L, res );
   return 1;
@@ -129,7 +129,7 @@ static int tmr_set_match_int( lua_State *L )
   u32 res;
   
   id = ( unsigned )luaL_optinteger( L, 3, PLATFORM_TIMER_SYS_ID );
-  MOD_CHECK_ID( timer, id );
+  MOD_CHECK_TIMER( id );
   res = platform_timer_set_match_int( id, ( timer_data_type )luaL_checknumber( L, 1 ), ( int )luaL_checkinteger( L, 3 ) );
   if( res == PLATFORM_TIMER_INT_TOO_SHORT )
     return luaL_error( L, "timer interval too small" );
@@ -189,6 +189,7 @@ const LUA_REG_TYPE tmr_map[] =
 #if LUA_OPTIMIZE_MEMORY > 0 && defined( BUILD_LUA_INT_HANDLERS )
   { LSTRKEY( "INT_ONESHOT" ), LNUMVAL( PLATFORM_TIMER_INT_ONESHOT ) },
   { LSTRKEY( "INT_CYCLIC" ), LNUMVAL( PLATFORM_TIMER_INT_CYCLIC ) },
+  { LSTRKEY( "SYS_TIMER" ), LNUMVAL( PLATFORM_TIMER_SYS_ID ) },
 #endif
   { LNILKEY, LNILVAL }
 };

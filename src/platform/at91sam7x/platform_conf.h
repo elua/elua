@@ -23,6 +23,8 @@
 //#define BUILD_SERMUX
 #define BUILD_C_INT_HANDLERS
 
+#define PLATFORM_HAS_SYSTIMER
+
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 

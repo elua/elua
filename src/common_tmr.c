@@ -26,6 +26,13 @@ extern const elua_int_descriptor elua_int_table[ INT_ELUA_LAST ];
 #define VTMR_NUM_TIMERS       0
 #endif // #ifndef VTMR_NUM_TIMERS
 
+#ifndef PLATFORM_HAS_SYSTIMER
+#warning This platform does not have a system timer. Your eLua image might not work as expected.
+#define SYSTIMER_SUPPORT 0
+#else // #ifndef PLATFORM_HAS_SYSTIMER
+#define SYSTIMER_SUPPORT 1
+#endif // #ifndef PLATFORM_HAS_SYSTIMER
+
 // ****************************************************************************
 // Timers (and vtimers) functions
 
@@ -174,6 +181,18 @@ void cmn_virtual_timer_cb()
 // ============================================================================
 // Actual timer functions
 
+int platform_timer_sys_available()
+{
+  return SYSTIMER_SUPPORT;
+}
+
+#ifndef PLATFORM_HAS_SYSTIMER
+timer_data_type platform_timer_read_sys()
+{
+  return 0;
+}
+#endif
+
 int platform_timer_exists( unsigned id )
 {
 #if VTMR_NUM_TIMERS > 0
@@ -181,7 +200,7 @@ int platform_timer_exists( unsigned id )
     return TIMER_IS_VIRTUAL( id );
   else
 #endif
-    return id < NUM_TIMER || id == PLATFORM_TIMER_SYS_ID;
+    return id < NUM_TIMER || ( id == PLATFORM_TIMER_SYS_ID && SYSTIMER_SUPPORT );
 }
 
 void platform_timer_delay( unsigned id, timer_data_type delay_us )
@@ -193,6 +212,8 @@ void platform_timer_delay( unsigned id, timer_data_type delay_us )
 #endif
   if( id == PLATFORM_TIMER_SYS_ID )
   {
+    if( !SYSTIMER_SUPPORT )
+      return;
     if( delay_us > 0 )
     {
       u64 tstart = platform_timer_read_sys(), tend;
@@ -215,6 +236,8 @@ timer_data_type platform_timer_op( unsigned id, int op, timer_data_type data )
 
   if( id == PLATFORM_TIMER_SYS_ID ) // the system timer gets special treatment
   {
+    if( !SYSTIMER_SUPPORT )
+      return 0;
     switch( op )
     {
       case PLATFORM_TIMER_OP_START:

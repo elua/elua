@@ -20,6 +20,8 @@
 #define TERM_LINES    25
 #define TERM_COLS     80
 
+#define PLATFORM_HAS_SYSTIMER
+
 // *****************************************************************************
 // Auxiliary libraries that will be compiled for this platform
 

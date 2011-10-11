@@ -19,6 +19,8 @@
 #define BUILD_SEMIFS
 #define BUILD_RPC
 
+#define PLATFORM_HAS_SYSTIMER
+
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 

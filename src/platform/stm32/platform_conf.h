@@ -31,6 +31,8 @@
 #define BUILD_LUA_INT_HANDLERS
 #define ENABLE_ENC
 
+#define PLATFORM_HAS_SYSTIMER
+
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 

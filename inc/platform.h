@@ -125,6 +125,7 @@ int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int 
 timer_data_type platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_type start );
 // System timer functions
 timer_data_type platform_timer_read_sys();
+int platform_timer_sys_available();
 // The next 3 functions need to be implemented only if the generic system timer mechanism
 // (src/common.c:cmn_systimer*) is used by the backend
 u64 platform_timer_sys_raw_read();
