@@ -34,7 +34,6 @@
 #endif
 
 #define CON_UART_SPEED        115200
-#define CON_TIMER_ID          0
 #define TERM_LINES            25
 #define TERM_COLS             80
 
@@ -44,7 +43,7 @@
 // Virtual timers (0 if not used)
 #define VTMR_NUM_TIMERS       4
 #define VTMR_FREQ_HZ          16
-#define VTMR_TIMER_ID         2
+#define VTMR_TIMER_ID         3
 
 // Number of resources (0 if not available/not implemented)
 #define NUM_PIO               10
