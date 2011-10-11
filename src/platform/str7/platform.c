@@ -290,6 +290,10 @@ timer_data_type platform_s_timer_op( unsigned id, int op, timer_data_type data )
     case PLATFORM_TIMER_OP_GET_CLOCK:
       res = platform_timer_get_clock( id );
       break;
+
+    case PLATFORM_TIMER_OP_GET_MAX_CNT:
+      res = 0xFFFF;
+      break;
   }
   return res;
 }
