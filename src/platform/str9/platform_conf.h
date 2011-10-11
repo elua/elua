@@ -22,6 +22,8 @@
 #define BUILD_LUA_INT_HANDLERS
 #define BUILD_C_INT_HANDLERS
 
+#define PLATFORM_HAS_SYSTIMER
+
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 
@@ -41,7 +43,7 @@
 
 // Virtual timers (0 if not used)
 #define VTMR_NUM_TIMERS       4
-#define VTMR_FREQ_HZ          10
+#define VTMR_FREQ_HZ          16
 #define VTMR_TIMER_ID         2
 
 // Number of resources (0 if not available/not implemented)
@@ -53,11 +55,8 @@
 #define NUM_CAN               0
 #define NUM_I2C               2
 
-#ifdef VTMR_TIMER_ID
+// One timer is reserved for the system timer / vtimers
 #define NUM_TIMER             3
-#else
-#define NUM_TIMER             4
-#endif
 #define NUM_PHYS_TIMER        4
 
 // ADC Configuration Params

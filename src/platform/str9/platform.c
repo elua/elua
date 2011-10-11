@@ -30,7 +30,15 @@
 // ****************************************************************************
 // Platform initialization
 const GPIO_TypeDef* port_data[] = { GPIO0, GPIO1, GPIO2, GPIO3, GPIO4, GPIO5, GPIO6, GPIO7, GPIO8, GPIO9 };
+#ifndef VTMR_TIMER_ID
+#error Define VTMR_TIMER_ID to the ID of the timer used for the system timer
+#endif
 const TIM_TypeDef* str9_timer_data[] = { TIM0, TIM1, TIM2, TIM3 };
+
+// System timer implementation on STR9 uses one of the physical timers (defined by
+// VTMR_TIMER_ID). This is the same timer used for VTMR implementation. Its base
+// frequency is set to 1MHz in platform_s_timer_set_match_int. It runs at 16Hz
+// since this gives an exact number of microseconds (62500) before its overflow.
 
 static void platform_setup_adcs();
 
@@ -158,10 +166,11 @@ int platform_init()
   // Setup ADCs
   platform_setup_adcs();
 #endif
- 
-#ifdef VTMR_TIMER_ID
+
+  // Initialize system timer
+  cmn_systimer_set_base_freq( 1000000 );
+  cmn_systimer_set_interrupt_freq( VTMR_FREQ_HZ );
   platform_s_timer_set_match_int( VTMR_TIMER_ID, 1000000 / VTMR_FREQ_HZ, PLATFORM_TIMER_INT_CYCLIC );
-#endif
   return PLATFORM_OK;
 }
 
@@ -280,7 +289,7 @@ void platform_s_uart_send( unsigned id, u8 data )
   while( UART_GetFlagStatus( p_uart, UART_FLAG_TxFIFOFull ) != RESET );  
 }
 
-int platform_s_uart_recv( unsigned id, s32 timeout )
+int platform_s_uart_recv( unsigned id, timer_data_type timeout )
 {
   UART_TypeDef* p_uart = ( UART_TypeDef* )uarts[ id ];
 
@@ -329,7 +338,7 @@ static u32 platform_timer_set_clock( unsigned id, u32 clock )
   return baseclk / bestdiv;
 }
 
-void platform_s_timer_delay( unsigned id, u32 delay_us )
+void platform_s_timer_delay( unsigned id, timer_data_type delay_us )
 {
   TIM_TypeDef* base = ( TIM_TypeDef* )str9_timer_data[ id ];  
   u32 freq;
@@ -350,7 +359,7 @@ void platform_s_timer_delay( unsigned id, u32 delay_us )
   while( TIM_GetCounterValue( base ) < final );  
 }
       
-u32 platform_s_timer_op( unsigned id, int op, u32 data )
+timer_data_type platform_s_timer_op( unsigned id, int op, timer_data_type data )
 {
   u32 res = 0;
   TIM_TypeDef* base = ( TIM_TypeDef* )str9_timer_data[ id ];  
@@ -383,11 +392,15 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
     case PLATFORM_TIMER_OP_GET_CLOCK:
       res = platform_timer_get_clock( id );
       break;
+
+    case PLATFORM_TIMER_OP_GET_MAX_CNT:
+      res = 0xFFFF;
+      break;
   }
   return res;
 }
 
-int platform_s_timer_set_match_int( unsigned id, u32 period_us, int type )
+int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int type )
 {
   TIM_TypeDef* base = ( TIM_TypeDef* )str9_timer_data[ id ];  
   u32 freq;
@@ -426,6 +439,32 @@ int platform_s_timer_set_match_int( unsigned id, u32 period_us, int type )
   TIM_ITConfig( base, TIM_IT_OC1, ENABLE );
 
   return PLATFORM_TIMER_INT_OK;
+}
+
+u64 platform_timer_sys_raw_read()
+{
+  TIM_TypeDef* base = ( TIM_TypeDef* )str9_timer_data[ VTMR_TIMER_ID ];
+
+  return TIM_GetCounterValue( base );
+}
+
+void platform_timer_sys_enable_int()
+{
+  TIM_TypeDef* base = ( TIM_TypeDef* )str9_timer_data[ VTMR_TIMER_ID ];
+
+  TIM_ITConfig( base, TIM_IT_OC1, ENABLE );
+}
+
+void platform_timer_sys_disable_int()
+{
+  TIM_TypeDef* base = ( TIM_TypeDef* )str9_timer_data[ VTMR_TIMER_ID ];
+
+  TIM_ITConfig( base, TIM_IT_OC1, DISABLE );
+}
+
+timer_data_type platform_timer_read_sys()
+{
+  return cmn_systimer_get();
 }
 
 // *****************************************************************************
