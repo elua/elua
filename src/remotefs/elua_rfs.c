@@ -135,7 +135,7 @@ static u32 rfs_send( const u8 *p, u32 size )
   return size;
 }
 
-static u32 rfs_recv( u8 *p, u32 size, s32 timeout )
+static u32 rfs_recv( u8 *p, u32 size, timer_data_type timeout )
 {
   u32 cnt = 0;
   int data;
