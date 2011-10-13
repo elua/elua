@@ -68,6 +68,20 @@ static int tmr_gettimediff( lua_State* L )
   return 1;    
 }
 
+// Lua: time_us = getdiffnow( start, [id] )
+static int tmr_getdiffnow( lua_State *L )
+{
+  timer_data_type start, res;
+  unsigned id;
+
+  id = ( unsigned )luaL_optinteger( L, 2, PLATFORM_TIMER_SYS_ID );
+  MOD_CHECK_TIMER( id );
+  start = ( timer_data_type )luaL_checknumber( L, 1 );
+  res = platform_timer_get_diff_crt( id, start );
+  lua_pushnumber( L, ( lua_Number )res );
+  return 1;
+}
+
 // Lua: res = getmindelay( [id] )
 static int tmr_getmindelay( lua_State* L )
 {
@@ -172,7 +186,8 @@ const LUA_REG_TYPE tmr_map[] =
   { LSTRKEY( "delay" ), LFUNCVAL( tmr_delay ) },
   { LSTRKEY( "read" ), LFUNCVAL( tmr_read ) },
   { LSTRKEY( "start" ), LFUNCVAL( tmr_start ) },
-  { LSTRKEY( "gettimediff" ), LFUNCVAL( tmr_gettimediff ) },  
+  { LSTRKEY( "gettimediff" ), LFUNCVAL( tmr_gettimediff ) },
+  { LSTRKEY( "getdiffnow" ), LFUNCVAL( tmr_getdiffnow ) },
   { LSTRKEY( "getmindelay" ), LFUNCVAL( tmr_getmindelay ) },
   { LSTRKEY( "getmaxdelay" ), LFUNCVAL( tmr_getmaxdelay ) },
   { LSTRKEY( "setclock" ), LFUNCVAL( tmr_setclock ) },
