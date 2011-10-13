@@ -245,6 +245,7 @@ const LUA_REG_TYPE uart_map[] =
   { LSTRKEY( "FLOW_NONE" ), LNUMVAL( PLATFORM_UART_FLOW_NONE ) },
   { LSTRKEY( "FLOW_RTS" ), LNUMVAL( PLATFORM_UART_FLOW_RTS ) },
   { LSTRKEY( "FLOW_CTS" ), LNUMVAL( PLATFORM_UART_FLOW_CTS ) },
+  { LSTRKEY( "SYS_TIMER" ), LNUMVAL( PLATFORM_TIMER_SYS_ID ) },
 #endif
 #if LUA_OPTIMIZE_MEMORY > 0 && defined( BUILD_SERMUX )
   { LSTRKEY( "__metatable" ), LROVAL( uart_map ) },
@@ -271,6 +272,8 @@ LUALIB_API int luaopen_uart( lua_State *L )
   // Add the "none" and "infinite" constant used in recv()
   MOD_REG_NUMBER( L, "NO_TIMEOUT", 0 );
   MOD_REG_NUMBER( L, "INF_TIMEOUT", UART_INFINITE_TIMEOUT );
+  // Also add the system timer ID
+  MOD_REG_NUMBER( L, "SYS_TIMER", PLATFORM_TIMER_SYS_ID );
 
   // Add the UART flow constants
   MOD_REG_NUMBER( L, "FLOW_RTS", PLATFORM_UART_FLOW_RTS );

@@ -200,11 +200,11 @@ const LUA_REG_TYPE tmr_map[] =
 #endif
 #if VTMR_NUM_TIMERS > 0  
   { LSTRKEY( "__index" ), LFUNCVAL( tmr_mt_index ) },
+  { LSTRKEY( "SYS_TIMER" ), LNUMVAL( PLATFORM_TIMER_SYS_ID ) },
 #endif  
 #if LUA_OPTIMIZE_MEMORY > 0 && defined( BUILD_LUA_INT_HANDLERS )
   { LSTRKEY( "INT_ONESHOT" ), LNUMVAL( PLATFORM_TIMER_INT_ONESHOT ) },
   { LSTRKEY( "INT_CYCLIC" ), LNUMVAL( PLATFORM_TIMER_INT_CYCLIC ) },
-  { LSTRKEY( "SYS_TIMER" ), LNUMVAL( PLATFORM_TIMER_SYS_ID ) },
 #endif
   { LNILKEY, LNILVAL }
 };
@@ -220,6 +220,11 @@ LUALIB_API int luaopen_tmr( lua_State *L )
   lua_pushvalue( L, -1 );
   lua_setmetatable( L, -2 );  
 #endif // #if VTMR_NUM_TIMERS > 0
+  MOD_REG_NUMBER( L, "SYS_TIMER", PLATFORM_TIMER_SYS_ID );
+#ifdef BUILD_LUA_INT_HANDLERS
+  MOD_REG_NUMBER( L, "INT_ONESHOT", PLATFORM_TIMER_INT_ONESHOT );
+  MOD_REG_NUMBER( L, "INT_CYCLIC", PLATFORM_TIMER_INT_CYCLIC );
+#endif //#ifdef BUILD_LUA_INT_HANDLERS
   return 1;
 #endif // #if LUA_OPTIMIZE_MEMORY > 0
 }
