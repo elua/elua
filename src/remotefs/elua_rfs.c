@@ -19,7 +19,11 @@
 
 // [TODO] the new builder should automatically do this
 #ifndef RFS_FLOW_TYPE
-#define RFS_FLOW_TYPE        PLATFORM_UART_FLOW_NONE
+#define RFS_FLOW_TYPE         PLATFORM_UART_FLOW_NONE
+#endif
+
+#ifndef RFS_TIMER_ID
+#define RFS_TIMER_ID          PLATFORM_TIMER_SYS_ID
 #endif
 
 // Our RFS buffer

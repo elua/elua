@@ -161,7 +161,6 @@ u32 platform_s_cpu_get_frequency();
 // Remote file system data
 #define RFS_BUFFER_SIZE       BUF_SIZE_512
 #define RFS_UART_ID           0
-#define RFS_TIMER_ID          0
 #define RFS_TIMEOUT           100000
 #define RFS_UART_SPEED        115200
 
