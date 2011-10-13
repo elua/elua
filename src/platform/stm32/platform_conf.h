@@ -133,7 +133,6 @@
 
 // RPC boot options
 #define RPC_UART_ID           CON_UART_ID
-#define RPC_TIMER_ID          CON_TIMER_ID
 #define RPC_UART_SPEED        CON_UART_SPEED
 
 

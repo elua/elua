@@ -104,7 +104,6 @@
 
 // RPC  
 #define RPC_UART_ID           CON_UART_ID
-#define RPC_TIMER_ID          CON_TIMER_ID
 
 // CPU frequency (needed by the CPU module, 0 if not used)
 u32 mbed_get_cpu_frequency();
