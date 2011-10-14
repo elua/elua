@@ -869,16 +869,9 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
   //
   // PWM output wave frequency is requested in Hz but programmed as a
   // number of cycles of the master PWM clock frequency.
-  // The obvious but simple formulae to convert between these values:
-  // channel_period = pwmclk / frequency; return pwmclk / channel_period;
-  // return the same values as requested from 1 to just over sqrt(pwmclk)
-  // (up to 1031 for 1000000 Hz).
-  // In reality, they always set a frequency <= the one requested.
-  // A better formula would program the geometrically closest available
-  // actual frequency and return the geometrically closest integer frequency
-  // to that.
-  // Unfortunately we mustn't use floating point because that would pull
-  // the whole FP subsystem into the integer-only executable.
+  //
+  // Here, we use rounding to select the numerically closest available
+  // frequency and return the closest integer in Hz to that.
 
   period = (pwmclk + frequency/2) / frequency;
   if (period == 0) period = 1;
@@ -888,6 +881,7 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
   // The AVR32 PWM duty cycle is upside down:
   // duty_period==0 gives an all-active output, while
   // duty_period==period gives an all-inactive output.
+  // So we invert the cuty cycle here.
   pwm_channel_set_period_and_duty_cycle( id, period, period - duty_cycle );
 
   return (pwmclk + period/2) / period;
