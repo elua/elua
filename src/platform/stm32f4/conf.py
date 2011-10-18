@@ -26,7 +26,7 @@ comp.Append(CPPDEFINES = [ 'USE_STDPERIPH_DRIVER', 'STM32F4XX', 'CORTEX_M4'])
 comp.Append(CCFLAGS = ['-ffunction-sections','-fdata-sections','-fno-strict-aliasing','-Wall'])
 
 #'-nostartfiles',
-comp.Append(LINKFLAGS = ['-nostartfiles', '-nostdlib','-T',ldscript,'-Wl,--gc-sections','-Wl,--allow-multiple-definition','-Wl,-Map=%s .map' % (output)])
+comp.Append(LINKFLAGS = ['-nostartfiles', '-nostdlib','-T',ldscript,'-Wl,--gc-sections','-Wl,--allow-multiple-definition','-Wl,-Map=%s.map' % (output)])
 comp.Append(ASFLAGS = ['-x','assembler-with-cpp','-c','-Wall','$_CPPDEFFLAGS'])
 comp.Append(LIBS = ['c','gcc','m'])
 
