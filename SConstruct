@@ -162,9 +162,9 @@ vars.AddVariables(
                     'none',
                     allowed_values = [ 'none', 'emblod' ] ),
   MatchEnumVariable('target',
-                    'build "regular" float lua or integer-only "lualong"', 
+                    'build "regular" float lua, 32 bit integer-only "lualong" or 64-bit integer-only "lualonglong"', 
                     'lua',
-                    allowed_values = [ 'lua', 'lualong' ] ),
+                    allowed_values = [ 'lua', 'lualong', 'lualonglong' ] ),
   MatchEnumVariable('cpu',
                     'build for the specified CPU (board will be inferred, if possible)',
                     'auto',
@@ -277,6 +277,9 @@ if not GetOption( 'help' ):
   # Build the compilation command now
   compcmd = ''
   if comp['romfs'] == 'compile':
+    if comp['target'] == 'lualonglong':
+      print "Cross-compilation is not yet supported in 64-bit mode"
+      Exit( -1 )
     if syspl.system() == 'Windows':
       suffix = '.exe'
     else:
@@ -336,8 +339,10 @@ if not GetOption( 'help' ):
   lua_full_files = " " + " ".join( [ "src/lua/%s" % name for name in lua_files.split() ] )
   
   comp.Append(CPPPATH = ['inc', 'inc/newlib',  'inc/remotefs', 'src/platform', 'src/lua'])
-  if comp['target'] == 'lualong':
+  if comp['target'] == 'lualong' or comp['target'] == 'lualonglong':
     conf.env.Append(CPPDEFINES = ['LUA_NUMBER_INTEGRAL'])
+  if comp['target'] == 'lualonglong':
+    conf.env.Append(CPPDEFINES = ['LUA_INTEGRAL_LONGLONG'])
 
   conf.env.Append(CPPPATH = ['src/modules', 'src/platform/%s' % platform])
   conf.env.Append(CPPDEFINES = {"LUA_OPTIMIZE_MEMORY" : ( comp['optram'] != 0 and 2 or 0 ) } )
