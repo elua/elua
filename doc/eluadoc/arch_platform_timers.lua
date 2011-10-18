@@ -15,9 +15,10 @@ data_en =
   -- Data structures, constants and types
   structures = 
   {
-    { text = "typedef u32 timer_data_type;",
+    { text = "typedef u64/u32 timer_data_type;",
       name = "Timer data type",
-      desc = "This defines the data type used to specify delays and time intervals (which are always specified in $microseconds$)."
+      desc = [[This defines the data type used to specify delays and time intervals (which are always specified in $microseconds$). The choice between u64 and u32 for the timer data type depends
+on the build type, check ^#the_system_timer^here^ for mode details.]]
     },
 
     { text = [[// Timer operations
@@ -199,8 +200,64 @@ $period_us$ microseconds]]
   $VTMR_FIRST_ID$) is the ID of the first virtual timer in the system, and $VTMR_FIRST_ID+2$ is the ID of the third virtual timer in the system.</p>
   <p>Virtual timers are capable of generating timer match interrupts just like regular timers, check @#platform_timer_set_match_int@here@ for details.
   ]]
-    }
+    },
+    { title = "The system timer",
+    desc = 
+  [[The system timer was introduced in eLua 0.9 as a simpler alternative to the traditional eLua timers. Working with regular timers in eLua might be challenging for a number of reasons:</p>
+  <ul>
+    <li>depending on the hardware, the timers might have a limited range. Because of this, they might not be able to timeout in the interval requested by the user.</li>
+    <li>the timers might have different ranges even on the same platform (they might have a different base clock, for example). The problem is further aggravated when switching platforms.</li>
+    <li>the timers might be shared with other hardware resources (for example PWMs or ADC triggers) so using them might have unexpected side effects.</li>
+    <li>manual timer management is error prone. The user needs to keep into account the timers he's using, their base frequencies and wether they are shared or not with the C code.</li>
+  </ul>
+  <p>The ^#virtual_timers^virtual timers^ can fix some of the above problems, but their resolution is fairly low and they still require manual management.</p>
+  <p>The $system timer$ attemps to fix (at least partially) these issues. It is a timer with fixed resolution (1us) %on all platforms% and large counters:</p>
+  <ul>
+    <li>if eLua is compiled in floating point mode (default) the counter is 52 bits wide. It will overflow after more than 142 %years%.</li>
+    <li>if eLua is compiled in 32 bit integer-only mode (lualong) the counter is 32 bits wide. It will overflow after about one hour.</li>
+    <li>if eLua is compiled in 64 bit integer-only mode (lualonglong, new in 0.9) the counter is again 52 bits wide and it will also overflow after more than 142 years.</li>
+  </ul>
+  <p>The eLua API was partially modified to take full advantage of this new timer:</p>
+  <ul>
+    <li>all the functions that can operate with a timeout (for example @refman_gen_uart.html#uart.read@uart.read@ or @refman_gen_net.html#net.accept@net.accept@) 
+will default to the system timer is a timer ID is not specified explicitly.</li>
+    <li>all the function in the @refman_gen_tmr.html@timer module@ will default to the system timer if a timer ID is not specified explicitly.</li>
+    <li>timeouts are specified in a more unified manner across the eLua modules as a $[timeout], [timer_id]$ pair:
+  <table class="table_center" style="margin-top: 10px; margin-bottom: 4px;">
+  <tbody>
+  <tr>
+    <th>timeout</th>
+    <th>timer_id</th>
+    <th>Result</th>
+  </tr>
+  <tr>
+    <td>not specified</td>
+    <td>any value</td>
+    <td>infinite timeout (the function blocks until it completes).</td>
+  </tr>
+  <tr>
+    <td>0</td>
+    <td>any value</td>
+    <td>no timeout (the function returns immediately).<//td>
+  </tr>
+  <tr>
+    <td>a positive value</td>
+    <td>not specified</td>
+    <td>the system timer will be used to measure the function's timeout.</td>
+  </tr>  
+  <tr>
+    <td>a positive value</td>
+    <td>a timer ID</td>
+    <td>the specified timer will be used to measure the function's timeout.</td>
+  </tr>
+  </tbody>
+  </table>
+  </li>  
+  </ul>
+  <p>Using the system timer as much as possible is also encouraged with C code that uses the eLua C api, not only with Lua programs. The C code can use the system timer by specifying 
+$PLATFORM_TIMER_SYS_ID$ as the timer ID.]]
   }
+ }
 }
 
 
