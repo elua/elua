@@ -104,14 +104,15 @@ argument. The IP is given as a string.]],
       ret = "$err$ - the error code, as defined @#error_codes@here@."
     },
 
-    { sig = "socket, remoteip, err = #net.accept#( port, [timer_id, timeout] )",
+    { sig = "socket, remoteip, err = #net.accept#( port, [timeout], [timer_id] )",
       desc = "Accept a connection from a remote system with an optional timeout.",
       args =
       {
         "$port$ - the port to wait for connections from the remote system.",
-        [[$timer_id (optional)$ - the timer ID of the timer used to timeout the accept function after a specified time. If this is specified, $timeout$ must also
-be specified.]],
-        [[$timeout (optional)$ - the timeout, in microseconds, after which the accept function returns if no connection was requested.]]
+       [[$timeout (optional)$ - timeout of the operation, can be either $net.NO_TIMEOUT$ or 0 for non-blocking operation, $net.INF_TIMEOUT$ for 
+blocking operation, or a positive number that specifies the timeout in microseconds. The default value of this argument is $unet.INF_TIMEOUT$.]],
+        [[$timer_id (optional)$ - the ID of the timer used for measuring the timeout. If not specified it defaults to the @arch_platform_timers.html#the_system_timer@system timer@.]],
+
       },
       ret =
       {
@@ -135,7 +136,7 @@ be specified.]],
       }
     },
 
-    { sig = "res, err = #net.recv#( sock, format, [timer_id, timeout] )",
+    { sig = "res, err = #net.recv#( sock, format, [timeout], [timer_id] )",
       desc = "Read data from a socket.",
       args = 
       {
@@ -145,9 +146,9 @@ be specified.]],
   <li>$"*l"$: read a line (until the next '\n' character).</li>
   <li>$an integer$: read up to that many bytes.</li>
 </ul>]],
-        [[$timer_id (optional)$ - the timer ID of the timer used to timeout the recv function after a specified time. If this is specified, $timeout$ must also
-be specified.]],
-        [[$timeout (optional)$ - the timeout, in microseconds, after which the recv function returns if no connection was requested.]]
+        [[$timeout (optional)$ - timeout of the operation, can be either $net.NO_TIMEOUT$ or 0 for non-blocking operation, $net.INF_TIMEOUT$ for 
+blocking operation, or a positive number that specifies the timeout in microseconds. The default value of this argument is $unet.INF_TIMEOUT$.]],
+        [[$timer_id (optional)$ - the ID of the timer used for measuring the timeout. If not specified it defaults to the @arch_platform_timers.html#the_system_timer@system timer@.]],
       },
       ret =
       {
@@ -158,4 +159,3 @@ be specified.]],
   },
 }
 
-data_pt = data_en
