@@ -1,5 +1,13 @@
 -- eLua platform interface - timers
 
+--[[
+// The next 3 functions need to be implemented only if the generic system timer mechanism
+// (src/common.c:cmn_systimer*) is used by the backend
+u64 platform_timer_sys_raw_read();
+void platform_timer_sys_enable_int();
+void platform_timer_sys_disable_int();
+--]]
+
 data_en = 
 {
   -- Title
@@ -29,7 +37,8 @@ enum
   PLATFORM_TIMER_OP_SET_CLOCK,
   PLATFORM_TIMER_OP_GET_CLOCK,
   PLATFORM_TIMER_OP_GET_MAX_DELAY,
-  PLATFORM_TIMER_OP_GET_MIN_DELAY
+  PLATFORM_TIMER_OP_GET_MIN_DELAY,
+  PLATFORM_TIMER_OP_GET_MAX_CNT
 };]], 
       name = "Timer operations",
       desc = "This enum lists all the operations that can be executed on a given timer."
@@ -47,9 +56,9 @@ enum
       ret = "1 if the timer exists, 0 otherwise"
     },
 
-    { sig = "void #platform_timer_delay#( unsigned id, u32 delay_us );",
-      desc = [[Waits on a timer, then returns. This function is "split" in two parts: a platform-independent part implemented in %src/common.c% (that
-  handles virtual timers) and a platform-dependent part that must be implemented by each platform in a function named @#platform_s_timer_delay@platform_s_timer_delay@. This function handles both
+    { sig = "void #platform_timer_delay#( unsigned id, timer_data_type delay_us );",
+      desc = [[Waits on a timer, then returns. This function is "split" in two parts: a platform-independent part implemented in %src/common_tmr.c% (that
+  handles virtual timers and the system timer) and a platform-dependent part that must be implemented by each platform in a function named @#platform_s_timer_delay@platform_s_timer_delay@. This function handles both
   hardware timer IDs and virtual timer IDs.<br>
   <a name="limitations" /><span class="warning">IMPORTANT NOTE</span>: the real delay after executing this functions depends on a number of variables, most notably the base clock of the timer 
   and the size of the timer counter register (32 bits on some platforms, 16 bits on most platforms, other values are less common). To ensure that the delay you're requesting is achievable, use 
@@ -63,9 +72,9 @@ enum
       }
     },
 
-    { sig = "void #platform_s_timer_delay#( unsigned id, u32 delay_us );",
-      desc = [[This function is identical in functionality to @#platform_timer_delay@platform_timer_delay@, but this is the function that must actually be implemented by a platform port, 
-  and it must never handle virtual timer IDs, only hardware timer IDs. It has the same @#limitations@limitations@ as @#platform_timer_delay@platform_timer_delay@.]],
+    { sig = "void #platform_s_timer_delay#( unsigned id, timer_data_type delay_us );",
+      desc = [[This function is identical in functionality to @#platform_timer_delay@platform_timer_delay@, but this is the function that must actually be implemented by a platform port 
+  and it must never handle virtual timer IDs or the system timer ID, only hardware timer IDs. It has the same @#limitations@limitations@ as @#platform_timer_delay@platform_timer_delay@.]],
       args = 
       {
         "$id$ - the timer ID",
@@ -73,8 +82,8 @@ enum
       }
     },
 
-    { sig = "u32 #platform_timer_op#( unsigned id, int op, u32 data );",
-      desc = [[Executes an operation on a timer. This function is "split" in two parts: a platform-independent part implemented in %src/common.c% (that handles virtual timers) and a 
+    { sig = "timer_data_type #platform_timer_op#( unsigned id, int op, timer_data_type data );",
+      desc = [[Executes an operation on a timer. This function is "split" in two parts: a platform-independent part implemented in %src/common_tmr.c% (that handles virtual timers and the system timer) and a 
   platform-dependent part that must be implemented by each platform in a function named @#platform_s_timer_op@platform_s_timer_op@. This function handles both hardware timer IDs and virtual 
   timer IDs.]],
       args = 
@@ -88,6 +97,7 @@ enum
     <li>$PLATFORM_TIMER_GET_CLOCK$: get the clock of the specified timer.</li>  
     <li>$PLATFORM_TIMER_OP_GET_MAX_DELAY$: get the maximum achievable timeout on the specified timer (in us).</li>  
     <li>$PLATFORM_TIMER_OP_GET_MIN_DELAY$: get the minimum achievable timeout on the specified timer (in us).</li>
+    <li>$PLATFORM_TIMER_OP_GET_MAX_CNT$: get the maximum value of the timer's counter register.</li>
   </ul>]],
         "$data$ - used to specify the timer clock value when $op = PLATFORM_TIMER_SET_CLOCK$, ignored otherwise",
       },
@@ -98,13 +108,14 @@ enum
         "the actual clock set on the timer, which might be different than the request clock depending on the hardware if $op = PLATFORM_TIMER_SET_CLOCK$",
         "the timer clock if $op = PLATFORM_TIMER_GET_CLOCK$", 
         "the maximum achievable delay (in microseconds) if $op = PLATFORM_TIMER_OP_GET_MAX_DELAY$",
-        "the minimum achievable delay (in microseconds) if $op = PLATFORM_TIMER_OP_GET_MIN_DELAY$"
+        "the minimum achievable delay (in microseconds) if $op = PLATFORM_TIMER_OP_GET_MIN_DELAY$",
+        "the maximum value of the timer's coutner register if $op == PLATFORM_TIMER_OP_GET_MAX_CNT$",
       }
     }, 
 
-    { sig = "u32 #platform_s_timer_op#( unsigned id, int op, u32 data );",
-      desc = [[This function is identical in functionality to @#platform_timer_op@platform_timer_op@, but this is the function that must actually be implemented by a platform port, and it must 
-  never handle virtual timer IDs, only hardware timer IDs.]],
+    { sig = "timer_data_type #platform_s_timer_op#( unsigned id, int op, timer_data_type data );",
+      desc = [[This function is identical in functionality to @#platform_timer_op@platform_timer_op@, but this is the function that must actually be implemented by a platform port and it must 
+  never handle virtual timer IDs or the system timer, only hardware timer IDs.]],
       args = 
       {
         "$id$ - the timer ID",
@@ -116,6 +127,7 @@ enum
     <li>$PLATFORM_TIMER_GET_CLOCK$: get the clock of the specified timer.</li>  
     <li>$PLATFORM_TIMER_OP_GET_MAX_DELAY$: get the maximum achievable timeout on the specified timer (in us).</li>  
     <li>$PLATFORM_TIMER_OP_GET_MIN_DELAY$: get the minimum achievable timeout on the specified timer (in us).</li>
+    <li>$PLATFORM_TIMER_OP_GET_MAX_CNT$: get the maximum value of the timer's counter register.</li>
   </ul>]],
         "$data$ - used to specify the timer clock value when $op = PLATFORM_TIMER_SET_CLOCK$, ignored otherwise",
       },
@@ -126,23 +138,29 @@ enum
         "the actual clock set on the timer, which might be different than the request clock depending on the hardware if $op = PLATFORM_TIMER_SET_CLOCK$",
         "the timer clock if $op = PLATFORM_TIMER_GET_CLOCK$", 
         "the maximum achievable delay (in microseconds) if $op = PLATFORM_TIMER_OP_GET_MAX_DELAY$",
-        "the minimum achievable delay (in microseconds) if $op = PLATFORM_TIMER_OP_GET_MIN_DELAY$"
+        "the minimum achievable delay (in microseconds) if $op = PLATFORM_TIMER_OP_GET_MIN_DELAY$",
+        "the maximum value of the timer's coutner register if $op == PLATFORM_TIMER_OP_GET_MAX_CNT$",
       }
     }, 
 
-    { sig = "u32 #platform_timer_get_diff_us#( unsigned id, timer_data_type end, timer_data_type start );",
-      desc = [[Return the time difference (in us) between two timer values. This function is generic for all platforms, thus it is implemented in %src/common.c%.]],
+    { sig = "timer_data_type #platform_timer_get_diff_us#( unsigned id, timer_data_type end, timer_data_type start );",
+      desc = [[Return the time difference (in us) between two timer values (as returned by calling @refman_gen_tmr.html#platform_timer_op@platform_timer_op@ with $PLATFORM_TIMER_OP_READ$ or $PLATFORM_TIMER_OP_START$. This function 
+is generic, thus it is implemented in %src/common.c%. <span class="warning">NOTE</span>: the order of $end$ and $start$ is important. $end$ must correspond to a moment in time which came after $start$. The function knows how to deal 
+with $a single$ timer overflow condition ($end$ is less than $start$); if the timer overflowed 2 or more times between $start$ and $end$ the result of this function will be incorrect.]],
       args = 
       {
         "$id$ - the timer ID",
-        "$end$ - the first timer value",
-        "$start$ - the second timer value",
+        "$end$ - the final counter value.",
+        "$start$ - the initial counter value.",
       },
       ret = "the time difference (in microseconds)"
     },
 
-    { sig = "int #platform_timer_set_match_int#( unsigned id, u32 period_us, int type );",
-      desc = "Setup the timer match interrupt. Only available if interrupt support is enabled, check @inthandlers.html@here@ for details.",
+    { sig = "int #platform_timer_set_match_int#( unsigned id, timer_data_type period_us, int type );",      
+      desc = [[Setup the timer match interrupt. Only available if interrupt support is enabled, check @inthandlers.html@here@ for details.This function is "split" in two parts: a platform-independent part 
+implemented in %src/common_tmr.c% (that handles virtual timers and the system timer) and a platform-dependent part that must be implemented by each platform in a function named 
+@#platform_s_timer_set_math_int@platform_s_timer_set_match_int@. This function handles both hardware timer IDs and virtual timer IDs. <span class="warning">NOTE</span>: the @#the_system_timer@system timer@ can't
+generate interrupts.]],
       args = 
       {
         "$id$ - the timer ID",
@@ -154,10 +172,61 @@ $period_us$ microseconds]]
       {
         "$PLATFORM_TIMER_INT_OK$ if the operation was successful.",
         "$PLATFORM_TIMER_INT_TOO_SHORT$ if the specified period is too short.",
+        "$PLATFORM_TIMER_INT_TOO_LONG$ if the specified period is too long.",
         "$PLATFORM_TIMER_INT_INVALID_ID$ if the specified timer cannot handle this operation."
       }
-    }
+    },
+  
+    { sig = "int #platform_s_timer_set_match_int#( unsigned id, timer_data_type period_us, int type );",
+      desc = [[This function is identical in functionality to @#platform_timer_set_match_int@platform_timer_set_match_int@, but this is the function that must actually be implemented by a platform port and it must 
+  never handle virtual timer IDs or the system timer, only hardware timer IDs.]],
+      args = 
+      {
+        "$id$ - the timer ID",
+        "$period_us$ - the period (in microseconds) of the timer interrupt. Setting this to 0 disables the timer match interrupt.",
+        [[$type$ - $PLATFORM_TIMER_INT_ONESHOT$ for an interrupt that occurs only once after $period_us$ microseconds, or $PLATFORM_TIMER_INT_CYCLIC$ for an interrupt that occurs every
+$period_us$ microseconds]]        
+      },
+      ret = 
+      {
+        "$PLATFORM_TIMER_INT_OK$ if the operation was successful.",
+        "$PLATFORM_TIMER_INT_TOO_SHORT$ if the specified period is too short.",
+        "$PLATFORM_TIMER_INT_TOO_LONG$ if the specified period is too long.",
+        "$PLATFORM_TIMER_INT_INVALID_ID$ if the specified timer cannot handle this operation."
+      }
+    },
+
+    {
+      sig = "timer_data_type #platform_timer_read_sys#();",
+      desc = "Returns the current value of the system timer, see @#the_system_timer@here@ for more details.",
+      ret = "The current value of the system timer."
+    },
+
+    {
+      sig = "int #platform_timer_sys_available#();",
+      desc = [[Used to check the availability of the system timer. This function is platform independent and is implemented in %src/common_tmr.c%. It returns the value of the $PLATFORM_HAS_SYSTIMER$ macro, check
+@#the_system_timer@here@ for more details.]],
+      ret = "1 if the system timer is implemented, 0 otherwise."
+    },
+    
+    {
+      sig = "u64 #platform_timer_sys_raw_read#();",
+      desc = [[Return the counter of the timer used to implement the system timer. Needs to be implemented only if eLua's generic system timer mechanism is used, check @#the_system_timer@here@ for details.]],
+      ret = "The counter of the timer used to implement the system timer."
+    },
+
+    {
+      sig = "void #platform_timer_sys_enable_int#();",
+      desc = [[Enable the overflow/match interrupt of the timer used to implement the system timer. Needs to be implemented only if eLua's generic system timer mechanism is used, check @#the_system_timer@here@ for details.]],
+    },
+    
+    {
+      sig = "void #platform_timer_sys_disable_int#();",
+      desc = [[Disable the overflow/match interrupt of the timer used to implement the system timer. Needs to be implemented only if eLua's generic system timer mechanism is used, check @#the_system_timer@here@ for details.]],
+    },
+
   },
+
 
   auxdata = 
   {
@@ -255,7 +324,26 @@ will default to the system timer is a timer ID is not specified explicitly.</li>
   </li>  
   </ul>
   <p>Using the system timer as much as possible is also encouraged with C code that uses the eLua C api, not only with Lua programs. The C code can use the system timer by specifying 
-$PLATFORM_TIMER_SYS_ID$ as the timer ID.]]
+$PLATFORM_TIMER_SYS_ID$ as the timer ID.</p>
+  <p>From an implementation stand point, the system timer is built around a hardware timer with a base clock of at least 1MHz that can generate an interrupt when the timer counter overflows
+or when it reaches a certain value. The interrupt handler updates the upper part of the system timer counter (basically an overflow counter). eLua has a generic mechanism that can be used
+to implement a system timer on any platform using this method. To take advantage of this mechanism follow the steps below:</p>
+<ol>
+  <li>define the $PLATFORM_HAS_SYSTIMER$ macro in your %platform_conf.h% file.</li>
+  <li>implement @#platform_timer_sys_raw_read@platform_timer_sys_raw_read@, @#platform_timer_sys_enable_int@platform_timer_sys_enable_int@ and @#platform_timer_sys_disable_int@platform_timer_sys_disable_int@.</li>
+  <li>include the %common.h% header.</li>
+  <li>setup your hardware timer and its associated interrupt. This should happen an initialization time (for example in %platform_init%).</li>
+  <li>call %cmn_systimer_set_base_freq% with the base frequency of your timer in Hz.</li>
+  <li>call %cmn_systimer_set_interrupt_freq% with the frequency of the timer's overflow/match interrupt in Hz. Alternatively you can call %cmn_systimer_set_interrupt_period_us% to set the timer's overflow/match
+interrupt %period% (in microseconds) instead of its frequency. Use the latter form if the frequency is not an integer.</li>
+  <li>call %cmn_systimer_periodic% from your timer's overflow interrupt handler.</li>
+  <li>use this implementation for @#platform_timer_read_sys@platform_timer_read_sys@:
+ ~timer_data_type platform_timer_read_sys()
+{
+  return cmn_systimer_get();
+}~</li></ol>
+  <p>Note that the above mechanism is optional. A platform might have a different method to implement the system timer; this is OK as long as the system timer requirements are respected.</p>
+]]
   }
  }
 }
