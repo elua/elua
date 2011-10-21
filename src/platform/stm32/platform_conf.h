@@ -140,13 +140,11 @@
 
 // MMCFS Support (FatFs on SD/MMC)
 // For STM32F103RET6 - PA5 = CLK, PA6 = MISO, PA7 = MOSI, PA8 = CS
-#define MMCFS_TICK_HZ                10
-#define MMCFS_TICK_MS                ( 1000 / MMCFS_TICK_HZ )
 #define MMCFS_CS_PORT                0
 #define MMCFS_CS_PIN                 8
 #define MMCFS_SPI_NUM                0
 
-// CPU frequency (needed by the CPU module and MMCFS code, 0 if not used)
+// CPU frequency (needed by the CPU module, 0 if not used)
 u32 platform_s_cpu_get_frequency();
 #define CPU_FREQUENCY         platform_s_cpu_get_frequency()
 

@@ -138,8 +138,6 @@
 #define ADC_NUM_TIMERS        0
 
 // SD/MMC Filesystem Setup
-#define MMCFS_TICK_HZ     10
-#define MMCFS_TICK_MS     ( 1000 / MMCFS_TICK_HZ )
 #define MMCFS_SPI_NUM     5
 #define MMCFS_CS_PORT     0
 #define MMCFS_CS_PIN      SD_MMC_SPI_NPCS_PIN

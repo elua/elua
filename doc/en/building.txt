@@ -76,7 +76,7 @@ o|BUILD_MMCFS       |Enable the eLua SD/MMC FAT filesystem support. To enable:
 
   #define BUILD_MMCFS
 
-xref:static[Static configuration data dependencies]: *MMCFS_TICK_HZ, MMCFS_TICK_MS, MMCFS_CS_PORT, MMCFS_CS_PIN, MMCFS_SPI_NUM*
+xref:static[Static configuration data dependencies]: *MMCFS_CS_PORT, MMCFS_CS_PIN, MMCFS_SPI_NUM*
 
 o|BUILD_TERM        |Enable ANSI terminal support. It allows eLua to interact with terminals that support ANSI escape sequences 
 (more details link:arch_con_term.html[here]). Currently it works only over RS-232 connections, although this is not a strict requirement. 
@@ -229,10 +229,6 @@ the IP address, network mask, default gateway and DNS server. Only needed if BUI
 o|VTMR_NUM_TIMERS +
 VTMR_FREQ_HZ       |Specify the virtual timers configuration for the platform (refer to link:refman_gen_tmr.html[the timer module documentation] for details). Define VTMR_NUM_TIMERS to 0 
 if this feature is not used.
-
-o|MMCFS_TICK_HZ +
-MMCFS_TICK_MS      |Specify the rate at which SD/MMC timer function _disk_timerproc()_ are being called by the platform. On most platforms MMCFS_TICK_HZ will match VTMR_FREQ_HZ.  
-Only needed if MMCFS support is enabled.
 
 o|MMCFS_CS_PORT +
 MMCFS_CS_PIN       |Specify the port and pin to be used as chip select for MMCFS control of an SD/MMC card over SPI. Only needed if MMCFS support is enabled.

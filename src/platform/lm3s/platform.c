@@ -1044,10 +1044,6 @@ void SysTickIntHandler()
   // Handle virtual timers
   cmn_virtual_timer_cb();
 
-#ifdef BUILD_MMCFS
-  disk_timerproc();
-#endif
-
   // Indicate that a SysTick interrupt has occurred.
   eth_timer_fired = 1;
 
@@ -1076,10 +1072,6 @@ void EthernetIntHandler()
 void SysTickIntHandler()
 {
   cmn_virtual_timer_cb();
-
-#ifdef BUILD_MMCFS
-  disk_timerproc();
-#endif
 
   // System timer handling
   cmn_systimer_periodic();

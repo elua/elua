@@ -103,8 +103,6 @@
 #define ADC_BUF_SIZE          BUF_SIZE_2
 
 // SD/MMC Filesystem Setup
-#define MMCFS_TICK_HZ     10
-#define MMCFS_TICK_MS     ( 1000 / MMCFS_TICK_HZ )
 #define MMCFS_SPI_NUM     1
 #define MMCFS_CS_PORT     0  //PA17
 #define MMCFS_CS_PIN      SD_MMC_SPI_NPCS_PIN

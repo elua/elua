@@ -711,10 +711,6 @@ void SysTick_Handler( void )
   // Handle virtual timers
   cmn_virtual_timer_cb();
 
-#ifdef BUILD_MMCFS
-  disk_timerproc();
-#endif
-
   // Handle system timer call
   cmn_systimer_periodic();
 }

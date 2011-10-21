@@ -130,10 +130,6 @@ __attribute__((__interrupt__)) static void tmr_int_handler()
   tc_read_sr( tc, VTMR_CH );
   cmn_virtual_timer_cb();
 
-#ifdef BUILD_MMCFS
-  disk_timerproc();
-#endif
-
 #ifdef BUILD_UIP
   // Indicate that a SysTick interrupt has occurred.
   eth_timer_fired = 1;

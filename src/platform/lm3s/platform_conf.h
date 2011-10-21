@@ -201,10 +201,6 @@
 #define RPC_UART_ID           CON_UART_ID
 #define RPC_UART_SPEED        CON_UART_SPEED
 
-// SD/MMC Filesystem Setup
-#define MMCFS_TICK_HZ     4
-#define MMCFS_TICK_MS     ( 1000 / MMCFS_TICK_HZ )
-
 #if defined( ELUA_BOARD_EKLM3S6965 )
   // EK-LM3S6965
   #define MMCFS_CS_PORT                3
