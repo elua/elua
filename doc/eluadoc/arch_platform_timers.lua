@@ -343,6 +343,11 @@ interrupt %period% (in microseconds) instead of its frequency. Use the latter fo
   return cmn_systimer_get();
 }~</li></ol>
   <p>Note that the above mechanism is optional. A platform might have a different method to implement the system timer; this is OK as long as the system timer requirements are respected.</p>
+  <p><span class="warning">IMPORTANT NOTE</span>: although system timer support in eLua is optional, implementing the system timer is highly recommended. As already specified, all the timer IDs
+in various eLua modules default to the system timer. This means that any code that was written under the assumption that a system timer is present (which is a fair assumption) will fail on 
+platforms that don't actually have a system timer. Check @status.html#systmr@here@ for a list of platforms that implement the system timer. If your platform doesn't implement the
+system timer, you'll get this warning at compile time:</p>
+ ~#warning This platform does not have a system timer. Your eLua image might not work as expected.~
 ]]
   }
  }
