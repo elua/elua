@@ -317,7 +317,7 @@ to modify them, so don't worry about the apparent complexity. The examples at th
 
 ------------------------------------
 $ scons
-  [target=lua | lualong]
+  [target=lua | lualong | lualonglong]
   [cpu=<cpuname>]
   [board=<boardname>]
   [cpumode=arm | thumb]
@@ -338,8 +338,9 @@ one CPU. This allows the build system to be very flexible. You can use these two
 For board/CPU assignment, look at the beginning of the SConstruct file (the _platform_list_), it's self-explanatory. +
 The other options are as follows:
 
-* **target=lua | lualong**: specify if you want to build "regular" Lua (with floating point support) or integer only Lua (lualong). The default is "lua". "lualong" runs faster on
-  targets that don't have a floating point co-processor, but it completely lacks support for floating point operations, it can only handle integers.
+* **target=lua | lualong | lualonglong**: specify if you want to build "regular" Lua (with floating point support). 32 bit integer only Lua (lualong) or 64 bit integer only Lua (lualonglong,
+  starting with version 0.9).  The default is "lua". "lualong" and "lualonglong" run faster on targets that don't have a floating point co-processor, but they completely lack support for floating 
+  point operations, they can only handle integers. Also, "lualonglong" doesn't support cross-compilation of Lua source files to bytecode (check link:arch_romfs.html#mode[here] for details).
 
 * **cpumode=arm | thumb**: for ARM targets (not Cortex) this specifies the compilation mode. Its default value is 'thumb' for AT91SAM7X targets and 'arm' for STR9, LPC2888 and LPC2468 targets.
 
