@@ -48,8 +48,8 @@ you have a list of parameters that you might want to change:</p>
     but doing so when you have to transfer large amounts of data will slow the transfer speed. 1k seems to be a good compromise.</li>
   <li><b>UIP_CONF_UDP</b>: turn off UDP support. While <b>eLua</b> doesn't have support for UDP via its <b>net</b> module at this time, UDP can still
     be used (for example by DNS/DHCP), so be careful if you disable this.</li>
-  <li><b>ELUA_DHCP_TIMER_ID</b>: the timer ID used for the TCP/IP subsystem. Note that this should be a dedicated timer, not available to the rest 
-    of the system (or available in "read-only" mode).</li>
+  <li><b>ELUA_DHCP_TIMER_ID</b>: the timer ID used for the TCP/IP subsystem. If not specified it defaults to the link:arch_platform_timers.html#the_system_timer[system timer].
+    If the system timer is <b>not</b> used, please note that this should be a dedicated timer, not available to the rest of the system (or available in "read-only" mode). </li>
 </ul>
 <br />
 

@@ -143,7 +143,7 @@ enum
       ret = 
       {
         "if $timeout = 0$ and data from the UART is available when the function is called it is returned, otherwise -1 is returned",
-        "if $timeout$ = @#uart_timeout@PLATFORM_UART_INIFINITE_TIMEOUT@ it returns the data read from the UART after it becomes available"
+        "if $timeout = PLATFORM_TIMER_INF_TIMEOUT$ it returns the data read from the UART after it becomes available"
       }
     },
 
