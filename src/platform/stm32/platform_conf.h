@@ -31,12 +31,13 @@
 #define BUILD_LUA_INT_HANDLERS
 #define ENABLE_ENC
 
+#define PLATFORM_HAS_SYSTIMER
+
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 
 #define CON_UART_ID           0
 #define CON_UART_SPEED        115200
-#define CON_TIMER_ID          0
 #define TERM_LINES            25
 #define TERM_COLS             80
 
@@ -132,7 +133,6 @@
 
 // RPC boot options
 #define RPC_UART_ID           CON_UART_ID
-#define RPC_TIMER_ID          CON_TIMER_ID
 #define RPC_UART_SPEED        CON_UART_SPEED
 
 
@@ -161,7 +161,6 @@ u32 platform_s_cpu_get_frequency();
 // Remote file system data
 #define RFS_BUFFER_SIZE       BUF_SIZE_512
 #define RFS_UART_ID           0
-#define RFS_TIMER_ID          0
 #define RFS_TIMEOUT           100000
 #define RFS_UART_SPEED        115200
 

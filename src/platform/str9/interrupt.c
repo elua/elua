@@ -93,6 +93,8 @@ void ARMRX_IRQHandler(void)
 void ARMTX_IRQHandler(void)
 {
 }
+
+#if 0
 /*******************************************************************************
 * Function Name  : TIM0_IRQHandler
 * Description    : This function handles the TIM0 interrupt request
@@ -121,6 +123,8 @@ void TIM2_IRQHandler(void)
 void TIM3_IRQHandler(void)
 {
 }
+#endif
+
 /*******************************************************************************
 * Function Name  : USBHP_IRQHandler
 * Description    : This function handles the USBHP interrupt request

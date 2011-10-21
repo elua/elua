@@ -545,10 +545,10 @@ elua_net_size elua_net_send( int s, const void* buf, elua_net_size len )
 }
 
 // Internal "read" function
-static elua_net_size elua_net_recv_internal( int s, void* buf, elua_net_size maxsize, s16 readto, unsigned timer_id, u32 to_us, int with_buffer )
+static elua_net_size elua_net_recv_internal( int s, void* buf, elua_net_size maxsize, s16 readto, unsigned timer_id, timer_data_type to_us, int with_buffer )
 {
   volatile struct elua_uip_state *pstate = ( volatile struct elua_uip_state* )&( uip_conns[ s ].appstate );
-  u32 tmrstart = 0;
+  timer_data_type tmrstart = 0;
   int old_status;
   
   if( !ELUA_UIP_IS_SOCK_OK( s ) || !uip_conn_active( s ) )
@@ -557,12 +557,12 @@ static elua_net_size elua_net_recv_internal( int s, void* buf, elua_net_size max
     return 0;
   elua_prep_socket_state( pstate, buf, maxsize, readto, with_buffer, ELUA_UIP_STATE_RECV );
   if( to_us > 0 )
-    tmrstart = platform_timer_op( timer_id, PLATFORM_TIMER_OP_START, 0 );
+    tmrstart = platform_timer_start( timer_id );
   while( 1 )
   {
     if( pstate->state == ELUA_UIP_STATE_IDLE )
       break;
-    if( to_us > 0 && platform_timer_get_diff_us( timer_id, tmrstart, platform_timer_op( timer_id, PLATFORM_TIMER_OP_READ, 0 ) ) >= to_us )
+    if( to_us > 0 && platform_timer_get_diff_crt( timer_id, tmrstart ) >= to_us )
     {
       old_status = platform_cpu_set_global_interrupts( PLATFORM_CPU_DISABLE );
       if( pstate->state != ELUA_UIP_STATE_IDLE )
@@ -578,13 +578,13 @@ static elua_net_size elua_net_recv_internal( int s, void* buf, elua_net_size max
 }
 
 // Receive data in buf, upto "maxsize" bytes, or upto the 'readto' character if it's not -1
-elua_net_size elua_net_recv( int s, void* buf, elua_net_size maxsize, s16 readto, unsigned timer_id, u32 to_us )
+elua_net_size elua_net_recv( int s, void* buf, elua_net_size maxsize, s16 readto, unsigned timer_id, timer_data_type to_us )
 {
   return elua_net_recv_internal( s, buf, maxsize, readto, timer_id, to_us, 0 );
 }
 
 // Same thing, but with a Lua buffer as argument
-elua_net_size elua_net_recvbuf( int s, luaL_Buffer* buf, elua_net_size maxsize, s16 readto, unsigned timer_id, u32 to_us )
+elua_net_size elua_net_recvbuf( int s, luaL_Buffer* buf, elua_net_size maxsize, s16 readto, unsigned timer_id, timer_data_type to_us )
 {
   return elua_net_recv_internal( s, buf, maxsize, readto, timer_id, to_us, 1 );
 }
@@ -627,9 +627,9 @@ int elua_net_get_last_err( int s )
 }
 
 // Accept a connection on the given port, return its socket id (and the IP of the remote host by side effect)
-int elua_accept( u16 port, unsigned timer_id, u32 to_us, elua_net_ip* pfrom )
+int elua_accept( u16 port, unsigned timer_id, timer_data_type to_us, elua_net_ip* pfrom )
 {
-  u32 tmrstart = 0;
+  timer_data_type tmrstart = 0;
   int old_status;
   
   if( !elua_uip_configured )
@@ -645,12 +645,12 @@ int elua_accept( u16 port, unsigned timer_id, u32 to_us, elua_net_ip* pfrom )
   elua_uip_accept_sock = -1;
   elua_uip_accept_request = 1;
   if( to_us > 0 )
-    tmrstart = platform_timer_op( timer_id, PLATFORM_TIMER_OP_START, 0 );
+    tmrstart = platform_timer_start( timer_id );
   while( 1 )
   {
     if( elua_uip_accept_request == 0 )
       break;
-    if( to_us > 0 && platform_timer_get_diff_us( timer_id, tmrstart, platform_timer_op( timer_id, PLATFORM_TIMER_OP_READ, 0 ) ) >= to_us )
+    if( to_us > 0 && platform_timer_get_diff_crt( timer_id, tmrstart ) >= to_us )
     {
       elua_uip_accept_request = 0;
       break;

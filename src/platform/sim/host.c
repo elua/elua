@@ -1,11 +1,12 @@
 #include "host.h"
 
-#define __NR_read     3
-#define __NR_write    4
-#define __NR_mmap2    192
-#define __NR_exit     1
-#define __NR_open     5 
-#define __NR_close    6
+#define __NR_read             3
+#define __NR_write            4
+#define __NR_mmap2            192
+#define __NR_exit             1
+#define __NR_open             5
+#define __NR_close            6
+#define __NR_gettimeofday     78
 
 int host_errno = 0;
 
@@ -24,6 +25,16 @@ long __res; \
 __asm__ volatile ("int $0x80" \
         : "=a" (__res) \
         : "0" (__NR_##name),"b" ((long)(arg1))); \
+__syscall_return(type,__res); \
+}
+
+#define _syscall2(type,name,type1,arg1,type2,arg2) \
+type host_##name(type1 arg1,type2 arg2) \
+{ \
+long __res; \
+__asm__ volatile ("int $0x80" \
+        : "=a" (__res) \
+        : "0" (__NR_##name),"b" ((long)(arg1)),"c" ((long)(arg2))); \
 __syscall_return(type,__res); \
 }
 
@@ -58,4 +69,5 @@ _syscall3(int, open, const char*, pathname, int, flags, mode_t, mode);
 _syscall6(void *,mmap2, void *,addr, size_t, length, int, prot, int, flags, int, fd, off_t, offset);
 _syscall1(void, exit, int, status);
 _syscall1(int, close, int, status);
+_syscall2(int, gettimeofday, struct timeval*, tv, struct timezone*, tz);
 

@@ -58,6 +58,54 @@ static int eth_timer_fired;
 #endif // BUILD_UIP
 
 // ****************************************************************************
+// AVR32 system timer implementation
+
+// Since the timer hardware (TC) on the AVR32 is pretty basic (16-bit timers,
+// limited prescaling options) we'll be using the PWM subsystem for the system
+// timer. The PWM hardware has much better prescaling options and it uses 20-bit
+// timers which are perfect for our needs. As a bonus, each PWM channel can be
+// clocked from two independent linear prescalers (CLKA and CLKB). The AVR32
+// PWM driver (pwm.c) uses only CLKA and disables CLKB, so by using CLKB we
+// won't change the regular PWM behaviour. The only downside is that we'll steal
+// a PWM channel for the system timer.
+
+#define SYSTIMER_PWM_CH       6
+
+__attribute__((__interrupt__)) static void systimer_int_handler()
+{
+  volatile u32 dummy = AVR32_PWM.isr; // clear interrupt
+
+  ( void )dummy;
+  cmn_systimer_periodic();
+}
+
+static void platform_systimer_init()
+{
+  avr32_pwm_mr_t mr = AVR32_PWM.MR;
+
+  // Set CLKB prescaler for 1MHz clock (which is exactly our system clock frequency)
+  mr.preb = 0; // main source clock is MCK (PBA)
+  mr.divb = REQ_PBA_FREQ / 1000000; // set CLKB to 1MHz
+  AVR32_PWM.MR = mr;
+
+  // Now setup our PWM channel
+  // Clock from CLKB, left aligned (the other parameters are not important)
+  AVR32_PWM.channel[ SYSTIMER_PWM_CH ].cmr = AVR32_PWM_CMR_CPRE_CLKB;
+  // The period register is 20-bit wide (1048576). We set it so we get interrupts
+  // every second (which results in a very reasonable system load)
+  AVR32_PWM.channel[ SYSTIMER_PWM_CH ].cprd = 1000000;
+  // The duty cycle is arbitrary set to 50%
+  AVR32_PWM.channel[ SYSTIMER_PWM_CH ].cdty = 500000;
+
+  // Setup PWM interrupt
+  INTC_register_interrupt( &systimer_int_handler, AVR32_PWM_IRQ, AVR32_INTC_INT0 );
+  AVR32_PWM.ier = 1 << SYSTIMER_PWM_CH;
+
+  // Enable the channel
+  AVR32_PWM.ena = 1 << SYSTIMER_PWM_CH;
+}
+
+// ****************************************************************************
 // Platform initialization
 #ifdef BUILD_UIP
 u32 platform_ethernet_setup( void );
@@ -233,7 +281,6 @@ int platform_init()
   pwm_init();
 #endif
 
-
 #ifdef BUILD_UIP
     platform_ethernet_setup();
 #endif
@@ -247,6 +294,12 @@ int platform_init()
   // UART0 RX pin is on GPIO port A pin 0, hence port 0, pin mask (1 << 0)
   platform_pio_op( 0, ( pio_type )1 << 0 , PLATFORM_IO_PIN_PULLUP );
 #endif
+
+  // Setup system timer
+  // NOTE: this MUST come AFTER pwm_init!
+  cmn_systimer_set_base_freq( 1000000 );
+  cmn_systimer_set_interrupt_freq( 1 );
+  platform_systimer_init();
 
   cmn_platform_init();
 
@@ -399,7 +452,7 @@ void platform_s_uart_send( unsigned id, u8 data )
   pusart->thr = ( data << AVR32_USART_THR_TXCHR_OFFSET ) & AVR32_USART_THR_TXCHR_MASK;
 }
 
-int platform_s_uart_recv( unsigned id, s32 timeout )
+int platform_s_uart_recv( unsigned id, timer_data_type timeout )
 {
   volatile avr32_usart_t *pusart = ( volatile avr32_usart_t* )uart_base_addr[ id ];
   int temp;
@@ -529,7 +582,7 @@ static u32 platform_timer_set_clock( unsigned id, u32 clock )
 #endif
 }
 
-void platform_s_timer_delay( unsigned id, u32 delay_us )
+void platform_s_timer_delay( unsigned id, timer_data_type delay_us )
 {
   volatile avr32_tc_t *tc = &AVR32_TC;
   u32 freq;
@@ -547,7 +600,7 @@ void platform_s_timer_delay( unsigned id, u32 delay_us )
   while( ( tc_read_tc( tc, id ) < final ) && !sr->covfs );
 }
 
-u32 platform_s_timer_op( unsigned id, int op, u32 data )
+timer_data_type platform_s_timer_op( unsigned id, int op, timer_data_type data )
 {
   u32 res = 0;
   volatile int i;
@@ -580,13 +633,37 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
     case PLATFORM_TIMER_OP_GET_CLOCK:
       res = platform_timer_get_clock( id );
       break;
+
+    case PLATFORM_TIMER_OP_GET_MAX_CNT:
+      res = 0xFFFF;
+      break;
   }
   return res;
 }
 
-int platform_s_timer_set_match_int( unsigned id, u32 period_us, int type )
+int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int type )
 {
   return PLATFORM_TIMER_INT_INVALID_ID;
+}
+
+u64 platform_timer_sys_raw_read()
+{
+  return AVR32_PWM.channel[ SYSTIMER_PWM_CH ].ccnt;
+}
+
+void platform_timer_sys_disable_int()
+{
+  AVR32_PWM.idr = 1 << SYSTIMER_PWM_CH;
+}
+
+void platform_timer_sys_enable_int()
+{
+  AVR32_PWM.ier = 1 << SYSTIMER_PWM_CH;
+}
+
+timer_data_type platform_timer_read_sys()
+{
+  return cmn_systimer_get();
 }
 
 // ****************************************************************************
@@ -824,6 +901,11 @@ int platform_adc_start_sequence( )
 
 #if NUM_PWM > 0
 
+// One PWM channel is used by the AVR32 system timer (look at the start of this
+// file for more information). Currently this channel is hardcoded in platform.c
+// (SYSTIMER_PWM_CH) to 6. If this is not convenient feel free to move the
+// definition of SYSTIMER_PWM_CH in platform_conf.h and select another PWM channel,
+// BUT remember to modify the below PWM pin mapping accordingly!
 static const gpio_map_t pwm_pins =
 {
 #if ( BOARD == ATEVK1100 ) || ( BOARD == MIZAR32 )
@@ -833,7 +915,7 @@ static const gpio_map_t pwm_pins =
   { AVR32_PWM_3_PIN, AVR32_PWM_3_FUNCTION },      // PB22 - LED7
   { AVR32_PWM_4_1_PIN, AVR32_PWM_4_1_FUNCTION },  // PB27 - LED0
   { AVR32_PWM_5_1_PIN, AVR32_PWM_5_1_FUNCTION },  // PB28 - LED1
-  { AVR32_PWM_6_PIN, AVR32_PWM_6_FUNCTION },      // PB18 - LCD_C / GPIO50
+//  { AVR32_PWM_6_PIN, AVR32_PWM_6_FUNCTION },      // PB18 - LCD_C / GPIO50
 #elif BOARD == ATEVK1101
   { AVR32_PWM_0_0_PIN, AVR32_PWM_0_0_FUNCTION },  // PA7  LED0
   { AVR32_PWM_1_0_PIN, AVR32_PWM_1_0_FUNCTION },  // PA8  LED1
@@ -841,7 +923,7 @@ static const gpio_map_t pwm_pins =
   { AVR32_PWM_3_0_PIN, AVR32_PWM_3_0_FUNCTION },  // PA14 ? or _1 PA25
   { AVR32_PWM_4_1_PIN, AVR32_PWM_4_1_FUNCTION },  // PA28 - audio out
   { AVR32_PWM_5_1_PIN, AVR32_PWM_5_1_FUNCTION },  // PB5: UART1-RTS & Nexus i/f EVTIn / _0 PA18=Xin0
-  { AVR32_PWM_6_0_PIN, AVR32_PWM_6_0_FUNCTION },  // PA22 - LED3 and audio out
+//  { AVR32_PWM_6_0_PIN, AVR32_PWM_6_0_FUNCTION },  // PA22 - LED3 and audio out
 #endif
 };
 
@@ -935,7 +1017,6 @@ static void pwm_find_clock_configuration( u32 frequency,
   return;
 }
 #undef prescalers
-
 
 u32 platform_pwm_set_clock( unsigned id, u32 freq )
 {

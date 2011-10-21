@@ -33,7 +33,6 @@
 //#define CON_UART_ID         ( SERMUX_SERVICE_ID_FIRST + 1 )
 #define CON_UART_ID         0
 #define CON_UART_SPEED      115200
-#define CON_TIMER_ID        0
 #define TERM_LINES          25
 #define TERM_COLS           80
 
@@ -116,14 +115,13 @@
 #else
 #define NUM_TIMER             3
 #endif
-#define NUM_PWM               7
+#define NUM_PWM               6
 #define NUM_I2C               1
 #define NUM_ADC               8
 #define NUM_CAN               0
 
 // RPC boot options
 #define RPC_UART_ID           CON_UART_ID
-#define RPC_TIMER_ID          CON_TIMER_ID
 #define RPC_UART_SPEED        CON_UART_SPEED
 
 // Enable RX buffering on UART
@@ -164,7 +162,6 @@
 
 #define RFS_BUFFER_SIZE       BUF_SIZE_512
 #define RFS_UART_ID           ( SERMUX_SERVICE_ID_FIRST )
-#define RFS_TIMER_ID          0
 #define RFS_TIMEOUT           100000
 #define RFS_UART_SPEED        115200
 

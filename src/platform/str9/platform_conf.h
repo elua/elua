@@ -22,6 +22,8 @@
 #define BUILD_LUA_INT_HANDLERS
 #define BUILD_C_INT_HANDLERS
 
+#define PLATFORM_HAS_SYSTIMER
+
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 
@@ -32,7 +34,6 @@
 #endif
 
 #define CON_UART_SPEED        115200
-#define CON_TIMER_ID          0
 #define TERM_LINES            25
 #define TERM_COLS             80
 
@@ -41,8 +42,8 @@
 
 // Virtual timers (0 if not used)
 #define VTMR_NUM_TIMERS       4
-#define VTMR_FREQ_HZ          10
-#define VTMR_TIMER_ID         2
+#define VTMR_FREQ_HZ          16
+#define VTMR_TIMER_ID         3
 
 // Number of resources (0 if not available/not implemented)
 #define NUM_PIO               10
@@ -53,11 +54,8 @@
 #define NUM_CAN               0
 #define NUM_I2C               2
 
-#ifdef VTMR_TIMER_ID
+// One timer is reserved for the system timer / vtimers
 #define NUM_TIMER             3
-#else
-#define NUM_TIMER             4
-#endif
 #define NUM_PHYS_TIMER        4
 
 // ADC Configuration Params
@@ -71,7 +69,6 @@
 
 // RPC boot options
 #define RPC_UART_ID           CON_UART_ID
-#define RPC_TIMER_ID          CON_TIMER_ID
 #define RPC_UART_SPEED        CON_UART_SPEED
 
 // Interrupt queue configuration

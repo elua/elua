@@ -1,4 +1,4 @@
-// Platform-dependent functions
+// platform-dependent functions
 
 #include "platform.h"
 #include "type.h"
@@ -21,6 +21,7 @@
 #include "aic.h"
 #include "platform_conf.h"
 #include "buf.h"
+#include "pit.h"
 
 // "Stubs" used for our interrupt handlers
 // Just a trick to avoid interworking and some other complications
@@ -32,6 +33,41 @@
   "pop  {r0}\n\t"\
   "bx   r0\n\t"\
  )\
+
+// ****************************************************************************
+// AT91SAM7X system timer
+// We implement this using the PIT, as it has a 20-bit counter (the timers only
+// have 16-bit counters) and is not used by eLua in any other way. It is clocked
+// at 3MHz (MCLK/16) which means we have 3 ticks per microsecond. To keep things
+// as precise as possible, we choose the counter limit to be a multiple of 3.
+// This translates to limit = 1048575 (kept as high as possible to minimize system
+// impact), which means PIV = 1048574 (since the period is PIV + 1) which in turn
+// means 349525us/interrupt
+
+#define SYSTIMER_US_PER_INTERRUPT 349525
+#define SYSTIMER_LIMIT            1048574
+#define SYSTIMER_MASK             ( ( 1 << 20 ) - 1 )
+
+void __isr_pit_helper()
+{
+  PIT_GetPIVR();
+  cmn_systimer_periodic();
+  AT91C_BASE_AIC->AIC_ICCR = 1 << AT91C_ID_SYS;
+}
+
+static void __attribute__((naked)) ISR_Pit()
+{
+  INT_STUB( __isr_pit_helper );
+}
+
+static void platform_systimer_init()
+{
+  PIT_SetPIV( SYSTIMER_LIMIT );
+  AIC_ConfigureIT( AT91C_ID_SYS, 0, ISR_Pit );
+  PIT_EnableIT();
+  AIC_EnableIT( AT91C_ID_SYS );
+  PIT_Enable();
+}
 
 // ****************************************************************************
 // Platform initialization
@@ -98,7 +134,12 @@ int platform_init()
   AT91C_BASE_TC2->TC_IER = AT91C_TC_CPCS;
   AIC_EnableIT( AT91C_ID_TC2 );  
   TC_Start( AT91C_BASE_TC2 );
-#endif
+#endif  
+
+  // Initialize the system timer
+  cmn_systimer_set_base_freq( BOARD_MCK / 16 );
+  cmn_systimer_set_interrupt_period_us( SYSTIMER_US_PER_INTERRUPT );
+  platform_systimer_init();
     
   return PLATFORM_OK;
 } 
@@ -228,7 +269,7 @@ void platform_s_uart_send( unsigned id, u8 data )
   USART_Write( base, data, 0 );
 }
 
-int platform_s_uart_recv( unsigned id, s32 timeout )
+int platform_s_uart_recv( unsigned id, timer_data_type timeout )
 {
   AT91S_USART* base = id == 0 ? AT91C_BASE_US0 : AT91C_BASE_US1;  
     
@@ -276,7 +317,7 @@ static u32 platform_timer_set_clock( unsigned id, u32 clock )
   return BOARD_MCK / clkdivs[ mini ];
 }
 
-void platform_s_timer_delay( unsigned id, u32 delay_us )
+void platform_s_timer_delay( unsigned id, timer_data_type delay_us )
 {
   AT91S_TC* base = ( AT91S_TC* )timer_base[ id ];  
   u32 freq;
@@ -292,7 +333,7 @@ void platform_s_timer_delay( unsigned id, u32 delay_us )
   while( base->TC_CV < final );  
 }
 
-u32 platform_s_timer_op( unsigned id, int op, u32 data )
+timer_data_type platform_s_timer_op( unsigned id, int op, timer_data_type data )
 {
   u32 res = 0;
   AT91S_TC* base = ( AT91S_TC* )timer_base[ id ];
@@ -325,8 +366,32 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
     case PLATFORM_TIMER_OP_GET_CLOCK:
       res = platform_timer_get_clock( id );
       break;
+
+    case PLATFORM_TIMER_OP_GET_MAX_CNT:
+      res = 0xFFFF;
+      break;
   }
   return res;
+}
+
+u64 platform_timer_sys_raw_read()
+{
+  return PIT_GetPIIR() & SYSTIMER_MASK;
+}
+
+void platform_timer_sys_disable_int()
+{
+  PIT_DisableIT();
+}
+
+void platform_timer_sys_enable_int()
+{
+  PIT_EnableIT();
+}
+
+timer_data_type platform_timer_read_sys()
+{
+  return cmn_systimer_get();
 }
 
 // ****************************************************************************
