@@ -74,6 +74,10 @@
   #endif
 #endif
 
+#if defined( BUILD_MMCFS ) && !defined( PLATFORM_HAS_SYSTIMER )
+  #error "BUILD_MMCFS needs system timer support. Ensure your platform has this implemented and PLATFORM_HAS_SYSTIMER is defined"
+#endif
+
 // CON_BUF_SIZE needs BUF_ENABLE_UART and CON_UART_ID
 #if defined( CON_BUF_SIZE )
   #if !defined( BUF_ENABLE_UART )
