@@ -77,7 +77,7 @@
 // Interrupt queue configuration
 #define PLATFORM_INT_QUEUE_LOG_SIZE   BUF_SIZE_32
 
-// CPU frequency (needed by the CPU module, 0 if not used)
+// CPU frequency (needed by the CPU module and MMCFS code, 0 if not used)
 u32 SCU_GetMCLKFreqValue();
 #define CPU_FREQUENCY         ( SCU_GetMCLKFreqValue() * 1000 )
 

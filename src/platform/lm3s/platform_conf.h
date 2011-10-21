@@ -231,7 +231,7 @@
 #endif
 
 
-// CPU frequency (needed by the CPU module, 0 if not used)
+// CPU frequency (needed by the CPU module and MMCFS code, 0 if not used)
 #define CPU_FREQUENCY         SysCtlClockGet()
 
 // PIO prefix ('0' for P0, P1, ... or 'A' for PA, PB, ...)

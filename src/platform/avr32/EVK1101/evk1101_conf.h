@@ -111,7 +111,7 @@
 #define MMCFS_CS_PORT     0  //PA17
 #define MMCFS_CS_PIN      SD_MMC_SPI_NPCS_PIN
 
-// CPU frequency (needed by the CPU module, 0 if not used)
+// CPU frequency (needed by the CPU module and MMCFS code, 0 if not used)
 #define CPU_FREQUENCY         REQ_CPU_FREQ
 
 // PIO prefix ('0' for P0, P1, ... or 'A' for PA, PB, ...)

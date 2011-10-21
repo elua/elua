@@ -73,7 +73,7 @@
 #define RPC_TIMER_ID          CON_TIMER_ID
 #define RPC_UART_SPEED        CON_UART_SPEED
 
-// CPU frequency (needed by the CPU module, 0 if not used)
+// CPU frequency (needed by the CPU module and MMCFS code, 0 if not used)
 #define CPU_FREQUENCY         0
 
 // PIO prefix ('0' for P0, P1, ... or 'A' for PA, PB, ...)

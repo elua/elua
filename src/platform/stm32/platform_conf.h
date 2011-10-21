@@ -146,7 +146,7 @@
 #define MMCFS_CS_PIN                 8
 #define MMCFS_SPI_NUM                0
 
-// CPU frequency (needed by the CPU module, 0 if not used)
+// CPU frequency (needed by the CPU module and MMCFS code, 0 if not used)
 u32 platform_s_cpu_get_frequency();
 #define CPU_FREQUENCY         platform_s_cpu_get_frequency()
 
