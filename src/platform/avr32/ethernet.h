@@ -275,7 +275,7 @@ to use an MII interface. */
 #define ETHERNET_CONF_TX_BUFFER_SIZE       512
 
 /*! Clock definition */
-#define ETHERNET_CONF_SYSTEM_CLOCK         60000000
+#define ETHERNET_CONF_SYSTEM_CLOCK         REQ_CPU_FREQ
 
 /*! Allow Auto Negociation */
 #define ETHERNET_CONF_AN_ENABLE            1
