@@ -817,7 +817,6 @@ int platform_adc_update_sequence( )
 
 __attribute__((__interrupt__)) static void adc_int_handler()
 {
-  int i;
   elua_adc_dev_state *d = adc_get_dev_state( 0 );
   elua_adc_ch_state *s;
 
