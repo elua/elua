@@ -257,10 +257,10 @@ int platform_init()
   spiopt.modfdis = TRUE;
   spiopt.pcs_decode = FALSE;
   spiopt.delay = 0;
-  spi_initMaster(&AVR32_SPI0, &spiopt, REQ_PBA_FREQ);
+  spi_initMaster(&AVR32_SPI0, &spiopt, REQ_CPU_FREQ);
 
 #if NUM_SPI > 4
-  spi_initMaster(&AVR32_SPI1, &spiopt, REQ_PBA_FREQ);
+  spi_initMaster(&AVR32_SPI1, &spiopt, REQ_CPU_FREQ);
 #endif
 
 #endif
@@ -710,7 +710,7 @@ u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigne
 
   // Set actual interface
   gpio_enable_module(spi_pins + (id >> 2) * 4, 4);
-  spi_setupChipReg((volatile avr32_spi_t *) spireg[id >> 2], id % 4, &opt, REQ_PBA_FREQ);
+  spi_setupChipReg((volatile avr32_spi_t *) spireg[id >> 2], id % 4, &opt, REQ_CPU_FREQ);
 
   // TODO: return the actual baudrate.
   return clock;
