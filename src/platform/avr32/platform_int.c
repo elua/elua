@@ -85,7 +85,10 @@ static void tmr_match_common_handler( int id )
   else
     cmn_int_handler( INT_TMR_MATCH, id );
   if( avr32_timer_int_periodic_flag[ id ] != PLATFORM_TIMER_INT_CYCLIC )
+  {
+    tc->channel[ id ].IDR.cpcs = 1;
     tc->channel[ id ].CMR.waveform.wavsel = TC_WAVEFORM_SEL_UP_MODE;
+  }
 }
 
 __attribute__((__interrupt__)) static void tmr0_int_handler()
