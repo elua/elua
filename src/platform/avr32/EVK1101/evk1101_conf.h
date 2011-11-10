@@ -128,10 +128,12 @@
 
 // Interrupt list
 #define INT_UART_RX           ELUA_INT_FIRST_ID
-#define INT_ELUA_LAST         INT_UART_RX
+#define INT_TMR_MATCH         ( ELUA_INT_FIRST_ID + 1 )
+#define INT_ELUA_LAST         INT_TMR_MATCH
 
 #define PLATFORM_CPU_CONSTANTS\
- _C( INT_UART_RX )
+ _C( INT_UART_RX ),\
+ _C( INT_TMR_MATCH )
  
 // *****************************************************************************
 // CPU constants that should be exposed to the eLua "cpu" module
