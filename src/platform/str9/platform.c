@@ -916,7 +916,7 @@ u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigne
     GPIO_InitStructure.GPIO_Alternate = GPIO_OutputAlt3;
     GPIO_Init(GPIO1, &GPIO_InitStructure);
 	
-	GPIO_InitStructure.GPIO_Direction = GPIO_PinOutput;
+    GPIO_InitStructure.GPIO_Direction = GPIO_PinOutput;
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1 | GPIO_Pin_3;
     GPIO_InitStructure.GPIO_Type = GPIO_Type_PushPull;
     GPIO_InitStructure.GPIO_Alternate = GPIO_OutputAlt3;
@@ -962,7 +962,7 @@ spi_data_type platform_spi_send_recv( unsigned id, spi_data_type data )
   }
   else
   {
-	// Send byte through the SSP1 peripheral
+    // Send byte through the SSP1 peripheral
     SSP1->DR = data;
     // Loop while Transmit FIFO is full
     while(SSP_GetFlagStatus(SSP1, SSP_FLAG_TxFifoEmpty) == RESET);
