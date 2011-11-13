@@ -114,7 +114,7 @@ BYTE wait_ready (void)
     rcvr_spi();
     do  
         res = rcvr_spi(); /* Wait for ready in timeout of 500ms. */
-    while ( ( res != 0xFF ) && ( platform_timer_get_diff_crt( PLATFORM_TIMER_SYS_ID, Timer1 ) < 500000 ) );
+    while ( ( res != 0xFF ) && ( platform_timer_get_diff_crt( PLATFORM_TIMER_SYS_ID, Timer2 ) < 500000 ) );
 
     return res;
 }
