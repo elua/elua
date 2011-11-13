@@ -1132,6 +1132,8 @@ void EthernetIntHandler()
 // ****************************************************************************
 // USB functions
 
+#if defined( BUILD_USB_CDC )
+
 static void usb_init()
 {
   USBBufferInit( &g_sTxBuffer );
@@ -1314,6 +1316,8 @@ ControlHandler(void *pvCBData, unsigned long ulEvent, unsigned long ulMsgValue,
 
   return(0);
 }
+
+#endif // BUILD_USB_CDC
 
 // ****************************************************************************
 // Platform specific modules go here

@@ -20,7 +20,10 @@
 #define BUILD_SHELL
 #define BUILD_ROMFS
 #define BUILD_MMCFS
-#define BUILD_USB_CDC
+
+#if defined( ELUA_BOARD_SOLDERCORE )
+  #define BUILD_USB_CDC
+#endif
 
 #ifndef FORLM3S1968
   #define BUILD_UIP
@@ -42,7 +45,12 @@
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 
-#define CON_UART_ID           CDC_UART_ID
+#if defined( ELUA_BOARD_SOLDERCORE )
+#define CON_UART_ID         CDC_UART_ID
+#else
+#define CON_UART_ID           0
+#endif
+
 #define CON_UART_SPEED        115200
 #define TERM_LINES            25
 #define TERM_COLS             80
