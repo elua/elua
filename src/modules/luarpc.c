@@ -52,7 +52,8 @@ void *alloca(size_t);
 // Prototypes for Local Functions  
 LUALIB_API int luaopen_rpc( lua_State *L );
 Handle *handle_create( lua_State *L );
-
+static void rpc_dispatch_helper( lua_State *L, ServerHandle *handle );
+static int rpc_adispatch_helper( lua_State *L, ServerHandle * handle );
 
 struct exception_context the_exception_context[ 1 ];
 
@@ -1568,6 +1569,29 @@ static int rpc_dispatch( lua_State *L )
   return 0;
 }
 
+static int rpc_adispatch_helper( lua_State *L, ServerHandle * handle )
+{
+  // Check if we have waiting data that we can dispatch on,
+  // don't block if we don't have any data
+  if( transport_readable( &handle->atpt ) || transport_readable( &handle->ltpt ) )
+      rpc_dispatch_helper( L, handle );
+
+  return 0;
+}
+
+static int rpc_adispatch( lua_State *L )
+{
+
+  ServerHandle *handle = 0;
+
+  handle = ( ServerHandle * )luaL_checkudata(L, 1, "rpc.server_handle");
+  luaL_argcheck(L, handle, 1, "server handle expected");
+
+  handle = ( ServerHandle * )lua_touserdata( L, 1 );
+  rpc_adispatch_helper( L, handle );
+
+  return 0;
+}  
 
 // rpc_server( transport_identifier )
 static int rpc_server( lua_State *L )
@@ -1659,6 +1683,7 @@ const LUA_REG_TYPE rpc_map[] =
   {  LSTRKEY( "listen" ), LFUNCVAL( rpc_listen ) },
   {  LSTRKEY( "peek" ), LFUNCVAL( rpc_peek ) },
   {  LSTRKEY( "dispatch" ), LFUNCVAL( rpc_dispatch ) },
+  {  LSTRKEY( "adispatch" ), LFUNCVAL( rpc_adispatch ) },
 //  {  LSTRKEY( "rpc_async" ), LFUNCVAL( rpc_async ) },
 #if LUA_OPTIMIZE_MEMORY > 0
 // {  LSTRKEY("mode"), LSTRVAL( LUARPC_MODE ) }, 
@@ -1721,6 +1746,7 @@ static const luaL_reg rpc_map[] =
   { "listen", rpc_listen },
   { "peek", rpc_peek },
   { "dispatch", rpc_dispatch },
+  { "adispatch", rpc_adispatch },
 //  { "rpc_async", rpc_async },
   { NULL, NULL }
 };

@@ -19,7 +19,11 @@
 
 // [TODO] the new builder should automatically do this
 #ifndef RFS_FLOW_TYPE
-#define RFS_FLOW_TYPE        PLATFORM_UART_FLOW_NONE
+#define RFS_FLOW_TYPE         PLATFORM_UART_FLOW_NONE
+#endif
+
+#ifndef RFS_TIMER_ID
+#define RFS_TIMER_ID          PLATFORM_TIMER_SYS_ID
 #endif
 
 // Our RFS buffer
@@ -131,7 +135,7 @@ static u32 rfs_send( const u8 *p, u32 size )
   return size;
 }
 
-static u32 rfs_recv( u8 *p, u32 size, s32 timeout )
+static u32 rfs_recv( u8 *p, u32 size, timer_data_type timeout )
 {
   u32 cnt = 0;
   int data;
@@ -157,7 +161,7 @@ static u32 rfs_send( const u8 *p, u32 size )
   return ( u32 )hostif_write( rfs_write_fd, p, size );
 }
 
-static u32 rfs_recv( u8 *p, u32 size, s32 timeout )
+static u32 rfs_recv( u8 *p, u32 size, timer_data_type timeout )
 {
   timeout = timeout;
   return ( u32 )hostif_read( rfs_read_fd, p, size );

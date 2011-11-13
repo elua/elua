@@ -72,18 +72,6 @@ typedef union
   avr32_spi_csr0_t              CSR;
 } u_avr32_spi_csr_t;
 //! @}
-
-/*-----------------------------------------------------------*/
-static int getBaudDiv(const spi_options_t *options, U32 pba_hz)
-{
-  int baudDiv = (pba_hz + options->baudrate / 2) / options->baudrate;
-
-  if (baudDiv <= 0 || baudDiv > 255) {
-    return -1;
-  }
-
-  return baudDiv;
-}
 /*-----------------------------------------------------------*/
 void spi_reset(volatile avr32_spi_t *spi)
 {
@@ -98,14 +86,15 @@ int spi_initMaster(volatile avr32_spi_t *spi, const spi_master_options_t *opt, U
   spi->cr = AVR32_SPI_CR_SWRST_MASK;
 
   // Master Mode.
+  // The mode register's reset state is all 0s, so omit 0 values.
   u_avr32_spi_mr.mr = spi->mr;
   u_avr32_spi_mr.MR.dlybcs = opt->delay*(pba_hz/1000000UL);
   u_avr32_spi_mr.MR.pcs = (1 << AVR32_SPI_MR_PCS_SIZE) - 1;
-  u_avr32_spi_mr.MR.llb = 0;
+  //u_avr32_spi_mr.MR.llb = 0;
   u_avr32_spi_mr.MR.modfdis = opt->modfdis;
   //u_avr32_spi_mr.MR.fdiv = 0;
   u_avr32_spi_mr.MR.pcsdec = opt->pcs_decode;
-  u_avr32_spi_mr.MR.ps = 0;
+  //u_avr32_spi_mr.MR.ps = 0;
   u_avr32_spi_mr.MR.mstr = 1;
   spi->mr = u_avr32_spi_mr.mr;
 
@@ -116,20 +105,29 @@ int spi_initMaster(volatile avr32_spi_t *spi, const spi_master_options_t *opt, U
   return 0;
 }
 /*-----------------------------------------------------------*/
-int spi_setupChipReg(volatile avr32_spi_t *spi,
+// Changed for eLua not to set clock frequencies higher than requested
+// and to return the actual baud rate that was set.
+U32 spi_setupChipReg(volatile avr32_spi_t *spi,
                      unsigned char reg, const spi_options_t *options, U32 pba_hz)
 {
   u_avr32_spi_csr_t u_avr32_spi_csr;
+  U32 baudDiv;
 
   if (options->mode > 3 ||
       options->bits < 8 || options->bits > 16) {
-    return -1;
+    return 0;
   }
 
-  int baudDiv = getBaudDiv(options, pba_hz);
-
-  if (baudDiv < 0)
-    return -1;
+  // Use a frequency less than or equal to that requested, not the nearest
+  // available one, to avoid driving devices over their maximum speeds.
+  // A frequency less than or equal needs a divisor greater than or equal,
+  // and this formula cannot give a result of 0, so no need to check for it.
+  // Well, unless pba_hz is passed as 0...
+  if (options->baudrate == 0) baudDiv = 255;
+  else {
+    baudDiv = (pba_hz + options->baudrate - 1) / options->baudrate;
+    if (baudDiv > 255) baudDiv = 255;
+  }
 
   // Will use CSR0 offsets; these are the same for CSR0 to CSR3.
   u_avr32_spi_csr.csr = 0;
@@ -155,10 +153,11 @@ int spi_setupChipReg(volatile avr32_spi_t *spi,
       spi->csr3 = u_avr32_spi_csr.csr;
       break;
     default:
-      return -1;
+      return 0;  // Cannot happen in eLua
   }
 
-  return 0;
+  // Return the nearest integer to the actual baud rate
+  return (pba_hz + baudDiv/2) / baudDiv;
 }
 /*-----------------------------------------------------------*/
 int spi_selectChip(volatile avr32_spi_t *spi, unsigned char chip)
@@ -170,7 +169,7 @@ int spi_selectChip(volatile avr32_spi_t *spi, unsigned char chip)
     // The signal is decoded; allow up to 15 chips.
     if (chip > 14) goto err;
     spi->mr &= ~AVR32_SPI_MR_PCS_MASK | (chip << AVR32_SPI_MR_PCS_OFFSET);
-  }else {
+  } else {
     if (chip > 3) goto err;
     spi->mr &= ~(1 << (AVR32_SPI_MR_PCS_OFFSET + chip));
   }

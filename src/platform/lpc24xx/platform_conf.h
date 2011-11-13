@@ -20,18 +20,19 @@
 #define BUILD_CON_GENERIC
 #define BUILD_ADC
 #define BUILD_RPC
-#define BUILD_RFS
-#define BUILD_SERMUX
+//#define BUILD_RFS
+//#define BUILD_SERMUX
 #define BUILD_LUA_INT_HANDLERS
 #define BUILD_C_INT_HANDLERS
+
+#define PLATFORM_HAS_SYSTIMER
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 
-#define CON_UART_ID           ( SERMUX_SERVICE_ID_FIRST + 1 )
-//#define CON_UART_ID           0
+//#define CON_UART_ID           ( SERMUX_SERVICE_ID_FIRST + 1 )
+#define CON_UART_ID           0
 #define CON_UART_SPEED        115200
-#define CON_TIMER_ID          0
 #define TERM_LINES            25
 #define TERM_COLS             80
 
@@ -75,6 +76,7 @@
 
 // Virtual timers (0 if not used)
 #define VTMR_NUM_TIMERS       4
+// NOTE: DON'T define VTMR_FREQ_HZ as 0!
 #define VTMR_FREQ_HZ          4
 
 // Number of resources (0 if not available/not implemented)
@@ -108,10 +110,9 @@
 
 // RPC boot options
 #define RPC_UART_ID           CON_UART_ID
-#define RPC_TIMER_ID          CON_TIMER_ID
 #define RPC_UART_SPEED        CON_UART_SPEED
 
-// CPU frequency (needed by the CPU module, 0 if not used)
+// CPU frequency (needed by the CPU module and MMCFS code, 0 if not used)
 #define CPU_FREQUENCY         Fcclk
 
 // PIO prefix ('0' for P0, P1, ... or 'A' for PA, PB, ...)
@@ -123,9 +124,9 @@
 #define PIO_PINS_PER_PORT     32
 
 // Remote file system data
+/*
 #define RFS_BUFFER_SIZE       BUF_SIZE_512
 #define RFS_UART_ID           ( SERMUX_SERVICE_ID_FIRST )
-#define RFS_TIMER_ID          0
 #define RFS_TIMEOUT           100000
 #define RFS_UART_SPEED        115200
 
@@ -133,6 +134,7 @@
 #define SERMUX_PHYS_SPEED     115200
 #define SERMUX_NUM_VUART      2
 #define SERMUX_BUFFER_SIZES   { RFS_BUFFER_SIZE, CON_BUF_SIZE }
+*/
 
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)

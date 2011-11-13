@@ -13,10 +13,12 @@
 static int i2c_setup( lua_State *L )
 {
   unsigned id = luaL_checkinteger( L, 1 );
-  u32 speed = ( u32 )luaL_checkinteger( L, 2 );
+  s32 speed = ( s32 )luaL_checkinteger( L, 2 );
 
   MOD_CHECK_ID( i2c, id );
-  lua_pushinteger( L, platform_i2c_setup( id, speed ) );
+  if (speed <= 0)
+    return luaL_error( L, "frequency must be > 0" );
+  lua_pushinteger( L, platform_i2c_setup( id, (u32)speed ) );
   return 1;
 }
 
@@ -44,11 +46,13 @@ static int i2c_stop( lua_State *L )
 static int i2c_address( lua_State *L )
 {
   unsigned id = luaL_checkinteger( L, 1 );
-  u16 address = ( u16 )luaL_checkinteger( L, 2 );
+  int address = luaL_checkinteger( L, 2 );
   int direction = luaL_checkinteger( L, 3 );
 
   MOD_CHECK_ID( i2c, id );
-  lua_pushboolean( L, platform_i2c_send_address( id, address, direction ) );
+  if ( address < 0 || address > 127 )
+    return luaL_error( L, "slave address must be from 0 to 127" );
+  lua_pushboolean( L, platform_i2c_send_address( id, (u16)address, direction ) );
   return 1;
 }
 
@@ -74,7 +78,7 @@ static int i2c_write( lua_State *L )
     {
       numdata = ( int )luaL_checkinteger( L, argn );
       if( numdata < 0 || numdata > 255 )
-        return luaL_error( L, "numeric data can be between 0 and 255" );
+        return luaL_error( L, "numeric data must be from 0 to 255" );
       if( platform_i2c_send_byte( id, numdata ) != 1 )
         break;
       wrote ++;
@@ -85,10 +89,10 @@ static int i2c_write( lua_State *L )
       for( i = 0; i < datalen; i ++ )
       {
         lua_rawgeti( L, argn, i + 1 );
-        numdata = luaL_checkinteger( L, -1 );
+        numdata = ( int )luaL_checkinteger( L, -1 );
         lua_pop( L, 1 );
         if( numdata < 0 || numdata > 255 )
-          return luaL_error( L, "numeric data can be between 0 and 255" );
+          return luaL_error( L, "numeric data must be from 0 to 255" );
         if( platform_i2c_send_byte( id, numdata ) == 0 )
           break;
       }

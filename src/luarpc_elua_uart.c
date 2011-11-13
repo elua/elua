@@ -7,15 +7,29 @@
 
 #if defined( BUILD_RPC )
 
+// Buffer for async dispatch
+int adispatch_buff = -1;
+
+void set_adispatch_buff( int i )
+{
+  adispatch_buff = i;
+}
+
 // Setup Transport
-void transport_init (Transport *tpt)
+void transport_init( Transport *tpt )
 {
   tpt->fd = INVALID_TRANSPORT;
   tpt->tmr_id = 0;
 }
 
+// Read a char from serial buffer
+int transport_get_char(Transport *t)
+{
+  return platform_uart_recv( t->fd, t->tmr_id, 0 );
+}
+
 // Open Listener / Server
-void transport_open_listener(lua_State *L, ServerHandle *handle)
+void transport_open_listener( lua_State *L, ServerHandle *handle )
 {
   // Get args & Set up connection
   unsigned uart_id, tmr_id;
@@ -38,6 +52,9 @@ void transport_open_listener(lua_State *L, ServerHandle *handle)
   
   handle->ltpt.fd = ( int )uart_id;
   handle->ltpt.tmr_id = tmr_id;
+
+  // Setup uart
+  platform_uart_setup( (unsigned int) uart_id, 115200, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
 }
 
 // Open Connection / Client
@@ -59,33 +76,45 @@ int transport_open_connection(lua_State *L, Handle *handle)
   tmr_id = lua_tonumber( L, 1 );
   MOD_CHECK_ID( timer, tmr_id );
   
+  adispatch_buff = -1;
+
   handle->tpt.fd = ( int )uart_id;
   handle->tpt.tmr_id = tmr_id;
+
+  // Setup uart
+  platform_uart_setup( (unsigned int) uart_id, 115200, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
+
   return 1;
 }
 
 // Accept Connection 
-void transport_accept (Transport *tpt, Transport *atpt)
+void transport_accept( Transport *tpt, Transport *atpt )
 {
   struct exception e;
   TRANSPORT_VERIFY_OPEN;
   atpt->fd = tpt->fd;
 }
 
-
-
-void transport_read_buffer (Transport *tpt, u8 *buffer, int length)
+void transport_read_buffer( Transport *tpt, u8 *buffer, int length )
 {
   int n = 0;
   int c;
   struct exception e;
-  int uart_timeout = PLATFORM_UART_INFINITE_TIMEOUT; // not sure whether we should always follow this
-  
+  timer_data_type uart_timeout = PLATFORM_TIMER_INF_TIMEOUT; // not sure whether we should always follow this
+  // int uart_timeout = 100000;
+	
   while( n < length )
   {
     TRANSPORT_VERIFY_OPEN;
-    c = platform_uart_recv( tpt->fd, tpt->tmr_id, uart_timeout );
-        
+
+    if ( adispatch_buff < 0 )
+      c = platform_uart_recv( tpt->fd, tpt->tmr_id, uart_timeout );
+    else
+    {
+      c = adispatch_buff;
+      adispatch_buff = -1;
+    }
+
     if( c < 0 )
     {
       // uart_timeout = 1000000;  // Reset and use timeout of 1s
@@ -102,7 +131,6 @@ void transport_read_buffer (Transport *tpt, u8 *buffer, int length)
     //  should follow within a timeout of 0.1 sec
     uart_timeout = 100000;
   }
-  
 }
 
 void transport_write_buffer( Transport *tpt, const u8 *buffer, int length )
@@ -110,27 +138,40 @@ void transport_write_buffer( Transport *tpt, const u8 *buffer, int length )
   int i;
   struct exception e;
   TRANSPORT_VERIFY_OPEN;
-  
+	
   for( i = 0; i < length; i ++ )
-    platform_uart_send( CON_UART_ID, buffer[ i ] );
+    platform_uart_send( tpt->fd, buffer[ i ] );
 }
 
 // Check if data is available on connection without reading:
 //     - 1 = data available, 0 = no data available
-int transport_readable (Transport *tpt)
+int transport_readable( Transport *tpt )
 {
-  return 1; // no really easy way to check this unless platform support is added
+  int c;
+
+  if ( adispatch_buff >= 0 ) // if we have a char already
+    return 1;
+  else // check if a char is ready to be read
+  {
+    c = transport_get_char( tpt );
+    if( c > 0)
+    {
+      adispatch_buff = c;
+      return 1;
+    }
+  }
+  return 0;
 }
 
 // Check if transport is open:
 //    - 1 = connection open, 0 = connection closed
-int transport_is_open (Transport *tpt)
+int transport_is_open( Transport *tpt )
 {
   return ( tpt->fd != INVALID_TRANSPORT );
 }
 
 // Shut down connection
-void transport_close (Transport *tpt)
+void transport_close( Transport *tpt )
 {
   tpt->fd = INVALID_TRANSPORT;
 }

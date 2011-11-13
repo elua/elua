@@ -21,116 +21,130 @@ static int tmrh_timer_op( lua_State* L, int op )
   unsigned id;
   timer_data_type res;
     
-  id = luaL_checkinteger( L, 1 );
-  MOD_CHECK_ID( timer, id );
+  id = ( unsigned )luaL_optinteger( L, 1, PLATFORM_TIMER_SYS_ID );
+  MOD_CHECK_TIMER( id );
   res = platform_timer_op( id, op, 0 );
-  lua_pushinteger( L, res );
+  lua_pushnumber( L, ( lua_Number )res );
   return 1;  
 }
 
-// Lua: delay( id, period )
+// Lua: delay( period, [id] )
 static int tmr_delay( lua_State* L )
 {
-  unsigned id, period;
+  timer_data_type period;
+  unsigned id;
   
-  id = luaL_checkinteger( L, 1 );
-  MOD_CHECK_ID( timer, id );
-  period = luaL_checkinteger( L, 2 );
+  period = ( timer_data_type )luaL_checknumber( L, 1 );
+  id = ( unsigned )luaL_optinteger( L, 2, PLATFORM_TIMER_SYS_ID );
+  MOD_CHECK_TIMER( id );
   platform_timer_delay( id, period );
   return 0;
 }
 
-// Lua: timervalue = read( id )
+// Lua: timervalue = read( [id] )
 static int tmr_read( lua_State* L )
 {
   return tmrh_timer_op( L, PLATFORM_TIMER_OP_READ );
 }
 
-// Lua: timervalue = start( id )
+// Lua: timervalue = start( [id] )
 static int tmr_start( lua_State* L )
 {
   return tmrh_timer_op( L, PLATFORM_TIMER_OP_START );
 }
 
-// Lua: time_us = gettimediff( id, end, start )
+// Lua: time_us = gettimediff( end, start, [id] )
 static int tmr_gettimediff( lua_State* L )
 {
-  timer_data_type end, start;
-  u32 res;
+  timer_data_type end, start, res;
   unsigned id;
     
-  id = luaL_checkinteger( L, 1 ); 
-  MOD_CHECK_ID( timer, id );
-  end = ( timer_data_type )luaL_checkinteger( L, 2 );
-  start = ( timer_data_type )luaL_checkinteger( L, 3 );  
+  id = ( unsigned )luaL_optinteger( L, 3, PLATFORM_TIMER_SYS_ID ); 
+  MOD_CHECK_TIMER( id );
+  end = ( timer_data_type )luaL_checknumber( L, 1 );
+  start = ( timer_data_type )luaL_checknumber( L, 2 );  
   res = platform_timer_get_diff_us( id, end, start );
-  lua_pushinteger( L, res );
+  lua_pushnumber( L, ( lua_Number )res );
   return 1;    
 }
 
-// Lua: res = getmindelay( id )
+// Lua: time_us = getdiffnow( start, [id] )
+static int tmr_getdiffnow( lua_State *L )
+{
+  timer_data_type start, res;
+  unsigned id;
+
+  id = ( unsigned )luaL_optinteger( L, 2, PLATFORM_TIMER_SYS_ID );
+  MOD_CHECK_TIMER( id );
+  start = ( timer_data_type )luaL_checknumber( L, 1 );
+  res = platform_timer_get_diff_crt( id, start );
+  lua_pushnumber( L, ( lua_Number )res );
+  return 1;
+}
+
+// Lua: res = getmindelay( [id] )
 static int tmr_getmindelay( lua_State* L )
 {
-  u32 res;
+  timer_data_type res;
   unsigned id;
   
-  id = luaL_checkinteger( L, 1 );
-  MOD_CHECK_ID( timer, id );
+  id = ( unsigned )luaL_optinteger( L, 1, PLATFORM_TIMER_SYS_ID );
+  MOD_CHECK_TIMER( id );
   res = platform_timer_op( id, PLATFORM_TIMER_OP_GET_MIN_DELAY, 0 );
-  lua_pushinteger( L, res );
+  lua_pushnumber( L, ( lua_Number )res );
   return 1;
 }
 
-// Lua: res = getmaxdelay( id )
+// Lua: res = getmaxdelay( [id] )
 static int tmr_getmaxdelay( lua_State* L )
 {
-  u32 res;
+  timer_data_type res;
   unsigned id;
   
-  id = luaL_checkinteger( L, 1 );
-  MOD_CHECK_ID( timer, id );
+  id = ( unsigned )luaL_optinteger( L, 1, PLATFORM_TIMER_SYS_ID );
+  MOD_CHECK_TIMER( id );
   res = platform_timer_op( id, PLATFORM_TIMER_OP_GET_MAX_DELAY, 0 );
-  lua_pushinteger( L, res );
+  lua_pushnumber( L, ( lua_Number )res );
   return 1;
 }
 
-// Lua: realclock = setclock( id, clock )
+// Lua: realclock = setclock( clock, [id] )
 static int tmr_setclock( lua_State* L )
 {
   u32 clock;
   unsigned id;
   
-  id = luaL_checkinteger( L, 1 );
-  MOD_CHECK_ID( timer, id );
-  clock = ( u32 )luaL_checkinteger( L, 2 );
+  id = ( unsigned )luaL_optinteger( L, 2, PLATFORM_TIMER_SYS_ID );
+  MOD_CHECK_TIMER( id );
+  clock = ( u32 )luaL_checkinteger( L, 1 );
   clock = platform_timer_op( id, PLATFORM_TIMER_OP_SET_CLOCK, clock );
   lua_pushinteger( L, clock );
   return 1;
 }
 
-// Lua: clock = getclock( id )
+// Lua: clock = getclock( [id] )
 static int tmr_getclock( lua_State* L )
 {
   u32 res;
   unsigned id;
   
-  id = luaL_checkinteger( L, 1 );
-  MOD_CHECK_ID( timer, id );
+  id = ( unsigned )luaL_optinteger( L, 1, PLATFORM_TIMER_SYS_ID );
+  MOD_CHECK_TIMER( id );
   res = platform_timer_op( id, PLATFORM_TIMER_OP_GET_CLOCK, 0 );
   lua_pushinteger( L, res );
   return 1;
 }
 
 #ifdef BUILD_LUA_INT_HANDLERS
-// Lua: set_match_int( id, timeout, type )
+// Lua: set_match_int( timeout, type, [id] )
 static int tmr_set_match_int( lua_State *L )
 {
   unsigned id;
   u32 res;
   
-  id = luaL_checkinteger( L, 1 );
-  MOD_CHECK_ID( timer, id );
-  res = platform_timer_set_match_int( id, ( u32 )luaL_checknumber( L, 2 ), ( int )luaL_checkinteger( L, 3 ) );
+  id = ( unsigned )luaL_optinteger( L, 3, PLATFORM_TIMER_SYS_ID );
+  MOD_CHECK_TIMER( id );
+  res = platform_timer_set_match_int( id, ( timer_data_type )luaL_checknumber( L, 1 ), ( int )luaL_checkinteger( L, 2 ) );
   if( res == PLATFORM_TIMER_INT_TOO_SHORT )
     return luaL_error( L, "timer interval too small" );
   else if( res == PLATFORM_TIMER_INT_TOO_LONG )
@@ -172,7 +186,8 @@ const LUA_REG_TYPE tmr_map[] =
   { LSTRKEY( "delay" ), LFUNCVAL( tmr_delay ) },
   { LSTRKEY( "read" ), LFUNCVAL( tmr_read ) },
   { LSTRKEY( "start" ), LFUNCVAL( tmr_start ) },
-  { LSTRKEY( "gettimediff" ), LFUNCVAL( tmr_gettimediff ) },  
+  { LSTRKEY( "gettimediff" ), LFUNCVAL( tmr_gettimediff ) },
+  { LSTRKEY( "getdiffnow" ), LFUNCVAL( tmr_getdiffnow ) },
   { LSTRKEY( "getmindelay" ), LFUNCVAL( tmr_getmindelay ) },
   { LSTRKEY( "getmaxdelay" ), LFUNCVAL( tmr_getmaxdelay ) },
   { LSTRKEY( "setclock" ), LFUNCVAL( tmr_setclock ) },
@@ -185,6 +200,7 @@ const LUA_REG_TYPE tmr_map[] =
 #endif
 #if VTMR_NUM_TIMERS > 0  
   { LSTRKEY( "__index" ), LFUNCVAL( tmr_mt_index ) },
+  { LSTRKEY( "SYS_TIMER" ), LNUMVAL( PLATFORM_TIMER_SYS_ID ) },
 #endif  
 #if LUA_OPTIMIZE_MEMORY > 0 && defined( BUILD_LUA_INT_HANDLERS )
   { LSTRKEY( "INT_ONESHOT" ), LNUMVAL( PLATFORM_TIMER_INT_ONESHOT ) },
@@ -204,6 +220,11 @@ LUALIB_API int luaopen_tmr( lua_State *L )
   lua_pushvalue( L, -1 );
   lua_setmetatable( L, -2 );  
 #endif // #if VTMR_NUM_TIMERS > 0
+  MOD_REG_NUMBER( L, "SYS_TIMER", PLATFORM_TIMER_SYS_ID );
+#ifdef BUILD_LUA_INT_HANDLERS
+  MOD_REG_NUMBER( L, "INT_ONESHOT", PLATFORM_TIMER_INT_ONESHOT );
+  MOD_REG_NUMBER( L, "INT_CYCLIC", PLATFORM_TIMER_INT_CYCLIC );
+#endif //#ifdef BUILD_LUA_INT_HANDLERS
   return 1;
 #endif // #if LUA_OPTIMIZE_MEMORY > 0
 }

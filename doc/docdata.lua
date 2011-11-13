@@ -72,6 +72,7 @@ local menu =
   { "Status", "status.html", 
     {
       { { "Supported platforms", "Plataformas Suportadas" }, "status.html" },
+      { "System timer support", "status.html#systmr" },
       { { "Modules per platform table", "Módulos por plataforma" }, "status.html#plat_modules" },
       { { "Modules overview status", "Visão geral dos módulos" }, "status.html#gen_modules" },
       { { "Roadmap", "Planejamento Futuro" }, "status.html#roadmap" }

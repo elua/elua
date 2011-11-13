@@ -55,8 +55,8 @@ void DESELECT (void)
 static volatile
 DSTATUS Stat = STA_NOINIT;    /* Disk status */
 
-static volatile UINT Timer1 = 0;
-static volatile UINT Timer2 = 0;    /* decrement timer */
+static volatile timer_data_type Timer1 = 0;
+static volatile timer_data_type Timer2 = 0;
 
 static
 BYTE TriesLeft = 2;
@@ -67,24 +67,6 @@ BYTE CardType;            /* b0:MMC, b1:SDC, b2:Block addressing */
 static
 BYTE PowerFlag = 0;     /* indicates if "power" is on */
 
-/*-----------------------------------------------------------------------*/
-/* Find the value to set in Timer1 or Timer2 to obtain a timeout of at   */
-/* least N milliseconds.                                                 */
-/*                                                                       */
-/* Timer1 and Timer2 are decremented by the virtual timer interrupt,     */
-/* which is free-running and will sometimes decrement TimerN immediately */
-/* so to wait for N ms to pass, you need to wait for N+1 ticks to occur. */
-/*                                                                       */
-/* Usage example:                                                        */
-/*   Timer1 = set_Timer_ms(N);                                           */
-/*   do { whatever } while (Timer1);                                     */
-/*-----------------------------------------------------------------------*/
-
-static UINT set_Timer_ms(UINT ms)
-{
-   UINT ticks = ms / MMCFS_TICK_MS;
-   return (ticks > 0 ? ticks : 1) + 1;
-}
 
 /*-----------------------------------------------------------------------*/
 /* Transmit a byte to MMC via SPI  (Platform dependent)                  */
@@ -128,11 +110,11 @@ BYTE wait_ready (void)
 {
     BYTE res;
 
-    Timer2 = set_Timer_ms(500);   /* Wait for ready in timeout of 500ms. */
+    Timer2 = platform_timer_read( PLATFORM_TIMER_SYS_ID );
     rcvr_spi();
-    do
-        res = rcvr_spi();
-    while ((res != 0xFF) && Timer2);
+    do  
+        res = rcvr_spi(); /* Wait for ready in timeout of 500ms. */
+    while ( ( res != 0xFF ) && ( platform_timer_get_diff_crt( PLATFORM_TIMER_SYS_ID, Timer2 ) < 500000 ) );
 
     return res;
 }
@@ -224,10 +206,11 @@ BOOL rcvr_datablock (
 {
     BYTE token;
 
-    Timer1 = set_Timer_ms(100);
+    Timer1 = platform_timer_read( PLATFORM_TIMER_SYS_ID );
     do {                            /* Wait for data packet in timeout of 100ms */
         token = rcvr_spi();
-    } while ((token == 0xFF) && Timer1);
+    } while ( ( token == 0xFF ) && 
+              platform_timer_get_diff_crt( PLATFORM_TIMER_SYS_ID, Timer1 ) < 100000 );
     if(token != 0xFE) return FALSE;    /* If not valid data token, retutn with error */
 
     do {                            /* Receive the data block into buffer */
@@ -344,14 +327,15 @@ DSTATUS disk_initialize (
       SELECT();                /* CS = L */
       ty = 0;
       if (send_cmd(CMD0, 0) == 1) {            /* Enter Idle state */
-        Timer1 = set_Timer_ms(1000);  /* Initialization timeout of 1000 msec */
+        Timer1 = platform_timer_read( PLATFORM_TIMER_SYS_ID );
         if (send_cmd(CMD8, 0x1AA) == 1) {    /* SDC Ver2+ */
           for (n = 0; n < 4; n++) ocr[n] = rcvr_spi();
           if (ocr[2] == 0x01 && ocr[3] == 0xAA) {    /* The card can work at vdd range of 2.7-3.6V */
             do {
               if (send_cmd(CMD55, 0) <= 1 && send_cmd(CMD41, 1UL << 30) == 0)    break;    /* ACMD41 with HCS bit */
-            } while (Timer1);
-            if (Timer1 && send_cmd(CMD58, 0) == 0) {    /* Check CCS bit */
+            } while ( platform_timer_get_diff_crt( PLATFORM_TIMER_SYS_ID, Timer1 ) < 1000000 );
+            if ( ( platform_timer_get_diff_crt( PLATFORM_TIMER_SYS_ID, Timer1 ) < 1000000 ) 
+                 && send_cmd(CMD58, 0) == 0) {    /* Check CCS bit (it seems pointless to check the timer here*/
               for (n = 0; n < 4; n++) ocr[n] = rcvr_spi();
               ty = (ocr[0] & 0x40) ? 6 : 2;
             }
@@ -364,8 +348,9 @@ DSTATUS disk_initialize (
             } else {
               if (send_cmd(CMD1, 0) == 0) break;                                /* CMD1 */
             }
-          } while (Timer1);
-          if (!Timer1 || send_cmd(CMD16, 512) != 0)    /* Select R/W block length */
+          } while ( platform_timer_get_diff_crt( PLATFORM_TIMER_SYS_ID, Timer1 ) < 1000000 );
+          if ( (  platform_timer_get_diff_crt( PLATFORM_TIMER_SYS_ID, Timer1 ) >= 1000000 ) 
+               || send_cmd(CMD16, 512) != 0 )    /* Select R/W block length */
             ty = 0;
         }
       }
@@ -597,23 +582,6 @@ DRESULT disk_ioctl (
 }
 
 
-
-/*-----------------------------------------------------------------------*/
-/* Device Timer Interrupt Procedure  (Platform dependent)                */
-/*-----------------------------------------------------------------------*/
-
-/* This function must be called in period of 10ms                        */
-
-void disk_timerproc( void )
-{
-    UINT n;
-
-    n = Timer1;
-    if (n) Timer1 = --n;
-    n = Timer2;
-    if (n) Timer2 = --n;
-
-}
 
 /*---------------------------------------------------------*/
 /* User Provided Timer Function for FatFs module           */

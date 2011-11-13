@@ -40,7 +40,7 @@ int platform_uart_exists( unsigned id )
 }
 
 // Helper function for buffers
-static int cmn_recv_helper( unsigned id, s32 timeout )
+static int cmn_recv_helper( unsigned id, timer_data_type timeout )
 {
 #ifdef BUF_ENABLE_UART
   t_buf_data data;
@@ -73,25 +73,24 @@ static int cmn_recv_helper( unsigned id, s32 timeout )
   return -1;
 }
 
-int platform_uart_recv( unsigned id, unsigned timer_id, s32 timeout )
+int platform_uart_recv( unsigned id, unsigned timer_id, timer_data_type timeout )
 {
-  timer_data_type tmr_start, tmr_crt;
+  timer_data_type tmr_start;
   int res;
   
   if( timeout == 0 )
     return cmn_recv_helper( id, timeout );
-  else if( timeout == PLATFORM_UART_INFINITE_TIMEOUT )
+  else if( timeout ==  PLATFORM_TIMER_INF_TIMEOUT )
     return cmn_recv_helper( id, timeout );
   else
   {
     // Receive char with the specified timeout
-    tmr_start = platform_timer_op( timer_id, PLATFORM_TIMER_OP_START, 0 );
+    tmr_start = platform_timer_start( timer_id );
     while( 1 )
     {
       if( ( res = cmn_recv_helper( id, 0 ) ) >= 0 )
         break;
-      tmr_crt = platform_timer_op( timer_id, PLATFORM_TIMER_OP_READ, 0 );
-      if( platform_timer_get_diff_us( timer_id, tmr_crt, tmr_start ) >= timeout )
+      if( platform_timer_get_diff_crt( timer_id, tmr_start ) >= timeout )
         break;
     }
     return res;

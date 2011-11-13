@@ -48,6 +48,10 @@
 
 #define HOSTNAME "elua"
 
+#ifndef ELUA_DHCP_TIMER_ID
+#define ELUA_DHCP_TIMER_ID    PLATFORM_TIMER_SYS_ID
+#endif
+
 static struct dhcpc_state s;
 
 struct __attribute((packed)) dhcp_msg {

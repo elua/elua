@@ -121,7 +121,10 @@ static void tmr_int_handler( int id )
   TIM_ClearFlag( base, TIM_FLAG_OC1 );
   TIM_CounterCmd( base, TIM_CLEAR );
   if( id == VTMR_TIMER_ID )
+  {
     cmn_virtual_timer_cb();
+    cmn_systimer_periodic();
+  }
   else
     cmn_int_handler( INT_TMR_MATCH, id );
   if( str9_timer_int_periodic_flag[ id ] != PLATFORM_TIMER_INT_CYCLIC )

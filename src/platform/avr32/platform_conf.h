@@ -7,6 +7,8 @@
 #include "board.h"
 #include "stacks.h"
 
+#define PLATFORM_HAS_SYSTIMER
+
 #if BOARD == EVK1100
     #include "EVK1100/evk1100_conf.h"
 #elif BOARD == EVK1101

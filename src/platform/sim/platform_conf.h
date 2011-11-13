@@ -20,6 +20,8 @@
 #define TERM_LINES    25
 #define TERM_COLS     80
 
+#define PLATFORM_HAS_SYSTIMER
+
 // *****************************************************************************
 // Auxiliary libraries that will be compiled for this platform
 
@@ -27,12 +29,12 @@
   _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
   _ROM( AUXLIB_TERM, luaopen_term, term_map )\
-  _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )
+  _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )\
+  _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
 
 // Bogus defines for common.c
 #define CON_UART_ID           0
 #define CON_UART_SPEED        0
-#define CON_TIMER_ID          0
 
 // *****************************************************************************
 // Configuration data
@@ -49,7 +51,7 @@
 #define NUM_ADC               0
 #define NUM_CAN               0
 
-// CPU frequency (needed by the CPU module, 0 if not used)
+// CPU frequency (needed by the CPU module and MMCFS code, 0 if not used)
 #define CPU_FREQUENCY         0
 
 // PIO prefix ('0' for P0, P1, ... or 'A' for PA, PB, ...)

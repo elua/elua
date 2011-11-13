@@ -22,7 +22,7 @@ You need to define the following macros for RFS:
 | RFS_BUFFER_SIZE     | Size of the RFS buffer. Needs to be one of the *BUF_SIZE_xxx* constants defined in _inc/buf.h_
 | RFS_UART_ID         | The ID of the UART that will be used by RFS. This is the physical connection over which the PC directory will be shared.
 | RFS_UART_SPEED      | Communication speed of the RFS UART interface. 
-| RFS_TIMER_ID        | The ID of a timer that will be used by RFS for internal operations
+| RFS_TIMER_ID        | The ID of a timer that will be used by RFS for internal operations. If not specified it defaults to the link:arch_platform_timers.html#the_system_timer[system timer].
 | RFS_FLOW_TYPE       | Flow control type on the serial RFS interface, see link:arch_platform_uart.html#flow_control_type[here] for details. 
 If not specified it defaults to \'no flow control'.
 | RFS_TIMEOUT         | RFS operations timeout (in microseconds). If during a RFS operation no data is received from the PC side for the
