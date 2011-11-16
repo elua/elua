@@ -2,7 +2,7 @@
 
 local cpumode = ( builder:get_option( 'cpumode' ) or 'thumb' ):lower()
 
-specific_files = "board_cstartup.s board_lowlevel.c board_memories.c usart.c pmc.c pio.c platform.c tc.c pwmc.c aic.c platform_int.c"
+specific_files = "board_cstartup.s board_lowlevel.c board_memories.c usart.c pmc.c pio.c platform.c tc.c pwmc.c aic.c platform_int.c pit.c"
 local ldscript
 if comp.cpu:upper() == 'AT91SAM7X256' then
   ldscript = "flash256.lds"

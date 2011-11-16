@@ -43,6 +43,27 @@ The list of CPUs and boards currently supported by eLua is given below:
 | _I386          |  x86          o|    i386               |  PCs/emulators    | _sok
 |=====================================================================================
 
+[[systmr]]
+System timer support
+--------------------
+The table below shows the status of _systmr implementation on all eLua platforms.
+
+[width="70%", cols="<1, ^4", options="header"]
+|============================================
+^| Platform          ^| System timer support 
+| AT91SAM7x          o| yes
+| AVR32              o| yes
+| i386               o| no
+| LM3S               o| yes
+| LPC17xx            o| yes
+| LPC24xx            o| yes
+| LPC288x            o| no
+| SIM                o| yes
+| STM32              o| yes
+| STR7               o| no
+| STR9               o| yes
+|============================================
+
 [[plat_modules]]
 eLua modules x MCUs
 -------------------

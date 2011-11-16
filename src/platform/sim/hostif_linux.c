@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdio.h>
+#include <sys/time.h>
 #include "term.h"
 #include "host.h"
 #include "hostif.h"
@@ -62,5 +63,13 @@ int hostif_write( int fd, const void *buf, unsigned count )
 int hostif_close( int fd )
 {
   return host_close( fd );
+}
+
+s64 hostif_gettime()
+{
+  struct timeval tv;
+
+  host_gettimeofday( &tv, NULL );
+  return ( s64 )tv.tv_sec * 1000000 + tv.tv_usec;
 }
 

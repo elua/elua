@@ -49,7 +49,7 @@ typedef struct
 extern void spi_reset(volatile avr32_spi_t *spi);
 
 extern int spi_initMaster(volatile avr32_spi_t *spi, const spi_master_options_t *, U32 pba_hz);
-extern int spi_setupChipReg(volatile avr32_spi_t *spi, unsigned char chip, const spi_options_t *, U32 pba_hz);
+extern U32 spi_setupChipReg(volatile avr32_spi_t *spi, unsigned char chip, const spi_options_t *, U32 pba_hz);
 
 extern int spi_selectChip(volatile avr32_spi_t *spi, unsigned char chip);
 extern int spi_unselectChip(volatile avr32_spi_t *spi, unsigned char chip);

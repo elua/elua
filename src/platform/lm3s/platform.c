@@ -120,6 +120,10 @@ int platform_init()
   cans_init();
 #endif
 
+  // Setup system timer
+  cmn_systimer_set_base_freq( MAP_SysCtlClockGet() );
+  cmn_systimer_set_interrupt_freq( SYSTICKHZ );
+
   // Setup ethernet (TCP/IP)
   eth_init();
 
@@ -476,7 +480,7 @@ void platform_s_uart_send( unsigned id, u8 data )
   MAP_UARTCharPut( uart_base[ id ], data );
 }
 
-int platform_s_uart_recv( unsigned id, s32 timeout )
+int platform_s_uart_recv( unsigned id, timer_data_type timeout )
 {
   u32 base = uart_base[ id ];
 
@@ -510,7 +514,7 @@ static void timers_init()
   }
 }
 
-void platform_s_timer_delay( unsigned id, u32 delay_us )
+void platform_s_timer_delay( unsigned id, timer_data_type delay_us )
 {
   timer_data_type final;
   u32 base = timer_base[ id ];
@@ -520,7 +524,7 @@ void platform_s_timer_delay( unsigned id, u32 delay_us )
   while( MAP_TimerValueGet( base, TIMER_A ) > final );
 }
 
-u32 platform_s_timer_op( unsigned id, int op, u32 data )
+timer_data_type platform_s_timer_op( unsigned id, int op,timer_data_type data )
 {
   u32 res = 0;
   u32 base = timer_base[ id ];
@@ -551,8 +555,32 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
       res = MAP_SysCtlClockGet();
       break;
 
+    case PLATFORM_TIMER_OP_GET_MAX_CNT:
+      res = 0xFFFFFFFF;
+      break;
+
   }
   return res;
+}
+
+u64 platform_timer_sys_raw_read()
+{
+  return MAP_SysTickPeriodGet() - 1 - MAP_SysTickValueGet();
+}
+
+void platform_timer_sys_disable_int()
+{
+  MAP_SysTickIntDisable();
+}
+
+void platform_timer_sys_enable_int()
+{
+  MAP_SysTickIntEnable();
+}
+
+timer_data_type platform_timer_read_sys()
+{
+  return cmn_systimer_get();
 }
 
 // ****************************************************************************
@@ -1016,16 +1044,15 @@ void SysTickIntHandler()
   // Handle virtual timers
   cmn_virtual_timer_cb();
 
-#ifdef BUILD_MMCFS
-  disk_timerproc();
-#endif
-
   // Indicate that a SysTick interrupt has occurred.
   eth_timer_fired = 1;
 
   // Generate a fake Ethernet interrupt.  This will perform the actual work
   // of incrementing the timers and taking the appropriate actions.
   platform_eth_force_interrupt();
+
+  // System timer handling
+  cmn_systimer_periodic();
 }
 
 void EthernetIntHandler()
@@ -1046,9 +1073,8 @@ void SysTickIntHandler()
 {
   cmn_virtual_timer_cb();
 
-#ifdef BUILD_MMCFS
-  disk_timerproc();
-#endif
+  // System timer handling
+  cmn_systimer_periodic();
 }
 
 void EthernetIntHandler()

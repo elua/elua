@@ -74,14 +74,8 @@
   #endif
 #endif
 
-// MMCFS uses the virtual timer to implement its timeouts
-#if defined( BUILD_MMCFS ) && (!defined( VTMR_NUM_TIMERS ) || VTMR_NUM_TIMERS == 0)
-  #error "BUILD_MMCFS needs virtual timer support. Define VTMR_NUM_TIMERS > 0"
-#endif
-
-// MMCFS tick runs off VTMR timer so these values must be the same
-#if defined( BUILD_MMCFS ) && MMCFS_TICK_HZ != VTMR_FREQ_HZ
-  #error "MMCFS_TICK_HZ must be equal to VTMR_FREQ_HZ"
+#if defined( BUILD_MMCFS ) && !defined( PLATFORM_HAS_SYSTIMER )
+  #error "BUILD_MMCFS needs system timer support. Ensure your platform has this implemented and PLATFORM_HAS_SYSTIMER is defined"
 #endif
 
 // CON_BUF_SIZE needs BUF_ENABLE_UART and CON_UART_ID

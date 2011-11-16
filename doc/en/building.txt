@@ -76,7 +76,7 @@ o|BUILD_MMCFS       |Enable the eLua SD/MMC FAT filesystem support. To enable:
 
   #define BUILD_MMCFS
 
-xref:static[Static configuration data dependencies]: *MMCFS_TICK_HZ, MMCFS_TICK_MS, MMCFS_CS_PORT, MMCFS_CS_PIN, MMCFS_SPI_NUM*
+xref:static[Static configuration data dependencies]: *MMCFS_CS_PORT, MMCFS_CS_PIN, MMCFS_SPI_NUM*
 
 o|BUILD_TERM        |Enable ANSI terminal support. It allows eLua to interact with terminals that support ANSI escape sequences 
 (more details link:arch_con_term.html[here]). Currently it works only over RS-232 connections, although this is not a strict requirement. 
@@ -210,7 +210,8 @@ o|CON_UART_ID +
 CON_UART_SPEED +
 CON_TIMER_ID +
 CON_FLOW_TYPE       |Used to configure console input/output over UART. The specified UART id will be used for console input/output, at the
-specified speed. The data format is always 8N1 (8 data bits, no parity, 1 stop bits)t. The specified timer ID will be used for the console subsystem. These
+specified speed. The data format is always 8N1 (8 data bits, no parity, 1 stop bits)t. The specified timer ID will be used for the console subsystem (if
+not specified it defaults to the link:arch_platform_timers.html#the_system_timer[system timer]). These
 variables are also used by the XMODEM and TERM implementations. If CON_FLOW_TYPE is defined the specified flow control is applied to the console UART
 interface (see link:arch_platform_uart.html#platform_uart_set_flow_control[this link] to find out how to specify the flow control). If not defined it
 defaults to no flow control.
@@ -228,10 +229,6 @@ the IP address, network mask, default gateway and DNS server. Only needed if BUI
 o|VTMR_NUM_TIMERS +
 VTMR_FREQ_HZ       |Specify the virtual timers configuration for the platform (refer to link:refman_gen_tmr.html[the timer module documentation] for details). Define VTMR_NUM_TIMERS to 0 
 if this feature is not used.
-
-o|MMCFS_TICK_HZ +
-MMCFS_TICK_MS      |Specify the rate at which SD/MMC timer function _disk_timerproc()_ are being called by the platform. On most platforms MMCFS_TICK_HZ will match VTMR_FREQ_HZ.  
-Only needed if MMCFS support is enabled.
 
 o|MMCFS_CS_PORT +
 MMCFS_CS_PIN       |Specify the port and pin to be used as chip select for MMCFS control of an SD/MMC card over SPI. Only needed if MMCFS support is enabled.
@@ -265,6 +262,7 @@ value that can be returned by the ADC.
 o|RPC_UART_ID       |If the link:refman_gen_rpc.html[rpc module] is enabled and boot mode is set to luarpc, this selects which uart luarpc will listen on for incoming client connections.
 
 o|RPC_TIMER_ID      |If the link:refman_gen_rpc.html[rpc module] is enabled and boot mode is set to luarpc, this selects which timer will be used with the uart selected with RPC_UART_ID.
+If not specified it defaults to the link:arch_platform_timers.html#the_system_timer[system timer].
 
 o|EGC_INITIAL_MODE +
 EGC_INITIAL_MEMLIMIT |**(version 0.7 or above)**Configure the default (compile time) operation mode and memory limit of the emergency garbage collector link:elua_egc.html[here] for details
@@ -284,7 +282,7 @@ by this macro. Check link:linenoise.html[here] for details. This macro is option
 o|RFS_BUFFER_SIZE     |Size of the RFS buffer. Needs to be one of the *BUF_SIZE_xxx* constants defined in _inc/buf.h_
 o|RFS_UART_ID         |The ID of the UART that will be used by RFS. This is the physical connection over which the PC directory will be shared.
 o|RFS_UART_SPEED      |Communication speed of the RFS UART interface. 
-o|RFS_TIMER_ID        |The ID of a timer that will be used by RFS for internal operations
+o|RFS_TIMER_ID        |The ID of a timer that will be used by RFS for internal operations. If not specified it defaults to the link:arch_platform_timers.html#the_system_timer[system timer].
 o|RFS_FLOW_TYPE       |Flow control type on the serial RFS interface, see link:arch_platform_uart.html#flow_control_type[here] for details. 
 If not specified it defaults to \'no flow control'.
 o|RFS_TIMEOUT         |RFS operations timeout (in microseconds). If during a RFS operation no data is received from the PC side for the
@@ -315,7 +313,7 @@ to modify them, so don't worry about the apparent complexity. The examples at th
 
 ------------------------------------
 $ scons
-  [target=lua | lualong]
+  [target=lua | lualong | lualonglong]
   [cpu=<cpuname>]
   [board=<boardname>]
   [cpumode=arm | thumb]
@@ -336,8 +334,9 @@ one CPU. This allows the build system to be very flexible. You can use these two
 For board/CPU assignment, look at the beginning of the SConstruct file (the _platform_list_), it's self-explanatory. +
 The other options are as follows:
 
-* **target=lua | lualong**: specify if you want to build "regular" Lua (with floating point support) or integer only Lua (lualong). The default is "lua". "lualong" runs faster on
-  targets that don't have a floating point co-processor, but it completely lacks support for floating point operations, it can only handle integers.
+* **target=lua | lualong | lualonglong**: specify if you want to build "regular" Lua (with floating point support). 32 bit integer only Lua (lualong) or 64 bit integer only Lua (lualonglong,
+  starting with version 0.9).  The default is "lua". "lualong" and "lualonglong" run faster on targets that don't have a floating point co-processor, but they completely lack support for floating 
+  point operations, they can only handle integers. Also, "lualonglong" doesn't support cross-compilation of Lua source files to bytecode (check link:arch_romfs.html#mode[here] for details).
 
 * **cpumode=arm | thumb**: for ARM targets (not Cortex) this specifies the compilation mode. Its default value is 'thumb' for AT91SAM7X targets and 'arm' for STR9, LPC2888 and LPC2468 targets.
 

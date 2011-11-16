@@ -6,6 +6,7 @@
 #include "platform.h"
 #include "auxmods.h"
 #include "elua_net.h"
+#include "common.h"
 #include <stdio.h>
 #include <string.h>
 #include <stddef.h>
@@ -14,20 +15,16 @@
 #include "platform_conf.h"
 #ifdef BUILD_UIP
 
-// Lua: sock, remoteip, err = accept( port, [ timer_id, timeout ] )
+// Lua: sock, remoteip, err = accept( port, [timeout], [timer_id] )
 static int net_accept( lua_State *L )
 {
   u16 port = ( u16 )luaL_checkinteger( L, 1 );
-  unsigned timer_id = 0;
-  u32 timeout = 0;
+  unsigned timer_id = PLATFORM_TIMER_SYS_ID;
+  timer_data_type timeout = PLATFORM_TIMER_INF_TIMEOUT;
   elua_net_ip remip;
   int sock;
 
-  if( lua_gettop( L ) >= 2 ) // check for timeout arguments
-  {
-    timer_id = ( unsigned )luaL_checkinteger( L, 2 );
-    timeout = ( u32 )luaL_checkinteger( L, 3 );
-  }  
+  cmn_get_timeout_data( L, 2, &timeout, &timer_id );
   lua_pushinteger( L, sock = elua_accept( port, timer_id, timeout, &remip ) );
   lua_pushinteger( L, remip.ipaddr );
   lua_pushinteger( L, elua_net_get_last_err( sock ) );
@@ -140,15 +137,15 @@ static int net_unpackip( lua_State *L )
     return luaL_error( L, "invalid format" );                                      
 }
 
-// Lua: res, err = recv( sock, maxsize, [ timer_id, timeout ] ) or
-//      res, err = recv( sock, "*l", [ timer_id, timeout ] )
+// Lua: res, err = recv( sock, maxsize, [timeout], [timer_id] ) or
+//      res, err = recv( sock, "*l", [timeout], [timer_id] )
 static int net_recv( lua_State *L )
 {
   int sock = ( int )luaL_checkinteger( L, 1 );
   elua_net_size maxsize;
   s16 lastchar = ELUA_NET_NO_LASTCHAR;
-  unsigned timer_id = 0;
-  u32 timeout = 0;
+  unsigned timer_id = PLATFORM_TIMER_SYS_ID;
+  timer_data_type timeout = PLATFORM_TIMER_INF_TIMEOUT;
   luaL_Buffer net_recv_buff;
 
   if( lua_isnumber( L, 2 ) ) // invocation with maxsize
@@ -160,11 +157,7 @@ static int net_recv( lua_State *L )
     lastchar = '\n';
     maxsize = BUFSIZ;
   }
-  if( lua_gettop( L ) >= 3 ) // check for timeout arguments
-  {
-    timer_id = ( unsigned )luaL_checkinteger( L, 3 );
-    timeout = ( u32 )luaL_checkinteger( L, 4 );
-  }
+  cmn_get_timeout_data( L, 3, &timeout, &timer_id );
   // Initialize buffer
   luaL_buffinit( L, &net_recv_buff );
   elua_net_recvbuf( sock, &net_recv_buff, maxsize, lastchar, timer_id, timeout );
@@ -206,6 +199,9 @@ const LUA_REG_TYPE net_map[] =
   { LSTRKEY( "ERR_CLOSED" ), LNUMVAL( ELUA_NET_ERR_CLOSED ) },
   { LSTRKEY( "ERR_ABORTED" ), LNUMVAL( ELUA_NET_ERR_ABORTED ) },
   { LSTRKEY( "ERR_OVERFLOW" ), LNUMVAL( ELUA_NET_ERR_OVERFLOW ) },
+  { LSTRKEY( "SYS_TIMER" ), LNUMVAL( PLATFORM_TIMER_SYS_ID ) },
+  { LSTRKEY( "NO_TIMEOUT" ), LNUMVAL( 0 ) },
+  { LSTRKEY( "INF_TIMEOUT" ), LNUMVAL( PLATFORM_TIMER_INF_TIMEOUT ) },
 #endif
   { LNILKEY, LNILVAL }
 };
@@ -225,6 +221,9 @@ LUALIB_API int luaopen_net( lua_State *L )
   MOD_REG_NUMBER( L, "ERR_CLOSED", ELUA_NET_ERR_CLOSED );
   MOD_REG_NUMBER( L, "ERR_ABORTED", ELUA_NET_ERR_ABORTED );
   MOD_REG_NUMBER( L, "ERR_OVERFLOW", ELUA_NET_ERR_OVERFLOW );
+  MOD_REG_NUMBER( L, "SYS_TIMER", PLATFORM_TIMER_SYS_ID );
+  MOD_REG_NUMBER( L, "NO_TIMEOUT", 0 );
+  MOD_REG_NUMBER( L, "INF_TIMEOUT", PLATFORM_TIMER_INF_TIMEOUT );
   
   return 1;
 #endif // #if LUA_OPTIMIZE_MEMORY > 0  

@@ -36,12 +36,13 @@
 #endif
 #define BUILD_C_INT_HANDLERS
 
+#define PLATFORM_HAS_SYSTIMER
+
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 
 #define CON_UART_ID           0
 #define CON_UART_SPEED        115200
-#define CON_TIMER_ID          0
 #define TERM_LINES            25
 #define TERM_COLS             80
 
@@ -198,12 +199,7 @@
 
 // RPC boot options
 #define RPC_UART_ID           CON_UART_ID
-#define RPC_TIMER_ID          CON_TIMER_ID
 #define RPC_UART_SPEED        CON_UART_SPEED
-
-// SD/MMC Filesystem Setup
-#define MMCFS_TICK_HZ     4
-#define MMCFS_TICK_MS     ( 1000 / MMCFS_TICK_HZ )
 
 #if defined( ELUA_BOARD_EKLM3S6965 )
   // EK-LM3S6965
@@ -231,7 +227,7 @@
 #endif
 
 
-// CPU frequency (needed by the CPU module, 0 if not used)
+// CPU frequency (needed by the CPU module and MMCFS code, 0 if not used)
 #define CPU_FREQUENCY         SysCtlClockGet()
 
 // PIO prefix ('0' for P0, P1, ... or 'A' for PA, PB, ...)

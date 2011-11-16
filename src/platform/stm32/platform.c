@@ -82,6 +82,10 @@ int platform_init()
 
   // Setup CANs
   cans_init();
+
+  // Setup system timer
+  cmn_systimer_set_base_freq( HCLK );
+  cmn_systimer_set_interrupt_freq( SYSTICKHZ );
   
   // Enable SysTick
   if ( SysTick_Config( HCLK / SYSTICKHZ ) )
@@ -638,7 +642,7 @@ void platform_s_uart_send( unsigned id, u8 data )
   USART_SendData(stm32_usart[id], data);
 }
 
-int platform_s_uart_recv( unsigned id, s32 timeout )
+int platform_s_uart_recv( unsigned id, timer_data_type timeout )
 {
   if( timeout == 0 )
   {
@@ -695,7 +699,7 @@ int platform_s_uart_set_flow_control( unsigned id, int type )
 u8 stm32_timer_int_periodic_flag[ NUM_PHYS_TIMER ];
 
 // We leave out TIM6/TIM for now, as they are dedicated
-const TIM_TypeDef * const timer[] = { TIM1, TIM2, TIM3, TIM4, TIM5 };
+TIM_TypeDef * const timer[] = { TIM1, TIM2, TIM3, TIM4, TIM5 };
 #define TIM_GET_PRESCALE( id ) ( ( id ) == 0 || ( id ) == 5 ? ( PCLK2_DIV ) : ( PCLK1_DIV ) )
 #define TIM_GET_BASE_CLK( id ) ( TIM_GET_PRESCALE( id ) == 1 ? ( HCLK / TIM_GET_PRESCALE( id ) ) : ( HCLK / ( TIM_GET_PRESCALE( id ) / 2 ) ) )
 #define TIM_STARTUP_CLOCK       50000
@@ -707,9 +711,8 @@ void SysTick_Handler( void )
   // Handle virtual timers
   cmn_virtual_timer_cb();
 
-#ifdef BUILD_MMCFS
-  disk_timerproc();
-#endif
+  // Handle system timer call
+  cmn_systimer_periodic();
 }
 
 static void timers_init()
@@ -752,7 +755,7 @@ static u32 platform_timer_set_clock( unsigned id, u32 clock )
   return TIM_GET_BASE_CLK( id ) / ( pre + 1 );
 }
 
-void platform_s_timer_delay( unsigned id, u32 delay_us )
+void platform_s_timer_delay( unsigned id, timer_data_type delay_us )
 {
   TIM_TypeDef *ptimer = timer[ id ];
   volatile unsigned dummy;
@@ -764,7 +767,7 @@ void platform_s_timer_delay( unsigned id, u32 delay_us )
   while( TIM_GetCounter( ptimer ) < final );
 }
 
-u32 platform_s_timer_op( unsigned id, int op, u32 data )
+timer_data_type platform_s_timer_op( unsigned id, int op, timer_data_type data )
 {
   u32 res = 0;
   TIM_TypeDef *ptimer = timer[ id ];
@@ -798,11 +801,14 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
       res = platform_timer_get_clock( id );
       break;
 
+    case PLATFORM_TIMER_OP_GET_MAX_CNT:
+      res = 0xFFFF;
+      break;
   }
   return res;
 }
 
-int platform_s_timer_set_match_int( unsigned id, u32 period_us, int type )
+int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int type )
 {
   TIM_TypeDef* base = ( TIM_TypeDef* )timer[ id ];
   u32 period, prescaler, freq;
@@ -852,6 +858,26 @@ int platform_s_timer_set_match_int( unsigned id, u32 period_us, int type )
   //TIM_ITConfig( base, TIM_IT_CC1, ENABLE );
 
   return PLATFORM_TIMER_INT_OK;
+}
+
+u64 platform_timer_sys_raw_read()
+{
+  return SysTick->LOAD - SysTick->VAL;
+}
+
+void platform_timer_sys_disable_int()
+{
+  SysTick->CTRL &= ~( 1 << SYSTICK_TICKINT );
+}
+
+void platform_timer_sys_enable_int()
+{
+  SysTick->CTRL |= 1 << SYSTICK_TICKINT;
+}
+
+timer_data_type platform_timer_read_sys()
+{
+  return cmn_systimer_get();
 }
 
 // ****************************************************************************

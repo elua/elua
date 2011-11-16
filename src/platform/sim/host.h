@@ -5,6 +5,7 @@
 
 #include <stddef.h>
 #include <sys/types.h>
+#include <sys/time.h>
 
 extern int host_errno;
 
@@ -30,6 +31,7 @@ int host_close( int fd );
 #define MAP_FAILED (void *)(-1)
 
 void *host_mmap2(void *addr, size_t length, int prot, int flags, int fd, off_t pgoffset);
+int host_gettimeofday( struct timeval *tv, struct timezone *tz );
 void host_exit(int status);
 
 #endif // _HOST_H

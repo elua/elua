@@ -21,7 +21,6 @@
 
 #define CON_UART_ID         1
 #define CON_UART_SPEED      115200
-#define CON_TIMER_ID        0
 #define TERM_LINES          25
 #define TERM_COLS           80
 
@@ -86,13 +85,12 @@
 #else
 #define NUM_TIMER             3
 #endif
-#define NUM_PWM               7
+#define NUM_PWM               6
 #define NUM_ADC               8
 #define NUM_CAN               0
 
 // RPC boot options
 #define RPC_UART_ID           CON_UART_ID
-#define RPC_TIMER_ID          CON_TIMER_ID
 #define RPC_UART_SPEED        CON_UART_SPEED
 
 // Enable RX buffering on UART
@@ -105,13 +103,11 @@
 #define ADC_BUF_SIZE          BUF_SIZE_2
 
 // SD/MMC Filesystem Setup
-#define MMCFS_TICK_HZ     10
-#define MMCFS_TICK_MS     ( 1000 / MMCFS_TICK_HZ )
 #define MMCFS_SPI_NUM     1
 #define MMCFS_CS_PORT     0  //PA17
 #define MMCFS_CS_PIN      SD_MMC_SPI_NPCS_PIN
 
-// CPU frequency (needed by the CPU module, 0 if not used)
+// CPU frequency (needed by the CPU module and MMCFS code, 0 if not used)
 #define CPU_FREQUENCY         REQ_CPU_FREQ
 
 // PIO prefix ('0' for P0, P1, ... or 'A' for PA, PB, ...)
@@ -132,10 +128,12 @@
 
 // Interrupt list
 #define INT_UART_RX           ELUA_INT_FIRST_ID
-#define INT_ELUA_LAST         INT_UART_RX
+#define INT_TMR_MATCH         ( ELUA_INT_FIRST_ID + 1 )
+#define INT_ELUA_LAST         INT_TMR_MATCH
 
 #define PLATFORM_CPU_CONSTANTS\
- _C( INT_UART_RX )
+ _C( INT_UART_RX ),\
+ _C( INT_TMR_MATCH )
  
 // *****************************************************************************
 // CPU constants that should be exposed to the eLua "cpu" module

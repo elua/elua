@@ -130,8 +130,6 @@ typedef struct dhcpc_state uip_udp_appstate_t;
 #define UIP_UDP_APPCALL             elua_uip_udp_appcall
 #endif
 
-// Added for eLua: DHCP TIMER ID
-#define ELUA_DHCP_TIMER_ID          1
 #define CLOCK_SECOND                1000000UL
 
 #endif // __UIP_CONF_H_

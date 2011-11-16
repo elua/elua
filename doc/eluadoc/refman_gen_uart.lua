@@ -57,12 +57,10 @@ to the IDs of the virtual UARTs in the system.]]
       desc = "Read a single character from the serial port",
       args = 
       {
-        "$id$ - the ID of the serial port",
-        [[$timeout (optional)$ - timeout of the receive operation, can be either $uart.NO_TIMEOUT$ or 0 for non-blocking operation, $uart.INF_TIMEOUT$ for 
-blocking operation, or a positive number that specifies the timeout in microseconds (in this case, the $timer_id$ parameter is also required). The default
-value of this argument is $uart.INF_TIMEOUT$]],
-        [[$timer_id (optional)$ - the ID of the timer for the receive operation, needed if the $timeout$ parameter specifies an actual timeout (that is,
-$timeout$ is neither $uart.NO_TIMEOUT$, nor $uart.INF_TIMEOUT$).]]
+        "$id$ - the ID of the serial port",         
+        [[$timeout (optional)$ - timeout of the operation, can be either $uart.NO_TIMEOUT$ or 0 for non-blocking operation, $uart.INF_TIMEOUT$ for 
+blocking operation, or a positive number that specifies the timeout in microseconds. The default value of this argument is $uart.INF_TIMEOUT$.]],
+        [[$timer_id (optional)$ - the ID of the timer used for measuring the timeout. If not specified it defaults to the @arch_platform_timers.html#the_system_timer@system timer@.]],
       },
       ret = "The character read from the serial port as a string, or the empty string it timeout occured while waiting for the character."
     },
@@ -79,10 +77,9 @@ $timeout$ is neither $uart.NO_TIMEOUT$, nor $uart.INF_TIMEOUT$).]]
   <li>$'*s'$ - read until a spacing character (like a space or a TAB) is found (the spacing character is not returned) or a timeout occurs.</li>
   <li>$a positive number$ - read at most this many characters before returning (reading can stop earlier if a timeout occurs).</li>
 </ul>]],
-        [[$timeout (optional)$ - timeout of the receive operation, can be either $uart.NO_TIMEOUT$ or 0 for non-blocking operation, $uart.INF_TIMEOUT$ for 
-blocking operation, or a positive number that specifies the inter-char timeout in microseconds (in this case, the $timer_id$ parameter is also required). The default value of this argument is $uart.INF_TIMEOUT$]],
-        [[$timer_id (optional)$ - the ID of the timer for the receive operation, needed if the $timeout$ parameter specifies an actual timeout (that is,
-$timeout$ is neither $uart.NO_TIMEOUT$, nor $uart.INF_TIMEOUT$).]]
+        [[$timeout (optional)$ - timeout of the operation, can be either $uart.NO_TIMEOUT$ or 0 for non-blocking operation, $uart.INF_TIMEOUT$ for 
+blocking operation, or a positive number that specifies the timeout in microseconds. The default value of this argument is $uart.INF_TIMEOUT$.]],
+        [[$timer_id (optional)$ - the ID of the timer used for measuring the timeout. If not specified it defaults to the @arch_platform_timers.html#the_system_timer@system timer@.]],
       },
       ret = [[The data read from the serial port as a string (or as a number if $format$ is $'*n'$). If a timeout occures, only the data read before the timeout is returned. If the function times out while trying to read the first character, the empty string is returned]]
     },
