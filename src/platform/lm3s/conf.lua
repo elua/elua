@@ -2,8 +2,13 @@
 
 addi( sf( 'src/platform/%s/inc', platform ) )
 addi( sf( 'src/platform/%s/driverlib', platform ) )
-addi( sf( 'src/platform/%s/usblib', platform ) )
-addi( sf( 'src/platform/%s/usblib/device', platform ) )
+local cpu = comp.board:upper()
+
+-- Only include USB headers/paths for boards which support it
+if cpu == 'LM3S9B92' or board == 'LM3S9D92' then
+  addi( sf( 'src/platform/%s/usblib', platform ) )
+  addi( sf( 'src/platform/%s/usblib/device', platform ) )
+end
 
 specific_files = "startup_gcc.c platform.c platform_int.c"
 local fwlib_files = utils.get_files( "src/platform/" .. platform .. "/driverlib", ".*%.c$" )
@@ -21,16 +26,16 @@ if board == 'EAGLE-100' then
   addlf '-Wl,-Ttext,0x2000'
 end
 
-if board == 'EK-LM3S9B92' then
-   ldscript = "lm3s-9b92.ld"
+if cpu == 'LM3S9B92' or cpu == 'LM3S9D92' then
    fwlib_files = fwlib_files .. " " .. utils.get_files( "src/platform/" .. platform .. "/usblib", ".*%.c$" ) 
    fwlib_files = fwlib_files .. " " .. utils.get_files( "src/platform/" .. platform .. "/usblib/device", ".*%.c$" )
    specific_files = specific_files .. "  usb_serial_structs.c"
+end
+
+if board == 'EK-LM3S9B92'  then
+   ldscript = "lm3s-9b92.ld"
 elseif board == 'SOLDERCORE' then
    ldscript = "lm3s-9d92.ld"
-   fwlib_files = fwlib_files .. " " .. utils.get_files( "src/platform/" .. platform .. "/usblib", ".*%.c$" ) 
-   fwlib_files = fwlib_files .. " " .. utils.get_files( "src/platform/" .. platform .. "/usblib/device", ".*%.c$" )
-   specific_files = specific_files .. " usb_serial_structs.c"
 else
    ldscript = "lm3s.ld"
 end

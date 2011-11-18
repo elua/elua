@@ -6,6 +6,11 @@ import os
 comp.Append(CPPPATH = ['src/platform/%s/inc' % platform])
 comp.Append(CPPPATH = ['src/platform/%s/driverlib' % platform])
 
+# Only include USB headers/paths for boards which support it
+if comp[ 'cpu' ] == 'LM3S9B92' or comp[ 'cpu' ] == 'LM3S9D92':
+  comp.Append(CPPPATH = ['src/platform/%s/usblib' % platform])
+  comp.Append(CPPPATH = ['src/platform/%s/usblib/device' % platform])
+
 fwlib_files = " ".join(glob.glob("src/platform/%s/driverlib/*.c" % platform))
 
 specific_files = "startup_gcc.c platform.c platform_int.c"
@@ -19,6 +24,12 @@ if comp[ 'board' ] == 'EK-LM3S1968' or comp[ 'board' ] == 'EK-LM3S6965' or comp[
 # so that the built in Ethernet boot loader can be used to upload it
 if comp[ 'board' ] == 'EAGLE-100':
   comp.Append(LINKFLAGS = ['-Wl,-Ttext,0x2000'])
+
+if comp[ 'cpu' ] == 'LM3S9B92' or comp[ 'cpu' ] == 'LM3S9D92':
+  fwlib_files = fwlib_files + " " + " ".join(glob.glob("src/platform/%s/usblib/*.c" % platform))
+  fwlib_files = fwlib_files + " " + " ".join(glob.glob("src/platform/%s/usblib/device/*.c" % platform))
+  specific_files = specific_files + " usb_serial_structs.c"
+
 
 if comp[ 'board' ] == 'EK-LM3S9B92':
   ldscript = "lm3s-9b92.ld"
