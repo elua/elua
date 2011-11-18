@@ -41,10 +41,14 @@ extern void EthernetIntHandler();
 extern void SysTickIntHandler();
 extern void ADCIntHandler();
 extern void UARTIntHandler();
-extern void CANIntHandler();
+
 
 #include "hw_memmap.h"
 #include "platform_conf.h"
+
+#if defined( BUILD_CAN )
+extern void CANIntHandler();
+#endif
 
 extern void uart0_handler();
 extern void uart1_handler();
@@ -146,7 +150,10 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // Timer 3 subtimer B
     IntDefaultHandler,                      // I2C1 Master and Slave
     IntDefaultHandler,                      // Quadrature Encoder 1
+#if defined( BUILD_CAN )
     CANIntHandler,                          // CAN0
+#endif
+    IntDefaultHandler,                          // CAN0
     IntDefaultHandler,                      // CAN1
     IntDefaultHandler,                      // CAN2
     EthernetIntHandler,                     // Ethernet

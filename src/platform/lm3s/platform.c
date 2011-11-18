@@ -23,13 +23,7 @@
 #include "elua_int.h" 
 
 // Platform specific includes
-#include "inc/hw_ints.h"
-#include "inc/hw_memmap.h"
-#include "inc/hw_types.h"
-#include "inc/hw_pwm.h"
-#include "inc/hw_nvic.h"
-#include "inc/hw_can.h"
-#include "inc/hw_ethernet.h"
+
 #include "driverlib/debug.h"
 #include "driverlib/gpio.h"
 #include "driverlib/can.h"
@@ -248,6 +242,8 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 // ****************************************************************************
 // CAN
 
+#if defined( BUILD_CAN )
+
 volatile u32 can_rx_flag = 0;
 volatile u32 can_tx_flag = 0;
 volatile u32 can_err_flag = 0;
@@ -361,6 +357,8 @@ int platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )
   else
     return PLATFORM_UNDERFLOW;
 }
+
+#endif
 
 // ****************************************************************************
 // SPI
@@ -1072,7 +1070,7 @@ u32 platform_eth_get_packet_nb( void* buf, u32 maxlen )
 
 void platform_eth_force_interrupt()
 {
-  HWREG( NVIC_SW_TRIG) |= INT_ETH - 16;
+  HWREG( NVIC_SW_TRIG_R) |= INT_ETH - 16;
 }
 
 u32 platform_eth_get_elapsed_time()
