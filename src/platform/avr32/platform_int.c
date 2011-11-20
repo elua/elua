@@ -13,6 +13,7 @@
 #include "usart.h"
 #include "intc.h"
 #include "tc.h"
+#include "gpio.h"
 
 // ****************************************************************************
 // Interrupt handlers
@@ -106,6 +107,81 @@ __attribute__((__interrupt__)) static void tmr2_int_handler()
   tmr_match_common_handler( 2 );
 }
 
+// ----------------------------------------------------------------------------
+// GPIO interrupts and helpers
+
+// AVR32 has a special "pin change" interrupt mode. eLua doesn't have this 
+// interrupt, so we'll enable it when both POSEDGE and NEGEDGE for a pin are
+// enabled. To do this, we must keep the individual per-pin status of POSEDGE
+// and NEGEDGE in the arrays below.
+
+#define AVR32_NUM_PORTS       ( ( AVR32_NUM_GPIO + 31 ) >> 5 )
+static u32 gpio_posedge_status[ AVR32_NUM_PORTS ];
+static u32 gpio_negedge_status[ AVR32_NUM_PORTS ];
+
+static void gpioh_set_interrupt( elua_int_resnum resnum )
+{
+  u8 port = resnum >> 5, pin = resnum & 0x1F;
+  u32 posedge_mask = gpio_posedge_status[ port ] & ( 1 << pin );
+  u32 negedge_mask = gpio_negedge_status[ port ] & ( 1 << pin );
+
+  if( posedge_mask && negedge_mask )
+    gpio_enable_pin_interrupt( resnum, GPIO_PIN_CHANGE );
+  else if( posedge_mask )
+    gpio_enable_pin_interrupt( resnum, GPIO_RISING_EDGE );
+  else if( negedge_mask )
+    gpio_enable_pin_interrupt( resnum, GPIO_FALLING_EDGE );
+  else
+    gpio_disable_pin_interrupt( resnum );
+}
+
+/* Now for the interrupt handlers ... a bit weird, but easy to follow. The manual
+has this to say: "In every port there are four interrupt lines connected to the 
+interrupt controller. Every eigth interrupts in the port are ORed together to form 
+an interrupt line.". So we have an IRQ for each group of 8 consecutive GPIO pins.
+We could use a single interrupt handler and scan through all pins to see which one
+generated the interrupt, but it would take a lot of time for 109 pins. Instead,
+we use all the interrupts that the system can provide and we point them to a single
+handler; with the proper arguments, it needs to scan only 8 GPIO pins. */
+
+static void gpio_int_common_handler( int resnum )
+{
+  int i;
+
+  for( i = 0; i < 8; i ++, resnum ++ )
+    if( gpio_get_pin_interrupt_flag( resnum ) )
+    {
+      if( gpio_get_pin_value( resnum ) )
+        cmn_int_handler( INT_GPIO_POSEDGE, resnum );
+      else
+        cmn_int_handler( INT_GPIO_NEGEDGE, resnum );
+      gpio_clear_pin_interrupt_flag( resnum );
+    }
+}
+
+#define DEFINE_GPIO_HANDLER( num )\
+  __attribute__((__interrupt__)) static void gpio_irq##num##_handler ()\
+  {\
+    gpio_int_common_handler( num << 3 );\
+  }
+
+DEFINE_GPIO_HANDLER( 0 )
+DEFINE_GPIO_HANDLER( 1 )
+DEFINE_GPIO_HANDLER( 2 )
+DEFINE_GPIO_HANDLER( 3 )
+DEFINE_GPIO_HANDLER( 4 )
+DEFINE_GPIO_HANDLER( 5 )
+#if AVR32_NUM_GPIO > 44 // not an UC3B, asume 109 pins, thus 14 IRQs
+DEFINE_GPIO_HANDLER( 6 )
+DEFINE_GPIO_HANDLER( 7 )
+DEFINE_GPIO_HANDLER( 8 )
+DEFINE_GPIO_HANDLER( 9 )
+DEFINE_GPIO_HANDLER( 10 )
+DEFINE_GPIO_HANDLER( 11 )
+DEFINE_GPIO_HANDLER( 12 )
+DEFINE_GPIO_HANDLER( 13 )
+#endif // #if AVR32_NUM_GPIO > 44
+
 // ****************************************************************************
 // Interrupt: INT_UART_RX
 
@@ -167,11 +243,85 @@ static int int_tmr_match_get_flag( elua_int_resnum resnum, int clear )
 }
 
 // ****************************************************************************
+// Interrupt: INT_GPIO_POSEDGE
+
+static int int_gpio_posedge_get_status( elua_int_resnum resnum )
+{
+  u8 port = resnum >> 5, pin = resnum & 0x1F;
+
+  return ( gpio_posedge_status[ port ] & ( 1 << pin ) ) != 0;
+}
+
+static int int_gpio_posedge_set_status( elua_int_resnum resnum, int status )
+{
+  u8 port = resnum >> 5, pin = resnum & 0x1F;
+  int prev = int_gpio_posedge_get_status( resnum );
+
+  if( status == PLATFORM_CPU_ENABLE )
+    gpio_posedge_status[ port ] |= 1 << pin;
+  else
+    gpio_posedge_status[ port ] &= ~( 1 << pin );
+  gpioh_set_interrupt( resnum );
+  return prev;
+}
+
+static int int_gpio_posedge_get_flag( elua_int_resnum resnum, int clear )
+{
+  if( !int_gpio_posedge_get_status( resnum ) )
+    return 0;
+  int status = gpio_get_pin_interrupt_flag( resnum );
+
+  if( clear )
+    gpio_clear_pin_interrupt_flag( resnum );
+  return status;
+}
+
+// ****************************************************************************
+// Interrupt: INT_GPIO_NEGEDGE
+
+static int int_gpio_negedge_get_status( elua_int_resnum resnum )
+{
+  u8 port = resnum >> 5, pin = resnum & 0x1F;
+
+  return ( gpio_negedge_status[ port ] & ( 1 << pin ) ) != 0;
+}
+
+static int int_gpio_negedge_set_status( elua_int_resnum resnum, int status )
+{
+  u8 port = resnum >> 5, pin = resnum & 0x1F;
+  int prev = int_gpio_negedge_get_status( resnum );
+
+  if( status == PLATFORM_CPU_ENABLE )
+    gpio_negedge_status[ port ] |= 1 << pin;
+  else
+    gpio_negedge_status[ port ] &= ~( 1 << pin );
+  gpioh_set_interrupt( resnum );
+  return prev;
+}
+
+static int int_gpio_negedge_get_flag( elua_int_resnum resnum, int clear )
+{
+  if( !int_gpio_negedge_get_status( resnum ) )
+    return 0;
+  int status = gpio_get_pin_interrupt_flag( resnum );
+
+  if( clear )
+    gpio_clear_pin_interrupt_flag( resnum );
+  return status;
+}
+
+// ****************************************************************************
 // Interrupt initialization
 
 typedef void ( *phandler )();
 static const phandler phandlers_usart[] = { uart0_rx_handler, uart1_rx_handler, uart2_rx_handler, uart3_rx_handler };
 static const phandler phandlers_tmr[] = { tmr0_int_handler, tmr1_int_handler, tmr2_int_handler };
+#if AVR32_NUM_GPIO == 44 // UC3B - 44 pins
+static const phandler phandlers_gpio[] = { gpio_irq0_handler, gpio_irq1_handler, gpio_irq2_handler, gpio_irq3_handler, gpio_irq4_handler, gpio_irq5_handler };
+#else // UC3A - 109 pins
+static const phandler phandlers_gpio[] = { gpio_irq0_handler, gpio_irq1_handler, gpio_irq2_handler, gpio_irq3_handler, gpio_irq4_handler, gpio_irq5_handler,
+  gpio_irq6_handler, gpio_irq7_handler, gpio_irq8_handler, gpio_irq9_handler, gpio_irq10_handler, gpio_irq11_handler, gpio_irq12_handler, gpio_irq13_handler };
+#endif
 
 void platform_int_init()
 {
@@ -182,6 +332,8 @@ void platform_int_init()
       INTC_register_interrupt( phandlers_usart[ i ], usart_irqs[ i ], AVR32_INTC_INT0 );   
   for( i = 0; i < sizeof( phandlers_tmr ) / sizeof( phandler ); i ++ )
     INTC_register_interrupt( phandlers_tmr[ i ], tmr_irqs[ i ], AVR32_INTC_INT0 );
+  for( i = 0; i < sizeof( phandlers_gpio ) / sizeof( phandler ); i ++ )
+    INTC_register_interrupt( phandlers_gpio[ i ], AVR32_GPIO_IRQ_0 + i, AVR32_INTC_INT0 );
   Enable_global_interrupt();   
 }
 
@@ -192,7 +344,9 @@ void platform_int_init()
 const elua_int_descriptor elua_int_table[ INT_ELUA_LAST ] = 
 {
   { int_uart_rx_set_status, int_uart_rx_get_status, int_uart_rx_get_flag },
-  { int_tmr_match_set_status, int_tmr_match_get_status, int_tmr_match_get_flag }
+  { int_tmr_match_set_status, int_tmr_match_get_status, int_tmr_match_get_flag },
+  { int_gpio_posedge_set_status, int_gpio_posedge_get_status, int_gpio_posedge_get_flag },
+  { int_gpio_negedge_set_status, int_gpio_negedge_get_status, int_gpio_negedge_get_flag }
 };
 
 #endif // #if defined( BUILD_C_INT_HANDLERS ) || defined( BUILD_LUA_INT_HANDLERS )
