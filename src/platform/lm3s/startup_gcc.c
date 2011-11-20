@@ -152,8 +152,9 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // Quadrature Encoder 1
 #if defined( BUILD_CAN )
     CANIntHandler,                          // CAN0
+#else
+    IntDefaultHandler,                      // CAN0
 #endif
-    IntDefaultHandler,                          // CAN0
     IntDefaultHandler,                      // CAN1
     IntDefaultHandler,                      // CAN2
     EthernetIntHandler,                     // Ethernet
