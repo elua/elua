@@ -71,7 +71,7 @@
 #include "usblib/device/usbdevice.h"
 #include "usblib/device/usbdcdc.h"
 #include "usb_serial_structs.h"
-
+#include "hw_nvic.h"
 
 // UIP sys tick data
 // NOTE: when using virtual timers, SYSTICKHZ and VTMR_FREQ_HZ should have the
@@ -1070,7 +1070,7 @@ u32 platform_eth_get_packet_nb( void* buf, u32 maxlen )
 
 void platform_eth_force_interrupt()
 {
-  HWREG( NVIC_SW_TRIG_R) |= INT_ETH - 16;
+  HWREG( NVIC_SW_TRIG ) |= INT_ETH - 16;
 }
 
 u32 platform_eth_get_elapsed_time()
