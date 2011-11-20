@@ -201,6 +201,7 @@
 // #define PIO_PIN_ARRAY { n1, n2, ... } to define pins per port in an array
 // Use #define PIO_PINS_PER_PORT 0 if this isn't needed
 #define PIO_PIN_ARRAY         { 31, 32, 32, 14 }
+#define AVR32_NUM_GPIO        110 // actually 109, but consider also PA31
 
 #ifdef BOOTLOADER_EMBLOD
 # define ELUA_FIRMWARE_SIZE 0x80000
@@ -213,9 +214,6 @@
 #define MEM_START_ADDRESS     { ( void* )end, ( void* )( SDRAM + ELUA_FIRMWARE_SIZE ) }
 #define MEM_END_ADDRESS       { ( void* )( RAM_SIZE - STACK_SIZE_TOTAL - 1 ), ( void* )( SDRAM + SDRAM_SIZE - 1 ) }
 
-// Interrupt queue size
-#define PLATFORM_INT_QUEUE_LOG_SIZE 5
-
 #define RFS_BUFFER_SIZE       BUF_SIZE_512
 #define RFS_UART_ID           ( SERMUX_SERVICE_ID_FIRST )
 #define RFS_TIMEOUT           100000
@@ -225,15 +223,6 @@
 //#define SERMUX_PHYS_SPEED     115200
 //#define SERMUX_NUM_VUART      2
 //#define SERMUX_BUFFER_SIZES   { RFS_BUFFER_SIZE, CON_BUF_SIZE }
-
-// Interrupt list
-#define INT_UART_RX           ELUA_INT_FIRST_ID
-#define INT_TMR_MATCH         ( ELUA_INT_FIRST_ID + 1 )
-#define INT_ELUA_LAST         INT_TMR_MATCH
-
-#define PLATFORM_CPU_CONSTANTS\
- _C( INT_UART_RX ),\
- _C( INT_TMR_MATCH )
 
 // *****************************************************************************
 // CPU constants that should be exposed to the eLua "cpu" module
