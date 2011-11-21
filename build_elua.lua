@@ -402,11 +402,7 @@ source_files = source_files .. uip_files .. specific_files
 -------------------------------------------------------------------------------
 -- Create compiler/linker/assembler command lines and build
 
-function Set (list)
-  local set = {}
-  for _, l in ipairs(list) do set[l] = true end
-  return set
-end
+-- ROM file system builder
 
 romfs_exclude_patterns = { '%.DS_Store', '%.gitignore' }
 
@@ -416,7 +412,6 @@ function match_pattern_list( item, list )
   end
 end
 
--- ROM file system builder
 local function make_romfs()
   print "Building ROM file system ..."
   local flist = {}
