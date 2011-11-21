@@ -176,10 +176,16 @@ u32 i2c_setup( u32 speed )
   sda_regs->gpers = SDA_PINMASK;
   scl_regs->gpers = SCL_PINMASK;
 
-  // Figure out how many clock cycles correspond to half a clock waveform.
-  i2c_delay = REQ_CPU_FREQ / speed / 2;
+  // Limit range to possible values, to avoid divisions by zero below.
+  if (speed == 0) speed = 1;
+  if (speed > REQ_CPU_FREQ / 2) speed = REQ_CPU_FREQ / 2;
 
-  return speed;
+  // Figure out how many clock cycles correspond to half a clock waveform.
+  // "+(speed-1)" ensures we never set a faster speed than what they asked for.
+  i2c_delay = ( REQ_CPU_FREQ / 2 + (speed - 1) ) / speed;
+
+  // Return the closest integer to the actual speed we set
+  return ( REQ_CPU_FREQ / 2 + i2c_delay / 2 ) / i2c_delay;
 }
 
 // Are we between a start bit and a stop bit?
