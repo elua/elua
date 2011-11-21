@@ -4,36 +4,40 @@
 #define __PLATFORM_CONF_H__
 
 #include "auxmods.h"
-#include "hw_memmap.h"
-#include "hw_types.h"
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
 #include "stacks.h"
-#include "sysctl.h"
+#include "driverlib/sysctl.h"
 #include "elua_int.h"
 
 // *****************************************************************************
 // Define here what components you want for this platform
-#if !defined( ELUA_BOARD_SOLDERCORE )
+//#if !defined( ELUA_BOARD_SOLDERCORE )
   #define BUILD_XMODEM
   #define BUILD_TERM
-#endif
+//#endif
 
 #define BUILD_SHELL
 #define BUILD_ROMFS
 #define BUILD_MMCFS
 
+#if defined( ELUA_BOARD_SOLDERCORE )
+  #define BUILD_USB_CDC
+#endif
+
 #ifndef FORLM3S1968
   #define BUILD_UIP
-//  #define BUILD_DHCPC
+  #define BUILD_DHCPC
   #define BUILD_DNS
 #endif  
 
 #define BUILD_ADC
 #define BUILD_RPC
-#if defined( ELUA_BOARD_SOLDERCORE )
-  #define BUILD_CON_TCP
-#else
+//#if defined( ELUA_BOARD_SOLDERCORE )
+//  #define BUILD_CON_TCP
+//#else
   #define BUILD_CON_GENERIC
-#endif
+//#endif
 #define BUILD_C_INT_HANDLERS
 
 #define PLATFORM_HAS_SYSTIMER
@@ -41,7 +45,12 @@
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 
+#if defined( ELUA_BOARD_SOLDERCORE )
+#define CON_UART_ID         CDC_UART_ID
+#else
 #define CON_UART_ID           0
+#endif
+
 #define CON_UART_SPEED        115200
 #define TERM_LINES            25
 #define TERM_COLS             80
@@ -176,17 +185,23 @@
   #define NUM_UART            2
 #endif
 #define NUM_TIMER             4
-#ifndef FORLM3S6918
-  #define NUM_PWM             6
-#else
+#if defined( FORLM3S6918 )
   #define NUM_PWM             0
+#elif defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
+  #define NUM_PWM             8
+#else
+  #define NUM_PWM             6
 #endif  
+#if defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
+#define NUM_ADC               16
+#else
 #define NUM_ADC               4
+#endif
 #define NUM_CAN               1
 
 // Enable RX buffering on UART
-#define BUF_ENABLE_UART
-#define CON_BUF_SIZE          BUF_SIZE_128
+//#define BUF_ENABLE_UART
+//#define CON_BUF_SIZE          BUF_SIZE_128
 
 // ADC Configuration Params
 #define ADC_BIT_RESOLUTION    10

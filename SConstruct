@@ -390,13 +390,16 @@ if not GetOption( 'help' ):
   
   comp = conf.Finish()
 
+  romfs_exclude = [ '.DS_Store' ]
+
   # Make ROM File System first
   if not GetOption( 'clean' ):
     print "Building ROM File System..."
     flist = []
     os.chdir( "romfs" );
     for sample in glob.glob("*"):
-      flist += [ sample ]
+      if sample not in romfs_exclude:
+        flist += [ sample ]
     os.chdir( ".." )
     import mkfs
     mkfs.mkfs( "romfs", "romfiles", flist, comp['romfs'], compcmd )

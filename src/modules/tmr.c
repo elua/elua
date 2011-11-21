@@ -144,7 +144,7 @@ static int tmr_set_match_int( lua_State *L )
   
   id = ( unsigned )luaL_optinteger( L, 3, PLATFORM_TIMER_SYS_ID );
   MOD_CHECK_TIMER( id );
-  res = platform_timer_set_match_int( id, ( timer_data_type )luaL_checknumber( L, 1 ), ( int )luaL_checkinteger( L, 3 ) );
+  res = platform_timer_set_match_int( id, ( timer_data_type )luaL_checknumber( L, 1 ), ( int )luaL_checkinteger( L, 2 ) );
   if( res == PLATFORM_TIMER_INT_TOO_SHORT )
     return luaL_error( L, "timer interval too small" );
   else if( res == PLATFORM_TIMER_INT_TOO_LONG )

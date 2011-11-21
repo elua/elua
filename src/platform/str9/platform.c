@@ -869,36 +869,79 @@ u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigne
     divider = temp / prescaler;
   }
 
-  // GPIO setup
-  // Fixed assignment:
-  // P5.4 - SCLK
-  // P5.5 - MOSI
-  // P5.6 - MISO
-  // P5.7 - CS (not explicitly handled by the SPI module)
-  GPIO_InitStructure.GPIO_Direction = GPIO_PinOutput;
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4 | GPIO_Pin_5;
-  GPIO_InitStructure.GPIO_Type = GPIO_Type_PushPull ;
-  GPIO_InitStructure.GPIO_Alternate = GPIO_OutputAlt2  ;
-  GPIO_Init(GPIO5, &GPIO_InitStructure);
-  GPIO_InitStructure.GPIO_Direction = GPIO_PinInput;
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
-  GPIO_InitStructure.GPIO_IPConnected = GPIO_IPConnected_Enable;
-  GPIO_InitStructure.GPIO_Alternate = GPIO_InputAlt1  ;
-  GPIO_Init(GPIO5, &GPIO_InitStructure);
+  if ( id == 0 )
+  {
+    // GPIO setup
+    // Fixed assignment:
+    // P5.4 - SCLK
+    // P5.5 - MOSI
+    // P5.6 - MISO
+    // P5.7 - CS
+    GPIO_InitStructure.GPIO_Direction = GPIO_PinOutput;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4 | GPIO_Pin_5 | GPIO_Pin_7;
+    GPIO_InitStructure.GPIO_Type = GPIO_Type_PushPull;
+    GPIO_InitStructure.GPIO_Alternate = GPIO_OutputAlt2;
+    GPIO_Init(GPIO5, &GPIO_InitStructure);
+    GPIO_InitStructure.GPIO_Direction = GPIO_PinInput;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
+    GPIO_InitStructure.GPIO_IPConnected = GPIO_IPConnected_Enable;
+    GPIO_InitStructure.GPIO_Alternate = GPIO_InputAlt1  ;
+    GPIO_Init(GPIO5, &GPIO_InitStructure);
 
-  // Actual SPI setup
-  SSP_DeInit(SSP0);
-  SSP_InitStructure.SSP_FrameFormat = SSP_FrameFormat_Motorola;
-  SSP_InitStructure.SSP_Mode = SSP_Mode_Master;
-  SSP_InitStructure.SSP_CPOL = cpol == 0 ? SSP_CPOL_Low : SSP_CPOL_High;
-  SSP_InitStructure.SSP_CPHA = cpha == 0 ? SSP_CPHA_1Edge : SSP_CPHA_2Edge;
-  SSP_InitStructure.SSP_DataSize = databits - 1;
-  SSP_InitStructure.SSP_ClockRate = divider - 1;
-  SSP_InitStructure.SSP_ClockPrescaler = prescaler;
-  SSP_Init(SSP0, &SSP_InitStructure);
+    // Actual SPI setup
+    SSP_DeInit(SSP0);
+    SSP_InitStructure.SSP_FrameFormat = SSP_FrameFormat_Motorola;
+    SSP_InitStructure.SSP_Mode = SSP_Mode_Master;
+    SSP_InitStructure.SSP_CPOL = cpol == 0 ? SSP_CPOL_Low : SSP_CPOL_High;
+    SSP_InitStructure.SSP_CPHA = cpha == 0 ? SSP_CPHA_1Edge : SSP_CPHA_2Edge;
+    SSP_InitStructure.SSP_DataSize = databits - 1;
+    SSP_InitStructure.SSP_ClockRate = divider - 1;
+    SSP_InitStructure.SSP_ClockPrescaler = prescaler;
+    SSP_Init(SSP0, &SSP_InitStructure);
 
-  // Enable peripheral   
-  SSP_Cmd(SSP0, ENABLE);
+    // Enable peripheral   
+    SSP_Cmd(SSP0, ENABLE);
+  }
+  else if ( id == 1 )
+  {
+    // GPIO setup
+    // Fixed assignment:
+    // P1.0 - SCLK
+    // P1.1 - MOSI
+    // P1.2 - MISO
+    // P1.3 - CS
+    GPIO_InitStructure.GPIO_Direction = GPIO_PinOutput;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+    GPIO_InitStructure.GPIO_Type = GPIO_Type_PushPull;
+    GPIO_InitStructure.GPIO_Alternate = GPIO_OutputAlt3;
+    GPIO_Init(GPIO1, &GPIO_InitStructure);
+	
+    GPIO_InitStructure.GPIO_Direction = GPIO_PinOutput;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1 | GPIO_Pin_3;
+    GPIO_InitStructure.GPIO_Type = GPIO_Type_PushPull;
+    GPIO_InitStructure.GPIO_Alternate = GPIO_OutputAlt3;
+    GPIO_Init(GPIO1, &GPIO_InitStructure);
+	
+    GPIO_InitStructure.GPIO_Direction = GPIO_PinInput;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
+    GPIO_InitStructure.GPIO_IPConnected = GPIO_IPConnected_Enable;
+    GPIO_InitStructure.GPIO_Alternate = GPIO_InputAlt1;
+    GPIO_Init(GPIO1, &GPIO_InitStructure);
+
+    // Actual SPI setup
+    SSP_DeInit(SSP1);
+    SSP_InitStructure.SSP_FrameFormat = SSP_FrameFormat_Motorola;
+    SSP_InitStructure.SSP_Mode = SSP_Mode_Master;
+    SSP_InitStructure.SSP_CPOL = cpol == 0 ? SSP_CPOL_Low : SSP_CPOL_High;
+    SSP_InitStructure.SSP_CPHA = cpha == 0 ? SSP_CPHA_1Edge : SSP_CPHA_2Edge;
+    SSP_InitStructure.SSP_DataSize = databits - 1;
+    SSP_InitStructure.SSP_ClockRate = divider - 1;
+    SSP_InitStructure.SSP_ClockPrescaler = prescaler;
+    SSP_Init(SSP1, &SSP_InitStructure);
+
+    // Enable peripheral   
+    SSP_Cmd(SSP1, ENABLE);
+  }
   
   // All done
   return basefreq / ( prescaler * divider );
@@ -906,14 +949,28 @@ u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigne
 
 spi_data_type platform_spi_send_recv( unsigned id, spi_data_type data )
 {
-  // Send byte through the SSP0 peripheral
-  SSP0->DR = data;
-  // Loop while Transmit FIFO is full
-  while(SSP_GetFlagStatus(SSP0, SSP_FLAG_TxFifoEmpty) == RESET);
-  // Loop while Receive FIFO is empty
-  while(SSP_GetFlagStatus(SSP0, SSP_FLAG_RxFifoNotEmpty) == RESET); 
-  // Return the byte read from the SSP bus
-  return SSP0->DR;
+  if (id == 0)
+  {
+    // Send byte through the SSP0 peripheral
+    SSP0->DR = data;
+    // Loop while Transmit FIFO is full
+    while(SSP_GetFlagStatus(SSP0, SSP_FLAG_TxFifoEmpty) == RESET);
+    // Loop while Receive FIFO is empty
+    while(SSP_GetFlagStatus(SSP0, SSP_FLAG_RxFifoNotEmpty) == RESET); 
+    // Return the byte read from the SSP bus
+    return SSP0->DR;  
+  }
+  else
+  {
+    // Send byte through the SSP1 peripheral
+    SSP1->DR = data;
+    // Loop while Transmit FIFO is full
+    while(SSP_GetFlagStatus(SSP1, SSP_FLAG_TxFifoEmpty) == RESET);
+    // Loop while Receive FIFO is empty
+    while(SSP_GetFlagStatus(SSP1, SSP_FLAG_RxFifoNotEmpty) == RESET); 
+    // Return the byte read from the SSP bus
+    return SSP1->DR;  
+  }
 }
 
 void platform_spi_select( unsigned id, int is_select )

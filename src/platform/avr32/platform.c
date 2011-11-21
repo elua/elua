@@ -119,28 +119,6 @@ static u32 platform_timer_set_clock( unsigned id, u32 clock );
 __attribute__((__interrupt__)) static void adc_int_handler();
 #endif
 
-// Virtual timers support
-#if VTMR_NUM_TIMERS > 0
-#define VTMR_CH     (2)
-
-__attribute__((__interrupt__)) static void tmr_int_handler()
-{
-  volatile avr32_tc_t *tc = &AVR32_TC;
-
-  tc_read_sr( tc, VTMR_CH );
-  cmn_virtual_timer_cb();
-
-#ifdef BUILD_UIP
-  // Indicate that a SysTick interrupt has occurred.
-  eth_timer_fired = 1;
-
-  // Generate a fake Ethernet interrupt.  This will perform the actual work
-  // of incrementing the timers and taking the appropriate actions.
-  platform_eth_force_interrupt();
-#endif
-}
-#endif
-
 const u32 uart_base_addr[ ] = {
   AVR32_USART0_ADDRESS,
   AVR32_USART1_ADDRESS,
@@ -220,37 +198,6 @@ int platform_init()
 #endif
   }
 
-  // Setup timer interrupt for the virtual timers if needed
-#if VTMR_NUM_TIMERS > 0
-  INTC_register_interrupt( &tmr_int_handler, AVR32_TC_IRQ2, AVR32_INTC_INT0 );
-  tmropt.waveform.wavsel = TC_WAVEFORM_SEL_UP_MODE_RC_TRIGGER;
-  tc_init_waveform( tc, VTMR_CH, &tmropt );
-  tc_interrupt_t tmrint =
-  {
-    0,              // External trigger interrupt.
-    0,              // RB load interrupt.
-    0,              // RA load interrupt.
-    1,              // RC compare interrupt.
-    0,              // RB compare interrupt.
-    0,              // RA compare interrupt.
-    0,              // Load overrun interrupt.
-    0               // Counter overflow interrupt.
-  };
-# ifdef FOSC32
-  tc_write_rc( tc, VTMR_CH, FOSC32 / VTMR_FREQ_HZ );
-# else
-  // Run VTMR from the slowest available PBA clock divisor
-  { u32 vt_clock_freq = platform_timer_set_clock( VTMR_CH, REQ_PBA_FREQ / 128 );
-    u32 div = vt_clock_freq / VTMR_FREQ_HZ;
-    if (div > 0xffff) div = 0xffff;
-    tc_write_rc( tc, VTMR_CH, div );
-  }
-# endif
-  tc_configure_interrupts( tc, VTMR_CH, &tmrint );
-  Enable_global_interrupt();
-  tc_start( tc, VTMR_CH );
-#endif
-
   // Setup spi controller(s) : up to 4 slave by controller.
 #if NUM_SPI > 0
   spi_master_options_t spiopt;
@@ -296,6 +243,13 @@ int platform_init()
   cmn_systimer_set_base_freq( 1000000 );
   cmn_systimer_set_interrupt_freq( 1 );
   platform_systimer_init();
+
+  // Setup virtual timers if needed
+#if VTMR_NUM_TIMERS > 0
+#define VTMR_CH               2
+  platform_cpu_set_interrupt( INT_TMR_MATCH, VTMR_CH, PLATFORM_CPU_ENABLE );
+  platform_timer_set_match_int( VTMR_CH, 1000000 / VTMR_FREQ_HZ, PLATFORM_TIMER_INT_CYCLIC );
+#endif // #if VTMR_NUM_TIMERS > 0
 
   cmn_platform_init();
 
@@ -539,6 +493,7 @@ int platform_s_uart_set_flow_control( unsigned id, int type )
 // Timer functions
 
 static const u16 clkdivs[] = { 0xFFFF, 2, 8, 32, 128 };
+u8 avr32_timer_int_periodic_flag[ 3 ];
 
 // Helper: get timer clock
 static u32 platform_timer_get_clock( unsigned id )
@@ -639,7 +594,25 @@ timer_data_type platform_s_timer_op( unsigned id, int op, timer_data_type data )
 
 int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int type )
 {
-  return PLATFORM_TIMER_INT_INVALID_ID;
+  volatile avr32_tc_t *tc = &AVR32_TC;
+  u32 final;
+
+  if( period_us == 0 )
+  {
+    tc->channel[ id ].CMR.waveform.wavsel = TC_WAVEFORM_SEL_UP_MODE;
+    return PLATFORM_TIMER_INT_OK;
+  }
+  final = ( u32 )( ( u64 )( platform_timer_get_clock( id ) * period_us ) / 1000000 );
+  if( final == 0 )
+    return PLATFORM_TIMER_INT_TOO_SHORT;
+  if( final > 0xFFFF )
+    return PLATFORM_TIMER_INT_TOO_LONG;
+  tc_stop( tc, id );
+  tc->channel[ id ].CMR.waveform.wavsel = TC_WAVEFORM_SEL_UP_MODE_RC_TRIGGER;
+  tc->channel[ id ].rc = final;
+  avr32_timer_int_periodic_flag[ id ] = type;
+  tc_start( tc, id );
+  return PLATFORM_TIMER_INT_OK;
 }
 
 u64 platform_timer_sys_raw_read()
@@ -1164,7 +1137,23 @@ u32 platform_eth_get_elapsed_time()
     return 0;
 }
 
-#endif
+void platform_eth_timer_handler()
+{
+  // Indicate that a SysTick interrupt has occurred.
+  eth_timer_fired = 1;
+
+  // Generate a fake Ethernet interrupt.  This will perform the actual work
+  // of incrementing the timers and taking the appropriate actions.
+  platform_eth_force_interrupt();
+}
+
+#else // #ifdef BUILD_UIP
+
+void platform_eth_timer_handler()
+{
+}
+
+#endif // #ifdef BUILD_UIP
 
 // ****************************************************************************
 // Platform specific modules go here

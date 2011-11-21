@@ -24,10 +24,19 @@ int uart_last_sent = -1;
 int platform_uart_exists( unsigned id )
 {
 #ifdef BUILD_SERMUX
-  return id < NUM_UART || ( id >= SERMUX_SERVICE_ID_FIRST && id < SERMUX_SERVICE_ID_FIRST + SERMUX_NUM_VUART );
-#else // #ifdef BUILD_SERMUX
-  return id < NUM_UART;
-#endif // #ifdef BUILD_SERMUX
+  if( id >= SERMUX_SERVICE_ID_FIRST && id < SERMUX_SERVICE_ID_FIRST + SERMUX_NUM_VUART )
+    return 1;
+#endif
+
+#ifdef BUILD_USB_CDC
+  if( id == CDC_UART_ID )
+    return 1;
+#endif
+
+  if( id < NUM_UART )
+    return 1;
+
+  return 0;
 }
 
 // Helper function for buffers
@@ -35,7 +44,14 @@ static int cmn_recv_helper( unsigned id, timer_data_type timeout )
 {
 #ifdef BUF_ENABLE_UART
   t_buf_data data;
-  
+#endif
+
+#ifdef BUILD_USB_CDC
+  if( id == CDC_UART_ID )
+    return platform_usb_cdc_recv( timeout );
+#endif
+
+#ifdef BUF_ENABLE_UART
   if( buf_is_enabled( BUF_ID_UART, id ) )
   {
     if( timeout == 0 )
@@ -51,7 +67,10 @@ static int cmn_recv_helper( unsigned id, timer_data_type timeout )
   }
   else
 #endif // #ifdef BUF_ENABLE_UART
-  return platform_s_uart_recv( id, timeout );
+  if( id < NUM_UART )
+    return platform_s_uart_recv( id, timeout );
+
+  return -1;
 }
 
 int platform_uart_recv( unsigned id, unsigned timer_id, timer_data_type timeout )
@@ -121,6 +140,10 @@ static void cmn_rx_handler( int usart_id, u8 data )
 // Send: version with and without mux
 void platform_uart_send( unsigned id, u8 data ) 
 {
+#ifdef BUILD_USB_CDC
+  if( id == CDC_UART_ID )
+    platform_usb_cdc_send( data );
+#endif
 #ifdef BUILD_SERMUX
   if( id >= SERMUX_SERVICE_ID_FIRST && id < SERMUX_SERVICE_ID_FIRST + SERMUX_NUM_VUART )
   {
@@ -137,9 +160,9 @@ void platform_uart_send( unsigned id, u8 data )
       platform_s_uart_send( SERMUX_PHYS_ID, data );
     uart_service_id_out = id;
   }
-  else
 #endif // #ifdef BUILD_SERMUX
-  platform_s_uart_send( id, data );
+  if( id < NUM_UART )
+    platform_s_uart_send( id, data );
 }
 
 #ifdef BUF_ENABLE_UART

@@ -1,5 +1,19 @@
 # Configuration file for the LM3S microcontroller
-specific_files = "startup_gcc.c platform.c uart.c sysctl.c gpio.c ssi.c timer.c pwm.c ethernet.c systick.c flash.c interrupt.c cpu.c adc.c can.c platform_int.c"
+import fnmatch
+import glob
+import os
+
+comp.Append(CPPPATH = ['src/platform/%s/inc' % platform])
+comp.Append(CPPPATH = ['src/platform/%s/driverlib' % platform])
+
+# Only include USB headers/paths for boards which support it
+if comp[ 'cpu' ] == 'LM3S9B92' or comp[ 'cpu' ] == 'LM3S9D92':
+  comp.Append(CPPPATH = ['src/platform/%s/usblib' % platform])
+  comp.Append(CPPPATH = ['src/platform/%s/usblib/device' % platform])
+
+fwlib_files = " ".join(glob.glob("src/platform/%s/driverlib/*.c" % platform))
+
+specific_files = "startup_gcc.c platform.c platform_int.c"
 
 if comp[ 'board' ] == 'EK-LM3S1968' or comp[ 'board' ] == 'EK-LM3S6965' or comp[ 'board' ] == 'EK-LM3S8962':
   specific_files = specific_files + " rit128x96x4.c disp.c"
@@ -11,6 +25,12 @@ if comp[ 'board' ] == 'EK-LM3S1968' or comp[ 'board' ] == 'EK-LM3S6965' or comp[
 if comp[ 'board' ] == 'EAGLE-100':
   comp.Append(LINKFLAGS = ['-Wl,-Ttext,0x2000'])
 
+if comp[ 'cpu' ] == 'LM3S9B92' or comp[ 'cpu' ] == 'LM3S9D92':
+  fwlib_files = fwlib_files + " " + " ".join(glob.glob("src/platform/%s/usblib/*.c" % platform))
+  fwlib_files = fwlib_files + " " + " ".join(glob.glob("src/platform/%s/usblib/device/*.c" % platform))
+  specific_files = specific_files + " usb_serial_structs.c"
+
+
 if comp[ 'board' ] == 'EK-LM3S9B92':
   ldscript = "lm3s-9b92.ld"
 elif comp[ 'board' ] == 'SOLDERCORE':
@@ -19,7 +39,7 @@ else:
   ldscript = "lm3s.ld"
 
 # Prepend with path
-specific_files = " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )
+specific_files = fwlib_files + " " + " ".join( [ "src/platform/%s/%s" % ( platform, f ) for f in specific_files.split() ] )
 specific_files += " src/platform/cortex_utils.s src/platform/arm_cortex_interrupts.c"
 ldscript = "src/platform/%s/%s" % ( platform, ldscript )
 

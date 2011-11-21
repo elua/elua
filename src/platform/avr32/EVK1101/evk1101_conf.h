@@ -117,22 +117,13 @@
 // #define PIO_PIN_ARRAY { n1, n2, ... } to define pins per port in an array
 // Use #define PIO_PINS_PER_PORT 0 if this isn't needed
 #define PIO_PIN_ARRAY         { 32, 12 }
+#define AVR32_NUM_GPIO        44
 
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)
 #define MEM_START_ADDRESS     { ( void* )end }
 #define MEM_END_ADDRESS       { ( void* )( AVR32_SRAM_SIZE - STACK_SIZE_TOTAL - 1 ) }    
 
-// Interrupt queue size
-#define PLATFORM_INT_QUEUE_LOG_SIZE 5
-
-// Interrupt list
-#define INT_UART_RX           ELUA_INT_FIRST_ID
-#define INT_ELUA_LAST         INT_UART_RX
-
-#define PLATFORM_CPU_CONSTANTS\
- _C( INT_UART_RX )
- 
 // *****************************************************************************
 // CPU constants that should be exposed to the eLua "cpu" module
 

@@ -403,14 +403,24 @@ source_files = source_files .. uip_files .. specific_files
 -- Create compiler/linker/assembler command lines and build
 
 -- ROM file system builder
+
+romfs_exclude_patterns = { '%.DS_Store', '%.gitignore' }
+
+function match_pattern_list( item, list )
+  for k, v in pairs( list ) do
+     if item:find(v) then return true end
+  end
+end
+
 local function make_romfs()
   print "Building ROM file system ..."
   local flist = {}
-  flist = utils.string_to_table( utils.get_files( 'romfs', function( fname ) return not fname:find( "%.gitignore" ) end ) )
+  flist = utils.string_to_table( utils.get_files( 'romfs', function( fname ) return not match_pattern_list( fname, romfs_exclude_patterns ) end ) )
   flist = utils.linearize_array( flist )  
   for k, v in pairs( flist ) do
     flist[ k ] = v:gsub( "romfs" .. utils.dir_sep, "" )
   end
+
   if not mkfs.mkfs( "romfs", "romfiles", flist, comp.romfs, fscompcmd ) then return -1 end
   if utils.is_file( "inc/romfiles.h" ) then
     -- Read both the old and the new file
