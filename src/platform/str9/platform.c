@@ -377,14 +377,6 @@ timer_data_type platform_s_timer_op( unsigned id, int op, timer_data_type data )
       res = TIM_GetCounterValue( base );
       break;
       
-    case PLATFORM_TIMER_OP_GET_MAX_DELAY:
-      res = platform_timer_get_diff_us( id, 0, 0xFFFF );
-      break;
-      
-    case PLATFORM_TIMER_OP_GET_MIN_DELAY:
-      res = platform_timer_get_diff_us( id, 0, 1 );
-      break;      
-      
     case PLATFORM_TIMER_OP_SET_CLOCK:
       res = platform_timer_set_clock( id, data );
       break;

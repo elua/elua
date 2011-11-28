@@ -266,7 +266,15 @@ timer_data_type platform_timer_op( unsigned id, int op, timer_data_type data )
     return res;
   }
   if( ( VTMR_NUM_TIMERS == 0 ) || ( !TIMER_IS_VIRTUAL( id ) ) )
-    return platform_s_timer_op( id, op, data );
+  {
+    // 'get min delay' and 'get max delay' are very common cases, handle them here
+    if( op == PLATFORM_TIMER_OP_GET_MAX_DELAY )
+      return platform_timer_get_diff_us( id, platform_timer_get_max_cnt( id ), 0 );
+    else if( op == PLATFORM_TIMER_OP_GET_MIN_DELAY )
+      return platform_timer_get_diff_us( id, 1, 0 );
+    else
+      return platform_s_timer_op( id, op, data );
+  }
 #if VTMR_NUM_TIMERS > 0
   switch( op )
   {
@@ -280,11 +288,11 @@ timer_data_type platform_timer_op( unsigned id, int op, timer_data_type data )
       break;
       
     case PLATFORM_TIMER_OP_GET_MAX_DELAY:
-      res = platform_timer_get_diff_us( id, 0, 0xFFFFFFFF );
+      res = platform_timer_get_diff_us( id, 0xFFFFFFFF, 0 );
       break;
       
     case PLATFORM_TIMER_OP_GET_MIN_DELAY:
-      res = platform_timer_get_diff_us( id, 0, 1 );
+      res = platform_timer_get_diff_us( id, 1, 0 );
       break;
 
     case PLATFORM_TIMER_OP_GET_MAX_CNT:

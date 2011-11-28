@@ -137,6 +137,7 @@ void platform_timer_sys_disable_int();
 #define platform_timer_start( id )            platform_timer_op( id, PLATFORM_TIMER_OP_START, 0 )
 #define platform_timer_get_diff_crt( id, v )  platform_timer_get_diff_us( id, platform_timer_read( id ), v )
 #define platform_timer_sys_delay( us )        platform_timer_delay( PLATFORM_TIMER_SYS_ID, us )
+#define platform_timer_get_max_cnt( id )      platform_timer_op( id, PLATFORM_TIMER_OP_GET_MAX_CNT, 0 )
 
 // *****************************************************************************
 // CAN subsection

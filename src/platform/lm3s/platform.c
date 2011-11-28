@@ -560,14 +560,6 @@ timer_data_type platform_s_timer_op( unsigned id, int op,timer_data_type data )
       res = MAP_TimerValueGet( base, TIMER_A );
       break;
 
-    case PLATFORM_TIMER_OP_GET_MAX_DELAY:
-      res = platform_timer_get_diff_us( id, 0, 0xFFFFFFFF );
-      break;
-
-    case PLATFORM_TIMER_OP_GET_MIN_DELAY:
-      res = platform_timer_get_diff_us( id, 0, 1 );
-      break;
-
     case PLATFORM_TIMER_OP_SET_CLOCK:
     case PLATFORM_TIMER_OP_GET_CLOCK:
       res = MAP_SysCtlClockGet();
