@@ -177,10 +177,11 @@ gen_header = function( name, defines )
   h:write("#define __" .. name:upper() .. "_H__\n\n")
 
   for key,value in pairs(defines) do 
-     h:write("#define    " .. key:upper() .. "     " .. value .. "\n")
+     h:write(string.format("#define   %-25s%-19s\n",key:upper(),value))
   end
 
   h:write("\n#endif\n")
+  h:close()
 end
 
 -------------------------------------------------------------------------------
