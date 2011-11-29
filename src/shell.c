@@ -5,7 +5,6 @@
 #include "lualib.h"
 #include "lauxlib.h"
 #include "xmodem.h"
-#include "version.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -16,6 +15,12 @@
 #include "remotefs.h"
 #include "eluarpc.h"
 #include "linenoise.h"
+
+#if defined( USE_GIT_REVISION )
+#include "git_version.h"
+#else
+#include "version.h"
+#endif
 
 #include "platform_conf.h"
 #ifdef BUILD_SHELL

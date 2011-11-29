@@ -330,9 +330,22 @@ elseif comp.romfs == 'compress' then
   fscompcmd = 'lua luasrcdiet.lua --quiet --maximum --opt-comments --opt-whitespace --opt-emptylines --opt-eols --opt-strings --opt-numbers --opt-locals -o %s %s'
 end
 
+-- Determine build version
+if utils.check_command('git describe --always') then
+  addm( "USE_GIT_VERSION" )
+  elua_vers = utils.exec_capture('git describe --always')
+  -- If purely hexadecimal (no tag reference) prepend 'dev-'
+  if string.find(elua_vers, "^[+-]?%x+$") then
+     elua_vers = 'dev-' .. elua_vers
+  end
+  utils.gen_header('git_version',{elua_version=elua_vers, elua_str_version=("\"" .. elua_vers .. "\"")})
+end
+
+
 -- Output file
 output = 'elua_' .. comp.target .. '_' .. comp.cpu:lower()
 builder:set_output_dir( ".build" .. utils.dir_sep .. comp.board:lower() )
+
 
 -- User report
 print ""
@@ -346,6 +359,7 @@ print( "Boot Mode:      ", comp.boot )
 print( "Target:         ", comp.target  )
 print( "Toolchain:      ", comp.toolchain )
 print( "ROMFS mode:     ", comp.romfs )
+print( "Version:        ", elua_vers )
 print "*********************************"
 print ""
 

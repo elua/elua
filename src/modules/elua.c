@@ -7,10 +7,15 @@
 #include "auxmods.h"
 #include "lrotable.h"
 #include "legc.h"
-#include "version.h"
 #include "platform_conf.h"
 #include "linenoise.h"
 #include <string.h>
+
+#if defined( USE_GIT_REVISION )
+#include "git_version.h"
+#else
+#include "version.h"
+#endif
 
 // Lua: elua.egc_setup( mode, [ memlimit ] )
 static int elua_egc_setup( lua_State *L )
