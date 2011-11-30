@@ -587,21 +587,21 @@ timer_data_type platform_s_timer_op( unsigned id, int op, timer_data_type data )
 int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int type )
 {
   volatile avr32_tc_t *tc = &AVR32_TC;
-  u32 final;
+  u64 final;
 
   if( period_us == 0 )
   {
     tc->channel[ id ].CMR.waveform.wavsel = TC_WAVEFORM_SEL_UP_MODE;
     return PLATFORM_TIMER_INT_OK;
   }
-  final = ( u32 )( ( u64 )( platform_timer_get_clock( id ) * period_us ) / 1000000 );
+  final = ( u64 )platform_timer_get_clock( id ) * period_us / 1000000;
   if( final == 0 )
     return PLATFORM_TIMER_INT_TOO_SHORT;
   if( final > 0xFFFF )
     return PLATFORM_TIMER_INT_TOO_LONG;
   tc_stop( tc, id );
   tc->channel[ id ].CMR.waveform.wavsel = TC_WAVEFORM_SEL_UP_MODE_RC_TRIGGER;
-  tc->channel[ id ].rc = final;
+  tc->channel[ id ].rc = ( u32 )final;
   avr32_timer_int_periodic_flag[ id ] = type;
   tc_start( tc, id );
   return PLATFORM_TIMER_INT_OK;

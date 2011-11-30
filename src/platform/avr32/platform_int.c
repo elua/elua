@@ -78,22 +78,13 @@ static void tmr_match_common_handler( int id )
   volatile avr32_tc_t *tc = &AVR32_TC;
 
   tc_read_sr( tc, id ); // clear interrupt
-
-  // When VTMR_CH == 2, which is the usual case,
-  // its interrupt is handled separately below.
-#if VTMR_CH != 2
   if( id == VTMR_CH )
   {
     cmn_virtual_timer_cb();
     platform_eth_timer_handler();
   }
   else
-#endif
-
     cmn_int_handler( INT_TMR_MATCH, id );
-
-  // VTMR is set as CYCLIC, so the VTMR-specific interrupt routine below
-  // will not need to do the following.
   if( avr32_timer_int_periodic_flag[ id ] != PLATFORM_TIMER_INT_CYCLIC )
   {
     tc->channel[ id ].IDR.cpcs = 1;
@@ -111,43 +102,10 @@ __attribute__((__interrupt__)) static void tmr1_int_handler()
   tmr_match_common_handler( 1 );
 }
 
-// The Virtual timer interrupt os usually 2 on AVR32, so if it is,
-// we handle it separately in its on routine. If not, call the
-// generic timer handler routine for timer 2.
-
 __attribute__((__interrupt__)) static void tmr2_int_handler()
 {
-#if VTMR_CH != 2
-  // Timer 2 is not the virtual timer, so handle it normally
   tmr_match_common_handler( 2 );
-#else
-  // Virtual timer/systick interrupt on timer 2
-  volatile avr32_tc_t *tc = &AVR32_TC;
-
-# ifdef FOSC32
-  // With FOSC32, the virtual timer interrupts VTMR_FREQ_HZ times a second
-  // so call the once-per-tick routines
-  cmn_virtual_timer_cb();
-  platform_eth_timer_handler();
-# else
-  // With no FOSC32, the VTMR timer runs at REQ_PBA_FREQ/128 = 128906.25hz.
-  // We divide this down and only call the routines every 1/VTMR_FREQ_HZ
-  // of a second
-#  define DIVIDER (REQ_PBA_FREQ / 128 / VTMR_FREQ_HZ)
-  static unsigned stride = DIVIDER;	// Divider counter
-  
-  if (--stride == 0 )
-  {
-    cmn_virtual_timer_cb();
-    platform_eth_timer_handler();
-    stride = DIVIDER;
-  }
-#  undef DIVIDER
-#endif
-
-  tc_read_sr( tc, VTMR_CH ); // clear interrupt
 }
-#endif
 
 // ----------------------------------------------------------------------------
 // GPIO interrupts and helpers
