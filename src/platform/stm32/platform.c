@@ -804,7 +804,7 @@ int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int 
 {
   TIM_TypeDef* base = ( TIM_TypeDef* )timer[ id ];
   u32 period, prescaler, freq;
-  timer_data_type final;
+  u64 final;
   TIM_OCInitTypeDef  TIM_OCInitStructure;
 
   if( period_us == 0 )
@@ -834,12 +834,12 @@ int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int 
   TIM_OCStructInit( &TIM_OCInitStructure );
   TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_Timing;
   TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-  TIM_OCInitStructure.TIM_Pulse = final;
+  TIM_OCInitStructure.TIM_Pulse = ( u16 )final;
   TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
   TIM_OC1Init( base, &TIM_OCInitStructure );
   
   // Patch timer configuration to reload when period is reached
-  TIM_SetAutoreload( base, final );
+  TIM_SetAutoreload( base, ( u16 )final );
 
   TIM_OC1PreloadConfig( base, TIM_OCPreload_Enable );
 
