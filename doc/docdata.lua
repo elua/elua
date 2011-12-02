@@ -156,7 +156,7 @@ local menu =
       },
     },
   }, 
-  { { "Platform info", "Doc Específica" }, "installing.html", 
+--[[  { { "Platform info", "Doc Específica" }, "installing.html", 
     {
       { "AT91SAM7x", "installing_at91sam7x.html" },
       { "AVR32", "installing_avr32.html" },
@@ -168,7 +168,7 @@ local menu =
       { "STM32", "installing_stm32.html" },
       { "LPC2468", "installing_lpc2468.html" }
     },
-  },        
+  },--]]
           
   
   -- "eLua internals" (menu separator)
