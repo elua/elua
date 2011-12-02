@@ -1,6 +1,6 @@
 -- Configuration file for the AVR32 microcontrollers
 
-specific_files = "crt0.s trampoline.s platform.c exception.s intc.c pm.c flashc.c pm_conf_clocks.c usart.c gpio.c tc.c spi.c platform_int.c adc.c pwm.c ethernet.c"
+specific_files = "crt0.s trampoline.s platform.c exception.s intc.c pm.c flashc.c pm_conf_clocks.c usart.c gpio.c tc.c spi.c platform_int.c adc.c pwm.c i2c.c ethernet.c lcd.c"
 addm( "FORAVR32" )
 
 -- See board.h for possible BOARD values.

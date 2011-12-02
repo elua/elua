@@ -39,7 +39,7 @@ __semihost(int reason, void * arg)
        : "=r" (value) /* Outputs */
        : "r" (reason), "r" (arg), "i" (AngelSWI) /* Inputs */
        : "r0", "r1", "r2", "r3", "ip", "lr", "memory", "cc"
-		/* Clobbers r0 and r1, and lr if in supervisor mode */);
+                /* Clobbers r0 and r1, and lr if in supervisor mode */);
                 /* Accordingly to page 13-77 of ARM DUI 0040D other registers
                    can also be clobbered.  Some memory positions may also be
                    changed by a system call, so they should not be kept in
@@ -168,7 +168,7 @@ static off_t semifs_lseek_r( struct _reent *r, int fd, off_t off, int whence )
     case SEEK_CUR:
       // seek from current position
       if (fd == SEMIFS_MAX_FDS)
-	return -1;
+        return -1;
       off  += semifs_fd_table[ fd ].pos;
       whence = SEEK_SET;
       break;

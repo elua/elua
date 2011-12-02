@@ -1,5 +1,6 @@
 import os, sys, shutil, string
-import platform  as syspl
+import platform as syspl
+import glob
 
 # Helper: "normalize" a name to make it a suitable C macro name
 def cnorm( name ):
@@ -79,14 +80,14 @@ toolchain_list['devkitarm'] = toolchain_list['arm-eabi-gcc']
 # (the one that will be used if none is specified)
 platform_list = {  
   'at91sam7x' : { 'cpus' : [ 'AT91SAM7X256', 'AT91SAM7X512' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
-  'lm3s' : { 'cpus' : [ 'LM3S1968', 'LM3S8962', 'LM3S6965', 'LM3S6918', 'LM3S9B92' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
+  'lm3s' : { 'cpus' : [ 'LM3S1968', 'LM3S8962', 'LM3S6965', 'LM3S6918', 'LM3S9B92', 'LM3S9D92' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
   'str9' : { 'cpus' : [ 'STR912FAW44' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
   'i386' : { 'cpus' : [ 'I386' ], 'toolchains' : [ 'i686-gcc' ] },
   'sim' : { 'cpus' : [ 'LINUX' ], 'toolchains' : [ 'i686-gcc' ] },
   'lpc288x' : { 'cpus' : [ 'LPC2888' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
   'str7' : { 'cpus' : [ 'STR711FR2' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
   'stm32' : { 'cpus' : [ 'STM32F103ZE', 'STM32F103RE' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
-  'avr32' : { 'cpus' : [ 'AT32UC3A0512', 'AT32UC3A0128', 'AT32UC3B0256' ], 'toolchains' : [ 'avr32-gcc', 'avr32-unknown-none-gcc' ] },
+  'avr32' : { 'cpus' : [ 'AT32UC3A0512', 'AT32UC3A0256', 'AT32UC3A0128', 'AT32UC3B0256' ], 'toolchains' : [ 'avr32-gcc', 'avr32-unknown-none-gcc' ] },
   'lpc24xx' : { 'cpus' : [ 'LPC2468' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
   'lpc17xx' : { 'cpus' : [ 'LPC1768' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] }
 }
@@ -97,6 +98,7 @@ board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
                'EK-LM3S8962' : [ 'LM3S8962' ],
                'EK-LM3S6965' : [ 'LM3S6965' ],
                'EK-LM3S9B92' : [ 'LM3S9B92' ],
+               'SOLDERCORE' : [ 'LM3S9D92' ],
                'STR9-COMSTICK' : [ 'STR912FAW44' ],
                'STR-E912' : [ 'STR912FAW44' ],
                'PC' : [ 'I386' ],
@@ -110,94 +112,11 @@ board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
                'EAGLE-100' : [ 'LM3S6918' ],
                'ELUA-PUC' : ['LPC2468' ],
                'MBED' : ['LPC1768'],
-               'MIZAR32' : [ 'AT32UC3A0128' ],
+               'MIZAR32' : [ 'AT32UC3A0128', 'AT32UC3A0256', 'AT32UC3A0512', ],
                'NETDUINO' : [ 'AT91SAM7X512' ],
             }
 
 cpu_list = sum([board_list[i] for i in board_list],[])
-
-
-# ROMFS file list "groups"
-# To include a file in a ROMFS build, include it in a group here (or create one
-# if you need) and make sure the group is included on your platform's file_list
-# definition (right after this).
-
-# The following table will be left here just as an example
-# eLua examples were removed from the distro since v0.8
-#romfs = { 'bisect' : [ 'bisect.lua' ],
-#          'hangman' : [ 'hangman.lua' ],
-#          'lhttpd' : [ 'index.pht', 'lhttpd.lua', 'test.lua' ],
-#          'led' : [ 'led.lua' ],
-#          'piano' : [ 'piano.lua' ],
-#          'pwmled' : [ 'pwmled.lua' ],
-#          'tvbgone' : [ 'tvbgone.lua', 'codes.bin' ],
-#          'hello' : [ 'hello.lua' ],
-#          'info' : [ 'info.lua' ],
-#          'morse' : [ 'morse.lua' ],
-#          'dualpwm' : [ 'dualpwm.lua' ],
-#          'adcscope' : [ 'adcscope.lua' ],
-#          'adcpoll' : [ 'adcpoll.lua' ],
-#          'life' : [ 'life.lua' ],
-#          'logo' : ['logo.lua', 'logo.bin' ],
-#          'pong' : [ 'pong.lua' ],
-#          'spaceship' : [ 'spaceship.lua' ],
-#          'tetrives' : [ 'tetrives.lua' ],
-#          'snake' : [ 'snake.lua' ],
-#          'dataflash' : [ 'dataflash.lua' ],
-#          'pachube' : [ 'pachube_demo.lua' ],
-#          'inttest' : [ 'inttest.lua' ]
-#        }
-
-romfs = {
-        }
-
-# List of board/romfs data combinations
-# The following table will be left here just as an example
-# eLua examples were removed from the distro since v0.8
-#file_list = { 'SAM7-EX256' : [ 'bisect', 'hangman' , 'led', 'piano', 'hello', 'info', 'morse' ],
-#              'EK-LM3S1968' : [ 'bisect', 'hangman', 'pong', 'led', 'piano', 'pwmled', 'hello', 'info', 'morse', 'adcscope', 'adcpoll', 'logo', 'spaceship', 'tetrives', 'snake' ],
-#              'EK-LM3S8962' : [ 'lhttpd','bisect', 'led', 'pachube' ],
-#              'EK-LM3S6965' : [ 'bisect', 'hangman', 'pong', 'led', 'piano', 'pwmled', 'hello', 'info', 'morse', 'adcscope', 'adcpoll', 'logo', 'tetrives' ],
-#              'EK-LM3S9B92' : [ 'bisect', 'hangman', 'led', 'pwmled', 'hello', 'info', 'adcscope','adcpoll', 'life' ],
-#              'STR9-COMSTICK' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
-#              'STR-E912' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'piano', 'adcscope' ],
-#              'PC' : [ 'bisect', 'hello', 'info', 'life', 'hangman' ],
-#              'SIM' : [ 'bisect', 'hello', 'info', 'life', 'hangman' ],
-#              'LPC-H2888' : [ 'bisect', 'hangman', 'led', 'hello', 'info' ],
-#              'MOD711' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'dualpwm' ],
-#              'STM3210E-EVAL' : [ 'bisect', 'hello', 'info' ],
-#              'ATEVK1100' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'dataflash' ],
-#              'ATEVK1101' : [ 'bisect', 'led', 'hello', 'info', 'dataflash' ],
-#              'ET-STM32' : [ 't' ],
-#              'EAGLE-100' : [ 'bisect', 'hangman', 'lhttpd', 'led', 'hello', 'info' ],
-#              'ELUA-PUC' : [ 'bisect', 'hangman', 'led', 'hello', 'info', 'pwmled', 'adcscope', 'adcpoll', 'inttest' ],
-#              'MBED' : [ 'bisect', 'hangman', 'hello', 'info', 'led', 'pwmled', 'dualpwm', 'life', 'adcscope', 'adcpoll' ],
-#              'MIZAR32' : [ ],
-#              'NETDUINO': [ ],
-#}
-
-file_list = { 'SAM7-EX256' : [ ],
-              'EK-LM3S1968' : [ ],
-              'EK-LM3S8962' : [ ],
-              'EK-LM3S6965' : [ ],
-              'EK-LM3S9B92' : [ ],
-              'STR9-COMSTICK' : [ ],
-              'STR-E912' : [ ],
-              'PC' : [ ],
-              'SIM' : [ ],
-              'LPC-H2888' : [ ],
-              'MOD711' : [ ],
-              'STM3210E-EVAL' : [ ],
-              'ATEVK1100' : [ ],
-              'ATEVK1101' : [ ],
-              'ET-STM32' : [ ],
-              'EAGLE-100' : [ ],
-              'ELUA-PUC' : [ ],
-              'MBED' : [ ],
-              'MIZAR32' : [ ],
-              'NETDUINO': [ ],
-}
-
 
 comp = Environment( tools = [],
                     OBJSUFFIX = ".o",
@@ -243,9 +162,9 @@ vars.AddVariables(
                     'none',
                     allowed_values = [ 'none', 'emblod' ] ),
   MatchEnumVariable('target',
-                    'build "regular" float lua or integer-only "lualong"', 
+                    'build "regular" float lua, 32 bit integer-only "lualong" or 64-bit integer-only "lualonglong"', 
                     'lua',
-                    allowed_values = [ 'lua', 'lualong' ] ),
+                    allowed_values = [ 'lua', 'lualong', 'lualonglong' ] ),
   MatchEnumVariable('cpu',
                     'build for the specified CPU (board will be inferred, if possible)',
                     'auto',
@@ -358,6 +277,9 @@ if not GetOption( 'help' ):
   # Build the compilation command now
   compcmd = ''
   if comp['romfs'] == 'compile':
+    if comp['target'] == 'lualonglong':
+      print "Cross-compilation is not yet supported in 64-bit mode"
+      Exit( -1 )
     if syspl.system() == 'Windows':
       suffix = '.exe'
     else:
@@ -417,8 +339,10 @@ if not GetOption( 'help' ):
   lua_full_files = " " + " ".join( [ "src/lua/%s" % name for name in lua_files.split() ] )
   
   comp.Append(CPPPATH = ['inc', 'inc/newlib',  'inc/remotefs', 'src/platform', 'src/lua'])
-  if comp['target'] == 'lualong':
+  if comp['target'] == 'lualong' or comp['target'] == 'lualonglong':
     conf.env.Append(CPPDEFINES = ['LUA_NUMBER_INTEGRAL'])
+  if comp['target'] == 'lualonglong':
+    conf.env.Append(CPPDEFINES = ['LUA_INTEGRAL_LONGLONG'])
 
   conf.env.Append(CPPPATH = ['src/modules', 'src/platform/%s' % platform])
   conf.env.Append(CPPDEFINES = {"LUA_OPTIMIZE_MEMORY" : ( comp['optram'] != 0 and 2 or 0 ) } )
@@ -466,15 +390,19 @@ if not GetOption( 'help' ):
   
   comp = conf.Finish()
 
+  romfs_exclude = [ '.DS_Store' ]
+
   # Make ROM File System first
   if not GetOption( 'clean' ):
     print "Building ROM File System..."
-    romdir = "romfs"
     flist = []
-    for sample in file_list[ comp['board'] ]:
-      flist += romfs[ sample ]
+    os.chdir( "romfs" );
+    for sample in glob.glob("*"):
+      if sample not in romfs_exclude:
+        flist += [ sample ]
+    os.chdir( ".." )
     import mkfs
-    mkfs.mkfs( romdir, "romfiles", flist, comp['romfs'], compcmd )
+    mkfs.mkfs( "romfs", "romfiles", flist, comp['romfs'], compcmd )
     print
     if os.path.exists( "inc/romfiles.h" ): 
       os.remove( "inc/romfiles.h" )

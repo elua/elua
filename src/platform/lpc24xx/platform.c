@@ -73,8 +73,8 @@ static void platform_setup_extmem()
   volatile unsigned int i;
   volatile DWORD wtemp;
 
-  EMC_CTRL = 0x00000001;		/*Disable Address mirror*/
-  PCONP   |= 0x00000800;		/* Turn On EMC PCLK */
+  EMC_CTRL = 0x00000001;                /*Disable Address mirror*/
+  PCONP   |= 0x00000800;                /* Turn On EMC PCLK */
   PINSEL4  = 0x50000000;
   PINSEL5  = 0x05050555;
   PINSEL6  = 0x55555555;
@@ -387,7 +387,7 @@ void platform_s_uart_send( unsigned id, u8 data )
   *UxTHR = data;
 }
 
-int platform_s_uart_recv( unsigned id, s32 timeout )
+int platform_s_uart_recv( unsigned id, timer_data_type timeout )
 {
   PREG UxLSR = ( PREG )uart_lsr[ id ];
   PREG UxRBR = ( PREG )uart_rbr[ id ];
@@ -452,14 +452,13 @@ static u32 platform_timer_set_clock( unsigned id, u32 clock )
   return Fpclk / div;
 }
 
-#if VTMR_NUM_TIMERS > 0
 static void int_handler_tmr()
 {
   T3IR = 1; // clear interrupt
-  cmn_virtual_timer_cb();
+  cmn_virtual_timer_cb(); // handle virtual timers if they're present
+  cmn_systimer_periodic(); // handle the system timer
   VICVectAddr = 0; // ACK interrupt
 }
-#endif
 
 // Helper function: setup timers
 static void platform_setup_timers()
@@ -474,9 +473,13 @@ static void platform_setup_timers()
     *TxTCR = 0;
     platform_timer_set_clock( i, 1000000ULL );
   }
-#if VTMR_NUM_TIMERS > 0
-  // Setup virtual timers here
-  // Timer 3 is allocated for virtual timers and nothing else in this case
+
+  // Setup system timer
+  cmn_systimer_set_base_freq( 1000000 );
+  cmn_systimer_set_interrupt_freq( VTMR_FREQ_HZ );
+
+  // Setup virtual timers / system timer here
+  // Timer 3 is allocated for virtual timers and the system timer, nothing else
   T3TCR = TMR_RESET;
   T3MR0 = 1000000ULL / VTMR_FREQ_HZ - 1;
   T3IR = 0xFF;
@@ -486,10 +489,9 @@ static void platform_setup_timers()
   platform_cpu_set_global_interrupts( PLATFORM_CPU_ENABLE );
   // Start timer
   T3TCR = TMR_ENABLE;
-#endif
 }
 
-void platform_s_timer_delay( unsigned id, u32 delay_us )
+void platform_s_timer_delay( unsigned id, timer_data_type delay_us )
 {
   PREG TxTCR = ( PREG )tmr_tcr[ id ];
   PREG TxTC = ( PREG )tmr_tc[ id ];
@@ -501,7 +503,7 @@ void platform_s_timer_delay( unsigned id, u32 delay_us )
   while( *TxTC < last );
 }
       
-u32 platform_s_timer_op( unsigned id, int op, u32 data )
+timer_data_type platform_s_timer_op( unsigned id, int op, timer_data_type data )
 {
   u32 res = 0;
   PREG TxTCR = ( PREG )tmr_tcr[ id ];
@@ -518,14 +520,6 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
       res = *TxTC;
       break;
 
-    case PLATFORM_TIMER_OP_GET_MAX_DELAY:
-      res = platform_timer_get_diff_us( id, 0, 0xFFFFFFFF );
-      break;
-      
-    case PLATFORM_TIMER_OP_GET_MIN_DELAY:
-      res = platform_timer_get_diff_us( id, 0, 1 );
-      break;      
-      
     case PLATFORM_TIMER_OP_SET_CLOCK:
       res = platform_timer_set_clock( id, data );
       break;
@@ -533,13 +527,37 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
     case PLATFORM_TIMER_OP_GET_CLOCK:
       res = platform_timer_get_clock( id );
       break;
+
+    case PLATFORM_TIMER_OP_GET_MAX_CNT:
+      res = 0xFFFFFFFF;
+      break;
   }
   return res;
 }
 
-int platform_s_timer_set_match_int( unsigned id, u32 period_us, int type )
+int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int type )
 {
   return PLATFORM_TIMER_INT_INVALID_ID;
+}
+
+u64 platform_timer_sys_raw_read()
+{
+  return T3TC;
+}
+
+void platform_timer_sys_disable_int()
+{
+  T3MCR = 0x02; // clear on match, no interrupt
+}
+
+void platform_timer_sys_enable_int()
+{
+  T3MCR = 0x03; // interrupt on match with MR0 and clear on match
+}
+
+timer_data_type platform_timer_read_sys()
+{
+  return cmn_systimer_get();
 }
 
 // *****************************************************************************
@@ -590,7 +608,7 @@ static void adc_int_handler()
   if ( dreg_t & ( 1UL << 31 ) )
   { 
     d->sample_buf[ d->seq_ctr ] = ( u16 )( ( dreg_t >> 6 ) & 0x3FF );
-    AD0CR &= 0xF8FFFF00;	// stop ADC, disable channels
+    AD0CR &= 0xF8FFFF00;        // stop ADC, disable channels
     s->value_fresh = 1;
             
     if ( s->logsmoothlen > 0 && s->smooth_ready == 0)
@@ -663,7 +681,7 @@ static void platform_setup_adcs()
 
 
 // NOTE: On this platform, there is only one ADC, clock settings apply to the whole device
-u32 platform_adc_setclock( unsigned id, u32 frequency )
+u32 platform_adc_set_clock( unsigned id, u32 frequency )
 {
   elua_adc_dev_state *d = adc_get_dev_state( 0 );
 
@@ -799,8 +817,8 @@ enum
   PWM_ENABLE_6 = 1 << 14,
 };
 
-// Helper function: get timer clock
-static u32 platform_pwm_get_clock( unsigned id )
+// Get timer clock
+u32 platform_pwm_get_clock( unsigned id )
 {
   unsigned pwmid = id / 6;
   PREG PWMxPR = ( PREG )pwm_pr[ pwmid ];
@@ -808,8 +826,8 @@ static u32 platform_pwm_get_clock( unsigned id )
   return Fpclk / ( *PWMxPR + 1 );
 }
 
-// Helper function: set timer clock
-static u32 platform_pwm_set_clock( unsigned id, u32 clock )
+// Set timer clock
+u32 platform_pwm_set_clock( unsigned id, u32 clock )
 {
   u32 div = Fpclk / clock, prevtc;
   unsigned pwmid = id / 6;
@@ -860,34 +878,22 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
   return platform_pwm_get_clock( id ) / divisor;
 }
 
-u32 platform_pwm_op( unsigned id, int op, u32 data )
+void platform_pwm_start( unsigned id )
 {
-  u32 res = 0;
   unsigned pwmid = id / 6;
   PREG PWMxTCR = ( PREG )pwm_tcr[ pwmid ];
   PREG PWMxPCR = ( PREG )pwm_pcr[ pwmid ];
 
-  switch( op )
-  {
-    case PLATFORM_PWM_OP_START:
-      *PWMxPCR = PWM_ENABLE_1 | PWM_ENABLE_2 | PWM_ENABLE_3 | PWM_ENABLE_4 | PWM_ENABLE_5 | PWM_ENABLE_6;
-      *PWMxTCR = PWM_ENABLE | PWM_MODE;
-      break;
-
-    case PLATFORM_PWM_OP_STOP:
-      *PWMxPCR = 0;   
-      *PWMxTCR = PWM_RESET;
-      break;
-
-    case PLATFORM_PWM_OP_SET_CLOCK:
-      res = platform_pwm_set_clock( id, data );
-      break;
-
-    case PLATFORM_PWM_OP_GET_CLOCK:
-      res = platform_pwm_get_clock( id );
-      break;
-  }
-
-  return res;
+  *PWMxPCR = PWM_ENABLE_1 | PWM_ENABLE_2 | PWM_ENABLE_3 | PWM_ENABLE_4 | PWM_ENABLE_5 | PWM_ENABLE_6;
+  *PWMxTCR = PWM_ENABLE | PWM_MODE;
 }
 
+void platform_pwm_stop( unsigned id )
+{
+  unsigned pwmid = id / 6;
+  PREG PWMxTCR = ( PREG )pwm_tcr[ pwmid ];
+  PREG PWMxPCR = ( PREG )pwm_pcr[ pwmid ];
+
+  *PWMxPCR = 0;   
+  *PWMxTCR = PWM_RESET;
+}

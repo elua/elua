@@ -160,8 +160,12 @@
 #if !defined LUA_NUMBER_INTEGRAL
 #define LUA_INTEGER ptrdiff_t
 #else
-#define LUA_INTEGER	long
-#endif
+  #if !defined LUA_INTEGRAL_LONGLONG
+  #define LUA_INTEGER	long
+  #else
+  #define LUA_INTEGER long long
+  #endif // #if !defined LUA_INTEGRAL_LONGLONG
+#endif // #if !defined LUA_NUMBER_INTEGRAL
 
 /*
 @@ LUA_API is a mark for all core API functions.
@@ -300,6 +304,13 @@
 	if (lua_strlen(L,idx) > 0)  /* non-empty line? */ \
 	  add_history(lua_tostring(L, idx));  /* add it to history */
 #define lua_freeline(L,b)	((void)L, free(b))
+#elif defined(LUA_USE_LINENOISE) // #if defined(LUA_USE_READLINE)
+#include "linenoise_posix.h"
+#define lua_readline(L,b,p)     ((void)L, ((b)=linenoise(p)) != NULL)
+#define lua_saveline(L,idx) \
+  if (lua_strlen(L,idx) > 0)  /* non-empty line? */ \
+    linenoiseHistoryAdd(lua_tostring(L, idx));  /* add it to history */
+#define lua_freeline(L,b)       ((void)L, free(b))
 #else // #if defined(LUA_USE_READLINE)
 #define lua_readline(L,b,p)	\
 	((void)L, fputs(p, stdout), fflush(stdout),  /* show prompt */ \
@@ -511,7 +522,7 @@
 @@ LUAI_MAXUPVALUES is the maximum number of upvalues per function
 @* (must be smaller than 250).
 */
-#define LUAI_MAXUPVALUES	10
+#define LUAI_MAXUPVALUES	60
 
 
 /*
@@ -546,7 +557,7 @@
    %G. */
 
 #if defined LUA_NUMBER_INTEGRAL
-#define LUA_NUMBER	long
+#define LUA_NUMBER	LUA_INTEGER
 #else
 #define LUA_NUMBER_DOUBLE
 #define LUA_NUMBER	double
@@ -567,20 +578,28 @@
 @@ lua_str2number converts a string to a number.
 */
 #if defined LUA_NUMBER_INTEGRAL
-#define LUA_NUMBER_SCAN		"%ld"
-#define LUA_NUMBER_FMT		"%ld"
+  #if !defined LUA_INTEGRAL_LONGLONG
+  #define LUA_NUMBER_SCAN		"%ld"
+  #define LUA_NUMBER_FMT		"%ld"
+  #else
+  #define LUA_NUMBER_SCAN   "%lld"
+  #define LUA_NUMBER_FMT    "%lld"
+  #endif // #if !defined LUA_INTEGRAL_LONGLONG
 #else
 #define LUA_NUMBER_SCAN		"%lf"
 #define LUA_NUMBER_FMT		"%.14g"
-#endif
+#endif // #if defined LUA_NUMBER_INTEGRAL
 #define lua_number2str(s,n)	sprintf((s), LUA_NUMBER_FMT, (n))
 #define LUAI_MAXNUMBER2STR	32 /* 16 digits, sign, point, and \0 */
 #if defined LUA_NUMBER_INTEGRAL
-#define lua_str2number(s,p)	strtol((s), (p), 10)
+  #if !defined LUA_INTEGRAL_LONGLONG
+  #define lua_str2number(s,p)	strtol((s), (p), 10)
+  #else
+  #define lua_str2number(s,p) strtoll((s), (p), 10)
+  #endif // #if !defined LUA_INTEGRAL_LONGLONG
 #else
 #define lua_str2number(s,p)	strtod((s), (p))
-#endif
-
+#endif // #if defined LUA_NUMBER_INTEGRAL
 
 /*
 @@ The luai_num* macros define the primitive operations over numbers.
@@ -820,7 +839,7 @@ union luai_Cast { double l_d; long l_l; };
 ** CHANGE them if your system supports long long or does not support long.
 */
 
-#if defined(LUA_USELONGLONG)
+#if defined(LUA_USELONGLONG) || defined(LUA_INTEGRAL_LONGLONG)
 
 #define LUA_INTFRMLEN		"ll"
 #define LUA_INTFRM_T		long long

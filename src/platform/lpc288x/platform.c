@@ -118,7 +118,7 @@ void platform_s_uart_send( unsigned id, u8 data )
   uart_write( data );
 }
 
-int platform_s_uart_recv( unsigned id, s32 timeout )
+int platform_s_uart_recv( unsigned id, timer_data_type timeout )
 {
   if( timeout == 0 )
   {
@@ -160,7 +160,7 @@ static u32 platform_timer_set_clock( unsigned id, u32 clock )
   return MAIN_CLOCK / tmr_prescale[ mini ];
 }
 
-void platform_s_timer_delay( unsigned id, u32 delay_us )
+void platform_s_timer_delay( unsigned id, timer_data_type delay_us )
 {
   u32 freq;
   u64 final;
@@ -177,7 +177,7 @@ void platform_s_timer_delay( unsigned id, u32 delay_us )
   while( ( INT_PENDING & mask ) == 0 );
 }
       
-u32 platform_s_timer_op( unsigned id, int op, u32 data )
+timer_data_type platform_s_timer_op( unsigned id, int op, timer_data_type data )
 {
   u32 res = 0;
   
@@ -194,20 +194,16 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
       res = *tmr_value[ id ];
       break;
       
-    case PLATFORM_TIMER_OP_GET_MAX_DELAY:
-      res = platform_timer_get_diff_us( id, 0, 0xFFFFFFFF );
-      break;
-      
-    case PLATFORM_TIMER_OP_GET_MIN_DELAY:
-      res = platform_timer_get_diff_us( id, 0, 1 );
-      break;      
-      
     case PLATFORM_TIMER_OP_SET_CLOCK:
       res = platform_timer_set_clock( id, data );
       break;
       
     case PLATFORM_TIMER_OP_GET_CLOCK:
       res = platform_timer_get_clock( id );
+      break;
+
+    case PLATFORM_TIMER_OP_GET_MAX_CNT:
+      res = 0xFFFFFFFF;
       break;
   }
   return res;

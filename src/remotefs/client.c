@@ -5,7 +5,7 @@
 #include "client.h"
 #include "os_io.h"
 #include "eluarpc.h"
-
+#include "platform.h"
 #include <stdio.h>
 #include "platform_conf.h"
 #include "buf.h"
@@ -26,7 +26,7 @@ void RFSDEBUG( const char* dummy, ... )
 static u8 *rfsc_buffer;
 static p_rfsc_send rfsc_send;
 static p_rfsc_recv rfsc_recv;
-static u32 rfsc_timeout;
+static timer_data_type rfsc_timeout;
 
 // ****************************************************************************
 // Client helpers
@@ -76,7 +76,7 @@ static int rfsch_send_request_read_response()
 // ****************************************************************************
 // Client public interface
 
-void rfsc_setup( u8 *pbuf, p_rfsc_send rfsc_send_func, p_rfsc_recv rfsc_recv_func, u32 timeout )
+void rfsc_setup( u8 *pbuf, p_rfsc_send rfsc_send_func, p_rfsc_recv rfsc_recv_func, timer_data_type timeout )
 {
   rfsc_buffer = pbuf;
   rfsc_send = rfsc_send_func;
@@ -84,7 +84,7 @@ void rfsc_setup( u8 *pbuf, p_rfsc_send rfsc_send_func, p_rfsc_recv rfsc_recv_fun
   rfsc_timeout = timeout;
 }
 
-void rfsc_set_timeout( u32 timeout )
+void rfsc_set_timeout( timer_data_type timeout )
 {
   rfsc_timeout = timeout;
 }

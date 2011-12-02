@@ -9,6 +9,10 @@
 // Platform-specific headers
 #include "stm32f10x.h"
 
+#ifndef VTMR_TIMER_ID
+#define VTMR_TIMER_ID         ( -1 )
+#endif
+
 // ****************************************************************************
 // Interrupt handlers
 
@@ -71,7 +75,7 @@ static void all_exti_irqhandler( int line )
 {
   u16 v, port, pin;
   
-  v = exti_line_to_gpio( line );	
+  v = exti_line_to_gpio( line );
   port = PLATFORM_IO_GET_PORT( v );
   pin = PLATFORM_IO_GET_PIN( v );
 
@@ -128,6 +132,61 @@ void EXTI15_10_IRQHandler()
   }
 }
 
+// ----------------------------------------------------------------------------
+// Timer interrupt handlers
+
+const TIM_TypeDef * const timer[] = { TIM1, TIM2, TIM3, TIM4, TIM5 };
+extern u8 stm32_timer_int_periodic_flag[ NUM_PHYS_TIMER ];
+
+static void tmr_int_handler( int id )
+{
+  TIM_TypeDef *base = ( TIM_TypeDef* )timer[ id ];
+
+  if (TIM_GetITStatus( base, TIM_IT_CC1) != RESET)
+  {
+    TIM_ClearITPendingBit( base, TIM_IT_CC1 );
+
+    if( id == VTMR_TIMER_ID )
+      cmn_virtual_timer_cb();
+    else
+      cmn_int_handler( INT_TMR_MATCH, id );
+
+    if( stm32_timer_int_periodic_flag[ id ] != PLATFORM_TIMER_INT_CYCLIC )
+      TIM_ITConfig( base, TIM_IT_CC1, DISABLE );
+  }
+}
+
+
+void TIM1_CC_IRQHandler(void)
+{
+  tmr_int_handler( 0 );
+}
+
+void TIM2_IRQHandler(void)
+{
+  tmr_int_handler( 1 );
+}
+
+void TIM3_IRQHandler(void)
+{
+  tmr_int_handler( 2 );
+}
+
+void TIM4_IRQHandler(void)
+{
+  tmr_int_handler( 3 );
+}
+
+void TIM5_IRQHandler(void)
+{
+  tmr_int_handler( 4 );
+}
+
+void TIM8_CC_IRQHandler(void)
+{
+  tmr_int_handler( 7 );
+}
+
 // ****************************************************************************
 // GPIO helper functions
 
@@ -154,7 +213,7 @@ static int gpioh_set_int_status( elua_int_id id, elua_int_resnum resnum, int sta
     exti_init_struct.EXTI_Line = exti_line[ exint_gpio_to_src( resnum ) ];
     exti_init_struct.EXTI_Mode = EXTI_Mode_Interrupt;
     if( ( ( ( EXTI->RTSR & mask ) != 0 ) && ( id == INT_GPIO_NEGEDGE ) ) ||
-	( ( ( EXTI->FTSR & mask ) != 0 ) && ( id == INT_GPIO_POSEDGE ) ) )
+        ( ( ( EXTI->FTSR & mask ) != 0 ) && ( id == INT_GPIO_POSEDGE ) ) )
       exti_init_struct.EXTI_Trigger = EXTI_Trigger_Rising_Falling;
     else
       exti_init_struct.EXTI_Trigger = id == INT_GPIO_POSEDGE ? EXTI_Trigger_Rising : EXTI_Trigger_Falling;
@@ -234,19 +293,30 @@ static int int_gpio_negedge_get_flag( elua_int_resnum resnum, int clear )
 // ****************************************************************************
 // Interrupt: INT_TMR_MATCH
 
-static int int_tmr_match_set_status( elua_int_resnum resnum, int status )
-{
-  return PLATFORM_INT_NOT_HANDLED;
-}
-
 static int int_tmr_match_get_status( elua_int_resnum resnum )
 {
-  return PLATFORM_INT_NOT_HANDLED;
+  TIM_TypeDef *base = ( TIM_TypeDef* )timer[ resnum ];
+
+  return ( base->DIER & TIM_IT_CC1 ) != 0;
+}
+
+static int int_tmr_match_set_status( elua_int_resnum resnum, int status )
+{
+  int previous = int_tmr_match_get_status( resnum );
+  TIM_TypeDef *base = ( TIM_TypeDef* )timer[ resnum ];
+  
+  TIM_ITConfig( base, TIM_IT_CC1, status == PLATFORM_CPU_ENABLE ? ENABLE : DISABLE );
+  return previous;
 }
 
 static int int_tmr_match_get_flag( elua_int_resnum resnum, int clear )
 {
-  return PLATFORM_INT_NOT_HANDLED;
+  TIM_TypeDef *base = ( TIM_TypeDef* )timer[ resnum ];
+  int status = TIM_GetFlagStatus( base, TIM_FLAG_CC1 );
+
+  if( clear )
+    TIM_ClearFlag( base, TIM_FLAG_CC1 );
+  return status;
 }
 
 // ****************************************************************************
@@ -287,6 +357,15 @@ static const u8 uart_irq_table[] = { USART1_IRQn, USART2_IRQn, USART3_IRQn, UART
 // EXTI IRQ table
 static const u8 exti_irq_table[] = { EXTI0_IRQn, EXTI1_IRQn, EXTI2_IRQn, EXTI3_IRQn, EXTI4_IRQn, EXTI9_5_IRQn, EXTI15_10_IRQn };
 
+// EXTI IRQ table
+#if defined( STM32F10X_LD )
+static const u8 timer_irq_table[] = { TIM1_CC_IRQn, TIM2_IRQn, TIM3_IRQn };
+#elseif defined( STM32F10X_MD )
+static const u8 timer_irq_table[] = { TIM1_CC_IRQn, TIM2_IRQn, TIM3_IRQn, TIM4_IRQn };
+#else
+static const u8 timer_irq_table[] = { TIM1_CC_IRQn, TIM2_IRQn, TIM3_IRQn, TIM4_IRQn, TIM5_IRQn };
+#endif
+
 void platform_int_init()
 {
   NVIC_InitTypeDef nvic_init_structure;
@@ -295,7 +374,8 @@ void platform_int_init()
   // Enable all USART interrupts in the NVIC
   nvic_init_structure.NVIC_IRQChannelPreemptionPriority = 0;
   nvic_init_structure.NVIC_IRQChannelSubPriority = 0;
-  nvic_init_structure.NVIC_IRQChannelCmd = ENABLE;  
+  nvic_init_structure.NVIC_IRQChannelCmd = ENABLE;
+
   for( i = 0; i < sizeof( uart_irq_table ) / sizeof( u8 ); i ++ )
   {
     nvic_init_structure.NVIC_IRQChannel = uart_irq_table[ i ];
@@ -308,6 +388,15 @@ void platform_int_init()
     nvic_init_structure.NVIC_IRQChannel = exti_irq_table[ i ];
     NVIC_Init( &nvic_init_structure );
   }
+
+#ifdef INT_TMR_MATCH
+  for( i = 0; i < sizeof( timer_irq_table ) / sizeof( u8 ); i ++ )
+  {
+    nvic_init_structure.NVIC_IRQChannel = timer_irq_table[ i ];
+      nvic_init_structure.NVIC_IRQChannelSubPriority = 1;
+    NVIC_Init( &nvic_init_structure );
+  }
+#endif  
 
 }
 

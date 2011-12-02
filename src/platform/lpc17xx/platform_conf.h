@@ -5,6 +5,7 @@
 
 #include "auxmods.h"
 #include "stacks.h"
+#include "type.h"
 
 // *****************************************************************************
 // Define here what components you want for this platform
@@ -18,12 +19,13 @@
 #define BUILD_SEMIFS
 #define BUILD_RPC
 
+#define PLATFORM_HAS_SYSTIMER
+
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 
 #define CON_UART_ID           0
 #define CON_UART_SPEED        115200
-#define CON_TIMER_ID          0
 #define TERM_LINES            25
 #define TERM_COLS             80
 
@@ -102,10 +104,10 @@
 
 // RPC  
 #define RPC_UART_ID           CON_UART_ID
-#define RPC_TIMER_ID          CON_TIMER_ID
 
 // CPU frequency (needed by the CPU module, 0 if not used)
-#define CPU_FREQUENCY         100000000
+u32 mbed_get_cpu_frequency();
+#define CPU_FREQUENCY         mbed_get_cpu_frequency()
 
 // PIO prefix ('0' for P0, P1, ... or 'A' for PA, PB, ...)
 #define PIO_PREFIX            '0'

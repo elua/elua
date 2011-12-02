@@ -72,6 +72,7 @@ local menu =
   { "Status", "status.html", 
     {
       { { "Supported platforms", "Plataformas Suportadas" }, "status.html" },
+      { "System timer support", "status.html#systmr" },
       { { "Modules per platform table", "Módulos por plataforma" }, "status.html#plat_modules" },
       { { "Modules overview status", "Visão geral dos módulos" }, "status.html#gen_modules" },
       { { "Roadmap", "Planejamento Futuro" }, "status.html#roadmap" }
@@ -225,14 +226,15 @@ local menu =
       -- "Platform modules" (automatically generated)
       { { "Platform modules", "Módulos Específicos" }, "refman_dep.html", 
         {
-          { "lm3s", "modules_lm3s.html", "refman_ps_lm3s" },
-          { "str9", "modules_str9.html", "refman_ps_str9" },
-          { "mbed", "modules_mbed.html", "refman_ps_mbed" }
+           { "lm3s", "modules_lm3s.html", "refman_ps_lm3s" },
+           { "str9", "modules_str9.html", "refman_ps_str9" },
+           { "mbed", "modules_mbed.html", "refman_ps_mbed" },
+           { "mizar32", "modules_mizar32.html", "refman_ps_mizar32" },
         }
       }
     }
   }
-  
+
 }
 -- Translations for different strings needed by the generator
 -- The order of languages is the same as the one defines in the languages array 

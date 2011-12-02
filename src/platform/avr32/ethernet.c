@@ -789,7 +789,7 @@ __attribute__((__interrupt__)) void vMACB_ISR(void)
   // Variable definitions can be made now.
   volatile unsigned long ulIntStatus, ulEventStatus;
 
-	  // Find the cause of the interrupt.
+  // Find the cause of the interrupt.
   ulIntStatus = AVR32_MACB.isr;
   ulEventStatus = AVR32_MACB.rsr;
 

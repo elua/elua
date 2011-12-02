@@ -34,6 +34,8 @@ static int math_abs (lua_State *L) {
   return 1;
 }
 
+#ifndef LUA_NUMBER_INTEGRAL
+
 static int math_sin (lua_State *L) {
   lua_pushnumber(L, sin(luaL_checknumber(L, 1)));
   return 1;
@@ -107,6 +109,20 @@ static int math_modf (lua_State *L) {
   return 2;
 }
 
+#else  // #ifndef LUA_NUMBER_INTEGRAL
+
+// In integer math, floor() and ceil() give the same value;
+// having them in the integer library allows you to write code that
+// works in both integer and floating point versions of Lua.
+// This identity function is used for them.
+
+static int math_identity (lua_State *L) {
+  lua_pushnumber(L, luaL_checknumber(L, 1));
+  return 1;
+}
+
+#endif // #ifndef LUA_NUMBER_INTEGRAL
+
 #ifdef LUA_NUMBER_INTEGRAL
 // Integer square root for integer version
 static lua_Number isqrt(lua_Number x)
@@ -141,6 +157,8 @@ static int math_sqrt (lua_State *L) {
 #endif
   return 1;
 }
+
+#ifndef LUA_NUMBER_INTEGRAL
 
 static int math_pow (lua_State *L) {
   lua_pushnumber(L, pow(luaL_checknumber(L, 1), luaL_checknumber(L, 2)));
@@ -184,7 +202,7 @@ static int math_ldexp (lua_State *L) {
   return 1;
 }
 
-
+#endif // #ifdef LUA_NUMBER_INTEGRAL
 
 static int math_min (lua_State *L) {
   int n = lua_gettop(L);  /* number of arguments */
@@ -284,6 +302,8 @@ static int math_randomseed (lua_State *L) {
 const LUA_REG_TYPE math_map[] = {
 #ifdef LUA_NUMBER_INTEGRAL
   {LSTRKEY("abs"),   LFUNCVAL(math_abs)},
+  {LSTRKEY("ceil"),  LFUNCVAL(math_identity)},
+  {LSTRKEY("floor"), LFUNCVAL(math_identity)},
   {LSTRKEY("max"),   LFUNCVAL(math_max)},
   {LSTRKEY("min"),   LFUNCVAL(math_min)},
   {LSTRKEY("random"),     LFUNCVAL(math_random)},

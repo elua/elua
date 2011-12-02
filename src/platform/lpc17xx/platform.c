@@ -28,6 +28,8 @@
 #include "lpc17xx_pwm.h"
 #include "lpc17xx_adc.h"
 
+#define SYSTICKHZ             10
+
 // ****************************************************************************
 // Platform initialization
 
@@ -43,13 +45,13 @@ int platform_init()
   // DeInit NVIC and SCBNVIC
   NVIC_DeInit();
   NVIC_SCBDeInit();
-	
+
   // Configure the NVIC Preemption Priority Bits:
   // two (2) bits of preemption priority, six (6) bits of sub-priority.
   // Since the Number of Bits used for Priority Levels is five (5), so the
   // actual bit number of sub-priority is three (3)
   NVIC_SetPriorityGrouping(0x05);
-	
+
   //  Set Vector table offset value
 #if (__RAM_MODE__==1)
   NVIC_SetVTOR(0x10000000);
@@ -66,11 +68,34 @@ int platform_init()
   platform_setup_adcs();
 #endif
 
+  // System timer setup
+  cmn_systimer_set_base_freq( mbed_get_cpu_frequency() );
+  cmn_systimer_set_interrupt_freq( SYSTICKHZ );
+
+  // Enable SysTick
+  SysTick_Config( mbed_get_cpu_frequency() / SYSTICKHZ );
+
   // Common platform initialization code
   cmn_platform_init();
 
   return PLATFORM_OK;
 } 
+
+extern u32 SystemCoreClock;
+u32 mbed_get_cpu_frequency()
+{
+  return SystemCoreClock;
+}
+
+// SysTick interrupt handler
+void SysTick_Handler()
+{
+  // Handle virtual timers
+  cmn_virtual_timer_cb();
+
+  // Handle system timer call
+  cmn_systimer_periodic();
+}
 
 // ****************************************************************************
 // PIO section
@@ -79,7 +104,6 @@ int platform_init()
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 {
   pio_type retval = 1;
-  u32 idx = 0;
   
   switch( op )
   {
@@ -134,18 +158,17 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 // The other UARTs have assignable Rx/Tx pins and thus have to be configured
 // by the user
 
-static LPC_UART_TypeDef *uart[] = { LPC_UART0, LPC_UART1, LPC_UART2, LPC_UART3 };
+static LPC_UART_TypeDef* const uart[] = { LPC_UART0, LPC_UART1, LPC_UART2, LPC_UART3 };
 
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )
 {
-  u32 temp;
   // UART Configuration structure variable
   UART_CFG_Type UARTConfigStruct;
   // UART FIFO configuration Struct variable
   UART_FIFO_CFG_Type UARTFIFOConfigStruct;
   // Pin configuration for UART0
   PINSEL_CFG_Type PinCfg;
-	
+
   // UART0 Pin Config
   PinCfg.Funcnum = 1;
   PinCfg.OpenDrain = 0;
@@ -155,7 +178,7 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   PINSEL_ConfigPin(&PinCfg);
   PinCfg.Pinnum = 3;
   PINSEL_ConfigPin(&PinCfg);
-	
+
   UARTConfigStruct.Baud_rate = ( uint32_t )baud;
   
   switch( databits )
@@ -196,9 +219,9 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
       UARTConfigStruct.Parity = UART_PARITY_EVEN;
       break;
   }
-	
+
   UART_Init(uart[ id ], &UARTConfigStruct);
-	
+
   // Get default FIFO config and initialize
   UART_FIFOConfigStructInit(&UARTFIFOConfigStruct);
   UART_FIFOConfig(uart[ id ], &UARTFIFOConfigStruct);
@@ -214,7 +237,7 @@ void platform_s_uart_send( unsigned id, u8 data )
   UART_Send(uart[ id ], &data, 1, BLOCKING);
 }
 
-int platform_s_uart_recv( unsigned id, s32 timeout )
+int platform_s_uart_recv( unsigned id, timer_data_type timeout )
 {
   u8 buffer;
   
@@ -256,8 +279,8 @@ static u32 platform_timer_set_clock( unsigned id, u32 clock )
 
   // Initialize timer 0, prescale count time of 1uS
   TIM_ConfigStruct.PrescaleOption = TIM_PRESCALE_USVAL;
-  TIM_ConfigStruct.PrescaleValue	= 1000000ULL / clock;
-	
+  TIM_ConfigStruct.PrescaleValue  = 1000000ULL / clock;
+
   TIM_Init( tmr[ id ], TIM_TIMER_MODE, &TIM_ConfigStruct );
   TIM_Cmd( tmr[ id ], ENABLE );
   TIM_ResetCounter( tmr[ id ] );
@@ -279,7 +302,7 @@ static void platform_setup_timers()
     platform_timer_set_clock( i, 1000000ULL );
 }
 
-void platform_s_timer_delay( unsigned id, u32 delay_us )
+void platform_s_timer_delay( unsigned id, timer_data_type delay_us )
 {
   u32 last;
 
@@ -289,7 +312,7 @@ void platform_s_timer_delay( unsigned id, u32 delay_us )
   while( tmr[ id ]->TC < last );
 }
       
-u32 platform_s_timer_op( unsigned id, int op, u32 data )
+timer_data_type platform_s_timer_op( unsigned id, int op, timer_data_type data )
 {
   u32 res = 0;
 
@@ -304,14 +327,6 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
       res = tmr[ id ]->TC;
       break;
 
-    case PLATFORM_TIMER_OP_GET_MAX_DELAY:
-      res = platform_timer_get_diff_us( id, 0, 0xFFFFFFFF );
-      break;
-      
-    case PLATFORM_TIMER_OP_GET_MIN_DELAY:
-      res = platform_timer_get_diff_us( id, 0, 1 );
-      break;      
-      
     case PLATFORM_TIMER_OP_SET_CLOCK:
       res = platform_timer_set_clock( id, data );
       break;
@@ -319,8 +334,32 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
     case PLATFORM_TIMER_OP_GET_CLOCK:
       res = platform_timer_get_clock( id );
       break;
+
+    case PLATFORM_TIMER_OP_GET_MAX_CNT:
+      res = 0xFFFFFFFF;
+      break;
   }
   return res;
+}
+
+u64 platform_timer_sys_raw_read()
+{
+  return SysTick->LOAD - SysTick->VAL;
+}
+
+void platform_timer_sys_disable_int()
+{
+  SysTick->CTRL &= ~SysTick_CTRL_TICKINT_Msk;
+}
+
+void platform_timer_sys_enable_int()
+{
+  SysTick->CTRL |= SysTick_CTRL_TICKINT_Msk;
+}
+
+timer_data_type platform_timer_read_sys()
+{
+  return cmn_systimer_get();
 }
 
 // *****************************************************************************
@@ -427,12 +466,12 @@ static void platform_setup_adcs()
   // Default enables ADC interrupt only on global, switch to per-channel
   ADC_IntConfig( LPC_ADC, ADC_ADGINTEN, DISABLE );
     
-  platform_adc_setclock( 0, 0 );
+  platform_adc_set_clock( 0, 0 );
 }
 
 
 // NOTE: On this platform, there is only one ADC, clock settings apply to the whole device
-u32 platform_adc_setclock( unsigned id, u32 frequency )
+u32 platform_adc_set_clock( unsigned id, u32 frequency )
 {
   TIM_TIMERCFG_Type TIM_ConfigStruct;
   TIM_MATCHCFG_Type TIM_MatchConfigStruct ;
@@ -448,7 +487,7 @@ u32 platform_adc_setclock( unsigned id, u32 frequency )
         
     // Run timer at 1MHz
     TIM_ConfigStruct.PrescaleOption = TIM_PRESCALE_USVAL;
-    TIM_ConfigStruct.PrescaleValue	= 1;
+    TIM_ConfigStruct.PrescaleValue     = 1;
     
     TIM_MatchConfigStruct.MatchChannel = 1;
     TIM_MatchConfigStruct.IntOnMatch   = FALSE;
@@ -459,7 +498,7 @@ u32 platform_adc_setclock( unsigned id, u32 frequency )
     TIM_MatchConfigStruct.MatchValue   = ( 1000000ULL / ( frequency * 2 ) ) - 1;
         
     frequency = 1000000ULL / (TIM_MatchConfigStruct.MatchValue + 1);
-  	
+  
     // Set configuration for Tim_config and Tim_MatchConfig
     TIM_Init( tmr[ d->timer_id ], TIM_TIMER_MODE, &TIM_ConfigStruct );
     TIM_ConfigMatch( tmr[ d->timer_id ], &TIM_MatchConfigStruct );
@@ -538,20 +577,20 @@ int platform_adc_start_sequence()
 
 
 // Helper function: get timer clock
-static u32 platform_pwm_get_clock( unsigned id )
+u32 platform_pwm_get_clock( unsigned id )
 {
   return CLKPWR_GetPCLK( CLKPWR_PCLKSEL_PWM1 ) / ( LPC_PWM1->PR + 1 );
 }
 
 // Helper function: set timer clock
-static u32 platform_pwm_set_clock( unsigned id, u32 clock )
+u32 platform_pwm_set_clock( unsigned id, u32 clock )
 {
   PWM_TIMERCFG_Type PWMCfgDat;
   
   PWMCfgDat.PrescaleOption = PWM_TIMER_PRESCALE_USVAL;
   PWMCfgDat.PrescaleValue = 1000000ULL / clock;
   PWM_Init( LPC_PWM1, PWM_MODE_TIMER, &PWMCfgDat );
-	
+
   return clock;
 }
 
@@ -599,30 +638,14 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
   return platform_pwm_get_clock( id ) / divisor;
 }
 
-u32 platform_pwm_op( unsigned id, int op, u32 data )
+void platform_pwm_start( unsigned id )
 {
-  u32 res = 0;
+  PWM_Cmd(LPC_PWM1, ENABLE);
+}
 
-  switch( op )
-  {
-    case PLATFORM_PWM_OP_START:
-      PWM_Cmd(LPC_PWM1, ENABLE);
-      break;
-
-    case PLATFORM_PWM_OP_STOP:
-      PWM_Cmd(LPC_PWM1, DISABLE);
-      break;
-
-    case PLATFORM_PWM_OP_SET_CLOCK:
-      res = platform_pwm_set_clock( id, data );
-      break;
-
-    case PLATFORM_PWM_OP_GET_CLOCK:
-      res = platform_pwm_get_clock( id );
-      break;
-  }
-
-  return res;
+void platform_pwm_stop( unsigned id )
+{
+  PWM_Cmd(LPC_PWM1, DISABLE);
 }
 
 // ****************************************************************************

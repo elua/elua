@@ -8,6 +8,7 @@
 #include "buf.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <ctype.h>
 #include "math.h"
 #include "elua_adc.h"
@@ -15,6 +16,9 @@
 #include "xmodem.h"
 #include "elua_int.h"
 #include "sermux.h"
+#include "lua.h"
+#include "lapi.h"
+#include "lauxlib.h"
 
 // [TODO] the new builder should automatically do this
 #if defined( BUILD_LUA_INT_HANDLERS ) || defined( BUILD_C_INT_HANDLERS )
@@ -45,7 +49,12 @@ extern const elua_int_descriptor elua_int_table[ INT_ELUA_LAST ];
 
 // [TODO] the new builder should automatically do this
 #ifndef CON_FLOW_TYPE
-#define CON_FLOW_TYPE        PLATFORM_UART_FLOW_NONE
+#define CON_FLOW_TYPE         PLATFORM_UART_FLOW_NONE
+#endif
+
+// [TODO] the new builder should automatically do this
+#ifndef CON_TIMER_ID
+#define CON_TIMER_ID          PLATFORM_TIMER_SYS_ID
 #endif
 
 // ****************************************************************************
@@ -58,7 +67,7 @@ static void xmodem_send( u8 data )
   platform_uart_send( CON_UART_ID, data );
 }
 
-static int xmodem_recv( u32 timeout )
+static int xmodem_recv( timer_data_type timeout )
 {
   return platform_uart_recv( CON_UART_ID, CON_TIMER_ID, timeout );
 }
@@ -82,7 +91,7 @@ static int term_in( int mode )
   if( mode == TERM_INPUT_DONT_WAIT )
     return platform_uart_recv( CON_UART_ID, CON_TIMER_ID, 0 );
   else
-    return platform_uart_recv( CON_UART_ID, CON_TIMER_ID, PLATFORM_UART_INFINITE_TIMEOUT );
+    return platform_uart_recv( CON_UART_ID, CON_TIMER_ID, PLATFORM_TIMER_INF_TIMEOUT );
 }
 
 static int term_translate( int data )
@@ -176,7 +185,7 @@ static void uart_send( int fd, char c )
   platform_uart_send( CON_UART_ID, c );
 }
 
-static int uart_recv( s32 to )
+static int uart_recv( timer_data_type to )
 {
   return platform_uart_recv( CON_UART_ID, CON_TIMER_ID, to );
 }
@@ -201,7 +210,7 @@ void cmn_platform_init()
     platform_uart_set_buffer( i + SERMUX_SERVICE_ID_FIRST, bufsizes[ i ] );
 #endif // #ifdef BUILD_SERMUX
 
-#if defined( CON_UART_ID ) && CON_UART_ID < SERMUX_SERVICE_ID_FIRST
+#if defined( CON_UART_ID ) && CON_UART_ID < SERMUX_SERVICE_ID_FIRST && ( CON_UART_ID != CDC_UART_ID )
   // Setup console UART
   platform_uart_setup( CON_UART_ID, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );  
   platform_uart_set_flow_control( CON_UART_ID, CON_FLOW_TYPE );
@@ -294,47 +303,41 @@ int platform_adc_exists( unsigned id )
 
 #ifdef BUILD_ADC
 
-u32 platform_adc_op( unsigned id, int op, u32 data )
-{  
-  elua_adc_ch_state *s = adc_get_ch_state( id );
-  elua_adc_dev_state *d = adc_get_dev_state( 0 );
-  u32 res = 0;
-
-  switch( op )
-  {
-    case PLATFORM_ADC_GET_MAXVAL:
-      res = pow( 2, ADC_BIT_RESOLUTION ) - 1;
-      break;
-
-    case PLATFORM_ADC_SET_SMOOTHING:
-      res = adc_update_smoothing( id, ( u8 )intlog2( ( unsigned ) data ) );
-      break;
-      
-    case PLATFORM_ADC_SET_BLOCKING:
-      s->blocking = data;
-      break;
-      
-    case PLATFORM_ADC_IS_DONE:
-      res = ( s->op_pending == 0 );
-      break;
-    
-    case PLATFORM_ADC_OP_SET_TIMER:
-      if ( d->timer_id != data )
-        d->running = 0;
-      platform_adc_stop( id );
-      d->timer_id = data;
-      break;
-    
-    case PLATFORM_ADC_OP_SET_CLOCK:
-      res = platform_adc_setclock( id, data );
-      break;
-      
-    case PLATFORM_ADC_SET_FREERUNNING:
-      s->freerunning = data;
-      break;
-  }
-  return res;
+u32 platform_adc_get_maxval( unsigned id )
+{
+  return pow( 2, ADC_BIT_RESOLUTION ) - 1;
 }
+
+u32 platform_adc_set_smoothing( unsigned id, u32 length )
+{
+  return adc_update_smoothing( id, ( u8 )intlog2( ( unsigned ) length ) );
+}
+
+void platform_adc_set_blocking( unsigned id, u32 mode )
+{
+  adc_get_ch_state( id )->blocking = mode;
+}
+
+void platform_adc_set_freerunning( unsigned id, u32 mode )
+{
+  adc_get_ch_state( id )->freerunning = mode;
+}
+
+u32 platform_adc_is_done( unsigned id )
+{
+  return adc_get_ch_state( id )->op_pending == 0;
+}
+
+void platform_adc_set_timer( unsigned id, u32 timer )
+{
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
+
+  if ( d->timer_id != timer )
+    d->running = 0;
+  platform_adc_stop( id );
+  d->timer_id = timer;
+}
+
 #endif // #ifdef BUILD_ADC
 
 // ****************************************************************************
@@ -449,5 +452,46 @@ unsigned int intlog2( unsigned int v )
     r++;
   }
   return r;
+}
+
+// 64-bits integer printf support seems to be broken in some versions of Newlib...
+const char* cmn_str64( u64 x )
+{
+  static char nr[ 32 ];
+  u64 q, r;
+  unsigned l = 30;
+
+  memset( nr, 0, 32 );
+  do
+  {
+    q = x / 10;
+    r = x % 10;
+    nr[ l -- ] = r + '0';
+    x = q;
+  } while( x != 0 );
+  return nr + l + 1;
+}
+
+// Read a timeout spec from the user and return it
+// The timeout spec has the format [timeout], [timer_id]. Both arguments are optional.
+// If none is specified -> defaults to infinite timeout
+// If timeout is PLATFORM_TIMER_INF_TIMEOUT -> also infinite timeout (see above)
+// If a timeout is specified -> timer_id might also be specified. If not, it defaults to
+// PLATFORM_TIMER_SYS_ID
+void cmn_get_timeout_data( lua_State *L, int pidx, timer_data_type *ptimeout, unsigned *pid )
+{
+  lua_Number tempn;
+
+  *ptimeout = PLATFORM_TIMER_INF_TIMEOUT;
+  *pid = ( unsigned )luaL_optinteger( L, pidx + 1, PLATFORM_TIMER_SYS_ID );
+  if( lua_type( L, pidx ) == LUA_TNUMBER )
+  {
+    tempn = lua_tonumber( L, pidx );
+    if( tempn < 0 || tempn > PLATFORM_TIMER_INF_TIMEOUT )
+      luaL_error( L, "invalid timeout value" );
+    *ptimeout = ( timer_data_type )tempn;
+  }
+  if( *pid == PLATFORM_TIMER_SYS_ID && !platform_timer_sys_available() )
+    luaL_error( L, "the system timer is not implemented on this platform" );
 }
 

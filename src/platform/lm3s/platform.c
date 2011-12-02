@@ -23,49 +23,54 @@
 #include "elua_int.h" 
 
 // Platform specific includes
-#include "hw_ints.h"
-#include "hw_memmap.h"
-#include "hw_types.h"
-#include "hw_pwm.h"
-#include "hw_nvic.h"
-#include "hw_can.h"
-#include "hw_ethernet.h"
-#include "debug.h"
-#include "gpio.h"
-#include "can.h"
-#include "interrupt.h"
-#include "sysctl.h"
-#include "uart.h"
-#include "ssi.h"
-#include "timer.h"
-#include "pwm.h"
-#include "utils.h"
-#include "ethernet.h"
-#include "systick.h"
-#include "flash.h"
-#include "interrupt.h"
+
+#include "driverlib/debug.h"
+#include "driverlib/gpio.h"
+#include "driverlib/can.h"
+#include "driverlib/interrupt.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/uart.h"
+#include "driverlib/ssi.h"
+#include "driverlib/timer.h"
+#include "driverlib/pwm.h"
+#include "driverlib/adc.h"
+#include "driverlib/ethernet.h"
+#include "driverlib/systick.h"
+#include "driverlib/flash.h"
+#include "driverlib/interrupt.h"
 #include "elua_net.h"
 #include "dhcpc.h"
 #include "buf.h"
 #include "rit128x96x4.h"
 #include "disp.h"
-#include "adc.h"
+#include "utils.h"
 
-
-#ifdef FORLM3S9B92
+#if defined( FORLM3S9B92 )
   #define TARGET_IS_TEMPEST_RB1
 
   #include "lm3s9b92.h"
-#elif FORLM3S8962
+#elif defined( FORLM3S9D92 )
+  #define TARGET_IS_FIRESTORM_RA2
+
+  #include "lm3s9d92.h"
+#elif defined( FORLM3S8962 )
   #include "lm3s8962.h"
-#elif FORLM3S6965
+#elif defined( FORLM3S6965 )
   #include "lm3s6965.h"
-#elif FORLM3S6918
+#elif defined( FORLM3S6918 )
   #include "lm3s6918.h"
 #endif
 
-#include "rom.h"
-#include "rom_map.h"
+#include "driverlib/rom.h"
+#include "driverlib/rom_map.h"
+
+// USB CDC Stuff
+#include "driverlib/usb.h"
+#include "usblib/usblib.h"
+#include "usblib/usbcdc.h"
+#include "usblib/device/usbdevice.h"
+#include "usblib/device/usbdcdc.h"
+#include "usb_serial_structs.h"
 
 // UIP sys tick data
 // NOTE: when using virtual timers, SYSTICKHZ and VTMR_FREQ_HZ should have the
@@ -85,11 +90,12 @@ static void pwms_init();
 static void eth_init();
 static void adcs_init();
 static void cans_init();
+static void usb_init();
 
 int platform_init()
 {
   // Set the clocking to run from PLL
-#ifdef FORLM3S9B92
+#if defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
   MAP_SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_16MHZ);
 #else
   MAP_SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_8MHZ);
@@ -120,6 +126,15 @@ int platform_init()
   cans_init();
 #endif
 
+#ifdef BUILD_USB_CDC
+  // Setup USB
+  usb_init();
+#endif
+
+  // Setup system timer
+  cmn_systimer_set_base_freq( MAP_SysCtlClockGet() );
+  cmn_systimer_set_interrupt_freq( SYSTICKHZ );
+
   // Setup ethernet (TCP/IP)
   eth_init();
 
@@ -144,7 +159,7 @@ int platform_init()
 // PIO
 // Same configuration on LM3S8962, LM3S6965, LM3S6918 (8 ports)
 // 9B92 has 9 ports (Port J in addition to A-H)
-#ifdef FORLM3S9B92
+#if defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
   static const u32 pio_base[] = { GPIO_PORTA_BASE, GPIO_PORTB_BASE, GPIO_PORTC_BASE, GPIO_PORTD_BASE,
                                   GPIO_PORTE_BASE, GPIO_PORTF_BASE, GPIO_PORTG_BASE, GPIO_PORTH_BASE, 
                                   GPIO_PORTJ_BASE };
@@ -226,6 +241,8 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 // ****************************************************************************
 // CAN
 
+#if defined( BUILD_CAN )
+
 volatile u32 can_rx_flag = 0;
 volatile u32 can_tx_flag = 0;
 volatile u32 can_err_flag = 0;
@@ -268,10 +285,6 @@ void CANIntHandler(void)
 
 void cans_init( void )
 {
-  GPIOPinConfigure(GPIO_PD0_CAN0RX);
-  GPIOPinConfigure(GPIO_PD1_CAN0TX);
-  MAP_GPIOPinTypeCAN(GPIO_PORTD_BASE, GPIO_PIN_0 | GPIO_PIN_1);
-
   MAP_SysCtlPeripheralEnable( SYSCTL_PERIPH_CAN0 ); 
   MAP_CANInit( CAN0_BASE );
   CANBitRateSet(CAN0_BASE, LM3S_CAN_CLOCK, 500000);
@@ -290,6 +303,10 @@ void cans_init( void )
 
 u32 platform_can_setup( unsigned id, u32 clock )
 {  
+  GPIOPinConfigure(GPIO_PD0_CAN0RX);
+  GPIOPinConfigure(GPIO_PD1_CAN0TX);
+  MAP_GPIOPinTypeCAN(GPIO_PORTD_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+
   MAP_CANDisable(CAN0_BASE);
   CANBitRateSet(CAN0_BASE, LM3S_CAN_CLOCK, clock );
   MAP_CANEnable(CAN0_BASE);
@@ -340,6 +357,8 @@ int platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )
     return PLATFORM_UNDERFLOW;
 }
 
+#endif
+
 // ****************************************************************************
 // SPI
 // Same configuration on LM3S8962, LM3S6965, LM3S6918 and LM3S9B92 (2 SPI ports)
@@ -349,18 +368,37 @@ int platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )
 //  PIN info extracted from LM3S6950 and 5769 datasheets
 static const u32 spi_base[] = { SSI0_BASE, SSI1_BASE };
 static const u32 spi_sysctl[] = { SYSCTL_PERIPH_SSI0, SYSCTL_PERIPH_SSI1 };
+
+#if defined( ELUA_BOARD_SOLDERCORE )
+static const u32 spi_gpio_base[] = { GPIO_PORTA_BASE, GPIO_PORTF_BASE };
+static const u8 spi_gpio_pins[] = {  GPIO_PIN_4 | GPIO_PIN_5,
+                                     GPIO_PIN_4 | GPIO_PIN_5 };
+//                                   SSIxRx       SSIxTx
+
+static const u32 spi_gpio_clk_base[] = { GPIO_PORTA_BASE, GPIO_PORTH_BASE };
+static const u8 spi_gpio_clk_pin[] = { GPIO_PIN_2, GPIO_PIN_4 };
+#else
 static const u32 spi_gpio_base[] = { GPIO_PORTA_BASE, GPIO_PORTE_BASE };
-static const u8 spi_gpio_pins[] = { GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5,
-                                    GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 };
+static const u8 spi_gpio_pins[] = { GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5,
+                                    GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 };
 //                                  SSIxClk      SSIxFss      SSIxRx       SSIxTx
+static const u32 spi_gpio_clk_base[] = { GPIO_PORTA_BASE, GPIO_PORTE_BASE };
 static const u8 spi_gpio_clk_pin[] = { GPIO_PIN_2, GPIO_PIN_0 };
+#endif
+
 
 static void spis_init()
 {
   unsigned i;
 
+#if defined( ELUA_BOARD_SOLDERCORE )
+  GPIOPinConfigure( GPIO_PH4_SSI1CLK );
+  GPIOPinConfigure( GPIO_PF4_SSI1RX );
+  GPIOPinConfigure( GPIO_PF5_SSI1TX );
+#endif
+
   for( i = 0; i < NUM_SPI; i ++ )
-    MAP_SysCtlPeripheralEnable(spi_sysctl[ i ]);
+    MAP_SysCtlPeripheralEnable( spi_sysctl[ i ] );
 }
 
 u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigned cpha, unsigned databits )
@@ -375,9 +413,11 @@ u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigne
   MAP_SSIDisable( spi_base[ id ] );
 
   MAP_GPIOPinTypeSSI( spi_gpio_base[ id ], spi_gpio_pins[ id ] );
+  MAP_GPIOPinTypeSSI( spi_gpio_clk_base[ id ], spi_gpio_clk_pin[ id ] );
 
   // FIXME: not sure this is always "right"
-  GPIOPadConfigSet(spi_gpio_base[ id ], spi_gpio_pins[ id ], GPIO_STRENGTH_4MA, GPIO_PIN_TYPE_STD_WPU);
+  GPIOPadConfigSet( spi_gpio_base[ id ], spi_gpio_pins[ id ], GPIO_STRENGTH_4MA, GPIO_PIN_TYPE_STD_WPU );
+  GPIOPadConfigSet( spi_gpio_clk_base[ id ], spi_gpio_clk_pin[ id ], GPIO_STRENGTH_4MA, GPIO_PIN_TYPE_STD_WPU );
 
   MAP_SSIConfigSetExpClk( spi_base[ id ], MAP_SysCtlClockGet(), protocol, mode, clock, databits );
   MAP_SSIEnable( spi_base[ id ] );
@@ -411,7 +451,6 @@ static const u8 uart_gpio_pins[] = { GPIO_PIN_0 | GPIO_PIN_1, GPIO_PIN_2 | GPIO_
 static void uarts_init()
 {
   unsigned i;
-
   for( i = 0; i < NUM_UART; i ++ )
     MAP_SysCtlPeripheralEnable(uart_sysctl[ i ]);
 }
@@ -420,33 +459,36 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
 {
   u32 config;
 
-  MAP_GPIOPinTypeUART(uart_gpio_base [ id ], uart_gpio_pins[ id ]);
-
-  switch( databits )
+  if( id < NUM_UART )
   {
-    case 5:
-      config = UART_CONFIG_WLEN_5;
-      break;
-    case 6:
-      config = UART_CONFIG_WLEN_6;
-      break;
-    case 7:
-      config = UART_CONFIG_WLEN_7;
-      break;
-    default:
-      config = UART_CONFIG_WLEN_8;
-      break;
-  }
-  config |= ( stopbits == PLATFORM_UART_STOPBITS_1 ) ? UART_CONFIG_STOP_ONE : UART_CONFIG_STOP_TWO;
-  if( parity == PLATFORM_UART_PARITY_EVEN )
-    config |= UART_CONFIG_PAR_EVEN;
-  else if( parity == PLATFORM_UART_PARITY_ODD )
-    config |= UART_CONFIG_PAR_ODD;
-  else
-    config |= UART_CONFIG_PAR_NONE;
+    MAP_GPIOPinTypeUART(uart_gpio_base [ id ], uart_gpio_pins[ id ]);
 
-  MAP_UARTConfigSetExpClk( uart_base[ id ], MAP_SysCtlClockGet(), baud, config );
-  MAP_UARTConfigGetExpClk( uart_base[ id ], MAP_SysCtlClockGet(), &baud, &config );
+    switch( databits )
+    {
+      case 5:
+        config = UART_CONFIG_WLEN_5;
+        break;
+      case 6:
+        config = UART_CONFIG_WLEN_6;
+        break;
+      case 7:
+        config = UART_CONFIG_WLEN_7;
+        break;
+      default:
+        config = UART_CONFIG_WLEN_8;
+        break;
+    }
+    config |= ( stopbits == PLATFORM_UART_STOPBITS_1 ) ? UART_CONFIG_STOP_ONE : UART_CONFIG_STOP_TWO;
+    if( parity == PLATFORM_UART_PARITY_EVEN )
+      config |= UART_CONFIG_PAR_EVEN;
+    else if( parity == PLATFORM_UART_PARITY_ODD )
+      config |= UART_CONFIG_PAR_ODD;
+    else
+      config |= UART_CONFIG_PAR_NONE;
+
+    MAP_UARTConfigSetExpClk( uart_base[ id ], MAP_SysCtlClockGet(), baud, config );
+    MAP_UARTConfigGetExpClk( uart_base[ id ], MAP_SysCtlClockGet(), &baud, &config );
+  }
   return baud;
 }
 
@@ -455,12 +497,13 @@ void platform_s_uart_send( unsigned id, u8 data )
   MAP_UARTCharPut( uart_base[ id ], data );
 }
 
-int platform_s_uart_recv( unsigned id, s32 timeout )
+int platform_s_uart_recv( unsigned id, timer_data_type timeout )
 {
   u32 base = uart_base[ id ];
 
   if( timeout == 0 )
     return MAP_UARTCharGetNonBlocking( base );
+
   return MAP_UARTCharGet( base );
 }
 
@@ -489,7 +532,7 @@ static void timers_init()
   }
 }
 
-void platform_s_timer_delay( unsigned id, u32 delay_us )
+void platform_s_timer_delay( unsigned id, timer_data_type delay_us )
 {
   timer_data_type final;
   u32 base = timer_base[ id ];
@@ -499,7 +542,7 @@ void platform_s_timer_delay( unsigned id, u32 delay_us )
   while( MAP_TimerValueGet( base, TIMER_A ) > final );
 }
 
-u32 platform_s_timer_op( unsigned id, int op, u32 data )
+timer_data_type platform_s_timer_op( unsigned id, int op,timer_data_type data )
 {
   u32 res = 0;
   u32 base = timer_base[ id ];
@@ -517,21 +560,37 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
       res = MAP_TimerValueGet( base, TIMER_A );
       break;
 
-    case PLATFORM_TIMER_OP_GET_MAX_DELAY:
-      res = platform_timer_get_diff_us( id, 0, 0xFFFFFFFF );
-      break;
-
-    case PLATFORM_TIMER_OP_GET_MIN_DELAY:
-      res = platform_timer_get_diff_us( id, 0, 1 );
-      break;
-
     case PLATFORM_TIMER_OP_SET_CLOCK:
     case PLATFORM_TIMER_OP_GET_CLOCK:
       res = MAP_SysCtlClockGet();
       break;
 
+    case PLATFORM_TIMER_OP_GET_MAX_CNT:
+      res = 0xFFFFFFFF;
+      break;
+
   }
   return res;
+}
+
+u64 platform_timer_sys_raw_read()
+{
+  return MAP_SysTickPeriodGet() - 1 - MAP_SysTickValueGet();
+}
+
+void platform_timer_sys_disable_int()
+{
+  MAP_SysTickIntDisable();
+}
+
+void platform_timer_sys_enable_int()
+{
+  MAP_SysTickIntEnable();
+}
+
+timer_data_type platform_timer_read_sys()
+{
+  return cmn_systimer_get();
 }
 
 // ****************************************************************************
@@ -549,24 +608,32 @@ const static u8 pwm_div_data[] = { 1, 2, 4, 8, 16, 32, 64 };
 #elif defined(FORLM3S6965)
   const static u32 pwm_ports[] =  { GPIO_PORTF_BASE, GPIO_PORTD_BASE, GPIO_PORTB_BASE, GPIO_PORTB_BASE, GPIO_PORTE_BASE, GPIO_PORTE_BASE };
   const static u8 pwm_pins[] = { GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1 };
-#elif defined(FORLM3S9B92)
-  const static u32 pwm_ports[] =  { GPIO_PORTD_BASE, GPIO_PORTD_BASE, GPIO_PORTB_BASE, GPIO_PORTB_BASE, GPIO_PORTE_BASE, GPIO_PORTE_BASE };
-  const static u8 pwm_pins[] = { GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1 };
-  // GPIOPCTL probably needs modification to do PWM for 2&3, Digital Function 2
+#elif defined( ELUA_BOARD_SOLDERCORE ) && defined( FORLM3S9D92 )
+  const static u32 pwm_ports[] =  { GPIO_PORTG_BASE, GPIO_PORTD_BASE, GPIO_PORTD_BASE, GPIO_PORTD_BASE, GPIO_PORTE_BASE, GPIO_PORTE_BASE, GPIO_PORTC_BASE, GPIO_PORTC_BASE };
+  const static u8 pwm_pins[] = { GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_2, GPIO_PIN_3, GPIO_PIN_6, GPIO_PIN_7,  GPIO_PIN_4,  GPIO_PIN_6 };
+  const static u32 pwm_configs[] = { GPIO_PG0_PWM0, GPIO_PD1_PWM1, GPIO_PD2_PWM2, GPIO_PD3_PWM3, GPIO_PE6_PWM4, GPIO_PE7_PWM5, GPIO_PC4_PWM6, GPIO_PC6_PWM7 };
+#elif defined( FORLM3S9B92 ) || ( defined(FORLM3S9D92) && !defined( ELUA_BOARD_SOLDERCORE ) )
+  const static u32 pwm_ports[] =  { GPIO_PORTD_BASE, GPIO_PORTD_BASE, GPIO_PORTD_BASE, GPIO_PORTD_BASE, GPIO_PORTE_BASE, GPIO_PORTE_BASE, GPIO_PORTC_BASE, GPIO_PORTC_BASE };
+  const static u8 pwm_pins[] = { GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_2, GPIO_PIN_3, GPIO_PIN_6, GPIO_PIN_7,  GPIO_PIN_4,  GPIO_PIN_6 };
+  const static u32 pwm_configs[] = { GPIO_PD0_PWM0, GPIO_PD1_PWM1, GPIO_PD2_PWM2, GPIO_PD3_PWM3, GPIO_PE6_PWM4, GPIO_PE7_PWM5, GPIO_PC4_PWM6, GPIO_PC6_PWM7 };
 #else
   const static u32 pwm_ports[] =  { GPIO_PORTF_BASE, GPIO_PORTG_BASE, GPIO_PORTB_BASE, GPIO_PORTB_BASE, GPIO_PORTE_BASE, GPIO_PORTE_BASE };
   const static u8 pwm_pins[] = { GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_0, GPIO_PIN_1 };
 #endif
 
 // PWM generators
-#ifdef FORLM3S9B92
+#if defined( FORLM3S9B92 ) || defined(FORLM3S9D92)
   const static u16 pwm_gens[] = { PWM_GEN_0, PWM_GEN_1, PWM_GEN_2, PWM_GEN_3 };
 #else
   const static u16 pwm_gens[] = { PWM_GEN_0, PWM_GEN_1, PWM_GEN_2 };
 #endif
 
 // PWM outputs
+#if defined( FORLM3S9B92 ) || defined(FORLM3S9D92)
+const static u16 pwm_outs[] = { PWM_OUT_0, PWM_OUT_1, PWM_OUT_2, PWM_OUT_3, PWM_OUT_4, PWM_OUT_5, PWM_OUT_6, PWM_OUT_7};
+#else
 const static u16 pwm_outs[] = { PWM_OUT_0, PWM_OUT_1, PWM_OUT_2, PWM_OUT_3, PWM_OUT_4, PWM_OUT_5 };
+#endif
 
 static void pwms_init()
 {
@@ -574,8 +641,8 @@ static void pwms_init()
   MAP_SysCtlPWMClockSet( SYSCTL_PWMDIV_1 );
 }
 
-// Helper function: return the PWM clock
-static u32 platform_pwm_get_clock()
+// Return the PWM clock
+u32 platform_pwm_get_clock( unsigned id )
 {
   unsigned i;
   u32 clk;
@@ -587,8 +654,8 @@ static u32 platform_pwm_get_clock()
   return MAP_SysCtlClockGet() / pwm_div_data[ i ];
 }
 
-// Helper function: set the PWM clock
-static u32 platform_pwm_set_clock( u32 clock )
+// Set the PWM clock
+u32 platform_pwm_set_clock( unsigned id, u32 clock )
 {
   unsigned i, min_i;
   u32 sysclk;
@@ -603,8 +670,12 @@ static u32 platform_pwm_set_clock( u32 clock )
 
 u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
 {
-  u32 pwmclk = platform_pwm_get_clock();
+  u32 pwmclk = platform_pwm_get_clock( id );
   u32 period;
+
+#if defined( FORLM3S9B92 ) || defined(FORLM3S9D92)
+  GPIOPinConfigure( pwm_configs[ id ] );
+#endif
 
   // Set pin as PWM
   MAP_GPIOPinTypePWM( pwm_ports[ id ], pwm_pins[ id ] );
@@ -619,32 +690,16 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
   return pwmclk / period;
 }
 
-u32 platform_pwm_op( unsigned id, int op, u32 data )
+void platform_pwm_start( unsigned id )
 {
-  u32 res = 0;
+  MAP_PWMOutputState( PWM_BASE, 1 << id, true );
+  MAP_PWMGenEnable( PWM_BASE, pwm_gens[ id >> 1 ] );
+}
 
-  switch( op )
-  {
-    case PLATFORM_PWM_OP_SET_CLOCK:
-      res = platform_pwm_set_clock( data );
-      break;
-
-    case PLATFORM_PWM_OP_GET_CLOCK:
-      res = platform_pwm_get_clock();
-      break;
-
-    case PLATFORM_PWM_OP_START:
-      MAP_PWMOutputState( PWM_BASE, 1 << id, true );
-      MAP_PWMGenEnable( PWM_BASE, pwm_gens[ id >> 1 ] );
-      break;
-
-    case PLATFORM_PWM_OP_STOP:
-      MAP_PWMOutputState( PWM_BASE, 1 << id, false );
-      MAP_PWMGenDisable( PWM_BASE, pwm_gens[ id >> 1 ] );
-      break;
-  }
-
-  return res;
+void platform_pwm_stop( unsigned id )
+{
+  MAP_PWMOutputState( PWM_BASE, 1 << id, false );
+  MAP_PWMGenDisable( PWM_BASE, pwm_gens[ id >> 1 ] );
 }
 
 // *****************************************************************************
@@ -653,7 +708,7 @@ u32 platform_pwm_op( unsigned id, int op, u32 data )
 #ifdef BUILD_ADC
 
 // Pin configuration if necessary
-#ifdef FORLM3S9B92
+#if defined( FORLM3S9B92 ) || defined(FORLM3S9D92)
   const static u32 adc_ports[] =  { GPIO_PORTE_BASE, GPIO_PORTE_BASE, GPIO_PORTE_BASE, GPIO_PORTE_BASE,
                                     GPIO_PORTD_BASE, GPIO_PORTD_BASE, GPIO_PORTD_BASE, GPIO_PORTD_BASE,
                                     GPIO_PORTE_BASE, GPIO_PORTE_BASE, GPIO_PORTB_BASE, GPIO_PORTB_BASE,
@@ -663,11 +718,17 @@ u32 platform_pwm_op( unsigned id, int op, u32 data )
                                     GPIO_PIN_7, GPIO_PIN_6, GPIO_PIN_5, GPIO_PIN_4,
                                     GPIO_PIN_3, GPIO_PIN_2, GPIO_PIN_4, GPIO_PIN_5,
                                     GPIO_PIN_3, GPIO_PIN_2, GPIO_PIN_1, GPIO_PIN_0 };
-                                    
+
+  const static u32 adc_ctls[] = { ADC_CTL_CH0, ADC_CTL_CH1, ADC_CTL_CH2, ADC_CTL_CH3,
+                                  ADC_CTL_CH4, ADC_CTL_CH5, ADC_CTL_CH6, ADC_CTL_CH7,
+                                  ADC_CTL_CH8, ADC_CTL_CH9, ADC_CTL_CH10, ADC_CTL_CH11,
+                                  ADC_CTL_CH12, ADC_CTL_CH13, ADC_CTL_CH14, ADC_CTL_CH15 };
+
   #define ADC_PIN_CONFIG
+#else
+const static u32 adc_ctls[] = { ADC_CTL_CH0, ADC_CTL_CH1, ADC_CTL_CH2, ADC_CTL_CH3 };
 #endif
 
-const static u32 adc_ctls[] = { ADC_CTL_CH0, ADC_CTL_CH1, ADC_CTL_CH2, ADC_CTL_CH3 };
 const static u32 adc_ints[] = { INT_ADC0, INT_ADC1, INT_ADC2, INT_ADC3 };
 
 int platform_adc_check_timer_id( unsigned id, unsigned timer_id )
@@ -748,22 +809,22 @@ static void adcs_init()
   unsigned id;
   elua_adc_dev_state *d = adc_get_dev_state( 0 );
   
-	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC);
-	
-	// Try ramping up max sampling rate
+  MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC);
+
+  // Try ramping up max sampling rate
   MAP_SysCtlADCSpeedSet(SYSCTL_ADCSPEED_500KSPS);
   MAP_SysCtlADCSpeedSet(SYSCTL_ADCSPEED_1MSPS);
   
-	for( id = 0; id < NUM_ADC; id ++ )
+  for( id = 0; id < NUM_ADC; id ++ )
     adc_init_ch_state( id );
-	
+
   // Perform sequencer setup
-  platform_adc_setclock( 0, 0 );
-	MAP_ADCIntEnable( ADC_BASE, d->seq_id );
-  MAP_IntEnable( adc_ints[ d->seq_id ] );
+  platform_adc_set_clock( 0, 0 );
+  MAP_ADCIntEnable( ADC_BASE, d->seq_id );
+  MAP_IntEnable( adc_ints[ 0 ] ); // Enable sequencer 0 int
 }
 
-u32 platform_adc_setclock( unsigned id, u32 frequency )
+u32 platform_adc_set_clock( unsigned id, u32 frequency )
 {
   elua_adc_dev_state *d = adc_get_dev_state( 0 );
   
@@ -910,7 +971,7 @@ static void eth_init()
   MAP_SysCtlPeripheralEnable( SYSCTL_PERIPH_ETH );
   MAP_SysCtlPeripheralReset( SYSCTL_PERIPH_ETH );
 
-#ifdef FORLM3S9B92
+#if defined( FORLM3S9B92 ) || defined(FORLM3S9D92)
   GPIOPinConfigure(GPIO_PF2_LED1);
   GPIOPinConfigure(GPIO_PF3_LED0);
 #endif
@@ -957,7 +1018,15 @@ static void eth_init()
   // For the Ethernet Eval Kits, the MAC address will be stored in the
   // non-volatile USER0 and USER1 registers.  These registers can be read
   // using the FlashUserGet function, as illustrated below.
+
+
+#if defined( ELUA_BOARD_SOLDERCORE )
+  user0 = 0x00b61a00;
+  user1 = 0x006d0a00;
+#else
   MAP_FlashUserGet(&user0, &user1);
+#endif
+  
 
   // Convert the 24/24 split MAC address from NV ram into a 32/16 split MAC
   // address needed to program the hardware registers, then program the MAC
@@ -992,7 +1061,7 @@ u32 platform_eth_get_packet_nb( void* buf, u32 maxlen )
 
 void platform_eth_force_interrupt()
 {
-  HWREG( NVIC_SW_TRIG) |= INT_ETH - 16;
+  NVIC_SW_TRIG_R |= INT_ETH - 16;
 }
 
 u32 platform_eth_get_elapsed_time()
@@ -1011,16 +1080,15 @@ void SysTickIntHandler()
   // Handle virtual timers
   cmn_virtual_timer_cb();
 
-#ifdef BUILD_MMCFS
-  disk_timerproc();
-#endif
-
   // Indicate that a SysTick interrupt has occurred.
   eth_timer_fired = 1;
 
   // Generate a fake Ethernet interrupt.  This will perform the actual work
   // of incrementing the timers and taking the appropriate actions.
   platform_eth_force_interrupt();
+
+  // System timer handling
+  cmn_systimer_periodic();
 }
 
 void EthernetIntHandler()
@@ -1041,15 +1109,204 @@ void SysTickIntHandler()
 {
   cmn_virtual_timer_cb();
 
-#ifdef BUILD_MMCFS
-  disk_timerproc();
-#endif
+  // System timer handling
+  cmn_systimer_periodic();
 }
 
 void EthernetIntHandler()
 {
 }
 #endif // #ifdef ELUA_UIP
+
+// ****************************************************************************
+// USB functions
+
+#if defined( BUILD_USB_CDC )
+
+static void usb_init()
+{
+  USBBufferInit( &g_sTxBuffer );
+  USBBufferInit( &g_sRxBuffer );
+
+  // Pass the device information to the USB library and place the device
+  // on the bus.
+  USBDCDCInit( 0, &g_sCDCDevice );
+}
+
+void platform_usb_cdc_send( u8 data )
+{
+  USBBufferWrite( &g_sTxBuffer, &data, 1 );
+}
+
+int platform_usb_cdc_recv( s32 timeout )
+{
+  unsigned char data;
+  unsigned long read;
+
+  // Try to read one byte from buffer, if none available return -1 or
+  // retry if timeout
+  // FIXME: Respect requested timeout
+  do {
+    read = USBBufferRead(&g_sRxBuffer, &data, 1);
+  } while( read == 0 && timeout != 0 );
+
+  if( read == 0 )
+    return -1;
+  else
+    return data;
+}
+
+unsigned long TxHandler(void *pvCBData, unsigned long ulEvent, unsigned long ulMsgValue, void *pvMsgData)
+{
+  // Which event was sent?
+  switch(ulEvent)
+  {
+    case USB_EVENT_TX_COMPLETE:
+    {
+        // Nothing to do, already handled by USBBuffer
+        break;
+    }
+      
+    default:
+        break;
+  }
+  
+  return(0);
+}
+
+unsigned long RxHandler(void *pvCBData, unsigned long ulEvent, unsigned long ulMsgValue, void *pvMsgData)
+{
+  unsigned long ulCount;
+  unsigned char ucChar;
+  unsigned long ulRead;
+
+
+  // Which event was sent?
+  switch(ulEvent)
+  {
+    // A new packet has been received.
+    case USB_EVENT_RX_AVAILABLE:
+    {
+      break;
+    }
+
+    //
+    // This is a request for how much unprocessed data is still waiting to
+    // be processed.  Return 0 if the UART is currently idle or 1 if it is
+    // in the process of transmitting something.  The actual number of
+    // bytes in the UART FIFO is not important here, merely whether or
+    // not everything previously sent to us has been transmitted.
+    //
+    case USB_EVENT_DATA_REMAINING:
+    {
+      //
+      // Get the number of bytes in the buffer and add 1 if some data
+      // still has to clear the transmitter.
+      //
+      return(0);
+    }
+
+    //
+    // This is a request for a buffer into which the next packet can be
+    // read.  This mode of receiving data is not supported so let the
+    // driver know by returning 0.  The CDC driver should not be sending
+    // this message but this is included just for illustration and
+    // completeness.
+    //
+    case USB_EVENT_REQUEST_BUFFER:
+    {
+      return(0);
+    }
+
+    // Other events can be safely ignored.
+    default:
+    {
+      break;
+    }
+  }
+
+  return(0);
+}
+
+unsigned long
+ControlHandler(void *pvCBData, unsigned long ulEvent, unsigned long ulMsgValue,
+               void *pvMsgData)
+{
+  switch(ulEvent) // Check event
+  {
+    // The host has connected.
+    case USB_EVENT_CONNECTED:
+    {
+      USBBufferFlush(&g_sTxBuffer);
+      USBBufferFlush(&g_sRxBuffer);
+      break;
+    }
+
+    
+    // The host has disconnected.
+    
+    case USB_EVENT_DISCONNECTED:
+    {
+      break;
+    }
+    
+    // Return the current serial communication parameters.
+    case USBD_CDC_EVENT_GET_LINE_CODING:
+    {
+      break;
+    }
+
+    // Set the current serial communication parameters.
+    case USBD_CDC_EVENT_SET_LINE_CODING:
+    {
+      break;
+    }
+
+    
+    // Set the current serial communication parameters.
+    case USBD_CDC_EVENT_SET_CONTROL_LINE_STATE:
+    {
+      break;
+    }
+
+    //
+    // Send a break condition on the serial line.
+    //
+    case USBD_CDC_EVENT_SEND_BREAK:
+    {
+      break;
+    }
+
+    //
+    // Clear the break condition on the serial line.
+    //
+    case USBD_CDC_EVENT_CLEAR_BREAK:
+    {
+      break;
+    }
+
+    //
+    // Ignore SUSPEND and RESUME for now.
+    //
+    case USB_EVENT_SUSPEND:
+    case USB_EVENT_RESUME:
+    {
+      break;
+    }
+
+    //
+    // Other events can be safely ignored.
+    //
+    default:
+    {
+      break;
+    }
+  }
+
+  return(0);
+}
+
+#endif // BUILD_USB_CDC
 
 // ****************************************************************************
 // Platform specific modules go here

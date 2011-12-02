@@ -24,7 +24,7 @@ elua_adc_dev_state *adc_get_dev_state( unsigned dev_id )
   return &adc_dev_state;
 }
 
-// Rewrite revice sequence
+// Rewrite device sequence
 void adc_update_dev_sequence( unsigned dev_id  )
 {
   elua_adc_dev_state *d = adc_get_dev_state( dev_id );
@@ -126,7 +126,7 @@ void adc_init_ch_state( unsigned id )
 #endif
 
   // Set to run as fast as possible
-  platform_adc_setclock( id, 0 );
+  platform_adc_set_clock( id, 0 );
 }
 
 void adc_init_dev_state( unsigned dev_id )

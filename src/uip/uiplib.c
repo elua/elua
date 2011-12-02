@@ -57,16 +57,16 @@ uiplib_ipaddrconv(char *addrstr, unsigned char *ipaddr)
       c = *addrstr;
       ++j;
       if(j > 4) {
-	return 0;
+        return 0;
       }
       if(c == '.' || c == 0) {
-	*ipaddr = tmp;
-	++ipaddr;
-	tmp = 0;
+        *ipaddr = tmp;
+        ++ipaddr;
+        tmp = 0;
       } else if(c >= '0' && c <= '9') {
-	tmp = (tmp * 10) + (c - '0');
+        tmp = (tmp * 10) + (c - '0');
       } else {
-	return 0;
+        return 0;
       }
       ++addrstr;
     } while(c != '.' && c != 0);

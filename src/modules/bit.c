@@ -4,9 +4,11 @@
 
 // Modified by BogdanM for eLua
 
-#include <lua.h>
-#include <lauxlib.h>
+
 #include <limits.h>
+
+#include "lua.h"
+#include "lauxlib.h"
 #include "auxmods.h"
 #include "type.h"
 #include "lrotable.h"

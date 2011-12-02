@@ -59,7 +59,7 @@ install it, then open the com0com serial port manager to create your virtual
 serial port pairs. Then give it a little spin to get used to how it works. Supposing
 that you created COM10 and COM11 as a virtual serial port pair, try this:
 
-- start your terminal emulator program. My preffered terminal emulator program in 
+- start your terminal emulator program. My preferred terminal emulator program in 
   Windows is http://www.ayera.com/teraterm/[TeraTerm], but you can use any emulator 
   you want. Open COM10 at baud 115200.
 - start another instance of the terminal emulator, but this time open COM11 at baud 115200.

@@ -55,57 +55,29 @@ static int exint_gpio_to_src( pio_type piodata )
 // ----------------------------------------------------------------------------
 // External interrupt handlers
 
-static void exint_irq_handler( int group )
+void WIU_IRQHandler(void)
 {
   u32 bmask;
   u32 pr = WIU->PR;
   u32 mr = WIU->MR;
   u32 tr = WIU->TR;
-  u32 shift = group << 3;
   unsigned i;
 
-  // Check interrupt mask
-  if( ( ( pr >> shift ) & 0xFF ) == 0 )
-  {
-    VIC1->VAR = 0xFF;
-    return;
-  }
-
   // Iterate through all the bits in the mask, queueing interrupts as needed
-  for( i = 0, bmask = 1 << shift; i < 8; i ++, bmask <<= 1 )
+  for( i = 2, bmask = 4; i < 32; i ++, bmask <<= 1 )
     if( ( pr & bmask ) && ( mr & bmask ) )
     {
       // Enqueue interrupt
       if( tr & bmask )
-        cmn_int_handler( INT_GPIO_POSEDGE, exint_src_to_gpio( shift + i ) );
+        cmn_int_handler( INT_GPIO_POSEDGE, exint_src_to_gpio( i ) );
       else
-        cmn_int_handler( INT_GPIO_NEGEDGE, exint_src_to_gpio( shift + i ) );
+        cmn_int_handler( INT_GPIO_NEGEDGE, exint_src_to_gpio( i ) );
       // Then clear it
       WIU->PR  = bmask;
     }
 
   // Clear interrupt source
   VIC1->VAR = 0xFF;
-}
-
-void EXTIT0_IRQHandler()
-{
-  exint_irq_handler( 0 );
-}
-
-void EXTIT1_IRQHandler()
-{
-  exint_irq_handler( 1 );
-}
-
-void EXTIT2_IRQHandler()
-{
-  exint_irq_handler( 2 );
-}
-
-void EXTIT3_IRQHandler()
-{
-  exint_irq_handler( 3 );
 }
 
 // ----------------------------------------------------------------------------
@@ -121,7 +93,10 @@ static void tmr_int_handler( int id )
   TIM_ClearFlag( base, TIM_FLAG_OC1 );
   TIM_CounterCmd( base, TIM_CLEAR );
   if( id == VTMR_TIMER_ID )
+  {
     cmn_virtual_timer_cb();
+    cmn_systimer_periodic();
+  }
   else
     cmn_int_handler( INT_TMR_MATCH, id );
   if( str9_timer_int_periodic_flag[ id ] != PLATFORM_TIMER_INT_CYCLIC )
@@ -289,6 +264,8 @@ static int int_tmr_match_get_flag( elua_int_resnum resnum, int clear )
 
 void platform_int_init()
 {
+  int p = 1;
+
   // Initialize VIC
   VIC_DeInit();
   VIC0->DVAR = ( u32 )dummy_int_handler;
@@ -297,18 +274,13 @@ void platform_int_init()
   // Enablue WIU
   WIU_DeInit();
   
-  // Initialize all external interrupts
-  VIC_Config( EXTIT0_ITLine, VIC_IRQ, 1 );
-  VIC_Config( EXTIT1_ITLine, VIC_IRQ, 2 );
-  VIC_Config( EXTIT2_ITLine, VIC_IRQ, 3 );
-  VIC_Config( EXTIT3_ITLine, VIC_IRQ, 4 );
-  VIC_ITCmd( EXTIT0_ITLine, ENABLE );
-  VIC_ITCmd( EXTIT1_ITLine, ENABLE );
-  VIC_ITCmd( EXTIT2_ITLine, ENABLE );
-  VIC_ITCmd( EXTIT3_ITLine, ENABLE );
-
+  // Initialize the WIU interrupt
+  VIC_Config( WIU_ITLine, VIC_IRQ, p ++ );
+  VIC_ITCmd( WIU_ITLine, ENABLE );
   // Enable interrupt generation on WIU
+  WIU->PR = 0xFFFFFFFF;
   WIU->CTRL |= 2; 
+
 
 #ifdef INT_TMR_MATCH
   VIC_Config( TIM0_ITLine, VIC_IRQ, 5 );

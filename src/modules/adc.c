@@ -20,30 +20,30 @@ static int adc_maxval( lua_State* L )
   
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( adc, id );
-  res = platform_adc_op( id, PLATFORM_ADC_GET_MAXVAL, 0 );
+  res = platform_adc_get_maxval( id );
   lua_pushinteger( L, res );
   return 1;
 }
 
-// Lua: realclock = setclock( id, clock, [timer_id] )
+// Lua: realclock = setclock( id, freq, [timer_id] )
 static int adc_setclock( lua_State* L )
 {
-  u32 clock;
+  u32 freq;
   unsigned id, timer_id = 0;
   
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( adc, id );
-  clock = luaL_checkinteger( L, 2 );
-  if ( clock > 0 )
+  freq = luaL_checkinteger( L, 2 );
+  if ( freq > 0 )
   {
     timer_id = luaL_checkinteger( L, 3 );
     MOD_CHECK_ID( timer, timer_id );
     MOD_CHECK_RES_ID( adc, id, timer, timer_id );
   }
 
-  platform_adc_op( id, PLATFORM_ADC_OP_SET_TIMER, timer_id );
-  clock = platform_adc_op( id, PLATFORM_ADC_OP_SET_CLOCK, clock );
-  lua_pushinteger( L, clock );
+  platform_adc_set_timer( id, timer_id );
+  freq = platform_adc_set_clock( id, freq );
+  lua_pushinteger( L, freq );
   return 1;
 }
 
@@ -54,7 +54,7 @@ static int adc_isdone( lua_State* L )
     
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( adc, id );
-  lua_pushinteger( L, platform_adc_op( id, PLATFORM_ADC_IS_DONE, 0 ) );
+  lua_pushinteger( L, platform_adc_is_done( id ) );
   return 1;
 }
 
@@ -66,7 +66,7 @@ static int adc_setblocking( lua_State* L )
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( adc, id );
   mode = luaL_checkinteger( L, 2 );
-  platform_adc_op( id, PLATFORM_ADC_SET_BLOCKING, mode );
+  platform_adc_set_blocking( id, mode );
   return 0;
 }
 
@@ -81,7 +81,7 @@ static int adc_setsmoothing( lua_State* L )
   length = luaL_checkinteger( L, 2 );
   if ( !( length & ( length - 1 ) ) )
   {
-    res = platform_adc_op( id, PLATFORM_ADC_SET_SMOOTHING, length );
+    res = platform_adc_set_smoothing( id, length );
     if ( res == PLATFORM_ERR )
       return luaL_error( L, "Buffer allocation failed." );
     else
@@ -185,7 +185,7 @@ static int adc_getsamples( lua_State* L )
     lua_pushinteger( L, adc_get_processed_sample( id ) );
     lua_rawseti( L, -2, i );
   }
-  return 0;
+  return 1;
 }
 
 
@@ -201,22 +201,22 @@ static int adc_insertsamples( lua_State* L )
   luaL_checktype(L, 2, LUA_TTABLE);
   
   startidx = luaL_checkinteger( L, 3 );
-	if  ( startidx <= 0 )
+  if  ( startidx <= 0 )
     return luaL_error( L, "idx must be > 0" );
 
   count = luaL_checkinteger(L, 4 );
-	if  ( count == 0 )
+  if  ( count == 0 )
     return luaL_error( L, "count must be > 0" );
   
   bcnt = adc_wait_samples( id, count );
   
   for( i = startidx; i < ( count + startidx ); i ++ )
   {
-		if ( i < bcnt + startidx )
-    	lua_pushinteger( L, adc_get_processed_sample( id ) );
-		else
-			lua_pushnil( L ); // nil-out values where we don't have enough samples
-		
+    if ( i < bcnt + startidx )
+      lua_pushinteger( L, adc_get_processed_sample( id ) );
+    else
+      lua_pushnil( L ); // nil-out values where we don't have enough samples
+
     lua_rawseti( L, 2, i );
   }
   

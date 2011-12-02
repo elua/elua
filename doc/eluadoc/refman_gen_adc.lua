@@ -70,7 +70,7 @@ data_en =
         "$clock$ - frequency to acquire samples at in Hz (number of samples per second), 0 to acquire as fast as possible.",
         "$timer_id$ - Timer channel ID to use to control ADC conversion. <strong>Note:</strong> At this time, a timer selection will apply to all channels on a given ADC peripheral."
       },
-      ret = "$clock$ - actual acquisition frequency to be used"
+      ret = "$clock$ - actual acquisition frequency that was set"
     },
     { sig = "status = #adc.isdone#( id )",
       desc = "Check whether samples are still being acquired on a channel.",
@@ -81,7 +81,7 @@ data_en =
       ret = "$status$ - 1 if no samples are being acquired, 0 if samples are pending acquisition."
     },
     { sig = "#adc.setblocking#( id, mode )",
-      desc = "Set whether or not functions that request converted samples should wait for requested samples or return immediately with what is available.",
+      desc = "Set whether or not functions that request converted samples should wait for requested samples or return immediately with what is available. If this function is not called, each channel starts in blocking mode.",
       args = 
       {
         "$id$ - ADC channel ID.",

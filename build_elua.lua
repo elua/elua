@@ -157,14 +157,14 @@ toolchain_list[ 'devkitarm' ] = toolchain_list[ 'arm-eabi-gcc' ]
 local platform_list = 
 {  
   at91sam7x = { cpus = { 'AT91SAM7X256', 'AT91SAM7X512' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } },
-  lm3s = { cpus = { 'LM3S1968', 'LM3S8962', 'LM3S6965', 'LM3S6918', 'LM3S9B92' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } },
+  lm3s = { cpus = { 'LM3S1968', 'LM3S8962', 'LM3S6965', 'LM3S6918', 'LM3S9B92', 'LM3S9D92' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } },
   str9 = { cpus = { 'STR912FAW44' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } },
   i386 = { cpus = { 'I386' }, toolchains = { 'i686-gcc' } },
   sim = { cpus = { 'LINUX' }, toolchains = { 'i686-gcc' } },
   lpc288x = { cpus = { 'LPC2888' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } },
   str7 = { cpus = { 'STR711FR2' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } },
   stm32 = { cpus = { 'STM32F103ZE', 'STM32F103RE' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } },
-  avr32 = { cpus = { 'AT32UC3A0512', 'AT32UC3A0128', 'AT32UC3B0256' }, toolchains = { 'avr32-gcc', 'avr32-unknown-none-gcc' } },
+  avr32 = { cpus = { 'AT32UC3A0128', 'AT32UC3A0256', 'AT32UC3A0512', 'AT32UC3B0256' }, toolchains = { 'avr32-gcc', 'avr32-unknown-none-gcc' } },
   lpc24xx = { cpus = { 'LPC2468' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } },
   lpc17xx = { cpus = { 'LPC1768' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } }
 }
@@ -177,6 +177,7 @@ local board_list =
   [ 'EK-LM3S8962' ]     = { 'LM3S8962' },
   [ 'EK-LM3S6965' ]     = { 'LM3S6965' },
   [ 'EK-LM3S9B92' ]     = { 'LM3S9B92' },
+  [ 'SOLDERCORE'  ]     = { 'LM3S9D92' },
   [ 'STR9-COMSTICK' ]   = { 'STR912FAW44' },
   [ 'STR-E912' ]        = { 'STR912FAW44' },
   [ 'PC' ]              = { 'I386' },
@@ -190,7 +191,7 @@ local board_list =
   [ 'EAGLE-100' ]       = { 'LM3S6918' },
   [ 'ELUA-PUC' ]        = { 'LPC2468' },
   [ 'MBED' ]            = { 'LPC1768' },
-  [ 'MIZAR32' ]         = { 'AT32UC3A0128' },
+  [ 'MIZAR32' ]         = { 'AT32UC3A0128', 'AT32UC3A0256',  'AT32UC3A0512' },
   [ 'NETDUINO' ]        = { 'AT91SAM7X512' },
 }
 
@@ -205,97 +206,7 @@ for k, v in pairs( board_list ) do
   end
 end
 
--- ROMFS file list "groups"
--- To include a file in a ROMFS build, include it in a group here (or create one
--- if you need) and make sure the group is included on your platform's file_list
--- definition (right after this).
-
--- The following table will be left here just as an example
--- eLua examples were removed from the distro since v0.8
---[[
-local romfs = 
-{
-  bisect = { 'bisect.lua' },
-  hangman = { 'hangman.lua' },
-  lhttpd = { 'index.pht', 'lhttpd.lua', 'test.lua' },
-  led = { 'led.lua' },
-  piano = { 'piano.lua' },
-  pwmled = { 'pwmled.lua' },
-  tvbgone = { 'tvbgone.lua', 'codes.bin' },
-  hello = { 'hello.lua' },
-  info = { 'info.lua' },
-  morse = { 'morse.lua' },
-  dualpwm = { 'dualpwm.lua' },
-  adcscope = { 'adcscope.lua' },
-  adcpoll = { 'adcpoll.lua' },
-  life = { 'life.lua' },
-  logo = {'logo.lua', 'logo.bin' },
-  pong = { 'pong.lua' },
-  spaceship = { 'spaceship.lua' },
-  tetrives = { 'tetrives.lua' },
-  snake = { 'snake.lua' },
-  dataflash = { 'dataflash.lua' },
-  pachube = { 'pachube_demo.lua' },
-  inttest = { 'inttest.lua' }
-}
---]]
-
-local romfs = {}
-
--- List of board/romfs data combinations
--- The following table will be left here just as an example
--- eLua examples were removed from the distro since v0.8
---[[
-local file_list = 
-{ 
-  [ 'SAM7-EX256' ] = { 'bisect', 'hangman' , 'led', 'piano', 'hello', 'info', 'morse' },
-  [ 'EK-LM3S1968' ]  = { 'bisect', 'hangman', 'pong', 'led', 'piano', 'pwmled', 'hello', 'info', 'morse', 'adcscope', 'adcpoll', 'logo', 'spaceship', 'tetrives', 'snake' },
-  [ 'EK-LM3S8962' ]  = { 'lhttpd','bisect', 'led', 'pachube' },
-  [ 'EK-LM3S6965' ]  = { 'bisect', 'hangman', 'pong', 'led', 'piano', 'pwmled', 'hello', 'info', 'morse', 'adcscope', 'adcpoll', 'logo', 'tetrives' },
-  [ 'EK-LM3S9B92' ]  = { 'bisect', 'hangman', 'led', 'pwmled', 'hello', 'info', 'adcscope','adcpoll', 'life' },
-  [ 'STR9-COMSTICK' ]  = { 'bisect', 'hangman', 'led', 'hello', 'info' },
-  [ 'STR-E912' ]  = { 'bisect', 'hangman', 'led', 'hello', 'info', 'piano', 'adcscope' },
-  [ 'PC' ]  = { 'bisect', 'hello', 'info', 'life', 'hangman' },
-  [ 'SIM' ]  = { 'bisect', 'hello', 'info', 'life', 'hangman' },
-  [ 'LPC-H2888' ]  = { 'bisect', 'hangman', 'led', 'hello', 'info' },
-  [ 'MOD711' ]  = { 'bisect', 'hangman', 'led', 'hello', 'info', 'dualpwm' },
-  [ 'STM3210E-EVAL' ]  = { 'bisect', 'hello', 'info' },
-  [ 'ATEVK1100' ]  = { 'bisect', 'hangman', 'led', 'hello', 'info', 'dataflash' },
-  [ 'ATEVK1101' ]  = { 'bisect', 'led', 'hello', 'info', 'dataflash' },
-  [ 'ET-STM32' ]  = { 't' },
-  [ 'EAGLE-100' ]  = { 'bisect', 'hangman', 'lhttpd', 'led', 'hello', 'info' },
-  [ 'ELUA-PUC' ]  = { 'bisect', 'hangman', 'led', 'hello', 'info', 'pwmled', 'adcscope', 'adcpoll', 'inttest' },
-  [ 'MBED' ]  = { 'bisect', 'hangman', 'hello', 'info', 'led', 'pwmled', 'dualpwm', 'life', 'adcscope', 'adcpoll' },
-  [ 'MIZAR32' ]  = { },
-  [ 'NETDUINO' ] = { },
-}
---]]
-
-local file_list = 
-{ 
-  [ 'SAM7-EX256' ]      = {},
-  [ 'EK-LM3S1968' ]     = {},
-  [ 'EK-LM3S8962' ]     = {},
-  [ 'EK-LM3S6965' ]     = {},
-  [ 'EK-LM3S9B92' ]     = {},
-  [ 'STR9-COMSTICK' ]   = {},
-  [ 'STR-E912' ]        = {},
-  [ 'PC' ]              = {},
-  [ 'SIM' ]             = {},
-  [ 'LPC-H2888' ]       = {},
-  [ 'MOD711' ]          = {},
-  [ 'STM3210E-EVAL' ]   = {},
-  [ 'ATEVK1100' ]       = {},
-  [ 'ATEVK1101' ]       = {},
-  [ 'ET-STM32' ]        = {},
-  [ 'EAGLE-100' ]       = {},
-  [ 'ELUA-PUC' ]        = {},
-  [ 'MBED' ]            = {},
-  [ 'MIZAR32' ]         = {},
-  [ 'NETDUINO']         = {},
-}
-
-builder:add_option( 'target', 'build "regular" float lua or integer-only "lualong"', 'lua', { 'lua', 'lualong' } )
+builder:add_option( 'target', 'build "regular" float lua, 32 bit integer-only "lualong" or 64-bit integer only lua "lualonglong"', 'lua', { 'lua', 'lualong', 'lualonglong' } )
 builder:add_option( 'cpu', 'build for the specified CPU (board will be inferred, if possible)', 'auto', { cpu_list, 'auto' } )
 builder:add_option( 'allocator', 'select memory allocator', 'auto', { 'newlib', 'multiple', 'simple', 'auto' } )
 builder:add_option( 'board', 'selects board for target (cpu will be inferred)', 'auto', { utils.table_keys( board_list ), 'auto' } )
@@ -399,6 +310,10 @@ end
 -- Build the compilation command now
 local fscompcmd = ''
 if comp.romfs == 'compile' then
+  if comp.target == 'lualonglong' then
+    print "Cross-compilation is not yet supported for 64-bit integer only Lua (lualonglong)."
+    os.exit( -1 )
+  end
   local suffix = ''
   if utils.is_windows() then
     suffix = '.exe'
@@ -451,13 +366,14 @@ elseif comp.allocator == 'simple' then
    addm( "USE_SIMPLE_ALLOCATOR" )
 end
 if comp.boot == 'luarpc' then addm( "ELUA_BOOT_RPC" ) end
-if comp.target == 'lualong' then addm( "LUA_NUMBER_INTEGRAL" ) end
+if comp.target == 'lualong' or comp.target == 'lualonglong' then addm( "LUA_NUMBER_INTEGRAL" ) end
+if comp.target == 'lualonglong' then addm( "LUA_INTEGRAL_LONGLONG" ) end
 
 -- Special macro definitions for the SYM target
 if platform == 'sim' then addm( { "ELUA_SIMULATOR", "ELUA_SIM_" .. cnorm( comp.cpu ) } ) end
 
 -- Lua source files and include path
-exclude_patterns = { "^src/platform", "^src/uip", "^src/serial", "^src/luarpc_desktop_serial.c", "^src/lua/print.c", "^src/lua/luac.c" }
+exclude_patterns = { "^src/platform", "^src/uip", "^src/serial", "^src/luarpc_desktop_serial.c", "^src/linenoise_posix.c", "^src/lua/print.c", "^src/lua/luac.c" }
 local source_files = utils.get_files( "src", function( fname )
   fname = fname:gsub( "\\", "/" ) 
   local include = fname:find( ".*%.c$" )
@@ -487,15 +403,25 @@ source_files = source_files .. uip_files .. specific_files
 -- Create compiler/linker/assembler command lines and build
 
 -- ROM file system builder
+
+romfs_exclude_patterns = { '%.DS_Store', '%.gitignore' }
+
+function match_pattern_list( item, list )
+  for k, v in pairs( list ) do
+     if item:find(v) then return true end
+  end
+end
+
 local function make_romfs()
   print "Building ROM file system ..."
-  local romdir = "romfs"
   local flist = {}
-  for _, sample in pairs( file_list[ comp.board:upper() ] ) do
-    table.insert( flist, romfs[ sample ] )
-  end
+  flist = utils.string_to_table( utils.get_files( 'romfs', function( fname ) return not match_pattern_list( fname, romfs_exclude_patterns ) end ) )
   flist = utils.linearize_array( flist )  
-  if not mkfs.mkfs( romdir, "romfiles", flist, comp.romfs, fscompcmd ) then return -1 end
+  for k, v in pairs( flist ) do
+    flist[ k ] = v:gsub( "romfs" .. utils.dir_sep, "" )
+  end
+
+  if not mkfs.mkfs( "romfs", "romfiles", flist, comp.romfs, fscompcmd ) then return -1 end
   if utils.is_file( "inc/romfiles.h" ) then
     -- Read both the old and the new file
     local oldfile = io.open( "inc/romfiles.h", "rb" )
@@ -546,7 +472,6 @@ builder:set_exe_extension( ".elf" )
 -- Create the ROM file system
 make_romfs()
 -- Creaate executable targets
-builder:make_depends( source_files )
 odeps = builder:create_compile_targets( source_files )
 exetarget = builder:link_target( output, odeps )
 -- This is also the default target

@@ -48,7 +48,7 @@ extern char etext[];
 #endif
 
 #ifndef RPC_TIMER_ID
-  #define RPC_TIMER_ID    CON_TIMER_ID
+  #define RPC_TIMER_ID    PLATFORM_TIMER_SYS_ID
 #endif
 
 #ifndef RPC_UART_SPEED

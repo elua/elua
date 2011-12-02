@@ -52,7 +52,8 @@ void *alloca(size_t);
 // Prototypes for Local Functions  
 LUALIB_API int luaopen_rpc( lua_State *L );
 Handle *handle_create( lua_State *L );
-
+static void rpc_dispatch_helper( lua_State *L, ServerHandle *handle );
+static int rpc_adispatch_helper( lua_State *L, ServerHandle * handle );
 
 struct exception_context the_exception_context[ 1 ];
 
@@ -175,7 +176,7 @@ static void transport_write_u8( Transport *tpt, u8 x )
 
 static void swap_bytes( uint8_t *number, size_t numbersize )
 {
-  int i;
+  u32 i;
   for ( i = 0 ; i < numbersize / 2 ; i ++ )
   {
     uint8_t temp = number[ i ];
@@ -217,7 +218,7 @@ static void transport_write_u32( Transport *tpt, u32 x )
 // read a lua number from the transport 
 static lua_Number transport_read_number( Transport *tpt )
 {
-  lua_Number x;
+  lua_Number x = 0;
   u8 b[ tpt->lnum_bytes ];
   struct exception e;
   TRANSPORT_VERIFY_OPEN;
@@ -448,7 +449,7 @@ static void write_variable( Transport *tpt, lua_State *L, int var_index )
       u32 len;
       transport_write_u8( tpt, RPC_STRING );
       s = lua_tostring( L, var_index );
-      len = lua_strlen( L, var_index );
+      len = ( u32 )lua_strlen( L, var_index );
       transport_write_u32( tpt, len );
       transport_write_string( tpt, s, len );
       break;
@@ -492,7 +493,7 @@ static void write_variable( Transport *tpt, lua_State *L, int var_index )
       luaL_error( L, "light userdata transmission unsupported" );
       break;
   }
-  MYASSERT( lua_gettop( L ) == stack_at_start );
+  lua_assert( lua_gettop( L ) == stack_at_start );
 }
 
 
@@ -632,7 +633,7 @@ static void client_negotiate( Transport *tpt )
   header[1] = 'R';
   header[2] = 'P';
   header[3] = 'C';
-  header[4] = RPC_PROTOCOL_VERSION;
+  header[4] = ( char )RPC_PROTOCOL_VERSION;
   header[5] = tpt->loc_little;
   header[6] = tpt->lnum_bytes;
   header[7] = tpt->loc_intnum;
@@ -779,7 +780,7 @@ static int handle_index (lua_State *L)
   const char *s;
 
   check_num_args( L, 2 );
-  MYASSERT( lua_isuserdata( L, 1 ) && ismetatable_type( L, 1, "rpc.handle" ) );
+  lua_assert( lua_isuserdata( L, 1 ) && ismetatable_type( L, 1, "rpc.handle" ) );
 
   if( lua_type( L, 2 ) != LUA_TSTRING )
     return luaL_error( L, "can't index a handle with a non-string" );
@@ -801,7 +802,7 @@ static int handle_newindex( lua_State *L )
   const char *s;
 
   check_num_args( L, 3 );
-  MYASSERT( lua_isuserdata( L, 1 ) && ismetatable_type( L, 1, "rpc.handle" ) );
+  lua_assert( lua_isuserdata( L, 1 ) && ismetatable_type( L, 1, "rpc.handle" ) );
 
   if( lua_type( L, 2 ) != LUA_TSTRING )
     return luaL_error( L, "can't index handle with a non-string" );
@@ -820,12 +821,13 @@ static int handle_newindex( lua_State *L )
 // replays series of indexes to remote side as a string
 static void helper_remote_index( Helper *helper )
 {
-  int i, len;
+  int i;
+  u32 len;
   Helper **hstack;
   Transport *tpt = &helper->handle->tpt;
   
   // get length of name & make stack of helpers
-  len = strlen( helper->funcname );
+  len = ( u32 )strlen( helper->funcname );
   if( helper->nparents > 0 ) // If helper has parents, build string to remote index
   {
     hstack = ( Helper ** )alloca( sizeof( Helper * ) * helper->nparents );
@@ -837,20 +839,20 @@ static void helper_remote_index( Helper *helper )
       hstack[ i - 1 ] = hstack[ i ]->parent;
       len += strlen( hstack[ i ]->funcname ) + 1;
     }
-	
-	  transport_write_u32( tpt, len );
+
+    transport_write_u32( tpt, len );
 
     // replay helper key names      
     for( i = 0 ; i < helper->nparents ; i ++ )
     {
-     transport_write_string( tpt, hstack[ i ]->funcname, strlen( hstack[ i ]->funcname ) );
+     transport_write_string( tpt, hstack[ i ]->funcname, ( int )strlen( hstack[ i ]->funcname ) );
      transport_write_string( tpt, ".", 1 ); 
     }
   }
   else // If helper has no parents, just use length of global
-	  transport_write_u32( tpt, len );
+    transport_write_u32( tpt, len );
 
-  transport_write_string( tpt, helper->funcname, strlen( helper->funcname ) );
+  transport_write_string( tpt, helper->funcname, ( int )strlen( helper->funcname ) );
 }
 
 static void helper_wait_ready( Transport *tpt, u8 cmd )
@@ -1072,7 +1074,7 @@ static int helper_index( lua_State *L )
   const char *s;
 
   check_num_args( L, 2 );
-  MYASSERT( lua_isuserdata( L, 1 ) && ismetatable_type( L, 1, "rpc.helper" ) );
+  lua_assert( lua_isuserdata( L, 1 ) && ismetatable_type( L, 1, "rpc.helper" ) );
 
   if( lua_type( L, 2 ) != LUA_TSTRING )
     return luaL_error( L, "can't index handle with non-string" );
@@ -1257,13 +1259,13 @@ static void read_cmd_call( Transport *tpt, lua_State *L )
     // handle errors
     if ( error_code )
     {
-      size_t len;
+      size_t elen;
       const char *errmsg;
-      errmsg = lua_tolstring (L, -1, &len);
+      errmsg = lua_tolstring( L, -1, &elen );
       transport_write_u8( tpt, 1 );
       transport_write_u32( tpt, error_code );
-      transport_write_u32( tpt, len );
-      transport_write_string( tpt, errmsg, len );
+      transport_write_u32( tpt, ( u32 )elen );
+      transport_write_string( tpt, errmsg, ( int )elen );
     }
     else
     {
@@ -1279,11 +1281,11 @@ static void read_cmd_call( Transport *tpt, lua_State *L )
   {
     // bad function
     const char *msg = "undefined function: ";
-    int errlen = strlen( msg ) + len;
+    int errlen = ( int )strlen( msg ) + len;
     transport_write_u8( tpt, 1 );
     transport_write_u32( tpt, LUA_ERRRUN );
     transport_write_u32( tpt, errlen );
-    transport_write_string( tpt, msg, strlen( msg ) );
+    transport_write_string( tpt, msg, ( int )strlen( msg ) );
     transport_write_string( tpt, funcname, len );
   }
   // empty the stack
@@ -1567,6 +1569,29 @@ static int rpc_dispatch( lua_State *L )
   return 0;
 }
 
+static int rpc_adispatch_helper( lua_State *L, ServerHandle * handle )
+{
+  // Check if we have waiting data that we can dispatch on,
+  // don't block if we don't have any data
+  if( transport_readable( &handle->atpt ) || transport_readable( &handle->ltpt ) )
+      rpc_dispatch_helper( L, handle );
+
+  return 0;
+}
+
+static int rpc_adispatch( lua_State *L )
+{
+
+  ServerHandle *handle = 0;
+
+  handle = ( ServerHandle * )luaL_checkudata(L, 1, "rpc.server_handle");
+  luaL_argcheck(L, handle, 1, "server handle expected");
+
+  handle = ( ServerHandle * )lua_touserdata( L, 1 );
+  rpc_adispatch_helper( L, handle );
+
+  return 0;
+}  
 
 // rpc_server( transport_identifier )
 static int rpc_server( lua_State *L )
@@ -1658,6 +1683,7 @@ const LUA_REG_TYPE rpc_map[] =
   {  LSTRKEY( "listen" ), LFUNCVAL( rpc_listen ) },
   {  LSTRKEY( "peek" ), LFUNCVAL( rpc_peek ) },
   {  LSTRKEY( "dispatch" ), LFUNCVAL( rpc_dispatch ) },
+  {  LSTRKEY( "adispatch" ), LFUNCVAL( rpc_adispatch ) },
 //  {  LSTRKEY( "rpc_async" ), LFUNCVAL( rpc_async ) },
 #if LUA_OPTIMIZE_MEMORY > 0
 // {  LSTRKEY("mode"), LSTRVAL( LUARPC_MODE ) }, 
@@ -1720,6 +1746,7 @@ static const luaL_reg rpc_map[] =
   { "listen", rpc_listen },
   { "peek", rpc_peek },
   { "dispatch", rpc_dispatch },
+  { "adispatch", rpc_adispatch },
 //  { "rpc_async", rpc_async },
   { NULL, NULL }
 };

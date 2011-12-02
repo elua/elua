@@ -13,7 +13,7 @@ static int ser_win32_set_timeouts( HANDLE hComm, DWORD ri, DWORD rtm, DWORD rtc,
 {   
   COMMTIMEOUTS timeouts;
   
-  if( GetCommTimeouts( hComm, &timeouts ) == FALSE )
+  if( !GetCommTimeouts( hComm, &timeouts ) )
   {
     CloseHandle( hComm );
     return SER_ERR;
@@ -23,10 +23,10 @@ static int ser_win32_set_timeouts( HANDLE hComm, DWORD ri, DWORD rtm, DWORD rtc,
   timeouts.ReadTotalTimeoutMultiplier = rtc;
   timeouts.WriteTotalTimeoutConstant = wtm;
   timeouts.WriteTotalTimeoutMultiplier = wtc;
-	if( SetCommTimeouts( hComm, &timeouts ) == FALSE )
-	{
-	  CloseHandle( hComm );
-	  return SER_ERR;
+  if( !SetCommTimeouts( hComm, &timeouts ) )
+  {
+    CloseHandle( hComm );
+    return SER_ERR;
   }               
   
   return SER_OK;
@@ -45,6 +45,11 @@ ser_handler ser_open( const char* sername )
     return WIN_ERROR;
   if( !SetupComm( hComm, 2048, 2048 ) )
     return WIN_ERROR;
+  if( !FlushFileBuffers( hComm ) || 
+      !PurgeComm( hComm, PURGE_TXABORT | PURGE_RXABORT |
+                         PURGE_TXCLEAR | PURGE_RXCLEAR ) )
+    return WIN_ERROR; 
+  
   return hComm;
 }
 
@@ -77,11 +82,12 @@ int ser_setup( ser_handler id, u32 baud, int databits, int parity, int stopbits 
   /**/ dcb.fAbortOnError = FALSE;
   dcb.fOutxCtsFlow = FALSE;
   dcb.fOutxDsrFlow = FALSE;
-  dcb.fDtrControl = DTR_CONTROL_DISABLE;
+  // dcb.fDtrControl = DTR_CONTROL_DISABLE; -- prevents data being read with LM3S eval board
   dcb.fDsrSensitivity = FALSE;
   dcb.fRtsControl = RTS_CONTROL_DISABLE;
   dcb.fOutxCtsFlow = FALSE;
-  if( SetCommState( hComm, &dcb ) == 0 )
+
+  if( !SetCommState( hComm, &dcb ) )
   {
     CloseHandle( hComm );
     return SER_ERR;
@@ -103,7 +109,7 @@ u32 ser_read( ser_handler id, u8* dest, u32 maxsize )
   HANDLE hComm = ( HANDLE )id;
   DWORD readbytes;
   
-  if( ReadFile( hComm, dest, maxsize, &readbytes, NULL ) == FALSE )
+  if( !ReadFile( hComm, dest, maxsize, &readbytes, NULL ) )
     return 0;
   return readbytes;
 }
@@ -123,8 +129,8 @@ u32 ser_write( ser_handler id, const u8 *src, u32 size )
 {
   HANDLE hComm = ( HANDLE )id;
   DWORD written;
-	
-  if( WriteFile( hComm, src, size, &written, NULL ) == FALSE )
+
+  if( !WriteFile( hComm, src, size, &written, NULL ) )
     return 0;
   return written;
 }
@@ -153,7 +159,8 @@ int ser_readable( ser_handler id )
   DWORD   dwErrors;
   HANDLE hComm = ( HANDLE )id;
   
-  ClearCommError(hComm, &dwErrors, &comStat);
+  if( !ClearCommError(hComm, &dwErrors, &comStat) )
+    return 0;
   
   return ( comStat.cbInQue > 0 );
 }

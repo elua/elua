@@ -69,7 +69,7 @@ static void scr_write( int fd, char c )
   hostif_putc( c );
 }
 
-static int kb_read( s32 to )
+static int kb_read( timer_data_type to )
 {
   int res;
 
@@ -90,18 +90,18 @@ void *memory_end_address = 0;
 
 void platform_ll_init()
 {
-	// Initialise heap memory region.
-	memory_start_address = hostif_getmem( MEM_LENGTH ); 
-	memory_end_address = memory_start_address + MEM_LENGTH;
+  // Initialise heap memory region.
+  memory_start_address = hostif_getmem( MEM_LENGTH ); 
+  memory_end_address = memory_start_address + MEM_LENGTH;
 }
 
 int platform_init()
 { 
-	if( memory_start_address == NULL ) 
+  if( memory_start_address == NULL ) 
   {
     hostif_putstr( "platform_init(): mmap failed\n" );
-		return PLATFORM_ERR;
-	}
+    return PLATFORM_ERR;
+  }
 
   // Set the std input/output functions
   // Set the send/recv functions                          
@@ -132,7 +132,7 @@ void platform_s_uart_send( unsigned id, u8 data )
 {
 }
 
-int platform_s_uart_recv( unsigned id, s32 timeout )
+int platform_s_uart_recv( unsigned id, timer_data_type timeout )
 {
   return -1;
 }
@@ -145,13 +145,18 @@ int platform_s_uart_set_flow_control( unsigned id, int type )
 // ****************************************************************************
 // "Dummy" timer functions
 
-void platform_s_timer_delay( unsigned id, u32 delay_us )
+void platform_s_timer_delay( unsigned id, timer_data_type delay_us )
 {
 }
 
-u32 platform_s_timer_op( unsigned id, int op, u32 data )
+timer_data_type platform_s_timer_op( unsigned id, int op, timer_data_type data )
 {
   return 0;
+}
+
+timer_data_type platform_timer_read_sys()
+{
+  return hostif_gettime();
 }
 
 // ****************************************************************************

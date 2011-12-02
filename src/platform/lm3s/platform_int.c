@@ -9,15 +9,19 @@
 #include "common.h"
 
 // Platform includes
-#ifdef FORLM3S9B92
+#if defined( FORLM3S9B92 )
   #define TARGET_IS_TEMPEST_RB1
 
   #include "lm3s9b92.h"
-#elif FORLM3S8962
+#elif defined( FORLM3S9D92 )
+  #define TARGET_IS_FIRESTORM_RA2
+
+  #include "lm3s9d92.h"
+#elif defined( FORLM3S8962 )
   #include "lm3s8962.h"
-#elif FORLM3S6965
+#elif defined( FORLM3S6965 )
   #include "lm3s6965.h"
-#elif FORLM3S6918
+#elif defined( FORLM3S6918 )
   #include "lm3s6918.h"
 #endif
 

@@ -15,7 +15,6 @@
 #include "platform_conf.h"
 #include "common.h"
 #include "buf.h"
-#include "spi.h"
 #ifdef BUILD_MMCFS
 #include "diskio.h"
 #endif
@@ -40,21 +39,76 @@
 #include "spi.h"
 #include "adc.h"
 #include "pwm.h"
+#include "i2c.h"
+
+#ifdef BUILD_UIP
 
 // UIP sys tick data
 // NOTE: when using virtual timers, SYSTICKHZ and VTMR_FREQ_HZ should have the
 // same value, as they're served by the same timer (the systick)
-#define SYSTICKHZ               4
-#define SYSTICKMS               (1000 / SYSTICKHZ)
-
-#ifdef BUILD_UIP
-static int eth_timer_fired;
+#if !defined( VTMR_NUM_TIMERS ) || VTMR_NUM_TIMERS == 0
+# error "On AVR32, UIP needs virtual timer support. Define VTMR_NUM_TIMERS > 0."
 #endif
+
+#define SYSTICKHZ VTMR_FREQ_HZ
+#define SYSTICKMS (1000 / SYSTICKHZ)
+
+static int eth_timer_fired;
+
+#endif // BUILD_UIP
+
+// ****************************************************************************
+// AVR32 system timer implementation
+
+// Since the timer hardware (TC) on the AVR32 is pretty basic (16-bit timers,
+// limited prescaling options) we'll be using the PWM subsystem for the system
+// timer. The PWM hardware has much better prescaling options and it uses 20-bit
+// timers which are perfect for our needs. As a bonus, each PWM channel can be
+// clocked from two independent linear prescalers (CLKA and CLKB). The AVR32
+// PWM driver (pwm.c) uses only CLKA and disables CLKB, so by using CLKB we
+// won't change the regular PWM behaviour. The only downside is that we'll steal
+// a PWM channel for the system timer.
+
+#define SYSTIMER_PWM_CH       6
+
+__attribute__((__interrupt__)) static void systimer_int_handler()
+{
+  volatile u32 dummy = AVR32_PWM.isr; // clear interrupt
+
+  ( void )dummy;
+  cmn_systimer_periodic();
+}
+
+static void platform_systimer_init()
+{
+  avr32_pwm_mr_t mr = AVR32_PWM.MR;
+
+  // Set CLKB prescaler for 1MHz clock (which is exactly our system clock frequency)
+  mr.preb = 0; // main source clock is MCK (PBA)
+  mr.divb = REQ_PBA_FREQ / 1000000; // set CLKB to 1MHz
+  AVR32_PWM.MR = mr;
+
+  // Now setup our PWM channel
+  // Clock from CLKB, left aligned (the other parameters are not important)
+  AVR32_PWM.channel[ SYSTIMER_PWM_CH ].cmr = AVR32_PWM_CMR_CPRE_CLKB;
+  // The period register is 20-bit wide (1048576). We set it so we get interrupts
+  // every second (which results in a very reasonable system load)
+  AVR32_PWM.channel[ SYSTIMER_PWM_CH ].cprd = 1000000;
+  // The duty cycle is arbitrary set to 50%
+  AVR32_PWM.channel[ SYSTIMER_PWM_CH ].cdty = 500000;
+
+  // Setup PWM interrupt
+  INTC_register_interrupt( &systimer_int_handler, AVR32_PWM_IRQ, AVR32_INTC_INT0 );
+  AVR32_PWM.ier = 1 << SYSTIMER_PWM_CH;
+
+  // Enable the channel
+  AVR32_PWM.ena = 1 << SYSTIMER_PWM_CH;
+}
 
 // ****************************************************************************
 // Platform initialization
 #ifdef BUILD_UIP
-u32  platform_ethernet_setup(void);
+u32 platform_ethernet_setup( void );
 #endif
 
 extern int pm_configure_clocks( pm_freq_param_t *param );
@@ -63,32 +117,6 @@ static u32 platform_timer_set_clock( unsigned id, u32 clock );
 
 #ifdef BUILD_ADC
 __attribute__((__interrupt__)) static void adc_int_handler();
-#endif
-
-// Virtual timers support
-#if VTMR_NUM_TIMERS > 0
-#define VTMR_CH     (2)
-
-__attribute__((__interrupt__)) static void tmr_int_handler()
-{
-  volatile avr32_tc_t *tc = &AVR32_TC;
-
-  tc_read_sr( tc, VTMR_CH );
-  cmn_virtual_timer_cb();
-
-#ifdef BUILD_MMCFS
-  disk_timerproc();
-#endif
-
-#ifdef BUILD_UIP
-  // Indicate that a SysTick interrupt has occurred.
-  eth_timer_fired = 1;
-
-  // Generate a fake Ethernet interrupt.  This will perform the actual work
-  // of incrementing the timers and taking the appropriate actions.
-  platform_eth_force_interrupt();
-#endif
-}                                
 #endif
 
 const u32 uart_base_addr[ ] = {
@@ -145,10 +173,12 @@ int platform_init()
   // Setup clocks
   if( PM_FREQ_STATUS_FAIL == pm_configure_clocks( &pm_freq_param ) )
     return PLATFORM_ERR;
+#ifdef FOSC32
   // Select the 32-kHz oscillator crystal
   pm_enable_osc32_crystal (&AVR32_PM );
   // Enable the 32-kHz clock
   pm_enable_clk32_no_wait( &AVR32_PM, AVR32_PM_OSCCTRL32_STARTUP_0_RCOSC );
+#endif
 
   // Initialize external memory if any.
 #ifdef AVR32_SDRAMC
@@ -168,47 +198,16 @@ int platform_init()
 #endif
   }
 
-  // Setup timer interrupt for the virtual timers if needed
-#if VTMR_NUM_TIMERS > 0
-  INTC_register_interrupt( &tmr_int_handler, AVR32_TC_IRQ2, AVR32_INTC_INT0 );
-  tmropt.waveform.wavsel = TC_WAVEFORM_SEL_UP_MODE_RC_TRIGGER;
-  tc_init_waveform( tc, VTMR_CH, &tmropt );
-  tc_interrupt_t tmrint =
-  {
-    0,              // External trigger interrupt.
-    0,              // RB load interrupt.
-    0,              // RA load interrupt.
-    1,              // RC compare interrupt.
-    0,              // RB compare interrupt.
-    0,              // RA compare interrupt.
-    0,              // Load overrun interrupt.
-    0               // Counter overflow interrupt.
-  };
-# ifdef FOSC32
-  tc_write_rc( tc, VTMR_CH, FOSC32 / VTMR_FREQ_HZ );
-# else
-  // Run VTMR from the slowest available PBA clock divisor
-  { u32 vt_clock_freq = platform_timer_set_clock( VTMR_CH, REQ_PBA_FREQ / 128 );
-    u32 div = vt_clock_freq / VTMR_FREQ_HZ;
-    if (div > 0xffff) div = 0xffff;
-    tc_write_rc( tc, VTMR_CH, div );
-  }
-# endif
-  tc_configure_interrupts( tc, VTMR_CH, &tmrint );
-  Enable_global_interrupt();
-  tc_start( tc, VTMR_CH );
-#endif
-
   // Setup spi controller(s) : up to 4 slave by controller.
 #if NUM_SPI > 0
   spi_master_options_t spiopt;
   spiopt.modfdis = TRUE;
   spiopt.pcs_decode = FALSE;
   spiopt.delay = 0;
-  spi_initMaster(&AVR32_SPI0, &spiopt, REQ_CPU_FREQ);
+  spi_initMaster(&AVR32_SPI0, &spiopt, REQ_PBA_FREQ);
 
 #if NUM_SPI > 4
-  spi_initMaster(&AVR32_SPI1, &spiopt, REQ_CPU_FREQ);
+  spi_initMaster(&AVR32_SPI1, &spiopt, REQ_PBA_FREQ);
 #endif
 
 #endif
@@ -225,7 +224,6 @@ int platform_init()
   pwm_init();
 #endif
 
-
 #ifdef BUILD_UIP
     platform_ethernet_setup();
 #endif
@@ -240,6 +238,19 @@ int platform_init()
   platform_pio_op( 0, ( pio_type )1 << 0 , PLATFORM_IO_PIN_PULLUP );
 #endif
 
+  // Setup system timer
+  // NOTE: this MUST come AFTER pwm_init!
+  cmn_systimer_set_base_freq( 1000000 );
+  cmn_systimer_set_interrupt_freq( 1 );
+  platform_systimer_init();
+
+  // Setup virtual timers if needed
+#if VTMR_NUM_TIMERS > 0
+#define VTMR_CH               2
+  platform_cpu_set_interrupt( INT_TMR_MATCH, VTMR_CH, PLATFORM_CPU_ENABLE );
+  platform_timer_set_match_int( VTMR_CH, 1000000 / VTMR_FREQ_HZ, PLATFORM_TIMER_INT_CYCLIC );
+#endif // #if VTMR_NUM_TIMERS > 0
+
   cmn_platform_init();
 
   // All done
@@ -249,104 +260,59 @@ int platform_init()
 // ****************************************************************************
 // PIO functions
 
-// Reg types for our helper function
-#define PIO_REG_PVR   0
-#define PIO_REG_OVR   1
-#define PIO_REG_GPER  2
-#define PIO_REG_ODER  3
-#define PIO_REG_PUER  4
-
-#define GPIO          AVR32_GPIO
-
-// Helper function: for a given port, return the address of a specific register (value, direction, pullup ...)
-static volatile unsigned long* platform_pio_get_port_reg_addr( unsigned port, int regtype )
-{
-  volatile avr32_gpio_port_t *gpio_port = &GPIO.port[ port ];
-
-  switch( regtype )
-  {
-    case PIO_REG_PVR:
-      return ( unsigned long * )&gpio_port->pvr;
-    case PIO_REG_OVR:
-      return &gpio_port->ovr;
-    case PIO_REG_GPER:
-      return &gpio_port->gper;
-    case PIO_REG_ODER:
-      return &gpio_port->oder;
-    case PIO_REG_PUER:
-      return &gpio_port->puer;
-  }
-  // Should never get here
-  return ( unsigned long* )&gpio_port->pvr;
-}
-
-// Helper function: get port value, get direction, get pullup, ...
-static pio_type platform_pio_get_port_reg( unsigned port, int reg )
-{
-  volatile unsigned long *pv = platform_pio_get_port_reg_addr( port, reg );
-
-  return *pv;
-}
-
-// Helper function: set port value, set direction, set pullup ...
-static void platform_pio_set_port_reg( unsigned port, pio_type val, int reg )
-{
-  volatile unsigned long *pv = platform_pio_get_port_reg_addr( port, reg );
-
-  *pv = val;
-}
-
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 {
   pio_type retval = 1;
 
+  // Pointer to the register set for this GPIO port
+  volatile avr32_gpio_port_t *gpio_regs = &AVR32_GPIO.port[ port ];
+
   switch( op )
   {
     case PLATFORM_IO_PORT_SET_VALUE:
-      platform_pio_set_port_reg( port, pinmask, PIO_REG_OVR );
+      gpio_regs->ovr = pinmask;
       break;
 
     case PLATFORM_IO_PIN_SET:
-      platform_pio_set_port_reg( port, platform_pio_get_port_reg( port, PIO_REG_OVR ) | pinmask, PIO_REG_OVR );
+      gpio_regs->ovrs = pinmask;
       break;
 
     case PLATFORM_IO_PIN_CLEAR:
-      platform_pio_set_port_reg( port, platform_pio_get_port_reg( port, PIO_REG_OVR ) & ~pinmask, PIO_REG_OVR );
+      gpio_regs->ovrc = pinmask;
       break;
 
     case PLATFORM_IO_PORT_DIR_INPUT:
       pinmask = 0xFFFFFFFF;
     case PLATFORM_IO_PIN_DIR_INPUT:
-      platform_pio_set_port_reg( port, platform_pio_get_port_reg( port, PIO_REG_ODER ) & ~pinmask, PIO_REG_ODER );
-      platform_pio_set_port_reg( port, platform_pio_get_port_reg( port, PIO_REG_GPER ) | pinmask, PIO_REG_GPER );
+      gpio_regs->oderc = pinmask;  // Disable output drivers
+      gpio_regs->gpers = pinmask;  // Make GPIO control this pin
       break;
 
     case PLATFORM_IO_PORT_DIR_OUTPUT:
       pinmask = 0xFFFFFFFF;
     case PLATFORM_IO_PIN_DIR_OUTPUT:
-      platform_pio_set_port_reg( port, platform_pio_get_port_reg( port, PIO_REG_ODER ) | pinmask, PIO_REG_ODER );
-      platform_pio_set_port_reg( port, platform_pio_get_port_reg( port, PIO_REG_GPER ) | pinmask, PIO_REG_GPER );
+      gpio_regs->oders = pinmask;  // Enable output drivers
+      gpio_regs->gpers = pinmask;  // Make GPIO control this pin
       break;
 
     case PLATFORM_IO_PORT_GET_VALUE:
-      retval = platform_pio_get_port_reg( port, PIO_REG_PVR );
+      retval = gpio_regs->pvr;
       break;
 
     case PLATFORM_IO_PIN_GET:
-      retval = platform_pio_get_port_reg( port, PIO_REG_PVR ) & pinmask ? 1 : 0;
+      retval = gpio_regs->pvr & pinmask ? 1 : 0;
       break;
 
     case PLATFORM_IO_PIN_PULLUP:
-      platform_pio_set_port_reg( port, platform_pio_get_port_reg( port, PIO_REG_PUER ) | pinmask, PIO_REG_PUER );
+      gpio_regs->puers = pinmask;
       break;
 
     case PLATFORM_IO_PIN_NOPULL:
-      platform_pio_set_port_reg( port, platform_pio_get_port_reg( port, PIO_REG_PUER ) & ~pinmask, PIO_REG_PUER );
+      gpio_regs->puerc = pinmask;
       break;
 
     default:
       retval = 0;
-      break;
   }
   return retval;
 }
@@ -436,7 +402,7 @@ void platform_s_uart_send( unsigned id, u8 data )
   pusart->thr = ( data << AVR32_USART_THR_TXCHR_OFFSET ) & AVR32_USART_THR_TXCHR_MASK;
 }
 
-int platform_s_uart_recv( unsigned id, s32 timeout )
+int platform_s_uart_recv( unsigned id, timer_data_type timeout )
 {
   volatile avr32_usart_t *pusart = ( volatile avr32_usart_t* )uart_base_addr[ id ];
   int temp;
@@ -517,7 +483,7 @@ int platform_s_uart_set_flow_control( unsigned id, int type )
       gpio_enable_module_pin( ppindata->pin, ppindata->function );
     else // release pin to GPIO module
     {
-      gpio_port = &GPIO.port[ ppindata->pin >> 5 ];
+      gpio_port = &AVR32_GPIO.port[ ppindata->pin >> 5 ];
       gpio_port->gpers = 1 << ( ppindata->pin & 0x1F );
     }
   return PLATFORM_OK;
@@ -527,6 +493,7 @@ int platform_s_uart_set_flow_control( unsigned id, int type )
 // Timer functions
 
 static const u16 clkdivs[] = { 0xFFFF, 2, 8, 32, 128 };
+u8 avr32_timer_int_periodic_flag[ 3 ];
 
 // Helper: get timer clock
 static u32 platform_timer_get_clock( unsigned id )
@@ -566,7 +533,7 @@ static u32 platform_timer_set_clock( unsigned id, u32 clock )
 #endif
 }
 
-void platform_s_timer_delay( unsigned id, u32 delay_us )
+void platform_s_timer_delay( unsigned id, timer_data_type delay_us )
 {
   volatile avr32_tc_t *tc = &AVR32_TC;
   u32 freq;
@@ -584,7 +551,7 @@ void platform_s_timer_delay( unsigned id, u32 delay_us )
   while( ( tc_read_tc( tc, id ) < final ) && !sr->covfs );
 }
 
-u32 platform_s_timer_op( unsigned id, int op, u32 data )
+timer_data_type platform_s_timer_op( unsigned id, int op, timer_data_type data )
 {
   u32 res = 0;
   volatile int i;
@@ -602,14 +569,6 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
       res = tc_read_tc( tc, id );
       break;
 
-    case PLATFORM_TIMER_OP_GET_MAX_DELAY:
-      res = platform_timer_get_diff_us( id, 0, 0xFFFF );
-      break;
-
-    case PLATFORM_TIMER_OP_GET_MIN_DELAY:
-      res = platform_timer_get_diff_us( id, 0, 1 );
-      break;
-
     case PLATFORM_TIMER_OP_SET_CLOCK:
       res = platform_timer_set_clock( id, data );
       break;
@@ -617,13 +576,55 @@ u32 platform_s_timer_op( unsigned id, int op, u32 data )
     case PLATFORM_TIMER_OP_GET_CLOCK:
       res = platform_timer_get_clock( id );
       break;
+
+    case PLATFORM_TIMER_OP_GET_MAX_CNT:
+      res = 0xFFFF;
+      break;
   }
   return res;
 }
 
-int platform_s_timer_set_match_int( unsigned id, u32 period_us, int type )
+int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int type )
 {
-  return PLATFORM_TIMER_INT_INVALID_ID;
+  volatile avr32_tc_t *tc = &AVR32_TC;
+  u32 final;
+
+  if( period_us == 0 )
+  {
+    tc->channel[ id ].CMR.waveform.wavsel = TC_WAVEFORM_SEL_UP_MODE;
+    return PLATFORM_TIMER_INT_OK;
+  }
+  final = ( u32 )( ( u64 )( platform_timer_get_clock( id ) * period_us ) / 1000000 );
+  if( final == 0 )
+    return PLATFORM_TIMER_INT_TOO_SHORT;
+  if( final > 0xFFFF )
+    return PLATFORM_TIMER_INT_TOO_LONG;
+  tc_stop( tc, id );
+  tc->channel[ id ].CMR.waveform.wavsel = TC_WAVEFORM_SEL_UP_MODE_RC_TRIGGER;
+  tc->channel[ id ].rc = final;
+  avr32_timer_int_periodic_flag[ id ] = type;
+  tc_start( tc, id );
+  return PLATFORM_TIMER_INT_OK;
+}
+
+u64 platform_timer_sys_raw_read()
+{
+  return AVR32_PWM.channel[ SYSTIMER_PWM_CH ].ccnt;
+}
+
+void platform_timer_sys_disable_int()
+{
+  AVR32_PWM.idr = 1 << SYSTIMER_PWM_CH;
+}
+
+void platform_timer_sys_enable_int()
+{
+  AVR32_PWM.ier = 1 << SYSTIMER_PWM_CH;
+}
+
+timer_data_type platform_timer_read_sys()
+{
+  return cmn_systimer_get();
 }
 
 // ****************************************************************************
@@ -670,14 +671,12 @@ u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigne
   opt.bits = min(databits, 16);
   opt.spck_delay = 0;
   opt.trans_delay = 0;
-  opt.mode = ((cpol & 1) << 1) | (cpha & 1);
+  opt.mode = (cpol << 1) | cpha;
 
   // Set actual interface
   gpio_enable_module(spi_pins + (id >> 2) * 4, 4);
-  spi_setupChipReg((volatile avr32_spi_t *) spireg[id >> 2], id % 4, &opt, REQ_CPU_FREQ);
-
-  // TODO: return the actual baudrate.
-  return clock;
+  return spi_setupChipReg((volatile avr32_spi_t *) spireg[id >> 2], id % 4,
+                          &opt, REQ_PBA_FREQ);
 }
 
 spi_data_type platform_spi_send_recv( unsigned id, spi_data_type data )
@@ -753,6 +752,8 @@ void platform_adc_stop( unsigned id )
   s->op_pending = 0;
   INACTIVATE_CHANNEL( d, id );
 
+  adc_disable( adc, s->id );
+
   // If there are no more active channels, stop the sequencer
   if( d->ch_active == 0 )
     d->running = 0;
@@ -781,7 +782,6 @@ int platform_adc_update_sequence( )
 
 __attribute__((__interrupt__)) static void adc_int_handler()
 {
-  int i;
   elua_adc_dev_state *d = adc_get_dev_state( 0 );
   elua_adc_ch_state *s;
 
@@ -794,9 +794,6 @@ __attribute__((__interrupt__)) static void adc_int_handler()
     {
       d->sample_buf[ d->seq_ctr ] = ( u16 )adc_get_value(adc, s->id );
       s->value_fresh = 1;
-
-      // Read LCDR to signal that conversion has been captured
-      i = adc->lcdr;
 
       if ( s->logsmoothlen > 0 && s->smooth_ready == 0)
         adc_smooth_data( s->id );
@@ -817,18 +814,14 @@ __attribute__((__interrupt__)) static void adc_int_handler()
   }
   d->seq_ctr = 0;
 
-  // Only attempt to refresh sequence order if still running
-  // This allows us to "cache" an old sequence if all channels
-  // finish at the same time
-  if ( d->running == 1 )
-    adc_update_dev_sequence( 0 );
+  adc_update_dev_sequence( 0 );
 
   if ( d->clocked == 0 && d->running == 1 )
     adc_start( adc );
 }
 
 
-u32 platform_adc_setclock( unsigned id, u32 frequency )
+u32 platform_adc_set_clock( unsigned id, u32 frequency )
 {
   return 0;
 }
@@ -864,15 +857,32 @@ int platform_adc_start_sequence( )
 # error "NUM_PWM > AVR32_PWM_CHANNEL_LENGTH"
 #endif
 
+#if NUM_PWM > 0
+
+// One PWM channel is used by the AVR32 system timer (look at the start of this
+// file for more information). Currently this channel is hardcoded in platform.c
+// (SYSTIMER_PWM_CH) to 6. If this is not convenient feel free to move the
+// definition of SYSTIMER_PWM_CH in platform_conf.h and select another PWM channel,
+// BUT remember to modify the below PWM pin mapping accordingly!
 static const gpio_map_t pwm_pins =
 {
-  { AVR32_PWM_0_PIN, AVR32_PWM_0_FUNCTION },
-  { AVR32_PWM_1_PIN, AVR32_PWM_1_FUNCTION },
-  { AVR32_PWM_2_PIN, AVR32_PWM_2_FUNCTION },
-  { AVR32_PWM_3_PIN, AVR32_PWM_3_FUNCTION },
-  { AVR32_PWM_4_1_PIN, AVR32_PWM_4_1_FUNCTION },	// PB27
-  { AVR32_PWM_5_1_PIN, AVR32_PWM_5_1_FUNCTION },	// PB28
-  { AVR32_PWM_6_PIN, AVR32_PWM_6_FUNCTION },
+#if ( BOARD == ATEVK1100 ) || ( BOARD == MIZAR32 )
+  { AVR32_PWM_0_PIN, AVR32_PWM_0_FUNCTION },      // PB19 - LED4
+  { AVR32_PWM_1_PIN, AVR32_PWM_1_FUNCTION },      // PB20 - LED5
+  { AVR32_PWM_2_PIN, AVR32_PWM_2_FUNCTION },	  // PB21 - LED6
+  { AVR32_PWM_3_PIN, AVR32_PWM_3_FUNCTION },      // PB22 - LED7
+  { AVR32_PWM_4_1_PIN, AVR32_PWM_4_1_FUNCTION },  // PB27 - LED0
+  { AVR32_PWM_5_1_PIN, AVR32_PWM_5_1_FUNCTION },  // PB28 - LED1
+//  { AVR32_PWM_6_PIN, AVR32_PWM_6_FUNCTION },      // PB18 - LCD_C / GPIO50
+#elif BOARD == ATEVK1101
+  { AVR32_PWM_0_0_PIN, AVR32_PWM_0_0_FUNCTION },  // PA7  LED0
+  { AVR32_PWM_1_0_PIN, AVR32_PWM_1_0_FUNCTION },  // PA8  LED1
+  { AVR32_PWM_2_0_PIN, AVR32_PWM_2_0_FUNCTION },  // PA21 LED2
+  { AVR32_PWM_3_0_PIN, AVR32_PWM_3_0_FUNCTION },  // PA14 ? or _1 PA25
+  { AVR32_PWM_4_1_PIN, AVR32_PWM_4_1_FUNCTION },  // PA28 - audio out
+  { AVR32_PWM_5_1_PIN, AVR32_PWM_5_1_FUNCTION },  // PB5: UART1-RTS & Nexus i/f EVTIn / _0 PA18=Xin0
+//  { AVR32_PWM_6_0_PIN, AVR32_PWM_6_0_FUNCTION },  // PA22 - LED3 and audio out
+#endif
 };
 
 
@@ -899,27 +909,22 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
   //
   // PWM output wave frequency is requested in Hz but programmed as a
   // number of cycles of the master PWM clock frequency.
-  // The obvious but simple formulae to convert between these values:
-  // channel_period = pwmclk / frequency; return pwmclk / channel_period;
-  // return the same values as requested from 1 to just over sqrt(pwmclk)
-  // (up to 1031 for 1000000 Hz).
-  // In reality, they always set a frequency <= the one requested.
-  // A better formula would program the geometrically closest available
-  // actual frequency and return the geometrically closest integer frequency
-  // to that.
-  // Unfortunately we mustn't use floating point because that would pull
-  // the whole FP subsystem into the integer-only executable.
+  //
+  // Here, we use rounding to select the numerically closest available
+  // frequency and return the closest integer in Hz to that.
 
-  period = pwmclk / frequency;
-  duty_cycle = (period * duty) / 100;
+  period = (pwmclk + frequency/2) / frequency;
+  if (period == 0) period = 1;
+  if (period >= 1<<20) period = (1<<20) - 1;
+  duty_cycle = (period * duty + 50) / 100;
 
   // The AVR32 PWM duty cycle is upside down:
   // duty_period==0 gives an all-active output, while
   // duty_period==period gives an all-inactive output.
+  // So we invert the cuty cycle here.
   pwm_channel_set_period_and_duty_cycle( id, period, period - duty_cycle );
 
-  return pwmclk / period;    // Inaccurate. We Should return the nearest int.
-                             // TODO: Try (pwmclk + period/2) / period
+  return (pwmclk + period/2) / period;
 }
 
 /*
@@ -930,18 +935,18 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
  * If the configuration cannot be met (because freq is too high), set the
  * maximum frequency possible.
  *
- * The algorithm is too simple: the actual frequency is always <= the one
- * requested, not the closest possible.
+ * The algorithm is too simple: the actual clock frequency is always >=
+ * the one requested, not the closest possible.
  */
-static void find_clock_configuration( u32 frequency,
-                                      unsigned *pre, unsigned *div )
+static void pwm_find_clock_configuration( u32 frequency,
+                                          unsigned *pre, unsigned *div )
 {
   // prescalers[11] = { 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024 };
 #define prescalers( n ) ( 1 << n )
   const unsigned nprescalers = 11;
 
-  unsigned prescaler;       // Select a prescaler
-  unsigned divisor = 0;
+  unsigned prescaler;	// Which of the prescalers are we considering?
+  unsigned divisor;
 
   if ( frequency > REQ_PBA_FREQ )
   {
@@ -951,6 +956,7 @@ static void find_clock_configuration( u32 frequency,
   }
 
   // Find prescaler and divisor values
+  prescaler = 0;
   do
     divisor = REQ_PBA_FREQ / ( prescalers( prescaler ) * frequency );
   while ( ( divisor > 255 ) && ( ++prescaler < nprescalers ) );
@@ -970,41 +976,75 @@ static void find_clock_configuration( u32 frequency,
 }
 #undef prescalers
 
-
-static u32 pwm_set_clock_freq( u32 freq )
+u32 platform_pwm_set_clock( unsigned id, u32 freq )
 {
   unsigned pre, div;
 
-  find_clock_configuration( freq, &pre, &div );
+  pwm_find_clock_configuration( freq, &pre, &div );
   pwm_set_linear_divider( pre, div );
 
   return pwm_get_clock_freq();
 }
 
-u32 platform_pwm_op( unsigned id, int op, u32 data)
+u32 platform_pwm_get_clock( unsigned id )
 {
-  // Sanity check
-  if (id < 0 || id >= NUM_PWM)
-    return 0;
-
-  switch( op )
-  {
-    case PLATFORM_PWM_OP_SET_CLOCK:
-      return pwm_set_clock_freq( data );
-
-    case PLATFORM_PWM_OP_GET_CLOCK:
-      return pwm_get_clock_freq();
-
-    case PLATFORM_PWM_OP_START:
-      pwm_channel_start( id );
-      break;
-
-    case PLATFORM_PWM_OP_STOP:
-      pwm_channel_stop( id );
-      break;
-  }
-  return 0;
+  return pwm_get_clock_freq();
 }
+
+void platform_pwm_start( unsigned id )
+{
+  pwm_channel_start( id );
+}
+
+void platform_pwm_stop( unsigned id )
+{
+  pwm_channel_stop( id );
+}
+
+#endif // #if NUM_PWM > 0
+
+// ****************************************************************************
+// I2C support
+
+u32 platform_i2c_setup( unsigned id, u32 speed )
+{
+  return i2c_setup(speed);
+}
+
+void platform_i2c_send_start( unsigned id )
+{
+  i2c_start_cond();
+}
+
+void platform_i2c_send_stop( unsigned id )
+{
+  i2c_stop_cond();
+}
+
+int platform_i2c_send_address( unsigned id, u16 address, int direction )
+{
+  // Convert enum codes to R/w bit value.
+  // If TX == 0 and RX == 1, this test will be removed by the compiler
+  if ( ! ( PLATFORM_I2C_DIRECTION_TRANSMITTER == 0 &&
+           PLATFORM_I2C_DIRECTION_RECEIVER == 1 ) ) {
+    direction = ( direction == PLATFORM_I2C_DIRECTION_TRANSMITTER ) ? 0 : 1;
+  }
+
+  // Low-level returns nack (0=acked); we return ack (1=acked).
+  return ! i2c_write_byte( (address << 1) | direction );
+}
+
+int platform_i2c_send_byte( unsigned id, u8 data )
+{
+  // Low-level returns nack (0=acked); we return ack (1=acked).
+  return ! i2c_write_byte( data );
+}
+
+int platform_i2c_recv_byte( unsigned id, int ack )
+{
+  return i2c_read_byte( !ack );
+}
+
 
 // ****************************************************************************
 // Network support
@@ -1012,80 +1052,136 @@ u32 platform_pwm_op( unsigned id, int op, u32 data)
 #ifdef BUILD_UIP
 static const gpio_map_t MACB_GPIO_MAP =
 {
-  {AVR32_MACB_MDC_0_PIN,    AVR32_MACB_MDC_0_FUNCTION   },
-  {AVR32_MACB_MDIO_0_PIN,   AVR32_MACB_MDIO_0_FUNCTION  },
-  {AVR32_MACB_RXD_0_PIN,    AVR32_MACB_RXD_0_FUNCTION   },
-  {AVR32_MACB_TXD_0_PIN,    AVR32_MACB_TXD_0_FUNCTION   },
-  {AVR32_MACB_RXD_1_PIN,    AVR32_MACB_RXD_1_FUNCTION   },
-  {AVR32_MACB_TXD_1_PIN,    AVR32_MACB_TXD_1_FUNCTION   },
-  {AVR32_MACB_TX_EN_0_PIN,  AVR32_MACB_TX_EN_0_FUNCTION },
-  {AVR32_MACB_RX_ER_0_PIN,  AVR32_MACB_RX_ER_0_FUNCTION },
-  {AVR32_MACB_RX_DV_0_PIN,  AVR32_MACB_RX_DV_0_FUNCTION },
-  {AVR32_MACB_TX_CLK_0_PIN, AVR32_MACB_TX_CLK_0_FUNCTION}
+  { AVR32_MACB_MDC_0_PIN,    AVR32_MACB_MDC_0_FUNCTION    },
+  { AVR32_MACB_MDIO_0_PIN,   AVR32_MACB_MDIO_0_FUNCTION   },
+  { AVR32_MACB_RXD_0_PIN,    AVR32_MACB_RXD_0_FUNCTION    },
+  { AVR32_MACB_TXD_0_PIN,    AVR32_MACB_TXD_0_FUNCTION    },
+  { AVR32_MACB_RXD_1_PIN,    AVR32_MACB_RXD_1_FUNCTION    },
+  { AVR32_MACB_TXD_1_PIN,    AVR32_MACB_TXD_1_FUNCTION    },
+  { AVR32_MACB_TX_EN_0_PIN,  AVR32_MACB_TX_EN_0_FUNCTION  },
+  { AVR32_MACB_RX_ER_0_PIN,  AVR32_MACB_RX_ER_0_FUNCTION  },
+  { AVR32_MACB_RX_DV_0_PIN,  AVR32_MACB_RX_DV_0_FUNCTION  },
+  { AVR32_MACB_TX_CLK_0_PIN, AVR32_MACB_TX_CLK_0_FUNCTION },
 };
 
-u32  platform_ethernet_setup()
+u32 platform_ethernet_setup()
 {
-	  static struct uip_eth_addr sTempAddr;
-	  // Assign GPIO to MACB
-	  gpio_enable_module(MACB_GPIO_MAP, sizeof(MACB_GPIO_MAP) / sizeof(MACB_GPIO_MAP[0]));
+  static struct uip_eth_addr sTempAddr = {
+    .addr[0] = ETHERNET_CONF_ETHADDR0,
+    .addr[1] = ETHERNET_CONF_ETHADDR1,
+    .addr[2] = ETHERNET_CONF_ETHADDR2,
+    .addr[3] = ETHERNET_CONF_ETHADDR3,
+    .addr[4] = ETHERNET_CONF_ETHADDR4,
+    .addr[5] = ETHERNET_CONF_ETHADDR5,
+  };
 
-	  // initialize MACB & Phy Layers
-	  if (xMACBInit(&AVR32_MACB) == FALSE ) {
-		  return PLATFORM_ERR;
-	  }
+  // Assign GPIO to MACB
+  gpio_enable_module( MACB_GPIO_MAP, sizeof(MACB_GPIO_MAP ) / sizeof( MACB_GPIO_MAP[0] ) );
 
-	  sTempAddr.addr[0] = ETHERNET_CONF_ETHADDR0;
-	  sTempAddr.addr[1] = ETHERNET_CONF_ETHADDR1;
-	  sTempAddr.addr[2] = ETHERNET_CONF_ETHADDR2;
-	  sTempAddr.addr[3] = ETHERNET_CONF_ETHADDR3;
-	  sTempAddr.addr[4] = ETHERNET_CONF_ETHADDR4;
-	  sTempAddr.addr[5] = ETHERNET_CONF_ETHADDR5;
+  // initialize MACB & Phy Layers
+  if ( xMACBInit( &AVR32_MACB ) == FALSE ) {
+    return PLATFORM_ERR;
+  }
 
-	  // Initialize the eLua uIP layer
-   elua_uip_init( &sTempAddr );
-   return PLATFORM_OK;
-}  
+  // Initialize the eLua uIP layer
+  elua_uip_init( &sTempAddr );
+  return PLATFORM_OK;
+}
 
 void platform_eth_send_packet( const void* src, u32 size )
 {
-   lMACBSend(&AVR32_MACB,src, size, TRUE);
+  lMACBSend( &AVR32_MACB,src, size, TRUE );
 }
 
 u32 platform_eth_get_packet_nb( void* buf, u32 maxlen )
 {
-	u32    len;
+  u32 len;
 
-    /* Obtain the size of the packet. */
-    len = ulMACBInputLength();
+  /* Obtain the size of the packet. */
+  len = ulMACBInputLength();
 
-    if (len > maxlen) {
-    	return 0;
-    }
+  if( len > maxlen ) {
+    return 0;
+  }
 
-    if( len ) {
-        /* Let the driver know we are going to read a new packet. */
-    	vMACBRead( NULL, 0, len );
-    	vMACBRead( buf, len, len );
-    }
+  if( len ) {
+    /* Let the driver know we are going to read a new packet. */
+    vMACBRead( NULL, 0, len );
+    vMACBRead( buf, len, len );
+  }
 
- return len;
+  return len;
 }
 
 void platform_eth_force_interrupt()
 {
-    elua_uip_mainloop();
+  elua_uip_mainloop();
 }
 
 u32 platform_eth_get_elapsed_time()
 {
-    if( eth_timer_fired )
-    {
-      eth_timer_fired = 0;
-      return SYSTICKMS;
-    }
-    else
-      return 0;
+  if( eth_timer_fired )
+  {
+    eth_timer_fired = 0;
+    return SYSTICKMS;
+  }
+  else
+    return 0;
 }
 
+void platform_eth_timer_handler()
+{
+  // Indicate that a SysTick interrupt has occurred.
+  eth_timer_fired = 1;
+
+  // Generate a fake Ethernet interrupt.  This will perform the actual work
+  // of incrementing the timers and taking the appropriate actions.
+  platform_eth_force_interrupt();
+}
+
+#else // #ifdef BUILD_UIP
+
+void platform_eth_timer_handler()
+{
+}
+
+#endif // #ifdef BUILD_UIP
+
+// ****************************************************************************
+// Platform specific modules go here
+
+#ifdef PS_LIB_TABLE_NAME
+
+#define MIN_OPT_LEVEL 2
+#include "lua.h"
+#include "lauxlib.h"
+#include "lrotable.h"
+#include "lrodefs.h"
+
+extern const LUA_REG_TYPE lcd_map[];
+
+const LUA_REG_TYPE platform_map[] =
+{
+#if LUA_OPTIMIZE_MEMORY > 0
+  { LSTRKEY( "lcd" ), LROVAL( lcd_map ) },
 #endif
+  { LNILKEY, LNILVAL }
+};
+
+LUALIB_API int luaopen_platform( lua_State *L )
+{
+#if LUA_OPTIMIZE_MEMORY > 0
+  return 0;
+#else // #if LUA_OPTIMIZE_MEMORY > 0
+  luaL_register( L, PS_LIB_TABLE_NAME, platform_map );
+
+  // Setup the new tables inside platform table
+  lua_newtable( L );
+  luaL_register( L, NULL, lcd_map );
+  lua_setfield( L, -2, "lcd" );
+
+  return 1;
+#endif // #if LUA_OPTIMIZE_MEMORY > 0
+}
+
+#endif // #ifdef PS_LIB_TABLE_NAME

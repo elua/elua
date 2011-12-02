@@ -10,16 +10,20 @@
 // Lua: realfrequency = setup( id, frequency, duty )
 static int pwm_setup( lua_State* L )
 {
-  u32 freq;
-  unsigned duty, id;
+  s32 freq;	  // signed, to error check for negative values
+  unsigned duty;
+  unsigned id;
   
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( pwm, id );
   freq = luaL_checkinteger( L, 2 );
+  if ( freq <= 0 )
+    return luaL_error( L, "frequency must be > 0" );
   duty = luaL_checkinteger( L, 3 );
-  if( duty > 100 )
-    duty = 100;
-  freq = platform_pwm_setup( id, freq, duty );
+  if ( duty > 100 )
+    // Negative values will turn out > 100, so will also fail.
+    return luaL_error( L, "duty cycle must be from 0 to 100" );
+  freq = platform_pwm_setup( id, (u32)freq, duty );
   lua_pushinteger( L, freq );
   return 1;  
 }
@@ -31,7 +35,7 @@ static int pwm_start( lua_State* L )
   
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( pwm, id );
-  platform_pwm_op( id, PLATFORM_PWM_OP_START, 0 );
+  platform_pwm_start( id );
   return 0;  
 }
 
@@ -42,7 +46,7 @@ static int pwm_stop( lua_State* L )
   
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( pwm, id );
-  platform_pwm_op( id, PLATFORM_PWM_OP_STOP, 0 );
+  platform_pwm_stop( id );
   return 0;  
 }
 
@@ -50,12 +54,14 @@ static int pwm_stop( lua_State* L )
 static int pwm_setclock( lua_State* L )
 {
   unsigned id;
-  u32 clk;
+  s32 clk;	// signed to error-check for negative values
   
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( pwm, id );
   clk = luaL_checkinteger( L, 2 );
-  clk = platform_pwm_op( id, PLATFORM_PWM_OP_SET_CLOCK, clk );
+  if ( clk <= 0 )
+    return luaL_error( L, "frequency must be > 0" );
+  clk = platform_pwm_set_clock( id, (u32)clk );
   lua_pushinteger( L, clk );
   return 1;
 }
@@ -68,7 +74,7 @@ static int pwm_getclock( lua_State* L )
   
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( pwm, id );
-  clk = platform_pwm_op( id, PLATFORM_PWM_OP_GET_CLOCK, 0 );
+  clk = platform_pwm_get_clock( id );
   lua_pushinteger( L, clk );
   return 1;
 }

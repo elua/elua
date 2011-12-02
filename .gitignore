@@ -15,4 +15,6 @@ mux*
 rfs_server*
 doc/dist
 doc/cache
-
+*~
+*.*~
+luac.cross*

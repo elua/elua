@@ -22,6 +22,8 @@ enum
   UART_READ_MODE_MAXSIZE
 };
 
+#define UART_INFINITE_TIMEOUT PLATFORM_TIMER_INF_TIMEOUT
+
 // Lua: actualbaud = setup( id, baud, databits, parity, stopbits )
 static int uart_setup( lua_State* L )
 {
@@ -71,14 +73,16 @@ static int uart_write( lua_State* L )
   return 0;
 }
 
+// Lua: uart.read( id, format, [timeout], [timer_id] )
 static int uart_read( lua_State* L )
 {
   int id, res, mode, issign;
-  unsigned timer_id = 0;
-  s32 timeout = PLATFORM_UART_INFINITE_TIMEOUT, maxsize = 0, count = 0;
+  unsigned timer_id = PLATFORM_TIMER_SYS_ID;
+  s32 maxsize = 0, count = 0;
   const char *fmt;
   luaL_Buffer b;
   char cres;
+  timer_data_type timeout = PLATFORM_TIMER_INF_TIMEOUT;
   
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( uart, id );
@@ -104,14 +108,7 @@ static int uart_read( lua_State* L )
   }
 
   // Check timeout and timer id
-  if( lua_gettop( L ) >= 3 )
-  {
-    timeout = luaL_checkinteger( L, 3 );
-    if( ( timeout < 0 ) && ( timeout != PLATFORM_UART_INFINITE_TIMEOUT ) )
-      return luaL_error( L, "invalid timeout value" );      
-    if( ( timeout != PLATFORM_UART_INFINITE_TIMEOUT ) && ( timeout != 0 ) )
-      timer_id = luaL_checkinteger( L, 4 );    
-  }
+  cmn_get_timeout_data( L, 3, &timeout, &timer_id );
 
   // Read data
   luaL_buffinit( L, &b );
@@ -151,21 +148,13 @@ static int uart_getchar( lua_State* L )
 {
   int id, res;
   char cres;
-  unsigned timer_id = 0;
-  s32 timeout = PLATFORM_UART_INFINITE_TIMEOUT;
+  unsigned timer_id = PLATFORM_TIMER_SYS_ID;
+  timer_data_type timeout = PLATFORM_TIMER_INF_TIMEOUT;
   
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( uart, id );
-
   // Check timeout and timer id
-  if( lua_gettop( L ) >= 2 )
-  {
-    timeout = luaL_checkinteger( L, 2 );
-    if( ( timeout < 0 ) && ( timeout != PLATFORM_UART_INFINITE_TIMEOUT ) )
-      return luaL_error( L, "invalid timeout value" );      
-    if( ( timeout != PLATFORM_UART_INFINITE_TIMEOUT ) && ( timeout != 0 ) )
-      timer_id = luaL_checkinteger( L, 3 );    
-  }
+  cmn_get_timeout_data( L, 2, &timeout, &timer_id );
   res = platform_uart_recv( id, timer_id, timeout );
   if( res == -1 )
     lua_pushstring( L, "" );
@@ -252,10 +241,11 @@ const LUA_REG_TYPE uart_map[] =
   { LSTRKEY( "STOP_1_5" ), LNUMVAL( PLATFORM_UART_STOPBITS_1_5 ) },
   { LSTRKEY( "STOP_2" ), LNUMVAL( PLATFORM_UART_STOPBITS_2 ) },
   { LSTRKEY( "NO_TIMEOUT" ), LNUMVAL( 0 ) },
-  { LSTRKEY( "INF_TIMEOUT" ), LNUMVAL( PLATFORM_UART_INFINITE_TIMEOUT ) },
+  { LSTRKEY( "INF_TIMEOUT" ), LNUMVAL( UART_INFINITE_TIMEOUT ) },
   { LSTRKEY( "FLOW_NONE" ), LNUMVAL( PLATFORM_UART_FLOW_NONE ) },
   { LSTRKEY( "FLOW_RTS" ), LNUMVAL( PLATFORM_UART_FLOW_RTS ) },
   { LSTRKEY( "FLOW_CTS" ), LNUMVAL( PLATFORM_UART_FLOW_CTS ) },
+  { LSTRKEY( "SYS_TIMER" ), LNUMVAL( PLATFORM_TIMER_SYS_ID ) },
 #endif
 #if LUA_OPTIMIZE_MEMORY > 0 && defined( BUILD_SERMUX )
   { LSTRKEY( "__metatable" ), LROVAL( uart_map ) },
@@ -281,7 +271,9 @@ LUALIB_API int luaopen_uart( lua_State *L )
   
   // Add the "none" and "infinite" constant used in recv()
   MOD_REG_NUMBER( L, "NO_TIMEOUT", 0 );
-  MOD_REG_NUMBER( L, "INF_TIMEOUT", PLATFORM_UART_INFINITE_TIMEOUT );
+  MOD_REG_NUMBER( L, "INF_TIMEOUT", UART_INFINITE_TIMEOUT );
+  // Also add the system timer ID
+  MOD_REG_NUMBER( L, "SYS_TIMER", PLATFORM_TIMER_SYS_ID );
 
   // Add the UART flow constants
   MOD_REG_NUMBER( L, "FLOW_RTS", PLATFORM_UART_FLOW_RTS );

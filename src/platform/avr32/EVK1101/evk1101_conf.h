@@ -14,13 +14,13 @@
 #define BUILD_CON_GENERIC
 //#define BUILD_RPC
 #define BUILD_C_INT_HANDLERS
+#define BUILD_ADC
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 
 #define CON_UART_ID         1
 #define CON_UART_SPEED      115200
-#define CON_TIMER_ID        0
 #define TERM_LINES          25
 #define TERM_COLS           80
 
@@ -43,6 +43,12 @@
 #define BUILD_RPC
 #endif
 
+#ifdef BUILD_ADC
+#define ADCLINE _ROM( AUXLIB_ADC, luaopen_adc, adc_map )
+#else
+#define ADCLINE
+#endif
+
 #if defined( BUILD_RPC ) 
 #define RPCLINE _ROM( AUXLIB_RPC, luaopen_rpc, rpc_map )
 #else
@@ -57,6 +63,7 @@
   _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
   _ROM( AUXLIB_TERM, luaopen_term, term_map )\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
+  ADCLINE\
   RPCLINE\
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
@@ -67,7 +74,7 @@
 
 // Virtual timers (0 if not used)
 #define VTMR_NUM_TIMERS       4
-#define VTMR_FREQ_HZ          4
+#define VTMR_FREQ_HZ          10
 
 // Number of resources (0 if not available/not implemented)
 #define NUM_PIO               2
@@ -78,27 +85,29 @@
 #else
 #define NUM_TIMER             3
 #endif
-#define NUM_PWM               0
-#define NUM_ADC               0
+#define NUM_PWM               6
+#define NUM_ADC               8
 #define NUM_CAN               0
 
 // RPC boot options
 #define RPC_UART_ID           CON_UART_ID
-#define RPC_TIMER_ID          CON_TIMER_ID
 #define RPC_UART_SPEED        CON_UART_SPEED
 
 // Enable RX buffering on UART
 #define BUF_ENABLE_UART
 #define CON_BUF_SIZE          BUF_SIZE_128
 
+// ADC Configuration Params
+#define ADC_BIT_RESOLUTION    10
+#define BUF_ENABLE_ADC
+#define ADC_BUF_SIZE          BUF_SIZE_2
+
 // SD/MMC Filesystem Setup
-#define MMCFS_TICK_HZ     10
-#define MMCFS_TICK_MS     ( 1000 / MMCFS_TICK_HZ )
 #define MMCFS_SPI_NUM     1
 #define MMCFS_CS_PORT     0  //PA17
 #define MMCFS_CS_PIN      SD_MMC_SPI_NPCS_PIN
 
-// CPU frequency (needed by the CPU module, 0 if not used)
+// CPU frequency (needed by the CPU module and MMCFS code, 0 if not used)
 #define CPU_FREQUENCY         REQ_CPU_FREQ
 
 // PIO prefix ('0' for P0, P1, ... or 'A' for PA, PB, ...)
@@ -108,22 +117,13 @@
 // #define PIO_PIN_ARRAY { n1, n2, ... } to define pins per port in an array
 // Use #define PIO_PINS_PER_PORT 0 if this isn't needed
 #define PIO_PIN_ARRAY         { 32, 12 }
+#define AVR32_NUM_GPIO        44
 
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)
 #define MEM_START_ADDRESS     { ( void* )end }
 #define MEM_END_ADDRESS       { ( void* )( AVR32_SRAM_SIZE - STACK_SIZE_TOTAL - 1 ) }    
 
-// Interrupt queue size
-#define PLATFORM_INT_QUEUE_LOG_SIZE 5
-
-// Interrupt list
-#define INT_UART_RX           ELUA_INT_FIRST_ID
-#define INT_ELUA_LAST         INT_UART_RX
-
-#define PLATFORM_CPU_CONSTANTS\
- _C( INT_UART_RX )
- 
 // *****************************************************************************
 // CPU constants that should be exposed to the eLua "cpu" module
 
