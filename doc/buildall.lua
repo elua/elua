@@ -583,22 +583,13 @@ local function gen_html_page( fname, lang )
   <!--footer-->
 
 <script type="text/javascript">
-
-
 	$("#menu-nav").treeview({
 		persist: "location",
 		collapsed: true,
 		unique: true
 	});
-
-var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-document.write(unescape("%%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%%3E%%3C/script%%3E"));
 </script>
-<script type="text/javascript">
-try {
-var pageTracker = _gat._getTracker("UA-11834941-1");
-pageTracker._trackPageview();
-} catch(err) {}
+
 
 </body>
 </html>
