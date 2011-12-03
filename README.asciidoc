@@ -1,12 +1,15 @@
 eLua - Lua for microcontrollers
 ===============================
 
-*eLua* stands for *Embedded Lua* and the project aims to offer the full
-implementation of the http://www.lua.org[Lua Programming Language] to the
-embedded world, extending it with specific features for efficient and portable
-software embedded development. For more details please visit the link:http://www.eluaproject.net[project page].
+*eLua* stands for *Embedded Lua* and the project aims to offer the
+full implementation of the http://www.lua.org[Lua Programming
+Language] to the embedded world, extending it with specific features
+for efficient and portable software embedded development. For more
+details please visit the link:http://www.eluaproject.net[project
+page].
 
-If you've just downloaded *eLua* and are looking to get started check out link:http://www.eluaproject.net/en_using.html[using eLua].
+If you've just downloaded *eLua* and are looking to get started check
+out link:http://www.eluaproject.net/en_using.html[using eLua].
 
 
 General Features
@@ -62,6 +65,19 @@ Some aspects of eLua are:
 
 For more information about the functionality (implemented and planned) in eLua
 check link:http://www.eluaproject.net/en_status.html[our status page].
+
+Documentation
+-------------
+
+Online documentation can be found on the web for the most recent
+release version and development versions in the
+link:http://www.eluaproject.net/get-better[get better] section of the
+project website.
+
+Project documentation can be generated for the version of the project
+associated with this document by following the instructions in the
+README.TXT file in the doc directory.
+
 
 Contacts
 --------
