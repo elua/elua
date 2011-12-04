@@ -991,6 +991,14 @@ int platform_eth_get_link_status()
   return ( EthernetPHYRead( ETH_BASE, PHY_MR1 ) & PHY_MR1_LINK ) ? PLATFORM_ETH_LINK_UP : PLATFORM_ETH_LINK_DOWN;
 }
 
+void platform_eth_set_interrupt( int state )
+{
+  if( state == PLATFORM_ETH_INT_ENABLE )
+    MAP_IntEnable( INT_ETH );
+  else
+    MAP_IntDisable( INT_ETH );
+}
+
 u32 platform_eth_get_elapsed_time()
 {
   if( eth_timer_fired )
