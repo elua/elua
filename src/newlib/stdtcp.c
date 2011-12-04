@@ -34,7 +34,7 @@ static _ssize_t std_read( struct _reent *r, int fd, void* vptr, size_t len )
   actsize = 0;
   while( 1 )
   {
-    pktsize = elua_net_recv( sock, lptr, len, -1, 0, 0 );
+    pktsize = elua_net_recv( sock, lptr, len, PLATFORM_TIMER_SYS_ID, PLATFORM_TIMER_INF_TIMEOUT );
     // Check EOF
     for( j = 0; j < pktsize; j ++ )
       if( lptr[ j ] == STD_CTRLZ_CODE )

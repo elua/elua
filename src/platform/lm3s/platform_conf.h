@@ -13,8 +13,8 @@
 // *****************************************************************************
 // Define here what components you want for this platform
 //#if !defined( ELUA_BOARD_SOLDERCORE )
-  #define BUILD_XMODEM
-  #define BUILD_TERM
+//  #define BUILD_XMODEM
+//  #define BUILD_TERM
 //#endif
 
 #define BUILD_SHELL
@@ -34,9 +34,9 @@
 #define BUILD_ADC
 #define BUILD_RPC
 //#if defined( ELUA_BOARD_SOLDERCORE )
-//  #define BUILD_CON_TCP
+  #define BUILD_CON_TCP
 //#else
-  #define BUILD_CON_GENERIC
+//  #define BUILD_CON_GENERIC
 //#endif
 #define BUILD_C_INT_HANDLERS
 
