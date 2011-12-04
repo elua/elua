@@ -961,6 +961,111 @@ void lm3s_disp_displayOff()
 // ****************************************************************************
 // Ethernet functions
 
+#ifdef BUILD_UIP
+
+#define SYSTICK_ETH_LIMIT_MS    500
+
+static int eth_timer_fired;
+static u8 eth_initialized;
+static u16 eth_counter;
+static volatile u8 eth_forced;
+
+void platform_eth_send_packet( const void* src, u32 size )
+{
+  MAP_EthernetPacketPut( ETH_BASE, uip_buf, uip_len );
+}
+
+u32 platform_eth_get_packet_nb( void* buf, u32 maxlen )
+{
+  return MAP_EthernetPacketGetNonBlocking( ETH_BASE, uip_buf, sizeof( uip_buf ) );
+}
+
+void platform_eth_force_interrupt()
+{
+  eth_forced = 1;
+  NVIC_SW_TRIG_R |= INT_ETH - 16;
+}
+
+int platform_eth_get_link_status()
+{
+  return ( EthernetPHYRead( ETH_BASE, PHY_MR1 ) & PHY_MR1_LINK ) ? PLATFORM_ETH_LINK_UP : PLATFORM_ETH_LINK_DOWN;
+}
+
+u32 platform_eth_get_elapsed_time()
+{
+  if( eth_timer_fired )
+  {
+    eth_timer_fired = 0;
+    return SYSTICK_ETH_LIMIT_MS;
+  }
+  else
+    return 0;
+}
+
+void SysTickIntHandler()
+{
+  // Handle virtual timers
+  cmn_virtual_timer_cb();
+
+  if( eth_initialized )
+  {
+    eth_counter += SYSTICKMS;
+    if( eth_counter == SYSTICK_ETH_LIMIT_MS )
+    {
+      eth_counter = 0;
+      eth_timer_fired = 1;
+      // Generate a fake Ethernet interrupt.  This will perform the actual work
+      // of incrementing the timers and taking the appropriate actions.
+      platform_eth_force_interrupt();
+    }
+  }
+
+  // System timer handling
+  cmn_systimer_periodic();
+}
+
+void EthernetIntHandler()
+{
+  u32 temp;
+
+  if( !eth_initialized )
+    return;
+  if( eth_forced )
+  {
+    elua_uip_mainloop();
+    eth_forced = 0;
+    return;
+  }
+  // Check for both RX and PHY interrupts
+  temp = MAP_EthernetIntStatus( ETH_BASE, false );
+  if( temp & MAC_RIS_PHYINT )
+  {
+    // Check link changed interrupt (and clear all PHY interrupts)
+    if( MAP_EthernetPHYRead( ETH_BASE, PHY_MR17 ) & PHY_MR17_LSCHG_INT )
+      elua_net_link_changed();
+  }
+  // Check packet RX interrupt
+  if( temp & MAC_RIS_RXINT )
+    elua_uip_mainloop();
+  // Clear all ETH interrupts
+  MAP_EthernetIntClear( ETH_BASE, temp );
+}
+
+#else  // #ifdef ELUA_UIP
+
+void SysTickIntHandler()
+{
+  cmn_virtual_timer_cb();
+
+  // System timer handling
+  cmn_systimer_periodic();
+}
+
+void EthernetIntHandler()
+{
+}
+#endif // #ifdef ELUA_UIP
+
 static void eth_init()
 {
 #ifdef BUILD_UIP
@@ -1003,11 +1108,12 @@ static void eth_init()
   // Enable the Ethernet Controller.
   MAP_EthernetEnable(ETH_BASE);
 
+  // Enable the Ethernet RX Packet interrupt and the PHY link status changed interrupt
+  MAP_EthernetPHYWrite(ETH_BASE, PHY_MR17, MAP_EthernetPHYRead(ETH_BASE, PHY_MR17) | PHY_MR17_LSCHG_IE );
+  MAP_EthernetIntEnable(ETH_BASE, ETH_INT_RX | ETH_INT_PHY);
+
   // Enable the Ethernet interrupt.
   MAP_IntEnable(INT_ETH);
-
-  // Enable the Ethernet RX Packet interrupt source.
-  MAP_EthernetIntEnable(ETH_BASE, ETH_INT_RX);
 
   // Enable all processor interrupts.
   MAP_IntMasterEnable();
@@ -1042,81 +1148,10 @@ static void eth_init()
   MAP_EthernetMACAddrSet(ETH_BASE, (unsigned char *)&sTempAddr);
 
   // Initialize the eLua uIP layer
-  elua_uip_init( &sTempAddr );
+  elua_net_init( &sTempAddr );
+  eth_initialized = 1;
 #endif
 }
-
-#ifdef BUILD_UIP
-static int eth_timer_fired;
-
-void platform_eth_send_packet( const void* src, u32 size )
-{
-  MAP_EthernetPacketPut( ETH_BASE, uip_buf, uip_len );
-}
-
-u32 platform_eth_get_packet_nb( void* buf, u32 maxlen )
-{
-  return MAP_EthernetPacketGetNonBlocking( ETH_BASE, uip_buf, sizeof( uip_buf ) );
-}
-
-void platform_eth_force_interrupt()
-{
-  NVIC_SW_TRIG_R |= INT_ETH - 16;
-}
-
-u32 platform_eth_get_elapsed_time()
-{
-  if( eth_timer_fired )
-  {
-    eth_timer_fired = 0;
-    return SYSTICKMS;
-  }
-  else
-    return 0;
-}
-
-void SysTickIntHandler()
-{
-  // Handle virtual timers
-  cmn_virtual_timer_cb();
-
-  // Indicate that a SysTick interrupt has occurred.
-  eth_timer_fired = 1;
-
-  // Generate a fake Ethernet interrupt.  This will perform the actual work
-  // of incrementing the timers and taking the appropriate actions.
-  platform_eth_force_interrupt();
-
-  // System timer handling
-  cmn_systimer_periodic();
-}
-
-void EthernetIntHandler()
-{
-  u32 temp;
-
-  // Read and Clear the interrupt.
-  temp = EthernetIntStatus( ETH_BASE, false );
-  EthernetIntClear( ETH_BASE, temp );
-
-  // Call the UIP main loop
-  elua_uip_mainloop();
-}
-
-#else  // #ifdef ELUA_UIP
-
-void SysTickIntHandler()
-{
-  cmn_virtual_timer_cb();
-
-  // System timer handling
-  cmn_systimer_periodic();
-}
-
-void EthernetIntHandler()
-{
-}
-#endif // #ifdef ELUA_UIP
 
 // ****************************************************************************
 // USB functions

@@ -1,5 +1,4 @@
 // Module for interfacing with network functions (elua_net.h)
-
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
@@ -13,7 +12,8 @@
 #include "lrotable.h"
 
 #include "platform_conf.h"
-#ifdef BUILD_UIP
+//#ifdef BUILD_UIP
+#if 0
 
 // Lua: sock, remoteip, err = accept( port, [timeout], [timer_id] )
 static int net_accept( lua_State *L )

@@ -134,7 +134,7 @@ static struct namemap names[RESOLV_ENTRIES];
 static u8_t seqno;
 
 static struct uip_udp_conn *resolv_conn = NULL;
-
+int resolv_socket = -1;
 
 /*---------------------------------------------------------------------------*/
 /** \internal
@@ -354,7 +354,7 @@ resolv_query(char *name)
 {
   static u8_t i;
   static u8_t lseq, lseqi;
-  register struct namemap *nameptr;
+  register struct namemap *nameptr = NULL;
       
   lseq = lseqi = 0;
   
@@ -445,6 +445,7 @@ resolv_conf(u16_t *dnsserver)
   }
   
   resolv_conn = uip_udp_new( ( uip_ipaddr_t* )dnsserver, HTONS(53));
+  resolv_socket = resolv_conn->connidx;
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -467,6 +468,8 @@ resolv_init(void)
 /** @} */
 
 #else  // #ifdef BUILD_DNS
+
+int resolv_socket = -1;
 
 void resolv_appcall()
 {

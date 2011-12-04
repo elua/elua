@@ -306,7 +306,8 @@ void uip_setipid(u16_t id);
  *
  */
 #define uip_conn_active(conn) (uip_conns[conn].tcpstateflags != UIP_CLOSED && \
-                               uip_conns[conn].tcpstateflags != UIP_RESERVED )
+                               uip_conns[conn].tcpstateflags != UIP_RESERVED && \
+                               uip_conns[conn].tcpstateflags != UIP_WAITACCEPT)
 
 /**
  * Reserve a connection (for a later call to connect) and check if connection
@@ -315,6 +316,8 @@ void uip_setipid(u16_t id);
  */
 #define uip_conn_reserve(conn) (uip_conns[conn].tcpstateflags = UIP_RESERVED)
 #define uip_conn_is_reserved(conn) (uip_conns[conn].tcpstateflags == UIP_RESERVED)
+#define uip_conn_mark_accept(conn) (uip_conns[conn].tcpstateflags = UIP_WAITACCEPT)
+#define uip_conn_is_marked_for_accept(conn) (uip_conns[conn].tcpstateflags == UIP_WAITACCEPT)
 
 /**
  * Perform periodic processing for a connection identified by a pointer
@@ -1233,6 +1236,7 @@ struct uip_udp_conn {
   u16_t lport;        /**< The local port number in network byte order. */
   u16_t rport;        /**< The remote port number in network byte order. */
   u8_t  ttl;          /**< Default time-to-live. */
+  u8_t  connidx;      /**< connection index in connection array */
 
   /** The application state. */
   uip_udp_appstate_t appstate;
@@ -1402,6 +1406,7 @@ void uip_process(u8_t flag);
 #define UIP_TIME_WAIT   7
 #define UIP_LAST_ACK    8
 #define UIP_RESERVED    9
+#define UIP_WAITACCEPT  10
 #define UIP_TS_MASK     15
   
 #define UIP_STOPPED      16
