@@ -17,6 +17,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 // UIP send buffer
 extern void* uip_sappdata;
@@ -26,6 +27,34 @@ static volatile u8 elua_uip_configured;
 
 // "Link changed" call back
 static p_elua_net_state_cb elua_uip_state_cb;
+
+// ****************************************************************************
+// Logging
+
+#ifdef TCPIP_LOGS
+static void elua_uip_log( const char *fmt, ... )
+{
+  va_list ap;
+
+  va_start( ap, fmt );
+  printf( "[elua_uip] " );
+  vprintf( fmt, ap );
+  va_end( ap );
+}
+
+static const char* elua_uip_iptostr( const u16 *pip )
+{
+  elua_net_ip res = { 0 };
+  static char strip[ 16 ];
+
+  uip_ipaddr_copy( ( u16* )&res, pip );
+  sprintf( strip, "%d.%d.%d.%d", ( int )res.ipbytes[ 0 ], ( int )res.ipbytes[ 1 ],
+    ( int )res.ipbytes[ 2 ], ( int )res.ipbytes[ 3 ] );
+  return strip;
+}
+#else
+#define elua_uip_log( fmt, ... )
+#endif
 
 // *****************************************************************************
 // Platform independenet eLua UIP "main loop" implementation
@@ -150,14 +179,20 @@ void dhcpc_configured(const struct dhcpc_state *s)
 {
   if( s->ipaddr[ 0 ] != 0 )
   {
-    //printf( "GOT DHCP IP!!!\n" );
+    elua_uip_log( "Got DHCP IP: %s\n", elua_uip_iptostr( s->ipaddr ) );
+    elua_uip_log( "    Netmask: %s\n", elua_uip_iptostr( s->netmask ) );
+    elua_uip_log( "        DNS: %s\n", elua_uip_iptostr( s->dnsaddr ) );
+    elua_uip_log( "         GW: %s\n", elua_uip_iptostr( s->default_router ) );
     uip_sethostaddr( s->ipaddr );
     uip_setnetmask( s->netmask ); 
     uip_setdraddr( s->default_router );     
     resolv_conf( ( u16_t* )s->dnsaddr );
     elua_uip_configured = 1;
     if( elua_uip_state_cb )
+    {
+      elua_uip_log( "Invoking sate changed callback" );
       elua_uip_state_cb( ELUA_NET_STATE_UP );
+    }
   }
   else
     elua_uip_conf_static();
@@ -442,7 +477,14 @@ static void elua_uip_conf_static()
   uip_ipaddr_t ipaddr;
 
   if( platform_eth_get_link_status() == PLATFORM_ETH_LINK_DOWN )
+  {
+    elua_uip_log( "Unable to configure static IP, link is down\n" );
     return;
+  }
+  elua_uip_log( "Static IP configuration: %d.%d.%d.%d\n", ELUA_CONF_IPADDR0, ELUA_CONF_IPADDR1, ELUA_CONF_IPADDR2, ELUA_CONF_IPADDR3 );
+  elua_uip_log( "                Netmask: %d.%d.%d.%d\n", ELUA_CONF_NETMASK0, ELUA_CONF_NETMASK1, ELUA_CONF_NETMASK2, ELUA_CONF_NETMASK3 );
+  elua_uip_log( "                    DNS: %d.%d.%d.%d\n", ELUA_CONF_DNS0, ELUA_CONF_DNS1, ELUA_CONF_DNS2, ELUA_CONF_DNS3 );
+  elua_uip_log( "                     GW: %d.%d.%d.%d\n", ELUA_CONF_DEFGW0, ELUA_CONF_DEFGW1, ELUA_CONF_DEFGW2, ELUA_CONF_DEFGW3 );
   uip_ipaddr( ipaddr, ELUA_CONF_IPADDR0, ELUA_CONF_IPADDR1, ELUA_CONF_IPADDR2, ELUA_CONF_IPADDR3 );
   uip_sethostaddr( ipaddr );
   uip_ipaddr( ipaddr, ELUA_CONF_NETMASK0, ELUA_CONF_NETMASK1, ELUA_CONF_NETMASK2, ELUA_CONF_NETMASK3 );
@@ -453,7 +495,10 @@ static void elua_uip_conf_static()
   resolv_conf( ipaddr );  
   elua_uip_configured = 1;
   if( elua_uip_state_cb )
+  {
+    elua_uip_log( "Invoking state changed callback\n" );
     elua_uip_state_cb( ELUA_NET_STATE_UP );
+  }
 }
 
 // This part of initializtion always takes place when a link is detected
@@ -505,6 +550,7 @@ void elua_net_link_changed()
   int state = platform_eth_get_link_status();
   unsigned i;
 
+  elua_uip_log( "elua_net_link_changed called, link is %s.\n", state == PLATFORM_ETH_LINK_UP ? "UP" : "DOWN" );
   if( state == PLATFORM_ETH_LINK_DOWN )
   {
     uip_init();

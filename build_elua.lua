@@ -399,6 +399,9 @@ dofile( sf( "src/platform/%s/conf.lua", platform ) )
 -- Complete file list
 source_files = source_files .. uip_files .. specific_files
 
+-- Uncomment next line to enable TCP/IP logs
+addm( "TCPIP_LOGS" )
+
 -------------------------------------------------------------------------------
 -- Create compiler/linker/assembler command lines and build
 

@@ -387,6 +387,9 @@ if not GetOption( 'help' ):
 
   # Complete file list
   source_files = Split( app_files + specific_files + newlib_files + uip_files + lua_full_files + module_files + rfs_files )
+
+  # Uncomment next line to enable TCP/IP logs
+  # conf.env.Append(CPPDEFINES = ['TCPIP_LOGS'])
   
   comp = conf.Finish()
 
