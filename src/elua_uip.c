@@ -226,75 +226,10 @@ void resolv_found( char *name, u16_t *ipaddr )
 
 #ifdef BUILD_CON_TCP
 
-// TELNET specific data
-#define TELNET_IAC_CHAR         255
-#define TELNET_IAC_3B_FIRST     251
-#define TELNET_IAC_3B_LAST      254
-#define TELNET_SB_CHAR          250
-#define TELNET_SE_CHAR          240
-#define TELNET_EOF              236
-
+#define ELUA_UIP_TELNET_BUFFER_SIZE 128
 #define ELUA_UIP_TELNET_SOCKET  0
 
-// Utility function for TELNET: parse input buffer, skipping over
-// TELNET specific sequences
-// Returns the length of the buffer after processing
-static void elua_uip_telnet_handle_input( volatile struct elua_uip_state* s )
-{
-  u8 *dptr = ( u8* )uip_appdata;
-  char *orig = ( char* )s->ptr;
-  int skip;
-  elua_net_size maxsize = s->len;
-  
-  // Traverse the input buffer, skipping over TELNET sequences
-  while( ( dptr < ( u8* )uip_appdata + uip_datalen() ) && ( s->ptr - orig < s->len ) )
-  {
-    if( *dptr != TELNET_IAC_CHAR ) // regular char, copy it to buffer
-      *s->ptr ++ = *dptr ++;
-    else
-    {
-      // Control sequence: 2 or 3 bytes?
-      if( ( dptr[ 1 ] >= TELNET_IAC_3B_FIRST ) && ( dptr[ 1 ] <= TELNET_IAC_3B_LAST ) )
-        skip = 3;
-      else
-      {
-        // Check EOF indication
-        if( dptr[ 1 ] == TELNET_EOF )
-          *s->ptr ++ = STD_CTRLZ_CODE;
-        skip = 2;
-      }
-      dptr += skip;
-    }
-  } 
-  if( s->ptr > orig )
-  {
-    s->res = ELUA_NET_ERR_OK;
-    s->len = maxsize - ( s->ptr - orig );
-    s->state = ELUA_UIP_STATE_IDLE;
-  }
-}
-
-// Utility function for TELNET: prepend all '\n' with '\r' in buffer
-// Returns actual len
-// It is assumed that the buffer is "sufficiently smaller" than the UIP
-// buffer (which is true for the default configuration: 128 bytes buffer
-// in Newlib for stdin/stdout, more than 1024 bytes UIP buffer)
-static elua_net_size elua_uip_telnet_prep_send( const char* src, elua_net_size size )
-{
-  elua_net_size actsize = size, i;
-  char* dest = ( char* )uip_sappdata;
-    
-  for( i = 0; i < size; i ++ )
-  {
-    if( *src == '\n' )
-    {
-      *dest ++ = '\r';
-      actsize ++;
-    } 
-    *dest ++ = *src ++;
-  }
-  return actsize;
-}
+static char elua_uip_telnet_buffer[ ELUA_UIP_TELNET_BUFFER_SIZE ];
 #else // #ifdef BUILD_CON_TCP
 #define ELUA_UIP_TELNET_SOCKET  ( -1 )
 #endif // #ifdef BUILD_CON_TCP
@@ -389,9 +324,11 @@ void elua_uip_appcall()
     if( sockno == ELUA_UIP_TELNET_SOCKET ) // reinitialize telnet socket
     {
       platform_s_uart_send( CON_UART_ID, '^' );
+      // [TODO] why does the '^' appear twice when a connection is closed?
       uip_conn_mark_accept( ELUA_UIP_TELNET_SOCKET );
       uip_unlisten( htons( ELUA_NET_TELNET_PORT ) );
       uip_listen( htons( ELUA_NET_TELNET_PORT ) ); 
+      //[TODO] TCP: reinitialize socket state! Also for regular (non-telnet) sockets?
     }
     else
 #endif
@@ -414,15 +351,6 @@ void elua_uip_appcall()
       eluah_uip_read_to_buffer( s );
     else if( s->state == ELUA_UIP_STATE_RECV )
     {
-#ifdef BUILD_CON_TCP      
-      if( sockno == ELUA_UIP_TELNET_SOCKET )
-      {
-        platform_s_uart_send( CON_UART_ID, '@' );
-        elua_uip_telnet_handle_input( s );
-        // [TODO] TCP: is the below 'return' correct?
-        return;
-      }
-#endif   
       sockno = ELUA_NET_ERR_OK;
       // Check overflow
       if( s->len < uip_datalen() )
@@ -443,7 +371,6 @@ void elua_uip_appcall()
   // Handle data send  
   if( ( uip_acked() || uip_rexmit() || uip_poll() ) && ( s->state == ELUA_UIP_STATE_SEND ) )
   {
-    // Special translation for TELNET: prepend all '\n' with '\r'
     // We write directly in UIP's buffer 
     if( uip_acked() )
     {
@@ -452,17 +379,7 @@ void elua_uip_appcall()
       s->ptr += temp;
     }
     if( s->len > 0 ) // need to (re)transmit?
-    {
-#ifdef BUILD_CON_TCP
-      if( sockno == ELUA_UIP_TELNET_SOCKET )
-      {
-        temp = elua_uip_telnet_prep_send( s->ptr, s->len );
-        uip_send( uip_sappdata, temp );
-      }
-      else
-#endif      
-        uip_send( s->ptr, UMIN( s->len, uip_mss() ) );
-    }
+      uip_send( s->ptr, UMIN( s->len, uip_mss() ) );
     else
       s->state = ELUA_UIP_STATE_IDLE;
     //return;
@@ -519,6 +436,17 @@ static void elua_uip_linkinit()
 #endif
   
   resolv_init();
+
+#ifdef BUILD_CON_TCP
+  volatile struct elua_uip_state *s = ( volatile struct elua_uip_state* )&( uip_conns[ ELUA_UIP_TELNET_SOCKET ].appstate );
+  // Reserve the first socket for TELNET now and keep it like that
+  uip_conn_mark_accept( ELUA_UIP_TELNET_SOCKET );
+  uip_unlisten( htons( ELUA_NET_TELNET_PORT ) );
+  uip_listen( htons( ELUA_NET_TELNET_PORT ) );
+  // Set TELNET buffer manually (avoid messing with interrupts and malloc calls)
+  s->buf = elua_uip_telnet_buffer;
+  s->buf_total = ELUA_UIP_TELNET_BUFFER_SIZE;
+#endif 
 }
 
 // Init application
@@ -533,14 +461,7 @@ void elua_net_init( void *pdata )
   uip_arp_init();
   elua_uip_configured = 0;
 
-#ifdef BUILD_CON_TCP
-  // Reserve the first socket for TELNET now and keep it like that
-  uip_conn_mark_accept( ELUA_UIP_TELNET_SOCKET );
-  uip_unlisten( htons( ELUA_NET_TELNET_PORT ) );
-  uip_listen( htons( ELUA_NET_TELNET_PORT ) );
-#endif
-  
-  // Low level initialization
+ // Low level initialization
   elua_uip_linkinit();
 }
 
