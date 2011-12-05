@@ -21,12 +21,12 @@ Starting with version 0.7, building eLua in Windows is officially supported. The
 * *git*: if you need to checkout the *eLua* source code from the link:https://github.com/elua/elua[project git repository], then you will need to install git for Windows.  The instructions at GitHub describing how to link:http://help.github.com/win-set-up-git/[set up git] for Windows should work well. You will only need the ssh key setup section if you want to push code to GitHub.  For a version of git that integrates with the Windows shell (similar to TortoiseSVN), check out link:http://code.google.com/p/tortoisegit/[TortoiseGIT].
 
 * *gcc*: if you want to use the ROMFS pre-compiled feature (see link:arch_romfs.html#mode[here] for details), then you will need to build an image for the eLua cross compiler, and you will need an i386 toolchain for this. I'm using MinGW for this task. It can be downloaded from link:http://www.mingw.org/[here]. This tutorial uses MinGW version 5.1.6. Note that you don't need to install MSYS; MinGW should be enough. Cygwin should work equally as well, or even Microsoft's Visual Studio (not tested). To build the cross compiler, run this command from the command line:
++
 -----------------------
 $ scons -f cross-lua.py
 -----------------------
 
-Make sure that all the programs listed above are added to %PATH%. Most of them do this automatically, or have an option to do this automatically, but some
-(for example MinGW and SCons) do not and you will need to add them to %PATH% manually.
+Make sure that all the programs listed above are added to %PATH%. Most of them do this automatically, or have an option to do this automatically, but some (for example MinGW and SCons) do not and you will need to add them to %PATH% manually.
 
 After you setup your build environment as described above, follow link:building.html#configuring[this tutorial] to build your eLua image.
 
