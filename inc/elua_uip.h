@@ -32,7 +32,7 @@ struct elua_uip_state
   elua_net_size     len;
   s16               split;
   elua_net_size     buf_total, buf_crt, buf_ridx, buf_widx;
-  p_elua_net_recv_cb  recv_cb;
+  p_elua_net_socket_cb  socket_cb;
 };
 
 struct uip_eth_addr;

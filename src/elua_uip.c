@@ -405,10 +405,10 @@ void elua_uip_appcall()
   if( uip_newdata() && uip_datalen() > 0 )
   {
     elua_uip_log( "%d bytes recvd on %d\n", uip_datalen(), sockno );
-    if( s->recv_cb )
+    if( s->socket_cb )
     {
       elua_net_ip ip = { 0 };
-      s->recv_cb( sockno, uip_appdata, uip_datalen(), ip, 0 );
+      s->socket_cb( sockno, uip_appdata, uip_datalen(), ip, 0 );
     }
     else if( s->buf )
       eluah_uip_read_to_buffer( s );
@@ -616,11 +616,11 @@ void elua_uip_udp_appcall()
   // Must be an application socket, so check its state
   if( uip_newdata() && uip_datalen() > 0 ) // handle data receive
   {
-    if( s->recv_cb )
+    if( s->socket_cb )
     {
       elua_net_ip ip;
       uip_ipaddr_copy( ( u16* )&ip, UDPBUF->srcipaddr );
-      s->recv_cb( sockno, uip_appdata, uip_datalen(), ip, HTONS( uip_udp_conn->rport ) );
+      s->socket_cb( sockno, uip_appdata, uip_datalen(), ip, HTONS( uip_udp_conn->rport ) );
     }
     else if( s->buf )
       eluah_uip_read_to_buffer( s );
@@ -1005,13 +1005,13 @@ int elua_net_get_last_err( int s )
 }
 
 // Sets the receive callback for the socket
-void elua_net_set_recv_callback( int s, p_elua_net_recv_cb callback )
+void elua_net_set_socket_callback( int s, p_elua_net_socket_cb callback )
 {
   volatile struct elua_uip_state *pstate;
 
   if( eluah_get_socket_state( &s, &pstate, 0 ) == -1 )
     return;
-  pstate->recv_cb = callback;
+  pstate->socket_cb = callback;
 }
 
 // Set the "split char": recv/recvfrom will return if this char is
