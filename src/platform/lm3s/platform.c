@@ -983,7 +983,7 @@ u32 platform_eth_get_packet_nb( void* buf, u32 maxlen )
 void platform_eth_force_interrupt()
 {
   eth_forced = 1;
-  NVIC_SW_TRIG_R |= INT_ETH - 16;
+  NVIC_SW_TRIG_R = INT_ETH - 16;
 }
 
 int platform_eth_get_link_status()

@@ -28,23 +28,36 @@ static volatile u8 elua_uip_configured;
 // "Link changed" call back
 static p_elua_net_state_cb elua_uip_state_cb;
 
-#undef BUILD_CON_TCP
-#define BUILD_CON_TCP
-
 // ****************************************************************************
 // Logging
 
+#define TCPIP_LOG_BUFSIZE     80
 #ifdef TCPIP_LOGS
+const char *elua_uip_log_header = "[elua_uip] ";
+
 static void elua_uip_log( const char *fmt, ... )
 {
-#ifndef BUILD_CON_TCP
   va_list ap;
 
   va_start( ap, fmt );
-  printf( "[elua_uip] " );
+#ifndef BUILD_CON_TCP
+  printf( elua_uip_log_header );
   vprintf( fmt, ap );
-  va_end( ap );
+#else // #ifndef BUILD_CON_TCP
+  unsigned i;
+  char dstr[ TCPIP_LOG_BUFSIZE + 1 ];
+
+  vsnprintf( dstr, TCPIP_LOG_BUFSIZE, fmt, ap );
+  for( i = 0; i < strlen( elua_uip_log_header ); i ++ )
+    platform_uart_send( CON_UART_ID, elua_uip_log_header[ i ] );
+  for( i = 0; i < strlen( dstr ); i ++ )
+  {
+    if( dstr[ i ] == '\n' )
+      platform_uart_send( CON_UART_ID, '\r' );
+    platform_uart_send( CON_UART_ID, dstr[ i ]);
+  }
 #endif // #ifndef BUILD_CON_TCP
+  va_end( ap );
 }
 
 static const char* elua_uip_iptostr( const u16 *pip )
@@ -135,7 +148,7 @@ void elua_uip_mainloop()
     uip_set_forced_poll( 0 );
   }
   else
-    uip_set_forced_poll( 1 );
+    uip_set_forced_poll( /*1*/ 0 );
   for( temp = 0; temp < UIP_CONNS; temp ++ )
   {
     uip_periodic( temp );
@@ -195,7 +208,7 @@ void dhcpc_configured(const struct dhcpc_state *s)
     elua_uip_configured = 1;
     if( elua_uip_state_cb )
     {
-      elua_uip_log( "Invoking sate changed callback" );
+      elua_uip_log( "Invoking state change callback\n" );
       elua_uip_state_cb( ELUA_NET_STATE_UP );
     }
   }
@@ -233,6 +246,24 @@ static char elua_uip_telnet_buffer[ ELUA_UIP_TELNET_BUFFER_SIZE ];
 #else // #ifdef BUILD_CON_TCP
 #define ELUA_UIP_TELNET_SOCKET  ( -1 )
 #endif // #ifdef BUILD_CON_TCP
+
+static void eluah_uip_prep_telnet_socket()
+{
+#ifdef BUILD_CON_TCP
+  struct elua_uip_state *s = ( struct elua_uip_state* )&( uip_conns[ ELUA_UIP_TELNET_SOCKET ].appstate );
+  // Reserve the first socket for TELNET now and keep it like that
+  uip_conn_mark_accept( ELUA_UIP_TELNET_SOCKET );
+  uip_unlisten( htons( ELUA_NET_TELNET_PORT ) );
+  uip_listen( htons( ELUA_NET_TELNET_PORT ) );
+  // Set TELNET buffer manually (avoid messing with interrupts and malloc calls)
+  memset( ( void* )s, 0, sizeof( *s ) );
+  s->split = ELUA_NET_NO_SPLIT;
+  s->buf = elua_uip_telnet_buffer;
+  s->buf_total = ELUA_UIP_TELNET_BUFFER_SIZE;
+  s->res = ELUA_NET_ERR_OK;
+  s->state = ELUA_UIP_STATE_IDLE;
+#endif
+}
 
 // *****************************************************************************
 // eLua UIP application (used to implement the eLua TCP/IP services)
@@ -300,7 +331,6 @@ void elua_uip_appcall()
 
   if( uip_connected() )
   {
-    platform_s_uart_send( CON_UART_ID, '%' );
     if( sockno != ELUA_UIP_TELNET_SOCKET )
     {
       if( elua_uip_accept_request )
@@ -311,8 +341,6 @@ void elua_uip_appcall()
       else if( s->state == ELUA_UIP_STATE_CONNECT )
         s->state = ELUA_UIP_STATE_IDLE;
     }
-    else
-      platform_s_uart_send( CON_UART_ID, 'x' );
   }
 
 //  if( s->state == ELUA_UIP_STATE_IDLE )
@@ -323,12 +351,16 @@ void elua_uip_appcall()
 #ifdef BUILD_CON_TCP
     if( sockno == ELUA_UIP_TELNET_SOCKET ) // reinitialize telnet socket
     {
-      platform_s_uart_send( CON_UART_ID, '^' );
-      // [TODO] why does the '^' appear twice when a connection is closed?
-      uip_conn_mark_accept( ELUA_UIP_TELNET_SOCKET );
-      uip_unlisten( htons( ELUA_NET_TELNET_PORT ) );
-      uip_listen( htons( ELUA_NET_TELNET_PORT ) ); 
-      //[TODO] TCP: reinitialize socket state! Also for regular (non-telnet) sockets?
+      elua_uip_log( "close on socket %d, reason(s): ", sockno );
+      if( uip_aborted() )
+        elua_uip_log( "aborted " );
+      if( uip_timedout() )
+        elua_uip_log( "timedout " );
+      if( uip_closed() )
+        elua_uip_log( "closed " );
+      elua_uip_log( "\n" );
+      eluah_uip_prep_telnet_socket();
+      // ]TODO] what about regular sockets?
     }
     else
 #endif
@@ -341,7 +373,6 @@ void elua_uip_appcall()
   // Handle data receive  
   if( uip_newdata() && uip_datalen() > 0 )
   {
-    elua_uip_log( "%d bytes recvd on %d\n", uip_datalen(), sockno );
     if( s->socket_cb )
     {
       elua_net_ip ip = { 0 };
@@ -390,7 +421,7 @@ void elua_uip_appcall()
   {
     uip_close();
     s->state = ELUA_UIP_STATE_CLOSE_ACK;
-  }       
+  }
 }
 
 static void elua_uip_conf_static()
@@ -417,7 +448,7 @@ static void elua_uip_conf_static()
   elua_uip_configured = 1;
   if( elua_uip_state_cb )
   {
-    elua_uip_log( "Invoking state changed callback\n" );
+    elua_uip_log( "Invoking state change callback\n" );
     elua_uip_state_cb( ELUA_NET_STATE_UP );
   }
 }
@@ -436,17 +467,7 @@ static void elua_uip_linkinit()
 #endif
   
   resolv_init();
-
-#ifdef BUILD_CON_TCP
-  volatile struct elua_uip_state *s = ( volatile struct elua_uip_state* )&( uip_conns[ ELUA_UIP_TELNET_SOCKET ].appstate );
-  // Reserve the first socket for TELNET now and keep it like that
-  uip_conn_mark_accept( ELUA_UIP_TELNET_SOCKET );
-  uip_unlisten( htons( ELUA_NET_TELNET_PORT ) );
-  uip_listen( htons( ELUA_NET_TELNET_PORT ) );
-  // Set TELNET buffer manually (avoid messing with interrupts and malloc calls)
-  s->buf = elua_uip_telnet_buffer;
-  s->buf_total = ELUA_UIP_TELNET_BUFFER_SIZE;
-#endif 
+  eluah_uip_prep_telnet_socket();
 }
 
 // Init application
@@ -466,9 +487,9 @@ void elua_net_init( void *pdata )
 }
 
 // Helper for forced closing sockets
-static void eluah_net_forced_close( struct elua_uip_state *pstate )
+static void eluah_net_forced_close( struct elua_uip_state *pstate, int keepbuf )
 {
-  if( pstate->buf )
+  if( pstate->buf && !keepbuf )
     free( pstate->buf );
   memset( pstate, 0, sizeof( *pstate ) );
 }
@@ -486,10 +507,10 @@ void elua_net_link_changed()
     elua_uip_configured = 0;
     // Clean all TCP sockets
     for( i = 0; i < UIP_CONNS; i ++ )
-      eluah_net_forced_close( ( struct elua_uip_state* )&( uip_conns[ i ].appstate ) );
+        eluah_net_forced_close( ( struct elua_uip_state* )&( uip_conns[ i ].appstate ), i == ELUA_UIP_TELNET_SOCKET );
     // And all UDP sockets
     for( i = 0; i < UIP_UDP_CONNS; i ++ )
-      eluah_net_forced_close( ( struct elua_uip_state* )&( uip_udp_conns[ i ].appstate ) );
+      eluah_net_forced_close( ( struct elua_uip_state* )&( uip_udp_conns[ i ].appstate ), 0 );
     // Call state changed callback if available
     if( elua_uip_state_cb )
       elua_uip_state_cb( ELUA_NET_STATE_DOWN );
@@ -913,6 +934,24 @@ int elua_net_close( int s )
   }
   pstate->split = ELUA_NET_NO_SPLIT;
   return pstate->res == ELUA_NET_ERR_OK ? 1 : 0;
+}
+
+// Close a telnet socket if it is active
+int elua_net_close_telnet_session()
+{
+#ifdef BUILD_CON_TCP
+  volatile struct elua_uip_state *pstate;
+  int s = ELUA_UIP_TELNET_SOCKET;
+
+  if( eluah_get_socket_state( &s, &pstate, 1 ) == -1 )
+    return 0;   
+  elua_prep_socket_state( pstate, NULL, 0, ELUA_NET_ERR_OK, ELUA_UIP_STATE_CLOSE );
+  platform_eth_force_interrupt();
+  while( pstate->state != ELUA_UIP_STATE_IDLE && elua_uip_configured );
+  return pstate->res == ELUA_NET_ERR_OK ? 1 : 0;
+#else // #ifdef BUILD_CON_TCP
+  return 0;
+#endif // #ifdef BUILD_CON_TCP
 }
 
 // Get last error on specific socket

@@ -32,7 +32,7 @@ static unsigned stdh_telnet_handle_input( char *buf, unsigned buflen )
   char *pdata = buf;
   unsigned datalen = buflen;
 
-  while( *pdata )
+  while( ( pdata < buf + buflen ) && datalen )
   {
     if( *pdata != TELNET_IAC_CHAR ) // regular char, skip it
       pdata ++;
@@ -121,8 +121,7 @@ static _ssize_t std_write( struct _reent *r, int fd, const void* vptr, size_t le
   }  
   
   // If socket not active, just ignore request
-  if( ( sock = elua_net_get_telnet_socket() ) == -1 )
-    return len;
+  while( ( sock = elua_net_get_telnet_socket() ) == -1 );
   
   // Send data, transforming '\n' to '\r\n' along the way
   crt = lastn = 0;

@@ -77,6 +77,7 @@ void elua_net_set_socket_callback( int s, p_elua_net_socket_cb callback );
 elua_net_ip elua_net_lookup( const char* hostname );
 int elua_net_get_last_err( int s );
 int elua_net_get_telnet_socket();
+int elua_net_close_telnet_session();
 elua_net_ip elua_net_get_config( int what );
 int elua_net_expect( int s, const u8 *str, unsigned len, unsigned timer_id, timer_data_type to_us );
 int elua_net_readto( int s, luaL_Buffer *b, const u8 *str, unsigned len, unsigned timer_id, timer_data_type to_us );

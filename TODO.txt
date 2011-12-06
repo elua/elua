@@ -1,7 +1,9 @@
 - the aborted/timedout/closed condition in elua_uip_appcall is called more than once for the same socket ? add logs and check
 - does the telnet socket need to be buffered? might be if there are clients that send data char by char (check Windows)
 - test telnet thoroughly
-- what happens with a TCP socket state when the connection is closed for whatever reason? are the buffers freed?
+- what happens with a TCP socket state when the connection is closed from the remote end for whatever reason? are the buffers freed?
+- check if calling the uIP mainloop at only 2Hz is the right thing to do; doesn't this violate uIP's internal timeout mechanism?
+- is uip_forced_poll used properly in uip.c ? what's the point of forced_poll anyway ? 
 - clean elua_uip.c after testing:
   - remove #ifdef/#define BUILD_CON_TCP at start of file
   - uncomment #ifndef in elua_uip_log

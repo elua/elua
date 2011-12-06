@@ -73,7 +73,7 @@ typedef unsigned short uip_stats_t;
 //
 // UDP Maximum Connections
 //
-#define UIP_CONF_UDP_CONNS          4
+#define UIP_CONF_UDP_CONNS          6
 
 //
 // Maximum number of TCP connections.
@@ -98,7 +98,8 @@ typedef unsigned short uip_stats_t;
 //
 // uIP buffer size.
 //
-#define UIP_CONF_BUFFER_SIZE        1024
+//#define UIP_CONF_BUFFER_SIZE        1024
+#define UIP_CONF_BUFFER_SIZE        ( 1500 )
 
 //
 // uIP statistics on or off
@@ -135,7 +136,7 @@ typedef unsigned short uip_stats_t;
 // Define the uIP Application State type (both TCP and UDP)
 //
 typedef struct elua_uip_state uip_tcp_appstate_t;
-typedef struct dhcpc_state uip_udp_appstate_t;
+typedef struct elua_uip_state uip_udp_appstate_t;
 
 //
 // UIP_APPCALL: the name of the application function. This function

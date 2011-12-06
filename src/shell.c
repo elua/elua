@@ -444,15 +444,11 @@ void shell_start()
     }
     // Check for 'exit' command
     if( pcmd->cmd && !pcmd->handler_func )
-#ifdef BUILD_UIP
-    {
-      if( ( i = elua_net_get_telnet_socket() ) != -1 )
-        elua_net_close( i );
-    }
+#ifdef BUILD_CON_TCP
+      elua_net_close_telnet_session();
 #else
       break;
 #endif
-
   }
   // Shell exit point
   if( shell_prog )
