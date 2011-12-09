@@ -11,7 +11,7 @@
 #include "i2c.h"
 
 
-// Since the LCD firmware currently only runs at up to 20kHz on the I2C bus,
+// The LCD firmware only runs at up to 50kHz on the I2C bus, so
 // we bracket all I2C packets to the LCD module with two functions
 // to be able to save, change and restore the I2C clock rate to what it was
 // before.
@@ -123,7 +123,7 @@ static int lcd_reset( lua_State *L )
 {
   // Initialise the display to a known state
   static const char reset[] = {
-    0	/* reset */
+    LCD_CMD_RESET
   };
 
   // Set the static variables
