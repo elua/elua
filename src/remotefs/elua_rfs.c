@@ -190,7 +190,7 @@ static void rfs_recv_cb( int sockno, const u8 *pdata, unsigned size, elua_net_ip
 static int rfs_lookup_server()
 {
   elua_net_ip ip;
-  u32 tmrstart = 0;
+  timer_data_type tmrstart = 0;
   int retries = 0;
   u8 discover_packet[ ELUARPC_START_OFFSET ];
 
@@ -229,7 +229,7 @@ static u32 rfs_send( const u8 *p, u32 size )
 static u32 rfs_recv( u8 *p, u32 size, timer_data_type timeout )
 {
   u32 readbytes = 0;
-  u32 tmrstart = 0;
+  timer_data_type tmrstart = 0;
 
   ( void )p;
   ( void )size;
