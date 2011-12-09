@@ -31,6 +31,8 @@ static timer_data_type rfsc_timeout;
 // ****************************************************************************
 // Client helpers
 
+#ifndef RFS_TRANSPORT_UDP
+
 static int rfsch_send_request_read_response()
 {
   u16 temp16;
@@ -72,6 +74,42 @@ static int rfsch_send_request_read_response()
   }
   return CLIENT_OK;
 }
+
+#else
+
+static int rfsch_send_request_read_response()
+{
+  u16 temp16;
+  u32 readbytes;
+
+  // Send request
+  if( eluarpc_get_packet_size( rfsc_buffer, &temp16 ) == ELUARPC_ERR )
+  {
+    RFSDEBUG( "[RFS] get packet size error\n" );
+    return CLIENT_ERR;
+  }
+  if( rfsc_send( rfsc_buffer, temp16 ) != temp16 )
+  {
+    RFSDEBUG( "[RFS] rfsc_send error\n" );
+    return CLIENT_ERR;
+  }
+  
+  // Get response
+  if( ( readbytes = rfsc_recv( rfsc_buffer, 1 << RFS_BUFFER_SIZE, rfsc_timeout ) ) < ELUARPC_START_OFFSET )
+  {
+    RFSDEBUG( "[RFS] rfsc_recv (1) error: expected %u, got %u\n", ( unsigned )( temp16 - ELUARPC_START_OFFSET ), ( unsigned )readbytes );
+    return CLIENT_ERR;
+  }
+  if( eluarpc_get_packet_size( rfsc_buffer, &temp16 ) == ELUARPC_ERR )
+  {
+    RFSDEBUG( "[RFS] eluarpc_get_packet_size() error\n" );
+    return CLIENT_ERR;
+  }
+ 
+  return CLIENT_OK;
+}
+
+#endif
 
 // ****************************************************************************
 // Client public interface

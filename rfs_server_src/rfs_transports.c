@@ -20,7 +20,6 @@
 // ****************************************************************************
 // Local variables
 
-
 u8 rfs_buffer[ MAX_PACKET_SIZE + ELUARPC_WRITE_REQUEST_EXTRA ];
 const RFS_TRANSPORT_DATA *p_transport_data; 
 
@@ -117,21 +116,14 @@ static NET_SOCKET trans_socket = INVALID_SOCKET_VALUE;
 static struct sockaddr_in trans_from;
 
 // Helper: read (blocking) the specified number of bytes
-
-static void udp_read_helper( u8 *dest, u32 size )
+static u32 udp_read_helper( u8 *dest, u32 size )
 {
   socklen_t fromlen;
   int readbytes;
 
-  while( size )
-  {
-    fromlen = sizeof( trans_from );
-    readbytes = net_recvfrom( trans_socket, ( char* )dest, size, 0, ( struct sockaddr* )&trans_from, &fromlen, NET_INF_TIMEOUT );
-    size -= readbytes;
-    if( size == 0 )
-      break;
-    dest += readbytes;
-  }
+  fromlen = sizeof( trans_from );
+  readbytes = net_recvfrom( trans_socket, ( char* )dest, size, 0, ( struct sockaddr* )&trans_from, &fromlen, NET_INF_TIMEOUT );
+  return readbytes;
 }
 
 static void udp_read_request_packet()
@@ -141,17 +133,29 @@ static void udp_read_request_packet()
   while( 1 )
   {
     // First read the length
-    udp_read_helper( rfs_buffer, ELUARPC_START_OFFSET );
+    if( ( temp16 = udp_read_helper( rfs_buffer, MAX_PACKET_SIZE ) ) < ELUARPC_START_OFFSET )
+    {
+      log_msg( "Got UDP data with invalid size, ignoring.\n" );
+      continue;
+    }
 
+    // 'the length' might actually be a discovery packet, check that first
+    if( eluarpc_is_discover_packet( rfs_buffer ) )
+    {
+      log_msg( "Got UDP discovery packet, sending back response.\n" );
+      temp16 = eluarpc_build_discover_response( rfs_buffer );
+      net_sendto( trans_socket, ( char* )rfs_buffer, temp16, 0, ( struct sockaddr* )&trans_from, sizeof( trans_from ) );
+      continue;
+    }
+
+    // Check for valid length
     if( eluarpc_get_packet_size( rfs_buffer, &temp16 ) == ELUARPC_ERR )
     {
       log_msg( "read_request_packet: ERROR getting packet size.\n" );
       continue;
     }
-
-    // Then the rest of the data
-    udp_read_helper( rfs_buffer + ELUARPC_START_OFFSET, temp16 - ELUARPC_START_OFFSET );
-    break;
+    else
+      break;
   }
 }
 
@@ -180,12 +184,12 @@ static int udp_server_init( unsigned server_port )
   length = sizeof( server );
   memset( &server, 0, sizeof( server ) );
   server.sin_family = AF_INET;
-  server.sin_addr.s_addr = INADDR_ANY;
   server.sin_port = htons( server_port );
+  server.sin_addr.s_addr = htonl( INADDR_ANY );  
   if( bind( net_socket( trans_socket ), ( struct sockaddr * )&server, length ) < 0 )
   {
-   log_err( "Unable to bind socket\n" );
-   return 0; 
+    log_err( "Unable to bind socket\n" );
+    return 0; 
   }
   log_msg( "Running RFS server on UDP port %u.\n", ( unsigned )server_port );
   return 1;    
@@ -345,21 +349,15 @@ static int parse_transport_and_init( const char* s )
     free( temps );    
     return tempi;
   }
-  else if( strstr( s, "udp:" ) == s )
+  else if( !strcmp( s, "udp" ) )
   {
     p_transport_data = &udp_transport_data;
-    s += strlen( "udp:" );
-    if( secure_atoi( s, &tempi ) == 0 )
-    {
-      log_err( "Invalid port number\n" );
-      return 0;
-    }    
     if( net_init() == 0 )
     { 
       log_err( "Unable to initialize network\n" );
       return 0;
     }
-    return udp_server_init( tempi );   
+    return udp_server_init( RFS_UDP_PORT );   
   }
   else if( !strcmp( s, "mem" ) )
   {
@@ -387,7 +385,7 @@ int rfs_init( int argc, const char **argv )
   {
     log_err( "Usage: %s <transport> <dirname> [-v]\n", argv[ 0 ] );
     log_err( "  Serial transport: 'ser:<sername>,<serspeed>,<flow> ('flow' defines the flow control and can be either 'none' or 'rtscts')\n" );
-    log_err( "  UDP transport: 'udp:<port>'\n" );
+    log_err( "  UDP transport: 'udp'\n" );
     log_err( "Use -v for verbose output.\n" );
     return 1;
   }

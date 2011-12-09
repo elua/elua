@@ -40,6 +40,9 @@
 // Max filename size on a RFS instance
 #define   RFS_MAX_FNAME_SIZE        31
 
+// RFS port (for UDP transport)
+#define   RFS_UDP_PORT              20666
+
 // Function: int open(const char *pathname,int flags, mode_t mode)
 void remotefs_open_write_response( u8 *p, int result );
 int remotefs_open_read_response( const u8 *p, int *presult );

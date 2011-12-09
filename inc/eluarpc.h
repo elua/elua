@@ -27,6 +27,10 @@
 #define   ELUARPC_READ_BUF_OFFSET ( ELUARPC_START_OFFSET + ELUARPC_START_SIZE + ELUARPC_RESPONSE_SIZE + ELUARPC_PTR_HEADER_SIZE )
 #define   ELUARPC_SMALL_READ_BUF_OFFSET ( ELUARPC_START_OFFSET + ELUARPC_START_SIZE + ELUARPC_RESPONSE_SIZE + ELUARPC_SMALL_PTR_HEADER_SIZE )
 #define   ELUARPC_WRITE_REQUEST_EXTRA ( ELUARPC_START_OFFSET + ELUARPC_START_SIZE + ELUARPC_OP_ID_SIZE + ELUARPC_U32_SIZE + ELUARPC_PTR_HEADER_SIZE + ELUARPC_END_SIZE )
+#define   ELUARPC_DISCOVER_SIZE   5
+// WARNING: DISCOVER_SIG must be ELUARPC_START_OFFSET - 1 bytes long!
+#define   ELUARPC_DISCOVER_SIG    "eRD"
+#define   ELUARPC_DISCOVER_RESP   "eSRV"
 
 // Public interface
 // Get request ID
@@ -37,6 +41,18 @@ u32 eluarpc_replace_flag( u32 val, u32 origflag, u32 newflag );
 
 // Get packet size
 int eluarpc_get_packet_size( const u8 *p, u16 *psize );
+
+// Create a discover packet and return its size
+int eluarpc_build_discover_packet( u8 *p );
+
+// Check if this is a discover packet
+int eluarpc_is_discover_packet( const u8 *p );
+
+// Create a discover response and return its size
+int eluarpc_build_discover_response( u8 *p );
+
+// Is this a discovery response packet?
+int eluarpc_is_discover_response_packet( const u8 *p );
 
 // Generic write function
 // Specifiers: o - operation

@@ -9,7 +9,10 @@
 #include "client.h"
 #include "sermux.h"
 #include "buf.h"
+#include "elua_net.h"
+#include "utils.h"
 #include <fcntl.h>
+#include <string.h>
 #ifdef ELUA_SIMULATOR
 #include "hostif.h"
 #endif
@@ -153,6 +156,118 @@ static u32 rfs_recv( u8 *p, u32 size, timer_data_type timeout )
 #endif
 
 // ****************************************************************************
+// UDP transport implementation
+
+#ifdef RFS_TRANSPORT_UDP
+static int rfs_socket = ELUA_NET_INVALID_SOCKET;
+static volatile elua_net_ip rfs_server_ip;
+static volatile u16 rfs_data_size;
+static p_elua_net_state_cb rfs_prev_state_cb;
+
+#define RFS_MAX_DISCOVERIES   3
+#define RFS_DISCOVERY_TO      40000
+
+// Receive callback (directly from the TCP stack)
+static void rfs_recv_cb( int sockno, const u8 *pdata, unsigned size, elua_net_ip ip, u16 port )
+{
+  if( rfs_socket == ELUA_NET_INVALID_SOCKET )
+    return;
+  ( void )sockno;
+  if( rfs_server_ip.ipaddr == 0 && size == ELUARPC_START_OFFSET && eluarpc_is_discover_response_packet( pdata ) ) // this is a response for the discovery request
+  {
+    rfs_server_ip.ipaddr = ip.ipaddr;
+    rfs_data_size = size;
+  }
+  else // regular data packet
+  {
+    rfs_data_size = UMIN( size, 1 << RFS_BUFFER_SIZE );
+    memcpy( rfs_buffer, pdata, rfs_data_size );
+  }
+}
+
+// Check if the client is initialized, send a request for the server
+// if it is not
+static int rfs_lookup_server()
+{
+  elua_net_ip ip;
+  u32 tmrstart = 0;
+  int retries = 0;
+  u8 discover_packet[ ELUARPC_START_OFFSET ];
+
+  if( rfs_socket == ELUA_NET_INVALID_SOCKET )
+    return 0;
+  if( rfs_server_ip.ipaddr != 0 )
+    return 1;
+  ip.ipaddr = 0xFFFFFFFF;
+  eluarpc_build_discover_packet( discover_packet );
+  while( rfs_server_ip.ipaddr == 0 && retries < RFS_MAX_DISCOVERIES )
+  {
+    elua_net_sendto( rfs_socket, discover_packet, ELUARPC_START_OFFSET, ip, RFS_UDP_PORT );
+    tmrstart = platform_timer_op( RFS_TIMER_ID, PLATFORM_TIMER_OP_START, 0 );
+    while( 1 )
+    {
+      if( rfs_data_size )
+        break;
+      if( platform_timer_get_diff_crt( RFS_TIMER_ID, tmrstart ) >= RFS_DISCOVERY_TO )
+        break;
+    }
+    rfs_data_size = 0;
+    retries ++;
+  }
+  return rfs_server_ip.ipaddr != 0;
+}
+
+static u32 rfs_send( const u8 *p, u32 size )
+{
+  if( rfs_socket == ELUA_NET_INVALID_SOCKET )
+    return 0;
+  if( !rfs_lookup_server() )
+    return 0;
+  return elua_net_sendto( rfs_socket, p, size, rfs_server_ip, RFS_UDP_PORT );
+}
+
+static u32 rfs_recv( u8 *p, u32 size, timer_data_type timeout )
+{
+  u32 readbytes = 0;
+  u32 tmrstart = 0;
+
+  ( void )p;
+  ( void )size;
+  if( rfs_socket == ELUA_NET_INVALID_SOCKET )
+    return 0;
+  if( rfs_server_ip.ipaddr == 0 ) // this shouldn't happen at all
+    return 0;
+  if( timeout > 0 )
+    tmrstart = platform_timer_op( RFS_TIMER_ID, PLATFORM_TIMER_OP_START, 0 );
+  while( 1 )
+  {
+    if( rfs_data_size )
+      break;
+    if( timeout == 0 || ( timeout != PLATFORM_TIMER_INF_TIMEOUT && platform_timer_get_diff_crt( RFS_TIMER_ID, tmrstart ) >= timeout ) )
+      break;
+  }
+  readbytes = rfs_data_size;
+  rfs_data_size = 0;
+  if( readbytes == 0 ) // server error, must search again
+    rfs_server_ip.ipaddr = 0;
+  return readbytes;
+}
+
+static void rfs_state_cb( int state )
+{
+  if( state == ELUA_NET_STATE_DOWN )
+    rfs_socket = ELUA_NET_INVALID_SOCKET;
+  else
+  {
+    if( ( rfs_socket = elua_net_socket( ELUA_NET_SOCK_DGRAM ) ) != ELUA_NET_INVALID_SOCKET )
+      elua_net_set_socket_callback( rfs_socket, rfs_recv_cb );
+  }
+  if( rfs_prev_state_cb )
+    rfs_prev_state_cb( state );
+}
+#endif
+
+// ****************************************************************************
 // Remote FS pipe transport functions (used only in simulator)
 
 #ifdef ELUA_CPU_LINUX
@@ -193,7 +308,7 @@ const DM_DEVICE *remotefs_init()
     hostif_putstr( "unable to open read/write pipes\n" );
     return NULL;
   }
-#elif RFS_UART_ID < SERMUX_SERVICE_ID_FIRST  // if RFS runs on a virtual UART, buffers are already set in common.c
+#elif defined( RFS_UART_ID ) && RFS_UART_ID < SERMUX_SERVICE_ID_FIRST  // if RFS runs on a virtual UART, buffers are already set in common.c
   // Initialize RFS UART
   platform_uart_setup( RFS_UART_ID, RFS_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
   platform_uart_set_flow_control( RFS_UART_ID, RFS_FLOW_TYPE );
@@ -202,6 +317,10 @@ const DM_DEVICE *remotefs_init()
     printf( "WARNING: unable to initialize RFS filesystem\n" );
     return NULL;
   } 
+#elif defined( RFS_TRANSPORT_UDP ) // goodie!
+  if( ( rfs_socket = elua_net_socket( ELUA_NET_SOCK_DGRAM ) ) != ELUA_NET_INVALID_SOCKET )
+    elua_net_set_socket_callback( rfs_socket, rfs_recv_cb );
+  rfs_prev_state_cb = elua_net_set_state_cb( rfs_state_cb );
 #endif
   rfsc_setup( rfs_buffer, rfs_send, rfs_recv, RFS_TIMEOUT );
   return &rfs_device;

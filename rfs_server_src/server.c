@@ -2,6 +2,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "server.h"
 #include "remotefs.h"
 #include "eluarpc.h"
@@ -226,13 +227,17 @@ void server_cleanup()
   free( server_basedir );
   server_basedir = NULL;
 }
+
 int server_execute_request( u8 *pdata )
 {
   u8 req;
   
   // Decode request
   if( eluarpc_get_request_id( pdata, &req ) == ELUARPC_ERR )
+  {
+    printf( "server_execute_request: invalid request ID!\n" );
     return SERVER_ERR;
+  }
   log_msg( "server_execute_request: got request with ID %d\n", req );
   if( req >= RFS_OP_FIRST && req <= RFS_OP_LAST ) 
     return server_handlers[ req - RFS_OP_FIRST ]( pdata );

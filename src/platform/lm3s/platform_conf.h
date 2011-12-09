@@ -42,6 +42,11 @@
 
 #define PLATFORM_HAS_SYSTIMER
 
+#define BUILD_RFS
+#define RFS_TRANSPORT_UDP
+#define RFS_BUFFER_SIZE       BUF_SIZE_512
+#define RFS_TIMEOUT           100000
+
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 
