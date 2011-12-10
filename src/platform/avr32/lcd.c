@@ -82,16 +82,10 @@ static u8 recv_generic( u8 address )
   return retval;
 }
 
-// Send a single command byte
+// Send a command byte
 static int send_command( const u8 command )
 {
   return send_generic( LCD_CMD, &command, 1 );
-}
-
-// Send multiple command bytes as one message
-static int send_commands( const u8 *commands, int len )
-{
-  return send_generic( LCD_CMD, commands, len );
 }
 
 // Send data bytes
@@ -133,16 +127,11 @@ static u8 display_is_off = 0;     // Have they called display("off")?
 // Ensure the display is in a known initial state
 static int lcd_reset( lua_State *L )
 {
-  // Initialise the display to a known state
-  static const u8 reset[] = {
-    LCD_CMD_RESET
-  };
-
   // Set the static variables
   cursor_type = DEFAULT_CURSOR_TYPE;
   display_is_off = 0;
 
-  return send_commands( reset, sizeof( reset ) );
+  return send_command( LCD_CMD_RESET );
 }
 
 // "Entry mode" function.
