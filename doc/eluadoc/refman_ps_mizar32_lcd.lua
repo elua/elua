@@ -11,7 +11,7 @@ data_en =
 
   -- Overview
   overview = [[This module contains functions to drive the two-line character LCD panel of the Mizar32 display module.</p>
-<p>Physically, the display has 16 characters per line but internally it has a 40 characters by two line memory. It displays 16 of those 40 columns at a time, with various ways to determine which of the 40 columns appear in the 16-column display. If you just want to display 16x2 characters, the $reset$, $goto$ and $print$ functions are enough to do this.]],
+<p>Physically, the display has 16 characters per line but internally it has a 40 character by two line memory. It displays 16 of those 40 columns at a time, with various ways to determine which of the 40 columns appear in the 16-column display. If you just want to display 16x2 characters, the $reset$, $goto$ and $print$ functions are enough to do this.]],
 
   -- Functions
   funcs = 
@@ -24,21 +24,21 @@ data_en =
       desc = "This can be used to set some of the stranger operating modes of the LCD display. Both parameters are optional and if you omit them, they default to $false$, which sets sensible mode.",
       args = 
       {
-        [[$display_shift$ - If $true$, then with each character you subsequently print, the cursor will move by one place in the character memory as usual but the display's contents will also move by one position horizontally so that the cursor remains in the same column of the physical display. This can be used to achieve "scrolling text" effects. Note, however, that when the cursor passes from column 40 to column 1 or vice versa, it flips over to the other row.]],
-        "$right_to_left$ - If $true$, text will be printed right-to-left: the cursor will move one position to the left in the character memory and, if display shifting is also enabled, the display will shift so as to keep the cursor in the same column on the screen."
+        [[$display_shift$ - If $true$, then with each character you subsequently print, the cursor will move by one place in the character memory as usual but the display's contents will also move by one position horizontally in the opposite direction so that the cursor remains in the same column of the physical display. This can be used to achieve "scrolling text" effects. Note, however, that when the cursor passes from column 40 to column 1 or vice versa, it flips over to the other row.]],
+        "$right_to_left$ - If $true$, text will be printed right-to-left: the cursor will move one position to the left in the character memory and, if display shifting is also enabled, the contents of the display will shift to the right so that the cursor stays in the same column on the screen."
       }
     },
 
     { sig = "#mizar32.lcd.clear#()",
-      desc = "Clears the display, move the cursor to the top left (position 1,1) and reset the display shift to show columns 1-16."
+      desc = "Clears the display, moves the cursor to the top left (position 1,1) and resets the display shift to show columns 1 to 16."
     },
 
     { sig = "#mizar32.lcd.home#()",
-      desc = "Moves the cursor to the top left (position 1,1) and reset the display shift."
+      desc = "Moves the cursor to the top left (position 1,1) and resets the display shift."
     },
 
     { sig = "#mizar32.lcd.goto#( row, column )",
-      desc = "Move the cursor to the specified row and column.",
+      desc = "Moves the cursor to the specified row and column.",
       args = 
       {
         "$row$ - A number (1 or 2) giving the row you want to move to.",
