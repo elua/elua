@@ -41,7 +41,7 @@ static void lcd_stop()
 
 // Send a command or data packet.
 // "address" is LCD_CMD for LCD commands, LCD_DATA for LCD data.
-static int send_generic( char address, const char *data, int len )
+static int send_generic( u8 address, const u8 *data, int len )
 {
   while ( len > 0 ) {
     int nbytes;    // number of bytes sent in this I2C packet
@@ -65,9 +65,9 @@ static int send_generic( char address, const char *data, int len )
 // "address" is LCD_GETPOS to read the cursor position,
 //              LCD_BUTTONS for to read the buttons.
 // The answer is always a single byte.
-static unsigned char recv_generic( char address )
+static u8 recv_generic( u8 address )
 {
-  unsigned char retval;
+  u8 retval;
 
   lcd_start();
   i2c_start_cond();
@@ -89,33 +89,33 @@ static unsigned char recv_generic( char address )
 }
 
 // Send a single command byte
-static int send_command( const char command )
+static int send_command( const u8 command )
 {
   return send_generic( LCD_CMD, &command, 1 );
 }
 
 // Send multiple command bytes as one message
-static int send_commands( const char *commands, int len )
+static int send_commands( const u8 *commands, int len )
 {
   return send_generic( LCD_CMD, commands, len );
 }
 
 // Send data bytes
 // This is used for printing data and for programming the user-defining chars
-static int send_data( const char *data, int len )
+static int send_data( const u8 *data, int len )
 {
   return send_generic( LCD_DATA, data, len );
 }
 
 // Return the current value of the address counter.
-static unsigned char recv_address_counter()
+static u8 recv_address_counter()
 {
   return recv_generic( LCD_GETPOS );
 }
 
 // Return the current state of the buttons, a bit mask in the bottom 5 bits
 // of a byte.
-static unsigned char recv_buttons()
+static u8 recv_buttons()
 {
   return recv_generic( LCD_BUTTONS );
 }
@@ -128,8 +128,8 @@ static unsigned char recv_buttons()
 // Power-on setting is no cursor
 #define DEFAULT_CURSOR_TYPE   LCD_CMD_CURSOR_NONE
 
-static char cursor_type = DEFAULT_CURSOR_TYPE;
-static char display_is_off = 0;     // Have they called display("off")?
+static u8 cursor_type = DEFAULT_CURSOR_TYPE;
+static u8 display_is_off = 0;     // Have they called display("off")?
 
 
 // *** Lua module functions begin... ***
@@ -140,7 +140,7 @@ static char display_is_off = 0;     // Have they called display("off")?
 static int lcd_reset( lua_State *L )
 {
   // Initialise the display to a known state
-  static const char reset[] = {
+  static const u8 reset[] = {
     LCD_CMD_RESET
   };
 
@@ -184,15 +184,15 @@ static int lcd_home( lua_State *L )
 // in the character memory.
 static int lcd_goto( lua_State *L )
 {
-  unsigned row = luaL_checkinteger( L, 1 );
-  unsigned col = luaL_checkinteger( L, 2 );
+  int row = luaL_checkinteger( L, 1 );
+  int col = luaL_checkinteger( L, 2 );
   unsigned address;
 
   if ( row < 1 || row > 2 || col < 1 || col > 40 )
     return luaL_error( L, "row/column must be 1-2 and 1-40" );
 
   address = ( row - 1 ) * 0x40 + ( col - 1 ) ;
-  return send_command( LCD_CMD_DDADDR + address );
+  return send_command( (u8) (LCD_CMD_DDADDR + address) );
 }
 
 // Lua: mizar32.disp.print( string )
@@ -211,7 +211,7 @@ static int lcd_print( lua_State *L )
     {
       case LUA_TNUMBER:
       {
-        char byte = luaL_checkint( L, argn );
+        u8 byte = luaL_checkint( L, argn );
         send_data( &byte, (size_t) 1 );
       }
       break;
@@ -220,7 +220,7 @@ static int lcd_print( lua_State *L )
       {
         size_t len;  // Number of chars in string
         const char *str = luaL_checklstring( L, argn, &len );
-        send_data( str, len );
+        send_data( (u8 *) str, len );
       }
       break;
 
@@ -240,7 +240,7 @@ static int lcd_print( lua_State *L )
 
 static int lcd_getpos( lua_State *L )
 {
-   unsigned char addr = recv_address_counter();
+   u8 addr = recv_address_counter();
    lua_pushinteger( L, (lua_Integer) ( (addr & 0x40) ? 2 : 1 ) );  // row
    lua_pushinteger( L, (lua_Integer) ( (addr & 0x3F) + 1 ) );      // column
    return 2;
@@ -252,7 +252,7 @@ static int lcd_getpos( lua_State *L )
 
 static int lcd_buttons( lua_State *L )
 {
-   unsigned char code;     // bit code for buttons held
+   u8 code;           // bit code for buttons held
    char string[6];         // Up to 5 buttons and a \0
    char *stringp = string; // Where to write the next character;
 
@@ -275,7 +275,7 @@ static int lcd_buttons( lua_State *L )
 // Helper function to set a cursor type if the display is on,
 // or to remember which cursor they asked for, to be able to set it
 // when they turn the display on.
-static int set_cursor( char command_byte )
+static int set_cursor( u8 command_byte )
 {
   cursor_type = command_byte;
 
@@ -341,7 +341,7 @@ static int lcd_definechar( lua_State *L ) {
   int code;        // The character code we are defining, 0-7
   size_t datalen;  // The number of elements in the glyph table
   size_t line;     // Which line of the char are we defining?
-  char data[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+  u8 data[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
   int old_address = recv_address_counter();
 
   // First parameter: glyph code to define
