@@ -195,7 +195,7 @@ static int lcd_print( lua_State *L )
       case LUA_TNUMBER:
       {
         u8 byte = luaL_checkint( L, argn );
-        send_data( &byte, (size_t) 1 );
+        send_data( &byte, 1 );
       }
       break;
 
@@ -325,7 +325,7 @@ static int lcd_definechar( lua_State *L ) {
   size_t datalen;  // The number of elements in the glyph table
   size_t line;     // Which line of the char are we defining?
   u8 data[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-  int old_address = recv_address_counter();
+  int old_address; // The coded value for the current cursor position
 
   // First parameter: glyph code to define
   code = luaL_checkint( L, 1 );
@@ -345,6 +345,8 @@ static int lcd_definechar( lua_State *L ) {
     lua_pop( L, 1 );
     data[line] = value;
   }
+
+  old_address = recv_address_counter();
 
   send_command( LCD_CMD_CGADDR + code * 8 );
   send_data( data, sizeof( data ) );
