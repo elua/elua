@@ -41,9 +41,9 @@ static void lcd_stop()
 
 // Send a command or data packet.
 // "address" is LCD_CMD for LCD commands, LCD_DATA for LCD data.
-static int send_generic(char address, const char *data, int len)
+static int send_generic( char address, const char *data, int len )
 {
-  while (len > 0) {
+  while ( len > 0 ) {
     int nbytes;    // number of bytes sent in this I2C packet
 
     lcd_start();
@@ -62,22 +62,22 @@ static int send_generic(char address, const char *data, int len)
 }
 
 // Send a single command byte
-static int send_command(const char command)
+static int send_command( const char command )
 {
-  return send_generic(LCD_CMD, &command, 1);
+  return send_generic( LCD_CMD, &command, 1 );
 }
 
 // Send multiple command bytes as one message
-static int send_commands(const char *commands, int len)
+static int send_commands( const char *commands, int len )
 {
-  return send_generic(LCD_CMD, commands, len);
+  return send_generic( LCD_CMD, commands, len );
 }
 
 // Send data bytes
 // This is used for printing data and for programming the user-defining chars
-static int send_data(const char *data, int len)
+static int send_data( const char *data, int len )
 {
-  return send_generic(LCD_DATA, data, len);
+  return send_generic( LCD_DATA, data, len );
 }
 
 
@@ -152,7 +152,7 @@ static int lcd_setup( lua_State *L )
 #endif
 
   return send_command( LCD_CMD_ENTRYMODE + shift_display +
-                       (!right_to_left) * 2 );
+                       ( ! right_to_left ) * 2 );
 }
 
 // Lua: mizar32.disp.clear()
@@ -167,7 +167,7 @@ static int lcd_clear( lua_State *L )
 
 // Lua: mizar32.disp.home()
 // Reset the display's shiftedness and put the cursor at 1,1
-static int lcd_home(lua_State *L)
+static int lcd_home( lua_State *L )
 {
 #ifdef KEEP_CURSOR_POSITION
   current_row = current_column = 0;
@@ -178,7 +178,7 @@ static int lcd_home(lua_State *L)
 // Lua: mizar32.disp.goto( row, col )
 // Move the cursor to the specified row (1 or 2) and column (1-40)
 // in the character memory.
-static int lcd_goto(lua_State *L)
+static int lcd_goto( lua_State *L )
 {
   unsigned row = luaL_checkinteger( L, 1 );
   unsigned col = luaL_checkinteger( L, 2 );
@@ -203,33 +203,33 @@ static int lcd_goto(lua_State *L)
 #ifdef KEEP_CURSOR_POSITION
 // Adjust current cursor position by N printed characters.
 // Written for shortest code.
-static void current_print(int n)
+static void current_print( int n )
 {
   current_column += current_direction * n;
-  if (current_column < 0 || current_column >= 40) {
+  if ( current_column < 0 || current_column >= 40 ) {
     current_row = ! current_row;
     current_column -= 40 * current_direction;
   }
 }
 #endif
 
-static int lcd_print(lua_State *L)
+static int lcd_print( lua_State *L )
 {
   unsigned argc = lua_gettop( L );  // Number of parameters supplied
   int argn;
   
   for ( argn = 1; argn <= argc; argn ++ )
   {
-    switch (lua_type( L, argn ) )
+    switch ( lua_type( L, argn ) )
     {
       case LUA_TNUMBER:
       {
         char byte = luaL_checkint( L, argn );
 
 #ifdef KEEP_CURSOR_POSITION
-        current_print(1);
+        current_print( 1 );
 #endif
-        send_data(&byte, (size_t) 1);
+        send_data( &byte, (size_t) 1 );
       }
       break;
 
@@ -239,9 +239,9 @@ static int lcd_print(lua_State *L)
         const char *str = luaL_checklstring( L, argn, &len );
 
 #ifdef KEEP_CURSOR_POSITION
-        current_print(len);
+        current_print( len );
 #endif
-        send_data(str, len);
+        send_data( str, len );
       }
       break;
 
@@ -263,7 +263,7 @@ static int set_cursor( char command_byte )
   cursor_type = command_byte;
 
   // Setting cursor type always turns the display on
-  if (display_is_off)
+  if ( display_is_off )
     return 0;
   else
     return send_command( cursor_type );
@@ -287,7 +287,7 @@ static int lcd_cursor( lua_State *L )
 
   case 3: 
 #ifdef KEEP_CURSOR_POSITION
-    if (--current_column < 0) {
+    if ( --current_column < 0 ) {
       current_row = !current_row;
       current_column = 39;
     }
@@ -296,7 +296,7 @@ static int lcd_cursor( lua_State *L )
 
   case 4:
 #ifdef KEEP_CURSOR_POSITION
-    if (++current_column >= 40) {
+    if ( ++current_column >= 40 ) {
       current_row = !current_row;
       current_column = 0;
     }
@@ -343,13 +343,13 @@ static int lcd_definechar( lua_State *L ) {
   // First parameter: glyph code to define
   code = luaL_checkint( L, 1 );
   if( code < 0 || code > 7 )
-    return luaL_error( L, "user-defined characters have codes 0-7");
+    return luaL_error( L, "user-defined characters have codes 0-7" );
 
   // Second parameter: table of integer values to define the glyph
   luaL_checktype( L, 2, LUA_TTABLE );
   datalen = lua_objlen( L, 2 );
   // Check all parameters before starting the I2C command.
-  if( datalen >= 8) datalen = 8;            // Ignore extra parameters
+  if( datalen >= 8 ) datalen = 8;            // Ignore extra parameters
   for( line = 0; line < datalen; line ++ )
   {
     int value;
@@ -360,7 +360,7 @@ static int lcd_definechar( lua_State *L ) {
   }
 
   send_command( LCD_CMD_CGADDR + code * 8 );
-  send_data( data, sizeof(data) );
+  send_data( data, sizeof( data ) );
 
 #ifdef KEEP_CURSOR_POSITION
   // Move back to where we were
