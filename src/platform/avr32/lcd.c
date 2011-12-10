@@ -132,27 +132,6 @@ static char cursor_type = DEFAULT_CURSOR_TYPE;
 static char display_is_off = 0;     // Have they called display("off")?
 
 
-// Should we try to maintain the current cursor position across a definechar()?
-// Unfortunately we can't read the current cursor position, and definechar()
-// destroys it. The LCD controller does have a read-cursor-position primitive
-// but the current PIC firmware doesn't pass this on as an I2C read
-// so we have to track the cursor position. Yuk.
-// The only relief is that we don't have to track the display scrolling.
-// Adds 284 bytes of code to the executable.
-//
-// If, one day, we can read the LCD cursor position through the PIC firmware
-// we can remove all this stuff.
-#define KEEP_CURSOR_POSITION 1
-
-#ifdef KEEP_CURSOR_POSITION
-// Where is the cursor in the character memory?  Required ONLY to be able to
-// restore the cursor position when they define a character :-/
-static int current_row = 0;        // 0 or 1
-static int current_column = 0;     // 0-39 (though it over- and underflows)
-static int current_direction = 1;  // left-to-right. -1 is right-to-left
-#endif
-
-
 // *** Lua module functions begin... ***
 
 
@@ -168,10 +147,6 @@ static int lcd_reset( lua_State *L )
   // Set the static variables
   cursor_type = DEFAULT_CURSOR_TYPE;
   display_is_off = 0;
-#ifdef KEEP_CURSOR_POSITION
-  current_row = current_column = 0;
-  current_direction = 1;
-#endif
 
   return send_commands( reset, sizeof( reset ) );
 }
@@ -186,10 +161,6 @@ static int lcd_setup( lua_State *L )
   unsigned shift_display = lua_toboolean( L, 1 );  // Default: move cursor
   unsigned right_to_left = lua_toboolean( L, 2 );  // Default: print left-to-right
 
-#ifdef KEEP_CURSOR_POSITION
-  current_direction = right_to_left ? -1 : 1;
-#endif
-
   return send_command( LCD_CMD_ENTRYMODE + shift_display +
                        ( ! right_to_left ) * 2 );
 }
@@ -198,9 +169,6 @@ static int lcd_setup( lua_State *L )
 // Clear the display, reset its shiftedness and put the cursor at 1,1
 static int lcd_clear( lua_State *L )
 {
-#ifdef KEEP_CURSOR_POSITION
-  current_row = current_column = 0;
-#endif
   return send_command( LCD_CMD_CLEAR );
 }
 
@@ -208,9 +176,6 @@ static int lcd_clear( lua_State *L )
 // Reset the display's shiftedness and put the cursor at 1,1
 static int lcd_home( lua_State *L )
 {
-#ifdef KEEP_CURSOR_POSITION
-  current_row = current_column = 0;
-#endif
   return send_command( LCD_CMD_HOME );
 }
 
@@ -226,10 +191,6 @@ static int lcd_goto( lua_State *L )
   if ( row < 1 || row > 2 || col < 1 || col > 40 )
     return luaL_error( L, "row/column must be 1-2 and 1-40" );
 
-#ifdef KEEP_CURSOR_POSITION
-  current_row = row - 1;
-  current_column = col - 1;
-#endif
   address = ( row - 1 ) * 0x40 + ( col - 1 ) ;
   return send_command( LCD_CMD_DDADDR + address );
 }
@@ -238,19 +199,6 @@ static int lcd_goto( lua_State *L )
 // Send data bytes to the LCD module.
 // Usually this will be a string of text or a list of character codes.
 // If they pass us integer values <0 or >255, we just use the bottom 8 bits.
-
-#ifdef KEEP_CURSOR_POSITION
-// Adjust current cursor position by N printed characters.
-// Written for shortest code.
-static void current_print( int n )
-{
-  current_column += current_direction * n;
-  if ( current_column < 0 || current_column >= 40 ) {
-    current_row = ! current_row;
-    current_column -= 40 * current_direction;
-  }
-}
-#endif
 
 static int lcd_print( lua_State *L )
 {
@@ -264,10 +212,6 @@ static int lcd_print( lua_State *L )
       case LUA_TNUMBER:
       {
         char byte = luaL_checkint( L, argn );
-
-#ifdef KEEP_CURSOR_POSITION
-        current_print( 1 );
-#endif
         send_data( &byte, (size_t) 1 );
       }
       break;
@@ -276,10 +220,6 @@ static int lcd_print( lua_State *L )
       {
         size_t len;  // Number of chars in string
         const char *str = luaL_checklstring( L, argn, &len );
-
-#ifdef KEEP_CURSOR_POSITION
-        current_print( len );
-#endif
         send_data( str, len );
       }
       break;
@@ -297,8 +237,6 @@ static int lcd_print( lua_State *L )
 //   0x00-0x0F for the first line of DDRAM (presumably 0..39 really),
 //   0x40-0x4F for the second line of DDRAM (presumably 64..(64+39) really)
 // The top bit (128) is the "Busy Flag", which should always be 0.
-// What value is returned by the LCD panel if we are writing into the CGRAM?
-// The old value of the DDRAM address?
 
 static int lcd_getpos( lua_State *L )
 {
@@ -365,21 +303,9 @@ static int lcd_cursor( lua_State *L )
     return set_cursor( LCD_CMD_CURSOR_LINE );
 
   case 3: 
-#ifdef KEEP_CURSOR_POSITION
-    if ( --current_column < 0 ) {
-      current_row = !current_row;
-      current_column = 39;
-    }
-#endif
     return send_command( LCD_CMD_SHIFT_CURSOR_LEFT );
 
   case 4:
-#ifdef KEEP_CURSOR_POSITION
-    if ( ++current_column >= 40 ) {
-      current_row = !current_row;
-      current_column = 0;
-    }
-#endif
     return send_command( LCD_CMD_SHIFT_CURSOR_RIGHT );
 
   default: return luaL_argerror( L, 1, NULL );
@@ -409,15 +335,14 @@ static int lcd_display( lua_State *L )
 // glyph: a table of up to 8 numbers with values 0-31.
 //        If less than 8 are supplied, the bottom rows are blanked.
 //        If more than 8 are supplied, the extra are ignored.
+// The current cursor position in the character display RAM is preserved.
 
 static int lcd_definechar( lua_State *L ) {
   int code;        // The character code we are defining, 0-7
   size_t datalen;  // The number of elements in the glyph table
   size_t line;     // Which line of the char are we defining?
   char data[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-#ifdef KEEP_CURSOR_POSITION
-  int old_column = current_column, old_row = current_row;
-#endif
+  int old_address = recv_address_counter();
 
   // First parameter: glyph code to define
   code = luaL_checkint( L, 1 );
@@ -441,15 +366,8 @@ static int lcd_definechar( lua_State *L ) {
   send_command( LCD_CMD_CGADDR + code * 8 );
   send_data( data, sizeof( data ) );
 
-#ifdef KEEP_CURSOR_POSITION
   // Move back to where we were
-  current_row = old_row; current_column = old_column;
-  return send_command( LCD_CMD_DDADDR + current_row * 0x40 + current_column );
-#else
-  // Sadly, we cannot save and restore the current cursor position
-  // so return to the home position.
-  return send_command( LCD_CMD_DDADDR );
-#endif
+  return send_command( LCD_CMD_DDADDR + old_address );
 }
 
 #define MIN_OPT_LEVEL 2
