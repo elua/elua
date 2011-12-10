@@ -1,4 +1,4 @@
--- eLaa reference manual - platform data
+-- eLua reference manual - platform data
 
 data_en = 
 {
@@ -46,6 +46,15 @@ data_en =
       }
     },
 
+    { sig = "#row, column = mizar32.lcd.getpos#()",
+      desc = "Returns the current cursor position.",
+      ret = 
+      {
+        "$row$ - A number (1 or 2) giving the current row.",
+        "$column$ - A number (1 to 40) giving the current column in the character memory."
+      }
+    },
+
     { sig = "#mizar32.lcd.print#( [data1] [, data2] ... [datan] )",
       desc = "Writes into the LCD character memory starting at the current cursor position. The cursor will advance by one position for each character printed. When it goes past column 40, it moves to column 1 of the other line, (and vice versa when printing right-to-left).",
       args = 
@@ -80,6 +89,14 @@ data_en =
       {
         "$code$ - A number (0 to 7) saying which of the characters you wish to redefine.",
         "$glyph$ - A table of up to eight numbers giving the bit-patterns for the eight rows of the character, in order from top to bottom. Each of these number is a value from 0 to 31, to define which of the 5 bits in the row should be black. The pixels' values from left to right are 16, 8, 4, 2 and 1. For example, { 1, 3, 7, 15, 31, 15, 7, 3, 1, 0 } would define a left-pointing solid triangle in the top 7 rows. Extra rows are ignored, and missing rows are blanked."
+      }
+    },
+
+    { sig = "#buttons = mizar32.lcd.buttons#()",
+      desc = "Tells which of the five user buttons are currently pressed.",
+      ret = 
+      {
+        "$buttons$ - A string containing up to five of the characters $L$, $R$, $U$, $D$ and $S$ to say whether the Left, Right, Up, Down and Select buttons are currently held down. If none are pressed, an empty string is returned. The hardare allows Select to be detected reliably and up to two of the other four: if three of Left, Right, Up and Down are being held, all four are returned."
       }
     },
   },

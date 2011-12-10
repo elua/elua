@@ -61,6 +61,33 @@ static int send_generic( char address, const char *data, int len )
   return 0;
 }
 
+// Send an I2C read-data command and return the answer.
+// "address" is LCD_GETPOS to read the cursor position,
+//              LCD_BUTTONS for to read the buttons.
+// The answer is always a single byte.
+static unsigned char recv_generic( char address )
+{
+  unsigned char retval;
+
+  lcd_start();
+  i2c_start_cond();
+
+  // Send the slave address.
+  if ( i2c_write_byte( address ) == 0 )
+    // NAK the single byte to signal end of transfer
+    retval = i2c_read_byte( TRUE );
+  else 
+    // The address was not acknowledged, so no slave is present.
+    // There is no way to signal this to the Lua layer, so return a
+    // harmless value (meaning no buttons pressed or cursor at (1,1)).
+    retval = 0;
+
+  i2c_stop_cond();
+  lcd_stop();
+
+  return retval;
+}
+
 // Send a single command byte
 static int send_command( const char command )
 {
@@ -80,14 +107,23 @@ static int send_data( const char *data, int len )
   return send_generic( LCD_DATA, data, len );
 }
 
+// Return the current value of the address counter.
+static unsigned char recv_address_counter()
+{
+  return recv_generic( LCD_GETPOS );
+}
 
-// *** Lua module functions begin... ***
-
+// Return the current state of the buttons, a bit mask in the bottom 5 bits
+// of a byte.
+static unsigned char recv_buttons()
+{
+  return recv_generic( LCD_BUTTONS );
+}
 
 // Turning the display on can only be achieved by simultaneously specifying the
 // cursor type, so we have to remember what type of cursor they last set.
 // Similarly, if they have turned the display off then set the cursor, this
-// shouldn-t turn the display on.
+// shouldn't turn the display on.
 
 // Power-on setting is no cursor
 #define DEFAULT_CURSOR_TYPE   LCD_CMD_CURSOR_NONE
@@ -99,8 +135,8 @@ static char display_is_off = 0;     // Have they called display("off")?
 // Should we try to maintain the current cursor position across a definechar()?
 // Unfortunately we can't read the current cursor position, and definechar()
 // destroys it. The LCD controller does have a read-cursor-position primitive
-// but the current PIC firmware doesn't pass this on as an I2C read.2
-// So we have to track the cursor position. Yuk.
+// but the current PIC firmware doesn't pass this on as an I2C read
+// so we have to track the cursor position. Yuk.
 // The only relief is that we don't have to track the display scrolling.
 // Adds 284 bytes of code to the executable.
 //
@@ -115,6 +151,9 @@ static int current_row = 0;        // 0 or 1
 static int current_column = 0;     // 0-39 (though it over- and underflows)
 static int current_direction = 1;  // left-to-right. -1 is right-to-left
 #endif
+
+
+// *** Lua module functions begin... ***
 
 
 // Lua: mizar32.disp.reset()
@@ -250,6 +289,46 @@ static int lcd_print( lua_State *L )
     }
   }
   return 0;
+}
+
+// Return the cursor position as row and column in the ranges 1-2 and 1-40
+// The bottom 7-bits of addr are the contents of the address counter.
+// The Ampire datasheet says:
+//   0x00-0x0F for the first line of DDRAM (presumably 0..39 really),
+//   0x40-0x4F for the second line of DDRAM (presumably 64..(64+39) really)
+// The top bit (128) is the "Busy Flag", which should always be 0.
+// What value is returned by the LCD panel if we are writing into the CGRAM?
+// The old value of the DDRAM address?
+
+static int lcd_getpos( lua_State *L )
+{
+   unsigned char addr = recv_address_counter();
+   lua_pushinteger( L, (lua_Integer) ( (addr & 0x40) ? 2 : 1 ) );  // row
+   lua_pushinteger( L, (lua_Integer) ( (addr & 0x3F) + 1 ) );      // column
+   return 2;
+}
+
+// Return the current state of the pressed buttons as a string containing
+// a selection of the letters S, L, R, U, D or an empty string if none are
+// currently held down.
+
+static int lcd_buttons( lua_State *L )
+{
+   unsigned char code;     // bit code for buttons held
+   char string[6];         // Up to 5 buttons and a \0
+   char *stringp = string; // Where to write the next character;
+
+   code = recv_buttons();
+   if( code & LCD_BUTTON_SELECT ) *stringp++ = 'S';
+   if( code & LCD_BUTTON_LEFT   ) *stringp++ = 'L';
+   if( code & LCD_BUTTON_RIGHT  ) *stringp++ = 'R';
+   if( code & LCD_BUTTON_UP     ) *stringp++ = 'U';
+   if( code & LCD_BUTTON_DOWN   ) *stringp++ = 'D';
+   *stringp = '\0';
+
+   lua_pushstring( L, string );
+
+   return 1;
 }
 
 
@@ -388,5 +467,7 @@ const LUA_REG_TYPE lcd_map[] =
   { LSTRKEY( "definechar" ), LFUNCVAL( lcd_definechar ) },
   { LSTRKEY( "cursor" ),     LFUNCVAL( lcd_cursor ) },
   { LSTRKEY( "display" ),    LFUNCVAL( lcd_display ) },
+  { LSTRKEY( "getpos" ),     LFUNCVAL( lcd_getpos ) } ,
+  { LSTRKEY( "buttons" ),    LFUNCVAL( lcd_buttons ) } ,
   { LNILKEY, LNILVAL }
 };
