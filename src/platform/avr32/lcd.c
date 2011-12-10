@@ -43,21 +43,15 @@ static void lcd_stop()
 // "address" is LCD_CMD for LCD commands, LCD_DATA for LCD data.
 static int send_generic( u8 address, const u8 *data, int len )
 {
+  lcd_start();
+  i2c_start_cond();
+  i2c_write_byte( address );
   while ( len > 0 ) {
-    int nbytes;    // number of bytes sent in this I2C packet
-
-    lcd_start();
-    i2c_start_cond();
-    i2c_write_byte( address );
-    // Mizar32 LCD module has a maximum of 31 bytes per data packet
-    nbytes = 0;
-    while ( len > 0 && nbytes < 31 ) {
-      i2c_write_byte( *data++ );
-      nbytes++; len--;
-    }
-    i2c_stop_cond();
-    lcd_stop();
+    i2c_write_byte( *data++ );
+    len--;
   }
+  i2c_stop_cond();
+  lcd_stop();
   return 0;
 }
 
