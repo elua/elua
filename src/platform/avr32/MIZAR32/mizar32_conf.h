@@ -121,7 +121,6 @@
 #define LUA_PLATFORM_LIBS_ROM\
   _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
   _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
-  _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
 
 #else
 
