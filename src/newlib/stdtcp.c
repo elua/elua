@@ -30,9 +30,9 @@ static unsigned stdh_telnet_handle_input( char *buf, unsigned buflen )
 {
   int skip;
   char *pdata = buf;
-  unsigned datalen = buflen;
+  int datalen = buflen;
 
-  while( ( pdata < buf + buflen ) && datalen )
+  while( ( pdata < buf + buflen ) && datalen > 0 )
   {
     if( *pdata != TELNET_IAC_CHAR ) // regular char, skip it
       pdata ++;
@@ -52,6 +52,8 @@ static unsigned stdh_telnet_handle_input( char *buf, unsigned buflen )
       }
       else if( pdata[ 1 ] == TELNET_EOF ) // replace with EOF, remove one char from input
         *pdata ++ = STD_CTRLZ_CODE;
+      else // assume that next character must be consumed anyway
+        skip = 2;
       datalen -= skip;
       memmove( pdata, pdata + skip, datalen - ( pdata - buf ) );
     }

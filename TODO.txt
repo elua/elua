@@ -1,9 +1,13 @@
-- the aborted/timedout/closed condition in elua_uip_appcall is called more than once for the same socket ? add logs and check
+x the aborted/timedout/closed condition in elua_uip_appcall is called more than once for the same socket ? add logs and check
+  x this seems to be a problem with PuTTY only, Windows and Linux 'telnet' commands do not exhibit this behaviour
 - does the telnet socket need to be buffered? might be if there are clients that send data char by char (check Windows)
 - test telnet thoroughly
 - what happens with a TCP socket state when the connection is closed from the remote end for whatever reason? are the buffers freed?
 - check if calling the uIP mainloop at only 2Hz is the right thing to do; doesn't this violate uIP's internal timeout mechanism?
 - is uip_forced_poll used properly in uip.c ? what's the point of forced_poll anyway ? 
+- add per socket callbacks for remote close events (and maybe other error conditions)
+- add C/Lua interrupts for different socket events: data received, socket closed, network link up/down ...
+- the socket without buffers OR callback should probably be completely removed; the Lua side will only be able to create sockets with buffers?
 - clean elua_uip.c after testing:
   - remove #ifdef/#define BUILD_CON_TCP at start of file
   - uncomment #ifndef in elua_uip_log

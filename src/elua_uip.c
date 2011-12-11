@@ -33,7 +33,6 @@ static p_elua_net_state_cb elua_uip_state_cb;
 
 #define TCPIP_LOG_BUFSIZE     80
 #ifdef TCPIP_LOGS
-const char *elua_uip_log_header = "[elua_uip] ";
 
 static void elua_uip_log( const char *fmt, ... )
 {
@@ -41,15 +40,12 @@ static void elua_uip_log( const char *fmt, ... )
 
   va_start( ap, fmt );
 #ifndef BUILD_CON_TCP
-  printf( elua_uip_log_header );
   vprintf( fmt, ap );
 #else // #ifndef BUILD_CON_TCP
   unsigned i;
   char dstr[ TCPIP_LOG_BUFSIZE + 1 ];
 
   vsnprintf( dstr, TCPIP_LOG_BUFSIZE, fmt, ap );
-  for( i = 0; i < strlen( elua_uip_log_header ); i ++ )
-    platform_uart_send( CON_UART_ID, elua_uip_log_header[ i ] );
   for( i = 0; i < strlen( dstr ); i ++ )
   {
     if( dstr[ i ] == '\n' )
