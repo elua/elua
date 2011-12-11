@@ -15,7 +15,7 @@ data_en =
   timers with a single exception: you can't set the clock of a virtual timer (using @#tmr.setclock@tmr.setclock@). To use virtual timers with this
   module, specify $tmr.VIRTx$ as the timer ID instead of a number. For example, if the eLua image was configured to support 4 virtual timers, they will
   be available by using $tmr.VIRT0$ to $tmr.VIRT3$ as timer IDs. The @arch_platform_timers.html#the_system_timer@system timer@ can also be used with
-  any of these functions by ommiting the timer ID or specifying it as $tmr.SYS_TIMER$.</p>
+  any of these functions by omitting the timer ID or specifying it as $tmr.SYS_TIMER$.</p>
   <p>All "time units" (delays, differences in time) in this module, as well as in other parts of eLua (timeouts) are expressed in microseconds. However,
   please keep in mind that the actual timer resolution depends on many factors. For example, it's very likely that the @#tmr.delay@tmr.delay@ function won't
   be able to delay for the exact amount you specify (in us), as the real delay depends on a number of variables, most notably the base clock of the timer 
