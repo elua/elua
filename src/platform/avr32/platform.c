@@ -493,7 +493,7 @@ int platform_s_uart_set_flow_control( unsigned id, int type )
 // Timer functions
 
 static const u16 clkdivs[] = { 0xFFFF, 2, 8, 32, 128 };
-u8 avr32_timer_int_periodic_flag[ 3 ];
+u8 avr32_timer_int_periodic_flag[ TC_NUMBER_OF_CHANNELS ];
 
 // Helper: get timer clock
 static u32 platform_timer_get_clock( unsigned id )
