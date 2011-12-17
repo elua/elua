@@ -112,6 +112,9 @@ int ser_setup( ser_handler id, u32 baud, int databits, int parity, int stopbits,
   termdata.c_iflag &= ~( IXON | IXOFF | IXANY );
   termdata.c_iflag |= IGNBRK;
 
+  // Disable input processing
+  termdata.c_iflag &= ~( INLCR | ICRNL | IGNCR );
+
   // Raw input
   termdata.c_lflag &= ~( ICANON | ECHO | ECHOE | ISIG );
 
