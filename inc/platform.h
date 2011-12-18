@@ -315,7 +315,17 @@ u32 platform_eth_get_elapsed_time();
 void platform_usb_cdc_send( u8 data );
 int platform_usb_cdc_recv( s32 timeout );
 
+//******************************************************************************
+// Quadrature encoder platform interface
 
+void platform_qei_init( u8 enc_id, u8 phase, u8 swap, u8 index, u32 max_count );
+void platform_qei_vel_init( u8 enc_id, u32 vel_period );
+void platform_qei_enable( u8 enc_id );
+void platform_qei_disable( u8 enc_id );
+u32 platform_qei_get_sys_clk();
+u32 platform_qei_getPulses( u8 enc_id );
+u32 platform_qei_getPosition( u8 enc_id );
+long platform_qei_getDirection( u8 enc_id );
 
 // *****************************************************************************
 // Allocator support

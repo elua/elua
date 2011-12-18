@@ -12,6 +12,7 @@
 #include "uip_arp.h"
 #include "elua_uip.h"
 #include "elua_adc.h"
+#include "elua_qei.h"
 #include "uip-conf.h"
 #include "platform_conf.h"
 #include "common.h"
@@ -38,6 +39,7 @@
 #include "driverlib/systick.h"
 #include "driverlib/flash.h"
 #include "driverlib/interrupt.h"
+#include "driverlib/qei.h"
 #include "elua_net.h"
 #include "dhcpc.h"
 #include "buf.h"
@@ -91,6 +93,7 @@ static void eth_init();
 static void adcs_init();
 static void cans_init();
 static void usb_init();
+static void qei_init();
 
 int platform_init()
 {
@@ -129,6 +132,11 @@ int platform_init()
 #ifdef BUILD_USB_CDC
   // Setup USB
   usb_init();
+#endif
+
+#ifdef BUILD_QEI
+  // Setup QEI
+  qei_init();
 #endif
 
   // Setup system timer
@@ -1307,6 +1315,108 @@ ControlHandler(void *pvCBData, unsigned long ulEvent, unsigned long ulMsgValue,
 }
 
 #endif // BUILD_USB_CDC
+
+// *********************************************************************
+// Support for Quadrature Encoder Interface (QEI)
+// FIXME: Tested on the lm3s8962 only
+#ifdef BUILD_QEI
+
+static u32 qei_base[] = { 0x00, QEI0_BASE, QEI1_BASE, 0x00 };
+static u32 qei_capture[] = { QEI_CONFIG_CAPTURE_A, QEI_CONFIG_CAPTURE_A_B };
+static u32 qei_index[] = { QEI_CONFIG_NO_RESET, QEI_CONFIG_RESET_IDX };
+static u32 qei_swap[] = { QEI_CONFIG_NO_SWAP, QEI_CONFIG_SWAP };
+
+static void qei_init()
+{
+    MAP_GPIOPinTypeQEI( GPIO_PORTC_BASE, GPIO_PIN_4 );  //CH0_PHA
+    MAP_GPIOPinTypeQEI( GPIO_PORTE_BASE, GPIO_PIN_3 );  //CH1_PHA
+    MAP_GPIOPinTypeQEI( GPIO_PORTC_BASE, GPIO_PIN_6 );  //CH0_PHB
+    MAP_GPIOPinTypeQEI( GPIO_PORTE_BASE, GPIO_PIN_2 );  //CH1_PHB
+    MAP_SysCtlPeripheralEnable( SYSCTL_PERIPH_QEI0 );
+    MAP_SysCtlPeripheralEnable( SYSCTL_PERIPH_QEI1 );
+}
+
+void platform_qei_init( u8 enc_id, u8 phase, u8 swap, u8 index, u32 max_count )
+{
+    /* -Configure each QE channel (0 or 1) to use either phase A or both A & B. 
+     * -LM3S8962 RevA2 Errata states that software cannot be relied upon
+     *  to disable the index pulse using QEI_CONFIG_NO_RESET. They 
+     *  suggest you do not connect the index pulse if not needed. */
+    if( (enc_id & ELUA_QEI_CH0) == ELUA_QEI_CH0 )
+    {
+        MAP_QEIConfigure( QEI0_BASE, (qei_capture[ phase ] 
+        | QEI_CONFIG_QUADRATURE | qei_swap[ swap ] | qei_index[ index ]),
+        max_count);
+    }
+    if( (enc_id & ELUA_QEI_CH1) == ELUA_QEI_CH1 )
+    {
+        MAP_QEIConfigure( QEI1_BASE, (qei_capture[ phase ] 
+        | QEI_CONFIG_QUADRATURE | qei_swap[ swap ] | qei_index[ index ]),
+        max_count);
+    }
+}
+
+void platform_qei_vel_init( u8 enc_id, u32 vel_period )
+{
+    vel_ticks = vel_period * (MAP_SysCtlClockGet()/1000000);
+    /* -Configures the QEI to compute the velocity. 
+     * -The velocity predivider is applied to the quadrature
+     *  signal before it is counted. Set to QEI_VELDIV_1 aka div by 1 */
+    /* Enabled here but will not capture until the QEI is also 
+     * enabled using the platform_qei_enable() call. */
+    if( (enc_id & ELUA_QEI_CH0) == ELUA_QEI_CH0 )
+    {
+        MAP_QEIVelocityConfigure(QEI0_BASE, QEI_VELDIV_1, vel_ticks);
+        MAP_QEIVelocityEnable(QEI0_BASE);
+    }
+    if( (enc_id & ELUA_QEI_CH1) == ELUA_QEI_CH1 )
+    {
+        MAP_QEIVelocityConfigure(QEI1_BASE, QEI_VELDIV_1, vel_ticks);
+        MAP_QEIVelocityEnable(QEI1_BASE);
+    }
+}
+
+void platform_qei_enable( u8 enc_id )
+{
+    if( (enc_id & ELUA_QEI_CH0) == ELUA_QEI_CH0 )
+        MAP_QEIEnable(QEI0_BASE);
+    if( (enc_id & ELUA_QEI_CH1) == ELUA_QEI_CH1 )
+        MAP_QEIEnable(QEI1_BASE);
+}
+
+void platform_qei_disable( u8 enc_id )
+{
+    if( (enc_id & ELUA_QEI_CH0) == ELUA_QEI_CH0 )
+        MAP_QEIDisable(QEI0_BASE);
+    if( (enc_id & ELUA_QEI_CH1) == ELUA_QEI_CH1 )
+        MAP_QEIDisable(QEI1_BASE);
+}
+
+u32 platform_qei_get_sys_clk()
+{
+    /* Returns processor clk speed. Will not work if usng ext clk src */
+    return MAP_SysCtlClockGet();
+}
+
+u32 platform_qei_getPulses( u8 enc_id )
+{
+    /* Returns the number of pulses detected in the time period 
+     * specified during velocity measurement configuration. */
+    return MAP_QEIVelocityGet( qei_base[ enc_id ] );
+}
+
+u32 platform_qei_getPosition( u8 enc_id )
+{
+    return MAP_QEIPositionGet( qei_base[ enc_id ] );
+}
+
+long platform_qei_getDirection( u8 enc_id)
+{
+    return QEIDirectionGet( qei_base[ enc_id ] );  /* 1=fwd, rev=-1 */
+
+}
+
+#endif
 
 // ****************************************************************************
 // Platform specific modules go here
