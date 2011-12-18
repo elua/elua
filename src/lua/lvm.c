@@ -171,6 +171,7 @@ void luaV_settable (lua_State *L, const TValue *t, TValue *key, StkId val) {
           L->top--;
           unfixedstack(L);
           setobj2t(L, oldval, val);
+          ((Table *)h)->flags = 0;
           luaC_barriert(L, (Table*)h, val);
         }
         return;
