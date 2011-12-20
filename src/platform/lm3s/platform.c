@@ -1321,7 +1321,6 @@ ControlHandler(void *pvCBData, unsigned long ulEvent, unsigned long ulMsgValue,
 // FIXME: Tested on the lm3s8962 only
 #ifdef BUILD_QEI
 
-static u32 qei_base[] = { 0x00, QEI0_BASE, QEI1_BASE, 0x00 };
 static u32 qei_capture[] = { QEI_CONFIG_CAPTURE_A, QEI_CONFIG_CAPTURE_A_B };
 static u32 qei_index[] = { QEI_CONFIG_NO_RESET, QEI_CONFIG_RESET_IDX };
 static u32 qei_swap[] = { QEI_CONFIG_NO_SWAP, QEI_CONFIG_SWAP };
@@ -1334,6 +1333,7 @@ static void qei_init()
     MAP_GPIOPinTypeQEI( GPIO_PORTE_BASE, GPIO_PIN_2 );  //CH1_PHB
     MAP_SysCtlPeripheralEnable( SYSCTL_PERIPH_QEI0 );
     MAP_SysCtlPeripheralEnable( SYSCTL_PERIPH_QEI1 );
+    qei_flag = 0x00;                                    //Reset Flag
 }
 
 void platform_qei_init( u8 enc_id, u8 phase, u8 swap, u8 index, u32 max_count )
@@ -1402,18 +1402,20 @@ u32 platform_qei_getPulses( u8 enc_id )
 {
     /* Returns the number of pulses detected in the time period 
      * specified during velocity measurement configuration. */
-    return MAP_QEIVelocityGet( qei_base[ enc_id ] );
+    base = (enc_id==ELUA_QEI_CH0) ? QEI0_BASE : QEI1_BASE ;
+    return MAP_QEIVelocityGet( base );
 }
 
 u32 platform_qei_getPosition( u8 enc_id )
 {
-    return MAP_QEIPositionGet( qei_base[ enc_id ] );
+    base = (enc_id==ELUA_QEI_CH0) ? QEI0_BASE : QEI1_BASE ;
+    return MAP_QEIPositionGet( base );
 }
 
 long platform_qei_getDirection( u8 enc_id)
 {
-    return QEIDirectionGet( qei_base[ enc_id ] );  /* 1=fwd, rev=-1 */
-
+    base = (enc_id==ELUA_QEI_CH0) ? QEI0_BASE : QEI1_BASE ;
+    return QEIDirectionGet( base );  /* 1=fwd, rev=-1 */
 }
 
 #endif

@@ -52,16 +52,16 @@ static int qei_getVelPulses( lua_State *L )
 {
     u8 enc_id = ( u8 )luaL_checkinteger( L, 1 );
     int err = 0;
-    if( !(qei_flag & 0x01) )
+    if( (enc_id == ELUA_QEI_CH01) || !(qei_flag & enc_id) )
     {
-        err = 1;
+        err = 2;
         lua_pushinteger( L, -1 );
         lua_pushinteger( L, err );
         return 2;
     }
-    else if( (enc_id == ELUA_QEI_CH01) || !(qei_flag & qei_enc_flags[ enc_id ]) )
+    else if( !(qei_flag & (enc_id << VEL_FLAG_OFFSET) ) )
     {
-        err = 2;
+        err = 1;
         lua_pushinteger( L, -1 );
         lua_pushinteger( L, err );
         return 2;
@@ -77,16 +77,16 @@ static int qei_getRPM( lua_State *L )
 {
     u8 enc_id = ( u8 )luaL_checkinteger( L, 1 );
     int err = 0;
-    if( !(qei_flag & 0x01) )
+    if( (enc_id == ELUA_QEI_CH01) || !(qei_flag & enc_id) )
     {
-        err = 1;
+        err = 2;
         lua_pushinteger( L, -1 );
         lua_pushinteger( L, err );
         return 2;
     }
-    else if( (enc_id == ELUA_QEI_CH01) || !(qei_flag & qei_enc_flags[ enc_id ]) )
+    else if( !(qei_flag & (enc_id << VEL_FLAG_OFFSET) ) )
     {
-        err = 2;
+        err = 1;
         lua_pushinteger( L, -1 );
         lua_pushinteger( L, err );
         return 2;
@@ -102,7 +102,7 @@ static int qei_getPosition( lua_State *L )
 {
     u8 enc_id = ( u8 )luaL_checkinteger( L, 1 );
     int err = 0;
-    if( (enc_id == ELUA_QEI_CH01) || !(qei_flag & qei_enc_flags[ enc_id ]) )
+    if( (enc_id == ELUA_QEI_CH01) || !(qei_flag & enc_id) )
     {
         err = 2;
         lua_pushinteger( L, -1 );
@@ -139,7 +139,7 @@ const LUA_REG_TYPE qei_map[] =
     { LSTRKEY( "INDEX" ), LNUMVAL( ELUA_QEI_INDEX ) },
     { LSTRKEY( "ERR_OK" ), LNUMVAL( ELUA_QEI_ERR_OK ) },
     { LSTRKEY( "ERR_VELOCITY_NOT_ENABLED" ), LNUMVAL( ELUA_QEI_ERR_VEL_NOT_ENABLED ) },
-    { LSTRKEY( "ERR_ENC_NOT_ENABLED" ), LNUMVAL( ELUA_QEI_ERR_ENC_NOT_ENABLED ) },
+    { LSTRKEY( "ERR_ENCODER_NOT_ENABLED" ), LNUMVAL( ELUA_QEI_ERR_ENC_NOT_ENABLED ) },
   
     { LNILKEY, LNILVAL }
 };
