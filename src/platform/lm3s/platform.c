@@ -1402,19 +1402,19 @@ u32 platform_qei_getPulses( u8 enc_id )
 {
     /* Returns the number of pulses detected in the time period 
      * specified during velocity measurement configuration. */
-    base = (enc_id==ELUA_QEI_CH0) ? QEI0_BASE : QEI1_BASE ;
+    u32 base = (enc_id==ELUA_QEI_CH0) ? QEI0_BASE : QEI1_BASE ;
     return MAP_QEIVelocityGet( base );
 }
 
 u32 platform_qei_getPosition( u8 enc_id )
 {
-    base = (enc_id==ELUA_QEI_CH0) ? QEI0_BASE : QEI1_BASE ;
+    u32 base = (enc_id==ELUA_QEI_CH0) ? QEI0_BASE : QEI1_BASE ;
     return MAP_QEIPositionGet( base );
 }
 
 long platform_qei_getDirection( u8 enc_id)
 {
-    base = (enc_id==ELUA_QEI_CH0) ? QEI0_BASE : QEI1_BASE ;
+    u32 base = (enc_id==ELUA_QEI_CH0) ? QEI0_BASE : QEI1_BASE ;
     return QEIDirectionGet( base );  /* 1=fwd, rev=-1 */
 }
 
