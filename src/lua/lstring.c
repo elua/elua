@@ -23,7 +23,7 @@ void luaS_resize (lua_State *L, int newsize) {
   stringtable *tb;
   int i;
   tb = &G(L)->strt;
-  if (G(L)->gcstate == GCSsweepstring || newsize == tb->size || is_resizing_strings_gc(L))
+  if (luaC_sweepstrgc(L) || newsize == tb->size || is_resizing_strings_gc(L))
     return;  /* cannot resize during GC traverse or doesn't need to be resized */
   set_resizing_strings_gc(L);
   if (newsize > tb->size) {
