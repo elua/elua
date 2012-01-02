@@ -61,9 +61,9 @@ static void sdramc_ck_delay(unsigned long ck)
   unsigned long delay_start_cycle = Get_system_register(AVR32_COUNT);
 
   // at 60MHz the count register wraps every 71.68 secs, at 66MHz every 65s.
-  // For delays <= 30 seconds, the following code in unsigned arithmetic
-  // handles the wraparound condition as it should.
-  while((unsigned long)Get_system_register(AVR32_COUNT) - delay_start_cycle < ck ) ;
+  // The following unsigned arithmetic handles the wraparound condition.
+  while ((unsigned long)Get_system_register(AVR32_COUNT) - delay_start_cycle < ck)
+    /* wait */;
 }
 
 

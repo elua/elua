@@ -306,10 +306,9 @@ static void I2CDELAY()
   u32 delay_start_cycle = Get_system_register(AVR32_COUNT);
 
   // at 60MHz the count register wraps every 71.68 secs, at 66MHz every 65s.
-  // For delays <= 30 seconds, the following code in unsigned arithmetic
-  // handles the wraparound condition as it should.
+  // The following unsigned arithmetic handles the wraparound condition.
   while( (u32)Get_system_register(AVR32_COUNT) - delay_start_cycle < i2c_delay )
-	;
+    /* wait */;
 }
 
 // Set SCL as input and return current level of line
