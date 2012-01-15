@@ -70,7 +70,7 @@ static void tmr_match_common_handler( int id )
   volatile avr32_tc_t *tc = &AVR32_TC;
 
   tc_read_sr( tc, id ); // clear interrupt
-#if VTMR_NUMTIMERS > 0
+#if VTMR_NUM_TIMERS > 0
   if( id == VTMR_CH )
   {
     cmn_virtual_timer_cb();
