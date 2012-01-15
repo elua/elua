@@ -246,7 +246,6 @@ int platform_init()
 
   // Setup virtual timers if needed
 #if VTMR_NUM_TIMERS > 0
-#define VTMR_CH               2
   platform_cpu_set_interrupt( INT_TMR_MATCH, VTMR_CH, PLATFORM_CPU_ENABLE );
   platform_timer_set_match_int( VTMR_CH, 1000000 / VTMR_FREQ_HZ, PLATFORM_TIMER_INT_CYCLIC );
 #endif // #if VTMR_NUM_TIMERS > 0
