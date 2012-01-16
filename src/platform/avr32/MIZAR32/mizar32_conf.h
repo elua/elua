@@ -39,7 +39,7 @@
 #endif
 
 #ifdef BUILD_UIP
-//#define BUILD_DHCPC
+#define BUILD_DHCPC
 #define BUILD_DNS
 //#define BUILD_CON_TCP
 #endif
