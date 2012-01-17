@@ -15,7 +15,9 @@
 
 #define getline(f,pc)	(((f)->lineinfo) ? (f)->lineinfo[pc] : 0)
 
+#ifndef LUA_REMOVE_HOOKS
 #define resethookcount(L)	(L->hookcount = L->basehookcount)
+#endif
 
 
 LUAI_FUNC void luaG_typeerror (lua_State *L, const TValue *o,

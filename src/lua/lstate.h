@@ -116,11 +116,13 @@ struct lua_State {
   int size_ci;  /* size of array `base_ci' */
   unsigned short nCcalls;  /* number of nested C calls */
   unsigned short baseCcalls;  /* nested C calls when resuming coroutine */
+#ifndef LUA_REMOVE_HOOKS
   lu_byte hookmask;
   lu_byte allowhook;
   int basehookcount;
   int hookcount;
   lua_Hook hook;
+#endif
   TValue l_gt;  /* table of globals */
   TValue env;  /* temporary place for environments */
   GCObject *openupval;  /* list of open upvalues in this stack */

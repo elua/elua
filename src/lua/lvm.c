@@ -76,7 +76,7 @@ int luaV_tostring (lua_State *L, StkId obj) {
   }
 }
 
-
+#ifndef LUA_REMOVE_HOOKS
 static void traceexec (lua_State *L, const Instruction *pc) {
   lu_byte mask = L->hookmask;
   const Instruction *oldpc = L->savedpc;
@@ -95,6 +95,7 @@ static void traceexec (lua_State *L, const Instruction *pc) {
       luaD_callhook(L, LUA_HOOKLINE, newline);
   }
 }
+#endif
 
 
 static void callTMres (lua_State *L, StkId res, const TValue *f,
@@ -439,6 +440,7 @@ void luaV_execute (lua_State *L, int nexeccalls) {
   for (;;) {
     const Instruction i = *pc++;
     StkId ra;
+#ifndef LUA_REMOVE_HOOKS
     if ((L->hookmask & (LUA_MASKLINE | LUA_MASKCOUNT)) &&
         (--L->hookcount == 0 || L->hookmask & LUA_MASKLINE)) {
       traceexec(L, pc);
@@ -448,6 +450,7 @@ void luaV_execute (lua_State *L, int nexeccalls) {
       }
       base = L->base;
     }
+#endif
     /* warning!! several calls may realloc the stack and invalidate `ra' */
     ra = RA(i);
     lua_assert(base == L->base && L->base == L->ci->base);

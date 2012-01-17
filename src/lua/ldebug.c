@@ -50,6 +50,7 @@ static int currentline (lua_State *L, CallInfo *ci) {
 }
 
 
+#ifndef LUA_REMOVE_HOOKS
 /*
 ** this function can be called asynchronous (e.g. during a signal)
 */
@@ -79,6 +80,7 @@ LUA_API int lua_gethookmask (lua_State *L) {
 LUA_API int lua_gethookcount (lua_State *L) {
   return L->basehookcount;
 }
+#endif
 
 
 LUA_API int lua_getstack (lua_State *L, int level, lua_Debug *ar) {

@@ -461,15 +461,19 @@ static void GCTM (lua_State *L) {
   makewhite(g, o);
   tm = fasttm(L, udata->uv.metatable, TM_GC);
   if (tm != NULL) {
-    lu_byte oldah = L->allowhook;
     lu_mem oldt = g->GCthreshold;
+#ifndef LUA_REMOVE_HOOKS
+    lu_byte oldah = L->allowhook;
     L->allowhook = 0;  /* stop debug hooks during GC tag method */
+#endif
     g->GCthreshold = 2*g->totalbytes;  /* avoid GC steps */
     setobj2s(L, L->top, tm);
     setuvalue(L, L->top+1, udata);
     L->top += 2;
     luaD_call(L, L->top - 2, 0);
+#ifndef LUA_REMOVE_HOOKS
     L->allowhook = oldah;  /* restore hooks */
+#endif
     g->GCthreshold = oldt;  /* restore threshold */
   }
 }

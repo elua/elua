@@ -18,7 +18,7 @@
 #define BUILD_CON_GENERIC
 //#define BUILD_RPC
 #define BUILD_C_INT_HANDLERS
-#define BUILD_LUA_INT_HANDLERS
+//#define BUILD_LUA_INT_HANDLERS
 //#define BUILD_RFS
 //#define BUILD_SERMUX
 #define BUILD_ADC

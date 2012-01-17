@@ -25,17 +25,21 @@ static const char *progname = LUA_PROGNAME;
 
 
 
+#ifndef LUA_REMOVE_HOOKS
 static void lstop (lua_State *L, lua_Debug *ar) {
   (void)ar;  /* unused arg. */
   lua_sethook(L, NULL, 0, 0);
   luaL_error(L, "interrupted!");
 }
+#endif
 
 
 static void laction (int i) {
   signal(i, SIG_DFL); /* if another SIGINT happens before lstop,
                               terminate process (default action) */
+#ifndef LUA_REMOVE_HOOKS
   lua_sethook(globalL, lstop, LUA_MASKCALL | LUA_MASKRET | LUA_MASKCOUNT, 1);
+#endif
 }
 
 
