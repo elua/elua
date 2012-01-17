@@ -26,6 +26,7 @@
 **    which is always needed when compiling the cross-compiler
 @@ LUA_REMOVE_UNDUMP removes the undump mechanism,
 **    which is needed to be able to load compiled bytecode from *.lc files.
+@@ LUA_REMOVE_COLLECTGARBAGE removes the collectgarbage() and gcinfo() functions
 */ 
 
 #ifdef LUA_CROSS_COMPILER
