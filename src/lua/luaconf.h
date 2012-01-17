@@ -17,6 +17,10 @@
 ** ===================================================================
 */
 
+/*
+@@ LUA_REMOVE_DEBUG removes the debug.* library
+*/
+
 
 /*
 @@ LUA_ANSI controls the use of non-ansi features.
