@@ -5,7 +5,11 @@
 */
 
 
+#ifndef LUA_REMOVE_SIGNAL
 #include <signal.h>
+#else
+#define signal(sig, action) do {} while(0)
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
