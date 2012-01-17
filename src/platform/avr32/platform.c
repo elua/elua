@@ -355,6 +355,13 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   opts.baudrate = baud;
 
   // Set stopbits
+#if PLATFORM_UART_STOPBITS_1 == USART_1_STOPBIT && \
+    PLATFORM_UART_STOPBITS_1_5 == USART_1_5_STOPBIT && \
+    PLATFORM_UART_STOPBITS_2 == USART_2_STOPBIT
+  // The AVR32 header values and the eLua values are the same (0, 1, 2)
+  if (stopbits > PLATFORM_UART_STOPBITS_2) return 0;
+  opts.stopbits = stopbits;
+#else
   switch (stopbits) {
   case PLATFORM_UART_STOPBITS_1:
     opts.stopbits = USART_1_STOPBIT;
@@ -368,6 +375,7 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   default:
     return 0;
   }
+#endif
 
   // Set parity
   switch (parity) {
