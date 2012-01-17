@@ -12,6 +12,7 @@
 #include "type.h"
 #include "integer.h"
 #include "devman.h"
+#include "platform_conf.h"
 
 /*---------------------------------------------------------------------------/
 / Function and Buffer Configurations
@@ -29,7 +30,13 @@
 /  f_truncate and useless f_getfree. */
 
 
+// Only the SHELL uses opendir/readdir/closedir at present.
+// A minimal implementation of the "os" library might in future.
+#ifdef BUILD_SHELL
 #define _FS_MINIMIZE	1	/* 0, 1, 2 or 3 */
+#else
+#define _FS_MINIMIZE	2	/* 0, 1, 2 or 3 */
+#endif
 /* The _FS_MINIMIZE option defines minimization level to remove some functions.
 /
 /   0: Full function.

@@ -183,6 +183,7 @@ static off_t mmcfs_lseek_r( struct _reent *r, int fd, off_t off, int whence )
   return newpos;
 }
 
+#if _FS_MINIMIZE < 2
 // opendir
 static DIR mmc_dir;
 static void* mmcfs_opendir_r( struct _reent *r, const char* dname )
@@ -234,6 +235,7 @@ static int mmcfs_closedir_r( struct _reent *r, void *d )
 {
   return 0;
 }
+#endif // _FS_MINIMIZE
 
 // MMC device descriptor structure
 static DM_DEVICE mmcfs_device =
@@ -244,9 +246,13 @@ static DM_DEVICE mmcfs_device =
   mmcfs_write_r,        // write
   mmcfs_read_r,         // read
   mmcfs_lseek_r,        // lseek
+#if _FS_MINIMIZE < 2
   mmcfs_opendir_r,      // opendir
   mmcfs_readdir_r,      // readdir
   mmcfs_closedir_r      // closedir
+#else
+  NULL, NULL, NULL
+#endif
 };
 
 const DM_DEVICE* mmcfs_init()

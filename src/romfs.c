@@ -154,6 +154,8 @@ static off_t romfs_lseek_r( struct _reent *r, int fd, off_t off, int whence )
 }
 
 // Directory operations
+
+#ifdef BUILD_SHELL
 static u32 romfs_dir_data = 0;
 
 // opendir
@@ -192,6 +194,7 @@ static int romfs_closedir_r( struct _reent *r, void *d )
   *( u32* )d = 0;
   return 0;
 }
+#endif  // BUILD_SHELL
 
 // Our ROMFS device descriptor structure
 static const DM_DEVICE romfs_device = 
@@ -202,9 +205,13 @@ static const DM_DEVICE romfs_device =
   romfs_write_r,        // write
   romfs_read_r,         // read
   romfs_lseek_r,        // lseek
+#ifdef BUILD_SHELL
   romfs_opendir_r,      // opendir
   romfs_readdir_r,      // readdir
   romfs_closedir_r      // closedir
+#else
+  NULL, NULL, NULL
+#endif
 };
 
 const DM_DEVICE* romfs_init()
