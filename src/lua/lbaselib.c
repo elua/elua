@@ -349,7 +349,7 @@ static int luaB_unpack (lua_State *L) {
   if (i > e) return 0;  /* empty range */
   n = e - i + 1;  /* number of elements */
   if (n <= 0 || !lua_checkstack(L, n))  /* n <= 0 means arith. overflow */
-    return luaL_error(L, "too many results to unpack");
+    return luaL_error(L, "too many results");
   lua_rawgeti(L, 1, i);  /* push arg[i] (avoiding overflow problems) */
   while (i++ < e)  /* push arg[i + 1...e] */
     lua_rawgeti(L, 1, i);
@@ -558,7 +558,7 @@ static int luaB_costatus (lua_State *L) {
 static int auxresume (lua_State *L, lua_State *co, int narg) {
   int status = costatus(L, co);
   if (!lua_checkstack(co, narg))
-    luaL_error(L, "too many arguments to resume");
+    luaL_error(L, "too many arguments");
   if (status != CO_SUS) {
     lua_pushfstring(L, "cannot resume %s coroutine", statnames[status]);
     return -1;  /* error flag */
@@ -569,7 +569,7 @@ static int auxresume (lua_State *L, lua_State *co, int narg) {
   if (status == 0 || status == LUA_YIELD) {
     int nres = lua_gettop(co);
     if (!lua_checkstack(L, nres + 1))
-      luaL_error(L, "too many results to resume");
+      luaL_error(L, "too many results");
     lua_xmove(co, L, nres);  /* move yielded values */
     return nres;
   }

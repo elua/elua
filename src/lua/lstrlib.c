@@ -203,14 +203,14 @@ static const char *classend (MatchState *ms, const char *p) {
   switch (*p++) {
     case L_ESC: {
       if (*p == '\0')
-        luaL_error(ms->L, "malformed pattern (ends with " LUA_QL("%%") ")");
+        luaL_error(ms->L, "malformed pattern");
       return p+1;
     }
     case '[': {
       if (*p == '^') p++;
       do {  /* look for a `]' */
         if (*p == '\0')
-          luaL_error(ms->L, "malformed pattern (missing " LUA_QL("]") ")");
+          luaL_error(ms->L, "malformed pattern");
         if (*(p++) == L_ESC && *p != '\0')
           p++;  /* skip escapes (e.g. `%]') */
       } while (*p != ']');
@@ -637,7 +637,7 @@ static void add_value (MatchState *ms, luaL_Buffer *b, const char *s,
     lua_pushlstring(L, s, e - s);  /* keep original text */
   }
   else if (!lua_isstring(L, -1))
-    luaL_error(L, "invalid replacement value (a %s)", luaL_typename(L, -1)); 
+    luaL_error(L, "invalid value");
   luaL_addvalue(b);  /* add result to accumulator */
 }
 
@@ -729,7 +729,7 @@ static const char *scanformat (lua_State *L, const char *strfrmt, char *form) {
   const char *p = strfrmt;
   while (*p != '\0' && strchr(FLAGS, *p) != NULL) p++;  /* skip flags */
   if ((size_t)(p - strfrmt) >= sizeof(FLAGS))
-    luaL_error(L, "invalid format (repeated flags)");
+    luaL_error(L, "invalid format");
   if (isdigit(uchar(*p))) p++;  /* skip width */
   if (isdigit(uchar(*p))) p++;  /* (2 digits at most) */
   if (*p == '.') {
@@ -738,7 +738,7 @@ static const char *scanformat (lua_State *L, const char *strfrmt, char *form) {
     if (isdigit(uchar(*p))) p++;  /* (2 digits at most) */
   }
   if (isdigit(uchar(*p)))
-    luaL_error(L, "invalid format (width or precision too long)");
+    luaL_error(L, "invalid format");
   *(form++) = '%';
   strncpy(form, strfrmt, p - strfrmt + 1);
   form += p - strfrmt + 1;
@@ -817,8 +817,7 @@ static int str_format (lua_State *L) {
           }
         }
         default: {  /* also treat cases `pnLlh' */
-          return luaL_error(L, "invalid option " LUA_QL("%%%c") " to "
-                               LUA_QL("format"), *(strfrmt - 1));
+          return luaL_error(L, "invalid option");
         }
       }
       luaL_addlstring(&b, buff, strlen(buff));

@@ -496,3 +496,61 @@ void cmn_get_timeout_data( lua_State *L, int pidx, unsigned *pid, timer_data_typ
     luaL_error( L, "the system timer is not implemented on this platform" );
 }
 
+#include <errno.h>
+
+// Save 3Kb of space in the binary by not loading the whole errno string table
+// from the C library.
+//
+// For the values we decode, consider that strerror is used after calls to:
+//   os.execute, fopen, read, write, close, popen, pclose,
+//   fopen, freopen, fread, fwrite, fclose, fgets, fseek, fflush, tmpfile
+// If LUA_RPC, "transport errors" can occur too.
+
+char *strerror(int e)
+{
+  switch (e) {
+  // eLua never generates these, though newlib may do so.
+  // See if you can provoke them, and include them if so.
+  //case EACCES:       return "Permission denied";
+  //case EEXIST:       return "File exists";
+  //case EFBIG:        return "File too large";
+  //case EISDIR:       return "Is a directory";
+  //case ENAMETOOLONG: return "File name too long";
+  //case ENOSPC:       return "No space left on device";
+
+  // newlib or its stubs generate these
+  case EBADF:        return "Bad file number";
+  case EINVAL:       return "Invalid argument";
+  case ENODEV:       return "No such device";
+  case ENOMEM:       return "Out of memory";
+  case ENOSYS:       return "Function not implemented";
+
+#if defined(BUILD_MMCFS)
+  case EROFS:        return "Read-only filesystem";  //MMCFS
+#endif
+
+#if defined(BUILD_MMCFS) | defined(BUILD_SEMIFS)
+  case EIO:          return "I/O error";
+#endif
+
+#if defined(BUILD_MMCFS) || defined(BUILD_ROMFS)
+  case ENOENT:       return "No such file or directory";
+#endif
+
+#if defined(BUILD_MMCFS) || defined(BUILD_ROMFS) || defined(BUILD_SEMIFS)
+  case ENFILE:       return "Too many open files";
+#endif
+
+#if defined(BUILD_LINENOISE)
+  case ENOTTY:	     return "Not a tty";
+  case EAGAIN:       return "Try again";
+#endif
+
+  default:
+    {
+      static char buf[10];	// "errno=XXX\0"
+      (void)sprintf(buf, "errno=%d", e & 255);
+      return(buf);
+    }
+  }
+}

@@ -436,7 +436,7 @@ static int loader_preload (lua_State *L) {
   const char *name = luaL_checkstring(L, 1);
   lua_getfield(L, LUA_ENVIRONINDEX, "preload");
   if (!lua_istable(L, -1))
-    luaL_error(L, LUA_QL("package.preload") " must be a table");
+    luaL_error(L, "%s must be a table", LUA_QL("package.preload"));
   lua_getfield(L, -1, name);
   if (lua_isnil(L, -1))  /* not found? */
     lua_pushfstring(L, "\n\tno field package.preload['%s']", name);
@@ -468,7 +468,7 @@ static int ll_require (lua_State *L) {
   /* else must load it; iterate over available loaders */
   lua_getfield(L, LUA_ENVIRONINDEX, "loaders");
   if (!lua_istable(L, -1))
-    luaL_error(L, LUA_QL("package.loaders") " must be a table");
+    luaL_error(L, "%s must be a table", LUA_QL("package.loaders"));
   lua_pushliteral(L, "");  /* error message accumulator */
   for (i=1; ; i++) {
     lua_rawgeti(L, -2, i);  /* get a loader */

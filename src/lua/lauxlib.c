@@ -158,7 +158,7 @@ LUALIB_API void *luaL_checkudata (lua_State *L, int ud, const char *tname) {
 
 LUALIB_API void luaL_checkstack (lua_State *L, int space, const char *mes) {
   if (!lua_checkstack(L, space))
-    luaL_error(L, "stack overflow (%s)", mes);
+    luaL_error(L, "stack overflow");
 }
 
 

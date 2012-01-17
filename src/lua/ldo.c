@@ -386,7 +386,7 @@ int luaD_poscall (lua_State *L, StkId firstResult) {
 void luaD_call (lua_State *L, StkId func, int nResults) {
   if (++L->nCcalls >= LUAI_MAXCCALLS) {
     if (L->nCcalls == LUAI_MAXCCALLS)
-      luaG_runerror(L, "C stack overflow");
+      luaG_runerror(L, "stack overflow");
     else if (L->nCcalls >= (LUAI_MAXCCALLS + (LUAI_MAXCCALLS>>3)))
       luaD_throw(L, LUA_ERRERR);  /* error while handing stack error */
   }
@@ -437,7 +437,7 @@ LUA_API int lua_resume (lua_State *L, int nargs) {
   if (L->status != LUA_YIELD && (L->status != 0 || L->ci != L->base_ci))
       return resume_error(L, "cannot resume non-suspended coroutine");
   if (L->nCcalls >= LUAI_MAXCCALLS)
-    return resume_error(L, "C stack overflow");
+    return resume_error(L, "stack overflow");
   luai_userstateresume(L, nargs);
   lua_assert(L->errfunc == 0);
   L->baseCcalls = ++L->nCcalls;

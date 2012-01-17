@@ -378,6 +378,8 @@ if not GetOption( 'help' ):
 
   # Optimizer flags (speed or size)
   comp.Append(CCFLAGS = ['-Os','-fomit-frame-pointer'])
+  # Code size reduction flags
+  comp.Append(CCFLAGS = ['-DLUAC_TRUST_BINARIES'])
   #opt += " -ffreestanding"
   #opt += " -fconserve-stack" # conserve stack at potential speed cost, >=GCC4.4
 

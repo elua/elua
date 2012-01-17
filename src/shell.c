@@ -53,11 +53,13 @@ static void shell_help( char* args )
   printf( "Shell commands:\n" );
   printf( "  exit        - exit from this shell\n" );
   printf( "  help        - print this help\n" );
-  printf( "  ls or dir   - lists filesystems files and sizes\n" );
-  printf( "  cat or type - lists file contents\n" );
+  printf( "  ls          - lists filesystems files and sizes\n" );
+  printf( "  cat         - lists file contents\n" );
   printf( "  lua [args]  - run Lua with the given arguments\n" );
+#ifdef BUILD_XMODEM
   printf( "  recv [path] - receive a file via XMODEM, if there is a path, save"
           "                there, otherwise run it.");
+#endif
   printf( "  cp <src> <dst> - copy source file 'src' to 'dst'\n" );
   printf( "  ver         - print eLua version\n" );
 }
@@ -108,15 +110,11 @@ static void shell_lua( char* args )
   clearerr( stdin );
 }
 
+#ifdef BUILD_XMODEM
 // 'recv' handler
 static void shell_recv( char* args )
 {
   args = args;
-
-#ifndef BUILD_XMODEM
-  printf( "XMODEM support not compiled, unable to recv\n" );
-  return;
-#else // #ifndef BUILD_XMODEM
 
   char *p;
   long actsize;
@@ -182,8 +180,8 @@ static void shell_recv( char* args )
   }
   free( shell_prog );
   shell_prog = NULL;
-#endif // #ifndef BUILD_XMODEM
 }
+#endif // #ifdef BUILD_XMODEM
 
 // 'ver' handler
 static void shell_ver( char* args )
@@ -193,7 +191,7 @@ static void shell_ver( char* args )
   printf( "For more information visit www.eluaproject.net and wiki.eluaproject.net\n" );
 }
 
-// 'ls' and 'dir' handler
+// 'ls' handler
 static void shell_ls( char* args )
 {
   const DM_DEVICE *pdev;
@@ -228,7 +226,7 @@ static void shell_ls( char* args )
   printf( "\n" );
 }
 
-// 'cat' and 'type' handler
+// 'cat' handler
 static void shell_cat( char *args )
 {
   FILE *fp;
@@ -257,7 +255,7 @@ static void shell_cat( char *args )
       args = p + 1;
     }      
   else
-      printf( "Usage: cat (or type) <filename1> [<filename2> ...]\n" );
+      printf( "Usage: cat <filename1> [<filename2> ...]\n" );
 }    
 
 // 'copy' handler
@@ -330,13 +328,13 @@ static const SHELL_COMMAND shell_commands[] =
 {
   { "help", shell_help },
   { "lua", shell_lua },
+#ifdef BUILD_XMODEM
   { "recv", shell_recv },
+#endif
   { "ver", shell_ver },
   { "exit", NULL },
   { "ls", shell_ls },
-  { "dir", shell_ls },
   { "cat", shell_cat },
-  { "type", shell_cat },
   { "cp", shell_cp },
   { NULL, NULL }
 };
