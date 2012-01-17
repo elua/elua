@@ -30,11 +30,15 @@
 char *boot_order[] = {
 #if defined(BUILD_MMCFS)
   "/mmc/autorun.lua",
+# ifndef LUA_REMOVE_UNDUMP
   "/mmc/autorun.lc",
+# endif
 #endif
 #if defined(BUILD_ROMFS)
   "/rom/autorun.lua",
+# ifndef LUA_REMOVE_UNDUMP
   "/rom/autorun.lc",
+# endif
 #endif
 };
 

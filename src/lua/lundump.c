@@ -20,6 +20,10 @@
 #include "lundump.h"
 #include "lzio.h"
 
+
+#ifndef LUA_REMOVE_UNDUMP
+
+
 typedef struct {
  lua_State* L;
  ZIO* Z;
@@ -305,3 +309,6 @@ void luaU_header (char* h)
  *h++=(char)sizeof(lua_Number);
  *h++=(char)(((lua_Number)0.5)==0);		/* is lua_Number integral? */
 }
+
+
+#endif  // LUA_REMOVE_UNDUMP
