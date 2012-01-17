@@ -599,6 +599,7 @@ static int ll_seeall (lua_State *L) {
 
 static void setpath (lua_State *L, const char *fieldname, const char *envname,
                                    const char *def) {
+#ifndef LUA_REMOVE_GETENV
   const char *path = getenv(envname);
   if (path == NULL)  /* no environment variable? */
     lua_pushstring(L, def);  /* use default */
@@ -609,10 +610,19 @@ static void setpath (lua_State *L, const char *fieldname, const char *envname,
     luaL_gsub(L, path, AUXMARK, def);
     lua_remove(L, -2);
   }
+#else
+  lua_pushstring(L, def);  /* use default */
+#endif
   setprogdir(L);
   lua_setfield(L, -2, fieldname);
 }
 
+#ifndef LUA_REMOVE_GETENV
+#undef LUA_PATH
+#undef LUA_CPATH
+#define LUA_PATH NULL
+#define LUA_CPATH NULL
+#endif
 
 static const luaL_Reg pk_funcs[] = {
   {"loadlib", ll_loadlib},

@@ -20,6 +20,7 @@
 /*
 @@ LUA_REMOVE_DEBUG removes the debug.* library
 @@ LUA_REMOVE_HOOKS removes the hooks mechanism
+@@ LUA_REMOVE_GETENV removes all references to getenv()
 */
 
 
