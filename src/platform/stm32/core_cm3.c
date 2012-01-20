@@ -735,7 +735,7 @@ uint32_t __STREXB(uint8_t value, uint8_t *addr)
    register uint32_t result asm ("r2");
    __ASM volatile ("strexb %0, %2, [%1]" : "=r" (result) : "r" (addr), "r" (value) );
    return(result);
- }
+}
 
 /**
  * @brief  STR Exclusive (16 bit)
