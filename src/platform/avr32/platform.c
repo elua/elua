@@ -246,7 +246,6 @@ int platform_init()
 
   // Setup virtual timers if needed
 #if VTMR_NUM_TIMERS > 0
-#define VTMR_CH               2
   platform_cpu_set_interrupt( INT_TMR_MATCH, VTMR_CH, PLATFORM_CPU_ENABLE );
   platform_timer_set_match_int( VTMR_CH, 1000000 / VTMR_FREQ_HZ, PLATFORM_TIMER_INT_CYCLIC );
 #endif // #if VTMR_NUM_TIMERS > 0
@@ -356,6 +355,13 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   opts.baudrate = baud;
 
   // Set stopbits
+#if PLATFORM_UART_STOPBITS_1 == USART_1_STOPBIT && \
+    PLATFORM_UART_STOPBITS_1_5 == USART_1_5_STOPBIT && \
+    PLATFORM_UART_STOPBITS_2 == USART_2_STOPBIT
+  // The AVR32 header values and the eLua values are the same (0, 1, 2)
+  if (stopbits > PLATFORM_UART_STOPBITS_2) return 0;
+  opts.stopbits = stopbits;
+#else
   switch (stopbits) {
   case PLATFORM_UART_STOPBITS_1:
     opts.stopbits = USART_1_STOPBIT;
@@ -369,6 +375,7 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   default:
     return 0;
   }
+#endif
 
   // Set parity
   switch (parity) {
@@ -493,7 +500,7 @@ int platform_s_uart_set_flow_control( unsigned id, int type )
 // Timer functions
 
 static const u16 clkdivs[] = { 0xFFFF, 2, 8, 32, 128 };
-u8 avr32_timer_int_periodic_flag[ 3 ];
+u8 avr32_timer_int_periodic_flag[ TC_NUMBER_OF_CHANNELS ];
 
 // Helper: get timer clock
 static u32 platform_timer_get_clock( unsigned id )
@@ -587,21 +594,21 @@ timer_data_type platform_s_timer_op( unsigned id, int op, timer_data_type data )
 int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int type )
 {
   volatile avr32_tc_t *tc = &AVR32_TC;
-  u32 final;
+  u64 final;
 
   if( period_us == 0 )
   {
     tc->channel[ id ].CMR.waveform.wavsel = TC_WAVEFORM_SEL_UP_MODE;
     return PLATFORM_TIMER_INT_OK;
   }
-  final = ( u32 )( ( u64 )( platform_timer_get_clock( id ) * period_us ) / 1000000 );
+  final = ( u64 )platform_timer_get_clock( id ) * period_us / 1000000;
   if( final == 0 )
     return PLATFORM_TIMER_INT_TOO_SHORT;
   if( final > 0xFFFF )
     return PLATFORM_TIMER_INT_TOO_LONG;
   tc_stop( tc, id );
   tc->channel[ id ].CMR.waveform.wavsel = TC_WAVEFORM_SEL_UP_MODE_RC_TRIGGER;
-  tc->channel[ id ].rc = final;
+  tc->channel[ id ].rc = ( u32 )final;
   avr32_timer_int_periodic_flag[ id ] = type;
   tc_start( tc, id );
   return PLATFORM_TIMER_INT_OK;

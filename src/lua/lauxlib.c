@@ -706,6 +706,9 @@ static void *l_alloc (void *ud, void *ptr, size_t osize, size_t nsize) {
   if (L != NULL && (mode & EGC_ALWAYS)) /* always collect memory if requested */
     luaC_fullgc(L);
   if(nsize > osize && L != NULL) {
+#if defined(LUA_STRESS_EMERGENCY_GC)
+    luaC_fullgc(L);
+#endif
     if(G(L)->memlimit > 0 && (mode & EGC_ON_MEM_LIMIT) && l_check_memlimit(L, nsize - osize))
       return NULL;
   }

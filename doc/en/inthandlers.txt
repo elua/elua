@@ -6,7 +6,7 @@ Starting with link:downloads.html[version 0.8] eLua supports interrupt handlers 
 interrupt is generated. A *supported interrupt* is any interrupt that is handled by the platform C code (see link:arch_ints.html[here] for more details).
 
 [red]*IMPORTANT*: before learning how to use interrupt handlers in Lua, please keep in mind that Lua interrupt handlers don't work the same way as 
-regular \(C) interrupt handlers. As Lua doesn't have direct support for interrupts, they have to be emulated. eLua emulates them using a  queue that is populated with 
+regular \(C) interrupt handlers. As Lua doesn't have direct support for interrupts, they have to be emulated. eLua emulates them using a queue that is populated with 
 interrupt data by the C support code. As long as the queue is not empty, a Lua hook is set to run every 2 Lua bytecode instructions. This hook function is the Lua interrupt 
 handler. After all the interrupts are handled and the queue is emptied, the hook is automatically disabled. Consequently:
 
@@ -24,7 +24,7 @@ handler. After all the interrupts are handled and the queue is emptied, the hook
     C function that is executed for every VM instruction. If this function blocks for some reason, the VM instructions are not executed anymore. It's not hard to make
     this function block; for example, it blocks everytime the Lua code waits for some user input at the console, or when a link:refman_gen_tmr.html#tmr.delay[tmr.delay] is executed, 
     or when link:refman_gen_uart.html#uart.read[uart.read] is called  with an infinite or very large timeout; in general, any function from a Lua library that doesn't return 
-    immediately or after a short ammount of time will block the VM. Care must be taken to avoid such operations as much as possible, otherwise the interrupt support code won't run properly.
+    immediately or after a short amount of time will block the VM. Care must be taken to avoid such operations as much as possible, otherwise the interrupt support code won't run properly.
 
 * There is a single interrupt handler per interrupt type in Lua (the same holds true for C interrupt support), as opposed to the many hardware interrupts 
    handlers usually found on the eLua targets. It is however easy to differentiate between different interrupt sources, as will be explained in the next 

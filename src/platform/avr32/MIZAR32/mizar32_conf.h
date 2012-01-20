@@ -39,7 +39,7 @@
 #endif
 
 #ifdef BUILD_UIP
-//#define BUILD_DHCPC
+#define BUILD_DHCPC
 #define BUILD_DNS
 //#define BUILD_CON_TCP
 #endif
@@ -121,7 +121,6 @@
 #define LUA_PLATFORM_LIBS_ROM\
   _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
   _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
-  _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
 
 #else
 
@@ -152,6 +151,7 @@
 // Virtual timers (0 if not used)
 #define VTMR_NUM_TIMERS       4
 #define VTMR_FREQ_HZ          10
+#define VTMR_CH               2    // Which hardware timer to use for VTMR
 
 // Number of resources (0 if not available/not implemented)
 #define NUM_PIO               4

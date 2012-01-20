@@ -7,9 +7,9 @@
  *
  * Copyright (C) 2009 ARM Limited. All rights reserved.
  *
- * ARM Limited (ARM) is supplying this software for use with Cortex-Mx 
- * processor based microcontrollers.  This file can be freely distributed 
- * within development tools that are supporting such ARM based processors. 
+ * ARM Limited (ARM) is supplying this software for use with Cortex-Mx
+ * processor based microcontrollers.  This file can be freely distributed
+ * within development tools that are supporting such ARM based processors.
  *
  * THIS SOFTWARE IS PROVIDED "AS IS".  NO WARRANTIES, WHETHER EXPRESS, IMPLIED
  * OR STATUTORY, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF
@@ -67,7 +67,7 @@ __ASM uint32_t __get_PSP(void)
  * @param  uint32_t Process Stack Pointer
  * @return none
  *
- * Assign the value ProcessStackPointer to the MSP 
+ * Assign the value ProcessStackPointer to the MSP
  * (process stack pointer) Cortex processor register
  */
 __ASM void __set_PSP(uint32_t topOfProcStack)
@@ -97,7 +97,7 @@ __ASM uint32_t __get_MSP(void)
  * @param  uint32_t Main Stack Pointer
  * @return none
  *
- * Assign the value mainStackPointer to the MSP 
+ * Assign the value mainStackPointer to the MSP
  * (main stack pointer) Cortex processor register
  */
 __ASM void __set_MSP(uint32_t mainStackPointer)
@@ -237,7 +237,7 @@ __ASM void __set_FAULTMASK(uint32_t faultMask)
 
 /**
  * @brief  Return the Control Register value
- * 
+ *
  * @param  none
  * @return uint32_t Control value
  *
@@ -263,7 +263,7 @@ __ASM void __set_CONTROL(uint32_t control)
   bx lr
 }
 
-#endif /* __ARMCC_VERSION  */ 
+#endif /* __ARMCC_VERSION  */
 
 
 #elif (defined (__ICCARM__)) /*------------------ ICC Compiler -------------------*/
@@ -289,7 +289,7 @@ uint32_t __get_PSP(void)
  * @param  uint32_t Process Stack Pointer
  * @return none
  *
- * Assign the value ProcessStackPointer to the MSP 
+ * Assign the value ProcessStackPointer to the MSP
  * (process stack pointer) Cortex processor register
  */
 void __set_PSP(uint32_t topOfProcStack)
@@ -319,7 +319,7 @@ uint32_t __get_MSP(void)
  * @param  uint32_t Main Stack Pointer
  * @return none
  *
- * Assign the value mainStackPointer to the MSP 
+ * Assign the value mainStackPointer to the MSP
  * (main stack pointer) Cortex processor register
  */
 void __set_MSP(uint32_t topOfMainStack)
@@ -367,7 +367,7 @@ uint32_t __RBIT(uint32_t value)
 uint8_t __LDREXB(uint8_t *addr)
 {
   __ASM("ldrexb r0, [r0]");
-  __ASM("bx lr"); 
+  __ASM("bx lr");
 }
 
 /**
@@ -461,7 +461,7 @@ uint32_t __get_PSP(void)
 {
   uint32_t result=0;
 
-  __ASM volatile ("MRS %0, psp\n\t" 
+  __ASM volatile ("MRS %0, psp\n\t"
                   "MOV r0, %0 \n\t"
                   "BX  lr     \n\t"  : "=r" (result) );
   return(result);
@@ -474,7 +474,7 @@ uint32_t __get_PSP(void)
  * @param  uint32_t Process Stack Pointer
  * @return none
  *
- * Assign the value ProcessStackPointer to the MSP 
+ * Assign the value ProcessStackPointer to the MSP
  * (process stack pointer) Cortex processor register
  */
 void __set_PSP(uint32_t topOfProcStack) __attribute__( ( naked ) );
@@ -498,7 +498,7 @@ uint32_t __get_MSP(void)
 {
   uint32_t result=0;
 
-  __ASM volatile ("MRS %0, msp\n\t" 
+  __ASM volatile ("MRS %0, msp\n\t"
                   "MOV r0, %0 \n\t"
                   "BX  lr     \n\t"  : "=r" (result) );
   return(result);
@@ -510,7 +510,7 @@ uint32_t __get_MSP(void)
  * @param  uint32_t Main Stack Pointer
  * @return none
  *
- * Assign the value mainStackPointer to the MSP 
+ * Assign the value mainStackPointer to the MSP
  * (main stack pointer) Cortex processor register
  */
 void __set_MSP(uint32_t topOfMainStack) __attribute__( ( naked ) );
@@ -531,7 +531,7 @@ void __set_MSP(uint32_t topOfMainStack)
 uint32_t __get_BASEPRI(void)
 {
   uint32_t result=0;
-  
+
   __ASM volatile ("MRS %0, basepri_max" : "=r" (result) );
   return(result);
 }
@@ -590,7 +590,7 @@ void __set_PRIMASK(uint32_t priMask)
 uint32_t __get_FAULTMASK(void)
 {
   uint32_t result=0;
-  
+
   __ASM volatile ("MRS %0, faultmask" : "=r" (result) );
   return(result);
 }
@@ -619,7 +619,7 @@ void __set_FAULTMASK(uint32_t faultMask)
 uint32_t __REV(uint32_t value)
 {
   uint32_t result=0;
-  
+
   __ASM volatile ("rev %0, %1" : "=r" (result) : "r" (value) );
   return(result);
 }
@@ -635,7 +635,7 @@ uint32_t __REV(uint32_t value)
 uint32_t __REV16(uint16_t value)
 {
   uint32_t result=0;
-  
+
   __ASM volatile ("rev16 %0, %1" : "=r" (result) : "r" (value) );
   return(result);
 }
@@ -651,7 +651,7 @@ uint32_t __REV16(uint16_t value)
 int32_t __REVSH(int16_t value)
 {
   uint32_t result=0;
-  
+
   __ASM volatile ("revsh %0, %1" : "=r" (result) : "r" (value) );
   return(result);
 }
@@ -667,7 +667,7 @@ int32_t __REVSH(int16_t value)
 uint32_t __RBIT(uint32_t value)
 {
   uint32_t result=0;
-  
+
    __ASM volatile ("rbit %0, %1" : "=r" (result) : "r" (value) );
    return(result);
 }
@@ -683,7 +683,7 @@ uint32_t __RBIT(uint32_t value)
 uint8_t __LDREXB(uint8_t *addr)
 {
     uint8_t result=0;
-  
+
    __ASM volatile ("ldrexb %0, [%1]" : "=r" (result) : "r" (addr) );
    return(result);
 }
@@ -699,7 +699,7 @@ uint8_t __LDREXB(uint8_t *addr)
 uint16_t __LDREXH(uint16_t *addr)
 {
     uint16_t result=0;
-  
+
    __ASM volatile ("ldrexh %0, [%1]" : "=r" (result) : "r" (addr) );
    return(result);
 }
@@ -715,7 +715,7 @@ uint16_t __LDREXH(uint16_t *addr)
 uint32_t __LDREXW(uint32_t *addr)
 {
     uint32_t result=0;
-  
+
    __ASM volatile ("ldrex %0, [%1]" : "=r" (result) : "r" (addr) );
    return(result);
 }
@@ -731,25 +731,25 @@ uint32_t __LDREXW(uint32_t *addr)
  */
 uint32_t __STREXB(uint8_t value, uint8_t *addr)
 {
-   uint32_t result=0;
-  
+   //uint32_t result=0;
+   register uint32_t result asm ("r2");
    __ASM volatile ("strexb %0, %2, [%1]" : "=r" (result) : "r" (addr), "r" (value) );
    return(result);
 }
 
 /**
- * @brief  STR Exclusive
+ * @brief  STR Exclusive (16 bit)
  *
- * @param  uint16_t *address
- * @param  uint16_t value to store
- * @return uint32_t successful / failed
+ * @param  value  value to store
+ * @param  *addr  address pointer
+ * @return        successful / failed
  *
- * Exclusive STR command
+ * Exclusive STR command for 16 bit values
  */
 uint32_t __STREXH(uint16_t value, uint16_t *addr)
 {
-   uint32_t result=0;
-  
+   //uint32_t result=0;
+   register uint32_t result asm ("r2");
    __ASM volatile ("strexh %0, %2, [%1]" : "=r" (result) : "r" (addr), "r" (value) );
    return(result);
 }
@@ -766,14 +766,14 @@ uint32_t __STREXH(uint16_t value, uint16_t *addr)
 uint32_t __STREXW(uint32_t value, uint32_t *addr)
 {
    uint32_t result=0;
-  
+
    __ASM volatile ("strex %0, %2, [%1]" : "=r" (result) : "r" (addr), "r" (value) );
    return(result);
 }
 
 /**
  * @brief  Return the Control Register value
- * 
+ *
  * @param  none
  * @return uint32_t Control value
  *

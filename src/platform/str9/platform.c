@@ -396,7 +396,7 @@ int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int 
 {
   TIM_TypeDef* base = ( TIM_TypeDef* )str9_timer_data[ id ];  
   u32 freq;
-  timer_data_type final;
+  u64 final;
   TIM_InitTypeDef TIM_InitStructure;
 
   if( period_us == 0 )
@@ -421,7 +421,7 @@ int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int 
   TIM_InitStructure.TIM_Clock_Source = TIM_CLK_APB;         
   TIM_InitStructure.TIM_Clock_Edge = TIM_CLK_EDGE_FALLING;  
   TIM_InitStructure.TIM_Prescaler = TIM_GetPrescalerValue( base );
-  TIM_InitStructure.TIM_Pulse_Length_1 = final;          
+  TIM_InitStructure.TIM_Pulse_Length_1 = ( u16 )final;          
   TIM_Init( base, &TIM_InitStructure );
   str9_timer_int_periodic_flag[ id ] = type;
 
