@@ -44,9 +44,10 @@ tools[ 'avr32' ] = {}
 # Programming function
 def progfunc_avr32( target, source, env ):
   outname = output + ".elf"
-  os.system( "%s %s" % ( toolset[ 'size' ], outname ) )
+  #os.system( "%s %s" % ( toolset[ 'size' ], outname ) )
   print "Generating binary image..."
   os.system( "%s -O ihex %s %s.hex" % ( toolset[ 'bin' ], outname, output ) )
+  os.system( "ln %s.hex Mizar32-eLua.hex" % ( output ) )
 
   # print "Programming..."
   # os.system( "batchisp -hardware usb -device %s -operation erase f memory flash blankcheck loadbuffer %s program verify start reset 0" % ( comp[ 'cpu' ].lower(), output + ".hex" ) )
