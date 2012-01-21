@@ -136,7 +136,7 @@ add_req_host_name(u8_t *optptr, const char* name)
 {
   *optptr++ = DHCP_OPTION_HOST_NAME;
   *optptr++ = (u8)strlen(name);
-  strcpy(optptr, name);
+  strcpy((char *)optptr, name);
   return optptr + strlen(name);
 }
 /*---------------------------------------------------------------------------*/
