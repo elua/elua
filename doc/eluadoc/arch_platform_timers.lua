@@ -143,15 +143,15 @@ enum
       }
     }, 
 
-    { sig = "timer_data_type #platform_timer_get_diff_us#( unsigned id, timer_data_type end, timer_data_type start );",
+    { sig = "timer_data_type #platform_timer_get_diff_us#( unsigned id, timer_data_type start, timer_data_type end );",
       desc = [[Return the time difference (in us) between two timer values (as returned by calling @refman_gen_tmr.html#platform_timer_op@platform_timer_op@ with $PLATFORM_TIMER_OP_READ$ or $PLATFORM_TIMER_OP_START$. This function 
-is generic, thus it is implemented in %src/common.c%. <span class="warning">NOTE</span>: the order of $end$ and $start$ is important. $end$ must correspond to a moment in time which came after $start$. The function knows how to deal 
+is generic, thus it is implemented in %src/common.c%. <span class="warning">NOTE</span>: the order of $start$ and $end$ is important. $end$ must correspond to a moment in time which came after $start$. The function knows how to deal 
 with $a single$ timer overflow condition ($end$ is less than $start$); if the timer overflowed 2 or more times between $start$ and $end$ the result of this function will be incorrect.]],
       args = 
       {
         "$id$ - the timer ID",
-        "$end$ - the final counter value.",
         "$start$ - the initial counter value.",
+        "$end$ - the final counter value.",
       },
       ret = "the time difference (in microseconds)"
     },

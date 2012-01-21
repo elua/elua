@@ -24,6 +24,27 @@ enum
 
 #define UART_INFINITE_TIMEOUT PLATFORM_TIMER_INF_TIMEOUT
 
+// Helper function, the same as cmn_get_timeout_data() but with the
+// parameters in the order required by the uart module.
+
+static void uart_get_timeout_data( lua_State *L, int pidx, timer_data_type *ptimeout, unsigned *pid )
+{
+  lua_Number tempn;
+
+  *ptimeout = PLATFORM_TIMER_INF_TIMEOUT;
+  if( lua_type( L, pidx ) == LUA_TNUMBER )
+  {
+    tempn = lua_tonumber( L, pidx );
+    if( tempn < 0 || tempn > PLATFORM_TIMER_INF_TIMEOUT )
+      luaL_error( L, "invalid timeout value" );
+    *ptimeout = ( timer_data_type )tempn;
+  }
+  *pid = ( unsigned )luaL_optinteger( L, pidx + 1, PLATFORM_TIMER_SYS_ID );
+  if( *pid == PLATFORM_TIMER_SYS_ID && !platform_timer_sys_available() )
+    luaL_error( L, "the system timer is not implemented on this platform" );
+}
+
+
 // Lua: actualbaud = setup( id, baud, databits, parity, stopbits )
 static int uart_setup( lua_State* L )
 {
@@ -108,7 +129,7 @@ static int uart_read( lua_State* L )
   }
 
   // Check timeout and timer id
-  cmn_get_timeout_data( L, 3, &timeout, &timer_id );
+  uart_get_timeout_data( L, 3, &timeout, &timer_id );
 
   // Read data
   luaL_buffinit( L, &b );
@@ -154,7 +175,7 @@ static int uart_getchar( lua_State* L )
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( uart, id );
   // Check timeout and timer id
-  cmn_get_timeout_data( L, 2, &timeout, &timer_id );
+  uart_get_timeout_data( L, 2, &timeout, &timer_id );
   res = platform_uart_recv( id, timer_id, timeout );
   if( res == -1 )
     lua_pushstring( L, "" );

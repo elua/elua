@@ -28,45 +28,45 @@ data_en =
   -- Functions
   funcs = 
   {
-    { sig = "#tmr.delay#( period, [id] )",
+    { sig = "#tmr.delay#( id, period )",
       desc = "Waits for the specified period, then returns.",
       args = 
       {
+        "$id$ - the timer ID. Use $nil$ or $tmr.SYS_TIMER$ to specify the @arch_platform_timers.html#the_system_timer@system timer@.",
         "$period$ - how long to wait (in us).",
-        "$id (optional)$ - the timer ID. If not specified it defaults to the @arch_platform_timers.html#the_system_timer@system timer@.",
       }
     },
 
     { sig = "counter = #tmr.read#( [id] )",
       desc= "Reads the timer counter register.",
-      args = "$id (optional)$ - the timer ID. If not specified it defaults to the @arch_platform_timers.html#the_system_timer@system timer@.",
+      args = "$id (optional)$ - the timer ID. Use $nil$ or $tmr.SYS_TIMER$ to specify the @arch_platform_timers.html#the_system_timer@system timer@. Defaults to $nil$ if not specified.",
       ret = "The value of the timer counter register."
     },
 
     { sig = "counter = #tmr.start#( [id] )",
       desc = "Starts the specified timer.",
-      args = "$id (optional)$ - the timer ID. If not specified it defaults to the @arch_platform_timers.html#the_system_timer@system timer@.",
+      args = "$id (optional)$ - the timer ID. Use $nil$ or $tmr.SYS_TIMER$ to specify the @arch_platform_timers.html#the_system_timer@system timer@. Defaults to $nil$ if not specified.",
       ret = "The value of the timer counter register when the timer started.",
     },
 
-    { sig = "delta = #tmr.gettimediff#( end, start, [id] )",
+    { sig = "delta = #tmr.gettimediff#( id, start, end )",
       desc = [[Computes the time difference between two timer counter values (obtained by calling @#tmr.read@tmr.read@ or @#tmr.start@tmr.start@). <span class="warning">NOTE</span>: the order 
-of $end$ and $start$ is important. $end$ must correspond to a moment in time which came after $start$. The function knows how to deal with $a single$ timer overflow condition ($end$ is less than $start$); if the timer overflowed 2 or more times between $start$ and $end$ the result of this function will be incorrect.]],
+of $start$ and $end$ is important. $end$ must correspond to a moment in time which came after $start$. The function knows how to deal with $a single$ timer overflow condition ($end$ is less than $start$); if the timer overflowed 2 or more times between $start$ and $end$ the result of this function will be incorrect.]],
       args = 
       {
-        "$end$ - the final counter value.",
+        "$id$ - the timer ID. Use $nil$ or $tmr.SYS_TIMER$ to specify the @arch_platform_timers.html#the_system_timer@system timer@.",
         "$start$ - the initial counter value.",
-        "$id (optional)$ - the timer ID. If not specified it defaults to the @arch_platform_timers.html#the_system_timer@system timer@.",
+        "$end$ - the final counter value.",
       },
       ret = "The time difference (in us)."
     },
     
-    { sig = "delta = #tmr.getdiffnow#( start, [id] )",
+    { sig = "delta = #tmr.getdiffnow#( id, start )",
       desc = [[Computes the time difference between a counter value from the past (obtained by calling @#tmr.read@tmr.read@ or @#tmr.start@tmr.start@) and the counter value corresponding to the current time.]],
       args = 
       {
+        "$id$ - the timer ID. Use $nil$ or $tmr.SYS_TIMER$ to specify the @arch_platform_timers.html#the_system_timer@system timer@.",
         "$start$ - the initial counter value.",
-        "$id (optional)$ - the timer ID. If not specified it defaults to the @arch_platform_timers.html#the_system_timer@system timer@.",
       },
       ret = "The time difference (in us)."
     },
@@ -74,40 +74,40 @@ of $end$ and $start$ is important. $end$ must correspond to a moment in time whi
 
     { sig = "mindelay = #tmr.getmindelay#( [id] )",
       desc = "Get the minimum achievable delay on the specified timer.",
-      args = "$id (optional)$ - the timer ID. If not specified it defaults to the @arch_platform_timers.html#the_system_timer@system timer@.",
+      args = "$id (optional)$ - the timer ID. Use $nil$ or $tmr.SYS_TIMER$ to specify the @arch_platform_timers.html#the_system_timer@system timer@. Defaults to $nil$ if not specified.",
       ret = "The minimum achievable delay on the specified timer (in us)."
     },
 
     { sig = "maxdelay = #tmr.getmaxdelay#( [id] )",
       desc = "Get the maximum achievable delay on the specified timer.",
-      args = "$id (optional)$ - the timer ID. If not specified it defaults to the @arch_platform_timers.html#the_system_timer@system timer@.",
+      args = "$id (optional)$ - the timer ID. Use $nil$ or $tmr.SYS_TIMER$ to specify the @arch_platform_timers.html#the_system_timer@system timer@. Defaults to $nil$ if not specified.",
       ret = "The maximum achievable delay on the specified timer (in us)."
     },
 
-    { sig = "clock = #tmr.setclock#( clock, [id] )",
+    { sig = "clock = #tmr.setclock#( id, clock )",
       desc = "Set the timer clock (the clock used to increment the timer counter register).",
       args = 
       {
+        "$id$ - the timer ID. Use $nil$ or $tmr.SYS_TIMER$ to specify the @arch_platform_timers.html#the_system_timer@system timer@.",
         "$clock$ - the timer clock (in Hz). ",
-        "$id (optional)$ - the timer ID. If not specified it defaults to the @arch_platform_timers.html#the_system_timer@system timer@.",
       },
        ret = [[The actual clock set on the timer (in Hz). Depending on the hardware, this might have a different value than the $clock$ argument. 
-$NOTE:$ this function does not work with virtual timers or with the system timer.]]       
+$NOTE:$ this function does not work with virtual timers or the system timer.]]       
     },
 
     { sig = "clock = #tmr.getclock#( [id] )",
       desc = "Get the timer clock (the clock used to increment the timer counter register).",
-      args = "$id (optional)$ - the timer ID. If not specified it defaults to the @arch_platform_timers.html#the_system_timer@system timer@.",
+      args = "$id (optional)$ - the timer ID. Use $nil$ or $tmr.SYS_TIMER$ to specify the @arch_platform_timers.html#the_system_timer@system timer@. Defaults to $nil$ if not specified.",
       ret = "The timer clock (in Hz)."
     },
 
-    { sig = "#tmr.set_match_int#( period, type, [id] )",
+    { sig = "#tmr.set_match_int#( id, period, type )",
       desc = "Setup the timer match interrupt. Only available if interrupt support is enabled, check @inthandlers.html@here@ for details.",
       args = 
       {
+        [[$id$ - the timer ID. If $nil$ it defaults to the @arch_platform_timers.html#the_system_timer@system timer@ (but note that this happens only for consistency, as the system timer can't generate interrupts).]],
         "$period$ - the interrupt period in microseconds. Setting this to 0 disabled the timer match interrupt.",
-        "$type$ - $tmr.INT_ONESHOT$ to generate a single interrupt after *period* microseconds, or $tmr.INT_CYCLIC$ to generate interrupts every $period$ microseconds.",
-        [[$id (optional)$ - the timer ID. If not specified it defaults to the @arch_platform_timers.html#the_system_timer@system timer@ (but note that this happens only for consistency, as the system timer can't generate interrupts).]],
+        "$type$ - $tmr.INT_ONESHOT$ to generate a single interrupt after $period$ microseconds, or $tmr.INT_CYCLIC$ to generate interrupts every $period$ microseconds.",
       }
     }
 
