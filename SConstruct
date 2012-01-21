@@ -112,7 +112,7 @@ board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
                'EAGLE-100' : [ 'LM3S6918' ],
                'ELUA-PUC' : ['LPC2468' ],
                'MBED' : ['LPC1768'],
-               'MIZAR32' : [ 'AT32UC3A0128', 'AT32UC3A0256', 'AT32UC3A0512', ],
+               'MIZAR32' : [ 'AT32UC3A0256', 'AT32UC3A0512', 'AT32UC3A0128' ],
                'NETDUINO' : [ 'AT91SAM7X512' ],
             }
 
@@ -269,7 +269,9 @@ if not GetOption( 'help' ):
 
   # CPU/allocator mapping (if allocator not specified)
   if comp['allocator'] == 'auto':
-    if comp['board'] in ['LPC-H2888', 'ATEVK1100', 'MBED']:
+    if comp['board'] in ['MIZAR32'] and comp['cpu'] in ['AT32UC3A0128']:
+      comp['allocator'] = 'simple'
+    elif comp['board'] in ['LPC-H2888', 'ATEVK1100', 'MIZAR32', 'MBED']:
       comp['allocator'] = 'multiple'
     else:
       comp['allocator'] = 'newlib'

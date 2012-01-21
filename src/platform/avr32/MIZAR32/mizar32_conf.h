@@ -211,8 +211,16 @@
 
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)
+#ifdef USE_MULTIPLE_ALLOCATOR
 #define MEM_START_ADDRESS     { ( void* )end, ( void* )( SDRAM + ELUA_FIRMWARE_SIZE ) }
 #define MEM_END_ADDRESS       { ( void* )( RAM_SIZE - STACK_SIZE_TOTAL - 1 ), ( void* )( SDRAM + SDRAM_SIZE - 1 ) }
+#else
+// Newlib<1.19.0 has a bug in their dlmalloc that corrupts memory when there
+// are multiple regions, and it appears that simple allocator also has problems.
+// So with these allocators, only use a single region - the slower 32MB one.
+#define MEM_START_ADDRESS     { ( void* )( SDRAM + ELUA_FIRMWARE_SIZE ) }
+#define MEM_END_ADDRESS       { ( void* )( SDRAM + SDRAM_SIZE - 1 ) }
+#endif
 
 #define RFS_BUFFER_SIZE       BUF_SIZE_512
 #define RFS_UART_ID           ( SERMUX_SERVICE_ID_FIRST )
