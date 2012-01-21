@@ -263,9 +263,9 @@ if not GetOption( 'help' ):
       print ', '.join(usable_chains)
       Exit( -1 )
 
-    if not conf.CheckCC():
-      print "Test compile failed with selected toolchain: %s" % (comp['toolchain'])
-      Exit( -1 )
+    #if not conf.CheckCC():
+      #print "Test compile failed with selected toolchain: %s" % (comp['toolchain'])
+      #Exit( -1 )
 
   # CPU/allocator mapping (if allocator not specified)
   if comp['allocator'] == 'auto':
