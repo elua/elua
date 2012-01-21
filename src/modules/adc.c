@@ -34,6 +34,8 @@ static int adc_setclock( lua_State* L )
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( adc, id );
   freq = luaL_checkinteger( L, 2 );
+  if ( freq < 0 )
+    return luaL_error( L, "frequency must be 0 or positive" );
   if ( freq > 0 )
   {
     timer_id = luaL_checkinteger( L, 3 );
