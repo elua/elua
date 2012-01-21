@@ -331,7 +331,7 @@ elseif comp.romfs == 'compress' then
 end
 
 -- Determine build version
-if utils.check_command('git describe --always') then
+if utils.check_command('git describe --always') == 0 then
   addm( "USE_GIT_REVISION" )
   elua_vers = utils.exec_capture('git describe --always')
   -- If purely hexadecimal (no tag reference) prepend 'dev-'
