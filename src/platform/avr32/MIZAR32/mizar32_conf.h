@@ -12,36 +12,12 @@
 #include "buf.h"
 
 // *****************************************************************************
-// Define here what components you want for this platform
-
-#define BUILD_MMCFS
-//#define BUILD_ROMFS
-#define BUILD_CON_GENERIC
-//#define BUILD_RPC
-#define BUF_ENABLE_UART
-#define BUILD_C_INT_HANDLERS
-//#define BUILD_RFS
-//#define BUILD_SERMUX
-
 #if defined( ELUA_CPU_AT32UC3A0128 )
   // Build options for 120KB image
 # define RAM_SIZE 0x8000
 #else
   // Build options for 256KB and 512KB flash
 # define RAM_SIZE 0x10000
-# define BUILD_SHELL
-# define BUILD_XMODEM
-# define BUILD_ADC
-# define BUILD_LCD
-# define BUILD_TERM
-# define BUILD_UIP
-# define BUILD_LUA_INT_HANDLERS
-#endif
-
-#ifdef BUILD_UIP
-#define BUILD_DHCPC
-#define BUILD_DNS
-//#define BUILD_CON_TCP
 #endif
 
 // ****************************************************************************
