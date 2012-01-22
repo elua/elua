@@ -149,7 +149,7 @@
 // can copy/paste program fragments or data into the serial console.
 // An 80x25 screenful is 2000 characters so we use 2048 and the buffer is
 // allocated from the 32MB SDRAM so there is no effective limit.
-#define CON_BUF_SIZE          BUF_SIZE_2048
+// #define CON_BUF_SIZE          BUF_SIZE_2048
 
 // RPC boot options
 #define RPC_UART_ID           CON_UART_ID
