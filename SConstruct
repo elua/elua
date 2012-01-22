@@ -269,7 +269,7 @@ if not GetOption( 'help' ):
 
   # CPU/allocator mapping (if allocator not specified)
   if comp['allocator'] == 'auto':
-    if comp['board'] in ['MIZAR32'] and comp['cpu'] in ['AT32UC3A0128']:
+    if comp['cpu'] in ['AT32UC3A0128'] and comp['bootloader'] == 'none':
       comp['allocator'] = 'simple'
     elif comp['board'] in ['LPC-H2888', 'ATEVK1100', 'MIZAR32', 'MBED']:
       comp['allocator'] = 'multiple'

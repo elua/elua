@@ -22,18 +22,20 @@
 #define BUILD_C_INT_HANDLERS
 //#define BUILD_RFS
 //#define BUILD_SERMUX
+#define BUILD_ADC
+#define BUILD_LCD
+#define BUILD_TERM
 
 #if defined( ELUA_CPU_AT32UC3A0128 )
-  // Build options for 120KB image
 # define RAM_SIZE 0x8000
 #else
-  // Build options for 256KB and 512KB flash
 # define RAM_SIZE 0x10000
+#endif
+
+// Build options for full-size firmware
+#if !defined( ELUA_CPU_AT32UC3A0128 ) || defined( BOOTLOADER_EMBLOD )
 # define BUILD_SHELL
 # define BUILD_XMODEM
-# define BUILD_ADC
-# define BUILD_LCD
-# define BUILD_TERM
 # define BUILD_UIP
 # define BUILD_LUA_INT_HANDLERS
 #endif
@@ -115,37 +117,31 @@
 #define PLATLINE
 #endif
 
-#if defined( ELUA_CPU_AT32UC3A0128 )
-
-// Minimal ROM modules, to fit in 120KB
-#define LUA_PLATFORM_LIBS_ROM\
-  _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
-  _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
-  _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
-  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
-
+#if defined( BUILD_TERM )
+#define TERMLINE _ROM( AUXLIB_TERM, luaopen_term, term_map )
 #else
+#define TERMLINE
+#endif
 
 #define LUA_PLATFORM_LIBS_ROM\
-  _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
-  _ROM( AUXLIB_UART, luaopen_uart, uart_map )\
-  _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
-  _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map )\
-  _ROM( AUXLIB_I2C, luaopen_i2c, i2c_map )\
-  _ROM( AUXLIB_SPI, luaopen_spi, spi_map )\
-  _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
-  NETLINE\
+  ADCLINE\
+  _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
   _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )\
-  ADCLINE\
-  RPCLINE\
-  _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
+  _ROM( AUXLIB_I2C, luaopen_i2c, i2c_map )\
+  NETLINE\
   _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
-  _ROM( AUXLIB_TERM, luaopen_term, term_map )\
-  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
+  _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
+  _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
+  _ROM( AUXLIB_PWM, luaopen_pwm, pwm_map )\
+  RPCLINE\
+  _ROM( AUXLIB_SPI, luaopen_spi, spi_map )\
+  TERMLINE\
+  _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
+  _ROM( AUXLIB_UART, luaopen_uart, uart_map )\
   PLATLINE\
+  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
 
-#endif
 
 // *****************************************************************************
 // Configuration data

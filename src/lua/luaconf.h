@@ -28,16 +28,31 @@
 **    which is needed to be able to load compiled bytecode from *.lc files.
 @@ LUA_REMOVE_COLLECTGARBAGE removes the collectgarbage() and gcinfo() functions
 */ 
-
-#ifdef LUA_CROSS_COMPILER
-# undef LUA_REMOVE_DUMP
-#endif
  
+/* Configure for small size flash memory */
+
+#if defined(ELUA_CPU_AT32UC3A0128) && !defined(BOOTLOADER_EMBLOD)
+
+#define LUA_REMOVE_DEBUG
+#define LUA_REMOVE_HOOKS
+#define LUA_REMOVE_GETENV
+#define LUA_REMOVE_SIGNAL
+#define LUA_REMOVE_DUMP
+#define LUA_REMOVE_UNDUMP
+#define LUA_REMOVE_COLLECTGARBAGE
+
+#else
 
 /*
 @@ LUA_EGC enables compilation of the Emergency Garbage Collector
 */
 #define LUA_EGC
+
+#endif
+
+#ifdef LUA_CROSS_COMPILER
+# undef LUA_REMOVE_DUMP
+#endif
 
 
 /*
