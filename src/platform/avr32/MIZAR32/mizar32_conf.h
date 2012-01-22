@@ -9,67 +9,34 @@
 
 #include "sdramc.h"
 #include "sermux.h"
-#include "usb-cdc.h"
 #include "buf.h"
 
 // *****************************************************************************
-// Define here what components you want for this platform
-
-#define BUILD_MMCFS
-//#define BUILD_ROMFS
-#define BUILD_CON_GENERIC
-//#define BUILD_RPC
-#define BUILD_C_INT_HANDLERS
-//#define BUILD_RFS
-//#define BUILD_SERMUX
-
 #if defined( ELUA_CPU_AT32UC3A0128 )
   // Build options for 120KB image
 # define RAM_SIZE 0x8000
 #else
   // Build options for 256KB and 512KB flash
 # define RAM_SIZE 0x10000
-# define BUILD_SHELL
-# define BUILD_XMODEM
-# define BUILD_ADC
-# define BUILD_LCD
-# define BUILD_RTC
-# define BUILD_TERM
-# define BUILD_UIP
-# define BUILD_LUA_INT_HANDLERS
-# define BUILD_USB_CDC
-#endif
-
-#ifdef BUILD_UIP
-#define BUILD_DHCPC
-#define BUILD_DNS
-//#define BUILD_CON_TCP
 #endif
 
 // ****************************************************************************
 // Auxiliary libraries that will be compiled for this platform
 
 // The name of the platform specific libs table
+#ifdef BUILD_LCD
 #define PS_LIB_TABLE_NAME   "mizar32"
+#endif
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 
-#define BUF_ENABLE_UART
-
-#ifdef BUILD_USB_CDC
-# define CON_UART_ID        CDC_UART_ID
-#elif defined( BUILD_SERMUX )
-# define CON_UART_ID        ( SERMUX_SERVICE_ID_FIRST + 1 )
+#ifdef BUILD_SERMUX
+# define CON_UART_ID         ( SERMUX_SERVICE_ID_FIRST + 1 )
 #else
-# define CON_UART_ID        0
-# define CON_UART_SPEED     115200
-// As flow control seems not to work, we use a large buffer so that people
-// can copy/paste program fragments or data into the serial console.
-// An 80x25 screenful is 2000 characters so we use 2048.
-# define CON_BUF_SIZE       BUF_SIZE_2048
+# define CON_UART_ID         0
 #endif
-
+#define CON_UART_SPEED      115200
 #define TERM_LINES          25
 #define TERM_COLS           80
 
@@ -178,10 +145,15 @@
 #define NUM_ADC               8         // Though ADC3 pin is the Ethernet IRQ
 #define NUM_CAN               0
 
+// As flow control seems not to work, we use a large buffer so that people
+// can copy/paste program fragments or data into the serial console.
+// An 80x25 screenful is 2000 characters so we use 2048 and the buffer is
+// allocated from the 32MB SDRAM so there is no effective limit.
+#define CON_BUF_SIZE          BUF_SIZE_2048
 
 // RPC boot options
-#define RPC_UART_ID           0
-#define RPC_UART_SPEED        115200
+#define RPC_UART_ID           CON_UART_ID
+#define RPC_UART_SPEED        CON_UART_SPEED
 
 // ADC Configuration Params
 #define ADC_BIT_RESOLUTION    10

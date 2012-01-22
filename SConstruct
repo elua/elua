@@ -448,6 +448,10 @@ if not GetOption( 'help' ):
   # comp.TargetSignatures( 'content' )
   # comp.SourceSignatures( 'MD5' )
   comp[ 'INCPREFIX' ] = "-I"
+  L = string.split( os.environ["DEFINES"],' ')
+  for item in L:
+    conf.env.Append(CPPDEFINES = item)
+
   Default( comp.Program( target = output, source = source_files ) )
   Decider( 'MD5-timestamp' )
 
