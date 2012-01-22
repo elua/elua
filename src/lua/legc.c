@@ -1,5 +1,9 @@
 // Lua EGC (Emergeny Garbage Collector) interface
 
+#include "luaconf.h"
+
+#ifdef LUA_EGC
+
 #include "legc.h"
 #include "lstate.h"
 
@@ -10,3 +14,4 @@ void legc_set_mode(lua_State *L, int mode, unsigned limit) {
    g->memlimit = limit;
 }
 
+#endif

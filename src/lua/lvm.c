@@ -68,10 +68,16 @@ int luaV_tostring (lua_State *L, StkId obj) {
     return 0;
   else {
     char s[LUAI_MAXNUMBER2STR];
+#ifdef LUA_EGC
     ptrdiff_t objr = savestack(L, obj);
+#endif
     lua_Number n = nvalue(obj);
     lua_number2str(s, n);
+#ifndef LUA_EGC
+    setsvalue2s(L, obj, luaS_new(L, s));
+#else
     setsvalue2s(L, restorestack(L, objr), luaS_new(L, s));
+#endif
     return 1;
   }
 }
@@ -157,10 +163,12 @@ void luaV_gettable (lua_State *L, const TValue *t, TValue *key, StkId val) {
 
 void luaV_settable (lua_State *L, const TValue *t, TValue *key, StkId val) {
   int loop;
+#ifdef LUA_EGC
   TValue temp;
   setnilvalue(L->top);
   L->top++;
   fixedstack(L);
+#endif
   for (loop = 0; loop < MAXTAGLOOP; loop++) {
     const TValue *tm;
     if (ttistable(t) || ttisrotable(t)) {  /* `t' is a table? */
@@ -169,8 +177,10 @@ void luaV_settable (lua_State *L, const TValue *t, TValue *key, StkId val) {
       if ((oldval && !ttisnil(oldval)) ||  /* result is no nil? */
           (tm = fasttm(L, ttistable(t) ? ((Table*)h)->metatable : (Table*)luaR_getmeta(h), TM_NEWINDEX)) == NULL) { /* or no TM? */
         if(oldval) {
+#ifdef LUA_EGC
           L->top--;
           unfixedstack(L);
+#endif
           setobj2t(L, oldval, val);
           ((Table *)h)->flags = 0;
           luaC_barriert(L, (Table*)h, val);
@@ -182,15 +192,21 @@ void luaV_settable (lua_State *L, const TValue *t, TValue *key, StkId val) {
     else if (ttisnil(tm = luaT_gettmbyobj(L, t, TM_NEWINDEX)))
       luaG_typeerror(L, t, "index");
     if (ttisfunction(tm) || ttislightfunction(tm)) {
+#ifdef LUA_EGC
       L->top--;
       unfixedstack(L);
+#endif
       callTM(L, tm, t, key, val);
       return;
     }
+#ifndef LUA_EGC
+    t = tm;  /* else repeat with `tm' */
+#else
     /* else repeat with `tm' */
     setobj(L, &temp, tm);  /* avoid pointing inside table (may rehash) */
     t = &temp;
     setobj2s(L, L->top-1, t);  /* need to protect value from EGC. */
+#endif
   }
   luaG_runerror(L, "loop in settable");
 }
@@ -317,15 +333,19 @@ int luaV_equalval (lua_State *L, const TValue *t1, const TValue *t2) {
 
 
 void luaV_concat (lua_State *L, int total, int last) {
+#ifdef LUA_EGC
   lu_mem max_sizet = MAX_SIZET;
   if (G(L)->memlimit < max_sizet) max_sizet = G(L)->memlimit;
+#endif
   do {
     StkId top = L->base + last + 1;
     int n = 2;  /* number of elements handled in this pass (at least 2) */
     if (!(ttisstring(top-2) || ttisnumber(top-2)) || !tostring(L, top-1)) {
       if (!call_binTM(L, top-2, top-1, top-2, TM_CONCAT)) {
+#ifdef LUA_EGC
         /* restore 'top' pointer, since stack might have been reallocted */
         top = L->base + last + 1;
+#endif
         luaG_concaterror(L, top-2, top-1);
       }
     } else if (tsvalue(top-1)->len == 0)  /* second op is empty? */
@@ -335,14 +355,22 @@ void luaV_concat (lua_State *L, int total, int last) {
       size_t tl = tsvalue(top-1)->len;
       char *buffer;
       int i;
+#ifdef LUA_EGC
       fixedstack(L);
+#endif
       /* collect total length */
       for (n = 1; n < total && tostring(L, top-n-1); n++) {
         size_t l = tsvalue(top-n-1)->len;
+#ifndef LUA_EGC
+        if (l >= MAX_SIZET - tl) luaG_runerror(L, "string length overflow");
+#else
         if (l >= max_sizet - tl) luaG_runerror(L, "string length overflow");
+#endif
         tl += l;
       }
+#ifdef LUA_EGC
       G(L)->buff.n = tl;
+#endif
       buffer = luaZ_openspace(L, &G(L)->buff, tl);
       tl = 0;
       for (i=n; i>0; i--) {  /* concat all strings */
@@ -351,8 +379,10 @@ void luaV_concat (lua_State *L, int total, int last) {
         tl += l;
       }
       setsvalue2s(L, top-n, luaS_newlstr(L, buffer, tl));
+#ifdef LUA_EGC
       luaZ_resetbuffer(&G(L)->buff);
       unfixedstack(L);
+#endif
     }
     total -= n-1;  /* got `n' strings to create 1 new */
     last -= n-1;
@@ -378,6 +408,10 @@ static void Arith (lua_State *L, StkId ra, const TValue *rb,
       default: lua_assert(0); break;
     }
   }
+#ifndef LUA_EGC
+  else if (!call_binTM(L, rb, rc, ra, op))
+    luaG_aritherror(L, rb, rc);
+#else
   else {
     ptrdiff_t br = savestack(L, rb);
     ptrdiff_t cr = savestack(L, rc);
@@ -385,6 +419,7 @@ static void Arith (lua_State *L, StkId ra, const TValue *rb,
       luaG_aritherror(L, restorestack(L, br), restorestack(L, cr));
     }
   }
+#endif
 }
 
 
@@ -514,9 +549,13 @@ void luaV_execute (lua_State *L, int nexeccalls) {
       case OP_NEWTABLE: {
         int b = GETARG_B(i);
         int c = GETARG_C(i);
+#ifndef LUA_EGC
+        sethvalue(L, ra, luaH_new(L, luaO_fb2int(b), luaO_fb2int(c)));
+#else
         Table *h;
         Protect(h = luaH_new(L, luaO_fb2int(b), luaO_fb2int(c)));
         sethvalue(L, RA(i), h);
+#endif
         Protect(luaC_checkGC(L));
         continue;
       }
@@ -579,10 +618,16 @@ void luaV_execute (lua_State *L, int nexeccalls) {
             break;
           }
           default: {  /* try metamethod */
+#ifdef LUA_EGC
             ptrdiff_t br = savestack(L, rb);
+#endif
             Protect(
               if (!call_binTM(L, rb, luaO_nilobject, ra, TM_LEN))
+#ifndef LUA_EGC
+                luaG_typeerror(L, rb, "get length of");
+#else
                 luaG_typeerror(L, restorestack(L, br), "get length of");
+#endif
             )
           }
         }
@@ -756,7 +801,9 @@ void luaV_execute (lua_State *L, int nexeccalls) {
         int c = GETARG_C(i);
         int last;
         Table *h;
+#ifdef LUA_EGC
         fixedstack(L);
+#endif
         if (n == 0) {
           n = cast_int(L->top - ra) - 1;
           L->top = L->ci->top;
@@ -772,7 +819,9 @@ void luaV_execute (lua_State *L, int nexeccalls) {
           setobj2t(L, luaH_setnum(L, h, last--), val);
           luaC_barriert(L, h, val);
         }
+#ifdef LUA_EGC
         unfixedstack(L);
+#endif
         continue;
       }
       case OP_CLOSE: {
@@ -785,9 +834,13 @@ void luaV_execute (lua_State *L, int nexeccalls) {
         int nup, j;
         p = cl->p->p[GETARG_Bx(i)];
         nup = p->nups;
+#ifdef LUA_EGC
         fixedstack(L);
+#endif
         ncl = luaF_newLclosure(L, nup, cl->env);
+#ifdef LUA_EGC
         setclvalue(L, ra, ncl);
+#endif
         ncl->l.p = p;
         for (j=0; j<nup; j++, pc++) {
           if (GET_OPCODE(*pc) == OP_GETUPVAL)
@@ -797,7 +850,11 @@ void luaV_execute (lua_State *L, int nexeccalls) {
             ncl->l.upvals[j] = luaF_findupval(L, base + GETARG_B(*pc));
           }
         }
+#ifndef LUA_EGC
+        setclvalue(L, ra, ncl);
+#else
         unfixedstack(L);
+#endif
         Protect(luaC_checkGC(L));
         continue;
       }

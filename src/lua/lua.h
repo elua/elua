@@ -228,8 +228,10 @@ LUA_API int  (lua_status) (lua_State *L);
 #define LUA_GCSTEP		5
 #define LUA_GCSETPAUSE		6
 #define LUA_GCSETSTEPMUL	7
+#ifdef LUA_EGC
 #define LUA_GCSETMEMLIMIT	8
 #define LUA_GCGETMEMLIMIT	9
+#endif
 
 LUA_API int (lua_gc) (lua_State *L, int what, int data);
 

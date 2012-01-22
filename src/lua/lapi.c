@@ -570,9 +570,13 @@ LUA_API void lua_getfield (lua_State *L, int idx, const char *k) {
   lua_lock(L);
   t = index2adr(L, idx);
   api_checkvalidindex(L, t);
+#ifdef LUA_EGC
   fixedstack(L);
+#endif
   setsvalue(L, &key, luaS_new(L, k));
+#ifdef LUA_EGC
   unfixedstack(L);
+#endif
   luaV_gettable(L, t, &key, L->top);
   api_incr_top(L);
   lua_unlock(L);
@@ -689,14 +693,23 @@ LUA_API void lua_settable (lua_State *L, int idx) {
 
 LUA_API void lua_setfield (lua_State *L, int idx, const char *k) {
   StkId t;
+#ifndef LUA_EGC
+  TValue key;
+#endif
   lua_lock(L);
   api_checknelems(L, 1);
   t = index2adr(L, idx);
   api_checkvalidindex(L, t);
+#ifndef LUA_EGC
+  setsvalue(L, &key, luaS_new(L, k));
+  luaV_settable(L, t, &key, L->top - 1);
+  L->top--;  /* pop value */
+#else
   setsvalue2s(L, L->top, luaS_new(L, k));
   api_incr_top(L);
   luaV_settable(L, t, L->top - 1, L->top - 2);
   L->top -= 2;  /* pop key and value */
+#endif
   lua_unlock(L);
 }
 
@@ -707,9 +720,13 @@ LUA_API void lua_rawset (lua_State *L, int idx) {
   api_checknelems(L, 2);
   t = index2adr(L, idx);
   api_check(L, ttistable(t));
+#ifdef LUA_EGC
   fixedstack(L);
+#endif
   setobj2t(L, luaH_set(L, hvalue(t), L->top-2), L->top-1);
+#ifdef LUA_EGC
   unfixedstack(L);
+#endif
   luaC_barriert(L, hvalue(t), L->top-1);
   L->top -= 2;
   lua_unlock(L);
@@ -722,9 +739,13 @@ LUA_API void lua_rawseti (lua_State *L, int idx, int n) {
   api_checknelems(L, 1);
   o = index2adr(L, idx);
   api_check(L, ttistable(o));
+#ifdef LUA_EGC
   fixedstack(L);
+#endif
   setobj2t(L, luaH_setnum(L, hvalue(o), n), L->top-1);
+#ifdef LUA_EGC
   unfixedstack(L);
+#endif
   luaC_barriert(L, hvalue(o), L->top-1);
   L->top--;
   lua_unlock(L);
@@ -948,11 +969,19 @@ LUA_API int lua_gc (lua_State *L, int what, int data) {
   g = G(L);
   switch (what) {
     case LUA_GCSTOP: {
+#ifndef LUA_EGC
+      g->GCthreshold = MAX_LUMEM;
+#else
       set_block_gc(L);
+#endif
       break;
     }
     case LUA_GCRESTART: {
+#ifndef LUA_EGC
+      g->GCthreshold = g->totalbytes;
+#else
       unset_block_gc(L);
+#endif
       break;
     }
     case LUA_GCCOLLECT: {
@@ -969,10 +998,12 @@ LUA_API int lua_gc (lua_State *L, int what, int data) {
       break;
     }
     case LUA_GCSTEP: {
+#ifdef LUA_EGC
       if(is_block_gc(L)) {
         res = 1; /* gc is block so we need to pretend that the collection cycle finished. */
         break;
       }
+#endif
       lu_mem a = (cast(lu_mem, data) << 10);
       if (a <= g->totalbytes)
         g->GCthreshold = g->totalbytes - a;
@@ -997,6 +1028,7 @@ LUA_API int lua_gc (lua_State *L, int what, int data) {
       g->gcstepmul = data;
       break;
     }
+#ifdef LUA_EGC
     case LUA_GCSETMEMLIMIT: {
       /* GC values are expressed in Kbytes: #bytes/2^10 */
       lu_mem new_memlimit = (cast(lu_mem, data) << 10);
@@ -1015,6 +1047,7 @@ LUA_API int lua_gc (lua_State *L, int what, int data) {
       res = cast_int(g->memlimit >> 10);
       break;
     }
+#endif
     default: res = -1;  /* invalid option */
   }
   lua_unlock(L);

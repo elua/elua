@@ -286,6 +286,64 @@ static Node *getfreepos (Table *t) {
 }
 
 
+#ifndef LUA_EGC
+
+static void setnodevector (lua_State *L, Table *t, int size) {
+  int lsize;
+  if (size == 0) {  /* no elements to hash part? */
+    t->node = cast(Node *, dummynode);  /* use common `dummynode' */
+    lsize = 0;
+  }
+  else {
+    int i;
+    lsize = ceillog2(size);
+    if (lsize > MAXBITS)
+      luaG_runerror(L, "table overflow");
+    size = twoto(lsize);
+    t->node = luaM_newvector(L, size, Node);
+    for (i=0; i<size; i++) {
+      Node *n = gnode(t, i);
+      gnext(n) = NULL;
+      setnilvalue(gkey(n));
+      setnilvalue(gval(n));
+    }
+  }
+  t->lsizenode = cast_byte(lsize);
+  t->lastfree = gnode(t, size);  /* reset lastfree to end of table. */
+}
+
+
+static void resize (lua_State *L, Table *t, int nasize, int nhsize) {
+  int i;
+  int oldasize = t->sizearray;
+  int oldhsize = t->lsizenode;
+  Node *nold = t->node;  /* save old hash ... */
+  if (nasize > oldasize)  /* array part must grow? */
+    setarrayvector(L, t, nasize);
+  /* create new hash part with appropriate size */
+  setnodevector(L, t, nhsize);
+  if (nasize < oldasize) {  /* array part must shrink? */
+    t->sizearray = nasize;
+    /* re-insert elements from vanishing slice */
+    for (i=nasize; i<oldasize; i++) {
+      if (!ttisnil(&t->array[i]))
+        setobjt2t(L, luaH_setnum(L, t, i+1), &t->array[i]);
+    }
+    /* shrink array */
+    luaM_reallocvector(L, t->array, oldasize, nasize, TValue);
+  }
+  /* re-insert elements from hash part */
+  for (i = twoto(oldhsize) - 1; i >= 0; i--) {
+    Node *old = nold+i;
+    if (!ttisnil(gval(old)))
+      setobjt2t(L, luaH_set(L, t, key2tval(old)), gval(old));
+  }
+  if (nold != dummynode)
+    luaM_freearray(L, nold, twoto(oldhsize), Node);  /* free old array */
+}
+
+#else  /* LUA_EGC */
+
 static void resizenodevector (lua_State *L, Table *t, int oldsize, int newsize) {
   int lsize;
   if (newsize == 0) {  /* no elements to hash part? */
@@ -457,6 +515,8 @@ static void resize (lua_State *L, Table *t, int nasize, int nhsize) {
   }
 }
 
+#endif  /* LUA_EGC */
+
 
 void luaH_resizearray (lua_State *L, Table *t, int nasize) {
   int nsize = (t->node == dummynode) ? 0 : sizenode(t);
@@ -492,8 +552,10 @@ static void rehash (lua_State *L, Table *t, const TValue *ek) {
 Table *luaH_new (lua_State *L, int narray, int nhash) {
   Table *t = luaM_new(L, Table);
   luaC_link(L, obj2gco(t), LUA_TTABLE);
+#ifdef LUA_EGC
   sethvalue2s(L, L->top, t); /* put table on stack */
   incr_top(L);
+#endif
   t->metatable = NULL;
   t->flags = cast_byte(~0);
   /* temporary values (kept only if some malloc fails) */
@@ -502,8 +564,12 @@ Table *luaH_new (lua_State *L, int narray, int nhash) {
   t->lsizenode = 0;
   t->node = cast(Node *, dummynode);
   setarrayvector(L, t, narray);
+#ifndef LUA_EGC
+  setnodevector(L, t, nhash);
+#else
   resizenodevector(L, t, 0, nhash);
   L->top--; /* remove table from stack */
+#endif
   return t;
 }
 

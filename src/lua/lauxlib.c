@@ -25,11 +25,13 @@
 #include "lrotable.h"
 
 #include "lauxlib.h"
+#ifdef LUA_EGC
 #include "lgc.h"
 #include "ldo.h"
 #include "lobject.h"
 #include "lstate.h"
 #include "legc.h"
+#endif
 
 #define FREELIST_REF	0	/* free list of references */
 
@@ -678,6 +680,8 @@ LUALIB_API int (luaL_loadstring) (lua_State *L, const char *s) {
 /* }====================================================== */
 
 
+#ifdef LUA_EGC
+
 static int l_check_memlimit(lua_State *L, size_t needbytes) {
   global_State *g = G(L);
   int cycle_count = 0;
@@ -693,16 +697,27 @@ static int l_check_memlimit(lua_State *L, size_t needbytes) {
   return (g->totalbytes >= limit) ? 1 : 0;
 }
 
+#endif
+
 
 static void *l_alloc (void *ud, void *ptr, size_t osize, size_t nsize) {
+#ifndef LUA_EGC
+  (void)ud;
+  (void)osize;
+#else
   lua_State *L = (lua_State *)ud;
   int mode = L == NULL ? 0 : G(L)->egcmode;
   void *nptr;
+#endif
 
   if (nsize == 0) {
     free(ptr);
     return NULL;
   }
+#ifndef LUA_EGC
+  else
+    return realloc(ptr, nsize);
+#else
   if (L != NULL && (mode & EGC_ALWAYS)) /* always collect memory if requested */
     luaC_fullgc(L);
   if(nsize > osize && L != NULL) {
@@ -718,6 +733,7 @@ static void *l_alloc (void *ud, void *ptr, size_t osize, size_t nsize) {
     nptr = realloc(ptr, nsize); /* try allocation again */
   }
   return nptr;
+#endif
 }
 
 
@@ -731,7 +747,9 @@ static int panic (lua_State *L) {
 
 LUALIB_API lua_State *luaL_newstate (void) {
   lua_State *L = lua_newstate(l_alloc, NULL);
+#ifdef LUA_EGC
   lua_setallocf(L, l_alloc, L); /* allocator need lua_State. */
+#endif
   if (L) lua_atpanic(L, &panic);
   return L;
 }

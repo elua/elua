@@ -128,8 +128,10 @@ static void close_state (lua_State *L) {
 lua_State *luaE_newthread (lua_State *L) {
   lua_State *L1 = tostate(luaM_malloc(L, state_size(lua_State)));
   luaC_link(L, obj2gco(L1), LUA_TTHREAD);
+#ifdef LUA_EGC
   setthvalue(L, L->top, L1); /* put thread on stack */
   incr_top(L);
+#endif
   preinit_state(L1, G(L));
   stack_init(L1, L);  /* init stack */
   setobj2n(L, gt(L1), gt(L));  /* share table of globals */
@@ -139,8 +141,12 @@ lua_State *luaE_newthread (lua_State *L) {
   L1->hook = L->hook;
   resethookcount(L1);
 #endif
+#ifndef LUA_EGC
+  lua_assert(iswhite(obj2gco(L1)));
+#else
   lua_assert(!isdead(G(L), obj2gco(L1)));
   L->top--; /* remove thread from stack */
+#endif
   return L1;
 }
 
@@ -174,7 +180,9 @@ LUA_API lua_State *lua_newstate (lua_Alloc f, void *ud) {
   g->uvhead.u.l.prev = &g->uvhead;
   g->uvhead.u.l.next = &g->uvhead;
   g->GCthreshold = 0;  /* mark it as unfinished state */
+#ifdef LUA_EGC
   g->estimate = 0;
+#endif
   g->strt.size = 0;
   g->strt.nuse = 0;
   g->strt.hash = NULL;
@@ -182,7 +190,9 @@ LUA_API lua_State *lua_newstate (lua_Alloc f, void *ud) {
   luaZ_initbuffer(L, &g->buff);
   g->panic = NULL;
   g->gcstate = GCSpause;
+#ifdef LUA_EGC
   g->gcflags = GCFlagsNone;
+#endif
   g->rootgc = obj2gco(L);
   g->sweepstrgc = 0;
   g->sweepgc = &g->rootgc;
@@ -191,19 +201,20 @@ LUA_API lua_State *lua_newstate (lua_Alloc f, void *ud) {
   g->weak = NULL;
   g->tmudata = NULL;
   g->totalbytes = sizeof(LG);
-  g->memlimit = 0;
-  g->gcpause = LUAI_GCPAUSE;
-  g->gcstepmul = LUAI_GCMUL;
-  g->gcdept = 0;
-#ifdef EGC_INITIAL_MODE
-  g->egcmode = EGC_INITIAL_MODE;
-#else
-  g->egcmode = 0;
-#endif
+#ifdef LUA_EGC
 #ifdef EGC_INITIAL_MEMLIMIT
   g->memlimit = EGC_INITIAL_MEMLIMIT;
 #else
   g->memlimit = 0;
+#endif
+#endif
+  g->gcpause = LUAI_GCPAUSE;
+  g->gcstepmul = LUAI_GCMUL;
+  g->gcdept = 0;
+#ifdef LUA_EGC
+#ifdef EGC_INITIAL_MODE
+  g->egcmode = EGC_INITIAL_MODE;
+#endif
 #endif
   for (i=0; i<NUM_TAGS; i++) g->mt[i] = NULL;
   if (luaD_rawrunprotected(L, f_luaopen, NULL) != 0) {

@@ -385,18 +385,26 @@ Proto *luaY_parser (lua_State *L, ZIO *z, Mbuffer *buff, const char *name) {
   struct LexState lexstate;
   struct FuncState *pfuncstate = (struct FuncState*)malloc(sizeof(struct FuncState));
   Proto *res;
+#ifdef LUA_EGC
   TString *tname = luaS_new(L, name);
   setsvalue2s(L, L->top, tname);  /* protect name */
   incr_top(L);
+#endif
   lexstate.buff = buff;
+#ifndef LUA_EGC
+  luaX_setinput(L, &lexstate, z, luaS_new(L, name));
+#else
   luaX_setinput(L, &lexstate, z, tname);
+#endif
   open_func(&lexstate, pfuncstate);
   pfuncstate->f->is_vararg = VARARG_ISVARARG;  /* main func. is always vararg */
   luaX_next(&lexstate);  /* read first token */
   chunk(&lexstate);
   check(&lexstate, TK_EOS);
   close_func(&lexstate);
+#ifdef LUA_EGC
   L->top--; /* remove 'name' from stack */
+#endif
   lua_assert(pfuncstate->prev == NULL);
   lua_assert(pfuncstate->f->nups == 0);
   lua_assert(lexstate.fs == NULL);

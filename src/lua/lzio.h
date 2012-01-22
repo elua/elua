@@ -27,7 +27,11 @@ typedef struct Mbuffer {
   size_t buffsize;
 } Mbuffer;
 
+#ifndef LUA_EGC
+#define luaZ_initbuffer(L, buff) ((buff)->buffer = NULL, (buff)->buffsize = 0)
+#else
 #define luaZ_initbuffer(L, buff) ((buff)->buffer = NULL, (buff)->n = 0, (buff)->buffsize = 0)
+#endif
 
 #define luaZ_buffer(buff)	((buff)->buffer)
 #define luaZ_sizebuffer(buff)	((buff)->buffsize)
