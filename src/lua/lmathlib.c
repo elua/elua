@@ -158,12 +158,21 @@ static int math_sqrt (lua_State *L) {
   return 1;
 }
 
-#ifndef LUA_NUMBER_INTEGRAL
+#ifdef LUA_NUMBER_INTEGRAL
+# define pow(a,b) luai_ipow(a,b)
+#endif
 
 static int math_pow (lua_State *L) {
   lua_pushnumber(L, pow(luaL_checknumber(L, 1), luaL_checknumber(L, 2)));
   return 1;
 }
+
+#ifdef LUA_NUMBER_INTEGRAL
+# undef pow
+#endif
+
+
+#ifndef LUA_NUMBER_INTEGRAL
 
 static int math_log (lua_State *L) {
   lua_pushnumber(L, log(luaL_checknumber(L, 1)));
@@ -306,6 +315,7 @@ const LUA_REG_TYPE math_map[] = {
   {LSTRKEY("floor"), LFUNCVAL(math_identity)},
   {LSTRKEY("max"),   LFUNCVAL(math_max)},
   {LSTRKEY("min"),   LFUNCVAL(math_min)},
+  {LSTRKEY("pow"),   LFUNCVAL(math_pow)},
   {LSTRKEY("random"),     LFUNCVAL(math_random)},
   {LSTRKEY("randomseed"), LFUNCVAL(math_randomseed)},
   {LSTRKEY("sqrt"),  LFUNCVAL(math_sqrt)},
