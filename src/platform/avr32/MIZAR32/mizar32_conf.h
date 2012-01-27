@@ -214,27 +214,5 @@
 // CPU constants that should be exposed to the eLua "cpu" module
 
 
-// Static TCP/IP configuration
-
-#define ELUA_CONF_IPADDR0     192
-#define ELUA_CONF_IPADDR1     168
-#define ELUA_CONF_IPADDR2     1
-#define ELUA_CONF_IPADDR3     10
-
-#define ELUA_CONF_NETMASK0    255
-#define ELUA_CONF_NETMASK1    255
-#define ELUA_CONF_NETMASK2    255
-#define ELUA_CONF_NETMASK3    0
-
-#define ELUA_CONF_DEFGW0      192
-#define ELUA_CONF_DEFGW1      168
-#define ELUA_CONF_DEFGW2      1
-#define ELUA_CONF_DEFGW3      1
-
-#define ELUA_CONF_DNS0        192
-#define ELUA_CONF_DNS1        168
-#define ELUA_CONF_DNS2        1
-#define ELUA_CONF_DNS3        1
-
 #endif // #ifndef __MIZAR32_CONF_H__
 

@@ -419,6 +419,30 @@ if not GetOption( 'help' ):
   for item in L:
     conf.env.Append(CPPDEFINES = item)
 
+  L = string.split( os.environ["IP_ADDRESS"],'.')
+  cc=0
+  for item in L:
+    conf.env.Append(CPPDEFINES = "-DELUA_CONF_IPADDR" + str(cc) + "=" + item)
+    cc=cc+1
+
+  L = string.split( os.environ["IP_MASK"],'.')
+  cc=0
+  for item in L:
+    conf.env.Append(CPPDEFINES = "-DELUA_CONF_NETMASK" + str(cc) + "=" + item)
+    cc=cc+1
+
+  L = string.split( os.environ["IP_GATEWAY"],'.')
+  cc=0
+  for item in L:
+    conf.env.Append(CPPDEFINES = "-DELUA_CONF_DEFGW" + str(cc) + "=" + item)
+    cc=cc+1
+
+  L = string.split( os.environ["IP_DNS"],'.')
+  cc=0
+  for item in L:
+    conf.env.Append(CPPDEFINES = "-DELUA_CONF_DNS" + str(cc) + "=" + item)
+    cc=cc+1
+
   Default( comp.Program( target = output, source = source_files ) )
   Decider( 'MD5-timestamp' )
 
