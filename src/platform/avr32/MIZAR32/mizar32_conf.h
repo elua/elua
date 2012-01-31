@@ -9,6 +9,7 @@
 
 #include "sdramc.h"
 #include "sermux.h"
+#include "usb-cdc.h"
 #include "buf.h"
 
 // *****************************************************************************
@@ -28,13 +29,19 @@
 #define PS_LIB_TABLE_NAME   "mizar32"
 #endif
 
+#ifdef BUILD_USB_CDC
+#  define CON_SERIALPORT  CDC_UART_ID
+#else
+#  define CON_SERIALPORT  0
+#endif
+
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 
 #ifdef BUILD_SERMUX
 # define CON_UART_ID         ( SERMUX_SERVICE_ID_FIRST + 1 )
 #else
-# define CON_UART_ID         0
+# define CON_UART_ID         CON_SERIALPORT
 #endif
 #define CON_UART_SPEED      115200
 #define TERM_LINES          25

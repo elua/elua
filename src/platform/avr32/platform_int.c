@@ -62,6 +62,7 @@ __attribute__((__interrupt__)) static void uart3_rx_handler()
 // TMR_MATCH interrupts
 
 extern void platform_eth_timer_handler();
+extern void platform_cdc_timer_handler();
 static const int tmr_irqs[] = { AVR32_TC_IRQ0, AVR32_TC_IRQ1, AVR32_TC_IRQ2 };
 extern u8 avr32_timer_int_periodic_flag[ 3 ];
 
@@ -75,6 +76,7 @@ static void tmr_match_common_handler( int id )
   {
     cmn_virtual_timer_cb();
     platform_eth_timer_handler();
+    platform_cdc_timer_handler();
   }
   else
 #endif

@@ -84,11 +84,6 @@ void adc_configure(volatile avr32_adc_t * adc)
   adc->MR.prescal = prescal;
 
   // Ensure the ADC sample-and-hold time is within spec: 600ns minimum.
-  // In practice, ADC0 still gets the value from the wrong channel when the
-  // sample-and-hold time is 800ns or 1066ns but seems to work when it is
-  // 1333ns (set with a minimum of 1200 here).
-  // The default code (above) sets SHTIM to its highest value, which also
-  // results in the ADC channels getting their values from the wrong channel.
 
   // Track and Hold Acquisition Time ("THAT") = (SHTIM + 1) / ADCClock.
   shtim = 0;
