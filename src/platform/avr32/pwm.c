@@ -87,12 +87,10 @@ void pwm_init()
 // Set the two linear dividers' frequencies
 void pwm_set_linear_divider( unsigned prea, unsigned diva )
 {
-  avr32_pwm_mr_t mr;       // Value for mode register
+  avr32_pwm_mr_t mr = AVR32_PWM.MR;
 
   mr.prea = prea;
   mr.diva = diva;
-  mr.preb = 0;             // Turn clock B off
-  mr.divb = 0;
   AVR32_PWM.MR = mr;
 }
 
