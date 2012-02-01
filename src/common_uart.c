@@ -204,7 +204,7 @@ int platform_uart_set_buffer( unsigned id, unsigned log2size )
     if( id >= SERMUX_SERVICE_ID_FIRST ) // No need for aditional setup on virtual UARTs
       return PLATFORM_OK;    
     // Enable UART RX interrupt 
-    if( platform_cpu_set_interrupt( INT_UART_RX, id, PLATFORM_CPU_ENABLE ) != PLATFORM_INT_OK )
+    if( platform_cpu_set_interrupt( INT_UART_RX, id, PLATFORM_CPU_ENABLE ) < 0 )
       return PLATFORM_ERR;
     // Setup our C handler
     if( elua_int_get_c_handler( INT_UART_RX ) != cmn_uart_rx_inthandler )
