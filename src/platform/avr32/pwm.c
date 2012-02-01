@@ -32,7 +32,7 @@
 #define ASYNCHRONOUS_UPDATE 0
 
 // Values to set into the CPD bit of the per-channel CMR registers
-// to say whether we are updating the duty cycòle or the period.
+// to say whether we are updating the duty cycle or the period.
 // These values seem not to be defined anywhere in the avr32 headers.
 #define AVR32_PWM_CMR_CPD_UPDATE_CDTY 0
 #define AVR32_PWM_CMR_CPD_UPDATE_CPRD 1
