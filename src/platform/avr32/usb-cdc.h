@@ -1,22 +1,3 @@
-/* This header file is part of the ATMEL AVR-UC3-SoftwareFramework-1.7.0 Release */
-
-/*This file is prepared for Doxygen automatic documentation generation.*/
-/*! \file ******************************************************************
- *
- * \brief USB identifiers.
- *
- * This file contains the USB parameters that uniquely identify the USB
- * application through descriptor tables.
- *
- * - Compiler:           IAR EWAVR32 and GNU GCC for AVR32
- * - Supported devices:  All AVR32 devices with a USB module can be used.
- * - AppNote:
- *
- * \author               Atmel Corporation: http://www.atmel.com \n
- *                       Support and FAQ: http://support.atmel.no/
- *
- ***************************************************************************/
-
 /* Copyright (c) 2009 Atmel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +26,6 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
- *
  */
 
 #ifndef _USB_CDC_H_
@@ -82,7 +62,7 @@
 #define EVT_HOST_HWUP                 10        // Host wake-up detected
 #define EVT_HOST_DISCONNECTION        11        // The target device is disconnected
 
-#define NB_MS_BEFORE_FLUSH			  1
+#define NB_MS_BEFORE_FLUSH            1
 
 #define AVR32_USBB_usbcon             (AVR32_USBB.usbcon)
 #define AVR32_USBB_udintclr           (AVR32_USBB.udintclr)
@@ -175,7 +155,7 @@
 #define Usb_disable_resume_interrupt()     (AVR32_USBB_udinteclr = AVR32_USBB_UDINTECLR_EORSMEC_MASK)
 #define Usb_enable_suspend_interrupt()     (AVR32_USBB_udinteset = AVR32_USBB_UDINTESET_SUSPES_MASK)
 #define Usb_enable_reset_interrupt()       (AVR32_USBB_udinteset = AVR32_USBB_UDINTESET_EORSTES_MASK)
-#define Usb_force_full_speed_mode()	       (Wr_bitfield(AVR32_USBB_udcon, AVR32_USBB_UDCON_SPDCONF_MASK, 3))
+#define Usb_force_full_speed_mode()        (Wr_bitfield(AVR32_USBB_udcon, AVR32_USBB_UDCON_SPDCONF_MASK, 3))
 #define Is_usb_id_device()                 (Tst_bits(AVR32_USBB_usbsta, AVR32_USBB_USBSTA_ID_MASK))
 #define Usb_ack_id_transition()       (AVR32_USBB_usbstaclr = AVR32_USBB_USBSTACLR_IDTIC_MASK)
 #define Usb_raise_id_transition()     (AVR32_USBB_usbstaset = AVR32_USBB_USBSTASET_IDTIS_MASK)
@@ -236,7 +216,7 @@
 #define Usb_set_configuration_action()            Usb_enable_sof_interrupt()
 
 #define Usb_reset_endpoint(ep)                    (Set_bits(AVR32_USBB_uerst, AVR32_USBB_UERST_EPRST0_MASK << (ep)),\
-		                                           Clr_bits(AVR32_USBB_uerst, AVR32_USBB_UERST_EPRST0_MASK << (ep)))
+                                                   Clr_bits(AVR32_USBB_uerst, AVR32_USBB_UERST_EPRST0_MASK << (ep)))
 #define Is_usb_vbus_transition()                  (Tst_bits(AVR32_USBB_usbsta, AVR32_USBB_USBSTA_VBUSTI_MASK))
 #define Is_usb_resume_interrupt_enabled()         (Tst_bits(AVR32_USBB_udinte, AVR32_USBB_UDINTE_EORSME_MASK))
 #define Is_usb_wake_up()                          (Tst_bits(AVR32_USBB_udint, AVR32_USBB_UDINT_WAKEUP_MASK))
@@ -308,8 +288,8 @@
 #define Pep_fifo_access_16_post_inc()         ++
 #define Pep_fifo_access_8_post_inc()          ++
 
-#define TX_EP				 				  0x01
-#define RX_EP				 				  0x02
+#define TX_EP                                 0x01
+#define RX_EP                                 0x02
 #define INT_EP                                0x03
 #define GET_STATUS                            0x00
 #define GET_DEVICE                            0x01
@@ -803,10 +783,10 @@ extern  U32             usb_read_ep_rxpacket    (U8,       void *, U32,       vo
 
 extern volatile       U8   usb_configuration_nb;
 
-void 	UsbCdcFlush (void);
-int 	UsbCdcSendChar(int);
-int 	UsbCdcReadChar( int *);
-Bool 	UsbCdcTxReady(void);
-Bool 	UsbCdcTestHit(void);
+void    UsbCdcFlush (void);
+int     UsbCdcSendChar(int);
+int     UsbCdcReadChar( int *);
+Bool    UsbCdcTxReady(void);
+Bool    UsbCdcTestHit(void);
 
 #endif
