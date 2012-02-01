@@ -28,16 +28,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
  */
 
+#include "platform_conf.h"
+
+#ifdef BUILD_USB_CDC
+
 #include <string.h>
 #include "compiler.h"
 #include "pm.h"
 #include "intc.h"
 #include "usart.h"
 #include "usb-cdc.h"
-#include "platform_conf.h"
-
-#define BUILD_USB_CDC
-#ifdef BUILD_USB_CDC
 
 volatile       U16                                g_usb_event = 0;
 volatile       Bool                               usb_connected = FALSE;
@@ -1201,5 +1201,5 @@ void UsbCdcFlush (void)
   Usb_ack_in_ready_send(TX_EP);
   b_tx_new = TRUE;
 }
-#endif
 
+#endif
