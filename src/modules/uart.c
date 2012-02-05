@@ -282,23 +282,18 @@ LUALIB_API int luaopen_uart( lua_State *L )
 #else // #if LUA_OPTIMIZE_MEMORY > 0
   luaL_register( L, AUXLIB_UART, uart_map );
   
-  // Add the stop bits and parity constants (for uart.setup)
   MOD_REG_NUMBER( L, "PAR_EVEN", PLATFORM_UART_PARITY_EVEN );
   MOD_REG_NUMBER( L, "PAR_ODD", PLATFORM_UART_PARITY_ODD );
   MOD_REG_NUMBER( L, "PAR_NONE", PLATFORM_UART_PARITY_NONE );
   MOD_REG_NUMBER( L, "STOP_1", PLATFORM_UART_STOPBITS_1 );
   MOD_REG_NUMBER( L, "STOP_1_5", PLATFORM_UART_STOPBITS_1_5 );
   MOD_REG_NUMBER( L, "STOP_2", PLATFORM_UART_STOPBITS_2 );
-  
-  // Add the "none" and "infinite" constant used in recv()
   MOD_REG_NUMBER( L, "NO_TIMEOUT", 0 );
   MOD_REG_NUMBER( L, "INF_TIMEOUT", UART_INFINITE_TIMEOUT );
-  // Also add the system timer ID
-  MOD_REG_NUMBER( L, "SYS_TIMER", PLATFORM_TIMER_SYS_ID );
-
-  // Add the UART flow constants
+  MOD_REG_NUMBER( L, "FLOW_NONE", PLATFORM_UART_FLOW_NONE );
   MOD_REG_NUMBER( L, "FLOW_RTS", PLATFORM_UART_FLOW_RTS );
   MOD_REG_NUMBER( L, "FLOW_CTS", PLATFORM_UART_FLOW_CTS );
+  MOD_REG_NUMBER( L, "SYS_TIMER", PLATFORM_TIMER_SYS_ID );
   
   return 1;
 #endif // #if LUA_OPTIMIZE_MEMORY > 0
