@@ -45,7 +45,9 @@ static _ssize_t std_read( struct _reent *r, int fd, void* vptr, size_t len )
   {  
     if( std_prev_char != -1 )
     {
-      // We have a char from the previous run of std_read, so put it in the buffer
+      // We have a char from the previous run of std_read,
+      // so echo it and put it in the buffer
+      std_send_char_func( DM_STDOUT_NUM, std_prev_char );
       ptr[ i ++ ] = ( char )std_prev_char;
       std_prev_char = -1;
       continue;
