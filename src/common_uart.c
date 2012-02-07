@@ -193,6 +193,15 @@ int platform_uart_set_buffer( unsigned id, unsigned log2size )
   {
     if( id >= SERMUX_SERVICE_ID_FIRST ) // Virtual UARTs need buffers no matter what
       return PLATFORM_ERR; 
+
+    // Disable the UART interrupt if it was set
+    if( platform_cpu_get_interrupt( INT_UART_RX, id ) ==  PLATFORM_CPU_ENABLE )
+      platform_cpu_set_interrupt( INT_UART_RX, id, PLATFORM_CPU_DISABLE );
+
+    // If our C interrupt handler is installed, restore the previous one
+    if( elua_int_get_c_handler( INT_UART_RX ) == cmn_uart_rx_inthandler )
+      (void) elua_int_set_c_handler( INT_UART_RX, prev_uart_rx_handler );
+
     // Disable buffering
     buf_set( BUF_ID_UART, id, BUF_SIZE_NONE, BUF_DSIZE_U8 );
   }  
@@ -203,12 +212,13 @@ int platform_uart_set_buffer( unsigned id, unsigned log2size )
       return PLATFORM_ERR;
     if( id >= SERMUX_SERVICE_ID_FIRST ) // No need for aditional setup on virtual UARTs
       return PLATFORM_OK;    
-    // Enable UART RX interrupt 
-    if( platform_cpu_set_interrupt( INT_UART_RX, id, PLATFORM_CPU_ENABLE ) != PLATFORM_INT_OK )
-      return PLATFORM_ERR;
     // Setup our C handler
     if( elua_int_get_c_handler( INT_UART_RX ) != cmn_uart_rx_inthandler )
       prev_uart_rx_handler = elua_int_set_c_handler( INT_UART_RX, cmn_uart_rx_inthandler );
+
+    // Enable UART RX interrupt 
+    if( platform_cpu_set_interrupt( INT_UART_RX, id, PLATFORM_CPU_ENABLE ) < 0 )
+      return PLATFORM_ERR;
   }
   return PLATFORM_OK;
 #else // BUF_ENABLE_UART
