@@ -60,6 +60,9 @@
  */
 //! @{
 
+// Doesn't work yet in the hardware
+//#define FOSC32          32768                                 //!< Osc32 frequency: Hz.
+
 #define FOSC0           12000000                              //!< Osc0 frequency: Hz.
 #define OSC0_STARTUP    AVR32_PM_OSCCTRL0_STARTUP_2048_RCOSC  //!< Osc0 startup time: RCOsc periods.
 

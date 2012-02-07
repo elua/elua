@@ -41,6 +41,13 @@
 #include "pwm.h"
 #include "i2c.h"
 
+#ifdef  BUILD_USB_CDC
+#if !defined( VTMR_NUM_TIMERS ) || VTMR_NUM_TIMERS == 0
+# error "On AVR32, USB_CDC needs virtual timer support. Define VTMR_NUM_TIMERS > 0."
+#endif
+#include "usb-cdc.h"
+#endif
+
 #ifdef BUILD_UIP
 
 // UIP sys tick data
@@ -180,6 +187,10 @@ int platform_init()
   pm_enable_clk32_no_wait( &AVR32_PM, AVR32_PM_OSCCTRL32_STARTUP_0_RCOSC );
 #endif
 
+#ifdef BUILD_USB_CDC
+  pm_configure_usb_clock();
+#endif
+
   // Initialize external memory if any.
 #ifdef AVR32_SDRAMC
 # ifndef BOOTLOADER_EMBLOD
@@ -246,10 +257,13 @@ int platform_init()
 
   // Setup virtual timers if needed
 #if VTMR_NUM_TIMERS > 0
-#define VTMR_CH               2
   platform_cpu_set_interrupt( INT_TMR_MATCH, VTMR_CH, PLATFORM_CPU_ENABLE );
   platform_timer_set_match_int( VTMR_CH, 1000000 / VTMR_FREQ_HZ, PLATFORM_TIMER_INT_CYCLIC );
 #endif // #if VTMR_NUM_TIMERS > 0
+
+#ifdef BUILD_USB_CDC
+  usb_init();
+#endif
 
   cmn_platform_init();
 
@@ -356,6 +370,13 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   opts.baudrate = baud;
 
   // Set stopbits
+#if PLATFORM_UART_STOPBITS_1 == USART_1_STOPBIT && \
+    PLATFORM_UART_STOPBITS_1_5 == USART_1_5_STOPBIT && \
+    PLATFORM_UART_STOPBITS_2 == USART_2_STOPBIT
+  // The AVR32 header values and the eLua values are the same (0, 1, 2)
+  if (stopbits > PLATFORM_UART_STOPBITS_2) return 0;
+  opts.stopbits = stopbits;
+#else
   switch (stopbits) {
   case PLATFORM_UART_STOPBITS_1:
     opts.stopbits = USART_1_STOPBIT;
@@ -369,6 +390,7 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   default:
     return 0;
   }
+#endif
 
   // Set parity
   switch (parity) {
@@ -493,7 +515,7 @@ int platform_s_uart_set_flow_control( unsigned id, int type )
 // Timer functions
 
 static const u16 clkdivs[] = { 0xFFFF, 2, 8, 32, 128 };
-u8 avr32_timer_int_periodic_flag[ 3 ];
+u8 avr32_timer_int_periodic_flag[ TC_NUMBER_OF_CHANNELS ];
 
 // Helper: get timer clock
 static u32 platform_timer_get_clock( unsigned id )
@@ -1146,6 +1168,46 @@ void platform_eth_timer_handler()
 }
 
 #endif // #ifdef BUILD_UIP
+
+#ifdef BUILD_USB_CDC
+
+void platform_usb_cdc_send( u8 data )
+{
+  if (!Is_device_enumerated())
+    return;
+  while(!UsbCdcTxReady());      // "USART"-USB free ?
+  UsbCdcSendChar(data);
+}
+int platform_usb_cdc_recv( s32 timeout )
+{
+  int data;
+  int read;
+
+  if (!Is_device_enumerated())
+    return -1;
+
+  // Try to read one byte from buffer, if none available return -1 or
+  // retry forever if timeout != 0 ( = PLATFORM_TIMER_INF_TIMEOUT)
+  do {
+    read = UsbCdcReadChar(&data);
+  } while( read == 0 && timeout != 0 );
+
+  if( read == 0 )
+    return -1;
+  else
+    return data;
+}
+
+void platform_cdc_timer_handler()
+{
+  usb_device_task();
+  UsbCdcFlush ();
+}
+#else
+void platform_cdc_timer_handler()
+{
+}
+#endif // #ifdef BUILD_USB_CDC
 
 // ****************************************************************************
 // Platform specific modules go here

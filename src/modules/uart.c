@@ -24,6 +24,27 @@ enum
 
 #define UART_INFINITE_TIMEOUT PLATFORM_TIMER_INF_TIMEOUT
 
+// Helper function, the same as cmn_get_timeout_data() but with the
+// parameters in the order required by the uart module.
+
+static void uart_get_timeout_data( lua_State *L, int pidx, timer_data_type *ptimeout, unsigned *pid )
+{
+  lua_Number tempn;
+
+  *ptimeout = PLATFORM_TIMER_INF_TIMEOUT;
+  if( lua_type( L, pidx ) == LUA_TNUMBER )
+  {
+    tempn = lua_tonumber( L, pidx );
+    if( tempn < 0 || tempn > PLATFORM_TIMER_INF_TIMEOUT )
+      luaL_error( L, "invalid timeout value" );
+    *ptimeout = ( timer_data_type )tempn;
+  }
+  *pid = ( unsigned )luaL_optinteger( L, pidx + 1, PLATFORM_TIMER_SYS_ID );
+  if( *pid == PLATFORM_TIMER_SYS_ID && !platform_timer_sys_available() )
+    luaL_error( L, "the system timer is not implemented on this platform" );
+}
+
+
 // Lua: actualbaud = setup( id, baud, databits, parity, stopbits )
 static int uart_setup( lua_State* L )
 {
@@ -108,7 +129,7 @@ static int uart_read( lua_State* L )
   }
 
   // Check timeout and timer id
-  cmn_get_timeout_data( L, 3, &timeout, &timer_id );
+  uart_get_timeout_data( L, 3, &timeout, &timer_id );
 
   // Read data
   luaL_buffinit( L, &b );
@@ -154,7 +175,7 @@ static int uart_getchar( lua_State* L )
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( uart, id );
   // Check timeout and timer id
-  cmn_get_timeout_data( L, 2, &timeout, &timer_id );
+  uart_get_timeout_data( L, 2, &timeout, &timer_id );
   res = platform_uart_recv( id, timer_id, timeout );
   if( res == -1 )
     lua_pushstring( L, "" );
@@ -261,23 +282,18 @@ LUALIB_API int luaopen_uart( lua_State *L )
 #else // #if LUA_OPTIMIZE_MEMORY > 0
   luaL_register( L, AUXLIB_UART, uart_map );
   
-  // Add the stop bits and parity constants (for uart.setup)
   MOD_REG_NUMBER( L, "PAR_EVEN", PLATFORM_UART_PARITY_EVEN );
   MOD_REG_NUMBER( L, "PAR_ODD", PLATFORM_UART_PARITY_ODD );
   MOD_REG_NUMBER( L, "PAR_NONE", PLATFORM_UART_PARITY_NONE );
   MOD_REG_NUMBER( L, "STOP_1", PLATFORM_UART_STOPBITS_1 );
   MOD_REG_NUMBER( L, "STOP_1_5", PLATFORM_UART_STOPBITS_1_5 );
   MOD_REG_NUMBER( L, "STOP_2", PLATFORM_UART_STOPBITS_2 );
-  
-  // Add the "none" and "infinite" constant used in recv()
   MOD_REG_NUMBER( L, "NO_TIMEOUT", 0 );
   MOD_REG_NUMBER( L, "INF_TIMEOUT", UART_INFINITE_TIMEOUT );
-  // Also add the system timer ID
-  MOD_REG_NUMBER( L, "SYS_TIMER", PLATFORM_TIMER_SYS_ID );
-
-  // Add the UART flow constants
+  MOD_REG_NUMBER( L, "FLOW_NONE", PLATFORM_UART_FLOW_NONE );
   MOD_REG_NUMBER( L, "FLOW_RTS", PLATFORM_UART_FLOW_RTS );
   MOD_REG_NUMBER( L, "FLOW_CTS", PLATFORM_UART_FLOW_CTS );
+  MOD_REG_NUMBER( L, "SYS_TIMER", PLATFORM_TIMER_SYS_ID );
   
   return 1;
 #endif // #if LUA_OPTIMIZE_MEMORY > 0

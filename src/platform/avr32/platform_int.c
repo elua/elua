@@ -61,15 +61,8 @@ __attribute__((__interrupt__)) static void uart3_rx_handler()
 // ----------------------------------------------------------------------------
 // TMR_MATCH interrupts
 
-#ifndef VTMR_CH
-  #if VTMR_NUM_TIMERS > 0 
-  #define VTMR_CH     (2)
-  #else // #if VTMR_NUM_TIMERS > 0 
-  #define VTMR_CH     0xFFFF
-  #endif // #if VTMR_NUM_TIMERS > 0 
-#endif // #ifndef VTMR_CH
-
 extern void platform_eth_timer_handler();
+extern void platform_cdc_timer_handler();
 static const int tmr_irqs[] = { AVR32_TC_IRQ0, AVR32_TC_IRQ1, AVR32_TC_IRQ2 };
 extern u8 avr32_timer_int_periodic_flag[ 3 ];
 
@@ -78,13 +71,17 @@ static void tmr_match_common_handler( int id )
   volatile avr32_tc_t *tc = &AVR32_TC;
 
   tc_read_sr( tc, id ); // clear interrupt
+#if VTMR_NUM_TIMERS > 0
   if( id == VTMR_CH )
   {
     cmn_virtual_timer_cb();
     platform_eth_timer_handler();
+    platform_cdc_timer_handler();
   }
   else
+#endif
     cmn_int_handler( INT_TMR_MATCH, id );
+
   if( avr32_timer_int_periodic_flag[ id ] != PLATFORM_TIMER_INT_CYCLIC )
   {
     tc->channel[ id ].IDR.cpcs = 1;

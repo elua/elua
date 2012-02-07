@@ -9,20 +9,17 @@
 
 #include "sdramc.h"
 #include "sermux.h"
+#include "usb-cdc.h"
 #include "buf.h"
 
 // *****************************************************************************
 // Define here what components you want for this platform
 
 #define BUILD_MMCFS
-//#define BUILD_XMODEM
-//#define BUILD_SHELL
 //#define BUILD_ROMFS
 #define BUILD_CON_GENERIC
 //#define BUILD_RPC
-#define BUF_ENABLE_UART
 #define BUILD_C_INT_HANDLERS
-#define BUILD_LUA_INT_HANDLERS
 //#define BUILD_RFS
 //#define BUILD_SERMUX
 
@@ -32,14 +29,18 @@
 #else
   // Build options for 256KB and 512KB flash
 # define RAM_SIZE 0x10000
+# define BUILD_SHELL
+# define BUILD_XMODEM
 # define BUILD_ADC
 # define BUILD_LCD
 # define BUILD_TERM
 # define BUILD_UIP
+# define BUILD_LUA_INT_HANDLERS
+# define BUILD_USB_CDC
 #endif
 
 #ifdef BUILD_UIP
-//#define BUILD_DHCPC
+#define BUILD_DHCPC
 #define BUILD_DNS
 //#define BUILD_CON_TCP
 #endif
@@ -55,12 +56,21 @@
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 
-#ifdef BUILD_SERMUX
-# define CON_UART_ID         ( SERMUX_SERVICE_ID_FIRST + 1 )
+#define BUF_ENABLE_UART
+
+#ifdef BUILD_USB_CDC
+# define CON_UART_ID        CDC_UART_ID
+#elif defined( BUILD_SERMUX )
+# define CON_UART_ID        ( SERMUX_SERVICE_ID_FIRST + 1 )
 #else
-# define CON_UART_ID         0
+# define CON_UART_ID        0
+# define CON_UART_SPEED     115200
+// As flow control seems not to work, we use a large buffer so that people
+// can copy/paste program fragments or data into the serial console.
+// An 80x25 screenful is 2000 characters so we use 2048.
+# define CON_BUF_SIZE       BUF_SIZE_2048
 #endif
-#define CON_UART_SPEED      115200
+
 #define TERM_LINES          25
 #define TERM_COLS           80
 
@@ -122,6 +132,7 @@
   _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
   _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
   _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
+  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
 
 #else
 
@@ -152,6 +163,7 @@
 // Virtual timers (0 if not used)
 #define VTMR_NUM_TIMERS       4
 #define VTMR_FREQ_HZ          10
+#define VTMR_CH               2    // Which hardware timer to use for VTMR
 
 // Number of resources (0 if not available/not implemented)
 #define NUM_PIO               4
@@ -167,15 +179,10 @@
 #define NUM_ADC               8         // Though ADC3 pin is the Ethernet IRQ
 #define NUM_CAN               0
 
-// As flow control seems not to work, we use a large buffer so that people
-// can copy/paste program fragments or data into the serial console.
-// An 80x25 screenful is 2000 characters so we use 2048 and the buffer is
-// allocated from the 32MB SDRAM so there is no effective limit.
-#define CON_BUF_SIZE          BUF_SIZE_2048
 
 // RPC boot options
-#define RPC_UART_ID           CON_UART_ID
-#define RPC_UART_SPEED        CON_UART_SPEED
+#define RPC_UART_ID           0
+#define RPC_UART_SPEED        115200
 
 // ADC Configuration Params
 #define ADC_BIT_RESOLUTION    10
@@ -211,8 +218,16 @@
 
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)
+#ifdef USE_MULTIPLE_ALLOCATOR
 #define MEM_START_ADDRESS     { ( void* )end, ( void* )( SDRAM + ELUA_FIRMWARE_SIZE ) }
 #define MEM_END_ADDRESS       { ( void* )( RAM_SIZE - STACK_SIZE_TOTAL - 1 ), ( void* )( SDRAM + SDRAM_SIZE - 1 ) }
+#else
+// Newlib<1.19.0 has a bug in their dlmalloc that corrupts memory when there
+// are multiple regions, and it appears that simple allocator also has problems.
+// So with these allocators, only use a single region - the slower 32MB one.
+#define MEM_START_ADDRESS     { ( void* )( SDRAM + ELUA_FIRMWARE_SIZE ) }
+#define MEM_END_ADDRESS       { ( void* )( SDRAM + SDRAM_SIZE - 1 ) }
+#endif
 
 #define RFS_BUFFER_SIZE       BUF_SIZE_512
 #define RFS_UART_ID           ( SERMUX_SERVICE_ID_FIRST )

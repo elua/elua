@@ -76,7 +76,7 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op );
 
 #if defined( LUA_NUMBER_INTEGRAL ) && !defined( LUA_INTEGRAL_LONGLONG )
 // Maximum values of the system timer
-#define PLATFORM_TIMER_SYS_MAX                ( ( 1LL << 32 ) - 2 )
+#define PLATFORM_TIMER_SYS_MAX                ( ( 1LL << 31 ) - 2 )
 // Timer data type
 typedef u32 timer_data_type;
 #else
@@ -122,7 +122,7 @@ timer_data_type platform_timer_op( unsigned id, int op, timer_data_type data );
 timer_data_type platform_s_timer_op( unsigned id, int op, timer_data_type data );
 int platform_timer_set_match_int( unsigned id, timer_data_type period_us, int type );
 int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int type );
-timer_data_type platform_timer_get_diff_us( unsigned id, timer_data_type end, timer_data_type start );
+timer_data_type platform_timer_get_diff_us( unsigned id, timer_data_type start, timer_data_type end );
 // System timer functions
 timer_data_type platform_timer_read_sys();
 int platform_timer_sys_available();
@@ -135,7 +135,7 @@ void platform_timer_sys_disable_int();
 // Convenience macros
 #define platform_timer_read( id )             platform_timer_op( id, PLATFORM_TIMER_OP_READ, 0 )
 #define platform_timer_start( id )            platform_timer_op( id, PLATFORM_TIMER_OP_START, 0 )
-#define platform_timer_get_diff_crt( id, v )  platform_timer_get_diff_us( id, platform_timer_read( id ), v )
+#define platform_timer_get_diff_crt( id, v )  platform_timer_get_diff_us( id, v, platform_timer_read( id ) )
 #define platform_timer_sys_delay( us )        platform_timer_delay( PLATFORM_TIMER_SYS_ID, us )
 #define platform_timer_get_max_cnt( id )      platform_timer_op( id, PLATFORM_TIMER_OP_GET_MAX_CNT, 0 )
 

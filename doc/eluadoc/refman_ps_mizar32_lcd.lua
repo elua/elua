@@ -1,4 +1,4 @@
--- eLaa reference manual - platform data
+-- eLua reference manual - platform data
 
 data_en = 
 {
@@ -11,7 +11,7 @@ data_en =
 
   -- Overview
   overview = [[This module contains functions to drive the two-line character LCD panel of the Mizar32 display module.</p>
-<p>Physically, the display has 16 characters per line but internally it has a 40 characters by two line memory. It displays 16 of those 40 columns at a time, with various ways to determine which of the 40 columns appear in the 16-column display. If you just want to display 16x2 characters, the $reset$, $goto$ and $print$ functions are enough to do this.]],
+<p>Physically, the display has 16 characters per line but internally it has a 40 character by two line memory. It displays 16 of those 40 columns at a time, with various ways to determine which of the 40 columns appear in the 16-column display. If you just want to display 16x2 characters, the $reset$, $goto$ and $print$ functions are enough to do this.]],
 
   -- Functions
   funcs = 
@@ -24,25 +24,34 @@ data_en =
       desc = "This can be used to set some of the stranger operating modes of the LCD display. Both parameters are optional and if you omit them, they default to $false$, which sets sensible mode.",
       args = 
       {
-        [[$display_shift$ - If $true$, then with each character you subsequently print, the cursor will move by one place in the character memory as usual but the display's contents will also move by one position horizontally so that the cursor remains in the same column of the physical display. This can be used to achieve "scrolling text" effects. Note, however, that when the cursor passes from column 40 to column 1 or vice versa, it flips over to the other row.]],
-        "$right_to_left$ - If $true$, text will be printed right-to-left: the cursor will move one position to the left in the character memory and, if display shifting is also enabled, the display will shift so as to keep the cursor in the same column on the screen."
+        [[$display_shift$ - If $true$, then with each character you subsequently print, the cursor will move by one place in the character memory as usual but the display's contents will also move by one position horizontally in the opposite direction so that the cursor remains in the same column of the physical display. This can be used to achieve "scrolling text" effects. Note, however, that when the cursor passes from column 40 to column 1 or vice versa, it flips over to the other row.]],
+        "$right_to_left$ - If $true$, text will be printed right-to-left: the cursor will move one position to the left in the character memory and, if display shifting is also enabled, the contents of the display will shift to the right so that the cursor stays in the same column on the screen."
       }
     },
 
     { sig = "#mizar32.lcd.clear#()",
-      desc = "Clears the display, move the cursor to the top left (position 1,1) and reset the display shift to show columns 1-16."
+      desc = "Clears the display, moves the cursor to the top left (position 1,1) and resets the display shift to show columns 1 to 16."
     },
 
     { sig = "#mizar32.lcd.home#()",
-      desc = "Moves the cursor to the top left (position 1,1) and reset the display shift."
+      desc = "Moves the cursor to the top left (position 1,1) and resets the display shift."
     },
 
     { sig = "#mizar32.lcd.goto#( row, column )",
-      desc = "Move the cursor to the specified row and column.",
+      desc = "Moves the cursor to the specified row and column.",
       args = 
       {
         "$row$ - A number (1 or 2) giving the row you want to move to.",
         "$column$ - A number (1 to 40) giving the position within that row in the character memory."
+      }
+    },
+
+    { sig = "#row, column = mizar32.lcd.getpos#()",
+      desc = "Returns the current cursor position.",
+      ret = 
+      {
+        "$row$ - A number (1 or 2) giving the current row.",
+        "$column$ - A number (1 to 40) giving the current column in the character memory."
       }
     },
 
@@ -80,6 +89,14 @@ data_en =
       {
         "$code$ - A number (0 to 7) saying which of the characters you wish to redefine.",
         "$glyph$ - A table of up to eight numbers giving the bit-patterns for the eight rows of the character, in order from top to bottom. Each of these number is a value from 0 to 31, to define which of the 5 bits in the row should be black. The pixels' values from left to right are 16, 8, 4, 2 and 1. For example, { 1, 3, 7, 15, 31, 15, 7, 3, 1, 0 } would define a left-pointing solid triangle in the top 7 rows. Extra rows are ignored, and missing rows are blanked."
+      }
+    },
+
+    { sig = "#buttons = mizar32.lcd.buttons#()",
+      desc = "Tells which of the five user buttons are currently pressed.",
+      ret = 
+      {
+        "$buttons$ - A string containing up to five of the characters $L$, $R$, $U$, $D$ and $S$ to say whether the Left, Right, Up, Down and Select buttons are currently held down. If none are pressed, an empty string is returned. The hardare allows Select to be detected reliably and up to two of the other four: if three of Left, Right, Up and Down are being held, all four are returned."
       }
     },
   },

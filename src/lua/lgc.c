@@ -556,6 +556,15 @@ static void atomic (lua_State *L) {
   g->estimate = g->totalbytes - udsize;  /* first estimate */
 }
 
+static void sweepstrstep (global_State *g, lua_State *L) {
+  lu_mem old = g->totalbytes;
+  sweepwholelist(L, &g->strt.hash[g->sweepstrgc++]);
+  if (g->sweepstrgc >= g->strt.size)  /* nothing more to sweep? */
+    g->gcstate = GCSsweep;  /* end sweep-string phase */
+  lua_assert(old >= g->totalbytes);
+  g->estimate -= old - g->totalbytes;
+}
+
 
 static l_mem singlestep (lua_State *L) {
   global_State *g = G(L);
@@ -574,12 +583,7 @@ static l_mem singlestep (lua_State *L) {
       }
     }
     case GCSsweepstring: {
-      lu_mem old = g->totalbytes;
-      sweepwholelist(L, &g->strt.hash[g->sweepstrgc++]);
-      if (g->sweepstrgc >= g->strt.size)  /* nothing more to sweep? */
-        g->gcstate = GCSsweep;  /* end sweep-string phase */
-      lua_assert(old >= g->totalbytes);
-      g->estimate -= old - g->totalbytes;
+      sweepstrstep(g, L);
       return GCSWEEPCOST;
     }
     case GCSsweep: {
@@ -641,6 +645,14 @@ void luaC_step (lua_State *L) {
   unset_block_gc(L);
 }
 
+int luaC_sweepstrgc (lua_State *L) {
+  global_State *g = G(L);
+  if (g->gcstate == GCSsweepstring) {
+    sweepstrstep(g, L);
+    return (g->gcstate == GCSsweepstring) ? 1 : 0;
+  }
+  return 0;
+}
 
 void luaC_fullgc (lua_State *L) {
   global_State *g = G(L);

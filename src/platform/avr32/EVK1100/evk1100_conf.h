@@ -105,6 +105,7 @@
 // Virtual timers (0 if not used)
 #define VTMR_NUM_TIMERS       4
 #define VTMR_FREQ_HZ          10
+#define VTMR_CH               2    // Which hardware timer to use for VTMR
 
 // Number of resources (0 if not available/not implemented)
 #define NUM_PIO               4
@@ -156,8 +157,16 @@
 
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)
+#ifdef USE_MULTIPLE_ALLOCATOR
 #define MEM_START_ADDRESS     { ( void* )end, ( void* )SDRAM }
 #define MEM_END_ADDRESS       { ( void* )( 0x10000 - STACK_SIZE_TOTAL - 1 ), ( void* )( SDRAM + SDRAM_SIZE - 1 ) }
+#else
+// Newlib<1.19.0 has a bug in their dlmalloc that corrupts memory when there
+// are multiple regions, and it appears that simple allocator also has problems.
+// So with these allocators, only use a single region - the slower 32MB one.
+#define MEM_START_ADDRESS     { ( void* )SDRAM }
+#define MEM_END_ADDRESS       { ( void* )( SDRAM + SDRAM_SIZE - 1 ) }
+#endif
 
 #define RFS_BUFFER_SIZE       BUF_SIZE_512
 #define RFS_UART_ID           ( SERMUX_SERVICE_ID_FIRST )

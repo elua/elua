@@ -28,12 +28,16 @@ static int adc_maxval( lua_State* L )
 // Lua: realclock = setclock( id, freq, [timer_id] )
 static int adc_setclock( lua_State* L )
 {
+  s32 sfreq; // signed version for negative checking
   u32 freq;
   unsigned id, timer_id = 0;
   
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( adc, id );
-  freq = luaL_checkinteger( L, 2 );
+  sfreq = luaL_checkinteger( L, 2 );
+  if ( sfreq < 0 )
+    return luaL_error( L, "frequency must be 0 or positive" );
+  freq = ( u32 ) sfreq;
   if ( freq > 0 )
   {
     timer_id = luaL_checkinteger( L, 3 );

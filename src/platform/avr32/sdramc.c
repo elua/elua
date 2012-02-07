@@ -59,15 +59,11 @@ static void sdramc_ck_delay(unsigned long ck)
 {
   // Use the CPU cycle counter (CPU and HSB clocks are the same).
   unsigned long delay_start_cycle = Get_system_register(AVR32_COUNT);
-  unsigned long delay_end_cycle = delay_start_cycle + ck;
 
-  // To be safer, the end of wait is based on an inequality test, so CPU cycle
-  // counter wrap around is checked.
-  if (delay_start_cycle > delay_end_cycle)
-  {
-    while ((unsigned long)Get_system_register(AVR32_COUNT) > delay_end_cycle);
-  }
-  while ((unsigned long)Get_system_register(AVR32_COUNT) < delay_end_cycle);
+  // at 60MHz the count register wraps every 71.68 secs, at 66MHz every 65s.
+  // The following unsigned arithmetic handles the wraparound condition.
+  while ((unsigned long)Get_system_register(AVR32_COUNT) - delay_start_cycle < ck)
+    /* wait */;
 }
 
 

@@ -112,6 +112,9 @@ int ser_setup( ser_handler id, u32 baud, int databits, int parity, int stopbits,
   termdata.c_iflag &= ~( IXON | IXOFF | IXANY );
   termdata.c_iflag |= IGNBRK;
 
+  // Disable input processing
+  termdata.c_iflag &= ~( INLCR | ICRNL | IGNCR );
+
   // Raw input
   termdata.c_lflag &= ~( ICANON | ECHO | ECHOE | ISIG );
 
@@ -146,16 +149,21 @@ u32 ser_read( ser_handler id, u8* dest, u32 maxsize, u32 timeout )
   fd_set readfs;
   struct timeval tv;
   int retval;
+  u32 readbytes = 0;
 
-  FD_ZERO( &readfs );
-  FD_SET( ( int )id, &readfs );
-  tv.tv_sec = timeout / 1000;
-  tv.tv_usec = ( timeout % 1000 ) * 1000;
-  retval = select( ( int )id + 1, &readfs, NULL, NULL, timeout == SER_INF_TIMEOUT ? NULL : &tv );
-  if( retval == -1 || retval == 0 )
-    return 0;
-  else 
-    return ( u32 )read( id, dest, maxsize );
+  while( readbytes < maxsize )
+  {
+    FD_ZERO( &readfs );
+    FD_SET( ( int )id, &readfs );
+    tv.tv_sec = timeout / 1000;
+    tv.tv_usec = ( timeout % 1000 ) * 1000;
+    retval = select( ( int )id + 1, &readfs, NULL, NULL, timeout == SER_INF_TIMEOUT ? NULL : &tv );
+    if( retval == -1 || retval == 0 )
+      break;
+    else 
+      readbytes += ( u32 )read( id, dest + readbytes, maxsize - readbytes );
+  }
+  return readbytes;
 }
 
 // Read a single byte and return it (or -1 for error)

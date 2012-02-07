@@ -191,7 +191,7 @@ local board_list =
   [ 'EAGLE-100' ]       = { 'LM3S6918' },
   [ 'ELUA-PUC' ]        = { 'LPC2468' },
   [ 'MBED' ]            = { 'LPC1768' },
-  [ 'MIZAR32' ]         = { 'AT32UC3A0128', 'AT32UC3A0256',  'AT32UC3A0512' },
+  [ 'MIZAR32' ]         = { 'AT32UC3A0256', 'AT32UC3A0512', 'AT32UC3A0128' },
   [ 'NETDUINO' ]        = { 'AT91SAM7X512' },
 }
 
@@ -300,7 +300,9 @@ end
 
 -- CPU/allocator mapping (if allocator not specified)
 if comp.allocator == 'auto' then
-  if utils.array_element_index( { 'LPC-H2888', 'ATEVK1100', 'MBED' }, comp.board:upper() ) then
+  if comp.board:upper() == 'MIZAR32' and comp.cpu:upper() == 'AT32UC3A0128' then
+    comp.allocator = 'simple'
+  elseif utils.array_element_index( { 'LPC-H2888', 'ATEVK1100', 'MIZAR32', 'MBED' }, comp.board:upper() ) then
     comp.allocator = 'multiple'
   else
     comp.allocator = 'newlib'

@@ -302,19 +302,13 @@ unsigned char i2c_read_byte(int nack)
 // Pause for half an I2C bus clock cycle
 static void I2CDELAY()
 {
-  // Code stolen from sdramc.c::sdramc_ck_delay()
-
   // Use the CPU cycle counter (CPU and HSB clocks are the same).
   u32 delay_start_cycle = Get_system_register(AVR32_COUNT);
-  u32 delay_end_cycle = delay_start_cycle + i2c_delay;
- 
-  // To be safer, the end of wait is based on an inequality test, so CPU cycle
-  // counter wrap around is checked.
-  if (delay_start_cycle > delay_end_cycle)
-  { 
-    while ((unsigned long)Get_system_register(AVR32_COUNT) > delay_end_cycle);
-  }
-  while ((unsigned long)Get_system_register(AVR32_COUNT) < delay_end_cycle);
+
+  // at 60MHz the count register wraps every 71.68 secs, at 66MHz every 65s.
+  // The following unsigned arithmetic handles the wraparound condition.
+  while( (u32)Get_system_register(AVR32_COUNT) - delay_start_cycle < i2c_delay )
+    /* wait */;
 }
 
 // Set SCL as input and return current level of line

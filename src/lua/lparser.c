@@ -375,9 +375,9 @@ static void close_func (LexState *ls) {
   lua_assert(luaG_checkcode(f));
   lua_assert(fs->bl == NULL);
   ls->fs = fs->prev;
-  L->top -= 2;  /* remove table and prototype from the stack */
   /* last token read was anchored in defunct function; must reanchor it */
   if (fs) anchor_token(ls);
+  L->top -= 2;  /* remove table and prototype from the stack */
 }
 
 
@@ -385,14 +385,18 @@ Proto *luaY_parser (lua_State *L, ZIO *z, Mbuffer *buff, const char *name) {
   struct LexState lexstate;
   struct FuncState *pfuncstate = (struct FuncState*)malloc(sizeof(struct FuncState));
   Proto *res;
+  TString *tname = luaS_new(L, name);
+  setsvalue2s(L, L->top, tname);  /* protect name */
+  incr_top(L);
   lexstate.buff = buff;
-  luaX_setinput(L, &lexstate, z, luaS_new(L, name));
+  luaX_setinput(L, &lexstate, z, tname);
   open_func(&lexstate, pfuncstate);
   pfuncstate->f->is_vararg = VARARG_ISVARARG;  /* main func. is always vararg */
   luaX_next(&lexstate);  /* read first token */
   chunk(&lexstate);
   check(&lexstate, TK_EOS);
   close_func(&lexstate);
+  L->top--; /* remove 'name' from stack */
   lua_assert(pfuncstate->prev == NULL);
   lua_assert(pfuncstate->f->nups == 0);
   lua_assert(lexstate.fs == NULL);

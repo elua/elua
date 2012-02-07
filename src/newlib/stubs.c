@@ -182,7 +182,7 @@ _ssize_t _write_r( struct _reent *r, int file, const void *ptr, size_t len )
 }
 
 // ****************************************************************************
-// Miscalenous functions
+// Miscellaneous functions
 
 int _isatty_r( struct _reent* r, int fd )
 {
@@ -375,7 +375,7 @@ const DM_DEVICE* std_get_desc()
 #endif // #if !defined( BUILD_CON_GENERIC ) && !defined( BUILD_CON_TCP )
 
 // ****************************************************************************
-// memcpy is broken on AVR32's Newlib, so impolement a simple version here
+// memcpy is broken on AVR32's Newlib, so implement a simple version here
 // same goes for strcmp apparently
 #ifdef FORAVR32
 void* memcpy( void *dst, const void* src, size_t len )

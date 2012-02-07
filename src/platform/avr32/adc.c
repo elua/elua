@@ -50,19 +50,66 @@
 #include <avr32/io.h>
 #include "compiler.h"
 #include "adc.h"
+#include "platform_conf.h"	// For REQ_PBA_FREQ
 
 
 void adc_configure(volatile avr32_adc_t * adc)
 {
+  unsigned int prescal;	     // Value for ADC mode register's PRESCAL field
+  unsigned long ADCClock;    // The ADC clock rate that we set
+  unsigned int shtim;        // Value for ADC mode register's SHTIM field
+  unsigned long THAT;        // Track-and-Hold Acquisition Time in nanoseconds
+  unsigned int startup;      // Value for ADC mode register's START field
+  unsigned long StartupTime; // Startup time in microseconds
+
   Assert( adc!=NULL );
 
 #ifdef USE_ADC_8_BITS
   adc->mr |= 1<<AVR32_ADC_LOWRES_OFFSET;
 #endif
-  // set Sample/Hold time to max so that the ADC capacitor should be loaded entirely
-  adc->mr |= 0xF << AVR32_ADC_SHTIM_OFFSET;
-  // set Startup to max so that the ADC capacitor should be loaded entirely
-  adc->mr |= 0x1F << AVR32_ADC_STARTUP_OFFSET;
+
+  // Ensure the ADC clock is within spec: 5MHz for 10-bit, 8MHz for 8-bit
+  // ADCClock = CLK_ADC / ((PRESCAL + 1) * 2)
+  // PRESCAL is a 6-bit field with values up to 63.
+  prescal = 0;
+  do {
+    ADCClock = REQ_PBA_FREQ / ((prescal + 1) * 2);
+  } while ( ADCClock >
+#ifdef USE_ADC_8_BITS
+			8000000
+#else
+			5000000
+#endif
+				&& ++prescal < 63);
+  adc->MR.prescal = prescal;
+
+  // Ensure the ADC sample-and-hold time is within spec: 600ns minimum.
+
+  // Track and Hold Acquisition Time ("THAT") = (SHTIM + 1) / ADCClock.
+  shtim = 0;
+  do {
+    // We want the result in nanoseconds, hence the 1000000000.
+    // However, with 32-bit ints, 1000000000*(shtim+1) overflows when
+    // shtim+1 > 4  and SHTIM is a 4-bit field so shtim+1 goes up to 16.
+    // So we divide top and bottom by 4 to avoid the overflow.
+    THAT = ((1000000000/4) * (shtim + 1)) / (ADCClock/4);
+  } while (THAT < 600 && ++shtim < 15);
+  adc->MR.shtim = shtim;
+
+  // Startup time should only happen when the ADC has SLEEP bit set in MR,
+  // but it does affect the performance, maybe because the current eLua code
+  // issues software resets to the ADC every time it requests samples.
+  // So we set it within spec anyway.
+
+  // Ensure the ADC startup time is within spec, which is 20us minimum.
+  // Startup = (START + 1) * 8 / ADCClock.
+  // START is a 5-bit field with values up to 31.
+  startup = 0;
+  do {
+    // We want the result in microseconds, hence the 1000000.
+    StartupTime = (1000000 * (startup + 1) * 8) / ADCClock;
+  } while (StartupTime < 20 && ++startup < 31);
+  adc->MR.startup = startup;
 }
 
 void adc_start(volatile avr32_adc_t * adc)

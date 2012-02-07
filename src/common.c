@@ -473,20 +473,21 @@ const char* cmn_str64( u64 x )
 }
 
 // Read a timeout spec from the user and return it
-// The timeout spec has the format [timeout], [timer_id]. Both arguments are optional.
+// The timeout spec has the format [timer_id, timeout]. Both arguments are optional: 
 // If none is specified -> defaults to infinite timeout
-// If timeout is PLATFORM_TIMER_INF_TIMEOUT -> also infinite timeout (see above)
-// If a timeout is specified -> timer_id might also be specified. If not, it defaults to
-// PLATFORM_TIMER_SYS_ID
-void cmn_get_timeout_data( lua_State *L, int pidx, timer_data_type *ptimeout, unsigned *pid )
+// If timer_id is specified, but timeout is not specified -> defaults to infinite timeout
+// If timeout is PLATFORM_TIMER_INF_TIMEOUT -> also infinite timeout (independent of timer_id)
+// If both are specified -> wait the specified timeout on the specified timer_id
+// If timer_id is 'nil' the system timer will be used
+void cmn_get_timeout_data( lua_State *L, int pidx, unsigned *pid, timer_data_type *ptimeout )
 {
   lua_Number tempn;
 
-  *ptimeout = PLATFORM_TIMER_INF_TIMEOUT;
-  *pid = ( unsigned )luaL_optinteger( L, pidx + 1, PLATFORM_TIMER_SYS_ID );
-  if( lua_type( L, pidx ) == LUA_TNUMBER )
+  *ptimeout = PLATFORM_TIMER_INF_TIMEOUT; 
+  *pid = ( unsigned )luaL_optinteger( L, pidx, PLATFORM_TIMER_SYS_ID );
+  if( lua_type( L, pidx + 1 ) == LUA_TNUMBER )
   {
-    tempn = lua_tonumber( L, pidx );
+    tempn = lua_tonumber( L, pidx + 1 );
     if( tempn < 0 || tempn > PLATFORM_TIMER_INF_TIMEOUT )
       luaL_error( L, "invalid timeout value" );
     *ptimeout = ( timer_data_type )tempn;
