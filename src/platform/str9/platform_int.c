@@ -262,7 +262,7 @@ static int int_tmr_match_get_flag( elua_int_resnum resnum, int clear )
 
 // ****************************************************************************
 // RTC Interrupt
-void ELUA_RTC_IRQHandler()
+void RTC_IRQHandler()
 {
   RTC_ClearFlag(RTC_FLAG_Alarm);
   // Add an elua interrupt
@@ -326,7 +326,7 @@ void platform_int_init()
 
   // RTC Alarm interrupt config
   RTC_ITConfig(RTC_IT_Alarm, ENABLE);                  // Enable RTC alarm interrupt
-  VIC1->VAiR[4] = (unsigned int)ELUA_RTC_IRQHandler;   // Setup RTC IRQ handler addr
+  VIC1->VAiR[4] = (unsigned int)RTC_IRQHandler;   // Setup RTC IRQ handler addr
   VIC1->VCiR[4] = 0x20 | 8;                            // Enable RTC interrupt on vector slot p++
   // VIC1->INTER  |= (1<<8);                            // Enable RTC Interrupt ( VIC1.8 )
 
