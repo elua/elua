@@ -385,7 +385,7 @@ local source_files = utils.get_files( "src", function( fname )
   return include
 end )
 -- Add uIP files manually because not all of them are included in the build ([TODO] why?)
-local uip_files = " " .. utils.prepend_path( "uip_arp.c uip.c uiplib.c dhcpc.c psock.c resolv.c", "src/uip" )
+local uip_files = " " .. utils.prepend_path( "uip_arp.c uip.c uiplib.c dhcpc.c psock.c resolv.c uip-neighbor.c", "src/uip" )
 
 addi{ { 'inc', 'inc/newlib',  'inc/remotefs', 'src/platform', 'src/lua' }, { 'src/modules', 'src/platform/' .. platform }, "src/uip", "src/fatfs" }
 addm( "LUA_OPTIMIZE_MEMORY=" .. ( comp.optram and "2" or "0" ) )

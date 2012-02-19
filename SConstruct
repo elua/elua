@@ -360,7 +360,7 @@ if not GetOption( 'help' ):
   newlib_files = " src/newlib/devman.c src/newlib/stubs.c src/newlib/genstd.c src/newlib/stdtcp.c"
 
   # UIP files
-  uip_files = "uip_arp.c uip.c uiplib.c dhcpc.c psock.c resolv.c"
+  uip_files = "uip_arp.c uip.c uiplib.c dhcpc.c psock.c resolv.c uip-neighbor.c"
   uip_files = " src/elua_uip.c " + " ".join( [ "src/uip/%s" % name for name in uip_files.split() ] )
   comp.Append(CPPPATH = ['src/uip'])
 

@@ -42,8 +42,6 @@
 #ifndef __UIP_AVR32_CONF_H__
 #define __UIP_AVR32_CONF_H__
 
-#include "platform_conf.h"
-
 //
 // 8 bit datatype
 // This typedef defines the 8-bit type used throughout uIP.
