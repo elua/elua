@@ -220,7 +220,7 @@ int platform_init()
 #endif
 
 #ifdef BUILD_UIP
-    platform_ethernet_setup();
+  platform_ethernet_setup();
 #endif
 
 #ifdef ELUA_BOARD_MIZAR32
