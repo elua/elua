@@ -137,8 +137,6 @@ const u32 uart_base_addr[ ] = {
 #endif
 };
 
-extern void alloc_init();
-
 int platform_init()
 {
   pm_freq_param_t pm_freq_param =
