@@ -207,20 +207,6 @@ int platform_init()
 #endif
   }
 
-  // Setup spi controller(s) : up to 4 slave by controller.
-#if NUM_SPI > 0
-  spi_master_options_t spiopt;
-  spiopt.modfdis = TRUE;
-  spiopt.pcs_decode = FALSE;
-  spiopt.delay = 0;
-  spi_initMaster(&AVR32_SPI0, &spiopt, REQ_PBA_FREQ);
-
-#if NUM_SPI > 4
-  spi_initMaster(&AVR32_SPI1, &spiopt, REQ_PBA_FREQ);
-#endif
-
-#endif
-
 #ifdef BUILD_ADC
   (&AVR32_ADC)->ier = AVR32_ADC_DRDY_MASK;
   INTC_register_interrupt( &adc_int_handler, AVR32_ADC_IRQ, AVR32_INTC_INT0);
@@ -683,9 +669,38 @@ u32 spireg[] =
 #endif
 };
 
+// Enabling of the SPI clocks is deferred until platform_spi_setup() is called
+// for the first time so that, if you don't use the SPI ports and don't
+// have MMCFS enabled, power consumption is reduced.
+
+// Initialise the specified SPI controller (== id / 4) as a master
+static void spi_init_master( unsigned controller )
+{
+  static const spi_master_options_t spiopt = {
+    .modfdis = TRUE,
+    .pcs_decode = FALSE,
+    .delay = 0,
+  };
+  static bool spi_is_master[ (NUM_SPI + 3) / 4];  // initialized as 0
+
+  if ( ! spi_is_master[controller] ) {
+    spi_initMaster(
+#if NUM_SPI <= 4
+                   &AVR32_SPI0,
+#else
+		   &AVR32_SPI0 + ( controller * ( &AVR32_SPI1 - &AVR32_SPI0 ) ),
+#endif
+                   &spiopt, REQ_PBA_FREQ);
+    spi_is_master[controller]++;
+  }
+}
+
 u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigned cpha, unsigned databits )
 {
+#if NUM_SPI > 0
   spi_options_t opt;
+
+  spi_init_master(id >> 2);
 
   opt.baudrate = clock;
   opt.bits = min(databits, 16);
@@ -697,6 +712,9 @@ u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigne
   gpio_enable_module(spi_pins + (id >> 2) * 4, 4);
   return spi_setupChipReg((volatile avr32_spi_t *) spireg[id >> 2], id % 4,
                           &opt, REQ_PBA_FREQ);
+#else
+  return 0;
+#endif
 }
 
 spi_data_type platform_spi_send_recv( unsigned id, spi_data_type data )
