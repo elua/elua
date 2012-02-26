@@ -22,9 +22,9 @@ enum
 typedef struct 
 {
   u8 logsize;
+  u8 logdsize;
   volatile u16 wptr, rptr, count;
   t_buf_data *buf;
-  u8 logdsize;
 } buf_desc;
 
 // Buffer sizes (there are power of 2 to speed up modulo operations)
