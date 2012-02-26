@@ -20,6 +20,7 @@
 #define BUILD_SHELL
 #define BUILD_ROMFS
 #define BUILD_MMCFS
+#define BUILD_QEI
 
 #if defined( ELUA_BOARD_SOLDERCORE )
   #define BUILD_USB_CDC
@@ -89,6 +90,12 @@
 #define ADCLINE
 #endif
 
+#ifdef BUILD_QEI
+#define QEILINE _ROM( AUXLIB_QEI, luaopen_qei, qei_map )
+#else
+#define QEILINE
+#endif
+
 #ifdef BUILD_TERM
 #define TERMLINE _ROM( AUXLIB_TERM, luaopen_term, term_map )
 #else
@@ -128,6 +135,7 @@
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
   _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )\
   ADCLINE\
+  QEILINE\
   CANLINE\
   RPCLINE\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
