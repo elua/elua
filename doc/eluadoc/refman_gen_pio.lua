@@ -73,7 +73,7 @@ data_en =
       {
         "$pin1$ - the first pin",
         "$pin2 (optional)$ - the second pin",
-        "$pinn (optinoal)$ - the %n%-th pin"
+        "$pinn (optional)$ - the %n%-th pin"
       }
     },
 
@@ -83,7 +83,7 @@ data_en =
       {
         "$pin1$ - the first pin",
         "$pin2 (optional)$ - the second pin",
-        "$pinn (optinoal)$ - the %n%-th pin"
+        "$pinn (optional)$ - the %n%-th pin"
       }
     },
 
@@ -138,7 +138,7 @@ data_en =
       {
         "$port1$ - the first port",
         "$port2 (optional)$ - the second port",
-        "$portn (optinoal)$ - the %n%-th port"
+        "$portn (optional)$ - the %n%-th port"
       }
     },
 
@@ -148,7 +148,7 @@ data_en =
       {
         "$port1$ - the first port",
         "$port2 (optional)$ - the second port",
-        "$portn (optinoal)$ - the %n%-th port"
+        "$portn (optional)$ - the %n%-th port"
       }
     },
    
