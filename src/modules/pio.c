@@ -357,9 +357,41 @@ static int pio_mt_index( lua_State* L )
 static int pio_decode( lua_State *L )
 {
   int code = ( int )luaL_checkinteger( L, 1 );
-  
-  lua_pushinteger( L, PLATFORM_IO_GET_PORT( code ) );
-  lua_pushinteger( L, PLATFORM_IO_GET_PIN( code ) );
+  int port = PLATFORM_IO_GET_PORT( code );
+  int pin  = PLATFORM_IO_GET_PIN( code );
+
+#ifdef ELUA_PLATFORM_AVR32
+  /* AVR32UC3A0 has a bizarre "port" called "PX" with 40 pins which map to
+   * random areas of hardware ports 2 and 3:
+   * PX00-PX04 = GPIO100-GPIO96     //Port 3 pins 04-00
+   * PX05-PX10 = GPIO95-GPIO90      //Port 2 pins 31-26
+   * PX11-PX14 = GPIO109-GPIO106    //Port 3 pins 13-10
+   * PX15-PX34 = GPIO89-GPIO70      //Port 2 pins 25-06
+   * PX35-PX39 = GPIO105-GPIO101    //Port 3 pins 09-05
+   *
+   * Here, we reverse the decode the hardware port/pins to the PX pin names.
+   * This is the inverse of the code above in pio_mt_index().
+   */
+  if ( ( port == 2 && pin >= 6 ) ||
+       ( port == 3 && pin <= 13 ) )
+  {
+    switch ( port ) {
+    case 2:
+      if( pin >= 26 ) pin = (26 + 10) - pin;      // PX05-PX10
+      else            pin = (25 + 15) - pin;      // PX15-PX34
+      break;
+    case 3:
+      if( pin <= 4 )      pin = 4 - pin;          // PX00-PX04
+      else if( pin <= 9 ) pin = (35 + 9) - pin;   // PX35-PX39
+      else /* 10-13 */    pin = (13 + 11) - pin;  // PX11-PX14
+      break;
+    }
+    port = 'X' - 'A';   // 'A','B','C' are returned as 0,1,2 so 'X' is 23
+  }
+#endif
+
+  lua_pushinteger( L, port );
+  lua_pushinteger( L, pin );
   return 2;
 }
 
