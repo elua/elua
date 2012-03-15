@@ -23,7 +23,7 @@ data_en =
       args = 
       {
         "$pin$ - the pin, as encoded in the @refman_gen_pio.html@pio@ module.",
-        "$direction$ - the pin direction, can be either $str9.pio.INTPUT$ or $str9.pio.OUTPUT$,",
+        "$direction$ - the pin direction, can be either $str9.pio.INPUT$ or $str9.pio.OUTPUT$,",
         "$type$ - the type of the pin, can be either $str9.pio.OUTPUT_PUSHPULL$ (push-pull) or $str9.pio.OUTPUT_OC$ (open collector).",
         "$ipconnected$ - $true$ to connect the pin to its corresponding peripheral(s), $false$ otherwise.",
         "$alternate$ - alternate pin function. Must be either $str9.pio.ALT_INPUT$, $str9.pio.ALT_OUTPUT1$, $str9.pio.ALT_OUTPUT2$, $str9.pio.ALT_OUTPUT3$."
