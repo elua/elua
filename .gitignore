@@ -15,6 +15,7 @@ mux*
 rfs_server*
 doc/dist
 doc/cache
+inc/git_version.h
 *~
 *.*~
 luac.cross*
