@@ -372,16 +372,19 @@ static void ARBITRATION_LOST(void)
  * This interface will also allow us to implement collision detection and retry.
  */
 
-// i2c_write() sends data to a slave.
-// It returns the number of bytes that were sent and acknowledged,
-//  or -1 if the slave did not acknowledge its address.
+// i2c_send() sends data to a slave.
+// "address" is a 7-bit slave address.
+// "stop" says whether we should send a final stop bit or not.
+// It returns the number of bytes that were sent and acknowledged
+// or -1 if the slave did not acknowledge its address.
 
 int i2c_send(u8 address, const u8 *data, unsigned len, bool stop)
 {
   int retval;
 
   i2c_start_cond();
-  if( i2c_write_byte( address ) ) {
+  // Convert 7-bit address to 8-bit address with bottom bit clear for "write"
+  if( i2c_write_byte( address << 1 ) ) {
     // There was no acknowledgement from the slave
     retval = -1;
   } else {
@@ -398,14 +401,15 @@ int i2c_send(u8 address, const u8 *data, unsigned len, bool stop)
   return( retval );
 }
 
-// i2c_read() reads "count" bytes from a slave device.
+// i2c_recv() reads "count" bytes from a 7-bit slave device.
 // It returns the number of bytes sent or -1 if the slave did not acknowledge its address.
 int i2c_recv(u8 address, u8 *data, unsigned len, bool stop)
 {
   int retval;
 
   i2c_start_cond();
-  if( i2c_write_byte( address ) ) {
+  // Convert 7-bit address to 8-bit address with bottom bit set for "read"
+  if( i2c_write_byte( ( address << 1 ) | 1 ) ) {
     // There was no acknowledgement from the slave
     retval = -1;
   } else {
@@ -424,5 +428,5 @@ int i2c_recv(u8 address, u8 *data, unsigned len, bool stop)
 // Returns 1 if it is present or 0 if it didn't acknowledge its address.
 bool i2c_probe(u8 slave_address)
 {
-  return( i2c_send(slave_address, NULL, 0, true) == 0 );
+  return( i2c_send( slave_address, NULL, 0, true ) == 0 );
 }

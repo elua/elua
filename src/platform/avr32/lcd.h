@@ -11,14 +11,14 @@
 // For reliable operation, we set it to 10% less than the highest "normal" speed.
 #define LCD_BUS_FREQ 50000
 
-// I2C slave addresses for command bytes and data strings
+// 7-bit I2C slave addresses for command bytes and data strings
 // Command address is followed by a single byte giving the command to perform
 // Data address is followed by multiple bytes of ASCII data to display
 // on the character display at the current cursor location.
-#define LCD_CMD     0x7C    // Send commands
-#define LCD_GETPOS  0x7D    // Read the cursor position
-#define LCD_DATA    0x7E    // Send data
-#define LCD_BUTTONS 0x7F    // Read the status of the buttons
+#define LCD_CMD     (0x7C>>1)    // Send commands
+#define LCD_GETPOS  (0x7D>>1)    // Read the cursor position
+#define LCD_DATA    (0x7E>>1)    // Send data
+#define LCD_BUTTONS (0x7F>>1)    // Read the status of the buttons
 
 // Bits indicating which buttons are held down in the reply to LCD_BUTTONS
 #define LCD_BUTTON_SELECT   1
