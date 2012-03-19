@@ -159,11 +159,14 @@ static void ARBITRATION_LOST(void); // Bus control was lost
 // ************************
 // The bitbanger itself, taken from http://en.wikipedia.org/wiki/I2C
 
-// We don't use GPIO open-drain mode, which is not available on all hardware
-// models. Instead, we use two modes to simulate open-drain:
-// output of 0 and input.
-u32 i2c_setup( u32 speed )
+// One-time initialization of the I2C hardware.
+// Should be called at all valid initial i2c entry points.
+static void i2c_init()
 {
+  static bool i2c_is_initialized = 0;
+
+  if( i2c_is_initialized ) return;
+
   // First, set both pins as high-impedance inputs to avoid startup glitches
   sda_regs->oderc = SDA_PINMASK;
   scl_regs->oderc = SCL_PINMASK;
@@ -175,6 +178,16 @@ u32 i2c_setup( u32 speed )
   // Let the GPIO hardware control these pins
   sda_regs->gpers = SDA_PINMASK;
   scl_regs->gpers = SCL_PINMASK;
+
+  i2c_is_initialized++;    // set to true
+}
+
+// We don't use GPIO open-drain mode, which is not available on all hardware
+// models. Instead, we use two modes to simulate open-drain:
+// output of 0 and input.
+u32 i2c_setup( u32 speed )
+{
+  i2c_init();
 
   // Limit range to possible values, to avoid divisions by zero below.
   if (speed == 0) speed = 1;
@@ -193,6 +206,8 @@ static int started = 0;
 
 void i2c_start_cond(void)
 {
+  i2c_init();
+
   if (started) {
     // if started, do a restart cond
     // set SDA to 1
