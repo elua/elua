@@ -131,7 +131,8 @@ static int lcd_reset( lua_State *L )
   cursor_type = DEFAULT_CURSOR_TYPE;
   display_is_off = 0;
 
-  return send_command( LCD_CMD_RESET );
+  send_command( LCD_CMD_RESET );
+  return 0;
 }
 
 // "Entry mode" function.
@@ -144,22 +145,25 @@ static int lcd_setup( lua_State *L )
   unsigned shift_display = lua_toboolean( L, 1 );  // Default: move cursor
   unsigned right_to_left = lua_toboolean( L, 2 );  // Default: print left-to-right
 
-  return send_command( LCD_CMD_ENTRYMODE + shift_display +
-                       ( ! right_to_left ) * 2 );
+  send_command( LCD_CMD_ENTRYMODE + shift_display +
+                ( ! right_to_left ) * 2 );
+  return 0;
 }
 
 // Lua: mizar32.disp.clear()
 // Clear the display, reset its shiftedness and put the cursor at 1,1
 static int lcd_clear( lua_State *L )
 {
-  return send_command( LCD_CMD_CLEAR );
+  send_command( LCD_CMD_CLEAR );
+  return 0;
 }
 
 // Lua: mizar32.disp.home()
 // Reset the display's shiftedness and put the cursor at 1,1
 static int lcd_home( lua_State *L )
 {
-  return send_command( LCD_CMD_HOME );
+  send_command( LCD_CMD_HOME );
+  return 0;
 }
 
 // Lua: mizar32.disp.goto( row, col )
@@ -175,7 +179,8 @@ static int lcd_goto( lua_State *L )
     return luaL_error( L, "row/column must be 1-2 and 1-40" );
 
   address = ( row - 1 ) * 0x40 + ( col - 1 ) ;
-  return send_command( (u8) (LCD_CMD_DDADDR + address) );
+  send_command( (u8) (LCD_CMD_DDADDR + address) );
+  return 0;
 }
 
 // Lua: mizar32.disp.print( string )
@@ -279,20 +284,26 @@ static int lcd_cursor( lua_State *L )
   switch ( luaL_checkoption( L, 1, NULL, args ) )
   {
   case 0:
-    return set_cursor( LCD_CMD_CURSOR_NONE );
+    set_cursor( LCD_CMD_CURSOR_NONE );
+    break;
   case 1:
-    return set_cursor( LCD_CMD_CURSOR_BLOCK );
+    set_cursor( LCD_CMD_CURSOR_BLOCK );
+    break;
   case 2:
-    return set_cursor( LCD_CMD_CURSOR_LINE );
+    set_cursor( LCD_CMD_CURSOR_LINE );
+    break;
 
   case 3: 
-    return send_command( LCD_CMD_SHIFT_CURSOR_LEFT );
-
+    send_command( LCD_CMD_SHIFT_CURSOR_LEFT );
+    break;
   case 4:
-    return send_command( LCD_CMD_SHIFT_CURSOR_RIGHT );
+    send_command( LCD_CMD_SHIFT_CURSOR_RIGHT );
+    break;
 
-  default: return luaL_argerror( L, 1, NULL );
+  default:
+    return luaL_argerror( L, 1, NULL );
   }
+  return 0;
 }
 
 // Perform display operations, selected by a string parameter.
@@ -304,13 +315,18 @@ static int lcd_display( lua_State *L )
   switch ( luaL_checkoption( L, 1, NULL, args ) )
   {
   case 0: display_is_off = 1;
-	  return send_command( LCD_CMD_DISPLAY_OFF );
+	  send_command( LCD_CMD_DISPLAY_OFF );
+          break;
   case 1: display_is_off = 0;
-          return send_command( cursor_type );	// Turns display on
-  case 2: return send_command( LCD_CMD_SHIFT_DISPLAY_LEFT );
-  case 3: return send_command( LCD_CMD_SHIFT_DISPLAY_RIGHT );
+          send_command( cursor_type );	// Turns display on
+          break;
+  case 2: send_command( LCD_CMD_SHIFT_DISPLAY_LEFT );
+          break;
+  case 3: send_command( LCD_CMD_SHIFT_DISPLAY_RIGHT );
+          break;
   default: return luaL_argerror( L, 1, NULL );
   }
+  return 0;
 }
 
 // Lua: mizar32.disp.definechar( code, glyph )
@@ -352,7 +368,9 @@ static int lcd_definechar( lua_State *L ) {
   send_data( data, sizeof( data ) );
 
   // Move back to where we were
-  return send_command( LCD_CMD_DDADDR + old_address );
+  send_command( LCD_CMD_DDADDR + old_address );
+
+  return 0;
 }
 
 #define MIN_OPT_LEVEL 2
