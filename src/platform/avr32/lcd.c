@@ -44,13 +44,7 @@ static void lcd_stop()
 static int send_generic( u8 address, const u8 *data, int len )
 {
   lcd_start();
-  i2c_start_cond();
-  i2c_write_byte( address );
-  while ( len > 0 ) {
-    i2c_write_byte( *data++ );
-    len--;
-  }
-  i2c_stop_cond();
+  i2c_send( address, data, len, true );
   lcd_stop();
   return 0;
 }
@@ -59,24 +53,19 @@ static int send_generic( u8 address, const u8 *data, int len )
 // "address" is LCD_GETPOS to read the cursor position,
 //              LCD_BUTTONS for to read the buttons.
 // The answer is always a single byte.
-static u8 recv_generic( u8 address )
+// Returns the number of bytes read (== 1) or 0 f the slave did not
+// acknowledge its address.
+static int recv_generic( u8 address )
 {
   u8 retval;
 
   lcd_start();
-  i2c_start_cond();
-
-  // Send the slave address.
-  if ( i2c_write_byte( address ) == 0 )
-    // NAK the single byte to signal end of transfer
-    retval = i2c_read_byte( TRUE );
-  else 
+  if( i2c_recv( address, &retval, 1, true ) < 0 ) {
     // The address was not acknowledged, so no slave is present.
     // There is no way to signal this to the Lua layer, so return a
     // harmless value (meaning no buttons pressed or cursor at (1,1)).
     retval = 0;
-
-  i2c_stop_cond();
+  }
   lcd_stop();
 
   return retval;
