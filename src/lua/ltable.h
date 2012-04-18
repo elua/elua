@@ -11,7 +11,7 @@
 
 
 #define gnode(t,i)	(&(t)->node[i])
-#define gkey(n)		(&(n)->i_key.nk)
+#define gkey(n)		(&(n)->i_key.tvk)
 #define gval(n)		(&(n)->i_val)
 #define gnext(n)	((n)->i_key.nk.next)
 

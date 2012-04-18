@@ -156,17 +156,17 @@ toolchain_list[ 'devkitarm' ] = toolchain_list[ 'arm-eabi-gcc' ]
 -- (the one that will be used if none is specified)
 local platform_list =
 {
-  at91sam7x = { cpus = { 'AT91SAM7X256', 'AT91SAM7X512' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } },
-  lm3s = { cpus = { 'LM3S1968', 'LM3S8962', 'LM3S6965', 'LM3S6918', 'LM3S9B92', 'LM3S9D92' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } },
-  str9 = { cpus = { 'STR912FAW44' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } },
-  i386 = { cpus = { 'I386' }, toolchains = { 'i686-gcc' } },
-  sim = { cpus = { 'LINUX' }, toolchains = { 'i686-gcc' } },
-  lpc288x = { cpus = { 'LPC2888' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } },
-  str7 = { cpus = { 'STR711FR2' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } },
-  stm32 = { cpus = { 'STM32F103ZE', 'STM32F103RE' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } },
-  avr32 = { cpus = { 'AT32UC3A0128', 'AT32UC3A0256', 'AT32UC3A0512', 'AT32UC3B0256' }, toolchains = { 'avr32-gcc', 'avr32-unknown-none-gcc' } },
-  lpc24xx = { cpus = { 'LPC2468' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } },
-  lpc17xx = { cpus = { 'LPC1768' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } }
+  at91sam7x = { cpus = { 'AT91SAM7X256', 'AT91SAM7X512' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' }, big_endian = false },
+  lm3s = { cpus = { 'LM3S1968', 'LM3S8962', 'LM3S6965', 'LM3S6918', 'LM3S9B92', 'LM3S9D92' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' }, big_endian = false },
+  str9 = { cpus = { 'STR912FAW44' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' }, big_endian = false },
+  i386 = { cpus = { 'I386' }, toolchains = { 'i686-gcc' }, big_endian = false },
+  sim = { cpus = { 'LINUX' }, toolchains = { 'i686-gcc' }, big_endian = false },
+  lpc288x = { cpus = { 'LPC2888' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' }, big_endian = false },
+  str7 = { cpus = { 'STR711FR2' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' }, big_endian = false },
+  stm32 = { cpus = { 'STM32F103ZE', 'STM32F103RE' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' }, big_endian = false },
+  avr32 = { cpus = { 'AT32UC3A0128', 'AT32UC3A0256', 'AT32UC3A0512', 'AT32UC3B0256' }, toolchains = { 'avr32-gcc', 'avr32-unknown-none-gcc' }, big_endian = true },
+  lpc24xx = { cpus = { 'LPC2468' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' }, big_endian = false },
+  lpc17xx = { cpus = { 'LPC1768' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' }, big_endian = false }
 }
 
 -- List of board/CPU combinations
@@ -387,6 +387,8 @@ end
 if comp.boot == 'luarpc' then addm( "ELUA_BOOT_RPC" ) end
 if comp.target == 'lualong' or comp.target == 'lualonglong' then addm( "LUA_NUMBER_INTEGRAL" ) end
 if comp.target == 'lualonglong' then addm( "LUA_INTEGRAL_LONGLONG" ) end
+if comp.target ~= 'lualong' and comp.target ~= "lualonglong" then addm( "LUA_PACK_VALUE" ) end
+if platform_list[ platform ].big_endian then addm( "ELUA_ENDIAN_BIG" ) else addm( "ELUA_ENDIAN_LITTLE" ) end
 
 -- Special macro definitions for the SYM target
 if platform == 'sim' then addm( { "ELUA_SIMULATOR", "ELUA_SIM_" .. cnorm( comp.cpu ) } ) end
