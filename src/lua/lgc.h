@@ -66,6 +66,7 @@
 ** bit 4 - for tables: has weak values
 ** bit 5 - object is fixed (should not be collected)
 ** bit 6 - object is "super" fixed (only the main thread)
+** bit 7 - object is (partially) stored in read-only memory
 */
 
 
@@ -78,6 +79,7 @@
 #define VALUEWEAKBIT	4
 #define FIXEDBIT	5
 #define SFIXEDBIT	6
+#define READONLYBIT 7
 #define WHITEBITS	bit2mask(WHITE0BIT, WHITE1BIT)
 
 

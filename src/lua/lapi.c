@@ -460,6 +460,15 @@ LUA_API void lua_pushlstring (lua_State *L, const char *s, size_t len) {
 }
 
 
+LUA_API void lua_pushrolstring (lua_State *L, const char *s, size_t len) {
+  lua_lock(L);
+  luaC_checkGC(L);
+  setsvalue2s(L, L->top, luaS_newrolstr(L, s, len));
+  api_incr_top(L);
+  lua_unlock(L);
+}
+
+
 LUA_API void lua_pushstring (lua_State *L, const char *s) {
   if (s == NULL)
     lua_pushnil(L);

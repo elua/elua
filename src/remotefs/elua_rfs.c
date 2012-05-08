@@ -179,7 +179,8 @@ static const DM_DEVICE rfs_device =
   rfs_lseek_r,          // lseek
   rfs_opendir_r,        // opendir
   rfs_readdir_r,        // readdir
-  rfs_closedir_r        // closedir
+  rfs_closedir_r,       // closedir
+  NULL                  // getaddr
 };
 
 const DM_DEVICE *remotefs_init()

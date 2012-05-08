@@ -1,4 +1,5 @@
 -- A module to convert an entire directory to a C array, in the "romfs" format
+
 module( ..., package.seeall )
 require "pack"
 local sf = string.format
@@ -9,12 +10,15 @@ local _crtline = '  '
 local _numdata = 0
 local _bytecnt = 0
 local maxlen = 30
+local _fcnt = 0
+local alignment = 4
 local outfile
 
 -- Line output function
 local function _add_data( data, outfile, moredata )
   if moredata == nil then moredata = true end
   _bytecnt = _bytecnt + 1
+  _fcnt = _fcnt + 1
   if moredata then
     _crtline = _crtline .. sf( "0x%02X, ", data )
   else
@@ -113,19 +117,28 @@ function mkfs( dirname, outname, flist, mode, compcmd )
           os.remove( newname )
         end
         -- Write name, size, id, numpars
+        _fcnt = 0
         for i = 1, #fname do
           _add_data( fname:byte( i ), outfile )
         end
         _add_data( 0, outfile ) -- ASCIIZ
-        local plen = string.pack( "<h", #filedata )
+        local plen = string.pack( "<i", #filedata )
         _add_data( plen:byte( 1 ), outfile )
         _add_data( plen:byte( 2 ), outfile )
+        _add_data( plen:byte( 3 ), outfile )
+        _add_data( plen:byte( 4 ), outfile )
+        -- Round to a multiple of 'alignment'
+        local actual = #filedata
+        while _bytecnt % alignment ~= 0 do
+          _add_data( 0, outfile )
+          actual = actual + 1
+        end
         -- Then write the rest of the file
         for i = 1, #filedata do
           _add_data( filedata:byte( i ), outfile )
         end
         -- Report
-        print( sf( "Encoded file %s (%d bytes)", fname, #filedata ) )
+        print( sf( "Encoded file %s (%d bytes real size, %d bytes after rounding, %d bytes total)", fname, #filedata, actual, _fcnt ) )
       end
     end
   end

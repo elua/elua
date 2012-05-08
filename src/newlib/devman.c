@@ -184,3 +184,18 @@ int dm_closedir( DM_DIR *d )
   return res;
 }
 
+const char* dm_getaddr( int fd )
+{
+  const DM_DEVICE* pdev;
+
+  // Find device, check write function
+  pdev = dm_get_device_at( DM_GET_DEVID( fd ) );
+  if( !pdev || pdev->p_getaddr_r == NULL )
+  {
+    _REENT->_errno = ENOSYS;
+    return NULL;
+  }
+
+  return pdev->p_getaddr_r( _REENT, DM_GET_FD( fd ) );
+}
+

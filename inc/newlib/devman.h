@@ -51,7 +51,8 @@ typedef struct
   off_t ( *p_lseek_r )( struct _reent *r, int fd, off_t off, int whence );
   void* ( *p_opendir_r )( struct _reent *r, const char* name );
   struct dm_dirent* ( *p_readdir_r )( struct _reent *r, void *dir );  
-  int ( *p_closedir_r )( struct _reent *r, void* dir );  
+  int ( *p_closedir_r )( struct _reent *r, void* dir );
+  const char* ( *p_getaddr_r )( struct _reent *r, int fd );
 } DM_DEVICE;
 
 // Errors
@@ -77,6 +78,7 @@ int dm_init();
 DM_DIR *dm_opendir( const char* dirname );
 struct dm_dirent* dm_readdir( DM_DIR *d );
 int dm_closedir( DM_DIR *d );
+const char* dm_getaddr( int fd );
 
 #endif
 

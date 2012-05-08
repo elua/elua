@@ -21,6 +21,9 @@
 
 #define NUM_TAGS	(LAST_TAG+1)
 
+/* mask for 'read-only' objects. must match READONLYBIT in lgc.h' */
+#define READONLYMASK  128
+
 
 /*
 ** Extra tags for non-values
@@ -364,7 +367,7 @@ typedef union TString {
 } TString;
 
 
-#define getstr(ts)	cast(const char *, (ts) + 1)
+#define getstr(ts)	(((ts)->tsv.marked & READONLYMASK) ? cast(const char *, *(const char**)((ts) + 1)) : cast(const char *, (ts) + 1))
 #define svalue(o)       getstr(rawtsvalue(o))
 
 
