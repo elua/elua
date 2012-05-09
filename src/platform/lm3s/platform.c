@@ -557,7 +557,7 @@ timer_data_type platform_s_timer_op( unsigned id, int op,timer_data_type data )
       break;
 
     case PLATFORM_TIMER_OP_READ:
-      res = MAP_TimerValueGet( base, TIMER_A );
+      res = 0xFFFFFFFF - MAP_TimerValueGet( base, TIMER_A );
       break;
 
     case PLATFORM_TIMER_OP_SET_CLOCK:
