@@ -26,6 +26,8 @@
 #define TERM_LINES            25
 #define TERM_COLS             80
 
+#define PLATFORM_TMR_COUNTS_DOWN
+
 // *****************************************************************************
 // Configuration data
 

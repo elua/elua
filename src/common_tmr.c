@@ -272,6 +272,10 @@ timer_data_type platform_timer_op( unsigned id, int op, timer_data_type data )
       return platform_timer_get_diff_us( id, 0, platform_timer_get_max_cnt( id ) );
     else if( op == PLATFORM_TIMER_OP_GET_MIN_DELAY )
       return platform_timer_get_diff_us( id, 0, 1 );
+#ifdef PLATFORM_TMR_COUNTS_DOWN
+    else if( op == PLATFORM_TIMER_OP_START || op == PLATFORM_TIMER_OP_READ )
+      return platform_s_timer_op( id, PLATFORM_TIMER_OP_GET_MAX_CNT, 0 ) - platform_s_timer_op( id, op, 0 );
+#endif
     else
       return platform_s_timer_op( id, op, data );
   }
