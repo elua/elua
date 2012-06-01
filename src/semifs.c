@@ -247,7 +247,7 @@ static int semifs_closedir_r( struct _reent *r, void *d )
 }
 
 // Semihosting device descriptor structure
-static DM_DEVICE semifs_device =
+static const DM_DEVICE semifs_device =
 {
   "/semi",
   semifs_open_r,         // open
@@ -257,7 +257,8 @@ static DM_DEVICE semifs_device =
   semifs_lseek_r,        // lseek
   semifs_opendir_r,      // opendir
   semifs_readdir_r,      // readdir
-  semifs_closedir_r       // closedir
+  semifs_closedir_r,     // closedir
+  NULL                   // getaddr
 };
 
 const DM_DEVICE* semifs_init()

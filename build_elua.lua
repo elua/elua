@@ -2,13 +2,13 @@
 
 --[[
    build_elua.lua: A build script for eLua written in Lua.
- 
+
    The command line syntax is the same as for the old scons/SConstruct system.
    See http://www.eluaproject.net/en_building.html
 
    The only required option is the target board or CPU. e.g.:
      lua build_elua.lua board=MIZAR32
-  
+
    This script requires some well-known Lua libraries to run.
    To install them on Ubuntu/Debian, go (as root):
        apt-get install luarocks
@@ -78,13 +78,13 @@ end
 -- Build data
 
 -- List of toolchains
-local toolchain_list = 
+local toolchain_list =
 {
-  [ 'arm-gcc' ] = { 
-    compile = 'arm-elf-gcc', 
-    link = 'arm-elf-ld', 
-    asm = 'arm-elf-as', 
-    bin = 'arm-elf-objcopy', 
+  [ 'arm-gcc' ] = {
+    compile = 'arm-elf-gcc',
+    link = 'arm-elf-ld',
+    asm = 'arm-elf-as',
+    bin = 'arm-elf-objcopy',
     size = 'arm-elf-size',
     cross_cpumode = 'little',
     cross_lua = 'float_arm 64',
@@ -102,44 +102,44 @@ local toolchain_list =
     cross_lualong = 'int 32',
     version = '--version'
   },
-  codesourcery = { 
-    compile = 'arm-none-eabi-gcc', 
-    link = 'arm-none-eabi-ld', 
-    asm = 'arm-none-eabi-as', 
-    bin = 'arm-none-eabi-objcopy', 
+  codesourcery = {
+    compile = 'arm-none-eabi-gcc',
+    link = 'arm-none-eabi-ld',
+    asm = 'arm-none-eabi-as',
+    bin = 'arm-none-eabi-objcopy',
     size = 'arm-none-eabi-size',
     cross_cpumode = 'little',
     cross_lua = 'float 64',
     cross_lualong = 'int 32',
     version = '--version'
   },
-  [ 'avr32-gcc' ] = { 
-    compile = 'avr32-gcc', 
-    link = 'avr32-ld', 
-    asm = 'avr32-as', 
-    bin = 'avr32-objcopy', 
+  [ 'avr32-gcc' ] = {
+    compile = 'avr32-gcc',
+    link = 'avr32-ld',
+    asm = 'avr32-as',
+    bin = 'avr32-objcopy',
     size = 'avr32-size',
     cross_cpumode = 'big',
     cross_lua = 'float 64',
     cross_lualong = 'int 32',
     version = '--version'
   },
-  [ 'avr32-unknown-none-gcc' ] = { 
-    compile = 'avr32-unknown-none-gcc', 
-    link = 'avr32-unknown-none-ld', 
-    asm = 'avr32-unknown-none-as', 
-    bin = 'avr32-unknown-none-objcopy', 
+  [ 'avr32-unknown-none-gcc' ] = {
+    compile = 'avr32-unknown-none-gcc',
+    link = 'avr32-unknown-none-ld',
+    asm = 'avr32-unknown-none-as',
+    bin = 'avr32-unknown-none-objcopy',
     size = 'avr32-unknown-none-size',
     cross_cpumode = 'big',
     cross_lua = 'float 64',
     cross_lualong = 'int 32',
     version = '--version'
   },
-  [ 'i686-gcc' ] = { 
-    compile = 'i686-elf-gcc', 
-    link = 'i686-elf-ld', 
-    asm = 'nasm', 
-    bin = 'i686-elf-objcopy', 
+  [ 'i686-gcc' ] = {
+    compile = 'i686-elf-gcc',
+    link = 'i686-elf-ld',
+    asm = 'nasm',
+    bin = 'i686-elf-objcopy',
     size = 'i686-elf-size',
     cross_cpumode = 'little',
     cross_lua = 'float 64',
@@ -154,24 +154,24 @@ toolchain_list[ 'devkitarm' ] = toolchain_list[ 'arm-eabi-gcc' ]
 -- List of platform/CPU/toolchains combinations
 -- The first toolchain in the toolchains list is the default one
 -- (the one that will be used if none is specified)
-local platform_list = 
-{  
-  at91sam7x = { cpus = { 'AT91SAM7X256', 'AT91SAM7X512' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } },
-  lm3s = { cpus = { 'LM3S1968', 'LM3S8962', 'LM3S6965', 'LM3S6918', 'LM3S9B92', 'LM3S9D92' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } },
-  str9 = { cpus = { 'STR912FAW44' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } },
-  i386 = { cpus = { 'I386' }, toolchains = { 'i686-gcc' } },
-  sim = { cpus = { 'LINUX' }, toolchains = { 'i686-gcc' } },
-  lpc288x = { cpus = { 'LPC2888' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } },
-  str7 = { cpus = { 'STR711FR2' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } },
-  stm32 = { cpus = { 'STM32F103ZE', 'STM32F103RE' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } },
-  avr32 = { cpus = { 'AT32UC3A0128', 'AT32UC3A0256', 'AT32UC3A0512', 'AT32UC3B0256' }, toolchains = { 'avr32-gcc', 'avr32-unknown-none-gcc' } },
-  lpc24xx = { cpus = { 'LPC2468' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } },
-  lpc17xx = { cpus = { 'LPC1768' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' } }
+local platform_list =
+{
+  at91sam7x = { cpus = { 'AT91SAM7X256', 'AT91SAM7X512' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' }, big_endian = false },
+  lm3s = { cpus = { 'LM3S1968', 'LM3S8962', 'LM3S6965', 'LM3S6918', 'LM3S9B92', 'LM3S9D92' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' }, big_endian = false },
+  str9 = { cpus = { 'STR912FAW44' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' }, big_endian = false },
+  i386 = { cpus = { 'I386' }, toolchains = { 'i686-gcc' }, big_endian = false },
+  sim = { cpus = { 'LINUX' }, toolchains = { 'i686-gcc' }, big_endian = false },
+  lpc288x = { cpus = { 'LPC2888' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' }, big_endian = false },
+  str7 = { cpus = { 'STR711FR2' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' }, big_endian = false },
+  stm32 = { cpus = { 'STM32F103ZE', 'STM32F103RE' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' }, big_endian = false },
+  avr32 = { cpus = { 'AT32UC3A0128', 'AT32UC3A0256', 'AT32UC3A0512', 'AT32UC3B0256' }, toolchains = { 'avr32-gcc', 'avr32-unknown-none-gcc' }, big_endian = true },
+  lpc24xx = { cpus = { 'LPC2468' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' }, big_endian = false },
+  lpc17xx = { cpus = { 'LPC1768' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' }, big_endian = false }
 }
 
 -- List of board/CPU combinations
-local board_list = 
-{ 
+local board_list =
+{
   [ 'SAM7-EX256' ]      = { 'AT91SAM7X256', 'AT91SAM7X512' },
   [ 'EK-LM3S1968' ]     = { 'LM3S1968' },
   [ 'EK-LM3S8962' ]     = { 'LM3S8962' },
@@ -200,7 +200,7 @@ local cpu_list = {}
 for k, v in pairs( board_list ) do
   local clist = v
   for i = 1, #clist do
-    if not utils.array_element_index( cpu_list, clist[ i ] ) then      
+    if not utils.array_element_index( cpu_list, clist[ i ] ) then
       table.insert( cpu_list, clist[ i ] )
     end
   end
@@ -296,7 +296,7 @@ else
     print( sf( "List of accepted toolchains (for %s): %s", comp.cpu, table.concat( usable_chains ) ) )
     os.exit( -1 )
   end
-end    
+end
 
 -- CPU/allocator mapping (if allocator not specified)
 if comp.allocator == 'auto' then
@@ -307,7 +307,7 @@ if comp.allocator == 'auto' then
   else
     comp.allocator = 'newlib'
   end
-end    
+end
 
 -- Build the compilation command now
 local fscompcmd = ''
@@ -332,9 +332,25 @@ elseif comp.romfs == 'compress' then
   fscompcmd = 'lua luasrcdiet.lua --quiet --maximum --opt-comments --opt-whitespace --opt-emptylines --opt-eols --opt-strings --opt-numbers --opt-locals -o %s %s'
 end
 
+-- Determine build version
+if utils.check_command('git describe --always') == 0 then
+  addm( "USE_GIT_REVISION" )
+  elua_vers = utils.exec_capture('git describe --always')
+  -- If purely hexadecimal (no tag reference) prepend 'dev-'
+  if string.find(elua_vers, "^[+-]?%x+$") then
+     elua_vers = 'dev-' .. elua_vers
+  end
+  utils.gen_header('git_version',{elua_version=elua_vers, elua_str_version=("\"" .. elua_vers .. "\"")})
+else
+  print "WARNING: unable to determine version from repository"
+  elua_vers = "unknown"
+end
+
+
 -- Output file
 output = 'elua_' .. comp.target .. '_' .. comp.cpu:lower()
 builder:set_output_dir( ".build" .. utils.dir_sep .. comp.board:lower() )
+
 
 -- User report
 print ""
@@ -348,6 +364,7 @@ print( "Boot Mode:      ", comp.boot )
 print( "Target:         ", comp.target  )
 print( "Toolchain:      ", comp.toolchain )
 print( "ROMFS mode:     ", comp.romfs )
+print( "Version:        ", elua_vers )
 print "*********************************"
 print ""
 
@@ -370,6 +387,8 @@ end
 if comp.boot == 'luarpc' then addm( "ELUA_BOOT_RPC" ) end
 if comp.target == 'lualong' or comp.target == 'lualonglong' then addm( "LUA_NUMBER_INTEGRAL" ) end
 if comp.target == 'lualonglong' then addm( "LUA_INTEGRAL_LONGLONG" ) end
+if comp.target ~= 'lualong' and comp.target ~= "lualonglong" then addm( "LUA_PACK_VALUE" ) end
+if platform_list[ platform ].big_endian then addm( "ELUA_ENDIAN_BIG" ) else addm( "ELUA_ENDIAN_LITTLE" ) end
 
 -- Special macro definitions for the SYM target
 if platform == 'sim' then addm( { "ELUA_SIMULATOR", "ELUA_SIM_" .. cnorm( comp.cpu ) } ) end
@@ -377,7 +396,7 @@ if platform == 'sim' then addm( { "ELUA_SIMULATOR", "ELUA_SIM_" .. cnorm( comp.c
 -- Lua source files and include path
 exclude_patterns = { "^src/platform", "^src/uip", "^src/serial", "^src/luarpc_desktop_serial.c", "^src/linenoise_posix.c", "^src/lua/print.c", "^src/lua/luac.c" }
 local source_files = utils.get_files( "src", function( fname )
-  fname = fname:gsub( "\\", "/" ) 
+  fname = fname:gsub( "\\", "/" )
   local include = fname:find( ".*%.c$" )
   if include then
     utils.foreach( exclude_patterns, function( k, v ) if fname:match( v ) then include = false end end )
@@ -385,7 +404,7 @@ local source_files = utils.get_files( "src", function( fname )
   return include
 end )
 -- Add uIP files manually because not all of them are included in the build ([TODO] why?)
-local uip_files = " " .. utils.prepend_path( "uip_arp.c uip.c uiplib.c dhcpc.c psock.c resolv.c", "src/uip" )
+local uip_files = " " .. utils.prepend_path( "uip_arp.c uip.c uiplib.c dhcpc.c psock.c resolv.c uip-neighbor.c", "src/uip" )
 
 addi{ { 'inc', 'inc/newlib',  'inc/remotefs', 'src/platform', 'src/lua' }, { 'src/modules', 'src/platform/' .. platform }, "src/uip", "src/fatfs" }
 addm( "LUA_OPTIMIZE_MEMORY=" .. ( comp.optram and "2" or "0" ) )
@@ -418,7 +437,7 @@ local function make_romfs()
   print "Building ROM file system ..."
   local flist = {}
   flist = utils.string_to_table( utils.get_files( 'romfs', function( fname ) return not match_pattern_list( fname, romfs_exclude_patterns ) end ) )
-  flist = utils.linearize_array( flist )  
+  flist = utils.linearize_array( flist )
   for k, v in pairs( flist ) do
     flist[ k ] = v:gsub( "romfs" .. utils.dir_sep, "" )
   end
@@ -435,9 +454,9 @@ local function make_romfs()
     newfile:close()
     -- If content is similar return '1' to builder to indicate that the target didn't really
     -- produce a change even though it ran
-    if olddata == newdata then 
+    if olddata == newdata then
       os.remove( "romfiles.h" )
-      return 1 
+      return 1
     end
     os.remove( "inc/romfiles.h" )
   end

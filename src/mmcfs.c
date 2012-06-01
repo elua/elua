@@ -236,7 +236,7 @@ static int mmcfs_closedir_r( struct _reent *r, void *d )
 }
 
 // MMC device descriptor structure
-static DM_DEVICE mmcfs_device =
+static const DM_DEVICE mmcfs_device =
 {
   "/mmc",
   mmcfs_open_r,         // open
@@ -246,7 +246,8 @@ static DM_DEVICE mmcfs_device =
   mmcfs_lseek_r,        // lseek
   mmcfs_opendir_r,      // opendir
   mmcfs_readdir_r,      // readdir
-  mmcfs_closedir_r      // closedir
+  mmcfs_closedir_r,     // closedir
+  NULL                  // getaddr
 };
 
 const DM_DEVICE* mmcfs_init()

@@ -24,6 +24,7 @@ typedef struct {
  int strip;
  int status;
  DumpTargetInfo target;
+ size_t wrote;
 } DumpState;
 
 #define DumpMem(b,n,size,D)	DumpBlock(b,(n)*(size),D)
@@ -35,6 +36,7 @@ static void DumpBlock(const void* b, size_t size, DumpState* D)
  {
   lua_unlock(D->L);
   D->status=(*D->writer)(D->L,b,size,D->data);
+  D->wrote+=size;
   lua_lock(D->L);
  }
 }
@@ -43,6 +45,12 @@ static void DumpChar(int y, DumpState* D)
 {
  char x=(char)y;
  DumpVar(x,D);
+}
+
+static void Align4(DumpState *D)
+{
+ while(D->wrote&3)
+  DumpChar(0,D);
 }
 
 static void MaybeByteSwap(char *number, size_t numbersize, DumpState *D)
@@ -162,6 +170,7 @@ static void DumpCode(const Proto *f, DumpState* D)
  DumpInt(f->sizecode,D);
  char buf[10];
  int i;
+ Align4(D);
  for (i=0; i<f->sizecode; i++)
  {
   memcpy(buf,&f->code[i],sizeof(Instruction));
@@ -223,6 +232,7 @@ static void DumpDebug(const Proto* f, DumpState* D)
  int i,n;
  n= (D->strip) ? 0 : f->sizelineinfo;
  DumpInt(n,D);
+ Align4(D);
  for (i=0; i<n; i++)
  {
   DumpInt(f->lineinfo[i],D);
@@ -288,6 +298,7 @@ int luaU_dump_crosscompile (lua_State* L, const Proto* f, lua_Writer w, void* da
  D.strip=strip;
  D.status=0;
  D.target=target;
+ D.wrote=0;
  DumpHeader(&D);
  DumpFunction(f,NULL,&D);
  return D.status;

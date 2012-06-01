@@ -11,7 +11,7 @@ The Read-Only "filesystem" resides in a contiguous zone of memory, with the
 following structure, repeated for each file:
 
 Filename: ASCIIZ, max length is DM_MAX_FNAME_LENGTH defined here, empty if last file
-File size: (2 bytes)
+File size: (4 bytes)
 File data: (file size bytes)
 
 *******************************************************************************/
@@ -31,7 +31,7 @@ typedef struct
 {
   u32 baseaddr;
   u32 offset;
-  u16 size;
+  u32 size;
   p_read_fs_byte p_read_func;
 } FS;
   

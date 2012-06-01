@@ -73,7 +73,7 @@ data_en =
       {
         "$pin1$ - the first pin",
         "$pin2 (optional)$ - the second pin",
-        "$pinn (optinoal)$ - the %n%-th pin"
+        "$pinn (optional)$ - the %n%-th pin"
       }
     },
 
@@ -83,7 +83,7 @@ data_en =
       {
         "$pin1$ - the first pin",
         "$pin2 (optional)$ - the second pin",
-        "$pinn (optinoal)$ - the %n%-th pin"
+        "$pinn (optional)$ - the %n%-th pin"
       }
     },
 
@@ -138,7 +138,7 @@ data_en =
       {
         "$port1$ - the first port",
         "$port2 (optional)$ - the second port",
-        "$portn (optinoal)$ - the %n%-th port"
+        "$portn (optional)$ - the %n%-th port"
       }
     },
 
@@ -148,8 +148,21 @@ data_en =
       {
         "$port1$ - the first port",
         "$port2 (optional)$ - the second port",
-        "$portn (optinoal)$ - the %n%-th port"
+        "$portn (optional)$ - the %n%-th port"
       }
+    },
+
+    { sig = "port, pin = #pio.decode#( resnum )",
+      desc = "Convert a PIO resource number to the corresponding port and pin. This is most commonly used in GPIO edge interrupt routines to convert the Lua interrupt routine's argument to the port and pin that caused the interrupt but it can also be used on the values returned by the pin names pio.PA_0, pio.P2_15 and so on.",
+      args =
+      {
+        "$resnum$ - the resource number of the pin",
+      },
+      ret =
+      {
+        "$port$ - the index of the port, starting from 0 (so port A is 0, port B is 1 and so on)",
+        "$pin$ - the pin number, usually from 0 to 31",
+      },
     },
    
   }

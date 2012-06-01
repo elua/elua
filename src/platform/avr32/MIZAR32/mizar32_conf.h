@@ -33,6 +33,7 @@
 # define BUILD_XMODEM
 # define BUILD_ADC
 # define BUILD_LCD
+# define BUILD_RTC
 # define BUILD_TERM
 # define BUILD_UIP
 # define BUILD_LUA_INT_HANDLERS
@@ -49,9 +50,7 @@
 // Auxiliary libraries that will be compiled for this platform
 
 // The name of the platform specific libs table
-#ifdef BUILD_LCD
 #define PS_LIB_TABLE_NAME   "mizar32"
-#endif
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)

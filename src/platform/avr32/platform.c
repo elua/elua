@@ -137,8 +137,6 @@ const u32 uart_base_addr[ ] = {
 #endif
 };
 
-extern void alloc_init();
-
 int platform_init()
 {
   pm_freq_param_t pm_freq_param =
@@ -209,20 +207,6 @@ int platform_init()
 #endif
   }
 
-  // Setup spi controller(s) : up to 4 slave by controller.
-#if NUM_SPI > 0
-  spi_master_options_t spiopt;
-  spiopt.modfdis = TRUE;
-  spiopt.pcs_decode = FALSE;
-  spiopt.delay = 0;
-  spi_initMaster(&AVR32_SPI0, &spiopt, REQ_PBA_FREQ);
-
-#if NUM_SPI > 4
-  spi_initMaster(&AVR32_SPI1, &spiopt, REQ_PBA_FREQ);
-#endif
-
-#endif
-
 #ifdef BUILD_ADC
   (&AVR32_ADC)->ier = AVR32_ADC_DRDY_MASK;
   INTC_register_interrupt( &adc_int_handler, AVR32_ADC_IRQ, AVR32_INTC_INT0);
@@ -236,7 +220,7 @@ int platform_init()
 #endif
 
 #ifdef BUILD_UIP
-    platform_ethernet_setup();
+  platform_ethernet_setup();
 #endif
 
 #ifdef ELUA_BOARD_MIZAR32
@@ -685,9 +669,38 @@ u32 spireg[] =
 #endif
 };
 
+// Enabling of the SPI clocks is deferred until platform_spi_setup() is called
+// for the first time so that, if you don't use the SPI ports and don't
+// have MMCFS enabled, power consumption is reduced.
+
+// Initialise the specified SPI controller (== id / 4) as a master
+static void spi_init_master( unsigned controller )
+{
+  static const spi_master_options_t spiopt = {
+    .modfdis = TRUE,
+    .pcs_decode = FALSE,
+    .delay = 0,
+  };
+  static bool spi_is_master[ (NUM_SPI + 3) / 4];  // initialized as 0
+
+  if ( ! spi_is_master[controller] ) {
+    spi_initMaster(
+#if NUM_SPI <= 4
+                   &AVR32_SPI0,
+#else
+		   &AVR32_SPI0 + ( controller * ( &AVR32_SPI1 - &AVR32_SPI0 ) ),
+#endif
+                   &spiopt, REQ_PBA_FREQ);
+    spi_is_master[controller]++;
+  }
+}
+
 u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigned cpha, unsigned databits )
 {
+#if NUM_SPI > 0
   spi_options_t opt;
+
+  spi_init_master(id >> 2);
 
   opt.baudrate = clock;
   opt.bits = min(databits, 16);
@@ -699,6 +712,9 @@ u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigne
   gpio_enable_module(spi_pins + (id >> 2) * 4, 4);
   return spi_setupChipReg((volatile avr32_spi_t *) spireg[id >> 2], id % 4,
                           &opt, REQ_PBA_FREQ);
+#else
+  return 0;
+#endif
 }
 
 spi_data_type platform_spi_send_recv( unsigned id, spi_data_type data )
@@ -1220,12 +1236,22 @@ void platform_cdc_timer_handler()
 #include "lrotable.h"
 #include "lrodefs.h"
 
+#ifdef BUILD_LCD
 extern const LUA_REG_TYPE lcd_map[];
+#endif
+#ifdef BUILD_RTC
+extern const LUA_REG_TYPE rtc_map[];
+#endif
 
 const LUA_REG_TYPE platform_map[] =
 {
 #if LUA_OPTIMIZE_MEMORY > 0
+# ifdef BUILD_LCD
   { LSTRKEY( "lcd" ), LROVAL( lcd_map ) },
+# endif
+# ifdef BUILD_RTC
+  { LSTRKEY( "rtc" ), LROVAL( rtc_map ) },
+# endif
 #endif
   { LNILKEY, LNILVAL }
 };
@@ -1238,9 +1264,16 @@ LUALIB_API int luaopen_platform( lua_State *L )
   luaL_register( L, PS_LIB_TABLE_NAME, platform_map );
 
   // Setup the new tables inside platform table
+# ifdef BUILD_LCD
   lua_newtable( L );
   luaL_register( L, NULL, lcd_map );
   lua_setfield( L, -2, "lcd" );
+# endif
+# ifdef BUILD_RTC
+  lua_newtable( L );
+  luaL_register( L, NULL, rtc_map );
+  lua_setfield( L, -2, "rtc" );
+# endif
 
   return 1;
 #endif // #if LUA_OPTIMIZE_MEMORY > 0

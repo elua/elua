@@ -298,6 +298,8 @@ static int luaB_loadfile (lua_State *L) {
 */
 static const char *generic_reader (lua_State *L, void *ud, size_t *size) {
   (void)ud;  /* to avoid warnings */
+  if (L == NULL && size == NULL) // direct mode check, doesn't happen
+    return NULL;
   luaL_checkstack(L, 2, "too many nested functions");
   lua_pushvalue(L, 1);  /* get function */
   lua_call(L, 0, 1);  /* call it */

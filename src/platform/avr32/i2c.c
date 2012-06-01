@@ -159,11 +159,14 @@ static void ARBITRATION_LOST(void); // Bus control was lost
 // ************************
 // The bitbanger itself, taken from http://en.wikipedia.org/wiki/I2C
 
-// We don't use GPIO open-drain mode, which is not available on all hardware
-// models. Instead, we use two modes to simulate open-drain:
-// output of 0 and input.
-u32 i2c_setup( u32 speed )
+// One-time initialization of the I2C hardware.
+// Should be called at all valid initial i2c entry points.
+static void i2c_init()
 {
+  static bool i2c_is_initialized = 0;
+
+  if( i2c_is_initialized ) return;
+
   // First, set both pins as high-impedance inputs to avoid startup glitches
   sda_regs->oderc = SDA_PINMASK;
   scl_regs->oderc = SCL_PINMASK;
@@ -175,6 +178,16 @@ u32 i2c_setup( u32 speed )
   // Let the GPIO hardware control these pins
   sda_regs->gpers = SDA_PINMASK;
   scl_regs->gpers = SCL_PINMASK;
+
+  i2c_is_initialized++;    // set to true
+}
+
+// We don't use GPIO open-drain mode, which is not available on all hardware
+// models. Instead, we use two modes to simulate open-drain:
+// output of 0 and input.
+u32 i2c_setup( u32 speed )
+{
+  i2c_init();
 
   // Limit range to possible values, to avoid divisions by zero below.
   if (speed == 0) speed = 1;
@@ -193,6 +206,8 @@ static int started = 0;
 
 void i2c_start_cond(void)
 {
+  i2c_init();
+
   if (started) {
     // if started, do a restart cond
     // set SDA to 1
@@ -268,7 +283,9 @@ static int i2c_read_bit(void)
   return bit;
 }
  
-/* Write a byte to I2C bus. Return 0 if ack by the slave */
+/* Write a byte to I2C bus.
+ * Returns the nack bit received from the slave: 0 if acknowledged.
+ */
 int i2c_write_byte(unsigned char byte)
 {
   unsigned bit;
@@ -283,7 +300,9 @@ int i2c_write_byte(unsigned char byte)
   return nack;
 }
  
-/* Read a byte from I2C bus */
+/* Read a byte from I2C bus.
+ * "nack" is the acknowledge bit to send: 0 to acknowledge, 1 to reject/stop.
+ */
 unsigned char i2c_read_byte(int nack)
 {
   unsigned char byte = 0;
@@ -343,4 +362,71 @@ static void CLRSDA(void)
 // when the bus is free.
 static void ARBITRATION_LOST(void)
 {
+}
+
+/*
+ * A higher-level interface that deals in whole I2C messages.
+ * "slave_address" is the 8-bit slave address (so bit 0 should be 0)
+ * "stop" is true if we should end with a stop cindition.  This allows
+ *     repeated starts by setting "stop" false in the previous message.
+ * This interface will also allow us to implement collision detection and retry.
+ */
+
+// i2c_send() sends data to a slave.
+// "address" is a 7-bit slave address.
+// "stop" says whether we should send a final stop bit or not.
+// It returns the number of bytes that were sent and acknowledged
+// or -1 if the slave did not acknowledge its address.
+
+int i2c_send(u8 address, const u8 *data, unsigned len, bool stop)
+{
+  int retval;
+
+  i2c_start_cond();
+  // Convert 7-bit address to 8-bit address with bottom bit clear for "write"
+  if( i2c_write_byte( address << 1 ) ) {
+    // There was no acknowledgement from the slave
+    retval = -1;
+  } else {
+    retval = 0;  // Number of bytes transmitted
+    while( len > 0 ) {
+      if( i2c_write_byte( *data++ ) ) {
+        // Not acknowledged: stop transmitting
+        break;
+      }
+      len--; retval++;
+    }
+  }
+  if( stop ) i2c_stop_cond();
+  return( retval );
+}
+
+// i2c_recv() reads "count" bytes from a 7-bit slave device.
+// It returns the number of bytes sent or -1 if the slave did not acknowledge its address.
+int i2c_recv(u8 address, u8 *data, unsigned len, bool stop)
+{
+  int retval;
+
+  i2c_start_cond();
+  // Convert 7-bit address to 8-bit address with bottom bit set for "read"
+  if( i2c_write_byte( ( address << 1 ) | 1 ) ) {
+    // There was no acknowledgement from the slave
+    retval = -1;
+  } else {
+    retval = len;  // It always reads all requested bytes unless there is a
+                   // collision.
+    while( len > 0 ) {
+      // ACK all bytes except the last one.
+      *data++ = i2c_read_byte(--len == 0);
+    }
+  }
+  if( stop ) i2c_stop_cond();
+  return( retval );
+}
+
+// See whether a certain slave is present by writing 0 bytes from it.
+// Returns 1 if it is present or 0 if it didn't acknowledge its address.
+bool i2c_probe(u8 slave_address)
+{
+  return( i2c_send( slave_address, NULL, 0, true ) == 0 );
 }

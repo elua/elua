@@ -50,9 +50,8 @@ void luaS_resize (lua_State *L, int newsize) {
   unset_resizing_strings_gc(L);
 }
 
-
 static TString *newlstr (lua_State *L, const char *str, size_t l,
-                                       unsigned int h) {
+                                       unsigned int h, int readonly) {
   TString *ts;
   stringtable *tb;
   if (l+1 > (MAX_SIZET - sizeof(TString))/sizeof(char))
@@ -60,14 +59,19 @@ static TString *newlstr (lua_State *L, const char *str, size_t l,
   tb = &G(L)->strt;
   if ((tb->nuse + 1) > cast(lu_int32, tb->size) && tb->size <= MAX_INT/2)
     luaS_resize(L, tb->size*2);  /* too crowded */
-  ts = cast(TString *, luaM_malloc(L, (l+1)*sizeof(char)+sizeof(TString)));
+  ts = cast(TString *, luaM_malloc(L, readonly ? sizeof(char**)+sizeof(TString) : (l+1)*sizeof(char)+sizeof(TString)));
   ts->tsv.len = l;
   ts->tsv.hash = h;
   ts->tsv.marked = luaC_white(G(L));
   ts->tsv.tt = LUA_TSTRING;
   ts->tsv.reserved = 0;
-  memcpy(ts+1, str, l*sizeof(char));
-  ((char *)(ts+1))[l] = '\0';  /* ending 0 */
+  if (!readonly) {
+    memcpy(ts+1, str, l*sizeof(char));
+    ((char *)(ts+1))[l] = '\0';  /* ending 0 */
+  } else {
+    *(char **)(ts+1) = (char *)str;
+    luaS_readonly(ts);
+  }
   h = lmod(h, tb->size);
   ts->tsv.next = tb->hash[h];  /* chain new entry */
   tb->hash[h] = obj2gco(ts);
@@ -76,7 +80,7 @@ static TString *newlstr (lua_State *L, const char *str, size_t l,
 }
 
 
-TString *luaS_newlstr (lua_State *L, const char *str, size_t l) {
+static TString *luaS_newlstr_helper (lua_State *L, const char *str, size_t l, int readonly) {
   GCObject *o;
   unsigned int h = cast(unsigned int, l);  /* seed */
   size_t step = (l>>5)+1;  /* if string is too long, don't hash all its chars */
@@ -93,7 +97,35 @@ TString *luaS_newlstr (lua_State *L, const char *str, size_t l) {
       return ts;
     }
   }
-  return newlstr(L, str, l, h);  /* not found */
+  return newlstr(L, str, l, h, readonly);  /* not found */
+}
+
+extern char stext;
+extern char etext;
+
+static int lua_is_ptr_in_ro_area(const char *p) {
+#ifdef LUA_CROSS_COMPILER
+  return 0;
+#else
+  return p >= &stext && p <= &etext;
+#endif
+}
+
+TString *luaS_newlstr (lua_State *L, const char *str, size_t l) {
+  // If the pointer is in a read-only memory and the string is at least 4 chars in length,
+  // create it as a read-only string instead
+  if(lua_is_ptr_in_ro_area(str) && l+1 > sizeof(char**))
+    return luaS_newlstr_helper(L, str, l, 1);
+  else
+    return luaS_newlstr_helper(L, str, l, 0);
+}
+
+
+LUAI_FUNC TString *luaS_newrolstr (lua_State *L, const char *str, size_t l) {
+  if(l+1 < sizeof(char**)) // no point in creating a RO string, as it would actually be larger
+    return luaS_newlstr_helper(L, str, l, 0);
+  else
+    return luaS_newlstr_helper(L, str, l, 1);
 }
 
 

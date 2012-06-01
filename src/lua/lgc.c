@@ -312,12 +312,12 @@ static l_mem propagatemark (global_State *g) {
       Proto *p = gco2p(o);
       g->gray = p->gclist;
       traverseproto(g, p);
-      return sizeof(Proto) + sizeof(Instruction) * p->sizecode +
-                             sizeof(Proto *) * p->sizep +
+      return sizeof(Proto) + sizeof(Proto *) * p->sizep +
                              sizeof(TValue) * p->sizek + 
-                             sizeof(int) * p->sizelineinfo +
                              sizeof(LocVar) * p->sizelocvars +
-                             sizeof(TString *) * p->sizeupvalues;
+                             sizeof(TString *) * p->sizeupvalues +
+                             (proto_is_readonly(p) ? 0 : sizeof(Instruction) * p->sizecode +
+                                                         sizeof(int) * p->sizelineinfo);
     }
     default: lua_assert(0); return 0;
   }

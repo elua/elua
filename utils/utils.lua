@@ -149,10 +149,39 @@ check_command = function( cmd )
   return res
 end
 
+-- Execute a command and capture output
+-- From: http://stackoverflow.com/a/326715/105950
+exec_capture = function( cmd, raw )
+  local f = assert(io.popen(cmd, 'r'))
+  local s = assert(f:read('*a'))
+   f:close()
+   if raw then return s end
+   s = string.gsub(s, '^%s+', '')
+   s = string.gsub(s, '%s+$', '')
+   s = string.gsub(s, '[\n\r]+', ' ')
+   return s
+end
+
 -- Execute the given command for each value in a table
 foreach = function ( t, cmd )
   if type( t ) ~= "table" then return end
   for k, v in pairs( t ) do cmd( k, v ) end
+end
+
+-- Template header
+gen_header = function( name, defines )
+  local hname = "inc" .. dir_sep .. name:lower() .. ".h"
+  local h = assert(io.open(hname, "w"))
+  h:write("// eLua " .. name:lower() .. " definition\n\n")
+  h:write("#ifndef __" .. name:upper() .. "_H__\n")
+  h:write("#define __" .. name:upper() .. "_H__\n\n")
+
+  for key,value in pairs(defines) do 
+     h:write(string.format("#define   %-25s%-19s\n",key:upper(),value))
+  end
+
+  h:write("\n#endif\n")
+  h:close()
 end
 
 -------------------------------------------------------------------------------

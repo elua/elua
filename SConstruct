@@ -1,6 +1,6 @@
 import os, sys, shutil, string
 import platform as syspl
-import glob
+import glob, re, subprocess
 
 # Helper: "normalize" a name to make it a suitable C macro name
 def cnorm( name ):
@@ -8,13 +8,26 @@ def cnorm( name ):
   name = name.replace( ' ', '' )
   return name.upper()
 
+def gen_header( name, defines ):
+  hname = os.path.join( os.getcwd(), "inc", name.lower() + ".h" )
+  h = open( hname, "w" )
+  h.write("// eLua " + name + " definition\n\n")
+  h.write("#ifndef __" + name.upper() + "_H__\n")
+  h.write("#define __" + name.upper() + "_H__\n\n")
+
+  for key, value in defines.iteritems():
+   h.write("#define   %-25s%-19s\n" % (key.upper(), value,))
+
+  h.write("\n#endif\n")
+  h.close()
+
 # List of toolchains
 toolchain_list = {
-  'arm-gcc' : { 
-    'compile' : 'arm-elf-gcc', 
-    'link' : 'arm-elf-ld', 
-    'asm' : 'arm-elf-as', 
-    'bin' : 'arm-elf-objcopy', 
+  'arm-gcc' : {
+    'compile' : 'arm-elf-gcc',
+    'link' : 'arm-elf-ld',
+    'asm' : 'arm-elf-as',
+    'bin' : 'arm-elf-objcopy',
     'size' : 'arm-elf-size',
     'cross_cpumode' : 'little',
     'cross_lua' : 'float_arm 64',
@@ -30,21 +43,21 @@ toolchain_list = {
     'cross_lua' : 'float 64',
     'cross_lualong' : 'int 32'
   },
-  'codesourcery' : { 
-    'compile' : 'arm-none-eabi-gcc', 
-    'link' : 'arm-none-eabi-ld', 
-    'asm' : 'arm-none-eabi-as', 
-    'bin' : 'arm-none-eabi-objcopy', 
+  'codesourcery' : {
+    'compile' : 'arm-none-eabi-gcc',
+    'link' : 'arm-none-eabi-ld',
+    'asm' : 'arm-none-eabi-as',
+    'bin' : 'arm-none-eabi-objcopy',
     'size' : 'arm-none-eabi-size',
     'cross_cpumode' : 'little',
     'cross_lua' : 'float 64',
     'cross_lualong' : 'int 32'
   },
-  'avr32-gcc' : { 
-    'compile' : 'avr32-gcc', 
-    'link' : 'avr32-ld', 
-    'asm' : 'avr32-as', 
-    'bin' : 'avr32-objcopy', 
+  'avr32-gcc' : {
+    'compile' : 'avr32-gcc',
+    'link' : 'avr32-ld',
+    'asm' : 'avr32-as',
+    'bin' : 'avr32-objcopy',
     'size' : 'avr32-size',
     'cross_cpumode' : 'big',
     'cross_lua' : 'float 64',
@@ -60,11 +73,11 @@ toolchain_list = {
     'cross_lua' : 'float 64',
     'cross_lualong' : 'int 32'
   },
-  'i686-gcc' : { 
-    'compile' : 'i686-elf-gcc', 
-    'link' : 'i686-elf-ld', 
-    'asm' : 'nasm', 
-    'bin' : 'i686-elf-objcopy', 
+  'i686-gcc' : {
+    'compile' : 'i686-elf-gcc',
+    'link' : 'i686-elf-ld',
+    'asm' : 'nasm',
+    'bin' : 'i686-elf-objcopy',
     'size' : 'i686-elf-size',
     'cross_cpumode' : 'little',
     'cross_lua' : 'float 64',
@@ -78,18 +91,18 @@ toolchain_list['devkitarm'] = toolchain_list['arm-eabi-gcc']
 # List of platform/CPU/toolchains combinations
 # The first toolchain in the toolchains list is the default one
 # (the one that will be used if none is specified)
-platform_list = {  
-  'at91sam7x' : { 'cpus' : [ 'AT91SAM7X256', 'AT91SAM7X512' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
-  'lm3s' : { 'cpus' : [ 'LM3S1968', 'LM3S8962', 'LM3S6965', 'LM3S6918', 'LM3S9B92', 'LM3S9D92' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
-  'str9' : { 'cpus' : [ 'STR912FAW44' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
-  'i386' : { 'cpus' : [ 'I386' ], 'toolchains' : [ 'i686-gcc' ] },
-  'sim' : { 'cpus' : [ 'LINUX' ], 'toolchains' : [ 'i686-gcc' ] },
-  'lpc288x' : { 'cpus' : [ 'LPC2888' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
-  'str7' : { 'cpus' : [ 'STR711FR2' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
-  'stm32' : { 'cpus' : [ 'STM32F103ZE', 'STM32F103RE' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
-  'avr32' : { 'cpus' : [ 'AT32UC3A0512', 'AT32UC3A0256', 'AT32UC3A0128', 'AT32UC3B0256' ], 'toolchains' : [ 'avr32-gcc', 'avr32-unknown-none-gcc' ] },
-  'lpc24xx' : { 'cpus' : [ 'LPC2468' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
-  'lpc17xx' : { 'cpus' : [ 'LPC1768' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] }
+platform_list = {
+  'at91sam7x' : { 'cpus' : [ 'AT91SAM7X256', 'AT91SAM7X512' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ], 'big_endian': False },
+  'lm3s' : { 'cpus' : [ 'LM3S1968', 'LM3S8962', 'LM3S6965', 'LM3S6918', 'LM3S9B92', 'LM3S9D92' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ], 'big_endian': False },
+  'str9' : { 'cpus' : [ 'STR912FAW44' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ], 'big_endian': False },
+  'i386' : { 'cpus' : [ 'I386' ], 'toolchains' : [ 'i686-gcc' ], 'big_endian': False },
+  'sim' : { 'cpus' : [ 'LINUX' ], 'toolchains' : [ 'i686-gcc' ], 'big_endian': False },
+  'lpc288x' : { 'cpus' : [ 'LPC2888' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ], 'big_endian': False },
+  'str7' : { 'cpus' : [ 'STR711FR2' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ], 'big_endian': False },
+  'stm32' : { 'cpus' : [ 'STM32F103ZE', 'STM32F103RE' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ], 'big_endian': False },
+  'avr32' : { 'cpus' : [ 'AT32UC3A0512', 'AT32UC3A0256', 'AT32UC3A0128', 'AT32UC3B0256' ], 'toolchains' : [ 'avr32-gcc', 'avr32-unknown-none-gcc' ], 'big_endian': True },
+  'lpc24xx' : { 'cpus' : [ 'LPC2468' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ], 'big_endian': False },
+  'lpc17xx' : { 'cpus' : [ 'LPC1768' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ], 'big_endian': False }
 }
 
 # List of board/CPU combinations
@@ -136,21 +149,21 @@ class InsensitiveString(object):
   def __cmp__(self, other):
     return cmp(self.s.lower(), other.lower())
 
-def _validator(key, val, env, vals): 
-  if not val in vals: 
-    raise SCons.Errors.UserError( 
-      'Invalid value for option %s: %s' % (key, val)) 
+def _validator(key, val, env, vals):
+  if not val in vals:
+    raise SCons.Errors.UserError(
+      'Invalid value for option %s: %s' % (key, val))
 
 def MatchEnumVariable(key, help, default, allowed_values, map={}):
   help = '%s (%s)' % (help, string.join(allowed_values, '|'))
-  
+
   validator = lambda key, val, env, vals=allowed_values: \
               _validator(key, InsensitiveString(val), env, vals)
 
   converter = lambda val, map=map: \
               map.get(val, allowed_values[allowed_values.index(InsensitiveString(val))])
-  
-  return (key, help, default, validator, converter) 
+
+  return (key, help, default, validator, converter)
 
 
 # Add Configurable Variables
@@ -162,7 +175,7 @@ vars.AddVariables(
                     'none',
                     allowed_values = [ 'none', 'emblod' ] ),
   MatchEnumVariable('target',
-                    'build "regular" float lua, 32 bit integer-only "lualong" or 64-bit integer-only "lualonglong"', 
+                    'build "regular" float lua, 32 bit integer-only "lualong" or 64-bit integer-only "lualonglong"',
                     'lua',
                     allowed_values = [ 'lua', 'lualong', 'lualonglong' ] ),
   MatchEnumVariable('cpu',
@@ -295,6 +308,19 @@ if not GetOption( 'help' ):
   elif comp['romfs'] == 'compress':
     compcmd = 'lua luasrcdiet.lua --quiet --maximum --opt-comments --opt-whitespace --opt-emptylines --opt-eols --opt-strings --opt-numbers --opt-locals -o %s %s'
 
+  # Determine build version
+  try:
+    elua_vers = subprocess.check_output(["git", "describe", "--always"]).strip()
+    # If purely hexadecimal (no tag reference) prepend 'dev-'
+    if re.match("^[0-9a-fA-F]+$",elua_vers):
+      elua_vers = 'dev-' + elua_vers
+    gen_header("git_version",{'elua_version': elua_vers, 'elua_str_version': "\"%s\"" % elua_vers } )
+    conf.env.Append(CPPDEFINES = ['USE_GIT_REVISION'])
+  except:
+    print "WARNING: unable to determine version from repository"
+    elua_vers = "unknown"
+
+
   # User report
   if not GetOption( 'clean' ):
     print
@@ -308,6 +334,7 @@ if not GetOption( 'help' ):
     print "Target:         ", comp['target']
     print "Toolchain:      ", comp['toolchain']
     print "ROMFS mode:     ", comp['romfs']
+    print "Version:        ", elua_vers
     print "*********************************"
     print
 
@@ -339,13 +366,18 @@ if not GetOption( 'help' ):
     ldblib.c liolib.c lmathlib.c loslib.c ltablib.c lstrlib.c loadlib.c linit.c lua.c lrotable.c legc.c"""
 
   lua_full_files = " " + " ".join( [ "src/lua/%s" % name for name in lua_files.split() ] )
-  
+
   comp.Append(CPPPATH = ['inc', 'inc/newlib',  'inc/remotefs', 'src/platform', 'src/lua'])
   if comp['target'] == 'lualong' or comp['target'] == 'lualonglong':
     conf.env.Append(CPPDEFINES = ['LUA_NUMBER_INTEGRAL'])
   if comp['target'] == 'lualonglong':
     conf.env.Append(CPPDEFINES = ['LUA_INTEGRAL_LONGLONG'])
-
+  if comp['target'] != 'lualong' and comp['target'] != 'lualonglong':
+    conf.env.Append(CPPDEFINES = ['LUA_PACK_VALUE'])
+  if platform_list[platform]['big_endian']:
+    conf.env.Append(CPPDEFINES = ['ELUA_ENDIAN_BIG'])
+  else:
+    conf.env.Append(CPPDEFINES = ['ELUA_ENDIAN_LITTLE'])
   conf.env.Append(CPPPATH = ['src/modules', 'src/platform/%s' % platform])
   conf.env.Append(CPPDEFINES = {"LUA_OPTIMIZE_MEMORY" : ( comp['optram'] != 0 and 2 or 0 ) } )
 
@@ -353,14 +385,14 @@ if not GetOption( 'help' ):
   local_libs = ''
 
   # Application files
-  app_files = """ src/main.c src/romfs.c src/semifs.c src/xmodem.c src/shell.c src/term.c src/common.c src/common_tmr.c src/buf.c src/elua_adc.c src/dlmalloc.c 
+  app_files = """ src/main.c src/romfs.c src/semifs.c src/xmodem.c src/shell.c src/term.c src/common.c src/common_tmr.c src/buf.c src/elua_adc.c src/dlmalloc.c
                   src/salloc.c src/luarpc_elua_uart.c src/elua_int.c src/linenoise.c src/common_uart.c src/eluarpc.c """
 
   # Newlib related files
   newlib_files = " src/newlib/devman.c src/newlib/stubs.c src/newlib/genstd.c src/newlib/stdtcp.c"
 
   # UIP files
-  uip_files = "uip_arp.c uip.c uiplib.c dhcpc.c psock.c resolv.c"
+  uip_files = "uip_arp.c uip.c uiplib.c dhcpc.c psock.c resolv.c uip-neighbor.c"
   uip_files = " src/elua_uip.c " + " ".join( [ "src/uip/%s" % name for name in uip_files.split() ] )
   comp.Append(CPPPATH = ['src/uip'])
 
@@ -389,7 +421,7 @@ if not GetOption( 'help' ):
 
   # Complete file list
   source_files = Split( app_files + specific_files + newlib_files + uip_files + lua_full_files + module_files + rfs_files )
-  
+
   comp = conf.Finish()
 
   romfs_exclude = [ '.DS_Store' ]
@@ -406,10 +438,10 @@ if not GetOption( 'help' ):
     import mkfs
     mkfs.mkfs( "romfs", "romfiles", flist, comp['romfs'], compcmd )
     print
-    if os.path.exists( "inc/romfiles.h" ): 
+    if os.path.exists( "inc/romfiles.h" ):
       os.remove( "inc/romfiles.h" )
     shutil.move( "romfiles.h", "inc/" )
-    if os.path.exists( "src/fs.o" ): 
+    if os.path.exists( "src/fs.o" ):
       os.remove( "src/fs.o" )
 
   # comp.TargetSignatures( 'content' )
