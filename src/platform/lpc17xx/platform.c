@@ -78,6 +78,9 @@ int platform_init()
   // Common platform initialization code
   cmn_platform_init();
 
+  // Enable RTC
+  LPC_RTC->CCR = 1 | 1<<4; // Clock enabled, calibration disabled
+
   return PLATFORM_OK;
 } 
 
@@ -362,6 +365,10 @@ timer_data_type platform_timer_read_sys()
   return cmn_systimer_get();
 }
 
+int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int type )
+{
+  return 0; // dummy
+}
 // *****************************************************************************
 // ADC specific functions and variables
 
@@ -654,11 +661,13 @@ void platform_pwm_stop( unsigned id )
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
 extern const LUA_REG_TYPE mbed_pio_map[];
+extern const LUA_REG_TYPE mbed_rtc_map[];
 
 const LUA_REG_TYPE platform_map[] =
 {
 #if LUA_OPTIMIZE_MEMORY > 0
   { LSTRKEY( "pio" ), LROVAL( mbed_pio_map ) },
+  { LSTRKEY( "rtc" ), LROVAL( mbed_rtc_map ) },
 #endif
   { LNILKEY, LNILVAL }
 };

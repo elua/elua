@@ -6,6 +6,8 @@
 #include "auxmods.h"
 #include "stacks.h"
 #include "type.h"
+#include "elua_int.h"
+#include "buf.h"
 
 // *****************************************************************************
 // Define here what components you want for this platform
@@ -18,6 +20,9 @@
 #define BUILD_ADC
 #define BUILD_SEMIFS
 #define BUILD_RPC
+
+#define BUILD_LUA_INT_HANDLERS
+#define BUILD_C_INT_HANDLERS
 
 #define PLATFORM_HAS_SYSTIMER
 
@@ -87,6 +92,8 @@
 #define NUM_TIMER             3
 #endif
 
+// Interrupt queue configuration
+#define PLATFORM_INT_QUEUE_LOG_SIZE   BUF_SIZE_32
 
 // Enable RX buffering on UART
 // [TODO] make this happen
@@ -126,5 +133,12 @@ u32 mbed_get_cpu_frequency();
 #define MEM_START_ADDRESS     { ( void* )end, ( void* )SRAM2_ORIGIN }
 #define MEM_END_ADDRESS       { ( void* )( SRAM_ORIGIN + SRAM_SIZE - STACK_SIZE_TOTAL - 1 ), ( void* )( SRAM2_ORIGIN + SRAM2_SIZE - 1 ) }
  
+// Interrupt list
+#define INT_RTC_ALARM         ( ELUA_INT_FIRST_ID + 0 )
+#define INT_ELUA_LAST         INT_RTC_ALARM
+
+#define PLATFORM_CPU_CONSTANTS\
+ _C( INT_RTC_ALARM )
+
 #endif // #ifndef __PLATFORM_CONF_H__
 
