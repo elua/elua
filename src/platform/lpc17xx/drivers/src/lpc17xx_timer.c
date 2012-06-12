@@ -354,7 +354,7 @@ void TIM_Cmd(LPC_TIM_TypeDef *TIMx, FunctionalState NewState)
 /*********************************************************************//**
  * @brief 		Reset Timer/Counter device,
  * 					Make TC and PC are synchronously reset on the next
- * 					positive edge of PCLK
+ * 					positive edge of PCLgit@repos.giga.puc-rio.br:elua/elua.gitK
  * @param[in]	TIMx Pointer to timer device
  * @return 		None
  **********************************************************************/

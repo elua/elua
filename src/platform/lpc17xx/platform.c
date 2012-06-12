@@ -81,6 +81,14 @@ int platform_init()
   // Enable RTC
   LPC_RTC->CCR = 1 | 1<<4; // Clock enabled, calibration disabled
 
+#if 0
+  // Enable timer interrupts
+  NVIC_EnableIRQ( TIMER0_IRQn );
+  NVIC_EnableIRQ( TIMER1_IRQn );
+  NVIC_EnableIRQ( TIMER2_IRQn );
+  NVIC_EnableIRQ( TIMER3_IRQn );
+#endif
+
   return PLATFORM_OK;
 } 
 
@@ -367,7 +375,54 @@ timer_data_type platform_timer_read_sys()
 
 int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int type )
 {
-  return 0; // dummy
+  u64 final;
+
+  if( period_us == 0 )
+  {
+    TIM_Cmd( tmr[ id ], DISABLE );
+    return PLATFORM_TIMER_INT_OK; 
+  }
+
+  final = ( ( u64 )period_us * platform_timer_get_clock( id ) ) / 1000000;
+
+  if( final == 0 )
+    return PLATFORM_TIMER_INT_TOO_SHORT;
+  if( final > 0xFFFFFFFF )
+    return PLATFORM_TIMER_INT_TOO_LONG;
+
+  //Power up Timer
+  switch (id)
+  {
+    case 0: LPC_SC->PCONP |= 1 << 1; break;
+    case 1: LPC_SC->PCONP |= 1 << 2; break;
+    case 2: LPC_SC->PCONP |= 1 << 22; break;
+    case 3: LPC_SC->PCONP |= 1 << 23; break;
+  }
+
+  // Set Clock
+  platform_timer_set_clock( id, 1000000ULL );
+  //LPC_SC->PCLKSEL0 |= 1 << 3; // Clock for timer = CCLK/2
+
+  // Set Match value
+  tmr[ id ]->MR0 = final;
+
+  // Interrupt on Match0 compare, stop after that
+//  tmr[ id ]->MCR |= 1 << 0 | 1<<2; 
+  tmr[ id ]->MCR |= 1 << 0; 
+
+  // Reset Timer0
+  tmr[ id ]->TCR |= 1 << 1; 
+  tmr[ id ]->TCR &= 0 << 1;
+
+  // Enable timer interrupt
+  //NVIC_EnableIRQ(TIMER0_IRQn); 
+
+  // Start timer
+  tmr[ id ]->TCR |= 1 << 0; 
+
+  printf("OK\n");
+ 
+  return PLATFORM_TIMER_INT_OK;
 }
 // *****************************************************************************
 // ADC specific functions and variables
