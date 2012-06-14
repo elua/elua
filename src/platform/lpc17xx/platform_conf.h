@@ -86,6 +86,7 @@
 #define NUM_ADC               8
 #define NUM_CAN               0
 // If virtual timers are enabled, the last timer will be used only for them
+#define NUM_PHYS_TIMER        4
 #if VTMR_NUM_TIMERS == 0
 #define NUM_TIMER             4
 #else

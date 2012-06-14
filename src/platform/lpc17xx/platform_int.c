@@ -63,6 +63,8 @@ static int int_rtc_alarm_get_flag( elua_int_resnum resnum, int clear )
 
 // ****************************************************************************
 // Timer interrupts
+extern LPC_TIM_TypeDef *tmr[];
+extern u8 mbed_timer_int_periodic_flag[ NUM_PHYS_TIMER ];
 static int int_tmr_match_get_status( elua_int_resnum resnum )
 {
   switch (resnum)
@@ -155,10 +157,20 @@ static void tmr_int_handler( int id )
   else
   */
 
-  cmn_int_handler( INT_TMR_MATCH, id );
+  // Timer OFF
+  tmr[ id ]->TCR &= ~(1 << 0); 
 
-//  if( str9_timer_int_periodic_flag[ id ] != PLATFORM_TIMER_INT_CYCLIC )
-//    TIM_ITConfig( base, TIM_IT_OC1, DISABLE );    
+  // Reset
+  tmr[ id ]->TCR |= 1 << 1; 
+  tmr[ id ]->TCR &= ~(1 << 1);
+
+  if( mbed_timer_int_periodic_flag[ id ] == PLATFORM_TIMER_INT_CYCLIC )
+  {
+    // Timer ON
+    tmr[ id ]->TCR |= 1 << 0; 
+  }
+
+  cmn_int_handler( INT_TMR_MATCH, id );
 }
 
 void TIMER0_IRQHandler(void)

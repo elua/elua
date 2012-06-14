@@ -272,7 +272,9 @@ int platform_s_uart_set_flow_control( unsigned id, int type )
 // ****************************************************************************
 // Timer section
 
-static LPC_TIM_TypeDef *tmr[] = { LPC_TIM0, LPC_TIM1, LPC_TIM2, LPC_TIM3 };
+u8 mbed_timer_int_periodic_flag[ NUM_PHYS_TIMER ];
+
+LPC_TIM_TypeDef *tmr[] = { LPC_TIM0, LPC_TIM1, LPC_TIM2, LPC_TIM3 };
 static const u32 tmr_pclk[] = { CLKPWR_PCLKSEL_TIMER0, CLKPWR_PCLKSEL_TIMER1, CLKPWR_PCLKSEL_TIMER2, CLKPWR_PCLKSEL_TIMER3 };
 
 // Helper function: get timer clock
@@ -379,7 +381,8 @@ int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int 
 
   if( period_us == 0 )
   {
-    TIM_Cmd( tmr[ id ], DISABLE );
+    // Timer OFF
+    tmr[ id ]->TCR &= ~(1 << 0); 
     return PLATFORM_TIMER_INT_OK; 
   }
 
@@ -389,6 +392,9 @@ int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int 
     return PLATFORM_TIMER_INT_TOO_SHORT;
   if( final > 0xFFFFFFFF )
     return PLATFORM_TIMER_INT_TOO_LONG;
+
+  // Store the type
+  mbed_timer_int_periodic_flag[ id ] = type;
 
   //Power up Timer
   switch (id)
@@ -406,13 +412,12 @@ int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int 
   // Set Match value
   tmr[ id ]->MR0 = final;
 
-  // Interrupt on Match0 compare, stop after that
-//  tmr[ id ]->MCR |= 1 << 0 | 1<<2; 
+  // Interrupt on Match0 compare
   tmr[ id ]->MCR |= 1 << 0; 
 
   // Reset Timer0
   tmr[ id ]->TCR |= 1 << 1; 
-  tmr[ id ]->TCR &= 0 << 1;
+  tmr[ id ]->TCR &= ~(1 << 1);
 
   // Enable timer interrupt
   //NVIC_EnableIRQ(TIMER0_IRQn); 
@@ -420,8 +425,6 @@ int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int 
   // Start timer
   tmr[ id ]->TCR |= 1 << 0; 
 
-  printf("OK\n");
- 
   return PLATFORM_TIMER_INT_OK;
 }
 // *****************************************************************************
