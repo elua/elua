@@ -79,7 +79,7 @@ int platform_init()
   cmn_platform_init();
 
   // Enable RTC
-  LPC_RTC->CCR = 1 | 1<<4; // Clock enabled, calibration disabled
+//  LPC_RTC->CCR = 1 | 1<<4; // Clock enabled, calibration disabled
 
 #if 0
   // Enable timer interrupts
