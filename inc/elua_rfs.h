@@ -5,7 +5,7 @@
 
 #include "devman.h"
 
-DM_DEVICE* remotefs_init();
+int remotefs_init();
 
 #endif
 

@@ -18,7 +18,7 @@
 static FS romfs_fd_table[ ROMFS_MAX_FDS ];
 static int romfs_num_fd;
 
-static u8 romfs_read( u32 addr )
+static u8 flash_romfs_read( u32 addr )
 {
   return romfiles_fs[ addr ];
 }
@@ -28,19 +28,21 @@ static int romfs_find_empty_fd()
   int i;
   
   for( i = 0; i < ROMFS_MAX_FDS; i ++ )
-    if( romfs_fd_table[ i ].p_read_func == NULL )
+    if( romfs_fd_table[ i ].baseaddr == 0xFFFFFFFF &&
+        romfs_fd_table[ i ].offset == 0xFFFFFFFF &&
+        romfs_fd_table[ i ].size == 0xFFFFFFFF )
       return i;
   return -1;
 }
 
 static void romfs_close_fd( int fd )
 {
-  memset( romfs_fd_table + fd, 0, sizeof( FS ) );
+  memset( romfs_fd_table + fd, 0xFF, sizeof( FS ) );
 }
 
 // Open the given file, returning one of FS_FILE_NOT_FOUND, FS_FILE_ALREADY_OPENED
 // or FS_FILE_OK
-u8 romfs_open_file( const char* fname, p_read_fs_byte p_read_func, FS* pfs )
+static u8 romfs_open_file( const char* fname, p_read_fs_byte p_read_func, FS* pfs )
 {
   u32 i, j;
   char fsname[ DM_MAX_FNAME_LENGTH + 1 ];
@@ -76,7 +78,6 @@ u8 romfs_open_file( const char* fname, p_read_fs_byte p_read_func, FS* pfs )
       pfs->baseaddr = j;
       pfs->offset = 0;
       pfs->size = fsize;
-      pfs->p_read_func = p_read_func;   
       return FS_FILE_OK;
     }
     // Move to next file
@@ -85,17 +86,18 @@ u8 romfs_open_file( const char* fname, p_read_fs_byte p_read_func, FS* pfs )
   return FS_FILE_NOT_FOUND;
 }
 
-static int romfs_open_r( struct _reent *r, const char *path, int flags, int mode )
+static int romfs_open_r( struct _reent *r, const char *path, int flags, int mode, void *pdata )
 {
   FS tempfs;
   int i;
+  p_read_fs_byte pr = ( p_read_fs_byte )pdata;
   
   if( romfs_num_fd == ROMFS_MAX_FDS )
   {
     r->_errno = ENFILE;
     return -1;
   }
-  if( romfs_open_file( path, romfs_read, &tempfs ) != FS_FILE_OK )
+  if( romfs_open_file( path, pr, &tempfs ) != FS_FILE_OK )
   {
     r->_errno = ENOENT;
     return -1;
@@ -162,7 +164,7 @@ static off_t romfs_lseek_r( struct _reent *r, int fd, off_t off, int whence )
 static u32 romfs_dir_data = 0;
 
 // opendir
-static void* romfs_opendir_r( struct _reent *r, const char* dname )
+static void* romfs_opendir_r( struct _reent *r, const char* dname, void *pdata )
 {
   if( !dname || strlen( dname ) == 0 || ( strlen( dname ) == 1 && !strcmp( dname, "/" ) ) )
   {
@@ -175,18 +177,19 @@ static void* romfs_opendir_r( struct _reent *r, const char* dname )
 // readdir
 extern struct dm_dirent dm_shared_dirent;
 extern char dm_shared_fname[ DM_MAX_FNAME_LENGTH + 1 ];
-static struct dm_dirent* romfs_readdir_r( struct _reent *r, void *d )
+static struct dm_dirent* romfs_readdir_r( struct _reent *r, void *d, void *pdata )
 {
   u32 off = *( u32* )d;
   struct dm_dirent *pent = &dm_shared_dirent;
   unsigned j = 0;
+  p_read_fs_byte pr = ( p_read_fs_byte )pdata;
   
-  if( romfs_read( off ) == 0 )
+  if( pr( off ) == 0 )
     return NULL;
-  while( ( dm_shared_fname[ j ++ ] = romfs_read( off ++ ) ) != '\0' );
+  while( ( dm_shared_fname[ j ++ ] = pr( off ++ ) ) != '\0' );
   pent->fname = dm_shared_fname;
-  pent->fsize = romfs_read( off ) + ( romfs_read( off + 1 ) << 8 );
-  pent->fsize += ( romfs_read( off + 2 ) << 16 ) + ( romfs_read( off + 3 ) << 24 );
+  pent->fsize = pr( off ) + ( pr( off + 1 ) << 8 );
+  pent->fsize += ( pr( off + 2 ) << 16 ) + ( pr( off + 3 ) << 24 );
   pent->ftime = 0;
   off += 4;
   off = ( off + ROMFS_ALIGN - 1 ) & ~( ROMFS_ALIGN - 1 );
@@ -195,7 +198,7 @@ static struct dm_dirent* romfs_readdir_r( struct _reent *r, void *d )
 }
 
 // closedir
-static int romfs_closedir_r( struct _reent *r, void *d )
+static int romfs_closedir_r( struct _reent *r, void *d, void *pdata )
 {
   *( u32* )d = 0;
   return 0;
@@ -212,7 +215,6 @@ static const char* romfs_getaddr_r( struct _reent *r, int fd )
 // Our ROMFS device descriptor structure
 static const DM_DEVICE romfs_device = 
 {
-  "/rom",
   romfs_open_r,         // open
   romfs_close_r,        // close
   romfs_write_r,        // write
@@ -224,16 +226,17 @@ static const DM_DEVICE romfs_device =
   romfs_getaddr_r,      // getaddr
 };
 
-const DM_DEVICE* romfs_init()
+int romfs_init()
 {
-  return &romfs_device;
+  memset( romfs_fd_table, 0xFF, sizeof( romfs_fd_table ) );
+  return dm_register( "/rom", ( void* )flash_romfs_read, &romfs_device );
 }
 
 #else // #ifdef BUILD_ROMFS
 
-const DM_DEVICE* romfs_init()
+int romfs_init()
 {
-  return NULL;
+  return dm_register( NULL, NULL, NULL );
 }
 
 #endif // #ifdef BUILD_ROMFS

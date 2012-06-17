@@ -36,7 +36,7 @@ static int mmcfs_find_empty_fd( void )
   return -1;
 }
 
-static int mmcfs_open_r( struct _reent *r, const char *path, int flags, int mode )
+static int mmcfs_open_r( struct _reent *r, const char *path, int flags, int mode, void *pdata )
 {
   int fd;
   int mmc_mode;
@@ -185,7 +185,7 @@ static off_t mmcfs_lseek_r( struct _reent *r, int fd, off_t off, int whence )
 
 // opendir
 static DIR mmc_dir;
-static void* mmcfs_opendir_r( struct _reent *r, const char* dname )
+static void* mmcfs_opendir_r( struct _reent *r, const char* dname, void *pdata )
 {
   void* res = NULL;
   if( !dname || strlen( dname ) == 0 || ( strlen( dname ) == 1 && !strcmp( dname, "/" ) ) )
@@ -196,7 +196,7 @@ static void* mmcfs_opendir_r( struct _reent *r, const char* dname )
 // readdir
 extern struct dm_dirent dm_shared_dirent;
 extern char dm_shared_fname[ DM_MAX_FNAME_LENGTH + 1 ];
-static struct dm_dirent* mmcfs_readdir_r( struct _reent *r, void *d )
+static struct dm_dirent* mmcfs_readdir_r( struct _reent *r, void *d, void *pdata )
 {
   DIR *pdir = ( DIR* )d;
   FILINFO mmc_file_info;
@@ -230,7 +230,7 @@ static struct dm_dirent* mmcfs_readdir_r( struct _reent *r, void *d )
 }
 
 // closedir
-static int mmcfs_closedir_r( struct _reent *r, void *d )
+static int mmcfs_closedir_r( struct _reent *r, void *d, void *pdata )
 {
   return 0;
 }
@@ -238,7 +238,6 @@ static int mmcfs_closedir_r( struct _reent *r, void *d )
 // MMC device descriptor structure
 static const DM_DEVICE mmcfs_device =
 {
-  "/mmc",
   mmcfs_open_r,         // open
   mmcfs_close_r,        // close
   mmcfs_write_r,        // write
@@ -250,20 +249,19 @@ static const DM_DEVICE mmcfs_device =
   NULL                  // getaddr
 };
 
-const DM_DEVICE* mmcfs_init()
+int mmcfs_init()
 {
   // Mount the MMC file system using logical disk 0
   if ( f_mount( 0, &mmc_fs ) != FR_OK )
-    return NULL;
-
-  return &mmcfs_device;
+    return DM_ERR_INIT;
+  return dm_register( "/mmc", NULL, &mmcfs_device );
 }
 
 #else // #ifdef BUILD_MMCFS
 
-const DM_DEVICE* mmcfs_init()
+int mmcfs_init()
 {
-  return NULL;
+  return dm_register( NULL, NULL, NULL );
 }
 
 #endif // BUILD_MMCFS

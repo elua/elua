@@ -27,7 +27,7 @@
 static int find_dm_entry( const char* name, char **pactname )
 {
   int i;
-  const DM_DEVICE* pdev;
+  const DM_INSTANCE_DATA* pinst;
   const char* preal;
   char tempname[ DM_MAX_DEV_NAME + 1 ];
   
@@ -54,8 +54,8 @@ static int find_dm_entry( const char* name, char **pactname )
   // Find device
   for( i = 0; i < dm_get_num_devices(); i ++ )
   {
-    pdev = dm_get_device_at( i );
-    if( !strcasecmp( tempname, pdev->name ) )
+    pinst = dm_get_instance_at( i );
+    if( !strcasecmp( tempname, pinst->name ) )
       break;
   }
   if( i == dm_get_num_devices() )
@@ -75,7 +75,7 @@ int _open_r( struct _reent *r, const char *name, int flags, int mode )
 {
   char* actname;
   int res, devid;
-  const DM_DEVICE* pdev;
+  const DM_INSTANCE_DATA *pinst;
  
   // Look for device, return error if not found or if function not implemented
   if( ( devid = find_dm_entry( name, &actname ) ) == -1 )
@@ -83,15 +83,15 @@ int _open_r( struct _reent *r, const char *name, int flags, int mode )
     r->_errno = ENODEV;
     return -1; 
   }
-  pdev = dm_get_device_at( devid );
-  if( pdev->p_open_r == NULL )
+  pinst = dm_get_instance_at( devid );
+  if( pinst->pdev->p_open_r == NULL )
   {
     r->_errno = ENOSYS;
     return -1;   
   }
   
   // Device found, call its function
-  if( ( res = pdev->p_open_r( r, actname, flags, mode ) ) < 0 )
+  if( ( res = pinst->pdev->p_open_r( r, actname, flags, mode, pinst->pdata ) ) < 0 )
     return res;
   return DM_MAKE_DESC( devid, res );
 }

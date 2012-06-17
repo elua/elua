@@ -58,7 +58,7 @@ static int semifs_find_empty_fd()
   return -1;
 }
 
-static int semifs_open_r( struct _reent *r, const char *path, int flags, int mode )
+static int semifs_open_r( struct _reent *r, const char *path, int flags, int mode, void *pdata )
 {
   int aflags = 0, fd, fh;
   uint32_t args[3];
@@ -212,7 +212,7 @@ static int xffind(const char *pattern, XFINFO *info)
 // opendir
 char testpattern[] = "*";
 SEARCHINFO semifs_dir;
-static void* semifs_opendir_r( struct _reent *r, const char* dname )
+static void* semifs_opendir_r( struct _reent *r, const char* dname, void *pdata )
 {
   semifs_dir.file_info.fileID = 0;
   semifs_dir.pattern = testpattern;
@@ -222,7 +222,7 @@ static void* semifs_opendir_r( struct _reent *r, const char* dname )
 // readdir
 extern struct dm_dirent dm_shared_dirent;
 extern char dm_shared_fname[ DM_MAX_FNAME_LENGTH + 1 ];
-static struct dm_dirent* semifs_readdir_r( struct _reent *r, void *d )
+static struct dm_dirent* semifs_readdir_r( struct _reent *r, void *d, void *pdata )
 {
   SEARCHINFO *dir = ( SEARCHINFO* )d;
   XFINFO *semifs_file_info = &dir->file_info;
@@ -241,7 +241,7 @@ static struct dm_dirent* semifs_readdir_r( struct _reent *r, void *d )
 }
 
 // closedir
-static int semifs_closedir_r( struct _reent *r, void *d )
+static int semifs_closedir_r( struct _reent *r, void *d, void *pdata )
 {
   return 0;
 }
@@ -249,7 +249,6 @@ static int semifs_closedir_r( struct _reent *r, void *d )
 // Semihosting device descriptor structure
 static const DM_DEVICE semifs_device =
 {
-  "/semi",
   semifs_open_r,         // open
   semifs_close_r,        // close
   semifs_write_r,        // write
@@ -261,21 +260,21 @@ static const DM_DEVICE semifs_device =
   NULL                   // getaddr
 };
 
-const DM_DEVICE* semifs_init()
+int semifs_init()
 {
   int i;
 
   for (i = 0; i < SEMIFS_MAX_FDS; i ++)
     semifs_fd_table[i].handle = -1;
 
-  return &semifs_device;
+  return dm_register( "/semi", NULL, &semifs_device );
 }
 
 #else // #ifdef BUILD_SEMIFS
 
-const DM_DEVICE* semifs_init()
+int semifs_init()
 {
-  return NULL;
+  return dm_register( NULL, NULL, NULL );
 }
 
 #endif // #ifdef BUILD_SEMIFS

@@ -37,7 +37,7 @@ static u8 rfs_buffer[ 1 << RFS_BUFFER_SIZE ];
 static int rfs_read_fd, rfs_write_fd;
 #endif
 
-static int rfs_open_r( struct _reent *r, const char *path, int flags, int mode )
+static int rfs_open_r( struct _reent *r, const char *path, int flags, int mode, void *pdata )
 {
   return rfsc_open( path, flags, mode );
 }
@@ -100,13 +100,13 @@ static off_t rfs_lseek_r( struct _reent *r, int fd, off_t off, int whence )
 }
 
 // opendir
-static void* rfs_opendir_r( struct _reent *r, const char* name )
+static void* rfs_opendir_r( struct _reent *r, const char* name, void *pdata )
 {
   return ( void* )rfsc_opendir( name );
 }
 
 // readdir
-static struct dm_dirent* rfs_readdir_r( struct _reent *r, void *d )
+static struct dm_dirent* rfs_readdir_r( struct _reent *r, void *d, void *pdata )
 {
   static struct dm_dirent ent;
 
@@ -117,7 +117,7 @@ static struct dm_dirent* rfs_readdir_r( struct _reent *r, void *d )
 }
 
 // closedir
-static int rfs_closedir_r( struct _reent *r, void *d )
+static int rfs_closedir_r( struct _reent *r, void *d, void *pdata )
 {
   return rfsc_closedir( ( u32 )d );
 }
@@ -171,7 +171,6 @@ static u32 rfs_recv( u8 *p, u32 size, timer_data_type timeout )
 // Our remote file system device descriptor structure
 static const DM_DEVICE rfs_device = 
 {
-  "/rfs",
   rfs_open_r,           // open
   rfs_close_r,          // close
   rfs_write_r,          // write
@@ -183,7 +182,7 @@ static const DM_DEVICE rfs_device =
   NULL                  // getaddr
 };
 
-const DM_DEVICE *remotefs_init()
+int remotefs_init()
 {
 #ifdef ELUA_CPU_LINUX 
   // Open our read/write pipes
@@ -192,7 +191,7 @@ const DM_DEVICE *remotefs_init()
   if( rfs_read_fd == -1 || rfs_write_fd == -1 )
   {
     hostif_putstr( "unable to open read/write pipes\n" );
-    return NULL;
+    return DM_ERR_INIT;
   }
 #elif RFS_UART_ID < SERMUX_SERVICE_ID_FIRST  // if RFS runs on a virtual UART, buffers are already set in common.c
   // Initialize RFS UART
@@ -201,18 +200,18 @@ const DM_DEVICE *remotefs_init()
   if( platform_uart_set_buffer( RFS_UART_ID, RFS_BUFFER_SIZE ) == PLATFORM_ERR )
   {
     printf( "WARNING: unable to initialize RFS filesystem\n" );
-    return NULL;
+    return DM_ERR_INIT;
   } 
 #endif
   rfsc_setup( rfs_buffer, rfs_send, rfs_recv, RFS_TIMEOUT );
-  return &rfs_device;
+  return dm_register( "/rfs", NULL, &rfs_device );
 }
 
 #else // #ifdef BUILD_RFS
 
 const DM_DEVICE *remotefs_init()
 {
-  return NULL;
+  return dm_register( NULL, NULL, NULL );
 }
 
 #endif

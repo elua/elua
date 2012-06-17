@@ -43,6 +43,6 @@ typedef struct {
 
 
 // FS functions
-const DM_DEVICE* semifs_init();
+int semifs_init();
 
 #endif

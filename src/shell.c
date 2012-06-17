@@ -201,7 +201,7 @@ static void shell_ver( char* args )
 // 'ls' and 'dir' handler
 static void shell_ls( char* args )
 {
-  const DM_DEVICE *pdev;
+  const DM_INSTANCE_DATA *pinst;
   unsigned dev, i;
   DM_DIR *d;
   struct dm_dirent *ent;
@@ -210,14 +210,14 @@ static void shell_ls( char* args )
   // Iterate through all devices, looking for the ones that can do "opendir"
   for( dev = 0; dev < dm_get_num_devices(); dev ++ )
   {  
-    pdev = dm_get_device_at( dev );
-    if( pdev->p_opendir_r == NULL || pdev->p_readdir_r == NULL || pdev->p_closedir_r == NULL )
+    pinst = dm_get_instance_at( dev );
+    if( pinst->pdev->p_opendir_r == NULL || pinst->pdev->p_readdir_r == NULL || pinst->pdev->p_closedir_r == NULL )
       continue;
-    d = dm_opendir( pdev->name );
+    d = dm_opendir( pinst->name );
     if( d )
     {
       total = 0;
-      printf( "\n%s", pdev->name );
+      printf( "\n%s", pinst->name );
       while( ( ent = dm_readdir( d ) ) != NULL )
       {
         printf( "\n%s", ent->fname );
@@ -226,7 +226,7 @@ static void shell_ls( char* args )
         printf( "%u bytes", ( unsigned )ent->fsize );
         total = total + ent->fsize;
       }
-      printf( "\n\nTotal on %s: %u bytes\n", pdev->name, ( unsigned )total );
+      printf( "\n\nTotal on %s: %u bytes\n", pinst->name, ( unsigned )total );
       dm_closedir( d );
     }
   }   

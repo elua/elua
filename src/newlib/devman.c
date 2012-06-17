@@ -11,8 +11,8 @@
 #include "common.h"
 #include "platform_conf.h"
 
-static const DM_DEVICE* dm_list[ DM_MAX_DEVICES ];           // list of devices
-static int dm_num_devs;                               // number of devices
+static DM_INSTANCE_DATA dm_list[ DM_MAX_DEVICES ];            // list of devices
+static int dm_num_devs;                                       // number of devices
 
 // "Shared" variables: these can be used by any FS that implements 'ls' via opendir/readdir/closedir
 struct dm_dirent dm_shared_dirent;
@@ -20,17 +20,20 @@ char dm_shared_fname[ DM_MAX_FNAME_LENGTH + 1 ];
 
 // Register a device
 // Returns the index of the device in the device table
-int dm_register( const DM_DEVICE *pdev )
+int dm_register( const char *name, void *pdata, const DM_DEVICE *pdev )
 {
   int i;
   
+  if( pdev == NULL )
+    return DM_ERR_INVALID_OPS;
+
   // First char of the name must be '/'
-  if( pdev == NULL || pdev->name == NULL || *pdev->name != '/' || strlen( pdev->name ) > DM_MAX_DEV_NAME )
+  if( name == NULL || *name != '/' || strlen( name ) > DM_MAX_DEV_NAME )
     return DM_ERR_INVALID_NAME;
   
   // Check if the device is not already registered
   for( i = 0; i < dm_num_devs; i ++ )
-    if( !strcasecmp( pdev->name, dm_list[ i ]->name ) )
+    if( !strcasecmp( name, dm_list[ i ].name ) )
       return DM_ERR_ALREADY_REGISTERED;
   
   // Check for space
@@ -38,8 +41,11 @@ int dm_register( const DM_DEVICE *pdev )
     return DM_ERR_NO_SPACE;
     
   // Register it now
-  dm_list[ dm_num_devs ++ ] = pdev;
-  return dm_num_devs - 1;
+  dm_list[ i ].name = name;
+  dm_list[ i ].pdata = pdata;
+  dm_list[ i ].pdev = pdev;
+  dm_num_devs ++;
+  return i;
 }
 
 // Helper: get a device ID from its name
@@ -52,15 +58,15 @@ static int dm_device_id_from_name( const char* name, const char **rest )
   if( rest )
     *rest = NULL;
   for( i = pos = 0; i < dm_num_devs; i ++ )
-    if( !strncasecmp( name, dm_list[ i ]->name, strlen( dm_list[ i ]->name ) ) && strlen( dm_list[ i ]->name ) > matchlen )
+    if( !strncasecmp( name, dm_list[ i ].name, strlen( dm_list[ i ].name ) ) && strlen( dm_list[ i ].name ) > matchlen )
     {
-      matchlen = strlen( dm_list[ i ]->name );
+      matchlen = strlen( dm_list[ i ].name );
       pos = i;
     }
   if( matchlen == 0 )
     return DM_ERR_NO_DEVICE;
   if( rest )
-    *rest = name + strlen( dm_list[ pos ]->name );
+    *rest = name + strlen( dm_list[ pos ].name );
   return pos;
 }
 
@@ -75,14 +81,14 @@ int dm_unregister( const char* name )
       
   // Check if the device is already registered
   for( i = 0; i < dm_num_devs; i ++ )
-    if( !strcasecmp( name, dm_list[ i ]->name ) )
+    if( !strcasecmp( name, dm_list[ i ].name ) )
       break;
   if( i == dm_num_devs )
     return DM_ERR_NOT_REGISTERED;
   
   // Remove it
   if( i != dm_num_devs - 1 )
-    memmove( dm_list + i, dm_list + i + 1, sizeof( DM_DEVICE* ) );
+    memmove( dm_list + i, dm_list + i + 1, sizeof( DM_INSTANCE_DATA ) * ( dm_num_devs - i - 1 ) );
   dm_num_devs --;
   return DM_OK;
 }
@@ -92,7 +98,15 @@ const DM_DEVICE* dm_get_device_at( int idx )
 {
   if( idx < 0 || idx >= dm_num_devs )
     return NULL;
-  return dm_list[ idx ];
+  return dm_list[ idx ].pdev;
+}
+
+// Get an instance
+const DM_INSTANCE_DATA* dm_get_instance_at( int idx )
+{
+  if( idx < 0 || idx >= dm_num_devs )
+    return NULL;
+  return dm_list + idx;
 }
 
 // Returns the number of registered devices
@@ -106,7 +120,7 @@ int dm_get_num_devices()
 // At this point it is assumed that the std device (usually UART) is already initialized
 int dm_init() 
 {
-  dm_register( std_get_desc() );
+  std_register();
 #ifndef BUILD_CON_TCP         // we need buffering on stdout for console over TCP
   setbuf( stdout, NULL );
 #endif
@@ -127,13 +141,13 @@ DM_DIR* dm_opendir( const char* dirname )
     _REENT->_errno = ENOSYS;
     return NULL;
   }
-  pdev = dm_list[ pos ];
+  pdev = dm_list[ pos ].pdev;
   if( pdev->p_opendir_r == NULL )
   {
     _REENT->_errno = ENOSYS;
     return NULL;
   }
-  if( ( data = pdev->p_opendir_r( _REENT, rest ) ) == NULL )
+  if( ( data = pdev->p_opendir_r( _REENT, rest, dm_list[ pos ].pdata ) ) == NULL )
     return NULL;
   if( ( d = malloc( sizeof( DM_DIR ) ) ) == NULL )
   {
@@ -155,13 +169,13 @@ struct dm_dirent* dm_readdir( DM_DIR *d )
     _REENT->_errno = EBADF;
     return NULL;
   }
-  pdev = dm_list[ d->devid ];
+  pdev = dm_list[ d->devid ].pdev;
   if( pdev->p_readdir_r == NULL )
   {
     _REENT->_errno = EBADF;
     return NULL;
   }
-  return pdev->p_readdir_r( _REENT, d->userdata );
+  return pdev->p_readdir_r( _REENT, d->userdata, dm_list[ d->devid ].pdata );
 }
 
 // Close a directory descriptor
@@ -175,9 +189,9 @@ int dm_closedir( DM_DIR *d )
     _REENT->_errno = EBADF;
     return -1;
   }
-  pdev = dm_list[ d->devid ];
-  if( pdev )
-    res = pdev->p_closedir_r( _REENT, d->userdata );
+  pdev = dm_list[ d->devid ].pdev;
+  if( pdev->p_closedir_r )
+    res = pdev->p_closedir_r( _REENT, d->userdata, dm_list[ d->devid ].pdata );
   else
     _REENT->_errno = EBADF;
   free( d );
@@ -199,3 +213,7 @@ const char* dm_getaddr( int fd )
   return pdev->p_getaddr_r( _REENT, DM_GET_FD( fd ) );
 }
 
+void* dm_get_data_of_fd( int fd )
+{
+  return dm_list[ DM_GET_DEVID( fd ) ].pdata;
+}

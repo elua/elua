@@ -32,11 +32,10 @@ typedef struct
   u32 baseaddr;
   u32 offset;
   u32 size;
-  p_read_fs_byte p_read_func;
 } FS;
   
 // FS functions
-const DM_DEVICE* romfs_init();
+int romfs_init();
 
 #endif
 

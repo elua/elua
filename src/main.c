@@ -91,16 +91,16 @@ int main( void )
   dm_init();
 
   // Register the ROM filesystem
-  dm_register( romfs_init() );
+  romfs_init();
 
   // Register the MMC filesystem
-  dm_register( mmcfs_init() );
+  mmcfs_init();
 
   // Register the Semihosting filesystem
-  dm_register( semifs_init() );
+  semifs_init();
 
   // Register the remote filesystem
-  dm_register( remotefs_init() );
+  remotefs_init();
 
   // Search for autorun files in the defined order and execute the 1st if found
   for( i = 0; i < sizeof( boot_order ) / sizeof( *boot_order ); i++ )
