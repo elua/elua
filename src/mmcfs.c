@@ -109,7 +109,7 @@ static int mmcfs_open_r( struct _reent *r, const char *path, int flags, int mode
   return fd;
 }
 
-static int mmcfs_close_r( struct _reent *r, int fd )
+static int mmcfs_close_r( struct _reent *r, int fd, void *pdata )
 {
   FIL* pFile = mmcfs_fd_table + fd;
 
@@ -119,7 +119,7 @@ static int mmcfs_close_r( struct _reent *r, int fd )
   return 0;
 }
 
-static _ssize_t mmcfs_write_r( struct _reent *r, int fd, const void* ptr, size_t len )
+static _ssize_t mmcfs_write_r( struct _reent *r, int fd, const void* ptr, size_t len, void *pdata )
 {
 #if _FS_READONLY
   {
@@ -139,7 +139,7 @@ static _ssize_t mmcfs_write_r( struct _reent *r, int fd, const void* ptr, size_t
 #endif // _FS_READONLY
 }
 
-static _ssize_t mmcfs_read_r( struct _reent *r, int fd, void* ptr, size_t len )
+static _ssize_t mmcfs_read_r( struct _reent *r, int fd, void* ptr, size_t len, void *pdata )
 {
   UINT bytesRead;
 
@@ -153,7 +153,7 @@ static _ssize_t mmcfs_read_r( struct _reent *r, int fd, void* ptr, size_t len )
 }
 
 // lseek
-static off_t mmcfs_lseek_r( struct _reent *r, int fd, off_t off, int whence )
+static off_t mmcfs_lseek_r( struct _reent *r, int fd, off_t off, int whence, void *pdata )
 {
   FIL* pFile = mmcfs_fd_table + fd;
   u32 newpos = 0;

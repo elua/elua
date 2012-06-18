@@ -101,7 +101,7 @@ static int semifs_open_r( struct _reent *r, const char *path, int flags, int mod
   return fd;
 }
 
-static int semifs_close_r( struct _reent *r, int fd )
+static int semifs_close_r( struct _reent *r, int fd, void *pdata )
 {
   int fh = semifs_fd_table[ fd ].handle;
    
@@ -113,7 +113,7 @@ static int semifs_close_r( struct _reent *r, int fd )
   return __semihost(SYS_CLOSE, &fh);
 }
 
-static _ssize_t semifs_write_r( struct _reent *r, int fd, const void* ptr, size_t len )
+static _ssize_t semifs_write_r( struct _reent *r, int fd, const void* ptr, size_t len, void *pdata )
 {
   int fh = semifs_fd_table[ fd ].handle, x;
   uint32_t args[3];
@@ -135,7 +135,7 @@ static _ssize_t semifs_write_r( struct _reent *r, int fd, const void* ptr, size_
   return len - x;
 }
 
-static _ssize_t semifs_read_r( struct _reent *r, int fd, void* ptr, size_t len )
+static _ssize_t semifs_read_r( struct _reent *r, int fd, void* ptr, size_t len, void *pdata )
 {
   int fh = semifs_fd_table[ fd ].handle, x;
   uint32_t args[3];
@@ -157,7 +157,7 @@ static _ssize_t semifs_read_r( struct _reent *r, int fd, void* ptr, size_t len )
   return len - x;
 }
 
-static off_t semifs_lseek_r( struct _reent *r, int fd, off_t off, int whence )
+static off_t semifs_lseek_r( struct _reent *r, int fd, off_t off, int whence, void *pdata )
 {
   int fh = semifs_fd_table[ fd ].handle, res;  
   uint32_t args[2];

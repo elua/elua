@@ -16,7 +16,7 @@ static p_std_get_char std_get_char_func;
 int std_prev_char = -1;
 
 // 'read'
-static _ssize_t std_read( struct _reent *r, int fd, void* vptr, size_t len )
+static _ssize_t std_read( struct _reent *r, int fd, void* vptr, size_t len, void *pdata )
 {
   int i, c;
   char* ptr = ( char* )vptr;
@@ -87,7 +87,7 @@ static _ssize_t std_read( struct _reent *r, int fd, void* vptr, size_t len )
 }
 
 // 'write'
-static _ssize_t std_write( struct _reent *r, int fd, const void* vptr, size_t len )
+static _ssize_t std_write( struct _reent *r, int fd, const void* vptr, size_t len, void *pdata )
 {   
   int i;
   const char* ptr = ( const char* )vptr;

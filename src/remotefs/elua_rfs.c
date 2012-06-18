@@ -42,12 +42,12 @@ static int rfs_open_r( struct _reent *r, const char *path, int flags, int mode, 
   return rfsc_open( path, flags, mode );
 }
 
-static int rfs_close_r( struct _reent *r, int fd )
+static int rfs_close_r( struct _reent *r, int fd, void *pdata )
 {
   return rfsc_close( fd );
 }
 
-static _ssize_t rfs_write_r( struct _reent *r, int fd, const void* ptr, size_t len )
+static _ssize_t rfs_write_r( struct _reent *r, int fd, const void* ptr, size_t len, void *pdata )
 { 
   s32 total = 0, res;
   u32 towrite;
@@ -70,7 +70,7 @@ static _ssize_t rfs_write_r( struct _reent *r, int fd, const void* ptr, size_t l
   return ( _ssize_t )total;
 }
 
-static _ssize_t rfs_read_r( struct _reent *r, int fd, void* ptr, size_t len )
+static _ssize_t rfs_read_r( struct _reent *r, int fd, void* ptr, size_t len, void *pdata )
 {
   s32 total = 0, res;
   u32 toread;
@@ -94,7 +94,7 @@ static _ssize_t rfs_read_r( struct _reent *r, int fd, void* ptr, size_t len )
 }
 
 // lseek
-static off_t rfs_lseek_r( struct _reent *r, int fd, off_t off, int whence )
+static off_t rfs_lseek_r( struct _reent *r, int fd, off_t off, int whence, void *pdata )
 {
   return ( off_t )rfsc_lseek( fd, ( s32 )off, whence );
 }
@@ -209,7 +209,7 @@ int remotefs_init()
 
 #else // #ifdef BUILD_RFS
 
-const DM_DEVICE *remotefs_init()
+int remotefs_init()
 {
   return dm_register( NULL, NULL, NULL );
 }

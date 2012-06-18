@@ -200,20 +200,16 @@ int dm_closedir( DM_DIR *d )
 
 const char* dm_getaddr( int fd )
 {
-  const DM_DEVICE* pdev;
+  const DM_INSTANCE_DATA *pinst;
 
   // Find device, check write function
-  pdev = dm_get_device_at( DM_GET_DEVID( fd ) );
-  if( !pdev || pdev->p_getaddr_r == NULL )
+  pinst = dm_get_instance_at( DM_GET_DEVID( fd ) );
+  if( !pinst || pinst->pdev->p_getaddr_r == NULL )
   {
     _REENT->_errno = ENOSYS;
     return NULL;
   }
 
-  return pdev->p_getaddr_r( _REENT, DM_GET_FD( fd ) );
+  return pinst->pdev->p_getaddr_r( _REENT, DM_GET_FD( fd ), pinst->pdata );
 }
 
-void* dm_get_data_of_fd( int fd )
-{
-  return dm_list[ DM_GET_DEVID( fd ) ].pdata;
-}

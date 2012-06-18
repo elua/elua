@@ -13,7 +13,7 @@
 #include <string.h>
 
 // 'read'
-static _ssize_t std_read( struct _reent *r, int fd, void* vptr, size_t len )
+static _ssize_t std_read( struct _reent *r, int fd, void* vptr, size_t len, void *pdata )
 {
   int sock;
   elua_net_size pktsize;
@@ -55,7 +55,7 @@ static _ssize_t std_read( struct _reent *r, int fd, void* vptr, size_t len )
 }
 
 // 'write'
-static _ssize_t std_write( struct _reent *r, int fd, const void* vptr, size_t len )
+static _ssize_t std_write( struct _reent *r, int fd, const void* vptr, size_t len, void *pdata )
 {   
   int sock;
   

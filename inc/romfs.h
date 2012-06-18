@@ -26,13 +26,30 @@ enum
 // system
 typedef u8 ( *p_read_fs_byte )( u32 );
 
+// File flags
+#define ROMFS_FILE_FLAG_READ      0x01
+#define ROMFS_FILE_FLAG_WRITE     0x02
+#define ROMFS_FILE_FLAG_APPEND    0x04
+
 // A small "FILE" structure
 typedef struct 
 {
   u32 baseaddr;
   u32 offset;
   u32 size;
-} FS;
+  u8 flags;
+} FD;
+
+// Filesystem flags
+#define ROMFS_FS_FLAG_DIRECT      0x01
+#define ROMFS_FS_FLAG_WO          0x02
+
+// File system descriptor
+typedef struct
+{
+  u8 *pbase;
+  u8 flags;
+} FSDATA;
   
 // FS functions
 int romfs_init();
