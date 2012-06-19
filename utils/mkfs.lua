@@ -143,8 +143,8 @@ function mkfs( dirname, outname, flist, mode, compcmd )
     end
   end
     
-  -- All done, write the final "0" (terminator)
-  _add_data( 0, outfile, false )
+  -- All done, write the final "0xFF" (terminator)
+  _add_data( 0xFF, outfile, false )
   outfile:write( "};\n\n#endif\n" );
   outfile:close()
   print( sf( "Done, total size is %d bytes", _bytecnt ) )

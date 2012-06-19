@@ -48,17 +48,14 @@ static u8 romfs_open_file( const char* fname, u8 *pbase, FD* pfd )
   i = 0;
   while( 1 )
   {
+    if( pbase[ i ] == 0xFF )
+      return FS_FILE_NOT_FOUND;
     // Read file name
     for( j = 0; j < DM_MAX_FNAME_LENGTH; j ++ )
     {
       fsname[ j ] = pbase[ i + j ];
       if( fsname[ j ] == 0 )
-      {
-        if( j == 0 )
-          return FS_FILE_NOT_FOUND;
-        else
-          break;
-      }
+         break;
     }
     // ' i + j' now points at the '0' byte
     j = i + j + 1;
@@ -182,7 +179,7 @@ static struct dm_dirent* romfs_readdir_r( struct _reent *r, void *d, void *pdata
   FSDATA *pfsdata = ( FSDATA* )pdata;
   u8 *pbase = pfsdata->pbase;
   
-  if( pbase[ off ] == 0 )
+  if( pbase[ off ] == 0xFF )
     return NULL;
   while( ( dm_shared_fname[ j ++ ] = pbase[ off ++ ] ) != '\0' );
   pent->fname = dm_shared_fname;

@@ -133,8 +133,8 @@ def mkfs( dirname, outname, flist, mode, compcmd ):
     # Report
     print "Encoded file %s (%d bytes real size, %d bytes after rounding, %d bytes total)" % ( fname, len( filedata ), actual, _fcnt )
     
-  # All done, write the final "0" (terminator)
-  _add_data( 0, outfile, False )
+  # All done, write the final "0xFF" (terminator)
+  _add_data( 0xFF, outfile, False )
   outfile.write( "};\n\n#endif\n" );
   outfile.close()
   print "Done, total size is %d bytes" % _bytecnt
