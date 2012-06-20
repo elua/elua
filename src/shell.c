@@ -153,6 +153,8 @@ static void shell_recv( char* args )
   // we've received an argument, try saving it to a file
   if( strcmp( args, "") != 0 )
   {
+    if( strchr( args, ' ' ) )
+      *strchr( args, ' ' ) = '\0';
     FILE *foutput = fopen( args, "w" );
     size_t file_sz = p - shell_prog;
     if( foutput == NULL )
@@ -273,11 +275,10 @@ static void shell_cat( char *args )
 #endif
 static void shell_cp( char *args )
 {
-  char *p1, *p2;
-  int res = 0;
+  char *p1 = NULL, *p2 = NULL;
   FILE *fps = NULL, *fpd = NULL;
   void *buf = NULL;
-  size_t datalen, total = 0;
+  size_t datalen, datawrote, total = 0;
 
   if( *args )
   {
@@ -307,20 +308,24 @@ static void shell_cp( char *args )
               while( 1 )
               {
                 datalen = fread( buf, 1, SHELL_COPY_BUFSIZE, fps );
-                fwrite( buf, 1, datalen, fpd );
+                datawrote = fwrite( buf, 1, datalen, fpd );
+                if( datawrote < datalen )
+                {
+                  printf( "Copy error (no space left on target?)\n" );
+                  break;
+                }
                 total += datalen;
                 if( datalen < SHELL_COPY_BUFSIZE )
                   break;
               }
               printf( "%u bytes copied\n", ( unsigned int )total );
-              res = 1;
             }
           }
         } 
       }
     }
   }
-  if( !res )
+  if( !p1 || !p2 )
     printf( "Syntax error.\n" );
   if( fps )
     fclose( fps );
