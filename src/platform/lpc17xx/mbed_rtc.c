@@ -53,7 +53,7 @@ void platform_rtc_setalarm( int day, int month, int year, int hour, int min, int
 {
   // RTC OFF
 //  LPC_RTC->CCR = 0;
-  NVIC_DisableIRQ(RTC_IRQn);
+//  NVIC_DisableIRQ(RTC_IRQn);
 
   // Set datetime
   LPC_RTC->ALYEAR = year;
@@ -70,7 +70,7 @@ void platform_rtc_setalarm( int day, int month, int year, int hour, int min, int
   // TMP - Enable alarm interrupt
   NVIC_ClearPendingIRQ(RTC_IRQn);
   NVIC_SetPriority(RTC_IRQn, ((0x01<<3)|0x01)); // <- important!
-  NVIC_EnableIRQ(RTC_IRQn);
+//  NVIC_EnableIRQ(RTC_IRQn);
 
   //Clear interrupt flags for both clock and alarms.
   LPC_RTC->ILR |= (1<<0)|(1<<1);
@@ -217,6 +217,7 @@ static int mbed_rtc_setalarm( lua_State *L )
 static int mbed_rtc_alarmed( lua_State *L )
 {
   lua_pushboolean( L, (LPC_RTC->ILR & 2) >> 1 ); 
+  LPC_RTC->ILR |= 2; // Clear alarm flag
   return 1;
 }
 
