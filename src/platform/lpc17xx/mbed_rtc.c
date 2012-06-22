@@ -19,7 +19,7 @@ static const char *mbed_datetime_names[] = { "day", "month", "year", "hour", "mi
 
 // C LIB
 
-void platform_rtc_getdatetime( int* day, int* month, int* year, int* hour, int* min, int* sec  )
+void platform_rtc_get( int* day, int* month, int* year, int* hour, int* min, int* sec  )
 {
   *year = LPC_RTC->YEAR;
   *month = LPC_RTC->MONTH;
@@ -30,7 +30,7 @@ void platform_rtc_getdatetime( int* day, int* month, int* year, int* hour, int* 
   *sec = LPC_RTC->SEC;
 }
 
-void platform_rtc_setdatetime( int day, int month, int year, int hour, int min, int sec )
+void platform_rtc_set( int day, int month, int year, int hour, int min, int sec )
 {
   // RTC OFF
 //  LPC_RTC->CCR = 2; // Reset
@@ -49,7 +49,7 @@ void platform_rtc_setdatetime( int day, int month, int year, int hour, int min, 
   LPC_RTC->CCR = 1 | 1<<4; // Clock enabled, calibration disabled
 }
 
-void platform_rtc_setalarmdatetime( int day, int month, int year, int hour, int min, int sec )
+void platform_rtc_setalarm( int day, int month, int year, int hour, int min, int sec )
 {
   // RTC OFF
 //  LPC_RTC->CCR = 0;
@@ -83,10 +83,10 @@ void platform_rtc_setalarmdatetime( int day, int month, int year, int hour, int 
 
 // LUA Lib
 
-// Lua: mbed.rtc.settime( arg )
+// Lua: mbed.rtc.set( arg )
 // arg can be a string formated as dd/mm/yyyy hh:mm:ss
 // or a table with 'day', 'month', 'year', 'hour', 'minute' and 'second' fields
-static int mbed_rtc_setdatetime( lua_State *L )
+static int mbed_rtc_set( lua_State *L )
 {
   const char *data;
   int dd = -1, mon = -1, yy = -1, hh = -1, mm = -1, ss = -1;
@@ -127,15 +127,15 @@ static int mbed_rtc_setdatetime( lua_State *L )
   if( yy < 0 || yy > 9999 )
     return luaL_error( L, "invalid year" );    
 
-  platform_rtc_setdatetime( dd, mon, yy, hh, mm, ss );
+  platform_rtc_set( dd, mon, yy, hh, mm, ss );
 
   return 0;
 }
 
-// Lua: time = mbed.rtc.getdatetime( format )
+// Lua: time = mbed.rtc.get( format )
 // format can be '*s' to return the datetime as a string dd/mm/yyyy hh:mm:ss
 // or '*t' to return the time as a table with fields 'day', 'month', 'year', 'hour', 'minute' and 'second'
-static int mbed_rtc_getdatetime( lua_State *L )
+static int mbed_rtc_get( lua_State *L )
 {
   int dd = -1, mon = -1, yy = -1, hh = -1, mm = -1, ss = -1;
   int *pvals[] = { &dd, &mon, &yy, &hh, &mm, &ss };
@@ -143,7 +143,7 @@ static int mbed_rtc_getdatetime( lua_State *L )
   char buff[ 20 ];
   unsigned i;
   
-  platform_rtc_getdatetime( &dd, &mon, &yy, &hh, &mm, &ss );
+  platform_rtc_get( &dd, &mon, &yy, &hh, &mm, &ss );
 
   if( !strcmp( fmt, "*s" ) )
   {
@@ -168,7 +168,7 @@ static int mbed_rtc_getdatetime( lua_State *L )
 // Lua: mbed.rtc.setalarmdate( arg )
 // arg can be a string formated as dd/mm/yyyy hh:mm:ss
 // or a table with 'day', 'month', 'year', 'hour', 'minute' and 'second' fields
-static int mbed_rtc_setalarmdatetime( lua_State *L )
+static int mbed_rtc_setalarm( lua_State *L )
 {
   const char *data;
   int dd = -1, mon = -1, yy = -1, hh = -1, mm = -1, ss = -1;
@@ -209,14 +209,14 @@ static int mbed_rtc_setalarmdatetime( lua_State *L )
   if( yy < 0 || yy > 9999 )
     return luaL_error( L, "invalid year" );    
 
-  platform_rtc_setalarmdatetime( dd, mon, yy, hh, mm, ss ); 
+  platform_rtc_setalarm( dd, mon, yy, hh, mm, ss ); 
 
   return 0;
 }
 
 static int mbed_rtc_alarmed( lua_State *L )
 {
-  lua_pushinteger( L, (LPC_RTC->ILR & 2) >> 1 ); 
+  lua_pushboolean( L, (LPC_RTC->ILR & 2) >> 1 ); 
   return 1;
 }
 
@@ -225,9 +225,9 @@ static int mbed_rtc_alarmed( lua_State *L )
 #include "lrodefs.h" 
 const LUA_REG_TYPE mbed_rtc_map[] =
 {
-  { LSTRKEY( "setdatetime" ),  LFUNCVAL( mbed_rtc_setdatetime ) },
-  { LSTRKEY( "getdatetime" ),  LFUNCVAL( mbed_rtc_getdatetime ) },
-  { LSTRKEY( "setalarm" ),  LFUNCVAL( mbed_rtc_setalarmdatetime ) },
+  { LSTRKEY( "set" ),  LFUNCVAL( mbed_rtc_set ) },
+  { LSTRKEY( "get" ),  LFUNCVAL( mbed_rtc_get ) },
+  { LSTRKEY( "setalarm" ),  LFUNCVAL( mbed_rtc_setalarm ) },
   { LSTRKEY( "alarmed" ),  LFUNCVAL( mbed_rtc_alarmed ) },
   { LNILKEY, LNILVAL }
 };
