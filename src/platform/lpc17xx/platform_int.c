@@ -36,7 +36,8 @@ static int int_rtc_alarm_set_status( elua_int_resnum resnum, int status )
   if (status == PLATFORM_CPU_ENABLE)
   {
     // Enable alarm interrupt
-    NVIC_EnableIRQ( RTC_IRQn );
+    NVIC_ClearPendingIRQ(RTC_IRQn);
+    NVIC_EnableIRQ(RTC_IRQn);
 
     // Clear interrupt flag
     LPC_RTC->ILR = 2;
@@ -44,7 +45,7 @@ static int int_rtc_alarm_set_status( elua_int_resnum resnum, int status )
   else
   {
     // Enable alarm interrupt
-    NVIC_DisableIRQ( RTC_IRQn );
+    NVIC_DisableIRQ(RTC_IRQn);
   }
   
   return prev;

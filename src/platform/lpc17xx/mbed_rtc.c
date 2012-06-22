@@ -19,7 +19,7 @@ static const char *mbed_datetime_names[] = { "day", "month", "year", "hour", "mi
 
 // C LIB
 
-static void platform_rtc_getdatetime( int* day, int* month, int* year, int* hour, int* min, int* sec  )
+void platform_rtc_getdatetime( int* day, int* month, int* year, int* hour, int* min, int* sec  )
 {
   *year = LPC_RTC->YEAR;
   *month = LPC_RTC->MONTH;
@@ -30,9 +30,10 @@ static void platform_rtc_getdatetime( int* day, int* month, int* year, int* hour
   *sec = LPC_RTC->SEC;
 }
 
-static void platform_rtc_setdatetime( int day, int month, int year, int hour, int min, int sec )
+void platform_rtc_setdatetime( int day, int month, int year, int hour, int min, int sec )
 {
   // RTC OFF
+//  LPC_RTC->CCR = 2; // Reset
   LPC_RTC->CCR = 0;
 
   // Set datetime
@@ -48,8 +49,12 @@ static void platform_rtc_setdatetime( int day, int month, int year, int hour, in
   LPC_RTC->CCR = 1 | 1<<4; // Clock enabled, calibration disabled
 }
 
-static void platform_rtc_setalarmdatetime( int day, int month, int year, int hour, int min, int sec )
+void platform_rtc_setalarmdatetime( int day, int month, int year, int hour, int min, int sec )
 {
+  // RTC OFF
+//  LPC_RTC->CCR = 0;
+  NVIC_DisableIRQ(RTC_IRQn);
+
   // Set datetime
   LPC_RTC->ALYEAR = year;
   LPC_RTC->ALMON = month;
@@ -59,13 +64,19 @@ static void platform_rtc_setalarmdatetime( int day, int month, int year, int hou
   LPC_RTC->ALMIN = min;
   LPC_RTC->ALSEC = sec;
 
-  LPC_RTC->AMR = 0;
-
+  // Set mask ( Ignore DOY and DOW )
+  LPC_RTC->AMR = 1<<4 | 1<<5;
+  
   // TMP - Enable alarm interrupt
-  NVIC_EnableIRQ( RTC_IRQn);
+  NVIC_ClearPendingIRQ(RTC_IRQn);
+  NVIC_SetPriority(RTC_IRQn, ((0x01<<3)|0x01)); // <- important!
+  NVIC_EnableIRQ(RTC_IRQn);
 
-  // Clear interrupt flag
-  LPC_RTC->ILR = 2;
+  //Clear interrupt flags for both clock and alarms.
+  LPC_RTC->ILR |= (1<<0)|(1<<1);
+
+  // RTC ON, Calibration OFF
+//  LPC_RTC->CCR = 1 | 1<<4; // Clock enabled, calibration disabled
 }
 
 // ****************************************************************************
@@ -203,6 +214,12 @@ static int mbed_rtc_setalarmdatetime( lua_State *L )
   return 0;
 }
 
+static int mbed_rtc_alarmed( lua_State *L )
+{
+  lua_pushinteger( L, (LPC_RTC->ILR & 2) >> 1 ); 
+  return 1;
+}
+
 // Module function map
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h" 
@@ -211,6 +228,7 @@ const LUA_REG_TYPE mbed_rtc_map[] =
   { LSTRKEY( "setdatetime" ),  LFUNCVAL( mbed_rtc_setdatetime ) },
   { LSTRKEY( "getdatetime" ),  LFUNCVAL( mbed_rtc_getdatetime ) },
   { LSTRKEY( "setalarm" ),  LFUNCVAL( mbed_rtc_setalarmdatetime ) },
+  { LSTRKEY( "alarmed" ),  LFUNCVAL( mbed_rtc_alarmed ) },
   { LNILKEY, LNILVAL }
 };
 
