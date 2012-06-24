@@ -93,6 +93,9 @@ int platform_init()
     /* Capture error */ 
     while (1);
   }
+
+  // Flash initialization (for WOFS)
+  FLASH_Unlock();
   
   cmn_platform_init();
 
@@ -1276,6 +1279,33 @@ int platform_adc_start_sequence( )
 }
 
 #endif // ifdef BUILD_ADC
+
+// ****************************************************************************
+// Flash access functions
+
+u32 platform_s_flash_write( const void *from, u32 toaddr, u32 size )
+{
+  u32 ssize = 0;
+  const u16 *psrc = ( const u16* )from;
+  FLASH_Status flstat;
+
+  while( ssize < size )
+  {
+    if( ( flstat = FLASH_ProgramHalfWord( toaddr, *psrc ++ ) ) != FLASH_COMPLETE )
+    {
+      printf( "ERROR in platform_s_flash_write: stat=%d at %08X\n", ( int )flstat, toaddr );
+      break;
+    }
+    toaddr += 2;
+    ssize += 2;
+  }
+  return ssize;
+}
+
+int platform_flash_erase_sector( u32 sector_id )
+{
+  return FLASH_ErasePage( sector_id * INTERNAL_FLASH_SECTOR_SIZE + INTERNAL_FLASH_START_ADDRESS ) == FLASH_COMPLETE ? PLATFORM_OK : PLATFORM_ERR;
+}
 
 // ****************************************************************************
 // Platform specific modules go here

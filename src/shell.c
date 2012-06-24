@@ -15,6 +15,9 @@
 #include "remotefs.h"
 #include "eluarpc.h"
 #include "linenoise.h"
+#include "term.h"
+#include "romfs.h"
+#include <ctype.h>
 
 #if defined( USE_GIT_REVISION )
 #include "git_version.h"
@@ -27,6 +30,7 @@
 
 // Shell alternate ' ' char
 #define SHELL_ALT_SPACE           '\x07'
+#define SHELL_MAX_ARGS            10
 
 // EOF is different in UART mode and TCP/IP mode
 #ifdef BUILD_CON_GENERIC
@@ -36,7 +40,7 @@
 #endif
 
 // Shell command handler function
-typedef void( *p_shell_handler )( char* args );
+typedef void( *p_shell_handler )( int argc, char **argv );
 
 // Command/handler pair structure
 typedef struct
@@ -52,80 +56,46 @@ static char* shell_prog;
 // Shell functions
 
 // 'help' handler
-static void shell_help( char* args )
+static void shell_help( int argc, char **argv )
 {
-  args = args;
+  ( void )argc;
+  ( void )argv;
   printf( "Shell commands:\n" );
   printf( "  exit        - exit from this shell\n" );
   printf( "  help        - print this help\n" );
   printf( "  ls or dir   - lists filesystems files and sizes\n" );
   printf( "  cat or type - lists file contents\n" );
   printf( "  lua [args]  - run Lua with the given arguments\n" );
-  printf( "  recv [path] - receive a file via XMODEM, if there is a path, save"
-          "                there, otherwise run it.");
+  printf( "  recv [path] - receive a file via XMODEM. If path is given save it there, otherwise run it.\n");
   printf( "  cp <src> <dst> - copy source file 'src' to 'dst'\n" );
+  printf( "  wofmt       - format the internal WOFS\n" );
   printf( "  ver         - print eLua version\n" );
 }
 
 // 'lua' handler
-static void shell_lua( char* args )
+static void shell_lua( int argc, char **argv )
 {
-  int nargs = 0;
-  char* lua_argv[ SHELL_MAX_LUA_ARGS + 2 ];
-  char *p, *prev, *temp;
-
-  lua_argv[ 0 ] = "lua";
-  // Process "args" if needed
-  if( *args )
-  {
-    prev = args;
-    p = strchr( args, ' ' );
-    while( p )
-    {
-      if( nargs == SHELL_MAX_LUA_ARGS )
-      {
-        printf( "Too many arguments to 'lua' (maxim %d)\n", SHELL_MAX_LUA_ARGS );
-        return;
-      }
-      *p = 0;
-      lua_argv[ nargs + 1 ] = temp = prev;
-      nargs ++;
-      prev = p + 1;
-      p = strchr( p + 1, ' ' );
-      // If the argument is quoted, remove the quotes and transform the 'alternate chars' back to space
-      if( *temp == '\'' || *temp == '"' )
-      {
-        temp ++;
-        lua_argv[ nargs ] = temp;
-        while( *temp )
-        {
-          if( *temp == SHELL_ALT_SPACE )
-            *temp = ' ';
-          temp ++;
-        }
-        *( temp - 1 ) = '\0';
-      }
-    }
-  }
-  lua_argv[ nargs + 1 ] = NULL;
   printf( "Press " SHELL_EOF_STRING " to exit Lua\n" );
-  lua_main( nargs + 1, lua_argv );
+  lua_main( argc, argv );
   clearerr( stdin );
 }
 
 // 'recv' handler
-static void shell_recv( char* args )
+static void shell_recv( int argc, char **argv )
 {
-  args = args;
-
 #ifndef BUILD_XMODEM
   printf( "XMODEM support not compiled, unable to recv\n" );
-  return;
 #else // #ifndef BUILD_XMODEM
 
   char *p;
   long actsize;
   lua_State* L;
+
+  if( argc > 2 )
+  {
+    printf( "Usage: recv [path]\n" );
+    return;
+  }
 
   if( ( shell_prog = malloc( XMODEM_INITIAL_BUFFER_SIZE ) ) == NULL )
   {
@@ -151,23 +121,21 @@ static void shell_recv( char* args )
   printf( "done, got %u bytes\n", ( unsigned )( p - shell_prog ) );          
   
   // we've received an argument, try saving it to a file
-  if( strcmp( args, "") != 0 )
+  if( argc == 2 )
   {
-    if( strchr( args, ' ' ) )
-      *strchr( args, ' ' ) = '\0';
-    FILE *foutput = fopen( args, "w" );
+    FILE *foutput = fopen( argv[ 1 ], "w" );
     size_t file_sz = p - shell_prog;
     if( foutput == NULL )
     {
-      printf( "unable to open file %s\n", args);
+      printf( "unable to open file %s\n", argv[ 1 ] );
       free( shell_prog );
       shell_prog = NULL;
       return;
     }
     if( fwrite( shell_prog, sizeof( char ), file_sz, foutput ) == file_sz )
-      printf( "received and saved as %s\n", args );
+      printf( "received and saved as %s\n", argv[ 1 ] );
     else
-      printf( "disk full, unable to save file %s\n", args );
+      printf( "unable to save file %s (no space left on target?)\n", argv[ 1 ] );
     fclose( foutput );
   }
   else // no arg, running the file with lua.
@@ -193,15 +161,16 @@ static void shell_recv( char* args )
 }
 
 // 'ver' handler
-static void shell_ver( char* args )
+static void shell_ver( int argc, char **argv )
 {
-  args = args;
+  ( void )argc;
+  ( void )argv;
   printf( "eLua version %s\n", ELUA_STR_VERSION );
   printf( "For more information visit www.eluaproject.net and wiki.eluaproject.net\n" );
 }
 
 // 'ls' and 'dir' handler
-static void shell_ls( char* args )
+static void shell_ls( int argc, char **argv )
 {
   const DM_INSTANCE_DATA *pinst;
   unsigned dev, i;
@@ -209,6 +178,8 @@ static void shell_ls( char* args )
   struct dm_dirent *ent;
   u32 total;
 
+  ( void )argc;
+  ( void )argv;
   // Iterate through all devices, looking for the ones that can do "opendir"
   for( dev = 0; dev < dm_get_num_devices(); dev ++ )
   {  
@@ -236,35 +207,32 @@ static void shell_ls( char* args )
 }
 
 // 'cat' and 'type' handler
-static void shell_cat( char *args )
+static void shell_cat( int argc, char **argv )
 {
   FILE *fp;
   int c;
-  char *p;
+  unsigned i;
 
-// *args has an appended space. Replace it with the string terminator.
-//  *(strchr( args, ' ' )) = 0;
-  if ( *args )
-    while ( *args ) 
+  if( argc < 2 )
+  {
+    printf( "Usage: cat (or type) <filename1> [<filename2> ...]\n" );
+    return;
+  }
+  for( i = 1; i < argc; i ++ )
+  {
+    if( ( fp = fopen( argv[ i ] , "rb" ) ) != NULL )
     {
-      p = strchr( args, ' ' );
-      *p = 0;
-      if( ( fp = fopen( args , "rb" ) ) != NULL )
+      c = fgetc( fp );
+      while( c != EOF )
       {
+        printf("%c", (char) c );
         c = fgetc( fp );
-        while( c != EOF ) 
-        {
-          printf("%c", (char) c );  
-          c = fgetc( fp );
-        }
-        fclose ( fp );
       }
-      else
-        printf( "File %s not found\n", args );
-      args = p + 1;
-    }      
-  else
-      printf( "Usage: cat (or type) <filename1> [<filename2> ...]\n" );
+      fclose ( fp );
+    }
+    else
+      printf( "Unable to open '%s'\n", argv[ i ] );
+  }
 }    
 
 // 'copy' handler
@@ -273,66 +241,86 @@ static void shell_cat( char *args )
 #else
 #define SHELL_COPY_BUFSIZE    256
 #endif
-static void shell_cp( char *args )
+static void shell_cp( int argc, char **argv )
 {
-  char *p1 = NULL, *p2 = NULL;
   FILE *fps = NULL, *fpd = NULL;
   void *buf = NULL;
   size_t datalen, datawrote, total = 0;
 
-  if( *args )
+  if( argc != 3 )
   {
-    p1 = strchr( args, ' ' );
-    if( p1 )
+    printf( "Usage: cp <source> <destination>\n" );
+    return;
+  }
+  if( ( fps = fopen( argv[ 1 ], "rb" ) ) == NULL )
+    printf( "Unable to open %s for reading\n", argv[ 1 ] );
+  else
+  {
+    if( ( fpd = fopen( argv[ 2 ], "wb" ) ) == NULL )
+      printf( "Unable to open %s for writing\n", argv[ 2 ] );
+    else
     {
-      *p1 = 0;
-      p2 = strchr( p1 + 1, ' ' );
-      if( p2 )
+      // Alloc memory
+      if( ( buf = malloc( SHELL_COPY_BUFSIZE ) ) == NULL )
+        printf( "Not enough memory\n" );
+      else
       {
-        *p2 = 0;
-        // First file is at args, second one at p1 + 1
-        if( ( fps = fopen( args, "rb" ) ) == NULL )
-          printf( "Unable to open %s for reading\n", args );
-        else
+        // Do the actual copy
+        while( 1 )
         {
-          if( ( fpd = fopen( p1 + 1, "wb" ) ) == NULL )
-            printf( "Unable to open %s for writing\n", p1 + 1 );
-          else
+          datalen = fread( buf, 1, SHELL_COPY_BUFSIZE, fps );
+          datawrote = fwrite( buf, 1, datalen, fpd );
+          if( datawrote < datalen )
           {
-            // Alloc memory
-            if( ( buf = malloc( SHELL_COPY_BUFSIZE ) ) == NULL )
-              printf( "Not enough memory\n" );
-            else
-            {
-              // Do the actual copy
-              while( 1 )
-              {
-                datalen = fread( buf, 1, SHELL_COPY_BUFSIZE, fps );
-                datawrote = fwrite( buf, 1, datalen, fpd );
-                if( datawrote < datalen )
-                {
-                  printf( "Copy error (no space left on target?)\n" );
-                  break;
-                }
-                total += datalen;
-                if( datalen < SHELL_COPY_BUFSIZE )
-                  break;
-              }
-              printf( "%u bytes copied\n", ( unsigned int )total );
-            }
+            printf( "Copy error (no space left on target?)\n" );
+            break;
           }
-        } 
+          total += datalen;
+          if( datalen < SHELL_COPY_BUFSIZE )
+            break;
+        }
+        fflush( fpd );
+        printf( "%u bytes copied\n", ( unsigned int )total );
       }
     }
   }
-  if( !p1 || !p2 )
-    printf( "Syntax error.\n" );
   if( fps )
     fclose( fps );
   if( fpd )
     fclose( fpd );
   if( buf )
     free( buf );
+}
+
+// 'wofmt' handler
+static void shell_wofmt( int argc, char **argv )
+{
+#ifndef BUILD_WOFS
+  printf( "WOFS not enabled.\n" );
+#else // #ifndef BUILD_WOFS
+  int c;
+
+  printf( "Formatting the internal WOFS will DESTROY ALL THE FILES FROM WOFS.\n" );
+  while( 1 )
+  {
+    printf( "Are you sure you want to continue? [y/n] " );
+    c = term_getch( TERM_INPUT_WAIT );
+    printf( "%c\n", isprint( c ) ? c : ' ' );
+    c = tolower( c );
+    if( c == 'n' )
+      return;
+    else if( c == 'y' )
+      break;
+  }
+  printf( "Formatting ... " );
+  if( !wofs_format() )
+  {
+    printf( "\ni*** ERROR ***: unable to erase the internal flash. WOFS might be compromised.\n" );
+    printf( "It is advised to re-flash the eLua image.\n" );
+  }
+  else
+    printf( " done.\n" );
+#endif // #ifndef BUILD_WOFS
 }
 
 // Insert shell commands here
@@ -348,6 +336,7 @@ static const SHELL_COMMAND shell_commands[] =
   { "cat", shell_cat },
   { "type", shell_cat },
   { "cp", shell_cp },
+  { "wofmt", shell_wofmt },
   { NULL, NULL }
 };
 
@@ -359,11 +348,13 @@ void shell_start()
   const SHELL_COMMAND* pcmd;
   int i, inside_quotes;
   char quote_char;
+  int argc;
+  char *argv[ SHELL_MAX_ARGS ];
 
   printf( SHELL_WELCOMEMSG, ELUA_STR_VERSION );
   while( 1 )
   {
-    while( linenoise_getline( LINENOISE_ID_SHELL, cmd, SHELL_MAXSIZE, SHELL_PROMPT ) == -1 )
+    while( linenoise_getline( LINENOISE_ID_SHELL, cmd, SHELL_MAXSIZE - 1, SHELL_PROMPT ) == -1 )
     {
       printf( "\n" );
       clearerr( stdin );
@@ -374,11 +365,11 @@ void shell_start()
     if( cmd[ strlen( cmd ) - 1 ] != '\n' )
       strcat( cmd, "\n" );
 
-    // Change '\r' and '\n' chars to ' ' to ease processing
+    // Change '\r', '\n' and '\t' chars to ' ' to ease processing
     p = cmd;
     while( *p )
     {
-      if( *p == '\r' || *p == '\n' )
+      if( *p == '\r' || *p == '\n' || *p == '\t' )
         *p = ' ';
       p ++;
     }
@@ -421,19 +412,57 @@ void shell_start()
         memmove( temp, temp + 1, strlen( temp ) );
       p = strchr( p + 1, ' ' );
     }
-    if( strlen( cmd ) == 1 )
+    if( !strcmp( cmd, " " ) )
       continue;
 
-    // Look for the first ' ' to separate the command from its args
-    temp = cmd;
-    if( *temp == ' ' )
-      temp ++;
-    if( ( p = strchr( temp, ' ' ) ) == NULL )
+    // Skip over the initial space char if it exists
+    p = cmd;
+    if( *p == ' ' )
+      p ++;
+
+    // Add a final space if it does not exist
+    if( p[ strlen( p ) - 1 ] != ' ' )
+      strcat( p, " " );
+
+    // Compute argc/argv
+    for( argc = 0; argc < SHELL_MAX_ARGS; argc ++ )
+      argv[ argc ] = NULL;
+    argc = 0;
+    while( ( temp = strchr( p, ' ' ) ) != NULL )
     {
-      printf( SHELL_ERRMSG );
-      continue;
+      *temp = 0;
+      if( argc == SHELL_MAX_ARGS )
+      {
+        printf( "Error: too many arguments\n" );
+        argc = -1;
+        break;
+      }
+      argv[ argc ++ ] = p;
+      p = temp + 1;
     }
-    *p = 0;
+
+    if( argc == -1 )
+      continue;
+
+    // Additional argument processing happens here
+    for( i = 0; i < argc; i ++ )
+    {
+      p = argv[ i ];
+      // Put back spaces if needed
+      for( inside_quotes = 0; inside_quotes < strlen( argv[ i ] ); inside_quotes ++ )
+      {
+        if( p[ inside_quotes ] == SHELL_ALT_SPACE )
+          argv[ i ][ inside_quotes ] = ' ';
+      }
+      // Remove quotes
+      if( ( p[ 0 ] == '\'' || p [ 0 ] == '"' ) && ( p[ 0 ] == p[ strlen( p ) - 1 ] ) )
+      {
+        argv[ i ] = p + 1;
+        p[ strlen( p ) - 1 ] = '\0';
+      }
+    }
+
+    // Match user command with shell's commands
     i = 0;
     while( 1 )
     {
@@ -443,11 +472,11 @@ void shell_start()
         printf( SHELL_ERRMSG );
         break;
       }
-      if( !strcasecmp( pcmd->cmd, temp ) )
+      if( !strcasecmp( pcmd->cmd, argv[ 0 ] ) )
       {
         // Special case: the "exit" command has a NULL handler
         if( pcmd->handler_func )
-          pcmd->handler_func( p + 1 );
+          pcmd->handler_func( argc, argv );
         break;
       }
       i ++;

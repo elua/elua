@@ -315,7 +315,16 @@ u32 platform_eth_get_elapsed_time();
 void platform_usb_cdc_send( u8 data );
 int platform_usb_cdc_recv( s32 timeout );
 
+// *****************************************************************************
+// Internal flash erase/write functions
+// Currently used by WOFS
 
+u32 platform_flash_get_first_free_block_address( u32 *psect );
+u32 platform_flash_get_sector_of_address( u32 addr );
+u32 platform_flash_write( const void *from, u32 toaddr, u32 size );
+u32 platform_s_flash_write( const void *from, u32 toaddr, u32 size );
+u32 platform_flash_get_num_sectors();
+int platform_flash_erase_sector( u32 sector_id );
 
 // *****************************************************************************
 // Allocator support

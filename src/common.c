@@ -441,6 +441,125 @@ void cmn_int_handler( elua_int_id id, elua_int_resnum resnum )
 #endif // #ifdef BUILD_INT_HANDLERS
 
 // ****************************************************************************
+// Internal flash support functions (currently used only by WOFS)
+
+#ifdef BUILD_WOFS
+
+// This symbol must be exported by the linker command file and must reflect the
+// TOTAL size of flash used by the eLua image (not only the code and constants,
+// but also .data and whatever else ends up in the eLua image). WOFS will start
+// at the next usable (aligned to a flash sector boundary) address after 
+// flash_used_size.
+extern char flash_used_size[];
+
+// Helper function: find the flash sector in which an address resides
+// Return the sector number, as well as the start and end address of the sector
+static u32 flashh_find_sector( u32 address, u32 *pstart, u32 *pend )
+{
+  address -= INTERNAL_FLASH_START_ADDRESS;
+#ifdef INTERNAL_FLASH_SECTOR_SIZE
+  // All the sectors in the flash have the same size, so just align the address
+  u32 sect_id = address / INTERNAL_FLASH_SECTOR_SIZE;
+
+  if( pstart )
+    *pstart = sect_id * INTERNAL_FLASH_SECTOR_SIZE + INTERNAL_FLASH_START_ADDRESS;
+  if( pend )
+    *pend = ( sect_id + 1 ) * INTERNAL_FLASH_SECTOR_SIZE + INTERNAL_FLASH_START_ADDRESS - 1;
+  return sect_id;
+#else // #ifdef INTERNAL_FLASH_SECTOR_SIZE
+  // The flash has blocks of different size
+  // Their size is decribed in the INTERNAL_FLASH_SECTOR_ARRAY macro
+  const u16 flash_sect_size[] = INTERNAL_FLASH_SECTOR_ARRAY;
+  u32 total = 0, i = 0;
+
+  while( ( total <= address ) && ( i < sizeof( flash_sect_size ) / sizeof( u16 ) ) )
+    total += flash_sect_size[ i ++ ];
+  if( pstart )
+    *pstart = ( total - flash_sect_size[ i - 1 ] ) + INTERNAL_FLASH_START_ADDRESS;
+  if( pend )
+    *pend = total + INTERNAL_FLASH_START_ADDRESS - 1;
+  return i - 1;
+#endif // #ifdef INTERNAL_FLASH_SECTOR_SIZE
+}
+
+u32 platform_flash_get_sector_of_address( u32 addr )
+{
+  return flashh_find_sector( addr, NULL, NULL );
+}
+
+u32 platform_flash_get_num_sectors()
+{
+#ifdef INTERNAL_FLASH_SECTOR_SIZE
+  return INTERNAL_FLASH_SIZE / INTERNAL_FLASH_SECTOR_SIZE;
+#else // #ifdef INTERNAL_FLASH_SECTOR_SIZE
+  const u16 flash_sect_size[] = INTERNAL_FLASH_SECTOR_ARRAY;
+
+  return sizeof( flash_sect_size ) / sizeof( u16 );
+#endif // #ifdef INTERNAL_FLASH_SECTOR_SIZE
+}
+
+u32 platform_flash_get_first_free_block_address( u32 *psect )
+{
+  // Round the total used flash size to the closest flash block address
+  u32 temp, sect;
+
+  sect = flashh_find_sector( ( u32 )flash_used_size + INTERNAL_FLASH_START_ADDRESS - 1, NULL, &temp );
+  if( psect )
+    *psect = sect + 1;
+  return temp + 1;
+}
+
+u32 platform_flash_write( const void *from, u32 toaddr, u32 size )
+{
+#ifndef INTERNAL_FLASH_WRITE_BLK_SIZE
+  return platform_s_flash_write( from, toaddr, size );
+#else // #ifindef INTERNAL_FLASH_WRITE_BLK_SIZE
+  u32 temp, rest, ssize = size;
+  unsigned i;
+  char tmpdata[ INTERNAL_FLASH_WRITE_BLK_SIZE ];
+  const u8 *pfrom = ( const u8* )from;
+  const u32 blksize = INTERNAL_FLASH_WRITE_BLK_SIZE;
+  const u32 blkmask = INTERNAL_FLASH_WRITE_BLK_SIZE - 1;
+
+  // Align the start
+  if( toaddr & blkmask )
+  {
+    rest = toaddr & blkmask;
+    temp = toaddr & ~blkmask; // this is the actual aligned address
+    memcpy( tmpdata, ( const void* )temp, blksize );
+    for( i = rest; size && ( i < blksize ); i ++, size --, pfrom ++ )
+      tmpdata[ i ] = *pfrom;
+    platform_s_flash_write( tmpdata, temp, blksize );
+    if( size == 0 )
+      return ssize;
+    toaddr = temp + blksize;
+  }
+  // The start address is now a multiple of blksize
+  // Compute how many bytes we can write as multiples of blksize
+  rest = size & blkmask;
+  temp = size & ~blkmask;
+  // Program the blocks now
+  if( temp )
+  {
+    platform_s_flash_write( pfrom, toaddr, temp );
+    toaddr += temp;
+    pfrom += temp;
+  }
+  // And the final part of a block if needed
+  if( rest )
+  {
+    memcpy( tmpdata, ( const void* )toaddr, blksize );
+    for( i = 0; size && ( i < rest ); i ++, size --, pfrom ++ )
+      tmpdata[ i ] = *pfrom;
+    platform_s_flash_write( tmpdata, toaddr, blksize );
+  }
+  return ssize;
+#endif // #ifndef INTERNAL_FLASH_WRITE_BLK_SIZE
+}
+
+#endif // #ifdef BUILD_WOFS
+
+// ****************************************************************************
 // Misc support
 
 unsigned int intlog2( unsigned int v )

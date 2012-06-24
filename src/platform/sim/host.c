@@ -7,6 +7,7 @@
 #define __NR_open             5
 #define __NR_close            6
 #define __NR_gettimeofday     78
+#define __NR_lseek            19
 
 int host_errno = 0;
 
@@ -70,4 +71,5 @@ _syscall6(void *,mmap2, void *,addr, size_t, length, int, prot, int, flags, int,
 _syscall1(void, exit, int, status);
 _syscall1(int, close, int, status);
 _syscall2(int, gettimeofday, struct timeval*, tv, struct timezone*, tz);
+_syscall3(long, lseek, int, fd, long, offset, int, whence );
 

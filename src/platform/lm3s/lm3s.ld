@@ -38,7 +38,7 @@ SECTIONS
         . = ALIGN(4);
         _edata = .;
     } >sram
-		
+
 		.ARM.extab :
 		{
 		    *(.ARM.extab*)
@@ -51,6 +51,8 @@ SECTIONS
 		} >sram
 		__exidx_end = .;
 		
+    PROVIDE( flash_used_size = SIZEOF(.text) + SIZEOF(.data) + SIZEOF(.ARM.extab) + SIZEOF(.ARM.exidx) );
+
     .bss (NOLOAD) : {
         _bss = .;
         *(.bss .bss.*)

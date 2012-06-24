@@ -32,6 +32,9 @@ int hostif_write( int fd, const void *buf, unsigned count );
 // Close
 int hostif_close( int fd );
 
+// Seek
+long hostif_lseek( int fd, long pos, int whence );
+
 // Get time
 s64 hostif_gettime();
 

@@ -51,6 +51,8 @@ SECTIONS
 		    *(.ARM.exidx*)
 		} >sram
 		__exidx_end = .;
+
+    PROVIDE( flash_used_size = SIZEOF(.text) + SIZEOF(.data) + SIZEOF(.ARM.extab) + SIZEOF(.ARM.exidx) );
 		
     .bss (NOLOAD) : {
 		. = ALIGN(4);

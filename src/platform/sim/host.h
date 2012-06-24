@@ -13,6 +13,7 @@ ssize_t host_read( int fd, void * buf, size_t count );
 ssize_t host_write( int fd, const void * buf, size_t count );
 int host_open( const char *name, int flags, mode_t mode );
 int host_close( int fd );
+long host_lseek( int fd, long pos, int whence );
 
 #define PROT_READ 0x1   /* Page can be read.  */
 #define PROT_WRITE  0x2   /* Page can be written.  */

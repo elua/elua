@@ -65,6 +65,11 @@ int hostif_close( int fd )
   return host_close( fd );
 }
 
+long hostif_lseek( int fd, long pos, int whence )
+{
+  return host_lseek( fd, pos, whence );
+}
+
 s64 hostif_gettime()
 {
   struct timeval tv;

@@ -117,21 +117,20 @@ def mkfs( dirname, outname, flist, mode, compcmd ):
     size_lh = ( len( filedata ) >> 8 ) & 0xFF
     size_hl = ( len( filedata ) >> 16 ) & 0xFF
     size_hh = ( len( filedata ) >> 24 ) & 0xFF
+     # Round to a multiple of 4
+    while _bytecnt & ( alignment - 1 ) != 0:
+      _add_data( 0, outfile )
+    # Write size
     _add_data( size_ll, outfile )
     _add_data( size_lh, outfile )
     _add_data( size_hl, outfile )
     _add_data( size_hh, outfile )
-    # Round to a multiple of 4
-    actual = len( filedata )
-    while _bytecnt & ( alignment - 1 ) != 0:
-      _add_data( 0, outfile )
-      actual = actual + 1
     # Then write the rest of the file
     for c in filedata:
       _add_data( ord( c ), outfile )
     
     # Report
-    print "Encoded file %s (%d bytes real size, %d bytes after rounding, %d bytes total)" % ( fname, len( filedata ), actual, _fcnt )
+    print "Encoded file %s (%d bytes real size, %d bytes encoded size)" % ( fname, len( filedata ), _fcnt )
     
   # All done, write the final "0xFF" (terminator)
   _add_data( 0xFF, outfile, False )
