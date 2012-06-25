@@ -188,6 +188,12 @@ static int romfs_open_r( struct _reent *r, const char *path, int flags, int mode
     r->_errno = EACCES;
     return -1;
   }
+  if( ( lflags & ( ROMFS_FILE_FLAG_WRITE | ROMFS_FILE_FLAG_APPEND ) ) && romfs_fs_is_flag_set( pfsdata, ROMFS_FS_FLAG_WRITING ) )
+  {
+    // At most one file can be opened in write mode at any given time on WOFS
+    r->_errno = EROFS;
+    return -1;
+  }
   // Do we need to create the file ?
   if( must_create )
   {
@@ -215,6 +221,8 @@ static int romfs_open_r( struct _reent *r, const char *path, int flags, int mode
     firstfree += ROMFS_SIZE_LEN + WOFS_DEL_FIELD_SIZE; // skip over the size and the deleted flags area
     tempfs.baseaddr = firstfree;
     tempfs.offset = tempfs.size = 0;
+    // Set the "writing" flag on the FS to indicate that there is a file opened in write mode
+    romfs_fs_set_flag( pfsdata, ROMFS_FS_FLAG_WRITING );
   }
   else // File must exist (and was found in the previous 'romfs_open_file' call)
   {
@@ -246,6 +254,9 @@ static int romfs_close_r( struct _reent *r, int fd, void *pdata )
     temp[ 2 ] = ( pfd->size >> 16 ) & 0xFF;
     temp[ 3 ] = ( pfd->size >> 24 ) & 0xFF;
     pfsdata->writef( temp, pfd->baseaddr - ROMFS_SIZE_LEN, ROMFS_SIZE_LEN, pfsdata );
+    // Clear the "writing" flag on the FS instance to allow other files to be opened
+    // in write mode
+    romfs_fs_clear_flag( pfsdata, ROMFS_FS_FLAG_WRITING );
   }
   romfs_close_fd( fd );
   romfs_num_fd --;
@@ -443,7 +454,8 @@ static u32 sim_wofs_write( const void *from, u32 toaddr, u32 size, const void *p
   return hostif_write( wofs_sim_fd, from, size );
 }
 
-static const FSDATA wofs_sim_fsdata =
+// This must NOT be a const!
+static FSDATA wofs_sim_fsdata =
 {
   NULL,
   ROMFS_FS_FLAG_WO,

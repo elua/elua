@@ -63,6 +63,7 @@ typedef struct
 // Filesystem flags
 #define ROMFS_FS_FLAG_DIRECT      0x01    // direct mode (the file is mapped in a memory area directly accesible by the CPU)
 #define ROMFS_FS_FLAG_WO          0x02    // this FS is actually a WO (Write-Once) FS
+#define ROMFS_FS_FLAG_WRITING     0x04    // for WO only: there is already a file opened in write mode
 
 // File system descriptor
 typedef struct
@@ -73,6 +74,10 @@ typedef struct
   p_fs_write writef;              // pointer to write function (only for ROMFS_FS_FLAG_WO)
   u32 max_size;                   // maximum size of the FS (in bytes)
 } FSDATA;
+
+#define romfs_fs_set_flag( p, f )     p->flags |= ( f )
+#define romfs_fs_clear_flag( p, f )   p->flags &= ( u8 )~( f )
+#define romfs_fs_is_flag_set( p, f )  ( ( p->flags & ( f ) ) != 0 )
 
 // FS functions
 int romfs_init();
