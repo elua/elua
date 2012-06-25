@@ -511,15 +511,15 @@ u32 platform_flash_get_first_free_block_address( u32 *psect )
 
 u32 platform_flash_write( const void *from, u32 toaddr, u32 size )
 {
-#ifndef INTERNAL_FLASH_WRITE_BLK_SIZE
+#ifndef INTERNAL_FLASH_WRITE_UNIT_SIZE
   return platform_s_flash_write( from, toaddr, size );
-#else // #ifindef INTERNAL_FLASH_WRITE_BLK_SIZE
+#else // #ifindef INTERNAL_FLASH_WRITE_UNIT_SIZE
   u32 temp, rest, ssize = size;
   unsigned i;
-  char tmpdata[ INTERNAL_FLASH_WRITE_BLK_SIZE ];
+  char tmpdata[ INTERNAL_FLASH_WRITE_UNIT_SIZE ];
   const u8 *pfrom = ( const u8* )from;
-  const u32 blksize = INTERNAL_FLASH_WRITE_BLK_SIZE;
-  const u32 blkmask = INTERNAL_FLASH_WRITE_BLK_SIZE - 1;
+  const u32 blksize = INTERNAL_FLASH_WRITE_UNIT_SIZE;
+  const u32 blkmask = INTERNAL_FLASH_WRITE_UNIT_SIZE - 1;
 
   // Align the start
   if( toaddr & blkmask )
@@ -554,7 +554,7 @@ u32 platform_flash_write( const void *from, u32 toaddr, u32 size )
     platform_s_flash_write( tmpdata, toaddr, blksize );
   }
   return ssize;
-#endif // #ifndef INTERNAL_FLASH_WRITE_BLK_SIZE
+#endif // #ifndef INTERNAL_FLASH_WRITE_UNIT_SIZE
 }
 
 #endif // #ifdef BUILD_WOFS
