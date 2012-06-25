@@ -1,0 +1,177 @@
+// $$HEADER$$
+eLua write once file system
+---------------------------
+*(v0.9 and above)* The WOFS (Write Once File System) is a read-write file system designed
+to use the MCU's internal flash as storage. It has an important limitation: a file can be 
+written only once, in a single shot (although there is a mechanism to "overwrite" a file
+that has already been written, see below for details). After the file is written, it is 
+not possible to append more data to it or modify its current data. While this limitation 
+might seem prohibitive, WOFS can have quite a few practical uses, including:
+
+- receiving files and saving them in the internal flash using the *recv* command in the 
+  link:using.html#shell[eLua shell].
+- copying a file from another file system in the internal flash using the *cp* command in 
+  the link:using.html#shell[eLua shell].
+- save the history of the code you typed in the interactive Lua shell if 
+  link:linenoise.html[linenoise] is enabled.
+- data logging. Generally a data logger always appends to its log file, just like WOFS.
+
+Also, WOFS can be completely reinitialized to a "blank" (empty) state using the *wofmt*
+command in the link:using.html#shell[eLua shell].
+
+WOFS has a number of important advantages over a "real" read-write file system:
+
+- very low footprint. WOFS is implemented as a simple extension to the 
+  link:arch_romfs.html[ROM file system], using an internal file system representation which
+  is very similar to the one ROMFS uses. In fact, both file systems are implement in
+  _src/romfs.c_.
+- it is flash-friendly. The WOFS internal file system structure is completely linear, thus
+  flash sectors are written in natural order from the first free sector to the last sector
+  in flash. This eliminates the need for a flash wear leveling layer.
+- it keeps data in the internal flash and each file occupies a single contiguous block
+  of memory. Since the internal flash is directly accesible by the MCU, this important
+  property allows Lua bytecode files in WOFS to take advantage of some eLua memory 
+  optimizations (for example the read-only strings and executing bytecode directly from flash)
+- it needs very little RAM. In a fully blown read-write
+  file system, a flash sector would be split into logical "blocks" used by the files in the
+  filesystem. If the sector must be erased, but some blocks inside it still contain useful
+  information, the file system implementation would need to copy the block content in RAM,
+  erase the sector and write back the useful information in flash from RAM. As some eLua
+  targets have flash sectors which are quite large, this operation might fail due to
+  insufficient RAM, most likely leaving the file system in an inconsistent state.
+
+Also, the WOFS implementation can logically overwrite a file. For example, you can issue this
+command multiple times:
+
+----------------
+$ recv /wo/f.lua
+----------------
+
+After each execution of the *recv* command, there will be a single _/wo/f.lua_ file, updated
+with the latest data received by *recv*. However, the previous "versions" of _/wo/f.lua_
+are not actually deleted. Instead, a "file deleted" flag is set on these previous versions,
+effectively making them invisible to the rest of the system. They are still physically
+in flash though, so they occupy memory just like a regular file. 
+
+Enabling WOFS in eLua
+~~~~~~~~~~~~~~~~~~~~~
+In order to enable WOFS, you need to tell the implementation how much flash the eLua image uses.
+This information can be made available at compile time by exporting a linker command 
+file constant named *flash_used_size*. The value of this constant must reflect the 
+total size in flash of the eLua image, including the code, constants, data section
+and possibly other sections. For an example of how to define this constant, check
+_lm3s.ld_ in _src/platfrom/lm3s_.
+
+Another thing that you need to specify is the internal flash structure. The flash memory is divided
+into contigous areas called _sectors_ (a _sector_ is the smallest erasable unit in a flash memory). 
+The sector organization can vary greatly amongst various MCUs, but eLua provides a generic
+mechanism to describe the flash structure:
+
+- if the flash is divided into equally sized sectors, define the *INTERNAL_FLASH_SECTOR_SIZE*
+  macro to the size of one flash sector.
+- if the flash sectors have different sizes, define the *INTERNAL_FLASH_SECTOR_ARRAY* macro
+  as an array that contains the size of each flash sector in turn.
+
+Check your MCU datasheet to find which of the above variants you need to use.
+
+Other macros that you need to define are given in the table below:
+
+[width="90%", cols="<2s,<5", options="header"]
+|===================================================================
+^|  Option                        ^| Meaning                                    
+| INTERNAL_FLASH_SIZE              | The size of the internal flash memory, in bytes
+| INTERNAL_FLASH_START_ADDRESS     | The start address of the internal flash memory in the MCU address space
+| INTERNAL_FLASH_WRITE_UNIT_SIZE   | The unit size of the Flash write access routine (see below).
+|===================================================================
+
+Finally, your platform implementation needs to define two functions for accessing the
+internal flash. The first one is a flash write function, called by WOFS to actually write
+data in flash. Its signature is in _inc/platform.h_:
+
+---------------------------------------------------------------------
+u32 platform_s_flash_write( const void *from, u32 toaddr, u32 size );
+---------------------------------------------------------------------
+
+Depending on your platform, the flash write hardware may have different requirements.
+Some MCUs only allow writing the flash in multiples of a power of 2 (usually 4), at
+an address which is a multiple of a power of 2, or both. If this is the case for your
+MCU (check the datasheet), define *INTERNAL_FLASH_WRITE_UNIT_SIZE* to the required
+alignment. This way, you can be certain that your _platform_s_flash_write_ function 
+will be called only with a destination address (_toaddr_) that is a multiple of 
+*INTERNAL_FLASH_WRITE_UNIT_SIZE* and with a size (_size_) that is also a multiple of
+*INTERNAL_FLASH_WRITE_UNIT_SIZE*.
+
+The second flash-related function is used to erase pages from flash (used only when "formatting" 
+the WOFS image via *wofmt*, as already explained). Its signature is also in _inc/platform.h_:
+
+-------------------------------------------------
+int platform_flash_erase_sector( u32 sector_id );
+-------------------------------------------------
+
+Check this link TODO for more details about the flash platform interface.
+If all the above requirements are met, just define *BUILD_WOFS* in your _platform_conf.h_ file, compile
+and burn your eLua image and you'll have a WOFS instance up and running. Check link:building.html[here]
+for more details about the configuration of your eLua image.
+
+Using WOFS
+~~~~~~~~~~
+IMPORTANT: the examples in this section are written in Lua, but the exact same observations apply for 
+C code that needs to work with files in WOFS.
+
+The WOFS is mounted under _/wo_, so in order to open a file from WOFS simply
+prefix its name with _/wo/_, as in the example below :
+
+--------------------------------
+f = io.open( "/wo/f.lua", "wb" )
+--------------------------------
+
+Don't forget the fundamental limitation of WOFS: once you open a file in
+write mode, you need to write the _whole_ content of a file before calling *f:close()*.
+After you close the file, you won't be able to open it in write mode anymore. Also,
+if the file is opened in write mode, you'll only be able to write data _at the end_
+of the file. You can still use _f:seek_ to read data from any location in the file,
+but if you try to write when the file pointer is not positioned at the end of the file
+you'll get an error. You can use the append mode to automate this process. If a file
+is opened in append mode, its file pointer is automatically positioned at the end
+of the file before each write operation. To open a file in append mode, simply use
+*a* instead of *w* when opening the file:
+
+--------------------------------
+f = io.open( "/wo/f.lua", "ab" )
+--------------------------------
+
+The last things that you need to remember: *always close your WOFS file descriptor
+when you're done with it*. This is extremely important. If the file is opened in 
+read mode, forgetting to close its file descriptor will just leak some memory, which
+is a non-fatal error. However, if the file is opened in write mode (this includes
+append mode) and you foget to close its file descriptor, the file size will not be
+correctly registered in the WOFS internal structure, which will lead to a corrupted
+file system. So remember to do this:
+
+---------
+f:close()
+---------
+
+This isn't actually such a big problem with Lua, since a file is automatically closed 
+when the file's userdata is garbage collected, but becomes very important
+when using WOFS in C code. 
+
+Notes
+~~~~~
+Some things you should consider when using the WOFS:
+
+- WOFS shares the same memory that is used to hold the eLua firmware. Although WOFS shouldn't touch the eLua firmware,
+  various bugs in the code might render eLua unusable. In this case, simply reflash eLua and everything should be fine.
+- there is currently no way to find how much free space exists on WOFS. If you write data to WOFS, always compare the
+  length of the data being written with the length reported by the _write_ function (the actual number of bytes written).
+  If they are different, this most likely means that there is not enough data left on the internal Flash.
+- while in theory it is possible to _sometimes_ keep the WOFS contents after reflashing the eLua firmware, this is a
+  manual, error prone procedure that will not be described here. Better keep in mind that after reflashing the eLua firmware 
+  your WOFS will also be initialized (empty). So remember to save all the important files in WOFS before reflashing 
+  the firmware.
+- WOFS is *not* a robust file system. If a power failure happens when a WOFS file is opened in write mode, a file system 
+  corruption is almost a certainty. The same holds true in the case of a serious error in the eLua code that triggers
+  a non-recoverable CPU exception, or if you simply hit the RESET button on the eLua board by mistake. As a general rule, 
+  do not use WOFS to store important data.
+
+// $$FOOTER$$

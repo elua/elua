@@ -139,7 +139,8 @@ local menu =
         {
           { { "Read-Only FS in MCU Flash", "O ROM File System em Flash" }, "arch_romfs.html" },
           { "R/W FAT FS in SD/MMC Cards", "fatfs.html" },
-          { "Remote file system (RFS)", "arch_rfs.html" }
+          { "Remote file system (RFS)", "arch_rfs.html" },
+          { "Write once file system (WOFS)", "arch_wofs.html" },
         }
       },
       { "eLua interrupt handlers", "inthandlers.html",
