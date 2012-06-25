@@ -443,7 +443,7 @@ void cmn_int_handler( elua_int_id id, elua_int_resnum resnum )
 // ****************************************************************************
 // Internal flash support functions (currently used only by WOFS)
 
-#ifdef BUILD_WOFS
+#if defined( BUILD_WOFS ) && !defined( ELUA_CPU_LINUX )
 
 // This symbol must be exported by the linker command file and must reflect the
 // TOTAL size of flash used by the eLua image (not only the code and constants,

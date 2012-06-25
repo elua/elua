@@ -451,12 +451,26 @@ static const FSDATA wofs_sim_fsdata =
   sim_wofs_write,
   WOFS_SIZE
 };
+
+// WOFS formatting function
+// Returns 1 if OK, 0 for error
+int wofs_format()
+{
+  unsigned i;
+
+  hostif_lseek( wofs_sim_fd, 0, SEEK_SET );
+  u8 temp = WOFS_END_MARKER_CHAR;
+  for( i = 0; i < WOFS_SIZE; i ++ )
+    hostif_write( wofs_sim_fd, &temp, 1 );
+  return 1;
+}
+
 #endif // #ifdef ELUA_CPU_LINUX
 
 // ****************************************************************************
 // WOFS functions and instance descriptor for real hardware
 
-#if defined( BUILD_WOFS )
+#if defined( BUILD_WOFS ) && !defined( ELUA_CPU_LINUX )
 static u32 sim_wofs_write( const void *from, u32 toaddr, u32 size, const void *pdata )
 {
   const FSDATA *pfsdata = ( const FSDATA* )pdata;
@@ -520,7 +534,7 @@ int romfs_init()
   }
   dm_register( "/wo", ( void* )&wofs_sim_fsdata, &romfs_device );
 #endif // #if defined( ELUA_CPU_LINUX ) && defined( BUILD_WOFS )
-#ifdef BUILD_WOFS
+#if defined( BUILD_WOFS ) && !defined( ELUA_CPU_LINUX )
   // Get the start address and size of WOFS and register it
   wofs_fsdata.pbase = ( u8* )platform_flash_get_first_free_block_address( NULL );
   wofs_fsdata.max_size = INTERNAL_FLASH_SIZE - ( ( u32 )wofs_fsdata.pbase - INTERNAL_FLASH_START_ADDRESS );
