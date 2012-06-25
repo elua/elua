@@ -280,8 +280,10 @@ static _ssize_t romfs_write_r( struct _reent *r, int fd, const void* ptr, size_t
   if( pfd->offset != pfd->size )
     return 0;
   // Check if we have enough space left on the device. Always keep 1 byte for the final 0xFF
-  if( pfd->baseaddr + pfd->size + len > pfsdata->max_size - 1 )
-    len = pfsdata->max_size - ( pfd->baseaddr + pfd->size ) - 1;
+  // and ROMFS_ALIGN - 1 bytes for aligning the contents of the file data in the worst case
+  // scenario (so ROMFS_ALIGN bytes in total)
+  if( pfd->baseaddr + pfd->size + len > pfsdata->max_size - ROMFS_ALIGN )
+    len = pfsdata->max_size - ( pfd->baseaddr + pfd->size ) - ROMFS_ALIGN;
   pfsdata->writef( ptr, pfd->offset + pfd->baseaddr, len, pfsdata );
   pfd->offset += len;
   pfd->size += len;
