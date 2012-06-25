@@ -1283,6 +1283,7 @@ int platform_adc_start_sequence( )
 // ****************************************************************************
 // Flash access functions
 
+#ifdef BUILD_WOFS
 u32 platform_s_flash_write( const void *from, u32 toaddr, u32 size )
 {
   u32 ssize = 0;
@@ -1293,7 +1294,7 @@ u32 platform_s_flash_write( const void *from, u32 toaddr, u32 size )
   {
     if( ( flstat = FLASH_ProgramHalfWord( toaddr, *psrc ++ ) ) != FLASH_COMPLETE )
     {
-      printf( "ERROR in platform_s_flash_write: stat=%d at %08X\n", ( int )flstat, toaddr );
+      printf( "ERROR in platform_s_flash_write: stat=%d at %08X\n", ( int )flstat, ( unsigned )toaddr );
       break;
     }
     toaddr += 2;
@@ -1306,6 +1307,8 @@ int platform_flash_erase_sector( u32 sector_id )
 {
   return FLASH_ErasePage( sector_id * INTERNAL_FLASH_SECTOR_SIZE + INTERNAL_FLASH_START_ADDRESS ) == FLASH_COMPLETE ? PLATFORM_OK : PLATFORM_ERR;
 }
+
+#endif // #ifdef BUILD_WOFS
 
 // ****************************************************************************
 // Platform specific modules go here

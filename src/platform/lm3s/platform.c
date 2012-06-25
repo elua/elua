@@ -1313,6 +1313,7 @@ ControlHandler(void *pvCBData, unsigned long ulEvent, unsigned long ulMsgValue,
 // ****************************************************************************
 // Flash access functions
 
+#ifdef BUILD_WOFS
 u32 platform_s_flash_write( const void *from, u32 toaddr, u32 size )
 {
   return MAP_FlashProgram( ( unsigned long * )from, toaddr, size );
@@ -1322,6 +1323,7 @@ int platform_flash_erase_sector( u32 sector_id )
 {
   return FlashErase( sector_id * INTERNAL_FLASH_SECTOR_SIZE ) == 0 ? PLATFORM_OK : PLATFORM_ERR;
 }
+#endif // #ifdef BUILD_WOFS
 
 // ****************************************************************************
 // Platform specific modules go here
