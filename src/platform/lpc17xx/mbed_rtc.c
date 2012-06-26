@@ -19,6 +19,8 @@ static const uint16_t mbed_datetime_max[] = { 31,   12,      9999,   24,     60,
 static const uint16_t mbed_datetime_min[] = { 1,    1,       0,      0,      0,     0};
 static const void * mbed_datetime_regs[] = { &(LPC_RTC->DOM), &(LPC_RTC->MONTH), &(LPC_RTC->YEAR), 
                                              &(LPC_RTC->HOUR), &(LPC_RTC->MIN), &(LPC_RTC->SEC)}; 
+static const void * mbed_datetime_alregs[] = { &(LPC_RTC->ALDOM), &(LPC_RTC->ALMON), &(LPC_RTC->ALYEAR), 
+                                             &(LPC_RTC->ALHOUR), &(LPC_RTC->ALMIN), &(LPC_RTC->ALSEC)}; 
 
 // ****************************************************************************
 
@@ -38,7 +40,6 @@ void platform_rtc_get( int* day, int* month, int* year, int* hour, int* min, int
 void platform_rtc_set( int day, int month, int year, int hour, int min, int sec )
 {
   // RTC OFF
-//  LPC_RTC->CCR = 2; // Reset
   LPC_RTC->CCR = 0;
 
   // Set datetime
@@ -56,10 +57,6 @@ void platform_rtc_set( int day, int month, int year, int hour, int min, int sec 
 
 void platform_rtc_setalarm( int day, int month, int year, int hour, int min, int sec )
 {
-  // RTC OFF
-//  LPC_RTC->CCR = 0;
-//  NVIC_DisableIRQ(RTC_IRQn);
-
   // Set datetime
   LPC_RTC->ALYEAR = year;
   LPC_RTC->ALMON = month;
@@ -71,17 +68,6 @@ void platform_rtc_setalarm( int day, int month, int year, int hour, int min, int
 
   // Set mask ( Ignore DOY and DOW )
   LPC_RTC->AMR = 1<<4 | 1<<5;
-  
-  // TMP - Enable alarm interrupt
-  NVIC_ClearPendingIRQ(RTC_IRQn);
-  NVIC_SetPriority(RTC_IRQn, ((0x01<<3)|0x01)); // <- important!
-//  NVIC_EnableIRQ(RTC_IRQn);
-
-  //Clear interrupt flags for both clock and alarms.
-  LPC_RTC->ILR |= (1<<0)|(1<<1);
-
-  // RTC ON, Calibration OFF
-//  LPC_RTC->CCR = 1 | 1<<4; // Clock enabled, calibration disabled
 }
 
 // ****************************************************************************
@@ -137,6 +123,9 @@ static int mbed_rtc_set( lua_State *L )
         return luaL_error( L, error );
       }
 
+  // RTC OFF
+  LPC_RTC->CCR = 0;
+
   // Copy the values to the registers
   for( i = 0; i < 6; i ++ )
     if ( update & 1<<i )
@@ -146,6 +135,9 @@ static int mbed_rtc_set( lua_State *L )
       else
         *((uint8_t *)mbed_datetime_regs[i]) = vals[i];
     }
+
+  // RTC ON, Calibration OFF
+  LPC_RTC->CCR = 1 | 1<<4; // Clock enabled, calibration disabled
 
   return 0;
 }
@@ -189,46 +181,62 @@ static int mbed_rtc_get( lua_State *L )
 static int mbed_rtc_setalarm( lua_State *L )
 {
   const char *data;
-  int dd = -1, mon = -1, yy = -1, hh = -1, mm = -1, ss = -1;
-  int *pvals[] = { &dd, &mon, &yy, &hh, &mm, &ss };
+  int vals[6] = {-1, -1, -1, -1, -1, -1}; 
   unsigned i;
   int sz;
+  char error[20] = "invalid "; // Error message
+  uint8_t update = 0;          // Each bit flags a reg for update
 
   // If we receive a string, split the time using sscanf
   if( lua_isstring( L, 1 ) )
   {
-    data = luaL_checkstring( L, 1 );      
-    if( sscanf( data, "%d/%d/%d %d:%d:%d%n", &dd, &mon, &yy, &hh, &mm, &ss, &sz ) != 6 || sz != strlen( data ) )
+    data = luaL_checkstring( L, 1 );
+
+    if( sscanf( data, "%d/%d/%d %d:%d:%d%n", &vals[0], &vals[1], &vals[2], &vals[3], &vals[4], &vals[5], &sz ) != 6 || sz != strlen( data ) )
       return luaL_error( L, "invalid datetime format" );
+
+    update = 0x3F;
   }
   else // If we receive a table, get the values by their name
   {
+    // Read all values
     luaL_checktype( L, 1, LUA_TTABLE );
     for( i = 0; i < 6; i ++ )
     {
-      lua_pushstring( L, mbed_datetime_names[ i ] );
-      lua_gettable( L, -2 );
-      *pvals[ i ] = luaL_checkinteger( L, -1 );
-      lua_pop( L, 1 ); 
+      lua_getfield( L, 1, mbed_datetime_names[i] );
+
+      if ( lua_type( L, -1 ) == LUA_TNUMBER )
+      {
+        vals[i] = luaL_checkinteger( L, -1 );
+        update |= 1<<i;
+      }
+
+      lua_pop( L, 1 );
     }
   }
 
-  // Check if the time is valid
-  if( hh < 0 || hh >= 24 )
-    return luaL_error( L, "invalid hour" );
-  if( mm < 0 || mm >= 60 )
-    return luaL_error( L, "invalid minute" );
-  if( ss < 0 || ss >= 60 )
-    return luaL_error( L, "invalid second" );
-  if( dd < 1 || dd > 31 )
-    return luaL_error( L, "invalid day" );
-  if( mon < 1 || mon > 12 )
-    return luaL_error( L, "invalid month" );
-  if( yy < 0 || yy > 9999 )
-    return luaL_error( L, "invalid year" );    
+  // Check all values first ( avoid partial update in case of errors )
+  for( i = 0; i < 6; i ++ )
+    if ( update & 1<<i )
+      if ( vals[i] < mbed_datetime_min[i] || vals[i] > mbed_datetime_max[i] )
+      {
+        strcat( error, mbed_datetime_names[i] );
+        return luaL_error( L, error );
+      }
 
-  platform_rtc_setalarm( dd, mon, yy, hh, mm, ss ); 
+  // Copy the values to the registers
+  for( i = 0; i < 6; i ++ )
+    if ( update & 1<<i )
+    {
+      if (i == 2) // Year is the only 16bit val
+        *((uint16_t *)mbed_datetime_alregs[i]) = vals[i];
+      else
+        *((uint8_t *)mbed_datetime_alregs[i]) = vals[i];
+    }
 
+  // Set mask ( Ignore DOY and DOW )
+  LPC_RTC->AMR = 1<<4 | 1<<5;
+  
   return 0;
 }
 

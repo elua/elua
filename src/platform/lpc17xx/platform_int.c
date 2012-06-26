@@ -38,6 +38,7 @@ static int int_rtc_alarm_set_status( elua_int_resnum resnum, int status )
     // Enable alarm interrupt
     NVIC_ClearPendingIRQ(RTC_IRQn);
     NVIC_EnableIRQ(RTC_IRQn);
+    NVIC_SetPriority(RTC_IRQn, ((0x01<<3)|0x01)); // <- important!
 
     // Clear interrupt flag
     LPC_RTC->ILR = 2;
