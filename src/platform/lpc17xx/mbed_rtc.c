@@ -10,6 +10,8 @@
 #include "LPC17xx.h"
 #include "mbed_rtc.h"
 #include <time.h>
+#include <math.h>
+#include <stdlib.h>
 
 // ****************************************************************************
 // Helpers and local variables
@@ -149,18 +151,45 @@ static int mbed_rtc_get( lua_State *L )
 {
   int dd = -1, mon = -1, yy = -1, hh = -1, mm = -1, ss = -1;
   int *pvals[] = { &dd, &mon, &yy, &hh, &mm, &ss };
-  const char *fmt = luaL_checkstring( L, 1 );
-  char buff[ 20 ];
+  const char *fmt; 
   unsigned i;
+  char buff[ 51 ];
+  struct tm t;
+  char m_days[] = {31,28,31,30,31,30,31,31,30,31,30,31};
 
   platform_rtc_get( &dd, &mon, &yy, &hh, &mm, &ss );
 
-  if( !strcmp( fmt, "*s" ) )
+  t.tm_yday = 0;
+  for (i=0; i<mon-1; i++)
+    t.tm_yday += m_days[i];
+
+  if (( yy % 4 == 0 ) && (mon > 2))
+    t.tm_yday ++;
+
+  t.tm_yday += dd;
+  
+  t.tm_sec = ss;
+  t.tm_min = mm;
+  t.tm_hour = hh;
+  t.tm_mday = dd;
+  t.tm_mon = mon -1;
+  t.tm_year = yy -1900;
+  t.tm_isdst = 0;
+
+  // From wikipedia:
+  t.tm_wday = (dd+=mon<3?yy--:yy-2,23*mon/9+dd+4+yy/4-yy/100+yy/400)%7;
+
+
+  if ( lua_isstring( L, 1 ))
+      fmt = luaL_checkstring( L, 1 );
+  else // No parameter
   {
-    sprintf( buff, "%02d/%02d/%04d %02d:%02d:%02d", dd, mon, yy, hh, mm, ss );
+    strftime( buff, 50, "%c", &t );
     lua_pushstring( L, buff );
+    return 1;
   }
-  else if( !strcmp( fmt, "*t" ) )
+
+  if ( strcmp( fmt, "*t" ) == 0 )
   {
     lua_newtable( L );
     for( i = 0; i < 6; i ++ )
@@ -171,7 +200,11 @@ static int mbed_rtc_get( lua_State *L )
     }
   }
   else
-    return luaL_error( L, "invalid format" );
+  {
+    strftime( buff, 50, fmt, &t );
+    lua_pushstring( L, buff );
+  }
+
   return 1;
 }
 
