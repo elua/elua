@@ -284,6 +284,22 @@ code{font-size:14px;}
     padding: 20px 25px 20px 20px;
 }
 
+.warning {
+    font-weight: bold;
+    color: white;
+    background: red;
+    margin: 1px;
+    padding: 2px;
+}
+
+.note {
+    font-weight: bold;
+    color: white;
+    background: blue;
+    margin: 1px;
+    padding: 2px;
+}
+
 #interna_2 #article .section_conteudo{width:auto;float:left;margin:10px 10px 0px 0;padding:10px;text-align:normal;}
 #interna_2 #article .section_size{width:700px;}
 #interna_2 #article .section_conteudo h1{font-size:25px;font-family:'fonte_chamada', Helvetica, Arial, sans-serif;text-align:bold;margin-bottom:10px;}
