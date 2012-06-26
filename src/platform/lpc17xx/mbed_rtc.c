@@ -9,11 +9,16 @@
 #include "auxmods.h"
 #include "LPC17xx.h"
 #include "mbed_rtc.h"
+#include <time.h>
 
 // ****************************************************************************
 // Helpers and local variables
 
 static const char *mbed_datetime_names[] = { "day", "month", "year", "hour", "min", "sec" };
+static const uint16_t mbed_datetime_max[] = { 31,   12,      9999,   24,     60,    60};
+static const uint16_t mbed_datetime_min[] = { 1,    1,       0,      0,      0,     0};
+static const void * mbed_datetime_regs[] = { &(LPC_RTC->DOM), &(LPC_RTC->MONTH), &(LPC_RTC->YEAR), 
+                                             &(LPC_RTC->HOUR), &(LPC_RTC->MIN), &(LPC_RTC->SEC)}; 
 
 // ****************************************************************************
 
@@ -89,45 +94,48 @@ void platform_rtc_setalarm( int day, int month, int year, int hour, int min, int
 static int mbed_rtc_set( lua_State *L )
 {
   const char *data;
-  int dd = -1, mon = -1, yy = -1, hh = -1, mm = -1, ss = -1;
-  int *pvals[] = { &dd, &mon, &yy, &hh, &mm, &ss };
+  int vals[6] = {-1, -1, -1, -1, -1, -1}; 
   unsigned i;
   int sz;
+  char error[20] = "invalid ";
 
   // If we receive a string, split the time using sscanf
   if( lua_isstring( L, 1 ) )
   {
-    data = luaL_checkstring( L, 1 );      
-    if( sscanf( data, "%d/%d/%d %d:%d:%d%n", &dd, &mon, &yy, &hh, &mm, &ss, &sz ) != 6 || sz != strlen( data ) )
+    data = luaL_checkstring( L, 1 );
+
+    if( sscanf( data, "%d/%d/%d %d:%d:%d%n", &vals[0], &vals[1], &vals[2], &vals[3], &vals[4], &vals[5], &sz ) != 6 || sz != strlen( data ) )
       return luaL_error( L, "invalid datetime format" );
+
+    platform_rtc_set( vals[0], vals[1], vals[2], vals[3], vals[4], vals[5] );
   }
   else // If we receive a table, get the values by their name
   {
     luaL_checktype( L, 1, LUA_TTABLE );
     for( i = 0; i < 6; i ++ )
     {
-      lua_pushstring( L, mbed_datetime_names[ i ] );
-      lua_gettable( L, -2 );
-      *pvals[ i ] = luaL_checkinteger( L, -1 );
-      lua_pop( L, 1 ); 
+      lua_getfield( L, 1, mbed_datetime_names[i] );
+
+      if ( lua_type( L, -1 ) == LUA_TNUMBER )
+      {
+        vals[i] = luaL_checkinteger( L, -1 );
+
+        // Test the range and set the register
+        if (vals[i] < mbed_datetime_min[i] || vals[i] > mbed_datetime_max[i])
+        {
+          strcat(error, mbed_datetime_names[i]);
+          luaL_error( L, error );
+        }
+        else
+          if (i == 2) // Year is the only 16bit val
+            *((uint16_t *)mbed_datetime_regs[i]) = vals[i];
+          else
+            *((uint8_t *)mbed_datetime_regs[i]) = vals[i];
+      }
+
+      lua_pop( L, 1 );
     }
   }
-
-  // Check if the time is valid
-  if( hh < 0 || hh >= 24 )
-    return luaL_error( L, "invalid hour" );
-  if( mm < 0 || mm >= 60 )
-    return luaL_error( L, "invalid minute" );
-  if( ss < 0 || ss >= 60 )
-    return luaL_error( L, "invalid second" );
-  if( dd < 1 || dd > 31 )
-    return luaL_error( L, "invalid day" );
-  if( mon < 1 || mon > 12 )
-    return luaL_error( L, "invalid month" );
-  if( yy < 0 || yy > 9999 )
-    return luaL_error( L, "invalid year" );    
-
-  platform_rtc_set( dd, mon, yy, hh, mm, ss );
 
   return 0;
 }
@@ -221,6 +229,27 @@ static int mbed_rtc_alarmed( lua_State *L )
   return 1;
 }
 
+static int mbed_rtc_strftime( lua_State *L )
+{
+  char out[51];
+  struct tm t;
+  t.tm_sec = 1;
+  t.tm_min = 2;
+  t.tm_hour = 3;
+  t.tm_mday = 1;
+  t.tm_mon = 1;
+  t.tm_year = 2000 - 1900;
+  t.tm_wday = 6;
+  t.tm_yday = 0;
+  t.tm_isdst = 0;
+
+  strftime( out, 50, "%c", &t );
+
+  lua_pushstring( L, out );
+
+  return 1;
+}
+
 // Module function map
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h" 
@@ -230,6 +259,7 @@ const LUA_REG_TYPE mbed_rtc_map[] =
   { LSTRKEY( "get" ),  LFUNCVAL( mbed_rtc_get ) },
   { LSTRKEY( "setalarm" ),  LFUNCVAL( mbed_rtc_setalarm ) },
   { LSTRKEY( "alarmed" ),  LFUNCVAL( mbed_rtc_alarmed ) },
+  { LSTRKEY( "strftime" ),  LFUNCVAL( mbed_rtc_strftime ) },
   { LNILKEY, LNILVAL }
 };
 
