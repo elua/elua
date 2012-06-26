@@ -193,6 +193,7 @@ local board_list =
   [ 'MBED' ]            = { 'LPC1768' },
   [ 'MIZAR32' ]         = { 'AT32UC3A0256', 'AT32UC3A0512', 'AT32UC3A0128' },
   [ 'NETDUINO' ]        = { 'AT91SAM7X512' },
+  [ 'EK-LM3S9D92' ]     = { 'LM3S9D92' }
 }
 
 -- Build the CPU list starting from the above list

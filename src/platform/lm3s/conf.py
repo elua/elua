@@ -33,7 +33,7 @@ if comp[ 'cpu' ] == 'LM3S9B92' or comp[ 'cpu' ] == 'LM3S9D92':
 
 if comp[ 'board' ] == 'EK-LM3S9B92':
   ldscript = "lm3s-9b92.ld"
-elif comp[ 'board' ] == 'SOLDERCORE':
+elif comp[ 'board' ] == 'SOLDERCORE' or comp[ 'board' ] == 'EK-LM3S9D92':
   ldscript = "lm3s-9d92.ld"
 else:
   ldscript = "lm3s.ld"
