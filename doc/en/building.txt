@@ -21,8 +21,8 @@ Configuring components
 An eLua *component* is a feature that can be enabled to add functionality to eLua itself, without modifying its API. An example of 
 component configuration from _platform_conf.h_ is given below:
 
---------------------------------------------------------------------------------
-// *****************************************************************************
+----------------------------------------------------------------------
+// *******************************************************************
 // Define here what components you want for this platform
 
 #define BUILD_XMODEM
@@ -36,11 +36,11 @@ component configuration from _platform_conf.h_ is given below:
 #define BUILD_CON_GENERIC
 #define BUILD_ADC
 #define BUILD_RPC
---------------------------------------------------------------------------------
+----------------------------------------------------------------------
 
 The components that can be configured in eLua are:
 
-[width="100%", cols="<2,<9", options="header", style="asciidoc"]
+[width="99%", cols="<2,<9", options="header", style="asciidoc"]
 |===================================================================
 ^|Name             ^|Meaning                  
 o|BUILD_XMODEM      |Define this to build support for XMODEM receive. If
@@ -158,7 +158,13 @@ o|BUILD_SERMUX           |Enables support for the serial multiplexer, check link
   #define BUILD_SERMUX
 
 xref:static[Static configuration data dependencies]: *SERMUX_PHYS_ID, SERMUX_PHYS_SPEED, SERMUX_FLOW_TYPE, SERMUX_NUM_VUART, SERMUX_BUFFER_SIZES*
-  
+
+o|BUILD_WOFS              |Enables support for the write once file system, check link:arch_wofs.html[here] for details. To enable:
+
+  #define BUILD_WOFS
+
+xref:static[Static configuration data dependencies]: *INTERNAL_FLASH_SIZE, INTERNAL_FLASH_START_ADDRESS, INTERNAL_FLASH_SECTOR_SIZE, INTERNAL_FLASH_SECTOR_ARRAY, INTERNAL_FLASH_WRITE_UNIT_SIZE*
+ 
 |===================================================================
 
 [[confmodules]]
@@ -203,7 +209,7 @@ Static configuration data
 "Static configuration" refers to the compile-time configuration. Static configuration parameters are hard-coded in the firmware image and can't be changed 
 at run-time. The table below lists the static configuration parameters and their semantics.
 
-[width="100%", cols="<3,<10", options="header", style="asciidoc"]
+[width="99%", cols="<3,<10", options="header", style="asciidoc"]
 |===================================================================
 ^|Name             ^|Meaning                  
 o|CON_UART_ID +
@@ -288,7 +294,6 @@ If not specified it defaults to \'no flow control'.
 o|RFS_TIMEOUT         |RFS operations timeout (in microseconds). If during a RFS operation no data is received from the PC side for the
 specified timeout, the RFS operation terminates with error.                        
 
-o|BUILD_SERMUX         |Enable serial multiplexer support in eLua. 
 o|SERMUX_PHYS_ID       |The ID of the physical UART interface used by the serial multiplexer.
 o|SERMUX_PHYS_SPEED    |Communication speed of the multiplexer UART interface. 
 o|SERMUX_FLOW_TYPE     |Flow control type on the physical serial multiplexer interface, see link:arch_platform_uart.html#flow_control_type[here] for details. 
@@ -296,8 +301,13 @@ If not specified it defaults to \'no flow control'.
 o|SERMUX_NUM_VUART     |The number of virtual UART interfaces. This number can't be higher than 8. 
 o|SERMUX_BUFFER_SIZES  |An array of *SERMUX_NUM_VUART* integers that specify the buffer sizes for the virtual
 UART interfaces. Note that a virtual UART *MUST* have a buffer associated with it. The sizes are specified as
-*BUF_SIZE_xxx* constants defined in _inc/buf.h_                       
+*BUF_SIZE_xxx* constants defined in _inc/buf.h_
 
+o|INTERNAL_FLASH_SIZE  |The size of the internal MCU flash in bytes
+o|INTERNAL_FLASH_START_ADDRESS |The start address of the MCU flash memory in the MCU address space
+o|INTERNAL_FLASH_WRITE_UNIT_SIZE |The alignment/data size of the MCU's flash memory write function
+o|INTERNAL_FLASH_SECTOR_SIZE |The size of each sector in the internal flash (in bytes). If the sectors are different in size, use *INTERNAL_FLASH_SECTOR_ARRAY* (below).
+o|INTERNAL_FLASH_SECTOR_ARRAY |An array with the sizes of each sector in the internal flash (in bytes).
 
 |===================================================================
 

@@ -265,7 +265,7 @@ color:#03121c;
 
 pre {
     background: none repeat scroll 0 0 #EDEDEA;
-    border-left: 4px solid #566D82;
+/*   border-left: 4px solid #566D82;*/
     margin-bottom: 1.25em;
     padding: 8px 0 12px 20px;
     overflow: auto;
