@@ -97,7 +97,8 @@ static int mbed_rtc_set( lua_State *L )
   int vals[6] = {-1, -1, -1, -1, -1, -1}; 
   unsigned i;
   int sz;
-  char error[20] = "invalid ";
+  char error[20] = "invalid "; // Error message
+  uint8_t update = 0;          // Each bit flags a reg for update
 
   // If we receive a string, split the time using sscanf
   if( lua_isstring( L, 1 ) )
@@ -107,10 +108,11 @@ static int mbed_rtc_set( lua_State *L )
     if( sscanf( data, "%d/%d/%d %d:%d:%d%n", &vals[0], &vals[1], &vals[2], &vals[3], &vals[4], &vals[5], &sz ) != 6 || sz != strlen( data ) )
       return luaL_error( L, "invalid datetime format" );
 
-    platform_rtc_set( vals[0], vals[1], vals[2], vals[3], vals[4], vals[5] );
+    update = 0x3F;
   }
   else // If we receive a table, get the values by their name
   {
+    // Read all values
     luaL_checktype( L, 1, LUA_TTABLE );
     for( i = 0; i < 6; i ++ )
     {
@@ -119,23 +121,31 @@ static int mbed_rtc_set( lua_State *L )
       if ( lua_type( L, -1 ) == LUA_TNUMBER )
       {
         vals[i] = luaL_checkinteger( L, -1 );
-
-        // Test the range and set the register
-        if (vals[i] < mbed_datetime_min[i] || vals[i] > mbed_datetime_max[i])
-        {
-          strcat(error, mbed_datetime_names[i]);
-          luaL_error( L, error );
-        }
-        else
-          if (i == 2) // Year is the only 16bit val
-            *((uint16_t *)mbed_datetime_regs[i]) = vals[i];
-          else
-            *((uint8_t *)mbed_datetime_regs[i]) = vals[i];
+        update |= 1<<i;
       }
 
       lua_pop( L, 1 );
     }
   }
+
+  // Check all values first ( avoid partial update in case of errors )
+  for( i = 0; i < 6; i ++ )
+    if ( update & 1<<i )
+      if ( vals[i] < mbed_datetime_min[i] || vals[i] > mbed_datetime_max[i] )
+      {
+        strcat( error, mbed_datetime_names[i] );
+        return luaL_error( L, error );
+      }
+
+  // Copy the values to the registers
+  for( i = 0; i < 6; i ++ )
+    if ( update & 1<<i )
+    {
+      if (i == 2) // Year is the only 16bit val
+        *((uint16_t *)mbed_datetime_regs[i]) = vals[i];
+      else
+        *((uint8_t *)mbed_datetime_regs[i]) = vals[i];
+    }
 
   return 0;
 }
@@ -150,7 +160,7 @@ static int mbed_rtc_get( lua_State *L )
   const char *fmt = luaL_checkstring( L, 1 );
   char buff[ 20 ];
   unsigned i;
-  
+
   platform_rtc_get( &dd, &mon, &yy, &hh, &mm, &ss );
 
   if( !strcmp( fmt, "*s" ) )
