@@ -9,6 +9,7 @@
 #include "stacks.h"
 #include "driverlib/sysctl.h"
 #include "elua_int.h"
+#include "flash_conf.h"
 
 // *****************************************************************************
 // Define here what components you want for this platform
@@ -42,6 +43,10 @@
 
 #define PLATFORM_HAS_SYSTIMER
 #define PLATFORM_TMR_COUNTS_DOWN
+
+#ifdef INTERNAL_FLASH_CONFIGURED // this comes from flash_conf.h
+#define BUILD_WOFS
+#endif
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
