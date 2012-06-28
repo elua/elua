@@ -720,12 +720,14 @@ void platform_pwm_stop( unsigned id )
 #include "lrodefs.h"
 extern const LUA_REG_TYPE mbed_pio_map[];
 extern const LUA_REG_TYPE mbed_rtc_map[];
+extern const LUA_REG_TYPE mbed_power_map[];
 
 const LUA_REG_TYPE platform_map[] =
 {
 #if LUA_OPTIMIZE_MEMORY > 0
   { LSTRKEY( "pio" ), LROVAL( mbed_pio_map ) },
   { LSTRKEY( "rtc" ), LROVAL( mbed_rtc_map ) },
+  { LSTRKEY( "power" ), LROVAL( mbed_power_map ) },
 #endif
   { LNILKEY, LNILVAL }
 };

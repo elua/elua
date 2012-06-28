@@ -8,7 +8,7 @@ comp.Append(CPPPATH = ['src/platform/%s/drivers/inc' % platform])
 
 fwlib_files = " ".join(glob.glob("src/platform/%s/drivers/src/*.c" % platform))
 
-specific_files = "startup_LPC17xx.c system_LPC17xx.c core_cm3.c platform.c platform_int.c mbed_pio.c mbed_rtc.c"
+specific_files = "startup_LPC17xx.c system_LPC17xx.c core_cm3.c platform.c platform_int.c mbed_pio.c mbed_rtc.c mbed_power.c"
 
 # Check CPU
 if comp[ 'cpu' ] == 'LPC1768':
