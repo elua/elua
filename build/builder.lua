@@ -36,14 +36,35 @@ return {
 }
 --]]
 
+--[[ platform_conf.h template
+#include various files (buf, type...)
+
+#include ELUA_CPU_HEADER
+#include ELUA_BOARD_HEADER
+#include "platform_post_config.h"
+#include "platform_generic.h"
+#include "platform_interrupts.h"
+--]]
+
 local test = {
-  cpu = 'lm3s8962',
+  cpu = 'stm32f103',
+  config = {
+    extram = { start = 0, size = 256 * 1024 },
+    vtmr = { num = 4, freq = 10 },
+    egc = { mode = "full", limit = 40 * 1024 }
+  },
   components = {
     wofs = true,
     romfs = true,
     shell = { uart = 0, speed = 115200 },
-    xmodem = true 
+    xmodem = true,
+    term = { lines = 25, cols = 80 },
+    cints = true,
+    luaints = { queue_size = 32 },
+    linenoise = { shell_lines = 10, lua_lines = 50 },
+    rfs = { uart = 1, speed = 115200, buf_size = 512 }
   }
 }
 
 print( comp.gen_config( test ) )
+
