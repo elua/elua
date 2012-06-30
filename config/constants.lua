@@ -21,12 +21,20 @@ end
 systmr = 'PLATFORM_TIMER_SYS_ID'
 
 -- Add a sufficient number of virtual timers 
-for i = 0, 31 do
+for i = 0, 63 do
   _G[ sf( 'vtmr%d', i ) ] = sf( '( VTMR_FIRST_ID + %d )', i )
 end
 
 -- Add a sufficient number of virtual UARTs
-for i = 0, 31 do
+for i = 0, 63 do
   _G[ sf( 'vuart%d', i ) ] = sf( '( SERMUX_SERVICE_ID_FIRST + %d )', i )
 end
+
+-- EGC memlimit
+egc = 
+{
+  alloc_failure = 1,
+  mem_limit = 2,
+  always = 4
+}
 

@@ -8,12 +8,12 @@ local sf = string.format
 -- Validator for a 'choice' attribute
 -- Returns the value if OK, (false, errmsg) for error
 -- Needs: attrvals - list of permitted values for this attribute
-local function validate_choice( adesc, aname, aval, comp )
+local function _validate_choice( adesc, aname, aval, elname, sectname )
   aval = aval:lower()
   for k, v in pairs( adesc.attrvals ) do
     if v == aval then return v end
   end
-  return false, sf( "invalid value '%s' for attribute '%s' of component '%s'\n", aval, aname, comp )
+  return false, sf( "invalid value '%s' for attribute '%s' of element '%s' in section '%s'", aval, aname, elname, sectname )
 end
 
 -- Validator for a 'number' attribute
@@ -21,19 +21,19 @@ end
 -- Needs: attrtype - the number type ('int' or 'float')
 --        attrmin - minimum value (no minimum check will be performed if not specified)
 --        attrmax - maximum value (no maximum check will be performed if not specified)
-local function validate_number( adesc, aname, aval, comp )
+local function _validate_number( adesc, aname, aval, elname, sectname )
   aval = tonumber( aval )
-  if not aval then return false, sf( "value of attribute '%s' for component '%s' must be a number", aname, comp ) end
+  if not aval then return false, sf( "value of attribute '%s' for element '%s' in section '%s' must be a number", aname, elname, sectname ) end
   if adesc.attrtype == 'int' and math.floor( aval ) ~= aval then
-    return false, sf( "value of attribute '%s' for component '%s' must be an integer", aname, comp )
+    return false, sf( "value of attribute '%s' for element '%s' in section '%s' must be an integer", aname, elname, sectname )
   end
   local minval = adesc.attrmin or aval
   local maxval = adesc.attrmax or aval
   if aval < minval then
-    return false, sf( "value of attribute '%s' for component '%s' must be larger than '%s'\n", aname, comp, tostring( minval ) )
+    return false, sf( "value of attribute '%s' for element '%s' in section '%s' must be larger than '%s'", aname, elname, sectname, tostring( minval ) )
   end
   if aval > maxval then
-    return false, sf( "value of attribute '%s' for component '%s' must be smaller than '%s'\n", aname, comp, tostring( maxval ) )
+    return false, sf( "value of attribute '%s' for element '%s' in section '%s' must be smaller than '%s'", aname, elname, sectname, tostring( maxval ) )
   end
   return aval
 end
@@ -41,15 +41,15 @@ end
 -- Validator for a log2 number attribute
 -- Works like number, but additionaly checks that the value is a power of 2
 -- Also changes the attribute value to its log2 
-local function validate_log2( adesc, aname, aval, comp )
-  local res, err = validate_number( adesc, aname, aval, comp )
+local function _validate_log2( adesc, aname, aval, elname, sectname )
+  local res, err = _validate_number( adesc, aname, aval, elname, sectname )
   if not res then return res, err end
   if aval <= 0 then
-    return false, sf( "value of attribute '%s' for component '%s' must be larger than 0\n", aname, comp )
+    return false, sf( "value of attribute '%s' for element '%s' in section '%s' must be larger than 0", aname, elname, sectname )
   end
   local thelog = math.log( res ) / math.log( 2 )
   if thelog ~= math.floor( thelog ) then
-    return false, sf( "value of attribute '%s' for component '%s' must be a power of 2\n", aname, comp )
+    return false, sf( "value of attribute '%s' for element '%s' in section '%s' must be a power of 2", aname, elname, sectname )
   end
   return thelog
 end
@@ -57,17 +57,39 @@ end
 -- Validator for a string attribute
 -- Return the string if OK, (false, errmsg) for error
 -- Needs: attrmaxsize - maximum size of the string
-local function validate_string( adesc, aname, aval, comp )
+local function _validate_string( adesc, aname, aval, elname, sectname )
   aval = tostring( aval )
   if type( aval ) ~= "string" then
-    return false, sf( "value of attribute '%s' for component '%s' must be a string", aname, comp )
+    return false, sf( "value of attribute '%s' for element '%s' in section '%s' must be a string", aname, elname, sectname )
   end
   maxsize = adesc.attrmaxsize or math.huge
-  if #aval > adesc.attrmaxsize then
-    return false, sf( "value of attribute '%s' for component '%s' must be less than %d chars in length", aname, comp, maxsize )
+  if #aval > maxsize then
+    return false, sf( "value of attribute '%s' for element '%s' in section '%s' must be less than %d chars in length", aname, elname, sectname, maxsize )
   end
   return aval
 end
+
+-- Builds a validator with the given array element checker
+local function build_validator( realvname )
+  return function( adesc, aname, aval, elname, sectname )
+    if not adesc.is_array then return realvname( adesc, aname, aval, elname, sectname ) end
+    if type( aval ) ~= "table" then return false, sf( "value of attribute '%s' for element '%s' in section '%s' must be an array", aname, elname, sectname ) end
+    for i = 1, #aval do
+      local res, err = realvname( adesc, aname, aval[ i ], elname, sectname )
+      if not res then
+        return false, sf( "error at index %d: %s", i, err )
+      else
+        aval[ i ] = res
+      end
+    end
+    return aval
+  end
+end
+
+local validate_number = build_validator( _validate_number )
+local validate_choice = build_validator( _validate_choice )
+local validate_log2 = build_validator( _validate_log2 ) 
+local validate_string = build_validator( _validate_string )
 
 -------------------------------------------------------------------------------
 -- Public interface
@@ -112,4 +134,11 @@ function make_optional( attr )
   attr.optional = true
   return attr
 end
+
+-- Mark the given attribute as an array of element of the same type
+function array_of( attr )
+  attr.is_array = true
+  return attr
+end
+
 

@@ -20,42 +20,9 @@
 #include "lapi.h"
 #include "lauxlib.h"
 
-// [TODO] the new builder should automatically do this
-#if defined( BUILD_LUA_INT_HANDLERS ) || defined( BUILD_C_INT_HANDLERS )
-#define BUILD_INT_HANDLERS
-
-#ifndef INT_TMR_MATCH
-#define INT_TMR_MATCH         ELUA_INT_INVALID_INTERRUPT
-#endif
-
+#ifdef BUILD_INT_HANDLERS
 extern const elua_int_descriptor elua_int_table[ INT_ELUA_LAST ];
-
-#endif // #if defined( BUILD_LUA_INT_HANDLERS ) || defined( BUILD_C_INT_HANDLERS )
-
-// [TODO] the new builder should automatically do this
-#ifndef VTMR_NUM_TIMERS
-#define VTMR_NUM_TIMERS       0
-#endif // #ifndef VTMR_NUM_TIMERS
-
-// [TODO] the new builder should automatically do this
-#ifndef CON_BUF_SIZE
-#define CON_BUF_SIZE          0
-#endif // #ifndef CON_BUF_SIZE
-
-// [TODO] the new builder should automatically do this
-#ifndef SERMUX_FLOW_TYPE
-#define SERMUX_FLOW_TYPE      PLATFORM_UART_FLOW_NONE
-#endif
-
-// [TODO] the new builder should automatically do this
-#ifndef CON_FLOW_TYPE
-#define CON_FLOW_TYPE         PLATFORM_UART_FLOW_NONE
-#endif
-
-// [TODO] the new builder should automatically do this
-#ifndef CON_TIMER_ID
-#define CON_TIMER_ID          PLATFORM_TIMER_SYS_ID
-#endif
+#endif // #ifdef BUILD_INT_HANDLERS
 
 // ****************************************************************************
 // XMODEM support code

@@ -7,12 +7,13 @@ local MACRO_DEF_POS = 41
 
 -- Formatted print for "#define"
 function print_define( k, v )
-  v = v or ''
-  local s = sf( "#define %s", k:upper() )
+  local s = sf( "#define %s", k )
   if v then
     if #s < MACRO_DEF_POS then s = s .. string.rep( ' ', MACRO_DEF_POS - #s ) end
+  else
+    v = ''
   end
-  s = s .. v .. "\n"
+  s = s .. tostring( v ) .. "\n"
   return s
 end
 
@@ -22,6 +23,11 @@ function simple_gen( attrname, conf, gentable )
   if not conf[ attrname ] then return '' end
   local adesc, aval = conf[ attrname ].desc, conf[ attrname ].value
   gentable[ attrname ] = true
-  return print_define( attrname, aval )
+  if conf[ attrname ].desc.is_array then
+    -- The element is an array. The default is to define its value as { elements }
+    aval = "{ " .. table.concat( aval, "," ) .. " }"
+  end
+  return print_define( attrname, tostring( aval ) )
 end
+
 
