@@ -90,7 +90,7 @@ function configure_section( section, sectname, data )
       local desc = section[ elname ]
       local attrs = desc.attrs or {}
       if desc.confcheck then
-        local d, err = desc:confcheck( conf )
+        local d, err = desc:confcheck( conf, enabled )
         if not d then return false, err end
       else
         for attr, adesc in pairs( attrs ) do
@@ -134,6 +134,32 @@ function generate_section( section, sectname, data )
       genstr = genstr .. gen.print_define( desc.macro ) .. "\n" 
     else
       genstr = genstr .. "\n"
+    end
+  end
+
+  -- Finally, check for dependencies
+  -- For each attribute that has a 'needs' element, check if the dependency is met
+  -- The attribute can also define the 'depcheck' function for a default dependency check
+  for elname, _ in pairs( enabled ) do
+    local desc = section[ elname ]
+    if desc.depcheck then
+      local res, err = desc:depcheck( conf, generated )
+      if not res then return false, err end
+    elseif desc.needs then
+      local needs = type( desc.needs ) == "table" and desc.needs or { desc.needs }
+      for _, v in pairs( needs ) do
+        -- Look for negative expressions (not enabled)
+        local neg
+        if v:sub( 1, 1 )  == "!" then
+          neg = true
+          v = v:sub( 2 )
+        end
+        if not neg and not enabled[ v ] then
+          return false, sf( "element '%s' in section '%s' needs element '%s' to be enabled", elname, sectname, v )
+        elseif neg and enabled[ v ] then
+          return false, sf( "element '%s' in section '%s' needs element '%s' to be disabled", elname, sectname, v )
+        end
+      end
     end
   end
 

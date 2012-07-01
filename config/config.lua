@@ -26,12 +26,10 @@ local function generate_components( data, plconf )
 
   -- Prerequisites: check for keys that might be needed in components, but might not be there
   -- At the moment, we need to definer either BUILD_CON_GENERIC or BUILD_CON_TCP (but not both)
-  -- If none is defined, we default to BUILD_CON_GENERIC
-  -- If both are defined, we exit with error
   if compdata.sercon and compdata.tcpipcon then
     return nil, "serial and TCP/IP console can't be enabled at the same time in section 'components'"
   elseif not compdata.sercon and not compdata.tcpipcon then
-    compdata.sercon = true
+    return nil, "either serial (sercon) or TCP/IP (tcpipcon) console must be enabled in 'components'"
   end
 
   -- Configure section first
@@ -43,11 +41,6 @@ local function generate_components( data, plconf )
     if not res then return false, err end
   end
 
-  -- Automatically generate BUF_ENABLE_UART if needed (sermux, RFS, CON_BUF_SIZE )
-  if sects.enabled.sermux or sects.enabled.rfs or sects.conf[ 'CON_BUF_SIZE' ] then
-    compdata.uart_buffers = {}
-    sects.enabled.uart_buffers = true
-  end
   -- TODO: consistency checks (for example, check proper sermux/RFS/console ID assignment)
 
   -- Generate all data for section 'components'
@@ -133,6 +126,10 @@ local sanity_code = [[
   #endif
 #endif // #ifdef ELUA_BOOT_RPC
 
+#if ( defined( BUILD_RFS ) || defined( BUILD_SERMUX ) || defined( CON_BUF_SIZE ) ) && !defined( BUF_ENABLE_UART )
+#define BUF_ENABLE_UART
+#endif
+
 ]]
 
 -------------------------------------------------------------------------------
@@ -156,6 +153,12 @@ function compile_board( fname, boardname )
   local desc, err = dofile( fname )
   if not desc then return false, err end
   if not desc.cpu then return false, "cpu not specified in board configuration file" end
+
+  -- Check the keys in 'desc'
+  local known_keys = { 'cpu', 'components', 'config', 'headers', 'macros', 'modules', 'cpu_constants' }
+  for k, _ in pairs( desc ) do
+    if not utils.array_element_index( known_keys, k ) then return false, sf( "unknown key '%s'", k ) end
+  end
 
   -- Find and require the platform board configuration file
   local platform = bd.get_platform_of_cpu( desc.cpu )
@@ -209,7 +212,6 @@ function compile_board( fname, boardname )
   -- TODO: call a "global checker" function that handles both components and configs
   -- Example: check if vuarts are specified, but sermux is not enbled
   -- Check if vtimers are specified, but virtual timers are not enabled
-  -- TODO: let the user specify an allocator in the config file? (and validate it)
 
   -- Generate module configuration
   gen, err = mgen.gen_module_list( desc, plconf, platform )
