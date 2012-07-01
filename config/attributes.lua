@@ -9,7 +9,7 @@ local sf = string.format
 -- Returns the value if OK, (false, errmsg) for error
 -- Needs: attrvals - list of permitted values for this attribute
 local function _validate_choice( adesc, aname, aval, elname, sectname )
-  aval = aval:lower()
+  aval = tostring( aval ):lower()
   for k, v in pairs( adesc.attrvals ) do
     if v == aval then return v end
   end
@@ -116,15 +116,29 @@ local validate_ip = build_validator( _validate_ip )
 -------------------------------------------------------------------------------
 -- Public interface
 
+-- Returns a new choice attribute with the given possible values
+function choice_attr( macro, values, default )
+  return { macro = macro, default = default, validator = validate_choice, attrvals = values }
+end
+
 -- Returns a new timer attribute with the given macro and default (systmr if not specified)
 function timer_attr( macro, default )
-  default = default or ct.systmr
-  return { macro = macro, default = default, is_timer = true }
+  default = default or 'systmr'
+  local t = choice_attr( macro, utils.table_keys( ct.timer_values ), default )
+  t.is_timer, t.mapping = true, ct.timer_values
+  return t
 end
 
 -- Returns a new integer number attribute with the given limits
 function int_attr( macro, minv, maxv, default )
   return { macro = macro, default = default, validator = validate_number, attrtype = 'int', attrmin = minv, attrmax = maxv }
+end
+
+-- Returns a new UART attribute
+function uart_attr( macro, default )
+  local t = choice_attr( macro, utils.table_keys( ct.uart_values ), default )
+  t.is_uart, t.mapping = true, ct.uart_values
+  return t
 end
 
 -- Returns a new integer number attribute with the given limits
@@ -135,15 +149,12 @@ function int_log2_attr( macro, minv, maxv, default )
   return t
 end
 
--- Returns a new choice attribute with the given possible values
-function choice_attr( macro, values, default )
-  return { macro = macro, default = default, validator = validate_choice, attrvals = values }
-end
-
 -- Returns a new flow control attribute
 function flow_control_attr( macro, default )
-  default = default or ct.uart_flow.none
-  return choice_attr( macro, ct.uart_flow_vals, default )
+  default = default or 'none'
+  local t = choice_attr( macro, utils.table_keys( ct.uart_flow ), default )
+  t.mapping = ct.uart_flow
+  return t
 end
 
 -- Returns a new string attribute

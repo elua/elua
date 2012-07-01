@@ -127,10 +127,10 @@ if not bfname then
   print( sf( "Error: board configuration file for board '%s' not found in '%s'", comp.board, board_base_dir ) )
   os.exit( -1 )
 end
-print( "Found board description file at " .. bfname )
+print( utils.col_blue( "[CONFIG] Found board description file at " .. bfname ) )
 local bdata, err = bconf.compile_board( bfname, comp.board )
 if not bdata then
-  print( "Error reading board description file: " .. err )
+  print( utils.col_red( "[CONFIG] Error compiling board description file: " .. err ) )
   do return end
 end
 -- Check if the file has changed. If not, do not rewrite it. This keeps the compilation time sane.
@@ -140,7 +140,9 @@ if utils.get_hash_of_string( bdata.header ) ~= utils.get_hash_of_file( bhname ) 
   local f = assert( io.open( bhname, "wb" ) )
   f:write( bdata.header )
   f:close()
-  print( "Generated board header file at " .. bhname )
+  print( utils.col_blue( "[CONFIG] Generated board header file at " .. bhname ) )
+else
+  print( utils.col_blue( "[CONFIG] Board header file is unchanged." ) )
 end
 -- Define the correct CPU header for inclusion in the platform_conf.h file
 addm( 'ELUA_CPU_HEADER="\\"cpu_' .. bdata.cpu:lower() .. '.h\\""' )
@@ -148,10 +150,30 @@ addm( 'ELUA_CPU_HEADER="\\"cpu_' .. bdata.cpu:lower() .. '.h\\""' )
 addm( 'ELUA_BOARD_HEADER="\\"board_' .. comp.board:lower() .. '.h\\""' )
 -- Make available the board directory for the generated header files
 addi( utils.concat_path{ board_base_dir, "headers" } )
+-- Force target if needed
+if bdata.target and bdata.target ~= comp.target then
+  if builder:is_user_option( 'target' ) then
+    print( utils.col_yellow( sf( "[CONFIG] WARNING: changing the target from '%s' to '%s' as specified in the command line", bdata.target, comp.target ) ) )
+  else
+    comp.target = bdata.target
+  end
+end
+-- Force allocator if needed
+if bdata.allocator then
+  if comp.allocator == "auto" then
+    comp.allocator = bdata.allocator
+  elseif bdata.allocator ~= comp.allocator then
+    if builder:is_user_option( 'allocator' ) then
+      print( utils.col_yellow( sf( "[CONFIG] WARNING: changing the allocator from '%s' to '%s' as specified in the command line", bdata.allocator, comp.allocator ) ) )
+    else
+      comp.allocator = bdata.allocator
+    end
+  end
+end
 -- Automatically set the allocator to 'multiple' if needed
 if bdata.multi_alloc and comp.allocator == "newlib" then
-  print( "WARNING: your board has non-contigous RAM areas, but you specified an allocator that can't handle this configuration" )
-  print( "Rebuild with another allocator or simply remove the 'allocator=xxx' argument" )
+  io.write( utils.col_yellow( "[CONFIG] WARNING: your board has non-contigous RAM areas, but you specified an allocator ('newlib') that can't handle this configuration." ) )
+  print( utils.col_yellow( "Rebuild with another allocator ('multiple' or 'simple')" ) )
 end
 if comp.allocator == "auto" and bdata.multi_alloc then comp.allocator = "multiple" end
 comp.cpu = bdata.cpu:upper()
@@ -332,7 +354,7 @@ function match_pattern_list( item, list )
   end
 end
 
-local function make_romfs()
+local function make_romfs( target, deps )
   print "Building ROM file system ..."
   local flist = {}
   flist = utils.string_to_table( utils.get_files( 'romfs', function( fname ) return not match_pattern_list( fname, romfs_exclude_patterns ) end ) )
@@ -389,11 +411,13 @@ builder:set_link_cmd( linkcmd )
 builder:set_asm_cmd( ascmd )
 builder:set_exe_extension( ".elf" )
 
--- Create the ROM file system
-make_romfs()
--- Creaate executable targets
+-- Create the ROMFS target
+local romfs_target = builder:target( "#phony:romfs", nil, make_romfs )
+romfs_target:force_rebuild( true )
+
+-- Create executable targets
 odeps = builder:create_compile_targets( source_files )
-exetarget = builder:link_target( output, odeps )
+exetarget = builder:link_target( output, { romfs_target, odeps } )
 -- This is also the default target
 builder:default( builder:add_target( exetarget, 'build eLua executable' ) )
 

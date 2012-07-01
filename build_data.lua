@@ -124,6 +124,17 @@ function get_platform_of_cpu( cpu )
   end
 end
 
+-- Return all the CPUs in the 'platform_list' table
+function get_all_cpus()
+  local t = {}
+  for pl, desc in pairs( platform_list ) do
+    for _, cpu in pairs( desc.cpus ) do
+      if not utils.array_element_index( t, cpu ) then t[ #t + 1 ] = cpu end
+    end
+  end
+  return t
+end
+
 -- Returns the complete list of toolchains
 function get_all_toolchains()
   local t = {}

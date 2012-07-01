@@ -2,6 +2,24 @@
 
 module( ..., package.seeall )
 local at = require "attributes"
+local gen = require "generators"
+local sf = string.format
+
+-------------------------------------------------------------------------------
+-- Sermux support
+
+local function sermux_auxcheck( eldesc, data, enabled )
+  local v = data.SERMUX_BUFFER_SIZES.value
+  if #v < 2 then
+    return false, sf( "array 'buf_sizes' of element 'sermux' in section 'components' must have at least 2 elements" )
+  end
+  return true
+end
+
+local function sermux_auxgen( eldesc, data, generated )
+  local v = data.SERMUX_BUFFER_SIZES.value
+  return gen.print_define( 'SERMUX_NUM_VUART', #v )
+end
 
 -------------------------------------------------------------------------------
 -- Public interface
@@ -14,7 +32,7 @@ function init()
   components.sercon = { 
     macro = 'BUILD_CON_GENERIC',
     attrs = {
-      uart = at.int_attr( 'CON_UART_ID' ),
+      uart = at.uart_attr( 'CON_UART_ID' ),
       speed = at.int_attr( 'CON_UART_SPEED' ),
       timer = at.timer_attr( 'CON_TIMER_ID' ),
       flow = at.flow_control_attr( 'CON_FLOW_TYPE' ),
@@ -31,7 +49,7 @@ function init()
   components.xmodem = {
     macro = 'BUILD_XMODEM',
     attrs = {
-      uart = at.int_attr( 'CON_UART_ID' ),
+      uart = at.uart_attr( 'CON_UART_ID' ),
       speed = at.int_attr( 'CON_UART_SPEED' ),
       timer = at.timer_attr( 'CON_TIMER_ID' ),
       flow = at.flow_control_attr( 'CON_FLOW_TYPE'),
@@ -44,7 +62,7 @@ function init()
   components.term = {
     macro = 'BUILD_TERM',
     attrs = {
-      uart = at.int_attr( 'CON_UART_ID' ),
+      uart = at.uart_attr( 'CON_UART_ID' ),
       speed = at.int_attr( 'CON_UART_SPEED' ),
       timer = at.timer_attr( 'CON_TIMER_ID' ),
       flow = at.flow_control_attr( 'CON_FLOW_TYPE' ),
@@ -76,7 +94,7 @@ function init()
   components.rfs = {
     macro = 'BUILD_RFS',
     attrs = {
-      uart = at.int_attr( 'RFS_UART_ID' ),
+      uart = at.uart_attr( 'RFS_UART_ID' ),
       speed = at.int_attr( 'RFS_UART_SPEED' ),
       timer = at.timer_attr( 'RFS_TIMER_ID' ),
       flow = at.flow_control_attr( 'RFS_FLOW_TYPE' ),
@@ -99,7 +117,7 @@ function init()
   components.rpc = {
     macro = 'BUILD_RPC',
     attrs = {
-      uart = at.make_optional( at.int_attr( 'RPC_UART_ID' ) ),
+      uart = at.make_optional( at.uart_attr( 'RPC_UART_ID' ) ),
       speed = at.make_optional( at.int_attr( 'RPC_UART_SPEED' ) ),
       timer = at.make_optional( at.timer_attr( 'RPC_TIMER_ID' ) )
     }
@@ -112,6 +130,18 @@ function init()
       netmask = at.ip_attr( 'ELUA_CONF_NETMASK' ),
       gw = at.ip_attr( 'ELUA_CONF_DEFGW' ),
       dns = at.ip_attr( 'ELUA_CONF_DNS' )
+    }
+  }
+  -- Serial multiplexer
+  components.sermux = {
+    macro = 'BUILD_SERMUX',
+    auxgen = sermux_auxgen,
+    auxcheck = sermux_auxcheck,
+    attrs = {
+      uart = at.uart_attr( 'SERMUX_PHYS_ID' ),
+      speed = at.int_attr( 'SERMUX_PHYS_SPEED' ),
+      flow = at.flow_control_attr( 'SERMUX_FLOW_TYPE' ),
+      buf_sizes = at.array_of( at.int_log2_attr( 'SERMUX_BUFFER_SIZES' ) )
     }
   }
   -- DNS client

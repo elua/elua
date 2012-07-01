@@ -3,6 +3,7 @@
 module( ..., package.seeall )
 local sf = string.format
 local gen = require "generators"
+local utils = require "utils"
 
 conf, enabled, required = {}, {}, {}
 
@@ -31,23 +32,20 @@ function config_element( section, sectname, name, data, req )
       end
     end
     if conf[ attrmeta.macro ] and tostring( conf[ attrmeta.macro ].value ) ~= tostring( v ) then
-      print( sf( "WARNING: overriding value of attribute '%s' in element '%s' from '%s' to '%s' in section '%s'", attr, name, 
-        conf[ attrmeta.macro ].value, v, sectname ) )
+      print( utils.col_yellow( sf( "[CONFIG] WARNING: overriding value of attribute '%s' in element '%s' from '%s' to '%s' in section '%s'", 
+             attr, name, conf[ attrmeta.macro ].value, v, sectname ) ) )
      end
-    conf[ attrmeta.macro ] = { desc = attrmeta, value = v }
-    -- print( sf( "SET -> '%s' = '%s'", attrmeta.macro, v ) )
+    conf[ attrmeta.macro ] = { name = attr, desc = attrmeta, value = v, sectname = sectname, elname = name }
   end
   -- Set default values where needed
   for name, data in pairs( attrs ) do
     if not conf[ data.macro ] and data.default then
-      conf[ data.macro ] = { desc = data, value = data.default }
-      -- print( sf( "DEFAULT -> '%s' = '%s'", data.macro, data.default ) )
+      conf[ data.macro ] = { name = name, desc = data, value = data.default, sectname = sectname, elname = name }
     end
   end
   -- Mark this component as configured
   enabled[ name ] = true
   if req then required[ name ] = true end
-  -- print( sf( "ENABLED -> %s", name ) )
   return true
 end
 
@@ -84,7 +82,8 @@ function configure_section( section, sectname, data )
   -- Step 2: basic consistency check
   -- For each element, we check that all its required attributes (the ones that don't have
   -- an 'optional' key set to true) have a value. An element can overwrite this default 
-  -- verification by specifying its own 'confcheck' function
+  -- verification by specifying its own 'confcheck' function. There is another function called
+  -- 'auxcheck' that is called AFTER the basic consistency check (if it exists)
   for elname, _ in pairs( enabled ) do
     if not required[ elname ] then
       local desc = section[ elname ]
@@ -97,6 +96,10 @@ function configure_section( section, sectname, data )
           if not conf[ adesc.macro ] and not adesc.optional then
             return false, sf( "required attribute '%s' of component '%s' in section '%s' not specified", attr, elname, sectname )
           end
+        end
+        if desc.auxcheck then
+          local d, err = desc:auxcheck( conf, enabled )
+          if not d then return false, err end
         end
       end
     end
@@ -113,7 +116,8 @@ end
 function generate_section( section, sectname, data )
   -- Actual generation of code
   -- The default generator simply adds '#define KEY VALUE' pairs. An element can overwrite this
-  -- default generation by specifying its own 'gen' function
+  -- default generation by specifying its own 'gen' function. If the element has an 'auxgen'
+  -- function, it will be called after the default attribute generation
   -- Also, we never generate the same key twice. We ensure this by keeping a table of the
   -- keys that were already generated
   local generated = {}
@@ -128,6 +132,7 @@ function generate_section( section, sectname, data )
       for aname, adesc in pairs( attrs ) do 
         genstr = genstr .. gen.simple_gen( adesc.macro, conf, generated )
       end
+      if desc.auxgen then genstr = genstr .. desc:auxgen( conf, generated ) end
     end
     -- Add the "build enable" macro
     if desc.macro then 

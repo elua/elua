@@ -242,6 +242,11 @@ get_hash_of_file = function( f )
   return get_hash_of_string( d )
 end
 
+-- Concatenates the second table into the first one
+concat_tables = function( dst, src )
+  foreach( src, function( k, v ) dst[ k ] = v end )
+end
+
 -------------------------------------------------------------------------------
 -- Color-related funtions
 -- Currently disabled when running in Windows

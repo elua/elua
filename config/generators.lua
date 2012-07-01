@@ -30,6 +30,7 @@ function simple_gen( attrname, conf, gentable )
     end
     return s
   end
+  if adesc.mapping then aval = adesc.mapping[ aval ] end
   if adesc.is_array then
     -- The element is an array. The default is to define its value as { elements }
     aval = "{ " .. table.concat( aval, "," ) .. " }"

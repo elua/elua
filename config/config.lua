@@ -7,7 +7,6 @@ package.path = package.path .. ";utils/?.lua;config/?.lua"
 
 local comps = require "components"
 local cfgs = require "configurations"
-local ct = require "constants"
 local gen = require "generators"
 local utils = require "utils"
 local bd = require "build_data"
@@ -16,6 +15,7 @@ local cpuct = require "cpuconstants"
 local sects = require "sections"
 
 local components, configs
+local glconf, glen
 
 -------------------------------------------------------------------------------
 -- Various helpers and internal functions
@@ -41,8 +41,6 @@ local function generate_components( data, plconf )
     if not res then return false, err end
   end
 
-  -- TODO: consistency checks (for example, check proper sermux/RFS/console ID assignment)
-
   -- Generate all data for section 'components'
   return sects.generate_section( components, 'components', compdata )
 end
@@ -61,6 +59,46 @@ local function generate_config( data, plconf )
   end
 
   return sects.generate_section( configs, 'config', confdata )
+end
+
+-- Global sanity checks (data is in 'glconf' and 'glen'
+local function check_components_and_config()
+  -- Check all uart IDs. If VUARTs are specified but sermux is not enabled, return with error
+  if not glen.sermux then
+    for _, attrdata in pairs( glconf ) do
+      local attrval = attrdata.value
+      if attrdata.desc.is_uart and type( attrval ) == "string" and attrval:find( "^vuart" ) then
+        return false, sf( "attribute '%s' of element '%s' in section '%s' reffers to a virtual UART, but the serial multiplexer ('sermux') is not enabled",
+          attrdata.name, attrdata.elname, attrdata.sectname )
+      end
+    end
+  end
+
+  -- Check all timer IDs. If virtual timers are specified but vtmr is not enabled, return with error
+  if not glen.vtmr or tostring( glconf.VTMR_NUM_TIMERS.value ) == "0" then
+    for _, attrdata in pairs( glconf ) do
+      local attrval = attrdata.value
+      if attrdata.desc.is_timer and type( attrval ) == "string" and attrval:find( "^vtmr" ) then
+        return false, sf( "attribute '%s' of element '%s' in section '%s' reffers to a virtual timer, but virtual timers ('vtmr') are not enabled",
+          attrdata.name, attrdata.elname, attrdata.sectname )
+      end
+    end
+  end
+
+  -- Check sermux/RFS+console proper UART assignment
+  if glen.sermux and glen.sercon and glen.rfs then
+    local rfs_uart_value = tostring( glconf.RFS_UART_ID.value )
+    local con_uart_value = tostring( glconf.CON_UART_ID.value )
+    if rfs_uart_value:find( "^vuart" ) and rfs_uart_value ~= "vuart0" then
+      io.write( utils.col_yellow( "[CONFIG] WARNING: you have enabled the serial multiplexer and RFS over a virtual serial port which is not the first virtual serial port ('vuart0')" ) )
+      print( utils.col_yellow( "In this configuration, the serial multiplexer will not work in 'rfsmux' mode. Check the serial multiplexer section of the eLua manual for more details." ) )
+    elseif rfs_uart_value == "vuart0" and con_uart_value:find( "^vuart" ) and con_uart_value ~= "vuart1" then
+      io.write( utils.col_yellow( "[CONFIG] WARNING: when using both RFS and the serial console with 'sermux', it's best to set the serial console uart ID to the second virtual serial port ('vuart1')" ) )
+      print( utils.col_yellow( "In this configuration, the serial multiplexer will work directly in 'rfsmux' mode with a console. Check the serial multiplexer section of the eLua manual for more details." ) )
+    end
+  end
+
+  return true
 end
 
 -- Default table for backend configuration data
@@ -155,20 +193,24 @@ function compile_board( fname, boardname )
   if not desc.cpu then return false, "cpu not specified in board configuration file" end
 
   -- Check the keys in 'desc'
-  local known_keys = { 'cpu', 'components', 'config', 'headers', 'macros', 'modules', 'cpu_constants' }
+  local known_keys = { 'cpu', 'components', 'config', 'headers', 'macros', 'modules', 'cpu_constants', 'allocator', 'target' }
   for k, _ in pairs( desc ) do
     if not utils.array_element_index( known_keys, k ) then return false, sf( "unknown key '%s'", k ) end
+  end
+
+  -- Check CPU
+  local cpulist = bd.get_all_cpus()
+  if not utils.array_element_index( cpulist, desc.cpu:upper() ) then
+    return false, sf( "unknown cpu '%s'", desc.cpu )
   end
 
   -- Find and require the platform board configuration file
   local platform = bd.get_platform_of_cpu( desc.cpu )
   if not platform then return false, sf( "unable to find the platform of cpu '%s'", desc.cpu ) end
-  local plconf
+  local plconf = default_platform_conf
   if utils.is_file( utils.concat_path{ 'src', 'platform', platform, 'boardconf.lua' } ) then
     plconf = require( "src.platform." .. platform .. ".boardconf" )
-    print( sf( "Found a backend build configuration file for platform %s", platform ) )
-  else
-    plconf = default_platform_conf
+    print( utils.col_blue( sf( "[CONFIG] Found a backend build configuration file for platform %s", platform ) ) )
   end
 
   -- Read platform specific components/configs
@@ -199,19 +241,25 @@ function compile_board( fname, boardname )
   local gen, err = generate_components( desc, plconf )
   if not gen then return false, err end
   header = header .. gen
+  -- Keep generated data for later use
+  glconf, glen = sects.conf, sects.enabled
 
   -- Then configs
   gen, err = generate_config( desc, plconf )
   local multi_alloc = sects.conf.use_multiple_allocator
   if not gen then return false, err end
   header = header .. gen
+  -- Accumulate generated data into 'glconf' and 'glen'
+  utils.concat_tables( glconf, sects.conf )
+  utils.concat_tables( glen, sects.enabled )
+
+  -- Now we have all components and the configuration generated
+  -- It's a good time for some sanity checks
+  gen, err = check_components_and_config()
+  if not gen then return false, err end
 
   -- Now it's a good time to include the fixed sanity checks
   header = header .. sanity_code
-
-  -- TODO: call a "global checker" function that handles both components and configs
-  -- Example: check if vuarts are specified, but sermux is not enbled
-  -- Check if vtimers are specified, but virtual timers are not enabled
 
   -- Generate module configuration
   gen, err = mgen.gen_module_list( desc, plconf, platform )
@@ -226,9 +274,27 @@ function compile_board( fname, boardname )
   -- All done, write the header's footer
   header = header .. sf( "#endif // #ifndef __GENERATED_%s_H__\n", cboardname )
 
+  -- We are done with the header, we still need to check the compile flags
+  local allocator
+  if desc.allocator then
+    local allocs = { 'newlib', 'multiple', 'simple' }
+    if not utils.array_element_index( allocs, desc.allocator ) then 
+      return false, sf( "unknown allocator '%s'", desc.allocator )
+    end
+    allocator = desc.allocator
+  end
+
+  local target
+  if desc.target then
+    local targets = { 'lua', 'lualong', 'lualonglong' }
+    if not utils.array_element_index( targets, desc.target ) then
+      return false, sf( "unknown target '%ws'", desc.target )
+    end
+    target = desc.target
+  end
+
   -- Return the contents of the header, as well as the name of the CPU used by this
-  -- board (this information is needed by the builder) and the type of the allocator
-  -- that should be used for this board
-  return { header = header, cpu = desc.cpu, multi_alloc = multi_alloc }
+  -- board (this information is needed by the builder) and the build information
+  return { header = header, cpu = desc.cpu, multi_alloc = multi_alloc, allocator = allocator, target = target }
 end
 

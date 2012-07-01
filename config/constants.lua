@@ -3,6 +3,9 @@
 module( ..., package.seeall )
 local sf = string.format
 
+-------------------------------------------------------------------------------
+-- UART data
+
 -- UART flow types
 uart_flow = 
 {
@@ -12,25 +15,32 @@ uart_flow =
   rtscts = '( PLATFORM_UART_FLOW_RTS | PLATFORM_UART_FLOW_CTS )'
 }
 
-uart_flow_vals = {}
-for k, v in pairs( uart_flow ) do
-  uart_flow_vals[ #uart_flow_vals + 1 ] = v
+uart_values = {}
+
+-- Add a sufficient number of virtual and real UARTs
+for i = 0, 127 do
+  uart_values[ sf( 'vuart%d', i ) ] = sf( '( SERMUX_SERVICE_ID_FIRST + %d )', i )
+  uart_values[ tostring( i ) ] = i
 end
+
+-------------------------------------------------------------------------------
+-- Timer data
 
 -- System timer ID
-systmr = 'PLATFORM_TIMER_SYS_ID'
+timer_values = 
+{
+  systmr = 'PLATFORM_TIMER_SYS_ID'
+}
 
 -- Add a sufficient number of virtual timers 
-for i = 0, 63 do
-  _G[ sf( 'vtmr%d', i ) ] = sf( '( VTMR_FIRST_ID + %d )', i )
+for i = 0, 127 do
+  timer_values[ sf( 'vtmr%d', i ) ] = sf( '( VTMR_FIRST_ID + %d )', i )
+  timer_values[ tostring( i ) ] = i
 end
 
--- Add a sufficient number of virtual UARTs
-for i = 0, 63 do
-  _G[ sf( 'vuart%d', i ) ] = sf( '( SERMUX_SERVICE_ID_FIRST + %d )', i )
-end
+-------------------------------------------------------------------------------
+-- EGC data
 
--- EGC memlimit
 egc = 
 {
   alloc_failure = 1,
