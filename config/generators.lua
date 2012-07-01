@@ -23,11 +23,17 @@ function simple_gen( attrname, conf, gentable )
   if not conf[ attrname ] then return '' end
   local adesc, aval = conf[ attrname ].desc, conf[ attrname ].value
   gentable[ attrname ] = true
-  if conf[ attrname ].desc.is_array then
+  if adesc.is_ip then -- special generation for this one
+    local s = ''
+    for i = 1, 4 do
+      s = s .. print_define( sf( "%s%d", attrname, i - 1 ), aval[ i ] )
+    end
+    return s
+  end
+  if adesc.is_array then
     -- The element is an array. The default is to define its value as { elements }
     aval = "{ " .. table.concat( aval, "," ) .. " }"
   end
   return print_define( attrname, tostring( aval ) )
 end
-
 

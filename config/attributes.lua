@@ -69,6 +69,27 @@ local function _validate_string( adesc, aname, aval, elname, sectname )
   return aval
 end
 
+-- Validator for an IP attribute
+-- Return the IP as a table of numbers if OK, (false, errmsg) for error
+local function _validate_ip( adesc, aname, aval, elname, sectname )
+  if type( aval ) == "string" then -- transform this to table
+    if aval:sub( -1, -1 ) ~= "." then aval = aval .. "." end -- add a final dot to make parsing easier
+    local t = {}
+    for w in aval:gmatch( "(%w+)%." ) do t[ #t + 1 ] = tonumber( w ) end
+    aval = t
+  elseif type( aval ) ~= "table" then
+    return false, sf( "attribute '%s' of element '%s' in section '%s' must be a string or a table", aname, elname, sectname )
+  end
+  if #aval ~= 4 then return false, sf( "invalid IP for attribute '%s' of element '%s' in section '%s'", aname, elname, sectname ) end
+  for i = 1, 4 do
+    local e = aval[ i ]
+    if type( e ) ~= "number" or math.floor( e ) ~= e or e < 0 or e > 255 then
+      return false, sf( "invalid IP for attribute '%s' of element '%s' in section '%s'", aname, elname, sectname )
+    end
+  end
+  return aval
+end
+
 -- Builds a validator with the given array element checker
 local function build_validator( realvname )
   return function( adesc, aname, aval, elname, sectname )
@@ -90,6 +111,7 @@ local validate_number = build_validator( _validate_number )
 local validate_choice = build_validator( _validate_choice )
 local validate_log2 = build_validator( _validate_log2 ) 
 local validate_string = build_validator( _validate_string )
+local validate_ip = build_validator( _validate_ip )
 
 -------------------------------------------------------------------------------
 -- Public interface
@@ -97,7 +119,7 @@ local validate_string = build_validator( _validate_string )
 -- Returns a new timer attribute with the given macro and default (systmr if not specified)
 function timer_attr( macro, default )
   default = default or ct.systmr
-  return { macro = macro, default = default }
+  return { macro = macro, default = default, is_timer = true }
 end
 
 -- Returns a new integer number attribute with the given limits
@@ -125,8 +147,13 @@ function flow_control_attr( macro, default )
 end
 
 -- Returns a new string attribute
-function string_attr( macro, maxsize, dfault )
+function string_attr( macro, maxsize, default )
   return { macro = macro, default = default, validator = validate_string, attrmaxsize = maxsize }
+end
+
+-- Returns a new IP attribute
+function ip_attr( macro, default )
+  return { macro = macro, default = default, validator = validate_ip, is_ip = true }
 end
 
 -- Make the given attribute optional
