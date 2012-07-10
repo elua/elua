@@ -17,7 +17,8 @@
 #include "lstate.h"
 #include "lstring.h"
 
-
+#define LUAS_READONLY_STRING      1
+#define LUAS_REGULAR_STRING       0
 
 void luaS_resize (lua_State *L, int newsize) {
   stringtable *tb;
@@ -114,18 +115,18 @@ static int lua_is_ptr_in_ro_area(const char *p) {
 TString *luaS_newlstr (lua_State *L, const char *str, size_t l) {
   // If the pointer is in a read-only memory and the string is at least 4 chars in length,
   // create it as a read-only string instead
-  if(lua_is_ptr_in_ro_area(str) && l+1 > sizeof(char**))
-    return luaS_newlstr_helper(L, str, l, 1);
+  if(lua_is_ptr_in_ro_area(str) && l+1 > sizeof(char**) && l == strlen(str))
+    return luaS_newlstr_helper(L, str, l, LUAS_READONLY_STRING);
   else
-    return luaS_newlstr_helper(L, str, l, 0);
+    return luaS_newlstr_helper(L, str, l, LUAS_REGULAR_STRING);
 }
 
 
 LUAI_FUNC TString *luaS_newrolstr (lua_State *L, const char *str, size_t l) {
-  if(l+1 < sizeof(char**)) // no point in creating a RO string, as it would actually be larger
-    return luaS_newlstr_helper(L, str, l, 0);
-  else
-    return luaS_newlstr_helper(L, str, l, 1);
+  if(l+1 > sizeof(char**) && l == strlen(str))
+    return luaS_newlstr_helper(L, str, l, LUAS_READONLY_STRING);
+  else // no point in creating a RO string, as it would actually be larger
+    return luaS_newlstr_helper(L, str, l, LUAS_REGULAR_STRING);
 }
 
 
