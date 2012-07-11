@@ -124,7 +124,7 @@ end
 -- Interpret the board definition file
 local bfname = get_conf_file_path( comp.board )
 if not bfname then
-  print( sf( "Error: board configuration file for board '%s' not found in '%s'", comp.board, board_base_dir ) )
+  io.write( utils.col_red( sf( "[CONFIG] Error: board configuration file for board '%s' not found in '%s'.", comp.board, board_base_dir ) ) )
   os.exit( -1 )
 end
 print( utils.col_blue( "[CONFIG] Found board description file at " .. bfname ) )

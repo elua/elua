@@ -100,8 +100,7 @@ function init()
       flow = at.flow_control_attr( 'RFS_FLOW_TYPE' ),
       buf_size = at.int_log2_attr( 'RFS_BUFFER_SIZE', nil, nil, 9 ),
       timeout = at.int_attr( 'RFS_TIMEOUT', nil, nil, 100000 )
-    },
-    needs = 'uart_buffers'
+    }
   }
   -- MMCFS
   components.mmcfs = {
@@ -142,6 +141,15 @@ function init()
       speed = at.int_attr( 'SERMUX_PHYS_SPEED' ),
       flow = at.flow_control_attr( 'SERMUX_FLOW_TYPE' ),
       buf_sizes = at.array_of( at.int_log2_attr( 'SERMUX_BUFFER_SIZES' ) )
+    }
+  }
+  -- ADC
+  components.adc = {
+    macro = 'BUILD_ADC',
+    attrs = {
+      buf_size = at.make_optional( at.int_log2_attr( 'ADC_BUF_SIZE' ) ),
+      first_timer = at.make_optional( at.int_attr( 'ADC_TIMER_FIRST_ID' ) ),
+      num_timers = at.make_optional( at.int_attr( 'ADC_NUM_TIMERS' ) )
     }
   }
   -- DNS client

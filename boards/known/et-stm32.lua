@@ -13,13 +13,17 @@ return {
     linenoise = { shell_lines = 10, lua_lines = 50 },
     stm32_enc = true,
     rpc = { uart = 0, speed = 115200 },
+    adc = { buf_size = 4 },
+    xmodem = true
   },
   config = {
     egc = { mode = "alloc" },
+    vtmr = { num = 4, freq = 10 },
   },
   modules = {
-    generic = { 'bit', 'can', 'cpu', 'elua', 'pack', 'pd', 'pio', 'pwm', 'spi', 'term', 'tmr', 'uart' },
-    platform = { 'enc' }
+    generic = 'all',
+    exclude_generic = { "i2c", "net" },
+    platform = 'all',
   }
 }
 

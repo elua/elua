@@ -22,11 +22,12 @@ local generic_modules = {
   spi = { "NUM_SPI > 0" },  
   term = { "BUILD_TERM" },  
   tmr = { "NUM_TIMER > 0" }, 
-  uart = { "NUM_UART > 0" } 
+  uart = { "NUM_UART > 0" },
+  math = {}
 }
 
 -- Auxlib names
-local auxlibs = {}
+local auxlibs = { math = "LUA_MATHLIBNAME" }
 
 -- Open function names
 local opennames = {}
@@ -84,19 +85,48 @@ function gen_module_list( desc, plconf, platform )
     end
   else
     -- Include only some modules. Validate their names against the corresponding module list
-    if mdesc.generic then
+    if mdesc.generic == "all" then -- all generic modules
+      for m, _ in pairs( generic_modules ) do
+        gen_list_generic[ m ] = true
+        ngenmods = ngenmods + 1
+      end
+    elseif mdesc.generic then
       for _, m in pairs( mdesc.generic ) do
         if not generic_modules[ m ] then return false, sf( "unknown generic module '%s' in section 'modules'", m ) end
         gen_list_generic[ m ] = true
         ngenmods = ngenmods + 1
       end
     end
-    if mdesc.platform then
+    if mdesc.platform == "all" then -- all platform modules
+      for m, _ in pairs( platform_modules ) do
+        gen_list_platform[ m ] = true
+        nplmods = nplmods + 1
+      end
+    elseif mdesc.platform then
        for _, m in pairs( mdesc.platform ) do
         if not platform_modules[ m ] then return false, sf( "unknown platform module '%s' in section 'modules'", m ) end
         gen_list_platform[ m ] = true
         nplmods = nplmods + 1
       end
+    end
+  end
+  -- Need to exclude anything?
+  if type( mdesc.exclude_generic ) == "table" then
+    for _, m in pairs( mdesc.exclude_generic ) do
+      if not gen_list_generic[ m ] then
+        return false, sf( "module '%s' in exclude_generic not found in the generic module list", m )
+      end
+      gen_list_generic[ m ] = nil
+      ngenmods = ngenmods - 1
+    end
+  end
+  if type( mdesc.exclude_platform ) == "table" then
+    for _, m in pairs( mdesc.exclude_platform ) do
+      if not gen_list_platform[ m ] then
+        return false, sf( "module '%s' in exclude_platform not found in the platform specific module list", m )
+      end
+      gen_list_platform[ m ] = nil
+      nplmods = nplmods - 1
     end
   end
   if ngenmods + nplmods == 0 then return '' end
