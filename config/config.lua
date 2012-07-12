@@ -134,10 +134,6 @@ local sanity_code = [[
 #define VTMR_NUM_TIMERS       0
 #endif // #ifndef VTMR_NUM_TIMERS
 
-#ifndef CON_BUF_SIZE
-#define CON_BUF_SIZE          0
-#endif // #ifndef CON_BUF_SIZE
-
 #ifndef SERMUX_FLOW_TYPE
 #define SERMUX_FLOW_TYPE      PLATFORM_UART_FLOW_NONE
 #endif
@@ -152,15 +148,15 @@ local sanity_code = [[
 
 #ifdef ELUA_BOOT_RPC
   #ifndef RPC_UART_ID
-    #define RPC_UART_ID     CON_UART_ID
+    #define RPC_UART_ID       CON_UART_ID
   #endif
 
   #ifndef RPC_TIMER_ID
-    #define RPC_TIMER_ID    PLATFORM_TIMER_SYS_ID
+    #define RPC_TIMER_ID      PLATFORM_TIMER_SYS_ID
   #endif
 
   #ifndef RPC_UART_SPEED
-    #define RPC_UART_SPEED  CON_UART_SPEED
+    #define RPC_UART_SPEED    CON_UART_SPEED
   #endif
 #endif // #ifdef ELUA_BOOT_RPC
 
@@ -170,6 +166,10 @@ local sanity_code = [[
 
 #if defined( ADC_BUF_SIZE ) && !defined( BUF_ENABLE_ADC )
 #define BUF_ENABLE_ADC
+#endif
+
+#ifndef CPU_FREQUENCY
+#define CPU_FREQUENCY         0
 #endif
 
 ]]

@@ -1,7 +1,7 @@
 // CPU definition file for STM32F103RE
 
-#ifndef __STM32F103RE_H__
-#define __STM32F103RE_H__
+#ifndef __CPU_STM32F103RE_H__
+#define __CPU_STM32F103RE_H__
 
 #include "type.h"
 #include "stacks.h"
@@ -47,5 +47,5 @@ u32 platform_s_cpu_get_frequency();
   _C( INT_TMR_MATCH ),        \
   _C( INT_UART_RX ),
 
-#endif // #ifndef __STM32F103RE_H__
+#endif // #ifndef __CPU_STM32F103RE_H__
 

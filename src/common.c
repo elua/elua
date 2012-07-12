@@ -24,6 +24,10 @@
 extern const elua_int_descriptor elua_int_table[ INT_ELUA_LAST ];
 #endif // #ifdef BUILD_INT_HANDLERS
 
+#ifndef CON_BUF_SIZE
+#define CON_BUF_SIZE          0
+#endif // #ifndef CON_BUF_SIZE
+
 // ****************************************************************************
 // XMODEM support code
 
