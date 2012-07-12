@@ -106,8 +106,8 @@ function init()
   components.mmcfs = {
     macro = 'BUILD_MMCFS',
     attrs = {
-      port = at.int_attr( 'MMCFS_CS_PORT' ),
-      pin = at.int_attr( 'MMCFS_CS_PIN' ),
+      cs_port = at.int_attr( 'MMCFS_CS_PORT' ),
+      cs_pin = at.int_attr( 'MMCFS_CS_PIN' ),
       spi = at.int_attr( 'MMCFS_SPI_NUM' )
     }
   }
