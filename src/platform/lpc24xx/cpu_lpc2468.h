@@ -1,9 +1,11 @@
 // LPC2468 CPU definitions
 
-#ifndef __LPC2468_H__
-#define __LPC2468_H__
+#ifndef __CPU_LPC2468_H__
+#define __CPU_LPC2468_H__
 
+#include "stacks.h"
 #include "target.h"
+#include "platform_ints.h"
 
 // Number of resources (0 if not available/not implemented)
 #define NUM_PIO               5
@@ -13,6 +15,9 @@
 #define NUM_ADC               8
 #define NUM_CAN               0
 #define NUM_TIMER             4
+
+// ADC Configuration Params
+#define ADC_BIT_RESOLUTION    10
 
 // CPU frequency (needed by the CPU module and MMCFS code, 0 if not used)
 #define CPU_FREQUENCY         Fcclk
@@ -25,11 +30,18 @@
 // Use #define PIO_PINS_PER_PORT 0 if this isn't needed
 #define PIO_PINS_PER_PORT     32
 
+// Internal RAM
 #define SRAM_ORIGIN           0x40000000
 #define SRAM_SIZE             0x10000 // [TODO]: make this 96k?
+#define INTERNAL_RAM_FIRST_FREE         end
+#define INTERNAL_RAM_LAST_FREE          ( SRAM_ORIGIN + SRAM_SIZE - STACK_SIZE_TOTAL - 1 )
 
-#define INTERNAL_FLASH_START_ADDRESS    0
-#define INTERNAL_FLASH_SIZE             ( 512 * 1024 )
+// Interrupt list for this CPU
+#define PLATFORM_CPU_CONSTANTS_INTS\
+  _C( INT_GPIO_POSEDGE ),     \
+  _C( INT_GPIO_NEGEDGE ),     \
+  _C( INT_TMR_MATCH ),        \
+  _C( INT_UART_RX ),
 
-#endif // #ifndef __LPC2468_H__
+#endif // #ifndef __CPU_LPC2468_H__
 

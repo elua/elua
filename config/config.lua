@@ -250,7 +250,7 @@ function compile_board( fname, boardname )
 
   -- Then configs
   gen, err = generate_config( desc, plconf )
-  local multi_alloc = sects.conf.use_multiple_allocator
+  local multi_alloc = cfgs.needs_multiple_allocator()
   if not gen then return false, err end
   header = header .. gen
   -- Accumulate generated data into 'glconf' and 'glen'

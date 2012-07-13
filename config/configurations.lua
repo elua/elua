@@ -6,6 +6,8 @@ local sf = string.format
 local at = require "attributes"
 local gen = require "generators"
 
+local use_multiple_allocator
+
 -------------------------------------------------------------------------------
 -- Attribute checkers
 
@@ -64,8 +66,8 @@ end
 local function mem_generator( desc, vals, generated )
   if not vals.MEM_START_ADDRESS and not vals.MEM_END_ADDRESS then
     -- Generate configuration only for the internal memory
-    local gstr = gen.print_define( "MEM_START_ADDRESS", "{ ( void* )( INTERNAL_RAM_FIRST_FREE ) }" )
-    gstr = gstr .. gen.print_define( "MEM_END_ADDRESS", "{ ( void* )( INTERNAL_RAM_LAST_FREE ) }" )
+    local gstr = gen.print_define( "MEM_START_ADDRESS", "{ ( u32 )( INTERNAL_RAM_FIRST_FREE ) }" )
+    gstr = gstr .. gen.print_define( "MEM_END_ADDRESS", "{ ( u32 )( INTERNAL_RAM_LAST_FREE ) }" )
     generated.MEM_START_ADDRESS = true
     generated.MEM_END_ADDRESS = true
     return gstr
@@ -78,16 +80,14 @@ local function mem_generator( desc, vals, generated )
   for i = 2, #sizevals do
     sizevals[ i ] = tonumber( startvals[ i ] ) + tonumber( sizevals[ i ] ) - 1
   end
-  -- Prefix all the values in the 'start' and 'size' arrays with (void*)
+  -- Prefix all the values in the 'start' and 'size' arrays with 'u32'
   for i = 1, #sizevals do
-    startvals[ i ] = "( void* )( " .. tostring( startvals[ i ] ) .. " )"
-    sizevals[ i ] = "( void* )( " .. tostring( sizevals[ i ] ) .. " )"
+    startvals[ i ] = "( u32 )( " .. tostring( startvals[ i ] ) .. ( i > 1 and "u" or "" ) .. " )"
+    sizevals[ i ] = "( u32 )( " .. tostring( sizevals[ i ] ) .. ( i > 1 and "u" or "" ) .. " )"
   end
   local gstr = gen.simple_gen( "MEM_START_ADDRESS", vals, generated )
   gstr = gstr .. gen.simple_gen( "MEM_END_ADDRESS", vals, generated )
-  -- Fugly hack: hardcode a key in 'vals' which specifies if the build should use a
-  -- memory allocator that supports non-contiguous regions
-  vals.use_multiple_allocator = #startvals > 1
+  use_multiple_allocator = #startvals > 1
   return gstr
 end
 
@@ -156,5 +156,11 @@ function init()
 
   -- All done
   return configs
+end
+
+-- Returns true if a multiple allocator is needed for this configuration, 
+-- false otherwise
+function needs_multiple_allocator()
+  return use_multiple_allocator
 end
 
