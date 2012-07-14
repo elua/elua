@@ -31,16 +31,16 @@ function config_element( section, sectname, name, data, req )
         v = res
       end
     end
-    if conf[ attrmeta.macro ] and tostring( conf[ attrmeta.macro ].value ) ~= tostring( v ) then
+    if conf[ attrmeta.macro ] and tostring( conf[ attrmeta.macro ].value ) ~= tostring( v ) and not conf[ attrmeta.macro ].from_default then
       print( utils.col_yellow( sf( "[CONFIG] WARNING: overriding value of attribute '%s' in element '%s' from '%s' to '%s' in section '%s'", 
              attr, name, conf[ attrmeta.macro ].value, v, sectname ) ) )
      end
-    conf[ attrmeta.macro ] = { name = attr, desc = attrmeta, value = v, sectname = sectname, elname = name }
+    conf[ attrmeta.macro ] = { name = attr, desc = attrmeta, value = v, sectname = sectname, elname = name, from_default = false }
   end
   -- Set default values where needed
   for name, data in pairs( attrs ) do
     if not conf[ data.macro ] and data.default then
-      conf[ data.macro ] = { name = name, desc = data, value = data.default, sectname = sectname, elname = name }
+      conf[ data.macro ] = { name = name, desc = data, value = data.default, sectname = sectname, elname = name, from_default = true }
     end
   end
   -- Mark this component as configured
