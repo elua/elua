@@ -19,8 +19,7 @@ return {
     ram = { ext_start = { 0xA0000000 }, ext_size = { 8 * 1048576 } } 
   },
   modules = {
-    generic = 'all',
-    exclude_generic = { "i2c", "net", "spi", "can" },
+    generic = { 'all', '-i2c', '-net', '-spi', '-can' }
   }
 }
 

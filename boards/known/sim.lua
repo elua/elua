@@ -10,7 +10,7 @@ return {
     term = { lines = 25, cols = 80 },
   },
   modules = {
-    generic = { 'pd', 'math', 'term', 'elua' }
+    generic = { 'pd', 'all_lua', 'term', 'elua' }
   }
 }
 

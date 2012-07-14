@@ -18,8 +18,7 @@ return {
     vtmr = { num = 4, freq = 16 },
   },
   modules = {
-    generic = 'all',
-    exclude_generic = { "net", "can" },
+    generic = { 'all', "-net", "-can" },
     platform = 'all'
   }
 }

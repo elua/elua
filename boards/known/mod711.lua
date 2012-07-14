@@ -10,7 +10,7 @@ return {
     xmodem = true
   },
   modules = {
-    generic = { 'pio', 'tmr', 'pd', 'pwm', 'uart', 'term', 'pack', 'bit', 'elua', 'cpu', 'math' }
+    generic = { 'pio', 'tmr', 'pd', 'pwm', 'uart', 'term', 'pack', 'bit', 'elua', 'cpu', 'all_lua' }
   }
 }
 

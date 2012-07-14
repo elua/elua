@@ -21,8 +21,7 @@ return {
     vtmr = { num = 4, freq = 10 },
   },
   modules = {
-    generic = 'all',
-    exclude_generic = { "i2c", "net" },
+    generic = { 'all', '-i2c', '-net' },
     platform = 'all',
   }
 }

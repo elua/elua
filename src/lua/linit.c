@@ -18,31 +18,28 @@
 
 extern int luaopen_platform( lua_State *L );
 
+// Dummy open function for "co" (actually opened in lbaselib.c)
+int luaopen_co( lua_State *L )
+{
+  return 0;
+}
+
+#define _ROM( name, openf, table ) { name, openf },
+
 static const luaL_Reg lualibs[] = {
   {"", luaopen_base},
-  {LUA_LOADLIBNAME, luaopen_package},
-  {LUA_IOLIBNAME, luaopen_io},
-  {LUA_STRLIBNAME, luaopen_string},    
-#if LUA_OPTIMIZE_MEMORY == 0
-  {LUA_MATHLIBNAME, luaopen_math},
-  {LUA_TABLIBNAME, luaopen_table},  
-  {LUA_DBLIBNAME, luaopen_debug},  
-#endif
 #ifdef LUA_PLATFORM_LIBS_REG
   LUA_PLATFORM_LIBS_REG,
 #endif 
 #if defined(LUA_PLATFORM_LIBS_ROM)
-#define _ROM( name, openf, table ) { name, openf },
   LUA_PLATFORM_LIBS_ROM
+#endif
+#if defined(LUA_LIBS_NOLTR)
+  LUA_LIBS_NOLTR
 #endif
   {NULL, NULL}
 };
 
-extern const luaR_entry strlib[];
-extern const luaR_entry syslib[];
-extern const luaR_entry tab_funcs[];
-extern const luaR_entry dblib[];
-extern const luaR_entry co_funcs[];
 #if defined(LUA_PLATFORM_LIBS_ROM) && LUA_OPTIMIZE_MEMORY == 2
 #undef _ROM
 #define _ROM( name, openf, table ) extern const luaR_entry table[];
@@ -50,16 +47,10 @@ LUA_PLATFORM_LIBS_ROM;
 #endif
 const luaR_table lua_rotable[] = 
 {
-#if LUA_OPTIMIZE_MEMORY > 0
-  {LUA_STRLIBNAME, strlib},
-  {LUA_TABLIBNAME, tab_funcs},
-  {LUA_DBLIBNAME, dblib},
-  {LUA_COLIBNAME, co_funcs},
 #if defined(LUA_PLATFORM_LIBS_ROM) && LUA_OPTIMIZE_MEMORY == 2
 #undef _ROM
 #define _ROM( name, openf, table ) { name, table },
   LUA_PLATFORM_LIBS_ROM
-#endif
 #endif
   {NULL, NULL}
 };

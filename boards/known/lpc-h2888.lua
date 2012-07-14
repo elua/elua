@@ -14,7 +14,7 @@ return {
     ram = { ext_start = { "SDRAM_BASE_ADDR" }, ext_size = { "SDRAM_SIZE" } }
   },
   modules = {
-    generic = { 'pio', 'tmr', 'pd', 'uart', 'term', 'pack', 'bit', 'elua', 'cpu', 'rpc', 'math' }
+    generic = { 'pio', 'tmr', 'pd', 'uart', 'term', 'pack', 'bit', 'elua', 'cpu', 'rpc', 'all_lua' }
   }
 }
 
