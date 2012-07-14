@@ -4,6 +4,7 @@ module( ..., package.seeall )
 
 local lfs = require "lfs"
 local sf = string.format
+local md5 = require "md5"
 
 -- Taken from Lake
 dir_sep = package.config:sub( 1, 1 )
@@ -37,7 +38,13 @@ end
 -- Replace the extension of a give file name
 replace_extension = function( s, newext )
   local p, e = split_path( s )
-  if e then s = p .. "." .. newext end
+  if e then 
+    if newext and #newext > 0 then 
+      s = p .. "." .. newext
+    else
+      s = p
+    end
+  end
   return s
 end
 
@@ -111,6 +118,13 @@ table_keys = function( t )
   return keys
 end
 
+-- Return an array with the values of a table
+table_values = function( t )
+  local vals = {}
+  foreach( t, function( k, v ) table.insert( vals, v ) end )
+  return vals
+end
+
 -- Returns true if 'path' is a regular file, false otherwise
 is_file = function( path )
   return lfs.attributes( path, "mode" ) == "file"
@@ -168,20 +182,69 @@ foreach = function ( t, cmd )
   for k, v in pairs( t ) do cmd( k, v ) end
 end
 
--- Template header
-gen_header = function( name, defines )
-  local hname = "inc" .. dir_sep .. name:lower() .. ".h"
-  local h = assert(io.open(hname, "w"))
-  h:write("// eLua " .. name:lower() .. " definition\n\n")
-  h:write("#ifndef __" .. name:upper() .. "_H__\n")
-  h:write("#define __" .. name:upper() .. "_H__\n\n")
+-- Generate header with the given #defines, return result as string
+gen_header_string = function( name, defines )
+  local s = "// eLua " .. name:lower() .. " definition\n\n"
+  s = s .. "#ifndef __" .. name:upper() .. "_H__\n"
+  s = s .. "#define __" .. name:upper() .. "_H__\n\n"
 
   for key,value in pairs(defines) do 
-     h:write(string.format("#define   %-25s%-19s\n",key:upper(),value))
+     s = s .. string.format("#define   %-25s%-19s\n",key:upper(),value)
   end
 
-  h:write("\n#endif\n")
+  s = s .. "\n#endif\n"
+  return s
+end
+
+-- Generate header with the given #defines, save result to file
+gen_header_file = function( name, defines )
+  local hname = concat_path{ "inc", name:lower() .. ".h" }
+  local h = assert( io.open( hname, "w" ) )
+  h:write( gen_header_string( name, defines ) )
   h:close()
+end
+
+-- Remove the given elements from an array
+remove_array_elements = function( arr, del )
+  del = istable( del ) and del or { del }
+  foreach( del, function( k, v )
+    local pos = array_element_index( arr, v )
+    if pos then table.remove( arr, pos ) end
+  end )
+end
+
+-- Remove a directory recusively
+-- USE WITH CARE!! Doesn't do much checks :)
+rm_dir_rec = function ( dirname )
+  for f in lfs.dir( dirname ) do
+    local ename = string.format( "%s/%s", dirname, f )
+    local attrs = lfs.attributes( ename )
+    if attrs.mode == 'directory' and f ~= '.' and f ~= '..' then
+      rm_dir_rec( ename ) 
+    elseif attrs.mode == 'file' or attrs.mode == 'named pipe' or attrs.mode == 'link' then
+      os.remove( ename )
+    end
+  end
+  lfs.rmdir( dirname )
+end
+
+-- Computes the hash of the given string
+get_hash_of_string = function( s )
+  return md5.sumhexa( s )
+end
+
+-- Computes the hash of the given file
+get_hash_of_file = function( f )
+  local f = io.open( f, "rb" )
+  if not f then return end
+  local d = f:read( "*a" )
+  f:close()
+  return get_hash_of_string( d )
+end
+
+-- Concatenates the second table into the first one
+concat_tables = function( dst, src )
+  foreach( src, function( k, v ) dst[ k ] = v end )
 end
 
 -------------------------------------------------------------------------------

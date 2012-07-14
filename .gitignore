@@ -19,3 +19,5 @@ inc/git_version.h
 *~
 *.*~
 luac.cross*
+boards/*.h
+

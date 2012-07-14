@@ -328,6 +328,7 @@ builder.new = function( build_dir )
   self.clean_mode = false
   self.opts = utils.options_handler()
   self.args = {}
+  self.user_args = {}
   self.build_mode = self.KEEP_DIR
   self.targets = {}
   self.targetargs = {}
@@ -389,6 +390,7 @@ builder.init = function( self, args )
         os.exit( 1 )
       end
       self.args[ k:upper() ] = v
+      self.user_args[ k:upper() ] = true
     else                                        -- this must be the target name / target arguments
       if self.targetname == nil then            
         self.targetname = a
@@ -406,6 +408,11 @@ end
 -- Return the value of the option with the given name
 builder.get_option = function( self, optname )
   return self.args[ optname:upper() ]
+end
+
+-- Returns true if the given option was specified by the user on the command line, false otherwise
+builder.is_user_option = function( self, optname )
+  return self.user_args[ optname:upper() ]
 end
 
 -- Show builder help
@@ -719,11 +726,11 @@ end
 builder.build = function( self, target )
   local t = self.targetname or self.deftarget
   if not t then
-    print( "[builder] Error: build target not specified" )
+    print( utils.col_red( "[builder] Error: build target not specified" ) )
     os.exit( 1 )
   end
   if not self.targets[ t ] then
-    print( sf( "[builder] Error: target '%s' not found", t ) )
+    print( utils.col_red( sf( "[builder] Error: target '%s' not found", t ) ) )
     print( "Available targets: " )
     for k, v in pairs( self.targets ) do
       if not is_phony( k ) then 
@@ -738,19 +745,19 @@ builder.build = function( self, target )
   self:_create_outdir()
   -- At this point check if we have a change in the state that would require a rebuild
   if self:_compare_config( 'comp' ) then
-    print "[builder] Forcing rebuild due to configuration change"
+    print( utils.col_yellow( "[builder] Forcing rebuild due to configuration change." ) )
     self.global_force_rebuild = true
   else
     self.global_force_rebuild = false
   end
   -- Do the actual build
   local res = self.targets[ t ].target:build()
-  if not res then print( sf( '[builder] %s: up to date', t ) ) end
+  if not res then print( utils.col_yellow( sf( '[builder] %s: up to date', t ) ) ) end
   if self.clean_mode then 
     os.remove( self.build_dir .. utils.dir_sep .. ".builddata.comp" ) 
     os.remove( self.build_dir .. utils.dir_sep .. ".builddata.link" ) 
   end
-  print "[builder] Done building target."
+  print( utils.col_yellow( "[builder] Done building target." ) )
   return res
 end
 
