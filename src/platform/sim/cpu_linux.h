@@ -25,8 +25,8 @@
 extern void *memory_start_address;
 extern void *memory_end_address;
 #define MEM_LENGTH (1024 * 1024)
-#define INTERNAL_RAM_FIRST_FREE ( void* )memory_start_address
-#define INTERNAL_RAM_LAST_FREE  ( void* )memory_end_address
+#define INTERNAL_RAM1_FIRST_FREE ( void* )memory_start_address
+#define INTERNAL_RAM1_LAST_FREE  ( void* )memory_end_address
 
 #endif
 

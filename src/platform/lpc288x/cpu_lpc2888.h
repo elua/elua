@@ -30,8 +30,8 @@
 // (start address and end address)
 #define SRAM_ORIGIN           0x00400000
 #define SRAM_SIZE             0x10000
-#define INTERNAL_RAM_FIRST_FREE end
-#define INTERNAL_RAM_LAST_FREE  ( SRAM_ORIGIN + SRAM_SIZE - STACK_SIZE_TOTAL - 1 )
+#define INTERNAL_RAM1_FIRST_FREE end
+#define INTERNAL_RAM1_LAST_FREE  ( SRAM_ORIGIN + SRAM_SIZE - STACK_SIZE_TOTAL - 1 )
 
 #endif // #ifndef __CPU_LPC2888_H__
 

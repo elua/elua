@@ -16,7 +16,7 @@ return {
   },
   config = {
     vtmr = { num = 4, freq = 4 },
-    extmem = { start = { 0xA0000000 }, size = { 8 * 1048576 } } 
+    ram = { ext_start = { 0xA0000000 }, ext_size = { 8 * 1048576 } } 
   },
   modules = {
     generic = 'all',

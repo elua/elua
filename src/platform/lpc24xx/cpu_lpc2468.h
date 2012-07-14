@@ -33,8 +33,8 @@
 // Internal RAM
 #define SRAM_ORIGIN           0x40000000
 #define SRAM_SIZE             0x10000 // [TODO]: make this 96k?
-#define INTERNAL_RAM_FIRST_FREE         end
-#define INTERNAL_RAM_LAST_FREE          ( SRAM_ORIGIN + SRAM_SIZE - STACK_SIZE_TOTAL - 1 )
+#define INTERNAL_RAM1_FIRST_FREE         end
+#define INTERNAL_RAM1_LAST_FREE          ( SRAM_ORIGIN + SRAM_SIZE - STACK_SIZE_TOTAL - 1 )
 
 // Interrupt list for this CPU
 #define PLATFORM_CPU_CONSTANTS_INTS\

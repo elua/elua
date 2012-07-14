@@ -175,7 +175,7 @@ if bdata.multi_alloc and comp.allocator == "newlib" then
   io.write( utils.col_yellow( "[CONFIG] WARNING: your board has non-contigous RAM areas, but you specified an allocator ('newlib') that can't handle this configuration." ) )
   print( utils.col_yellow( "Rebuild with another allocator ('multiple' or 'simple')" ) )
 end
-if comp.allocator == "auto" and bdata.multi_alloc then comp.allocator = "multiple" end
+if comp.allocator == "auto" then comp.allocator = bdata.multi_alloc and "multiple" or "newlib" end
 comp.cpu = bdata.cpu:upper()
 
 platform = bd.get_platform_of_cpu( comp.cpu )
@@ -214,18 +214,6 @@ else
     print "Unable to find an usable toolchain in your path."
     print( sf( "List of accepted toolchains (for %s): %s", comp.cpu, table.concat( usable_chains, "," ) ) )
     os.exit( -1 )
-  end
-end
-
--- CPU/allocator mapping (if allocator not specified)
--- TODO: this needs to go away too, since the allocator is now automatically inferred
-if comp.allocator == 'auto' then
-  if comp.board:upper() == 'MIZAR32' or comp.cpu:upper() == 'AT32UC3A0128' then
-    comp.allocator = 'simple'
-  elseif utils.array_element_index( { 'LPC-H2888', 'ATEVK1100', 'MIZAR32', 'MBED' }, comp.board:upper() ) then
-    comp.allocator = 'multiple'
-  else
-    comp.allocator = 'newlib'
   end
 end
 

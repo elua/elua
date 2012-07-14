@@ -11,7 +11,7 @@ return {
     rpc = { uart = 0, speed = 115200 }
   },
   config = {
-    extmem = { start = { "SDRAM_BASE_ADDR" }, size = { "SDRAM_SIZE" } }
+    ram = { ext_start = { "SDRAM_BASE_ADDR" }, ext_size = { "SDRAM_SIZE" } }
   },
   modules = {
     generic = { 'pio', 'tmr', 'pd', 'uart', 'term', 'pack', 'bit', 'elua', 'cpu', 'rpc', 'math' }

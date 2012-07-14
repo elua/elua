@@ -11,22 +11,26 @@ local use_multiple_allocator
 -------------------------------------------------------------------------------
 -- Attribute checkers
 
-local function mem_checker( eldesc, vals )
+local function ram_checker( eldesc, vals )
   local startvals = vals.MEM_START_ADDRESS and vals.MEM_START_ADDRESS.value
   local sizevals = vals.MEM_END_ADDRESS and vals.MEM_END_ADDRESS.value
+  local ninternal = vals._NUM_INTERNAL_RAMS.value
+  if ( not startvals or not sizevals ) and ninternal == 0 then
+    return false, "RAM configuration must be defined in element 'ram' of section 'config'"
+  end
   if not startvals and not sizevals then return true end
   if not startvals then
-    return false, "attribute 'start' must also be specified for element 'extmem' of section 'config'"
+    return false, "attribute 'ext_start' must also be specified for element 'ram' of section 'config'"
   elseif not sizevals then
-    return false, "attribute 'size' must also be specified for element 'extmem' of section 'config'"
+    return false, "attribute 'ext_size' must also be specified for element 'ram' of section 'config'"
   end
   if #startvals == 0 then
-    return false, "attribute 'start' of element 'extmem' in section 'config' must have at least one element"
+    return false, "attribute 'ext_start' of element 'ram' in section 'config' must have at least one element"
   elseif #sizevals == 0 then
-    return false, "attribute 'size' of element 'extmem' in section 'config' must have at least one element"
+    return false, "attribute 'ext_size' of element 'ram' in section 'config' must have at least one element"
   end
   if #startvals ~= #sizevals then
-    return false, "attributes 'start' and 'size' of element 'extmem' in section 'config' must have the same number of elements'"
+    return false, "attributes 'ext_start' and 'ext_size' of element 'ram' in section 'config' must have the same number of elements"
   end
   return true
 end
@@ -61,29 +65,38 @@ end
 -- Specific generators
 
 -- Automatically generates the MEM_START_ADDRESS and MEM_END_ADDRESS macros
--- Assumes that definitions for INTERNAL_RAM_FIRST_FREE and INTERNAL_RAM_LAST_FREE
+-- Assumes that definitions for INTERNAL_RAMx_FIRST_FREE and INTERNAL_RAMx_LAST_FREE
 -- exist (they should come from <cpu>.h)
-local function mem_generator( desc, vals, generated )
-  if not vals.MEM_START_ADDRESS and not vals.MEM_END_ADDRESS then
+local function ram_generator( desc, vals, generated )
+  -- Prepare internal memory configuration first
+  local ninternal = vals._NUM_INTERNAL_RAMS.value
+  local istart, iend = {}, {}
+  for i = 1, ninternal do
+    table.insert( istart, sf( "( u32 )( INTERNAL_RAM%d_FIRST_FREE )", i ) )
+    table.insert( iend, sf( "( u32 )( INTERNAL_RAM%d_LAST_FREE )", i ) )
+  end
+  if not vals.MEM_START_ADDRESS then
     -- Generate configuration only for the internal memory
-    local gstr = gen.print_define( "MEM_START_ADDRESS", "{ ( u32 )( INTERNAL_RAM_FIRST_FREE ) }" )
-    gstr = gstr .. gen.print_define( "MEM_END_ADDRESS", "{ ( u32 )( INTERNAL_RAM_LAST_FREE ) }" )
+    local gstr = gen.print_define( "MEM_START_ADDRESS", "{ " .. table.concat( istart, "," ) .. " }" )
+    gstr = gstr .. gen.print_define( "MEM_END_ADDRESS", "{ " .. table.concat( iend, "," ) .. " }" ) 
     generated.MEM_START_ADDRESS = true
     generated.MEM_END_ADDRESS = true
+    use_multiple_allocator = ninternal > 1
     return gstr
   end
   local function fmtval( s ) return tonumber( s ) and tostring( s ) .. "UL" or ( "( u32 )( " .. s .. " )" ) end
-  local startvals = vals.MEM_START_ADDRESS.value
-  local sizevals = vals.MEM_END_ADDRESS.value
-  table.insert( startvals, 1, "( u32 )( INTERNAL_RAM_FIRST_FREE )" )
-  table.insert( sizevals, 1, "( u32 )( INTERNAL_RAM_LAST_FREE )" )
-  for i = 2, #sizevals do
+  local startvals, sizevals = vals.MEM_START_ADDRESS.value, vals.MEM_END_ADDRESS.value
+  for i = 1, ninternal do
+    table.insert( startvals, i, sf( "( u32 )( INTERNAL_RAM%d_FIRST_FREE )", i ) )
+    table.insert( sizevals, i, sf( "( u32 )( INTERNAL_RAM%d_LAST_FREE )", i ) )
+  end
+  for i = ninternal + 1, #sizevals do
     sizevals[ i ] = sf( "( %s + %s - 1 )", fmtval( startvals[ i ] ), fmtval( sizevals[ i ] ) )
     startvals[ i ] = sf( "( %s )", fmtval( startvals[ i ] ) )
   end
+  use_multiple_allocator = #startvals > 1
   local gstr = gen.simple_gen( "MEM_START_ADDRESS", vals, generated )
   gstr = gstr .. gen.simple_gen( "MEM_END_ADDRESS", vals, generated )
-  use_multiple_allocator = #startvals > 1
   return gstr
 end
 
@@ -139,15 +152,16 @@ function init()
     },
   }
 
-  -- Memory configuration generator
-  configs.extmem = {
-    gen = mem_generator,
-    confcheck = mem_checker,
+  -- RAM configuration generator
+  configs.ram = {
+    gen = ram_generator,
+    confcheck = ram_checker,
     attrs = {
-      start = at.array_of( at.combine_attr( 'MEM_START_ADDRESS', { at.int_attr( '' ), at.string_attr( '' ) } ) ),
-      size = at.array_of( at.combine_attr( 'MEM_END_ADDRESS', { at.int_attr( '', 1 ), at.string_attr( '' ) } ) ),
+      internal_rams = at.int_attr( '_NUM_INTERNAL_RAMS', 0, nil, 1 ), 
+      ext_start = at.array_of( at.combine_attr( 'MEM_START_ADDRESS', { at.int_attr( '' ), at.string_attr( '' ) } ) ),
+      ext_size = at.array_of( at.combine_attr( 'MEM_END_ADDRESS', { at.int_attr( '', 1 ), at.string_attr( '' ) } ) ),
     },
-    required = {}
+    required = { internal_rams = 1, ext_start = {}, ext_size = {} }
   }
 
   -- All done

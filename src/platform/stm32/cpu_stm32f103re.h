@@ -33,8 +33,8 @@ u32 platform_s_cpu_get_frequency();
 
 // Internal memory data
 #define SRAM_SIZE                       ( 64 * 1024 )
-#define INTERNAL_RAM_FIRST_FREE         end
-#define INTERNAL_RAM_LAST_FREE          ( SRAM_BASE + SRAM_SIZE - STACK_SIZE_TOTAL - 1 )
+#define INTERNAL_RAM1_FIRST_FREE         end
+#define INTERNAL_RAM1_LAST_FREE          ( SRAM_BASE + SRAM_SIZE - STACK_SIZE_TOTAL - 1 )
 
 #define INTERNAL_FLASH_SIZE             ( 512 * 1024 )
 #define INTERNAL_FLASH_SECTOR_SIZE      2048
