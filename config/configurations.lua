@@ -72,18 +72,14 @@ local function mem_generator( desc, vals, generated )
     generated.MEM_END_ADDRESS = true
     return gstr
   end
+  local function fmtval( s ) return tonumber( s ) and tostring( s ) .. "UL" or ( "( u32 )( " .. s .. " )" ) end
   local startvals = vals.MEM_START_ADDRESS.value
   local sizevals = vals.MEM_END_ADDRESS.value
-  table.insert( startvals, 1, "INTERNAL_RAM_FIRST_FREE" )
-  table.insert( sizevals, 1, "INTERNAL_RAM_LAST_FREE" )
-  -- Transform the data in 'sizevals' to 'last address' (the format accepted by eLua)
+  table.insert( startvals, 1, "( u32 )( INTERNAL_RAM_FIRST_FREE )" )
+  table.insert( sizevals, 1, "( u32 )( INTERNAL_RAM_LAST_FREE )" )
   for i = 2, #sizevals do
-    sizevals[ i ] = tonumber( startvals[ i ] ) + tonumber( sizevals[ i ] ) - 1
-  end
-  -- Prefix all the values in the 'start' and 'size' arrays with 'u32'
-  for i = 1, #sizevals do
-    startvals[ i ] = "( u32 )( " .. tostring( startvals[ i ] ) .. ( i > 1 and "u" or "" ) .. " )"
-    sizevals[ i ] = "( u32 )( " .. tostring( sizevals[ i ] ) .. ( i > 1 and "u" or "" ) .. " )"
+    sizevals[ i ] = sf( "( %s + %s - 1 )", fmtval( startvals[ i ] ), fmtval( sizevals[ i ] ) )
+    startvals[ i ] = sf( "( %s )", fmtval( startvals[ i ] ) )
   end
   local gstr = gen.simple_gen( "MEM_START_ADDRESS", vals, generated )
   gstr = gstr .. gen.simple_gen( "MEM_END_ADDRESS", vals, generated )
@@ -148,8 +144,8 @@ function init()
     gen = mem_generator,
     confcheck = mem_checker,
     attrs = {
-      start = at.array_of( at.int_attr( 'MEM_START_ADDRESS' ) ),
-      size = at.array_of( at.int_attr( 'MEM_END_ADDRESS', 1 ) )
+      start = at.array_of( at.combine_attr( 'MEM_START_ADDRESS', { at.int_attr( '' ), at.string_attr( '' ) } ) ),
+      size = at.array_of( at.combine_attr( 'MEM_END_ADDRESS', { at.int_attr( '', 1 ), at.string_attr( '' ) } ) ),
     },
     required = {}
   }

@@ -58,7 +58,6 @@ end
 -- Return the string if OK, (false, errmsg) for error
 -- Needs: attrmaxsize - maximum size of the string
 local function _validate_string( adesc, aname, aval, elname, sectname )
-  aval = tostring( aval )
   if type( aval ) ~= "string" then
     return false, sf( "value of attribute '%s' for element '%s' in section '%s' must be a string", aname, elname, sectname )
   end
@@ -113,6 +112,16 @@ local validate_log2 = build_validator( _validate_log2 )
 local validate_string = build_validator( _validate_string )
 local validate_ip = build_validator( _validate_ip )
 
+-- Composite validator: run each validator in turn
+local function composite_validator( adesc, aname, aval, elname, sectname )
+  for _, onedesc in pairs( adesc.attrs ) do
+    onedesc.is_array = adesc.is_array
+    local res, err = onedesc.validator( onedesc, aname, aval, elname, sectname )
+    if res then return res end
+  end
+  return false, sf( "Invalid value '%s' for attribute '%s' of element '%s' in section '%s'", tostring( aval ), aname, elname, sectname )
+end
+
 -------------------------------------------------------------------------------
 -- Public interface
 
@@ -165,6 +174,11 @@ end
 -- Returns a new IP attribute
 function ip_attr( macro, default )
   return { macro = macro, default = default, validator = validate_ip, is_ip = true }
+end
+
+-- Returns a new combined attribute
+function combine_attr( macro, attrs )
+  return { macro = macro, validator = composite_validator, attrs = attrs }
 end
 
 -- Make the given attribute optional
