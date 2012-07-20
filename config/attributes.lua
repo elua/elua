@@ -21,9 +21,15 @@ end
 -- Needs: attrtype - the number type ('int' or 'float')
 --        attrmin - minimum value (no minimum check will be performed if not specified)
 --        attrmax - maximum value (no maximum check will be performed if not specified)
-local function _validate_number( adesc, aname, aval, elname, sectname )
-  aval = tonumber( aval )
-  if not aval then return false, sf( "value of attribute '%s' for element '%s' in section '%s' must be a number", aname, elname, sectname ) end
+--        allow_string - allows this number to also be a string
+local function _validate_number( adesc, aname, _aval, elname, sectname )
+  local aval = tonumber( _aval )
+  if not aval then
+    if type( _aval ) == "string" and adesc.allow_string then
+      return _aval
+    else
+      return false, sf( "value of attribute '%s' for element '%s' in section '%s' must be a number", aname, elname, sectname ) end
+    end
   if adesc.attrtype == 'int' and math.floor( aval ) ~= aval then
     return false, sf( "value of attribute '%s' for element '%s' in section '%s' must be an integer", aname, elname, sectname )
   end
@@ -44,6 +50,7 @@ end
 local function _validate_log2( adesc, aname, aval, elname, sectname )
   local res, err = _validate_number( adesc, aname, aval, elname, sectname )
   if not res then return res, err end
+  if adesc.allow_string and not tonumber( res ) and type( res ) == "string" then return res end
   if aval <= 0 then
     return false, sf( "value of attribute '%s' for element '%s' in section '%s' must be larger than 0", aname, elname, sectname )
   end
@@ -140,7 +147,7 @@ end
 
 -- Returns a new integer number attribute with the given limits
 function int_attr( macro, minv, maxv, default )
-  return { macro = macro, default = default, validator = validate_number, attrtype = 'int', attrmin = minv, attrmax = maxv }
+  return { macro = macro, default = default, validator = validate_number, attrtype = 'int', attrmin = minv, attrmax = maxv, allow_string = true }
 end
 
 -- Returns a new UART attribute
@@ -193,4 +200,15 @@ function array_of( attr )
   return attr
 end
 
+-- Bypass the validator of a given attribute
+function dont_validate( attr )
+  attr.validator = function( adesc, aname, aval, elname, sectname ) return aval end
+  return attr
+end
+
+-- Removes the string option from the given number attribute
+function nostr( attr )
+  attr.allow_string = false
+  return attr
+end
 

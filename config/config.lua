@@ -13,6 +13,7 @@ local bd = require "build_data"
 local mgen = require "modules"
 local cpuct = require "cpuconstants"
 local sects = require "sections"
+local bargs = require "buildargs"
 
 local components, configs
 local glconf, glen
@@ -197,7 +198,7 @@ function compile_board( fname, boardname )
   if not desc.cpu then return false, "cpu not specified in board configuration file" end
 
   -- Check the keys in 'desc'
-  local known_keys = { 'cpu', 'components', 'config', 'headers', 'macros', 'modules', 'cpu_constants', 'allocator', 'target' }
+  local known_keys = { 'cpu', 'components', 'config', 'headers', 'macros', 'modules', 'cpu_constants', 'build' }
   for k, _ in pairs( desc ) do
     if not utils.array_element_index( known_keys, k ) then return false, sf( "unknown key '%s'", k ) end
   end
@@ -231,6 +232,8 @@ function compile_board( fname, boardname )
 
   -- Do we need to add definitions for any configured macros?
   if type( desc.macros ) == "table" and #desc.macros > 0 then
+    header = header .. string.rep( "/", 80 ) .. "\n"
+    header = header .. "// Configuration for section 'macros'\n\n"
     for _, m in pairs( desc.macros ) do
       if type( m ) == "string" then -- #define m
         header = header .. gen.print_define( m )
@@ -279,26 +282,11 @@ function compile_board( fname, boardname )
   header = header .. sf( "#endif // #ifndef __GENERATED_%s_H__\n", cboardname )
 
   -- We are done with the header, we still need to check the compile flags
-  local allocator
-  if desc.allocator then
-    local allocs = { 'newlib', 'multiple', 'simple' }
-    if not utils.array_element_index( allocs, desc.allocator ) then 
-      return false, sf( "unknown allocator '%s'", desc.allocator )
-    end
-    allocator = desc.allocator
-  end
-
-  local target
-  if desc.target then
-    local targets = { 'lua', 'lualong', 'lualonglong' }
-    if not utils.array_element_index( targets, desc.target ) then
-      return false, sf( "unknown target '%ws'", desc.target )
-    end
-    target = desc.target
-  end
+  gen, err = bargs.validate( desc, platform )
+  if not gen then return false, err end
 
   -- Return the contents of the header, as well as the name of the CPU used by this
   -- board (this information is needed by the builder) and the build information
-  return { header = header, cpu = desc.cpu, multi_alloc = multi_alloc, allocator = allocator, target = target }
+  return { header = header, cpu = desc.cpu, multi_alloc = multi_alloc, build = desc.build }
 end
 

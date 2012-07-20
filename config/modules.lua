@@ -184,10 +184,11 @@ function gen_module_list( desc, plconf, platform )
     -- In order to do this, we gather their guards in a single, long condition
     -- Count all guards first
     local nguards = 0
+    local pltabname = mdesc.platform_name or platform
     for m, _ in pairs( gen_list_platform ) do nguards = nguards + #platform_modules[ m ] end
     if nguards == 0 then -- nothing to guard
       gstr = gstr .. gen.print_define( "PLATFORM_MODULES_LINE", sf( '_ROM( "%s", luaopen_platform, platform_map )', platform ) )
-      gstr = gstr .. gen.print_define( "PS_LIB_TABLE_NAME", sf( '"%s"', platform ) )
+      gstr = gstr .. gen.print_define( "PS_LIB_TABLE_NAME", sf( '"%s"', pltabname ) )
       gstr = gstr .. gen.print_define( "PLATFORM_MODULES_ENABLE" )
     else
       -- Gather the composed condition in 'cond'
@@ -200,7 +201,7 @@ function gen_module_list( desc, plconf, platform )
       end
       gstr = gstr .. cond .. "\n"
       gstr = gstr .. gen.print_define( "PLATFORM_MODULES_LINE", sf( '_ROM( "%s", luaopen_platform, platform_map )', platform ) )
-      gstr = gstr .. gen.print_define( "PS_LIB_TABLE_NAME", sf( '"%s"', platform ) )
+      gstr = gstr .. gen.print_define( "PS_LIB_TABLE_NAME", sf( '"%s"', pltabname ) )
       gstr = gstr .. gen.print_define( "PLATFORM_MODULES_ENABLE" )
       gstr = gstr .. "#else\n"
       gstr = gstr .. gen.print_define( sf( "PLATFORM_MODULES_LINE" ) )

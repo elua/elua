@@ -99,6 +99,22 @@ for k, v in pairs( board_flist ) do
   if not utils.array_element_index( board_list, temp ) then board_list[ #board_list + 1 ] = temp end
 end
 
+-- Check a single command line option against the corresponding value in the build configuration
+local function check_cmdline_vs_conf( argname, comp, bd )
+  if bd[ argname ] then
+    if comp[ argname ] == "auto" then
+      comp[ argname ] = bd[ argname ]
+    elseif bd[ argname ] ~= comp[ argname ] then
+      if builder:is_user_option( argname ) then
+        print( utils.col_yellow( sf( "[CONFIG] WARNING: changing '%s' from '%s' to '%s' as specified in the command line", 
+               argname, tostring( bd[ argname ] ), tostring( comp[ argname ] ) ) ) )
+      else
+        comp[ argname ] = bd[ argname ]
+      end
+    end
+  end
+end
+
 builder:add_option( 'target', 'build "regular" float lua, 32 bit integer-only "lualong" or 64-bit integer only lua "lualonglong"', 'lua', { 'lua', 'lualong', 'lualonglong' } )
 builder:add_option( 'allocator', 'select memory allocator', 'auto', { 'newlib', 'multiple', 'simple', 'auto' } )
 builder:add_option( 'board', 'selects board for target (cpu will be inferred)', nil, board_list )
@@ -150,25 +166,11 @@ addm( 'ELUA_CPU_HEADER="\\"cpu_' .. bdata.cpu:lower() .. '.h\\""' )
 addm( 'ELUA_BOARD_HEADER="\\"board_' .. comp.board:lower() .. '.h\\""' )
 -- Make available the board directory for the generated header files
 addi( utils.concat_path{ board_base_dir, "headers" } )
--- Force target if needed
-if bdata.target and bdata.target ~= comp.target then
-  if builder:is_user_option( 'target' ) then
-    print( utils.col_yellow( sf( "[CONFIG] WARNING: changing the target from '%s' to '%s' as specified in the command line", bdata.target, comp.target ) ) )
-  else
-    comp.target = bdata.target
-  end
-end
--- Force allocator if needed
-if bdata.allocator then
-  if comp.allocator == "auto" then
-    comp.allocator = bdata.allocator
-  elseif bdata.allocator ~= comp.allocator then
-    if builder:is_user_option( 'allocator' ) then
-      print( utils.col_yellow( sf( "[CONFIG] WARNING: changing the allocator from '%s' to '%s' as specified in the command line", bdata.allocator, comp.allocator ) ) )
-    else
-      comp.allocator = bdata.allocator
-    end
-  end
+-- Force compilation flags if needed
+if bdata.build then
+ utils.foreach( { 'target', 'allocator', 'optram', 'boot', 'romfs', 'cpumode', 'bootloader' }, function( k, v )
+    check_cmdline_vs_conf( v, comp, bdata.build )
+ end )
 end
 -- Automatically set the allocator to 'multiple' if needed
 if bdata.multi_alloc and comp.allocator == "newlib" then
@@ -177,6 +179,9 @@ if bdata.multi_alloc and comp.allocator == "newlib" then
 end
 if comp.allocator == "auto" then comp.allocator = bdata.multi_alloc and "multiple" or "newlib" end
 comp.cpu = bdata.cpu:upper()
+if not comp.optram then
+  print( utils.col_yellow( "[CONFIG] WARNING: you have disabled Lua Tiny RAM (LTR). You might experience compilation issues. Also, some modules might not work correctly." ) )
+end
 
 platform = bd.get_platform_of_cpu( comp.cpu )
 if not platform then
@@ -315,7 +320,7 @@ end )
 -- Add uIP files manually because not all of them are included in the build ([TODO] why?)
 local uip_files = " " .. utils.prepend_path( "uip_arp.c uip.c uiplib.c dhcpc.c psock.c resolv.c uip-neighbor.c", "src/uip" )
 
-addi{ { 'inc', 'inc/newlib',  'inc/remotefs', 'src/platform', 'src/lua' }, { 'src/modules', 'src/platform/' .. platform }, "src/uip", "src/fatfs" }
+addi{ { 'inc', 'inc/newlib',  'inc/remotefs', 'src/platform', 'src/lua' }, { 'src/modules', 'src/platform/' .. platform, 'src/platform/' .. platform .. '/cpus' }, "src/uip", "src/fatfs" }
 addm( "LUA_OPTIMIZE_MEMORY=" .. ( comp.optram and "2" or "0" ) )
 addcf( { '-Os','-fomit-frame-pointer' } )
 

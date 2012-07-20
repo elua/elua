@@ -22,6 +22,14 @@ local function sermux_auxgen( eldesc, data, generated )
 end
 
 -------------------------------------------------------------------------------
+-- Return a CDC component
+-- This should be included by each backend that supports USB UARTs
+
+function cdc_uart()
+  return { macro = "BUILD_USB_CDC" }
+end
+
+-------------------------------------------------------------------------------
 -- Public interface
 
 -- Build all components needed by eLua, save them in the "components" table
