@@ -10,7 +10,7 @@ if cpu == 'LM3S9B92' or board == 'LM3S9D92' then
   addi( sf( 'src/platform/%s/usblib/device', platform ) )
 end
 
-specific_files = "startup_gcc.c platform.c platform_int.c"
+specific_files = "startup_gcc.c platform.c platform_int.c lm3s_pio.c"
 local fwlib_files = utils.get_files( "src/platform/" .. platform .. "/driverlib", ".*%.c$" )
 
 
@@ -34,7 +34,7 @@ end
 
 if board == 'EK-LM3S9B92'  then
    ldscript = "lm3s-9b92.ld"
-elseif board == 'SOLDERCORE' or board == 'EK-LM3S9D92' then
+elseif board == 'SOLDERCORE' or board == "EK-LM3S9D92" then
    ldscript = "lm3s-9d92.ld"
 else
    ldscript = "lm3s.ld"

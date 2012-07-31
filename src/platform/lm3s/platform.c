@@ -162,7 +162,7 @@ int platform_init()
 // Same configuration on LM3S8962, LM3S6965, LM3S6918 (8 ports)
 // 9B92 has 9 ports (Port J in addition to A-H)
 #if defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
-  static const u32 pio_base[] = { GPIO_PORTA_BASE, GPIO_PORTB_BASE, GPIO_PORTC_BASE, GPIO_PORTD_BASE,
+  const u32 pio_base[] = { GPIO_PORTA_BASE, GPIO_PORTB_BASE, GPIO_PORTC_BASE, GPIO_PORTD_BASE,
                                   GPIO_PORTE_BASE, GPIO_PORTF_BASE, GPIO_PORTG_BASE, GPIO_PORTH_BASE, 
                                   GPIO_PORTJ_BASE };
                                   
@@ -170,7 +170,7 @@ int platform_init()
                                     SYSCTL_PERIPH_GPIOE, SYSCTL_PERIPH_GPIOF, SYSCTL_PERIPH_GPIOG, SYSCTL_PERIPH_GPIOH,
                                     SYSCTL_PERIPH_GPIOJ };
 #else
-  static const u32 pio_base[] = { GPIO_PORTA_BASE, GPIO_PORTB_BASE, GPIO_PORTC_BASE, GPIO_PORTD_BASE,
+  const u32 pio_base[] = { GPIO_PORTA_BASE, GPIO_PORTB_BASE, GPIO_PORTC_BASE, GPIO_PORTD_BASE,
                                   GPIO_PORTE_BASE, GPIO_PORTF_BASE, GPIO_PORTG_BASE, GPIO_PORTH_BASE };
   
   static const u32 pio_sysctl[] = { SYSCTL_PERIPH_GPIOA, SYSCTL_PERIPH_GPIOB, SYSCTL_PERIPH_GPIOC, SYSCTL_PERIPH_GPIOD,
@@ -1328,16 +1328,23 @@ int platform_flash_erase_sector( u32 sector_id )
 // ****************************************************************************
 // Platform specific modules go here
 
-#ifdef ENABLE_DISP
+#if defined( ENABLE_DISP ) || defined( ENABLE_LM3S_GPIO )
 
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
+
 extern const LUA_REG_TYPE disp_map[];
+extern const LUA_REG_TYPE lm3s_pio_map[];
 
 const LUA_REG_TYPE platform_map[] =
 {
 #if LUA_OPTIMIZE_MEMORY > 0
+#ifdef ENABLE_DISP
   { LSTRKEY( "disp" ), LROVAL( disp_map ) },
+#endif
+#ifdef ENABLE_LM3S_GPIO
+  { LSTRKEY( "pio" ), LROVAL( lm3s_pio_map ) },
+#endif
 #endif
   { LNILKEY, LNILVAL }
 };
@@ -1353,17 +1360,20 @@ LUALIB_API int luaopen_platform( lua_State *L )
   lua_newtable( L );
   luaL_register( L, NULL, disp_map );
   lua_setfield( L, -2, "disp" );
+  lua_newtable( L );
+  luaL_register( L, NULL, lm3s_pio_map );
+  lua_setfield( L, -2, "pio" );
 
   return 1;
 #endif // #if LUA_OPTIMIZE_MEMORY > 0
 }
 
-#else // #ifdef ENABLE_DISP
+#else // #if defined( ENABLE_DISP ) || defined( ENABLE_LM3S_GPIO )
 
 LUALIB_API int luaopen_platform( lua_State *L )
 {
   return 0;
 }
 
-#endif // #ifdef ENABLE_DISP
+#endif // #if defined( ENABLE_DISP ) || defined( ENABLE_LM3S_GPIO )
 

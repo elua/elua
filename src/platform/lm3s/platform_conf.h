@@ -48,6 +48,8 @@
 #define BUILD_WOFS
 #endif
 
+#define ENABLE_LM3S_GPIO
+
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
 
@@ -66,7 +68,7 @@
 
 // The name of the platform specific libs table
 // FIXME: should handle partial or no inclusion of platform specific modules per conf.py
-#ifdef ENABLE_DISP
+#if defined( ENABLE_DISP ) || defined( ENABLE_LM3S_GPIO )
 #define PS_LIB_TABLE_NAME   "lm3s"
 #endif
 
