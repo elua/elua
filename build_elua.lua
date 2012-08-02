@@ -217,6 +217,7 @@ builder:add_option( 'boot', 'boot mode, standard will boot to shell, luarpc boot
 builder:add_option( 'romfs', 'ROMFS compilation mode', 'verbatim', { 'verbatim' , 'compress', 'compile' } )
 builder:add_option( 'cpumode', 'ARM CPU compilation mode (only affects certain ARM targets)', nil, { 'arm', 'thumb' } )
 builder:add_option( 'bootloader', 'Build for bootloader usage (AVR32 only)', 'none', { 'none', 'emblod' } )
+builder:add_option( 'tracer', 'build the on-line tracing and monitoring tool (ARM only)', false )
 builder:init( args )
 builder:set_build_mode( builder.BUILD_DIR_LINEARIZED )
 
@@ -265,6 +266,16 @@ end
 if not platform then
   print( "Unable to find platform (this shouldn't happen, check the build script for errors)" )
   os.exit( -1 )
+end
+
+if comp.tracer then
+  if platform ~= "stm32" and platform ~= "lm3s" then
+    print( "The on-line tracer can only be used on ARM platforms" )
+    os.exit( -1 )
+  end
+  addm( "BUILD_TRACER" )
+  addcf{ "-finstrument-functions", "-mpoke-function-name", "-fno-inline-functions", "-fno-inline", "-finline-limit=0" }
+  addi( "inc/tracer" )
 end
 
 -- Check the toolchain
