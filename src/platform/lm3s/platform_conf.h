@@ -10,6 +10,7 @@
 #include "driverlib/sysctl.h"
 #include "elua_int.h"
 #include "flash_conf.h"
+#include "rom_map.h"
 
 // *****************************************************************************
 // Define here what components you want for this platform
@@ -20,13 +21,15 @@
 
 #define BUILD_SHELL
 #define BUILD_ROMFS
+#ifndef ELUA_BOARD_EKLM3S9D92
 #define BUILD_MMCFS
+#endif
 
 #if defined( ELUA_BOARD_SOLDERCORE )
   #define BUILD_USB_CDC
 #endif
 
-#ifndef FORLM3S1968
+#if !defined( FORLM3S1968 ) && !defined( ELUA_BOARD_EKLM3S9D92 )
   #define BUILD_UIP
   #define BUILD_DHCPC
   #define BUILD_DNS
@@ -40,6 +43,10 @@
   #define BUILD_CON_GENERIC
 //#endif
 #define BUILD_C_INT_HANDLERS
+#ifdef ELUA_BOARD_EKLM3S9D92
+#define BUILD_LUA_INT_HANDLERS
+#define PLATFORM_INT_QUEUE_LOG_SIZE 5
+#endif
 
 #define PLATFORM_HAS_SYSTIMER
 #define PLATFORM_TMR_COUNTS_DOWN
@@ -170,7 +177,7 @@
 
 // Virtual timers (0 if not used)
 #define VTMR_NUM_TIMERS       4
-#define VTMR_FREQ_HZ          4
+#define VTMR_FREQ_HZ          5
 
 // Number of resources (0 if not available/not implemented)
 #if defined(FORLM3S1968)
@@ -251,7 +258,7 @@
 
 
 // CPU frequency (needed by the CPU module and MMCFS code, 0 if not used)
-#define CPU_FREQUENCY         SysCtlClockGet()
+#define CPU_FREQUENCY         MAP_SysCtlClockGet()
 
 // PIO prefix ('0' for P0, P1, ... or 'A' for PA, PB, ...)
 #define PIO_PREFIX            'A'
@@ -290,7 +297,9 @@
 
 // Interrupt list
 #define INT_UART_RX           ELUA_INT_FIRST_ID
-#define INT_ELUA_LAST         INT_UART_RX
+#define INT_GPIO_POSEDGE      ( ELUA_INT_FIRST_ID + 1 )
+#define INT_GPIO_NEGEDGE      ( ELUA_INT_FIRST_ID + 2 )
+#define INT_ELUA_LAST         INT_GPIO_NEGEDGE
 
 // *****************************************************************************
 // CPU constants that should be exposed to the eLua "cpu" module
@@ -346,6 +355,8 @@
   _C( INT_PWM3 ),\
   _C( INT_UDMA ),\
   _C( INT_UDMAERR ),\
-  _C( INT_UART_RX )
+  _C( INT_UART_RX ),\
+  _C( INT_GPIO_POSEDGE ),\
+  _C( INT_GPIO_NEGEDGE )
 
 #endif // #ifndef __PLATFORM_CONF_H__

@@ -1905,18 +1905,6 @@
 
 //*****************************************************************************
 //
-// The following are defines for the bit fields in the GPIO_O_LOCK register.
-//
-//*****************************************************************************
-#define GPIO_LOCK_M             0xFFFFFFFF  // GPIO Lock
-#define GPIO_LOCK_UNLOCKED      0x00000000  // The GPIOCR register is unlocked
-                                            // and may be modified
-#define GPIO_LOCK_LOCKED        0x00000001  // The GPIOCR register is locked
-                                            // and may not be modified
-#define GPIO_LOCK_KEY           0x4C4F434B  // Unlocks the GPIO_CR register
-
-//*****************************************************************************
-//
 // The following are defines for the bit fields in the GPIO_PCTL register for
 // port A.
 //

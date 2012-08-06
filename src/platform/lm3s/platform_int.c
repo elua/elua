@@ -28,8 +28,15 @@
 #include "rom.h"
 #include "rom_map.h"
 #include "hw_ints.h"
+#include "hw_gpio.h"
+#include "gpio.h"
 #include "uart.h"
 #include "interrupt.h"
+#include <stdio.h>
+
+#define GPIO_INT_POSEDGE_ENABLED        1
+#define GPIO_INT_NEGEDGE_ENABLED        2
+#define GPIO_INT_BOTH_ENABLED           ( GPIO_INT_POSEDGE_ENABLED | GPIO_INT_NEGEDGE_ENABLED )
 
 // ****************************************************************************
 // Interrupt handlers
@@ -37,9 +44,12 @@
 // ----------------------------------------------------------------------------
 // UART_RX interrupt
 
-extern const u32 uart_base[]; 
+extern const u32 uart_base[];
+extern const u32 pio_base[];
 static const int uart_int_mask = UART_INT_RX | UART_INT_RT;
- 
+static const u8 gpio_int_ids[] = { INT_GPIOA, INT_GPIOB, INT_GPIOC, INT_GPIOD, INT_GPIOE, INT_GPIOF,
+                                   INT_GPIOG, INT_GPIOH, INT_GPIOJ };
+
 static void uart_common_rx_handler( int resnum )
 {
   MAP_UARTIntClear( uart_base[ resnum ], uart_int_mask );
@@ -61,6 +71,93 @@ void uart2_handler()
 {
   uart_common_rx_handler( 2 );
 }
+
+// ----------------------------------------------------------------------------
+// GPIO interrupts (POSEDGE/NEGEDGE)
+
+static void gpio_common_handler( int port )
+{
+  u32 base = pio_base[ port ];
+  u8 pin, pinmask;
+  u32 ibe = HWREG( base + GPIO_O_IBE );
+  u32 iev = HWREG( base + GPIO_O_IEV );
+
+  // Check each pin in turn
+  for( pin = 0, pinmask = 1; pin < 8; pin ++, pinmask <<= 1 )
+    if( HWREG( base + GPIO_O_MIS ) & pinmask ) // interrupt on pin
+    {
+      if( MAP_GPIOPinRead( base, pinmask ) && ( ( ibe & pinmask ) || ( iev & pinmask ) ) ) // high level and posedge interrupt enabled 
+        cmn_int_handler( INT_GPIO_POSEDGE, PLATFORM_IO_ENCODE( port, pin, 0 ) );
+      else if( ( ibe & pinmask ) || !( iev & pinmask ) ) // low level and negedge interrupt enabled
+        cmn_int_handler( INT_GPIO_NEGEDGE, PLATFORM_IO_ENCODE( port, pin, 0 ) );
+      HWREG( base + GPIO_O_ICR ) = pinmask;
+    }
+}
+
+void gpioa_handler()
+{
+  gpio_common_handler( 0 );
+}
+
+void gpiob_handler()
+{
+  gpio_common_handler( 1 );
+}
+
+void gpioc_handler()
+{
+  gpio_common_handler( 2 );
+}
+
+void gpiod_handler()
+{
+  gpio_common_handler( 3 );
+}
+
+void gpioe_handler()
+{
+  gpio_common_handler( 4 );
+}
+
+void gpiof_handler()
+{
+  gpio_common_handler( 5 );
+}
+
+void gpiog_handler()
+{
+  gpio_common_handler( 6 );
+}
+
+void gpioh_handler()
+{
+  gpio_common_handler( 7 );
+}
+
+void gpioj_handler()
+{
+  gpio_common_handler( 8 );
+}
+
+// ****************************************************************************
+// Helpers
+
+// Get GPIO interrupt status as a mask
+static int inth_gpio_get_int_status( elua_int_resnum resnum )
+{
+  const u32 portbase = pio_base[ PLATFORM_IO_GET_PORT( resnum ) ];
+  const u8 pinmask = 1 << PLATFORM_IO_GET_PIN( resnum );
+
+  if( ( HWREG( portbase + GPIO_O_IM ) & pinmask ) == 0 )
+    return 0;
+  if( ( HWREG( portbase + GPIO_O_IBE ) & pinmask ) != 0 )
+    return GPIO_INT_BOTH_ENABLED;
+  else if( ( HWREG( portbase + GPIO_O_IEV ) & pinmask ) != 0 )
+    return GPIO_INT_POSEDGE_ENABLED;
+  else
+    return GPIO_INT_NEGEDGE_ENABLED;
+}
+
 
 // ****************************************************************************
 // Interrupt: INT_UART_RX
@@ -84,7 +181,7 @@ static int int_uart_rx_set_status( elua_int_resnum resnum, int status )
 static int int_uart_rx_get_flag( elua_int_resnum resnum, int clear )
 {
 
-  int flag = ( UARTIntStatus( uart_base[ resnum ], false ) & uart_int_mask ) == uart_int_mask ? 1 : 0;
+  int flag = ( MAP_UARTIntStatus( uart_base[ resnum ], false ) & uart_int_mask ) == uart_int_mask ? 1 : 0;
   
   if( clear )
     MAP_UARTIntClear( uart_base[ resnum ], uart_int_mask ); 
@@ -92,13 +189,149 @@ static int int_uart_rx_get_flag( elua_int_resnum resnum, int clear )
 }
 
 // ****************************************************************************
+// Interrupt: INT_GPIO_POSEDGE
+
+static int int_gpio_posedge_get_status( elua_int_resnum resnum )
+{
+  int port = PLATFORM_IO_GET_PORT( resnum ), pin = PLATFORM_IO_GET_PIN( resnum );
+  unsigned long type;
+
+  if( ( HWREG( pio_base[ port ] + GPIO_O_IM ) & ( 1 << pin ) ) == 0 )
+    return 0;
+  type = MAP_GPIOIntTypeGet( pio_base[ port ], pin );   
+  return ( type == GPIO_RISING_EDGE || type == GPIO_BOTH_EDGES ) ? 1 : 0;
+}
+
+static int int_gpio_posedge_set_status( elua_int_resnum resnum, int status )
+{
+  unsigned long portbase = pio_base[ PLATFORM_IO_GET_PORT( resnum ) ];
+  u8 pinmask = 1 << PLATFORM_IO_GET_PIN( resnum );
+  int prev = int_gpio_posedge_get_status( resnum );
+  int crtstat = inth_gpio_get_int_status( resnum );
+
+  if( status == PLATFORM_CPU_ENABLE )
+  {
+    printf( "posedge: Crtstat on resnum %d is %d\n", resnum, crtstat );
+    // If already configured for falling edge, set both edges
+    // Otherwise set only posedge
+    if( crtstat & GPIO_INT_NEGEDGE_ENABLED )
+    {
+      HWREG( portbase + GPIO_O_IBE ) |= pinmask;
+      printf( "Setting both edges in posedge\n" );
+    }
+    else
+      HWREG( portbase + GPIO_O_IEV ) |= pinmask;
+    MAP_GPIOPinIntEnable( portbase, pinmask );
+  }
+  else
+  {
+    // If configured for both, enable only falling edge
+    // Otherwise disable interrupts completely
+    if( crtstat == GPIO_INT_BOTH_ENABLED )
+    {
+      HWREG( portbase + GPIO_O_IBE ) &= ( u8 )~pinmask;
+      HWREG( portbase + GPIO_O_IEV ) &= ( u8 )~pinmask;
+    }
+    else if( crtstat == GPIO_INT_POSEDGE_ENABLED )
+      MAP_GPIOPinIntDisable( portbase, pinmask );
+  }
+  return prev;
+}
+
+static int int_gpio_posedge_get_flag( elua_int_resnum resnum, int clear )
+{
+  unsigned long portbase = pio_base[ PLATFORM_IO_GET_PORT( resnum ) ];
+  u8 pinmask = 1 << PLATFORM_IO_GET_PIN( resnum );
+
+  if( MAP_GPIOPinRead( portbase, pinmask ) == 0 )
+    return 0;
+  if( MAP_GPIOPinIntStatus( portbase, true ) & pinmask )
+  {
+    if( clear )
+      MAP_GPIOPinIntClear( portbase, pinmask );
+    return 1;
+  }
+  return 0;
+}
+
+// ****************************************************************************
+// Interrupt: INT_GPIO_NEGEDGE
+
+static int int_gpio_negedge_get_status( elua_int_resnum resnum )
+{
+  int port = PLATFORM_IO_GET_PORT( resnum ), pin = PLATFORM_IO_GET_PIN( resnum );
+  unsigned long type;
+
+  if( ( HWREG( pio_base[ port ] + GPIO_O_IM ) & ( 1 << pin ) ) == 0 )
+    return 0;
+  type = MAP_GPIOIntTypeGet( pio_base[ port ], pin );   
+  return ( type == GPIO_FALLING_EDGE || type == GPIO_BOTH_EDGES ) ? 1 : 0;
+}
+
+static int int_gpio_negedge_set_status( elua_int_resnum resnum, int status )
+{
+  unsigned long portbase = pio_base[ PLATFORM_IO_GET_PORT( resnum ) ];
+  u8 pinmask = 1 << PLATFORM_IO_GET_PIN( resnum );
+  int prev = int_gpio_posedge_get_status( resnum );
+  int crtstat = inth_gpio_get_int_status( resnum );
+
+  if( status == PLATFORM_CPU_ENABLE )
+  {
+    printf( "negedge: Crtstat on resnum %d is %d\n", resnum, crtstat );
+    // If already configured for rising edge, set both edges
+    // Otherwise set only negedge
+    if( crtstat & GPIO_INT_POSEDGE_ENABLED )
+    {
+      printf( "Setting both edges in negedge\n" );
+      HWREG( portbase + GPIO_O_IBE ) |= pinmask;
+    }
+    else
+      HWREG( portbase + GPIO_O_IEV ) &= ( u8 )~pinmask;
+    MAP_GPIOPinIntEnable( portbase, pinmask );
+  }
+  else
+  {
+    // If configured for both, enable only rising edge
+    // Otherwise disable interrupts completely
+    if( crtstat == GPIO_INT_BOTH_ENABLED )
+    {
+      HWREG( portbase + GPIO_O_IBE ) &= ( u8 )~pinmask;
+      HWREG( portbase + GPIO_O_IEV ) |= pinmask;
+    }
+    else if( crtstat == GPIO_INT_NEGEDGE_ENABLED )
+      MAP_GPIOPinIntDisable( portbase, pinmask );
+  }
+  return prev;
+}
+
+static int int_gpio_negedge_get_flag( elua_int_resnum resnum, int clear )
+{
+  unsigned long portbase = pio_base[ PLATFORM_IO_GET_PORT( resnum ) ];
+  u8 pinmask = 1 << PLATFORM_IO_GET_PIN( resnum );
+
+  if( MAP_GPIOPinRead( portbase, pinmask ) != 0 )
+    return 0;
+  if( MAP_GPIOPinIntStatus( portbase, true ) & pinmask )
+  {
+    if( clear )
+      MAP_GPIOPinIntClear( portbase, pinmask );
+    return 1;
+  }
+  return 0;
+}
+
+// ****************************************************************************
 // Interrupt initialization
 
 void platform_int_init()
 {
-  IntEnable( INT_UART0 );
-  IntEnable( INT_UART1 );
-  IntEnable( INT_UART2 );    
+  unsigned i;
+
+  MAP_IntEnable( INT_UART0 );
+  MAP_IntEnable( INT_UART1 );
+  MAP_IntEnable( INT_UART2 );
+  for( i = 0; i < sizeof( gpio_int_ids ) / sizeof( u8 ); i ++ )
+    MAP_IntEnable( gpio_int_ids[ i ] ) ;
 }
 
 // ****************************************************************************
@@ -107,7 +340,46 @@ void platform_int_init()
 
 const elua_int_descriptor elua_int_table[ INT_ELUA_LAST ] = 
 {
-  { int_uart_rx_set_status, int_uart_rx_get_status, int_uart_rx_get_flag }
+  { int_uart_rx_set_status, int_uart_rx_get_status, int_uart_rx_get_flag },
+  { int_gpio_posedge_set_status, int_gpio_posedge_get_status, int_gpio_posedge_get_flag },
+  { int_gpio_negedge_set_status, int_gpio_negedge_get_status, int_gpio_negedge_get_flag }
 };
 
+#else // #if defined( BUILD_C_INT_HANDLERS ) || defined( BUILD_LUA_INT_HANDLERS )
+
+void gpioa_handler()
+{
+}
+
+void gpiob_handler()
+{
+}
+
+void gpioc_handler()
+{
+}
+
+void gpiod_handler()
+{
+}
+
+void gpioe_handler()
+{
+}
+
+void gpiof_handler()
+{
+}
+
+void gpiog_handler()
+{
+
+void gpioh_handler()
+{
+
+void gpioj_handler()
+{
+}
+
 #endif // #if defined( BUILD_C_INT_HANDLERS ) || defined( BUILD_LUA_INT_HANDLERS )
+
