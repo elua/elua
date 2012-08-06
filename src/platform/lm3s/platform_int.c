@@ -32,7 +32,6 @@
 #include "gpio.h"
 #include "uart.h"
 #include "interrupt.h"
-#include <stdio.h>
 
 #define GPIO_INT_POSEDGE_ENABLED        1
 #define GPIO_INT_NEGEDGE_ENABLED        2
@@ -211,14 +210,10 @@ static int int_gpio_posedge_set_status( elua_int_resnum resnum, int status )
 
   if( status == PLATFORM_CPU_ENABLE )
   {
-    printf( "posedge: Crtstat on resnum %d is %d\n", resnum, crtstat );
     // If already configured for falling edge, set both edges
     // Otherwise set only posedge
     if( crtstat & GPIO_INT_NEGEDGE_ENABLED )
-    {
       HWREG( portbase + GPIO_O_IBE ) |= pinmask;
-      printf( "Setting both edges in posedge\n" );
-    }
     else
       HWREG( portbase + GPIO_O_IEV ) |= pinmask;
     MAP_GPIOPinIntEnable( portbase, pinmask );
@@ -277,14 +272,10 @@ static int int_gpio_negedge_set_status( elua_int_resnum resnum, int status )
 
   if( status == PLATFORM_CPU_ENABLE )
   {
-    printf( "negedge: Crtstat on resnum %d is %d\n", resnum, crtstat );
     // If already configured for rising edge, set both edges
     // Otherwise set only negedge
     if( crtstat & GPIO_INT_POSEDGE_ENABLED )
-    {
-      printf( "Setting both edges in negedge\n" );
       HWREG( portbase + GPIO_O_IBE ) |= pinmask;
-    }
     else
       HWREG( portbase + GPIO_O_IEV ) &= ( u8 )~pinmask;
     MAP_GPIOPinIntEnable( portbase, pinmask );
