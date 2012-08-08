@@ -299,7 +299,8 @@
 #define INT_UART_RX           ELUA_INT_FIRST_ID
 #define INT_GPIO_POSEDGE      ( ELUA_INT_FIRST_ID + 1 )
 #define INT_GPIO_NEGEDGE      ( ELUA_INT_FIRST_ID + 2 )
-#define INT_ELUA_LAST         INT_GPIO_NEGEDGE
+#define INT_TMR_MATCH         ( ELUA_INT_FIRST_ID + 3 )
+#define INT_ELUA_LAST         INT_TMR_MATCH
 
 // *****************************************************************************
 // CPU constants that should be exposed to the eLua "cpu" module
@@ -357,6 +358,7 @@
   _C( INT_UDMAERR ),\
   _C( INT_UART_RX ),\
   _C( INT_GPIO_POSEDGE ),\
-  _C( INT_GPIO_NEGEDGE )
+  _C( INT_GPIO_NEGEDGE ),\
+  _C( INT_TMR_MATCH )
 
 #endif // #ifndef __PLATFORM_CONF_H__

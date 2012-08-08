@@ -519,7 +519,7 @@ int platform_s_uart_set_flow_control( unsigned id, int type )
 // Same on LM3S8962, LM3S6965, LM3S6918 and LM3S9B92 (4 timers)
 
 // All possible LM3S timers defs
-static const u32 timer_base[] = { TIMER0_BASE, TIMER1_BASE, TIMER2_BASE, TIMER3_BASE };
+const u32 timer_base[] = { TIMER0_BASE, TIMER1_BASE, TIMER2_BASE, TIMER3_BASE };
 static const u32 timer_sysctl[] = { SYSCTL_PERIPH_TIMER0, SYSCTL_PERIPH_TIMER1, SYSCTL_PERIPH_TIMER2, SYSCTL_PERIPH_TIMER3 };
 
 static void timers_init()
@@ -593,6 +593,33 @@ void platform_timer_sys_enable_int()
 timer_data_type platform_timer_read_sys()
 {
   return cmn_systimer_get();
+}
+
+u8 lm3s_timer_int_periodic_flag[ NUM_TIMER ];
+int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int type )
+{
+  u32 base = timer_base[ id ];
+  u64 final;
+
+  if( period_us == 0 )
+  {
+    MAP_TimerDisable( base, TIMER_A );
+    MAP_TimerIntDisable( base, TIMER_TIMA_TIMEOUT );
+    MAP_TimerIntClear( base, TIMER_TIMA_TIMEOUT );
+    MAP_TimerLoadSet( base, TIMER_A, 0xFFFFFFFF );
+    MAP_TimerEnable( base, TIMER_A );
+    return PLATFORM_TIMER_INT_OK;
+  }
+  final = ( ( u64 )period_us * MAP_SysCtlClockGet() ) / 1000000;
+  if( final == 0 )
+    return PLATFORM_TIMER_INT_TOO_SHORT;
+  if( final > 0xFFFFFFFFULL )
+    return PLATFORM_TIMER_INT_TOO_LONG;
+  lm3s_timer_int_periodic_flag[ id ] = type;
+  MAP_TimerDisable( base, TIMER_A );
+  MAP_TimerIntClear( base, TIMER_TIMA_TIMEOUT );
+  MAP_TimerLoadSet( base, TIMER_A, ( u32 )final - 1 );
+  return PLATFORM_TIMER_INT_OK;
 }
 
 // ****************************************************************************

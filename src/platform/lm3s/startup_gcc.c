@@ -62,6 +62,10 @@ extern void gpiof_handler();
 extern void gpiog_handler();
 extern void gpioh_handler();
 extern void gpioj_handler();
+extern void tmr0_handler();
+extern void tmr1_handler();
+extern void tmr2_handler();
+extern void tmr3_handler();
 #if defined( BUILD_USB_CDC )
 extern void USB0DeviceIntHandler(void);
 #endif
@@ -134,11 +138,11 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // ADC Sequence 3
 #endif
     IntDefaultHandler,                      // Watchdog timer
-    IntDefaultHandler,                      // Timer 0 subtimer A
+    tmr0_handler,                           // Timer 0 subtimer A
     IntDefaultHandler,                      // Timer 0 subtimer B
-    IntDefaultHandler,                      // Timer 1 subtimer A
+    tmr1_handler,                           // Timer 1 subtimer A
     IntDefaultHandler,                      // Timer 1 subtimer B
-    IntDefaultHandler,                      // Timer 2 subtimer A
+    tmr2_handler,                           // Timer 2 subtimer A
     IntDefaultHandler,                      // Timer 2 subtimer B
     IntDefaultHandler,                      // Analog Comparator 0
     IntDefaultHandler,                      // Analog Comparator 1
@@ -154,7 +158,7 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // UART2 Rx and Tx
 #endif    
     IntDefaultHandler,                      // SSI1 Rx and Tx
-    IntDefaultHandler,                      // Timer 3 subtimer A
+    tmr3_handler,                           // Timer 3 subtimer A
     IntDefaultHandler,                      // Timer 3 subtimer B
     IntDefaultHandler,                      // I2C1 Master and Slave
     IntDefaultHandler,                      // Quadrature Encoder 1

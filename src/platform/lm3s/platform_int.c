@@ -29,9 +29,11 @@
 #include "rom_map.h"
 #include "hw_ints.h"
 #include "hw_gpio.h"
+#include "hw_timer.h"
 #include "gpio.h"
 #include "uart.h"
 #include "interrupt.h"
+#include "driverlib/timer.h"
 
 #define GPIO_INT_POSEDGE_ENABLED        1
 #define GPIO_INT_NEGEDGE_ENABLED        2
@@ -40,14 +42,17 @@
 // ****************************************************************************
 // Interrupt handlers
 
-// ----------------------------------------------------------------------------
-// UART_RX interrupt
-
 extern const u32 uart_base[];
 extern const u32 pio_base[];
 static const int uart_int_mask = UART_INT_RX | UART_INT_RT;
 static const u8 gpio_int_ids[] = { INT_GPIOA, INT_GPIOB, INT_GPIOC, INT_GPIOD, INT_GPIOE, INT_GPIOF,
                                    INT_GPIOG, INT_GPIOH, INT_GPIOJ };
+extern const u32 timer_base[];
+extern u8 lm3s_timer_int_periodic_flag[ NUM_TIMER ];
+static const u8 timer_int_ids[] = { INT_TIMER0A, INT_TIMER1A, INT_TIMER2A, INT_TIMER3A };
+
+// ----------------------------------------------------------------------------
+// UART_RX interrupt
 
 static void uart_common_rx_handler( int resnum )
 {
@@ -138,6 +143,42 @@ void gpioj_handler()
   gpio_common_handler( 8 );
 }
 
+// ----------------------------------------------------------------------------
+// Timer interrupts
+
+static void tmr_common_handler( elua_int_resnum id )
+{
+  u32 base = timer_base[ id ];
+
+  MAP_TimerIntClear( base, TIMER_TIMA_TIMEOUT );
+  if( lm3s_timer_int_periodic_flag[ id ] != PLATFORM_TIMER_INT_CYCLIC )
+  {
+    MAP_TimerIntDisable( base, TIMER_TIMA_TIMEOUT );
+    MAP_TimerLoadSet( base, TIMER_A, 0xFFFFFFFF );
+  }
+  cmn_int_handler( INT_TMR_MATCH, id );
+}
+
+void tmr0_handler()
+{
+  tmr_common_handler( 0 );
+}
+
+void tmr1_handler()
+{
+  tmr_common_handler( 1 );
+}
+
+void tmr2_handler()
+{
+  tmr_common_handler( 2 );
+}
+
+void tmr3_handler()
+{
+  tmr_common_handler( 3 );
+}
+
 // ****************************************************************************
 // Helpers
 
@@ -156,7 +197,6 @@ static int inth_gpio_get_int_status( elua_int_resnum resnum )
   else
     return GPIO_INT_NEGEDGE_ENABLED;
 }
-
 
 // ****************************************************************************
 // Interrupt: INT_UART_RX
@@ -312,6 +352,46 @@ static int int_gpio_negedge_get_flag( elua_int_resnum resnum, int clear )
 }
 
 // ****************************************************************************
+// Interrupt: INT_TMR_MATCH
+
+#define tmr_is_enabled( base )  ( ( HWREG( base + TIMER_O_CTL ) & TIMER_CTL_TAEN ) != 0 )
+
+static int int_tmr_match_get_status( elua_int_resnum resnum )
+{
+  u32 base = timer_base[ resnum ];
+
+  return ( tmr_is_enabled( base ) && ( HWREG( base + TIMER_O_IMR ) & TIMER_TIMA_TIMEOUT ) ) ? 1 : 0;
+}
+
+static int int_tmr_match_set_status( elua_int_resnum resnum, int status )
+{
+  int prev = int_tmr_match_get_status( resnum );
+  u32 base = timer_base[ resnum ];
+
+  if( status == PLATFORM_CPU_ENABLE )
+  {
+    MAP_TimerEnable( base, TIMER_A );
+    MAP_TimerIntEnable( base, TIMER_TIMA_TIMEOUT );
+  }
+  else
+  {
+    MAP_TimerIntDisable( base, TIMER_TIMA_TIMEOUT );
+    MAP_TimerDisable( base, TIMER_A );
+  }
+  return prev;
+}
+
+static int int_tmr_match_get_flag( elua_int_resnum resnum, int clear )
+{
+  u32 base = timer_base[ resnum ];
+  int status = MAP_TimerIntStatus( base, true ) & TIMER_TIMA_TIMEOUT;
+
+  if( clear )
+    MAP_TimerIntClear( base, TIMER_TIMA_TIMEOUT );
+  return status && tmr_is_enabled( base ) ? 1 : 0;
+}
+
+// ****************************************************************************
 // Interrupt initialization
 
 void platform_int_init()
@@ -323,6 +403,8 @@ void platform_int_init()
   MAP_IntEnable( INT_UART2 );
   for( i = 0; i < sizeof( gpio_int_ids ) / sizeof( u8 ); i ++ )
     MAP_IntEnable( gpio_int_ids[ i ] ) ;
+  for( i = 0; i < sizeof( timer_int_ids ) / sizeof( u8 ); i ++ )
+    MAP_IntEnable( timer_int_ids[ i ] );
 }
 
 // ****************************************************************************
@@ -333,7 +415,8 @@ const elua_int_descriptor elua_int_table[ INT_ELUA_LAST ] =
 {
   { int_uart_rx_set_status, int_uart_rx_get_status, int_uart_rx_get_flag },
   { int_gpio_posedge_set_status, int_gpio_posedge_get_status, int_gpio_posedge_get_flag },
-  { int_gpio_negedge_set_status, int_gpio_negedge_get_status, int_gpio_negedge_get_flag }
+  { int_gpio_negedge_set_status, int_gpio_negedge_get_status, int_gpio_negedge_get_flag },
+  { int_tmr_match_set_status, int_tmr_match_get_status, int_tmr_match_get_flag }
 };
 
 #else // #if defined( BUILD_C_INT_HANDLERS ) || defined( BUILD_LUA_INT_HANDLERS )
@@ -369,6 +452,22 @@ void gpioh_handler()
 {
 
 void gpioj_handler()
+{
+}
+
+void tmr0_handler()
+{
+}
+
+void tmr1_handler()
+{
+}
+
+void tmr2_handler()
+{
+}
+
+void tmr3_handler()
 {
 }
 
