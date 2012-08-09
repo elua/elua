@@ -20,7 +20,6 @@
 
 #define BUILD_SHELL
 #define BUILD_ROMFS
-#define BUILD_MMCFS
 
 #if defined( ELUA_BOARD_SOLDERCORE )
   #define BUILD_USB_CDC

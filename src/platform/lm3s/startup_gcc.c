@@ -31,31 +31,34 @@
 // Forward declaration of the default fault handlers.
 //
 //*****************************************************************************
-void ResetISR(void);
-static void NmiSR(void);
-static void FaultISR(void);
-static void IntDefaultHandler(void);
+
+#include "compilerdefs.h"
+
+void ResetISR(void) NO_INSTRUMENT;
+static void NmiSR(void) NO_INSTRUMENT;
+static void FaultISR(void) NO_INSTRUMENT;
+static void IntDefaultHandler(void) NO_INSTRUMENT;
 
 // External interrupt handlers
-extern void EthernetIntHandler();
-extern void SysTickIntHandler();
-extern void ADCIntHandler();
-extern void UARTIntHandler();
+extern void EthernetIntHandler() NO_INSTRUMENT;
+extern void SysTickIntHandler() NO_INSTRUMENT;
+extern void ADCIntHandler() NO_INSTRUMENT;
+extern void UARTIntHandler() NO_INSTRUMENT;
 
 
 #include "hw_memmap.h"
 #include "platform_conf.h"
 
 #if defined( BUILD_CAN )
-extern void CANIntHandler();
+extern void CANIntHandler() NO_INSTRUMENT;
 #endif
 
-extern void uart0_handler();
-extern void uart1_handler();
-extern void uart2_handler();
+extern void uart0_handler() NO_INSTRUMENT;
+extern void uart1_handler() NO_INSTRUMENT;
+extern void uart2_handler() NO_INSTRUMENT;
 
 #if defined( BUILD_USB_CDC )
-extern void USB0DeviceIntHandler(void);
+extern void USB0DeviceIntHandler(void) NO_INSTRUMENT;
 #endif
 
 

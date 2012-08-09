@@ -7,6 +7,7 @@
 #include "compilerdefs.h"
 
 void umon_printf( const char *fmt, ... ) NO_INSTRUMENT;
+int umon_strlen( const char *s ) NO_INSTRUMENT;
 
 #endif // #ifndef __UMON_UTILS_H__
 

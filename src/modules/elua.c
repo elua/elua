@@ -17,6 +17,10 @@
 #include "version.h"
 #endif
 
+#ifdef BUILD_UMON
+#include "umon.h"
+#endif
+
 // Lua: elua.egc_setup( mode, [ memlimit ] )
 static int elua_egc_setup( lua_State *L )
 {
@@ -59,6 +63,17 @@ static int elua_save_history( lua_State *L )
 #endif // #ifdef BUILD_LINENOISE
 }
 
+// Lua: elua.c_stack_trace()
+#ifdef BUILD_UMON
+static int elua_c_stack_trace( lua_State *L )
+{
+  umon_trace_start();
+  umon_print_stack_trace();
+  umon_trace_end();
+  return 0;
+}
+#endif
+
 // Module function map
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
@@ -67,6 +82,9 @@ const LUA_REG_TYPE elua_map[] =
   { LSTRKEY( "egc_setup" ), LFUNCVAL( elua_egc_setup ) },
   { LSTRKEY( "version" ), LFUNCVAL( elua_version ) },
   { LSTRKEY( "save_history" ), LFUNCVAL( elua_save_history ) },
+#ifdef BUILD_UMON
+  { LSTRKEY( "c_stack_trace" ), LFUNCVAL( elua_c_stack_trace ) },
+#endif
 #if LUA_OPTIMIZE_MEMORY > 0
   { LSTRKEY( "EGC_NOT_ACTIVE" ), LNUMVAL( EGC_NOT_ACTIVE ) },
   { LSTRKEY( "EGC_ON_ALLOC_FAILURE" ), LNUMVAL( EGC_ON_ALLOC_FAILURE ) },
