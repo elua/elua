@@ -8,5 +8,8 @@
 // is 8 * UMON_STACK_TRACE_ENTRIES bytes
 #define UMON_STACK_TRACE_ENTRIES        100
 
+// Size of the stack for setjmp/longjmp calls
+#define UMON_SETJMP_STACK_SIZE          16
+
 #endif
 

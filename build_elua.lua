@@ -276,6 +276,8 @@ if comp.umon then
   addm( "BUILD_UMON" )
   addcf{ "-finstrument-functions", "-mpoke-function-name", "-fno-inline-functions", "-fno-inline", "-finline-limit=0" }
   addi( "inc/umon" )
+  addlf( "-Wl,--wrap=setjmp" )
+  addlf( "-Wl,--wrap=longjmp" )
 end
 
 -- Check the toolchain
@@ -409,7 +411,7 @@ if platform == 'sim' then addm( { "ELUA_SIMULATOR", "ELUA_SIM_" .. cnorm( comp.c
 exclude_patterns = { "^src/platform", "^src/uip", "^src/serial", "^src/luarpc_desktop_serial.c", "^src/linenoise_posix.c", "^src/lua/print.c", "^src/lua/luac.c" }
 local source_files = utils.get_files( "src", function( fname )
   fname = fname:gsub( "\\", "/" )
-  local include = fname:find( ".*%.c$" )
+  local include = fname:find( ".*%.[cs]$" )
   if include then
     utils.foreach( exclude_patterns, function( k, v ) if fname:match( v ) then include = false end end )
   end

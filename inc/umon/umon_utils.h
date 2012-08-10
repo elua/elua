@@ -8,6 +8,10 @@
 
 void umon_printf( const char *fmt, ... ) NO_INSTRUMENT;
 int umon_strlen( const char *s ) NO_INSTRUMENT;
+// The next 3 functions are imlemented in umon_asm.s
+void umon_enable_ints();
+void umon_disable_ints();
+int umon_get_int_stat_and_disable();
 
 #endif // #ifndef __UMON_UTILS_H__
 
