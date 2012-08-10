@@ -20,15 +20,15 @@ static void umonh_print_10u( unsigned n, int totdigs )
 
   if( n == 0 )
   {
-    while( totdigs-- )
-      umon_putc( '0' );
-    return;
+    ndig = 1;
+    c[ 0 ] = '0';
   }
-  while( n )
-  {
-    c[ ndig ++ ] = n % 10;
-    n = n / 10;
-  }
+  else
+    while( n )
+    {
+      c[ ndig ++ ] = ( n % 10 ) + '0';
+      n = n / 10;
+    }
   while( totdigs-- > ndig )
     umon_putc( '0' );
   while( ndig > 0 )

@@ -5,10 +5,20 @@
 #include "umon.h"
 #include "compilerdefs.h"
 #include "umon_utils.h"
-#include <platform.h>
+#include "umon_conf.h"
+#include <setjmp.h>
+
+#ifndef NULL
+#define NULL                            ( void* )0
+#endif
 
 // ****************************************************************************
 // Local variables and macros
+
+#define umon_restore_ints( stat )       do {\
+  if( stat )\
+    umon_enable_ints(); \
+  } while( 0 )
 
 static int initialized = 0;             // was the tracer initialized?
 static p_umon_output output_func;
@@ -17,6 +27,18 @@ static unsigned *p_call_stack;          // pointer to the call stack
 static unsigned *p_call_stack_crt;      // pointer to current element in the stack
 static int call_stack_idx;              // index in the call stack
 static int stack_depth_break_idx;       // breakpoint if this stack depth is reached
+
+// setjmp/longjmp handling
+typedef struct 
+{
+  unsigned pjmpbuf;
+  int call_stack_idx;
+} UMON_SETJMP_DATA;
+static UMON_SETJMP_DATA setjmp_stack[ UMON_SETJMP_STACK_SIZE ];
+static int setjmp_stack_idx;       // index in the setjmp stack
+
+extern int __real_setjmp( jmp_buf );
+extern void __real_longjmp( jmp_buf, int );
 
 // ****************************************************************************
 // Local functions 
@@ -27,8 +49,15 @@ static int stack_depth_break_idx;       // breakpoint if this stack depth is rea
 void __cyg_profile_func_enter( void *this_fn, void *call_site ) NO_INSTRUMENT;
 void __cyg_profile_func_enter( void *this_fn, void *call_site )
 {
+  int ints_on = umon_get_int_stat_and_disable();
+
   if( !initialized )
-    return;
+    goto fexit;
+  // setjmp/longjmp are handled separately
+  // [TODO] is this really needed? After all, setjmp won't appear in the stack trace if we do this...
+  if( this_fn == &__real_setjmp || this_fn == &__real_longjmp )
+    goto fexit;
+  // [TODO] check call_stack_idx for overflow
   *p_call_stack_crt ++ = ( unsigned )this_fn & ~1;
   *p_call_stack_crt ++ = ( unsigned )call_site & ~1;
   call_stack_idx ++;
@@ -38,15 +67,22 @@ void __cyg_profile_func_enter( void *this_fn, void *call_site )
     umon_printf( "[UMON] Breakpoint on call stack depth limit (%d)\n", call_stack_idx );
     umon_print_stack_trace();
     while( 1 );
-    umon_trace_end();
   }
+fexit:
+  umon_restore_ints( ints_on );
 }
 
 void __cyg_profile_func_exit( void *this_fn, void *call_site ) NO_INSTRUMENT;
 void __cyg_profile_func_exit( void *this_fn, void *call_site )
 {
+  int ints_on = umon_get_int_stat_and_disable();
+
   if( !initialized || call_stack_idx == 0 )
-    return;
+    goto fexit;
+  // setjmp/longjmp are handled separately
+  // [TODO] is this really needed? After all, setjmp won't appear in the stack trace if we do this...
+  if( this_fn == &__real_setjmp || this_fn == &__real_longjmp )
+    goto fexit;
   p_call_stack_crt -= 2;
   if( p_call_stack_crt[ 0 ] != ( ( unsigned )this_fn & ~1 ) )
   {
@@ -59,12 +95,33 @@ void __cyg_profile_func_exit( void *this_fn, void *call_site )
     while( 1 );
   }
   call_stack_idx --;
+fexit:
+  umon_restore_ints( ints_on );
+}
+
+void umon_handle_setjmp( unsigned addr )
+{
+  int ints_on = umon_get_int_stat_and_disable();
+  // [TODO] check stack idx for overflow
+  setjmp_stack[ setjmp_stack_idx ].pjmpbuf = addr;
+  setjmp_stack[ setjmp_stack_idx ].call_stack_idx = call_stack_idx;
+  setjmp_stack_idx ++;
+  umon_restore_ints( ints_on );
+}
+
+void umon_handle_longjmp( unsigned addr )
+{
+  int ints_on = umon_get_int_stat_and_disable();
+  // [TODO] check stack idx for underflow
+  while( setjmp_stack[ --setjmp_stack_idx ].pjmpbuf != addr );
+  call_stack_idx = setjmp_stack[ setjmp_stack_idx ].call_stack_idx;
+  p_call_stack_crt = p_call_stack + 2 * call_stack_idx;
+  umon_restore_ints( ints_on );
 }
 
 int umon_trace_start()
 {
-  platform_cpu_set_global_interrupts( PLATFORM_CPU_DISABLE );
-  return call_stack_idx;
+  return umon_get_int_stat_and_disable();
 }
 
 void umon_get_trace_entry( unsigned idx, unsigned *pto, unsigned *pfrom )
@@ -76,9 +133,9 @@ void umon_get_trace_entry( unsigned idx, unsigned *pto, unsigned *pfrom )
     *pfrom = p_call_stack[ idx + 1 ];
 }
 
-void umon_trace_end()
+void umon_trace_end( int stat )
 {
-  platform_cpu_set_global_interrupts( PLATFORM_CPU_ENABLE );
+  umon_restore_ints( stat );
 }
 
 int umon_init( void *call_stack,
@@ -98,6 +155,18 @@ const char* umon_get_function_name( unsigned addr )
 {
   unsigned temp;
   const char* s;
+
+  // From the GCC manual: -mpoke-function-name
+  // Write the name of each function into the text section, directly preceding the function prologue.  The generated code is similar to this:
+  // t0
+  //   .ascii "arm_poke_function_name", 0
+  //   .align
+  // t1
+  //   .word 0xff000000 + (t1 - t0)
+  // arm_poke_function_name
+  //   mov     ip, sp
+  //   stmfd   sp!, {fp, ip, lr, pc}
+  //   sub     fp, ip, #4
 
   addr = ( addr & ~1 ) - 4;
   temp = *( unsigned* )addr;

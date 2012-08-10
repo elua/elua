@@ -24,9 +24,12 @@ void umon_break_on_stack_depth( unsigned depth ) NO_INSTRUMENT;
 // Trace-related functions               
 int umon_trace_start() NO_INSTRUMENT;
 void umon_get_trace_entry( unsigned idx, unsigned *pto, unsigned *pfrom ) NO_INSTRUMENT;
-void umon_trace_end() NO_INSTRUMENT;
+void umon_trace_end( int stat ) NO_INSTRUMENT;
 const char* umon_get_function_name( unsigned addr ) NO_INSTRUMENT;
 void umon_print_stack_trace() NO_INSTRUMENT;
+// setjmp/longjmp handling
+void umon_handle_setjmp( unsigned jmpbuf ) NO_INSTRUMENT;
+void umon_handle_longjmp( unsigned jmpbuf ) NO_INSTRUMENT;
 // Generic utilities
 void umon_putc( char c ) NO_INSTRUMENT;
 

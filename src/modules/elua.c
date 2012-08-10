@@ -67,9 +67,9 @@ static int elua_save_history( lua_State *L )
 #ifdef BUILD_UMON
 static int elua_c_stack_trace( lua_State *L )
 {
-  umon_trace_start();
+  int stat = umon_trace_start();
   umon_print_stack_trace();
-  umon_trace_end();
+  umon_trace_end( stat );
   return 0;
 }
 #endif
