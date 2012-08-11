@@ -8,26 +8,25 @@
 #include "umon_conf.h"
 #include <setjmp.h>
 
+// ****************************************************************************
+// Local variables and macros
+
 #ifndef NULL
 #define NULL                            ( void* )0
 #endif
-
-// ****************************************************************************
-// Local variables and macros
 
 #define umon_restore_ints( stat )       do {\
   if( stat )\
     umon_enable_ints(); \
   } while( 0 )
 
-static int initialized = 0;             // was the tracer initialized?
 static p_umon_output output_func;
 static p_umon_input input_func;
-static unsigned *p_call_stack;          // pointer to the call stack
-static unsigned *p_call_stack_crt;      // pointer to current element in the stack
-static int call_stack_idx;              // index in the call stack
-static int stack_depth_break_idx;       // breakpoint if this stack depth is reached
-
+static int call_stack_idx;                                          // index in the call stack
+static int stack_depth_break_idx = UMON_STACK_BREAK_DISABLE;        // breakpoint if this stack depth is reached
+static unsigned call_stack[ 2 * UMON_STACK_TRACE_ENTRIES ];         // stack trace area
+static unsigned char call_stack_int[ UMON_STACK_TRACE_ENTRIES ];    // interrupt for each call stack level
+static unsigned *p_call_stack_crt = call_stack;                     // pointer to current element in the stack
 // setjmp/longjmp handling
 typedef struct 
 {
@@ -51,24 +50,26 @@ void __cyg_profile_func_enter( void *this_fn, void *call_site )
 {
   int ints_on = umon_get_int_stat_and_disable();
 
-  if( !initialized )
-    goto fexit;
   // setjmp/longjmp are handled separately
   // [TODO] is this really needed? After all, setjmp won't appear in the stack trace if we do this...
-  if( this_fn == &__real_setjmp || this_fn == &__real_longjmp )
-    goto fexit;
-  // [TODO] check call_stack_idx for overflow
-  *p_call_stack_crt ++ = ( unsigned )this_fn & ~1;
-  *p_call_stack_crt ++ = ( unsigned )call_site & ~1;
-  call_stack_idx ++;
+//  if( this_fn == &__real_setjmp || this_fn == &__real_longjmp )
+//    goto fexit;
   if( stack_depth_break_idx >= call_stack_idx )
   {
-    umon_trace_start();
     umon_printf( "[UMON] Breakpoint on call stack depth limit (%d)\n", call_stack_idx );
     umon_print_stack_trace();
+    // [TODO] proper entry/exit for this breakpoint condition from this
     while( 1 );
   }
-fexit:
+  if( call_stack_idx >= UMON_STACK_TRACE_ENTRIES )
+  {
+    umon_printf( "[UMON] call stack trace overflow, system halted.\n" );
+    while( 1 );
+  }
+  *p_call_stack_crt ++ = ( unsigned )this_fn & ~1;
+  *p_call_stack_crt ++ = ( unsigned )call_site & ~1;
+  call_stack_int[ call_stack_idx ] = umon_get_current_int();
+  call_stack_idx ++;
   umon_restore_ints( ints_on );
 }
 
@@ -77,12 +78,12 @@ void __cyg_profile_func_exit( void *this_fn, void *call_site )
 {
   int ints_on = umon_get_int_stat_and_disable();
 
-  if( !initialized || call_stack_idx == 0 )
+  if( call_stack_idx == 0 ) 
     goto fexit;
   // setjmp/longjmp are handled separately
   // [TODO] is this really needed? After all, setjmp won't appear in the stack trace if we do this...
-  if( this_fn == &__real_setjmp || this_fn == &__real_longjmp )
-    goto fexit;
+//  if( this_fn == &__real_setjmp || this_fn == &__real_longjmp )
+//    goto fexit;
   p_call_stack_crt -= 2;
   if( p_call_stack_crt[ 0 ] != ( ( unsigned )this_fn & ~1 ) )
   {
@@ -115,7 +116,7 @@ void umon_handle_longjmp( unsigned addr )
   // [TODO] check stack idx for underflow
   while( setjmp_stack[ --setjmp_stack_idx ].pjmpbuf != addr );
   call_stack_idx = setjmp_stack[ setjmp_stack_idx ].call_stack_idx;
-  p_call_stack_crt = p_call_stack + 2 * call_stack_idx;
+  p_call_stack_crt = call_stack + 2 * call_stack_idx;
   umon_restore_ints( ints_on );
 }
 
@@ -128,9 +129,9 @@ void umon_get_trace_entry( unsigned idx, unsigned *pto, unsigned *pfrom )
 {
   idx <<= 1;
   if( pto )
-    *pto = p_call_stack[ idx ];
+    *pto = call_stack[ idx ];
   if( pfrom )
-    *pfrom = p_call_stack[ idx + 1 ];
+    *pfrom = call_stack[ idx + 1 ];
 }
 
 void umon_trace_end( int stat )
@@ -138,17 +139,14 @@ void umon_trace_end( int stat )
   umon_restore_ints( stat );
 }
 
-int umon_init( void *call_stack,
-                 const p_umon_output umon_output_fn, 
-                 const p_umon_input umon_input_fn )
+void umon_set_output_func( p_umon_output outfunc )
 {
-  output_func = umon_output_fn;
-  input_func = umon_input_fn;
-  call_stack_idx = 0;
-  stack_depth_break_idx = UMON_STACK_BREAK_DISABLE;
-  p_call_stack = p_call_stack_crt = ( unsigned* )call_stack;
-  initialized = 1;
-  return UMON_OK;
+  output_func = outfunc;
+}
+
+void umon_set_input_func( p_umon_input infunc )
+{
+  input_func = infunc;
 }
 
 const char* umon_get_function_name( unsigned addr ) 
@@ -183,37 +181,38 @@ const char* umon_get_function_name( unsigned addr )
 void umon_print_stack_trace()
 {
   int depth = call_stack_idx;
-  unsigned to, from;
-  const char *fname, *fromname;
-  unsigned last_to = 0;
+  unsigned to, from, temp;
+  const char *fname;
 
   while( --depth >= 0 )
   {
     umon_get_trace_entry( depth, &to, &from );
     if( ( fname = umon_get_function_name( to ) ) == NULL )
       fname = "<UNKNOWN>";
-    if( depth == 0 )
-    {
-      fromname = "<UNKNOWN>";
-      last_to = from;
-    }
+    umon_printf( "[%2d] ", depth );
+    if( call_stack_int[ depth ] != 0 )
+      umon_printf( "{%2X} ", call_stack_int[ depth ] );
+    // Get the actual call address by decoding the call instruction
+    temp = ( *( unsigned* )( from - 4 ) ) >> 27;
+    if( temp == 0x1D || temp == 0x1E || temp == 0x1F )
+      from -= 4; // 32 bit instruction
     else
-    {
-      umon_get_trace_entry( depth - 1, &last_to, NULL );
-      fromname = umon_get_function_name( last_to );
-    }
-    umon_printf( "%s (%8X) <- %s+%X (%8X))\n", fname, to, fromname, from - last_to, from );
+      from -= 2; // 16 bit instruction
+    umon_printf( "%s (%8X) <- %8X\n", fname, to, from );
   }
 }
 
-void umon_break_on_stack_depth( unsigned depth )
+int umon_break_on_stack_depth( unsigned depth )
 {
+  if( depth >= UMON_STACK_TRACE_ENTRIES )
+    return UMON_ERR_STACK_OVERFLOW;
   stack_depth_break_idx = depth;
+  return UMON_OK;
 }
 
 void umon_putc( char c )
 {
-  if( initialized && output_func )
+  if( output_func )
     output_func( c );
 }
 

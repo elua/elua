@@ -125,9 +125,8 @@ int main( void )
     while( 1 );
   }
 
-  // Initialize umon now if needed
 #ifdef BUILD_UMON
-  umon_init( umon_call_stack, umon_send, NULL );
+  umon_set_output_func( umon_send );
 #endif
 
   // Initialize device manager

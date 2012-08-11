@@ -25,7 +25,7 @@
   #define BUILD_USB_CDC
 #endif
 
-#ifndef FORLM3S1968
+#if !defined( FORLM3S1968 ) && !defined( ELUA_BOARD_EKLM3S9D92 )
   #define BUILD_UIP
   #define BUILD_DHCPC
   #define BUILD_DNS

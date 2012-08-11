@@ -55,6 +55,14 @@ __wrap_longjmp:
       pop       { r0, r1, lr }
       b         __real_longjmp
 
+# Get current interrupt
+      .global   umon_get_current_int
+      .thumb
+      .thumb_func
+umon_get_current_int:
+      mrs       r0, PSR
+      and       r0, r0, #0xFF
+      bx        lr
       .end
 
 #endif // #ifdef BUILD_UMON
