@@ -33,7 +33,9 @@
   #define BUILD_UIP
   #define BUILD_DHCPC
   #define BUILD_DNS
-#endif  
+#endif
+
+#define BUILD_LINENOISE
 
 #define BUILD_ADC
 #define BUILD_RPC
@@ -56,6 +58,9 @@
 #endif
 
 #define ENABLE_LM3S_GPIO
+
+#define LINENOISE_HISTORY_SIZE_LUA    30
+#define LINENOISE_HISTORY_SIZE_SHELL  10
 
 // *****************************************************************************
 // UART/Timer IDs configuration data (used in main.c)
@@ -215,8 +220,8 @@
 #define NUM_CAN               1
 
 // Enable RX buffering on UART
-//#define BUF_ENABLE_UART
-//#define CON_BUF_SIZE          BUF_SIZE_128
+#define BUF_ENABLE_UART
+#define CON_BUF_SIZE          BUF_SIZE_128
 
 // ADC Configuration Params
 #define ADC_BIT_RESOLUTION    10

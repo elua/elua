@@ -490,6 +490,8 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
 
     MAP_UARTConfigSetExpClk( uart_base[ id ], MAP_SysCtlClockGet(), baud, config );
     MAP_UARTConfigGetExpClk( uart_base[ id ], MAP_SysCtlClockGet(), &baud, &config );
+
+    MAP_UARTEnable( uart_base[ id ] );
   }
   return baud;
 }
