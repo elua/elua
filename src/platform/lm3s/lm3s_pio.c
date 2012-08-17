@@ -413,10 +413,13 @@ static int lm3s_pio_mt_index( lua_State *L )
   return 0;
 }
 
-// Lua: lm3s.pio.set_function( function )
+// Lua: lm3s.pio.set_function( func1, func2, ..., funcn )
 static int lm3s_pio_set_function( lua_State *L )
 {
-  GPIOPinConfigure( ( u32 )luaL_checknumber( L, 1 ) );
+  unsigned i;
+
+  for( i = 1; i <= lua_gettop( L ); i ++ )
+    GPIOPinConfigure( ( u32 )luaL_checknumber( L, i ) );
   return 0;
 }
 
@@ -439,42 +442,56 @@ static int lm3s_pioh_check_pio_spec( int v, int *pport, int *ppin )
   return 1;
 }
 
-// Lua: lm3s.pio.set_strength( pin, drive )
+// Lua: lm3s.pio.set_strength( drive, pin1, pin2, ..., pinn )
 static int lm3s_pio_set_strength( lua_State *L )
 {
   int port = 0, pin = 0;
   u8 pins;
-  u32 base, drive;
+  u32 base;
+  u32 drive = luaL_checkinteger( L, 1 );
+  unsigned i;
   
-  if( !lm3s_pioh_check_pio_spec( luaL_checkinteger( L, 1 ), &port, &pin ) )
-    return luaL_error( L, "invalid pin" );
-  drive = ( u32 )luaL_checknumber( L, 2 );
-  base = pio_base[ port ];
-  pins = 1 << pin;
-  // The next sequence is taken from gpio.c
-  HWREG(base + GPIO_O_DR2R) = ((drive & 1) ?
-                                 (HWREG(base + GPIO_O_DR2R) | pins) :
-                                 (HWREG(base + GPIO_O_DR2R) & ~(pins)));
-  HWREG(base + GPIO_O_DR4R) = ((drive & 2) ?
-                                 (HWREG(base + GPIO_O_DR4R) | pins) :
-                                 (HWREG(base + GPIO_O_DR4R) & ~(pins)));
-  HWREG(base + GPIO_O_DR8R) = ((drive & 4) ?
-                                 (HWREG(base + GPIO_O_DR8R) | pins) :
-                                 (HWREG(base + GPIO_O_DR8R) & ~(pins)));
-  HWREG(base + GPIO_O_SLR) = ((drive & 8) ?
-                                (HWREG(base + GPIO_O_SLR) | pins) :
-                                (HWREG(base + GPIO_O_SLR) & ~(pins)));
+  for( i = 2; i <= lua_gettop( L ); i ++ )
+  {
+    if( !lm3s_pioh_check_pio_spec( luaL_checkinteger( L, i ), &port, &pin ) )
+      return luaL_error( L, "invalid pin '%u'", luaL_checkinteger( L, i ) );
+    base = pio_base[ port ];
+    pins = 1 << pin;
+    // The next sequence is taken from gpio.c
+    HWREG(base + GPIO_O_DR2R) = ((drive & 1) ?
+                                   (HWREG(base + GPIO_O_DR2R) | pins) :
+                                   (HWREG(base + GPIO_O_DR2R) & ~(pins)));
+    HWREG(base + GPIO_O_DR4R) = ((drive & 2) ?
+                                   (HWREG(base + GPIO_O_DR4R) | pins) :
+                                   (HWREG(base + GPIO_O_DR4R) & ~(pins)));
+    HWREG(base + GPIO_O_DR8R) = ((drive & 4) ?
+                                   (HWREG(base + GPIO_O_DR8R) | pins) :
+                                   (HWREG(base + GPIO_O_DR8R) & ~(pins)));
+    HWREG(base + GPIO_O_SLR) = ((drive & 8) ?
+                                  (HWREG(base + GPIO_O_SLR) | pins) :
+                                  (HWREG(base + GPIO_O_SLR) & ~(pins)));
+  }
   return 0;
 }
 
-// Lua: lm3s.pio.set_direction( pin, drive )
+// Lua: lm3s.pio.set_direction( dir, pin1, pin2, ..., pinn )
 static int lm3s_pio_set_direction( lua_State *L )
 {
   int port = 0, pin = 0;
-  
-  if( !lm3s_pioh_check_pio_spec( luaL_checkinteger( L, 1 ), &port, &pin ) )
-    return luaL_error( L, "invalid pin" );
-  GPIODirModeSet( pio_base[ port ], 1 << pin, ( u32 )luaL_checknumber( L, 2 ) );
+  u32 base, dir;
+  u8 pins;
+  unsigned i;
+
+  dir = ( u32 )luaL_checkinteger( L, 1 );
+  for( i = 2; i <= lua_gettop( L ); i ++ )
+  {
+    if( !lm3s_pioh_check_pio_spec( luaL_checkinteger( L, i ), &port, &pin ) )
+      return luaL_error( L, "invalid pin '%u'", luaL_checkinteger( L, i ) );
+    base = pio_base[ port ];
+    pins = 1 << pin;
+    GPIODirModeSet( base, pins, dir );
+    HWREG( base  + GPIO_O_DEN ) |= pins;
+  }
   return 0;
 }
 
