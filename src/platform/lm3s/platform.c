@@ -449,6 +449,7 @@ const u32 uart_base[] = { UART0_BASE, UART1_BASE, UART2_BASE };
 static const u32 uart_sysctl[] = { SYSCTL_PERIPH_UART0, SYSCTL_PERIPH_UART1, SYSCTL_PERIPH_UART2 };
 static const u32 uart_gpio_base[] = { GPIO_PORTA_BASE, GPIO_PORTD_BASE, GPIO_PORTG_BASE };
 static const u8 uart_gpio_pins[] = { GPIO_PIN_0 | GPIO_PIN_1, GPIO_PIN_2 | GPIO_PIN_3, GPIO_PIN_0 | GPIO_PIN_1 };
+static const u32 uart_gpiofunc[] = { GPIO_PA0_U0RX, GPIO_PA1_U0TX, GPIO_PD2_U1RX, GPIO_PD3_U1TX, GPIO_PG0_U2RX, GPIO_PG1_U2TX };
 
 static void uarts_init()
 {
@@ -463,7 +464,9 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
 
   if( id < NUM_UART )
   {
-    MAP_GPIOPinTypeUART(uart_gpio_base [ id ], uart_gpio_pins[ id ]);
+    MAP_GPIOPinConfigure( uart_gpiofunc[ id << 1 ] );
+    MAP_GPIOPinConfigure( uart_gpiofunc[ ( id << 1 ) + 1 ] );
+    MAP_GPIOPinTypeUART( uart_gpio_base[ id ], uart_gpio_pins[ id ] );
 
     switch( databits )
     {
