@@ -219,8 +219,8 @@ function compile_board( fname, boardname )
   end
 
   -- Read platform specific components/configs
-  plconf.add_platform_components( components )
-  plconf.add_platform_configs( configs )
+  plconf.add_platform_components( components, boardname, desc.cpu )
+  plconf.add_platform_configs( configs, boardname, desc.cpu )
 
   -- Do we need to include any configured headers?
   if type( desc.headers ) == "table" and #desc.headers > 0 then 
@@ -269,7 +269,7 @@ function compile_board( fname, boardname )
   header = header .. sanity_code
 
   -- Generate module configuration
-  gen, err = mgen.gen_module_list( desc, plconf, platform )
+  gen, err = mgen.gen_module_list( desc, plconf, platform, boardname )
   if not gen then return false, err end
   header = header .. gen
 

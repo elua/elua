@@ -165,14 +165,14 @@ local function generate_data( t, is_platform )
 end
 
 -- Generate the complete module list starting from the board description
-function gen_module_list( desc, plconf, platform )
+function gen_module_list( desc, plconf, platform, boardname )
   local mdesc = desc.modules
   if not mdesc then return '' end
   local gen_list_generic, gen_list_platform = {}, {}
   local gstr = string.rep( "/", 80 ) .. "\n" .. "// Module configuration\n\n"
   local ngenmods, nplmods = 0, 0
 
-  platform_modules = plconf.get_platform_modules() or {}
+  platform_modules = plconf.get_platform_modules( boardname, desc.cpu ) or {}
   if mdesc == "all" then -- include all the modules. what a brave, brave soul.
     process_module( gen_list_generic, 'all' )
     process_module( gen_list_platform, 'all', true )
