@@ -8,7 +8,7 @@ local comps = require "components"
 function add_platform_components( t )
   t.cdc = comps.cdc_uart()
   t.avr32_lcd = { macro = "BUILD_LCD" }
-  t.avr32_rtc = { macrp = "BUILD_RTC" }
+  t.avr32_rtc = { macro = "BUILD_RTC" }
 end
 
 -- Add specific configuration to the 'configs' table
@@ -18,8 +18,8 @@ end
 -- Return an array of all the available platform modules for the given cpu
 function get_platform_modules( cpu )
   return {
-    lcd = { "BUILD_LCD" },
-    rtc = { "BUILD_RTC" }
+    lcd = { guards = { "BUILD_LCD" }, lib = '"lcd"', open = false },
+    rtc = { guards = { "BUILD_RTC" }, lib = '"rtc"', open = false }
   }
 end
 

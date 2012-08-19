@@ -14,6 +14,8 @@ end
 
 -- Return an array of all the available platform modules for the given cpu
 function get_platform_modules( cpu )
-  return { enc = { 'ENABLE_ENC' } }
+  return { 
+    enc = { guards = { 'ENABLE_ENC' }, lib = '"enc"' }
+  }
 end
 

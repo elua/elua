@@ -14,6 +14,8 @@ end
 
 -- Return an array of all the available platform modules for the given cpu
 function get_platform_modules( cpu )
-  return { pio = {} }
+  return { 
+    pio = { map = "mbed_pio_map", open = "luaopen_mbed_pio" }
+  }
 end
 

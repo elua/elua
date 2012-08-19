@@ -13,6 +13,8 @@ end
 
 -- Return an array of all the available platform modules for the given cpu
 function get_platform_modules( cpu )
-  return { pio = {} }
+  return { 
+    pio = { map = "str9_pio_map" }
+  }
 end
 

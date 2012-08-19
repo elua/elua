@@ -971,33 +971,3 @@ void platform_spi_select( unsigned id, int is_select )
   is_select = is_select;
 }
 
-// ****************************************************************************
-// Platform specific modules go here
-
-#define MIN_OPT_LEVEL 2
-#include "lrodefs.h"
-extern const LUA_REG_TYPE str9_pio_map[];
-
-const LUA_REG_TYPE platform_map[] =
-{
-#if LUA_OPTIMIZE_MEMORY > 0
-  { LSTRKEY( "pio" ), LROVAL( str9_pio_map ) },
-#endif
-  { LNILKEY, LNILVAL }
-};
-
-LUALIB_API int luaopen_platform( lua_State *L )
-{
-#if LUA_OPTIMIZE_MEMORY > 0
-  return 0;
-#else // #if LUA_OPTIMIZE_MEMORY > 0
-  luaL_register( L, PS_LIB_TABLE_NAME, platform_map );
-
-  // Setup the new tables inside platform table
-  lua_newtable( L );
-  luaL_register( L, NULL, str9_pio_map );
-  lua_setfield( L, -2, "pio" );
-  return 1;
-#endif // #if LUA_OPTIMIZE_MEMORY > 0
-}
-
