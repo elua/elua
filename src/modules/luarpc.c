@@ -45,8 +45,10 @@ void *alloca(size_t);
 // Support for Compiling with & without rotables
 #ifdef LUA_OPTIMIZE_MEMORY
 #define LUA_ISCALLABLE( state, idx ) ( lua_isfunction( state, idx ) || lua_islightfunction( state, idx ) )
+#define LUA_ISATABLE( state, idx ) ( lua_istable( state, idx ) || lua_isrotable( state, idx ) )
 #else
 #define LUA_ISCALLABLE( state, idx ) lua_isfunction( state, idx )
+#define LUA_ISATABLE( state, idx ) lua_istable( state, idx )
 #endif
 
 // Prototypes for Local Functions
@@ -1232,16 +1234,16 @@ static void read_cmd_call( Transport *tpt, lua_State *L )
   // @@@ also strtok is not thread safe
   token = strtok( funcname, "." );
   lua_getglobal( L, token );
-  if( LUA_ISCALLABLE( L, -1 ) || lua_istable( L, -1 ) ) // only continue if non-nil
+  if( LUA_ISCALLABLE( L, -1 ) || LUA_ISATABLE( L, -1 ) ) // only continue if non-nil
   {
     token = strtok( NULL, "." );
 
     // loop over remainder of string, leaving token with last value if
     // indexing fails
-    while( token != NULL && ( LUA_ISCALLABLE( L, -1 ) || lua_istable( L, -1 ) ) )
+    while( token != NULL && ( LUA_ISCALLABLE( L, -1 ) || LUA_ISATABLE( L, -1 ) ) )
     {
       lua_getfield( L, -1, token );
-      if ( LUA_ISCALLABLE( L, -1 ) || lua_istable( L, -1 ) )
+      if ( LUA_ISCALLABLE( L, -1 ) || LUA_ISATABLE( L, -1 ) )
       {
         lua_remove( L, -2 );
         token = strtok( NULL, "." );
@@ -1291,7 +1293,7 @@ static void read_cmd_call( Transport *tpt, lua_State *L )
     const char *msg;
     if ( lua_isnil( L, -1 ) )
       msg = "undefined: ";
-    else if ( lua_istable( L, -1 ) )
+    else if ( LUA_ISATABLE( L, -1 ) )
       msg = "can't call table";
     else
       msg = "not table/func: ";
