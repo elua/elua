@@ -18,6 +18,8 @@
 #include "term.h"
 #include "romfs.h"
 #include <ctype.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #if defined( USE_GIT_REVISION )
 #include "git_version.h"
@@ -169,39 +171,100 @@ static void shell_ver( int argc, char **argv )
   printf( "For more information visit www.eluaproject.net and wiki.eluaproject.net\n" );
 }
 
+// ls helper: does the recursive path walk for '-R'
+static u32 shell_ls_helper( const char *crtname, int recursive, int *phasdirs )
+{
+  DM_DIR *d;
+  u32 total = 0;
+  struct dm_dirent *ent;
+  unsigned i;
+  char *fullname;
+  int ndirs = 0;
+
+  if( ( d = dm_opendir( crtname ) ) != NULL )
+  {
+    total = 0;
+    printf( "\n%s", crtname );
+    while( ( ent = dm_readdir( d ) ) != NULL )
+    {
+      printf( "\n%s", ent->fname );
+      for( i = strlen( ent->fname ); i <= DM_MAX_FNAME_LENGTH; i++ )
+        printf( " " );
+      if( ent->flags & DM_DIRENT_FLAG_DIR )
+      {
+        printf( "<DIR>" );
+        ndirs = ndirs + 1;
+        if( phasdirs )
+          *phasdirs = 1;
+      }
+      else
+      {
+        printf( "%u bytes", ( unsigned )ent->fsize );
+        total = total + ent->fsize;
+      }
+    }
+    dm_closedir( d );
+    printf( "\nTotal on %s: %u bytes\n", crtname, ( unsigned )total );
+    if( recursive && ( ndirs > 0 ) )
+    {
+      if( ( d = dm_opendir( crtname ) ) != NULL )
+      {
+        while( ( ent = dm_readdir( d ) ) != NULL )
+        {
+          if( ent->flags & DM_DIRENT_FLAG_DIR )
+          {
+            if( asprintf( &fullname, "%s/%s", crtname, ent->fname ) > 0 )
+            {
+              total += shell_ls_helper( fullname, 1, phasdirs );
+              free( fullname );
+            }
+            else
+              printf( "ERROR: unable to open directory '%s/%s' (not enough memory?)\n", crtname, ent->fname );
+          }
+        }
+        dm_closedir( d );
+      }
+    }
+  }
+  else
+    printf( "Error: unable to open directory '%s'", crtname );
+  return total;
+}
+
 // 'ls' and 'dir' handler
+// Syntax: ls [dir] [-R] 
 static void shell_ls( int argc, char **argv )
 {
   const DM_INSTANCE_DATA *pinst;
-  unsigned dev, i;
-  DM_DIR *d;
-  struct dm_dirent *ent;
-  u32 total;
+  unsigned dev;
+  u32 i;
+  int recursive = 0, hasdirs;
+  char *pname = NULL;
+  const char *crtname;
 
-  ( void )argc;
-  ( void )argv;
+  for( i = 1; i < argc; i ++ )
+  {
+    if( !strcmp( argv[ i ], "-R" ) )
+      recursive = 1;
+    else if( argv[ i ][ 0 ] == '/' )
+      pname = argv[ i ];
+    else
+      printf( "Warning: ignoring argument '%s' of ls", argv[ i ] );
+  }
   // Iterate through all devices, looking for the ones that can do "opendir"
+  // or the ones that match 'pname' (if that is specified)
   for( dev = 0; dev < dm_get_num_devices(); dev ++ )
   {  
     pinst = dm_get_instance_at( dev );
     if( pinst->pdev->p_opendir_r == NULL || pinst->pdev->p_readdir_r == NULL || pinst->pdev->p_closedir_r == NULL )
       continue;
-    d = dm_opendir( pinst->name );
-    if( d )
-    {
-      total = 0;
-      printf( "\n%s", pinst->name );
-      while( ( ent = dm_readdir( d ) ) != NULL )
-      {
-        printf( "\n%s", ent->fname );
-        for( i = strlen( ent->fname ); i <= DM_MAX_FNAME_LENGTH; i++ )
-          printf( " " );
-        printf( "%u bytes", ( unsigned )ent->fsize );
-        total = total + ent->fsize;
-      }
-      printf( "\n\nTotal on %s: %u bytes\n", pinst->name, ( unsigned )total );
-      dm_closedir( d );
-    }
+    if( pname && strncmp( pinst->name, pname, strlen( pinst->name ) ) )
+      continue;
+    crtname = pname ? pname : pinst->name;
+    hasdirs = 0;
+    i = shell_ls_helper( crtname, recursive, &hasdirs );
+    if( recursive && hasdirs )
+      printf( "\nTotal on %s with all subdirectories: %u bytes\n", crtname, ( unsigned )i );
   }   
   printf( "\n" );
 }
@@ -323,6 +386,18 @@ static void shell_wofmt( int argc, char **argv )
 #endif // #ifndef BUILD_WOFS
 }
 
+// mkdir handler
+static void shell_mkdir( int argc, char **argv )
+{
+  if( argc != 2 )
+  {
+    printf( "Usage: mkdir <directory>\n" );
+    return;
+  }
+  if( mkdir( argv[ 1 ], 0 ) != 0 )
+    printf( "Error creating directory '%s'\n", argv[ 1 ] );
+}
+
 // Insert shell commands here
 static const SHELL_COMMAND shell_commands[] =
 {
@@ -337,6 +412,7 @@ static const SHELL_COMMAND shell_commands[] =
   { "type", shell_cat },
   { "cp", shell_cp },
   { "wofmt", shell_wofmt },
+  { "mkdir", shell_mkdir },
   { NULL, NULL }
 };
 
@@ -517,3 +593,4 @@ void shell_start()
 }
 
 #endif // #ifdef BUILD_SHELL
+

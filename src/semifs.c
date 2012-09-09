@@ -237,6 +237,7 @@ static struct dm_dirent* semifs_readdir_r( struct _reent *r, void *d, void *pdat
   pent->fname = dm_shared_fname;
   pent->fsize = semifs_file_info->size;
   pent->ftime = 0; // need to convert from struct to UNIX time?!
+  pent->flags = 0;
   return pent;
 }
 
@@ -257,7 +258,8 @@ static const DM_DEVICE semifs_device =
   semifs_opendir_r,      // opendir
   semifs_readdir_r,      // readdir
   semifs_closedir_r,     // closedir
-  NULL                   // getaddr
+  NULL,                  // getaddr
+  NULL                   // mkdir
 };
 
 int semifs_init()

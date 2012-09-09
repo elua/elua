@@ -182,6 +182,36 @@ _ssize_t _write_r( struct _reent *r, int file, const void *ptr, size_t len )
 }
 
 // ****************************************************************************
+// _mkdir_r
+int _mkdir_r( struct _reent *r, const char *path, mkdir_mode_t mode )
+{
+  char* actname;
+  int res, devid;
+  const DM_INSTANCE_DATA *pinst;
+
+  // Look for device, return error if not found or if function not implemented
+  if( ( devid = find_dm_entry( path, &actname ) ) == -1 )
+  {
+    r->_errno = ENODEV;
+    return -1;
+  }
+  pinst = dm_get_instance_at( devid );
+  if( pinst->pdev->p_mkdir_r == NULL )
+  {
+    r->_errno = EPERM;
+    return -1;
+  }
+
+  // Device found, call its function
+  return pinst->pdev->p_mkdir_r( r, actname - 1, mode, pinst->pdata );
+}
+
+int mkdir( const char *path, mode_t mode )
+{
+  return _mkdir_r( _REENT, path, mode );
+}
+
+// ****************************************************************************
 // Miscellaneous functions
 
 int _isatty_r( struct _reent* r, int fd )

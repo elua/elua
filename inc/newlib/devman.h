@@ -6,6 +6,7 @@
 #include "type.h"
 #include <reent.h>
 #include <unistd.h>
+#include <sys/types.h>
 
 // Maximum number of devices in the system
 #define DM_MAX_DEVICES        16
@@ -29,11 +30,15 @@
 #define DM_STDOUT_NUM             1
 #define DM_STDERR_NUM             2
 
+// Directory entry flags
+#define DM_DIRENT_FLAG_DIR        1
+
 // Our platform independent "dirent" structure (for opendir/readdir)
 struct dm_dirent {
   u32 fsize;
   const char *fname;
   u32 ftime;
+  u8 flags;
 };
 typedef struct {
   u8 devid;
@@ -41,6 +46,8 @@ typedef struct {
 } DM_DIR;
 
 // A device structure with pointers to all the device functions
+typedef int mkdir_mode_t;
+
 typedef struct
 {
   int ( *p_open_r )( struct _reent *r, const char *path, int flags, int mode, void *pdata );
@@ -52,6 +59,7 @@ typedef struct
   struct dm_dirent* ( *p_readdir_r )( struct _reent *r, void *dir, void *pdata );
   int ( *p_closedir_r )( struct _reent *r, void* dir, void *pdata );
   const char* ( *p_getaddr_r )( struct _reent *r, int fd, void *pdata );
+  int ( *p_mkdir_r )( struct _reent *r, const char *pathname, mkdir_mode_t mode, void *pdata );
 } DM_DEVICE;
 
 // Additional registration data for each FS (per FS instance)

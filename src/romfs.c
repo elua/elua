@@ -362,7 +362,7 @@ static struct dm_dirent* romfs_readdir_r( struct _reent *r, void *d, void *pdata
   unsigned j;
   FSDATA *pfsdata = ( FSDATA* )pdata;
   int is_deleted;
-  
+ 
   while( 1 )
   {
     if( romfsh_read8( off, pfsdata ) == WOFS_END_MARKER_CHAR )
@@ -381,6 +381,7 @@ static struct dm_dirent* romfs_readdir_r( struct _reent *r, void *d, void *pdata
     pent->fsize = romfsh_read8( off, pfsdata ) + ( romfsh_read8( off + 1, pfsdata ) << 8 );
     pent->fsize += ( romfsh_read8( off + 2, pfsdata ) << 16 ) + ( romfsh_read8( off + 3, pfsdata ) << 24 );
     pent->ftime = 0;
+    pent->flags = 0;
     off += ROMFS_SIZE_LEN;
     off += pent->fsize;
     if( romfsh_is_wofs( pfsdata ) )
@@ -426,6 +427,7 @@ static const DM_DEVICE romfs_device =
   romfs_readdir_r,      // readdir
   romfs_closedir_r,     // closedir
   romfs_getaddr_r,      // getaddr
+  NULL                  // mkdir
 };
 
 // ****************************************************************************

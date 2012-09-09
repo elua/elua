@@ -12,6 +12,7 @@
 #include "type.h"
 #include "integer.h"
 #include "devman.h"
+#include "platform_conf.h"
 
 /*---------------------------------------------------------------------------/
 / Function and Buffer Configurations
@@ -29,7 +30,7 @@
 /  f_truncate and useless f_getfree. */
 
 
-#define _FS_MINIMIZE	1	/* 0, 1, 2 or 3 */
+#define _FS_MINIMIZE  0
 /* The _FS_MINIMIZE option defines minimization level to remove some functions.
 /
 /   0: Full function.

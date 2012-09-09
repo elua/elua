@@ -111,6 +111,7 @@ static struct dm_dirent* rfs_readdir_r( struct _reent *r, void *d, void *pdata )
   static struct dm_dirent ent;
 
   rfsc_readdir( ( u32 )d, &ent.fname, &ent.fsize, &ent.ftime );
+  ent.flags = 0;
   if( ent.fname == NULL )
     return NULL;
   return &ent;
@@ -179,7 +180,8 @@ static const DM_DEVICE rfs_device =
   rfs_opendir_r,        // opendir
   rfs_readdir_r,        // readdir
   rfs_closedir_r,       // closedir
-  NULL                  // getaddr
+  NULL,                 // getaddr
+  NULL                  // mkdir
 };
 
 int remotefs_init()
