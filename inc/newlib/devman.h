@@ -45,6 +45,8 @@ typedef struct {
   void *userdata;
 } DM_DIR;
 
+#define DM_DIRENT_IS_DIR( ent )   ( ( ( ent )->flags & DM_DIRENT_FLAG_DIR ) != 0 )
+
 // A device structure with pointers to all the device functions
 typedef int mkdir_mode_t;
 

@@ -573,6 +573,24 @@ unsigned int intlog2( unsigned int v )
   return r;
 }
 
+char lastchar( const char *s )
+{
+  unsigned len;
+
+  if( !s )
+    return '\0';
+  len = strlen( s );
+  if( len == 0 )
+    return '\0';
+  else
+    return s[ len - 1 ];
+}
+
+char firstchar( const char *s )
+{
+  return s ? s[ 0 ]: '\0';
+}
+
 // 64-bits integer printf support seems to be broken in some versions of Newlib...
 const char* cmn_str64( u64 x )
 {

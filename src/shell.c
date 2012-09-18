@@ -20,6 +20,7 @@
 #include <ctype.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include "common.h"
 
 #if defined( USE_GIT_REVISION )
 #include "git_version.h"
@@ -57,7 +58,39 @@ static char* shell_prog;
 // ****************************************************************************
 // Shell functions
 
+// ----------------------------------------------------------------------------
+// Helpers
+
+// Helper: ask yes/no
+// Returns 1 for yes, 0 for no
+static int shellh_ask_yes_no( const char *prompt )
+{
+  int c;
+
+  if( prompt )
+    printf( "%s ", prompt );
+  while( 1 )
+  {
+    c = term_getch( TERM_INPUT_WAIT );
+    if( c == 'y' || c == 'Y' )
+    {
+      printf( "y\n" );
+      return 1;
+    }
+    if( c == 'n' || c == 'N' )
+    {
+      printf( "n\n" );
+      return 0;
+    }
+  }
+  // Will never get here
+  return 0;
+}
+
+
+// ----------------------------------------------------------------------------
 // 'help' handler
+
 static void shell_help( int argc, char **argv )
 {
   ( void )argc;
@@ -74,7 +107,9 @@ static void shell_help( int argc, char **argv )
   printf( "  ver         - print eLua version\n" );
 }
 
+// ----------------------------------------------------------------------------
 // 'lua' handler
+
 static void shell_lua( int argc, char **argv )
 {
   printf( "Press " SHELL_EOF_STRING " to exit Lua\n" );
@@ -82,7 +117,9 @@ static void shell_lua( int argc, char **argv )
   clearerr( stdin );
 }
 
+// ----------------------------------------------------------------------------
 // 'recv' handler
+
 static void shell_recv( int argc, char **argv )
 {
 #ifndef BUILD_XMODEM
@@ -162,7 +199,9 @@ static void shell_recv( int argc, char **argv )
 #endif // #ifndef BUILD_XMODEM
 }
 
+// ----------------------------------------------------------------------------
 // 'ver' handler
+
 static void shell_ver( int argc, char **argv )
 {
   ( void )argc;
@@ -171,105 +210,94 @@ static void shell_ver( int argc, char **argv )
   printf( "For more information visit www.eluaproject.net and wiki.eluaproject.net\n" );
 }
 
-// ls helper: does the recursive path walk for '-R'
-static u32 shell_ls_helper( const char *crtname, int recursive, int *phasdirs )
-{
-  DM_DIR *d;
-  u32 total = 0;
-  struct dm_dirent *ent;
-  unsigned i;
-  char *fullname;
-  int ndirs = 0;
+// ----------------------------------------------------------------------------
+// 'ls'/'dir' handler
 
-  if( ( d = dm_opendir( crtname ) ) != NULL )
-  {
-    total = 0;
-    printf( "\n%s", crtname );
-    while( ( ent = dm_readdir( d ) ) != NULL )
-    {
-      printf( "\n%s", ent->fname );
-      for( i = strlen( ent->fname ); i <= DM_MAX_FNAME_LENGTH; i++ )
-        printf( " " );
-      if( ent->flags & DM_DIRENT_FLAG_DIR )
-      {
-        printf( "<DIR>" );
-        ndirs = ndirs + 1;
-        if( phasdirs )
-          *phasdirs = 1;
-      }
-      else
-      {
-        printf( "%u bytes", ( unsigned )ent->fsize );
-        total = total + ent->fsize;
-      }
-    }
-    dm_closedir( d );
-    printf( "\nTotal on %s: %u bytes\n", crtname, ( unsigned )total );
-    if( recursive && ( ndirs > 0 ) )
-    {
-      if( ( d = dm_opendir( crtname ) ) != NULL )
-      {
-        while( ( ent = dm_readdir( d ) ) != NULL )
-        {
-          if( ent->flags & DM_DIRENT_FLAG_DIR )
-          {
-            if( asprintf( &fullname, "%s/%s", crtname, ent->fname ) > 0 )
-            {
-              total += shell_ls_helper( fullname, 1, phasdirs );
-              free( fullname );
-            }
-            else
-              printf( "ERROR: unable to open directory '%s/%s' (not enough memory?)\n", crtname, ent->fname );
-          }
-        }
-        dm_closedir( d );
-      }
-    }
-  }
-  else
-    printf( "Error: unable to open directory '%s'", crtname );
-  return total;
-}
+// State for walkdir
+typedef struct
+{
+  u32 dir_total;
+  u32 total;
+  u8 ndirs;
+} SHELL_LS_STATE;
 
 // 'ls' and 'dir' handler
-// Syntax: ls [dir] [-R] 
+// Syntax: ls [dir] [-R]
+// directory walker callback
+static int shellh_ls_walkdir_cb( const char *path, const struct dm_dirent *pent, void *pdata, int info )
+{
+  SHELL_LS_STATE *ps = ( SHELL_LS_STATE* )pdata;
+
+  switch( info )
+  {
+    case CMN_FS_INFO_BEFORE_READDIR:
+      ps->dir_total = 0;
+      printf( "%s\n", path );
+      if( ps->ndirs != 0xFF )
+        ps->ndirs ++;
+      break;
+
+    case CMN_FS_INFO_INSIDE_READDIR:
+      printf( "  %-30s", pent->fname );
+      if( DM_DIRENT_IS_DIR( pent ) )
+        printf( "<DIR>\n" );
+      else
+      {
+        printf( "%u bytes\n", ( unsigned )pent->fsize );
+        ps->dir_total += pent->fsize;
+      }
+      break;
+
+    case CMN_FS_INFO_BEFORE_CLOSEDIR:
+      printf( "Total on %s: %u bytes\n\n", path, ( unsigned )ps->dir_total );
+      ps->total += ps->dir_total;
+      break;
+
+    case CMN_FS_INFO_OPENDIR_FAILED:
+      printf( "WARNING: unable to open %s\n", path );
+      break;
+  }
+  return 1;
+}
+
 static void shell_ls( int argc, char **argv )
 {
   const DM_INSTANCE_DATA *pinst;
-  unsigned dev;
-  u32 i;
-  int recursive = 0, hasdirs;
+  unsigned i;
+  int recursive = 0;
   char *pname = NULL;
   const char *crtname;
+  SHELL_LS_STATE state;
 
   for( i = 1; i < argc; i ++ )
   {
     if( !strcmp( argv[ i ], "-R" ) )
       recursive = 1;
-    else if( argv[ i ][ 0 ] == '/' )
+    else if( argv[ i ][ 0 ] == '/' && !pname )
       pname = argv[ i ];
     else
       printf( "Warning: ignoring argument '%s' of ls", argv[ i ] );
   }
   // Iterate through all devices, looking for the ones that can do "opendir"
   // or the ones that match 'pname' (if that is specified)
-  for( dev = 0; dev < dm_get_num_devices(); dev ++ )
+  for( i = 0; i < dm_get_num_devices(); i ++ )
   {  
-    pinst = dm_get_instance_at( dev );
+    pinst = dm_get_instance_at( i );
     if( pinst->pdev->p_opendir_r == NULL || pinst->pdev->p_readdir_r == NULL || pinst->pdev->p_closedir_r == NULL )
       continue;
     if( pname && strncmp( pinst->name, pname, strlen( pinst->name ) ) )
       continue;
     crtname = pname ? pname : pinst->name;
-    hasdirs = 0;
-    i = shell_ls_helper( crtname, recursive, &hasdirs );
-    if( recursive && hasdirs )
-      printf( "\nTotal on %s with all subdirectories: %u bytes\n", crtname, ( unsigned )i );
+    memset( &state, 0, sizeof( state ) );
+    cmn_fs_walkdir( crtname, shellh_ls_walkdir_cb, &state, recursive );
+    if( recursive && ( state.ndirs > 1 ) )
+      printf( "Total on %s with all subdirectories: %u bytes\n\n", crtname, ( unsigned )state.total );
   }   
-  printf( "\n" );
 }
 
+// ----------------------------------------------------------------------------
 // 'cat' and 'type' handler
+
 static void shell_cat( int argc, char **argv )
 {
   FILE *fp;
@@ -293,69 +321,296 @@ static void shell_cat( int argc, char **argv )
       }
       fclose ( fp );
     }
-    else
+     else
       printf( "Unable to open '%s'\n", argv[ i ] );
   }
 }    
 
-// 'copy' handler
+// ----------------------------------------------------------------------------
+// 'cp' handler
+
 #ifdef BUILD_RFS
 #define SHELL_COPY_BUFSIZE    ( ( 1 << RFS_BUFFER_SIZE ) - ELUARPC_WRITE_REQUEST_EXTRA )
 #else
 #define SHELL_COPY_BUFSIZE    256
 #endif
-static void shell_cp( int argc, char **argv )
+
+// 'cp' flags
+#define SHELL_CP_FLAG_RECURSIVE         1
+#define SHELL_CP_FORCE_DESTINATION      2
+#define SHELL_CP_ASK_CONFIRMATION       4
+#define SHELL_CP_SIMULATE_ONLY          8
+
+typedef struct
+{
+  const char *pdestdir;
+  const char *psrcdir;
+  u8 flags;
+} SHELL_CP_STATE;
+
+// Helper: copy one file to another file
+// Return 1 for success, 0 for error
+static int shellh_cp_one_file( const char *psrcname, const char *pdestname, int flags )
 {
   FILE *fps = NULL, *fpd = NULL;
-  void *buf = NULL;
-  size_t datalen, datawrote, total = 0;
+  int res = 0;
+  char *buf = NULL;
+  u32 datalen, datawrote, total = 0;
 
-  if( argc != 3 )
+  // If operation confirmation is enabled, ask the user first
+  if( flags & SHELL_CP_ASK_CONFIRMATION )
   {
-    printf( "Usage: cp <source> <destination>\n" );
-    return;
+    printf( "Copy '%s' to '%s' ? [y/n] ", psrcname, pdestname );
+    if( shellh_ask_yes_no( NULL ) == 0 )
+      goto done;
   }
-  if( ( fps = fopen( argv[ 1 ], "rb" ) ) == NULL )
-    printf( "Unable to open %s for reading\n", argv[ 1 ] );
-  else
+  // Open source file
+  if( ( fps = fopen( psrcname, "r" ) ) == NULL )
   {
-    if( ( fpd = fopen( argv[ 2 ], "wb" ) ) == NULL )
-      printf( "Unable to open %s for writing\n", argv[ 2 ] );
-    else
+    printf( "Error: unable to open source file '%s'\n", psrcname );
+    goto done;
+  }
+  // If the destination exists and we need to ask for confirmation, do it now
+  if( ( flags & SHELL_CP_FORCE_DESTINATION ) == 0 )
+  {
+    if( ( fpd = fopen( pdestname, "r" ) ) != NULL )
     {
-      // Alloc memory
-      if( ( buf = malloc( SHELL_COPY_BUFSIZE ) ) == NULL )
-        printf( "Not enough memory\n" );
-      else
-      {
-        // Do the actual copy
-        while( 1 )
-        {
-          datalen = fread( buf, 1, SHELL_COPY_BUFSIZE, fps );
-          datawrote = fwrite( buf, 1, datalen, fpd );
-          if( datawrote < datalen )
-          {
-            printf( "Copy error (no space left on target?)\n" );
-            break;
-          }
-          total += datalen;
-          if( datalen < SHELL_COPY_BUFSIZE )
-            break;
-        }
-        fflush( fpd );
-        printf( "%u bytes copied\n", ( unsigned int )total );
-      }
+      fclose( fpd );
+      fpd = NULL;
+      printf( "Destination '%s' already exists, are you sure you want to overwrite it ? [y/n] ", pdestname );
+      if( shellh_ask_yes_no( NULL ) == 0 )
+        goto done;
     }
   }
+  // Allocate buffer
+  if( ( buf = ( char* )malloc( SHELL_COPY_BUFSIZE ) ) == NULL )
+  {
+    printf( "ERROR: unable to allocate buffer for copy operation.\n" );
+    goto done;
+  }
+  printf( "Copying '%s' to '%s' ... ", psrcname, pdestname );
+  if( ( flags & SHELL_CP_SIMULATE_ONLY ) == 0 )
+  {
+    // Open destination file 
+    if( ( fpd = fopen( pdestname, "w" ) ) == NULL )
+    {
+      printf( "ERROR: unable to open '%s' for writing.\n", pdestname );
+      goto done;
+    }
+    // Do the actual copy
+    while( 1 )
+    {
+      datalen = fread( buf, 1, SHELL_COPY_BUFSIZE, fps );
+      datawrote = fwrite( buf, 1, datalen, fpd );
+      if( datawrote < datalen )
+      {
+        printf( "Copy error (no space left on target?)\n" );
+        goto done;
+      }
+      total += datalen;
+      if( datalen < SHELL_COPY_BUFSIZE )
+        break;
+    }
+    fflush( fpd );
+  }
+  printf( "done (%u bytes).\n", ( unsigned )total );
+done:
   if( fps )
     fclose( fps );
   if( fpd )
     fclose( fpd );
   if( buf )
     free( buf );
+  return res;
 }
 
+// copy callback
+static int shellh_cp_walkdir_cb( const char *path, const struct dm_dirent *pent, void *pdata, int info )
+{
+  SHELL_CP_STATE *ps = ( SHELL_CP_STATE* )pdata;
+  char *tmp = NULL, *tmp2 = NULL;
+  int res = 1;
+  DM_DIR *d = NULL;
+
+  switch( info )
+  {
+    case CMN_FS_INFO_BEFORE_READDIR:
+      if( strstr( path, ps->psrcdir ) != path )
+      {
+        printf( "ERROR: unable to handle directory '%s' (internal error?), aborting.\n", path );
+        goto done_err;
+      }
+      // Need to create this directory if it does not exist
+      if( ( tmp = ( char* )cmn_fs_path_join( ps->pdestdir, path + strlen( ps->psrcdir ), NULL ) ) == NULL )
+      {
+        printf( "Not enough memory.\n" );
+        goto done_err;
+      }
+      if( ( d = dm_opendir( tmp ) ) != NULL )
+        goto done;
+      printf( "Creating directory %s ... ", tmp );
+      if( ( ps->flags & SHELL_CP_SIMULATE_ONLY ) == 0 )
+      {
+        if( mkdir( tmp, 0 ) == -1 )
+        {
+          printf( "ERROR! (aborting).\n" );
+          goto done_err;
+        }
+        else
+          printf( "done.\n" );
+      }
+      else
+        printf( "done.\n" );
+      goto done;
+
+    case CMN_FS_INFO_INSIDE_READDIR:
+      if( !DM_DIRENT_IS_DIR( pent ) )
+      {
+        if( strstr( path, ps->psrcdir ) != path )
+        {
+          printf( "ERROR: unable to handler directory '%s' (internal error?), aborting.\n", path );
+          goto done_err;
+        }
+        if( ( tmp = cmn_fs_path_join( path, pent->fname, NULL ) ) == NULL )
+        {
+          printf( "Not enough memory.\n" );
+          goto done_err;
+        }
+        if( ( tmp2 = cmn_fs_path_join( ps->pdestdir, path + strlen( ps->psrcdir ), pent->fname, NULL ) ) == NULL )
+        {
+          printf( "Not enough memory.\n" );
+          goto done_err;
+        }
+        shellh_cp_one_file( tmp, tmp2, ps->flags );
+      }
+      goto done;
+
+    case CMN_FS_INFO_OPENDIR_FAILED:
+      printf( "ERROR: unable to read directory '%s', aborting.\n", path );
+      goto done_err;
+
+    default:
+      goto done;
+  }
+done_err:
+  res = 0;
+done:
+  if( tmp )
+    free( tmp );
+  if( tmp2 )
+    free( tmp2 );
+  if( d )
+    dm_closedir( d );
+  return res;
+}
+
+static void shell_cp( int argc, char **argv )
+{
+  const char *srcpath = NULL, *dstpath = NULL;
+  unsigned i, flags = 0;
+  int srctype, dsttype;
+  char *srcdir = NULL, *dstdir = NULL, *tmp = NULL;
+  const char *srcfile, *dstfile;
+  SHELL_CP_STATE state;
+
+  if( argc < 3 )
+  {
+    printf( "Usage: cp <source> <destination> [-R] [-f] [-c]\n" );
+    printf( "  [-R]: recursive\n" );
+    printf( "  [-f]: force destination override (default is to ask confirmation).\n" );
+    printf( "  [-c]: confirm each file copy.\n" );
+    printf( "  [-s]: simulate only (no actual operation).\n" );
+    return;
+  }
+  for( i = 1; i < argc; i ++ )
+  {
+    if( !strcmp( argv[ i ], "-R" ) )
+      flags |= SHELL_CP_FLAG_RECURSIVE;
+    else if( !strcmp( argv[ i ], "-f" ) )
+      flags |= SHELL_CP_FORCE_DESTINATION;
+    else if( !strcmp( argv[ i ], "-c" ) )
+      flags |= SHELL_CP_ASK_CONFIRMATION;
+    else if( !strcmp( argv[ i ], "-s" ) )
+      flags |= SHELL_CP_SIMULATE_ONLY;
+    else if( argv[ i ][ 0 ] == '/' )
+    {
+      if( !srcpath )
+        srcpath = argv[ i ];
+      else if( !dstpath )
+        dstpath = argv[ i ];
+      else
+        printf( "WARNING: ignoring argument '%s'\n", argv[ i ] );
+    }
+    else
+      printf( "WARNING: ignoring argument '%s'\n", argv[ i ] );
+  }
+  if( !srcpath || !dstpath )
+  {
+    printf( "Source and/or destination not specified.\n" );
+    return;
+  }
+  srctype = cmn_fs_get_type( srcpath );
+  if( ( dsttype = cmn_fs_get_type( dstpath ) ) == CMN_FS_TYPE_PATTERN )
+  {
+    printf( "Invalid destination '%s'.\n", dstpath );
+    goto done;
+  }
+  if( srctype == CMN_FS_TYPE_ERROR || dsttype == CMN_FS_TYPE_ERROR )
+  {
+    printf( "Invalid source and/or destination.\n" );
+    return;
+  }
+  srcdir = cmn_fs_split_path( srcpath, &srcfile );
+  dstdir = cmn_fs_split_path( dstpath, &dstfile );
+  // Check valid source/destination combinations
+  if( srctype == CMN_FS_TYPE_FILE )
+  {
+    if( dsttype == CMN_FS_TYPE_FILE ) // direct file-to-file copy
+    {
+      shellh_cp_one_file( srcpath, dstpath, flags );
+      goto done;
+    }
+    else if( dsttype == CMN_FS_TYPE_DIR ) // copy to destination dir with the same name
+    {
+      if( ( tmp = cmn_fs_path_join( dstdir, srcfile, NULL ) ) == NULL )
+      {
+        printf( "Not enough memory.\n" );
+        goto done;
+      }
+      shellh_cp_one_file( srcpath, tmp, flags );
+      goto done;
+    }
+    else
+    {
+      printf( "Invalid arguments.\n" );
+      goto done;
+    }
+  }
+  else
+  {
+    if( dsttype == CMN_FS_TYPE_FILE )
+    {
+      printf( "Invalid destination '%s'.\n", dstpath );
+      goto done;
+    }
+    memset( &state, 0, sizeof( state ) );
+    state.flags = flags;
+    state.pdestdir = dstdir;
+    state.psrcdir = srcdir;
+    cmn_fs_walkdir( srcpath, shellh_cp_walkdir_cb, &state, flags & SHELL_CP_FLAG_RECURSIVE );
+  }
+done:
+  if( srcdir )
+    free( srcdir );
+  if( dstdir )
+    free( dstdir );
+  if( tmp )
+    free( tmp );
+}
+
+// ----------------------------------------------------------------------------
 // 'wofmt' handler
+
 static void shell_wofmt( int argc, char **argv )
 {
 #ifndef BUILD_WOFS
@@ -386,7 +641,9 @@ static void shell_wofmt( int argc, char **argv )
 #endif // #ifndef BUILD_WOFS
 }
 
+// ----------------------------------------------------------------------------
 // mkdir handler
+
 static void shell_mkdir( int argc, char **argv )
 {
   if( argc != 2 )
