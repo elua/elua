@@ -55,6 +55,12 @@ typedef struct
 // Shell data
 static char* shell_prog;
 
+// Flags for various operations
+#define SHELL_F_RECURSIVE               1
+#define SHELL_F_FORCE_DESTINATION       2
+#define SHELL_F_ASK_CONFIRMATION        4
+#define SHELL_F_SIMULATE_ONLY           8
+
 // ****************************************************************************
 // Shell functions
 
@@ -248,7 +254,7 @@ static int shellh_ls_walkdir_cb( const char *path, const struct dm_dirent *pent,
       }
       break;
 
-    case CMN_FS_INFO_BEFORE_CLOSEDIR:
+    case CMN_FS_INFO_AFTER_CLOSEDIR:
       printf( "Total on %s: %u bytes\n\n", path, ( unsigned )ps->dir_total );
       ps->total += ps->dir_total;
       break;
@@ -335,16 +341,11 @@ static void shell_cat( int argc, char **argv )
 #define SHELL_COPY_BUFSIZE    256
 #endif
 
-// 'cp' flags
-#define SHELL_CP_FLAG_RECURSIVE         1
-#define SHELL_CP_FORCE_DESTINATION      2
-#define SHELL_CP_ASK_CONFIRMATION       4
-#define SHELL_CP_SIMULATE_ONLY          8
-
 typedef struct
 {
   const char *pdestdir;
   const char *psrcdir;
+  const char *dloc;
   u8 flags;
 } SHELL_CP_STATE;
 
@@ -357,8 +358,13 @@ static int shellh_cp_one_file( const char *psrcname, const char *pdestname, int 
   char *buf = NULL;
   u32 datalen, datawrote, total = 0;
 
+  if( !strcasecmp( psrcname, pdestname ) )
+  {
+    printf( "Cannot copy '%s' into itself.\n", psrcname );
+    goto done;
+  }
   // If operation confirmation is enabled, ask the user first
-  if( flags & SHELL_CP_ASK_CONFIRMATION )
+  if( flags & SHELL_F_ASK_CONFIRMATION )
   {
     printf( "Copy '%s' to '%s' ? [y/n] ", psrcname, pdestname );
     if( shellh_ask_yes_no( NULL ) == 0 )
@@ -371,7 +377,7 @@ static int shellh_cp_one_file( const char *psrcname, const char *pdestname, int 
     goto done;
   }
   // If the destination exists and we need to ask for confirmation, do it now
-  if( ( flags & SHELL_CP_FORCE_DESTINATION ) == 0 )
+  if( ( flags & SHELL_F_FORCE_DESTINATION ) == 0 )
   {
     if( ( fpd = fopen( pdestname, "r" ) ) != NULL )
     {
@@ -389,7 +395,7 @@ static int shellh_cp_one_file( const char *psrcname, const char *pdestname, int 
     goto done;
   }
   printf( "Copying '%s' to '%s' ... ", psrcname, pdestname );
-  if( ( flags & SHELL_CP_SIMULATE_ONLY ) == 0 )
+  if( ( flags & SHELL_F_SIMULATE_ONLY ) == 0 )
   {
     // Open destination file 
     if( ( fpd = fopen( pdestname, "w" ) ) == NULL )
@@ -441,7 +447,7 @@ static int shellh_cp_walkdir_cb( const char *path, const struct dm_dirent *pent,
         goto done_err;
       }
       // Need to create this directory if it does not exist
-      if( ( tmp = ( char* )cmn_fs_path_join( ps->pdestdir, path + strlen( ps->psrcdir ), NULL ) ) == NULL )
+      if( ( tmp = ( char* )cmn_fs_path_join( ps->pdestdir, path + strlen( ps->psrcdir ) - strlen( ps->dloc ), NULL ) ) == NULL )
       {
         printf( "Not enough memory.\n" );
         goto done_err;
@@ -449,7 +455,7 @@ static int shellh_cp_walkdir_cb( const char *path, const struct dm_dirent *pent,
       if( ( d = dm_opendir( tmp ) ) != NULL )
         goto done;
       printf( "Creating directory %s ... ", tmp );
-      if( ( ps->flags & SHELL_CP_SIMULATE_ONLY ) == 0 )
+      if( ( ps->flags & SHELL_F_SIMULATE_ONLY ) == 0 )
       {
         if( mkdir( tmp, 0 ) == -1 )
         {
@@ -476,7 +482,7 @@ static int shellh_cp_walkdir_cb( const char *path, const struct dm_dirent *pent,
           printf( "Not enough memory.\n" );
           goto done_err;
         }
-        if( ( tmp2 = cmn_fs_path_join( ps->pdestdir, path + strlen( ps->psrcdir ), pent->fname, NULL ) ) == NULL )
+        if( ( tmp2 = cmn_fs_path_join( ps->pdestdir, path + strlen( ps->psrcdir ) - strlen( ps->dloc ), pent->fname, NULL ) ) == NULL )
         {
           printf( "Not enough memory.\n" );
           goto done_err;
@@ -525,13 +531,13 @@ static void shell_cp( int argc, char **argv )
   for( i = 1; i < argc; i ++ )
   {
     if( !strcmp( argv[ i ], "-R" ) )
-      flags |= SHELL_CP_FLAG_RECURSIVE;
+      flags |= SHELL_F_RECURSIVE;
     else if( !strcmp( argv[ i ], "-f" ) )
-      flags |= SHELL_CP_FORCE_DESTINATION;
+      flags |= SHELL_F_FORCE_DESTINATION;
     else if( !strcmp( argv[ i ], "-c" ) )
-      flags |= SHELL_CP_ASK_CONFIRMATION;
+      flags |= SHELL_F_ASK_CONFIRMATION;
     else if( !strcmp( argv[ i ], "-s" ) )
-      flags |= SHELL_CP_SIMULATE_ONLY;
+      flags |= SHELL_F_SIMULATE_ONLY;
     else if( argv[ i ][ 0 ] == '/' )
     {
       if( !srcpath )
@@ -597,7 +603,10 @@ static void shell_cp( int argc, char **argv )
     state.flags = flags;
     state.pdestdir = dstdir;
     state.psrcdir = srcdir;
-    cmn_fs_walkdir( srcpath, shellh_cp_walkdir_cb, &state, flags & SHELL_CP_FLAG_RECURSIVE );
+    state.dloc = strchr( srcdir + 1, '/' );
+    if( state.dloc == NULL )
+      state.dloc = "";
+    cmn_fs_walkdir( srcpath, shellh_cp_walkdir_cb, &state, flags & SHELL_F_RECURSIVE );
   }
 done:
   if( srcdir )
@@ -655,6 +664,127 @@ static void shell_mkdir( int argc, char **argv )
     printf( "Error creating directory '%s'\n", argv[ 1 ] );
 }
 
+// ----------------------------------------------------------------------------
+// rm handler
+
+// helper: remove a single file and/or directory
+static void shellh_rm_one( const char* path, int flags )
+{
+  int ftype = cmn_fs_get_type( path );
+  int res = 0;
+
+  if( flags & SHELL_F_ASK_CONFIRMATION )
+  {
+     printf( "Are you sure you want to remove %s ? [y/n] ", path );
+     if( shellh_ask_yes_no( NULL ) == 0 )
+       return;
+  }
+  if( ( flags & SHELL_F_SIMULATE_ONLY ) == 0 )
+  {
+    if( ftype == CMN_FS_TYPE_FILE )
+      res = unlink( path );
+    else if( ftype == CMN_FS_TYPE_DIR )
+      res = rmdir( path );
+    else
+    {
+      printf( "WARNING: invalid argument '%s'\n", path );
+      return;
+    }
+  }
+  if( res )
+    printf( "WARNING: unable to remove %s\n", path );
+  else
+    printf( "Removed %s\n", path );
+}
+
+static int shellh_rm_walkdir_cb( const char *path, const struct dm_dirent *pent, void *pdata, int info )
+{
+  u8 *pflags = ( u8* )pdata;
+  char *tmp = NULL;
+  int res = 1;
+
+  switch( info )
+  {
+    case CMN_FS_INFO_BEFORE_READDIR:
+      goto done;
+
+    case CMN_FS_INFO_INSIDE_READDIR:
+      if( ( tmp = cmn_fs_path_join( path, pent->fname, NULL ) ) == NULL )
+      {
+        printf( "Not enough memory.\n" );
+        goto done_err;
+      }
+      if( cmn_fs_get_type( tmp ) == CMN_FS_TYPE_FILE )
+        shellh_rm_one( tmp, *pflags );
+      goto done;
+
+    case CMN_FS_INFO_OPENDIR_FAILED:
+      printf( "ERROR: unable to read directory '%s', aborting.\n", path );
+      goto done_err;
+
+    case CMN_FS_INFO_DIRECTORY_DONE:
+      if( *pflags & SHELL_F_RECURSIVE && !cmn_fs_is_root_dir( path ) )
+        shellh_rm_one( path, *pflags );
+      goto done;
+
+    default:
+      goto done;
+  }
+done_err:
+  res = 0;
+done:
+  if( tmp )
+    free( tmp );
+  return res;
+}
+
+static void shell_rm( int argc, char **argv )
+{ 
+  const char *fmask = NULL;
+  unsigned i, flags = 0;
+  int masktype;
+
+  if( argc < 2 )
+  {
+    printf( "Usage: rm <filemask> [-R] [-c] [-s]\n" );
+    printf( "  -R: remove recursively.\n" );
+    printf( "  -c: confirm each remove.\n" );
+    printf( "  -s: simulate only (no actual operation).\n" );
+    return;
+  }
+  for( i = 1; i < argc; i ++ )
+  {
+    if( argv[ i ][ 0 ] == '/' )
+    {
+      if( !fmask )
+        fmask = argv[ i ];
+      else
+        printf( "Warning: ignoring argument '%s'\n", argv[ i ] );
+    }
+    else if( !strcmp( argv[ i ], "-R" ) )
+      flags |= SHELL_F_RECURSIVE;
+    else if( !strcmp( argv[ i ], "-c" ) )
+      flags |= SHELL_F_ASK_CONFIRMATION;
+    else if( !strcmp( argv[ i ], "-s" ) )
+      flags |= SHELL_F_SIMULATE_ONLY;
+    else
+      printf( "Warning: ignoring argument '%s'\n", argv[ i ] );
+  }
+  if( !fmask )
+  {
+    printf( "rm target not specified.\n" );
+    return;
+  }
+  masktype = cmn_fs_get_type( fmask );
+  if( masktype == CMN_FS_TYPE_FILE )
+    shellh_rm_one( fmask, flags );
+  else
+    cmn_fs_walkdir( fmask, shellh_rm_walkdir_cb, &flags, flags & SHELL_F_RECURSIVE );
+}
+
+// ****************************************************************************
+// Public interface
+
 // Insert shell commands here
 static const SHELL_COMMAND shell_commands[] =
 {
@@ -670,6 +800,7 @@ static const SHELL_COMMAND shell_commands[] =
   { "cp", shell_cp },
   { "wofmt", shell_wofmt },
   { "mkdir", shell_mkdir },
+  { "rm", shell_rm },
   { NULL, NULL }
 };
 

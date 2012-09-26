@@ -275,6 +275,11 @@ static int mmcfs_mkdir_r( struct _reent *r, const char *name, mkdir_mode_t mode,
   return f_mkdir( name );
 }
 
+static int mmcfs_unlink_r( struct _reent *r, const char *fname, void *pdata )
+{
+  return f_unlink( fname );
+}
+
 // MMC device descriptor structure
 static const DM_DEVICE mmcfs_device =
 {
@@ -287,7 +292,9 @@ static const DM_DEVICE mmcfs_device =
   mmcfs_readdir_r,      // readdir
   mmcfs_closedir_r,     // closedir
   NULL,                 // getaddr
-  mmcfs_mkdir_r         // mkdir
+  mmcfs_mkdir_r,        // mkdir
+  mmcfs_unlink_r,       // unlink
+  mmcfs_unlink_r        // rmdir
 };
 
 int mmcfs_init()

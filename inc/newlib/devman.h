@@ -62,6 +62,8 @@ typedef struct
   int ( *p_closedir_r )( struct _reent *r, void* dir, void *pdata );
   const char* ( *p_getaddr_r )( struct _reent *r, int fd, void *pdata );
   int ( *p_mkdir_r )( struct _reent *r, const char *pathname, mkdir_mode_t mode, void *pdata );
+  int ( *p_unlink_r )( struct _reent *r, const char *fname, void *pdata );
+  int ( *p_rmdir_r )( struct _reent *r, const char *fname, void *pdata );
 } DM_DEVICE;
 
 // Additional registration data for each FS (per FS instance)

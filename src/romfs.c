@@ -427,7 +427,9 @@ static const DM_DEVICE romfs_device =
   romfs_readdir_r,      // readdir
   romfs_closedir_r,     // closedir
   romfs_getaddr_r,      // getaddr
-  NULL                  // mkdir
+  NULL,                 // mkdir
+  NULL,                 // unlink
+  NULL                  // rmdir
 };
 
 // ****************************************************************************

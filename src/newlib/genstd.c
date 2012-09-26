@@ -143,7 +143,9 @@ static const DM_DEVICE std_device =
   NULL,                 // readdir
   NULL,                 // closedir
   NULL,                 // getaddr
-  NULL                  // mkdir
+  NULL,                 // mkdir
+  NULL,                 // unlink
+  NULL                  // rmdir
 };
 
 int std_register()

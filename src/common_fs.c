@@ -89,6 +89,10 @@ char *cmn_fs_split_path( const char *path, const char **pmask )
 
 // Returns the type of the path given as argument
 // This can be either CMN_FS_TYPE_DIR, CMN_FS_TYPE_FILE or CMN_FS_TYPE_PATTERN
+// Note that CMN_FS_TYPE_DIR is NOT actually checked. A name with a '/' in the
+// last position or a name with a single '/' (for example /rom/ and /rom respectively)
+// is assumed to be a directory. Otherwise, if the 'path' is not a mask and also
+// not a regular file, it is assumed to be a directory
 int cmn_fs_get_type( const char *path )
 {  
   FILE *fp;
@@ -172,8 +176,9 @@ char *cmn_fs_path_join( const char *first, ... )
 // 'info' gives more information about why/where the callback was called:
 //   CMN_FS_INFO_BEFORE_READDIR
 //   CMN_FS_INFO_INSIDE_READDIR
-//   CMN_FS_INFO_BEFORE_CLOSEDIR
-//   CMN_FS_INFO_MEMORY_ERROR -> called before a memory allocation failed
+//   CMN_FS_INFO_AFTER_CLOSEDIR
+//   CMN_FS_INFO_DIRECTORY_DONE
+//   CMN_FS_INFO_MEMORY_ERROR -> called after a memory allocation failed
 //   CMN_FS_INFO_OPENDIR_FAILED
 //   CMN_FS_INFO_READDIR_FAILED
 // The callback can return 0 (stop walking the directory and calling the callback)
@@ -200,9 +205,9 @@ static int cmn_fs_actual_walkdir( const char *path, const char *pattern, p_cmn_f
       if( isdir )
         hasdirs = 1;
     }
-    if( cb( path, ent, pdata, CMN_FS_INFO_BEFORE_CLOSEDIR ) == 0 )
-      goto abort;
     dm_closedir( d );
+    if( cb( path, ent, pdata, CMN_FS_INFO_AFTER_CLOSEDIR ) == 0 )
+      goto abort;
     if( recursive && hasdirs )
     {
       if( ( d = dm_opendir( path ) ) != NULL )
@@ -229,6 +234,8 @@ static int cmn_fs_actual_walkdir( const char *path, const char *pattern, p_cmn_f
         if( cb( path, NULL, pdata, CMN_FS_INFO_OPENDIR_FAILED ) == 0 )
           return 0;
     }
+    if( cb( path, ent, pdata, CMN_FS_INFO_DIRECTORY_DONE ) == 0 )
+      goto abort;
   }
   else
     if( cb( path, NULL, pdata, CMN_FS_INFO_OPENDIR_FAILED ) == 0 )
@@ -249,5 +256,19 @@ int cmn_fs_walkdir( const char *path, p_cmn_fs_walker_cb cb, void *pdata, int re
   cmn_fs_actual_walkdir( actpath, pattern, cb, pdata, recursive );
   free( actpath );
   return 1;
+}
+
+int cmn_fs_is_root_dir( const char *path )
+{
+  
+  if( !path )
+    return 0;
+  if( path[ 0 ] != '/' )
+    return 0;
+  if( ( path = strchr( path + 1, '/' ) ) == NULL )
+    return 1;
+  if( *( path + 1 ) == 0 )
+    return 1;
+  return 0;
 }
 

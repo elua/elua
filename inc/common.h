@@ -17,10 +17,12 @@
 // FS interface
 #define CMN_FS_INFO_BEFORE_READDIR      0
 #define CMN_FS_INFO_INSIDE_READDIR      1
-#define CMN_FS_INFO_BEFORE_CLOSEDIR     2
+#define CMN_FS_INFO_AFTER_CLOSEDIR      2
 #define CMN_FS_INFO_MEMORY_ERROR        3
 #define CMN_FS_INFO_OPENDIR_FAILED      4
 #define CMN_FS_INFO_READDIR_FAILED      5
+#define CMN_FS_INFO_DIRECTORY_DONE      6
+
 #define CMN_FS_TYPE_DIR                 0
 #define CMN_FS_TYPE_FILE                1
 #define CMN_FS_TYPE_PATTERN             2
@@ -47,6 +49,7 @@ int cmn_fs_walkdir( const char *path, p_cmn_fs_walker_cb cb, void *pdata, int re
 char* cmn_fs_split_path( const char *path, const char **pmask );
 int cmn_fs_get_type( const char* path );
 char* cmn_fs_path_join( const char *first, ... );
+int cmn_fs_is_root_dir( const char *path );
 
 void cmn_uart_setup_sermux();
 

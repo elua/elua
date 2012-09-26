@@ -186,7 +186,7 @@ _ssize_t _write_r( struct _reent *r, int file, const void *ptr, size_t len )
 int _mkdir_r( struct _reent *r, const char *path, mkdir_mode_t mode )
 {
   char* actname;
-  int res, devid;
+  int devid;
   const DM_INSTANCE_DATA *pinst;
 
   // Look for device, return error if not found or if function not implemented
@@ -209,6 +209,62 @@ int _mkdir_r( struct _reent *r, const char *path, mkdir_mode_t mode )
 int mkdir( const char *path, mode_t mode )
 {
   return _mkdir_r( _REENT, path, mode );
+}
+
+// ****************************************************************************
+// _unlink_r
+int _unlink_r( struct _reent *r, const char *fname )
+{
+  char* actname;
+  int devid;
+  const DM_INSTANCE_DATA *pinst;
+
+  // Look for device, return error if not found or if function not implemented
+  if( ( devid = find_dm_entry( fname, &actname ) ) == -1 )
+  {
+    r->_errno = ENODEV;
+    return -1;
+  }
+  pinst = dm_get_instance_at( devid );
+  if( pinst->pdev->p_unlink_r == NULL )
+  {
+    r->_errno = ENOSYS;
+    return -1;
+  }
+
+  // Device found, call its function
+  return pinst->pdev->p_unlink_r( r, actname, pinst->pdata );
+}
+
+int unlink( const char *path )
+{
+  return _unlink_r( _REENT, path );
+}
+
+// ****************************************************************************
+// rmdir
+
+int rmdir( const char *path )
+{  
+  char* actname;
+  int devid;
+  const DM_INSTANCE_DATA *pinst;
+
+  // Look for device, return error if not found or if function not implemented
+  if( ( devid = find_dm_entry( path, &actname ) ) == -1 )
+  {
+    _REENT->_errno = ENODEV;
+    return -1;
+  }
+  pinst = dm_get_instance_at( devid );
+  if( pinst->pdev->p_rmdir_r == NULL )
+  {
+    _REENT->_errno = ENOSYS;
+    return -1;
+  }
+
+  // Device found, call its function
+  return pinst->pdev->p_rmdir_r( _REENT, actname, pinst->pdata );
 }
 
 // ****************************************************************************
@@ -243,12 +299,6 @@ pid_t getpid()
 clock_t _times_r( struct _reent* r, struct tms *buf )
 {
   return 0;
-}
-
-int _unlink_r( struct _reent *r, const char *name )
-{
-  r->_errno = ENOSYS;
-  return -1;
 }
 
 int _link_r( struct _reent *r, const char *c1, const char *c2 )
