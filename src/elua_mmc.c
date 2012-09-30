@@ -6,7 +6,7 @@
 // web site by Jesus Alvarez & James Snyder for eLua.
  
 #include "platform_conf.h"
-#ifdef BUILD_MMCFS
+#if defined( BUILD_MMCFS ) && !defined( ELUA_SIMULATOR )
 #include "platform.h"
 #include "diskio.h"
 
@@ -602,4 +602,5 @@ DWORD get_fattime (void)
             ;
 
 }
-#endif /* ifdef BUILD_MMCFS */
+#endif // #if defined( BUILD_MMCFS ) && !defined( ELUA_SIMULATOR )
+
