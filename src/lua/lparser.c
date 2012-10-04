@@ -6,7 +6,6 @@
 
 
 #include <string.h>
-#include <stdlib.h>
 
 #define lparser_c
 #define LUA_CORE
@@ -383,26 +382,23 @@ static void close_func (LexState *ls) {
 
 Proto *luaY_parser (lua_State *L, ZIO *z, Mbuffer *buff, const char *name) {
   struct LexState lexstate;
-  struct FuncState *pfuncstate = (struct FuncState*)malloc(sizeof(struct FuncState));
-  Proto *res;
+  struct FuncState funcstate;
   TString *tname = luaS_new(L, name);
   setsvalue2s(L, L->top, tname);  /* protect name */
   incr_top(L);
   lexstate.buff = buff;
   luaX_setinput(L, &lexstate, z, tname);
-  open_func(&lexstate, pfuncstate);
-  pfuncstate->f->is_vararg = VARARG_ISVARARG;  /* main func. is always vararg */
+  open_func(&lexstate, &funcstate);
+  funcstate.f->is_vararg = VARARG_ISVARARG;  /* main func. is always vararg */
   luaX_next(&lexstate);  /* read first token */
   chunk(&lexstate);
   check(&lexstate, TK_EOS);
   close_func(&lexstate);
   L->top--; /* remove 'name' from stack */
-  lua_assert(pfuncstate->prev == NULL);
-  lua_assert(pfuncstate->f->nups == 0);
+  lua_assert(funcstate.prev == NULL);
+  lua_assert(funcstate.f->nups == 0);
   lua_assert(lexstate.fs == NULL);
-  res = pfuncstate->f;
-  free(pfuncstate);
-  return res;
+  return funcstate.f;
 }
 
 
@@ -583,9 +579,9 @@ static void parlist (LexState *ls) {
 
 static void body (LexState *ls, expdesc *e, int needself, int line) {
   /* body ->  `(' parlist `)' chunk END */
-  FuncState *pnew_fs = (FuncState*)malloc(sizeof(FuncState));
-  open_func(ls, pnew_fs);
-  pnew_fs->f->linedefined = line;
+  FuncState new_fs;
+  open_func(ls, &new_fs);
+  new_fs.f->linedefined = line;
   checknext(ls, '(');
   if (needself) {
     new_localvarliteral(ls, "self", 0);
@@ -594,11 +590,10 @@ static void body (LexState *ls, expdesc *e, int needself, int line) {
   parlist(ls);
   checknext(ls, ')');
   chunk(ls);
-  pnew_fs->f->lastlinedefined = ls->linenumber;
+  new_fs.f->lastlinedefined = ls->linenumber;
   check_match(ls, TK_END, TK_FUNCTION, line);
   close_func(ls);
-  pushclosure(ls, pnew_fs, e);
-  free(pnew_fs);
+  pushclosure(ls, &new_fs, e);
 }
 
 
@@ -890,12 +885,12 @@ static int block_follow (int token) {
 static void block (LexState *ls) {
   /* block -> chunk */
   FuncState *fs = ls->fs;
-  BlockCnt *pbl = (BlockCnt*)malloc(sizeof(BlockCnt));
+  BlockCnt *pbl = (BlockCnt*)luaM_malloc(ls->L,sizeof(BlockCnt));
   enterblock(fs, pbl, 0);
   chunk(ls);
   lua_assert(pbl->breaklist == NO_JUMP);
   leaveblock(fs);
-  free(pbl);
+  luaM_free(ls->L,pbl);
 }
 
 
@@ -1003,18 +998,17 @@ static void whilestat (LexState *ls, int line) {
   FuncState *fs = ls->fs;
   int whileinit;
   int condexit;
-  BlockCnt *pbl = (BlockCnt*)malloc(sizeof(BlockCnt));
+  BlockCnt bl;
   luaX_next(ls);  /* skip WHILE */
   whileinit = luaK_getlabel(fs);
   condexit = cond(ls);
-  enterblock(fs, pbl, 1);
+  enterblock(fs, &bl, 1);
   checknext(ls, TK_DO);
   block(ls);
   luaK_patchlist(fs, luaK_jump(fs), whileinit);
   check_match(ls, TK_END, TK_WHILE, line);
   leaveblock(fs);
   luaK_patchtohere(fs, condexit);  /* false conditions finish the loop */
-  free(pbl);
 }
 
 
@@ -1023,14 +1017,14 @@ static void repeatstat (LexState *ls, int line) {
   int condexit;
   FuncState *fs = ls->fs;
   int repeat_init = luaK_getlabel(fs);
-  BlockCnt *pbl1 = (BlockCnt*)malloc(sizeof(BlockCnt)), *pbl2 = (BlockCnt*)malloc(sizeof(BlockCnt));
-  enterblock(fs, pbl1, 1);  /* loop block */
-  enterblock(fs, pbl2, 0);  /* scope block */
+  BlockCnt bl1, bl2;
+  enterblock(fs, &bl1, 1);  /* loop block */
+  enterblock(fs, &bl2, 0);  /* scope block */
   luaX_next(ls);  /* skip REPEAT */
   chunk(ls);
   check_match(ls, TK_UNTIL, TK_REPEAT, line);
   condexit = cond(ls);  /* read condition (inside scope block) */
-  if (!pbl2->upval) {  /* no upvalues? */
+  if (!bl2.upval) {  /* no upvalues? */
     leaveblock(fs);  /* finish scope */
     luaK_patchlist(ls->fs, condexit, repeat_init);  /* close the loop */
   }
@@ -1041,8 +1035,6 @@ static void repeatstat (LexState *ls, int line) {
     luaK_patchlist(ls->fs, luaK_jump(fs), repeat_init);  /* and repeat */
   }
   leaveblock(fs);  /* finish loop */
-  free(pbl1);
-  free(pbl2);
 }
 
 
@@ -1058,7 +1050,7 @@ static int exp1 (LexState *ls) {
 
 static void forbody (LexState *ls, int base, int line, int nvars, int isnum) {
   /* forbody -> DO block */
-  BlockCnt *pbl = (BlockCnt*)malloc(sizeof(BlockCnt));
+  BlockCnt *pbl = (BlockCnt*)luaM_malloc(ls->L,sizeof(BlockCnt));
   FuncState *fs = ls->fs;
   int prep, endfor;
   adjustlocalvars(ls, 3);  /* control variables */
@@ -1074,7 +1066,7 @@ static void forbody (LexState *ls, int base, int line, int nvars, int isnum) {
                      luaK_codeABC(fs, OP_TFORLOOP, base, 0, nvars);
   luaK_fixline(fs, line);  /* pretend that `OP_FOR' starts the loop */
   luaK_patchlist(fs, (isnum ? endfor : luaK_jump(fs)), prep + 1);
-  free(pbl);
+  luaM_free(ls->L,pbl);
 }
 
 
@@ -1127,8 +1119,8 @@ static void forstat (LexState *ls, int line) {
   /* forstat -> FOR (fornum | forlist) END */
   FuncState *fs = ls->fs;
   TString *varname;
-  BlockCnt *pbl = (BlockCnt*)malloc(sizeof(BlockCnt));
-  enterblock(fs, pbl, 1);  /* scope for loop and control variables */
+  BlockCnt bl;
+  enterblock(fs, &bl, 1);  /* scope for loop and control variables */
   luaX_next(ls);  /* skip `for' */
   varname = str_checkname(ls);  /* first variable name */
   switch (ls->t.token) {
@@ -1138,7 +1130,6 @@ static void forstat (LexState *ls, int line) {
   }
   check_match(ls, TK_END, TK_FOR, line);
   leaveblock(fs);  /* loop scope (`break' jumps to this point) */
-  free(pbl);
 }
 
 
