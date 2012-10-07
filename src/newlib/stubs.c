@@ -14,6 +14,7 @@
 #include "genstd.h"
 #include "utils.h"
 #include "salloc.h"
+#include "shell.h"
 
 #ifdef USE_MULTIPLE_ALLOCATOR
 #include "dlmalloc.h"
@@ -96,6 +97,11 @@ int _open_r( struct _reent *r, const char *name, int flags, int mode )
   return DM_MAKE_DESC( devid, res );
 }
 
+int open( const char *name, int flags, mode_t mode )
+{
+  return _open_r( _REENT, name, flags, 0 );
+}
+
 // *****************************************************************************
 // _close_r
 int _close_r( struct _reent *r, int file )
@@ -112,6 +118,11 @@ int _close_r( struct _reent *r, int file )
   
   // And call the close function
   return pinst->pdev->p_close_r( r, DM_GET_FD( file ), pinst->pdata );
+}
+
+int close( int file )
+{
+  return _close_r( _REENT, file );
 }
 
 // *****************************************************************************
@@ -163,6 +174,11 @@ _ssize_t _read_r( struct _reent *r, int file, void *ptr, size_t len )
   return pinst->pdev->p_read_r( r, DM_GET_FD( file ), ptr, len, pinst->pdata );
 }
 
+_ssize_t read( int file, void *ptr, size_t len )
+{
+  return _read_r( _REENT, file, ptr, len );
+}
+
 // *****************************************************************************
 // _write_r 
 _ssize_t _write_r( struct _reent *r, int file, const void *ptr, size_t len )
@@ -179,6 +195,11 @@ _ssize_t _write_r( struct _reent *r, int file, const void *ptr, size_t len )
   
   // And call the write function
   return pinst->pdev->p_write_r( r, DM_GET_FD( file ), ptr, len, pinst->pdata );
+}
+
+_ssize_t write( int file, const void *ptr, size_t len )
+{
+  return _write_r( _REENT, file, ptr, len );
 }
 
 // ****************************************************************************
@@ -265,6 +286,43 @@ int rmdir( const char *path )
 
   // Device found, call its function
   return pinst->pdev->p_rmdir_r( _REENT, actname, pinst->pdata );
+}
+
+// ****************************************************************************
+// rename
+
+int _rename_r( struct _reent *r, const char *oldname, const char *newname )
+{  
+  char *actname_old, *actname_new;
+  int devid_old, devid_new;
+  const DM_INSTANCE_DATA *pinst;
+
+  // Look for device, return error if not found or if function not implemented
+  if( ( devid_old = find_dm_entry( oldname, &actname_old ) ) == -1 )
+  {
+    r->_errno = ENODEV;
+    return -1;
+  }
+  if( ( devid_new = find_dm_entry( newname, &actname_new ) ) == -1 )
+  {
+    r->_errno = ENODEV;
+    return -1;
+  }
+  if( devid_old == devid_new )
+  {
+    pinst = dm_get_instance_at( devid_old );
+    if( pinst->pdev->p_rename_r == NULL )
+    {
+      r->_errno = EPERM;
+      return -1;
+    }
+
+    // Device found, call its function
+    return pinst->pdev->p_rename_r( r, actname_old, actname_new, pinst->pdata );
+  }
+  // Cannot rename between different devices (EXDEV)
+  r->_errno = EXDEV;
+  return -1;
 }
 
 // ****************************************************************************

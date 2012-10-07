@@ -96,6 +96,7 @@ char *cmn_fs_split_path( const char *path, const char **pmask )
 int cmn_fs_get_type( const char *path )
 {  
   FILE *fp;
+  DM_DIR *d;
 
   if( !path || strlen( path ) < 2 || path[ 0 ] != '/' )
     return CMN_FS_TYPE_ERROR;
@@ -104,7 +105,12 @@ int cmn_fs_get_type( const char *path )
     return CMN_FS_TYPE_DIR;
   // /fs/dir1/dir2/dirn/ -> always a directory (note the final '/' ), mask is '*'
   if( path[ strlen( path ) - 1 ] == '/' )
+  {
+    if( ( d = dm_opendir( path ) ) == NULL )
+      return CMN_FS_TYPE_DIR_NOT_FOUND;
+    dm_closedir( d );
     return CMN_FS_TYPE_DIR;
+  }
   // At this point, we don't know if 'path' reffers to a file or to a directory
   // So try to open it. If it can be opened, it is a file. Otherwise it is a directory.
   // But first check for '*' or '?' chars in path (which means it is definitely a file spec)
@@ -115,6 +121,9 @@ int cmn_fs_get_type( const char *path )
     fclose( fp );
     return CMN_FS_TYPE_FILE;
   }
+  if( ( d = dm_opendir( path ) ) == NULL )
+    return CMN_FS_TYPE_FILE_NOT_FOUND;
+  dm_closedir( d );
   return CMN_FS_TYPE_DIR;
 }
 
@@ -270,5 +279,17 @@ int cmn_fs_is_root_dir( const char *path )
   if( *( path + 1 ) == 0 )
     return 1;
   return 0;
+}
+
+// Check if the directory in the given argument (if applicable)
+// can be opened
+int cmn_fs_check_directory( const char *path )
+{
+  DM_DIR *d;
+
+  if( ( d = dm_opendir( path ) ) == NULL )
+    return 0;
+  dm_closedir( d );
+  return 1;
 }
 

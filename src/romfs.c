@@ -429,7 +429,8 @@ static const DM_DEVICE romfs_device =
   romfs_getaddr_r,      // getaddr
   NULL,                 // mkdir
   NULL,                 // unlink
-  NULL                  // rmdir
+  NULL,                 // rmdir
+  NULL                  // rename
 };
 
 // ****************************************************************************

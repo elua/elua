@@ -280,6 +280,11 @@ static int mmcfs_unlink_r( struct _reent *r, const char *fname, void *pdata )
   return f_unlink( fname );
 }
 
+static int mmcfs_rename_r( struct _reent *r, const char *oldname, const char *newname, void *pdata )
+{
+  return f_rename( oldname, newname );
+}
+
 // MMC device descriptor structure
 static const DM_DEVICE mmcfs_device =
 {
@@ -294,7 +299,8 @@ static const DM_DEVICE mmcfs_device =
   NULL,                 // getaddr
   mmcfs_mkdir_r,        // mkdir
   mmcfs_unlink_r,       // unlink
-  mmcfs_unlink_r        // rmdir
+  mmcfs_unlink_r,       // rmdir
+  mmcfs_rename_r        // rename
 };
 
 int mmcfs_init()

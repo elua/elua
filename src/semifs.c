@@ -261,7 +261,8 @@ static const DM_DEVICE semifs_device =
   NULL,                  // getaddr
   NULL,                  // mkdir
   NULL,                  // unlink
-  NULL                   // rmdir                   
+  NULL,                  // rmdir                   
+  NULL                   // rename
 };
 
 int semifs_init()

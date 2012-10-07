@@ -27,6 +27,8 @@
 #define CMN_FS_TYPE_FILE                1
 #define CMN_FS_TYPE_PATTERN             2
 #define CMN_FS_TYPE_ERROR               3
+#define CMN_FS_TYPE_FILE_NOT_FOUND      4
+#define CMN_FS_TYPE_DIR_NOT_FOUND       5
 
 typedef int ( *p_cmn_fs_walker_cb )( const char*, const struct dm_dirent*, void*, int );
 
@@ -50,6 +52,7 @@ char* cmn_fs_split_path( const char *path, const char **pmask );
 int cmn_fs_get_type( const char* path );
 char* cmn_fs_path_join( const char *first, ... );
 int cmn_fs_is_root_dir( const char *path );
+int cmn_fs_check_directory( const char *path );
 
 void cmn_uart_setup_sermux();
 

@@ -145,7 +145,8 @@ static const DM_DEVICE std_device =
   NULL,                 // getaddr
   NULL,                 // mkdir
   NULL,                 // unlink
-  NULL                  // rmdir
+  NULL,                 // rmdir
+  NULL                  // rename
 };
 
 int std_register()
