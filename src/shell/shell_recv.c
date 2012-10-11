@@ -10,13 +10,19 @@
 #include "common.h"
 #include "type.h"
 #include "platform_conf.h"
+#include "xmodem.h"
+#include "lua.h"
+#include "lualib.h"
+#include "lauxlib.h"
 
 #ifdef BUILD_XMODEM
 
-const char shell_help_recv[] = "[<path>]\n";
+const char shell_help_recv[] = "[<path>]\n"
   "  [<path>] - the data received via XMODEM will be saved to this file.\n"
   "Without arguments it runs Lua to execute the data it receives.\n";
 const char shell_help_summary_recv[] = "receive files via XMODEM";
+
+extern char *shell_prog;
 
 void shell_recv( int argc, char **argv )
 {

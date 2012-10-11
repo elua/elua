@@ -41,7 +41,7 @@ typedef struct
 } SHELL_COMMAND;
 
 // Shell data
-static char* shell_prog;
+char* shell_prog;
 
 // Extern implementations of shell functions
 SHELL_FUNC( shell_ls );
