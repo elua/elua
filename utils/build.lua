@@ -324,6 +324,7 @@ builder.new = function( build_dir )
   self = {}
   setmetatable( self, { __index = builder } )
   self.build_dir = build_dir or ".build"
+  self.output_dir = "."
   self.exe_extension = utils.is_windows() and "exe" or ""
   self.clean_mode = false
   self.opts = utils.options_handler()
@@ -340,8 +341,8 @@ builder.new = function( build_dir )
 end
 
 -- Helper: create the build output directory
-builder._create_outdir = function( self )
-  if self.output_dir_created then return end
+builder._create_build_dir = function( self )
+  if self.build_dir_created then return end
   if self.build_mode ~= self.KEEP_DIR then
      -- Create builds directory if needed
     local mode = lfs.attributes( self.build_dir, "mode" )
@@ -350,6 +351,18 @@ builder._create_outdir = function( self )
         print( "[builder] Unable to create directory " .. self.build_dir )
         os.exit( 1 )
       end
+    end
+  end
+  self.build_dir_created = true
+end
+
+-- Helper: create the target output directory
+builder._create_output_dir = function( self )
+  if self.output_dir_created then return end
+  if not utils.is_dir( self.output_dir ) then
+    if not utils.full_mkdir( self.output_dir ) then
+      print( "[builder] Unable to create directory " .. self.output_dir )
+      os.exit( 1 )
     end
   end
   self.output_dir_created = true
@@ -368,6 +381,8 @@ builder.init = function( self, args )
                    { keep_dir = self.KEEP_DIR, build_dir = self.BUILD_DIR, build_dir_linearized = self.BUILD_DIR_LINEARIZED } )
   opts:add_option( "build_dir", 'choose build directory', self.build_dir )
   opts:add_option( "disp_mode", 'set builder display mode', 'summary', { 'all', 'summary' } )
+  opts:add_option( "romfs_dir", 'choose ROMFS directory', 'romfs' )
+  opts:add_option( "output_dir", "choose executable directory", self.output_dir )
   -- Apply default values to all options
   for i = 1, opts:get_num_opts() do
     local o = opts:get_option( i )
@@ -402,6 +417,8 @@ builder.init = function( self, args )
   -- Read back the default options
   self.build_mode = self.args.BUILD_MODE
   self.build_dir = self.args.BUILD_DIR
+  self.romfs_dir = self.args.ROMFS_DIR
+  self.output_dir = self.args.OUTPUT_DIR
   self.disp_mode = self.args.DISP_MODE
 end
 
@@ -461,14 +478,34 @@ builder.set_build_mode = function( self, mode )
   self.build_mode = mode
 end
 
--- Set the output directory
-builder.set_output_dir = function( self, dir )
-  if self.output_dir_created then
-    print "[ builder] Error: output directory already created"
+-- Set the build directory
+builder.set_build_dir = function( self, dir )
+  if self.build_dir_created then
+    print "[builder] Error: build directory already created"
     os.exit( 1 )
   end
   self.build_dir = dir
-  self:_create_outdir()
+  self:_create_build_dir()
+end
+
+-- Set the output directory
+builder.set_output_dir = function( self, dir )
+  if self.output_dir_created then
+    print( "[builder] Error: output directory already created" )
+    os.exit( 1 )
+  end
+  self.output_dir = dir
+  self:_create_output_dir()
+end
+
+-- Return the current build directory
+builder.get_build_dir = function( self )
+  return self.build_dir
+end
+
+-- Return the current output directory
+builder.get_output_dir = function( self )
+  return self.output_dir
 end
 
 -- Return the target arguments
@@ -742,7 +779,8 @@ builder.build = function( self, target )
     end
     os.exit( 1 )
   end
-  self:_create_outdir()
+  self:_create_build_dir()
+  self:_create_output_dir()
   -- At this point check if we have a change in the state that would require a rebuild
   if self:_compare_config( 'comp' ) then
     print( utils.col_yellow( "[builder] Forcing rebuild due to configuration change." ) )
