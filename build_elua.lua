@@ -124,6 +124,10 @@ builder:add_option( 'boot', 'boot mode, standard will boot to shell, luarpc boot
 builder:add_option( 'romfs', 'ROMFS compilation mode', 'verbatim', { 'verbatim' , 'compress', 'compile' } )
 builder:add_option( 'cpumode', 'ARM CPU compilation mode (only affects certain ARM targets)', nil, { 'arm', 'thumb' } )
 builder:add_option( 'bootloader', 'Build for bootloader usage (AVR32 only)', 'none', { 'none', 'emblod' } )
+builder:add_option( "output_dir", "choose executable directory", "." )
+builder:add_option( "romfs_dir", 'choose ROMFS directory', 'romfs' )
+builder:add_option( "board_config_file", "choose board configuration file", "" )
+builder:add_option( "skip_conf", "skip board configuration step, use pre-generated header file directly", false )
 builder:init( args )
 builder:set_build_mode( builder.BUILD_DIR_LINEARIZED )
 
@@ -138,10 +142,19 @@ if not comp.board then
 end
 
 -- Interpret the board definition file
-local bfname = get_conf_file_path( comp.board )
-if not bfname then
-  io.write( utils.col_red( sf( "[CONFIG] Error: board configuration file for board '%s' not found in '%s'.", comp.board, board_base_dir ) ) )
-  os.exit( -1 )
+local bfopt, bfname = builder:get_option( "board_config_file" )
+if #bfopt > 0 then
+  if not utils.is_file( bfopt ) then
+    print( utils.col_red( sf( "[CONFIG] Error: board configuration file '%s' not found.", bfopt ) ) )
+    os.exit( -1 )
+  end
+  bfname = bfopt 
+else
+  bfname = get_conf_file_path( comp.board )
+  if not bfname then
+    print( utils.col_red( sf( "[CONFIG] Error: board configuration file for board '%s' not found in '%s'.", comp.board, board_base_dir ) ) )
+    os.exit( -1 )
+  end
 end
 print( utils.col_blue( "[CONFIG] Found board description file at " .. bfname ) )
 local bdata, err = bconf.compile_board( bfname, comp.board )
@@ -151,14 +164,18 @@ if not bdata then
 end
 -- Check if the file has changed. If not, do not rewrite it. This keeps the compilation time sane.
 local bhname = utils.concat_path( { board_base_dir, "headers", "board_" .. comp.board:lower() .. ".h" } )
-if utils.get_hash_of_string( bdata.header ) ~= utils.get_hash_of_file( bhname ) or not utils.is_file( bhname ) then
-  -- Save the header file
-  local f = assert( io.open( bhname, "wb" ) )
-  f:write( bdata.header )
-  f:close()
-  print( utils.col_blue( "[CONFIG] Generated board header file at " .. bhname ) )
+if builder:get_option( "skip_conf" ) then
+  print( utils.col_blue( "[CONFIG] skipping generation of configuration file" ) )
 else
-  print( utils.col_blue( "[CONFIG] Board header file is unchanged." ) )
+  if ( utils.get_hash_of_string( bdata.header ) ~= utils.get_hash_of_file( bhname ) or not utils.is_file( bhname ) ) then
+    -- Save the header file
+    local f = assert( io.open( bhname, "wb" ) )
+    f:write( bdata.header )
+    f:close()
+    print( utils.col_blue( "[CONFIG] Generated board header file at " .. bhname ) )
+  else
+    print( utils.col_blue( "[CONFIG] Board header file is unchanged." ) )
+  end
 end
 -- Define the correct CPU header for inclusion in the platform_conf.h file
 addm( 'ELUA_CPU_HEADER="\\"cpu_' .. bdata.cpu:lower() .. '.h\\""' )
@@ -262,8 +279,17 @@ else
   elua_vers = "unknown"
 end
 
+-- Create the output directory if it is not created yet
+local outd = builder:get_option( "output_dir" )
+if not utils.is_dir( outd ) then
+  if not utils.full_mkdir( outd ) then
+    print( "[builder] Unable to create directory " .. outd )
+    os.exit( 1 )
+  end
+end
+
 -- Output file
-output = comp.output_dir .. utils.dir_sep .. 'elua_' .. comp.target .. '_' .. comp.board:lower()
+output = outd .. utils.dir_sep .. 'elua_' .. comp.target .. '_' .. comp.board:lower()
 builder:set_build_dir( builder:get_build_dir() .. utils.dir_sep .. comp.board:lower() )
 
 -- User report
@@ -349,7 +375,7 @@ end
 
 local function make_romfs( target, deps )
   print "Building ROM file system ..."
-  local romdir = comp.romfs_dir
+  local romdir = builder:get_option( "romfs_dir" )
   local flist = {}
   flist = utils.string_to_table( utils.get_files( romdir, function( fname ) return not match_pattern_list( fname, romfs_exclude_patterns ) end ) )
   flist = utils.linearize_array( flist )
