@@ -125,6 +125,11 @@ int umon_trace_start()
   return umon_get_int_stat_and_disable();
 }
 
+int umon_get_stack_depth()
+{
+  return call_stack_idx;  
+}
+
 void umon_get_trace_entry( unsigned idx, unsigned *pto, unsigned *pfrom )
 {
   idx <<= 1;
@@ -187,17 +192,10 @@ void umon_print_stack_trace()
   while( --depth >= 0 )
   {
     umon_get_trace_entry( depth, &to, &from );
-    if( ( fname = umon_get_function_name( to ) ) == NULL )
-      fname = "<UNKNOWN>";
+    fname = "<UNKNOWN>";
     umon_printf( "[%2d] ", depth );
     if( call_stack_int[ depth ] != 0 )
       umon_printf( "{%2X} ", call_stack_int[ depth ] );
-    // Get the actual call address by decoding the call instruction
-    temp = ( *( unsigned* )( from - 4 ) ) >> 27;
-    if( temp == 0x1D || temp == 0x1E || temp == 0x1F )
-      from -= 4; // 32 bit instruction
-    else
-      from -= 2; // 16 bit instruction
     umon_printf( "%s (%8X) <- %8X\n", fname, to, from );
   }
 }

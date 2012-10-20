@@ -10,6 +10,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "term.h"
+#include "memtrace.h"
 
 // Platform specific includes
 #include "hostif.h"
@@ -119,6 +120,27 @@ int platform_init()
   // All done
   return PLATFORM_OK;
 }
+
+#ifdef ENABLE_MEM_TRACER
+
+#define MT_TRACE_NAME         "mtracer.out"
+
+int mt_fd = -1;
+
+static void platform_mth_out( u8 data )
+{
+  if( mt_fd != -1 )
+    hostif_write( mt_fd, &data, 1 );
+}
+
+void platform_memtrace_init()
+{  
+  if( ( mt_fd = hostif_open( MT_TRACE_NAME, 2, 0666 ) ) == -1 )
+    mt_fd = hostif_open( MT_TRACE_NAME, 66, 0666) ; // 66 == O_RDWR | O_CREAT
+  mt_init( platform_mth_out );
+}
+
+#endif // #ifdef ENABLE_MEM_TRACER
 
 // ****************************************************************************
 // "Dummy" UART functions

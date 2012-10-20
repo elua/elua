@@ -1,4 +1,4 @@
-#ifdef BUILD_UMON
+#ifdef BUILD_UMONXXX
 
         .section .text
         .align 2

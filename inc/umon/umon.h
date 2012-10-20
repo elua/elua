@@ -33,6 +33,7 @@ void umon_set_input_func( p_umon_input infunc );
 int umon_break_on_stack_depth( unsigned depth ) NO_INSTRUMENT;
 // Trace-related functions               
 int umon_trace_start() NO_INSTRUMENT;
+int umon_get_stack_depth() NO_INSTRUMENT;
 void umon_get_trace_entry( unsigned idx, unsigned *pto, unsigned *pfrom ) NO_INSTRUMENT;
 void umon_trace_end( int stat ) NO_INSTRUMENT;
 const char* umon_get_function_name( unsigned addr ) NO_INSTRUMENT;

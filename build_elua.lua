@@ -218,6 +218,7 @@ builder:add_option( 'romfs', 'ROMFS compilation mode', 'verbatim', { 'verbatim' 
 builder:add_option( 'cpumode', 'ARM CPU compilation mode (only affects certain ARM targets)', nil, { 'arm', 'thumb' } )
 builder:add_option( 'bootloader', 'Build for bootloader usage (AVR32 only)', 'none', { 'none', 'emblod' } )
 builder:add_option( 'umon', 'build the on-line monitoring tool (ARM only)', false )
+builder:add_option( 'memtrace', 'enable memory tracer', false )
 builder:init( args )
 builder:set_build_mode( builder.BUILD_DIR_LINEARIZED )
 
@@ -269,12 +270,8 @@ if not platform then
 end
 
 if comp.umon then
-  if platform ~= "stm32" and platform ~= "lm3s" then
-    print( "The on-line monitor can only be used on ARM platforms" )
-    os.exit( -1 )
-  end
   addm( "BUILD_UMON" )
-  addcf{ "-finstrument-functions", "-mpoke-function-name", "-fno-inline-functions", "-fno-inline", "-finline-limit=0" }
+  addcf{ "-finstrument-functions", "-fno-inline-functions", "-fno-inline", "-finline-limit=0" }
   addi( "inc/umon" )
   addlf( "-Wl,--wrap=setjmp" )
   addlf( "-Wl,--wrap=longjmp" )
@@ -408,7 +405,7 @@ if platform_list[ platform ].big_endian then addm( "ELUA_ENDIAN_BIG" ) else addm
 if platform == 'sim' then addm( { "ELUA_SIMULATOR", "ELUA_SIM_" .. cnorm( comp.cpu ) } ) end
 
 -- Lua source files and include path
-exclude_patterns = { "^src/platform", "^src/uip", "^src/serial", "^src/luarpc_desktop_serial.c", "^src/linenoise_posix.c", "^src/lua/print.c", "^src/lua/luac.c" }
+exclude_patterns = { "^src/platform", "^src/uip", "^src/serial", "^src/luarpc_desktop_serial.c", "^src/linenoise_posix.c", "^src/lua/print.c", "^src/lua/luac.c", "^src/umon/umon_asm.s" }
 local source_files = utils.get_files( "src", function( fname )
   fname = fname:gsub( "\\", "/" )
   local include = fname:find( ".*%.[cs]$" )
@@ -423,6 +420,10 @@ local uip_files = " " .. utils.prepend_path( "uip_arp.c uip.c uiplib.c dhcpc.c p
 addi{ { 'inc', 'inc/newlib',  'inc/remotefs', 'src/platform', 'src/lua' }, { 'src/modules', 'src/platform/' .. platform }, "src/uip", "src/fatfs" }
 addm( "LUA_OPTIMIZE_MEMORY=" .. ( comp.optram and "2" or "0" ) )
 addcf( { '-Os','-fomit-frame-pointer' } )
+
+if comp.memtrace then
+  addm( "ENABLE_MEMORY_TRACER" )
+end
 
 -- Toolset data (filled by each platform in part)
 tools = {}
@@ -443,7 +444,7 @@ romfs_exclude_patterns = { '%.DS_Store', '%.gitignore' }
 
 function match_pattern_list( item, list )
   for k, v in pairs( list ) do
-     if item:find(v) then return true end
+    if item:find(v) then return true end
   end
 end
 

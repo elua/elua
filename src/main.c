@@ -14,31 +14,11 @@
 #include "term.h"
 #include "platform_conf.h"
 #include "elua_rfs.h"
+#include "compilerdefs.h"
+#include "umon.h"
+#include "memtrace.h"
 #ifdef ELUA_SIMULATOR
 #include "hostif.h"
-#endif
-#ifdef BUILD_UMON
-#if defined( FORLM3S9B92 )
-  #define TARGET_IS_TEMPEST_RB1
-
-  #include "lm3s9b92.h"
-#elif defined( FORLM3S9D92 )
-  #define TARGET_IS_FIRESTORM_RA2
-
-  #include "lm3s9d92.h"
-#elif defined( FORLM3S8962 )
-  #include "lm3s8962.h"
-#elif defined( FORLM3S6965 )
-  #include "lm3s6965.h"
-#elif defined( FORLM3S6918 )
-  #include "lm3s6918.h"
-#endif
-#include "umon.h"
-#include "umon_conf.h"
-#include "hw_memmap.h"
-#include "driverlib/rom.h"
-#include "driverlib/rom_map.h"
-#include "compilerdefs.h"
 #endif
 
 // Validate eLua configuratin options
@@ -62,7 +42,6 @@ char *boot_order[] = {
 };
 
 extern char etext[];
-
 
 #ifdef ELUA_BOOT_RPC
 
@@ -100,10 +79,15 @@ void boot_rpc( void )
 
 #ifdef BUILD_UMON
 
+#ifndef UMON_STACK_TRACE_ENTRIES
+#define UMON_STACK_TRACE_ENTRIES  1024
+#endif
+
 static void umon_send( char ) NO_INSTRUMENT;
 static void umon_send( char c )
 {
-  MAP_UARTCharPut( UART0_BASE, c );
+  //MAP_UARTCharPut( UART0_BASE, c );
+  hostif_write( 1, &c, 1 );
 }
 
 u32 umon_call_stack[ UMON_STACK_TRACE_ENTRIES * 8 ];
@@ -131,6 +115,11 @@ int main( void )
 
   // Initialize device manager
   dm_init();
+
+  // Initialize the memory tracer
+#ifdef ENABLE_MEM_TRACER
+  platform_memtrace_init();
+#endif
 
   // Register the ROM filesystem
   romfs_init();
