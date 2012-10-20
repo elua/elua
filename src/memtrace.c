@@ -19,6 +19,8 @@ void* __real__calloc_r( struct _reent* r, size_t nelem, size_t elem_size );
 void __real__free_r( struct _reent* r, void* ptr );
 void* __real__realloc_r( struct _reent* r, void* ptr, size_t size );
 
+static void mth_op( u8, int ) NO_INSTRUMENT;
+
 static void mth_putc( u8 data )
 {
   if( mt_out && ( mt_level > 0 ) )
@@ -66,8 +68,8 @@ static void mth_op( u8 op, int has_trace )
     while( --depth >= 0 )
     {
       umon_get_trace_entry( depth, &to, &from );
-      mth_u16( from );
-      mth_u16( to );
+      mth_u32( from );
+      mth_u32( to );
     }
   }
   else
@@ -97,14 +99,14 @@ void mt_stop()
 
 void mt_trace_malloc( const void* ptr, unsigned len )
 {
-  mth_op( MT_MALLOC, MT_WITHOUT_TRACE );
+  mth_op( MT_MALLOC, MT_WITH_TRACE );
   mth_u32( ( u32 )ptr );
   mth_u32( ( u32 )len );
 }
 
 void mt_trace_calloc( const void *ptr, unsigned nmemb, unsigned size )
 {
-  mth_op( MT_CALLOC, MT_WITHOUT_TRACE );
+  mth_op( MT_CALLOC, MT_WITH_TRACE );
   mth_u32( ( u32 )ptr );
   mth_u32( ( u32 )nmemb );
   mth_u32( ( u32 )size );
@@ -112,13 +114,13 @@ void mt_trace_calloc( const void *ptr, unsigned nmemb, unsigned size )
 
 void mt_trace_free( const void *ptr )
 {
-  mth_op( MT_FREE, NULL == ptr ? MT_WITH_TRACE : MT_WITHOUT_TRACE );
+  mth_op( MT_FREE, MT_WITH_TRACE );
   mth_u32( ( u32 )ptr );
 }
 
 void mt_trace_realloc( const void *newptr, const void *oldptr, unsigned len )
 {
-  mth_op( MT_REALLOC, MT_WITHOUT_TRACE );
+  mth_op( MT_REALLOC, MT_WITH_TRACE );
   mth_u32( ( u32 )newptr );
   mth_u32( ( u32 )oldptr );
   mth_u32( ( u32 )len );

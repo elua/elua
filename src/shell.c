@@ -17,6 +17,7 @@
 #include "linenoise.h"
 #include "term.h"
 #include "romfs.h"
+#include "memtrace.h"
 #include <ctype.h>
 
 #if defined( USE_GIT_REVISION )
@@ -78,6 +79,17 @@ static void shell_lua( int argc, char **argv )
   printf( "Press " SHELL_EOF_STRING " to exit Lua\n" );
   lua_main( argc, argv );
   clearerr( stdin );
+}
+
+static void shell_i_lua( int argc, char **argv )
+{
+  printf( "Activating instrumentation mode...\n" );
+  mt_start( "shell_i_lua" );
+  printf( "Press " SHELL_EOF_STRING " to exit Lua\n" );
+  lua_main( argc, argv );
+  clearerr( stdin );
+  printf( "Disabling instrumentation...\n" );
+  mt_stop();
 }
 
 // 'recv' handler
@@ -328,6 +340,7 @@ static const SHELL_COMMAND shell_commands[] =
 {
   { "help", shell_help },
   { "lua", shell_lua },
+  { "i_lua", shell_i_lua },
   { "recv", shell_recv },
   { "ver", shell_ver },
   { "exit", NULL },

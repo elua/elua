@@ -66,8 +66,8 @@ void __cyg_profile_func_enter( void *this_fn, void *call_site )
     umon_printf( "[UMON] call stack trace overflow, system halted.\n" );
     while( 1 );
   }
-  *p_call_stack_crt ++ = ( unsigned )this_fn & ~1;
-  *p_call_stack_crt ++ = ( unsigned )call_site & ~1;
+  *p_call_stack_crt ++ = ( unsigned )this_fn;
+  *p_call_stack_crt ++ = ( unsigned )call_site;
   call_stack_int[ call_stack_idx ] = umon_get_current_int();
   call_stack_idx ++;
   umon_restore_ints( ints_on );
@@ -85,14 +85,14 @@ void __cyg_profile_func_exit( void *this_fn, void *call_site )
 //  if( this_fn == &__real_setjmp || this_fn == &__real_longjmp )
 //    goto fexit;
   p_call_stack_crt -= 2;
-  if( p_call_stack_crt[ 0 ] != ( ( unsigned )this_fn & ~1 ) )
+  if( p_call_stack_crt[ 0 ] != ( ( unsigned )this_fn ) )
   {
-    umon_printf( "ERROR: this_fn_stack = %X, this_fn_par = %X\n", p_call_stack_crt[ 0 ], ( unsigned )this_fn & ~1 );
+    umon_printf( "ERROR: this_fn_stack = %X, this_fn_par = %X\n", p_call_stack_crt[ 0 ], ( unsigned )this_fn );
     while( 1 );
   }
-  if( p_call_stack_crt[ 1 ] != ( ( unsigned )call_site & ~1 ) )
+  if( p_call_stack_crt[ 1 ] != ( ( unsigned )call_site ) )
   {
-    umon_printf( "ERROR: call_site_stack = %X, call_site_par = %X\n", p_call_stack_crt[ 1 ], ( unsigned )call_site & ~1 );
+    umon_printf( "ERROR: call_site_stack = %X, call_site_par = %X\n", p_call_stack_crt[ 1 ], ( unsigned )call_site );
     while( 1 );
   }
   call_stack_idx --;

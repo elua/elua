@@ -9,6 +9,7 @@
 #include "legc.h"
 #include "platform_conf.h"
 #include "linenoise.h"
+#include "memtrace.h"
 #include <string.h>
 
 #if defined( USE_GIT_REVISION )
@@ -74,6 +75,22 @@ static int elua_c_stack_trace( lua_State *L )
 }
 #endif
 
+#ifdef ENABLE_MEM_TRACER
+static int elua_mt_start( lua_State *L )
+{
+  const char *msg = luaL_optstring( L, 1, "" );
+
+  mt_start( msg );
+  return 0;
+}
+
+static int elua_mt_stop( lua_State *L )
+{
+  mt_stop();
+  return 0;
+}
+#endif
+
 // Module function map
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
@@ -84,6 +101,10 @@ const LUA_REG_TYPE elua_map[] =
   { LSTRKEY( "save_history" ), LFUNCVAL( elua_save_history ) },
 #ifdef BUILD_UMON
   { LSTRKEY( "c_stack_trace" ), LFUNCVAL( elua_c_stack_trace ) },
+#endif
+#ifdef ENABLE_MEM_TRACER
+  { LSTRKEY( "mt_start" ), LFUNCVAL( elua_mt_start ) },
+  { LSTRKEY( "mt_stop" ), LFUNCVAL( elua_mt_stop ) },
 #endif
 #if LUA_OPTIMIZE_MEMORY > 0
   { LSTRKEY( "EGC_NOT_ACTIVE" ), LNUMVAL( EGC_NOT_ACTIVE ) },
