@@ -61,8 +61,8 @@ class Decoder:
     elif op == self.FREE:
       extra[ "ptr" ] = self.__u32()
     elif op == self.REALLOC:
-      extra[ "oldptr" ]  = self.__u32()
       extra[ "newptr" ] = self.__u32()
+      extra[ "oldptr" ] = self.__u32()
       extra[ "len" ] = self.__u32()
     elif op == self.CALLOC: # convert calloc to malloc for now
       op = self.MALLOC

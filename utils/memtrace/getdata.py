@@ -70,7 +70,7 @@ d = decoder.Decoder( s )
 #      break
 
 def print_trace( data ):
-  trace = data[ "trace" ]
+  trace = data.get( "trace", None )
   if trace:
     stk = 0
     for t in trace:
@@ -79,21 +79,23 @@ def print_trace( data ):
       print( "  [%02d] %s (%08X) [from %s + 0x%X (%08X)]" % ( len( trace ) - stk, nto[ "name" ], ato, nfrom[ "name" ], afrom - nfrom[ "start" ], afrom ) )
       stk = stk + 1
 
-def handle_alloc( lvl, data ):
-  global alloc_addrs, alloc_sizes, alloc_size_map, nallocs, totsize, maxsize
+def handle_malloc( lvl, data ):
+  global alloc_addrs, alloc_sizes, alloc_size_map, totsize, maxsize
   l = data[ "len" ]
+  if l == 20:
+    print( "20 byte trace:" )
+    print_trace( data )
   alloc_addrs.append( data[ "ptr" ] )
   alloc_sizes.append( l )
   if not alloc_size_map.has_key( l ):
     alloc_size_map[ l ] = 1
   else:
     alloc_size_map[ l ] = alloc_size_map[ l ] + 1
-  nallocs = nallocs + 1
   totsize += l
   maxsize = max( totsize, maxsize )
 
 def handle_free( lvl, data ):
-  global alloc_addrs, alloc_sizes, alloc_size_map, nfrees, totsize, maxsize
+  global alloc_addrs, alloc_sizes, alloc_size_map, totsize, maxsize
   try:
     idx = alloc_addrs.index( data[ "ptr" ] )
   except ValueError:
@@ -105,7 +107,18 @@ def handle_free( lvl, data ):
   alloc_addrs = alloc_addrs[ : idx ] + alloc_addrs[ idx + 1: ]
   alloc_sizes = alloc_sizes[ : idx ] + alloc_sizes[ idx + 1: ]
   totsize -= bsize
-  nfrees = nfrees + 1
+
+def handle_realloc( lvl, data ):
+  global alloc_addrs, alloc_sizes, alloc_size_map, totsize, maxsize
+  oldp, newp, size = data[ "oldptr" ], data[ "newptr" ], data[ "len" ]
+  trace = data.get( "trace", None )
+  if oldp == 0: # malloc
+    handle_malloc( lvl, { "ptr" : newp, "len" : size, "trace" : trace } )
+  elif size == 0: # free
+    handle_free( lvl, { "ptr" : oldp, "trace" : trace } )
+  else: # actual realloc (handle as free + malloc)
+    handle_free( lvl, { "ptr" : oldp, "trace" : trace } )
+    handle_malloc( lvl, { "ptr" : newp, "len": size, "trace" : trace } )
 
 alloc_addrs = []
 alloc_sizes = []
@@ -123,10 +136,13 @@ while True:
     break
   if recording:
     if op == d.MALLOC:
-      handle_alloc( lvl, data )
+      handle_malloc( lvl, data )
+      nallocs = nallocs + 1
     elif op == d.FREE:
-      handle_free( lvl, data )  
+      handle_free( lvl, data )
+      nfrees = nfrees + 1
     elif op == d.REALLOC:
+      handle_realloc( lvl, data )
       nreallocs = nreallocs + 1
 
 print( "ALLOCS:   ", nallocs )
