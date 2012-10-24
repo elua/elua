@@ -19,7 +19,6 @@
 #include "romfs.h"
 #include "memtrace.h"
 #include <ctype.h>
-#include <reent.h>
 
 #if defined( USE_GIT_REVISION )
 #include "git_version.h"
@@ -82,27 +81,11 @@ static void shell_lua( int argc, char **argv )
   clearerr( stdin );
 }
 
-u8 in_lua;
-
-static struct _reent lua_impure_data = _REENT_INIT (lua_impure_data);
-static struct _reent *_lua_impure_ptr = &lua_impure_data;
-
-struct _reent * __getreent( void )
-{
-  if( !in_lua )
-    return _impure_ptr;
-  else
-    return _lua_impure_ptr;
-}
-
 static void shell_i_lua( int argc, char **argv )
 {
   mt_start( "shell_i_lua" );
   printf( "Press " SHELL_EOF_STRING " to exit Lua\n" );
-  in_lua = 1;
   lua_main( argc, argv );
-  _reclaim_reent( _lua_impure_ptr );
-  in_lua = 0;
   clearerr( stdin );
   mt_stop();
 }
