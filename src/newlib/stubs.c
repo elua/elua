@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <unistd.h>
+#include <signal.h>
 #include "devman.h"
 #include "ioctl.h"
 #include "platform.h"
@@ -189,6 +190,11 @@ int _isatty_r( struct _reent* r, int fd )
   return 1;
 }
 
+_sig_func_ptr signal( int signum, _sig_func_ptr handler )
+{
+  return SIG_ERR;
+}
+
 #ifndef WIN32
 
 int isatty( int fd )
@@ -244,7 +250,7 @@ int _kill( int pid, int sig )
 {
   return -1;
 }
-#endif
+#endif // #ifndef WIN32
 
 // If LUA_NUMBER_INTEGRAL is defined, "redirect" printf/scanf calls to their 
 // integer counterparts

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <reent.h>
+#include <stdlib.h>
 #include "memtrace.h"
 #include "platform_conf.h"
 #include "umon.h"
@@ -13,6 +14,7 @@
 
 static p_memt_output mt_out;
 static u8 mt_level;
+static u8 mt_in_realloc, mt_in_calloc;
 
 void* __real__malloc_r( struct _reent* r, size_t size );
 void* __real__calloc_r( struct _reent* r, size_t nelem, size_t elem_size );
@@ -132,29 +134,37 @@ void* __wrap__malloc_r( struct _reent* r, size_t size )
 {
   void *ptr = __real__malloc_r( r, size );
 
-  mt_trace_malloc( ptr, size );
+  if( !mt_in_realloc && !mt_in_calloc )
+    mt_trace_malloc( ptr, size );
   return ptr;
 }
 
 void* __wrap__calloc_r( struct _reent* r, size_t nelem, size_t elem_size )
 {
-  void *ptr = __real__calloc_r( r, nelem, elem_size );
+  void *ptr;
 
+  mt_in_calloc = 1;
+  ptr = __real__calloc_r( r, nelem, elem_size );
   mt_trace_calloc( ptr, nelem, elem_size );
+  mt_in_calloc = 0;
   return ptr;
 }
 
 void __wrap__free_r( struct _reent* r, void* ptr )
 {
-  mt_trace_free( ptr );
+  if( !mt_in_realloc )
+    mt_trace_free( ptr );
   __real__free_r( r, ptr );
 }
 
 void* __wrap__realloc_r( struct _reent* r, void* ptr, size_t size )
 {
-  void *res = __real__realloc_r( r, ptr, size );
+  void *res = NULL;
 
+  mt_in_realloc = 1;
+  res = __real__realloc_r( r, ptr, size );
   mt_trace_realloc( res, ptr, size );
+  mt_in_realloc = 0;
   return res;
 }
 

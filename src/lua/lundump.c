@@ -197,6 +197,7 @@ static void LoadConstants(LoadState* S, Proto* f)
 {
  int i,n;
  n=LoadInt(S);
+ printf( "--> CONSTANTS: %d\n", n );
  f->k=luaM_newvector(S->L,n,TValue);
  f->sizek=n;
  for (i=0; i<n; i++) setnilvalue(&f->k[i]);

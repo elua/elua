@@ -423,7 +423,7 @@ addcf( { '-Os','-fomit-frame-pointer' } )
 
 if comp.memtrace then
   addm( "ENABLE_MEM_TRACER" )
-  addlf("-Wl,--wrap=_malloc_r -Wl,--wrap=_calloc_r -Wl,--wrap=_free_r -Wl,--wrap=_realloc_r" )
+  addlf("-Wl,--wrap=_malloc_r -Wl,--wrap=_free_r -Wl,--wrap=_realloc_r -Wl,--wrap=_calloc_r" )
 end
 
 -- Toolset data (filled by each platform in part)

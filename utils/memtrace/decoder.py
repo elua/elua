@@ -10,6 +10,7 @@ class Decoder:
     self.data = s
     self.pos = 0
     self.idx = 0
+    self.last_op = { "op": None, "ptr" : None }
 
   def rewind( self, pos = 0 ):
     self.pos = 0
@@ -42,10 +43,11 @@ class Decoder:
   def decode_next( self ):
     if self.pos >= len( self.data ):
       return ( None, None, None, None, None )
+    self.idx += 1
     pos = self.pos
     op = self.__u8()
     lvl = self.__u8()
-    extra = {}
+    extra, ptr = {}, None
     if lvl & 0x80:
       # This contains a stack trace
       lvl = lvl & 0x7F
@@ -56,22 +58,29 @@ class Decoder:
     if op == self.START:
       extra[ "msg" ] = self.__getstr()
     elif op == self.MALLOC:
-      extra[ "ptr" ] = self.__u32()
+      extra[ "ptr" ] = ptr = self.__u32()
       extra[ "len" ] = self.__u32()
     elif op == self.FREE:
-      extra[ "ptr" ] = self.__u32()
+      extra[ "ptr" ] = ptr = self.__u32()
     elif op == self.REALLOC:
       extra[ "newptr" ] = self.__u32()
       extra[ "oldptr" ] = self.__u32()
       extra[ "len" ] = self.__u32()
     elif op == self.CALLOC: # convert calloc to malloc for now
       op = self.MALLOC
-      extra[ "ptr" ] = self.__u32()
+      extra[ "ptr" ] = ptr = self.__u32()
       extra[ "len" ] = self.__u32() * self.__u32()
     elif op == self.STOP:
       pass
     else:
       print( "WARNING: unknown op", op )
-    self.idx += 1
+    """
+    self.last_op = { "op" : op, "ptr" : ptr or None }
+    if extra[ "oldptr" ] == 0 and self.last_op[ "op" ] == self.MALLOC and extra[ "newptr" ] == self.last_op[ "ptr" ]:
+      return self.decode_next()
+    if extra[ "len" ] == 0 and self.last_op[ "op" ] == self.FREE and extra[ "oldptr" ] == self.last_op[ "ptr" ]:
+      return self.decode_next()
+    else:
+    """
     return ( self.idx - 1, pos, op, lvl, extra )
 
