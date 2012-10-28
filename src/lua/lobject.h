@@ -360,7 +360,6 @@ typedef union TString {
   L_Umaxalign dummy;  /* ensures maximum alignment for strings */
   struct {
     CommonHeader;
-    lu_byte reserved;
     unsigned int hash;
     size_t len;
   } tsv;
