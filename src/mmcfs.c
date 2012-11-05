@@ -20,8 +20,16 @@
 static FIL mmcfs_fd_table[ MMCFS_MAX_FDS ];
 static int mmcfs_num_fd;
 
+extern void elua_mmc_init();
+
+#ifndef PLATFORM_MMC_NUM_CARDS
+#define NUM_CARDS             1
+#else
+#define NUM_CARDS             PLATFORM_MMC_NUM_CARDS
+#endif
+
 // Data structures used by FatFs
-static FATFS mmc_fs;
+static FATFS mmc_fs[ NUM_CARDS ];
 static FIL mmc_fileObject;
 //static DIR mmc_dir;
 //static FILINFO mmc_fileInfo;
@@ -30,9 +38,6 @@ typedef struct
   DIR *dir;
   struct dm_dirent *pdm;
 } MMCFS_DIRENT_DATA;
-
-#define PATH_BUF_SIZE   40
-static char mmc_pathBuf[PATH_BUF_SIZE];
 
 static int mmcfs_find_empty_fd( void )
 {
@@ -48,6 +53,8 @@ static int mmcfs_open_r( struct _reent *r, const char *path, int flags, int mode
 {
   int fd;
   int mmc_mode;
+  char *mmc_pathBuf;
+  int drv_num = *( int* )pdata;
 
   if (mmcfs_num_fd == MMCFS_MAX_FDS)
   {
@@ -56,10 +63,15 @@ static int mmcfs_open_r( struct _reent *r, const char *path, int flags, int mode
   }
 
   // Default to top directory if none given
-  mmc_pathBuf[0] = 0;
   if (strchr(path, '/') == NULL)
-    strcat(mmc_pathBuf, "/");
-  strcat(mmc_pathBuf, path);
+    asprintf( &mmc_pathBuf, "%d:/%s", drv_num, path );
+  else
+    asprintf( &mmc_pathBuf, "%d:%s", drv_num, path );
+  if( mmc_pathBuf == NULL )
+  {
+    r->_errno = ENOMEM;
+    return -1;
+  }
 
   // Scrub binary flag, if defined
 #ifdef O_BINARY
@@ -70,6 +82,7 @@ static int mmcfs_open_r( struct _reent *r, const char *path, int flags, int mode
   if ((flags & O_ACCMODE) != O_RDONLY)
   {
     r->_errno = EROFS;
+    free( mmc_pathBuf );
     return -1;
   }
   mmc_mode = FA_OPEN_EXISTING & FA_READ;
@@ -86,6 +99,7 @@ static int mmcfs_open_r( struct _reent *r, const char *path, int flags, int mode
   else
   {
     r->_errno = EINVAL;
+    free( mmc_pathBuf );
     return -1;
   }
 
@@ -98,6 +112,7 @@ static int mmcfs_open_r( struct _reent *r, const char *path, int flags, int mode
   else
   {
     r->_errno = EINVAL;
+    free( mmc_pathBuf );
     return -1;
   }
 #endif  // _FS_READONLY
@@ -106,6 +121,7 @@ static int mmcfs_open_r( struct _reent *r, const char *path, int flags, int mode
   if (f_open(&mmc_fileObject, mmc_pathBuf, mmc_mode) != FR_OK)
   {
     r->_errno = ENOENT;
+    free( mmc_pathBuf );
     return -1;
   }
 
@@ -114,6 +130,7 @@ static int mmcfs_open_r( struct _reent *r, const char *path, int flags, int mode
   fd = mmcfs_find_empty_fd();
   memcpy(mmcfs_fd_table + fd, &mmc_fileObject, sizeof(FIL));
   mmcfs_num_fd ++;
+  free( mmc_pathBuf );
   return fd;
 }
 
@@ -196,6 +213,8 @@ static void* mmcfs_opendir_r( struct _reent *r, const char* dname, void *pdata )
 {
   void* res = NULL;
   MMCFS_DIRENT_DATA *pd = ( MMCFS_DIRENT_DATA* )malloc( sizeof( MMCFS_DIRENT_DATA ) );
+  int drv_num = *( int* )pdata;
+  char *pname = NULL;
 
   if( !pd )
     return NULL;
@@ -205,9 +224,10 @@ static void* mmcfs_opendir_r( struct _reent *r, const char* dname, void *pdata )
   if( ( pd->pdm = ( struct dm_dirent* )malloc( sizeof( struct dm_dirent ) ) ) == NULL )
     goto out;
   if( !dname || strlen( dname ) == 0 )
-    res = f_opendir( pd->dir, "/" ) != FR_OK ? NULL : pd;
+    asprintf( &pname, "%d:/", drv_num );
   else
-    res = f_opendir( pd->dir, dname ) != FR_OK ? NULL : pd;
+    asprintf( &pname, "%d:%s", drv_num, dname );
+  res = f_opendir( pd->dir, pname ) != FR_OK ? NULL : pd;
 out:    
   if( res == NULL )
   {
@@ -217,6 +237,8 @@ out:
       free( pd->pdm );
     free( pd );
   }
+  if( pname )
+    free( pname );
   return res;
 }
 
@@ -292,10 +314,29 @@ static const DM_DEVICE mmcfs_device =
 
 int mmcfs_init()
 {
-  // Mount the MMC file system using logical disk 0
-  if ( f_mount( 0, &mmc_fs ) != FR_OK )
+  elua_mmc_init();
+#if NUM_CARDS == 1
+  static int cid = 0;
+  // A single MMCFS
+  if ( f_mount( 0, mmc_fs ) != FR_OK )
     return DM_ERR_INIT;
-  return dm_register( "/mmc", NULL, &mmcfs_device );
+  return dm_register( "/mmc", &cid, &mmcfs_device );
+#else // #if NUM_CARDS == 1
+  int i;
+  static char names[ NUM_CARDS ][ 6 ];
+  static int ids[ NUM_CARDS ];
+
+  // [TODO] add more error checking!
+  for( i = 0; i < NUM_CARDS; i ++ )
+    if( f_mount( i, mmc_fs + i ) == FR_OK )
+    {
+      printf( "MOUNTED %d\n", i );
+      ids[ i ] = i;
+      sprintf( names[ i ], "/mmc%d", i );
+      dm_register( names[ i ], ids + i, &mmcfs_device );
+    }
+  return DM_OK;
+#endif // #if NUM_CARDS == 1
 }
 
 #else // #ifdef BUILD_MMCFS
