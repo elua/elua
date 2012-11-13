@@ -79,7 +79,7 @@ void shell_ls( int argc, char **argv )
     else if( argv[ i ][ 0 ] == '/' && !pname )
       pname = argv[ i ];
     else
-      printf( "Warning: ignoring argument '%s' of ls", argv[ i ] );
+      printf( "Warning: ignoring argument '%s' of ls\n", argv[ i ] );
   }
   // Iterate through all devices, looking for the ones that can do "opendir"
   // or the ones that match 'pname' (if that is specified)

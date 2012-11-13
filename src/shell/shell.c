@@ -30,16 +30,6 @@
 // External shell function declaration
 #define SHELL_FUNC( func )        extern void func( int argc, char **argv )
 
-// Shell command handler function
-typedef void( *p_shell_handler )( int argc, char **argv );
-
-// Command/handler pair structure
-typedef struct
-{
-  const char* cmd;
-  p_shell_handler handler_func;
-} SHELL_COMMAND;
-
 // Shell data
 char* shell_prog;
 
@@ -225,16 +215,154 @@ static const SHELL_COMMAND shell_commands[] =
   { NULL, NULL }
 };
 
-// Execute the eLua "shell" in an infinite loop
-void shell_start()
-{
-  char cmd[ SHELL_MAXSIZE + 1 ];
+// Executes the given shell command
+// 'interactive_mode' is 1 if invoked directly from the interactive shell,
+// 0 otherwise
+// Returns a pointer to the shell_command that was executed, NULL for error
+const SHELL_COMMAND* shellh_execute_command( char* cmd, int interactive_mode )
+{  
   char *p, *temp;
   const SHELL_COMMAND* pcmd;
   int i, inside_quotes;
   char quote_char;
   int argc;
   char *argv[ SHELL_MAX_ARGS ];
+
+  if( strlen( cmd ) == 0 )
+    return NULL;
+
+  if( cmd[ strlen( cmd ) - 1 ] != '\n' )
+    strcat( cmd, "\n" );
+
+  // Change '\r', '\n' and '\t' chars to ' ' to ease processing
+  p = cmd;
+  while( *p )
+  {
+    if( *p == '\r' || *p == '\n' || *p == '\t' )
+      *p = ' ';
+    p ++;
+  }
+
+  // Transform ' ' characters inside a '' or "" quoted string in
+  // a 'special' char. We do this to let the user execute something
+  // like "lua -e 'quoted string'" without disturbing the quoted
+  // string in any way.
+  for( i = 0, inside_quotes = 0, quote_char = '\0'; i < strlen( cmd ); i ++ )
+    if( ( cmd[ i ] == '\'' ) || ( cmd[ i ] == '"' ) )
+    {
+      if( !inside_quotes )
+      {
+        inside_quotes = 1;
+        quote_char = cmd[ i ];
+      }
+      else
+      {
+        if( cmd[ i ] == quote_char )
+        {
+          inside_quotes = 0;
+          quote_char = '\0';
+        }
+      }
+    }
+    else if( ( cmd[ i ] == ' ' ) && inside_quotes )
+      cmd[ i ] = SHELL_ALT_SPACE;
+  if( inside_quotes )
+  {
+    printf( "Invalid quoted string\n" );
+    return NULL;
+  }
+
+  // Transform consecutive sequences of spaces into a single space
+  p = strchr( cmd, ' ' );
+  while( p )
+  {
+    temp = p + 1;
+    while( *temp && *temp == ' ' )
+      memmove( temp, temp + 1, strlen( temp ) );
+    p = strchr( p + 1, ' ' );
+  }
+  if( !strcmp( cmd, " " ) )
+    return NULL;
+
+  // Skip over the initial space char if it exists
+  p = cmd;
+  if( *p == ' ' )
+    p ++;
+
+  // Add a final space if it does not exist
+  if( p[ strlen( p ) - 1 ] != ' ' )
+    strcat( p, " " );
+
+  // Compute argc/argv
+  for( argc = 0; argc < SHELL_MAX_ARGS; argc ++ )
+    argv[ argc ] = NULL;
+  argc = 0;
+  while( ( temp = strchr( p, ' ' ) ) != NULL )
+  {
+    *temp = 0;
+    if( argc == SHELL_MAX_ARGS )
+    {
+      printf( "Error: too many arguments\n" );
+      argc = -1;
+      break;
+    }
+    argv[ argc ++ ] = p;
+    p = temp + 1;
+  }
+
+  if( argc == -1 )
+    return NULL;
+
+  // Additional argument processing happens here
+  for( i = 0; i < argc; i ++ )
+  {
+    p = argv[ i ];
+    // Put back spaces if needed
+    for( inside_quotes = 0; inside_quotes < strlen( argv[ i ] ); inside_quotes ++ )
+    {
+      if( p[ inside_quotes ] == SHELL_ALT_SPACE )
+        argv[ i ][ inside_quotes ] = ' ';
+    }
+    // Remove quotes
+    if( ( p[ 0 ] == '\'' || p [ 0 ] == '"' ) && ( p[ 0 ] == p[ strlen( p ) - 1 ] ) )
+    {
+      argv[ i ] = p + 1;
+      p[ strlen( p ) - 1 ] = '\0';
+    }
+  }
+
+  // Match user command with shell's commands
+  i = 0;
+  while( 1 )
+  {
+    pcmd = shell_commands + i;
+    if( pcmd->cmd == NULL )
+    {
+      printf( SHELL_ERRMSG );
+      break;
+    }
+    if( !strcasecmp( pcmd->cmd, argv[ 0 ] ) )
+    {
+      // Special case: the "exit" command has a NULL handler
+      // Special case: "lua" is not allowed in non-interactive mode
+      if( pcmd->handler_func && ( interactive_mode || strcasecmp( pcmd->cmd, "lua" ) ) )
+        pcmd->handler_func( argc, argv );
+      break;
+    }
+    i ++;
+  }
+
+  // Special case: "exit" is not allowed in non-interactive mode
+  if( !interactive_mode && !strcasecmp( pcmd->cmd, "exit" ) )
+    return NULL;
+  return pcmd;
+}
+
+// Execute the eLua "shell" in an infinite loop
+void shell_start()
+{
+  char cmd[ SHELL_MAXSIZE + 1 ];
+  const SHELL_COMMAND *pcmd;
 
   printf( SHELL_WELCOMEMSG, ELUA_STR_VERSION );
   while( 1 )
@@ -247,127 +375,9 @@ void shell_start()
     if( strlen( cmd ) == 0 )
       continue;
     linenoise_addhistory( LINENOISE_ID_SHELL, cmd );
-    if( cmd[ strlen( cmd ) - 1 ] != '\n' )
-      strcat( cmd, "\n" );
-
-    // Change '\r', '\n' and '\t' chars to ' ' to ease processing
-    p = cmd;
-    while( *p )
-    {
-      if( *p == '\r' || *p == '\n' || *p == '\t' )
-        *p = ' ';
-      p ++;
-    }
-
-    // Transform ' ' characters inside a '' or "" quoted string in
-    // a 'special' char. We do this to let the user execute something
-    // like "lua -e 'quoted string'" without disturbing the quoted
-    // string in any way.
-    for( i = 0, inside_quotes = 0, quote_char = '\0'; i < strlen( cmd ); i ++ )
-      if( ( cmd[ i ] == '\'' ) || ( cmd[ i ] == '"' ) )
-      {
-        if( !inside_quotes )
-        {
-          inside_quotes = 1;
-          quote_char = cmd[ i ];
-        }
-        else
-        {
-          if( cmd[ i ] == quote_char )
-          {
-            inside_quotes = 0;
-            quote_char = '\0';
-          }
-        }
-      }
-      else if( ( cmd[ i ] == ' ' ) && inside_quotes )
-        cmd[ i ] = SHELL_ALT_SPACE;
-    if( inside_quotes )
-    {
-      printf( "Invalid quoted string\n" );
-      continue;
-    }
-
-    // Transform consecutive sequences of spaces into a single space
-    p = strchr( cmd, ' ' );
-    while( p )
-    {
-      temp = p + 1;
-      while( *temp && *temp == ' ' )
-        memmove( temp, temp + 1, strlen( temp ) );
-      p = strchr( p + 1, ' ' );
-    }
-    if( !strcmp( cmd, " " ) )
-      continue;
-
-    // Skip over the initial space char if it exists
-    p = cmd;
-    if( *p == ' ' )
-      p ++;
-
-    // Add a final space if it does not exist
-    if( p[ strlen( p ) - 1 ] != ' ' )
-      strcat( p, " " );
-
-    // Compute argc/argv
-    for( argc = 0; argc < SHELL_MAX_ARGS; argc ++ )
-      argv[ argc ] = NULL;
-    argc = 0;
-    while( ( temp = strchr( p, ' ' ) ) != NULL )
-    {
-      *temp = 0;
-      if( argc == SHELL_MAX_ARGS )
-      {
-        printf( "Error: too many arguments\n" );
-        argc = -1;
-        break;
-      }
-      argv[ argc ++ ] = p;
-      p = temp + 1;
-    }
-
-    if( argc == -1 )
-      continue;
-
-    // Additional argument processing happens here
-    for( i = 0; i < argc; i ++ )
-    {
-      p = argv[ i ];
-      // Put back spaces if needed
-      for( inside_quotes = 0; inside_quotes < strlen( argv[ i ] ); inside_quotes ++ )
-      {
-        if( p[ inside_quotes ] == SHELL_ALT_SPACE )
-          argv[ i ][ inside_quotes ] = ' ';
-      }
-      // Remove quotes
-      if( ( p[ 0 ] == '\'' || p [ 0 ] == '"' ) && ( p[ 0 ] == p[ strlen( p ) - 1 ] ) )
-      {
-        argv[ i ] = p + 1;
-        p[ strlen( p ) - 1 ] = '\0';
-      }
-    }
-
-    // Match user command with shell's commands
-    i = 0;
-    while( 1 )
-    {
-      pcmd = shell_commands + i;
-      if( pcmd->cmd == NULL )
-      {
-        printf( SHELL_ERRMSG );
-        break;
-      }
-      if( !strcasecmp( pcmd->cmd, argv[ 0 ] ) )
-      {
-        // Special case: the "exit" command has a NULL handler
-        if( pcmd->handler_func )
-          pcmd->handler_func( argc, argv );
-        break;
-      }
-      i ++;
-    }
+    pcmd = shellh_execute_command( cmd, 1 );
     // Check for 'exit' command
-    if( pcmd->cmd && !pcmd->handler_func )
+    if( pcmd && pcmd->cmd && !pcmd->handler_func )
 #ifdef BUILD_UIP
     {
       if( ( i = elua_net_get_telnet_socket() ) != -1 )
@@ -376,7 +386,6 @@ void shell_start()
 #else
       break;
 #endif
-
   }
   // Shell exit point
   if( shell_prog )

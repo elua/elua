@@ -3,14 +3,27 @@
 #ifndef __SHELL_H__
 #define __SHELL_H__
 
+#include "type.h"
+
 #define SHELL_WELCOMEMSG                "\neLua %s  Copyright (C) 2007-2011 www.eluaproject.net\n"
 #define SHELL_PROMPT                    "eLua# "
 #define SHELL_ERRMSG                    "Invalid command, type 'help' for help\n"
 #define SHELL_MAXSIZE                   50
 #define SHELL_MAX_LUA_ARGS              8
 
+// Shell command handler function
+typedef void( *p_shell_handler )( int argc, char **argv );
+
+// Command/handler pair structure
+typedef struct
+{
+  const char* cmd;
+  p_shell_handler handler_func;
+} SHELL_COMMAND;
+
 int shell_init();
 void shell_start();
+const SHELL_COMMAND* shellh_execute_command( char* cmd, int interactive_mode );
 int shellh_cp_file( const char *src, const char *dst, int flags );
 void shellh_not_implemented_handler( int argc, char **argv );
 void shellh_show_help( const char *cmd, const char *helptext );
