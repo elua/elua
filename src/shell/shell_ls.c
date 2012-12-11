@@ -11,6 +11,8 @@
 #include "type.h"
 #include "platform_conf.h"
 
+#ifdef BUILD_ADVANCED_SHELL
+
 // State for walkdir
 typedef struct
 {
@@ -97,4 +99,53 @@ void shell_ls( int argc, char **argv )
       printf( "Total on %s with all subdirectories: %u bytes\n\n", crtname, ( unsigned )state.total );
   }   
 }
+
+#else // #ifdef BUILD_ADVANCED_SHELL
+
+const char shell_help_ls[] = "list files and directories";
+const char shell_help_summary_ls[] = "lists files and directories";
+
+void shell_ls( int argc, char **argv )
+{
+  const DM_INSTANCE_DATA *pinst;
+  unsigned dev, i;
+  DM_DIR *d;
+  struct dm_dirent *ent;
+  u32 total;
+
+  ( void )argc;
+  ( void )argv;
+  // Iterate through all devices, looking for the ones that can do "opendir"
+  for( dev = 0; dev < dm_get_num_devices(); dev ++ )
+  {
+    pinst = dm_get_instance_at( dev );
+    if( pinst->pdev->p_opendir_r == NULL || pinst->pdev->p_readdir_r == NULL || pinst->pdev->p_closedir_r == NULL )
+      continue;
+    d = dm_opendir( pinst->name );
+    if( d )
+    {
+      total = 0;
+      printf( "\n%s", pinst->name );
+      while( ( ent = dm_readdir( d ) ) != NULL )
+      {
+        printf( "\n%s", ent->fname );
+        for( i = strlen( ent->fname ); i <= DM_MAX_FNAME_LENGTH; i++ )
+          printf( " " );
+        if( ent->flags & DM_DIRENT_FLAG_DIR )
+          printf( "<DIR>" );
+        else
+        {
+          printf( "%u bytes", ( unsigned )ent->fsize );
+          total = total + ent->fsize;
+        }
+      }
+      printf( "\n\nTotal on %s: %u bytes\n", pinst->name, ( unsigned )total );
+      dm_closedir( d );
+    }
+  }
+  printf( "\n" );
+}
+
+
+#endif // #ifdef BUILD_ADVANCED_SHELL
 
