@@ -11,10 +11,10 @@
 #include "diskio.h"
 #include "mmcfs.h"
 
-#ifndef PLATFORM_MMC_NUM_CARDS
+#ifndef MMCFS_NUM_CARDS
 #define NUM_CARDS             1
 #else
-#define NUM_CARDS             PLATFORM_MMC_NUM_CARDS
+#define NUM_CARDS             MMCFS_NUM_CARDS
 #endif
 
 /* Definitions for MMC/SDC command */

@@ -22,10 +22,10 @@ static int mmcfs_num_fd;
 
 extern void elua_mmc_init();
 
-#ifndef PLATFORM_MMC_NUM_CARDS
+#ifndef MMCFS_NUM_CARDS
 #define NUM_CARDS             1
 #else
-#define NUM_CARDS             PLATFORM_MMC_NUM_CARDS
+#define NUM_CARDS             MMCFS_NUM_CARDS
 #endif
 
 // Data structures used by FatFs
@@ -330,7 +330,6 @@ int mmcfs_init()
   for( i = 0; i < NUM_CARDS; i ++ )
     if( f_mount( i, mmc_fs + i ) == FR_OK )
     {
-      printf( "MOUNTED %d\n", i );
       ids[ i ] = i;
       sprintf( names[ i ], "/mmc%d", i );
       dm_register( names[ i ], ids + i, &mmcfs_device );

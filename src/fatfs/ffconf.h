@@ -120,10 +120,10 @@
 / Physical Drive Configurations
 /----------------------------------------------------------------------------*/
 
-#ifndef PLATFORM_MMC_NUM_CARDS
+#ifndef MMCFS_NUM_CARDS
 #define _DRIVES		1
 #else
-#define _DRIVES   PLATFORM_MMC_NUM_CARDS
+#define _DRIVES   MMCFS_NUM_CARDS
 #endif
 /* Number of volumes (logical drives) to be used. */
 
