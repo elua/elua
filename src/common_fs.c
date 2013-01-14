@@ -9,6 +9,12 @@
 #include <string.h>
 #include <stdarg.h>
 
+#define SAFE_CLOSEDIR( dir ) \
+  do { \
+    dm_closedir( dir ); \
+    dir = NULL; \
+  } while( 0 )
+
 // Returns 1 if 'str' matches the given pattern, 0 otherwise
 // '?' matches a single char
 // "*" matches one or more chars, NON-GREEDY
@@ -214,7 +220,7 @@ static int cmn_fs_actual_walkdir( const char *path, const char *pattern, p_cmn_f
       if( isdir )
         hasdirs = 1;
     }
-    dm_closedir( d );
+    SAFE_CLOSEDIR( d );
     if( cb( path, ent, pdata, CMN_FS_INFO_AFTER_CLOSEDIR ) == 0 )
       goto abort;
     if( recursive && hasdirs )
@@ -237,7 +243,7 @@ static int cmn_fs_actual_walkdir( const char *path, const char *pattern, p_cmn_f
                 goto abort;
           }
         }
-        dm_closedir( d );
+        SAFE_CLOSEDIR( d );
       }
       else
         if( cb( path, NULL, pdata, CMN_FS_INFO_OPENDIR_FAILED ) == 0 )
@@ -251,7 +257,8 @@ static int cmn_fs_actual_walkdir( const char *path, const char *pattern, p_cmn_f
       return 0;
   return 1;
 abort:
-  dm_closedir( d );
+  if( d )
+    dm_closedir( d );
   return 0;
 }
 
@@ -269,7 +276,6 @@ int cmn_fs_walkdir( const char *path, p_cmn_fs_walker_cb cb, void *pdata, int re
 
 int cmn_fs_is_root_dir( const char *path )
 {
-  
   if( !path )
     return 0;
   if( path[ 0 ] != '/' )
