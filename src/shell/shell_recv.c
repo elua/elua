@@ -44,13 +44,11 @@ void shell_recv( int argc, char **argv )
   printf( "Waiting for file ... " );
   if( ( actsize = xmodem_receive( &shell_prog ) ) < 0 )
   {
-    free( shell_prog );
-    shell_prog = NULL;
     if( actsize == XMODEM_ERROR_OUTOFMEM )
       printf( "file too big\n" );
     else
       printf( "XMODEM error\n" );
-    return;
+    goto exit;
   }
   // Eliminate the XMODEM padding bytes
   p = shell_prog + actsize - 1;
@@ -67,9 +65,7 @@ void shell_recv( int argc, char **argv )
     if( foutput == NULL )
     {
       printf( "unable to open file %s\n", argv[ 1 ] );
-      free( shell_prog );
-      shell_prog = NULL;
-      return;
+      goto exit;
     }
     if( fwrite( shell_prog, sizeof( char ), file_sz, foutput ) == file_sz )
       printf( "received and saved as %s\n", argv[ 1 ] );
@@ -82,9 +78,7 @@ void shell_recv( int argc, char **argv )
     if( ( L = lua_open() ) == NULL )
     {
       printf( "Unable to create Lua state\n" );
-      free( shell_prog );
-      shell_prog = NULL;
-      return;
+      goto exit;
     }
     luaL_openlibs( L );
     if( luaL_loadbuffer( L, shell_prog, p - shell_prog, "xmodem" ) != 0 )
@@ -94,6 +88,7 @@ void shell_recv( int argc, char **argv )
         printf( "Error: %s\n", lua_tostring( L, -1 ) );
     lua_close( L );
   }
+exit:
   free( shell_prog );
   shell_prog = NULL;
 }
