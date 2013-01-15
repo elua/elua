@@ -131,7 +131,7 @@ void shell_adv_rm( int argc, char **argv )
   masktype = cmn_fs_get_type( fmask );
   if( masktype == CMN_FS_TYPE_FILE )
     shellh_rm_one( fmask, flags );
-  else if( masktype == CMN_FS_TYPE_ERROR || masktype == CMN_FS_TYPE_FILE_NOT_FOUND || masktype == CMN_FS_TYPE_DIR_NOT_FOUND )
+  else if( masktype == CMN_FS_TYPE_ERROR || masktype == CMN_FS_TYPE_FILE_NOT_FOUND || masktype == CMN_FS_TYPE_DIR_NOT_FOUND || masktype == CMN_FS_TYPE_UNKNOWN_NOT_FOUND )
     printf( "Invalid argument '%s'.\n", fmask );
   else if( masktype == CMN_FS_TYPE_DIR && ( ( flags & SHELL_F_RECURSIVE ) == 0 ) )
     printf( "'%s': unable to remove directory (use '-R').\n", fmask );

@@ -29,6 +29,7 @@
 #define CMN_FS_TYPE_ERROR               3
 #define CMN_FS_TYPE_FILE_NOT_FOUND      4
 #define CMN_FS_TYPE_DIR_NOT_FOUND       5
+#define CMN_FS_TYPE_UNKNOWN_NOT_FOUND   6
 
 typedef int ( *p_cmn_fs_walker_cb )( const char*, const struct dm_dirent*, void*, int );
 

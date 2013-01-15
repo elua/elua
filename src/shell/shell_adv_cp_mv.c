@@ -196,9 +196,10 @@ static void shellh_adv_cp_mv_common( int argc, char **argv, int is_move )
     goto done;
   }
   if( srctype == CMN_FS_TYPE_ERROR || srctype == CMN_FS_TYPE_FILE_NOT_FOUND ||
-      srctype == CMN_FS_TYPE_DIR_NOT_FOUND || dsttype == CMN_FS_TYPE_ERROR || 
-      dsttype == CMN_FS_TYPE_DIR_NOT_FOUND )
+      srctype == CMN_FS_TYPE_DIR_NOT_FOUND || srctype == CMN_FS_TYPE_UNKNOWN_NOT_FOUND || 
+      dsttype == CMN_FS_TYPE_ERROR || dsttype == CMN_FS_TYPE_DIR_NOT_FOUND )
   {
+    printf( "%d %d\n", srctype, dsttype );
     printf( "Invalid source and/or destination.\n" );
     return;
   }
@@ -207,7 +208,7 @@ static void shellh_adv_cp_mv_common( int argc, char **argv, int is_move )
   // Check valid source/destination combinations
   if( srctype == CMN_FS_TYPE_FILE )
   {
-    if( dsttype == CMN_FS_TYPE_FILE || dsttype == CMN_FS_TYPE_FILE_NOT_FOUND ) // direct file-to-file operation
+    if( dsttype == CMN_FS_TYPE_FILE || dsttype == CMN_FS_TYPE_FILE_NOT_FOUND || dsttype == CMN_FS_TYPE_UNKNOWN_NOT_FOUND ) // direct file-to-file operation
     {
       shellh_cp_or_mv_file( srcpath, dstpath, flags );
       goto done;

@@ -128,7 +128,7 @@ int cmn_fs_get_type( const char *path )
     return CMN_FS_TYPE_FILE;
   }
   if( ( d = dm_opendir( path ) ) == NULL )
-    return CMN_FS_TYPE_DIR_NOT_FOUND;
+    return CMN_FS_TYPE_UNKNOWN_NOT_FOUND;
   dm_closedir( d );
   return CMN_FS_TYPE_DIR;
 }
