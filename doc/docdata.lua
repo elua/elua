@@ -130,7 +130,8 @@ local menu =
           { "Linenoise", "linenoise.html" },
           { "Cross-compiling", "using.html#cross" },
           { "LuaRPC", "using.html#rpc" },
-          { "The serial multiplexer", "sermux.html" }
+          { "The serial multiplexer", "sermux.html" },
+          { nil, "simple_shell.html", nil, "Simple shell" },
         },
       },
       { { "Code examples", "Exemplos de Código" }, "examples.html" },
