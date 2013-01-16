@@ -8,7 +8,7 @@ A detailed description of the shell commands is given below.
 |=============
 | link:#cmd_help[help] | link:#cmd_ver[ver]   | link:#cmd_recv[recv]   | link:#cmd_lua[lua]
 | link:#cmd_ls[ls]     | link:#cmd_ls[dir]    | link:#cmd_cat[cat]     | link:#cmd_cat[type]
-| link:#cmd_cp[cp]     | link:#cmd_exit[exit] | link:#cmd_wofmt[wofmt] |
+| link:#cmd_cp[cp]     | link:#cmd_exit[exit] | link:#cmd_wofmt[wofmt] | link:#cmd_mkdir[mkdir]
 |=============
 
 [[cmd_help]]
@@ -95,7 +95,7 @@ eLua# cat /mmc/autorun.lua
 cp
 ~~
 Copies a file to another file. This command can be used to copy files between different file systems (for example between the MMC file
-system and the RFS file system). The first argument is the source, the second one is the destination. Examples:
+system and the RFS file system). The first argument is the source, the second one is the destination. Example:
 
 ------------------------------------
 eLua# cp /rom/data.bin /rfs/data.bin
@@ -114,5 +114,14 @@ eLua board. Otherwise it just terminates the shell and blocks forever until you 
 wofmt
 ~~~~~
 "Formats" the link:arch_wofs.html[WOFS file system], erasing its current contents. The user is asked to confirm this operation.
+
+[[cmd_mkdir]]
+mkdir
+~~~~~
+Creates a new directory. The filesystem must have directory support in order fir this to work. Example:
+
+--------------------
+elua# mkdir /mmc/dir
+--------------------
 
 // $$FOOTER$$

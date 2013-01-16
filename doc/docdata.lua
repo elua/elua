@@ -132,6 +132,7 @@ local menu =
           { "LuaRPC", "using.html#rpc" },
           { "The serial multiplexer", "sermux.html" },
           { nil, "simple_shell.html", nil, "Simple shell" },
+          { nil, "advanced_shell.html", nil, "Advanced shell" },
         },
       },
       { { "Code examples", "Exemplos de Código" }, "examples.html" },

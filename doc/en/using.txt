@@ -74,7 +74,7 @@ eLua has two different versions of the shell (check link:building.html[here] for
 
 - the basic version is small (to keep the eLua image small), but functional. The documentation for the basic shell can be found link:simple_shell.html[here].
 - the advanced shell (new in *0.9*) adds file masks, file operations and other goodies to the basic shell. If you have enough flash on your
-MCU, this is almost certainly the version that you want. The documentation for the advanced shell can be found link:TODO[here].
+MCU, this is almost certainly the version that you want. The documentation for the advanced shell can be found link:advanced_shell.html[here].
 
 [[cross]]
 Cross-compiling your eLua programs
