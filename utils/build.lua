@@ -313,7 +313,7 @@ end
 -------------------------------------------------------------------------------
 -- Builder public interface
 
-builder = { KEEP_DIR = 0, BUILD_DIR = 1, BUILD_DIR_LINEARIZED = 2 }
+builder = { KEEP_DIR = 0, BUILD_DIR_LINEARIZED = 1 }
 
 ---------------------------------------
 -- Initialization and option handling
@@ -367,7 +367,7 @@ builder.init = function( self, args )
   -- Add the default options
   local opts = self.opts
   opts:add_option( "build_mode", 'choose location of the object files', self.KEEP_DIR,
-                   { keep_dir = self.KEEP_DIR, build_dir = self.BUILD_DIR, build_dir_linearized = self.BUILD_DIR_LINEARIZED } )
+                   { keep_dir = self.KEEP_DIR, build_dir_linearized = self.BUILD_DIR_LINEARIZED } )
   opts:add_option( "build_dir", 'choose build directory', self.build_dir )
   opts:add_option( "disp_mode", 'set builder display mode', 'summary', { 'all', 'summary' } )
   -- Apply default values to all options
@@ -645,16 +645,11 @@ builder.obj_name = function( self, name, ext )
   end
   local objname = utils.replace_extension( name, r )
   -- KEEP_DIR: object file in the same directory as source file
-  -- BUILD_DIR: object file in the build directory
   -- BUILD_DIR_LINEARIZED: object file in the build directory, linearized filename
   if self.build_mode == self.KEEP_DIR then 
     return objname
   elseif self.build_mode == self.BUILD_DIR_LINEARIZED then
     return self.build_dir .. utils.dir_sep .. linearize_fname( objname )
-  else
-    local si, ei, path, fname = objname:find( "(.+)/(.-)$" )
-    if not si then fname = objname end
-    return self.build_dir .. utils.dir_sep .. fname 
   end
 end
 
