@@ -45,6 +45,8 @@ typedef struct {
   void *userdata;
 } DM_DIR;
 
+#define DM_DIRENT_IS_DIR( ent )   ( ( ( ent )->flags & DM_DIRENT_FLAG_DIR ) != 0 )
+
 // A device structure with pointers to all the device functions
 typedef int mkdir_mode_t;
 
@@ -60,6 +62,9 @@ typedef struct
   int ( *p_closedir_r )( struct _reent *r, void* dir, void *pdata );
   const char* ( *p_getaddr_r )( struct _reent *r, int fd, void *pdata );
   int ( *p_mkdir_r )( struct _reent *r, const char *pathname, mkdir_mode_t mode, void *pdata );
+  int ( *p_unlink_r )( struct _reent *r, const char *fname, void *pdata );
+  int ( *p_rmdir_r )( struct _reent *r, const char *fname, void *pdata );
+  int ( *p_rename_r )( struct _reent *r, const char *oldname, const char *newname, void *pdata );
 } DM_DEVICE;
 
 // Additional registration data for each FS (per FS instance)

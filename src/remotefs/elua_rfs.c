@@ -181,7 +181,10 @@ static const DM_DEVICE rfs_device =
   rfs_readdir_r,        // readdir
   rfs_closedir_r,       // closedir
   NULL,                 // getaddr
-  NULL                  // mkdir
+  NULL,                 // mkdir
+  NULL,                 // unlink
+  NULL,                 // rmdir
+  NULL                  // rename
 };
 
 int remotefs_init()

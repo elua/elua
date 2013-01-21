@@ -14,6 +14,7 @@
 #include "genstd.h"
 #include "utils.h"
 #include "salloc.h"
+#include "shell.h"
 
 #ifdef USE_MULTIPLE_ALLOCATOR
 #include "dlmalloc.h"
@@ -96,6 +97,11 @@ int _open_r( struct _reent *r, const char *name, int flags, int mode )
   return DM_MAKE_DESC( devid, res );
 }
 
+int open( const char *name, int flags, mode_t mode )
+{
+  return _open_r( _REENT, name, flags, 0 );
+}
+
 // *****************************************************************************
 // _close_r
 int _close_r( struct _reent *r, int file )
@@ -112,6 +118,11 @@ int _close_r( struct _reent *r, int file )
   
   // And call the close function
   return pinst->pdev->p_close_r( r, DM_GET_FD( file ), pinst->pdata );
+}
+
+int close( int file )
+{
+  return _close_r( _REENT, file );
 }
 
 // *****************************************************************************
@@ -163,6 +174,11 @@ _ssize_t _read_r( struct _reent *r, int file, void *ptr, size_t len )
   return pinst->pdev->p_read_r( r, DM_GET_FD( file ), ptr, len, pinst->pdata );
 }
 
+_ssize_t read( int file, void *ptr, size_t len )
+{
+  return _read_r( _REENT, file, ptr, len );
+}
+
 // *****************************************************************************
 // _write_r 
 _ssize_t _write_r( struct _reent *r, int file, const void *ptr, size_t len )
@@ -181,12 +197,17 @@ _ssize_t _write_r( struct _reent *r, int file, const void *ptr, size_t len )
   return pinst->pdev->p_write_r( r, DM_GET_FD( file ), ptr, len, pinst->pdata );
 }
 
+_ssize_t write( int file, const void *ptr, size_t len )
+{
+  return _write_r( _REENT, file, ptr, len );
+}
+
 // ****************************************************************************
 // _mkdir_r
 int _mkdir_r( struct _reent *r, const char *path, mkdir_mode_t mode )
 {
   char* actname;
-  int res, devid;
+  int devid;
   const DM_INSTANCE_DATA *pinst;
 
   // Look for device, return error if not found or if function not implemented
@@ -209,6 +230,99 @@ int _mkdir_r( struct _reent *r, const char *path, mkdir_mode_t mode )
 int mkdir( const char *path, mode_t mode )
 {
   return _mkdir_r( _REENT, path, mode );
+}
+
+// ****************************************************************************
+// _unlink_r
+int _unlink_r( struct _reent *r, const char *fname )
+{
+  char* actname;
+  int devid;
+  const DM_INSTANCE_DATA *pinst;
+
+  // Look for device, return error if not found or if function not implemented
+  if( ( devid = find_dm_entry( fname, &actname ) ) == -1 )
+  {
+    r->_errno = ENODEV;
+    return -1;
+  }
+  pinst = dm_get_instance_at( devid );
+  if( pinst->pdev->p_unlink_r == NULL )
+  {
+    r->_errno = ENOSYS;
+    return -1;
+  }
+
+  // Device found, call its function
+  return pinst->pdev->p_unlink_r( r, actname, pinst->pdata );
+}
+
+int unlink( const char *path )
+{
+  return _unlink_r( _REENT, path );
+}
+
+// ****************************************************************************
+// rmdir
+
+int rmdir( const char *path )
+{  
+  char* actname;
+  int devid;
+  const DM_INSTANCE_DATA *pinst;
+
+  // Look for device, return error if not found or if function not implemented
+  if( ( devid = find_dm_entry( path, &actname ) ) == -1 )
+  {
+    _REENT->_errno = ENODEV;
+    return -1;
+  }
+  pinst = dm_get_instance_at( devid );
+  if( pinst->pdev->p_rmdir_r == NULL )
+  {
+    _REENT->_errno = ENOSYS;
+    return -1;
+  }
+
+  // Device found, call its function
+  return pinst->pdev->p_rmdir_r( _REENT, actname, pinst->pdata );
+}
+
+// ****************************************************************************
+// rename
+
+int _rename_r( struct _reent *r, const char *oldname, const char *newname )
+{  
+  char *actname_old, *actname_new;
+  int devid_old, devid_new;
+  const DM_INSTANCE_DATA *pinst;
+
+  // Look for device, return error if not found or if function not implemented
+  if( ( devid_old = find_dm_entry( oldname, &actname_old ) ) == -1 )
+  {
+    r->_errno = ENODEV;
+    return -1;
+  }
+  if( ( devid_new = find_dm_entry( newname, &actname_new ) ) == -1 )
+  {
+    r->_errno = ENODEV;
+    return -1;
+  }
+  if( devid_old == devid_new )
+  {
+    pinst = dm_get_instance_at( devid_old );
+    if( pinst->pdev->p_rename_r == NULL )
+    {
+      r->_errno = EPERM;
+      return -1;
+    }
+
+    // Device found, call its function
+    return pinst->pdev->p_rename_r( r, actname_old, actname_new, pinst->pdata );
+  }
+  // Cannot rename between different devices (EXDEV)
+  r->_errno = EXDEV;
+  return -1;
 }
 
 // ****************************************************************************
@@ -243,12 +357,6 @@ pid_t getpid()
 clock_t _times_r( struct _reent* r, struct tms *buf )
 {
   return 0;
-}
-
-int _unlink_r( struct _reent *r, const char *name )
-{
-  r->_errno = ENOSYS;
-  return -1;
 }
 
 int _link_r( struct _reent *r, const char *c1, const char *c2 )

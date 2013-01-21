@@ -385,8 +385,13 @@ if not GetOption( 'help' ):
   # Additional libraries
   local_libs = ''
 
+  # Shell files
+  shell_files = """ src/shell/shell.c src/shell/shell_adv_cp_mv.c src/shell/shell_adv_rm.c src/shell/shell_cat.c src/shell/shell_help.c
+                    src/shell/shell_ls.c src/shell/shell_lua.c src/shell/shell_mkdir.c src/shell/shell_recv.c src/shell/shell_ver.c
+                    src/shell/shell_wofmt.c """
+
   # Application files
-  app_files = """ src/main.c src/romfs.c src/semifs.c src/xmodem.c src/shell.c src/term.c src/common.c src/common_tmr.c src/buf.c src/elua_adc.c src/dlmalloc.c
+  app_files = """ src/main.c src/romfs.c src/semifs.c src/xmodem.c src/term.c src/common.c src/common_tmr.c src/buf.c src/elua_adc.c src/dlmalloc.c
                   src/salloc.c src/luarpc_elua_uart.c src/elua_int.c src/linenoise.c src/common_uart.c src/eluarpc.c """
 
   # Newlib related files
@@ -421,7 +426,7 @@ if not GetOption( 'help' ):
   execfile( "src/platform/%s/conf.py" % platform )
 
   # Complete file list
-  source_files = Split( app_files + specific_files + newlib_files + uip_files + lua_full_files + module_files + rfs_files )
+  source_files = Split( app_files + specific_files + newlib_files + uip_files + lua_full_files + module_files + rfs_files + shell_files )
 
   comp = conf.Finish()
 
