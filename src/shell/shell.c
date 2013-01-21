@@ -363,6 +363,7 @@ void shell_start()
 {
   char cmd[ SHELL_MAXSIZE + 1 ];
   const SHELL_COMMAND *pcmd;
+  int i;
 
   printf( SHELL_WELCOMEMSG, ELUA_STR_VERSION );
   while( 1 )
