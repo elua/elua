@@ -91,6 +91,8 @@ getting "not enough memory" errors, you might be able to overcome this by compil
 bytecode instead. Also, compiling large Lua programs on your eLua board can lead to stack overflows, which in turn leads to very
 hard to find errors.
 
+WARNING: Currently, cross-compilation is not implemented for 64-bit integer only Lua (lualonglong).
+
 In order to use cross-compilation, the two Lua targets (in this case your desktop PC and your eLua board) must be compatible
 (they should have the same data types, with the same size and the same memory representation). This isn't true all the time.
 For example, some gcc toolchains for ARM targets use a very specific representation for double precision numbers (called FPA
@@ -132,12 +134,12 @@ All it's left to do now is to use the table below to figure out what are the rig
 
 [width="90%", cols="^,^,^,2^", options="header"]
 |===============================================================
-^|Image type           ^|Arch                                    ^|Compiler                         ^|Command
-|Floating point (lua)   |ARM7TDMI _br Cortex-M3 _br ARM966E-S     |link:toolchains.html[arm-gcc]     |./luac *-ccn float_arm 64 -cce little* -o <script.luac> -s <script.lua>
-|Floating point (lua)   |ARM7TDMI _br Cortex-M3 _br ARM966E-S     |link:toolchains.html[codesoucery] |./luac *-ccn float 64 -cce little* -o <script.luac> -s <script.lua>
-|Integer (lualong)      |ARM7TDMI _br Cortex-M3 _br ARM966E-S     |link:toolchains.html[arm-gcc] _br link:toolchains.html[codesourcery] |./luac *-ccn int 32 -cce little* -o <script.luac> -s <script.lua>
-|Floating point (lua)   |AVR32                                    |link:toolchains.html[avr32-gcc]   |./luac *-ccn float 64 -cce big* -o <script.luac> -s <script.lua>
-|Integer (lualong)      |AVR32                                    |link:toolchains.html[avr32-gcc]   |./luac *-ccn int 32 -cce big* -o <script.luac> -s <script.lua>
+^|Image type                 ^|Arch                                    ^|Compiler                         ^|Command
+|Floating point (lua)         |ARM7TDMI _br Cortex-M3 _br ARM966E-S     |link:toolchains.html[arm-gcc]     |./luac *-ccn float_arm 64 -cce little* -o <script.luac> -s <script.lua>
+|Floating point (lua)         |ARM7TDMI _br Cortex-M3 _br ARM966E-S     |link:toolchains.html[codesoucery] |./luac *-ccn float 64 -cce little* -o <script.luac> -s <script.lua>
+|Integer (lualong)            |ARM7TDMI _br Cortex-M3 _br ARM966E-S     |link:toolchains.html[arm-gcc] _br link:toolchains.html[codesourcery] |./luac *-ccn int 32 -cce little* -o <script.luac> -s <script.lua>
+|Floating point (lua)         |AVR32                                    |link:toolchains.html[avr32-gcc]   |./luac *-ccn float 64 -cce big* -o <script.luac> -s <script.lua>
+|Integer (lualong)            |AVR32                                    |link:toolchains.html[avr32-gcc]   |./luac *-ccn int 32 -cce big* -o <script.luac> -s <script.lua>
 |===============================================================
 
 You can omit the _-s_ (strip) parameter from compilation, but this will result in larger bytecode files (as the debug information is not stripped if you don't use _-s_).
