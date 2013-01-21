@@ -1,0 +1,57 @@
+// $$HEADER$$
+The ROM file system
+-------------------
+The ROM file system (ROMFS) is a small, read-only file system built for eLua<. It is integrated with the C
+library, so you can use standard POSIX calls (fopen/fread/fwrite...) to access it. It is also accessible directly
+from Lua via the *io* module. The files in the file system are part of the eLua binary image, thus they can't be
+modified after the image is built. For the same reason, you can't add/delete files after the image is built.
+ROMFS doesn't support directories. ROMFS is integrated with link:building.html[the build system] for maximum flexibility.
+
+Using ROMFS
+~~~~~~~~~~~
+To use ROMFS, all you have to do is copy the files you need on your eLua image to the _romfs/_ directory. The
+build system will automatically take care of including the files in _romfs/_ in your eLua image. So all that's
+left to do is link:building.html[build eLua]. As part of the build process, the *mkfs* script will be called, 
+which will read the contents of the _romfs/_ directory and output a C header file that contains a binary
+description of the file system.
+
+To use ROMFS from C code, whevener you want to access a file, prefix its name with */rom*. For example, 
+if you want to open the *a.txt* file in ROMFS, you should call fopen like this:
+
+-------------------------------
+f = fopen( "/rom/a.txt", "rb" )
+-------------------------------
+
+If you want to execute one file from the ROM file system with Lua, simply do this from the shell:
+
+-------------------------
+eLua# lua /rom/bisect.lua
+-------------------------
+
+Or directly from Lua:
+
+--------------------------
+> dofile "/rom/bisect.lua"
+--------------------------
+
+[[mode]]
+ROMFS modes
+~~~~~~~~~~~
+Starting with version 0.7, the ROMFS can be added to the <b>eLua</b> binary image in 3 different ways:
+
+- *verbatim*: this is the default option. All the files are copied to the ROMFS directly, without any processing.
+- *compress*: compress the Lua source code by using http://luaforge.net/projects/luasrcdiet/[LuaSrcDiet] (included in
+eLua), a program that can decrease the size of a Lua source file by applying different transformations. Every Lua source
+file (extension *.lua*) from ROMFS is fed through LuaSrcDiet and the result is written in the eLua binary image. This
+option can yield pretty good compression, the only downside being that the compressed Lua source files aren't generally
+easily readable. However, this isn't really a problem in most practical cases.
+- *compile*: precompile the Lua source code to bytecode. Every Lua source file (extension *.lua*) from ROMFS is fed through
+the Lua cross compiler (see link:using.html#cross[here] for details on cross compilation and its benefits) and the result is
+written in the eLua binary image. This option might decrease or increase the physical size of the ROMFS image, but its real
+benefits are increased speed (because eLua doesn't need to compile the Lua code to bytecode first) and decreased RAM consumption
+(the Lua parser might get quite memory-hungry at times, which in turn might lead to stack overflows and very hard to find bugs).
+This option is not available if eLua is compiled in 64-bit integer only mode (lualonglong).
+
+See link:building.html#buildoptions[here] for instructions on how to specify the ROMFS compilation mode.
+
+// $$FOOTER$$ 
