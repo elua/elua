@@ -138,12 +138,14 @@ u32 SCU_GetMCLKFreqValue();
 #define INT_GPIO_POSEDGE      ELUA_INT_FIRST_ID
 #define INT_GPIO_NEGEDGE      ( ELUA_INT_FIRST_ID + 1 )
 #define INT_TMR_MATCH         ( ELUA_INT_FIRST_ID + 2 )
-#define INT_ELUA_LAST         INT_TMR_MATCH
+#define INT_RTC_ALARM         ( ELUA_INT_FIRST_ID + 3 )
+#define INT_ELUA_LAST         INT_RTC_ALARM
 
 #define PLATFORM_CPU_CONSTANTS\
  _C( INT_GPIO_POSEDGE ),\
  _C( INT_GPIO_NEGEDGE ),\
- _C( INT_TMR_MATCH )
+ _C( INT_TMR_MATCH ),\
+ _C( INT_RTC_ALARM )
 
 #endif // #ifndef __PLATFORM_CONF_H__
 

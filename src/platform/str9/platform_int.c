@@ -10,6 +10,7 @@
 #include "91x_vic.h"
 #include "91x_wiu.h"
 #include "91x_tim.h"
+#include "91x_rtc.h"
 
 #include <stdio.h>
 
@@ -260,6 +261,48 @@ static int int_tmr_match_get_flag( elua_int_resnum resnum, int clear )
 }
 
 // ****************************************************************************
+// RTC Interrupt
+void RTC_IRQHandler()
+{
+  RTC_ClearFlag(RTC_FLAG_Alarm);
+  // Add an elua interrupt
+  cmn_int_handler( INT_RTC_ALARM, 0 );
+}
+
+static int int_rtc_alarm_get_status( elua_int_resnum resnum )
+{
+  return (VIC1->INTER & (1<<8)) != 0;
+}
+
+static int int_rtc_alarm_set_status( elua_int_resnum resnum, int status )
+{
+  int prev = int_rtc_alarm_get_status( resnum ); 
+
+  if (status == PLATFORM_CPU_ENABLE)
+  {
+    RTC_ITConfig(RTC_IT_Alarm, ENABLE);       // Enable RTC alarm interrupt
+    VIC1->INTER  |= (1<<8);                   // Enable RTC Interrupt ( VIC1.8 )
+  }
+  else
+  {
+    RTC_ITConfig(RTC_IT_Alarm, DISABLE);      // Disable RTC alarm interrupt
+    VIC1->INTER  &= ~(1<<8);                  // Disable RTC Interrupt ( VIC1.8 )
+  }
+  
+  return prev;
+}
+
+static int int_rtc_alarm_get_flag( elua_int_resnum resnum, int clear )
+{
+  int status = RTC_GetFlagStatus(RTC_FLAG_Alarm) == SET;
+
+  if( clear )
+    // Clear interrupt flag
+    RTC_ClearFlag(RTC_FLAG_Alarm);
+
+  return status;
+}
+// ****************************************************************************
 // Interrupt initialization
 
 void platform_int_init()
@@ -281,6 +324,17 @@ void platform_int_init()
   WIU->PR = 0xFFFFFFFF;
   WIU->CTRL |= 2; 
 
+  // RTC Alarm interrupt config
+  RTC_ITConfig(RTC_IT_Alarm, ENABLE);                  // Enable RTC alarm interrupt
+  VIC1->VAiR[4] = (unsigned int)RTC_IRQHandler;   // Setup RTC IRQ handler addr
+  VIC1->VCiR[4] = 0x20 | 8;                            // Enable RTC interrupt on vector slot p++
+  // VIC1->INTER  |= (1<<8);                            // Enable RTC Interrupt ( VIC1.8 )
+
+  /* Note: The vectors VAiR and VCiR Indexes are the priority of the interrupt 
+   * ( the LOWER the number the HIGHER the priority ).
+   * 0x20 on the VCiR line means ENABLE the interrupt on the vector.
+   * 8 on the VCiR and INTER lines is the RTC interrupt code.
+   */
 
 #ifdef INT_TMR_MATCH
   VIC_Config( TIM0_ITLine, VIC_IRQ, 5 );
@@ -302,6 +356,7 @@ const elua_int_descriptor elua_int_table[ INT_ELUA_LAST ] =
 {
   { int_gpio_posedge_set_status, int_gpio_posedge_get_status, int_gpio_posedge_get_flag },
   { int_gpio_negedge_set_status, int_gpio_negedge_get_status, int_gpio_negedge_get_flag },
-  { int_tmr_match_set_status, int_tmr_match_get_status, int_tmr_match_get_flag }
+  { int_tmr_match_set_status, int_tmr_match_get_status, int_tmr_match_get_flag },
+  { int_rtc_alarm_set_status, int_rtc_alarm_get_status, int_rtc_alarm_get_flag }
 };
 

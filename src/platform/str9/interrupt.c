@@ -240,9 +240,10 @@ void LVD_IRQHandler(void)
 * Function Name  : RTC_IRQHandler
 * Description    : This function handles the RTC interrupt request
 *******************************************************************************/
-void RTC_IRQHandler(void)
+/*void RTC_IRQHandler(void)
 {
 }
+*/
 /*******************************************************************************
 * Function Name  : WIU_IRQHandler
 * Description    : This function handles the WIU interrupt request

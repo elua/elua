@@ -93,6 +93,10 @@ static void platform_config_scu()
   // Enable the ADC clocks
   SCU_APBPeriphClockConfig(__ADC, ENABLE);
 
+  // Enable the RTC clock
+  SCU_APBPeriphClockConfig(__RTC,ENABLE);
+  SCU_APBPeriphReset(__RTC,DISABLE);
+
   // Enable the SSP clocks
   SCU_APBPeriphClockConfig(__SSP0,ENABLE);
   SCU_APBPeriphReset(__SSP0,DISABLE);
@@ -977,11 +981,13 @@ void platform_spi_select( unsigned id, int is_select )
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
 extern const LUA_REG_TYPE str9_pio_map[];
+extern const LUA_REG_TYPE str9_rtc_map[];
 
 const LUA_REG_TYPE platform_map[] =
 {
 #if LUA_OPTIMIZE_MEMORY > 0
   { LSTRKEY( "pio" ), LROVAL( str9_pio_map ) },
+  { LSTRKEY( "rtc" ), LROVAL( str9_rtc_map ) },
 #endif
   { LNILKEY, LNILVAL }
 };
