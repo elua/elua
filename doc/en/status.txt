@@ -41,6 +41,7 @@ The list of CPUs and boards currently supported by eLua is given below:
 | _STM32F103RE   |  Cortex-M3    o|    STM32              |  _ET-STM32Stamp   | _sok
 | _AT32UC3A0128  |  AVR32        o|    AVR32              |  _Mizar32         | _sok
 | _I386          |  x86          o|    i386               |  PCs/emulators    | _sok
+| _LM3S9D92      |  Cortex-M3    o|    LM3S               |  _SolderCore      | _sok
 |=====================================================================================
 
 [[systmr]]
@@ -91,6 +92,7 @@ The relationship between a module and its implementation on a particular platfor
 | _STM32F103ZE   | _sok  | _sok  | _sok   | _sok  | _sok  | _sni  | _sok  | _sok  | _sok  | _sok  | _sok  | _sok  | _sni  | _sok  | _sok  | _sni
 | _STM32F103RE   | _sok  | _sok  | _sok   | _sok  | _sok  | _sni  | _sok  | _sok  | _sok  | _sok  | _sok  | _sok  | _sok  | _sok  | _sok  | _sni
 | _I386          | _sna  | _sna  | _sni   | _sni  | _sna  | _sni  | _sni  | _sna  | _sok  | _sok  | _sok  | _sok  | _sna  | _sni  | _sna  | _sna
+| _LM3S9D92      | _sok  | _snt  | _sok   | _sok  | _sok  | _sok  | _sok  | _snt  | _sok  | _sok  | _sok  | _sok  | _sok  | _snt  | _sok  | _sni
 |================================================================================================================================================
 
 [[plat_notes]]
