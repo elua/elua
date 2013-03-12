@@ -15,6 +15,7 @@
 #define BUILD_XMODEM
 #define BUILD_SHELL
 #define BUILD_ROMFS
+#define BUILD_MMCFS
 #define BUILD_TERM
 #define BUILD_CON_GENERIC
 #define BUILD_ADC
@@ -77,6 +78,12 @@
 // CPU frequency (needed by the CPU module and MMCFS code, 0 if not used)
 u32 SCU_GetMCLKFreqValue();
 #define CPU_FREQUENCY         ( SCU_GetMCLKFreqValue() * 1000 )
+
+// MMCFS Support (FatFs on SD/MMC)
+#define MMCFS_CS_PORT                2
+#define MMCFS_CS_PIN                 3
+#define MMCFS_SPI_NUM                0
+#define NUM_CARDS                    1
 
 // PIO prefix ('0' for P0, P1, ... or 'A' for PA, PB, ...)
 #define PIO_PREFIX            '0'
