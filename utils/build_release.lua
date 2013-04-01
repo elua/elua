@@ -16,7 +16,8 @@ local boards =
   { board = 'ATEVK1101', options = '' },
   'ET-STM32', 'EAGLE-100', 'ELUA-PUC', 'MBED',
   { board = 'MIZAR32', options = "target=lualong" },
-  { board = 'PC', options = "" }
+  { board = 'PC', options = "" },
+  'NETDUINO', 'EK-LM3S9D92', 'SOLDERCORE'
 }
 
 local function docmd( cmd )
