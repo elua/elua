@@ -87,6 +87,11 @@
   #error "Console buffering needs CON_UART_ID defined to the UART ID of the console device"
   #endif
 #endif
+
+// BUILD_ADVANCED_SHELL needs BUILD_SHELL
+#if defined( BUILD_ADVANCED_SHELL ) && !defined( BUILD_SHELL )
+  #error "BUILD_ADVANCED_SHELL needs BUILD_SHELL"
+#endif
   
 #endif // #ifndef __VALIDATE_H__
 

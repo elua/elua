@@ -15,6 +15,10 @@
 #define MAX_VTIMER_NAME_LEN     6
 #define MIN_VTIMER_NAME_LEN     5
 
+#if defined( BUILD_LUA_INT_HANDLERS ) && defined( INT_TMR_MATCH )
+#define HAS_TMR_MATCH_INT
+#endif
+
 // Helper function for the read/start functions
 static int tmrh_timer_op( lua_State* L, int op )
 {
@@ -135,7 +139,7 @@ static int tmr_getclock( lua_State* L )
   return 1;
 }
 
-#ifdef BUILD_LUA_INT_HANDLERS
+#ifdef HAS_TMR_MATCH_INT
 // Lua: set_match_int( id, timeout, type )
 static int tmr_set_match_int( lua_State *L )
 {
@@ -153,7 +157,7 @@ static int tmr_set_match_int( lua_State *L )
     return luaL_error( L, "match interrupt cannot be set on this timer" );
   return 0;
 }
-#endif // #ifdef BUILD_LUA_INT_HANDLERS
+#endif // #ifdef HAS_TMR_MATCH_INT
 
 #if VTMR_NUM_TIMERS > 0
 // __index metafunction for TMR
@@ -192,7 +196,7 @@ const LUA_REG_TYPE tmr_map[] =
   { LSTRKEY( "getmaxdelay" ), LFUNCVAL( tmr_getmaxdelay ) },
   { LSTRKEY( "setclock" ), LFUNCVAL( tmr_setclock ) },
   { LSTRKEY( "getclock" ), LFUNCVAL( tmr_getclock ) },
-#ifdef BUILD_LUA_INT_HANDLERS
+#ifdef HAS_TMR_MATCH_INT
   { LSTRKEY( "set_match_int" ), LFUNCVAL( tmr_set_match_int ) },
 #endif  
 #if LUA_OPTIMIZE_MEMORY > 0 && VTMR_NUM_TIMERS > 0
@@ -223,10 +227,10 @@ LUALIB_API int luaopen_tmr( lua_State *L )
   lua_setmetatable( L, -2 );  
 #endif // #if VTMR_NUM_TIMERS > 0
   MOD_REG_NUMBER( L, "SYS_TIMER", PLATFORM_TIMER_SYS_ID );
-#ifdef BUILD_LUA_INT_HANDLERS
+#ifdef HAS_TMR_MATCH_INT
   MOD_REG_NUMBER( L, "INT_ONESHOT", PLATFORM_TIMER_INT_ONESHOT );
   MOD_REG_NUMBER( L, "INT_CYCLIC", PLATFORM_TIMER_INT_CYCLIC );
-#endif //#ifdef BUILD_LUA_INT_HANDLERS
+#endif //#ifdef HAS_TMR_MATCH_INT
   return 1;
 #endif // #if LUA_OPTIMIZE_MEMORY > 0
 }

@@ -20,4 +20,6 @@ inc/git_version.h
 *.*~
 luac.cross*
 boards/*.h
+sdcard.img
+core
 

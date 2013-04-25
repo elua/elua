@@ -289,7 +289,7 @@ if not utils.is_dir( outd ) then
 end
 
 -- Output file
-output = outd .. utils.dir_sep .. 'elua_' .. comp.target .. '_' .. comp.board:lower()
+output = outd .. utils.dir_sep .. 'elua_' .. comp.target .. '_' .. comp.board:lower() .. ".elf"
 builder:set_build_dir( builder:get_build_dir() .. utils.dir_sep .. comp.board:lower() )
 
 -- User report
@@ -429,7 +429,6 @@ ascmd = ascmd or builder:asm_cmd{ flags = asflags, defines = cdefs, includes = i
 builder:set_compile_cmd( compcmd )
 builder:set_link_cmd( linkcmd )
 builder:set_asm_cmd( ascmd )
-builder:set_exe_extension( ".elf" )
 
 -- Create the ROMFS target
 local romfs_target = builder:target( "#phony:romfs", nil, make_romfs )

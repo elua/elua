@@ -4,7 +4,7 @@ local builder = b.new_builder( ".build/cross-lua" )
 local utils = b.utils
 local sf = string.format
 builder:init( args )
-builder:set_build_mode( builder.BUILD_DIR )
+builder:set_build_mode( builder.BUILD_DIR_LINEARIZED )
 
 local output = 'luac.cross'
 local cdefs = '-DLUA_CROSS_COMPILER'

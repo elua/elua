@@ -93,7 +93,11 @@ static const DM_DEVICE std_device =
   NULL,                 // opendir
   NULL,                 // readdir
   NULL,                 // closedir
-  NULL                  // getaddr
+  NULL,                 // getaddr
+  NULL,                 // mkdir
+  NULL,                 // unlink
+  NULL,                 // rmdir
+  NULL                  // rename
 };
 
 

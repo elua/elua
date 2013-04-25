@@ -1,9 +1,26 @@
-xx.yy.zzzz  Bogdan Marinescu <bogdan.marinescu@gmail.com>
+04.04.2013  Bogdan Marinescu <bogdan.marinescu@gmail.com>
             Dado Sutter      <dadosutter@gmail.com>
             James Snyder     <jbsnyder@gmail.com>
 
   * Official release 0.9
-  * New feature: system timer ([TODO] add link)
+  * New feature: system timer (micro-second accurate timer on all platforms)
+  * New feature: WOFS (write-once file system), a writeable file system that uses
+    the internal MCU Flash memory as storage
+  * New feature: advanced shell (more shell commands, file masks)
+  * New feature: support for multiple SD cards
+  * New memory optimizations: pseudo read-only strings in Lua, reading Lua bytecode
+    directly from Flash, NaN packing for Lua TValues
+  * Directory support in file systems (currently MMCFS only)
+  * Support for various new CPUs and boards
+  * Direct USB CDC support on some platforms
+  * New 64-bit integer-only compilation mode (lualonglong)
+  * New interrupts and Various interrupt support code on different platforms
+  * 'recv' is now able to save files too, not only execute them
+  * Various fixes and performance improvements in the serial multiplexer code
+  * Bug fixes on all platforms
+  * RPC fixes and improvements
+  * The shell commands are now callable from the 'elua' module
+  * Updated documentation
 
 02.02.2011  Bogdan Marinescu <bogdan.marinescu@gmail.com>
             Dado Sutter      <dadosutter@gmail.com>

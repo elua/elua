@@ -865,20 +865,20 @@ u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigne
   {
     // GPIO setup
     // Fixed assignment:
-    // P5.4 - SCLK
-    // P5.5 - MOSI
-    // P5.6 - MISO
-    // P5.7 - CS
+    // P2.4 - SCLK
+    // P2.5 - MOSI
+    // P2.6 - MISO
+    // P2.7 - CS
     GPIO_InitStructure.GPIO_Direction = GPIO_PinOutput;
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4 | GPIO_Pin_5 | GPIO_Pin_7;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4 | GPIO_Pin_5;
     GPIO_InitStructure.GPIO_Type = GPIO_Type_PushPull;
     GPIO_InitStructure.GPIO_Alternate = GPIO_OutputAlt2;
-    GPIO_Init(GPIO5, &GPIO_InitStructure);
+    GPIO_Init(GPIO2, &GPIO_InitStructure);
     GPIO_InitStructure.GPIO_Direction = GPIO_PinInput;
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
     GPIO_InitStructure.GPIO_IPConnected = GPIO_IPConnected_Enable;
     GPIO_InitStructure.GPIO_Alternate = GPIO_InputAlt1  ;
-    GPIO_Init(GPIO5, &GPIO_InitStructure);
+    GPIO_Init(GPIO2, &GPIO_InitStructure);
 
     // Actual SPI setup
     SSP_DeInit(SSP0);

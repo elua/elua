@@ -76,7 +76,7 @@ o|BUILD_MMCFS       |Enable the eLua SD/MMC FAT filesystem support. To enable:
 
   #define BUILD_MMCFS
 
-xref:static[Static configuration data dependencies]: *MMCFS_CS_PORT, MMCFS_CS_PIN, MMCFS_SPI_NUM*
+xref:static[Static configuration data dependencies]: *MMCFS_CS_PORT, MMCFS_CS_PIN, MMCFS_SPI_NUM, MMCFS_NUM_CARDS, MMCFS_CS_PORT_ARRAY, MMCFS_CS_PIN_ARRAY, MMCFS_SPI_NUM_ARRAY*
 
 o|BUILD_TERM        |Enable ANSI terminal support. It allows eLua to interact with terminals that support ANSI escape sequences 
 (more details link:arch_con_term.html[here]). Currently it works only over RS-232 connections, although this is not a strict requirement. 
@@ -236,10 +236,18 @@ o|VTMR_NUM_TIMERS +
 VTMR_FREQ_HZ       |Specify the virtual timers configuration for the platform (refer to link:refman_gen_tmr.html[the timer module documentation] for details). Define VTMR_NUM_TIMERS to 0 
 if this feature is not used.
 
-o|MMCFS_CS_PORT +
-MMCFS_CS_PIN       |Specify the port and pin to be used as chip select for MMCFS control of an SD/MMC card over SPI. Only needed if MMCFS support is enabled.
+o|MMCFS_NUM_CARDS    |Specify the number of SD cards in the system. Only needed if MMCFS support is enabled. If not specified, it defaults to 1.
 
-o|MMCFS_SPI_NUM    |Specify the SPI peripheral to be used by MMCFS. Only needed if MMCFS support is enabled.
+o|MMCFS_CS_PORT +
+MMCFS_CS_PORT_ARRAY +
+MMCFS_CS_PIN +
+MMCFS_CS_PIN_ARRAY  |Specify the port(s) and pin(s) to be used as chip select for MMCFS control of an SD/MMC card over SPI. Only needed if MMCFS support is enabled. If *MMCFS_NUM_CARDS* is
+greater than 1, you need to define *MMCFS_CS_PORT_ARRAY* and *MMCFS_CS_PIN_ARRAY* as C arrays with the ports and pins used as CS signals for each card in the system, otherwise you only
+need to define *MMCFS_CS_PORT* and *MMCFS_CS_PIN*
+
+o|MMCFS_SPI_NUM +
+MMCFS_SPI_NUM_ARRAY |Specify the SPI peripheral(s) to be used by MMCFS. Only needed if MMCFS support is enabled. If *MMCFS_NUM_CARDS* is greater than 1, you need to define *MMCFS_SPI_NUM_ARRAY*
+as a C array with the IDs of each SPI peripheral used by each card in the system, otherwise you only need to define *MMCS_SPI_NUM*.
 
 o|PLATFORM_CPU_CONSTANTS |If the link:refman_gen_cpu.html[cpu module] is enabled, this defines a list of platform-specific constants (for example interrupt masks) that can be accessed 
 using the *cpu.<constant name>* notation. Each constant name must be specified instead of a specific costruct (__ _C(<constant name>__ ). For example:

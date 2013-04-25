@@ -3,7 +3,7 @@
 
 module( ..., package.seeall )
 
-package.path = package.path .. ";utils/?.lua;config/?.lua"
+package.path = "utils/?.lua;config/?.lua;" .. package.path
 
 local comps = require "components"
 local cfgs = require "configurations"

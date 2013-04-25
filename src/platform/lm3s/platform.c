@@ -75,7 +75,7 @@
 // UIP sys tick data
 // NOTE: when using virtual timers, SYSTICKHZ and VTMR_FREQ_HZ should have the
 // same value, as they're served by the same timer (the systick)
-#define SYSTICKHZ               4
+#define SYSTICKHZ               5
 #define SYSTICKMS               (1000 / SYSTICKHZ)
 
 // ****************************************************************************
@@ -162,18 +162,18 @@ int platform_init()
 // Same configuration on LM3S8962, LM3S6965, LM3S6918 (8 ports)
 // 9B92 has 9 ports (Port J in addition to A-H)
 #if defined( FORLM3S9B92 ) || defined( FORLM3S9D92 )
-  static const u32 pio_base[] = { GPIO_PORTA_BASE, GPIO_PORTB_BASE, GPIO_PORTC_BASE, GPIO_PORTD_BASE,
+  const u32 pio_base[] = { GPIO_PORTA_BASE, GPIO_PORTB_BASE, GPIO_PORTC_BASE, GPIO_PORTD_BASE,
                                   GPIO_PORTE_BASE, GPIO_PORTF_BASE, GPIO_PORTG_BASE, GPIO_PORTH_BASE, 
                                   GPIO_PORTJ_BASE };
                                   
-  static const u32 pio_sysctl[] = { SYSCTL_PERIPH_GPIOA, SYSCTL_PERIPH_GPIOB, SYSCTL_PERIPH_GPIOC, SYSCTL_PERIPH_GPIOD,
+  const u32 pio_sysctl[] = { SYSCTL_PERIPH_GPIOA, SYSCTL_PERIPH_GPIOB, SYSCTL_PERIPH_GPIOC, SYSCTL_PERIPH_GPIOD,
                                     SYSCTL_PERIPH_GPIOE, SYSCTL_PERIPH_GPIOF, SYSCTL_PERIPH_GPIOG, SYSCTL_PERIPH_GPIOH,
                                     SYSCTL_PERIPH_GPIOJ };
 #else
-  static const u32 pio_base[] = { GPIO_PORTA_BASE, GPIO_PORTB_BASE, GPIO_PORTC_BASE, GPIO_PORTD_BASE,
+  const u32 pio_base[] = { GPIO_PORTA_BASE, GPIO_PORTB_BASE, GPIO_PORTC_BASE, GPIO_PORTD_BASE,
                                   GPIO_PORTE_BASE, GPIO_PORTF_BASE, GPIO_PORTG_BASE, GPIO_PORTH_BASE };
   
-  static const u32 pio_sysctl[] = { SYSCTL_PERIPH_GPIOA, SYSCTL_PERIPH_GPIOB, SYSCTL_PERIPH_GPIOC, SYSCTL_PERIPH_GPIOD,
+  const u32 pio_sysctl[] = { SYSCTL_PERIPH_GPIOA, SYSCTL_PERIPH_GPIOB, SYSCTL_PERIPH_GPIOC, SYSCTL_PERIPH_GPIOD,
                                     SYSCTL_PERIPH_GPIOE, SYSCTL_PERIPH_GPIOF, SYSCTL_PERIPH_GPIOG, SYSCTL_PERIPH_GPIOH };
 #endif
 
@@ -449,6 +449,7 @@ const u32 uart_base[] = { UART0_BASE, UART1_BASE, UART2_BASE };
 static const u32 uart_sysctl[] = { SYSCTL_PERIPH_UART0, SYSCTL_PERIPH_UART1, SYSCTL_PERIPH_UART2 };
 static const u32 uart_gpio_base[] = { GPIO_PORTA_BASE, GPIO_PORTD_BASE, GPIO_PORTG_BASE };
 static const u8 uart_gpio_pins[] = { GPIO_PIN_0 | GPIO_PIN_1, GPIO_PIN_2 | GPIO_PIN_3, GPIO_PIN_0 | GPIO_PIN_1 };
+static const u32 uart_gpiofunc[] = { GPIO_PA0_U0RX, GPIO_PA1_U0TX, GPIO_PD2_U1RX, GPIO_PD3_U1TX, GPIO_PG0_U2RX, GPIO_PG1_U2TX };
 
 static void uarts_init()
 {
@@ -463,7 +464,9 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
 
   if( id < NUM_UART )
   {
-    MAP_GPIOPinTypeUART(uart_gpio_base [ id ], uart_gpio_pins[ id ]);
+    MAP_GPIOPinConfigure( uart_gpiofunc[ id << 1 ] );
+    MAP_GPIOPinConfigure( uart_gpiofunc[ ( id << 1 ) + 1 ] );
+    MAP_GPIOPinTypeUART( uart_gpio_base[ id ], uart_gpio_pins[ id ] );
 
     switch( databits )
     {
@@ -490,6 +493,8 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
 
     MAP_UARTConfigSetExpClk( uart_base[ id ], MAP_SysCtlClockGet(), baud, config );
     MAP_UARTConfigGetExpClk( uart_base[ id ], MAP_SysCtlClockGet(), &baud, &config );
+
+    MAP_UARTEnable( uart_base[ id ] );
   }
   return baud;
 }
@@ -519,7 +524,7 @@ int platform_s_uart_set_flow_control( unsigned id, int type )
 // Same on LM3S8962, LM3S6965, LM3S6918 and LM3S9B92 (4 timers)
 
 // All possible LM3S timers defs
-static const u32 timer_base[] = { TIMER0_BASE, TIMER1_BASE, TIMER2_BASE, TIMER3_BASE };
+const u32 timer_base[] = { TIMER0_BASE, TIMER1_BASE, TIMER2_BASE, TIMER3_BASE };
 static const u32 timer_sysctl[] = { SYSCTL_PERIPH_TIMER0, SYSCTL_PERIPH_TIMER1, SYSCTL_PERIPH_TIMER2, SYSCTL_PERIPH_TIMER3 };
 
 static void timers_init()
@@ -593,6 +598,33 @@ void platform_timer_sys_enable_int()
 timer_data_type platform_timer_read_sys()
 {
   return cmn_systimer_get();
+}
+
+u8 lm3s_timer_int_periodic_flag[ NUM_TIMER ];
+int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int type )
+{
+  u32 base = timer_base[ id ];
+  u64 final;
+
+  if( period_us == 0 )
+  {
+    MAP_TimerDisable( base, TIMER_A );
+    MAP_TimerIntDisable( base, TIMER_TIMA_TIMEOUT );
+    MAP_TimerIntClear( base, TIMER_TIMA_TIMEOUT );
+    MAP_TimerLoadSet( base, TIMER_A, 0xFFFFFFFF );
+    MAP_TimerEnable( base, TIMER_A );
+    return PLATFORM_TIMER_INT_OK;
+  }
+  final = ( ( u64 )period_us * MAP_SysCtlClockGet() ) / 1000000;
+  if( final == 0 )
+    return PLATFORM_TIMER_INT_TOO_SHORT;
+  if( final > 0xFFFFFFFFULL )
+    return PLATFORM_TIMER_INT_TOO_LONG;
+  lm3s_timer_int_periodic_flag[ id ] = type;
+  MAP_TimerDisable( base, TIMER_A );
+  MAP_TimerIntClear( base, TIMER_TIMA_TIMEOUT );
+  MAP_TimerLoadSet( base, TIMER_A, ( u32 )final - 1 );
+  return PLATFORM_TIMER_INT_OK;
 }
 
 // ****************************************************************************

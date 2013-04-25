@@ -313,7 +313,7 @@ end
 -------------------------------------------------------------------------------
 -- Builder public interface
 
-builder = { KEEP_DIR = 0, BUILD_DIR = 1, BUILD_DIR_LINEARIZED = 2 }
+builder = { KEEP_DIR = 0, BUILD_DIR_LINEARIZED = 1 }
 
 ---------------------------------------
 -- Initialization and option handling
@@ -336,6 +336,9 @@ builder.new = function( build_dir )
   self.runlist = {}
   self.disp_mode = 'all'
   self.cmdline_macros = {}
+  self.c_targets = {}
+  self.preprocess_mode = false
+  self.asm_mode = false
   return self
 end
 
@@ -365,7 +368,7 @@ builder.init = function( self, args )
   -- Add the default options
   local opts = self.opts
   opts:add_option( "build_mode", 'choose location of the object files', self.KEEP_DIR,
-                   { keep_dir = self.KEEP_DIR, build_dir = self.BUILD_DIR, build_dir_linearized = self.BUILD_DIR_LINEARIZED } )
+                   { keep_dir = self.KEEP_DIR, build_dir_linearized = self.BUILD_DIR_LINEARIZED } )
   opts:add_option( "build_dir", 'choose build directory', self.build_dir )
   opts:add_option( "disp_mode", 'set builder display mode', 'summary', { 'all', 'summary' } )
   -- Apply default values to all options
@@ -377,10 +380,14 @@ builder.init = function( self, args )
   for i = 1, #args do
     local a = args[ i ]
     if a:upper() == "-C" then                   -- clean option (-c)
-      self.clean_mode = true  
+      self.clean_mode = true
     elseif a:upper() == '-H' then               -- help option (-h)
       self:_show_help()
       os.exit( 1 )
+    elseif a:upper() == "-E" then               -- preprocess
+      self.preprocess_mode = true
+    elseif a:upper() == "-S" then               -- generate assembler
+      self.asm_mode = true
     elseif a:find( '-D' ) == 1 and #a > 2 then  -- this is a macro definition that will be auomatically added to the compiler flags
       table.insert( self.cmdline_macros, a:sub( 3 ) ) 
     elseif a:find( '=' ) then                   -- builder argument (key=value)
@@ -420,6 +427,8 @@ builder._show_help = function( self )
   print( "[builder] Valid options:" )
   print( "  -h: help (this text)" )
   print( "  -c: clean target" )
+  print( "  -E: generate preprocessed output for single file targets" )
+  print( "  -S: generate assembler output for single file targets" )
   self.opts:show_help()
 end
 
@@ -560,6 +569,13 @@ end
 -- Return a compile command based on the specified args
 builder.compile_cmd = function( self, args )
   args.defines = { args.defines, self.cmdline_macros }
+  if self.preprocess_mode then
+    args.comptype = "-E"
+  elseif self.asm_mode then
+    args.comptype = "-S"
+  else
+    args.comptype = "-c"
+  end
   return self:_generic_cmd( args )
 end
 
@@ -567,6 +583,7 @@ end
 builder.asm_cmd = function( self, args )
   args.defines = { args.defines, self.cmdline_macros }
   args.compiler = args.assembler
+  args.comptype = self.preprocess_mode and "-E" or "-c"
   return self:_generic_cmd( args )
 end
 
@@ -640,16 +657,11 @@ builder.obj_name = function( self, name, ext )
   end
   local objname = utils.replace_extension( name, r )
   -- KEEP_DIR: object file in the same directory as source file
-  -- BUILD_DIR: object file in the build directory
   -- BUILD_DIR_LINEARIZED: object file in the build directory, linearized filename
   if self.build_mode == self.KEEP_DIR then 
     return objname
   elseif self.build_mode == self.BUILD_DIR_LINEARIZED then
     return self.build_dir .. utils.dir_sep .. linearize_fname( objname )
-  else
-    local si, ei, path, fname = objname:find( "(.+)/(.-)$" )
-    if not si then fname = objname end
-    return self.build_dir .. utils.dir_sep .. fname 
   end
 end
 
@@ -676,6 +688,12 @@ end
 builder.create_compile_targets = function( self, ftable, res )
   if type( ftable ) == 'string' then ftable = utils.string_to_table( ftable ) end
   res = res or {}
+  ccmd, oname = "-c", "o"
+  if self.preprocess_mode then
+    ccmd, oname = '-E', "pre"
+  elseif self.asm_mode then
+    ccmd, oname = '-S', 's'
+  end
   -- Build dependencies for all targets
   for i = 1, #ftable do
     local isasm = ftable[ i ]:find( "%.c$" ) == nil
@@ -686,11 +704,11 @@ builder.create_compile_targets = function( self, ftable, res )
     local deps = self:get_dep_filename( ftable[ i ] )
     local target
     if not isasm then
-      local depcmd = skip and self.comp_cmd or ( self.c_dep_cmd or self.comp_cmd:gsub( "-c ", sf( "-c -MD -MF %s ", deps ) ) )
-      target = self:c_target( self:obj_name( ftable[ i ] ), { self:get_registered_target( deps ) or ftable[ i ] }, depcmd )
+      local depcmd = skip and self.comp_cmd or ( self.c_dep_cmd or self.comp_cmd:gsub( ccmd .. " ", sf( ccmd .. " -MD -MF %s ", deps ) ) )
+      target = self:c_target( self:obj_name( ftable[ i ], oname ), { self:get_registered_target( deps ) or ftable[ i ] }, depcmd )
     else
-      local depcmd = skip and self._asm_cmd or ( self.asm_dep_cmd or self._asm_cmd:gsub( "-c ", sf( "-c -MD -MF %s ", deps ) ) )
-      target = self:asm_target( self:obj_name( ftable[ i ] ), { self:get_registered_target( deps ) or ftable[ i ] }, depcmd )
+      local depcmd = skip and self._asm_cmd or ( self.asm_dep_cmd or self._asm_cmd:gsub( ccmd .. " ", sf( ccmd .. " -MD -MF %s ", deps ) ) )
+      target = self:asm_target( self:obj_name( ftable[ i ], oname ), { self:get_registered_target( deps ) or ftable[ i ] }, depcmd )
     end
     -- Pre build step: replace dependencies with the ones from the compiler generated dependency file
     if not skip then
@@ -706,6 +724,9 @@ builder.create_compile_targets = function( self, ftable, res )
         end
       end )
     end
+    target.srcname = ftable[ i ]
+    -- TODO: check clean mode?
+    if not isasm then self.c_targets[ #self.c_targets + 1 ] = target end
     table.insert( res, target )
   end
   return res
@@ -734,18 +755,35 @@ builder.build = function( self, target )
     print( utils.col_red( "[builder] Error: build target not specified" ) )
     os.exit( 1 )
   end
-  if not self.targets[ t ] then
-    print( utils.col_red( sf( "[builder] Error: target '%s' not found", t ) ) )
-    print( "Available targets: " )
-    for k, v in pairs( self.targets ) do
-      if not is_phony( k ) then 
-        print( sf( "  %s - %s", k, v.help or "(no help available)" ) )
+  local trg 
+  -- Look for single targets (C source files)
+  for _, ct in pairs( self.c_targets ) do
+    if ct.srcname == t then
+      trg = ct
+      break
+    end
+  end
+  if not trg then
+    if not self.targets[ t ] then
+      print( sf( "[builder] Error: target '%s' not found", t ) )
+      print( "Available targets: " )
+      print( "  all source files" )
+      for k, v in pairs( self.targets ) do
+        if not is_phony( k ) then 
+          print( sf( "  %s - %s", k, v.help or "(no help available)" ) )
+        end
       end
+      if self.deftarget and not is_phony( self.deftarget ) then
+        print( sf( "Default target is '%s'", self.deftarget ) )
+      end
+      os.exit( 1 )
+    else
+      if self.preprocess_mode or self.asm_mode then
+        print( "[builder] Error: preprocess (-E) or asm (-S) works only with single file targets." )
+        os.exit( 1 )
+      end
+      trg = self.targets[ t ].target
     end
-    if self.deftarget and not is_phony( self.deftarget ) then
-      print( sf( "Default target is '%s'", self.deftarget ) )
-    end
-    os.exit( 1 )
   end
   self:_create_build_dir()
   -- At this point check if we have a change in the state that would require a rebuild
@@ -756,7 +794,7 @@ builder.build = function( self, target )
     self.global_force_rebuild = false
   end
   -- Do the actual build
-  local res = self.targets[ t ].target:build()
+  local res = trg:build()
   if not res then print( utils.col_yellow( sf( '[builder] %s: up to date', t ) ) ) end
   if self.clean_mode then 
     os.remove( self.build_dir .. utils.dir_sep .. ".builddata.comp" ) 

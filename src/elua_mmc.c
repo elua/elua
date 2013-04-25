@@ -6,9 +6,16 @@
 // web site by Jesus Alvarez & James Snyder for eLua.
  
 #include "platform_conf.h"
-#ifdef BUILD_MMCFS
+#if defined( BUILD_MMCFS ) && !defined( ELUA_SIMULATOR )
 #include "platform.h"
 #include "diskio.h"
+#include "mmcfs.h"
+
+#ifndef MMCFS_NUM_CARDS
+#define NUM_CARDS             1
+#else
+#define NUM_CARDS             MMCFS_NUM_CARDS
+#endif
 
 /* Definitions for MMC/SDC command */
 #define CMD0    (0x40+0)    /* GO_IDLE_STATE */
@@ -27,22 +34,32 @@
 #define CMD55    (0x40+55)    /* APP_CMD */
 #define CMD58    (0x40+58)    /* READ_OCR */
 
-#ifndef MMCFS_SPI_NUM
+#if !defined( MMCFS_SPI_NUM ) && !defined( MMCFS_SPI_NUM_ARRAY )
   #error "MMC not supported on this board"
+#endif
+
+#if defined( MMCFS_CS_PORT )
+const u8 mmcfs_cs_ports[ NUM_CARDS ] = { MMCFS_CS_PORT };
+static const u8 mmcfs_cs_pins[ NUM_CARDS ] = { MMCFS_CS_PIN };
+static const u8 mmcfs_spi_nums[ NUM_CARDS ] = { MMCFS_SPI_NUM };
+#elif defined( MMCFS_CS_PORT_ARRAY )
+const u8 mmcfs_cs_ports[ NUM_CARDS ] = MMCFS_CS_PORT_ARRAY;
+static const u8 mmcfs_cs_pins[ NUM_CARDS ] = MMCFS_CS_PIN_ARRAY;
+static const u8 mmcfs_spi_nums[ NUM_CARDS ] = MMCFS_SPI_NUM_ARRAY;
 #endif
 
 // asserts the CS pin to the card
 static
-void SELECT (void)
+void SELECT (BYTE id)
 {
-    platform_pio_op( MMCFS_CS_PORT , ( ( u32 ) 1 << MMCFS_CS_PIN ), PLATFORM_IO_PIN_CLEAR );    
+    platform_pio_op( mmcfs_cs_ports[ id ] , ( ( u32 ) 1 << mmcfs_cs_pins[ id ] ), PLATFORM_IO_PIN_CLEAR );    
 }
 
 // de-asserts the CS pin to the card
 static
-void DESELECT (void)
+void DESELECT (BYTE id)
 {
-    platform_pio_op( MMCFS_CS_PORT, ( ( u32 ) 1 << MMCFS_CS_PIN ), PLATFORM_IO_PIN_SET );
+    platform_pio_op( mmcfs_cs_ports[ id ], ( ( u32 ) 1 << mmcfs_cs_pins[ id ] ), PLATFORM_IO_PIN_SET );
 }
 
 
@@ -52,20 +69,13 @@ void DESELECT (void)
 
 ---------------------------------------------------------------------------*/
 
-static volatile
-DSTATUS Stat = STA_NOINIT;    /* Disk status */
+static volatile DSTATUS Stat[ NUM_CARDS ];    /* Disk status */
 
-static volatile timer_data_type Timer1 = 0;
-static volatile timer_data_type Timer2 = 0;
+static BYTE TriesLeft[ NUM_CARDS ];
 
-static
-BYTE TriesLeft = 2;
+static BYTE CardType[ NUM_CARDS ];            /* b0:MMC, b1:SDC, b2:Block addressing */
 
-static
-BYTE CardType;            /* b0:MMC, b1:SDC, b2:Block addressing */
-
-static
-BYTE PowerFlag = 0;     /* indicates if "power" is on */
+static BYTE PowerFlag[ NUM_CARDS ];     /* indicates if "power" is on */
 
 
 /*-----------------------------------------------------------------------*/
@@ -74,9 +84,9 @@ BYTE PowerFlag = 0;     /* indicates if "power" is on */
 
 
 static
-void xmit_spi (BYTE dat)
+void xmit_spi (BYTE id, BYTE dat)
 {
-    platform_spi_send_recv( MMCFS_SPI_NUM, dat );
+    platform_spi_send_recv( mmcfs_spi_nums[ id ], dat );
 }
 
 
@@ -85,20 +95,20 @@ void xmit_spi (BYTE dat)
 /*-----------------------------------------------------------------------*/
 
 static
-BYTE rcvr_spi (void)
+BYTE rcvr_spi (BYTE id)
 {
     DWORD rcvdat;
 
-    rcvdat  = platform_spi_send_recv( MMCFS_SPI_NUM, 0xFF );
+    rcvdat  = platform_spi_send_recv( mmcfs_spi_nums[ id ], 0xFF );
 
     return ( BYTE )rcvdat;
 }
 
 
 static
-void rcvr_spi_m (BYTE *dst)
+void rcvr_spi_m (BYTE id, BYTE *dst)
 {
-    *dst = rcvr_spi();
+    *dst = rcvr_spi( id );
 }
 
 /*-----------------------------------------------------------------------*/
@@ -106,14 +116,15 @@ void rcvr_spi_m (BYTE *dst)
 /*-----------------------------------------------------------------------*/
 
 static
-BYTE wait_ready (void)
+BYTE wait_ready (BYTE id)
 {
     BYTE res;
+    timer_data_type Timer2;
 
     Timer2 = platform_timer_read( PLATFORM_TIMER_SYS_ID );
-    rcvr_spi();
+    rcvr_spi( id );
     do  
-        res = rcvr_spi(); /* Wait for ready in timeout of 500ms. */
+        res = rcvr_spi( id ); /* Wait for ready in timeout of 500ms. */
     while ( ( res != 0xFF ) && ( platform_timer_get_diff_crt( PLATFORM_TIMER_SYS_ID, Timer2 ) < 500000 ) );
 
     return res;
@@ -124,16 +135,16 @@ BYTE wait_ready (void)
 /* required after card power up to get it into SPI mode                  */
 /*-----------------------------------------------------------------------*/
 static
-void send_initial_clock_train(void)
+void send_initial_clock_train(BYTE id)
 {
     unsigned int i;
     /* Ensure CS is held high. */
-    DESELECT();
+    DESELECT(id);
     
     /* Send 10 bytes over the SSI. This causes the clock to wiggle the */
     /* required number of times. */
     for(i = 0 ; i < 10 ; i++)
-        rcvr_spi();
+        rcvr_spi(id);
 }
 
 /*-----------------------------------------------------------------------*/
@@ -143,7 +154,7 @@ void send_initial_clock_train(void)
 /* is nothing to do in these functions and chk_power always returns 1.   */
 
 static
-void power_on (void)
+void power_on (BYTE id)
 {
     /*
      * This doesn't really turn the power on, but initializes the
@@ -151,23 +162,23 @@ void power_on (void)
      */
     
     // Setup CS pin & deselect
-    platform_pio_op( MMCFS_CS_PORT, ( ( u32 ) 1 << MMCFS_CS_PIN ), PLATFORM_IO_PIN_DIR_OUTPUT );
+    platform_pio_op( mmcfs_cs_ports[ id ], ( ( u32 ) 1 << mmcfs_cs_pins[ id ] ), PLATFORM_IO_PIN_DIR_OUTPUT );
     //platform_pio_op( MMCFS_CS_PORT, ( ( u32 ) 1 << MMCFS_CS_PIN ), PLATFORM_IO_PIN_PULLUP );
-    DESELECT();
+    DESELECT( id );
     
     // Setup SPI
-    platform_spi_setup( MMCFS_SPI_NUM, PLATFORM_SPI_MASTER, 400000, 0, 0, 8 );
+    platform_spi_setup( mmcfs_spi_nums[ id ], PLATFORM_SPI_MASTER, 400000, 0, 0, 8 );
 
     /* Set DI and CS high and apply more than 74 pulses to SCLK for the card */
     /* to be able to accept a native command. */
-    send_initial_clock_train();
+    send_initial_clock_train(id);
 
-    PowerFlag = 1;
+    PowerFlag[id] = 1;
 }
 
 // set the SSI speed to the max setting
 static
-void set_max_speed(void)
+void set_max_speed(BYTE id)
 {
     unsigned long i;
 
@@ -177,21 +188,20 @@ void set_max_speed(void)
         i = 12500000;
 
     /* Configure the SPI port */
-    platform_spi_setup( MMCFS_SPI_NUM, PLATFORM_SPI_MASTER, i, 0, 0, 8 );
+    platform_spi_setup( mmcfs_spi_nums[ id ], PLATFORM_SPI_MASTER, i, 0, 0, 8 );
 }
 
 static
-void power_off (void)
+void power_off (BYTE id)
 {
-    PowerFlag = 0;
+    PowerFlag[ id ] = 0;
 }
 
 static
-int chk_power(void)        /* Socket power state: 0=off, 1=on */
+int chk_power(BYTE id)        /* Socket power state: 0=off, 1=on */
 {
-    return PowerFlag;
+    return PowerFlag[ id ];
 }
-
 
 
 /*-----------------------------------------------------------------------*/
@@ -200,25 +210,27 @@ int chk_power(void)        /* Socket power state: 0=off, 1=on */
 
 static
 BOOL rcvr_datablock (
-    BYTE *buff,            /* Data buffer to store received data */
+    BYTE id,            /* Disk ID */
+    BYTE *buff,         /* Data buffer to store received data */
     UINT btr            /* Byte count (must be even number) */
 )
 {
     BYTE token;
+    timer_data_type Timer1;
 
     Timer1 = platform_timer_read( PLATFORM_TIMER_SYS_ID );
     do {                            /* Wait for data packet in timeout of 100ms */
-        token = rcvr_spi();
+        token = rcvr_spi(id);
     } while ( ( token == 0xFF ) && 
               platform_timer_get_diff_crt( PLATFORM_TIMER_SYS_ID, Timer1 ) < 100000 );
     if(token != 0xFE) return FALSE;    /* If not valid data token, retutn with error */
 
     do {                            /* Receive the data block into buffer */
-        rcvr_spi_m(buff++);
-        rcvr_spi_m(buff++);
+        rcvr_spi_m(id, buff++);
+        rcvr_spi_m(id, buff++);
     } while (btr -= 2);
-    rcvr_spi();                        /* Discard CRC */
-    rcvr_spi();
+    rcvr_spi(id);                        /* Discard CRC */
+    rcvr_spi(id);
 
     return TRUE;                    /* Return with success */
 }
@@ -232,25 +244,26 @@ BOOL rcvr_datablock (
 #if _READONLY == 0
 static
 BOOL xmit_datablock (
-    const BYTE *buff,    /* 512 byte data block to be transmitted */
+    BYTE id,              /* Disk ID */
+    const BYTE *buff,     /* 512 byte data block to be transmitted */
     BYTE token            /* Data/Stop token */
 )
 {
     BYTE resp, wc;
 
 
-    if (wait_ready() != 0xFF) return FALSE;
+    if (wait_ready(id) != 0xFF) return FALSE;
 
-    xmit_spi(token);                    /* Xmit data token */
+    xmit_spi(id,token);                    /* Xmit data token */
     if (token != 0xFD) {    /* Is data token */
         wc = 0;
         do {                            /* Xmit the 512 byte data block to MMC */
-            xmit_spi(*buff++);
-            xmit_spi(*buff++);
+            xmit_spi(id,*buff++);
+            xmit_spi(id,*buff++);
         } while (--wc);
-        xmit_spi(0xFF);                    /* CRC (Dummy) */
-        xmit_spi(0xFF);
-        resp = rcvr_spi();                /* Reveive data response */
+        xmit_spi(id,0xFF);                    /* CRC (Dummy) */
+        xmit_spi(id,0xFF);
+        resp = rcvr_spi(id);                /* Reveive data response */
         if ((resp & 0x1F) != 0x05)        /* If not accepted, return with error */
             return FALSE;
     }
@@ -267,6 +280,7 @@ BOOL xmit_datablock (
 
 static
 BYTE send_cmd (
+    BYTE id,         /* Disk ID */
     BYTE cmd,        /* Command byte */
     DWORD arg        /* Argument */
 )
@@ -274,24 +288,24 @@ BYTE send_cmd (
     BYTE n, res;
 
 
-    if (wait_ready() != 0xFF) return 0xFF;
+    if (wait_ready(id) != 0xFF) return 0xFF;
 
     /* Send command packet */
-    xmit_spi(cmd);                        /* Command */
-    xmit_spi((BYTE)(arg >> 24));        /* Argument[31..24] */
-    xmit_spi((BYTE)(arg >> 16));        /* Argument[23..16] */
-    xmit_spi((BYTE)(arg >> 8));            /* Argument[15..8] */
-    xmit_spi((BYTE)arg);                /* Argument[7..0] */
+    xmit_spi(id,cmd);                        /* Command */
+    xmit_spi(id,(BYTE)(arg >> 24));        /* Argument[31..24] */
+    xmit_spi(id,(BYTE)(arg >> 16));        /* Argument[23..16] */
+    xmit_spi(id,(BYTE)(arg >> 8));            /* Argument[15..8] */
+    xmit_spi(id,(BYTE)arg);                /* Argument[7..0] */
     n = 0;
     if (cmd == CMD0) n = 0x95;            /* CRC for CMD0(0) */
     if (cmd == CMD8) n = 0x87;            /* CRC for CMD8(0x1AA) */
-    xmit_spi(n);
+    xmit_spi(id,n);
 
     /* Receive command response */
-    if (cmd == CMD12) rcvr_spi();        /* Skip a stuff byte when stop reading */
+    if (cmd == CMD12) rcvr_spi(id);        /* Skip a stuff byte when stop reading */
     n = 10;                                /* Wait for a valid response in timeout of 10 attempts */
     do
-        res = rcvr_spi();
+        res = rcvr_spi(id);
     while ((res & 0x80) && --n);
 
     return res;            /* Return with the response value */
@@ -305,6 +319,16 @@ BYTE send_cmd (
 
 ---------------------------------------------------------------------------*/
 
+void elua_mmc_init()
+{
+  int i;
+
+  for( i = 0; i < NUM_CARDS; i ++ )
+  {
+    Stat[ i ] = STA_NOINIT;
+    TriesLeft[ i ] = 2;
+  }
+}
 
 /*-----------------------------------------------------------------------*/
 /* Initialize Disk Drive                                                 */
@@ -315,62 +339,61 @@ DSTATUS disk_initialize (
 )
 {
     BYTE n, ty, ocr[4];
+    timer_data_type Timer1;
 
-
-    if (drv) return STA_NOINIT;            /* Supports only single drive */
-    if (Stat & STA_NODISK) return Stat;    /* No card in the socket */
+    if (Stat[drv] & STA_NODISK) return Stat[drv];    /* No card in the socket */
     
     do
     {
-      power_on();                           /* Force socket power on */
+      power_on(drv);                           /* Force socket power on */
 
-      SELECT();                /* CS = L */
+      SELECT(drv);                /* CS = L */
       ty = 0;
-      if (send_cmd(CMD0, 0) == 1) {            /* Enter Idle state */
+      if (send_cmd(drv,CMD0, 0) == 1) {            /* Enter Idle state */
         Timer1 = platform_timer_read( PLATFORM_TIMER_SYS_ID );
-        if (send_cmd(CMD8, 0x1AA) == 1) {    /* SDC Ver2+ */
-          for (n = 0; n < 4; n++) ocr[n] = rcvr_spi();
+        if (send_cmd(drv,CMD8, 0x1AA) == 1) {    /* SDC Ver2+ */
+          for (n = 0; n < 4; n++) ocr[n] = rcvr_spi(drv);
           if (ocr[2] == 0x01 && ocr[3] == 0xAA) {    /* The card can work at vdd range of 2.7-3.6V */
             do {
-              if (send_cmd(CMD55, 0) <= 1 && send_cmd(CMD41, 1UL << 30) == 0)    break;    /* ACMD41 with HCS bit */
+              if (send_cmd(drv,CMD55, 0) <= 1 && send_cmd(drv,CMD41, 1UL << 30) == 0)    break;    /* ACMD41 with HCS bit */
             } while ( platform_timer_get_diff_crt( PLATFORM_TIMER_SYS_ID, Timer1 ) < 1000000 );
             if ( ( platform_timer_get_diff_crt( PLATFORM_TIMER_SYS_ID, Timer1 ) < 1000000 ) 
-                 && send_cmd(CMD58, 0) == 0) {    /* Check CCS bit (it seems pointless to check the timer here*/
-              for (n = 0; n < 4; n++) ocr[n] = rcvr_spi();
+                 && send_cmd(drv,CMD58, 0) == 0) {    /* Check CCS bit (it seems pointless to check the timer here*/
+              for (n = 0; n < 4; n++) ocr[n] = rcvr_spi(drv);
               ty = (ocr[0] & 0x40) ? 6 : 2;
             }
           }
         } else {                            /* SDC Ver1 or MMC */
-          ty = (send_cmd(CMD55, 0) <= 1 && send_cmd(CMD41, 0) <= 1) ? 2 : 1;    /* SDC : MMC */
+          ty = (send_cmd(drv,CMD55, 0) <= 1 && send_cmd(drv,CMD41, 0) <= 1) ? 2 : 1;    /* SDC : MMC */
           do {
             if (ty == 2) {
-              if (send_cmd(CMD55, 0) <= 1 && send_cmd(CMD41, 0) == 0) break;    /* ACMD41 */
+              if (send_cmd(drv,CMD55, 0) <= 1 && send_cmd(drv,CMD41, 0) == 0) break;    /* ACMD41 */
             } else {
-              if (send_cmd(CMD1, 0) == 0) break;                                /* CMD1 */
+              if (send_cmd(drv,CMD1, 0) == 0) break;                                /* CMD1 */
             }
           } while ( platform_timer_get_diff_crt( PLATFORM_TIMER_SYS_ID, Timer1 ) < 1000000 );
           if ( (  platform_timer_get_diff_crt( PLATFORM_TIMER_SYS_ID, Timer1 ) >= 1000000 ) 
-               || send_cmd(CMD16, 512) != 0 )    /* Select R/W block length */
+               || send_cmd(drv,CMD16, 512) != 0 )    /* Select R/W block length */
             ty = 0;
         }
       }
-      CardType = ty;
-      DESELECT();            /* CS = H */
-      rcvr_spi();            /* Idle (Release DO) */
+      CardType[drv] = ty;
+      DESELECT(drv);            /* CS = H */
+      rcvr_spi(drv);            /* Idle (Release DO) */
 
-      if (TriesLeft)
-        TriesLeft--;
+      if (TriesLeft[drv])
+        TriesLeft[drv]--;
 
       if (ty) {            /* Initialization succeded */
-        Stat &= ~STA_NOINIT;        /* Clear STA_NOINIT */
-        set_max_speed();
+        Stat[drv] &= ~STA_NOINIT;        /* Clear STA_NOINIT */
+        set_max_speed(drv);
       } else {            /* Initialization failed */
-        power_off();
+        power_off(drv);
       }
 
-    } while( TriesLeft > 0 && ty == 0 );
+    } while( TriesLeft[drv] > 0 && ty == 0 );
 
-    return Stat;
+    return Stat[drv];
 }
 
 
@@ -383,8 +406,7 @@ DSTATUS disk_status (
     BYTE drv        /* Physical drive nmuber (0) */
 )
 {
-    if (drv) return STA_NOINIT;        /* Supports only single drive */
-    return Stat;
+    return Stat[drv];
 }
 
 
@@ -400,30 +422,30 @@ DRESULT disk_read (
     BYTE count            /* Sector count (1..255) */
 )
 {
-    if (drv || !count) return RES_PARERR;
-    if (Stat & STA_NOINIT) return RES_NOTRDY;
+    if (!count) return RES_PARERR;
+    if (Stat[drv] & STA_NOINIT) return RES_NOTRDY;
 
-    if (!(CardType & 4)) sector *= 512;    /* Convert to byte address if needed */
+    if (!(CardType[drv] & 4)) sector *= 512;    /* Convert to byte address if needed */
 
-    SELECT();            /* CS = L */
+    SELECT(drv);            /* CS = L */
 
     if (count == 1) {    /* Single block read */
-        if ((send_cmd(CMD17, sector) == 0)    /* READ_SINGLE_BLOCK */
-            && rcvr_datablock(buff, 512))
+        if ((send_cmd(drv,CMD17, sector) == 0)    /* READ_SINGLE_BLOCK */
+            && rcvr_datablock(drv,buff, 512))
             count = 0;
     }
     else {                /* Multiple block read */
-        if (send_cmd(CMD18, sector) == 0) {    /* READ_MULTIPLE_BLOCK */
+        if (send_cmd(drv,CMD18, sector) == 0) {    /* READ_MULTIPLE_BLOCK */
             do {
-                if (!rcvr_datablock(buff, 512)) break;
+                if (!rcvr_datablock(drv,buff, 512)) break;
                 buff += 512;
             } while (--count);
-            send_cmd(CMD12, 0);                /* STOP_TRANSMISSION */
+            send_cmd(drv,CMD12, 0);                /* STOP_TRANSMISSION */
         }
     }
 
-    DESELECT();            /* CS = H */
-    rcvr_spi();            /* Idle (Release DO) */
+    DESELECT(drv);            /* CS = H */
+    rcvr_spi(drv);            /* Idle (Release DO) */
 
     return count ? RES_ERROR : RES_OK;
 }
@@ -442,35 +464,35 @@ DRESULT disk_write (
     BYTE count            /* Sector count (1..255) */
 )
 {
-    if (drv || !count) return RES_PARERR;
-    if (Stat & STA_NOINIT) return RES_NOTRDY;
-    if (Stat & STA_PROTECT) return RES_WRPRT;
+    if (!count) return RES_PARERR;
+    if (Stat[drv] & STA_NOINIT) return RES_NOTRDY;
+    if (Stat[drv] & STA_PROTECT) return RES_WRPRT;
 
-    if (!(CardType & 4)) sector *= 512;    /* Convert to byte address if needed */
+    if (!(CardType[drv] & 4)) sector *= 512;    /* Convert to byte address if needed */
 
-    SELECT();            /* CS = L */
+    SELECT(drv);            /* CS = L */
 
     if (count == 1) {    /* Single block write */
-        if ((send_cmd(CMD24, sector) == 0)    /* WRITE_BLOCK */
-            && xmit_datablock(buff, 0xFE))
+        if ((send_cmd(drv, CMD24, sector) == 0)    /* WRITE_BLOCK */
+            && xmit_datablock(drv, buff, 0xFE))
             count = 0;
     }
     else {                /* Multiple block write */
-        if (CardType & 2) {
-            send_cmd(CMD55, 0); send_cmd(CMD23, count);    /* ACMD23 */
+        if (CardType[drv] & 2) {
+            send_cmd(drv, CMD55, 0); send_cmd(drv, CMD23, count);    /* ACMD23 */
         }
-        if (send_cmd(CMD25, sector) == 0) {    /* WRITE_MULTIPLE_BLOCK */
+        if (send_cmd(drv, CMD25, sector) == 0) {    /* WRITE_MULTIPLE_BLOCK */
             do {
-                if (!xmit_datablock(buff, 0xFC)) break;
+                if (!xmit_datablock(drv, buff, 0xFC)) break;
                 buff += 512;
             } while (--count);
-            if (!xmit_datablock(0, 0xFD))    /* STOP_TRAN token */
+            if (!xmit_datablock(drv, 0, 0xFD))    /* STOP_TRAN token */
                 count = 1;
         }
     }
 
-    DESELECT();            /* CS = H */
-    rcvr_spi();            /* Idle (Release DO) */
+    DESELECT(drv);            /* CS = H */
+    rcvr_spi(drv);            /* Idle (Release DO) */
 
     return count ? RES_ERROR : RES_OK;
 }
@@ -493,23 +515,21 @@ DRESULT disk_ioctl (
     WORD csize;
 
 
-    if (drv) return RES_PARERR;
-
     res = RES_ERROR;
 
     if (ctrl == CTRL_POWER) {
         switch (*ptr) {
         case 0:        /* Sub control code == 0 (POWER_OFF) */
-            if (chk_power())
-                power_off();        /* Power off */
+            if (chk_power(drv))
+                power_off(drv);        /* Power off */
             res = RES_OK;
             break;
         case 1:        /* Sub control code == 1 (POWER_ON) */
-            power_on();                /* Power on */
+            power_on(drv);                /* Power on */
             res = RES_OK;
             break;
         case 2:        /* Sub control code == 2 (POWER_GET) */
-            *(ptr+1) = (BYTE)chk_power();
+            *(ptr+1) = (BYTE)chk_power(drv);
             res = RES_OK;
             break;
         default :
@@ -517,13 +537,13 @@ DRESULT disk_ioctl (
         }
     }
     else {
-        if (Stat & STA_NOINIT) return RES_NOTRDY;
+        if (Stat[drv] & STA_NOINIT) return RES_NOTRDY;
 
-        SELECT();        /* CS = L */
+        SELECT(drv);        /* CS = L */
 
         switch (ctrl) {
         case GET_SECTOR_COUNT :    /* Get number of sectors on the disk (DWORD) */
-            if ((send_cmd(CMD9, 0) == 0) && rcvr_datablock(csd, 16)) {
+            if ((send_cmd(drv,CMD9, 0) == 0) && rcvr_datablock(drv,csd, 16)) {
                 if ((csd[0] >> 6) == 1) {    /* SDC ver 2.00 */
                     csize = csd[9] + ((WORD)csd[8] << 8) + 1;
                     *(DWORD*)buff = (DWORD)csize << 10;
@@ -542,26 +562,26 @@ DRESULT disk_ioctl (
             break;
 
         case CTRL_SYNC :    /* Make sure that data has been written */
-            if (wait_ready() == 0xFF)
+            if (wait_ready(drv) == 0xFF)
                 res = RES_OK;
             break;
 
         case MMC_GET_CSD :    /* Receive CSD as a data block (16 bytes) */
-            if (send_cmd(CMD9, 0) == 0        /* READ_CSD */
-                && rcvr_datablock(ptr, 16))
+            if (send_cmd(drv,CMD9, 0) == 0        /* READ_CSD */
+                && rcvr_datablock(drv, ptr, 16))
                 res = RES_OK;
             break;
 
         case MMC_GET_CID :    /* Receive CID as a data block (16 bytes) */
-            if (send_cmd(CMD10, 0) == 0        /* READ_CID */
-                && rcvr_datablock(ptr, 16))
+            if (send_cmd(drv, CMD10, 0) == 0        /* READ_CID */
+                && rcvr_datablock(drv, ptr, 16))
                 res = RES_OK;
             break;
 
         case MMC_GET_OCR :    /* Receive OCR as an R3 resp (4 bytes) */
-            if (send_cmd(CMD58, 0) == 0) {    /* READ_OCR */
+            if (send_cmd(drv, CMD58, 0) == 0) {    /* READ_OCR */
                 for (n = 0; n < 4; n++)
-                    *ptr++ = rcvr_spi();
+                    *ptr++ = rcvr_spi(drv);
                 res = RES_OK;
             }
 
@@ -574,8 +594,8 @@ DRESULT disk_ioctl (
             res = RES_PARERR;
         }
 
-        DESELECT();            /* CS = H */
-        rcvr_spi();            /* Idle (Release DO) */
+        DESELECT(drv);            /* CS = H */
+        rcvr_spi(drv);            /* Idle (Release DO) */
     }
 
     return res;
@@ -602,4 +622,5 @@ DWORD get_fattime (void)
             ;
 
 }
-#endif /* ifdef BUILD_MMCFS */
+#endif // #if defined( BUILD_MMCFS ) && !defined( ELUA_SIMULATOR )
+

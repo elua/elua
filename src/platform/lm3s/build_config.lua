@@ -11,6 +11,7 @@ function add_platform_components( t, board, cpu )
   if board == 'EK-LM3S1968' or board == 'EK-LM3S6965' or board == 'EK-LM3S8962' then
     t.lm3s_disp = { macro = 'ENABLE_DISP' }
   end
+  t.lm3s_pio = { macro = 'ENABLE_LM3S_GPIO' }
 end
 
 -- Add specific configuration to the 'configs' table
@@ -19,11 +20,11 @@ end
 
 -- Return an array of all the available platform modules for the given cpu
 function get_platform_modules( board, cpu )
+  m = { pio = { guards = { 'ENABLE_LM3S_GPIO' }, lib = '"pio"', map = "lm3s_pio_map", open = false } }
   board = board:upper()
   if board == 'EK-LM3S1968' or board == 'EK-LM3S6965' or board == 'EK-LM3S8962' then
-    return {
-      disp = { guards = { 'ENABLE_DISP' }, lib = '"disp"', open = false }
-    }
+    m.disp = { guards = { 'ENABLE_DISP' }, lib = '"disp"', open = false }
   end
+  return m
 end
 

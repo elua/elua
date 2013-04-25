@@ -13,7 +13,7 @@ if comp[ 'cpu' ] == 'LM3S9B92' or comp[ 'cpu' ] == 'LM3S9D92':
 
 fwlib_files = " ".join(glob.glob("src/platform/%s/driverlib/*.c" % platform))
 
-specific_files = "startup_gcc.c platform.c platform_int.c"
+specific_files = "startup_gcc.c platform.c platform_int.c lm3s_pio.c"
 
 if comp[ 'board' ] == 'EK-LM3S1968' or comp[ 'board' ] == 'EK-LM3S6965' or comp[ 'board' ] == 'EK-LM3S8962':
   specific_files = specific_files + " rit128x96x4.c disp.c"

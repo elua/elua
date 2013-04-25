@@ -1,0 +1,127 @@
+// $$HEADER$$
+The simple shell
+----------------
+The simple shell is a good compromise between functionality and the size of the eLua firmware image.
+A detailed description of the shell commands is given below.
+
+[width="90%", cols="^, ^, ^, ^", grid="none"]
+|=============
+| link:#cmd_help[help] | link:#cmd_ver[ver]   | link:#cmd_recv[recv]   | link:#cmd_lua[lua]
+| link:#cmd_ls[ls]     | link:#cmd_ls[dir]    | link:#cmd_cat[cat]     | link:#cmd_cat[type]
+| link:#cmd_cp[cp]     | link:#cmd_exit[exit] | link:#cmd_wofmt[wofmt] | link:#cmd_mkdir[mkdir]
+|=============
+
+[[cmd_help]]
+help
+~~~~
+By itself, it shows a list of all shell commands. If a shell command is given after *help*, it displays
+detailed information about the given command. Examples:
+
+------
+# help
+# help ls
+------
+
+[[cmd_ver]]
+ver
+~~~
+Print the version of the eLua image installed on the board. If the image is not an official one, an
+abbreviation of the git SHA1 revision used for building the image will be shown in the version number.
+
+[[cmd_recv]]
+recv
+~~~~
+Allows you to receive from the PC running the terminal emulator program, a Lua file (either source or compiled
+bytecode) via XMODEM and either execute it on your board or save it to a file. To use this feature, your eLua
+target image must be built with support for XMODEM (see link:building.html[building] for details). Also, your
+terminal emulation program must support sending files via the XMODEM protocol. Both XMODEM with checksum
+and XMODEM with CRC are supported, but only XMODEM with 128 byte packets is allowed (XMODEM with 1K packets won't work).
+
+To start the transfer, enter *recv* at the shell prompt. eLua will respond with "Waiting for file ...". At this point
+you can send the file to the eLua board via XMODEM. eLua will receive and execute the file. Don't worry when you
+see 'C' characters suddenly appearing on your terminal after you enter this command,  this is how the XMODEM transfer
+is initiated. If you want to save the data to a file instead of executing it, use *recv <filename>* instead.
+
+Since XMODEM is a protocol that uses serial lines, this command is not available if you're running your console 
+over TCP/IP instead of a serial link. If you'd like to send compiled bytecode to eLua instead of source code,
+please check link:using.html#cross[this section] first. Examples:
+
+--------------------
+$ recv
+$ recv /mmc/temp.lua
+--------------------
+
+[[cmd_lua]]
+lua
+~~~
+This command allows you to start the Lua interpreter, optionally passing command line parameters, just as you would do
+from a desktop machine. There are some differences from the desktop Lua version in command line parsing:
+
+- the command line can't be longer than 50 chars
+- character escaping is not implemented. For example, the next command won't work because of the ' (simple quotes) escape sequences:
+
+  eLua# lua -e 'print(\'Hello, World!\')' -i
+  Press CTRL+Z to exit Lua
+  lua: (command line):1: unexpected symbol near ''
++
+However, if you use both '' (simple quotes) and "" (double quotes) for string quoting, it will work:
+
+  eLua# lua -e 'print("Hello, World")' -i
+  Press CTRL+Z to exit Lua
+  Lua 5.1.4  Copyright (C) 1994-2008 Lua.org, PUC-Rio
+  Hello, World
+
+- if you want to execute a file from the link:"arch_romfs.html"[ROM file system] (or from another file system), remember to prefix it
+with _/rom_. For example, to execute *hello.lua*, do this: 
+
+  eLua# lua /rom/hello.lua
+
+[[cmd_ls]]
+ls or dir
+~~~~~~~~~
+Shows a list of all the files in the file systems used by eLua, as well as their size and the total size of the given file system.
+
+[[cmd_cat]]
+cat or type
+~~~~~~~~~~~
+Prints the content of (usually text) files on the console. Examples:
+
+-------------------------------------
+eLua# cat /rom/test.lua /mmc/temp.txt
+eLua# cat /mmc/autorun.lua
+-------------------------------------
+
+[[cmd_cp]]
+cp
+~~
+Copies a file to another file. This command can be used to copy files between different file systems (for example between the MMC file
+system and the RFS file system). The first argument is the source, the second one is the destination. Example:
+
+------------------------------------
+eLua# cp /rom/data.bin /rfs/data.bin
+------------------------------------
+
+Note that both *source* and *destination* must be file names (for example, _cp /rom/data.bin /rfs_ will not work, since _/rfs_ is not
+a valid file name).
+
+[[cmd_exit]]
+exit
+~~~~
+Exits the shell. This only makes sense if eLua is compiled with terminal support over TCP/IP , as it closes the telnet session to the 
+eLua board. Otherwise it just terminates the shell and blocks forever until you reset your board.
+
+[[cmd_wofmt]]
+wofmt
+~~~~~
+"Formats" the link:arch_wofs.html[WOFS file system], erasing its current contents. The user is asked to confirm this operation.
+
+[[cmd_mkdir]]
+mkdir
+~~~~~
+Creates a new directory. The filesystem must have directory support in order fir this to work. Example:
+
+--------------------
+elua# mkdir /mmc/dir
+--------------------
+
+// $$FOOTER$$

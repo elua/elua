@@ -44,10 +44,12 @@ in your <b>eLua</b> binary image, as described on the <a href="building.html">bu
 </tr>
 </tbody>
 </table>
+<p><b>New in 0.9</b>: it's possible to use more than one SD card on your <b>eLua</b> board. Refer to <a href="building.html">building page</a> for more details.</p><br/>
 <p>Once configured, connected, and <b>eLua</b> has started up, you are ready to work with the files on your card. To open a file on the SD/MMC card, all you need to do is to prefix its name with <i>/mmc/</i>, like this:</p> 
 <p><pre><code># lua /mmc/info.lua </code></pre></p>
 <p>Similarly, if you wanted to access a text file <b>a.txt</b> from your card, you could use fopen like this:</p>
 <p><pre><code>f = fopen( "/mmc/a.txt", "rb" )</code></pre></p>
+<p><b>New in 0.9</b>: if more than one SD card is configured in the system, their corresponding names will end with a single digit that specifies the card ID in the system (<i>/mmc0</i>, <i>/mmc1</i> and so on).</p>
 $$FOOTER$$
 
 

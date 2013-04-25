@@ -30,10 +30,6 @@ typedef volatile signed long     vs32;
 typedef volatile signed short    vs16;
 typedef volatile signed char     vs8;
 
-#ifndef _TIME48_C_
-typedef enum { FALSE = 0, TRUE  = !FALSE } bool;
-#endif
-
 typedef enum { RESET = 0, SET   = !RESET } FlagStatus, ITStatus;
 
 typedef enum { DISABLE = 0, ENABLE  = !DISABLE} FunctionalState;
