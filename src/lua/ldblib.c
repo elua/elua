@@ -19,6 +19,8 @@
 #include "lrotable.h"
 
 
+#ifndef LUA_REMOVE_DEBUG
+
 
 static int db_getregistry (lua_State *L) {
   lua_pushvalue(L, LUA_REGISTRYINDEX);
@@ -395,3 +397,6 @@ const LUA_REG_TYPE dblib[] = {
 LUALIB_API int luaopen_debug (lua_State *L) {
   LREGISTER(L, LUA_DBLIBNAME, dblib);
 }
+
+
+#endif  // LUA_REMOVE_DEBUG

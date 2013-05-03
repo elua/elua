@@ -64,6 +64,9 @@ static int report (lua_State *L, int status) {
 
 
 static int traceback (lua_State *L) {
+#ifdef LUA_REMOVE_DEBUG
+  return 1;
+#else
   if (!lua_isstring(L, 1))  /* 'message' not a string? */
     return 1;  /* keep it intact */
   lua_getfield(L, LUA_GLOBALSINDEX, "debug");
@@ -80,6 +83,7 @@ static int traceback (lua_State *L) {
   lua_pushinteger(L, 2);  /* skip this function and traceback */
   lua_call(L, 2, 1);  /* call debug.traceback */
   return 1;
+#endif
 }
 
 

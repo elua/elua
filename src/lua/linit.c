@@ -26,7 +26,9 @@ static const luaL_Reg lualibs[] = {
 #if LUA_OPTIMIZE_MEMORY == 0
   {LUA_MATHLIBNAME, luaopen_math},
   {LUA_TABLIBNAME, luaopen_table},  
-  {LUA_DBLIBNAME, luaopen_debug},  
+# ifndef LUA_REMOVE_DEBUG
+  {LUA_DBLIBNAME, luaopen_debug},
+# endif
 #endif
 #ifdef LUA_PLATFORM_LIBS_REG
   LUA_PLATFORM_LIBS_REG,
@@ -53,7 +55,9 @@ const luaR_table lua_rotable[] =
 #if LUA_OPTIMIZE_MEMORY > 0
   {LUA_STRLIBNAME, strlib},
   {LUA_TABLIBNAME, tab_funcs},
+#ifndef LUA_REMOVE_DEBUG
   {LUA_DBLIBNAME, dblib},
+#endif
   {LUA_COLIBNAME, co_funcs},
 #if defined(LUA_PLATFORM_LIBS_ROM) && LUA_OPTIMIZE_MEMORY == 2
 #undef _ROM
