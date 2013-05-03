@@ -61,6 +61,7 @@ static int elua_save_history( lua_State *L )
 #endif // #ifdef BUILD_LINENOISE
 }
 
+#ifdef BUILD_SHELL
 // Lua: elua.shell( <shell_command> )
 static int elua_shell( lua_State *L )
 {
@@ -76,6 +77,7 @@ static int elua_shell( lua_State *L )
   free( cmdcpy );
   return 0;
 }
+#endif
 
 // Module function map
 #define MIN_OPT_LEVEL 2
@@ -85,7 +87,9 @@ const LUA_REG_TYPE elua_map[] =
   { LSTRKEY( "egc_setup" ), LFUNCVAL( elua_egc_setup ) },
   { LSTRKEY( "version" ), LFUNCVAL( elua_version ) },
   { LSTRKEY( "save_history" ), LFUNCVAL( elua_save_history ) },
+#ifdef BUILD_SHELL
   { LSTRKEY( "shell" ), LFUNCVAL( elua_shell ) },
+#endif
 #if LUA_OPTIMIZE_MEMORY > 0
   { LSTRKEY( "EGC_NOT_ACTIVE" ), LNUMVAL( EGC_NOT_ACTIVE ) },
   { LSTRKEY( "EGC_ON_ALLOC_FAILURE" ), LNUMVAL( EGC_ON_ALLOC_FAILURE ) },
