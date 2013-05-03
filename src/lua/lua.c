@@ -328,6 +328,7 @@ static int runargs (lua_State *L, char **argv, int n) {
 }
 
 
+#ifndef LUA_REMOVE_GETENV
 static int handle_luainit (lua_State *L) {
   const char *init = getenv(LUA_INIT);
   if (init == NULL) return 0;  /* status OK */
@@ -336,6 +337,7 @@ static int handle_luainit (lua_State *L) {
   else
     return dostring(L, init, "=" LUA_INIT);
 }
+#endif
 
 
 struct Smain {
@@ -355,8 +357,10 @@ static int pmain (lua_State *L) {
   lua_gc(L, LUA_GCSTOP, 0);  /* stop collector during initialization */
   luaL_openlibs(L);  /* open libraries */
   lua_gc(L, LUA_GCRESTART, 0);
+#ifndef LUA_REMOVE_GETENV
   s->status = handle_luainit(L);
   if (s->status != 0) return 0;
+#endif
   script = collectargs(argv, &has_i, &has_v, &has_e);
   if (script < 0) {  /* invalid args? */
     print_usage();
