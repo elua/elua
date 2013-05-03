@@ -13,7 +13,6 @@
 
 static p_std_send_char std_send_char_func;
 static p_std_get_char std_get_char_func;
-int std_prev_char = -1;
 
 // 'read'
 static _ssize_t std_read( struct _reent *r, int fd, void* vptr, size_t len, void *pdata )
@@ -42,21 +41,17 @@ static _ssize_t std_read( struct _reent *r, int fd, void* vptr, size_t len, void
   
   i = 0;
   while( i < len )
-  {  
-    // If we have a lookahead char from the previous run of std_read,
-    // process it now.
-    if( std_prev_char != -1 )
+  {
+    c = std_get_char_func( STD_INFINITE_TIMEOUT );
+    switch( c )
     {
-      c = std_prev_char;
-      std_prev_char = -1;
-    }
-    else
-    {
-      if( ( c = std_get_char_func( STD_INFINITE_TIMEOUT ) ) == -1 )
-        break;
-    }
-    if( ( c == 8 ) || ( c == 0x7F ) ) // Backspace
-    {
+    case STD_CTRLZ_CODE:  // End of file
+      return 0;
+
+    case -1:              // UART overrun/failure - return chars so far
+      return i;
+
+    case 8: case 0x7F:    // Backspace
       if( i > 0 )
       {
         i --;        
@@ -64,24 +59,25 @@ static _ssize_t std_read( struct _reent *r, int fd, void* vptr, size_t len, void
         std_send_char_func( DM_STDOUT_NUM, ' ' );      
         std_send_char_func( DM_STDOUT_NUM, 8 );                    
       }      
-      continue;
+      break;
+
+    case '\r': case '\n':
+      // Allow either CR or LF as line terminator: in either case
+      // output CRLF and return the line of input with a \n on the end.
+      std_send_char_func( DM_STDOUT_NUM, '\r');
+      std_send_char_func( DM_STDOUT_NUM, '\n');
+      ptr[ i++ ] = '\n';
+      return i;
+
+    default:
+      // Ignore control characters
+      if( !isprint( c ) )
+        continue;
+      // Echo the character
+      std_send_char_func( DM_STDOUT_NUM, c );
+      ptr[ i ++ ] = c;
+      break;
     }
-    if( !isprint( c ) && c != '\n' && c != '\r' && c != STD_CTRLZ_CODE )
-      continue;
-    if( c == STD_CTRLZ_CODE )
-      return 0;
-    std_send_char_func( DM_STDOUT_NUM, c );
-    if( c == '\r' || c == '\n' )
-    {
-      // Handle both '\r\n' and '\n\r' here
-      std_prev_char = std_get_char_func( STD_INTER_CHAR_TIMEOUT ); // consume the next char (\r or \n) if any
-      if( std_prev_char + c == '\r' + '\n' ) // we must ignore this character
-        std_prev_char = -1;
-      std_send_char_func( DM_STDOUT_NUM, '\r' + '\n' - c );
-      ptr[ i ] = '\n';
-      return i + 1;
-    }
-    ptr[ i ++ ] = c;
   }
   return i;
 }
