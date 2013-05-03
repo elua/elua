@@ -40,18 +40,7 @@ static void laction (int i) {
 
 
 static void print_usage (void) {
-  fprintf(stderr,
-  "usage: %s [options] [script [args]].\n"
-  "Available options are:\n"
-  "  -e stat  execute string " LUA_QL("stat") "\n"
-  "  -l name  require library " LUA_QL("name") "\n"
-  "  -m limit set memory limit. (units are in Kbytes)\n"
-  "  -i       enter interactive mode after executing " LUA_QL("script") "\n"
-  "  -v       show version information\n"
-  "  --       stop handling options\n"
-  "  -        execute stdin and stop handling options\n"
-  ,
-  progname);
+  fprintf(stderr, "usage: %s [options] [script [args]].\n", progname);
   fflush(stderr);
 }
 
@@ -120,7 +109,7 @@ static int getargs (lua_State *L, char **argv, int n) {
   int argc = 0;
   while (argv[argc]) argc++;  /* count total number of arguments */
   narg = argc - (n + 1);  /* number of arguments to the script */
-  luaL_checkstack(L, narg + 3, "too many arguments to script");
+  luaL_checkstack(L, narg + 3, "too many arguments");
   for (i=n+1; i < argc; i++)
     lua_pushstring(L, argv[i]);
   lua_createtable(L, narg, n + 1);
