@@ -185,6 +185,9 @@ static int luaB_rawset (lua_State *L) {
 }
 
 
+#ifndef LUA_REMOVE_COLLECTGARBAGE
+
+
 static int luaB_gcinfo (lua_State *L) {
   lua_pushinteger(L, lua_getgccount(L));
   return 1;
@@ -216,6 +219,9 @@ static int luaB_collectgarbage (lua_State *L) {
     }
   }
 }
+
+
+#endif	/* LUA_REMOVE_COLLECTGARBAGE */
 
 
 static int luaB_type (lua_State *L) {
@@ -447,12 +453,22 @@ static int luaB_newproxy (lua_State *L) {
   return 1;
 }
 
+#ifndef LUA_REMOVE_COLLECTGARBAGE
+# define COLLECTGARBAGE \
+  {LSTRKEY("collectgarbage"), LFUNCVAL(luaB_collectgarbage)},
+# define GCINFO \
+  {LSTRKEY("gcinfo"), LFUNCVAL(luaB_gcinfo)},
+#else
+# define COLLECTGARBAGE /**/
+# define GCINFO /**/
+#endif
+
 #define LUA_BASELIB_FUNCLIST\
   {LSTRKEY("assert"), LFUNCVAL(luaB_assert)},\
-  {LSTRKEY("collectgarbage"), LFUNCVAL(luaB_collectgarbage)},\
+  COLLECTGARBAGE\
   {LSTRKEY("dofile"), LFUNCVAL(luaB_dofile)},\
   {LSTRKEY("error"), LFUNCVAL(luaB_error)},\
-  {LSTRKEY("gcinfo"), LFUNCVAL(luaB_gcinfo)},\
+  GCINFO\
   {LSTRKEY("getfenv"), LFUNCVAL(luaB_getfenv)},\
   {LSTRKEY("getmetatable"), LFUNCVAL(luaB_getmetatable)},\
   {LSTRKEY("loadfile"), LFUNCVAL(luaB_loadfile)},\
