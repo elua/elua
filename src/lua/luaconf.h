@@ -22,8 +22,16 @@
 @@ LUA_REMOVE_HOOKS removes the hooks mechanism
 @@ LUA_REMOVE_GETENV removes all references to getenv()
 @@ LUA_REMOVE_SIGNAL removes all references to signal()
-*/
+@@ LUA_REMOVE_DUMP removes the dump mechanism,
+**    which is always needed when compiling the cross-compiler
+@@ LUA_REMOVE_UNDUMP removes the undump mechanism,
+**    which is needed to be able to load compiled bytecode from *.lc files.
+*/ 
 
+#ifdef LUA_CROSS_COMPILER
+# undef LUA_REMOVE_DUMP
+#endif
+ 
 
 /*
 @@ LUA_ANSI controls the use of non-ansi features.

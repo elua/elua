@@ -525,11 +525,17 @@ static void f_parser (lua_State *L, void *ud) {
   Proto *tf;
   Closure *cl;
   struct SParser *p = cast(struct SParser *, ud);
+#ifndef LUA_REMOVE_UNDUMP
   int c = luaZ_lookahead(p->z);
+#endif
   luaC_checkGC(L);
   set_block_gc(L);  /* stop collector during parsing */
+#ifndef LUA_REMOVE_UNDUMP
   tf = ((c == LUA_SIGNATURE[0]) ? luaU_undump : luaY_parser)(L, p->z,
                                                              &p->buff, p->name);
+#else
+  tf = luaY_parser(L, p->z, &p->buff, p->name);
+#endif
   cl = luaF_newLclosure(L, tf->nups, hvalue(gt(L)));
   cl->l.p = tf;
   for (i = 0; i < tf->nups; i++)  /* initialize eventual upvalues */

@@ -137,6 +137,7 @@ static int str_char (lua_State *L) {
 }
 
 
+#ifndef LUA_REMOVE_DUMP
 static int writer (lua_State *L, const void* b, size_t size, void* B) {
   (void)L;
   luaL_addlstring((luaL_Buffer*) B, (const char *)b, size);
@@ -154,6 +155,7 @@ static int str_dump (lua_State *L) {
   luaL_pushresult(&b);
   return 1;
 }
+#endif  // LUA_REMOVE_DUMP
 
 
 
@@ -832,7 +834,9 @@ static int str_format (lua_State *L) {
 const LUA_REG_TYPE strlib[] = {
   {LSTRKEY("byte"), LFUNCVAL(str_byte)},
   {LSTRKEY("char"), LFUNCVAL(str_char)},
+#ifndef LUA_REMOVE_DUMP
   {LSTRKEY("dump"), LFUNCVAL(str_dump)},
+#endif
   {LSTRKEY("find"), LFUNCVAL(str_find)},
   {LSTRKEY("format"), LFUNCVAL(str_format)},
 #if LUA_OPTIMIZE_MEMORY > 0 && defined(LUA_COMPAT_GFIND)

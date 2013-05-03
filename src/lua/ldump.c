@@ -13,6 +13,10 @@
 
 #include "lua.h"
 
+
+#ifndef LUA_REMOVE_DUMP
+
+
 #include "lobject.h"
 #include "lstate.h"
 #include "lundump.h"
@@ -319,3 +323,6 @@ int luaU_dump (lua_State* L, const Proto* f, lua_Writer w, void* data, int strip
  target.is_arm_fpa=0;
  return luaU_dump_crosscompile(L,f,w,data,strip,target);
 }
+
+
+#endif  // LUA_REMOVE_DUMP

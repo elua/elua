@@ -12,6 +12,7 @@
 #include "lobject.h"
 #include "lzio.h"
 
+
 typedef uint32_t strsize_t;
 
 /* info about target machine for cross-compilation */
@@ -24,11 +25,15 @@ typedef struct {
  int is_arm_fpa;
 } DumpTargetInfo;
 
+#ifndef LUA_REMOVE_UNDUMP
 /* load one chunk; from lundump.c */
 LUAI_FUNC Proto* luaU_undump (lua_State* L, ZIO* Z, Mbuffer* buff, const char* name);
 
 /* make header; from lundump.c */
 LUAI_FUNC void luaU_header (char* h);
+#endif
+
+#ifndef LUA_REMOVE_DUMP
 
 /* dump one chunk to a different target; from ldump.c */
 int luaU_dump_crosscompile (lua_State* L, const Proto* f, lua_Writer w, void* data, int strip, DumpTargetInfo target);
@@ -40,6 +45,8 @@ LUAI_FUNC int luaU_dump (lua_State* L, const Proto* f, lua_Writer w, void* data,
 /* print one chunk; from print.c */
 LUAI_FUNC void luaU_print (const Proto* f, int full);
 #endif
+
+#endif // LUA_REMOVE_DUMP
 
 /* for header of binary files -- this is Lua 5.1 */
 #define LUAC_VERSION		0x51
