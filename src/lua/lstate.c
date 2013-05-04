@@ -202,11 +202,7 @@ LUA_API lua_State *lua_newstate (lua_Alloc f, void *ud) {
   g->tmudata = NULL;
   g->totalbytes = sizeof(LG);
 #ifdef LUA_EGC
-#ifdef EGC_INITIAL_MEMLIMIT
-  g->memlimit = EGC_INITIAL_MEMLIMIT;
-#else
   g->memlimit = 0;
-#endif
 #endif
   g->gcpause = LUAI_GCPAUSE;
   g->gcstepmul = LUAI_GCMUL;
@@ -214,6 +210,13 @@ LUA_API lua_State *lua_newstate (lua_Alloc f, void *ud) {
 #ifdef LUA_EGC
 #ifdef EGC_INITIAL_MODE
   g->egcmode = EGC_INITIAL_MODE;
+#else
+  g->egcmode = 0;
+#endif
+#ifdef EGC_INITIAL_MEMLIMIT
+  g->memlimit = EGC_INITIAL_MEMLIMIT;
+#else
+  g->memlimit = 0;
 #endif
 #endif
   for (i=0; i<NUM_TAGS; i++) g->mt[i] = NULL;
