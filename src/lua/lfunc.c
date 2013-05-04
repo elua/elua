@@ -67,8 +67,9 @@ UpVal *luaF_findupval (lua_State *L, StkId level) {
   uv = luaM_new(L, UpVal);  /* not found: create a new one */
   uv->tt = LUA_TUPVAL;
 #ifndef LUA_EGC
-  uv->v = level;  /* current value lives in the stack */
+  uv->marked = luaC_white(g);
 #endif
+  uv->v = level;  /* current value lives in the stack */
   uv->next = *pp;  /* chain it in the proper position */
   *pp = obj2gco(uv);
   uv->u.l.prev = &g->uvhead;  /* double link it in `uvhead' list */
