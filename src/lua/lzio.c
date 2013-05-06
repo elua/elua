@@ -49,7 +49,10 @@ void luaZ_init (lua_State *L, ZIO *z, lua_Reader reader, void *data) {
   z->L = L;
   z->reader = reader;
   z->data = data;
-  z->n = z->i = 0;
+  z->n = 0;
+#ifdef LUA_ROSTRINGS
+  z->i = 0;
+#endif
   z->p = NULL;
 }
 
@@ -61,12 +64,18 @@ size_t luaZ_read (ZIO *z, void *b, size_t n) {
     if (luaZ_lookahead(z) == EOZ)
       return n;  /* return number of missing bytes */
     m = (n <= z->n) ? n : z->n;  /* min. between n and z->n */
+#ifdef LUA_ROSTRINGS
     if (b)
+#endif
       memcpy(b, z->p, m);
     z->n -= m;
+#ifdef LUA_ROSTRINGS
     z->i += m;
+#endif
     z->p += m;
+#ifdef LUA_ROSTRINGS
     if (b)
+#endif
       b = (char *)b + m;
     n -= m;
   }

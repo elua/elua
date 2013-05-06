@@ -318,7 +318,9 @@ static const DM_DEVICE mmcfs_device =
   mmcfs_opendir_r,      // opendir
   mmcfs_readdir_r,      // readdir
   mmcfs_closedir_r,     // closedir
+#ifdef LUA_ROSTRINGS
   NULL,                 // getaddr
+#endif
   mmcfs_mkdir_r,        // mkdir
   mmcfs_unlink_r,       // unlink
   mmcfs_unlink_r,       // rmdir

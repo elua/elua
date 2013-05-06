@@ -32,8 +32,10 @@
 #include "lstate.h"
 #include "legc.h"
 #endif
+#ifdef LUA_ROSTRINGS
 #ifndef LUA_CROSS_COMPILER
 #include "devman.h"
+#endif
 #endif
 
 #define FREELIST_REF	0	/* free list of references */
@@ -582,21 +584,30 @@ typedef struct LoadF {
   int extraline;
   FILE *f;
   char buff[LUAL_BUFFERSIZE];
+#ifdef LUA_ROSTRINGS
   const char *srcp;
   size_t totsize;
+#endif
 } LoadF;
 
 
 static const char *getF (lua_State *L, void *ud, size_t *size) {
   LoadF *lf = (LoadF *)ud;
   (void)L;
+#ifdef LUA_ROSTRINGS
   if (L == NULL && size == NULL) // special request: detect 'direct mode'
     return lf->srcp;
+#endif
   if (lf->extraline) {
     lf->extraline = 0;
     *size = 1;
     return "\n";
   }
+#ifndef LUA_ROSTRINGS
+  if (feof(lf->f)) return NULL;
+  *size = fread(lf->buff, 1, sizeof(lf->buff), lf->f);
+  return (*size > 0) ? lf->buff : NULL;
+#else
   if (lf->srcp == NULL) { // no direct access
     if (feof(lf->f)) return NULL;
     *size = fread(lf->buff, 1, sizeof(lf->buff), lf->f);
@@ -609,6 +620,7 @@ static const char *getF (lua_State *L, void *ud, size_t *size) {
     } else
       return NULL;
   }
+#endif
 }
 
 
@@ -625,9 +637,14 @@ LUALIB_API int luaL_loadfile (lua_State *L, const char *filename) {
   LoadF lf;
   int status, readstatus;
   int c;
+#ifdef LUA_ROSTRINGS
   const char *srcp = NULL;
+#endif
   int fnameindex = lua_gettop(L) + 1;  /* index of filename on the stack */
-  lf.extraline = lf.totsize = 0;
+  lf.extraline = 0;
+#ifdef LUA_ROSTRINGS
+  lf.totsize = 0;
+#endif
   if (filename == NULL) {
     lua_pushliteral(L, "=stdin");
     lf.f = stdin;
@@ -636,6 +653,7 @@ LUALIB_API int luaL_loadfile (lua_State *L, const char *filename) {
     lua_pushfstring(L, "@%s", filename);
     lf.f = fopen(filename, "r");
     if (lf.f == NULL) return errfile(L, "open", fnameindex);
+#ifdef LUA_ROSTRINGS
 #ifndef LUA_CROSS_COMPILER
     srcp = dm_getaddr(fileno(lf.f));
     if (srcp) {
@@ -643,6 +661,7 @@ LUALIB_API int luaL_loadfile (lua_State *L, const char *filename) {
       lf.totsize = ftell(lf.f);
       fseek(lf.f, 0, SEEK_SET);
     }
+#endif
 #endif
   }
   c = getc(lf.f);
@@ -659,11 +678,13 @@ LUALIB_API int luaL_loadfile (lua_State *L, const char *filename) {
     lf.extraline = 0;
   }
   ungetc(c, lf.f);
+#ifdef LUA_ROSTRINGS
   if (srcp) {
     lf.srcp = srcp + ftell(lf.f);
     lf.totsize -= ftell(lf.f);
   } else
     lf.srcp = NULL;
+#endif
   status = lua_load(L, getF, &lf, lua_tostring(L, -1));
   readstatus = ferror(lf.f);
   if (filename) fclose(lf.f);  /* close file (even in case of errors) */
@@ -685,8 +706,10 @@ typedef struct LoadS {
 static const char *getS (lua_State *L, void *ud, size_t *size) {
   LoadS *ls = (LoadS *)ud;
   (void)L;
+#ifdef LUA_ROSTRINGS
   if (L == NULL && size == NULL) // direct mode check
     return NULL;
+#endif
   if (ls->size == 0) return NULL;
   *size = ls->size;
   ls->size = 0;

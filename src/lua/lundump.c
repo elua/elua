@@ -62,7 +62,11 @@ static void LoadBlock(LoadState* S, void* b, size_t size)
 static void LoadMem (LoadState* S, void* b, int n, size_t size)
 {
   LoadBlock(S,b,n*size);
-  if (S->swap && b)
+  if (S->swap
+#ifdef LUA_ROSTRINGS
+              && b
+#endif
+                  )
   {
     char* p=(char*) b;
     char c;

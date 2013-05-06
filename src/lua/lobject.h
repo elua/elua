@@ -21,8 +21,10 @@
 
 #define NUM_TAGS	(LAST_TAG+1)
 
+#ifdef LUA_ROSTRINGS
 /* mask for 'read-only' objects. must match READONLYBIT in lgc.h' */
 #define READONLYMASK  128
+#endif
 
 
 /*
@@ -417,7 +419,11 @@ typedef union TString {
 } TString;
 
 
+#ifndef LUA_ROSTRINGS
+#define getstr(ts)  cast(const char *, (ts) + 1)
+#else
 #define getstr(ts)	(((ts)->tsv.marked & READONLYMASK) ? cast(const char *, *(const char**)((ts) + 1)) : cast(const char *, (ts) + 1))
+#endif
 #define svalue(o)       getstr(rawtsvalue(o))
 
 

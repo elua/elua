@@ -198,6 +198,9 @@ vars.AddVariables(
   BoolVariable(     'optram',
                     'enables Lua Tiny RAM enhancements',
                     True ),
+  BoolVariable(     'rostrings',
+                    'enables read-only strings and functions',
+                    True ),
   MatchEnumVariable('boot',
                     'boot mode, standard will boot to shell, luarpc boots to an rpc server',
                     'standard',
@@ -381,6 +384,8 @@ if not GetOption( 'help' ):
     conf.env.Append(CPPDEFINES = ['ELUA_ENDIAN_LITTLE'])
   conf.env.Append(CPPPATH = ['src/modules', 'src/platform/%s' % platform])
   conf.env.Append(CPPDEFINES = {"LUA_OPTIMIZE_MEMORY" : ( comp['optram'] != 0 and 2 or 0 ) } )
+  if comp['rostrings'] :
+    conf.env.Append(CPPDEFINES = ['LUA_ROSTRINGS'])
 
   # Additional libraries
   local_libs = ''

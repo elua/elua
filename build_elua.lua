@@ -213,6 +213,7 @@ builder:add_option( 'allocator', 'select memory allocator', 'auto', { 'newlib', 
 builder:add_option( 'board', 'selects board for target (cpu will be inferred)', 'auto', { utils.table_keys( board_list ), 'auto' } )
 builder:add_option( 'toolchain', 'specifies toolchain to use (auto=search for usable toolchain)', 'auto', { utils.table_keys( toolchain_list ), 'auto' } )
 builder:add_option( 'optram', 'enables Lua Tiny RAM enhancements', true )
+builder:add_option( 'rostrings', 'enables read-only strings', true )
 builder:add_option( 'boot', 'boot mode, standard will boot to shell, luarpc boots to an rpc server', 'standard', { 'standard' , 'luarpc' } )
 builder:add_option( 'romfs', 'ROMFS compilation mode', 'verbatim', { 'verbatim' , 'compress', 'compile' } )
 builder:add_option( 'cpumode', 'ARM CPU compilation mode (only affects certain ARM targets)', nil, { 'arm', 'thumb' } )
@@ -409,6 +410,7 @@ local uip_files = " " .. utils.prepend_path( "uip_arp.c uip.c uiplib.c dhcpc.c p
 
 addi{ { 'inc', 'inc/newlib',  'inc/remotefs', 'src/platform', 'src/lua' }, { 'src/modules', 'src/platform/' .. platform }, "src/uip", "src/fatfs" }
 addm( "LUA_OPTIMIZE_MEMORY=" .. ( comp.optram and "2" or "0" ) )
+if comp.rostrings then addm( "LUA_ROSTRINGS" ) end
 addcf( { '-Os','-fomit-frame-pointer' } )
 
 -- Toolset data (filled by each platform in part)

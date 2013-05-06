@@ -79,7 +79,14 @@ void luaS_resize (lua_State *L, int newsize) {
 }
 
 static TString *newlstr (lua_State *L, const char *str, size_t l,
-                                       unsigned int h, int readonly) {
+                                       unsigned int h
+#ifdef LUA_ROSTRINGS
+                                       , int readonly
+#endif
+                                                     ) {
+#ifndef LUA_ROSTRINGS
+  int readonly = 0;
+#endif
   TString *ts;
   stringtable *tb;
   if (l+1 > (MAX_SIZET - sizeof(TString))/sizeof(char))
@@ -116,7 +123,11 @@ static TString *newlstr (lua_State *L, const char *str, size_t l,
 }
 
 
+#ifndef LUA_ROSTRINGS
+TString *luaS_newlstr (lua_State *L, const char *str, size_t l) {
+#else
 static TString *luaS_newlstr_helper (lua_State *L, const char *str, size_t l, int readonly) {
+#endif
   GCObject *o;
   unsigned int h = cast(unsigned int, l);  /* seed */
   size_t step = (l>>5)+1;  /* if string is too long, don't hash all its chars */
@@ -133,8 +144,15 @@ static TString *luaS_newlstr_helper (lua_State *L, const char *str, size_t l, in
       return ts;
     }
   }
-  return newlstr(L, str, l, h, readonly);  /* not found */
+  return newlstr(L, str, l, h
+#ifdef LUA_ROSTRINGS
+                             , readonly
+#endif
+                                       );  /* not found */
 }
+
+
+#ifdef LUA_ROSTRINGS
 
 extern char stext;
 extern char etext;
@@ -164,6 +182,8 @@ LUAI_FUNC TString *luaS_newrolstr (lua_State *L, const char *str, size_t l) {
     return luaS_newlstr_helper(L, str, l, LUAS_REGULAR_STRING);
 }
 
+#endif // LUA_ROSTRINGS
+
 
 Udata *luaS_newudata (lua_State *L, size_t s, Table *e) {
   Udata *u;
@@ -180,4 +200,3 @@ Udata *luaS_newudata (lua_State *L, size_t s, Table *e) {
   G(L)->mainthread->next = obj2gco(u);
   return u;
 }
-

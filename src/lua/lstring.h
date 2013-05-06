@@ -18,13 +18,21 @@
 #define sizeudata(u)	(sizeof(union Udata)+(u)->len)
 
 #define luaS_new(L, s)	(luaS_newlstr(L, s, strlen(s)))
+#ifdef LUA_ROSTRINGS
 #define luaS_newro(L, s)  (luaS_newrolstr(L, s, strlen(s)))
+#endif
 #define luaS_newliteral(L, s)  (luaS_newlstr(L, "" s, \
                                   (sizeof(s)/sizeof(char))-1))
 
 #define luaS_fix(s)	l_setbit((s)->tsv.marked, FIXEDBIT)
+#ifdef LUA_ROSTRINGS
 #define luaS_readonly(s) l_setbit((s)->tsv.marked, READONLYBIT)
 #define luaS_isreadonly(s) testbit((s)->marked, READONLYBIT)
+#else
+/* These constant macros save some #ifdef hell in the code */
+#define luaS_readonly(s) do {} while(0)
+#define luaS_isreadonly(s) (0)
+#endif
 
 LUAI_FUNC void luaS_resize (lua_State *L, int newsize);
 LUAI_FUNC Udata *luaS_newudata (lua_State *L, size_t s, Table *e);

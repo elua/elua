@@ -258,7 +258,9 @@ static const DM_DEVICE semifs_device =
   semifs_opendir_r,      // opendir
   semifs_readdir_r,      // readdir
   semifs_closedir_r,     // closedir
+#ifdef LUA_ROSTRINGS
   NULL,                  // getaddr
+#endif
   NULL,                  // mkdir
   NULL,                  // unlink
   NULL,                  // rmdir                   

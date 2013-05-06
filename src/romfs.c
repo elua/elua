@@ -400,6 +400,7 @@ static int romfs_closedir_r( struct _reent *r, void *d, void *pdata )
   return 0;
 }
 
+#ifdef LUA_ROSTRINGS
 // getaddr
 static const char* romfs_getaddr_r( struct _reent *r, int fd, void *pdata )
 {
@@ -411,6 +412,7 @@ static const char* romfs_getaddr_r( struct _reent *r, int fd, void *pdata )
   else
     return NULL;
 }
+#endif
 
 // ****************************************************************************
 // Our ROMFS device descriptor structure
@@ -427,6 +429,9 @@ static const DM_DEVICE romfs_device =
   romfs_readdir_r,      // readdir
   romfs_closedir_r,     // closedir
   romfs_getaddr_r,      // getaddr
+#ifdef LUA_ROSTRINGS
+  romfs_getaddr_r,      // getaddr
+#endif
   NULL,                 // mkdir
   NULL,                 // unlink
   NULL,                 // rmdir

@@ -60,7 +60,9 @@ typedef struct
   void* ( *p_opendir_r )( struct _reent *r, const char* name, void *pdata );
   struct dm_dirent* ( *p_readdir_r )( struct _reent *r, void *dir, void *pdata );
   int ( *p_closedir_r )( struct _reent *r, void* dir, void *pdata );
+#ifdef LUA_ROSTRINGS
   const char* ( *p_getaddr_r )( struct _reent *r, int fd, void *pdata );
+#endif
   int ( *p_mkdir_r )( struct _reent *r, const char *pathname, mkdir_mode_t mode, void *pdata );
   int ( *p_unlink_r )( struct _reent *r, const char *fname, void *pdata );
   int ( *p_rmdir_r )( struct _reent *r, const char *fname, void *pdata );
@@ -109,7 +111,9 @@ int dm_init();
 DM_DIR *dm_opendir( const char* dirname );
 struct dm_dirent* dm_readdir( DM_DIR *d );
 int dm_closedir( DM_DIR *d );
+#ifdef LUA_ROSTRINGS
 const char* dm_getaddr( int fd );
+#endif
 
 #endif
 

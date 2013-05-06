@@ -198,6 +198,7 @@ int dm_closedir( DM_DIR *d )
   return res;
 }
 
+#ifdef LUA_ROSTRINGS
 const char* dm_getaddr( int fd )
 {
   const DM_INSTANCE_DATA *pinst;
@@ -212,4 +213,4 @@ const char* dm_getaddr( int fd )
 
   return pinst->pdev->p_getaddr_r( _REENT, DM_GET_FD( fd ), pinst->pdata );
 }
-
+#endif

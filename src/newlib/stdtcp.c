@@ -93,7 +93,9 @@ static const DM_DEVICE std_device =
   NULL,                 // opendir
   NULL,                 // readdir
   NULL,                 // closedir
+#ifdef LUA_ROSTRINGS
   NULL,                 // getaddr
+#endif
   NULL,                 // mkdir
   NULL,                 // unlink
   NULL,                 // rmdir

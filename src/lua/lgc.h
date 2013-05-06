@@ -85,7 +85,9 @@
 #define VALUEWEAKBIT	4
 #define FIXEDBIT	5
 #define SFIXEDBIT	6
+#ifdef LUA_ROSTRINGS
 #define READONLYBIT 7
+#endif
 #define WHITEBITS	bit2mask(WHITE0BIT, WHITE1BIT)
 
 
