@@ -350,7 +350,7 @@ extern char end[];
 
 void* platform_get_first_free_ram( unsigned id )
 {
-  void* mstart[] = MEM_START_ADDRESS;
+  static void* mstart[] = MEM_START_ADDRESS;
   u32 p;
 
   if( id >= sizeof( mstart ) / sizeof( void* ) )
@@ -363,7 +363,7 @@ void* platform_get_first_free_ram( unsigned id )
 
 void* platform_get_last_free_ram( unsigned id )
 {
-  void* mend[] = MEM_END_ADDRESS;
+  static void* mend[] = MEM_END_ADDRESS;
   u32 p;
 
   if( id >= sizeof( mend ) / sizeof( void* ) )
