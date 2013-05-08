@@ -21,9 +21,20 @@
 #define LUAS_REGULAR_STRING       0
 
 void luaS_resize (lua_State *L, int newsize) {
+#ifndef LUA_EGC
+  GCObject **newhash;
+#endif
   stringtable *tb;
   int i;
+#ifndef LUA_EGC
+  if (G(L)->gcstate == GCSsweepstring)
+    return;  /* cannot resize during GC traverse */
+  newhash = luaM_newvector(L, newsize, GCObject *);
+#endif
   tb = &G(L)->strt;
+#ifndef LUA_EGC
+  for (i=0; i<newsize; i++) newhash[i] = NULL;
+#else
   if (luaC_sweepstrgc(L) || newsize == tb->size || is_resizing_strings_gc(L))
     return;  /* cannot resize during GC traverse or doesn't need to be resized */
   set_resizing_strings_gc(L);
@@ -31,24 +42,40 @@ void luaS_resize (lua_State *L, int newsize) {
     luaM_reallocvector(L, tb->hash, tb->size, newsize, GCObject *);
     for (i=tb->size; i<newsize; i++) tb->hash[i] = NULL;
   }
+#endif
   /* rehash */
   for (i=0; i<tb->size; i++) {
     GCObject *p = tb->hash[i];
+#ifdef LUA_EGC
     tb->hash[i] = NULL;
+#endif
     while (p) {  /* for each node in the list */
       GCObject *next = p->gch.next;  /* save next */
       unsigned int h = gco2ts(p)->hash;
       int h1 = lmod(h, newsize);  /* new position */
       lua_assert(cast_int(h%newsize) == lmod(h, newsize));
+#ifndef LUA_EGC
+      p->gch.next = newhash[h1];  /* chain it */
+      newhash[h1] = p;
+#else
       p->gch.next = tb->hash[h1];  /* chain it */
       tb->hash[h1] = p;
+#endif
       p = next;
     }
   }
+#ifndef LUA_EGC
+  luaM_freearray(L, tb->hash, tb->size, TString *);
+#else
   if (newsize < tb->size)
     luaM_reallocvector(L, tb->hash, tb->size, newsize, GCObject *);
+#endif
   tb->size = newsize;
+#ifndef LUA_EGC
+  tb->hash = newhash;
+#else
   unset_resizing_strings_gc(L);
+#endif
 }
 
 static TString *newlstr (lua_State *L, const char *str, size_t l,
@@ -57,9 +84,11 @@ static TString *newlstr (lua_State *L, const char *str, size_t l,
   stringtable *tb;
   if (l+1 > (MAX_SIZET - sizeof(TString))/sizeof(char))
     luaM_toobig(L);
+#ifdef LUA_EGC
   tb = &G(L)->strt;
   if ((tb->nuse + 1) > cast(lu_int32, tb->size) && tb->size <= MAX_INT/2)
     luaS_resize(L, tb->size*2);  /* too crowded */
+#endif
   ts = cast(TString *, luaM_malloc(L, readonly ? sizeof(char**)+sizeof(TString) : (l+1)*sizeof(char)+sizeof(TString)));
   ts->tsv.len = l;
   ts->tsv.hash = h;
@@ -72,10 +101,17 @@ static TString *newlstr (lua_State *L, const char *str, size_t l,
     *(char **)(ts+1) = (char *)str;
     luaS_readonly(ts);
   }
+#ifndef LUA_EGC
+  tb = &G(L)->strt;
+#endif
   h = lmod(h, tb->size);
   ts->tsv.next = tb->hash[h];  /* chain new entry */
   tb->hash[h] = obj2gco(ts);
   tb->nuse++;
+#ifndef LUA_EGC
+  if (tb->nuse > cast(lu_int32, tb->size) && tb->size <= MAX_INT/2)
+    luaS_resize(L, tb->size*2);  /* too crowded */
+#endif
   return ts;
 }
 

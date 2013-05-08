@@ -51,13 +51,21 @@ struct lua_longjmp {
 void luaD_seterrorobj (lua_State *L, int errcode, StkId oldtop) {
   switch (errcode) {
     case LUA_ERRMEM: {
+#ifndef LUA_EGC
+      setsvalue2s(L, oldtop, luaS_newliteral(L, MEMERRMSG));
+#else
       ptrdiff_t oldtopr = savestack(L, oldtop);
       setsvalue2s(L, restorestack(L, oldtopr), luaS_newliteral(L, MEMERRMSG));
+#endif
       break;
     }
     case LUA_ERRERR: {
+#ifndef LUA_EGC
+      setsvalue2s(L, oldtop, luaS_newliteral(L, "error in error handling"));
+#else
       ptrdiff_t oldtopr = savestack(L, oldtop);
       setsvalue2s(L, restorestack(L, oldtopr), luaS_newliteral(L, "error in error handling"));
+#endif
       break;
     }
     case LUA_ERRSYNTAX:
@@ -96,8 +104,10 @@ static void resetstack (lua_State *L, int status) {
 
 
 void luaD_throw (lua_State *L, int errcode) {
+#ifdef LUA_EGC
   unfixedstack(L); /* make sure the fixedstack & block_gc flags get reset. */
   unset_block_gc(L);
+#endif
   if (L->errorJmp) {
     L->errorJmp->status = errcode;
     LUAI_THROW(L, L->errorJmp);
@@ -228,15 +238,25 @@ static StkId adjust_varargs (lua_State *L, Proto *p, int actual) {
     lua_assert(p->is_vararg & VARARG_HASARG);
     luaC_checkGC(L);
     htab = luaH_new(L, nvar, 1);  /* create `arg' table */
+#ifdef LUA_EGC
     sethvalue2s(L, L->top, htab); /* put table on stack */
     incr_top(L);
     fixedstack(L);
+#endif
     for (i=0; i<nvar; i++)  /* put extra arguments into `arg' table */
+#ifndef LUA_EGC
+      setobj2n(L, luaH_setnum(L, htab, i+1), L->top - nvar + i);
+#else
       setobj2n(L, luaH_setnum(L, htab, i+1), L->top - 1 - nvar + i);
+#endif
+#ifdef LUA_EGC
     unfixedstack(L);
+#endif
     /* store counter in field `n' */
     setnvalue(luaH_setstr(L, htab, luaS_newliteral(L, "n")), cast_num(nvar));
+#ifdef LUA_EGC
     L->top--; /* remove table from stack */
+#endif
   }
 #endif
   /* move fixed parameters to final position */
@@ -529,7 +549,9 @@ static void f_parser (lua_State *L, void *ud) {
   int c = luaZ_lookahead(p->z);
 #endif
   luaC_checkGC(L);
+#ifdef LUA_EGC
   set_block_gc(L);  /* stop collector during parsing */
+#endif
 #ifndef LUA_REMOVE_UNDUMP
   tf = ((c == LUA_SIGNATURE[0]) ? luaU_undump : luaY_parser)(L, p->z,
                                                              &p->buff, p->name);
@@ -542,7 +564,9 @@ static void f_parser (lua_State *L, void *ud) {
     cl->l.upvals[i] = luaF_newupval(L);
   setclvalue(L, L->top, cl);
   incr_top(L);
+#ifdef LUA_EGC
   unset_block_gc(L);
+#endif
 }
 
 

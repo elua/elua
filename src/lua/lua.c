@@ -283,7 +283,9 @@ static int collectargs (char **argv, int *pi, int *pv, int *pe) {
         break;
       case 'e':
         *pe = 1;  /* go through */
+#ifdef LUA_EGC
       case 'm':   /* go through */
+#endif
       case 'l':
         if (argv[i][2] == '\0') {
           i++;
@@ -311,6 +313,7 @@ static int runargs (lua_State *L, char **argv, int n) {
           return 1;
         break;
       }
+#ifdef LUA_EGC
       case 'm': {
         const char *limit = argv[i] + 2;
         int memlimit=0;
@@ -320,6 +323,7 @@ static int runargs (lua_State *L, char **argv, int n) {
         lua_gc(L, LUA_GCSETMEMLIMIT, memlimit);
         break;
       }
+#endif
       case 'l': {
         const char *filename = argv[i] + 2;
         if (*filename == '\0') filename = argv[++i];

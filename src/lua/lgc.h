@@ -37,6 +37,8 @@
 #define test2bits(x,b1,b2)	testbits(x, (bit2mask(b1, b2)))
 
 
+#ifdef LUA_EGC
+
 /*
 ** Possible Garbage Collector flags.
 ** Layout for bit use in 'gsflags' field in global_State structure.
@@ -55,12 +57,14 @@
 #define set_resizing_strings_gc(L)   l_setbit(G(L)->gcflags, GCResizingStringsBit)
 #define unset_resizing_strings_gc(L) resetbit(G(L)->gcflags, GCResizingStringsBit)
 
+#endif  /* LUA_EGC */
+
 /*
 ** Layout for bit use in `marked' field:
 ** bit 0 - object is white (type 0)
 ** bit 1 - object is white (type 1)
 ** bit 2 - object is black
-** bit 3 - for thread: Don't resize thread's stack
+** bit 3 - for thread: Don't resize thread's stack (LUA_EGC only)
 ** bit 3 - for userdata: has been finalized
 ** bit 3 - for tables: has weak keys
 ** bit 4 - for tables: has weak values
@@ -73,7 +77,9 @@
 #define WHITE0BIT	0
 #define WHITE1BIT	1
 #define BLACKBIT	2
+#ifdef LUA_EGC
 #define FIXEDSTACKBIT	3
+#endif
 #define FINALIZEDBIT	3
 #define KEYWEAKBIT	3
 #define VALUEWEAKBIT	4
@@ -97,9 +103,11 @@
 
 #define luaC_white(g)	cast(lu_byte, (g)->currentwhite & WHITEBITS)
 
+#ifdef LUA_EGC
 #define isfixedstack(x)	testbit((x)->marked, FIXEDSTACKBIT)
 #define fixedstack(x)	l_setbit((x)->marked, FIXEDSTACKBIT)
 #define unfixedstack(x)	resetbit((x)->marked, FIXEDSTACKBIT)
+#endif
 
 #define luaC_checkGC(L) { \
   condhardstacktests(luaD_reallocstack(L, L->stacksize - EXTRA_STACK - 1)); \
@@ -125,8 +133,10 @@ LUAI_FUNC void luaC_callGCTM (lua_State *L);
 LUAI_FUNC void luaC_freeall (lua_State *L);
 LUAI_FUNC void luaC_step (lua_State *L);
 LUAI_FUNC void luaC_fullgc (lua_State *L);
+#ifdef LUA_EGC
 LUAI_FUNC int luaC_sweepstrgc (lua_State *L);
 LUAI_FUNC void luaC_marknew (lua_State *L, GCObject *o);
+#endif
 LUAI_FUNC void luaC_link (lua_State *L, GCObject *o, lu_byte tt);
 LUAI_FUNC void luaC_linkupval (lua_State *L, UpVal *uv);
 LUAI_FUNC void luaC_barrierf (lua_State *L, GCObject *o, GCObject *v);

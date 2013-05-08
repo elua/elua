@@ -19,6 +19,8 @@
 #include "version.h"
 #endif
 
+#ifdef LUA_EGC
+
 // Lua: elua.egc_setup( mode, [ memlimit ] )
 static int elua_egc_setup( lua_State *L )
 {
@@ -30,6 +32,8 @@ static int elua_egc_setup( lua_State *L )
   legc_set_mode( L, mode, memlimit );
   return 0;
 }
+
+#endif
 
 // Lua: elua.version()
 static int elua_version( lua_State *L )
@@ -84,17 +88,21 @@ static int elua_shell( lua_State *L )
 #include "lrodefs.h"
 const LUA_REG_TYPE elua_map[] =
 {
+#ifdef LUA_EGC
   { LSTRKEY( "egc_setup" ), LFUNCVAL( elua_egc_setup ) },
+#endif
   { LSTRKEY( "version" ), LFUNCVAL( elua_version ) },
   { LSTRKEY( "save_history" ), LFUNCVAL( elua_save_history ) },
 #ifdef BUILD_SHELL
   { LSTRKEY( "shell" ), LFUNCVAL( elua_shell ) },
 #endif
 #if LUA_OPTIMIZE_MEMORY > 0
+#ifdef LUA_EGC
   { LSTRKEY( "EGC_NOT_ACTIVE" ), LNUMVAL( EGC_NOT_ACTIVE ) },
   { LSTRKEY( "EGC_ON_ALLOC_FAILURE" ), LNUMVAL( EGC_ON_ALLOC_FAILURE ) },
   { LSTRKEY( "EGC_ON_MEM_LIMIT" ), LNUMVAL( EGC_ON_MEM_LIMIT ) },
   { LSTRKEY( "EGC_ALWAYS" ), LNUMVAL( EGC_ALWAYS ) },
+#endif
 #endif
   { LNILKEY, LNILVAL }
 };
@@ -105,10 +113,12 @@ LUALIB_API int luaopen_elua( lua_State *L )
   return 0;
 #else
   luaL_register( L, AUXLIB_ELUA, elua_map );
+#ifdef LUA_EGC
   MOD_REG_NUMBER( L, "EGC_NOT_ACTIVE", EGC_NOT_ACTIVE );
   MOD_REG_NUMBER( L, "EGC_ON_ALLOC_FAILURE", EGC_ON_ALLOC_FAILURE );
   MOD_REG_NUMBER( L, "EGC_ON_MEM_LIMIT", EGC_ON_MEM_LIMIT );
   MOD_REG_NUMBER( L, "EGC_ALWAYS", EGC_ALWAYS );
+#endif
   return 1;
 #endif
 }
