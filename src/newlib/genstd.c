@@ -45,8 +45,11 @@ static _ssize_t std_read( struct _reent *r, int fd, void* vptr, size_t len, void
     c = std_get_char_func( STD_INFINITE_TIMEOUT );
     switch( c )
     {
+// If there's no shell, quitting Lua makes no sense.
+#ifdef BUILD_SHELL
     case STD_CTRLZ_CODE:  // End of file
       return 0;
+#endif
 
     case -1:              // UART overrun/failure - return chars so far
       return i;
