@@ -5,7 +5,9 @@
 */
 
 
+#ifndef LUA_REMOVE_SIGNAL
 #include <signal.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,6 +19,9 @@
 #include "lauxlib.h"
 #include "lualib.h"
 
+#ifdef LUA_REMOVE_SIGNAL
+#define signal(sig, action) do {} while(0)
+#endif
 
 
 static lua_State *globalL = NULL;
@@ -33,6 +38,7 @@ static void lstop (lua_State *L, lua_Debug *ar) {
 }
 #endif
 
+#ifndef LUA_REMOVE_SIGNAL
 
 static void laction (int i) {
   signal(i, SIG_DFL); /* if another SIGINT happens before lstop,
@@ -42,6 +48,7 @@ static void laction (int i) {
 #endif
 }
 
+#endif
 
 static void print_usage (void) {
   fprintf(stderr, "usage: %s [options] [script [args]].\n", progname);
