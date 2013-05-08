@@ -93,11 +93,13 @@ static void preinit_state (lua_State *L, global_State *g) {
   L->stack = NULL;
   L->stacksize = 0;
   L->errorJmp = NULL;
+#ifndef LUA_REMOVE_HOOKS
   L->hook = NULL;
   L->hookmask = 0;
   L->basehookcount = 0;
   L->allowhook = 1;
   resethookcount(L);
+#endif
   L->openupval = NULL;
   L->size_ci = 0;
   L->nCcalls = L->baseCcalls = 0;
@@ -131,10 +133,12 @@ lua_State *luaE_newthread (lua_State *L) {
   preinit_state(L1, G(L));
   stack_init(L1, L);  /* init stack */
   setobj2n(L, gt(L1), gt(L));  /* share table of globals */
+#ifndef LUA_REMOVE_HOOKS
   L1->hookmask = L->hookmask;
   L1->basehookcount = L->basehookcount;
   L1->hook = L->hook;
   resethookcount(L1);
+#endif
   lua_assert(!isdead(G(L), obj2gco(L1)));
   L->top--; /* remove thread from stack */
   return L1;
@@ -233,7 +237,9 @@ lua_State *lua_getstate(void) {
 LUA_API void lua_close (lua_State *L) {
 #ifndef LUA_CROSS_COMPILER  
   int oldstate = platform_cpu_set_global_interrupts( PLATFORM_CPU_DISABLE );
+#ifndef LUA_REMOVE_HOOKS
   lua_sethook( L, NULL, 0, 0 );
+#endif
   lua_crtstate = NULL;
   lua_pushnil( L );
   lua_rawseti( L, LUA_REGISTRYINDEX, LUA_INT_HANDLER_KEY );

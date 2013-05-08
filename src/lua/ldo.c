@@ -86,7 +86,9 @@ static void resetstack (lua_State *L, int status) {
   luaF_close(L, L->base);  /* close eventual pending closures */
   luaD_seterrorobj(L, status, L->base);
   L->nCcalls = L->baseCcalls;
+#ifndef LUA_REMOVE_HOOKS
   L->allowhook = 1;
+#endif
   restore_stack_limit(L);
   L->errfunc = 0;
   L->errorJmp = NULL;
@@ -182,6 +184,7 @@ static CallInfo *growCI (lua_State *L) {
 }
 
 
+#ifndef LUA_REMOVE_HOOKS
 void luaD_callhook (lua_State *L, int event, int line) {
   lua_Hook hook = L->hook;
   if (hook && L->allowhook) {
@@ -207,6 +210,7 @@ void luaD_callhook (lua_State *L, int event, int line) {
     L->top = restorestack(L, top);
   }
 }
+#endif
 
 
 static StkId adjust_varargs (lua_State *L, Proto *p, int actual) {
@@ -310,11 +314,13 @@ int luaD_precall (lua_State *L, StkId func, int nresults) {
     for (st = L->top; st < ci->top; st++)
       setnilvalue(st);
     L->top = ci->top;
+#ifndef LUA_REMOVE_HOOKS
     if (L->hookmask & LUA_MASKCALL) {
       L->savedpc++;  /* hooks assume 'pc' is already incremented */
       luaD_callhook(L, LUA_HOOKCALL, -1);
       L->savedpc--;  /* correct 'pc' */
     }
+#endif
     return PCRLUA;
   }
   else {  /* if is a C function, call it */
@@ -327,8 +333,10 @@ int luaD_precall (lua_State *L, StkId func, int nresults) {
     ci->top = L->top + LUA_MINSTACK;
     lua_assert(ci->top <= L->stack_last);
     ci->nresults = nresults;
+#ifndef LUA_REMOVE_HOOKS
     if (L->hookmask & LUA_MASKCALL)
       luaD_callhook(L, LUA_HOOKCALL, -1);
+#endif
     lua_unlock(L);
     if (ttisfunction(ci->func))
       n = (*curr_func(L)->c.f)(L);  /* do the actual call */
@@ -345,6 +353,7 @@ int luaD_precall (lua_State *L, StkId func, int nresults) {
 }
 
 
+#ifndef LUA_REMOVE_HOOKS
 static StkId callrethooks (lua_State *L, StkId firstResult) {
   ptrdiff_t fr = savestack(L, firstResult);  /* next call may change stack */
   luaD_callhook(L, LUA_HOOKRET, -1);
@@ -354,14 +363,17 @@ static StkId callrethooks (lua_State *L, StkId firstResult) {
   }
   return restorestack(L, fr);
 }
+#endif
 
 
 int luaD_poscall (lua_State *L, StkId firstResult) {
   StkId res;
   int wanted, i;
   CallInfo *ci;
+#ifndef LUA_REMOVE_HOOKS
   if (L->hookmask & LUA_MASKRET)
     firstResult = callrethooks(L, firstResult);
+#endif
   ci = L->ci--;
   res = ci->func;  /* res == final position of 1st result */
   wanted = ci->nresults;
@@ -474,7 +486,9 @@ int luaD_pcall (lua_State *L, Pfunc func, void *u,
   int status;
   unsigned short oldnCcalls = L->nCcalls;
   ptrdiff_t old_ci = saveci(L, L->ci);
+#ifndef LUA_REMOVE_HOOKS
   lu_byte old_allowhooks = L->allowhook;
+#endif
   ptrdiff_t old_errfunc = L->errfunc;
   L->errfunc = ef;
   status = luaD_rawrunprotected(L, func, u);
@@ -486,7 +500,9 @@ int luaD_pcall (lua_State *L, Pfunc func, void *u,
     L->ci = restoreci(L, old_ci);
     L->base = L->ci->base;
     L->savedpc = L->ci->savedpc;
+#ifndef LUA_REMOVE_HOOKS
     L->allowhook = old_allowhooks;
+#endif
     restore_stack_limit(L);
   }
   L->errfunc = old_errfunc;

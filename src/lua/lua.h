@@ -336,8 +336,10 @@ LUA_API void lua_setlevel	(lua_State *from, lua_State *to);
 typedef struct lua_Debug lua_Debug;  /* activation record */
 
 
+#ifndef LUA_REMOVE_HOOKS
 /* Functions to be called by the debuger in specific events */
 typedef void (*lua_Hook) (lua_State *L, lua_Debug *ar);
+#endif
 
 
 LUA_API int lua_getstack (lua_State *L, int level, lua_Debug *ar);
@@ -347,10 +349,14 @@ LUA_API const char *lua_setlocal (lua_State *L, const lua_Debug *ar, int n);
 LUA_API const char *lua_getupvalue (lua_State *L, int funcindex, int n);
 LUA_API const char *lua_setupvalue (lua_State *L, int funcindex, int n);
 
+#ifndef LUA_REMOVE_HOOKS
 LUA_API int lua_sethook (lua_State *L, lua_Hook func, int mask, int count);
 LUA_API lua_Hook lua_gethook (lua_State *L);
 LUA_API int lua_gethookmask (lua_State *L);
 LUA_API int lua_gethookcount (lua_State *L);
+#else
+// #define lua_sethook(a,b,c,d) do { } while(0)
+#endif
 
 
 struct lua_Debug {

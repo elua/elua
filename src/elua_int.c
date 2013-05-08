@@ -14,6 +14,10 @@
 
 #ifdef BUILD_LUA_INT_HANDLERS
 
+#ifndef resethookcount
+# error "You cannot build LUA_INTERRUPT_HANDLERS with LUA_REMOVE_HOOKS"
+#endif
+
 // Interrupt queue read and write indexes
 static volatile u8 elua_int_read_idx, elua_int_write_idx;
 // The interrupt queue

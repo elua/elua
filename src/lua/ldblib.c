@@ -203,6 +203,7 @@ static int db_setupvalue (lua_State *L) {
 }
 
 
+#ifndef LUA_REMOVE_HOOKS
 
 static const char KEY_HOOK = 'h';
 
@@ -300,6 +301,7 @@ static int db_gethook (lua_State *L) {
   lua_pushinteger(L, lua_gethookcount(L1));
   return 3;
 }
+#endif
 
 
 static int db_debug (lua_State *L) {
@@ -379,14 +381,18 @@ static int db_errorfb (lua_State *L) {
 const LUA_REG_TYPE dblib[] = {
   {LSTRKEY("debug"), LFUNCVAL(db_debug)},
   {LSTRKEY("getfenv"), LFUNCVAL(db_getfenv)},
+#ifndef LUA_REMOVE_HOOKS
   {LSTRKEY("gethook"), LFUNCVAL(db_gethook)},
+#endif
   {LSTRKEY("getinfo"), LFUNCVAL(db_getinfo)},
   {LSTRKEY("getlocal"), LFUNCVAL(db_getlocal)},
   {LSTRKEY("getregistry"), LFUNCVAL(db_getregistry)},
   {LSTRKEY("getmetatable"), LFUNCVAL(db_getmetatable)},
   {LSTRKEY("getupvalue"), LFUNCVAL(db_getupvalue)},
   {LSTRKEY("setfenv"), LFUNCVAL(db_setfenv)},
+#ifndef LUA_REMOVE_HOOKS
   {LSTRKEY("sethook"), LFUNCVAL(db_sethook)},
+#endif
   {LSTRKEY("setlocal"), LFUNCVAL(db_setlocal)},
   {LSTRKEY("setmetatable"), LFUNCVAL(db_setmetatable)},
   {LSTRKEY("setupvalue"), LFUNCVAL(db_setupvalue)},
