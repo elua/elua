@@ -104,7 +104,6 @@ static int uart_read( lua_State* L )
   s32 maxsize = 0, count = 0;
   const char *fmt;
   luaL_Buffer b;
-  char cres;
   timer_data_type timeout = PLATFORM_TIMER_INF_TIMEOUT;
   
   id = luaL_checkinteger( L, 1 );
@@ -120,15 +119,17 @@ static int uart_read( lua_State* L )
   else
   {
     fmt = luaL_checkstring( L, 2 );
-    if( !strcmp( fmt, "*l" ) )
-      mode = UART_READ_MODE_LINE;
-    else if( !strcmp( fmt, "*n" ) )
-      mode = UART_READ_MODE_NUMBER;
-    else if( !strcmp( fmt, "*s" ) )
-      mode = UART_READ_MODE_SPACE;
+    if (fmt[0] == '*')
+      switch (fmt[1]) {
+        case 'l': mode = UART_READ_MODE_LINE;   break;
+        case 'n': mode = UART_READ_MODE_NUMBER; break;
+        case 's': mode = UART_READ_MODE_SPACE;  break;
+        default:  return luaL_error( L, "invalid format" );
+      }
     else
       return luaL_error( L, "invalid format" );
   }
+
 
   // Check timeout and timer id
   uart_get_timeout_data( L, 3, &timeout, &timer_id );
@@ -139,19 +140,18 @@ static int uart_read( lua_State* L )
   {
     if( ( res = platform_uart_recv( id, timer_id, timeout ) ) == -1 )
       break; 
-    cres = ( char )res;
     count ++;
     issign = ( count == 1 ) && ( ( res == '-' ) || ( res == '+' ) );
     // [TODO] this only works for lines that actually end with '\n', other line endings
     // are not supported.
-    if( ( cres == '\n' ) && ( mode == UART_READ_MODE_LINE ) )
+    if( ( mode == UART_READ_MODE_LINE ) && ( res == '\n' ) )
       break;
-    if( !isdigit( cres ) && !issign && ( mode == UART_READ_MODE_NUMBER ) )
+    if( ( mode == UART_READ_MODE_NUMBER ) && !isdigit( res ) && !issign )
       break;
-    if( isspace( cres ) && ( mode == UART_READ_MODE_SPACE ) )
+    if( ( mode == UART_READ_MODE_SPACE ) && isspace( res ) )
       break;
-    luaL_putchar( &b, cres );
-    if( ( count == maxsize ) && ( mode == UART_READ_MODE_MAXSIZE ) )
+    luaL_putchar( &b, res );
+    if( ( mode == UART_READ_MODE_MAXSIZE ) && ( count == maxsize ) )
       break;
   }
   luaL_pushresult( &b );
