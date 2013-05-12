@@ -138,16 +138,20 @@ static const DM_DEVICE std_device =
   std_write,            // write
   std_read,             // read
   NULL,                 // lseek
+#ifdef DM_DIROPS
   NULL,                 // opendir
   NULL,                 // readdir
   NULL,                 // closedir
+#endif
 #ifdef LUA_ROSTRINGS
   NULL,                 // getaddr
 #endif
+#ifdef DM_DIROPS
   NULL,                 // mkdir
   NULL,                 // unlink
   NULL,                 // rmdir
   NULL                  // rename
+#endif
 };
 
 int std_register()

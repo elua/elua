@@ -197,6 +197,8 @@ static off_t semifs_lseek_r( struct _reent *r, int fd, off_t off, int whence, vo
   return res == 0 ? off : -1;
 }
 
+#ifdef DM_DIROPS
+
 static int xffind(const char *pattern, XFINFO *info)
 {
     uint32_t param[4];
@@ -246,6 +248,7 @@ static int semifs_closedir_r( struct _reent *r, void *d, void *pdata )
 {
   return 0;
 }
+#endif  // #ifdef DM_DIROPS
 
 // Semihosting device descriptor structure
 static const DM_DEVICE semifs_device =
@@ -255,16 +258,20 @@ static const DM_DEVICE semifs_device =
   semifs_write_r,        // write
   semifs_read_r,         // read
   semifs_lseek_r,        // lseek
+#ifdef DM_DIROPS
   semifs_opendir_r,      // opendir
   semifs_readdir_r,      // readdir
   semifs_closedir_r,     // closedir
+#endif
 #ifdef LUA_ROSTRINGS
   NULL,                  // getaddr
 #endif
+#ifdef DM_DIROPS
   NULL,                  // mkdir
   NULL,                  // unlink
   NULL,                  // rmdir                   
   NULL                   // rename
+#endif
 };
 
 int semifs_init()

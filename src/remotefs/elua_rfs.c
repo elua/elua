@@ -99,6 +99,8 @@ static off_t rfs_lseek_r( struct _reent *r, int fd, off_t off, int whence, void 
   return ( off_t )rfsc_lseek( fd, ( s32 )off, whence );
 }
 
+#ifdef DM_DIROPS
+
 // opendir
 static void* rfs_opendir_r( struct _reent *r, const char* name, void *pdata )
 {
@@ -122,6 +124,8 @@ static int rfs_closedir_r( struct _reent *r, void *d, void *pdata )
 {
   return rfsc_closedir( ( u32 )d );
 }
+
+#endif
 
 // ****************************************************************************
 // Remote FS serial transport functions
@@ -177,16 +181,20 @@ static const DM_DEVICE rfs_device =
   rfs_write_r,          // write
   rfs_read_r,           // read
   rfs_lseek_r,          // lseek
+#ifdef DM_DIROPS
   rfs_opendir_r,        // opendir
   rfs_readdir_r,        // readdir
   rfs_closedir_r,       // closedir
+#endif
 #ifdef LUA_ROSTRINGS
   NULL,                 // getaddr
 #endif
+#ifdef DM_DIROPS
   NULL,                 // mkdir
   NULL,                 // unlink
   NULL,                 // rmdir
   NULL                  // rename
+#endif
 };
 
 int remotefs_init()

@@ -1,4 +1,7 @@
 // MMC filesystem implementation using FatFs
+#include "platform_conf.h"
+
+#ifdef BUILD_MMCFS
 #include "mmcfs.h"
 #include "type.h"
 #include <string.h>
@@ -7,9 +10,6 @@
 #include <stdio.h>
 #include "ioctl.h"
 #include <sys/types.h>
-
-#include "platform_conf.h"
-#ifdef BUILD_MMCFS
 #include "ff.h"
 #include "diskio.h"
 #include <fcntl.h>
@@ -208,6 +208,7 @@ static off_t mmcfs_lseek_r( struct _reent *r, int fd, off_t off, int whence, voi
   return newpos;
 }
 
+#ifdef DM_DIROPS
 // opendir
 static void* mmcfs_opendir_r( struct _reent *r, const char* dname, void *pdata )
 {
@@ -306,6 +307,7 @@ static int mmcfs_rename_r( struct _reent *r, const char *oldname, const char *ne
 {
   return f_rename( oldname, newname );
 }
+#endif	// BIULD_SHELL
 
 // MMC device descriptor structure
 static const DM_DEVICE mmcfs_device =
@@ -315,16 +317,20 @@ static const DM_DEVICE mmcfs_device =
   mmcfs_write_r,        // write
   mmcfs_read_r,         // read
   mmcfs_lseek_r,        // lseek
+#ifdef DM_DIROPS
   mmcfs_opendir_r,      // opendir
   mmcfs_readdir_r,      // readdir
   mmcfs_closedir_r,     // closedir
+#endif
 #ifdef LUA_ROSTRINGS
   NULL,                 // getaddr
 #endif
+#ifdef DM_DIROPS
   mmcfs_mkdir_r,        // mkdir
   mmcfs_unlink_r,       // unlink
   mmcfs_unlink_r,       // rmdir
   mmcfs_rename_r        // rename
+#endif
 };
 
 int mmcfs_init()

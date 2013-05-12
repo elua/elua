@@ -1,5 +1,8 @@
 // Shell: 'ls' implementation
 
+#include "platform_conf.h"
+#ifdef BUILD_SHELL
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,7 +12,6 @@
 #include "shell.h"
 #include "common.h"
 #include "type.h"
-#include "platform_conf.h"
 
 #ifdef BUILD_ADVANCED_SHELL
 
@@ -149,3 +151,4 @@ void shell_ls( int argc, char **argv )
 
 #endif // #ifdef BUILD_ADVANCED_SHELL
 
+#endif // #ifdef BUILD_SHELL

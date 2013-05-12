@@ -6,10 +6,10 @@
 #include <reent.h>
 #include <errno.h>
 #include <stdlib.h>
+#include "platform_conf.h"
 #include "devman.h"
 #include "genstd.h"
 #include "common.h"
-#include "platform_conf.h"
 
 static DM_INSTANCE_DATA dm_list[ DM_MAX_DEVICES ];            // list of devices
 static int dm_num_devs;                                       // number of devices
@@ -48,6 +48,8 @@ int dm_register( const char *name, void *pdata, const DM_DEVICE *pdev )
   return i;
 }
 
+#ifdef DM_DIROPS
+
 // Helper: get a device ID from its name
 // Also return a pointer to the remaining part of the name as side effect
 static int dm_device_id_from_name( const char* name, const char **rest )
@@ -69,6 +71,8 @@ static int dm_device_id_from_name( const char* name, const char **rest )
     *rest = name + strlen( dm_list[ pos ].name );
   return pos;
 }
+
+#endif
 
 // Unregister a device
 // Returns 0 for OK or an error code if error
@@ -127,6 +131,7 @@ int dm_init()
   return DM_OK;
 }
 
+#ifdef DM_DIROPS
 // Open a directory and return its descriptor
 DM_DIR* dm_opendir( const char* dirname )
 {
@@ -197,6 +202,7 @@ int dm_closedir( DM_DIR *d )
   free( d );
   return res;
 }
+#endif  // #ifdef DM_DIROPS
 
 #ifdef LUA_ROSTRINGS
 const char* dm_getaddr( int fd )

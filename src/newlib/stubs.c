@@ -7,10 +7,10 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <unistd.h>
+#include "platform_conf.h"
 #include "devman.h"
 #include "ioctl.h"
 #include "platform.h"
-#include "platform_conf.h"
 #include "genstd.h"
 #include "utils.h"
 #include "salloc.h"
@@ -202,6 +202,7 @@ _ssize_t write( int file, const void *ptr, size_t len )
   return _write_r( _REENT, file, ptr, len );
 }
 
+#ifdef DM_DIROPS
 // ****************************************************************************
 // _mkdir_r
 int _mkdir_r( struct _reent *r, const char *path, mkdir_mode_t mode )
@@ -324,6 +325,7 @@ int _rename_r( struct _reent *r, const char *oldname, const char *newname )
   r->_errno = EXDEV;
   return -1;
 }
+#endif  // #ifdef DM_DIROPS
 
 // ****************************************************************************
 // Miscellaneous functions

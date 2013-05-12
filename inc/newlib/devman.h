@@ -3,10 +3,16 @@
 #ifndef __DEVMAN_H__
 #define __DEVMAN_H__
 
+#include "platform_conf.h"  /* To know whether to include dir operations */
 #include "type.h"
 #include <reent.h>
 #include <unistd.h>
 #include <sys/types.h>
+
+#ifdef BUILD_SHELL
+// Only the eLua shell uses the directory operations
+# define DM_DIROPS
+#endif
 
 // Maximum number of devices in the system
 #define DM_MAX_DEVICES        16
@@ -57,16 +63,20 @@ typedef struct
   _ssize_t ( *p_write_r ) ( struct _reent *r, int fd, const void *ptr, size_t len, void *pdata );
   _ssize_t ( *p_read_r )( struct _reent *r, int fd, void *ptr, size_t len, void *pdata );
   off_t ( *p_lseek_r )( struct _reent *r, int fd, off_t off, int whence, void *pdata );
+#ifdef DM_DIROPS
   void* ( *p_opendir_r )( struct _reent *r, const char* name, void *pdata );
   struct dm_dirent* ( *p_readdir_r )( struct _reent *r, void *dir, void *pdata );
   int ( *p_closedir_r )( struct _reent *r, void* dir, void *pdata );
+#endif
 #ifdef LUA_ROSTRINGS
   const char* ( *p_getaddr_r )( struct _reent *r, int fd, void *pdata );
 #endif
+#ifdef DM_DIROPS
   int ( *p_mkdir_r )( struct _reent *r, const char *pathname, mkdir_mode_t mode, void *pdata );
   int ( *p_unlink_r )( struct _reent *r, const char *fname, void *pdata );
   int ( *p_rmdir_r )( struct _reent *r, const char *fname, void *pdata );
   int ( *p_rename_r )( struct _reent *r, const char *oldname, const char *newname, void *pdata );
+#endif
 } DM_DEVICE;
 
 // Additional registration data for each FS (per FS instance)

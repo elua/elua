@@ -338,6 +338,8 @@ static off_t romfs_lseek_r( struct _reent *r, int fd, off_t off, int whence, voi
   return newpos;
 }
 
+#ifdef DM_DIROPS
+
 // Directory operations
 static u32 romfs_dir_data = 0;
 
@@ -399,6 +401,7 @@ static int romfs_closedir_r( struct _reent *r, void *d, void *pdata )
   *( u32* )d = 0;
   return 0;
 }
+#endif  // #ifdef DM_DIROPS
 
 #ifdef LUA_ROSTRINGS
 // getaddr
@@ -425,17 +428,20 @@ static const DM_DEVICE romfs_device =
   romfs_write_r,        // write
   romfs_read_r,         // read
   romfs_lseek_r,        // lseek
+#ifdef DM_DIROPS
   romfs_opendir_r,      // opendir
   romfs_readdir_r,      // readdir
   romfs_closedir_r,     // closedir
-  romfs_getaddr_r,      // getaddr
+#endif
 #ifdef LUA_ROSTRINGS
   romfs_getaddr_r,      // getaddr
 #endif
+#ifdef DM_DIROPS
   NULL,                 // mkdir
   NULL,                 // unlink
   NULL,                 // rmdir
   NULL                  // rename
+#endif
 };
 
 // ****************************************************************************
