@@ -94,17 +94,25 @@ int main( void )
   // Initialize device manager
   dm_init();
 
+#if defined( BUILD_ROMFS ) || defined( BUILD_WOFS )
   // Register the ROM filesystem
   romfs_init();
+#endif
 
+#ifdef BUILD_MMCFS
   // Register the MMC filesystem
   mmcfs_init();
+#endif
 
+#ifdef BUILD_SEMIFS
   // Register the Semihosting filesystem
   semifs_init();
+#endif
 
+#ifdef BUILD_RFS
   // Register the remote filesystem
   remotefs_init();
+#endif
 
   // Search for autorun files in the defined order and execute the 1st if found
   for( i = 0; i < sizeof( boot_order ) / sizeof( *boot_order ); i++ )

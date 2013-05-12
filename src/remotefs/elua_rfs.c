@@ -222,12 +222,5 @@ int remotefs_init()
   return dm_register( "/rfs", NULL, &rfs_device );
 }
 
-#else // #ifdef BUILD_RFS
-
-int remotefs_init()
-{
-  return dm_register( NULL, NULL, NULL );
-}
-
 #endif
 

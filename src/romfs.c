@@ -577,12 +577,5 @@ int romfs_init()
   return 0;
 }
 
-#else // #if defined( BUILD_ROMFS ) || defined( BUILD_WOFS )
-
-int romfs_init()
-{
-  return dm_register( NULL, NULL, NULL );
-}
-
 #endif // #if defined( BUILD_ROMFS ) || defined( BUILD_WOFS )
 

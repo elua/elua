@@ -284,12 +284,5 @@ int semifs_init()
   return dm_register( "/semi", NULL, &semifs_device );
 }
 
-#else // #ifdef BUILD_SEMIFS
-
-int semifs_init()
-{
-  return dm_register( NULL, NULL, NULL );
-}
-
 #endif // #ifdef BUILD_SEMIFS
 

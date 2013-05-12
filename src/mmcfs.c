@@ -359,11 +359,4 @@ int mmcfs_init()
 #endif // #if NUM_CARDS == 1
 }
 
-#else // #ifdef BUILD_MMCFS
-
-int mmcfs_init()
-{
-  return dm_register( NULL, NULL, NULL );
-}
-
 #endif // BUILD_MMCFS
