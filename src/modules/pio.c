@@ -11,6 +11,8 @@
 #include <string.h>
 #include <ctype.h>
 
+#if NUM_PIO > 0
+
 // PIO public constants
 #define PIO_DIR_OUTPUT      0
 #define PIO_DIR_INPUT       1
@@ -469,4 +471,6 @@ LUALIB_API int luaopen_pio( lua_State *L )
   return 1;
 #endif // #if LUA_OPTIMIZE_MEMORY > 0
 }
+
+#endif
 

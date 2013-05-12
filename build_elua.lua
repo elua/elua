@@ -166,7 +166,8 @@ local platform_list =
   stm32 = { cpus = { 'STM32F103ZE', 'STM32F103RE' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' }, big_endian = false },
   avr32 = { cpus = { 'AT32UC3A0128', 'AT32UC3A0256', 'AT32UC3A0512', 'AT32UC3B0256' }, toolchains = { 'avr32-gcc', 'avr32-unknown-none-gcc' }, big_endian = true },
   lpc24xx = { cpus = { 'LPC2468' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' }, big_endian = false },
-  lpc17xx = { cpus = { 'LPC1768' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' }, big_endian = false }
+  lpc17xx = { cpus = { 'LPC1768' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' }, big_endian = false },
+  xmc4000 = { cpus = { 'XMC4500F144K1024' }, toolchains = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' }, big_endian = false },
 }
 
 -- List of board/CPU combinations
@@ -193,7 +194,8 @@ local board_list =
   [ 'MBED' ]            = { 'LPC1768' },
   [ 'MIZAR32' ]         = { 'AT32UC3A0256', 'AT32UC3A0512', 'AT32UC3A0128' },
   [ 'NETDUINO' ]        = { 'AT91SAM7X512' },
-  [ 'EK-LM3S9D92' ]     = { 'LM3S9D92' }
+  [ 'EK-LM3S9D92' ]     = { 'LM3S9D92' },
+  [ 'HEXAGON' ]         = { 'XMC4500F144K1024' },
 }
 
 -- Build the CPU list starting from the above list
@@ -501,6 +503,7 @@ builder:default( builder:add_target( exetarget, 'build eLua executable' ) )
 
 -- Create 'prog' target(s)
 local ptargets = {}
+print( platform )
 local progfunc = tools[ platform ].progfunc or genprog
 utils.foreach( tools[ platform ].prog_flist, function( _, t )
   local target = builder:target( t, { exetarget }, progfunc )
