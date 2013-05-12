@@ -40,8 +40,10 @@ static void uart_get_timeout_data( lua_State *L, int pidx, timer_data_type *ptim
     *ptimeout = ( timer_data_type )tempn;
   }
   *pid = ( unsigned )luaL_optinteger( L, pidx + 1, PLATFORM_TIMER_SYS_ID );
-  if( *pid == PLATFORM_TIMER_SYS_ID && !platform_timer_sys_available() )
+#ifndef PLATFORM_HAS_SYSTIMER
+  if( *pid == PLATFORM_TIMER_SYS_ID )
     luaL_error( L, "the system timer is not implemented on this platform" );
+#endif
 }
 
 

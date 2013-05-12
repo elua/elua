@@ -629,8 +629,6 @@ void cmn_get_timeout_data( lua_State *L, int pidx, unsigned *pid, timer_data_typ
       luaL_error( L, "invalid timeout value" );
     *ptimeout = ( timer_data_type )tempn;
   }
-  if( *pid == PLATFORM_TIMER_SYS_ID && !platform_timer_sys_available() )
-    luaL_error( L, "the system timer is not implemented on this platform" );
 }
 
 

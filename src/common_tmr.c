@@ -22,13 +22,6 @@ extern const elua_int_descriptor elua_int_table[ INT_ELUA_LAST ];
 #define VTMR_NUM_TIMERS       0
 #endif // #ifndef VTMR_NUM_TIMERS
 
-#ifndef PLATFORM_HAS_SYSTIMER
-#warning This platform does not have a system timer. Your eLua image might not work as expected.
-#define SYSTIMER_SUPPORT 0
-#else // #ifndef PLATFORM_HAS_SYSTIMER
-#define SYSTIMER_SUPPORT 1
-#endif // #ifndef PLATFORM_HAS_SYSTIMER
-
 // ****************************************************************************
 // Timers (and vtimers) functions
 
@@ -177,26 +170,17 @@ void cmn_virtual_timer_cb()
 // ============================================================================
 // Actual timer functions
 
-int platform_timer_sys_available()
-{
-  return SYSTIMER_SUPPORT;
-}
-
-#ifndef PLATFORM_HAS_SYSTIMER
-timer_data_type platform_timer_read_sys()
-{
-  return 0;
-}
-#endif
-
 int platform_timer_exists( unsigned id )
 {
 #if VTMR_NUM_TIMERS > 0
   if( id >= VTMR_FIRST_ID )
     return TIMER_IS_VIRTUAL( id );
-  else
 #endif
-    return id < NUM_TIMER || ( id == PLATFORM_TIMER_SYS_ID && SYSTIMER_SUPPORT );
+#ifdef PLATFORM_HAS_SYSTIMER
+  if (id == PLATFORM_TIMER_SYS_ID)
+    return 1;
+#endif
+  return id < NUM_TIMER;
 }
 
 void platform_timer_delay( unsigned id, timer_data_type delay_us )
@@ -206,10 +190,9 @@ void platform_timer_delay( unsigned id, timer_data_type delay_us )
     vtmr_delay( id, delay_us );
   else
 #endif
+#ifdef PLATFORM_HAS_SYSTIMER
   if( id == PLATFORM_TIMER_SYS_ID )
   {
-    if( !SYSTIMER_SUPPORT )
-      return;
     if( delay_us > 0 )
     {
       u64 tstart = platform_timer_read_sys(), tend;
@@ -223,6 +206,7 @@ void platform_timer_delay( unsigned id, timer_data_type delay_us )
     }
   }
   else
+#endif
     platform_s_timer_delay( id, delay_us );
 }
       
@@ -230,10 +214,9 @@ timer_data_type platform_timer_op( unsigned id, int op, timer_data_type data )
 {
   timer_data_type res = 0;
 
+#ifdef PLATFORM_HAS_SYSTIMER
   if( id == PLATFORM_TIMER_SYS_ID ) // the system timer gets special treatment
   {
-    if( !SYSTIMER_SUPPORT )
-      return 0;
     switch( op )
     {
       case PLATFORM_TIMER_OP_START:
@@ -261,21 +244,10 @@ timer_data_type platform_timer_op( unsigned id, int op, timer_data_type data )
 
     return res;
   }
-  if( ( VTMR_NUM_TIMERS == 0 ) || ( !TIMER_IS_VIRTUAL( id ) ) )
-  {
-    // 'get min delay' and 'get max delay' are very common cases, handle them here
-    if( op == PLATFORM_TIMER_OP_GET_MAX_DELAY )
-      return platform_timer_get_diff_us( id, 0, platform_timer_get_max_cnt( id ) );
-    else if( op == PLATFORM_TIMER_OP_GET_MIN_DELAY )
-      return platform_timer_get_diff_us( id, 0, 1 );
-#ifdef PLATFORM_TMR_COUNTS_DOWN
-    else if( op == PLATFORM_TIMER_OP_START || op == PLATFORM_TIMER_OP_READ )
-      return platform_s_timer_op( id, PLATFORM_TIMER_OP_GET_MAX_CNT, 0 ) - platform_s_timer_op( id, op, 0 );
+  else
 #endif
-    else
-      return platform_s_timer_op( id, op, data );
-  }
 #if VTMR_NUM_TIMERS > 0
+  if( TIMER_IS_VIRTUAL( id ) )
   switch( op )
   {
     case PLATFORM_TIMER_OP_START:
@@ -304,7 +276,21 @@ timer_data_type platform_timer_op( unsigned id, int op, timer_data_type data )
       res = VTMR_FREQ_HZ;
       break;      
   }
+  else
 #endif
+  {
+    // 'get min delay' and 'get max delay' are very common cases, handle them here
+    if( op == PLATFORM_TIMER_OP_GET_MAX_DELAY )
+      res = platform_timer_get_diff_us( id, 0, platform_timer_get_max_cnt( id ) );
+    else if( op == PLATFORM_TIMER_OP_GET_MIN_DELAY )
+      res = platform_timer_get_diff_us( id, 0, 1 );
+#ifdef PLATFORM_TMR_COUNTS_DOWN
+    else if( op == PLATFORM_TIMER_OP_START || op == PLATFORM_TIMER_OP_READ )
+      res = platform_s_timer_op( id, PLATFORM_TIMER_OP_GET_MAX_CNT, 0 ) - platform_s_timer_op( id, op, 0 );
+#endif
+    else
+      res = platform_s_timer_op( id, op, data );
+  }
   return res;
 }
 
