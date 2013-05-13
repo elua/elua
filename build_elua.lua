@@ -302,7 +302,7 @@ end
 
 -- CPU/allocator mapping (if allocator not specified)
 if comp.allocator == 'auto' then
-  if comp.board:upper() == 'MIZAR32' and comp.cpu:upper() == 'AT32UC3A0128' then
+  if comp.cpu:upper() == 'AT32UC3A0128' and comp.bootloader == 'none' then
     comp.allocator = 'simple'
   elseif utils.array_element_index( { 'LPC-H2888', 'ATEVK1100', 'MIZAR32', 'MBED' }, comp.board:upper() ) then
     comp.allocator = 'multiple'
@@ -412,6 +412,11 @@ addi{ { 'inc', 'inc/newlib',  'inc/remotefs', 'src/platform', 'src/lua' }, { 'sr
 addm( "LUA_OPTIMIZE_MEMORY=" .. ( comp.optram and "2" or "0" ) )
 if comp.rostrings then addm( "LUA_ROSTRINGS" ) end
 addcf( { '-Os','-fomit-frame-pointer' } )
+if comp.cpu:upper() == 'AT32UC3A0128' and comp.bootloader == 'none' then
+  -- Magic optimizer flags reduce eLua code size by 100 bytes.
+  addcf( { '--param','inline-call-cost=0' } )
+  addcf( { '--param','max-inline-insns-auto=8' } )
+end
 
 -- Toolset data (filled by each platform in part)
 tools = {}

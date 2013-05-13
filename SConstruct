@@ -286,7 +286,7 @@ if not GetOption( 'help' ):
 
   # CPU/allocator mapping (if allocator not specified)
   if comp['allocator'] == 'auto':
-    if comp['board'] in ['MIZAR32'] and comp['cpu'] in ['AT32UC3A0128']:
+    if comp['cpu'] in ['AT32UC3A0128'] and comp['bootloader'] == 'none':
       comp['allocator'] = 'simple'
     elif comp['board'] in ['LPC-H2888', 'ATEVK1100', 'MIZAR32', 'MBED']:
       comp['allocator'] = 'multiple'
@@ -421,6 +421,10 @@ if not GetOption( 'help' ):
 
   # Optimizer flags (speed or size)
   comp.Append(CCFLAGS = ['-Os','-fomit-frame-pointer'])
+  if comp['cpu'] in ['AT32UC3A0128'] and comp['bootloader'] == 'none':
+    # Magic optimizer flags reduce eLua code size by 100 bytes.
+    comp.Append(CCFLAGS = ['--param','inline-call-cost=0'])
+    comp.Append(CCFLAGS = ['--param','max-inline-insns-auto=8'])
   #opt += " -ffreestanding"
   #opt += " -fconserve-stack" # conserve stack at potential speed cost, >=GCC4.4
 
