@@ -59,7 +59,12 @@ int shellh_ask_yes_no( const char *prompt )
     printf( "%s ", prompt );
   while( 1 )
   {
+#ifdef BUILD_TERM
     c = term_getch( TERM_INPUT_WAIT );
+#else
+    c = platform_uart_recv( CON_UART_ID, 0 /*UNUSED*/, PLATFORM_TIMER_INF_TIMEOUT );
+#endif
+
     if( c == 'y' || c == 'Y' )
     {
       printf( "y\n" );
