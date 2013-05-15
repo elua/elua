@@ -118,6 +118,12 @@
 #define RPCLINE
 #endif
 
+#if defined( BUILD_TERM )
+#define TERMLINE _ROM( AUXLIB_TERM, luaopen_term, term_map )
+#else
+#define TERMLINE
+#endif
+
 #if defined( PS_LIB_TABLE_NAME )
 #define PLATLINE _ROM( PS_LIB_TABLE_NAME, luaopen_platform, platform_map )
 #else
@@ -150,7 +156,7 @@
   RPCLINE\
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
-  _ROM( AUXLIB_TERM, luaopen_term, term_map )\
+  TERMLINE\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
   PLATLINE\
 
