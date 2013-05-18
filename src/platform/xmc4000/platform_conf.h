@@ -36,7 +36,7 @@
   _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
   _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
   _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )\
-  _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )\
+  _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
   _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
 
 // *****************************************************************************
@@ -70,10 +70,14 @@
 
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)
-#define SRAM_SIZE             ( 64 * 1024 )
-#define SRAM_BASE             0x20000000
-#define MEM_START_ADDRESS     { ( void* )end }
-#define MEM_END_ADDRESS       { ( void* )( SRAM_BASE + SRAM_SIZE - STACK_SIZE_TOTAL - 1 ) }
+#define DSRAM1_SIZE           ( 64 * 1024 )
+#define DSRAM1_BASE           0x20000000
+#define DSRAM2_SIZE           ( 32 * 1024 )
+#define DSRAM2_BASE           0x30000000
+#define PSRAM_SIZE            ( 64 * 1024 )
+#define PSRAM_BASE            0x10000000
+#define MEM_START_ADDRESS     { ( void* )end, ( void* )DSRAM2_BASE, ( void* )PSRAM_BASE }
+#define MEM_END_ADDRESS       { ( void* )( DSRAM1_BASE + DSRAM1_SIZE - STACK_SIZE_TOTAL - 1 ), ( void* )( DSRAM2_BASE + DSRAM2_SIZE - 1 ), ( void* )( PSRAM_BASE + PSRAM_SIZE - 1 ) }
 
 #define CPU_FREQUENCY         120000000
 

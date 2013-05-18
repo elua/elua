@@ -305,7 +305,7 @@ end
 if comp.allocator == 'auto' then
   if comp.board:upper() == 'MIZAR32' and comp.cpu:upper() == 'AT32UC3A0128' then
     comp.allocator = 'simple'
-  elseif utils.array_element_index( { 'LPC-H2888', 'ATEVK1100', 'MIZAR32', 'MBED' }, comp.board:upper() ) then
+  elseif utils.array_element_index( { 'LPC-H2888', 'ATEVK1100', 'MIZAR32', 'MBED', 'HEXAGON' }, comp.board:upper() ) then
     comp.allocator = 'multiple'
   else
     comp.allocator = 'newlib'

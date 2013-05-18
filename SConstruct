@@ -102,7 +102,8 @@ platform_list = {
   'stm32' : { 'cpus' : [ 'STM32F103ZE', 'STM32F103RE' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ], 'big_endian': False },
   'avr32' : { 'cpus' : [ 'AT32UC3A0512', 'AT32UC3A0256', 'AT32UC3A0128', 'AT32UC3B0256' ], 'toolchains' : [ 'avr32-gcc', 'avr32-unknown-none-gcc' ], 'big_endian': True },
   'lpc24xx' : { 'cpus' : [ 'LPC2468' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ], 'big_endian': False },
-  'lpc17xx' : { 'cpus' : [ 'LPC1768' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ], 'big_endian': False }
+  'lpc17xx' : { 'cpus' : [ 'LPC1768' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ], 'big_endian': False },
+  'xmc4000' : { 'cpus' : [ 'XMC4500F144K1024' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ], 'big_endian' : False },
 }
 
 # List of board/CPU combinations
@@ -127,7 +128,8 @@ board_list = { 'SAM7-EX256' : [ 'AT91SAM7X256', 'AT91SAM7X512' ],
                'MBED' : ['LPC1768'],
                'MIZAR32' : [ 'AT32UC3A0256', 'AT32UC3A0512', 'AT32UC3A0128' ],
                'NETDUINO' : [ 'AT91SAM7X512' ],
-               'EK-LM3S9D92' : [ 'LM3S9D92' ]
+               'EK-LM3S9D92' : [ 'LM3S9D92' ],
+               'HEXAGON': [ 'XMC4500F144K1024' ],
             }
 
 cpu_list = sum([board_list[i] for i in board_list],[])
@@ -285,7 +287,7 @@ if not GetOption( 'help' ):
   if comp['allocator'] == 'auto':
     if comp['board'] in ['MIZAR32'] and comp['cpu'] in ['AT32UC3A0128']:
       comp['allocator'] = 'simple'
-    elif comp['board'] in ['LPC-H2888', 'ATEVK1100', 'MIZAR32', 'MBED']:
+    elif comp['board'] in ['LPC-H2888', 'ATEVK1100', 'MIZAR32', 'MBED', 'HEXAGON']:
       comp['allocator'] = 'multiple'
     else:
       comp['allocator'] = 'newlib'
