@@ -72,6 +72,12 @@ data_en =
       ret = "1 if the pin exists, 0 otherwise",
     },
 
+    { sig = "int #platform_pio_get_num_pins#( unsigned port );",
+      desc = "Returns the number of pins for the specified port.",
+      args = "$port$ - the port number.",
+      ret = "The number of pins for the port."
+    },
+
     { sig = "const char* #platform_pio_get_prefix#( unsigned port );",
       desc = [[Get the port prefix. Used to establish if the port notation uses numbers (P0, P1, P2...) or letters (PA, PB, PC...). Implemented in %src/common.c%, it uses the 
   $PIO_PREFIX$ macro that must be defined in the platform's $platform_conf.h$ file (see @arch_overview.html#platforms@here@ for details). The value of this macro can be either '0' (for

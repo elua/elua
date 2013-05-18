@@ -33,6 +33,26 @@ data_en =
       }
     },
 
+    { sig = "#pio.pin.output#( pin1, pin2, ..., pinn )",
+      desc = "Set pin(s) direction to output",
+      args =
+      {
+        "$pin1$ - the first pin",
+        "$pin2 (optional)$ - the second pin",
+        "$pinn (optional)$ - the %n%-th pin",
+      }
+    },
+
+    { sig = "#pio.pin.input#( pin1, pin2, ..., pinn )",
+      desc = "Set pin(s) direction to input",
+      args =
+      {
+        "$pin1$ - the first pin",
+        "$pin2 (optional)$ - the second pin",
+        "$pinn (optional)$ - the %n%-th pin",
+      }
+    },
+
     { sig = "#pio.pin.setpull#( type, pin1, pin2, ..., pinn )",
       desc = "Enable/disable pullups/pulldowns on the specified pin(s)",    
       args = 
@@ -92,6 +112,26 @@ data_en =
       args =
       {
         "$direction$ - the port direction, can be either $pio.INPUT$ or $pio.OUTPUT$",
+        "$port1$ - the first port",
+        "$port2 (optional)$ - the second port",
+        "$portn (optional)$ - the %n%-th port"
+      }
+    },
+
+    { sig = "#pio.port.output#( port1, port2, ..., portn )",
+      desc = "Set port(s) direction to output",
+      args =
+      {
+        "$port1$ - the first port",
+        "$port2 (optional)$ - the second port",
+        "$portn (optional)$ - the %n%-th port"
+      }
+    },
+
+    { sig = "#pio.port.input#( port1, port2, ..., portn )",
+      desc = "Set port(s) direction to input",
+      args =
+      {
         "$port1$ - the first port",
         "$port2 (optional)$ - the second port",
         "$portn (optional)$ - the %n%-th port"

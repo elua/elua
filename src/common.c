@@ -260,6 +260,18 @@ int platform_pio_has_pin( unsigned port, unsigned pin )
 #endif
 }
 
+int platform_pio_get_num_pins( unsigned port )
+{
+#if defined( PIO_PINS_PER_PORT )
+  return PIO_PINS_PER_PORT;
+#elif defined( PIO_PIN_ARRAY )
+  const u8 pio_port_pins[] = PIO_PIN_ARRAY;
+  return pio_port_pins[ port ];
+#else
+  #error "You must define either PIO_PINS_PER_PORT of PIO_PIN_ARRAY in platform_conf.h"
+#endif
+}
+
 // ****************************************************************************
 // CAN functions
 
