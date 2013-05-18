@@ -28,10 +28,16 @@
 // Auxiliary libraries that will be compiled for this platform
 
 #define LUA_PLATFORM_LIBS_ROM\
-  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )\
+  _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
+  _ROM( AUXLIB_PD, luaopen_pd, pd_map )\
+  _ROM( AUXLIB_UART, luaopen_uart, uart_map )\
+  _ROM( AUXLIB_TERM, luaopen_term, term_map )\
+  _ROM( AUXLIB_PACK, luaopen_pack, pack_map )\
+  _ROM( AUXLIB_BIT, luaopen_bit, bit_map )\
+  _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map )\
   _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )\
-  _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
-  _ROM( AUXLIB_PIO, luaopen_pio, pio_map )
+  _ROM( AUXLIB_ELUA, luaopen_elua, elua_map )\
+  _ROM( LUA_MATHLIBNAME, luaopen_math, math_map )
 
 // *****************************************************************************
 // Configuration data
