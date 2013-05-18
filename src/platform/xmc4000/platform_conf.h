@@ -39,7 +39,7 @@
 #define EGC_INITIAL_MODE      1
 
 // Number of resources (0 if not available/not implemented)
-#define NUM_PIO               7
+#define NUM_PIO               16
 #define NUM_SPI               0
 #define NUM_UART              1
 #define NUM_TIMER             0
@@ -54,7 +54,7 @@
 // #define PIO_PINS_PER_PORT (n) if each port has the same number of pins, or
 // #define PIO_PIN_ARRAY { n1, n2, ... } to define pins per port in an array
 // Use #define PIO_PINS_PER_PORT 0 if this isn't needed
-#define PIO_PIN_ARRAY         { 16, 16, 16, 16, 8, 12, 7 }
+#define PIO_PIN_ARRAY         { 16, 16, 16, 16, 8, 12, 7, 0, 0, 0, 0, 0, 0, 0, 14, 12 }
 
 #define LINENOISE_HISTORY_SIZE_LUA    50
 #define LINENOISE_HISTORY_SIZE_SHELL  10
