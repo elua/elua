@@ -14,7 +14,9 @@
 #include "lauxlib.h"
 #include "lrotable.h"
 #include "luaconf.h"
+#ifndef LUA_CROSS_COMPILER
 #include "platform_conf.h"
+#endif
 
 // Dummy open function
 int luaopen_dummy(lua_State *L)

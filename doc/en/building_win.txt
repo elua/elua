@@ -2,6 +2,9 @@
 Building eLua in Windows
 ------------------------
 
+IMPORTANT: Starting with eLua 0.10, a new Lua-based build system replaces the previous Python based (scons) build system. You'll need to update
+your machine environment accordingly, as per the instructions below.
+
 Starting with version 0.7, building eLua in Windows is officially supported. The following instructions were tested in Windows 7 Professional, but they should work with little or no modification in any version of Windows 7, Vista or XP. You need to download and install a few things first:
 
 * *a toolchain*: building a GCC-based toolchain under Windows is possible but not easy. We found that the easiest thing to do is to download a pre-built toolchain and install it. Currently, all the targets supported by eLua (except i386) have at least one toolchain that runs under Windows:
@@ -11,20 +14,15 @@ Starting with version 0.7, building eLua in Windows is officially supported. The
 
 ** AVR32 has its own Windows based GNU toolchain that can be downloaded from Atmel link:http://www.atmel.com/dyn/products/tools_card.asp?tool_id=4118[here].
 
-* *Python*:  my favourite Windows distribution of Python is link:http://www.activestate.com/activepython/[ActivePython]. Simply download it and install it. ActivePython
-2.6.4.8 will be used in this tutorial. Other Python distribution might work equally as well.
-
-* *scons*: download the Windows installer package from link:http://www.scons.org/download.php[here]. For this tutorial, scons 1.2.0 will be used. Remember to install scons *after* you install Python.
-
 * *lua*: a very good and versatile Lua distribution for Windows is "Lua for Windows", it can be downloaded from link:http://luaforwindows.luaforge.net/[here]. Besides Lua itself, it includes a lot of very useful Lua modules, so I highly recommend it. Version 5.1.4.30 of Lua for Windows will be used in this tutorial.
 
 * *git*: if you need to checkout the *eLua* source code from the link:https://github.com/elua/elua[project git repository], then you will need to install git for Windows.  The instructions at GitHub describing how to link:http://help.github.com/win-set-up-git/[set up git] for Windows should work well. You will only need the ssh key setup section if you want to push code to GitHub.  For a version of git that integrates with the Windows shell (similar to TortoiseSVN), check out link:http://code.google.com/p/tortoisegit/[TortoiseGIT].
 
 * *gcc*: if you want to use the ROMFS pre-compiled feature (see link:arch_romfs.html#mode[here] for details), then you will need to build an image for the eLua cross compiler, and you will need an i386 toolchain for this. I'm using MinGW for this task. It can be downloaded from link:http://www.mingw.org/[here]. This tutorial uses MinGW version 5.1.6. Note that you don't need to install MSYS; MinGW should be enough. Cygwin should work equally as well, or even Microsoft's Visual Studio (not tested). To build the cross compiler, run this command from the command line:
 +
------------------------
-$ scons -f cross-lua.py
------------------------
+-------------------
+$ lua cross-lua.lua
+-------------------
 
 Make sure that all the programs listed above are added to %PATH%. Most of them do this automatically, or have an option to do this automatically, but some (for example MinGW and SCons) do not and you will need to add them to %PATH% manually.
 

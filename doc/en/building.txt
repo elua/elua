@@ -1,7 +1,11 @@
 // $$HEADER$$
 Building eLua
 -------------
-If you decide to build your own binary image instead of link:downloads.html"[downloading one], then you will need to download the source code 
+
+IMPORTANT: Starting with eLua 0.10, a new Lua-based build system replaces the previous Python based (scons) build system. You'll need to use the
+new build system to build eLua, as per the instructions link:#buildoptions[here].
+
+If you decide to build your own binary image instead of link:downloads.html[downloading one], then you will need to download the source code 
 (see link:downloads.html#source[here] for details) and follow the platform specific eLua build instructions (provided for link:building_unix.html[Linux]
 and link:building_win.html[Windows]) to setup your build environment.
  
@@ -325,38 +329,34 @@ One more thing you might want to configure for your build is the contents of the
 [[buildoptions]]
 Invoking the build system
 -------------------------
-Once you have everything in place, all you have to do is to invoke the build system (scons) with the right arguments. This is a fairly easy step, although it might look intimidating 
-because of the multitude of options than can be given to scons. They are used to fine tune the final image to your specific needs, but unless your needs are very special you won't need 
+Once you have everything in place, all you have to do is to invoke the build system (build_elua) with the right arguments. This is a fairly easy step, although it might look intimidating 
+because of the multitude of options than can be given to build_elua. They are used to fine tune the final image to your specific needs, but unless your needs are very special you won't need 
 to modify them, so don't worry about the apparent complexity. The examples at the end of this section will show how easy it is to use the build system in practice.
 
 ------------------------------------
-$ scons
-  [target=lua | lualong | lualonglong]
-  [cpu=<cpuname>]
+$ lua build_elua.lua
   [board=<boardname>]
+  [target=lua | lualong | lualonglong]
+  [allocator=newlib | multiple | simple]
+  [toolchain=<toolchain name>]
+  [optram=true | false]
+  [boot=standard | luarpc]
+  [romfs=verbatim | compress | compile]
   [cpumode=arm | thumb]
-  [allocator = newlib | multiple | simple]
-  [toolchain = <toolchain name>]
-  [optram = 0 | 1]
-  [romfs = verbatim | compress | compile]
+  [bootloader=none | emblod]
+  [output_dir=<directory>]
+  [romfs_dir=<directory>]
+  [board_config_file=<file>]
+  [skip_conf=true | false]
+  [-E | -S]
   [prog]
 ------------------------------------
 
-Your build target is specified by two paramters: *cpu* and *board*. "cpu" gives the name of your CPU, and "board" the name of the board. A board can be associated with more than 
-one CPU. This allows the build system to be very flexible. You can use these two options together or separately, as shown below:
-
-* **cpu=name**: build for the specified CPU. A board name will be assigned by the build system automatically.
-* **board=name**: build for the specified board. The CPU name will be inferred by the build system automatically.
-* **cpu=name board=name**: build for the specified board and CPU. The build script won't allow invalid CPU/board combinations.
-
-For board/CPU assignment, look at the beginning of the SConstruct file (the _platform_list_), it's self-explanatory. +
-The other options are as follows:
+Your build target is specified by *board*. The other options are as follows:
 
 * **target=lua | lualong | lualonglong**: specify if you want to build "regular" Lua (with floating point support). 32 bit integer only Lua (lualong) or 64 bit integer only Lua (lualonglong,
   starting with version 0.9).  The default is "lua". "lualong" and "lualonglong" run faster on targets that don't have a floating point co-processor, but they completely lack support for floating 
   point operations, they can only handle integers. Also, "lualonglong" doesn't support cross-compilation of Lua source files to bytecode (check link:arch_romfs.html#mode[here] for details).
-
-* **cpumode=arm | thumb**: for ARM targets (not Cortex) this specifies the compilation mode. Its default value is 'thumb' for AT91SAM7X targets and 'arm' for STR9, LPC2888 and LPC2468 targets.
 
 * **allocator = newlib | multiple | simple**: choose between the default newlib allocator (newlib) which is an older version of dlmalloc, the multiple memory spaces allocator (multiple)
   which is a newer version of dlmalloc that can handle multiple memory spaces, and a very simple memory allocator (simple) that is slow and doesn't handle fragmentation very well, but it 
@@ -365,54 +365,80 @@ The other options are as follows:
 
 * **toolchain=<toolchain name>**: this specifies the name of the toolchain used to build the image. See link:toolchains.html#configuration[this link] for details.
 
-* **optram=0 | 1**: enables of disables the LTR patch, see the link:arch_ltr.html[LTR documentation] for more details. The default is 1, which enables the LTR patch.
-
-* *prog*: by default, the above 'scons' command will build only the 'elf' (executable) file. Specify "prog" to build also the platform-specific programming file where appropriate
-  (for example, on a AT91SAM7X256 this results in a .bin file that can be programmed in the CPU).
-
-* **romfs = verbatim | compress | compile**: ROMFS compilation mode, check link:arch_romfs.html#mode[here] for details (*new in 0.7*).
+* **optram=true | false**: enables of disables the LTR patch, see the link:arch_ltr.html[LTR documentation] for more details. The default is true, which enables the LTR patch. Keep LTR enabled
+  unless you have a very good reason to do otherwise, eLua might not function properly with LTR disabled.
 
 * **boot = standard | luarpc**: Boot mode. 'standard' will boot to either a shell or lua interactive prompt. 'luarpc' boots with a waiting rpc server, using a UART & timer as specified in 
   link:building.html#static[static configuration data] (*new in 0.7*).
 
-The output will be a file named elua_**[target]**_**[cpu]**.elf (and also another file with the same name but ending in .bin/.hex if "prog" was specified for platforms that need these files 
+* **romfs = verbatim | compress | compile**: ROMFS compilation mode, check link:arch_romfs.html#mode[here] for details (*new in 0.7*).
+
+* **cpumode=arm | thumb**: for ARM targets (not Cortex) this specifies the compilation mode. Its default value is 'thumb' for AT91SAM7X targets and 'arm' for STR9, LPC2888 and LPC2468 targets.
+
+* **bootloader = none | emblod**: 'emblod' generates an image suitable for loading with the 'emblod' boot loader. AVR32 only.
+
+* **output_dir=<directory>**: changes the directory where the firmware image will be written. The default is the root directory of the eLua source tree.
+
+* **romfs_dir=<directory>**: the directory with the link:arch_romfs.html[romfs] files. The default is "romfs".
+
+* **board_config_file=<file>**: the configuration file for the board. This will ignore the configuration file generated by the Lua configurator and use the user-specified one instead. For more details
+  about the configurator, see link:configurator.html[this link].
+
+* **skip_conf=true | false**: don't call the Lua configurator at all, use whatever configuration file is present in the system instead. This can be used for manually editing the configuration file: run
+  the build normally (with skip_conf=false) once, edit the generated configuration header file, then run the build again with skip_conf=true.
+
+* **-E | -S**: see the link:#singlefile[single file compilation] section below.
+
+* **prog**: by default, the above 'build_elua' command will build only the 'elf' (executable) file. Specify "prog" to build also the platform-specific programming file where appropriate
+  (for example, on a AT91SAM7X256 this results in a .bin file that can be programmed in the CPU).
+
+The output will be a file named elua_**board**.elf (and also another file with the same name but ending in .bin/.hex if "prog" was specified for platforms that need these files 
 for programming). +
-If you want the equivalent of a "make clean", invoke "scons" as shown above, but add a "-c" at the end of the command line. +
+If you want the equivalent of a "make clean", invoke "build_elua" as shown above, but add a "-c" at the end of the command line. +
 
 **A few examples:**
 
----------------------------
-$ scons cpu=at91sam7x256 -c
----------------------------
-Clear previously built intermediate files.
-
-------------------------
-$ scons cpu=at91sam7x256
-------------------------
-Build eLua for the AT91SAM7X256 CPU. The board name is detected as sam7-ex256.
-
-
-------------------------
-$ scons board=sam7-ex256
-------------------------
-Build eLua for the SAM7-EX256 board. The CPU is detected as AT91SAM7X256.
+------------------------------------------
+$ lua build_elua.lua board=sam7-ex256 prog
+------------------------------------------
+Build eLua for the SAM7-EX256 board. Also, the bin/hex file(s) required for target programming are generated.
 
 -----------------------------------------
-$ scons board=sam7-ex256 cpu=at91sam7x512
+$ lua build_elua.lua board=lpc-h2888 prog
 -----------------------------------------
-Build eLua for the SAM7-EX256 board but "overwrite" the default CPU. This is useful when you'd like to see how the specified board would behave (in terms of resources) with a different 
-CPU. In the case of the SAM7-EX256 board, it's possible to switch the on-board AT91SAM7X256 CPU for an AT91SAM7X512 which has the same pinout but comes with more Flash/RAM memory.
+Build eLua for the lpc2888 CPU. The allocator is automatically detected as "multiple".
 
-------------------------
-$ scons cpu=lpc2888 prog
-------------------------
-Build eLua for the lpc2888 CPU. The board name is detected as LPC-H2888. Also, the bin file required for target programming is generated. The allocator is automatically detected as "multiple".
-
-------------------------------------------------
-$ scons cpu=lm3s8962 toolchain=codesourcery prog
-------------------------------------------------
+------------------------------------------------------------------
+$ lua build_elua.lua board=ek-lm3s8962 toolchain=codesourcery prog
+------------------------------------------------------------------
 Build the image for the Cortex LM3S8962 CPU, but use the CodeSourcery toolchain instead of the default toolchain (which is a "generic" ARM GCC toolchain, usually the one built by following
 the tutorials from this site.
+
+---------------------------------------
+$ lua build_elua.lua board=mbed prog -c
+---------------------------------------
+Clean the intermediary build files for the mbed board, as well as the outputs (firmware files).
+
+[[singlefile]]
+Single file compilation
+~~~~~~~~~~~~~~~~~~~~~~~
+For various reasons, it is often useful to compile a single file instead of the whole image. *build_elua* can do that by specifying the path toward a source file as a target name. It also provides
+options to precompile or generate the assembler source for single files. Examples:
+
+------------------------------------------
+$ lua build_elua.lua board=mbed src/main.c
+------------------------------------------
+Compile only src/main.c for the 'mbed' board.
+
+---------------------------------------------
+$ lua build_elua.lua board=mbed -E src/main.c
+---------------------------------------------
+Preprocess src/main.c, using 'mbed' as the target board.
+
+---------------------------------------------
+$ lua build_elua.lua board=mbed -E src/main.c
+---------------------------------------------
+Generate the assembler source file for src/main.c, using 'mbed' as the target board.
 
 // $$FOOTER$$
 

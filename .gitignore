@@ -22,4 +22,4 @@ luac.cross*
 boards/*.h
 sdcard.img
 core
-
+luarpc*

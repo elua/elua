@@ -29,9 +29,9 @@ void *alloca(size_t);
 
 #ifndef LUA_CROSS_COMPILER
 #include "platform.h"
+#include "platform_conf.h"
 #endif
 
-#include "platform_conf.h"
 
 #ifdef LUA_OPTIMIZE_MEMORY
 #include "lrotable.h"

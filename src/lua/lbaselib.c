@@ -20,8 +20,9 @@
 #include "lualib.h"
 #include "lrotable.h"
 
+#ifndef LUA_CROSS_COMPILER
 #include "platform_conf.h"
-
+#endif
 
 /*
 ** If your system does not support `stdout', you can just remove this function.
