@@ -228,7 +228,7 @@ function gen_module_list( desc, plconf, platform, boardname )
   -- Not quite ready yet. We still need to generate the list of generic modules
   -- that can't be completely ROM'd by the LTR patch in a separate macro that will be 
   -- handled by linit.c
-  local noltr = "#define LUA_LIBS_NOLTR\\\n", found
+  local noltr, found = "#define LUA_LIBS_NOLTR\\\n", false
   for m, _ in pairs( gen_list_generic ) do
     if get_map_name( m ) == "<none>" then
       noltr = noltr .. sf( "  { %s, %s },\\\n", get_auxlib( m ), get_openf_name( m ) )

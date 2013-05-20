@@ -160,7 +160,7 @@ print( utils.col_blue( "[CONFIG] Found board description file at " .. bfname ) )
 local bdata, err = bconf.compile_board( bfname, comp.board )
 if not bdata then
   print( utils.col_red( "[CONFIG] Error compiling board description file: " .. err ) )
-  do return end
+  return
 end
 -- Check if the file has changed. If not, do not rewrite it. This keeps the compilation time sane.
 local bhname = utils.concat_path( { board_base_dir, "headers", "board_" .. comp.board:lower() .. ".h" } )

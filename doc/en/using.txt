@@ -58,7 +58,7 @@ The eLua shell
 --------------
 No matter what's your physical connection (serial, TCP/IP or you PC's monitor after booting eLua), after you setup the
 PC-eLua board connection and press the "RESET" button on your board or simply press ENTER if you're using the serial connection,
-you should see the eLua< shell prompt (if you enabled the shell in your build, as described link:building.html[here]). The shell
+you should see the eLua shell prompt (if you enabled the shell in your build, as described link:building.html[here]). The shell
 is a simple interactive command interpreter that allows you to:
 
 - get help on shell usage with the help command,

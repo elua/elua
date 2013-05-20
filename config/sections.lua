@@ -57,6 +57,15 @@ end
 function configure_section( section, sectname, data )
   conf, enabled, required = {}, {}, {}
 
+  -- Check if any part of the section needs to be automatically enabled
+  for elname, elval in pairs( data ) do
+    if elval and section[ elname ] and section[ elname ].autoenable then
+      local auto = section[ elname ].autoenable
+      local t = type( auto ) == "table" and auto or { auto }
+      for _, v in pairs( t ) do data[ v ] = true end
+    end
+  end
+
   -- Configure each element in turn, doing validation if required
   for elname, elval in pairs( data ) do
     if not section[ elname ] then return nil, sf( "unknown element '%s' in section '%s'", elname, sectname ) end

@@ -147,6 +147,10 @@ local sanity_code = [[
 #define CON_TIMER_ID          PLATFORM_TIMER_SYS_ID
 #endif
 
+#ifndef RFS_FLOW_TYPE
+#define RFS_FLOW_TYPE         PLATFORM_UART_FLOW_NONE
+#endif
+
 #ifdef ELUA_BOOT_RPC
   #ifndef RPC_UART_ID
     #define RPC_UART_ID       CON_UART_ID
@@ -206,6 +210,9 @@ function compile_board( fname, boardname )
   -- Check CPU
   local cpulist = bd.get_all_cpus()
   if not utils.array_element_index( cpulist, desc.cpu:upper() ) then
+    io.write( utils.col_red( "[CONFIG] Allowed CPUS: " ) )
+    for i = 1, #cpulist do io.write( utils.col_red( cpu_list[ i ] .. " " ) ) end
+    print ""
     return false, sf( "unknown cpu '%s'", desc.cpu )
   end
 

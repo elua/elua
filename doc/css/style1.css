@@ -302,6 +302,10 @@ code{font-size:14px;}
     padding: 2px;
 }
 
+.grey-background {
+    background: silver;
+}
+
 #interna_2 #article .section_conteudo{width:auto;float:left;margin:10px 10px 0px 0;padding:10px;text-align:normal;}
 #interna_2 #article .section_size{width:700px;}
 #interna_2 #article .section_conteudo h1{font-size:25px;font-family:'fonte_chamada', Helvetica, Arial, sans-serif;text-align:bold;margin-bottom:10px;}

@@ -153,6 +153,13 @@ local menu =
       },
       { { "Building eLua", "Build de eLua" }, "building.html",
         {
+          { "Configuring the image", "configurator.html",
+            {
+              { "CPU", "configurator.html#config_cpu" },
+              { "Components", "configurator.html#config_components" },
+              { "Configuration", "configurator.html#config_config" },
+            },
+          },
           { "Building eLua in Linux", "building_unix.html" },
           { "Building eLua in Windows", "building_win.html" },
         },  

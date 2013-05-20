@@ -66,6 +66,8 @@ function init()
   }
   -- Shell
   components.shell = { macro = 'BUILD_SHELL' }
+  -- Advanced shell
+  components.advanced_shell = { macro = 'BUILD_ADVANCED_SHELL', autoenable = 'shell' }
   -- Term
   components.term = {
     macro = 'BUILD_TERM',
@@ -155,9 +157,7 @@ function init()
   components.adc = {
     macro = 'BUILD_ADC',
     attrs = {
-      buf_size = at.make_optional( at.int_log2_attr( 'ADC_BUF_SIZE' ) ),
-      first_timer = at.make_optional( at.int_attr( 'ADC_TIMER_FIRST_ID' ) ),
-      num_timers = at.make_optional( at.int_attr( 'ADC_NUM_TIMERS' ) )
+      buf_size = at.make_optional( at.int_log2_attr( 'ADC_BUF_SIZE' ) )
     }
   }
   -- DNS client
