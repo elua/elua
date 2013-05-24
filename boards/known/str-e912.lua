@@ -11,7 +11,7 @@ return {
     luaints = true,
     linenoise = { shell_lines = 10, lua_lines = 50 },
     rpc = { uart = 0, speed = 115200 },
-    adc = { buf_size = 2, first_timer = 0, num_timers = 0 },
+    adc = { buf_size = 2 },
     xmodem = true
   },
   config = {

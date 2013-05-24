@@ -5,7 +5,7 @@ return {
   components = {
     sercon = { uart = "cdc", speed = 115200 },
     mmcfs = { spi = 4, cs_port = 0, cs_pin = "SD_MMC_SPI_NPCS_PIN" },
-    adc = { buf_size = 2, first_timer = 0, num_timers = 0 },
+    adc = { buf_size = 2 },
     term = { lines = 25, cols = 80 },
     tcpip = { ip = "193.168.1.10", netmask = "255.255.255.0", gw = "192.168.1.1", dns = "192.168.1.1" },
     dhcp = true,

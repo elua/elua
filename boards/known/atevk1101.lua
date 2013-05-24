@@ -4,7 +4,7 @@ return {
   cpu = 'at32uc3b0256',
   components = {
     sercon = { uart = 1, speed = 115200, buf_size = 128 },
-    adc = { buf_size = 2, first_timer = 0, num_timers = 0 },
+    adc = { buf_size = 2 },
     mmcfs = { spi = 1, cs_port = 0, cs_pin = "SD_MMC_SPI_NPCS_PIN" },
     term = { lines = 25, cols = 80 },
     cints = true,

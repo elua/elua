@@ -128,6 +128,7 @@ builder:add_option( "output_dir", "choose executable directory", "." )
 builder:add_option( "romfs_dir", 'choose ROMFS directory', 'romfs' )
 builder:add_option( "board_config_file", "choose board configuration file", "" )
 builder:add_option( "skip_conf", "skip board configuration step, use pre-generated header file directly", false )
+builder:add_option( "config_only", "execute only the configurator, then exit", false )
 builder:init( args )
 builder:set_build_mode( builder.BUILD_DIR_LINEARIZED )
 
@@ -177,6 +178,7 @@ else
     print( utils.col_blue( "[CONFIG] Board header file is unchanged." ) )
   end
 end
+if comp.config_only then return end
 -- Define the correct CPU header for inclusion in the platform_conf.h file
 addm( 'ELUA_CPU_HEADER="\\"cpu_' .. bdata.cpu:lower() .. '.h\\""' )
 -- Define the correct board header for inclusion in the platform_conf.h file

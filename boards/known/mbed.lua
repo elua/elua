@@ -9,7 +9,7 @@ return {
     term = { lines = 25, cols = 80 },
     linenoise = { shell_lines = 10, lua_lines = 50 },
     rpc = { uart = 0, speed = 115200 },
-    adc = { buf_size = 4, first_timer = 0, num_timers = 4 },
+    adc = { buf_size = 4 },
     xmodem = true,
     lpc17xx_semifs = true
   },
@@ -20,6 +20,6 @@ return {
   modules = {
     generic = { 'all', "-spi", "-can", "-i2c", "-net" },
     platform = 'all',
-  }
+  },
 }
 

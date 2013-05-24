@@ -10,7 +10,7 @@ return {
     term = { lines = 25, cols = 80 },
     cints = true,
     rpc = { uart = 0, speed = 115200 },
-    adc = { buf_size = 2, first_timer = 0, num_timers = "NUM_TIMER" },
+    adc = { buf_size = 2 },
     xmodem = true,
     linenoise = { shell_lines = 10, lua_lines = 30 } 
   },

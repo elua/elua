@@ -5,7 +5,7 @@ return {
   components = {
     sercon = { uart = 0, speed = 115200, buf_size = 2048 },
     mmcfs = { spi = 5, cs_port = 0, cs_pin = "SD_MMC_SPI_NPCS_PIN" },
-    adc = { buf_size = 2, first_timer = 0, num_timers = 0 },
+    adc = { buf_size = 2 },
     term = { lines = 25, cols = 80 },
     cints = true,
     luaints = true,

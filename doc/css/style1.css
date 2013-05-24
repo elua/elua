@@ -44,6 +44,7 @@ html,body{
     height:100%;
 }
 
+tt { font-size:12px; }
 
 h1, h2, h3, h4, h5 {
 	color:#03121c;
@@ -54,7 +55,7 @@ h1, h2, h3, h4, h5 {
   font-weight:bold;
 }
 
-h2 { margin-top: 10px;}
+h2, h4 { margin-top: 10px;}
 
 h3 {font-size:21px;}
 

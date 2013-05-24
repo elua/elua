@@ -13,11 +13,10 @@ The configurator works by reading a Lua based board configuration file and gener
 as the platform_conf.h file that was used before the configurator). The board name is given by the _board_ argument to build_elua (see link:building.html#buildoptions[this link]
 for more details about building your eLua image). The configurator looks for a file named _<board>.lua_ in two locations:
 
-* *boards/known* is searched first. It contains the configuration of the boards on which eLua is known to run properly. The files under this directory are part of 
-  the eLua source tree.
-* *boards/custom* is searched if _<board>.lua_ is not found in _boards/known_. The files under this directory are not part of the eLua source tree, so this is the place
-  where you can add configuration files for your custom board or customize the configuration for one of the standard boards (see link:#changecustom[here] for more details
-  about this).
+* *boards/custom* is searched first. The files under this directory are not part of the eLua source tree, so this is the place where you can add configuration files for
+  your custom board or customize the configuration for one of the standard boards (see link:#config_customize[here] for more details about this).
+* *boards/known* is searched if _<board>.lua_ is not found in _boards/custom_. It contains the configuration of the boards on which eLua is known to run properly. The files 
+  under this directory are part of the eLua source tree.
 
 After finding _<board>.lua_ in one of these locations, the configurator runs and generates the corresponding header file in __boards/headers/board_<board>.h__. The files
 under _boards/headers_ are also not part of the eLua source tree, so they can be edited manually if needed (see link:#manualedit[here] for more details). After this, the
@@ -153,18 +152,22 @@ As can be seen in the table above, some of the parameters are common to more tha
 
 [source,lua]
 -------------------------------------
-sercon = { uart = 0, speed = 115200 }
-term = { lines = 25, cols = 80 }
-xmodem = true
+components = {
+  sercon = { uart = 0, speed = 115200 },
+  term = { lines = 25, cols = 80 },
+  xmodem = true
+}
 -------------------------------------
 
 If you were to redefine a shared attribute to a different value:
 
 [source,lua]
 -------------------------------------
-sercon = { uart = 0, speed = 115200 }
-term = { lines = 25, cols = 80, uart = 1 }
-xmodem = true
+components = {
+  sercon = { uart = 0, speed = 115200 },
+  term = { lines = 25, cols = 80, uart = 1 },
+  xmodem = true
+}
 -------------------------------------
 
 you'd get a warning from the configurator:
@@ -241,11 +244,187 @@ Besides the generic configuration items in the table above, each platform can sp
                        |num_timers (*NUM_TIMER*)       |Total number of timers used by the ADC subsystem
 |===================================================================
 
-TODO: manualedit
+[[config_modules]]
+Lua modules
+~~~~~~~~~~~
+The configurator has support for fine-grained selections of the Lua modules that are going to be part of the eLua firmware. It knows how to handle generic modules and platform specific modules
+(see link:arch_overview.html[here] for more details about generic and platform specific modules). The modules are specified by the *modules* section of the configuration file:
 
-TODO: changecustom
+.Module configuration section
+[width="99%", cols="<3,<5,<10", options="header"]
+|===================================================================
+^|Key                 ^|Parameters                    ^|Meaning
+|generic               |Array of module names          |The generic modules included in the image
+|platform              |Array of module names          |The platform modules included in the image
+|===================================================================
+
+The module chooser knows how to differentiate between 3 categories of modules:
+
+1. *Lua modules*: the standard Lua modules that are compiled in eLua (_mlmath, _mlio, _mlstring, _mltable, _mldebug, _mlpackage, _mlco). These can be referenced as a group under the name *all_lua*.
+2. *Generic eLua modules*: these are _madc, _mbit, _mcan, _mcpu, _melua, _mi2c, _mpack, _mrpc, _mnet, _mpd, _mpio, _mpwm, _mspi, _mterm, _mtmr, _muart. These can be referenced as a group under
+    the name *all_elua*.
+3. *Platform specific eLua modules*: these are added by each platform as needed.
+
+Besides the names above, the group name *all* can be used in both *platform* and *generic*:
+
+* if used in *generic*, *all* is equivalent with *all_lua* + *all_elua* (all the standard Lua modules and the generic eLua modules)
+* if used in *platform*, *all* is a list of all the platform specific modules.
+
+A module name can be prefixed with a dash (*-*) if that module must be _excluded_ from the image instead of being included. Generally, this makes sense only when a group name (*all*, *all_lua* or
+*all_elua*) is also used in the list of modules. A few examples will help clarify this:
+
+[source, lua]
+-------------------------
+modules = {
+  generic = 'all',
+  platform = 'all'
+}
+-------------------------
+
+Include all the modules (generic and platform specific) in the image.
+
+[source, lua]
+-------------------------
+modules = { 
+  generic = { 'math', 'io', 'string', 'uart', 'pio' }
+}
+-------------------------
+
+Include the Lua modules *math*, *io* and *string* and the eLua modules *uart* and *pio* in the image.
+
+[source, lua]
+-------------------------
+modules = {
+  generic = { 'all_lua', 'uart', 'pd' },
+  platform = 'all'
+}
+-------------------------
+
+Include all the Lua modules, as well as the eLua generic modules *uart* and *pd*. Also include all the platform specific modules.
+
+[source, lua]
+-------------------------
+modules = {
+  generic = { 'all_lua', '-debug', 'all_elua', '-net', '-can' },
+  platform = 'lm3s_disp'
+}
+-------------------------
+
+Include all the Lua modules _except_ *debug* and all the generic eLua modules _except_ *net* and *can* in the image. Also include the LM3S platform specific 'disp' module, which will be accesible via
+*lm3s.disp*. Of course, this only works if the platform corresponding to the board is *LM3S*.
+
+[[config_headers]]
+Additional header files
+~~~~~~~~~~~~~~~~~~~~~~~
+As previously explained, the configurator compiles the Lua board description file into a C header file (*board_<board>.h*) that is later used to compile the eLua firmware. If additional headers must be 
+included in the generated header file, they can be specified in the *headers* section:
+
+[source, lua]
+-------------
+headers = { "specific1.h", "specific2.h" }
+-------------
+
+[[config_macros]]
+Additional C macros
+~~~~~~~~~~~~~~~~~~~
+Besides the macros generated by the configurator, it is sometimes useful to add other macros to the *board_<board>.h* file. These can be specified in the *macros* section. If present, *macros* must be a table
+with two kinds of keys:
+
+* strings: these define simple macros (macros without a value)
+* arrays with two entries: these define macros with values.
+
+For example, this definition:
+
+[source, lua]
+----------------
+macros = { 'MACRO1', { 'MACRO2', 0 } }
+----------------
+
+will be compiled into this:
+
+[source, c]
+---------------
+#define MACRO1
+#define MACRO2    0
+---------------
+
+[[config_cpuconstants]]
+CPU module constants
+~~~~~~~~~~~~~~~~~~~~
+The eLua _mcpu module has support for exposing various CPU related constants as keys in the *cpu* table. These are used, for example, to access the link:inthandlers.html[generic interrupt components] from Lua.
+The CPU constants in this module are generally defined by the various eLua platforms, but there is support in the configuration file to add new CPU constants if needed. These are specified as part of the
+*cpu_constants* section. Much like the link:#config_macros[macro configurator], there are two types of constants that can be given in *cpu_constants*:
+
+* constants already defined are given by their corresponding macro name
+* new constants are given as an array with two entries. These are first defined, then included in the constant list
+
+For example, this definition:
+
+[source, lua]
+-----------------
+cpu_constants = {
+  'CPU1', { 'NEWC', '10' }
+}
+-----------------
+
+will be compiled into this:
+
+[source, c]
+-----------------
+#ifndef NEWC
+#define NEWC    10
+#endif
+
+#define PLATFORM_CPU_CONSTANTS_CONFIGURED\
+  _C( CPU1 ),\
+  _C( NEWC ),\
+-----------------
+
+[[config_build]]
+Build options
+~~~~~~~~~~~~~
+The *build* section of the configurator contains options that will be passed directly to the builder. The following keys of the *build* table are recognized by the builder: *target*, *allocator*, *optram*,
+*boot*, *romfs*, *cpumode*, *bootloader* (note that *allocator* is also inferred automatically from the number of non-contigours RAM regions specified in the link:config_config[configuration data] section).
+For more details about these options, see the documentation on link:building.html#buildoptions[invoking the build system].
+
+[[config_customize]]
+Customizing configurations
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+If a custom build configuration (one that is not present in _boards/known_) is needed, one way to handle this is to write the new configuration file from scratch. However, starting from a known configuration
+and customizing it might be a better way to approach this task. The main thing to remember is that configurations are written in Lua, so you can use Lua code to manipulate them directly. For example, suppose
+that your hardware is almost identical to an _mbed board, but the console is on UART1 instead of UART0. You could simply copy _boards/known/mbed.lua_ to _boards/custom_ (remember that _boards/custom_ is not
+part of source control, so this is the place to put your custom configuration files) and modify the *uart* attribute of *sercon*. If you want to avoid duplication, you can simply "inherit" the basic _mbed
+configuration and change only what you need:
+
+[source, lua]
+------------------------------
+-- File boards/custom/myboard.lua
+
+local t = dofile( "boards/known/mbed.lua" )
+t.components.sercon.uart = 1
+return t
+------------------------------
+
+Of couse, you can use any kind of Lua code in the configuration file. You can download the configuration from the Internet, make the whole configuration process interactive by asking the user to enter the
+configuration parameters at build time and so on.
+
+[[config_manually]]
+Editing the configuration manually
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+While the configurator is designed to cover the complete set of eLua build configuration parameters, there might be rare occasions when there is a need to edit the generated configuration file manually, in
+order to cover functionality not provided by the configurator. There is a simple way to do this in conjuction with the link:building.html#buildoptions[build system]:
+
+* use the configurator to generate a configuration file starting from the board description file by using the build system's *config_only=true* command line parameter.
+* edit the generated __boards/headers/board_<board>.h__ to suit your needs.
+* run the build completely, but using *skip_conf=true* to prevent the configurator from generating a header file and using the one edited manually in the previous step instead.
+
+You need to be familiar with the eLua internals in order to properly modify the configuration file, so using this method carelessly might render your image unbuildable or unusable.
 
 TODO: add support for multiple SD cards (as in master)
+
+TODO: change arch_overview.html to take into account the new build system
+
+TODO: modify docs about platform constants
 
 // $$FOOTER$$
 

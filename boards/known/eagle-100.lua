@@ -9,7 +9,7 @@ return {
     term = { lines = 25, cols = 80 },
     cints = true,
     rpc = { uart = 0, speed = 115200 },
-    adc = { buf_size = 2, first_timer = 0, num_timers = "NUM_TIMER" },
+    adc = { buf_size = 2 },
     tcpip = { ip = "192.168.1.100", dns = "192.168.1.1", gw = "192.168.1.1", netmask = "255.255.255.0" },
     dns = true,
     dhcp = true,
