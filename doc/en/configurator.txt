@@ -306,12 +306,12 @@ Include all the Lua modules, as well as the eLua generic modules *uart* and *pd*
 -------------------------
 modules = {
   generic = { 'all_lua', '-debug', 'all_elua', '-net', '-can' },
-  platform = 'lm3s_disp'
+  platform = 'disp'
 }
 -------------------------
 
 Include all the Lua modules _except_ *debug* and all the generic eLua modules _except_ *net* and *can* in the image. Also include the LM3S platform specific 'disp' module, which will be accesible via
-*lm3s.disp*. Of course, this only works if the platform corresponding to the board is *LM3S*.
+*lm3s.disp*. Of course, this only works if the platform corresponding to the board is *LM3S*. For a list of the currently available platform-specific modules, check the link:status.html[status page].
 
 [[config_headers]]
 Additional header files
@@ -419,12 +419,6 @@ order to cover functionality not provided by the configurator. There is a simple
 * run the build completely, but using *skip_conf=true* to prevent the configurator from generating a header file and using the one edited manually in the previous step instead.
 
 You need to be familiar with the eLua internals in order to properly modify the configuration file, so using this method carelessly might render your image unbuildable or unusable.
-
-TODO: add support for multiple SD cards (as in master)
-
-TODO: change arch_overview.html to take into account the new build system
-
-TODO: modify docs about platform constants
 
 // $$FOOTER$$
 
