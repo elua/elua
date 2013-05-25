@@ -38,6 +38,7 @@ return {
   },
   build = {
     target = "lualong",
+    allocator = "simple"
   }
 }
 

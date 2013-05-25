@@ -666,7 +666,7 @@ else
     print( string.format( "%s is not a directory", destdir ) )
     return
   end
-  utils.rm_dir_rec( destdir )
+  utils.rmdir_rec( destdir )
   lfs.mkdir( destdir )
 end
 
@@ -678,7 +678,7 @@ if cleancache then
       print( "'cache' is not a directory" )
       return
     end
-    utils.rm_dir_rec( 'cache' )
+    utils.rmdir_rec( 'cache' )
     lfs.mkdir( 'cache' )
   end
 end

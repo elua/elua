@@ -10,6 +10,7 @@ return {
     term = { lines = 25, cols = 80 },
     cints = true,
     lm3s_disp = true,
+    lm3s_pio = true,
     rpc = { uart = 0, speed = 115200 },
     adc = { buf_size = 2 },
     xmodem = true,

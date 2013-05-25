@@ -222,7 +222,6 @@ function compile_board( fname, boardname )
   local plconf = default_platform_conf
   if utils.is_file( utils.concat_path{ 'src', 'platform', platform, 'build_config.lua' } ) then
     plconf = require( "src.platform." .. platform .. ".build_config" )
-    print( utils.col_blue( sf( "[CONFIG] Found a backend build configuration file for platform %s", platform ) ) )
   end
 
   -- Read platform specific components/configs

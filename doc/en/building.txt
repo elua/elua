@@ -41,7 +41,11 @@ $ lua build_elua.lua
   [board_config_file=<file>]
   [skip_conf=true | false]
   [config_only=true | false]
+  [build_mode=keep_dir | build_dir_linearized]
+  [build_dir=<directory>]
+  [disp_mode=all | summary | minimal]
   [-E | -S]
+  [-h]
   [prog]
 ------------------------------------
 
@@ -80,10 +84,20 @@ Your build target is specified by *board*. The other options are as follows:
 * **skip_conf=true | false**: don't call the Lua configurator at all, use whatever configuration file is present in the system instead. This can be used for manually editing the board's generated
   configuration file. For more details, see link:configurator.html#config_manually[this link].
 
-* **config_only = true | false**: execute only the configurator, then exit. This can be used for manually editing the board's generated configuration file. For more details, see
+* **config_only= true | false**: execute only the configurator, then exit. This can be used for manually editing the board's generated configuration file. For more details, see
   link:configurator.html#config_manually[this link].
 
 * **-E | -S**: see the link:#singlefile[single file compilation] section below.
+
+* **build_mode=keep_dir | build_dir_linearized**: keep the intermediary build outputs (for example the object files) in the same directory as the source file they come from (*keep_dir*, default) or in a
+  single directory (*build_dir_linearized*).
+
+* **build_dir=<directory>**: change the directory used by the builder for intermediate files in *build_dir_linearized* mode (see above). The default is *.build*.
+
+* **disp_mode=all | summary | minimal**: display all the messages from the build tools (*all*), display only the target being built and show the messages from the build tools only in case of an error or
+  warning (*summary*) or display just errors and warnings (*minimal*). The default is *summary*.
+
+* *-h*: shows progam usage.  
 
 * **prog**: by default, the above 'build_elua' command will build only the 'elf' (executable) file. Specify "prog" to build also the platform-specific programming file where appropriate
   (for example, on a AT91SAM7X256 this results in a .bin file that can be programmed in the CPU).

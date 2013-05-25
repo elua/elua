@@ -207,15 +207,18 @@ _target.set_target_args = function( self, args )
 end
 
 -- Function to execute in clean mode
-_target._cleaner = function( target, deps, tobj )
+_target._cleaner = function( target, deps, tobj, disp_mode )
   -- Clean the main target if it is not a phony target
+  local dprint = function( ... )
+    if disp_mode ~= "minimal" then print( ... ) end
+  end
   if not is_phony( target ) then 
     if tobj.dont_clean then
-      print( sf( "[builder] Target '%s' will not be deleted", target ) )
+      dprint( sf( "[builder] Target '%s' will not be deleted", target ) )
       return 0
     end
-    io.write( sf( "[builder] Removing %s ... ", target ) )
-    if os.remove( target ) then print "done." else print "failed!" end
+    if disp_mode ~= "minimal" then io.write( sf( "[builder] Removing %s ... ", target ) ) end
+    if os.remove( target ) then dprint "done." else dprint "failed!" end
   end
   return 0
 end
@@ -254,7 +257,7 @@ _target.build = function( self )
   docmd = docmd or self._force_rebuild or self.builder.clean_mode
   local keep_flag = true
   if docmd and self.command then
-    if self.builder.disp_mode ~= 'all' and not self.builder.clean_mode then
+    if self.builder.disp_mode ~= 'all' and self.builder.disp_mode ~= "minimal" and not self.builder.clean_mode then
       io.write( utils.col_funcs[ self.dispcol ]( self.dispstr ) .. " " )
     end
     local cmd, code = self.command
@@ -265,15 +268,15 @@ _target.build = function( self )
       cmd = expand_key( cmd, "FIRST", dep[ 1 ]:target_name() )
       if self.builder.disp_mode == 'all' then
         print( cmd )
-      else
+      elseif self.builder.disp_mode ~= "minimal" then
         print( self.target )
       end
       code = os.execute( cmd )   
     else
-      if not self.builder.clean_mode and self.builder.disp_mode ~= "all" then
+      if not self.builder.clean_mode and self.builder.disp_mode ~= "all" and self.builder.disp_mode ~= "minimal" then
         print( self.target )
       end
-      code = cmd( self.target, self.dep, self.builder.clean_mode and self or self._target_args )
+      code = cmd( self.target, self.dep, self.builder.clean_mode and self or self._target_args, self.builder.disp_mode )
       if code == 1 then -- this means "mark target as 'not executed'"
         keep_flag = false
         code = 0
@@ -370,7 +373,7 @@ builder.init = function( self, args )
   opts:add_option( "build_mode", 'choose location of the object files', self.KEEP_DIR,
                    { keep_dir = self.KEEP_DIR, build_dir_linearized = self.BUILD_DIR_LINEARIZED } )
   opts:add_option( "build_dir", 'choose build directory', self.build_dir )
-  opts:add_option( "disp_mode", 'set builder display mode', 'summary', { 'all', 'summary' } )
+  opts:add_option( "disp_mode", 'set builder display mode', 'summary', { 'all', 'summary', 'minimal' } )
   -- Apply default values to all options
   for i = 1, opts:get_num_opts() do
     local o = opts:get_option( i )
@@ -543,7 +546,7 @@ end
 -- Sets the way commands are displayed
 builder.set_disp_mode = function( self, mode )
   mode = mode:lower()
-  if mode ~= 'all' and mode ~= 'summary' then
+  if mode ~= 'all' and mode ~= 'summary' and mode ~= "minimal" then
     print( sf( "[builder] Invalid display mode '%s'", mode ) )
     os.exit( 1 )
   end
@@ -623,7 +626,8 @@ end
 
 -- Create and return a new link target
 builder.link_target = function( self, out, dep, link_cmd )
-  if not out:find( "%." ) and self.exe_extension and #self.exe_extension > 0 then
+  local path, ext = utils.split_ext( out )
+  if not ext and self.exe_extension and #self.exe_extension > 0 then
     out = out .. self.exe_extension
   end
   local t = _target.new( out, dep, link_cmd or self.link_cmd, self, 'link' )
@@ -711,6 +715,7 @@ builder.create_compile_targets = function( self, ftable, res )
       target = self:asm_target( self:obj_name( ftable[ i ], oname ), { self:get_registered_target( deps ) or ftable[ i ] }, depcmd )
     end
     -- Pre build step: replace dependencies with the ones from the compiler generated dependency file
+    local dprint = function( ... ) if self.disp_mode ~= "minimal" then print( ... ) end end
     if not skip then
       target:set_pre_build_function( function( t, _ )
         if not self.clean_mode then
@@ -719,8 +724,8 @@ builder.create_compile_targets = function( self, ftable, res )
           if #fdeps:gsub( "%s+", "" ) == 0 then fdeps = ftable[ i ] end
           t:set_dependencies( fdeps )
         else
-          io.write( sf( "[builder] Removing %s ... ", deps ) )
-          if os.remove( deps ) then print "done." else print "failed!" end
+          if self.disp_mode ~= "minimal" then io.write( sf( "[builder] Removing %s ... ", deps ) ) end
+          if os.remove( deps ) then dprint "done." else dprint "failed!" end
         end
       end )
     end

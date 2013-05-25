@@ -17,6 +17,7 @@ return {
     dhcp = true,
     xmodem = true,
     mmcfs = { spi = 0, cs_port = 3, cs_pin = 0 },
+    lm3s_pio = true,
   },
   config = {
     vtmr = { num = 4, freq = 4 },

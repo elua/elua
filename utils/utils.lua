@@ -23,7 +23,7 @@ string_to_table = function( s, sep )
 end
 
 -- Split a file name into 'path part' and 'extension part'
-split_path = function( s )
+split_ext = function( s )
   local pos
   for i = #s, 1, -1 do
     if s:sub( i, i ) == "." then
@@ -31,13 +31,13 @@ split_path = function( s )
       break
     end
   end
-  if pos then return s:sub( 1, pos - 1 ), s:sub( pos ) end
-  return s
+  if not pos or s:find( "/", pos + 1 ) then return s end
+  return s:sub( 1, pos - 1 ), s:sub( pos )
 end
 
 -- Replace the extension of a give file name
 replace_extension = function( s, newext )
-  local p, e = split_path( s )
+  local p, e = split_ext( s )
   if e then 
     if newext and #newext > 0 then 
       s = p .. "." .. newext
@@ -215,12 +215,12 @@ end
 
 -- Remove a directory recusively
 -- USE WITH CARE!! Doesn't do much checks :)
-rm_dir_rec = function ( dirname )
+rmdir_rec = function ( dirname )
   for f in lfs.dir( dirname ) do
     local ename = string.format( "%s/%s", dirname, f )
     local attrs = lfs.attributes( ename )
     if attrs.mode == 'directory' and f ~= '.' and f ~= '..' then
-      rm_dir_rec( ename ) 
+      rmdir_rec( ename ) 
     elseif attrs.mode == 'file' or attrs.mode == 'named pipe' or attrs.mode == 'link' then
       os.remove( ename )
     end

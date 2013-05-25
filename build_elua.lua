@@ -137,6 +137,12 @@ builder:set_build_mode( builder.BUILD_DIR_LINEARIZED )
 comp = {}
 setmetatable( comp, { __index = function( t, key ) return builder:get_option( key ) end } )
 
+local function dprint( ... )
+  if comp.disp_mode ~= "minimal" then
+    print( ... )
+  end
+end
+
 if not comp.board then
   print "You must specify the board"
   os.exit( -1 )
@@ -157,7 +163,7 @@ else
     os.exit( -1 )
   end
 end
-print( utils.col_blue( "[CONFIG] Found board description file at " .. bfname ) )
+dprint( utils.col_blue( "[CONFIG] Found board description file at " .. bfname ) )
 local bdata, err = bconf.compile_board( bfname, comp.board )
 if not bdata then
   print( utils.col_red( "[CONFIG] Error compiling board description file: " .. err ) )
@@ -166,16 +172,16 @@ end
 -- Check if the file has changed. If not, do not rewrite it. This keeps the compilation time sane.
 local bhname = utils.concat_path( { board_base_dir, "headers", "board_" .. comp.board:lower() .. ".h" } )
 if builder:get_option( "skip_conf" ) then
-  print( utils.col_blue( "[CONFIG] skipping generation of configuration file" ) )
+  dprint( utils.col_blue( "[CONFIG] skipping generation of configuration file" ) )
 else
   if ( utils.get_hash_of_string( bdata.header ) ~= utils.get_hash_of_file( bhname ) or not utils.is_file( bhname ) ) then
     -- Save the header file
     local f = assert( io.open( bhname, "wb" ) )
     f:write( bdata.header )
     f:close()
-    print( utils.col_blue( "[CONFIG] Generated board header file at " .. bhname ) )
+    dprint( utils.col_blue( "[CONFIG] Generated board header file at " .. bhname ) )
   else
-    print( utils.col_blue( "[CONFIG] Board header file is unchanged." ) )
+    dprint( utils.col_blue( "[CONFIG] Board header file is unchanged." ) )
   end
 end
 if comp.config_only then return end
@@ -291,24 +297,24 @@ if not utils.is_dir( outd ) then
 end
 
 -- Output file
-output = outd .. utils.dir_sep .. 'elua_' .. comp.target .. '_' .. comp.board:lower() .. ".elf"
+output = outd .. utils.dir_sep .. 'elua_' .. comp.target .. '_' .. comp.board:lower()
 builder:set_build_dir( builder:get_build_dir() .. utils.dir_sep .. comp.board:lower() )
 
 -- User report
-print ""
-print "*********************************"
-print "Compiling eLua ..."
-print( "CPU:            ", comp.cpu )
-print( "Board:          ", comp.board )
-print( "Platform:       ", platform )
-print( "Allocator:      ", comp.allocator )
-print( "Boot Mode:      ", comp.boot )
-print( "Target:         ", comp.target  )
-print( "Toolchain:      ", comp.toolchain )
-print( "ROMFS mode:     ", comp.romfs )
-print( "Version:        ", elua_vers )
-print "*********************************"
-print ""
+dprint ""
+dprint "*********************************"
+dprint "Compiling eLua ..."
+dprint( "CPU:            ", comp.cpu )
+dprint( "Board:          ", comp.board )
+dprint( "Platform:       ", platform )
+dprint( "Allocator:      ", comp.allocator )
+dprint( "Boot Mode:      ", comp.boot )
+dprint( "Target:         ", comp.target  )
+dprint( "Toolchain:      ", comp.toolchain )
+dprint( "ROMFS mode:     ", comp.romfs )
+dprint( "Version:        ", elua_vers )
+dprint "*********************************"
+dprint ""
 
 -- Build list of source files, include directories, macro definitions
 addm( "ELUA_CPU=" .. comp.cpu:upper() )
@@ -428,6 +434,7 @@ end
 compcmd = compcmd or builder:compile_cmd{ flags = cflags, defines = cdefs, includes = includes, compiler = toolset.compile }
 linkcmd = linkcmd or builder:link_cmd{ flags = lflags, libraries = libs, linker = toolset.compile }
 ascmd = ascmd or builder:asm_cmd{ flags = asflags, defines = cdefs, includes = includes, assembler = toolset.asm }
+builder:set_exe_extension( ".elf" )
 builder:set_compile_cmd( compcmd )
 builder:set_link_cmd( linkcmd )
 builder:set_asm_cmd( ascmd )
