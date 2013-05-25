@@ -13,7 +13,11 @@ function print_define( k, v )
   else
     v = ''
   end
-  s = s .. tostring( v ) .. "\n"
+  if type( v ) == "table" then
+    s = s .. "{ " .. table.concat( v, "," ) .. " }" .. "\n"
+  else
+    s = s .. tostring( v ) .. "\n"
+  end
   return s
 end
 

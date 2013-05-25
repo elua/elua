@@ -131,9 +131,9 @@ link:arch_platform_timers.html#the_system_timer[system timer ID].
                        |buf_size                       |Buffer size of the RFS UART. Must be a power of 2.
                       n|timeout (usecs,*100000*)       |Timeout for RFS operations
 .4+^.^|mmcfs         2+|*Enable the link:arch_fatfs.html[MMC file system].*
-                       |spi                            |ID of the SPI interface used by the SD card
-                       |cs_port                        |Port number of the SD card /CS line
-                       |cs_pin                         |Pin number of the SD card /CS line
+                       |spi (int or array of ints)     |ID(s) of the SPI interface used by the SD card
+                       |cs_port (int or array of ints) |Port number(s) of the SD card /CS line
+                       |cs_pin (int or array of ints)  |Pin number(s) of the SD card /CS line
 .4+^.^|rpc           2+|*Enable the link:using.html#rpc[remote procedure call] subsystem.* The parameters are only required when booting in RPC server mode.
                        |uart                           |RPC UART ID
                        |speed                          |RPC UART speed

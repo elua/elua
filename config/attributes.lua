@@ -100,7 +100,13 @@ end
 local function build_validator( realvname )
   return function( adesc, aname, aval, elname, sectname )
     if not adesc.is_array then return realvname( adesc, aname, aval, elname, sectname ) end
-    if type( aval ) ~= "table" then return false, sf( "value of attribute '%s' for element '%s' in section '%s' must be an array", aname, elname, sectname ) end
+    if type( aval ) ~= "table" then
+      if adesc.allow_single then
+        aval = { aval }
+      else
+        return false, sf( "value of attribute '%s' for element '%s' in section '%s' must be an array", aname, elname, sectname )
+      end
+    end
     for i = 1, #aval do
       local res, err = realvname( adesc, aname, aval[ i ], elname, sectname )
       if not res then
@@ -122,7 +128,7 @@ local validate_ip = build_validator( _validate_ip )
 -- Composite validator: run each validator in turn
 local function composite_validator( adesc, aname, aval, elname, sectname )
   for _, onedesc in pairs( adesc.attrs ) do
-    onedesc.is_array = adesc.is_array
+    onedesc.is_array, onedesc.allow_single = adesc.is_array, onedesc.allow_single
     local res, err = onedesc.validator( onedesc, aname, aval, elname, sectname )
     if res then return res end
   end
@@ -195,8 +201,9 @@ function make_optional( attr )
 end
 
 -- Mark the given attribute as an array of element of the same type
-function array_of( attr )
+function array_of( attr, allow_single )
   attr.is_array = true
+  attr.allow_single = allow_single
   return attr
 end
 

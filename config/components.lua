@@ -22,6 +22,32 @@ local function sermux_auxgen( eldesc, data, generated )
 end
 
 -------------------------------------------------------------------------------
+-- MMXFS support
+
+local function mmcfs_auxcheck( eldesc, data, enabled )
+  local ports, pins, spis = data.MMCFS_CS_PORT.value, data.MMCFS_CS_PIN.value, data.MMCFS_SPI_NUM.value
+  if #ports ~= #pins or #pins ~= #spis then
+    return false, "non-equal sizes for values of 'cs_port', 'cs_pin' and 'spi' of element 'mmcfs' in secetion 'components'"
+  end
+  return true
+end
+
+local function mmcfs_gen( eldesc, data, generated )
+  local ports, pins, spis = data.MMCFS_CS_PORT.value, data.MMCFS_CS_PIN.value, data.MMCFS_SPI_NUM.value
+  local data = ''
+  if #ports == 1 then -- single card
+    data = data .. gen.print_define( 'MMCFS_CS_PORT', ports[ 1 ] )
+    data = data .. gen.print_define( 'MMCFS_CS_PIN', pins[ 1 ] )
+    data = data .. gen.print_define( 'MMCFS_SPI_NUM', spis[ 1 ] )
+  else -- multiple cards
+    data = data .. gen.print_define( 'MMCFS_CS_PORT_ARRAY', ports )
+    data = data .. gen.print_define( 'MMCFS_CS_PIN_ARRAY', pins )
+    data = data .. gen.print_define( 'MMCFS_SPI_NUM_ARRAY', spis )
+  end
+  return data
+end
+
+-------------------------------------------------------------------------------
 -- Return a CDC component
 -- This should be included by each backend that supports USB UARTs
 
@@ -115,10 +141,12 @@ function init()
   -- MMCFS
   components.mmcfs = {
     macro = 'BUILD_MMCFS',
+    auxcheck = mmcfs_auxcheck,
+    gen = mmcfs_gen,
     attrs = {
-      cs_port = at.int_attr( 'MMCFS_CS_PORT' ),
-      cs_pin = at.int_attr( 'MMCFS_CS_PIN' ),
-      spi = at.int_attr( 'MMCFS_SPI_NUM' )
+      cs_port = at.array_of( at.int_attr( 'MMCFS_CS_PORT' ), true ),
+      cs_pin = at.array_of( at.int_attr( 'MMCFS_CS_PIN' ), true ),
+      spi = at.array_of( at.int_attr( 'MMCFS_SPI_NUM' ), true )
     }
   }
   -- RPC
