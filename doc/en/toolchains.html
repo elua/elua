@@ -54,7 +54,7 @@ $ sudo dpkg -i avr32program_3.0.4-1_i386.deb</code></pre>
 <p>Currently the only tested procedure for building <b>eLua</b> for i386 is to <a href="tc_386.html">build an i386 toolchain</a>. Other toolchains might work equally well though, but none was tested so far.
 </p>
 <a name="configuration"><h3>Toolchain configuration in eLua <span style="color: red;">(WIP)</span></h3></a>
-<p>The <b>eLua</b> build system makes provisions for specifying an unlimited number of toolchains for a given target, selectable via the scons <b>toolchain=...</b> option. The default structure
+<p>The <b>eLua</b> build system makes provisions for specifying an unlimited number of toolchains for a given target, selectable via the build_elua <b>toolchain=...</b> option. The default structure
    of each of the toolchains supported by default is listed in the table below.</p>
 <table class="table_center">
 <tbody>
@@ -127,44 +127,58 @@ $ sudo dpkg -i avr32program_3.0.4-1_i386.deb</code></pre>
 </tbody>
 </table>
 
-<p>If you need to add a new toolchain or modify an existing one, take a look at the scons build script (SConstruct). A toolchain-related fragment of SConstruct is shown below:</p>
+<p>If you need to add a new toolchain or modify an existing one, take a look build_data.lua. A toolchain-related fragment of build_data.lua is shown below:</p>
 <pre><code># List of toolchains
-toolchain_list = {
-  <b># This defines a toolchain with the name "arm-elf"</b>
-  'arm-gcc' : { 
-      'compile' : 'arm-elf-gcc', 
-      'link' : 'arm-elf-ld', 
-      'asm' : 'arm-elf-as', 
-      'bin' : 'arm-elf-objcopy', 
-      'size' : 'arm-elf-size' 
+local toolchain_list = {
+  <b># This defines a toolchain with the name "arm-gcc"</b>
+  [ 'arm-gcc' ] = {
+    compile = 'arm-elf-gcc',
+    link = 'arm-elf-ld',
+    asm = 'arm-elf-as',
+    bin = 'arm-elf-objcopy',
+    size = 'arm-elf-size',
+    cross_cpumode = 'little',
+    cross_lua = 'float_arm 64',
+    cross_lualong = 'int 32',
+    version = '--version'
   },
-  <b># Another toolchain, this time called "codesourcery"</b>
-  'codesourcery' : { 
-    'compile' : 'arm-none-eabi-gcc', 
-    'link' : 'arm-none-eabi-ld', 
-    'asm' : 'arm-none-eabi-as', 
-    'bin' : 'arm-none-eabi-objcopy', 
-    'size' : 'arm-none-eabi-size' 
+  <b># Another toolchain, this time called "arm-eabi-gcc"</b>
+  [ 'arm-eabi-gcc' ] = {
+    compile = 'arm-eabi-gcc',
+    link = 'arm-eabi-ld',
+    asm = 'arm-eabi-as',
+    bin = 'arm-eabi-objcopy',
+    size = 'arm-eabi-size',
+    cross_cpumode = 'little',
+    cross_lua = 'float 64',
+    cross_lualong = 'int 32',
+    version = '--version'
   },
 ................  
 }
 
-# List of platform/CPU/toolchains combinations
-# The first toolchain in the toolchains list is the default one
-# (the one that will be used if none is specified)
-platform_list = {  
-  'at91sam7x' : { 'cpus' : [ 'AT91SAM7X256', 'AT91SAM7X512' ], <b>'toolchains' : [ 'arm-gcc', 'codesourcery' ]</b> },
-  'lm3s' : { 'cpus' : [ 'LM3S8962', 'LM3S6965', 'LM3S6918' ], <b>'toolchains' : [ 'arm-gcc', 'codesourcery' ]</b> },
+-- Toolchain to arch mapping
+local toolchain_map = {
+  arm = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' },
+  cortexm3 = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' },
+................
+}
+
+-- CPU to platform mapping also defines the platform architecture
+-- which is used in turn to find the usable toolchains in toolchain_map
+local platform_list =
+{
+  at91sam7x = { cpus = { 'AT91SAM7X256', 'AT91SAM7X512' }, arch = 'arm' },
+  lm3s = { cpus = { 'LM3S1968', 'LM3S8962', 'LM3S6965', 'LM3S6918', 'LM3S9B92', 'LM3S9D92' }, arch = 'cortexm3' },
   ................
 }</code></pre>
-<p>From this fragment it's easy to understand that there are at most two places in SConstruct that must be taken into account when dealing with toolchain:</p>
+<p>From this fragment it's easy to understand that there are two main places in build_data.lua that must be taken into account when dealing with toolchain:</p>
 <ul>
   <li>the definition of <b>toolchain_list</b>. This is a list of all the supported toolchains with all their relevant components (compiler, linker, assembler, image copy tool and size tool).</li>
-  <li>each <b>eLua</b> platform has a list of permitted toolchains (only the toolchains specified in this list can be used to build an <b>eLua</b> image for that target). The first element of 
-      this list will be automatically used if a <b>toolchain=...</b> option is not specified on the command line.</li>
+  <li>the toolchain-to-architecture map in <b>toolchain_map</b>. The first element of this array will be automatically used if a <b>toolchain=...</b> option is not specified on the command line.</li>
 </ul>
-<p>Please note that in order to add a new toolchain to <b>eLua</b> it's generally not enough to edit just SConstruct. As different toolchains have different command line options, one should also
-   edit the platform's build configuration file (<i>src/platform/&lt;platform name&gt;/conf.py</i>) and make it aware of the new toolchain. The exact procedure for doing this is highly dependent on
+<p>Please note that in order to add a new toolchain to <b>eLua</b> it's generally not enough to edit just build_data.lua. As different toolchains have different command line options, one should also
+   edit the platform's build configuration file (<i>src/platform/&lt;platform name&gt;/conf.lua</i>) and make it aware of the new toolchain. The exact procedure for doing this is highly dependent on
    the toolchain and it's well beyond the scope of this tutorial.</p>
 $$FOOTER$$
 

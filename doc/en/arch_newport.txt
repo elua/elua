@@ -1,0 +1,152 @@
+// $$HEADER$$
+Porting eLua
+------------
+So, you realized how cool eLua is :) and you'd like to give it a try. Unfortunately, eLua doesn't have a port for your CPU or board of choice.
+The solution is simple: write the port yourself. This might seem as a daunting task at first, but it's actually easier than it sounds. eLua was
+designed to make the task of implementing new ports as easy and intuitive as possible. This section gives an overview of the porting process. It's not
+an exhaustive guide, but it should be enough to point you in the right direction. Before diving into this, it's highly recommended that you take a look
+at the link:arch_overview.html[eLua architecture page].
+
+Prerequisites
+-------------
+Before starting to work on the port, make sure that:
+
+- your CPU has enough resources to run eLua. A very rough estimation (based on ARM Thumb code only) is that you'd need at least 256k of program memory
+and 32k of RAM for a complete eLua image and 128k of program memory for a basic image. It's possible to run eLua with less than 32k of RAM (especially
+when link:arch_ltr.html[LTR] is enabled), but you'll probably run out of memory fast. 64k of RAM (or more) is recommended.
+- http://sourceware.org/newlib[Newlib] is available for your CPU. eLua depends on Newlib currently (although this limitation will be eliminated in a
+future version), so if Newlib is not available for your CPU, you're out of luck.
+- you have a C compiler for your target. Ideally you'd use GCC, but if this isn't possible other compilers might work as well. Keep in mind that
+link:arch_ltr.html[LTR] needs a C99 C compiler (or at least a partially C99 compliant C compiler than supports C99-style union initialization). 
+- you have a platform library (it usually comes from the CPU manufacturer) that you can use to implement (at least part of) the platform interface.
+It's also highly recommended to gain at least a basic understanding of your platform. It will help a lot while writing the port.
+
+If all of the above is true, you should continue reading this document to bring your port to life. If not, we're sorry, but (at least at this point)
+eLua can't be ported to your CPU. If, on the other hand, you're good to go, please take a bit of time and read link:arch_overview.html#platforms[this section]
+first, as it details the structure of a port and might simplify your work quite a bit.
+
+[[newboard]]
+Adding a new board
+------------------
+If all you need is to add a new board that uses a CPU that's already supported by eLua (check link:status.html[here] for a complete list), then it's
+fairly easy to accomplish this:
+
+1. choose a good name for your board :)
+2. write a board configuration file using the link:configurator.html[configurator].
+3. if needed, customize the list of source file and/or compilation flags used for building the eLua firmware image for your board. You can use the variable
+  *comp.board* in *conf.lua* to define new preprocessor macros specifically for your board, or to include or exclude certain files from the build, or change
+  the build flags and so on. An example taken from the *lm3s* port is shown below (part of *conf.lua*):
++
+--
+[source, lua]
+----------------
+local board = comp.board:upper()
+if board == 'EK-LM3S1968' or board == 'EK-LM3S6965' or board == 'EK-LM3S8962' then
+  specific_files = specific_files .. " rit128x96x4.c disp.c"
+end
+
+ -- The default for the Eagle 100 board is to start the image at 0x2000,
+ -- so that the built in Ethernet boot loader can be used to upload it
+if board == 'EAGLE-100' then
+  addlf '-Wl,-Ttext,0x2000'
+end
+----------------
+--
+
+After you edit all the relevant source files, all you have to do is to execute __lua build_elua.lua board=<boardname>__ and you'll have eLua compiled for your board.
+
+[[newcpu]]
+Adding a new CPU
+----------------
+If you want to add a new CPU to eLua and the new CPU happens to be supported by a platform on which eLua link:status.html[already runs], your task is still quite easy.
+Follow the steps below:
+
+1. edit *build_data.lua* and add your new CPU to the *platform_list* dictionary. Use the "official" name of the CPU (as it appears in its datasheet). An example is shown below:
++
+--
+[source, lua]
+----------------
+ -- List of platform/CPU combinations
+local platform_list =
+{
+  at91sam7x = { cpus = { 'AT91SAM7X256', 'AT91SAM7X512' }, arch = 'arm' },
+  lm3s = { cpus = { 'LM3S1968', 'LM3S8962', 'LM3S6965', 'LM3S6918', 'LM3S9B92', 'LM3S9D92' }, arch = 'cortexm3' },
+  str9 = { cpus = { 'STR912FAW44' }, arch = 'arm' },
+  ..................
+}
+----------------
+--
+2. you also need to add a new board to eLua (which makes sense, since you're most likely going to run eLua on a board built around the CPU  of your choice,
+not only on the CPU itself). So follow the instruction from the link:#newboard[previous paragraph] to add your new board.
+3. if needed, customize the list of source file and/or compilation flags used for building the eLua firmware image for this CPU. You can use the variable
+  *comp.cpu* in *conf.lua* to define new preprocessor macros specifically for your CPU, or to include or exclude certain files from the build, or change
+  the build flags and so on. An example taken from the *at91sam7x* port is shown below (part of *conf.lua*):
++
+--
+[source, lua]
+----------------
+if comp.cpu:upper() == 'AT91SAM7X256' then
+  ldscript = "flash256.lds"
+  addm( 'at91sam7x256' )
+elseif comp.cpu:upper() == 'AT91SAM7X512' then
+  ldscript = "flash512.lds"
+  addm( 'at91sam7x512' )
+else
+  print( sf( "Invalid AT91SAM7X CPU %s", comp.cpu ) )
+  os.exit( -1 )
+end
+----------------
+--
+After you edit all the relevant source files, all you have to do is to execute __lua build_elua.lua board=<boardname>__ and you'll have eLua compiled for your board (and implicitly for
+  your new CPU).
+
+[[newplatform]]
+Adding a new platform
+---------------------
+If you want to add a new CPU to eLua and the new CPU is not supported by a platform on which eLua link:status.html[already runs], you have to go the whole way and add a new platform to
+eLua. This is certainly more difficult than the previous cases, but still not that hard. Remember to start small (implement only minimal support at first) and don't write everything from
+scratch, start from an already existing platform implementation and work your way up from there. The i386 port is the simplest, but also a bit different from the embedded ports.
+Another port that is quite simple at this point is the lpc2888 port, you might take a look at that too. After you "get a feeling" of how a port should look like and after you read about
+link:arch_overview.html[the architecture of eLua and the structure of a port], follow the steps below:
+
+1. choose the name of your new platform. It should be an easy, descriptive name. For example, all the CPUs from the LM3S series are grouped inside a platform called *lm3s*.
+2. create the __src/platform/<name>__ directory and add all your platform-specific files here. Check link:arch_overview.html#platforms[here] for details.
+3. use the instructions from the link:#newcpu[previous paragraph] to add your new CPU and board to eLua.
+4. implement as much as you need from the link:arch_platform.html[platform interface].
+5. if your new platform uses a toolchain that wasn't previously configured in eLua, add it now (see link:toolchains.html[here] for more details about toolchains).
+6. let link:building.html[the builder] know about your new platform by modifying the *platform_list* variable to add information about the CPU(s) available for your platform and about its toolchains. 
+If needed, add a new architecture too. You'll need to modify *platform_list* (and *arch_data* and *toolchain_map* if adding a new architecture) in *build_data.lua*. An example is given below:
++
+--
+[source, lua]
+----------------
+ -- List of acrhitectures and their endianness
+local arch_data = { 
+  arm = 'little',
+  cortexm3 = 'little',
+  ................
+}
+
+-- Toolchain to arch mapping
+local toolchain_map = {
+  arm = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' },
+  cortexm3 = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' },
+  ................
+}
+
+-- List of platform/CPU combinations
+local platform_list =
+{
+  at91sam7x = { cpus = { 'AT91SAM7X256', 'AT91SAM7X512' }, arch = 'arm' },
+  lm3s = { cpus = { 'LM3S1968', 'LM3S8962', 'LM3S6965', 'LM3S6918', 'LM3S9B92', 'LM3S9D92' }, arch = 'cortexm3' },
+  str9 = { cpus = { 'STR912FAW44' }, arch = 'arm' },
+  ................
+}
+----------------
+--
+
+After you edit all the relevant source files, all you have to do is to execute __lua build_elua.lua board=<boardname>__ and you'll have eLua compiled for your board (and implicitly for
+  your new CPU and platform).
+
+// $$FOOTER$$
+
