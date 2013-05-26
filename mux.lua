@@ -15,6 +15,6 @@ local full_files = utils.prepend_path( flist, "mux_src" ) .. utils.prepend_path(
 local local_include = "mux_src rfs_server_src inc inc/remotefs"
 local output = "mux"
 
-local p = c.program{ output .. ".temp", src = full_files, needs = "math", incdir = local_include, defines = cdefs, odir = ".build/mux", flags = "-m32", libflags = "-m32", debug = true }
+local p = c.program{ output .. ".temp", src = full_files, needs = { "math", "sockets" }, incdir = local_include, defines = cdefs, odir = ".build/mux", flags = "-m32", libflags = "-m32", debug = true }
 default( utils.build_helper( output, p ) )
 

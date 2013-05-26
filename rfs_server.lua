@@ -5,39 +5,29 @@ local utils = b.utils
 
 -- Set builder options BEFORE calling builder:init
 builder:add_option( 'sim', 'run under the eLua simulator', false )
-builder:init( args )
-builder:set_build_mode( builder.BUILD_DIR_LINEARIZED )
+builder:init( arg )
 
 local sim = builder:get_option( 'sim' )
-sim = sim and 1 or 0
+print( sim )
 
-local flist, socklib
+local flist
 local cdefs = "RFS_STANDALONE_MODE"
-local mainname = sim == 0 and 'main.c' or 'main_sim.c'
-local exeprefix = ""
+local mainname = sim and 'main_sim.c' or 'main.c'
 if utils.is_windows() then
-  if sim == 1 then
+  if sim then
     print "SIM target not supported under Windows"
     os.exit( 1 )
   end
   flist = "main.c server.c os_io_win32.c log.c net_win32.c serial_win32.c deskutils.c rfs_transports.c"
   cdefs = cdefs .. " WIN32_BUILD"
-  exeprefix = ".exe"
-  socklib = 'ws2_32'
 else
   flist = mainname .. " server.c os_io_posix.c log.c net_posix.c serial_posix.c deskutils.c rfs_transports.c"
 end
 
-local output = sim == 0 and 'rfs_server' or 'rfs_sim_server'
+local output = sim and 'rfs_sim_server' or 'rfs_server'
 local local_include = "rfs_server_src inc/remotefs inc"
 local full_files = utils.prepend_path( flist, 'rfs_server_src' ) .. " src/remotefs/remotefs.c src/eluarpc.c"
-local compcmd = builder:compile_cmd{ flags = "-m32 -O0 -Wall -g", defines = cdefs, includes = local_include }
-local linkcmd = builder:link_cmd{ flags = "-m32", libraries = socklib }
-builder:set_compile_cmd( compcmd )
-builder:set_link_cmd( linkcmd )
-builder:set_exe_extension( exeprefix )
 
--- Build everything
-builder:make_exe_target( output, full_files )
-builder:build()
+local p = c.program{ output .. ".temp", src = full_files, needs = { "math", "sockets" }, incdir = local_include, defines = cdefs, odir = ".build/rfs_server", flags = "-m32", libflags = "-m32", debug = true }
+default( utils.build_helper( output, p ) )
 
