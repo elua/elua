@@ -23,3 +23,5 @@ boards/*.h
 sdcard.img
 core
 luarpc*
+*.spec
+

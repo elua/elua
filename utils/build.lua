@@ -191,11 +191,6 @@ _target.set_pre_build_function = function( self, f )
   self._pre_build_function = f
 end
 
--- Set post-build function
-_target.set_post_build_function = function( self, f )
-  self._post_build_function = f
-end
-
 -- Force rebuild
 _target.force_rebuild = function( self, flag )
   self._force_rebuild = flag
@@ -291,8 +286,6 @@ _target.build = function( self )
       os.exit( 1 ) 
     end
   end
-  -- Execute the post-build function if needed
-  if self._post_build_function then self._post_build_function( self, docmd ) end
   -- Marked target as "already ran" so it won't run again
   self.builder.runlist[ self.target ] = true
   return docmd and keep_flag
@@ -395,12 +388,10 @@ builder.init = function( self, args )
       table.insert( self.cmdline_macros, a:sub( 3 ) ) 
     elseif a:find( '=' ) then                   -- builder argument (key=value)
       local k, v = opts:handle_arg( a )
-      if not k then
-        self:_show_help()
-        os.exit( 1 )
+      if k then
+        self.args[ k:upper() ] = v
+        self.user_args[ k:upper() ] = true
       end
-      self.args[ k:upper() ] = v
-      self.user_args[ k:upper() ] = true
     else                                        -- this must be the target name / target arguments
       if self.targetname == nil then            
         self.targetname = a
@@ -466,6 +457,10 @@ end
 -- Set the clean mode
 builder.set_clean_mode = function( self, isclean )
   self.clean_mode = isclean
+end
+
+builder.is_clean_mode = function( self )
+  return self.clean_mode
 end
 
 -- Sets the build mode

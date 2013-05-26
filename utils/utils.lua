@@ -104,6 +104,11 @@ _linearize_array = function( arr, res, filter )
   end 
 end
 
+-- 'Liniarize' a file name by replacing its path separators indicators with '_'
+linearize_fname = function( s )
+  return ( s:gsub( "[\\/]", "__" ) )
+end
+
 linearize_array = function( arr, filter )
   local res = {}
   filter = filter or function( v ) return true end
@@ -245,6 +250,17 @@ end
 -- Concatenates the second table into the first one
 concat_tables = function( dst, src )
   foreach( src, function( k, v ) dst[ k ] = v end )
+end
+
+get_copy_command = function()
+  return is_os_windows and "copy" or "cp"
+end
+
+build_helper = function( output, ptarget, exe_extension )
+  exe_extension = exe_extension or ( is_os_windows and ".exe" or "" )
+  local odir = ".build/" .. output
+  full_mkdir( odir )
+  return target( output .. exe_extension, ptarget.target, sf( "%s %s %s", get_copy_command(), ptarget.target, output .. exe_extension ) )
 end
 
 -------------------------------------------------------------------------------

@@ -1,23 +1,22 @@
-#! /usr/bin/env lua
-
 --[[
-   build_elua.lua: A build script for eLua written in Lua.
+  Lake description file for the Lua builder
 
    The command line syntax is the same as for the old scons/SConstruct system.
    See http://www.eluaproject.net/en_building.html
 
    The only required option is the target board or CPU. e.g.:
-     lua build_elua.lua board=MIZAR32
+     lake board=MIZAR32
 
    This script requires some well-known Lua libraries to run.
    To install them on Ubuntu/Debian, go (as root):
-       apt-get install luarocks
-       luarocks install luafilesystem
-       luarocks install lpack
-       luarocks install md5
+     apt-get install luarocks
+     luarocks install luafilesystem
+     luarocks install lpack
+     luarocks install md5
+     luarocks install luaposix
+     luarocks install lake
 --]]
 
-local args = { ... }
 local b = require "utils.build"
 local mkfs = require "utils.mkfs"
 local bconf = require "config.config"
@@ -25,7 +24,7 @@ local board_base_dir = "boards"
 local bd = require "build_data"
 
 builder = b.new_builder()
-utils = b.utils
+local utils = b.utils
 sf = string.format
 
 -------------------------------------------------------------------------------
@@ -129,7 +128,7 @@ builder:add_option( "romfs_dir", 'choose ROMFS directory', 'romfs' )
 builder:add_option( "board_config_file", "choose board configuration file", "" )
 builder:add_option( "skip_conf", "skip board configuration step, use pre-generated header file directly", false )
 builder:add_option( "config_only", "execute only the configurator, then exit", false )
-builder:init( args )
+builder:init( arg )
 builder:set_build_mode( builder.BUILD_DIR_LINEARIZED )
 
 -- Build the 'comp' target which will 'redirect' all the requests
@@ -292,12 +291,12 @@ local outd = builder:get_option( "output_dir" )
 if not utils.is_dir( outd ) then
   if not utils.full_mkdir( outd ) then
     print( "[builder] Unable to create directory " .. outd )
-    os.exit( 1 )
+    os.exit( 0 )
   end
 end
 
 -- Output file
-output = outd .. utils.dir_sep .. 'elua_' .. comp.target .. '_' .. comp.board:lower()
+output = ( outd .. utils.dir_sep .. 'elua_' .. comp.target .. '_' .. comp.board:lower() ):gsub("^%./", "" )
 builder:set_build_dir( builder:get_build_dir() .. utils.dir_sep .. comp.board:lower() )
 
 -- User report
@@ -356,11 +355,13 @@ local uip_files = " " .. utils.prepend_path( "uip_arp.c uip.c uiplib.c dhcpc.c p
 
 addi{ { 'inc', 'inc/newlib',  'inc/remotefs', 'src/platform', 'src/lua' }, { 'src/modules', 'src/platform/' .. platform, 'src/platform/' .. platform .. '/cpus' }, "src/uip", "src/fatfs" }
 addm( "LUA_OPTIMIZE_MEMORY=" .. ( comp.optram and "2" or "0" ) )
-addcf( { '-Os','-fomit-frame-pointer' } )
+addcf( { '-Os', '-fomit-frame-pointer' } )
 
 -- Toolset data (filled by each platform in part)
 tools = {}
 specific_files = ''
+be_targets = {}
+odir = ".build/" .. comp.board
 
 -- We get platform-specific data by executing the platform script
 dofile( sf( "src/platform/%s/conf.lua", platform ) )
@@ -369,8 +370,6 @@ dofile( sf( "src/platform/%s/conf.lua", platform ) )
 source_files = source_files .. uip_files .. specific_files
 
 -------------------------------------------------------------------------------
--- Create compiler/linker/assembler command lines and build
-
 -- ROM file system builder
 
 romfs_exclude_patterns = { '%.DS_Store', '%.gitignore' }
@@ -381,7 +380,7 @@ function match_pattern_list( item, list )
   end
 end
 
-local function make_romfs( target, deps )
+local function make_romfs()
   print "Building ROM file system ..."
   local romdir = builder:get_option( "romfs_dir" )
   local flist = {}
@@ -391,27 +390,95 @@ local function make_romfs( target, deps )
     flist[ k ] = v:gsub( romdir .. utils.dir_sep, "" )
   end
 
-  if not mkfs.mkfs( romdir, "romfiles", flist, comp.romfs, fscompcmd ) then return -1 end
+  if not mkfs.mkfs( romdir, "romfiles", flist, comp.romfs, fscompcmd ) then return false end
   if utils.is_file( "inc/romfiles.h" ) then
     -- Read both the old and the new file
-    local oldfile = io.open( "inc/romfiles.h", "rb" )
-    assert( oldfile )
-    local newfile = io.open( "romfiles.h", "rb" )
-    assert( newfile )
+    local oldfile = assert( io.open( "inc/romfiles.h", "rb" ) )
+    local newfile = assert( io.open( "romfiles.h", "rb" ) )
     local olddata, newdata = oldfile:read( "*a" ), newfile:read( "*a" )
     oldfile:close()
     newfile:close()
-    -- If content is similar return '1' to builder to indicate that the target didn't really
-    -- produce a change even though it ran
     if olddata == newdata then
       os.remove( "romfiles.h" )
-      return 1
+      return true
     end
     os.remove( "inc/romfiles.h" )
   end
   os.rename( "romfiles.h", "inc/romfiles.h" )
-  return 0
+  return true
 end
+
+-------------------------------------------------------------------------------
+-- Actual compilation/prog targets
+
+if not make_romfs() then return -1 end
+cflags = table.concat( utils.linearize_array( cflags ), " " )
+lflags = table.concat( utils.linearize_array( lflags ), " " )
+asflags = table.concat( utils.linearize_array( asflags ), " " )
+-- includes = utils.prepend_string( table.concat( utils.linearize_array( includes ), " " ), "-I", " " )
+--cdefs = utils.prepend_string( table.concat( utils.linearize_array( cdefs ), " " ), "-D", " " )
+libs = utils.prepend_string( table.concat( utils.linearize_array( libs ), " " ), "-l", " " )
+
+--[[
+-- Generate our targets explicitly, one by one, because the ASM files need different flags
+-- Not ideal, but the only solution I can think of with lake
+source_files:gsub( "%S+", function( src )
+  local is_asm = src:find( "%.[sS]$" )
+  local output_path = utils.concat_path{ odir, utils.linearize_fname( utils.replace_extension( src, "o" ) ) }
+  target( output_path, src, sf( "%s -c %s %s %s -o $(TARGET) $(DEPENDS)", is_asm and toolset.asm or toolset.compile, is_asm and asflags or cflags, cdefs, includes ) )
+  outputs[ #outputs + 1 ] = output_path
+end )
+local p = target( utils.concat_path{ odir, output .. ".temp" }, table.concat( outputs, " " ), sf( "%s %s -o $(TARGET) $(DEPENDS) %s", toolset.compile, lflags, libs ) )
+default( utils.build_helper( output, p, ".elf" ) )
+--]]
+--[[
+local crule = rule( '.o', '.c', sf( "%s -c %s %s %s -o $(TARGET) $(INPUT)", toolset.compile, cflags, cdefs, includes ) )
+crule.output_dir = odir
+local asmrule = rule( '.o', '.s', sf( "%s -c %s %s %s -o $(TARGET) $(DEPENDS)", toolset.asm, asflags, cdefs, includes ) )
+asmrule.output_dir = odir
+default( crule 'src/main.c' )
+--]]
+
+lake.set_flags{ PREFIX = toolset.compile:gsub( "%-gcc$", "" ) }
+local cfiles, afiles = {}, {}
+source_files:gsub( "%S+", function( src ) table.insert( src:find( "%.[sS]$" ) and afiles or cfiles, src ) end )
+-- Partition the build into two libs, one that contains C object files and one that contains assembler object files. We do this because we
+-- need different set of flags for C and assembler files and because we want to take advantage of the parallel build features of lake
+-- (which builds in parallel only dependencies of the same rule)
+local tdeps = {}
+if #afiles > 0 then
+  local alib = c.library{ 'aobjs', src = afiles, incdir = includes, defines = cdefs, odir = odir, flags = asflags }
+  table.insert( tdeps, alib.target )
+end
+local clib = c.library{ 'cobjs', src = cfiles, incdir = includes, defines = cdefs, odir = odir, flags = cflags }
+table.insert( tdeps, clib.target )
+for i = 1, #be_targets do table.insert( tdeps, be_targets[ i ].target ) end 
+-- NOTE: '$(DEPENDS) $(DEPENDS)' below is NOT an error. Specifying $(DEPENDS) only once might lead to build failures.
+local p = target( utils.concat_path{ odir, output .. ".temp" }, tdeps, sf( "%s %s -o $(TARGET) $(DEPENDS) $(DEPENDS) %s", toolset.compile, lflags, libs ) )
+local final = utils.build_helper( output, p, ".elf" )
+
+-- Also create the programming target
+if comp.board ~= "sim" and comp.board ~= "pc" then
+  local prog = target( output .. ".bin", final.target, function( t )
+    local imgname, elfname = t.target, t.deps[ 1 ]
+    local outtype = imgname:find( "%.hex$" ) and "ihex" or "binary"
+    print( sf( "Generating binary image %s...", imgname ) )
+    os.execute( sf( "%s %s", toolset.size, elfname ) )
+    os.execute( sf( "%s -O %s %s %s", toolset.bin, outtype, elfname, imgname ) )
+  end )
+  -- Alias for the above rule
+  target( "prog", output .. ".bin", "" )
+end  
+-- Size target
+target( "size", final.target, function( t ) os.execute( sf( "%s %s", toolset.size, t.deps[ 1 ] ) ) end )
+default( final )
+
+-- If the backend needs to do more processing before the build starts, do it now
+if tools[ platform ].pre_build then
+  tools[ platform ].pre_build()
+end
+
+do return end
 
 -- Generic 'prog' action function
 local function genprog( target, deps )
@@ -440,8 +507,10 @@ builder:set_link_cmd( linkcmd )
 builder:set_asm_cmd( ascmd )
 
 -- Create the ROMFS target
-local romfs_target = builder:target( "#phony:romfs", nil, make_romfs )
-romfs_target:force_rebuild( true )
+if not builder:is_clean_mode() then
+  local romfs_target = builder:target( "#phony:romfs", nil, make_romfs )
+  romfs_target:force_rebuild( true )
+end
 
 -- Create executable targets
 odeps = builder:create_compile_targets( source_files )

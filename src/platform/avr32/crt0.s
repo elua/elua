@@ -52,6 +52,7 @@
   // crt0 is placed outside the .reset section so that the program entry point
   // can be changed without affecting the C runtime startup.
   .section  .start, "ax", @progbits
+  .extern main
 
 
   .global crt0

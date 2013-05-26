@@ -1,5 +1,7 @@
 -- Configuration file for the LPC17xx backend
 
+local utils = require "utils"
+
 addi( sf( 'src/platform/%s/drivers/inc', platform ) )
 
 local fwlib_files = utils.get_files( sf( "src/platform/%s/drivers/src", platform ), ".*%.c$" )
