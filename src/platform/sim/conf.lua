@@ -36,6 +36,6 @@ tools.sim = {}
 
 -- Add the programming function explicitly for this target
 tools.sim.pre_build = function()
-  target( 'prog', output .. ".elf", function() print "Run the simulator (./run_elua_sim.sh) and enjoy :) Linux only." end )
+  target( 'prog', utils.concat_path{ outd, output .. ".elf" }, function() print "Run the simulator (./run_elua_sim.sh) and enjoy :) Linux only." end )
 end
 

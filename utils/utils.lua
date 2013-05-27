@@ -256,11 +256,11 @@ get_copy_command = function()
   return is_os_windows and "copy" or "cp"
 end
 
-build_helper = function( output, ptarget, exe_extension )
+build_helper = function( output, ptarget, exe_extension, outd )
   exe_extension = exe_extension or ( is_os_windows and ".exe" or "" )
-  local odir = ".build/" .. output
-  full_mkdir( odir )
-  return target( output .. exe_extension, ptarget.target, sf( "%s %s %s", get_copy_command(), ptarget.target, output .. exe_extension ) )
+  full_mkdir( concat_path { ".build/", output } )
+  local final = concat_path{ outd or ".", output .. exe_extension }
+  return target( final, ptarget.target, sf( "%s %s %s", get_copy_command(), ptarget.target, final ) )
 end
 
 -------------------------------------------------------------------------------

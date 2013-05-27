@@ -1,5 +1,7 @@
 -- Configuration file for the i386 backend
 
+local utils = require "utils"
+
 specific_files = "icommon.c descriptor_tables.c isr.c kb.c  monitor.c timer.c platform.c"
 asm_files = "boot.s gdt.s interrupt.s"
 local ldscript = "i386.ld"
@@ -30,6 +32,6 @@ tools.i386 = {}
 
 -- Add the programming function explicitly for this target
 tools.i386.pre_build = function()
-  target( 'prog', output .. ".elf", function() print "Visit http://www.eluaproject.net for instructions on how to use your eLua ELF file" end )
+  target( 'prog', utils.concat_path{ outd, output .. ".elf" }, function() print "Visit http://www.eluaproject.net for instructions on how to use your eLua ELF file" end )
 end
 

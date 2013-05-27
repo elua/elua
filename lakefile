@@ -287,7 +287,7 @@ else
 end
 
 -- Create the output directory if it is not created yet
-local outd = builder:get_option( "output_dir" )
+outd = builder:get_option( "output_dir" )
 if not utils.is_dir( outd ) then
   if not utils.full_mkdir( outd ) then
     print( "[builder] Unable to create directory " .. outd )
@@ -296,8 +296,7 @@ if not utils.is_dir( outd ) then
 end
 
 -- Output file
-output = ( outd .. utils.dir_sep .. 'elua_' .. comp.target .. '_' .. comp.board:lower() ):gsub("^%./", "" )
-builder:set_build_dir( builder:get_build_dir() .. utils.dir_sep .. comp.board:lower() )
+output = ( 'elua_' .. comp.target .. '_' .. comp.board:lower() ):gsub("^%./", "" )
 
 -- User report
 dprint ""
@@ -415,9 +414,9 @@ if not make_romfs() then return -1 end
 cflags = table.concat( utils.linearize_array( cflags ), " " )
 lflags = table.concat( utils.linearize_array( lflags ), " " )
 asflags = table.concat( utils.linearize_array( asflags ), " " )
--- includes = utils.prepend_string( table.concat( utils.linearize_array( includes ), " " ), "-I", " " )
+--includes = utils.prepend_string( table.concat( utils.linearize_array( includes ), " " ), "-I", " " )
 --cdefs = utils.prepend_string( table.concat( utils.linearize_array( cdefs ), " " ), "-D", " " )
-libs = utils.prepend_string( table.concat( utils.linearize_array( libs ), " " ), "-l", " " )
+--libs = utils.prepend_string( table.concat( utils.linearize_array( libs ), " " ), "-l", " " )
 
 --[[
 -- Generate our targets explicitly, one by one, because the ASM files need different flags
@@ -440,26 +439,22 @@ default( crule 'src/main.c' )
 --]]
 
 lake.set_flags{ PREFIX = toolset.compile:gsub( "%-gcc$", "" ) }
-local cfiles, afiles = {}, {}
-source_files:gsub( "%S+", function( src ) table.insert( src:find( "%.[sS]$" ) and afiles or cfiles, src ) end )
+c.defaults{ odir = odir }
 -- Partition the build into two libs, one that contains C object files and one that contains assembler object files. We do this because we
 -- need different set of flags for C and assembler files and because we want to take advantage of the parallel build features of lake
 -- (which builds in parallel only dependencies of the same rule)
-local tdeps = {}
-if #afiles > 0 then
-  local alib = c.library{ 'aobjs', src = afiles, incdir = includes, defines = cdefs, odir = odir, flags = asflags }
-  table.insert( tdeps, alib.target )
-end
-local clib = c.library{ 'cobjs', src = cfiles, incdir = includes, defines = cdefs, odir = odir, flags = cflags }
-table.insert( tdeps, clib.target )
-for i = 1, #be_targets do table.insert( tdeps, be_targets[ i ].target ) end 
--- NOTE: '$(DEPENDS) $(DEPENDS)' below is NOT an error. Specifying $(DEPENDS) only once might lead to build failures.
-local p = target( utils.concat_path{ odir, output .. ".temp" }, tdeps, sf( "%s %s -o $(TARGET) $(DEPENDS) $(DEPENDS) %s", toolset.compile, lflags, libs ) )
-local final = utils.build_helper( output, p, ".elf" )
+local cfiles, afiles, tdeps = {}, {}, {}
+source_files:gsub( "%S+", function( src ) table.insert( src:find( "%.[sS]$" ) and afiles or cfiles, src ) end )
+table.insert( tdeps, c.group{ src = afiles, incdir = includes, defines = cdefs, flags = asflags } )
+table.insert( tdeps, c.group{ src = cfiles, incdir = includes, defines = cdefs, flags = cflags } )
+for k, v in pairs( be_targets ) do table.insert( tdeps, v ) end
+local p = c.program{ output .. ".temp", inputs = tdeps, libflags = lflags, libs = libs }
+local final = utils.build_helper( output, p, ".elf", outd )
 
 -- Also create the programming target
 if comp.board ~= "sim" and comp.board ~= "pc" then
-  local prog = target( output .. ".bin", final.target, function( t )
+  local fullbin = utils.concat_path{ outd, output .. ".bin" }
+  local prog = target( fullbin, final.target, function( t )
     local imgname, elfname = t.target, t.deps[ 1 ]
     local outtype = imgname:find( "%.hex$" ) and "ihex" or "binary"
     print( sf( "Generating binary image %s...", imgname ) )
@@ -467,7 +462,7 @@ if comp.board ~= "sim" and comp.board ~= "pc" then
     os.execute( sf( "%s -O %s %s %s", toolset.bin, outtype, elfname, imgname ) )
   end )
   -- Alias for the above rule
-  target( "prog", output .. ".bin", "" )
+  target( "prog", fullbin, "" )
 end  
 -- Size target
 target( "size", final.target, function( t ) os.execute( sf( "%s %s", toolset.size, t.deps[ 1 ] ) ) end )

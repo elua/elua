@@ -6,6 +6,7 @@ local utils = require "utils"
 
 local args = { ... }
 local rel = args[ 1 ] or "_temp"
+local threads = 8
 
 -- Get the full list of boards
 local boardnames = utils.string_to_table( utils.get_files( "boards/known", function( fname ) return fname:match( "%.lua$" ) end ) )
@@ -24,9 +25,9 @@ lfs.mkdir( "dist" )
 for i = 1, #boards do
   local b = boards[ i ]
   print( utils.col_red( "Generating image for board " .. b .. " ... " ) )
-  local cmd = "lua build_elua.lua board=" .. b .. " output_dir=dist disp_mode=minimal prog"
-  docmd( cmd .. " -c" )
-  docmd( cmd )
+  local cmd = "lake board=" .. b .. " output_dir=dist -b -j " .. threads
+  docmd( cmd .. " clean" )
+  docmd( cmd .. " prog" )
   print ""
 end
 
