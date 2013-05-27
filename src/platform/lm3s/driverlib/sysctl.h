@@ -25,6 +25,8 @@
 #ifndef __SYSCTL_H__
 #define __SYSCTL_H__
 
+#include "hw_types.h"
+
 //*****************************************************************************
 //
 // If building with a C++ compiler, make all of the definitions in this header

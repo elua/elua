@@ -9,18 +9,9 @@
 #include "utils.h"
 #include <stdio.h>
 
-// [TODO] when the new build system is ready, automatically add the
-// code below in platform_conf.h
-#if defined( BUILD_LUA_INT_HANDLERS ) || defined( BUILD_C_INT_HANDLERS )
-#define BUILD_INT_HANDLERS
-
-extern const elua_int_descriptor elua_int_table[ INT_ELUA_LAST ];
-
-#endif // #if defined( BUILD_LUA_INT_HANDLERS ) || defined( BUILD_C_INT_HANDLERS )
-
-#ifndef VTMR_NUM_TIMERS
-#define VTMR_NUM_TIMERS       0
-#endif // #ifndef VTMR_NUM_TIMERS
+#ifdef BUILD_INT_HANDLERS
+  extern const elua_int_descriptor elua_int_table[ INT_ELUA_LAST ];
+#endif // #ifdef BUILD_INT_HANDLERS
 
 #ifndef PLATFORM_HAS_SYSTIMER
 #warning This platform does not have a system timer. Your eLua image might not work as expected.
@@ -331,7 +322,11 @@ int platform_timer_set_match_int( unsigned id, timer_data_type period_us, int ty
   if( id == PLATFORM_TIMER_SYS_ID )
     return PLATFORM_TIMER_INT_INVALID_ID;
   else
+#if INT_TMR_MATCH != ELUA_INT_INVALID_INTERRUPT
     return platform_s_timer_set_match_int( id, period_us, type );
+#else
+    return PLATFORM_TIMER_INT_INVALID_ID;
+#endif
 }
 
 int cmn_tmr_int_set_status( elua_int_resnum resnum, int status )

@@ -17,7 +17,6 @@ local fwlib_files = utils.get_files( "src/platform/" .. platform .. "/driverlib"
 local board = comp.board:upper()
 if board == 'EK-LM3S1968' or board == 'EK-LM3S6965' or board == 'EK-LM3S8962' then
   specific_files = specific_files .. " rit128x96x4.c disp.c"
-  addm 'ENABLE_DISP' 
 end
 
 -- The default for the Eagle 100 board is to start the image at 0x2000,

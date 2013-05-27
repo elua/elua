@@ -1,6 +1,9 @@
+package.path = package.path .. ";../utils/?.lua;"
+
 require "lfs"
 require "eluadoc"
 require "md5"
+local utils = require "utils"
 
 -- Uncomment this when generating offline docs
 local is_offline = true
@@ -148,21 +151,6 @@ local function copy_dir_rec( src, dst )
       copy_file( oldf, dst )
     end
   end
-end
-
--- Remove a directory recusively
--- USE WITH CARE!! Doesn't do much checks :)
-local function rm_dir_rec( dirname )
-  for f in lfs.dir( dirname ) do
-    local ename = string.format( "%s/%s", dirname, f )
-    local attrs = lfs.attributes( ename )
-    if attrs.mode == 'directory' and f ~= '.' and f ~= '..' then
-      rm_dir_rec( ename ) 
-    elseif attrs.mode == 'file' or attrs.mode == 'named pipe' or attrs.mode == 'link' then
-      os.remove( ename )
-    end
-  end
-  lfs.rmdir( dirname )
 end
 
 -- Copy a directory to another directory
@@ -678,7 +666,7 @@ else
     print( string.format( "%s is not a directory", destdir ) )
     return
   end
-  rm_dir_rec( destdir )
+  utils.rmdir_rec( destdir )
   lfs.mkdir( destdir )
 end
 
@@ -690,7 +678,7 @@ if cleancache then
       print( "'cache' is not a directory" )
       return
     end
-    rm_dir_rec( 'cache' )
+    utils.rmdir_rec( 'cache' )
     lfs.mkdir( 'cache' )
   end
 end

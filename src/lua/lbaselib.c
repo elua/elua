@@ -20,8 +20,9 @@
 #include "lualib.h"
 #include "lrotable.h"
 
-
-
+#ifndef LUA_CROSS_COMPILER
+#include "platform_conf.h"
+#endif
 
 /*
 ** If your system does not support `stdout', you can just remove this function.
@@ -696,7 +697,7 @@ static void base_open (lua_State *L) {
 
 LUALIB_API int luaopen_base (lua_State *L) {
   base_open(L);
-#if LUA_OPTIMIZE_MEMORY == 0
+#if LUA_OPTIMIZE_MEMORY == 0 && defined( MODULE_LUA_CO_LINE )
   luaL_register(L, LUA_COLIBNAME, co_funcs);
   return 2;
 #else

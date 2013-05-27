@@ -99,7 +99,7 @@ might encounter other problems with it.</p>
    but a precise performance penalty figure is not known. Experience suggests that the performance penalty is minimal, and it certainly can't be observed 
    with "regular" (non-computationally intensive) Lua programs.</p>
 <h2>How to enable LTR</h2>
-<p>Enabling LTR is very easy: all you need to do is specify the <b>optram=1</b> as a parameter to scons when building <b>eLua</b>, as explained
+<p>Enabling LTR is very easy: all you need to do is specify the <b>optram=1</b> as a parameter to build_elua.lua when building <b>eLua</b>, as explained
    <a href="building.html">here</a>. You don't even need to specify this explicitly, as LTR is enabled by default for all <b>eLua</b> targets.</p>
 <p>When <b>optram</b> is 0, LTR is not active. In this mode, the patch just tries to keep the modified version as close as possible to the unpatched version 
   in terms of speed and functionality. You might want to use this if you want full Lua compatibility (although this is rarely an issue in practice),

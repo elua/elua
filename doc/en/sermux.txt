@@ -139,14 +139,13 @@ Windows 7 (32 bit) and Linux (Ubuntu 64 bit). To build it you need:
   Ubuntu Linux) and a gcc-based development environment under Windows. How to install a gcc-based development environment under Windows is
   beyond the scope of this tutorial, but check http://www.mingw.org/[here] and http://tdm-gcc.tdragon.net/[here] for possible solution
   (the mux server was compiled and tested under Win32 using the second soluation, the tdm gcc compiler).
-- scons. See link:building_win.html[here] for details on how to install scons on Windows, or link:building_unix.html[here] for details on how
-  to install scons on Linux.
+- the Lua build system. See link:building.html[here] for more details.
 
 If the above requirements are met, building the mux server is a simple matter of invoking this command from the eLua source tree base directory:
 
----------------
-scons -f mux.py  
----------------
+-----------
+lua mux.lua
+-----------
 
 After this you should end up with a *mux.exe* file in Windows, or a *mux* file in Linux. Running it without arguments prints
 the usage help:

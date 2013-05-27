@@ -58,7 +58,7 @@ The eLua shell
 --------------
 No matter what's your physical connection (serial, TCP/IP or you PC's monitor after booting eLua), after you setup the
 PC-eLua board connection and press the "RESET" button on your board or simply press ENTER if you're using the serial connection,
-you should see the eLua< shell prompt (if you enabled the shell in your build, as described link:building.html[here]). The shell
+you should see the eLua shell prompt (if you enabled the shell in your build, as described link:building.html[here]). The shell
 is a simple interactive command interpreter that allows you to:
 
 - get help on shell usage with the help command,
@@ -103,13 +103,12 @@ To overcome these kind of problems, a "Lua cross-compilation patch" was posted o
 further modified as part of the eLua project to work with ARM targets. This is how to use it (the following instructions were
 tested on Linux, not Windows, but they should work on Windows too with little or no tweaking):
 
-- first, make sure that your PC has already a build system installed (gcc, binutils, libc, headers...). You'll also need scons. 
-The good news is that you should have it already installed, since otherwise you won't be able to build even regular eLua 
-(see link:building.html[building] for more in-depth instructions).
+- first, make sure that your PC has already a build system installed (gcc, binutils, libc, headers...). You'll also need to
+be able to use the Lua based build system (see link:building.html[building] for more in-depth instructions).
 
 - from the eLua base directory, issue this command:
 
-  $ scons -f cross-lua.py
+  $ lua cross-lua.lua
 
 You should get a file called _luac_ in the same directory as a result. It's almost the same as the regular Lua compiler, but it
 has a few arguments that deal with differences between different targets (shown below in bold):
@@ -170,11 +169,11 @@ When a client is connected to a LuaRPC server, it can interact with it in the fo
 
 Building the Desktop Client/Server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- first, make sure that your PC has already a build system installed (gcc, binutils, libc, headers...). You'll also need scons. The good news is that 
-you should have it already installed, since otherwise you won't be able to build even regular eLua (see link:building.html[building] for more instructions).
+- first, make sure that your PC has already a build system installed (gcc, binutils, libc, headers...). You'll also need to be able to use
+the Lua based build system (see link:building.html[building] for more instructions).
 - from the <b>eLua</b> base directory, issue this command:
 
-  $ scons -f rpc-lua.py
+  $ lua rpc-lua.lua
 
 You should get a file called _luarpc_ in the same directory which, when started, should give you a normal Lua interpreter with a built-in rpc module.
 

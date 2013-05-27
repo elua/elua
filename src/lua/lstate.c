@@ -22,9 +22,9 @@
 #include "lstring.h"
 #include "ltable.h"
 #include "ltm.h"
-#include "platform_conf.h"
 // BogdanM: modified for Lua interrupt support
 #ifndef LUA_CROSS_COMPILER
+#include "platform_conf.h"
 #include "elua_int.h"
 #include "platform.h"
 #endif

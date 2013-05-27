@@ -44,6 +44,7 @@ html,body{
     height:100%;
 }
 
+tt { font-size:12px; }
 
 h1, h2, h3, h4, h5 {
 	color:#03121c;
@@ -53,6 +54,8 @@ h1, h2, h3, h4, h5 {
 	margin:5px 0px 10px 0px;
   font-weight:bold;
 }
+
+h2, h4 { margin-top: 10px;}
 
 h3 {font-size:21px;}
 
@@ -298,6 +301,10 @@ code{font-size:14px;}
     background: blue;
     margin: 1px;
     padding: 2px;
+}
+
+.grey-background {
+    background: silver;
 }
 
 #interna_2 #article .section_conteudo{width:auto;float:left;margin:10px 10px 0px 0;padding:10px;text-align:normal;}

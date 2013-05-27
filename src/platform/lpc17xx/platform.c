@@ -648,33 +648,3 @@ void platform_pwm_stop( unsigned id )
   PWM_Cmd(LPC_PWM1, DISABLE);
 }
 
-// ****************************************************************************
-// Platform specific modules go here
-
-#define MIN_OPT_LEVEL 2
-#include "lrodefs.h"
-extern const LUA_REG_TYPE mbed_pio_map[];
-
-const LUA_REG_TYPE platform_map[] =
-{
-#if LUA_OPTIMIZE_MEMORY > 0
-  { LSTRKEY( "pio" ), LROVAL( mbed_pio_map ) },
-#endif
-  { LNILKEY, LNILVAL }
-};
-
-LUALIB_API int luaopen_platform( lua_State *L )
-{
-#if LUA_OPTIMIZE_MEMORY > 0
-  return 0;
-#else // #if LUA_OPTIMIZE_MEMORY > 0
-  luaL_register( L, PS_LIB_TABLE_NAME, platform_map );
-  
-  // Setup the new tables inside platform table
-  lua_newtable( L );
-  luaL_register( L, NULL, mbed_pio_map );
-  lua_setfield( L, -2, "pio" );
-
-  return 1;
-#endif // #if LUA_OPTIMIZE_MEMORY > 0
-}
