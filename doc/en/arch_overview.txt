@@ -1,0 +1,220 @@
+// $$HEADER$$
+
+[[structure]]
+eLua architecture overview
+--------------------------
+The overall logical structure of eLua is shown in the image below: +
+ +
+
+image:images/elua_arch.png[eLua architecture]
+ +
+ +
+eLua uses the notion of *platform* to denote a group of *CPUs* that share the same core structure, although their specific silicon
+implementation might differ in terms of integrated peripherals, internal memory and other such attributes. An eLua port implements one or 
+more CPUs from a given platform. For example, the *lm3s port* of *eLua* runs on _LM3S8962, _LM3S6965 and _LM3S6918 CPUs, all of them part of the 
+*lm3s* platform. Refer to link:status.html[the status page] for a full list of platforms and CPUs on which eLua runs.
+
+As can be seen from this image, eLua tries to be as portable as possible between different platforms by using a few simple design rules:
+
+* all code that is platform-independent is *common code* and it should be written in ANSI C as much as possible, this makes it highly portable
+  among different architectures and compilers, just like Lua itself.
+* all the code that can't possibly be generic (mostly peripheral and CPU specific code) must still be made as portable as possible by using a common
+  interface that must be implemented by all platforms on which *eLua* runs. This interface is called *platform interface* and is discussed in
+  detail link:arch_platform.html[here] (but please see also link:#platform[the platform interface] paragraph in this document).
+* all platforms (and their peripherals) are not created equal and vary greatly in capabilities. As already mentioned, the platform interface tries
+  to group only common attributes of different platforms. If one needs to access the specific functionality on a given platform, it can do so by
+  using a *platform module*. These are of course platform specific, and their goal is to fill the gap between the platform interface and the full
+  set of features provided by a platform.
+
+[[common]]
+Common (generic) code
+---------------------
+The following gives an incomplete set of items that can be classified as *common code*:
+
+* the Lua code itself plus the link:arch_ltr.html[LTR patch].
+* all the *components* in eLua (like the ROM file system, the XMODEM code, the eLua shell, the TCP/IP stack and others).
+* all the *generic modules*, which are Lua modules used to expose the functionality of the platform to Lua.
+* generic *peripheral support code*, like the ADC support code (__src/common/elua_adc.c__) that is *independent* of the actual ADC hardware.
+* libc code (for example allocators and Newlib stubs).
+
+This should give you a pretty good idea about what "common code" means in this context. Note that the generic code layer should be as "greedy" as 
+possible; that is, it should absorb as much common code as possible. For example:
+
+* if you want to add a new file system to eLua, this should definitely be generic code. It's likely that this kind of code will have
+  dependencies related to the physical medium on which this file system resides. If you're lucky, you can solve these dependencies using only the functions 
+  defined in the link:arch_platform.html[platform interface] (this would make sense if you're using a SD card controlled over SPI, since the 
+  platform interface already has a SPI layer). If not, you should group the platform specific functions in a separate interface that will be implemented by
+  all platform that want to use your new file system. This gives the code maximum portability.
+* if you want to add a driver for a specific ADC chip that works over SPI, the same observations apply: write it as common code as much as you can
+  and use the link:arch_platform.html[platform interface] for the specific SPI functions you need.
+
+When designing and implementing a new component, keep in mind other eLua design goal: *flexibility*. The user should be able to select which components
+are part of its eLua binary image (as described link:building.html[here]) and the implementation should take this into consideration. The same thing holds
+for the generic modules: the user must have a way to choose the set of modules he needs.
+
+For maximum portability, make your code work in a variety of scenarios if possible (and if that makes sense from a practical point of view). Take for example
+the code for stdio/stdout/stderr handling (_src/newlib/genstd.c_): it acknowledges the fact that a terminal can be implemented over a large variety of physical
+transports (RS-232 for PC, SPI for a separate LCD/keyboard board, a radio link and so on) so it uses pointers for its send/receive functions (see
+link:arch_con_term.html[this link] for more details). The impact on speed and resource consumption is minimum, but it matters a lot in the portability department.
+
+[[platform]]
+Platform interface
+------------------
+Used properly, the platform interface allows writing extremely portable code over a large variety of different platforms, both from C and from Lua. 
+An important property of the platform interface is that it tries to group only *common* attributes of different platforms (as much as possible). For
+example, if a platform supported by eLua has an UART that can work in loopback mode, but the others don't, loopback support won't be included in the
+platform interface.
+
+A special emphasis on the platform interface usage: remember to use it not only for Lua, but also for C. The platform interface is mainly used by the 
+generic modules to allow Lua code to access platform peripherals, but this isn't its only use. It can (and it should) also be used by C code that wants 
+to implement a generic module and neeeds access to peripherals. An example was given in the previous section: implementing a new file system.
+
+The platform interface definition can be found in the _inc/platform.h_ header file. For a full description of its functions, check
+link:arch_platform.html[the platform interface documentation].
+
+[[platforms]]
+Platforms and ports
+-------------------
+All the platforms that run eLua (and that implement the platform interface) are implemened in this conceptual layer. A *port* is a full eLua implementation on a given
+platform. The two terms can generally be used interchangeably.
+
+A port can (and generally will) contain specific peripheral drivers, many times taken directly from the platform's CPU support package. These drivers are used to
+implement the platform interface. Note that:
+
+* a port isn't required to implement *all* the platform interface functions, just the ones it needs. As explained link:building.html[here], the user must have full
+  control over what's getting built into this eLua image. If you don't need the SPI module, for example, you don't need to implement its platform interface.
+* a part of the platform interface is implemented (at least partially) in a file that is common for all the platforms (_src/common.c_). It eases the implementation of
+  some modules (such as the timer module) and also implements common features that are tied to the platform interface, but have a common behaviour on all platforms
+  (for example virtual timers, link:arch_platform_timers.html#virtual_timers[here] for details). You probably won't need to modify it if you're writing platform specific
+  code, but it's best to keep in mind what it does.
+
+A platform implementation might also contain one or more *platform dependent modules*. As already exaplained, their purpose is to allow Lua to use the full potential of
+the platform peripherals, not only the functionality covered by the platform interface, as well as functionality that is so specific to the platform that it's not even
+covered by the platform interface. By convention, all the platform dependent modules should be grouped inside a single module that has the same name as the platform itself.
+If the platform dependent module augments the functionality of a module already found in the platform interface, it should have the same name, otherwise it should be given a
+different, but meaningful name. For example:
+
+* if implementing new functionality on the UART module of the LM3S platform, the corresponding module should be called *lm3s.uart*.
+* if implementing a peripheral driver that for some reason should be specific to the platform on the LPC2888 platform, for example its dual audio DAC, give it a meaningful name,
+  for example *lpc288x.audiodac*.
+
+Structure of a port
+~~~~~~~~~~~~~~~~~~~
+All the code for platform _name_ (including peripheral drivers) must reside in a directory called __src/platform/<name>__ (for example _src/platform/lm3s_ for the _lm3s_ platform).
+Each such platform-specific subdirectory must contain at least these files:</p>
+
+* **type.h**: this defines the "specific data types", which are integer types with a specific size (see link:arch_coding.html[coding style] for details. An example from the
+*i386*  platform:
++
+--
+[source, c]  
+-------------------------------
+typedef unsigned char u8;
+typedef signed char s8;
+typedef unsigned short u16;
+typedef signed short s16;
+typedef unsigned long u32;
+typedef signed long s32;
+typedef unsigned long long u64;
+typedef signed long long s64;
+-------------------------------
+--
+* **conf.lua**: this is the platform specific build configuration file, used by the link:building.html[build system] for a number of purposes:
+** to get the list of platform-specific files that will be compiled in the eLua image. They are exported in the __specific_files__ string, separated by spaces and must be prepended
+with the relative path to the platform subdirectory. An example from the *i386* platform:
++
+--
+[source, lua]
+-------------------------------
+specific_files = "boot.s common.c descriptor_tables.c gdt.s interrupt.s isr.c kb.c  monitor.c timer.c platform.c"
+# Prepend with path
+specific_files = utils.prepend_path( specific_files, "src/platform/" .. platform )
+-------------------------------
+--
+** to get the full command lines of the different toolchain utilities (linker, assembler, compiler) used to compile eLua. These are handled mostly by the main build configuration file
+(build_elua.lua), but the backends will set varioud platform-specific compilation and linking flags.
++
+** to add various targets to the build system. For example, the *stm32* backend adds a special *burn* target used for programming the eLua firmware image to a STM32 board.
+* **stacks.h**: by convention, the stack(s) size(s) used in the system are declared in this file. An example taken from the *at91sam7x* platform is given below:
++
+--
+[source, c]
+-------------------------------
+#define  STACK_SIZE_USR   2048
+#define  STACK_SIZE_IRQ   64
+#define  STACK_SIZE_TOTAL ( STACK_SIZE_USR + STACK_SIZE_IRQ )
+-------------------------------
+--
+* **platform.c**: by convention, the link:arch_platform.html[platform interface] is implemented in this file. It also contains the platform-specific initialization function 
+(__platform_init__, see the description of the link:arch_overview.html#boot[eLua boot process] for details).
+* **platform_conf.h**: this is the platform configuration file, used to give information about both the platform itself and the build configuration for the platform. This file
+includes information about the CPU used by the eLua hardware, as well as build configuration data (the list of components, modules and the static configuration data, see
+link:configurator.html[here] for more information about how to configure your build). Each CPU used by eLua needs a CPU definition file in its respective platform. For example,
+this is the CPU definition file for _STR711FR2 in the _str7_ platform (__src/platform/str7/cpu_str711fr2.h__):
++
+--
+[source, c]
+----------------
+// STR711FR2 CPU description
+
+#ifndef __CPU_STR711FR2_H__
+#define __CPU_STR711FR2_H__
+
+#include "stacks.h"
+
+// Number of resources (0 if not available/not implemented)
+#define NUM_PIO               2
+#define NUM_SPI               0
+#define NUM_UART              4
+#define NUM_TIMER             4
+#define NUM_PWM               3
+#define NUM_ADC               0
+#define NUM_CAN               0
+
+// CPU frequency (needed by the CPU module and MMCFS code, 0 if not used)
+#define CPU_FREQUENCY         0
+
+// PIO prefix ('0' for P0, P1, ... or 'A' for PA, PB, ...)
+#define PIO_PREFIX            '0'
+// Pins per port configuration:
+// #define PIO_PINS_PER_PORT (n) if each port has the same number of pins, or
+// #define PIO_PIN_ARRAY { n1, n2, ... } to define pins per port in an array
+// Use #define PIO_PINS_PER_PORT 0 if this isn't needed
+#define PIO_PINS_PER_PORT     16
+
+#define SRAM_ORIGIN           0x20000000
+#define SRAM_SIZE             0x10000
+#define INTERNAL_RAM1_FIRST_FREE end
+#define INTERNAL_RAM1_LAST_FREE  ( SRAM_ORIGIN + SRAM_SIZE - STACK_SIZE_TOTAL - 1 )
+
+#endif // #ifndef __CPU_STR711FR2_H__
+----------------
+--
+* **networking configuration**: if you need TCP/IP on your board, you need to add networking support to eLua (see link:building.html[building] for a list of configuration options
+related to TCP/IP). You also need to have another file, called *uip-conf.h* that configures uIP (the TCP/IP stack in <b>eLua</b>) for your specific architecture. See
+link:arch_tcpip.html[TCP/IP in eLua] for details.
+
+Besides the required files, the most common scenario is to include other platform specific files in your port:
+
+* **a "startup sequence**, generally written in assembler, that does very low level intialization, sets the stack pointer, zeroes the BSS section, copies ROM to RAM for the DATA section
+  and then jumps to main.
+* a **linker command file**.
+* the *CPU support package* generally comes from the CPU manufacturer and includes code for accessing peripherals, configuring the core, setting up interrupts and so on.
+
+[[boot]]
+eLua boot process
+-----------------
+This is what happens when you power up your eLua board:
+
+1. the platform initialization code is executed. This is the code that does very low level platform setup (if needed), copies ROM to RAM, zeroes out the BSS section, sets up the stack
+   pointer and jumps to *main*.
+2. the first thing *main* does is call the platform specific initialization function (*platform_init*). *platform_init* must fully initialize the platform and return a result to main,
+   that can be either *PLATFORM_OK* if the initialization succeeded or *PLATFORM_ERR* otherwise. If *PLATFORM_ERR* is returned, *main* blocks immediately in an infinite loop.
+3. *main* then initializes the rest of the system: the ROM file system, XMODEM, and term.
+4. if */rom/autorun.lua* (which is a file called *autorun.lua* in the link:arch_romfs.html[ROM file system]) is found, it is executed. If it returns after execution, or if it isn't found,
+   the boot process continues with the next step.
+5. if boot is set to 'standard' and the link:using.html#shell[shell] was compiled in the image, it is started, in the absence of the shell, a standard Lua interpreter is started.
+6. if boot is set to 'luarpc' an rpc server is started.
+
+// $$FOOTER$$
+

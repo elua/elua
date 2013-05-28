@@ -714,6 +714,8 @@ static int l_check_memlimit(lua_State *L, size_t needbytes) {
   global_State *g = G(L);
   int cycle_count = 0;
   lu_mem limit = g->memlimit - needbytes;
+  /* don't allow allocation if it requires more memory then the total limit. */
+  if (needbytes > g->memlimit) return 1;
   /* make sure the GC is not disabled. */
   if (!is_block_gc(L)) {
     while (g->totalbytes >= limit) {

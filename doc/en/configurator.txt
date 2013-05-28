@@ -1,0 +1,424 @@
+// $$HEADER$$
+The eLua configurator
+---------------------
+*(new in 0.10)* The configurator is used to configure your eLua image by specifying the various modules and components that will be part of the eLua firmware image,
+as well as their specific parameters. It replaces the old configuration mechanism (based on editing platform_conf.h files) with a number of improvements:
+
+* the configuration is specified using Lua files, with a simple to understand syntax
+* configuration consistency checks are build in the configurator
+* better module selection system
+* easier customization
+
+The configurator works by reading a Lua based board configuration file and generating the corresponding C header file (which for the most part has the same role
+as the platform_conf.h file that was used before the configurator). The board name is given by the _board_ argument to build_elua (see link:building.html#buildoptions[this link]
+for more details about building your eLua image). The configurator looks for a file named _<board>.lua_ in two locations:
+
+* *boards/custom* is searched first. The files under this directory are not part of the eLua source tree, so this is the place where you can add configuration files for
+  your custom board or customize the configuration for one of the standard boards (see link:#config_customize[here] for more details about this).
+* *boards/known* is searched if _<board>.lua_ is not found in _boards/custom_. It contains the configuration of the boards on which eLua is known to run properly. The files 
+  under this directory are part of the eLua source tree.
+
+After finding _<board>.lua_ in one of these locations, the configurator runs and generates the corresponding header file in __boards/headers/board_<board>.h__. The files
+under _boards/headers_ are also not part of the eLua source tree, so they can be edited manually if needed (see link:#manualedit[here] for more details). After this, the
+configurator is done and the build process continues with the usual steps (compiling and linking the source files).
+
+[[config_overview]]
+Configuring the build
+~~~~~~~~~~~~~~~~~~~~~
+The build is configured using a Lua file. The Lua file contains code that must return the board configuration as a regular Lua table. An example for the 
+_mbed board is given below:
+
+[source,lua]
+-----------------------------------------------------------
+-- MBED build configuration
+
+return {
+  cpu = 'lpc1768',
+  components = {
+    sercon = { uart = 0, speed = 115200 },
+    romfs = true,
+    shell = true,
+    term = { lines = 25, cols = 80 },
+    linenoise = { shell_lines = 10, lua_lines = 50 },
+    rpc = { uart = 0, speed = 115200 },
+    adc = { buf_size = 4, first_timer = 0, num_timers = 4 },
+    xmodem = true,
+    lpc17xx_semifs = true
+  },
+  config = {
+    egc = { mode = "alloc" },
+    ram = { internal_rams = 2 }
+  },
+  modules = {
+    generic = { 'all', "-spi", "-can", "-i2c", "-net" },
+    platform = 'all',
+  }
+}
+-----------------------------------------------------------
+
+As can be seen, a configuration for a board contains a number of sections:
+
+* **cpu**: the CPU of the board
+* **components**: the components and their configuration
+* **config**: other configuration items
+* **modules**: list of Lua modules that will be part of the build
+
+The next section will explain each of the above items (and some that are not present in the above _mbed configuration file) in detail. Please keep in mind that the best way to understand
+the configurator (besides reading this document) is to look at the existing configurations in *board/known*.
+
+[[config_cpu]]
+Configuring the CPU
+~~~~~~~~~~~~~~~~~~~
+The CPU is given by the *cpu* key in the configuration table. The CPU must be already known to the build system. A list of the known CPUs can be found in the *build_data.lua* file in the
+__platform_list__ table.
+
+[[config_components]]
+Configuring the components
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+The various components that will be part of the eLua firmware image are given as a table under the *components* section in the main configurator table. The list of components known to the configurator,
+as well as their configuration parameters are listed in the table below. Some parameters have default values; if this is the case, the default values are written in *bold*. Also, some parameters are
+required, others are optional. Optional parameters are written over a [grey-background]#grey background#. All the required timer ID attributes that are not specified in the configuration default to the
+link:arch_platform_timers.html#the_system_timer[system timer ID].
+
+.Generic components
+[width="99%", cols="<3,<5,<10", options="header"]
+|===================================================================
+^|Key                 ^|Parameters                    ^|Meaning
+|romfs                 |None (true or false)           |Enable the link:arch_romfs.html[ROMFS] file system
+|wofs                  |None (true or false)           |Enable the link:arch_wofs.html[WOFS] file system
+|shell                 |None (true or false)           |Enable link:simple_shell.html[the simple shell]
+|advanced_shell        |None (true or false)           |Enable link:advanced_shell.html[the advanced shell]
+.6+^.^|sercon        2+|*link:using.html#uart[Serial console] (console over UART)*
+                       |uart                           |Serial console UART ID 
+                       |speed                          |Serial port speed
+                      n|timer (*systimer*)             |ID of the timer used by the serial console subsystem
+                      n|flow (*none*,rts,cts,rtscts)   |Flow control on the console UART
+                      n|buf_size                       |Buffer size of the console UART. Must be a power of 2.
+.6+^.^|xmodem        2+|*link:simple_shell.html#cmd_recv[XMODEM support]*
+                       |uart                           |XMODEM UART ID (*same as sercon.uart*)
+                       |speed                          |XMODEM UART speed (*same as sercon.speed*)
+                      n|timer (*systimer*)             |XMODEM timer ID (*same as sercon.timer*)
+                      n|flow (*none*,rts,cts,rtscts)   |Flow control on the XMODEM UART (*same as sercon.flow*)
+                      n|buf_size                       |Buffer size of the XMODEM UART (*same as sercon.buf_size*)
+.8+^.^|term          2+|*link:arch_con_term.html[ANSI terminal support]*
+                       |uart                           |Term UART ID (*same as sercon.uart*)
+                       |speed                          |Term UART speed (*same as sercon.speed*)
+                      n|timer (*systimer*)             |Term timer ID (*same as sercon.timer*)
+                      n|flow (*none*,rts,cts,rtscts)   |Flow control on the term UART (*same as sercon.flow*)
+                      n|buf_size                       |Buffer size of the term UART (*same as sercon.buf_size*)
+                       |lines                          |Number of lines in the terminal
+                       |cols                           |Number of columns in the terminal
+|cints                 |None (true or false)           |Enable support for link:inthandlers.html[eLua generic interrupts] in C
+.2+^.^|luaints       2+|*Enable support for link:inthandlers.html[eLua generic interrupts] in Lua*
+                      n|queue_size (*32*)              |Size of Lua interrupt queue. Must be a power of 2.
+.5+^.^|tcip          2+|*link:arch_tcpip.html[TCP/IP support]*
+                       |ip                             |IP of the board (for static IP configuration)
+                       |netmask                        |Network mask (for static IP configuration)
+                       |gw                             |Default gateway (for static IP configuration)
+                       |dns                            |Name server address (for static IP configuration)
+|dns                   |None (true or false)           |DNS resolver support
+|dhcp                  |None (true or false)           |Enable the DHCP client (dynamic IP configuration)
+|tcpipcon              |None (true or false)           |Enable the link:arch_using.html#tcpip[telnet client]
+.4+^.^|linenoise     2+|*link:linenoise.html[Lua and command line history]*
+                       |shell_lines                    |Number of lines from shell kept in history
+                       |lua_lines                      |Number of lines from Lua kept in history
+                      n|autosave_file                  |After the Lua shell exits, the Lua history buffer will be automatically saved in the file with this name
+.7+^.^|rfs           2+|*Enable the link:arch_rfs.html[remote file system].*
+                       |uart                           |RFS UART ID
+                       |speed                          |RFS UART speed
+                      n|timer (*systimer*)             |ID of the timer used by the RFS implementation
+                      n|flow (*none*,rts,cts,rtscts)   |Flow control on the RFS UART
+                       |buf_size                       |Buffer size of the RFS UART. Must be a power of 2.
+                      n|timeout (usecs,*100000*)       |Timeout for RFS operations
+.4+^.^|mmcfs         2+|*Enable the link:arch_fatfs.html[MMC file system].*
+                       |spi (int or array of ints)     |ID(s) of the SPI interface used by the SD card
+                       |cs_port (int or array of ints) |Port number(s) of the SD card /CS line
+                       |cs_pin (int or array of ints)  |Pin number(s) of the SD card /CS line
+.4+^.^|rpc           2+|*Enable the link:using.html#rpc[remote procedure call] subsystem.* The parameters are only required when booting in RPC server mode.
+                       |uart                           |RPC UART ID
+                       |speed                          |RPC UART speed
+                      n|timer (*systimer*)             |ID of the timer used by the RPC implementation
+.5+^.^|sermux        2+|*Enable the link:sermux.html[serial multiplexer]*
+                       |uart                           |ID of the serial multiplexer physical UART
+                       |speed                          |Speed of the serial multiplexer physical UART
+                       |flow                           |Flow control on the serial multiplexer physical UART
+                       |buf_sizes (array)              |Buffer sizes for virtual UARTs. Each size must be a power of 2.
+.2+^.^|adc           2+|*Enable link:refman_gen_adc.html[ADC] support in eLua*
+                      n|buf_size                       |ADC sample buffer size. Must be a power of 2.
+|===================================================================
+
+As can be seen in the table above, some of the parameters are common to more than one component. For example, *CON_UART_ID* is shared between
+*sercon*, *xmodem* and *term*. It is enough to define a shared attribute only once (in one of the components). For example:
+
+[source,lua]
+-------------------------------------
+components = {
+  sercon = { uart = 0, speed = 115200 },
+  term = { lines = 25, cols = 80 },
+  xmodem = true
+}
+-------------------------------------
+
+If you were to redefine a shared attribute to a different value:
+
+[source,lua]
+-------------------------------------
+components = {
+  sercon = { uart = 0, speed = 115200 },
+  term = { lines = 25, cols = 80, uart = 1 },
+  xmodem = true
+}
+-------------------------------------
+
+you'd get a warning from the configurator:
+
+----------------------------------
+[CONFIG] WARNING: overriding value of attribute 'uart' in element 'term' from '0' to '1' in section 'components'
+----------------------------------
+
+Besides the generic components in the table above, each platform can specify its own list of platform-specific components:
+
+.LM3S specific components
+[width="99%", cols="<3,<5,<10", options="header"]
+|===================================================================
+^|Key                 ^|Parameters                    ^|Meaning
+|cdc                   |None (true or false)           |Enable UART over CDC (USB to serial)
+|lm3s_pio              |None (true or false)           |Enable the LM3S platform specific PIO support
+|lm3s_disp             |None (true or false)           |Enable support for the LCD display on _EK-LM3S1968, _EK-LM3S6965 or _EK-LM3S8962
+|===================================================================
+
+.STM32 specific components
+[width="99%", cols="<3,<5,<10", options="header"]
+|===================================================================
+^|Key                 ^|Parameters                    ^|Meaning
+|stm32_enc             |None (true or false)           |Enable support for the STM32 timer encoder module
+|===================================================================
+
+.LPC17xx specific components
+[width="99%", cols="<3,<5,<10", options="header"]
+|===================================================================
+^|Key                 ^|Parameters                    ^|Meaning
+|lpc17xx_semifs        |None (true or false)           |Enable support for the semifs file system (_mbed only)
+|===================================================================
+
+.AVR32 specific components
+[width="99%", cols="<3,<5,<10", options="header"]
+|===================================================================
+^|Key                 ^|Parameters                    ^|Meaning
+|cdc                   |None (true or false)           |Enable UART over CDC (USB to serial)
+|avr32_rtc             |None (true or false)           |Enable the AVR32 platform specific RTC module
+|avr32_lcd             |None (true or false)           |Enable the AVR32 character display module (_Mizar32)
+|===================================================================
+
+[[config_config]]
+Configuration data
+~~~~~~~~~~~~~~~~~~
+The *config* section contains various build time configuration data. The list of the known configuration data items, as well as their parameters are listed in the table below.
+Some parameters have default values; if this is the case, the default values are written in *bold*. Also, some parameters are required, others are optional. Optional parameters
+are written over a [grey-background]#grey background#.
+
+.Generic configuration data
+[width="99%", cols="<3,<5,<10", options="header"]
+|===================================================================
+^|Key                 ^|Parameters                    ^|Meaning
+.3+^.^|vtmr          2+|*Enable support for link:arch_platform_timers.html#virtual_timers[virtual timers]*
+                       |num (*0*)                      |Number of virtual timers
+                       |freq (Hz, *1*)                 |Virtual timer frequency
+.3+^.^|egc           2+|Configure the link:elua_egc.html[emergency garbage collector]
+                       |mode (*disable*, alloc, limit, always) |EGC activation mode
+                       |limit (bytes)                  |EGC activation memory limit
+.4+^.^|ram           2+|Memory allocator configuration (RAM data)
+                      n|internal_rams (*1*)            |Number of MCU non-contiguous RAM areas
+                      n|ext_start (array of integers)  |Array of starting addresses for external RAM areas
+                      n|ext_size (array of integers)   |Array of sizes sof external RAM areas
+|===================================================================
+
+Besides the generic configuration items in the table above, each platform can specify its own list of platform-specific configuration items:
+
+.LM3S specific configuration data
+[width="99%", cols="<3,<5,<10", options="header"]
+|===================================================================
+^|Key                 ^|Parameters                    ^|Meaning
+.3+^.^|lm3s_adc_timers 2+|Timer configuration for the link:refman_gen_adc.html[ADC subsystem].
+                       |first_timer (*0*)              |ID of the first timer used by the ADC subsystem
+                       |num_timers (*NUM_TIMER*)       |Total number of timers used by the ADC subsystem
+|===================================================================
+
+[[config_modules]]
+Lua modules
+~~~~~~~~~~~
+The configurator has support for fine-grained selections of the Lua modules that are going to be part of the eLua firmware. It knows how to handle generic modules and platform specific modules
+(see link:arch_overview.html[here] for more details about generic and platform specific modules). The modules are specified by the *modules* section of the configuration file:
+
+.Module configuration section
+[width="99%", cols="<3,<5,<10", options="header"]
+|===================================================================
+^|Key                 ^|Parameters                    ^|Meaning
+|generic               |Array of module names          |The generic modules included in the image
+|platform              |Array of module names          |The platform modules included in the image
+|===================================================================
+
+The module chooser knows how to differentiate between 3 categories of modules:
+
+1. *Lua modules*: the standard Lua modules that are compiled in eLua (_mlmath, _mlio, _mlstring, _mltable, _mldebug, _mlpackage, _mlco). These can be referenced as a group under the name *all_lua*.
+2. *Generic eLua modules*: these are _madc, _mbit, _mcan, _mcpu, _melua, _mi2c, _mpack, _mrpc, _mnet, _mpd, _mpio, _mpwm, _mspi, _mterm, _mtmr, _muart. These can be referenced as a group under
+    the name *all_elua*.
+3. *Platform specific eLua modules*: these are added by each platform as needed.
+
+Besides the names above, the group name *all* can be used in both *platform* and *generic*:
+
+* if used in *generic*, *all* is equivalent with *all_lua* + *all_elua* (all the standard Lua modules and the generic eLua modules)
+* if used in *platform*, *all* is a list of all the platform specific modules.
+
+A module name can be prefixed with a dash (*-*) if that module must be _excluded_ from the image instead of being included. Generally, this makes sense only when a group name (*all*, *all_lua* or
+*all_elua*) is also used in the list of modules. A few examples will help clarify this:
+
+[source, lua]
+-------------------------
+modules = {
+  generic = 'all',
+  platform = 'all'
+}
+-------------------------
+
+Include all the modules (generic and platform specific) in the image.
+
+[source, lua]
+-------------------------
+modules = { 
+  generic = { 'math', 'io', 'string', 'uart', 'pio' }
+}
+-------------------------
+
+Include the Lua modules *math*, *io* and *string* and the eLua modules *uart* and *pio* in the image.
+
+[source, lua]
+-------------------------
+modules = {
+  generic = { 'all_lua', 'uart', 'pd' },
+  platform = 'all'
+}
+-------------------------
+
+Include all the Lua modules, as well as the eLua generic modules *uart* and *pd*. Also include all the platform specific modules.
+
+[source, lua]
+-------------------------
+modules = {
+  generic = { 'all_lua', '-debug', 'all_elua', '-net', '-can' },
+  platform = 'disp'
+}
+-------------------------
+
+Include all the Lua modules _except_ *debug* and all the generic eLua modules _except_ *net* and *can* in the image. Also include the LM3S platform specific 'disp' module, which will be accesible via
+*lm3s.disp*. Of course, this only works if the platform corresponding to the board is *LM3S*. For a list of the currently available platform-specific modules, check the link:status.html[status page].
+
+[[config_headers]]
+Additional header files
+~~~~~~~~~~~~~~~~~~~~~~~
+As previously explained, the configurator compiles the Lua board description file into a C header file (*board_<board>.h*) that is later used to compile the eLua firmware. If additional headers must be 
+included in the generated header file, they can be specified in the *headers* section:
+
+[source, lua]
+-------------
+headers = { "specific1.h", "specific2.h" }
+-------------
+
+[[config_macros]]
+Additional C macros
+~~~~~~~~~~~~~~~~~~~
+Besides the macros generated by the configurator, it is sometimes useful to add other macros to the *board_<board>.h* file. These can be specified in the *macros* section. If present, *macros* must be a table
+with two kinds of keys:
+
+* strings: these define simple macros (macros without a value)
+* arrays with two entries: these define macros with values.
+
+For example, this definition:
+
+[source, lua]
+----------------
+macros = { 'MACRO1', { 'MACRO2', 0 } }
+----------------
+
+will be compiled into this:
+
+[source, c]
+---------------
+#define MACRO1
+#define MACRO2    0
+---------------
+
+[[config_cpuconstants]]
+CPU module constants
+~~~~~~~~~~~~~~~~~~~~
+The eLua _mcpu module has support for exposing various CPU related constants as keys in the *cpu* table. These are used, for example, to access the link:inthandlers.html[generic interrupt components] from Lua.
+The CPU constants in this module are generally defined by the various eLua platforms, but there is support in the configuration file to add new CPU constants if needed. These are specified as part of the
+*cpu_constants* section. Much like the link:#config_macros[macro configurator], there are two types of constants that can be given in *cpu_constants*:
+
+* constants already defined are given by their corresponding macro name
+* new constants are given as an array with two entries. These are first defined, then included in the constant list
+
+For example, this definition:
+
+[source, lua]
+-----------------
+cpu_constants = {
+  'CPU1', { 'NEWC', '10' }
+}
+-----------------
+
+will be compiled into this:
+
+[source, c]
+-----------------
+#ifndef NEWC
+#define NEWC    10
+#endif
+
+#define PLATFORM_CPU_CONSTANTS_CONFIGURED\
+  _C( CPU1 ),\
+  _C( NEWC ),\
+-----------------
+
+[[config_build]]
+Build options
+~~~~~~~~~~~~~
+The *build* section of the configurator contains options that will be passed directly to the builder. The following keys of the *build* table are recognized by the builder: *target*, *allocator*, *optram*,
+*boot*, *romfs*, *cpumode*, *bootloader* (note that *allocator* is also inferred automatically from the number of non-contigours RAM regions specified in the link:config_config[configuration data] section).
+For more details about these options, see the documentation on link:building.html#buildoptions[invoking the build system].
+
+[[config_customize]]
+Customizing configurations
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+If a custom build configuration (one that is not present in _boards/known_) is needed, one way to handle this is to write the new configuration file from scratch. However, starting from a known configuration
+and customizing it might be a better way to approach this task. The main thing to remember is that configurations are written in Lua, so you can use Lua code to manipulate them directly. For example, suppose
+that your hardware is almost identical to an _mbed board, but the console is on UART1 instead of UART0. You could simply copy _boards/known/mbed.lua_ to _boards/custom_ (remember that _boards/custom_ is not
+part of source control, so this is the place to put your custom configuration files) and modify the *uart* attribute of *sercon*. If you want to avoid duplication, you can simply "inherit" the basic _mbed
+configuration and change only what you need:
+
+[source, lua]
+------------------------------
+-- File boards/custom/myboard.lua
+
+local t = dofile( "boards/known/mbed.lua" )
+t.components.sercon.uart = 1
+return t
+------------------------------
+
+Of couse, you can use any kind of Lua code in the configuration file. You can download the configuration from the Internet, make the whole configuration process interactive by asking the user to enter the
+configuration parameters at build time and so on.
+
+[[config_manually]]
+Editing the configuration manually
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+While the configurator is designed to cover the complete set of eLua build configuration parameters, there might be rare occasions when there is a need to edit the generated configuration file manually, in
+order to cover functionality not provided by the configurator. There is a simple way to do this in conjuction with the link:building.html#buildoptions[build system]:
+
+* use the configurator to generate a configuration file starting from the board description file by using the build system's *config_only=true* command line parameter.
+* edit the generated __boards/headers/board_<board>.h__ to suit your needs.
+* run the build completely, but using *skip_conf=true* to prevent the configurator from generating a header file and using the one edited manually in the previous step instead.
+
+You need to be familiar with the eLua internals in order to properly modify the configuration file, so using this method carelessly might render your image unbuildable or unusable.
+
+// $$FOOTER$$
+

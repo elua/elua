@@ -207,15 +207,18 @@ _target.set_target_args = function( self, args )
 end
 
 -- Function to execute in clean mode
-_target._cleaner = function( target, deps, tobj )
+_target._cleaner = function( target, deps, tobj, disp_mode )
   -- Clean the main target if it is not a phony target
+  local dprint = function( ... )
+    if disp_mode ~= "minimal" then print( ... ) end
+  end
   if not is_phony( target ) then 
     if tobj.dont_clean then
-      print( sf( "[builder] Target '%s' will not be deleted", target ) )
+      dprint( sf( "[builder] Target '%s' will not be deleted", target ) )
       return 0
     end
-    io.write( sf( "[builder] Removing %s ... ", target ) )
-    if os.remove( target ) then print "done." else print "failed!" end
+    if disp_mode ~= "minimal" then io.write( sf( "[builder] Removing %s ... ", target ) ) end
+    if os.remove( target ) then dprint "done." else dprint "failed!" end
   end
   return 0
 end
@@ -254,7 +257,7 @@ _target.build = function( self )
   docmd = docmd or self._force_rebuild or self.builder.clean_mode
   local keep_flag = true
   if docmd and self.command then
-    if self.builder.disp_mode ~= 'all' and not self.builder.clean_mode then
+    if self.builder.disp_mode ~= 'all' and self.builder.disp_mode ~= "minimal" and not self.builder.clean_mode then
       io.write( utils.col_funcs[ self.dispcol ]( self.dispstr ) .. " " )
     end
     local cmd, code = self.command
@@ -265,15 +268,15 @@ _target.build = function( self )
       cmd = expand_key( cmd, "FIRST", dep[ 1 ]:target_name() )
       if self.builder.disp_mode == 'all' then
         print( cmd )
-      else
+      elseif self.builder.disp_mode ~= "minimal" then
         print( self.target )
       end
       code = os.execute( cmd )   
     else
-      if not self.builder.clean_mode and self.builder.disp_mode ~= "all" then
+      if not self.builder.clean_mode and self.builder.disp_mode ~= "all" and self.builder.disp_mode ~= "minimal" then
         print( self.target )
       end
-      code = cmd( self.target, self.dep, self.builder.clean_mode and self or self._target_args )
+      code = cmd( self.target, self.dep, self.builder.clean_mode and self or self._target_args, self.builder.disp_mode )
       if code == 1 then -- this means "mark target as 'not executed'"
         keep_flag = false
         code = 0
@@ -328,6 +331,7 @@ builder.new = function( build_dir )
   self.clean_mode = false
   self.opts = utils.options_handler()
   self.args = {}
+  self.user_args = {}
   self.build_mode = self.KEEP_DIR
   self.targets = {}
   self.targetargs = {}
@@ -342,8 +346,8 @@ builder.new = function( build_dir )
 end
 
 -- Helper: create the build output directory
-builder._create_outdir = function( self )
-  if self.output_dir_created then return end
+builder._create_build_dir = function( self )
+  if self.build_dir_created then return end
   if self.build_mode ~= self.KEEP_DIR then
      -- Create builds directory if needed
     local mode = lfs.attributes( self.build_dir, "mode" )
@@ -354,7 +358,7 @@ builder._create_outdir = function( self )
       end
     end
   end
-  self.output_dir_created = true
+  self.build_dir_created = true
 end
 
 -- Add an options to the builder
@@ -369,7 +373,7 @@ builder.init = function( self, args )
   opts:add_option( "build_mode", 'choose location of the object files', self.KEEP_DIR,
                    { keep_dir = self.KEEP_DIR, build_dir_linearized = self.BUILD_DIR_LINEARIZED } )
   opts:add_option( "build_dir", 'choose build directory', self.build_dir )
-  opts:add_option( "disp_mode", 'set builder display mode', 'summary', { 'all', 'summary' } )
+  opts:add_option( "disp_mode", 'set builder display mode', 'summary', { 'all', 'summary', 'minimal' } )
   -- Apply default values to all options
   for i = 1, opts:get_num_opts() do
     local o = opts:get_option( i )
@@ -396,6 +400,7 @@ builder.init = function( self, args )
         os.exit( 1 )
       end
       self.args[ k:upper() ] = v
+      self.user_args[ k:upper() ] = true
     else                                        -- this must be the target name / target arguments
       if self.targetname == nil then            
         self.targetname = a
@@ -413,6 +418,11 @@ end
 -- Return the value of the option with the given name
 builder.get_option = function( self, optname )
   return self.args[ optname:upper() ]
+end
+
+-- Returns true if the given option was specified by the user on the command line, false otherwise
+builder.is_user_option = function( self, optname )
+  return self.user_args[ optname:upper() ]
 end
 
 -- Show builder help
@@ -463,14 +473,19 @@ builder.set_build_mode = function( self, mode )
   self.build_mode = mode
 end
 
--- Set the output directory
-builder.set_output_dir = function( self, dir )
-  if self.output_dir_created then
-    print "[ builder] Error: output directory already created"
+-- Set the build directory
+builder.set_build_dir = function( self, dir )
+  if self.build_dir_created then
+    print "[builder] Error: build directory already created"
     os.exit( 1 )
   end
   self.build_dir = dir
-  self:_create_outdir()
+  self:_create_build_dir()
+end
+
+-- Return the current build directory
+builder.get_build_dir = function( self )
+  return self.build_dir
 end
 
 -- Return the target arguments
@@ -531,7 +546,7 @@ end
 -- Sets the way commands are displayed
 builder.set_disp_mode = function( self, mode )
   mode = mode:lower()
-  if mode ~= 'all' and mode ~= 'summary' then
+  if mode ~= 'all' and mode ~= 'summary' and mode ~= "minimal" then
     print( sf( "[builder] Invalid display mode '%s'", mode ) )
     os.exit( 1 )
   end
@@ -611,7 +626,8 @@ end
 
 -- Create and return a new link target
 builder.link_target = function( self, out, dep, link_cmd )
-  if not out:find( "%." ) and self.exe_extension and #self.exe_extension > 0 then
+  local path, ext = utils.split_ext( out )
+  if not ext and self.exe_extension and #self.exe_extension > 0 then
     out = out .. self.exe_extension
   end
   local t = _target.new( out, dep, link_cmd or self.link_cmd, self, 'link' )
@@ -699,6 +715,7 @@ builder.create_compile_targets = function( self, ftable, res )
       target = self:asm_target( self:obj_name( ftable[ i ], oname ), { self:get_registered_target( deps ) or ftable[ i ] }, depcmd )
     end
     -- Pre build step: replace dependencies with the ones from the compiler generated dependency file
+    local dprint = function( ... ) if self.disp_mode ~= "minimal" then print( ... ) end end
     if not skip then
       target:set_pre_build_function( function( t, _ )
         if not self.clean_mode then
@@ -707,8 +724,8 @@ builder.create_compile_targets = function( self, ftable, res )
           if #fdeps:gsub( "%s+", "" ) == 0 then fdeps = ftable[ i ] end
           t:set_dependencies( fdeps )
         else
-          io.write( sf( "[builder] Removing %s ... ", deps ) )
-          if os.remove( deps ) then print "done." else print "failed!" end
+          if self.disp_mode ~= "minimal" then io.write( sf( "[builder] Removing %s ... ", deps ) ) end
+          if os.remove( deps ) then dprint "done." else dprint "failed!" end
         end
       end )
     end
@@ -740,7 +757,7 @@ end
 builder.build = function( self, target )
   local t = self.targetname or self.deftarget
   if not t then
-    print( "[builder] Error: build target not specified" )
+    print( utils.col_red( "[builder] Error: build target not specified" ) )
     os.exit( 1 )
   end
   local trg 
@@ -773,22 +790,22 @@ builder.build = function( self, target )
       trg = self.targets[ t ].target
     end
   end
-  self:_create_outdir()
+  self:_create_build_dir()
   -- At this point check if we have a change in the state that would require a rebuild
   if self:_compare_config( 'comp' ) then
-    print "[builder] Forcing rebuild due to configuration change"
+    print( utils.col_yellow( "[builder] Forcing rebuild due to configuration change." ) )
     self.global_force_rebuild = true
   else
     self.global_force_rebuild = false
   end
   -- Do the actual build
   local res = trg:build()
-  if not res then print( sf( '[builder] %s: up to date', t ) ) end
+  if not res then print( utils.col_yellow( sf( '[builder] %s: up to date', t ) ) ) end
   if self.clean_mode then 
     os.remove( self.build_dir .. utils.dir_sep .. ".builddata.comp" ) 
     os.remove( self.build_dir .. utils.dir_sep .. ".builddata.link" ) 
   end
-  print "[builder] Done building target."
+  print( utils.col_yellow( "[builder] Done building target." ) )
   return res
 end
 

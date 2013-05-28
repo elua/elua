@@ -20,42 +20,13 @@
 #include "lapi.h"
 #include "lauxlib.h"
 
-// [TODO] the new builder should automatically do this
-#if defined( BUILD_LUA_INT_HANDLERS ) || defined( BUILD_C_INT_HANDLERS )
-#define BUILD_INT_HANDLERS
-
-#ifndef INT_TMR_MATCH
-#define INT_TMR_MATCH         ELUA_INT_INVALID_INTERRUPT
-#endif
-
+#ifdef BUILD_INT_HANDLERS
 extern const elua_int_descriptor elua_int_table[ INT_ELUA_LAST ];
+#endif // #ifdef BUILD_INT_HANDLERS
 
-#endif // #if defined( BUILD_LUA_INT_HANDLERS ) || defined( BUILD_C_INT_HANDLERS )
-
-// [TODO] the new builder should automatically do this
-#ifndef VTMR_NUM_TIMERS
-#define VTMR_NUM_TIMERS       0
-#endif // #ifndef VTMR_NUM_TIMERS
-
-// [TODO] the new builder should automatically do this
 #ifndef CON_BUF_SIZE
 #define CON_BUF_SIZE          0
 #endif // #ifndef CON_BUF_SIZE
-
-// [TODO] the new builder should automatically do this
-#ifndef SERMUX_FLOW_TYPE
-#define SERMUX_FLOW_TYPE      PLATFORM_UART_FLOW_NONE
-#endif
-
-// [TODO] the new builder should automatically do this
-#ifndef CON_FLOW_TYPE
-#define CON_FLOW_TYPE         PLATFORM_UART_FLOW_NONE
-#endif
-
-// [TODO] the new builder should automatically do this
-#ifndef CON_TIMER_ID
-#define CON_TIMER_ID          PLATFORM_TIMER_SYS_ID
-#endif
 
 // ****************************************************************************
 // XMODEM support code
@@ -367,14 +338,23 @@ void platform_adc_set_timer( unsigned id, u32 timer )
 
 extern char end[];
 
+// 'sim' and 'pc' have memory allocated dynamically at run time, as opposed to all
+// the other targets
+
+#if !defined( ELUA_BOARD_SIM ) && !defined( ELUA_BOARD_PC )
+#define ARRAYSPEC             static
+#else
+#define ARRAYSPEC
+#endif
+
 void* platform_get_first_free_ram( unsigned id )
 {
-  void* mstart[] = MEM_START_ADDRESS;
+  ARRAYSPEC u32 mstart[] = MEM_START_ADDRESS;
   u32 p;
 
-  if( id >= sizeof( mstart ) / sizeof( void* ) )
+  if( id >= sizeof( mstart ) / sizeof( u32 ) )
     return NULL;
-  p = ( u32 )mstart[ id ];
+  p = mstart[ id ];
   if( p & ( MIN_ALIGN - 1 ) )
     p = ( ( p >> MIN_ALIGN_SHIFT ) + 1 ) << MIN_ALIGN_SHIFT;
   return ( void* )p;
@@ -382,12 +362,12 @@ void* platform_get_first_free_ram( unsigned id )
 
 void* platform_get_last_free_ram( unsigned id )
 {
-  void* mend[] = MEM_END_ADDRESS;
+  ARRAYSPEC u32 mend[] = MEM_END_ADDRESS;
   u32 p;
 
-  if( id >= sizeof( mend ) / sizeof( void* ) )
+  if( id >= sizeof( mend ) / sizeof( u32 ) )
     return NULL;
-  p = ( u32 )mend[ id ];
+  p = mend[ id ];
   if( p & ( MIN_ALIGN - 1 ) )
     p = ( ( p >> MIN_ALIGN_SHIFT ) - 1 ) << MIN_ALIGN_SHIFT;
   return ( void* )p;

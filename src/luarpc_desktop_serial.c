@@ -12,10 +12,13 @@
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
-#include "platform_conf.h"
 
 #include "luarpc_rpc.h"
 #include "serial.h"
+
+#ifndef LUA_CROSS_COMPILER
+#include "platform_conf.h"
+#endif
 
 void transport_open( Transport *tpt, const char *path );
 

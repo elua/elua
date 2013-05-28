@@ -103,7 +103,7 @@ const LUA_REG_TYPE mbed_pio_map[] =
   { LNILKEY, LNILVAL }
 };
 
-LUALIB_API int luaopen_pio( lua_State *L )
+LUALIB_API int luaopen_mbed_pio( lua_State *L )
 {
 #if LUA_OPTIMIZE_MEMORY > 0
   return 0;

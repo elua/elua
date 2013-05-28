@@ -40,21 +40,7 @@ char *boot_order[] = {
 
 extern char etext[];
 
-
 #ifdef ELUA_BOOT_RPC
-
-#ifndef RPC_UART_ID
-  #define RPC_UART_ID     CON_UART_ID
-#endif
-
-#ifndef RPC_TIMER_ID
-  #define RPC_TIMER_ID    PLATFORM_TIMER_SYS_ID
-#endif
-
-#ifndef RPC_UART_SPEED
-  #define RPC_UART_SPEED  CON_UART_SPEED
-#endif
-
 void boot_rpc( void )
 {
   lua_State *L = lua_open();
@@ -70,7 +56,7 @@ void boot_rpc( void )
   lua_pushnumber( L, RPC_TIMER_ID );
   lua_pcall( L, 2, 0, 0 );
 }
-#endif
+#endif // #ifdef ELUA_BOOT_RPC
 
 // ****************************************************************************
 //  Program entry point

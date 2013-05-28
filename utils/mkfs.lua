@@ -82,7 +82,7 @@ function mkfs( dirname, outname, flist, mode, compcmd )
         -- Do we need to process the file?
         local fextpart, fnamepart = ''
         if mode == "compile" or mode == "compress" then
-          fnamepart, fextpart = utils.split_path( realname )
+          fnamepart, fextpart = utils.split_ext( realname )
           local newext = mode == "compress" and ".lua.tmp" or ".lc"
           if fextpart == ".lua" then
             newname = fnamepart .. newext
@@ -106,7 +106,7 @@ function mkfs( dirname, outname, flist, mode, compcmd )
               return false
             end
             if mode == "compile" then
-              fnamepart, fextpart = utils.split_path( fname )
+              fnamepart, fextpart = utils.split_ext( fname )
               fname = fnamepart .. ".lc"
             end
           end

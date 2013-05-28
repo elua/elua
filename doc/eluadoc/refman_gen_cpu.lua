@@ -11,8 +11,7 @@ data_en =
 
   -- Overview
   overview = [[This module deals with low-level access to CPU (and related modules) functionality, such as reading and writing memory, or 
-  enabling and disabling interrupts. It also offers access to platform specific CPU-related constants using a special macro defined in the
-  platform's $platform_conf.h$ file, as explained @#cpu_constants@here@.]],
+  enabling and disabling interrupts. It also offers access to platform specific CPU-related constants, as explained @#cpu_constants@here@.]],
 
   -- Data structures, constants and types
   structures = 
@@ -23,16 +22,21 @@ cpu.INT_GPIOB
 cpu.INT_UDMA]],
       name = "CPU constants",
       desc = [[eLua has a mechanism that lets the user export an unlimited number of constants to the $cpu$ module. Although in theory any kind of constant can be exposed by this module,
-one should only use constants related to the CPU and its subsystems (as shown above, where a number of CPU specific interrupt masks are exposed to Lua using this mechanism). To use this
-mechanism, just declare the $PLATFORM_CPU_CONSTANTS$ macro in your platform's $platform_conf.h$ file and list all your constants as part of this macro, each enclosed in a special macro called
-$_C$. For example, to get the constants listed above declare your $PLATFORM_CPU_CONSTANTS$ macro like this:</p>
-~#define PLATFORM_CPU_CONSTANTS\
+one should only use constants related to the CPU and its subsystems (as shown above, where a number of CPU specific interrupt masks are exposed to Lua using this mechanism). The constants
+visible to the CPU module are given by 3 separate macros (each can be empty):</p>
+<ul>
+  <li> <b>PLATFORM_CPU_CONSTANTS_INTS</b>: the IDs of the interrupt supported by the @inthandlers.html@eLua interrupt subsystem@ on this CPU.</li>
+  <li> <b>PLATFORM_CPU_CONSTANTS_PLATFORM</b>: various CPU and platform related constants (for example peripheral register addresses and maps).</li>
+  <li> <b>PLATFORM_CPU_CONSTANTS_CONFIGURED</b>: these are defined in the @configurator.html@configurator@.</li>
+</ul>
+<p>To use this mechanism, just declare the above constants your platform's header files (for example the CPU definition file) and list your constants as part of this macro,
+each enclosed in a special macro called $_C$. For example, to get the constants listed above declare your $PLATFORM_CPU_CONSTANTS$ macro like this:</p>
+~#define PLATFORM_CPU_CONSTANTS_PLATFORM\
   _C( INT_GPIOA ),\
   _C( INT_GPIOB ),\
   .................
   _C( INT_UDMA )~
-<p>It's worth to note that adding more constants does not increase RAM usage, only Flash usage, so you can expose as many constants as you need without worrying about RAM consumption.<br />
-This mechanism is also used to expose interrupt IDs to the CPU module, check @inthandlers.html@here@ for an overview of eLua interrupt support.]]
+<p>It's worth to note that adding more constants does not increase RAM usage, only Flash usage, so you can expose as many constants as you need without worrying about RAM consumption.]]
     },
   },
 
