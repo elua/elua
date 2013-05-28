@@ -5,7 +5,6 @@
 
 #include "type.h"
 #include "stacks.h"
-#include "stm32f4xx_conf.h"
 #include "platform_ints.h"
 
 // Number of resources (0 if not available/not implemented)
@@ -32,12 +31,14 @@ u32 platform_s_cpu_get_frequency();
 #define PIO_PINS_PER_PORT     16
 
 // Internal memory data
-#define CCMDATARAM_SIZE       ( 64 * 1024 )
-#define SRAM_SIZE             ( 128 * 1024 )
+#define INTERNAL_CCRAM_BASE   0x10000000
+#define INTERNAL_CCRAM_SIZE   ( 64 * 1024 )
+#define INTERNAL_SRAM_BASE    0x20000000
+#define INTERNAL_SRAM_SIZE    ( 128 * 1024 )
 #define INTERNAL_RAM1_FIRST_FREE        end
-#define INTERNAL_RAM1_LAST_FREE         ( SRAM_BASE + SRAM_SIZE - STACK_SIZE_TOTAL -1 )
-#define INTERNAL_RAM2_FIRST_FREE        CCMDATARAM_BASE
-#define INTERNAL_RAM2_LAST_FREE         ( CCMDATARAM_BASE + CCMDATARAM_SIZE - 1 )
+#define INTERNAL_RAM1_LAST_FREE         ( INTERNAL_SRAM_BASE + INTERNAL_SRAM_SIZE - STACK_SIZE_TOTAL -1 )
+#define INTERNAL_RAM2_FIRST_FREE        INTERNAL_CCRAM_BASE
+#define INTERNAL_RAM2_LAST_FREE         ( INTERNAL_CCRAM_BASE + INTERNAL_CCRAM_SIZE - 1 )
 
 // Internal Flash data
 #define INTERNAL_FLASH_SIZE             ( 1024 * 1024 )

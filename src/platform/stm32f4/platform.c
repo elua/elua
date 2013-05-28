@@ -24,43 +24,7 @@
 
 // Platform specific includes
 #include "stm32f4xx_conf.h"
-
-// Clock data
-// IMPORTANT: if you change these, make sure to modify RCC_Configuration() too!
-/* PLL_VCO = (HSE_VALUE or HSI_VALUE / PLL_M) * PLL_N */
-#define PLL_M      8
-#define PLL_N      336
-
-/* SYSCLK = PLL_VCO / PLL_P */
-#define PLL_P      2
-
-/* USB OTG FS, SDIO and RNG Clock =  PLL_VCO / PLLQ */
-#define PLL_Q      7
-
-#if 0
-#define PLL_M      8
-#define PLL_N      336
-
-/* SYSCLK = PLL_VCO / PLL_P */
-#define PLL_P      2
-
-/* USB OTG FS, SDIO and RNG Clock =  PLL_VCO / PLLQ */
-#define PLL_Q      7
-#else
-/* PLLVCO = (HSE_VALUE / PLL_M) * PLL_N */   
-#define PLL_M   (HSE_VALUE / 1000000)   /* Possible value 0 and 63 */
-#define PLL_N   240                     /* Possible value 192 and 432 */
-
-/* SYSCLK = PLLVCO / PLL_P !!!! DO NOT EXCEED 120MHz */
-#define PLL_P   2  /* Possible value 2, 4, 6, or 8 */
-
-/* OTGFS, SDIO and RNG Clock =  PLLVCO / PLLQ */
-#define PLL_Q   5  /* Possible value between 4 and 15 */
-
-/* I2SCLK =  PLLVCO / PLLR */                          
-#define PLL_R   2    /* Possible value between 2 and 7 */
-                          
-#endif
+#include "pll_config.h"
 
 #define HCLK        ( (HSE_VALUE / PLL_M) * PLL_N / PLL_P)
 #define PCLK1_DIV   4
@@ -70,7 +34,7 @@
 // NOTE: when using virtual timers, SYSTICKHZ and VTMR_FREQ_HZ should have the
 // same value, as they're served by the same timer (the systick)
 // Max SysTick preload value is 16777215, for STM32F103RET6 @ 72 MHz, lowest acceptable rate would be about 5 Hz
-#define SYSTICKHZ               100
+#define SYSTICKHZ               20
 #define SYSTICKMS               (1000 / SYSTICKHZ)
 
 #if ( (HCLK / SYSTICKHZ)  > SysTick_LOAD_RELOAD_Msk)
@@ -1208,16 +1172,17 @@ void platform_pwm_stop( unsigned id )
 // *****************************************************************************
 // CPU specific functions
 
+extern u32 SystemCoreClock;
 u32 platform_s_cpu_get_frequency()
 {
-  return HCLK;
+  SystemCoreClockUpdate();
+  return SystemCoreClock;
 }
 
 void stm32_cpu_reset()
 {
   NVIC_SystemReset();
 }
-
 
 // *****************************************************************************
 // ADC specific functions and variables

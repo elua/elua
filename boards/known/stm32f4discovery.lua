@@ -17,7 +17,8 @@ return {
   config = {
     egc = { mode = "alloc" },
     vtmr = { num = 4, freq = 10 },
-    ram = { internal_rams = 2 }
+    ram = { internal_rams = 2 },
+    clocks = { external = 8000000, cpu = 168000000 }
   },
   modules = {
     generic = { 'all', "-i2c", "-net" },

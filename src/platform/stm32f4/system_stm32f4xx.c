@@ -115,6 +115,7 @@
   */
 
 #include "stm32f4xx.h"
+#include "pll_config.h"
 
 /**
   * @}
@@ -144,35 +145,6 @@
                                    This value must be a multiple of 0x200. */
 /******************************************************************************/
 
-/************************* PLL Parameters *************************************/
-/* PLL_VCO = (HSE_VALUE or HSI_VALUE / PLL_M) * PLL_N */
-#if 0
-#define PLL_M      8
-#define PLL_N      336
-
-/* SYSCLK = PLL_VCO / PLL_P */
-#define PLL_P      2
-
-/* USB OTG FS, SDIO and RNG Clock =  PLL_VCO / PLLQ */
-#define PLL_Q      7
-#else
-/* PLLVCO = (HSE_VALUE / PLL_M) * PLL_N */   
-#define PLL_M   (HSE_VALUE / 1000000)   /* Possible value 0 and 63 */
-#define PLL_N   240                     /* Possible value 192 and 432 */
-
-/* SYSCLK = PLLVCO / PLL_P !!!! DO NOT EXCEED 120MHz */
-#define PLL_P   2  /* Possible value 2, 4, 6, or 8 */
-
-/* OTGFS, SDIO and RNG Clock =  PLLVCO / PLLQ */
-#define PLL_Q   5  /* Possible value between 4 and 15 */
-
-/* I2SCLK =  PLLVCO / PLLR */                          
-#define PLL_R   2    /* Possible value between 2 and 7 */
-                          
-#endif
-
-/******************************************************************************/
-
 /**
   * @}
   */
@@ -189,7 +161,7 @@
   * @{
   */
 
-  uint32_t SystemCoreClock = 168000000;
+  uint32_t SystemCoreClock = STM32F4_ACTUAL_SYSCLK_FREQ_MHZ * 1000000;
 
   __I uint8_t AHBPrescTable[16] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
 

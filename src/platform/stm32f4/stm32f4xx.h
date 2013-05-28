@@ -47,6 +47,8 @@
 #ifndef __STM32F4xx_H
 #define __STM32F4xx_H
 
+#include "platform_conf.h"
+
 #ifdef __cplusplus
  extern "C" {
 #endif /* __cplusplus */
@@ -89,9 +91,7 @@
   */           
 
 #if !defined  (HSE_VALUE) 
-  #define HSE_VALUE    (25000000) /*!< Value of the External oscillator in Hz */
-  // STM32F4 Discovery has 8MHz oscillator
-  //#define HSE_VALUE    (8000000) /*!< Value of the External oscillator in Hz */
+  #define HSE_VALUE    (ELUA_BOARD_EXTERNAL_CLOCK_HZ) /*!< Value of the External oscillator in Hz */
 #endif /* HSE_VALUE */
 
 /**
@@ -247,10 +247,6 @@ typedef enum IRQn
   * @{
   */  
 /*!< STM32F10x Standard Peripheral Library old types (maintained for legacy purpose) */
-typedef int32_t  s32;
-typedef int16_t s16;
-typedef int8_t  s8;
-
 typedef const int32_t sc32;  /*!< Read Only */
 typedef const int16_t sc16;  /*!< Read Only */
 typedef const int8_t sc8;   /*!< Read Only */
@@ -262,10 +258,6 @@ typedef __IO int8_t   vs8;
 typedef __I int32_t vsc32;  /*!< Read Only */
 typedef __I int16_t vsc16;  /*!< Read Only */
 typedef __I int8_t vsc8;   /*!< Read Only */
-
-typedef uint32_t  u32;
-typedef uint16_t u16;
-typedef uint8_t  u8;
 
 typedef const uint32_t uc32;  /*!< Read Only */
 typedef const uint16_t uc16;  /*!< Read Only */

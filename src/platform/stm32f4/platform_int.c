@@ -20,7 +20,7 @@ extern USART_TypeDef *const stm32_usart[];
 
 static void all_usart_irqhandler( int resnum )
 {
-  int temp;
+  //int temp;
 
   //temp = USART_GetFlagStatus( stm32_usart[ resnum ], USART_FLAG_ORE );
   cmn_int_handler( INT_UART_RX, resnum );

@@ -152,6 +152,14 @@ function init()
     },
   }
 
+  -- Clocks
+  configs.clocks = {
+    attrs = {
+      external = at.make_optional( at.int_attr( 'ELUA_BOARD_EXTERNAL_CLOCK_HZ', 1 ) ),
+      cpu = at.make_optional( at.int_attr( 'ELUA_BOARD_CPU_CLOCK_HZ', 1 ) )
+    }
+  }
+
   -- RAM configuration generator
   configs.ram = {
     gen = ram_generator,
