@@ -1,3 +1,5 @@
+-- Olimex STM32-P407 board configuration
+
 return {
   cpu = 'stm32f407vg',
   components = {

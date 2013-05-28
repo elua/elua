@@ -231,6 +231,9 @@ are written over a [grey-background]#grey background#.
                       n|internal_rams (*1*)            |Number of MCU non-contiguous RAM areas
                       n|ext_start (array of integers)  |Array of starting addresses for external RAM areas
                       n|ext_size (array of integers)   |Array of sizes sof external RAM areas
+.3+^.^|clocks        2+|System clock configuration (not used by all backends)
+                      n|external                       |External CPU clock (eg. crystal) frequency (Hz)
+                      n|cpu                            |Core CPU clock frequency (Hz)
 |===================================================================
 
 Besides the generic configuration items in the table above, each platform can specify its own list of platform-specific configuration items:
