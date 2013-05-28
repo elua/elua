@@ -112,6 +112,7 @@ local platform_list =
   lpc288x = { cpus = { 'LPC2888' }, arch = 'arm' },
   str7 = { cpus = { 'STR711FR2' }, arch = 'arm' },
   stm32 = { cpus = { 'STM32F103ZE', 'STM32F103RE' }, arch = 'cortexm3' },
+  stm32f4 = { cpus =  { 'STM32F407VG' }, arch = 'cortexm4' },
   avr32 = { cpus = { 'AT32UC3A0128', 'AT32UC3A0256', 'AT32UC3A0512', 'AT32UC3B0256' }, arch = 'avr32' },
   lpc24xx = { cpus = { 'LPC2468' }, arch = 'arm' },
   lpc17xx = { cpus = { 'LPC1768' }, arch = 'cortexm3' }
