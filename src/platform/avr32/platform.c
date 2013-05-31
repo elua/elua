@@ -1225,3 +1225,58 @@ void platform_cdc_timer_handler()
 }
 #endif // #ifdef BUILD_USB_CDC
 
+// ****************************************************************************
+// Platform specific modules go here
+
+#ifdef PS_LIB_TABLE_NAME
+
+#define MIN_OPT_LEVEL 2
+#include "lua.h"
+#include "lauxlib.h"
+#include "lrotable.h"
+#include "lrodefs.h"
+
+#ifdef BUILD_LCD
+extern const LUA_REG_TYPE lcd_map[];
+#endif
+#ifdef BUILD_RTC
+extern const LUA_REG_TYPE rtc_map[];
+#endif
+
+const LUA_REG_TYPE platform_map[] =
+{
+#if LUA_OPTIMIZE_MEMORY > 0
+# ifdef BUILD_LCD
+  { LSTRKEY( "lcd" ), LROVAL( lcd_map ) },
+# endif
+# ifdef BUILD_RTC
+  { LSTRKEY( "rtc" ), LROVAL( rtc_map ) },
+# endif
+#endif
+  { LNILKEY, LNILVAL }
+};
+
+LUALIB_API int luaopen_platform( lua_State *L )
+{
+#if LUA_OPTIMIZE_MEMORY > 0
+  return 0;
+#else // #if LUA_OPTIMIZE_MEMORY > 0
+  luaL_register( L, PS_LIB_TABLE_NAME, platform_map );
+
+  // Setup the new tables inside platform table
+# ifdef BUILD_LCD
+  lua_newtable( L );
+  luaL_register( L, NULL, lcd_map );
+  lua_setfield( L, -2, "lcd" );
+# endif
+# ifdef BUILD_RTC
+  lua_newtable( L );
+  luaL_register( L, NULL, rtc_map );
+  lua_setfield( L, -2, "rtc" );
+# endif
+
+  return 1;
+#endif // #if LUA_OPTIMIZE_MEMORY > 0
+}
+
+#endif // #ifdef PS_LIB_TABLE_NAME

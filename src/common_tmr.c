@@ -9,9 +9,18 @@
 #include "utils.h"
 #include <stdio.h>
 
-#ifdef BUILD_INT_HANDLERS
-  extern const elua_int_descriptor elua_int_table[ INT_ELUA_LAST ];
-#endif // #ifdef BUILD_INT_HANDLERS
+// [TODO] when the new build system is ready, automatically add the
+// code below in platform_conf.h
+#if defined( BUILD_LUA_INT_HANDLERS ) || defined( BUILD_C_INT_HANDLERS )
+#define BUILD_INT_HANDLERS
+
+extern const elua_int_descriptor elua_int_table[ INT_ELUA_LAST ];
+
+#endif // #if defined( BUILD_LUA_INT_HANDLERS ) || defined( BUILD_C_INT_HANDLERS )
+
+#ifndef VTMR_NUM_TIMERS
+#define VTMR_NUM_TIMERS       0
+#endif // #ifndef VTMR_NUM_TIMERS
 
 #ifndef PLATFORM_HAS_SYSTIMER
 #warning This platform does not have a system timer. Your eLua image might not work as expected.
