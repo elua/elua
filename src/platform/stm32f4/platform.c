@@ -1328,17 +1328,24 @@ int platform_adc_update_sequence( )
   d->seq_ctr = 0;
   while( d->seq_ctr < d->seq_len )
   {
-    // Map pin as analog input
-    GPIO_InitStructure.GPIO_Pin = adc_gpio_pins[ d->ch_state[ d->seq_ctr ]->id ];
-    GPIO_Init(adc_gpio_port[ d->ch_state[ d->seq_ctr ]->id ], &GPIO_InitStructure);
+    // Map pin as analog input if real channel (16 & 17 are temperature and vref)
+    if( d->ch_state[ d->seq_ctr ]->id < 16 )
+    {
+      GPIO_InitStructure.GPIO_Pin = adc_gpio_pins[ d->ch_state[ d->seq_ctr ]->id ];
+      GPIO_Init(adc_gpio_port[ d->ch_state[ d->seq_ctr ]->id ], &GPIO_InitStructure);
 
-    ADC_RegularChannelConfig( adc[ d->seq_id ], d->ch_state[ d->seq_ctr ]->id, d->seq_ctr+1, ADC_SampleTime_3Cycles );
+      ADC_RegularChannelConfig( adc[ d->seq_id ], d->ch_state[ d->seq_ctr ]->id, d->seq_ctr+1, ADC_SampleTime_28Cycles );
+    }
+    else
+      ADC_RegularChannelConfig( adc[ d->seq_id ], d->ch_state[ d->seq_ctr ]->id, d->seq_ctr+1, ADC_SampleTime_144Cycles );
+
     d->seq_ctr++;
   }
   d->seq_ctr = 0;
 
   adc_init_struct.ADC_NbrOfConversion = d->seq_len;
   ADC_Init( adc[ d->seq_id ], &adc_init_struct );
+  ADC_TempSensorVrefintCmd(ENABLE);
   ADC_Cmd( adc[ d->seq_id ], ENABLE );
 
   // Bring down adc dma, update setup, bring back up
@@ -1435,6 +1442,9 @@ static void adcs_init()
 
   // Enable ADC
   ADC_Cmd( adc[ d->seq_id ], ENABLE );
+
+  // Enable VREF & temperature sensor channels (16, 17)
+  ADC_TempSensorVrefintCmd(ENABLE);
 
   // Set up DMA to handle samples
   RCC_AHB1PeriphClockCmd( RCC_AHB1Periph_DMA2, ENABLE );
