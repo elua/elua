@@ -438,24 +438,41 @@ static void usart_init(u32 id, USART_InitTypeDef * initVals)
 {
   /* Configure USART IO */
   GPIO_InitTypeDef GPIO_InitStructure;
+  GPIO_TypeDef* prxport = usart_gpio_rx_port[ id ];
+  GPIO_TypeDef* ptxport = usart_gpio_tx_port[ id ];
+  u16 gpio_rx_pin = usart_gpio_rx_pin[ id ];
+  u16 gpio_tx_pin = usart_gpio_tx_pin[ id ];
+  u8 gpio_rx_pinsource = usart_gpio_rx_pin_source[ id ];
+  u8 gpio_tx_pinsource = usart_gpio_tx_pin_source[ id ];
+
+  // Overwrite console UART configuration with the parameters from the configuration file
+  if( id == CON_UART_ID )
+  {
+    prxport = CON_GPIO_PORT_MACRO( STM32F4_CON_RX_PORT );
+    ptxport = CON_GPIO_PORT_MACRO( STM32F4_CON_TX_PORT );
+    gpio_rx_pin = CON_GPIO_PIN_MACRO( STM32F4_CON_RX_PIN );
+    gpio_tx_pin = CON_GPIO_PIN_MACRO( STM32F4_CON_TX_PIN );
+    gpio_rx_pinsource = CON_GPIO_SOURCE_MACRO( STM32F4_CON_RX_PIN );
+    gpio_tx_pinsource = CON_GPIO_SOURCE_MACRO( STM32F4_CON_TX_PIN );
+  }
 
   //Connect pin to USARTx_Tx
-  GPIO_PinAFConfig(usart_gpio_tx_port[id], usart_gpio_tx_pin_source[id], stm32_usart_AF[id]);
+  GPIO_PinAFConfig(ptxport, gpio_tx_pinsource, stm32_usart_AF[id]);
   //Connect pin to USARTx_Rx
-  GPIO_PinAFConfig(usart_gpio_rx_port[id], usart_gpio_rx_pin_source[id], stm32_usart_AF[id]);
+  GPIO_PinAFConfig(prxport, gpio_rx_pinsource, stm32_usart_AF[id]);
 
   /* Configure USART Tx Pin as alternate function push-pull */
-  GPIO_InitStructure.GPIO_Pin = usart_gpio_tx_pin[id];
+  GPIO_InitStructure.GPIO_Pin = gpio_tx_pin;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP; //push pull or open drain
   GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP; //pull-up or pull-down
-  GPIO_Init(usart_gpio_tx_port[id], &GPIO_InitStructure);
+  GPIO_Init(ptxport, &GPIO_InitStructure);
 
   /* Configure USART Rx Pin as input floating */
-  GPIO_InitStructure.GPIO_Pin = usart_gpio_rx_pin[id];
+  GPIO_InitStructure.GPIO_Pin = gpio_rx_pin;
   GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP; //pull-up or pull-down
-  GPIO_Init(usart_gpio_rx_port[id], &GPIO_InitStructure);
+  GPIO_Init(prxport, &GPIO_InitStructure);
 
   USART_DeInit(stm32_usart[id]);
 
