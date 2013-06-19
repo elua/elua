@@ -834,6 +834,17 @@ timer_data_type platform_timer_read_sys()
 #define CAN_AF_PORT                GPIO_AF_CAN1
 #define CAN_RX_SOURCE              GPIO_PinSource8
 #define CAN_TX_SOURCE              GPIO_PinSource9
+
+#elif defined( ELUA_BOARD_STM32_E407 )
+#define CANx                       CAN1
+#define CAN_CLK                    RCC_APB1Periph_CAN1
+#define CAN_RX_PIN                 GPIO_Pin_8
+#define CAN_TX_PIN                 GPIO_Pin_9
+#define CAN_GPIO_PORT              GPIOB
+#define CAN_GPIO_CLK               RCC_AHB1Periph_GPIOB
+#define CAN_AF_PORT                GPIO_AF_CAN1
+#define CAN_RX_SOURCE              GPIO_PinSource8
+#define CAN_TX_SOURCE              GPIO_PinSource9
 #else
 
 #define CANx                       CAN1
