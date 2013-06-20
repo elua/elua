@@ -91,7 +91,7 @@ LUALIB_API int luaopen_platform (lua_State *L)
   unsigned i;
   for (i = 0; i < sizeof(platform_open_funcs) / sizeof(lua_CFunction); i++) {
     lua_pushcfunction(L, platform_open_funcs[i]);
-    lua_call(L, 1, 0);
+    lua_call(L, 0, 0);
   }
   return 0;
 }
