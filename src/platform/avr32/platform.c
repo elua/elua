@@ -318,7 +318,6 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 // ****************************************************************************
 // UART functions
 
-
 static const gpio_map_t uart_pins =
 {
   // UART 0
@@ -344,6 +343,11 @@ static const gpio_map_t uart_pins =
 #endif
 };
 
+#ifdef BUILD_USB_CDC
+static void avr32_usb_cdc_send( u8 data );
+static int avr32_usb_cdc_recv( s32 timeout );
+#endif
+
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )
 {
   volatile avr32_usart_t *pusart = ( volatile avr32_usart_t* )uart_base_addr[ id ];
@@ -352,6 +356,9 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   opts.channelmode = USART_NORMAL_CHMODE;
   opts.charlength = databits;
   opts.baudrate = baud;
+
+  if( id == CDC_UART_ID )
+    return 0;  
 
   // Set stopbits
 #if PLATFORM_UART_STOPBITS_1 == USART_1_STOPBIT && \
@@ -404,14 +411,26 @@ void platform_s_uart_send( unsigned id, u8 data )
 {
   volatile avr32_usart_t *pusart = ( volatile avr32_usart_t* )uart_base_addr[ id ];
 
-  while( !usart_tx_ready( pusart ) );
-  pusart->thr = ( data << AVR32_USART_THR_TXCHR_OFFSET ) & AVR32_USART_THR_TXCHR_MASK;
+#ifdef BUILD_USB_CDC
+  if( id == CDC_UART_ID )
+    avr32_usb_cdc_send( data );
+  else
+#endif
+  {
+    while( !usart_tx_ready( pusart ) );
+    pusart->thr = ( data << AVR32_USART_THR_TXCHR_OFFSET ) & AVR32_USART_THR_TXCHR_MASK;
+  }
 }
 
 int platform_s_uart_recv( unsigned id, timer_data_type timeout )
 {
   volatile avr32_usart_t *pusart = ( volatile avr32_usart_t* )uart_base_addr[ id ];
   int temp;
+
+#ifdef BUILD_USB_CDC
+  if( id == CDC_UART_ID )
+    return avr32_usb_cdc_recv( timeout );
+#endif
 
   if( timeout == 0 )
   {
@@ -1187,14 +1206,15 @@ void platform_eth_timer_handler()
 
 #ifdef BUILD_USB_CDC
 
-void platform_usb_cdc_send( u8 data )
+static void avr32_usb_cdc_send( u8 data )
 {
   if (!Is_device_enumerated())
     return;
   while(!UsbCdcTxReady());      // "USART"-USB free ?
   UsbCdcSendChar(data);
 }
-int platform_usb_cdc_recv( s32 timeout )
+
+static int avr32_usb_cdc_recv( s32 timeout )
 {
   int data;
   int read;

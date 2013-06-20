@@ -46,11 +46,6 @@ static int cmn_recv_helper( unsigned id, timer_data_type timeout )
   t_buf_data data;
 #endif
 
-#ifdef BUILD_USB_CDC
-  if( id == CDC_UART_ID )
-    return platform_usb_cdc_recv( timeout );
-#endif
-
 #ifdef BUF_ENABLE_UART
   if( buf_is_enabled( BUF_ID_UART, id ) )
   {
@@ -67,7 +62,7 @@ static int cmn_recv_helper( unsigned id, timer_data_type timeout )
   }
   else
 #endif // #ifdef BUF_ENABLE_UART
-  if( id < NUM_UART )
+  if( id < NUM_UART || id == CDC_UART_ID )
     return platform_s_uart_recv( id, timeout );
 
   return -1;
@@ -140,10 +135,6 @@ static void cmn_rx_handler( int usart_id, u8 data )
 // Send: version with and without mux
 void platform_uart_send( unsigned id, u8 data ) 
 {
-#ifdef BUILD_USB_CDC
-  if( id == CDC_UART_ID )
-    platform_usb_cdc_send( data );
-#endif
 #ifdef BUILD_SERMUX
   if( id >= SERMUX_SERVICE_ID_FIRST && id < SERMUX_SERVICE_ID_FIRST + SERMUX_NUM_VUART )
   {
@@ -161,7 +152,7 @@ void platform_uart_send( unsigned id, u8 data )
     uart_service_id_out = id;
   }
 #endif // #ifdef BUILD_SERMUX
-  if( id < NUM_UART )
+  if( id < NUM_UART || id == CDC_UART_ID )
     platform_s_uart_send( id, data );
 }
 
@@ -194,13 +185,16 @@ int platform_uart_set_buffer( unsigned id, unsigned log2size )
     if( id >= SERMUX_SERVICE_ID_FIRST ) // Virtual UARTs need buffers no matter what
       return PLATFORM_ERR; 
 
-    // Disable the UART interrupt if it was set
-    if( platform_cpu_get_interrupt( INT_UART_RX, id ) ==  PLATFORM_CPU_ENABLE )
-      platform_cpu_set_interrupt( INT_UART_RX, id, PLATFORM_CPU_DISABLE );
+    if( id != CDC_UART_ID )
+    {
+      // Disable the UART interrupt if it was set
+      if( platform_cpu_get_interrupt( INT_UART_RX, id ) ==  PLATFORM_CPU_ENABLE )
+        platform_cpu_set_interrupt( INT_UART_RX, id, PLATFORM_CPU_DISABLE );
 
-    // If our C interrupt handler is installed, restore the previous one
-    if( elua_int_get_c_handler( INT_UART_RX ) == cmn_uart_rx_inthandler )
-      (void) elua_int_set_c_handler( INT_UART_RX, prev_uart_rx_handler );
+      // If our C interrupt handler is installed, restore the previous one
+      if( elua_int_get_c_handler( INT_UART_RX ) == cmn_uart_rx_inthandler )
+        (void) elua_int_set_c_handler( INT_UART_RX, prev_uart_rx_handler );
+    }
 
     // Disable buffering
     buf_set( BUF_ID_UART, id, BUF_SIZE_NONE, BUF_DSIZE_U8 );
@@ -210,7 +204,7 @@ int platform_uart_set_buffer( unsigned id, unsigned log2size )
     // Enable buffering
     if( buf_set( BUF_ID_UART, id, log2size, BUF_DSIZE_U8 ) == PLATFORM_ERR )
       return PLATFORM_ERR;
-    if( id >= SERMUX_SERVICE_ID_FIRST ) // No need for aditional setup on virtual UARTs
+    if( id == CDC_UART_ID || id >= SERMUX_SERVICE_ID_FIRST ) // No need for aditional setup on virtual UARTs or the CDC UART
       return PLATFORM_OK;    
     // Setup our C handler
     if( elua_int_get_c_handler( INT_UART_RX ) != cmn_uart_rx_inthandler )
@@ -244,7 +238,7 @@ void cmn_uart_setup_sermux()
 
 int platform_uart_set_flow_control( unsigned id, int type )
 { 
-  if( id >= SERMUX_SERVICE_ID_FIRST )
+  if( id >= SERMUX_SERVICE_ID_FIRST || id == CDC_UART_ID )
     return PLATFORM_ERR;
   return platform_s_uart_set_flow_control( id, type );
 }

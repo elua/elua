@@ -3,9 +3,11 @@
 
 module( ..., package.seeall )
 local at = require "attributes"
+local comps = require "components"
 
 -- Add specific components to the 'components' table
 function add_platform_components( t, board, cpu )
+  t.cdc = comps.cdc_uart()
 end
 
 -- Add specific configuration to the 'configs' table

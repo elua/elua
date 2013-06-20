@@ -2,8 +2,13 @@ local utils = require "utils.utils"
 local sf = string.format
 
 addi( sf( 'src/platform/%s/FWLib/library/inc', platform ) )
+addi( sf( 'src/platform/%s/FWLib/USB/STM32_USB_OTG_Driver/inc', platform ) )
+addi( sf( 'src/platform/%s/FWLib/USB/STM32_USB_Device_Library/Class/cdc/inc', platform ) )
+addi( sf( 'src/platform/%s/FWLib/USB/STM32_USB_Device_Library/Core/inc', platform ) )
+addi( sf( 'src/platform/%s/FWLib/USB/VCP/inc', platform ) )
 
 local fwlib_files = utils.get_files( "src/platform/" .. platform .. "/FWLib/library/src", ".*%.c$" )
+fwlib_files = fwlib_files .. " " .. utils.get_files( "src/platform/" .. platform .. "/FWLib/USB/", "%.c$" )
 specific_files = "system_stm32f4xx.c startup_stm32f4xx.s stm32f4xx_it.c platform.c platform_int.c cpu.c"
 local ldscript = "stm32.ld"
   
@@ -26,6 +31,12 @@ local target_flags = { '-mcpu=cortex-m4', '-mthumb','-mfloat-abi=hard', '-mfpu=f
 addcf( { target_flags, '-mlittle-endian' } )
 addlf( { target_flags, '-Wl,-e,Reset_Handler', '-Wl,-static' } )
 addaf( target_flags )
+
+-- USB macros
+-- Currently, CDC works only over the USB FS interface, HS seems to have some issues
+-- This would be handled better by the backend configurator interface
+-- addm( { 'USE_USB_OTG_HS', 'USE_EMBEDDED_PHY' } )
+addm( 'USE_USB_OTG_FS' )
 
 tools.stm32f4 = {}
 

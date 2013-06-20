@@ -25,6 +25,10 @@
 // Platform specific includes
 #include "stm32f4xx_conf.h"
 #include "pll_config.h"
+#include "usbd_cdc_core.h"
+#include "usbd_usr.h"
+#include "usb_conf.h"
+#include "usbd_desc.h"
 
 #define HCLK        ( (HSE_VALUE / PLL_M) * PLL_N / PLL_P)
 #define PCLK1_DIV   4
@@ -49,6 +53,10 @@
 
 // forward dcls
 static void NVIC_Configuration(void);
+
+#ifdef BUILD_USB_CDC
+__ALIGN_BEGIN USB_OTG_CORE_HANDLE    USB_OTG_dev __ALIGN_END ;
+#endif
 
 static void timers_init();
 static void pwms_init();
@@ -118,6 +126,14 @@ int platform_init()
                   FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR|FLASH_FLAG_PGSERR);
 
   FLASH_Unlock();
+#endif
+
+#ifdef BUILD_USB_CDC
+  #ifdef USE_USB_OTG_HS
+    USBD_Init( &USB_OTG_dev, USB_OTG_HS_CORE_ID, &USR_desc, &USBD_CDC_cb, &USR_cb );
+  #else
+    USBD_Init( &USB_OTG_dev, USB_OTG_FS_CORE_ID, &USR_desc, &USBD_CDC_cb, &USR_cb );
+  #endif
 #endif
 
   cmn_platform_init();
@@ -498,8 +514,10 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
 {
   USART_InitTypeDef USART_InitStructure;
 
-  USART_InitStructure.USART_BaudRate = baud;
+  if( id == CDC_UART_ID ) // no dynamic configuration yet
+    return 0;
 
+  USART_InitStructure.USART_BaudRate = baud;
   USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
   USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
 
@@ -547,19 +565,27 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
 
   usart_init(id, &USART_InitStructure);
 
-  return TRUE;
+  return baud;
 }
 
+extern uint16_t VCP_DataTx(uint8_t* Buf, uint32_t Len);
 void platform_s_uart_send( unsigned id, u8 data )
 {
-  while(USART_GetFlagStatus(stm32_usart[id], USART_FLAG_TXE) == RESET)
+#ifdef BUILD_USB_CDC
+  if( id == CDC_UART_ID )
+    VCP_DataTx( &data, 1 );
+  else
+#endif  
   {
+    while(USART_GetFlagStatus(stm32_usart[id], USART_FLAG_TXE) == RESET);
+    USART_SendData(stm32_usart[id], data);
   }
-  USART_SendData(stm32_usart[id], data);
 }
 
 int platform_s_uart_recv( unsigned id, timer_data_type timeout )
 {
+  if( id == CDC_UART_ID ) // this shouldn't happen
+    return -1;
   if( timeout == 0 )
   {
     if (USART_GetFlagStatus(stm32_usart[id], USART_FLAG_RXNE) == RESET)
@@ -607,7 +633,6 @@ int platform_s_uart_set_flow_control( unsigned id, int type )
   usart->CR3 |= temp;
   return PLATFORM_OK;
 }
-
 
 // ****************************************************************************
 // Timers
