@@ -11,7 +11,7 @@
 #define NUM_UART              4
 #define NUM_PWM               6
 #define NUM_ADC               8
-#define NUM_CAN               0
+#define NUM_CAN               2
 #define NUM_TIMER             4
 
 #define ADC_BIT_RESOLUTION    12

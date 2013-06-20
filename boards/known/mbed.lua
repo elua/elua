@@ -18,7 +18,7 @@ return {
     ram = { internal_rams = 2 }
   },
   modules = {
-    generic = { 'all', "-spi", "-can", "-i2c", "-net" },
+    generic = { 'all', "-spi", "-i2c", "-net" },
     platform = 'all',
   },
 }

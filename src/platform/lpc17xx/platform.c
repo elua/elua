@@ -27,6 +27,7 @@
 #include "lpc17xx_clkpwr.h"
 #include "lpc17xx_pwm.h"
 #include "lpc17xx_adc.h"
+#include "lpc17xx_can.h"
 
 #define SYSTICKHZ             10
 
@@ -36,6 +37,7 @@
 static void platform_setup_timers();
 static void platform_setup_pwm();
 static void platform_setup_adcs();
+static void cans_init( void );
 
 int platform_init()
 {
@@ -67,6 +69,9 @@ int platform_init()
   // Setup ADCs
   platform_setup_adcs();
 #endif
+
+  // Setup CANs
+  cans_init();
 
   // System timer setup
   cmn_systimer_set_base_freq( mbed_get_cpu_frequency() );
@@ -646,5 +651,156 @@ void platform_pwm_start( unsigned id )
 void platform_pwm_stop( unsigned id )
 {
   PWM_Cmd(LPC_PWM1, DISABLE);
+}
+
+// ****************************************************************************
+// CAN
+
+volatile u32 can_rx_flag[2] = {0,0};
+volatile u32 can_err_flag[2] = {0,0};
+CAN_MSG_Type can_msg_rx[2];
+
+void CAN_IRQHandler(void)
+{
+  // CAN1 Error (bits 1~10 cleared when read)
+  if (LPC_CAN1->ICR & (1<<2 | 1<<5 | 1<<7))
+    can_err_flag[0] = 1;
+  
+  // CAN1 Receive
+  if (LPC_CAN1->ICR & (1<<0))
+  {
+    can_rx_flag[0] = 1;
+    CAN_ReceiveMsg(LPC_CAN1, &(can_msg_rx[0]));
+  }
+
+  // CAN2 Error (bits 1~10 cleared when read)
+  if (LPC_CAN2->ICR & (1<<2 | 1<<5 | 1<<7))
+    can_err_flag[1] = 1;
+
+  // CAN2 Receive
+  if (LPC_CAN2->ICR & (1<<0))
+  {
+    can_rx_flag[1] = 1;
+    CAN_ReceiveMsg(LPC_CAN2, &(can_msg_rx[1]));
+  }
+}
+
+void cans_init( void )
+{
+  // Enable power / clock
+  LPC_SC->PCONP |= 1<<13 | 1<<14;
+}
+
+
+u32 platform_can_setup( unsigned id, u32 clock )
+{  
+  LPC_CAN_TypeDef * canx;
+  uint32_t div;
+
+  switch (id)
+  {
+    case 0: canx = LPC_CAN1; break;
+    case 1: canx = LPC_CAN2; break;
+    default: return 0;
+  }
+
+  CAN_DeInit(canx); 
+  CAN_Init(canx, clock);
+  CAN_ModeConfig(canx, CAN_OPERATING_MODE, ENABLE); 
+  CAN_IRQCmd(canx, CANINT_RIE, ENABLE);   // Receive IRQ 
+  CAN_IRQCmd(canx, CANINT_EIE, ENABLE);   // Error IRQ 
+  CAN_IRQCmd(canx, CANINT_BEIE, ENABLE);  // Bus error IRQ 
+  LPC_CANAF->AFMR = 2;                    // Filter bypass (receive all messages) 
+  NVIC_EnableIRQ(CAN_IRQn);               // Enable IRQs
+
+  // Fix clock
+  LPC_SC->PCLKSEL0 &= ~(3<<26 | 3<<28 | 3<<30); // PCLK / 2
+  LPC_SC->PCLKSEL0 |=  (2<<26 | 2<<28 | 2<<30);
+  div = (SystemCoreClock / 20) / clock;
+  div --;
+	canx->MOD = 0x01; // Enter reset mode
+	canx->BTR  = (div & 0x3FF) | (3<<14) | (5<<16) | (2<<20) ; // Set bit timing
+	canx->MOD = 0;    // Return to normal operating
+
+  // Change pin function (for now using the MBED ones)
+  // And read clock divider
+  if (id == 0)
+  {
+    // Pin function
+    LPC_PINCON->PINSEL0 &= ~(3<<0 | 3<<2);
+    LPC_PINCON->PINSEL0 |= (1<<0 | 1<<2);
+
+    // No pull up / pull down
+    LPC_PINCON->PINMODE0 &= ~(3<<0 | 3<<2);
+    LPC_PINCON->PINMODE0 |= (2<<0 | 2<<2);
+
+    // NOT open drain
+    LPC_PINCON->PINMODE_OD0 &= ~(1<<0 | 1<<1);
+  }
+  else
+  {
+    LPC_PINCON->PINSEL0 &= ~(3<<8 | 3<<10);
+    LPC_PINCON->PINSEL0 |= (2<<8 | 2<<10);
+
+    // No pull up / pull down
+    LPC_PINCON->PINMODE0 &= ~(3<<8 | 3<<10);
+    LPC_PINCON->PINMODE0 |= (2<<8 | 2<<10);
+
+    // NOT open drain
+    LPC_PINCON->PINMODE_OD0 &= ~(1<<4 | 1<<5);
+  }
+
+  return (SystemCoreClock / 20) / ((div & 0x3FF)+1);
+}
+
+void platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *data )
+{
+  CAN_MSG_Type msg_tx;
+  LPC_CAN_TypeDef * canx;
+
+  switch (id)
+  {
+    case 0: canx = LPC_CAN1; break;
+    case 1: canx = LPC_CAN2; break;
+    default: return;
+  }
+
+  // Wait for outgoing messages to clear
+  while( canx->GSR & (1<<3) == 0 );
+
+  msg_tx.type = DATA_FRAME;
+  msg_tx.format = idtype == ELUA_CAN_ID_EXT ? EXT_ID_FORMAT : STD_ID_FORMAT;
+  msg_tx.id = canid;
+  msg_tx.len = len;
+
+  if (len <= 4)
+    memcpy(msg_tx.dataA, data, len);
+  else
+  {
+    memcpy(msg_tx.dataA, data, 4);
+    memcpy(msg_tx.dataB, data+4, len-4);
+  }
+
+  CAN_SendMsg(canx, &msg_tx);
+}
+
+int platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )
+{
+  // wait for a message
+  if( can_rx_flag[id] != 0 )
+  {
+    memcpy(data, &(can_msg_rx[id].dataA), 4);
+    memcpy(data+4, &(can_msg_rx[id].dataB), 4); 
+
+    can_rx_flag[id] = 0;
+
+    *canid = ( u32 )can_msg_rx[id].id;
+    *idtype = can_msg_rx[id].format == EXT_ID_FORMAT ? ELUA_CAN_ID_EXT : ELUA_CAN_ID_STD;
+    *len = can_msg_rx[id].len;
+
+    return PLATFORM_OK;
+  }
+  else
+    return PLATFORM_UNDERFLOW;
 }
 
