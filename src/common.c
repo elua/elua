@@ -208,7 +208,14 @@ void cmn_platform_init()
 
 int platform_pio_has_port( unsigned port )
 {
+#if defined( PIO_PINS_PER_PORT )
   return port < NUM_PIO;
+#elif defined( PIO_PIN_ARRAY )
+  const u8 pio_port_pins[] = PIO_PIN_ARRAY;
+  return port < NUM_PIO && pio_port_pins[ port ] != 0;
+#else
+  #error "You must define either PIO_PINS_PER_PORT of PIO_PIN_ARRAY in platform_conf.h"
+#endif
 }
 
 const char* platform_pio_get_prefix( unsigned port )
@@ -226,6 +233,18 @@ int platform_pio_has_pin( unsigned port, unsigned pin )
 #elif defined( PIO_PIN_ARRAY )
   const u8 pio_port_pins[] = PIO_PIN_ARRAY;
   return port < NUM_PIO && pin < pio_port_pins[ port ];
+#else
+  #error "You must define either PIO_PINS_PER_PORT of PIO_PIN_ARRAY in platform_conf.h"
+#endif
+}
+
+int platform_pio_get_num_pins( unsigned port )
+{
+#if defined( PIO_PINS_PER_PORT )
+  return PIO_PINS_PER_PORT;
+#elif defined( PIO_PIN_ARRAY )
+  const u8 pio_port_pins[] = PIO_PIN_ARRAY;
+  return pio_port_pins[ port ];
 #else
   #error "You must define either PIO_PINS_PER_PORT of PIO_PIN_ARRAY in platform_conf.h"
 #endif

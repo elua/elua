@@ -11,6 +11,8 @@
 #include <string.h>
 #include <ctype.h>
 
+#if NUM_PIO > 0
+
 // PIO public constants
 #define PIO_DIR_OUTPUT      0
 #define PIO_DIR_INPUT       1
@@ -143,6 +145,18 @@ static int pio_pin_setdir( lua_State *L )
   return pio_gen_setdir( L, PIO_PIN_OP );
 }
 
+// Lua: pio.pin.output( pin1, pin2, ..., pinn )
+static int pio_pin_output( lua_State *L )
+{
+  return pioh_set_pins( L, 1, PLATFORM_IO_PIN_DIR_OUTPUT );
+}
+
+// Lua: pio.pin.input( pin1, pin2, ..., pinn )
+static int pio_pin_input( lua_State *L )
+{
+  return pioh_set_pins( L, 1, PLATFORM_IO_PIN_DIR_INPUT );
+}
+
 // Lua: pio.pin.setpull( pio.PULLUP | pio.PULLDOWN | pio.NOPULL, pin1, pin2, ..., pinn )
 static int pio_pin_setpull( lua_State *L )
 {
@@ -199,6 +213,18 @@ static int pio_pin_getval( lua_State *L )
 static int pio_port_setdir( lua_State *L )
 {
   return pio_gen_setdir( L, PIO_PORT_OP );
+}
+
+// Lua: pio.port.output( port1, port2, ..., portn )
+static int pio_port_output( lua_State *L )
+{
+  return pioh_set_ports( L, 1, PLATFORM_IO_PIN_DIR_OUTPUT, PLATFORM_IO_ALL_PINS );
+}
+
+// Lua: pio.port.input( port1, port2, ..., portn )
+static int pio_port_input( lua_State *L )
+{
+  return pioh_set_ports( L, 1, PLATFORM_IO_PIN_DIR_INPUT, PLATFORM_IO_ALL_PINS );
 }
 
 // Lua: pio.port.setpull( pio.PULLUP | pio.PULLDOWN | pio.NOPULL, port1, port2, ..., portn )
@@ -403,6 +429,8 @@ static int pio_decode( lua_State *L )
 static const LUA_REG_TYPE pio_pin_map[] =
 {
   { LSTRKEY( "setdir" ), LFUNCVAL ( pio_pin_setdir ) },
+  { LSTRKEY( "output" ), LFUNCVAL( pio_pin_output ) },
+  { LSTRKEY( "input" ), LFUNCVAL( pio_pin_input ) },
   { LSTRKEY( "setpull" ), LFUNCVAL( pio_pin_setpull ) },
   { LSTRKEY( "setval" ), LFUNCVAL( pio_pin_setval ) },
   { LSTRKEY( "sethigh" ), LFUNCVAL( pio_pin_sethigh ) },
@@ -413,7 +441,9 @@ static const LUA_REG_TYPE pio_pin_map[] =
 
 static const LUA_REG_TYPE pio_port_map[] =
 {
-  { LSTRKEY( "setdir" ), LFUNCVAL ( pio_port_setdir ) },
+  { LSTRKEY( "setdir" ), LFUNCVAL( pio_port_setdir ) },
+  { LSTRKEY( "output" ), LFUNCVAL( pio_port_output ) },
+  { LSTRKEY( "input" ), LFUNCVAL( pio_port_input ) },
   { LSTRKEY( "setpull" ), LFUNCVAL( pio_port_setpull ) },
   { LSTRKEY( "setval" ), LFUNCVAL( pio_port_setval ) },
   { LSTRKEY( "sethigh" ), LFUNCVAL( pio_port_sethigh ) },
@@ -469,4 +499,6 @@ LUALIB_API int luaopen_pio( lua_State *L )
   return 1;
 #endif // #if LUA_OPTIMIZE_MEMORY > 0
 }
+
+#endif
 

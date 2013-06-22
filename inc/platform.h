@@ -66,6 +66,7 @@ enum
 int platform_pio_has_port( unsigned port );
 const char* platform_pio_get_prefix( unsigned port );
 int platform_pio_has_pin( unsigned port, unsigned pin );
+int platform_pio_get_num_pins( unsigned port );
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op );
 
 // *****************************************************************************
