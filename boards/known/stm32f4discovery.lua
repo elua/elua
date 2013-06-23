@@ -3,8 +3,9 @@
 return {
   cpu = 'stm32f407vg',
   components = {
-    sercon = { uart = 0, speed = 115200 },
+    sercon = { uart = "cdc", speed = 115200 },
     romfs = true,
+    cdc = { buf_size = 64 },
     advanced_shell = true,
     term = { lines = 25, cols = 80 },
     linenoise = { shell_lines = 10, lua_lines = 50 },

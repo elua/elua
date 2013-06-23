@@ -501,12 +501,42 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
 
 void platform_s_uart_send( unsigned id, u8 data )
 {
-  MAP_UARTCharPut( uart_base[ id ], data );
+#ifdef BUILD_USB_CDC
+  if( id == CDC_UART_ID )
+    USBBufferWrite( &g_sTxBuffer, &data, 1 );
+  else
+#endif
+    MAP_UARTCharPut( uart_base[ id ], data );
 }
+
+#ifdef BUILD_USB_CDC
+static int cdc_uart_recv( timer_data_type timeout )
+{
+  unsigned char data;
+  unsigned long read;
+
+  // Try to read one byte from buffer, if none available return -1 or
+  // retry if timeout
+  // FIXME: Respect requested timeout
+  do {
+    read = USBBufferRead(&g_sRxBuffer, &data, 1);
+  } while( read == 0 && timeout != 0 );
+
+  if( read == 0 )
+    return -1;
+  else
+    return data;
+}
+#endif
 
 int platform_s_uart_recv( unsigned id, timer_data_type timeout )
 {
   u32 base = uart_base[ id ];
+
+#ifdef BUILD_USB_CDC
+  if( id == CDC_UART_ID )
+    return cdc_uart_recv( timeout );
+#endif
 
   if( timeout == 0 )
     return MAP_UARTCharGetNonBlocking( base );
@@ -1165,29 +1195,6 @@ static void usb_init()
   // Pass the device information to the USB library and place the device
   // on the bus.
   USBDCDCInit( 0, &g_sCDCDevice );
-}
-
-void platform_usb_cdc_send( u8 data )
-{
-  USBBufferWrite( &g_sTxBuffer, &data, 1 );
-}
-
-int platform_usb_cdc_recv( s32 timeout )
-{
-  unsigned char data;
-  unsigned long read;
-
-  // Try to read one byte from buffer, if none available return -1 or
-  // retry if timeout
-  // FIXME: Respect requested timeout
-  do {
-    read = USBBufferRead(&g_sRxBuffer, &data, 1);
-  } while( read == 0 && timeout != 0 );
-
-  if( read == 0 )
-    return -1;
-  else
-    return data;
 }
 
 unsigned long TxHandler(void *pvCBData, unsigned long ulEvent, unsigned long ulMsgValue, void *pvMsgData)

@@ -52,7 +52,12 @@ end
 -- This should be included by each backend that supports USB UARTs
 
 function cdc_uart()
-  return { macro = "BUILD_USB_CDC" }
+  return {
+    macro = "BUILD_USB_CDC",
+    attrs = {
+      buf_size = at.make_optional( at.int_log2_attr( 'CDC_BUF_SIZE', 2 ) )
+    }
+  }
 end
 
 -------------------------------------------------------------------------------

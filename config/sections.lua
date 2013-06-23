@@ -31,11 +31,13 @@ function config_element( section, sectname, name, data, req )
         v = res
       end
     end
-    if conf[ attrmeta.macro ] and tostring( conf[ attrmeta.macro ].value ) ~= tostring( v ) and not conf[ attrmeta.macro ].from_default then
-      print( utils.col_yellow( sf( "[CONFIG] WARNING: overriding value of attribute '%s' in element '%s' from '%s' to '%s' in section '%s'", 
-             attr, name, conf[ attrmeta.macro ].value, v, sectname ) ) )
-     end
-    conf[ attrmeta.macro ] = { name = attr, desc = attrmeta, value = v, sectname = sectname, elname = name, from_default = false }
+    if not req or not conf[ attrmeta.macro ] then
+      if conf[ attrmeta.macro ] and tostring( conf[ attrmeta.macro ].value ) ~= tostring( v ) and not conf[ attrmeta.macro ].from_default then
+        print( utils.col_yellow( sf( "[CONFIG] WARNING: overriding value of attribute '%s' in element '%s' from '%s' to '%s' in section '%s'", 
+               attr, name, conf[ attrmeta.macro ].value, v, sectname ) ) )
+      end
+      conf[ attrmeta.macro ] = { name = attr, desc = attrmeta, value = v, sectname = sectname, elname = name, from_default = false }
+    end
   end
   -- Set default values where needed
   for name, data in pairs( attrs ) do
@@ -83,7 +85,7 @@ function configure_section( section, sectname, data )
   -- We also need to generated required elements. A required element is an element that
   -- is generated every time, even if it was not specified in the configuration file.
   for elname, eldesc in pairs( section ) do
-    if eldesc.required and not enabled[ elname ] then
+    if eldesc.required then
       config_element( section, sectname, elname, eldesc.required, true )
     end
   end

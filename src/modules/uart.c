@@ -216,7 +216,7 @@ static int uart_set_flow_control( lua_State *L )
   return 0;
 }
 
-#ifdef BUILD_SERMUX
+#if defined( BUILD_SERMUX ) || defined( BUILD_USB_CDC )
 
 #define MAX_VUART_NAME_LEN    6
 #define MIN_VUART_NAME_LEN    6
@@ -226,9 +226,19 @@ static int uart_set_flow_control( lua_State *L )
 static int uart_mt_index( lua_State* L )
 {
   const char *key = luaL_checkstring( L ,2 );
+#ifdef BUILD_SERMUX
   char* pend;
   long res;
-  
+#endif
+
+#ifdef BUILD_USB_CDC
+  if( !strcmp( key, "CDC" ) )
+  {
+    lua_pushinteger( L, CDC_UART_ID );
+    return 1;
+  }
+#endif
+#ifdef BUILD_SERMUX
   if( strlen( key ) > MAX_VUART_NAME_LEN || strlen( key ) < MIN_VUART_NAME_LEN )
     return 0;
   if( strncmp( key, "VUART", 5 ) )
@@ -240,6 +250,8 @@ static int uart_mt_index( lua_State* L )
     return 0;
   lua_pushinteger( L, SERMUX_SERVICE_ID_FIRST + res );
   return 1;
+#endif
+  return 0;
 }
 #endif // #ifdef BUILD_SERMUX
 
@@ -267,7 +279,7 @@ const LUA_REG_TYPE uart_map[] =
   { LSTRKEY( "FLOW_RTS" ), LNUMVAL( PLATFORM_UART_FLOW_RTS ) },
   { LSTRKEY( "FLOW_CTS" ), LNUMVAL( PLATFORM_UART_FLOW_CTS ) },
 #endif
-#if LUA_OPTIMIZE_MEMORY > 0 && defined( BUILD_SERMUX )
+#if LUA_OPTIMIZE_MEMORY > 0 && ( defined( BUILD_SERMUX ) || defined( BUILD_USB_CDC ) )
   { LSTRKEY( "__metatable" ), LROVAL( uart_map ) },
   { LSTRKEY( "__index" ), LFUNCVAL( uart_mt_index ) },  
 #endif

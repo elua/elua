@@ -189,6 +189,9 @@ void platform_spi_select( unsigned id, int is_select );
 // There are 4 "virtual" UART ports (UART0...UART3).
 #define PLATFORM_UART_TOTAL                   4
 
+// Pseudo ID of UART over CDC
+#define CDC_UART_ID     0xB0
+
 // Parity
 enum
 {
@@ -308,15 +311,6 @@ void platform_eth_force_interrupt();
 u32 platform_eth_get_elapsed_time();
 
 // *****************************************************************************
-// USB platform interface
-// NOTE: for now this just supports CDC functionality
-
-#define CDC_UART_ID     0xB0
-
-void platform_usb_cdc_send( u8 data );
-int platform_usb_cdc_recv( s32 timeout );
-
-// *****************************************************************************
 // Internal flash erase/write functions
 // Currently used by WOFS
 
@@ -332,6 +326,5 @@ int platform_flash_erase_sector( u32 sector_id );
 
 void* platform_get_first_free_ram( unsigned id );
 void* platform_get_last_free_ram( unsigned id );
-
 
 #endif

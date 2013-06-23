@@ -165,7 +165,7 @@ local sanity_code = [[
   #endif
 #endif // #ifdef ELUA_BOOT_RPC
 
-#if ( defined( BUILD_RFS ) || defined( BUILD_SERMUX ) || defined( CON_BUF_SIZE ) ) && !defined( BUF_ENABLE_UART )
+#if ( defined( BUILD_RFS ) || defined( BUILD_SERMUX ) || defined( CON_BUF_SIZE ) || defined ( CDC_BUF_SIZE ) ) && !defined( BUF_ENABLE_UART )
 #define BUF_ENABLE_UART
 #endif
 
