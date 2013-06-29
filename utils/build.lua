@@ -648,7 +648,6 @@ end
 -- Create and return a new link target
 builder.link_target = function( self, out, dep, link_cmd )
   local path, ext = utils.split_ext( out )
-  print( "ext is", ext, "self is", self.exe_extension )
   if not ext and self.exe_extension and #self.exe_extension > 0 then
     out = out .. self.exe_extension
   end
