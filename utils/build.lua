@@ -137,6 +137,7 @@ _target.new = function( target, dep, command, builder, ttype )
   self:set_dependencies( dep )
   self.dep = self:_build_dependencies( self.origdep )
   self.dont_clean = false
+  self.can_substitute_cmdline = false
   self._force_rebuild = #self.dep == 0
   builder.runlist[ target ] = false
   self:set_type( ttype )
@@ -237,7 +238,7 @@ _target.build = function( self )
       local res = dep[ i ]:build()
       docmd = docmd or res
       local t = dep[ i ]:target_name()
-      if exttype( dep[ i ] ) == "_target" and t and not is_phony( self.target )then
+      if exttype( dep[ i ] ) == "_target" and t and not is_phony( self.target ) then
         docmd = docmd or get_ftime( t ) > get_ftime( self.target )
       end
       if t then depends = depends .. t .. " " end
@@ -271,7 +272,7 @@ _target.build = function( self )
       elseif self.builder.disp_mode ~= "minimal" then
         print( self.target )
       end
-      code = os.execute( cmd )   
+      code = self:execute( cmd )
     else
       if not self.builder.clean_mode and self.builder.disp_mode ~= "all" and self.builder.disp_mode ~= "minimal" then
         print( self.target )
@@ -311,6 +312,26 @@ end
 -- Object type
 _target.__type = function()
   return "_target"
+end
+
+_target.execute = function( self, cmd )
+  local code
+  if utils.is_windows() and #cmd > 8190 and self.can_substitute_cmdline then
+    -- Avoid cmd's maximum command line length limitation
+    local t = cmd:find( " " )
+    f = io.open( "tmpcmdline", "w" )
+    local rest = cmd:sub( t + 1 )
+    f:write( ( rest:gsub( "\\", "/" ) ) )
+    f:close()
+    cmd = cmd:sub( 1, t - 1 ) .. " @tmpcmdline"
+  end
+  local code = os.execute( cmd )
+  os.remove( "tmpcmdline" )
+  return code
+end
+
+_target.set_substitute_cmdline = function( self, flag )
+  self.can_substitute_cmdline = flag
 end
 
 -------------------------------------------------------------------------------
@@ -627,11 +648,13 @@ end
 -- Create and return a new link target
 builder.link_target = function( self, out, dep, link_cmd )
   local path, ext = utils.split_ext( out )
+  print( "ext is", ext, "self is", self.exe_extension )
   if not ext and self.exe_extension and #self.exe_extension > 0 then
     out = out .. self.exe_extension
   end
   local t = _target.new( out, dep, link_cmd or self.link_cmd, self, 'link' )
   if self:_compare_config( 'link' ) then t:force_rebuild( true ) end
+  t:set_substitute_cmdline( true )
   return t
 end
 

@@ -31,7 +31,7 @@ split_ext = function( s )
       break
     end
   end
-  if not pos or s:find( "/", pos + 1 ) then return s end
+  if not pos or s:find( dir_sep, pos + 1 ) then return s end
   return s:sub( 1, pos - 1 ), s:sub( pos )
 end
 
