@@ -86,8 +86,7 @@ toolchain_list[ 'devkitarm' ] = toolchain_list[ 'arm-eabi-gcc' ]
 -- List of acrhitectures and their endianness
 local arch_data = { 
   arm = 'little',
-  cortexm3 = 'little',
-  cortexm4 = 'little',
+  cortexm = 'little',
   avr32 = 'big',
   i386 = 'little' 
 }
@@ -95,8 +94,7 @@ local arch_data = {
 -- Toolchain to arch mapping
 local toolchain_map = {
   arm = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' },
-  cortexm3 = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' },
-  cortexm4 = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' },
+  cortexm = { 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' },
   avr32 = { 'avr32-gcc', 'avr32-unknown-none-gcc' },
   i386 =  { 'i686-gcc' }
 }
@@ -105,18 +103,18 @@ local toolchain_map = {
 local platform_list =
 {
   at91sam7x = { cpus = { 'AT91SAM7X256', 'AT91SAM7X512' }, arch = 'arm' },
-  lm3s = { cpus = { 'LM3S1968', 'LM3S8962', 'LM3S6965', 'LM3S6918', 'LM3S9B92', 'LM3S9D92' }, arch = 'cortexm3' },
+  lm3s = { cpus = { 'LM3S1968', 'LM3S8962', 'LM3S6965', 'LM3S6918', 'LM3S9B92', 'LM3S9D92' }, arch = 'cortexm' },
   str9 = { cpus = { 'STR912FAW44' }, arch = 'arm' },
   i386 = { cpus = { 'I386' }, arch = 'i386' },
   sim = { cpus = { 'LINUX' }, arch = 'i386' },
   lpc288x = { cpus = { 'LPC2888' }, arch = 'arm' },
   str7 = { cpus = { 'STR711FR2' }, arch = 'arm' },
-  stm32 = { cpus = { 'STM32F103ZE', 'STM32F103RE' }, arch = 'cortexm3' },
-  stm32f2 = { cpus = { 'STM32F205RF' }, arch = 'cortexm3' },
-  stm32f4 = { cpus =  { 'STM32F407VG', 'STM32F407ZG' }, arch = 'cortexm4' },
+  stm32f2 = { cpus = { 'STM32F205RF' }, arch = 'cortexm' },
+  stm32 = { cpus = { 'STM32F103ZE', 'STM32F103RE' }, arch = 'cortexm' },
+  stm32f4 = { cpus =  { 'STM32F407VG', 'STM32F407ZG' }, arch = 'cortexm' },
   avr32 = { cpus = { 'AT32UC3A0128', 'AT32UC3A0256', 'AT32UC3A0512', 'AT32UC3B0256' }, arch = 'avr32' },
   lpc24xx = { cpus = { 'LPC2468' }, arch = 'arm' },
-  lpc17xx = { cpus = { 'LPC1768' }, arch = 'cortexm3' }
+  lpc17xx = { cpus = { 'LPC1768' }, arch = 'cortexm' }
 }
 
 -- Returns the platform of a given CPU
