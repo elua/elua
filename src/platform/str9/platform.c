@@ -118,16 +118,18 @@ static void platform_gpio_uart_setup()
 {
   GPIO_InitTypeDef GPIO_InitStructure;
 
-  GPIO_StructInit( &GPIO_InitStructure );
   // RX
+  GPIO_StructInit( &GPIO_InitStructure );
   GPIO_InitStructure.GPIO_Direction = GPIO_PinInput;
   GPIO_InitStructure.GPIO_Pin = uart_pin_data[ UART_RX_IDX ]; 
-  GPIO_InitStructure.GPIO_Type = GPIO_Type_PushPull ;
   GPIO_InitStructure.GPIO_IPConnected = GPIO_IPConnected_Enable;
   GPIO_InitStructure.GPIO_Alternate = GPIO_InputAlt1  ;
   GPIO_Init( ( GPIO_TypeDef* )uart_port_data[ UART_RX_IDX ], &GPIO_InitStructure );
   // TX
+  GPIO_StructInit( &GPIO_InitStructure );
+  GPIO_InitStructure.GPIO_Direction=GPIO_PinOutput;
   GPIO_InitStructure.GPIO_Pin = uart_pin_data[ UART_TX_IDX ];
+  GPIO_InitStructure.GPIO_Type = GPIO_Type_PushPull ;
   GPIO_InitStructure.GPIO_Alternate = GPIO_OutputAlt3  ;
   GPIO_Init( ( GPIO_TypeDef* )uart_port_data[ UART_TX_IDX ], &GPIO_InitStructure );
 }
