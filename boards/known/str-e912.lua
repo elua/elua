@@ -18,7 +18,7 @@ return {
     vtmr = { num = 4, freq = 16 },
   },
   modules = {
-    generic = { 'all', '-net', '-can' },
+    generic = { 'all', '-net' },
     platform = 'all'
   }
 }
