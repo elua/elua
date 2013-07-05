@@ -13,7 +13,7 @@
 #define NUM_UART              3
 #define NUM_PWM               4
 #define NUM_ADC               8
-#define NUM_CAN               0
+#define NUM_CAN               1
 #define NUM_I2C               2
 
 // One timer is reserved for the system timer / vtimers
