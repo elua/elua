@@ -5,6 +5,10 @@
 
 #define PLATFORM_HAS_SYSTIMER
 
+#if NUM_CAN > 0
+#define BUILD_CAN
+#endif
+
 // ID of the hardware timer used to implement physical timers
 #define VTMR_TIMER_ID         3
 
