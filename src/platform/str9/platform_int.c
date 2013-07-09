@@ -281,6 +281,12 @@ void platform_int_init()
   WIU->PR = 0xFFFFFFFF;
   WIU->CTRL |= 2; 
 
+#ifdef BUILD_CAN
+  /* initialize the interrupt controller */
+  VIC_Config(CAN_ITLine, VIC_IRQ, p ++ );
+  /* enable global interrupt */
+  VIC_ITCmd(CAN_ITLine, ENABLE);
+#endif
 
 #ifdef INT_TMR_MATCH
   VIC_Config( TIM0_ITLine, VIC_IRQ, 5 );

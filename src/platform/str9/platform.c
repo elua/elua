@@ -25,6 +25,7 @@
 #include "elua_adc.h"
 #include "91x_adc.h"
 #include "91x_ssp.h"
+#include "91x_can.h"
 #include "utils.h"
 
 // ****************************************************************************
@@ -41,6 +42,8 @@ const TIM_TypeDef* str9_timer_data[] = { TIM0, TIM1, TIM2, TIM3 };
 // since this gives an exact number of microseconds (62500) before its overflow.
 
 static void platform_setup_adcs();
+
+static void cans_init();
 
 static void platform_config_scu()
 {     
@@ -118,16 +121,18 @@ static void platform_gpio_uart_setup()
 {
   GPIO_InitTypeDef GPIO_InitStructure;
 
-  GPIO_StructInit( &GPIO_InitStructure );
   // RX
+  GPIO_StructInit( &GPIO_InitStructure );
   GPIO_InitStructure.GPIO_Direction = GPIO_PinInput;
   GPIO_InitStructure.GPIO_Pin = uart_pin_data[ UART_RX_IDX ]; 
-  GPIO_InitStructure.GPIO_Type = GPIO_Type_PushPull ;
   GPIO_InitStructure.GPIO_IPConnected = GPIO_IPConnected_Enable;
   GPIO_InitStructure.GPIO_Alternate = GPIO_InputAlt1  ;
   GPIO_Init( ( GPIO_TypeDef* )uart_port_data[ UART_RX_IDX ], &GPIO_InitStructure );
   // TX
+  GPIO_StructInit( &GPIO_InitStructure );
+  GPIO_InitStructure.GPIO_Direction=GPIO_PinOutput;
   GPIO_InitStructure.GPIO_Pin = uart_pin_data[ UART_TX_IDX ];
+  GPIO_InitStructure.GPIO_Type = GPIO_Type_PushPull ;
   GPIO_InitStructure.GPIO_Alternate = GPIO_OutputAlt3  ;
   GPIO_Init( ( GPIO_TypeDef* )uart_port_data[ UART_TX_IDX ], &GPIO_InitStructure );
 }
@@ -165,6 +170,11 @@ int platform_init()
 #ifdef BUILD_ADC
   // Setup ADCs
   platform_setup_adcs();
+#endif
+
+#ifdef BUILD_CAN
+  // Setup CANs
+  cans_init();
 #endif
 
   // Initialize system timer
@@ -820,6 +830,156 @@ int platform_i2c_recv_byte( unsigned id, int ack )
   while( I2C_CheckEvent( pi2c, I2C_EVENT_MASTER_BYTE_RECEIVED ) != SUCCESS );
   return I2C_ReceiveData( pi2c );
 }
+
+// ****************************************************************************
+// CAN
+#if defined( BUILD_CAN )
+static canmsg RxCanMsg;
+static canmsg TxCanMsg;
+static GPIO_InitTypeDef    GPIO_InitStructure;
+static CAN_InitTypeDef     CAN_InitStructure;
+
+static vu32 frame_received_flag = 0;
+
+/* used message object numbers */
+enum {
+  CAN_TX_STD_MSGOBJ = 0,
+  CAN_TX_EXT_MSGOBJ = 1,
+  CAN_RX_STD_MSGOBJ = 2,
+  CAN_RX_EXT_MSGOBJ = 3
+};
+
+/*******************************************************************************
+* Function Name  : CAN_IRQHandler
+* Description    : This function handles the CAN interrupt request
+* Input          : None
+* Output         : None
+* Return         : None
+*******************************************************************************/
+void CAN_IRQHandler(void)
+{
+  u32 msgobj = 0;
+
+  if(CAN->IDR == 0x8000)	/* status interrupt */
+    (void)CAN->SR;	/* read the status register to clear*/
+  else if(CAN->IDR >= 1 && CAN->IDR <= 32)
+  {
+    /* get the message object number that caused the interrupt to occur */
+    switch(msgobj = CAN->IDR - 1)
+    {
+      case  0: case 1:/* CAN_TX_MSGOBJ */
+        CAN_ReleaseTxMessage(msgobj);
+      	break;
+
+      default:
+        CAN_ReceiveMessage(msgobj, FALSE, &RxCanMsg);
+      	CAN_ReleaseRxMessage(msgobj);
+      	frame_received_flag = 1;
+        break;
+    }
+  }
+  /*write any value to VIC0 VAR*/  
+  VIC0->VAR = 0xFF;
+}
+
+void cans_init( void )
+{
+  SCU_APBPeriphClockConfig(__CAN, ENABLE);
+  SCU_APBPeriphReset(__CAN, DISABLE); 
+
+#ifdef ELUA_BOARD_STRE912
+ /* P3.3 alternate input 1, CAN_RX pin 61*/
+  GPIO_StructInit(&GPIO_InitStructure);
+  GPIO_InitStructure.GPIO_Pin=GPIO_Pin_3;
+  GPIO_InitStructure.GPIO_Direction=GPIO_PinInput;
+  GPIO_InitStructure.GPIO_IPConnected=GPIO_IPConnected_Enable;
+  GPIO_InitStructure.GPIO_Alternate=GPIO_InputAlt1;
+  GPIO_Init(GPIO3,&GPIO_InitStructure);
+
+  /* P3.2 alternate output 2, CAN_TX pin 60*/
+  GPIO_StructInit(&GPIO_InitStructure);
+  GPIO_InitStructure.GPIO_Pin=GPIO_Pin_2;
+  GPIO_InitStructure.GPIO_Direction=GPIO_PinOutput;
+  GPIO_InitStructure.GPIO_Type=GPIO_Type_PushPull;
+  GPIO_InitStructure.GPIO_Alternate=GPIO_OutputAlt2;
+  GPIO_Init(GPIO3,&GPIO_InitStructure);
+#else // STR9-comStick
+ /* P5.0 alternate input 1, CAN_RX pin 12*/
+  GPIO_StructInit(&GPIO_InitStructure);
+  GPIO_InitStructure.GPIO_Pin=GPIO_Pin_0;
+  GPIO_InitStructure.GPIO_Direction=GPIO_PinInput;
+  GPIO_InitStructure.GPIO_IPConnected=GPIO_IPConnected_Enable;
+  GPIO_InitStructure.GPIO_Alternate=GPIO_InputAlt1;
+  GPIO_Init(GPIO5,&GPIO_InitStructure);
+
+  /* P5.1 alternate output 2, CAN_TX pin 18*/
+  GPIO_StructInit(&GPIO_InitStructure);
+  GPIO_InitStructure.GPIO_Pin=GPIO_Pin_1;
+  GPIO_InitStructure.GPIO_Direction=GPIO_PinOutput;
+  GPIO_InitStructure.GPIO_Type=GPIO_Type_PushPull;
+  GPIO_InitStructure.GPIO_Alternate=GPIO_OutputAlt2;
+  GPIO_Init(GPIO5,&GPIO_InitStructure);
+#endif
+}
+
+u32 platform_can_setup( unsigned id, u32 clock )
+{
+  //Timing input values
+  const u8 tseg1 = 2;
+  const u8 tseg2 = 1;
+  const u8 sjw = 4;
+
+  //PCLK clock
+  u32 fclk = SCU_GetPCLKFreqValue();
+
+  //Baud Rate Prescaler
+  //Check 'The insider's guide to the STR91x ARM 9'
+  //Section 4.13.2.1 Bit Timing
+  u32 brp = 1000 * fclk / clock / (1 + tseg1 + tseg2);
+
+  /* initialize the CAN, interrupts enabled */
+  CAN_InitStructure.CAN_ConfigParameters=CAN_CR_IE;
+  CAN_Init(&CAN_InitStructure);
+
+  //Set Can Timing
+  CAN_EnterInitMode(CAN_CR_CCE | CAN_InitStructure.CAN_ConfigParameters);
+  CAN_SetTiming(tseg1, tseg2, sjw, brp);
+  CAN_LeaveInitMode();
+
+  //Set message objects 
+  CAN_SetUnusedAllMsgObj();
+  CAN_SetTxMsgObj(CAN_TX_STD_MSGOBJ, CAN_STD_ID, DISABLE);
+  CAN_SetTxMsgObj(CAN_TX_EXT_MSGOBJ, CAN_EXT_ID, DISABLE);
+  CAN_SetRxMsgObj(CAN_RX_STD_MSGOBJ, CAN_STD_ID, 0, CAN_LAST_STD_ID, TRUE);
+  CAN_SetRxMsgObj(CAN_RX_EXT_MSGOBJ, CAN_EXT_ID, 0, CAN_LAST_EXT_ID, TRUE);
+
+  return clock;
+}
+
+void platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *data )
+{
+  TxCanMsg.IdType = idtype;
+  TxCanMsg.Id = canid;
+  TxCanMsg.Dlc = len;
+  memcpy(TxCanMsg.Data, data, len);
+  CAN_SendMessage((idtype & ELUA_CAN_ID_EXT) ? CAN_TX_EXT_MSGOBJ : CAN_TX_STD_MSGOBJ, &TxCanMsg);
+}
+
+int platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )
+{
+  // wait for a message
+  if ( frame_received_flag != 0){
+    *canid = ( u32 ) RxCanMsg.Id;
+    *idtype = RxCanMsg.IdType;
+    *len = RxCanMsg.Dlc;
+    memcpy( data, RxCanMsg.Data, *len );
+    frame_received_flag = 0;
+    return PLATFORM_OK;
+  }
+  else
+    return PLATFORM_UNDERFLOW;
+}
+#endif
 
 // ****************************************************************************
 // SPI

@@ -12,13 +12,14 @@ return {
     linenoise = { shell_lines = 10, lua_lines = 50 },
     rpc = { uart = 0, speed = 115200 },
     adc = { buf_size = 2 },
-    xmodem = true
+    xmodem = true,
+    mmcfs = { spi = 0, cs_port = 2, cs_pin = 7 },
   },
   config = {
     vtmr = { num = 4, freq = 16 },
   },
   modules = {
-    generic = { 'all', '-net', '-can' },
+    generic = { 'all', '-net' },
     platform = 'all'
   }
 }
