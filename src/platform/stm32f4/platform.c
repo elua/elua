@@ -326,6 +326,22 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
   return retval;
 }
 
+void platform_pio_set_function( unsigned port, unsigned pin, pin_be_info func )
+{
+  GPIO_TypeDef *base = pio_port[ port ];
+  int idx = 0;
+
+  base->MODER &= ~( 0x03 << ( pin * 2 ) );
+  base->MODER |= 0x02 << ( pin * 2 );
+  if( pin >= 8 )
+  {
+    pin -= 8;
+    idx = 1;
+  }
+  base->AFR[ idx ] &= ~( 0x0F << ( pin * 4 ) );
+  base->AFR[ idx ] |= func << ( pin * 4 );
+}
+
 // ****************************************************************************
 // SPI
 // NOTE: Only configuring 2 SPI peripherals, since the third one shares pins with JTAG

@@ -10,6 +10,7 @@
 #include "auxmods.h"
 #include "elua_int.h"
 #include "lualib.h"
+#include "pin_names.h"
 
 #include ELUA_CPU_HEADER
 #include ELUA_BOARD_HEADER

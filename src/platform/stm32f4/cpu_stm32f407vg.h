@@ -52,5 +52,7 @@ u32 platform_s_cpu_get_frequency();
   _C( INT_TMR_MATCH ),        \
   _C( INT_UART_RX ),
 
+#define HAS_PINMAPS
+
 #endif // #ifndef __CPU_STM32F407VG_H__
 

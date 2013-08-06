@@ -27,6 +27,8 @@ void platform_int_init();
 
 typedef u32 pio_type;
 typedef u32 pio_code;
+typedef u8 pin_be_info;
+
 #define PLATFORM_IO_PORTS                     16
 #define PLATFORM_IO_PORTS_BITS                4
 #define PLATFORM_IO_PINS                      32
@@ -43,6 +45,9 @@ typedef u32 pio_code;
 
 #define PLATFORM_IO_READ_IN_MASK              0
 #define PLATFORM_IO_READ_OUT_MASK             1
+
+// Shortcuts
+#define NO_PIN                                0xFFFF
 
 enum
 {
@@ -68,6 +73,7 @@ const char* platform_pio_get_prefix( unsigned port );
 int platform_pio_has_pin( unsigned port, unsigned pin );
 int platform_pio_get_num_pins( unsigned port );
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op );
+void platform_pio_set_function( unsigned port, unsigned pin, pin_be_info func );
 
 // *****************************************************************************
 // Timer subsection

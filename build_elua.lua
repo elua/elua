@@ -187,6 +187,8 @@ end
 if comp.config_only then return end
 -- Define the correct CPU header for inclusion in the platform_conf.h file
 addm( 'ELUA_CPU_HEADER="\\"cpu_' .. bdata.cpu:lower() .. '.h\\""' )
+-- Define the correct CPU pinmap header for inclusion in pinmap.c
+addm( 'ELUA_CPU_PINMAP_HEADER="\\"cpu_' .. bdata.cpu:lower() .. '_pinmap.h\\""' )
 -- Define the correct board header for inclusion in the platform_conf.h file
 addm( 'ELUA_BOARD_HEADER="\\"board_' .. comp.board:lower() .. '.h\\""' )
 -- Make available the board directory for the generated header files

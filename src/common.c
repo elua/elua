@@ -636,3 +636,14 @@ void cmn_get_timeout_data( lua_State *L, int pidx, unsigned *pid, timer_data_typ
     luaL_error( L, "the system timer is not implemented on this platform" );
 }
 
+// The error function: show error message, halt the system
+void cmn_error( const char *fmt, ... )
+{
+  va_list va;
+
+  va_start( va, fmt );
+  vprintf( fmt, va );
+  va_end( va );
+  platform_cpu_get_global_interrupts( PLATFORM_CPU_DISABLE );
+  while( 1 );
+}

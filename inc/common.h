@@ -63,5 +63,7 @@ char firstchar( const char *s );
 const char* cmn_str64( u64 x );
 void cmn_get_timeout_data( lua_State *L, int pidx, unsigned *pid, timer_data_type *ptimeout );
 
+void cmn_error( const char* fmt, ... );
+
 #endif // #ifndef __COMMON_H__
 
