@@ -15,7 +15,7 @@ phase. For better formatting, the lists are organized as tables that use the gra
 |======================================================
 
 [[platforms]]
-eLua suported platforms
+eLua supported platforms
 -----------------------
 The list of CPUs and boards currently supported by eLua is given below:
 
@@ -27,6 +27,9 @@ The list of CPUs and boards currently supported by eLua is given below:
 | _LM3S6918      |  Cortex-M3    o|    LM3S               |  _Eagle-100       | _sok
 | _LM3S9B92      |  Cortex-M3    o|    LM3S               |  _EK-LM3S9B92     | _sok
 | _LM3S1968      |  Cortex-M3    o|    LM3S               |  _EK-LM3S1968     | _sok
+| _AT32UC3A0128  |  AVR32        o|    AVR32              |  _Mizar32         | _sok
+| _AT32UC3A0256  |  AVR32        o|    AVR32              |  _Mizar32         | _sok
+| _AT32UC3A0512  |  AVR32        o|    AVR32              |  _Mizar32         | _sok
 | _AT32UC3A0512  |  AVR32        o|    AVR32              |  _ATEVK1100       | _sok
 | _AT32UC3B0256  |  AVR32        o|    AVR32              |  _ATEVK1101       | _sok
 | _AT91SAM7X256  |  ARM7TDMI     o|    AT91SAM7X          |  _SAM7-EX256      | _sok
@@ -39,7 +42,6 @@ The list of CPUs and boards currently supported by eLua is given below:
 | _STR912FAW44   |  ARM966E-S    o|    STR9               |  _STR-E912        | _sok
 | _STM32F103ZE   |  Cortex-M3    o|    STM32              |  _STM3210E-EVAL   | _sok
 | _STM32F103RE   |  Cortex-M3    o|    STM32              |  _ET-STM32Stamp   | _sok
-| _AT32UC3A0128  |  AVR32        o|    AVR32              |  _Mizar32         | _sok
 | _I386          |  x86          o|    i386               |  PCs/emulators    | _sok
 | _LM3S9D92      |  Cortex-M3    o|    LM3S               |  _SolderCore      | _sok
 |=====================================================================================
@@ -79,8 +81,9 @@ The relationship between a module and its implementation on a particular platfor
 | _LM3S6918      | _sok  | _snt  | _sok   | _sok  | _sna  | _snt  | _sok  | _snt  | _sok  | _sok  | _sok  | _sok  | _sna  | _snt  | _sni  | _sni
 | _LM3S9B92      | _sok  | _snt  | _sok   | _sok  | _sok  | _sok  | _sok  | _snt  | _sok  | _sok  | _sok  | _sok  | _sok  | _snt  | _sok  | _sni
 | _LM3S1968      | _sok  | _snt  | _sok   | _sok  | _sok  | _sna  | _sok  | _snt  | _sok  | _sok  | _sok  | _sok  | _sna  | _snt  | _sni  | _sni
-| _AT32UC3A0512  | _sok  | _sok  | _sok   | _sok  | _sni  | _sni  | _sok  | _sni  | _sok  | _sok  | _sok  | _sok  | _sna  | _snt  | _sok  | _sni
-| _AT32UC3A0128  | _sok  | _sok  | _sok   | _sok  | _sni  | _sni  | _sok  | _sni  | _sok  | _sok  | _sok  | _sok  | _sna  | _snt  | _sok  | _sni
+| _AT32UC3A0128  | _sok  | _sok  | _sok   | _sok  | _sok  | _sok  | _sok  | _sok  | _sok  | _sok  | _sok  | _sok  | _sna  | _snt  | _sok  | _sok
+| _AT32UC3A0256  | _sok  | _sok  | _sok   | _sok  | _sok  | _sok  | _sok  | _sok  | _sok  | _sok  | _sok  | _sok  | _sna  | _snt  | _sok  | _sok
+| _AT32UC3A0512  | _sok  | _sok  | _sok   | _sok  | _sok  | _sok  | _sok  | _sok  | _sok  | _sok  | _sok  | _sok  | _sna  | _snt  | _sok  | _sok
 | _AT32UC3B0256  | _sok  | _sok  | _sok   | _sok  | _sni  | _sni  | _sok  | _sni  | _sok  | _sok  | _sok  | _sok  | _sna  | _snt  | _sok  | _sni
 | _AT91SAM7X256  | _sok  | _sni  | _sok   | _sok  | _sok  | _sni  | _sok  | _sni  | _sok  | _sok  | _sok  | _sok  | _sni  | _snt  | _sni  | _sni
 | _AT91SAM7X512  | _snt  | _sni  | _snt   | _snt  | _snt  | _sni  | _sok  | _sni  | _sok  | _sok  | _sok  | _sok  | _sni  | _snt  | _sni  | _sni
@@ -144,8 +147,10 @@ modules and platform specific modules, check link:arch_overview.html[the eLua ar
 |=======================================================================================
 ^|    Name   ^| Description                   ^|      Boards                   ^| Status
 o| _mlm3sdisp | OLED display support           | _EK-LM3S8962 _br _EK-LM3S6965  | _sok
-o| _mstr9pio  | Extended PIO configuration     | _STR-E912 _br _STR9-comStick   | _sok
 o| _mmbedpio  | Extended PIO configuration     | _mbed                          | _sok
+o| _mmizar32lcd| LCD Character Display         | _Mizar32                       | _sok
+o| _mmizar32rtc| Real time clock               | _Mizar32                       | _sok
+o| _mstr9pio  | Extended PIO configuration     | _STR-E912 _br _STR9-comStick   | _sok
 o| _mstr9rtc  | Real time clock                | _STR-E912 _br _STR9-comStick   | _sok
 |=======================================================================================
 
