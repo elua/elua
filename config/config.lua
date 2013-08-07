@@ -18,6 +18,8 @@ local bargs = require "buildargs"
 local components, configs
 local glconf, glen
 
+local sf = string.format
+
 -------------------------------------------------------------------------------
 -- Various helpers and internal functions
 
@@ -186,6 +188,8 @@ local sanity_code = [[
 components = comps.init()
 configs = cfgs.init()
 
+local max_ports, max_pins = 32, 32
+
 -- Read the Lua description file of a board and return the corresponding header file
 -- as a string or (false, error) if an error occured
 function compile_board( fname, boardname )
@@ -197,6 +201,18 @@ function compile_board( fname, boardname )
 #define __GENERATED_%s_H__
 
 ]], cboardname, cboardname )
+  -- Before executing the configuration file, setup the required globals
+  -- In this case, the globals are all the possible PIO names
+  -- WARNING: the formula for computing the port/pin values must be the same as
+  -- the one in inc/platform.h
+  for port = 0, max_ports - 1 do
+    v = port * 32
+    for pin = 0, max_pins - 1 do
+      _G[ sf( 'P%d_%d', port, pin ) ] = v
+      _G[ sf( 'P%s_%d', string.char( 65 + port ), pin ) ] = v
+      v = v + 1
+    end
+  end
   local desc, err = dofile( fname )
   if not desc then return false, err end
   if not desc.cpu then return false, "cpu not specified in board configuration file" end

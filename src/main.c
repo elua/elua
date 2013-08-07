@@ -24,6 +24,7 @@
 #include "mmcfs.h"
 #include "romfs.h"
 #include "semifs.h"
+#include "pinmap.h"
 
 // Define here your autorun/boot files, 
 // in the order you want eLua to search for them
@@ -72,6 +73,9 @@ int main( void )
     // This should never happen
     while( 1 );
   }
+
+  // Set the default peripheral pin mappings
+  pinmap_initial_config();
 
   // Initialize device manager
   dm_init();

@@ -8,6 +8,10 @@ local gen = require "generators"
 
 local use_multiple_allocator
 
+-- Maximum number of peripherals for pin mappins
+
+local max_uart = 16
+
 -------------------------------------------------------------------------------
 -- Attribute checkers
 
@@ -171,6 +175,22 @@ function init()
     },
     required = { internal_rams = 1, ext_start = {}, ext_size = {} }
   }
+
+  -----------------------------------------------------------------------------
+  -- Pinmap  generators
+
+  -- UARTs
+  for i = 0, max_uart - 1 do
+    configs[ sf( "uart%d_pins", i ) ] = {
+      macro = sf( 'UART%d_PINMAP', i ),
+      attrs = {
+        rx = at.make_optional( at.int_attr( sf( 'UART%d_RX_PIN', i ), 0, nil, -1 ) ),
+        tx = at.make_optional( at.int_attr( sf( 'UART%d_TX_PIN', i ), 0, nil, -1 ) ),
+        rts = at.make_optional( at.int_attr( sf( 'UART%d_RTS_PIN', i ), 0, nil, -1 ) ),
+        cts = at.make_optional( at.int_attr( sf( 'UART%d_CTS_PIN', i ), 0, nil, -1 ) )
+      }
+    }
+  end
 
   -- All done
   return configs

@@ -52,6 +52,7 @@ typedef struct
 #define IGNORE_PIN            ( -1 )
 
 // Public interface
+int pinmap_initial_config();
 int pinmap_uart( int id, int rx, int tx, int rts, int cts );
 
 #endif
