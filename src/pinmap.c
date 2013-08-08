@@ -22,7 +22,7 @@ static const pin_function* pinmaph_find_pin( int pin )
   while( pinfo->pin != NO_PIN )
   {
     if( pinfo->pin == ( u16 )pin )
-      return platform_pio_has_pin( PLATFORM_IO_GET_PORT( pinfo->pin ), PLATFORM_IO_GET_PIN( pinfo->pin ) ) ? NULL : pinfo->pfuncs;
+      return platform_pio_has_pin( PLATFORM_IO_GET_PORT( pinfo->pin ), PLATFORM_IO_GET_PIN( pinfo->pin ) ) ? pinfo->pfuncs : NULL;
     pinfo ++;
   }
   return NULL;
