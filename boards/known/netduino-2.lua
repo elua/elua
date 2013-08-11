@@ -22,7 +22,7 @@ return {
     clocks = { external = 25000000, cpu = 120000000 }
   },
   modules = {
-    generic = { 'all', "-i2c", "-net", "-can" },
+    generic = { 'all', "-i2c", "-net" },
   }
 }
 

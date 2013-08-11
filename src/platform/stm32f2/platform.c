@@ -215,16 +215,21 @@ static void pios_init()
   }
 
 #if defined( ELUA_BOARD_NETDUINO2 )
-  // Configure board LEDs */
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
   GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+  // Set up Power LED
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
   GPIO_Init(GPIOC, &GPIO_InitStructure);
   GPIOC->BSRRH = GPIO_Pin_13;
+  // Set up Blue LED
   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
   GPIO_Init(GPIOA, &GPIO_InitStructure);
   GPIOA->BSRRH = GPIO_Pin_10;
+  // Turn on shield header power switches
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
+  GPIOB->BSRRL = GPIO_Pin_2;
 #endif
 
 #if defined(ENABLE_JTAG_SWD) || defined(ENABLE_TRACE)
@@ -347,8 +352,8 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 static SPI_TypeDef *const spi[]  =           {SPI2 };
 static const u8 spi_AF[]  =                  {GPIO_AF_SPI2 };
 static GPIO_TypeDef *const spi_gpio_port[] = {GPIOB };
-static const u16 spi_gpio_pins[] =           {GPIO_Pin_13 |      GPIO_Pin_14 |      GPIO_Pin_15 };
-static const u8 spi_gpio_pins_source[][3] = {{GPIO_PinSource13 , GPIO_PinSource14 , GPIO_PinSource15}, };
+static const u16 spi_gpio_pins[] =           {GPIO_Pin_10 |      GPIO_Pin_14 |      GPIO_Pin_15 };
+static const u8 spi_gpio_pins_source[][3] = {{GPIO_PinSource10 , GPIO_PinSource14 , GPIO_PinSource15}, };
 //                                             SCK               MISO               MOSI
 #define SPI_GET_BASE_CLK( id ) ( HCLK / PCLK1_DIV )
 #else
@@ -918,19 +923,13 @@ void cans_init( void )
   RCC_APB1PeriphClockCmd(CAN_CLK, ENABLE);
 }
 
-/*       BS1 BS2 SJW Pre
-1M:      12  8   1   2
-500k:    8   5   1   6
-250k:    8   5   1   12
-125k:    12  8   1   16
-100k:    12  8   1   20 */
-
 #define CAN_BAUD_COUNT 5
-static const u8 can_baud_bs1[]    = { CAN_BS1_12tq, CAN_BS1_12tq, CAN_BS1_8tq, CAN_BS1_8tq, CAN_BS1_12tq };
-static const u8 can_baud_bs2[]    = { CAN_BS1_8tq,  CAN_BS1_8tq,  CAN_BS1_5tq, CAN_BS1_5tq, CAN_BS1_8tq };
-static const u8 can_baud_sjw[]    = { CAN_SJW_1tq,  CAN_SJW_1tq,  CAN_SJW_1tq, CAN_SJW_1tq, CAN_SJW_1tq };
-static const u8 can_baud_pre[]    = { 20, 16, 12, 6, 2 };
-static const u32 can_baud_rate[]  = { 100000, 125000, 250000, 500000, 1000000 };
+// based on a 30MHz input, 15tq and 80% sample point
+static const u32 can_baud_rate[]  = { 100000,       125000,       250000,       500000,       1000000 };
+static const u8 can_baud_pre[]    = { 20,           16,           8,            4,            2 };
+static const u8 can_baud_bs1[]    = { CAN_BS1_11tq, CAN_BS1_11tq, CAN_BS1_11tq, CAN_BS1_11tq, CAN_BS1_11tq };
+static const u8 can_baud_bs2[]    = { CAN_BS2_3tq,  CAN_BS2_3tq,  CAN_BS2_3tq,  CAN_BS2_3tq,  CAN_BS2_3tq };
+static const u8 can_baud_sjw[]    = { CAN_SJW_1tq,  CAN_SJW_1tq,  CAN_SJW_1tq,  CAN_SJW_1tq,  CAN_SJW_1tq };
 
 u32 platform_can_setup( unsigned id, u32 clock )
 {
