@@ -219,8 +219,7 @@ static const pin_info pinfuncs[] =
   PINDATA( PG_12 ),
   PINDATA( PG_13 ),
   PINDATA( PG_14 ),
-  PINDATA( PG_15 ),
-  _NOPIN
+  PINDATA( PG_15 )
 };
 
 #endif // #ifdef IMPLEMENT_PINMAPS

@@ -8,6 +8,7 @@
 #include "lrotable.h"
 #include "common.h"
 #include "sermux.h"
+#include "pinmap.h"
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
@@ -216,6 +217,53 @@ static int uart_set_flow_control( lua_State *L )
   return 0;
 }
 
+#ifdef HAS_PINMAPS
+// Lua: uart.set_pins( id, rx_pin, tx_pin, rts_pin, cts_pin )
+static int uart_set_pins( lua_State *L )
+{
+  int id = luaL_checkinteger( L, 1 );
+  int rx = luaL_optinteger( L, 2, PINMAP_IGNORE_PIN );
+  int tx = luaL_optinteger( L, 3, PINMAP_IGNORE_PIN );
+  int rts = luaL_optinteger( L, 4, PINMAP_IGNORE_PIN );
+  int cts = luaL_optinteger( L, 5, PINMAP_IGNORE_PIN );
+
+  if( !pinmap_uart( id, rx, tx, rts, cts ) )
+    return luaL_error( L, "unable to set the required pins on UART %d", id );
+  return 0;
+}
+
+// Lua: uart.find_pins( id )
+static int uart_find_pins( lua_State *L )
+{
+  int id = luaL_checkinteger( L, 1 );
+  int i, pin;
+  const char* uart_pin_names[] = PINMAP_UART_PIN_NAMES;
+  const pin_info *pinfo;
+  const pin_function *pfunc;
+
+  for( i = 0; i < PINMAP_UART_TOTAL; i ++ )
+  {
+    printf( "%s: ", uart_pin_names[ i ] );
+    for( pin = 0; pin < pinmap_get_num_pins(); pin ++ )
+    {
+      pinfo = pinmap_get_at( pin );
+      pfunc = pinfo->pfuncs;
+      while( pfunc->peripheral != PINMAP_NONE )
+      {
+        if( pfunc->peripheral == PINMAP_UART && pfunc->id == id && pfunc->pin_id == i )
+        {
+          printf( "%s_%d ", platform_pio_get_prefix( PLATFORM_IO_GET_PORT( pinfo->pin ) ), PLATFORM_IO_GET_PIN( pinfo->pin ) );
+          break;
+        }
+        pfunc ++;
+      }
+    }
+    printf( "\n" );
+  }
+  return 0;
+}
+#endif // #ifdef HAS_PINMAPS
+
 #if defined( BUILD_SERMUX ) || defined( BUILD_USB_CDC )
 
 #define MAX_VUART_NAME_LEN    6
@@ -266,6 +314,10 @@ const LUA_REG_TYPE uart_map[] =
   { LSTRKEY( "getchar" ), LFUNCVAL( uart_getchar ) },
   { LSTRKEY( "set_buffer" ), LFUNCVAL( uart_set_buffer ) },
   { LSTRKEY( "set_flow_control" ), LFUNCVAL( uart_set_flow_control ) },
+#ifdef HAS_PINMAPS
+  { LSTRKEY( "set_pins" ), LFUNCVAL( uart_set_pins ) },
+  { LSTRKEY( "find_pins" ), LFUNCVAL( uart_find_pins ) },
+#endif // #ifdef HAS_PINMAPS
 #if LUA_OPTIMIZE_MEMORY > 0
   { LSTRKEY( "PAR_EVEN" ), LNUMVAL( PLATFORM_UART_PARITY_EVEN ) },
   { LSTRKEY( "PAR_ODD" ), LNUMVAL( PLATFORM_UART_PARITY_ODD ) },
@@ -278,7 +330,10 @@ const LUA_REG_TYPE uart_map[] =
   { LSTRKEY( "FLOW_NONE" ), LNUMVAL( PLATFORM_UART_FLOW_NONE ) },
   { LSTRKEY( "FLOW_RTS" ), LNUMVAL( PLATFORM_UART_FLOW_RTS ) },
   { LSTRKEY( "FLOW_CTS" ), LNUMVAL( PLATFORM_UART_FLOW_CTS ) },
-#endif
+#ifdef HAS_PINMAPS  
+  { LSTRKEY( "IGNORE_PIN" ), LNUMVAL( PINMAP_IGNORE_PIN ) },
+#endif // #ifdef HAS_PINMAPS
+#endif // #if LUA_OPTIMIZE_MEMORY > 0
 #if LUA_OPTIMIZE_MEMORY > 0 && ( defined( BUILD_SERMUX ) || defined( BUILD_USB_CDC ) )
   { LSTRKEY( "__metatable" ), LROVAL( uart_map ) },
   { LSTRKEY( "__index" ), LFUNCVAL( uart_mt_index ) },  

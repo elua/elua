@@ -10,6 +10,7 @@
 #include "platform_conf.h"
 #include "linenoise.h"
 #include "shell.h"
+#include "pinmap.h"
 #include <string.h>
 #include <stdlib.h>
 
@@ -61,6 +62,46 @@ static int elua_save_history( lua_State *L )
 #endif // #ifdef BUILD_LINENOISE
 }
 
+#ifdef HAS_PINMAPS
+// Lua: elua.pin_functions( [ pin ] )
+static int elua_pin_functions( lua_State *L )
+{
+  int total = pinmap_get_num_pins(), i;
+  int pin = luaL_optinteger( L, 1, PINMAP_IGNORE_PIN );
+  const char* pinmap_peripheral_names[] = PINMAP_PERIPHERAL_NAMES;
+  const char* uart_pin_names[] = PINMAP_UART_PIN_NAMES;
+  const char* spi_pin_names[] = PINMAP_SPI_PIN_NAMES;
+  const pin_info *pinfo;
+  const pin_function *pfunc;
+
+  for( i = 0; i < total; i ++ )
+  {
+    pinfo = pinmap_get_at( i );
+    if( pin != PINMAP_IGNORE_PIN && pinfo->pin != pin )
+      continue;
+    printf( "%s_%d: ", platform_pio_get_prefix( PLATFORM_IO_GET_PORT( pinfo->pin ) ), PLATFORM_IO_GET_PIN( pinfo->pin ) );
+    pfunc = pinfo->pfuncs;
+    while( pfunc->peripheral != PINMAP_NONE )
+    {
+      printf( "%s%d.", pinmap_peripheral_names[ pfunc->peripheral ], pfunc->id );
+      switch( pfunc->peripheral )
+      {
+        case PINMAP_UART:
+          printf( uart_pin_names[ pfunc->pin_id ] );
+          break;
+        case PINMAP_SPI:
+          printf( spi_pin_names[ pfunc->pin_id ] );
+          break;
+      }
+      printf( " " );
+      pfunc ++;
+    }
+    printf( "\n" );
+  }
+  return 0;
+}
+#endif // #ifdef HAS_PINMAPS
+
 #ifdef BUILD_SHELL
 // Lua: elua.shell( <shell_command> )
 static int elua_shell( lua_State *L )
@@ -77,7 +118,7 @@ static int elua_shell( lua_State *L )
   free( cmdcpy );
   return 0;
 }
-#endif
+#endif // #ifdef BUILD_SHELL
 
 // Module function map
 #define MIN_OPT_LEVEL 2
@@ -89,6 +130,9 @@ const LUA_REG_TYPE elua_map[] =
   { LSTRKEY( "save_history" ), LFUNCVAL( elua_save_history ) },
 #ifdef BUILD_SHELL
   { LSTRKEY( "shell" ), LFUNCVAL( elua_shell ) },
+#endif
+#ifdef HAS_PINMAPS
+  { LSTRKEY( "pin_functions" ), LFUNCVAL( elua_pin_functions ) },
 #endif
 #if LUA_OPTIMIZE_MEMORY > 0
   { LSTRKEY( "EGC_NOT_ACTIVE" ), LNUMVAL( EGC_NOT_ACTIVE ) },

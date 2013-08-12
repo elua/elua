@@ -10,8 +10,8 @@ local use_multiple_allocator
 local pinmaps
 
 -- Maximum number of peripherals for pin mappins
-
 local max_uart = 16
+local max_spi = 16
 
 -------------------------------------------------------------------------------
 -- Attribute checkers
@@ -146,9 +146,22 @@ local function uart_pinmap_generator( desc, vals, generated )
   return ""
 end
 
+local function spi_pinmap_generator( desc, vals, generated )
+  local spi_id = desc.info
+  assert( tonumber( spi_id ), "invalid SPI ID in spi_pinmap_generator (internal error?)" )
+  -- Look for all pins, save them in the local 'pinmaps' dictionary
+  pinmaps = pinmaps or {}
+  pinmaps.spi = pinmaps.spi or {}
+  pinmaps.spi[ #pinmaps.spi + 1 ] = { spi_id, 
+    vals[ sf( '_SPI%s_MOSI_PIN', spi_id ) ].value,
+    vals[ sf( '_SPI%s_MISO_PIN', spi_id ) ].value,
+    vals[ sf( '_SPI%s_SCK_PIN', spi_id ) ].value
+  }
+  return ""
+end
+
 local function pinmap_c_generator( key, data )
-  local periph = key:upper()
-  local s = '#define INITIAL_UART_PINMAPS             { '
+  local s = sf( '#define INITIAL_%s_PINMAPS             { ', key:upper() )
   for _, v in pairs( data ) do
     for i = 1, #v do s = s .. tostring( v[ i ] ) .. ", " end
   end
@@ -215,6 +228,19 @@ function init()
         tx = at.make_optional( at.int_attr( sf( '_UART%d_TX_PIN', i ), 0, nil, -1 ) ),
         rts = at.make_optional( at.int_attr( sf( '_UART%d_RTS_PIN', i ), 0, nil, -1 ) ),
         cts = at.make_optional( at.int_attr( sf( '_UART%d_CTS_PIN', i ), 0, nil, -1 ) ),
+      }
+    }
+  end
+
+  -- SPIs
+  for i = 0, max_spi - 1 do
+    configs[ sf( "spi%d_pins", i ) ] = {
+      gen = spi_pinmap_generator,
+      info = i,
+      attrs = {
+        mosi = at.make_optional( at.int_attr( sf( '_SPI%d_MOSI_PIN', i ), 0, nil, -1 ) ),
+        miso = at.make_optional( at.int_attr( sf( '_SPI%d_MISO_PIN', i ), 0, nil, -1 ) ),
+        sck = at.make_optional( at.int_attr( sf( '_SPI%d_SCK_PIN', i ), 0, nil, -1 ) ),
       }
     }
   end
