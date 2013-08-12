@@ -59,6 +59,7 @@ An example that uses the above concepts and knows how to handle two different in
 [subs="quotes"]
 -------------------------------
 local vtmrid = tmr.VIRT0
+local uartid = 0
 local to = 1500000
 
 local prev_tmr, new_prev_tmr, prev_gpio
@@ -82,6 +83,8 @@ end
   print( string.format( "GPIO NEGEDGE interrupt on port %d, pin %d", port, pin ) )
   if prev_gpio then prev_gpio( resnum ) end
 end
+
+pio.pin.setdir( pio.INPUT, pio.P0_0 )
 
 -- Set timer interrupt handler
 [bblue]*prev_tmr = cpu.set_int_handler( cpu.INT_TMR_MATCH, tmr_handler )*
