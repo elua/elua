@@ -136,21 +136,22 @@ function generate_section( section, sectname, data )
   for elname, _ in pairs( enabled ) do
     local desc = section[ elname ]
     local attrs = desc.attrs or {}
-    genstr = genstr .. sf( "// Configuration for element '%s'\n", elname )
+    local lgen = ""
     if desc.gen then
-      genstr = genstr .. desc:gen( conf, generated )
+      lgen = desc:gen( conf, generated )
     else
       for aname, adesc in pairs( attrs ) do 
-        genstr = genstr .. gen.simple_gen( adesc.macro, conf, generated )
+        lgen = lgen .. gen.simple_gen( adesc.macro, conf, generated )
       end
-      if desc.auxgen then genstr = genstr .. desc:auxgen( conf, generated ) end
+      if desc.auxgen then lgen = lgen .. desc:auxgen( conf, generated ) end
     end
     -- Add the "build enable" macro
     if desc.macro then 
-      genstr = genstr .. gen.print_define( desc.macro ) .. "\n" 
+      lgen = lgen .. gen.print_define( desc.macro ) .. "\n" 
     else
-      genstr = genstr .. "\n"
+      lgen = lgen .. "\n"
     end
+    if lgen ~= "\n" then genstr = genstr .. sf( "// Configuration for element '%s'\n", elname ) .. lgen end
   end
 
   -- Finally, check for dependencies

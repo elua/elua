@@ -477,17 +477,6 @@ static void usart_init(u32 id, USART_InitTypeDef * initVals)
   u8 gpio_rx_pinsource = usart_gpio_rx_pin_source[ id ];
   u8 gpio_tx_pinsource = usart_gpio_tx_pin_source[ id ];
 
-  // Overwrite console UART configuration with the parameters from the configuration file
-  if( id == CON_UART_ID )
-  {
-    prxport = CON_GPIO_PORT_MACRO( STM32F4_CON_RX_PORT );
-    ptxport = CON_GPIO_PORT_MACRO( STM32F4_CON_TX_PORT );
-    gpio_rx_pin = CON_GPIO_PIN_MACRO( STM32F4_CON_RX_PIN );
-    gpio_tx_pin = CON_GPIO_PIN_MACRO( STM32F4_CON_TX_PIN );
-    gpio_rx_pinsource = CON_GPIO_SOURCE_MACRO( STM32F4_CON_RX_PIN );
-    gpio_tx_pinsource = CON_GPIO_SOURCE_MACRO( STM32F4_CON_TX_PIN );
-  }
-
   //Connect pin to USARTx_Tx
   GPIO_PinAFConfig(ptxport, gpio_tx_pinsource, stm32_usart_AF[id]);
   //Connect pin to USARTx_Rx

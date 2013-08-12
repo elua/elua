@@ -7,6 +7,7 @@ local at = require "attributes"
 local gen = require "generators"
 
 local use_multiple_allocator
+local pinmaps
 
 -- Maximum number of peripherals for pin mappins
 
@@ -130,6 +131,31 @@ local function egc_generator( desc, vals, generated )
   return gstr
 end
 
+local function uart_pinmap_generator( desc, vals, generated )
+  local uart_id = desc.info
+  assert( tonumber( uart_id ), "invalid UART ID in uart_pinmap_generator (internal error?)" )
+  -- Look for all pins, save them in the local 'pinmaps' dictionary
+  pinmaps = pinmaps or {}
+  pinmaps.uart = pinmaps.uart or {}
+  pinmaps.uart[ #pinmaps.uart + 1 ] = { uart_id, 
+    vals[ sf( '_UART%s_RX_PIN', uart_id ) ].value,
+    vals[ sf( '_UART%s_TX_PIN', uart_id ) ].value,
+    vals[ sf( '_UART%s_RTS_PIN', uart_id ) ].value,
+    vals[ sf( '_UART%s_CTS_PIN', uart_id ) ].value
+  }
+  return ""
+end
+
+local function pinmap_c_generator( key, data )
+  local periph = key:upper()
+  local s = '#define INITIAL_UART_PINMAPS             { '
+  for _, v in pairs( data ) do
+    for i = 1, #v do s = s .. tostring( v[ i ] ) .. ", " end
+  end
+  s = s .. "-1 }\n"
+  return s
+end
+
 -------------------------------------------------------------------------------
 -- Public interface
 
@@ -182,12 +208,13 @@ function init()
   -- UARTs
   for i = 0, max_uart - 1 do
     configs[ sf( "uart%d_pins", i ) ] = {
-      macro = sf( 'UART%d_PINMAP', i ),
+      gen = uart_pinmap_generator,
+      info = i,
       attrs = {
-        rx = at.make_optional( at.int_attr( sf( 'UART%d_RX_PIN', i ), 0, nil, -1 ) ),
-        tx = at.make_optional( at.int_attr( sf( 'UART%d_TX_PIN', i ), 0, nil, -1 ) ),
-        rts = at.make_optional( at.int_attr( sf( 'UART%d_RTS_PIN', i ), 0, nil, -1 ) ),
-        cts = at.make_optional( at.int_attr( sf( 'UART%d_CTS_PIN', i ), 0, nil, -1 ) )
+        rx = at.make_optional( at.int_attr( sf( '_UART%d_RX_PIN', i ), 0, nil, -1 ) ),
+        tx = at.make_optional( at.int_attr( sf( '_UART%d_TX_PIN', i ), 0, nil, -1 ) ),
+        rts = at.make_optional( at.int_attr( sf( '_UART%d_RTS_PIN', i ), 0, nil, -1 ) ),
+        cts = at.make_optional( at.int_attr( sf( '_UART%d_CTS_PIN', i ), 0, nil, -1 ) ),
       }
     }
   end
@@ -200,5 +227,13 @@ end
 -- false otherwise
 function needs_multiple_allocator()
   return use_multiple_allocator
+end
+
+-- Returns the initial pinmap configurations
+function gen_pin_mappings()
+  if not pinmaps then return end
+  local s = ""
+  for key, data in pairs( pinmaps ) do s = s .. pinmap_c_generator( key, data ) .. "\n" end
+  return s
 end
 

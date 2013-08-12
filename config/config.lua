@@ -43,7 +43,6 @@ local function generate_components( data, plconf )
     res, err = plconf.pre_generate_section( components, 'components', compdata, conf, enabled )
     if not res then return false, err end
   end
-
   -- Generate all data for section 'components'
   return sects.generate_section( components, 'components', compdata )
 end
@@ -61,7 +60,10 @@ local function generate_config( data, plconf )
     if not res then return false, err end
   end
 
-  return sects.generate_section( configs, 'config', confdata )
+  s = sects.generate_section( configs, 'config', confdata )
+  local maps = cfgs.gen_pin_mappings()
+  if maps then s = s .. "// Initial pin mapping configuration\n" .. maps end
+  return s
 end
 
 -- Global sanity checks (data is in 'glconf' and 'glen'
