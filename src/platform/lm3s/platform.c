@@ -248,7 +248,7 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 volatile u32 can_rx_flag = 0;
 volatile u32 can_tx_flag = 0;
 volatile u32 can_err_flag = 0;
-char can_tx_buf[8];
+char can_tx_buf[PLATFORM_CAN_MAXLEN];
 tCANMsgObject can_msg_rx;
 
 // LM3S9Bxx MCU CAN seems to run off of system clock, LM3S8962 has 8 MHz clock
@@ -298,7 +298,7 @@ void cans_init( void )
   can_msg_rx.ulMsgID = 0;
   can_msg_rx.ulMsgIDMask = 0;
   can_msg_rx.ulFlags = MSG_OBJ_RX_INT_ENABLE | MSG_OBJ_USE_ID_FILTER;
-  can_msg_rx.ulMsgLen = 8;
+  can_msg_rx.ulMsgLen = PLATFORM_CAN_MAXLEN;
   MAP_CANMessageSet(CAN0_BASE, 1, &can_msg_rx, MSG_OBJ_TYPE_RX);
 }
 
