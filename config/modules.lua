@@ -199,7 +199,7 @@ function gen_module_list( desc, plconf, platform, boardname )
     local pltabname = mdesc.platform_name or platform
     for m, _ in pairs( gen_list_platform ) do nguards = nguards + #( platform_modules[ m ].guards or {} ) end
     if nguards == 0 then -- nothing to guard
-      gstr = gstr .. gen.print_define( "PLATFORM_MODULES_LINE", sf( '_ROM( "%s", luaopen_platform, platform_map )', platform ) )
+      gstr = gstr .. gen.print_define( "PLATFORM_MODULES_LINE", sf( '_ROM( "%s", luaopen_platform, platform_map )', pltabname ) )
       gstr = gstr .. gen.print_define( "PS_LIB_TABLE_NAME", sf( '"%s"', pltabname ) )
       gstr = gstr .. gen.print_define( "PLATFORM_MODULES_ENABLE" )
     else

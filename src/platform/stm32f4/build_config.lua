@@ -25,5 +25,7 @@ end
 
 -- Return an array of all the available platform modules for the given cpu
 function get_platform_modules( board, cpu )
+  return { pio = { lib = '"pio"', map = "stm32_pio_map", open = false },
+           cpu = { lib = '"cpu"', map = "stm32_cpu_map", open = "luaopen_stm32_cpu" } }
 end
 

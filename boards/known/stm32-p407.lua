@@ -24,6 +24,7 @@ return {
   modules = {
     generic = { 'all', "-i2c", "-net" },
     platform = 'all',
+    platform_name = 'stm32'
   },
 }
 

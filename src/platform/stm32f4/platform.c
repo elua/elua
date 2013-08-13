@@ -193,7 +193,7 @@ static void NVIC_Configuration(void)
 // PIO
 // This is pretty much common code to all STM32 devices.
 // todo: Needs updates to support different processor lines.
-static GPIO_TypeDef * const pio_port[] = { GPIOA, GPIOB, GPIOC, GPIOD, GPIOE, GPIOF, GPIOG, GPIOH, GPIOI };
+GPIO_TypeDef * const pio_port[] = { GPIOA, GPIOB, GPIOC, GPIOD, GPIOE, GPIOF, GPIOG, GPIOH, GPIOI };
 static const u32 pio_port_clk[]        = { RCC_AHB1Periph_GPIOA , RCC_AHB1Periph_GPIOB
          , RCC_AHB1Periph_GPIOC , RCC_AHB1Periph_GPIOD , RCC_AHB1Periph_GPIOE
          , RCC_AHB1Periph_GPIOF , RCC_AHB1Periph_GPIOG , RCC_AHB1Periph_GPIOH
@@ -1641,47 +1641,4 @@ int platform_flash_erase_sector( u32 sector_id )
 }
 
 #endif // #ifdef BUILD_WOFS
-
-
-// ****************************************************************************
-// Platform specific modules go here
-
-#ifdef ENABLE_STM32_CPU
-
-#define MIN_OPT_LEVEL 2
-#include "lrodefs.h"
-extern const LUA_REG_TYPE stm32_cpu_map[];
-
-const LUA_REG_TYPE platform_map[] =
-{
-#if LUA_OPTIMIZE_MEMORY > 0
-  { LSTRKEY( "cpu" ), LROVAL( stm32_cpu_map ) },
-#endif
-  { LNILKEY, LNILVAL }
-};
-
-LUALIB_API int luaopen_platform( lua_State *L )
-{
-#if LUA_OPTIMIZE_MEMORY > 0
-  return 0;
-#else // #if LUA_OPTIMIZE_MEMORY > 0
-  luaL_register( L, PS_LIB_TABLE_NAME, platform_map );
-
-  // Setup the new tables inside platform table
-  lua_newtable( L );
-  luaL_register( L, NULL, stm32_cpu_map );
-  lua_setfield( L, -2, "cpu" );
-
-  return 1;
-#endif // #if LUA_OPTIMIZE_MEMORY > 0
-}
-
-#else // #ifdef ENABLE_ENC
-
-LUALIB_API int luaopen_platform( lua_State *L )
-{
-  return 0;
-}
-
-#endif // #ifdef ENABLE_ENC
 

@@ -11,8 +11,6 @@
 #include "auxmods.h"
 #include "cpu.h"
 
-
-
 //Lua: reset()
 static int cpu_reset( lua_State *L )
 {
