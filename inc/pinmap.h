@@ -38,9 +38,10 @@ enum
   PINMAP_SPI_MOSI,
   PINMAP_SPI_MISO,
   PINMAP_SPI_SCK,
+  PINMAP_SPI_SS,
   PINMAP_SPI_TOTAL
 };
-#define PINMAP_SPI_PIN_NAMES        { "MOSI", "MISO", "SCK" }
+#define PINMAP_SPI_PIN_NAMES        { "MOSI", "MISO", "SCK", "SS" }
 
 // Internal data structures
 typedef struct 

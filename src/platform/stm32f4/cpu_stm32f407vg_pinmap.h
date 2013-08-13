@@ -6,176 +6,273 @@
 #ifdef IMPLEMENT_PINMAPS
 
 static const pin_function pinfuncs_PA_0[] = {
-  { PINMAP_UART, 1, PINMAP_UART_CTS, 7 },
-  { PINMAP_UART, 3, PINMAP_UART_TX, 8 },
+  { _UART1_CTS, 7 },
+  { _UART3_TX, 8 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PA_1[] = {
-  { PINMAP_UART, 1, PINMAP_UART_RTS, 7 },
-  { PINMAP_UART, 3, PINMAP_UART_RX, 8 },
+  { _UART1_RTS, 7 },
+  { _UART3_RX, 8 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PA_2[] = {
-  { PINMAP_UART, 1, PINMAP_UART_TX, 7 },
+  { _UART1_TX, 7 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PA_3[] = {
-  { PINMAP_UART, 1, PINMAP_UART_RX, 7 },
+  { _UART1_RX, 7 },
+  _NOFUNC
+};
+
+static const pin_function pinfuncs_PA_4[] = {
+  { _SPI0_SS, 5 },
+  { _SPI2_SS, 6 },
+  _NOFUNC
+};
+
+static const pin_function pinfuncs_PA_5[] = {
+  { _SPI0_SCK, 5 },
+  _NOFUNC
+};
+
+static const pin_function pinfuncs_PA_6[] = {
+  { _SPI0_MISO, 5 },
+  _NOFUNC
+};
+
+static const pin_function pinfuncs_PA_7[] = {
+  { _SPI0_MOSI, 5 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PA_9[] = {
-  { PINMAP_UART, 0, PINMAP_UART_TX, 7 },
+  { _UART0_TX, 7 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PA_10[] = {
-  { PINMAP_UART, 0, PINMAP_UART_RX, 7 },
+  { _UART0_RX, 7 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PA_11[] = {
-  { PINMAP_UART, 0, PINMAP_UART_CTS, 7 },
+  { _UART0_CTS, 7 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PA_12[] = {
-  { PINMAP_UART, 0, PINMAP_UART_RTS, 7 },
+  { _UART0_RTS, 7 },
+  _NOFUNC
+};
+
+static const pin_function pinfuncs_PA_15[] = {
+  { _SPI0_SS, 5 },
+  { _SPI2_SS, 6 },
+  _NOFUNC
+};
+
+static const pin_function pinfuncs_PB_3[] = {
+  { _SPI0_SCK, 5 },
+  { _SPI2_SCK, 6 },
+  _NOFUNC
+};
+
+static const pin_function pinfuncs_PB_4[] = {
+  { _SPI0_MISO, 5 },
+  { _SPI2_MISO, 6 },
+  _NOFUNC
+};
+
+static const pin_function pinfuncs_PB_5[] = {
+  { _SPI0_MOSI, 5 },
+  { _SPI2_MOSI, 6 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PB_6[] = {
-  { PINMAP_UART, 0, PINMAP_UART_TX, 7 },
+  { _UART0_TX, 7 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PB_7[] = {
-  { PINMAP_UART, 0, PINMAP_UART_RX, 7 },
+  { _UART0_RX, 7 },
+  _NOFUNC
+};
+
+static const pin_function pinfuncs_PB_9[] = {
+  { _SPI1_SS, 5 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PB_10[] = {
-  { PINMAP_UART, 2, PINMAP_UART_TX, 7 },
+  { _UART2_TX, 7 },
+  { _SPI1_SCK, 5 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PB_11[] = {
-  { PINMAP_UART, 2, PINMAP_UART_RX, 7 },
+  { _UART2_RX, 7 },
+  _NOFUNC
+};
+
+static const pin_function pinfuncs_PB_12[] = {
+  { _SPI1_SS, 5 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PB_13[] = {
-  { PINMAP_UART, 2, PINMAP_UART_CTS, 7 },
+  { _UART2_CTS, 7 },
+  { _SPI1_SCK, 5 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PB_14[] = {
-  { PINMAP_UART, 2, PINMAP_UART_RTS, 7 },
+  { _UART2_RTS, 7 },
+  { _SPI1_MISO, 5 },
+  _NOFUNC
+};
+
+static const pin_function pinfuncs_PB_15[] = {
+  { _SPI1_MOSI, 5 },
+  { _SPI1_MISO, 5 },
+  _NOFUNC
+};
+
+static const pin_function pinfuncs_PC_2[] = {
+  { _SPI1_MISO, 5 },
+  _NOFUNC
+};
+
+static const pin_function pinfuncs_PC_3[] = {
+  { _SPI1_MOSI, 5 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PC_6[] = {
-  { PINMAP_UART, 5, PINMAP_UART_TX, 8 },
+  { _UART5_TX, 8 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PC_7[] = {
-  { PINMAP_UART, 5, PINMAP_UART_RX, 8 },
+  { _UART5_RX, 8 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PC_10[] = {
-  { PINMAP_UART, 2, PINMAP_UART_TX, 7 },
-  { PINMAP_UART, 3, PINMAP_UART_TX, 8 },
+  { _UART2_TX, 7 },
+  { _UART3_TX, 8 },
+  { _SPI2_SCK, 6 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PC_11[] = {
-  { PINMAP_UART, 2, PINMAP_UART_RX, 7 },
-  { PINMAP_UART, 3, PINMAP_UART_RX, 8 },
+  { _UART2_RX, 7 },
+  { _UART3_RX, 8 },
+  { _SPI2_MISO, 6 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PC_12[] = {
-  { PINMAP_UART, 4, PINMAP_UART_TX, 8 },
+  { _UART4_TX, 8 },
+  { _SPI2_MOSI, 6 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PD_2[] = {
-  { PINMAP_UART, 4, PINMAP_UART_RX, 8 },
+  { _UART4_RX, 8 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PD_3[] = {
-  { PINMAP_UART, 1, PINMAP_UART_CTS, 7 },
+  { _UART1_CTS, 7 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PD_4[] = {
-  { PINMAP_UART, 1, PINMAP_UART_RTS, 7 },
+  { _UART1_RTS, 7 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PD_5[] = {
-  { PINMAP_UART, 1, PINMAP_UART_TX, 7 },
+  { _UART1_TX, 7 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PD_6[] = {
-  { PINMAP_UART, 1, PINMAP_UART_RX, 7 },
+  { _UART1_RX, 7 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PD_8[] = {
-  { PINMAP_UART, 2, PINMAP_UART_TX, 7 },
+  { _UART2_TX, 7 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PD_9[] = {
-  { PINMAP_UART, 2, PINMAP_UART_RX, 7 },
+  { _UART2_RX, 7 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PD_11[] = {
-  { PINMAP_UART, 2, PINMAP_UART_CTS, 7 },
+  { _UART2_CTS, 7 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PD_12[] = {
-  { PINMAP_UART, 2, PINMAP_UART_RTS, 7 },
+  { _UART2_RTS, 7 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PG_8[] = {
-  { PINMAP_UART, 5, PINMAP_UART_RTS, 8 },
+  { _UART5_RTS, 8 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PG_9[] = {
-  { PINMAP_UART, 5, PINMAP_UART_RX, 8 },
+  { _UART5_RX, 8 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PG_12[] = {
-  { PINMAP_UART, 5, PINMAP_UART_RTS, 8 },
+  { _UART5_RTS, 8 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PG_13[] = {
-  { PINMAP_UART, 5, PINMAP_UART_CTS, 8 },
+  { _UART5_CTS, 8 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PG_14[] = {
-  { PINMAP_UART, 5, PINMAP_UART_TX, 8 },
+  { _UART5_TX, 8 },
   _NOFUNC
 };
 
 static const pin_function pinfuncs_PG_15[] = {
-  { PINMAP_UART, 5, PINMAP_UART_CTS, 8 },
+  { _UART5_CTS, 8 },
+  _NOFUNC
+};
+
+static const pin_function pinfuncs_PI_0[] = {
+  { _SPI1_SS, 5 },
+  _NOFUNC
+};
+
+static const pin_function pinfuncs_PI_1[] = {
+  { _SPI1_SCK, 5 },
+  _NOFUNC
+};
+
+static const pin_function pinfuncs_PI_2[] = {
+  { _SPI1_MISO, 5 },
+  _NOFUNC
+};
+
+static const pin_function pinfuncs_PI_3[] = {
+  { _SPI1_MOSI, 5 },
   _NOFUNC
 };
 
@@ -190,16 +287,29 @@ static const pin_info pinfuncs[] =
   PINDATA( PA_1 ),
   PINDATA( PA_2 ),
   PINDATA( PA_3 ),
+  PINDATA( PA_4 ),
+  PINDATA( PA_5 ),
+  PINDATA( PA_6 ),
+  PINDATA( PA_7 ),
   PINDATA( PA_9 ),
   PINDATA( PA_10 ),
   PINDATA( PA_11 ),
   PINDATA( PA_12 ),
+  PINDATA( PA_15 ),
+  PINDATA( PB_3 ),
+  PINDATA( PB_4 ),
+  PINDATA( PB_5 ),
   PINDATA( PB_6 ),
   PINDATA( PB_7 ),
+  PINDATA( PB_9 ),
   PINDATA( PB_10 ),
   PINDATA( PB_11 ),
+  PINDATA( PB_12 ),
   PINDATA( PB_13 ),
   PINDATA( PB_14 ),
+  PINDATA( PB_15 ),
+  PINDATA( PC_2 ),
+  PINDATA( PC_3 ),
   PINDATA( PC_6 ),
   PINDATA( PC_7 ),
   PINDATA( PC_10 ),
@@ -219,7 +329,11 @@ static const pin_info pinfuncs[] =
   PINDATA( PG_12 ),
   PINDATA( PG_13 ),
   PINDATA( PG_14 ),
-  PINDATA( PG_15 )
+  PINDATA( PG_15 ),
+  PINDATA( PI_0 ),
+  PINDATA( PI_1 ),
+  PINDATA( PI_2 ),
+  PINDATA( PI_3 )
 };
 
 #endif // #ifdef IMPLEMENT_PINMAPS
