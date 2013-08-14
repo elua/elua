@@ -20,6 +20,10 @@
 #include "platform_conf.h"
 #endif
 
+#ifdef LUA_RPC
+#include "desktop_conf.h"
+#endif
+
 void transport_open( Transport *tpt, const char *path );
 
 #ifdef LUARPC_ENABLE_SERIAL

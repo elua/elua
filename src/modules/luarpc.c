@@ -32,6 +32,9 @@ void *alloca(size_t);
 #include "platform_conf.h"
 #endif
 
+#ifdef LUA_RPC
+#include "desktop_conf.h"
+#endif
 
 #ifdef LUA_OPTIMIZE_MEMORY
 #include "lrotable.h"

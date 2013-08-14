@@ -18,6 +18,10 @@
 #include "platform_conf.h"
 #endif
 
+#ifdef LUA_RPC
+#include "desktop_conf.h"
+#endif
+
 // Dummy open function
 int luaopen_dummy(lua_State *L)
 {
