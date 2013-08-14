@@ -155,7 +155,8 @@ local function spi_pinmap_generator( desc, vals, generated )
   pinmaps.spi[ #pinmaps.spi + 1 ] = { spi_id, 
     vals[ sf( '_SPI%s_MOSI_PIN', spi_id ) ].value,
     vals[ sf( '_SPI%s_MISO_PIN', spi_id ) ].value,
-    vals[ sf( '_SPI%s_SCK_PIN', spi_id ) ].value
+    vals[ sf( '_SPI%s_SCK_PIN', spi_id ) ].value,
+    vals[ sf( '_SPI%s_SCK_SS', spi_id ) ].value
   }
   return ""
 end
@@ -241,6 +242,7 @@ function init()
         mosi = at.make_optional( at.int_attr( sf( '_SPI%d_MOSI_PIN', i ), 0, nil, -1 ) ),
         miso = at.make_optional( at.int_attr( sf( '_SPI%d_MISO_PIN', i ), 0, nil, -1 ) ),
         sck = at.make_optional( at.int_attr( sf( '_SPI%d_SCK_PIN', i ), 0, nil, -1 ) ),
+        ss = at.make_optional( at.int_attr( sf( '_SPI%d_SCK_SS', i ), 0, nil, -1 ) ),
       }
     }
   end

@@ -81,9 +81,9 @@ int pinmap_uart( int id, int rx, int tx, int rts, int cts )
   return pinmaph_create_mapping( PINMAP_UART, id, PINMAP_UART_TOTAL, pins );
 }
 
-int pinmap_spi( int id, int mosi, int miso, int sck )
+int pinmap_spi( int id, int mosi, int miso, int sck, int ss )
 {
-  int pins[ PINMAP_SPI_TOTAL ] = { mosi, miso, sck };
+  int pins[ PINMAP_SPI_TOTAL ] = { mosi, miso, sck, ss };
 
   if( id >= NUM_SPI )
     return 0;
@@ -126,7 +126,7 @@ int pinmap_uart( int id, int rx, int tx, int rts, int cts )
   return 0;
 }
 
-int pinmap_spi( int id, int mosi, int miso, int sck )
+int pinmap_spi( int id, int mosi, int miso, int sck, int ss )
 {
   return 0;
 }

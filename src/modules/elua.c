@@ -63,11 +63,9 @@ static int elua_save_history( lua_State *L )
 }
 
 #ifdef HAS_PINMAPS
-// Lua: elua.pin_functions( [ pin ] )
-static int elua_pin_functions( lua_State *L )
-{
+static void eluah_show_pin_functions( int pin )
+{ 
   int total = pinmap_get_num_pins(), i;
-  int pin = luaL_optinteger( L, 1, PINMAP_IGNORE_PIN );
   const char* pinmap_peripheral_names[] = PINMAP_PERIPHERAL_NAMES;
   const char* uart_pin_names[] = PINMAP_UART_PIN_NAMES;
   const char* spi_pin_names[] = PINMAP_SPI_PIN_NAMES;
@@ -98,6 +96,18 @@ static int elua_pin_functions( lua_State *L )
     }
     printf( "\n" );
   }
+}
+
+// Lua: elua.print_pin_functions( [ pin1 ], [ pin2 ], ..., [ pinn ] )
+static int elua_print_pin_functions( lua_State *L )
+{
+  int i;
+
+  if( lua_gettop( L ) == 0 )
+    eluah_show_pin_functions( PINMAP_IGNORE_PIN );
+  else
+    for( i = 1; i <= lua_gettop( L ); i ++ )
+      eluah_show_pin_functions( luaL_checkinteger( L, i ) );
   return 0;
 }
 #endif // #ifdef HAS_PINMAPS
@@ -132,7 +142,7 @@ const LUA_REG_TYPE elua_map[] =
   { LSTRKEY( "shell" ), LFUNCVAL( elua_shell ) },
 #endif
 #ifdef HAS_PINMAPS
-  { LSTRKEY( "pin_functions" ), LFUNCVAL( elua_pin_functions ) },
+  { LSTRKEY( "print_pin_functions" ), LFUNCVAL( elua_print_pin_functions ) },
 #endif
 #if LUA_OPTIMIZE_MEMORY > 0
   { LSTRKEY( "EGC_NOT_ACTIVE" ), LNUMVAL( EGC_NOT_ACTIVE ) },

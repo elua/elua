@@ -67,7 +67,7 @@ typedef struct
 // Public interface
 int pinmap_initial_config();
 int pinmap_uart( int id, int rx, int tx, int rts, int cts );
-int pinmap_spi( int id, int mosi, int miso, int sck );
+int pinmap_spi( int id, int mosi, int miso, int sck, int ss );
 int pinmap_get_num_pins();
 const pin_info* pinmap_get_at( int i );
 
