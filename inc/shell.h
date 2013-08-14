@@ -5,7 +5,7 @@
 
 #include "type.h"
 
-#define SHELL_WELCOMEMSG                "\neLua %s  Copyright (C) 2007-2011 www.eluaproject.net\n"
+#define SHELL_WELCOMEMSG                "\neLua %s  Copyright (C) 2007-2013 www.eluaproject.net\n"
 #define SHELL_PROMPT                    "eLua# "
 #define SHELL_ERRMSG                    "Invalid command, type 'help' for help\n"
 #define SHELL_MAXSIZE                   50
