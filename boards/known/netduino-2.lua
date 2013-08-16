@@ -11,10 +11,11 @@ return {
     term = { lines = 25, cols = 80 },
     cints = true,
     luaints = true,
-    linenoise = { shell_lines = 10, lua_lines = 50 },
+    -- linenoise = { shell_lines = 10, lua_lines = 50 },
     rpc = { uart = 1, speed = 115200 },
     adc = { buf_size = 2 },
     xmodem = true,
+    mmcfs = { cs_port = 1, cs_pin = 10, spi = 0 }
   },
   config = {
     egc = { mode = "alloc" },

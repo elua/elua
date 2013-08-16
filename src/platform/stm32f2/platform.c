@@ -352,8 +352,8 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 static SPI_TypeDef *const spi[]  =           {SPI2 };
 static const u8 spi_AF[]  =                  {GPIO_AF_SPI2 };
 static GPIO_TypeDef *const spi_gpio_port[] = {GPIOB };
-static const u16 spi_gpio_pins[] =           {GPIO_Pin_10 |      GPIO_Pin_14 |      GPIO_Pin_15 };
-static const u8 spi_gpio_pins_source[][3] = {{GPIO_PinSource10 , GPIO_PinSource14 , GPIO_PinSource15}, };
+static const u16 spi_gpio_pins[] =           {GPIO_Pin_13 |      GPIO_Pin_14 |      GPIO_Pin_15 };
+static const u8 spi_gpio_pins_source[][3] = {{GPIO_PinSource13 , GPIO_PinSource14 , GPIO_PinSource15}, };
 //                                             SCK               MISO               MOSI
 #define SPI_GET_BASE_CLK( id ) ( HCLK / PCLK1_DIV )
 #else
