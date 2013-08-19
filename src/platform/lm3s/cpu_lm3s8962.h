@@ -44,7 +44,10 @@
 #define INTERNAL_RAM1_LAST_FREE         ( SRAM_BASE + SRAM_SIZE - STACK_SIZE_TOTAL - 1 )
 
 #define PLATFORM_CPU_CONSTANTS_INTS\
-  _C( INT_UART_RX ),
+  _C( INT_UART_RX ),\
+  _C( INT_GPIO_POSEDGE ),\
+  _C( INT_GPIO_NEGEDGE ),\
+  _C( INT_TMR_MATCH ),
 
 #endif // #ifndef __CPU_LM3S8962_H__
 
