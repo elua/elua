@@ -47,7 +47,7 @@ static int can_recv( lua_State* L )
   u8 len;
   int id;
   u32 canid;
-  u8  idtype, data[ 8 ];
+  u8  idtype, data[ PLATFORM_CAN_MAXLEN ];
   
   id = luaL_checkinteger( L, 1 );
   MOD_CHECK_ID( can, id );

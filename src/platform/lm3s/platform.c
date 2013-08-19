@@ -245,10 +245,21 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 
 #if defined( BUILD_CAN )
 
-volatile u32 can_rx_flag = 0;
-volatile u32 can_tx_flag = 0;
-volatile u32 can_err_flag = 0;
-char can_tx_buf[8];
+// Speed used in INIT
+#ifndef CAN_INIT_SPEED
+#define CAN_INIT_SPEED	500000
+#endif
+
+// Message object for receiving
+#define CAN_MSG_OBJ_RX	1
+
+// Message object for transmitting
+#define CAN_MSG_OBJ_TX	2
+
+volatile u8 can_rx_flag = 0;
+volatile u8 can_tx_flag = 0;
+volatile u8 can_err_flag = 0;
+char can_tx_buf[PLATFORM_CAN_MAXLEN];
 tCANMsgObject can_msg_rx;
 
 // LM3S9Bxx MCU CAN seems to run off of system clock, LM3S8962 has 8 MHz clock
@@ -268,15 +279,15 @@ void CANIntHandler(void)
     can_err_flag = 1;
     can_tx_flag = 0;
   }
-  else if( status == 1 ) // Message receive
+  else if( status == CAN_MSG_OBJ_RX ) // Message receive
   {
-    CANIntClear(CAN0_BASE, 1);
+    CANIntClear(CAN0_BASE, CAN_MSG_OBJ_RX);
     can_rx_flag = 1;
     can_err_flag = 0;
   }
-  else if( status == 2 ) // Message send
+  else if( status == CAN_MSG_OBJ_TX ) // Message send
   {
-    CANIntClear(CAN0_BASE, 2);
+    CANIntClear(CAN0_BASE, CAN_MSG_OBJ_TX);
     can_tx_flag = 0;
     can_err_flag = 0;
   }
@@ -289,7 +300,7 @@ void cans_init( void )
 {
   MAP_SysCtlPeripheralEnable( SYSCTL_PERIPH_CAN0 ); 
   MAP_CANInit( CAN0_BASE );
-  CANBitRateSet(CAN0_BASE, LM3S_CAN_CLOCK, 500000);
+  CANBitRateSet(CAN0_BASE, LM3S_CAN_CLOCK, CAN_INIT_SPEED);
   MAP_CANIntEnable( CAN0_BASE, CAN_INT_MASTER | CAN_INT_ERROR | CAN_INT_STATUS );
   MAP_IntEnable(INT_CAN0);
   MAP_CANEnable(CAN0_BASE);
@@ -298,8 +309,8 @@ void cans_init( void )
   can_msg_rx.ulMsgID = 0;
   can_msg_rx.ulMsgIDMask = 0;
   can_msg_rx.ulFlags = MSG_OBJ_RX_INT_ENABLE | MSG_OBJ_USE_ID_FILTER;
-  can_msg_rx.ulMsgLen = 8;
-  MAP_CANMessageSet(CAN0_BASE, 1, &can_msg_rx, MSG_OBJ_TYPE_RX);
+  can_msg_rx.ulMsgLen = PLATFORM_CAN_MAXLEN;
+  MAP_CANMessageSet(CAN0_BASE, CAN_MSG_OBJ_RX, &can_msg_rx, MSG_OBJ_TYPE_RX);
 }
 
 
@@ -338,7 +349,7 @@ void platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *dat
   DUFF_DEVICE_8( len,  *d++ = *s++ );
 
   can_tx_flag = 1;
-  CANMessageSet(CAN0_BASE, 2, &msg_tx, MSG_OBJ_TYPE_TX);
+  CANMessageSet(CAN0_BASE, CAN_MSG_OBJ_TX, &msg_tx, MSG_OBJ_TYPE_TX);
 }
 
 int platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )
@@ -347,7 +358,7 @@ int platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )
   if( can_rx_flag != 0 )
   {
     can_msg_rx.pucMsgData = data;
-    CANMessageGet(CAN0_BASE, 1, &can_msg_rx, 0);
+    CANMessageGet(CAN0_BASE, CAN_MSG_OBJ_RX, &can_msg_rx, 0);
     can_rx_flag = 0;
 
     *canid = ( u32 )can_msg_rx.ulMsgID;
@@ -359,7 +370,8 @@ int platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )
     return PLATFORM_UNDERFLOW;
 }
 
-#endif
+#endif // BUILD_CAN
+
 
 // ****************************************************************************
 // SPI
