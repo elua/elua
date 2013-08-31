@@ -2,6 +2,7 @@
 
 return {
   cpu = 'lpc1768',
+  ps_modules_name = 'mbed',
   components = {
     sercon = { uart = 0, speed = 115200 },
     romfs = true,

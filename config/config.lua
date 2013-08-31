@@ -202,7 +202,7 @@ function compile_board( fname, boardname )
   if not desc.cpu then return false, "cpu not specified in board configuration file" end
 
   -- Check the keys in 'desc'
-  local known_keys = { 'cpu', 'components', 'config', 'headers', 'macros', 'modules', 'cpu_constants', 'build' }
+  local known_keys = { 'cpu', 'ps_modules_name', 'components', 'config', 'headers', 'macros', 'modules', 'cpu_constants', 'build' }
   for k, _ in pairs( desc ) do
     if not utils.array_element_index( known_keys, k ) then return false, sf( "unknown key '%s'", k ) end
   end
