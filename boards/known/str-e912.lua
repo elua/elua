@@ -2,7 +2,6 @@
 
 return {
   cpu = 'str912faw44',
-  ps_modules_name = 'str9',
   components = {
     sercon = { uart = 0, speed = 115200 },
     romfs = true,

@@ -2,7 +2,6 @@
 
 return {
   cpu = 'lm3s9b92',
-  ps_modules_name = 'lm3s',
   components = {
     sercon = { uart = 0, speed = 115200 },
     wofs = true,

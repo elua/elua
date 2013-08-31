@@ -2,7 +2,6 @@
 
 return {
   cpu = 'at32uc3a0256',
-  ps_modules_name = 'mizar32',
   components = {
     sercon = { uart = "cdc", speed = 115200 },
     mmcfs = { spi = 4, cs_port = 0, cs_pin = "SD_MMC_SPI_NPCS_PIN" },
