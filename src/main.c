@@ -32,6 +32,10 @@ char *boot_order[] = {
   "/mmc/autorun.lua",
   "/mmc/autorun.lc",
 #endif
+#if defined(BUILD_WOFS)
+  "/wo/autorun.lua",
+  "/wo/autorun.lc",
+#endif
 #if defined(BUILD_ROMFS)
   "/rom/autorun.lua",
   "/rom/autorun.lc",

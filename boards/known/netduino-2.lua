@@ -5,9 +5,10 @@ return {
   components = {
     -- sercon = { uart = 1, speed = 115200, buf_size = 128 },
     sercon = { uart = "cdc", speed = 115200 },
-    cdc = { buf_size = 64 },
+    cdc = { buf_size = 128 },
+    wofs = true,
     romfs = true,
-    shell = true,
+    advanced_shell = true,
     term = { lines = 25, cols = 80 },
     cints = true,
     luaints = true,
