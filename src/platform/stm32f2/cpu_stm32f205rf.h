@@ -43,7 +43,7 @@ u32 platform_s_cpu_get_frequency();
 #define INTERNAL_RAM1_LAST_FREE          ( SRAM_BASE + SRAM_SIZE - STACK_SIZE_TOTAL - 1 )
 
 #define INTERNAL_FLASH_SIZE             ( 768 * 1024 )
-#define INTERNAL_FLASH_SECTOR_SIZE      2048
+#define INTERNAL_FLASH_SECTOR_ARRAY     { 0x4000, 0x4000, 0x4000, 0x4000, 0x10000, 0x20000, 0x20000, 0x20000, 0x20000, 0x20000 }
 #define INTERNAL_FLASH_START_ADDRESS    0x08000000
 
 // Interrupt list for this CPU
