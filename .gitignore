@@ -1,6 +1,7 @@
 .build/
 *.hex
 *.elf
+*.dfu
 *.o
 *.obj
 *.exe
@@ -11,6 +12,7 @@ inc/romfiles.h
 .sconf_temp/
 .sconsign.dblite
 config.log
+.DS_Store
 mux*
 rfs_server*
 doc/dist
