@@ -168,6 +168,7 @@ local menu =
           },
           { "Building eLua in Linux", "building_unix.html" },
           { "Building eLua in Windows", "building_win.html" },
+          { "Building eLua in Macintosh OS/X", "building_macos.html" },
         },  
       },
     },
