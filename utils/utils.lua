@@ -35,7 +35,7 @@ split_ext = function( s )
   return s:sub( 1, pos - 1 ), s:sub( pos )
 end
 
--- Replace the extension of a give file name
+-- Replace the extension of a given file name
 replace_extension = function( s, newext )
   local p, e = split_ext( s )
   if e then 
@@ -63,7 +63,7 @@ prepend_string = function( s, prefix, pat )
   return res
 end
 
--- Like above but consider 'prefix' a path
+-- Like above, but consider 'prefix' a path
 prepend_path = function( s, prefix, pat )
   return prepend_string( s, prefix .. dir_sep, pat )
 end
