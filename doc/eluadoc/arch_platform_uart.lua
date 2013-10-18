@@ -19,7 +19,9 @@ enum
 {
   PLATFORM_UART_PARITY_EVEN,
   PLATFORM_UART_PARITY_ODD,
-  PLATFORM_UART_PARITY_NONE
+  PLATFORM_UART_PARITY_NONE,
+  PLATFORM_UART_PARITY_MARK,
+  PLATFORM_UART_PARITY_SPACE
 };]],
       name = "UART parity",
       desc = "Constants used to specify the UART parity mode."
@@ -74,7 +76,7 @@ enum
         "$id$ - UART interface ID.",
         "$baud$ - baud rate.",
         "$databits$ - number of databits (maximum 8).",
-        "$parity$ - parity type (can be either $PLATFORM_UART_PARITY_EVEN$, $PLATFORM_UART_PARITY_ODD$ or $PLATFORM_UART_PARITY_NONE$, see @#uart_parity@here@).",
+        "$parity$ - parity type (can be either $PLATFORM_UART_PARITY_EVEN$, $PLATFORM_UART_PARITY_ODD$, $PLATFORM_UART_PARITY_MARK$, $PLATFORM_UART_PARITY_SPACE$ or $PLATFORM_UART_PARITY_NONE$, see @#uart_parity@here@).",
         [[$stopbits$ - number of stop bits (can be either $PLATFORM_UART_STOPBITS_1$, $PLATFORM_UART_STOPBITS_1_5$ or $PLATFORM_UART_STOPBITS_2$, see
            @#uart_stop_bits@here@).]],
       },
