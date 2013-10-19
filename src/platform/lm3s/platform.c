@@ -86,7 +86,11 @@ static void timers_init();
 static void uarts_init();
 static void spis_init();
 static void pios_init();
+
+#ifdef NUM_PWM > 0
 static void pwms_init();
+#endif
+
 static void eth_init();
 static void adcs_init();
 static void cans_init();
@@ -113,8 +117,10 @@ int platform_init()
   // Setup timers
   timers_init();
 
+#ifdef NUM_PWM > 0
   // Setup PWMs
   pwms_init();
+#endif
 
 #ifdef BUILD_ADC
   // Setup ADCs
@@ -674,6 +680,8 @@ int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int 
 // Similar on LM3S8962 and LM3S6965
 // LM3S6918 has no PWM
 
+#if NUM_PWM > 0
+
 // SYSCTL div data and actual div factors
 const static u32 pwm_div_ctl[] = { SYSCTL_PWMDIV_1, SYSCTL_PWMDIV_2, SYSCTL_PWMDIV_4, SYSCTL_PWMDIV_8, SYSCTL_PWMDIV_16, SYSCTL_PWMDIV_32, SYSCTL_PWMDIV_64 };
 const static u8 pwm_div_data[] = { 1, 2, 4, 8, 16, 32, 64 };
@@ -777,6 +785,8 @@ void platform_pwm_stop( unsigned id )
   MAP_PWMOutputState( PWM_BASE, 1 << id, false );
   MAP_PWMGenDisable( PWM_BASE, pwm_gens[ id >> 1 ] );
 }
+
+#endif // NUM_PWM > 0
 
 // *****************************************************************************
 // ADC specific functions and variables
