@@ -946,6 +946,7 @@ static const gpio_map_t pwm_pins =
 /*
  * Configure a PWM channel to run at "frequency" Hz with a duty cycle of
  * "duty" (0-100).  0 means low all the time, 100 high all the time.
+ * Return actual frequency set.
  */
 u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
 {
@@ -954,8 +955,7 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
   u32 duty_cycle;    // number of base clocks to be high (low?) for
 
   // Sanity checks
-  if (id < 0 || id >= NUM_PWM
-      || duty < 0 || duty > 100)
+  if (id >= NUM_PWM || duty > 100)
     return 0;    // Returning an actual frequency of 0 should worry them!
 
   gpio_enable_module(pwm_pins + id, 1 );
@@ -978,7 +978,7 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
   // The AVR32 PWM duty cycle is upside down:
   // duty_period==0 gives an all-active output, while
   // duty_period==period gives an all-inactive output.
-  // So we invert the cuty cycle here.
+  // So we invert the duty cycle here.
   pwm_channel_set_period_and_duty_cycle( id, period, period - duty_cycle );
 
   return (pwmclk + period/2) / period;
