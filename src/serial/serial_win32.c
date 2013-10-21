@@ -3,7 +3,7 @@
 #include <windows.h>
 #include <string.h>
 #include <stdio.h>
-#include "serial.h"
+#include "rpc_serial.h"
 
 #define WIN_ERROR     ( HANDLE )-1
 #define WIN_MAX_PORT_NAME   1024

@@ -10,7 +10,7 @@
 #include "config.h"
 #include "log.h"
 #include "type.h"
-#include "serial.h"
+#include "rfs_serial.h"
 #include "sermux.h"
 #include "rfs.h"
 #include "deskutils.h"
