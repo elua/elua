@@ -23,7 +23,7 @@ void *alloca(size_t);
 #include <alloca.h>
 #endif
 
-#include "lua.h"
+//#include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
 
