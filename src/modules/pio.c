@@ -285,7 +285,7 @@ static int pio_mt_index( lua_State* L )
   
   if( !key || *key != 'P' )
     return 0;
-  if( isupper( key[ 1 ] ) ) // PA, PB, ...
+  if( isupper( (unsigned char) key[ 1 ] ) ) // PA, PB, ...
   {
     if( PIO_PREFIX != 'A' )
       return 0;

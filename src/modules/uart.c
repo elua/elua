@@ -144,9 +144,9 @@ static int uart_read( lua_State* L )
     // are not supported.
     if( ( cres == '\n' ) && ( mode == UART_READ_MODE_LINE ) )
       break;
-    if( !isdigit( cres ) && !issign && ( mode == UART_READ_MODE_NUMBER ) )
+    if( !isdigit( (unsigned char) cres ) && !issign && ( mode == UART_READ_MODE_NUMBER ) )
       break;
-    if( isspace( cres ) && ( mode == UART_READ_MODE_SPACE ) )
+    if( isspace( (unsigned char) cres ) && ( mode == UART_READ_MODE_SPACE ) )
       break;
     luaL_putchar( &b, cres );
     if( ( count == maxsize ) && ( mode == UART_READ_MODE_MAXSIZE ) )
