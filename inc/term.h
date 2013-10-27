@@ -30,19 +30,19 @@ void term_init( unsigned lines, unsigned cols, p_term_out term_out_func,
                 p_term_in term_in_func, p_term_translate term_translate_func );
 
 // Terminal output functions
-void term_clrscr();
-void term_clreol();
+void term_clrscr(void);
+void term_clreol(void);
 void term_gotoxy( unsigned x, unsigned y );
 void term_up( unsigned delta );
 void term_down( unsigned delta );
 void term_left( unsigned delta );
 void term_right( unsigned delta );
-unsigned term_get_lines();
-unsigned term_get_cols();
+unsigned term_get_lines(void);
+unsigned term_get_cols(void);
 void term_putch( u8 ch );
 void term_putstr( const char* str, unsigned size );
-unsigned term_get_cx();
-unsigned term_get_cy();
+unsigned term_get_cx(void);
+unsigned term_get_cy(void);
 
 #define TERM_KEYCODES\
   _D( KC_UP ),\

@@ -88,7 +88,7 @@ static int kb_read( timer_data_type to )
 void *memory_start_address = 0;
 void *memory_end_address = 0;
 
-void platform_ll_init()
+void platform_ll_init( void )
 {
   // Initialise heap memory region.
   memory_start_address = hostif_getmem( MEM_LENGTH ); 
@@ -154,7 +154,7 @@ timer_data_type platform_s_timer_op( unsigned id, int op, timer_data_type data )
   return 0;
 }
 
-timer_data_type platform_timer_read_sys()
+timer_data_type platform_timer_read_sys( void )
 {
   return hostif_gettime();
 }
@@ -168,7 +168,7 @@ int platform_cpu_set_global_interrupts( int status )
   return 0;
 }
 
-int platform_cpu_get_global_interrupts()
+int platform_cpu_get_global_interrupts( void )
 {
   return 0;
 }

@@ -48,6 +48,6 @@ int elua_net_connect( int s, elua_net_ip addr, u16 port );
 elua_net_ip elua_net_lookup( const char* hostname );
 
 int elua_net_get_last_err( int s );
-int elua_net_get_telnet_socket();
+int elua_net_get_telnet_socket( void );
 
 #endif

@@ -15,8 +15,8 @@ enum
 };
 
 // Platform initialization
-int platform_init();
-void platform_int_init();
+int platform_init(void);
+void platform_int_init(void);
 
 // *****************************************************************************
 // PIO subsection
@@ -124,13 +124,13 @@ int platform_timer_set_match_int( unsigned id, timer_data_type period_us, int ty
 int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int type );
 timer_data_type platform_timer_get_diff_us( unsigned id, timer_data_type start, timer_data_type end );
 // System timer functions
-timer_data_type platform_timer_read_sys();
-int platform_timer_sys_available();
+timer_data_type platform_timer_read_sys(void);
+int platform_timer_sys_available(void);
 // The next 3 functions need to be implemented only if the generic system timer mechanism
 // (src/common.c:cmn_systimer*) is used by the backend
-u64 platform_timer_sys_raw_read();
-void platform_timer_sys_enable_int();
-void platform_timer_sys_disable_int();
+u64 platform_timer_sys_raw_read(void);
+void platform_timer_sys_enable_int(void);
+void platform_timer_sys_disable_int(void);
 
 // Convenience macros
 #define platform_timer_read( id )             platform_timer_op( id, PLATFORM_TIMER_OP_READ, 0 )
@@ -253,18 +253,18 @@ u32 platform_pwm_get_clock( unsigned id );
 #define PLATFORM_INT_BAD_RESNUM         ( -4 )
 
 int platform_cpu_set_global_interrupts( int status );
-int platform_cpu_get_global_interrupts();
+int platform_cpu_get_global_interrupts(void);
 int platform_cpu_set_interrupt( elua_int_id id, elua_int_resnum resnum, int status );
 int platform_cpu_get_interrupt( elua_int_id id, elua_int_resnum resnum );
 int platform_cpu_get_interrupt_flag( elua_int_id id, elua_int_resnum resnum, int clear );
-u32 platform_cpu_get_frequency();
+u32 platform_cpu_get_frequency(void);
 
 // *****************************************************************************
 // The platform ADC functions
 
 // Functions requiring platform-specific implementation
-int  platform_adc_update_sequence();
-int  platform_adc_start_sequence();
+int  platform_adc_update_sequence(void);
+int  platform_adc_start_sequence(void);
 void platform_adc_stop( unsigned id );
 u32  platform_adc_set_clock( unsigned id, u32 frequency);
 int  platform_adc_check_timer_id( unsigned id, unsigned timer_id );
@@ -308,8 +308,8 @@ int platform_i2c_recv_byte( unsigned id, int ack );
 
 void platform_eth_send_packet( const void* src, u32 size );
 u32 platform_eth_get_packet_nb( void* buf, u32 maxlen );
-void platform_eth_force_interrupt();
-u32 platform_eth_get_elapsed_time();
+void platform_eth_force_interrupt(void);
+u32 platform_eth_get_elapsed_time(void);
 
 // *****************************************************************************
 // Internal flash erase/write functions
@@ -319,7 +319,7 @@ u32 platform_flash_get_first_free_block_address( u32 *psect );
 u32 platform_flash_get_sector_of_address( u32 addr );
 u32 platform_flash_write( const void *from, u32 toaddr, u32 size );
 u32 platform_s_flash_write( const void *from, u32 toaddr, u32 size );
-u32 platform_flash_get_num_sectors();
+u32 platform_flash_get_num_sectors(void);
 int platform_flash_erase_sector( u32 sector_id );
 
 // *****************************************************************************

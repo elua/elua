@@ -5,9 +5,9 @@
 #include "type.h"
 #include "platform.h"
 
-extern void arm_enable_ints();
-extern void arm_disable_ints();
-extern u32 arm_get_int_status();
+extern void arm_enable_ints( void );
+extern void arm_disable_ints( void );
+extern u32 arm_get_int_status( void );
 
 int platform_cpu_set_global_interrupts( int status )
 {
@@ -20,7 +20,7 @@ int platform_cpu_set_global_interrupts( int status )
   return ( crt_status & INTERRUPT_MASK_BIT ) == INTERRUPT_ACTIVE;
 }
 
-int platform_cpu_get_global_interrupts()
+int platform_cpu_get_global_interrupts( void )
 {
   return ( arm_get_int_status() & INTERRUPT_MASK_BIT ) == INTERRUPT_ACTIVE;
 }

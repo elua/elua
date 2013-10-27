@@ -464,7 +464,7 @@ void* _sbrk_r( struct _reent* r, ptrdiff_t incr )
 } 
 
 // mallinfo()
-struct mallinfo mallinfo()
+struct mallinfo mallinfo( void )
 {
 #ifdef USE_MULTIPLE_ALLOCATOR
   return dlmallinfo();
@@ -518,7 +518,7 @@ void std_set_get_func( p_std_get_char pfunc )
 {
 }
 
-const DM_DEVICE* std_get_desc()
+const DM_DEVICE* std_get_desc( void )
 {
   return NULL;
 }

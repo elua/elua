@@ -7,6 +7,6 @@
 #include "devman.h"
 
 // FS functions
-int mmcfs_init();
+int mmcfs_init( void );
 
 #endif

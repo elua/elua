@@ -157,7 +157,7 @@ static int uart_recv( timer_data_type to )
   return platform_uart_recv( CON_UART_ID, CON_TIMER_ID, to );
 }
 
-void cmn_platform_init()
+void cmn_platform_init(void)
 {
 #ifdef BUILD_INT_HANDLERS
   platform_int_init();
@@ -278,7 +278,7 @@ int platform_pwm_exists( unsigned id )
 // ****************************************************************************
 // CPU functions
 
-u32 platform_cpu_get_frequency()
+u32 platform_cpu_get_frequency(void)
 {
   return CPU_FREQUENCY;
 }
@@ -486,7 +486,7 @@ u32 platform_flash_get_sector_of_address( u32 addr )
   return flashh_find_sector( addr, NULL, NULL );
 }
 
-u32 platform_flash_get_num_sectors()
+u32 platform_flash_get_num_sectors(void)
 {
 #ifdef INTERNAL_FLASH_SECTOR_SIZE
   return INTERNAL_FLASH_SIZE / INTERNAL_FLASH_SECTOR_SIZE;

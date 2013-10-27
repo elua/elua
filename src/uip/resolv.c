@@ -467,12 +467,15 @@ resolv_init(void)
 /** @} */
 
 #else  // #ifdef BUILD_DNS
+void resolv_appcall( void );
+void resolv_init( void );
+void resolv_conf( void *dnsserver );
 
-void resolv_appcall()
+void resolv_appcall( void )
 {
 }
 
-void resolv_init()
+void resolv_init( void )
 {
 }
 

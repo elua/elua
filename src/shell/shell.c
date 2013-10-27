@@ -364,7 +364,7 @@ const SHELL_COMMAND* shellh_execute_command( char* cmd, int interactive_mode )
 }
 
 // Execute the eLua "shell" in an infinite loop
-void shell_start()
+void shell_start( void )
 {
   char cmd[ SHELL_MAXSIZE + 1 ];
   const SHELL_COMMAND *pcmd;
@@ -401,7 +401,7 @@ void shell_start()
 }
 
 // Initialize the shell, returning 1 for OK and 0 for error
-int shell_init()
+int shell_init( void )
 {
   shell_prog = NULL;
   return 1;
@@ -409,12 +409,12 @@ int shell_init()
 
 #else // #ifdef BUILD_SHELL
 
-int shell_init()
+int shell_init( void )
 {
   return 0;
 }
 
-void shell_start()
+void shell_start( void )
 {
 }
 

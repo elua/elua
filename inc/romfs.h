@@ -80,8 +80,8 @@ typedef struct
 #define romfs_fs_is_flag_set( p, f )  ( ( p->flags & ( f ) ) != 0 )
 
 // FS functions
-int romfs_init();
-int wofs_format();
+int romfs_init( void );
+int wofs_format( void );
 
 #endif
 

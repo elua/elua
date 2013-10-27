@@ -21,8 +21,8 @@ typedef struct
   p_shell_handler handler_func;
 } SHELL_COMMAND;
 
-int shell_init();
-void shell_start();
+int shell_init( void );
+void shell_start( void );
 const SHELL_COMMAND* shellh_execute_command( char* cmd, int interactive_mode );
 int shellh_cp_file( const char *src, const char *dst, int flags );
 void shellh_not_implemented_handler( int argc, char **argv );
@@ -31,7 +31,7 @@ void shellh_show_help( const char *cmd, const char *helptext );
 #define SHELL_SHOW_HELP( cmd )          shellh_show_help( #cmd, shell_help_##cmd )
 
 // Helpers for various functions
-int shellh_ask_yes_no();
+int shellh_ask_yes_no( void );
 
 // Flags for various operations
 #define SHELL_F_RECURSIVE               1

@@ -43,6 +43,6 @@ typedef struct {
 
 
 // FS functions
-int semifs_init();
+int semifs_init( void );
 
 #endif

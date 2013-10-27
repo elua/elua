@@ -101,9 +101,9 @@ const DM_DEVICE* dm_get_device_at( int idx );
 // Get an instance
 const DM_INSTANCE_DATA* dm_get_instance_at( int idx );
 // Returns the number of registered devices
-int dm_get_num_devices();
+int dm_get_num_devices(void);
 // Initialize device manager
-int dm_init();
+int dm_init(void);
 
 // DM specific functions (uniform over all the installed filesystems)
 DM_DIR *dm_opendir( const char* dirname );

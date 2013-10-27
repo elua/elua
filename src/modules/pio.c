@@ -28,7 +28,7 @@ static pio_type pio_masks[ PLATFORM_IO_PORTS ];
 // Generic helper functions
 
 // Helper function: clear all masks
-static void pioh_clear_masks()
+static void pioh_clear_masks(void)
 {
   int i;
   
