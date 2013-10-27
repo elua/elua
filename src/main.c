@@ -25,7 +25,7 @@
 
 // Define here your autorun/boot files, 
 // in the order you want eLua to search for them
-char *boot_order[] = {
+const char *boot_order[] = {
 #if defined(BUILD_MMCFS)
   "/mmc/autorun.lua",
   "/mmc/autorun.lc",
@@ -96,7 +96,7 @@ int main( void )
     if( ( fp = fopen( boot_order[ i ], "r" ) ) != NULL )
     {
       fclose( fp );
-      char* lua_argv[] = { "lua", boot_order[i], NULL };
+      char* lua_argv[] = { (char *)"lua", (char *)boot_order[i], NULL };
       lua_main( 2, lua_argv );
       break; // autoruns only the first found
     }
@@ -110,7 +110,7 @@ int main( void )
   if( shell_init() == 0 )
   {
     // Start Lua directly
-    char* lua_argv[] = { "lua", NULL };
+    char* lua_argv[] = { (char *)"lua", NULL };
     lua_main( 1, lua_argv );
   }
   else

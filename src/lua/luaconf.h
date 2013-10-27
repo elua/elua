@@ -884,7 +884,7 @@ typedef long int32_t;
 #define LUA_META_ROTABLES 
 #endif
 
-#if LUA_OPTIMIZE_MEMORY == 2 && LUA_USE_POPEN
+#if LUA_OPTIMIZE_MEMORY == 2 && defined(LUA_USE_POPEN)
 #error "Pipes not supported in aggresive optimization mode (LUA_OPTIMIZE_MEMORY=2)"
 #endif
 
