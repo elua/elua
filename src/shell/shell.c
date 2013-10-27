@@ -27,24 +27,9 @@
 #define SHELL_ALT_SPACE           '\x07'
 #define SHELL_MAX_ARGS            10
 
-// External shell function declaration
-#define SHELL_FUNC( func )        extern void func( int argc, char **argv )
 
 // Shell data
 char* shell_prog;
-
-// Extern implementations of shell functions
-SHELL_FUNC( shell_ls );
-SHELL_FUNC( shell_cp );
-SHELL_FUNC( shell_adv_mv );
-SHELL_FUNC( shell_adv_rm );
-SHELL_FUNC( shell_recv );
-SHELL_FUNC( shell_help );
-SHELL_FUNC( shell_cat );
-SHELL_FUNC( shell_lua );
-SHELL_FUNC( shell_ver );
-SHELL_FUNC( shell_mkdir );
-SHELL_FUNC( shell_wofmt );
 
 // ----------------------------------------------------------------------------
 // Helpers
@@ -87,12 +72,20 @@ int shellh_ask_yes_no( const char *prompt )
 #endif
 
 // Dummy log function
+#ifdef __GNUC__
+static int shellh_dummy_printf( const char *fmt, ... ) __attribute__ ((format (printf, 1, 2)));
+#endif
+
 static int shellh_dummy_printf( const char *fmt, ... )
 {
   return 0;
 }
 
+#ifdef __GNUC__
+typedef int ( *p_logf )( const char *fmt, ... ) __attribute__ ((format (printf, 1, 2)));
+#else
 typedef int ( *p_logf )( const char *fmt, ... );
+#endif
 
 // Helper: copy one file to another file
 // Return 1 for success, 0 for error

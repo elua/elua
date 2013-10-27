@@ -19,7 +19,13 @@ static unsigned term_cx, term_cy;
 // *****************************************************************************
 // Terminal functions
 
+
 // Helper function: send the requested string to the terminal
+
+#ifdef __GNUC__
+static void term_ansi( const char* fmt, ... )  __attribute__ ((format (printf, 1, 2)));
+#endif
+
 static void term_ansi( const char* fmt, ... )
 {
   char seq[ TERM_MAX_ANSI_SIZE + 1 ];
