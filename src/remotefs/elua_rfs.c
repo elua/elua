@@ -15,6 +15,8 @@
 #endif
 #include <stdio.h>
 
+#include "elua_rfs.h"
+
 #ifdef BUILD_RFS
 
 // [TODO] the new builder should automatically do this

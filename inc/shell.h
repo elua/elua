@@ -31,7 +31,7 @@ void shellh_show_help( const char *cmd, const char *helptext );
 #define SHELL_SHOW_HELP( cmd )          shellh_show_help( #cmd, shell_help_##cmd )
 
 // Helpers for various functions
-int shellh_ask_yes_no( void );
+int shellh_ask_yes_no( const char *prompt );
 
 // Flags for various operations
 #define SHELL_F_RECURSIVE               1
@@ -40,6 +40,22 @@ int shellh_ask_yes_no( void );
 #define SHELL_F_SIMULATE_ONLY           8
 #define SHELL_F_SILENT                  16
 #define SHELL_F_MOVE                    32
+
+// External shell function declaration
+#define SHELL_FUNC( func )        extern void func( int argc, char **argv )
+
+// Extern implementations of shell functions
+SHELL_FUNC( shell_ls );
+SHELL_FUNC( shell_cp );
+SHELL_FUNC( shell_adv_mv );
+SHELL_FUNC( shell_adv_rm );
+SHELL_FUNC( shell_recv );
+SHELL_FUNC( shell_help );
+SHELL_FUNC( shell_cat );
+SHELL_FUNC( shell_lua );
+SHELL_FUNC( shell_ver );
+SHELL_FUNC( shell_mkdir );
+SHELL_FUNC( shell_wofmt );
 
 #endif // #ifndef __SHELL_H__
 
