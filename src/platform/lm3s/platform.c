@@ -84,10 +84,14 @@
 // forward
 static void timers_init();
 static void uarts_init();
+
+#if NUM_SPI > 0
 static void spis_init();
+#endif
+
 static void pios_init();
 
-#ifdef NUM_PWM > 0
+#if NUM_PWM > 0
 static void pwms_init();
 #endif
 
@@ -108,8 +112,10 @@ int platform_init()
   // Setup PIO
   pios_init();
 
-  // Setup SSIs
+#if NUM_SPI > 0
+  // Setup SPIs
   spis_init();
+#endif
 
   // Setup UARTs
   uarts_init();
@@ -117,7 +123,7 @@ int platform_init()
   // Setup timers
   timers_init();
 
-#ifdef NUM_PWM > 0
+#if NUM_PWM > 0
   // Setup PWMs
   pwms_init();
 #endif
@@ -383,6 +389,8 @@ int platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )
 // SPI
 // Same configuration on LM3S8962, LM3S6965, LM3S6918 and LM3S9B92 (2 SPI ports)
 
+#if NUM_SPI > 0
+
 // All possible LM3S SPIs defs
 // FIXME this anticipates support for a platform with 2 SPI port
 //  PIN info extracted from LM3S6950 and 5769 datasheets
@@ -457,6 +465,8 @@ void platform_spi_select( unsigned id, int is_select )
   id = id;
   is_select = is_select;
 }
+
+#endif // NUM_SPI > 0
 
 // ****************************************************************************
 // UART
