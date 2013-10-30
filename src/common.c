@@ -214,7 +214,7 @@ int platform_pio_has_port( unsigned port )
   const u8 pio_port_pins[] = PIO_PIN_ARRAY;
   return port < NUM_PIO && pio_port_pins[ port ] != 0;
 #else
-  #error "You must define either PIO_PINS_PER_PORT of PIO_PIN_ARRAY in platform_conf.h"
+  #error "You must define either PIO_PINS_PER_PORT of PIO_PIN_ARRAY in cpu header"
 #endif
 }
 
@@ -234,7 +234,7 @@ int platform_pio_has_pin( unsigned port, unsigned pin )
   const u8 pio_port_pins[] = PIO_PIN_ARRAY;
   return port < NUM_PIO && pin < pio_port_pins[ port ];
 #else
-  #error "You must define either PIO_PINS_PER_PORT of PIO_PIN_ARRAY in platform_conf.h"
+  #error "You must define either PIO_PINS_PER_PORT of PIO_PIN_ARRAY in platform cpu.h"
 #endif
 }
 
@@ -246,7 +246,7 @@ int platform_pio_get_num_pins( unsigned port )
   const u8 pio_port_pins[] = PIO_PIN_ARRAY;
   return pio_port_pins[ port ];
 #else
-  #error "You must define either PIO_PINS_PER_PORT of PIO_PIN_ARRAY in platform_conf.h"
+  #error "You must define either PIO_PINS_PER_PORT of PIO_PIN_ARRAY in platform cpu.h"
 #endif
 }
 

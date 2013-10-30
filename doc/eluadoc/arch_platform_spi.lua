@@ -40,7 +40,7 @@ data_en =
   {
     { sig = "int #platform_spi_exists#( unsigned id );",
       desc = [[Checks if the platform has the hardware SPI specified as argument. Implemented in %src/common.c%, it uses the $NUM_SPI$ macro that must be defined in the
-  platform's $platform_conf.h$ file (see @arch_overview.html#platforms@here@ for details). For example:</p>
+  platform's $cpu_xxx.h$ file (see @arch_overview.html#platforms@here@ for details). For example:</p>
   ~#define NUM_SPI   1      $// The platform has 1 SPI interface$~<p> ]],
       args = "$id$ - SPI interface ID",
       ret = "1 if the SPI interface exists, 0 otherwise"

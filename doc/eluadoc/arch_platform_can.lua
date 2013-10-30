@@ -32,7 +32,7 @@ enum
   {
     { sig = "int #platform_can_exists#( unsigned id );",
       desc = [[Checks if the platform has the hardware CAN specified as argument. Implemented in %src/common.c%, it uses the $NUM_CAN$ macro that must be defined in the
-  platform's $platform_conf.h$ file (see @arch_overview.html#platforms@here@ for details). For example:</p>
+  platform's $cpu_xxx.h$ file (see @arch_overview.html#platforms@here@ for details). For example:</p>
   ~#define NUM_CAN   1      $// The platform has one CAN interface$~<p> ]],
       args = "$id$ - CAN interface ID.",
       ret = "1 if the CAN interface exists, 0 otherwise"

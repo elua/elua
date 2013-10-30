@@ -6,7 +6,7 @@ To add interrupt support for an eLua platform follow the steps below:
 
 1. *Define your interrupts*
 +
-Your interrupt sources should be defined in link:arch_platform.html[platform_conf.h] with macros (don't use C enumerations). The first one should have the value *ELUA_INT_FIRST_ID* 
+Your interrupt sources should be defined in link:arch_platform.html[platform_ints.h] with macros (don't use C enumerations). The first one should have the value *ELUA_INT_FIRST_ID* 
 (defined in _inc/elua_int.h_), the next one *ELUA_INT_FIRST_ID + 1* and so on. Also, there should be a definition for a macro called *INT_ELUA_LAST* that must be equal to the largest 
 interrupt source value. An example is given below:
 +

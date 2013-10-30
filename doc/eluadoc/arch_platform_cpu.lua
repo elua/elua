@@ -29,7 +29,7 @@ data_en =
       desc = "Enable or disable a specific CPU interrupt for a given resource ID.",
       args = 
       {
-        "$id$ - the interrupt ID, as defined in %platform_conf.h%.",
+        "$id$ - the interrupt ID, as defined in %platform_ints.h%.",
         "$resnum$ - the resource ID.",
         "$status$ - $PLATFORM_CPU_ENABLE to enable the interrupt or $PLATFORM_CPU_DISABLE$ to disable the interrupt.",
       },
@@ -46,7 +46,7 @@ data_en =
       desc = "Get the interrupt enabled status of a specific CPU interrupt for a given resource ID.",
       args = 
       {
-        "$id$ - the interrupt ID, as defined in %platform_conf.h%",
+        "$id$ - the interrupt ID, as defined in %platform_ints.h%",
         "$resnum$ - the resource ID"
       },
       ret =
@@ -62,7 +62,7 @@ data_en =
       desc = "Return the interrupt pending flag of a specific CPU interrupt or a given resource ID and optionally clear it.",
       args = 
       {
-        "$id$ - the interrupt ID, as defined in %platform_conf.h%.",
+        "$id$ - the interrupt ID, as defined in %platform_ints.h%.",
         "$resnum$ - the resource ID.",
         "$clear$ - 1 to clear the interrupt pending flag if it is set, 0 otherwise."
       },
