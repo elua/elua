@@ -6,7 +6,6 @@
 #include "elua_int.h"
 #include "lua.h"
 #include "platform.h"
-#include "devman.h"
 
 // Virtual timers data
 // VTMR_FIRST_ID must be LARGER than PLATFORM_TIMER_SYS_ID (as declared in platform.h)

@@ -1,10 +1,8 @@
 // eLua interrupt support
 
-#include "elua_int.h"
 #include "lua.h"
 #include "platform.h"
 #include "platform_conf.h"
-#include "type.h"
 #include "ldebug.h"
 #include <stdio.h>
 #include <string.h>

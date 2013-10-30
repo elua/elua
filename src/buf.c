@@ -23,11 +23,8 @@
 
 #ifdef BUF_ENABLE
 
-#include "buf.h"
 #include "type.h"
-#include "platform.h"
 #include "utils.h"
-#include "sermux.h"
 #include <stdlib.h>
 #include <string.h>
 

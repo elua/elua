@@ -3,7 +3,6 @@
 #ifndef __ELUA_NET_H__
 #define __ELUA_NET_H__
 
-#include "type.h"
 #include "lauxlib.h"
 #include "platform.h"
 

@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "type.h"
-#include "devman.h"
 #include "platform.h"
 #include "romfs.h"
 #include "xmodem.h"

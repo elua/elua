@@ -4,7 +4,6 @@
 #define __PLATFORM_H__
 
 #include "devman.h"
-#include "type.h"
 #include "elua_int.h"
 
 // Error / status codes

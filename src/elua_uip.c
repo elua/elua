@@ -6,7 +6,6 @@
 
 #include "elua_uip.h"
 #include "elua_net.h"
-#include "type.h"
 #include "uip.h"
 #include "uip_arp.h"
 #include "platform.h"

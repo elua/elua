@@ -4,7 +4,6 @@
 #ifndef __ELUA_UIP_H__
 #define __ELUA_UIP_H__
 
-#include "type.h"
 #include "elua_net.h"
 
 // eLua UIP application states

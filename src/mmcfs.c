@@ -1,9 +1,7 @@
 // MMC filesystem implementation using FatFs
 #include "mmcfs.h"
-#include "type.h"
 #include <string.h>
 #include <errno.h>
-#include "devman.h"
 #include <stdio.h>
 #include "ioctl.h"
 #include <sys/types.h>

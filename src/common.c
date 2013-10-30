@@ -1,11 +1,9 @@
 // Common code for all backends
 
-#include "platform.h"
+#include "platform.h"		// platform_conf.h
 #include "platform_conf.h"
-#include "type.h"
 #include "genstd.h"
 #include "common.h"
-#include "buf.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,8 +12,6 @@
 #include "elua_adc.h"
 #include "term.h"
 #include "xmodem.h"
-#include "elua_int.h"
-#include "sermux.h"
 #include "lua.h"
 #include "lapi.h"
 #include "lauxlib.h"

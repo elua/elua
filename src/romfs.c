@@ -1,9 +1,7 @@
 // Filesystem implementation
 #include "romfs.h"
-#include "type.h"
 #include <string.h>
 #include <errno.h>
-#include "devman.h"
 #include "romfiles.h"
 #include <stdio.h>
 #include "ioctl.h"
