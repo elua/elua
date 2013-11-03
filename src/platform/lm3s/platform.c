@@ -84,9 +84,17 @@
 // forward
 static void timers_init();
 static void uarts_init();
+
+#if NUM_SPI > 0
 static void spis_init();
+#endif
+
 static void pios_init();
+
+#if NUM_PWM > 0
 static void pwms_init();
+#endif
+
 static void eth_init();
 static void adcs_init();
 static void cans_init();
@@ -104,8 +112,10 @@ int platform_init()
   // Setup PIO
   pios_init();
 
-  // Setup SSIs
+#if NUM_SPI > 0
+  // Setup SPIs
   spis_init();
+#endif
 
   // Setup UARTs
   uarts_init();
@@ -113,8 +123,10 @@ int platform_init()
   // Setup timers
   timers_init();
 
+#if NUM_PWM > 0
   // Setup PWMs
   pwms_init();
+#endif
 
 #ifdef BUILD_ADC
   // Setup ADCs
@@ -377,6 +389,8 @@ int platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )
 // SPI
 // Same configuration on LM3S8962, LM3S6965, LM3S6918 and LM3S9B92 (2 SPI ports)
 
+#if NUM_SPI > 0
+
 // All possible LM3S SPIs defs
 // FIXME this anticipates support for a platform with 2 SPI port
 //  PIN info extracted from LM3S6950 and 5769 datasheets
@@ -451,6 +465,8 @@ void platform_spi_select( unsigned id, int is_select )
   id = id;
   is_select = is_select;
 }
+
+#endif // NUM_SPI > 0
 
 // ****************************************************************************
 // UART
@@ -674,6 +690,8 @@ int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int 
 // Similar on LM3S8962 and LM3S6965
 // LM3S6918 has no PWM
 
+#if NUM_PWM > 0
+
 // SYSCTL div data and actual div factors
 const static u32 pwm_div_ctl[] = { SYSCTL_PWMDIV_1, SYSCTL_PWMDIV_2, SYSCTL_PWMDIV_4, SYSCTL_PWMDIV_8, SYSCTL_PWMDIV_16, SYSCTL_PWMDIV_32, SYSCTL_PWMDIV_64 };
 const static u8 pwm_div_data[] = { 1, 2, 4, 8, 16, 32, 64 };
@@ -777,6 +795,8 @@ void platform_pwm_stop( unsigned id )
   MAP_PWMOutputState( PWM_BASE, 1 << id, false );
   MAP_PWMGenDisable( PWM_BASE, pwm_gens[ id >> 1 ] );
 }
+
+#endif // NUM_PWM > 0
 
 // *****************************************************************************
 // ADC specific functions and variables

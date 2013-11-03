@@ -1,6 +1,6 @@
 // Module for interfacing with PIO
 
-#include "lua.h"
+//#include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
 #include "platform.h"
@@ -28,7 +28,7 @@ static pio_type pio_masks[ PLATFORM_IO_PORTS ];
 // Generic helper functions
 
 // Helper function: clear all masks
-static void pioh_clear_masks()
+static void pioh_clear_masks(void)
 {
   int i;
   
@@ -285,7 +285,7 @@ static int pio_mt_index( lua_State* L )
   
   if( !key || *key != 'P' )
     return 0;
-  if( isupper( key[ 1 ] ) ) // PA, PB, ...
+  if( isupper( (unsigned char) key[ 1 ] ) ) // PA, PB, ...
   {
     if( PIO_PREFIX != 'A' )
       return 0;

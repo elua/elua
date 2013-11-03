@@ -1,11 +1,9 @@
 // Common code for all backends
 
-#include "platform.h"
+#include "platform.h"		// platform_conf.h
 #include "platform_conf.h"
-#include "type.h"
 #include "genstd.h"
 #include "common.h"
-#include "buf.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,8 +12,6 @@
 #include "elua_adc.h"
 #include "term.h"
 #include "xmodem.h"
-#include "elua_int.h"
-#include "sermux.h"
 #include "lua.h"
 #include "lapi.h"
 #include "lauxlib.h"
@@ -161,7 +157,7 @@ static int uart_recv( timer_data_type to )
   return platform_uart_recv( CON_UART_ID, CON_TIMER_ID, to );
 }
 
-void cmn_platform_init()
+void cmn_platform_init(void)
 {
 #ifdef BUILD_INT_HANDLERS
   platform_int_init();
@@ -218,7 +214,7 @@ int platform_pio_has_port( unsigned port )
   const u8 pio_port_pins[] = PIO_PIN_ARRAY;
   return port < NUM_PIO && pio_port_pins[ port ] != 0;
 #else
-  #error "You must define either PIO_PINS_PER_PORT of PIO_PIN_ARRAY in platform_conf.h"
+  #error "You must define either PIO_PINS_PER_PORT of PIO_PIN_ARRAY in cpu header"
 #endif
 }
 
@@ -238,7 +234,7 @@ int platform_pio_has_pin( unsigned port, unsigned pin )
   const u8 pio_port_pins[] = PIO_PIN_ARRAY;
   return port < NUM_PIO && pin < pio_port_pins[ port ];
 #else
-  #error "You must define either PIO_PINS_PER_PORT of PIO_PIN_ARRAY in platform_conf.h"
+  #error "You must define either PIO_PINS_PER_PORT of PIO_PIN_ARRAY in platform cpu.h"
 #endif
 }
 
@@ -250,7 +246,7 @@ int platform_pio_get_num_pins( unsigned port )
   const u8 pio_port_pins[] = PIO_PIN_ARRAY;
   return pio_port_pins[ port ];
 #else
-  #error "You must define either PIO_PINS_PER_PORT of PIO_PIN_ARRAY in platform_conf.h"
+  #error "You must define either PIO_PINS_PER_PORT of PIO_PIN_ARRAY in platform cpu.h"
 #endif
 }
 
@@ -282,7 +278,7 @@ int platform_pwm_exists( unsigned id )
 // ****************************************************************************
 // CPU functions
 
-u32 platform_cpu_get_frequency()
+u32 platform_cpu_get_frequency(void)
 {
   return CPU_FREQUENCY;
 }
@@ -490,7 +486,7 @@ u32 platform_flash_get_sector_of_address( u32 addr )
   return flashh_find_sector( addr, NULL, NULL );
 }
 
-u32 platform_flash_get_num_sectors()
+u32 platform_flash_get_num_sectors(void)
 {
 #ifdef INTERNAL_FLASH_SECTOR_SIZE
   return INTERNAL_FLASH_SIZE / INTERNAL_FLASH_SECTOR_SIZE;

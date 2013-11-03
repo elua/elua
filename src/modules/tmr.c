@@ -1,10 +1,10 @@
 // Module for interfacing with timers
 
-#include "lua.h"
-#include "lualib.h"
+//#include "lua.h"
+//#include "lualib.h"
 #include "lauxlib.h"
 #include "platform.h"
-#include "auxmods.h"
+//#include "auxmods.h"
 #include "platform_conf.h"
 #include "common.h"
 #include "lrotable.h"

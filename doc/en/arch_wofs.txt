@@ -109,7 +109,7 @@ int platform_flash_erase_sector( u32 sector_id );
 -------------------------------------------------
 
 Check link:arch_platform_flash.html[this link] for more details about the flash platform interface.
-If all the above requirements are met, just define *BUILD_WOFS* in your _platform_conf.h_ file, compile
+If all the above requirements are met, just add *wofs=true* to your _board.lua_ file, compile
 and burn your eLua image and you'll have a WOFS instance up and running. Check link:building.html[here]
 for more details about the configuration of your eLua image.
 

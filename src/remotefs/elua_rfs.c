@@ -15,6 +15,8 @@
 #endif
 #include <stdio.h>
 
+#include "elua_rfs.h"
+
 #ifdef BUILD_RFS
 
 // [TODO] the new builder should automatically do this
@@ -214,7 +216,7 @@ int remotefs_init()
 
 #else // #ifdef BUILD_RFS
 
-int remotefs_init()
+int remotefs_init( void )
 {
   return dm_register( NULL, NULL, NULL );
 }

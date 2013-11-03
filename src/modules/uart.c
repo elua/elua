@@ -1,13 +1,13 @@
 // Module for interfacing with UART
 
-#include "lua.h"
-#include "lualib.h"
+//#include "lua.h"
+//#include "lualib.h"
 #include "lauxlib.h"
 #include "platform.h"
-#include "auxmods.h"
+#//include "auxmods.h"
 #include "lrotable.h"
 #include "common.h"
-#include "sermux.h"
+//#include "sermux.h"
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
@@ -144,9 +144,9 @@ static int uart_read( lua_State* L )
     // are not supported.
     if( ( cres == '\n' ) && ( mode == UART_READ_MODE_LINE ) )
       break;
-    if( !isdigit( cres ) && !issign && ( mode == UART_READ_MODE_NUMBER ) )
+    if( !isdigit( (unsigned char) cres ) && !issign && ( mode == UART_READ_MODE_NUMBER ) )
       break;
-    if( isspace( cres ) && ( mode == UART_READ_MODE_SPACE ) )
+    if( isspace( (unsigned char) cres ) && ( mode == UART_READ_MODE_SPACE ) )
       break;
     luaL_putchar( &b, cres );
     if( ( count == maxsize ) && ( mode == UART_READ_MODE_MAXSIZE ) )
@@ -270,6 +270,8 @@ const LUA_REG_TYPE uart_map[] =
   { LSTRKEY( "PAR_EVEN" ), LNUMVAL( PLATFORM_UART_PARITY_EVEN ) },
   { LSTRKEY( "PAR_ODD" ), LNUMVAL( PLATFORM_UART_PARITY_ODD ) },
   { LSTRKEY( "PAR_NONE" ), LNUMVAL( PLATFORM_UART_PARITY_NONE ) },
+  { LSTRKEY( "PAR_MARK" ), LNUMVAL( PLATFORM_UART_PARITY_MARK ) },
+  { LSTRKEY( "PAR_SPACE" ), LNUMVAL( PLATFORM_UART_PARITY_SPACE ) },
   { LSTRKEY( "STOP_1" ), LNUMVAL( PLATFORM_UART_STOPBITS_1 ) },
   { LSTRKEY( "STOP_1_5" ), LNUMVAL( PLATFORM_UART_STOPBITS_1_5 ) },
   { LSTRKEY( "STOP_2" ), LNUMVAL( PLATFORM_UART_STOPBITS_2 ) },
@@ -296,6 +298,8 @@ LUALIB_API int luaopen_uart( lua_State *L )
   MOD_REG_NUMBER( L, "PAR_EVEN", PLATFORM_UART_PARITY_EVEN );
   MOD_REG_NUMBER( L, "PAR_ODD", PLATFORM_UART_PARITY_ODD );
   MOD_REG_NUMBER( L, "PAR_NONE", PLATFORM_UART_PARITY_NONE );
+  MOD_REG_NUMBER( L, "PAR_EVEN", PLATFORM_UART_PARITY_MARK );
+  MOD_REG_NUMBER( L, "PAR_EVEN", PLATFORM_UART_PARITY_SPACE );
   MOD_REG_NUMBER( L, "STOP_1", PLATFORM_UART_STOPBITS_1 );
   MOD_REG_NUMBER( L, "STOP_1_5", PLATFORM_UART_STOPBITS_1_5 );
   MOD_REG_NUMBER( L, "STOP_2", PLATFORM_UART_STOPBITS_2 );

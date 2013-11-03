@@ -47,8 +47,8 @@ int elua_int_add( elua_int_id inttype, elua_int_resnum resnum );
 void elua_int_enable( elua_int_id inttype );
 void elua_int_disable( elua_int_id inttype );
 int elua_int_is_enabled( elua_int_id inttype );
-void elua_int_cleanup();
-void elua_int_disable_all();
+void elua_int_cleanup(void);
+void elua_int_disable_all(void);
 elua_int_c_handler elua_int_set_c_handler( elua_int_id inttype, elua_int_c_handler phandler );
 elua_int_c_handler elua_int_get_c_handler( elua_int_id inttype );
 

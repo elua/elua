@@ -1,6 +1,6 @@
 // Module for interfacing with Lua SPI code
 
-#include "lua.h"
+//#include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
 #include "platform.h"

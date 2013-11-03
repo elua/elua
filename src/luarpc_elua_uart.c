@@ -10,6 +10,9 @@
 // Buffer for async dispatch
 int adispatch_buff = -1;
 
+void set_adispatch_buff( int i );
+int transport_get_char(Transport *t);
+
 void set_adispatch_buff( int i )
 {
   adispatch_buff = i;

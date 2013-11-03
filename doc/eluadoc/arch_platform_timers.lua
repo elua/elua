@@ -50,7 +50,7 @@ enum
   {
     { sig = "int #platform_timer_exists#( unsigned id );",
       desc = [[Checks if the platform has the timer specified as argument. Implemented in %src/common.c%, it uses the $NUM_TIMER$ macro that must be defined in the
-  platform's $platform_conf.h$ file (see @arch_overview.html#platforms@here@ for details) and the virtual timer configuration (@#virtual@here@ for details). For example:</p>
+  platform's $cpu_xxx.h$ file (see @arch_overview.html#platforms@here@ for details) and the virtual timer configuration (@#virtual@here@ for details). For example:</p>
   ~#define NUM_TIMER   2      $// The platform has 2 hardware timers$~<p>]],
       args = "$id$ - the timer ID",
       ret = "1 if the timer exists, 0 otherwise"

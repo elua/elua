@@ -1,5 +1,6 @@
 // Auxiliary Lua modules. All of them are declared here, then each platform
 // decides what module(s) to register in the src/platform/xxxxx/platform_conf.h file
+// FIXME: no longer platform_conf.h - either CPU header file, or board file
 
 #ifndef __AUXMODS_H__
 #define __AUXMODS_H__

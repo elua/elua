@@ -6,7 +6,6 @@
 #include "elua_int.h"
 #include "lua.h"
 #include "platform.h"
-#include "devman.h"
 
 // Virtual timers data
 // VTMR_FIRST_ID must be LARGER than PLATFORM_TIMER_SYS_ID (as declared in platform.h)
@@ -34,8 +33,8 @@
 typedef int ( *p_cmn_fs_walker_cb )( const char*, const struct dm_dirent*, void*, int );
 
 // Functions exported by the common platform layer
-void cmn_platform_init();
-void cmn_virtual_timer_cb();
+void cmn_platform_init(void);
+void cmn_virtual_timer_cb(void);
 void cmn_int_handler( elua_int_id id, elua_int_resnum resnum );
 // Timer-specific functions
 int cmn_tmr_int_set_status( elua_int_resnum resnum, int status );
@@ -45,8 +44,8 @@ int cmn_tmr_int_get_flag( elua_int_resnum resnum, int clear );
 void cmn_systimer_set_base_freq( u32 freq_hz );
 void cmn_systimer_set_interrupt_freq( u32 freq_hz );
 void cmn_systimer_set_interrupt_period_us( u32 period );
-void cmn_systimer_periodic();
-timer_data_type cmn_systimer_get();
+void cmn_systimer_periodic(void);
+timer_data_type cmn_systimer_get(void);
 // Filesystem-related functions
 int cmn_fs_walkdir( const char *path, p_cmn_fs_walker_cb cb, void *pdata, int recursive );
 char* cmn_fs_split_path( const char *path, const char **pmask );
@@ -55,7 +54,7 @@ char* cmn_fs_path_join( const char *first, ... );
 int cmn_fs_is_root_dir( const char *path );
 int cmn_fs_check_directory( const char *path );
 
-void cmn_uart_setup_sermux();
+void cmn_uart_setup_sermux(void);
 
 unsigned int intlog2( unsigned int v );
 char lastchar( const char *s );

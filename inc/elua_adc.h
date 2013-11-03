@@ -1,7 +1,6 @@
 #ifndef __ELUA_ADC_H__
 #define __ELUA_ADC_H__
 
-#include "type.h"
 #include "platform_conf.h"
 
 

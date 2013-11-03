@@ -43,7 +43,7 @@ enum
   {
     { sig = "int #platform_i2c_exists#( unsigned id );",
       desc = [[Checks if the platform has the hardware I2C specified as argument. Implemented in %src/common.c%, it uses the $NUM_I2C$ macro that must be defined in the
-  platform's $platform_conf.h$ file (see @arch_overview.html#platforms@here@ for details). For example:</p>
+  platform's $cpu_xxx.h$ file (see @arch_overview.html#platforms@here@ for details). For example:</p>
   ~#define NUM_I2C   1      $// The platform has one I2C interface$~<p> ]],
       args = "$id$ - I2C interface ID.",
       ret = "1 if the I2C interface exists, 0 otherwise"

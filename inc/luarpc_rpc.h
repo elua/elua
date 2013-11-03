@@ -1,6 +1,7 @@
 #include "cexcept.h"
 #include "type.h"
-#include "serial.h"
+#include "rpc_serial.h"
+#warning Not sure which of the two serial.h this should include
 
 /****************************************************************************/
 // Parameters

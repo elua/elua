@@ -1,9 +1,7 @@
 // Filesystem implementation
 #include "swi.h"
-#include "type.h"
 #include <string.h>
 #include <errno.h>
-#include "devman.h"
 #include <stdio.h>
 #include "ioctl.h"
 #include "semifs.h"

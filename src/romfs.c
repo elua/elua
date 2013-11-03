@@ -1,9 +1,7 @@
 // Filesystem implementation
 #include "romfs.h"
-#include "type.h"
 #include <string.h>
 #include <errno.h>
-#include "devman.h"
 #include "romfiles.h"
 #include <stdio.h>
 #include "ioctl.h"
@@ -37,7 +35,7 @@ static int wofs_sim_fd;
 // Length of the 'file size' field for both ROMFS/WOFS
 #define ROMFS_SIZE_LEN        4
 
-static int romfs_find_empty_fd()
+static int romfs_find_empty_fd(void)
 {
   int i;
   
@@ -473,7 +471,7 @@ static FSDATA wofs_sim_fsdata =
 
 // WOFS formatting function
 // Returns 1 if OK, 0 for error
-int wofs_format()
+int wofs_format( void )
 {
   unsigned i;
 
@@ -510,7 +508,7 @@ static FSDATA wofs_fsdata =
 
 // WOFS formatting function
 // Returns 1 if OK, 0 for error
-int wofs_format()
+int wofs_format( void )
 {
   u32 sect_first, sect_last;
   FD tempfd;
@@ -529,7 +527,7 @@ int wofs_format()
 #endif // #ifdef BUILD_WOFS
 
 // Initialize both ROMFS and WOFS as needed
-int romfs_init()
+int romfs_init( void )
 {
   unsigned i;
 
@@ -568,7 +566,7 @@ int romfs_init()
 
 #else // #if defined( BUILD_ROMFS ) || defined( BUILD_WOFS )
 
-int romfs_init()
+int romfs_init( void )
 {
   return dm_register( NULL, NULL, NULL );
 }

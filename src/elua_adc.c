@@ -79,8 +79,8 @@ int adc_setup_channel( unsigned id, u8 logcount )
 #if defined( BUF_ENABLE_ADC )
   int res;
 
-  old_status = platform_cpu_get_global_interrupts( PLATFORM_CPU_DISABLE );
-  if( ( (u16) 1 << logcount ) != buf_get_size( BUF_ID_ADC, id ) )
+  old_status = platform_cpu_get_global_interrupts( ); // Had argument PLATFORM_CPU_DISABLE, but the prototype does not list an argument, and none of the 
+  if( ((unsigned) ( (u16) 1 << logcount )) != buf_get_size( BUF_ID_ADC, id ) )
   {   
     res = buf_set( BUF_ID_ADC, id, logcount, BUF_DSIZE_U16 );
     if ( res != PLATFORM_OK )

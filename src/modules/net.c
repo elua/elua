@@ -1,6 +1,6 @@
 // Module for interfacing with network functions (elua_net.h)
 
-#include "lua.h"
+//#include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
 #include "platform.h"

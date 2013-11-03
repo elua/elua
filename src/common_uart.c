@@ -1,11 +1,7 @@
 // Common implementation: UART functions
 
 #include "common.h"
-#include "platform.h"
 #include "platform_conf.h"
-#include "buf.h"
-#include "elua_int.h"
-#include "sermux.h"
 
 // ****************************************************************************
 // UART functions

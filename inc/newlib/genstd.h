@@ -20,7 +20,7 @@ typedef int ( *p_std_get_char )( timer_data_type to );
 // STD functions
 void std_set_send_func( p_std_send_char pfunc );
 void std_set_get_func( p_std_get_char pfunc );
-int std_register();
+int std_register(void);
 
 #endif
 

@@ -22,6 +22,10 @@
 #include <malloc.h>
 #endif
 
+int open( const char *name, int flags, mode_t mode );
+int _kill( int pid, int sig );
+pid_t _getpid( void );
+
 // Utility function: look in the device manager table and find the index
 // for the given name. Returns an index into the device structure, -1 if error.
 // Also returns a pointer to the actual file name (without the device part)
@@ -342,13 +346,13 @@ int isatty( int fd )
 #include <sys/types.h>
 #include <unistd.h>
 
-pid_t _getpid()
+pid_t _getpid( void )
 {
   return 0;
 }
 
 // For some very strange reason, the next function is required by the i386 platform...
-pid_t getpid()
+pid_t getpid( void )
 {
   return 0;
 }
@@ -464,7 +468,7 @@ void* _sbrk_r( struct _reent* r, ptrdiff_t incr )
 } 
 
 // mallinfo()
-struct mallinfo mallinfo()
+struct mallinfo mallinfo( void )
 {
 #ifdef USE_MULTIPLE_ALLOCATOR
   return dlmallinfo();
@@ -518,7 +522,7 @@ void std_set_get_func( p_std_get_char pfunc )
 {
 }
 
-const DM_DEVICE* std_get_desc()
+const DM_DEVICE* std_get_desc( void )
 {
   return NULL;
 }

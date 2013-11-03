@@ -180,7 +180,7 @@ int platform_cpu_set_global_interrupts( int status )
   return 0;
 }
 
-int platform_cpu_get_global_interrupts()
+int platform_cpu_get_global_interrupts( void )
 {
   return 0;
 }
@@ -188,7 +188,7 @@ int platform_cpu_get_global_interrupts()
 // ****************************************************************************
 // Allocator support
 
-u32 platform_get_lastmem()
+u32 platform_get_lastmem( void )
 {
   return lastmem;
 }

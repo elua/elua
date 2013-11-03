@@ -365,6 +365,8 @@ dhcpc_request(void)
 
 #else // #if defined(BUILD_UIP) && defined(BUILD_DHCPC)
 
+void dhcpc_appcall(void);
+
 void dhcpc_appcall(void)
 {
 }

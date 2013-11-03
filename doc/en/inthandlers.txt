@@ -163,7 +163,7 @@ This is why it makes sense to write the *int_select* function above in Lua inste
 Interrupt handlers in C
 -----------------------
 
-The interrupt subsystem has also a basic C API that can be used to implement portable eLua components and modules. It is enabled by defining *BUILD_C_INT_HANDLERS* in _platform_conf.h_. 
+The interrupt subsystem has also a basic C API that can be used to implement portable eLua components and modules. It is enabled by setting *cints = true* in _board.lua_. 
 It is defined in _inc/elua_int.h_ and has 2 functions:
 
 elua_int_c_handler elua_int_set_c_handler( elua_int_id inttype, elua_int_c_handler phandler )::

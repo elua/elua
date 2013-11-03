@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "type.h"
-#include "serial.h"
+#include "rfs_serial.h"
 
 #define WIN_ERROR     ( HANDLE )-1
 #define WIN_MAX_PORT_NAME   MAX_PATH

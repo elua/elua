@@ -110,7 +110,7 @@ const DM_INSTANCE_DATA* dm_get_instance_at( int idx )
 }
 
 // Returns the number of registered devices
-int dm_get_num_devices()
+int dm_get_num_devices(void)
 {
   return dm_num_devs;
 }
@@ -118,7 +118,7 @@ int dm_get_num_devices()
 // Initialize device manager
 // This initializes the standard descriptors (stdin, stdout, stderr)
 // At this point it is assumed that the std device (usually UART) is already initialized
-int dm_init() 
+int dm_init(void) 
 {
   std_register();
 #ifndef BUILD_CON_TCP         // we need buffering on stdout for console over TCP

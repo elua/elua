@@ -1,6 +1,6 @@
 // Serial inteface implementation for POSIX-compliant systems
 
-#include "serial.h"
+#include "rfs_serial.h"
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>

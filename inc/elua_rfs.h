@@ -5,7 +5,7 @@
 
 #include "devman.h"
 
-int remotefs_init();
+int remotefs_init( void );
 
 #endif
 

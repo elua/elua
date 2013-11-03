@@ -19,7 +19,9 @@ enum
 {
   PLATFORM_UART_PARITY_EVEN,
   PLATFORM_UART_PARITY_ODD,
-  PLATFORM_UART_PARITY_NONE
+  PLATFORM_UART_PARITY_NONE,
+  PLATFORM_UART_PARITY_MARK,
+  PLATFORM_UART_PARITY_SPACE
 };]],
       name = "UART parity",
       desc = "Constants used to specify the UART parity mode."
@@ -61,7 +63,7 @@ enum
   {
     { sig = "int #platform_uart_exists#( unsigned id );",
       desc = [[Checks if the platform has the hardware UART specified as argument. Implemented in %src/common.c%, it uses the $NUM_UART$ macro that must be defined in the
-  platform's $platform_conf.h$ file (see @arch_overview.html#platforms@here@ for details). For example:</p>
+  platform's $cpu_xxx.h$ file (see @arch_overview.html#platforms@here@ for details). For example:</p>
   ~#define NUM_UART   2      $// The platform has 2 UART interfaces$~<p>]],
       args = "$id$ - UART interface ID",
       ret = "1 if the specified UART exists, 0 otherwise"
@@ -74,7 +76,7 @@ enum
         "$id$ - UART interface ID.",
         "$baud$ - baud rate.",
         "$databits$ - number of databits (maximum 8).",
-        "$parity$ - parity type (can be either $PLATFORM_UART_PARITY_EVEN$, $PLATFORM_UART_PARITY_ODD$ or $PLATFORM_UART_PARITY_NONE$, see @#uart_parity@here@).",
+        "$parity$ - parity type (can be either $PLATFORM_UART_PARITY_EVEN$, $PLATFORM_UART_PARITY_ODD$, $PLATFORM_UART_PARITY_MARK$, $PLATFORM_UART_PARITY_SPACE$ or $PLATFORM_UART_PARITY_NONE$, see @#uart_parity@here@).",
         [[$stopbits$ - number of stop bits (can be either $PLATFORM_UART_STOPBITS_1$, $PLATFORM_UART_STOPBITS_1_5$ or $PLATFORM_UART_STOPBITS_2$, see
            @#uart_stop_bits@here@).]],
       },

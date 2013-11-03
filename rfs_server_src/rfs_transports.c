@@ -3,7 +3,7 @@
 #include "net.h"
 #include "remotefs.h"
 #include "eluarpc.h"
-#include "serial.h"
+#include "rfs_serial.h"
 #include "server.h"
 #include "type.h"
 #include "log.h"
