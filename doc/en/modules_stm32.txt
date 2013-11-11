@@ -1,0 +1,7 @@
+// $$HEADER$$
+Reference manual - STM32 platform dependent modules
+--------------------------------------------------
+
+This paragraph presents all the modules specific to the link:status.html[stm32] (stm32) platform.
+
+// $$FOOTER$$
