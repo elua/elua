@@ -9,7 +9,7 @@ addi( sf( 'src/platform/%s/FWLib/USB/VCP/inc', platform ) )
 
 local fwlib_files = utils.get_files( "src/platform/" .. platform .. "/FWLib/library/src", ".*%.c$" )
 fwlib_files = fwlib_files .. " " .. utils.get_files( "src/platform/" .. platform .. "/FWLib/USB/", "%.c$" )
-specific_files = "system_stm32f4xx.c startup_stm32f4xx.s stm32f4xx_it.c platform.c platform_int.c cpu.c stm32_pio.c"
+specific_files = "system_stm32f4xx.c startup_stm32f4xx.s stm32f4xx_it.c platform.c platform_int.c cpu.c stm32_pio.c enc.c"
 local ldscript = "stm32.ld"
   
 -- Prepend with path

@@ -194,6 +194,13 @@ Besides the generic components in the table above, each platform can specify its
 |stm32_enc             |None (true or false)           |Enable support for the STM32 timer encoder module
 |===================================================================
 
+.STM32F4 specific components
+[width="99%", cols="<3,<5,<10", options="header"]
+|===================================================================
+^|Key                 ^|Parameters                    ^|Meaning
+|stm32f4_enc           |None (true or false)           |Enable support for the STM32F4 timer encoder module
+|===================================================================
+
 .LPC17xx specific components
 [width="99%", cols="<3,<5,<10", options="header"]
 |===================================================================

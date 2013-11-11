@@ -1,0 +1,7 @@
+// $$HEADER$$
+Reference manual - STM32F4 platform dependent modules
+-----------------------------------------------------
+
+This paragraph presents all the modules specific to the link:status.html[stm32f4] (stm32f4) platform.
+
+// $$FOOTER$$

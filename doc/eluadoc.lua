@@ -9,7 +9,7 @@ local sf = string.format
 -- Data structure declarations
 
 -- List here all the sections for which we're generating the documentation
-local doc_sections = { "arch_platform", "refman_gen", "refman_ps_lm3s", "refman_ps_str9", "refman_ps_mbed", "refman_ps_mizar32" }
+local doc_sections = { "arch_platform", "refman_gen", "refman_ps_lm3s", "refman_ps_str9", "refman_ps_stm32", "refman_ps_stm32f4", "refman_ps_mbed", "refman_ps_mizar32" }
 
 -- List here all the components of each section
 local components = 
@@ -19,6 +19,8 @@ local components =
   refman_ps_lm3s = { "disp" },
   refman_ps_str9 = { "pio" },
   refman_ps_mbed = { "pio" },
+  refman_ps_stm32 = { "enc" },
+  refman_ps_stm32f4 = { "enc" },
   refman_ps_mizar32 = { "lcd", "rtc" },
 }
 
