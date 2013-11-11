@@ -20,6 +20,7 @@ return {
   modules = {
     generic = { 'all', "-spi", "-i2c", "-net" },
     platform = 'all',
+    platform_name = 'mbed'
   },
 }
 

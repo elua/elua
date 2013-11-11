@@ -1,0 +1,60 @@
+// $$HEADER$$
+Building eLua under Mac OS/X
+----------------------------
+
+IMPORTANT: Starting with eLua 0.10, a new Lua-based build system replaces the previous Python based (scons) build system. You'll need to update your machine environment accordingly, as per the instructions below.
+
+Building eLua in Mac OS/X is fairly easy, especially if you use a package manager like https://github.com/mxcl/homebrew/[Homebrew] to install the prerequisite tools. These instructions will use Homebrew.
+
+Install these packages:
+
+* *an x86 toolchain*: You will require http://itunes.apple.com/us/app/xcode/id497799835[Xcode] or the https://developer.apple.com/downloads[Command Line Tools for Xcode] from Apple to compile packages using Homebrew.
+The Command Line Tools for Xcode is just fine for our purposes, and is a much smaller download than Xcode itself. Install this first.
+
+* *Homebrew*: See the https://github.com/mxcl/homebrew/wiki/Installation[Homebrew installation instructions].
+
+* *an ARM toolchain*: One well-maintained toolchain that works with eLua and provides Newlib is https://launchpad.net/gcc-arm-embedded[GCC ARM Embedded] from ARM itself. Unpack the distribution archive somewhere in your filesystem and ensure that the destination's "bin" subdirectory is on your $PATH.  Refer to link:toolchains.html[the toolchains page] for generic toolchain instructions if you don't want to install the GCC ARM Embedded toolchain. Here is how I installed my copy of the GCC ARM Embedded toolchain (under /usr/local):
++
+------------------------------
+$ cd /usr/local
+$ open https://launchpad.net/gcc-arm-embedded/4.7/4.7-2013-q2-update/+download/gcc-arm-none-eabi-4_7-2013q2-20130614-mac.tar.bz2
+$ # assuming your browser then downloaded the tarball into ~/Downloads:
+$ tar xvf ~/Downloads/gcc-arm-none-eabi-4_7-2013q2-20130614-mac.tar.bz2
+$ rm -f arm
+$ ln -sf gcc-arm-none-eabi-4_7-2013q2 arm
+$ sudo sh -c "echo /usr/local/arm/bin > /etc/paths.d/45-ARM-GCC-Embedded"
+$ cd -
+------------------------------
++
+Now we can use Homebrew and luarocks to install the rest of the packages.
+
+* *Lua and luarocks*:
++
+------------------------------
+$ brew install lua luarocks
+------------------------------
++
+* *luafilesystem, lpack, md5* - various Lua modules needed by the builder. Use luarocks to install them:
++
+-------------------------------------
+$ luarocks install luafilesystem md5 lpack
+-------------------------------------
++
+* *source-highlight and asciidoc*: These are required to build the documentation but are optional. If you want to install them and build the documentation:
++
+-------------------------------------
+$ brew install source-highlight asciidoc
+$ cd doc
+$ lua buildall.lua
+$ cd -
+-------------------------------------
++
+* *eLua cross-compiler*: if you want to use precompiled ROMFS feature (see link:arch_romfs.html#mode[here] for details) you need to build an image of the eLua cross compiler. Do this by executing this command:
++
+-----------------
+$ lua cross-lua.lua
+-----------------
++
+After you setup your build environment as described above, follow link:building.html#configuring[this tutorial] to build your eLua image.
+
+// $$FOOTER$$

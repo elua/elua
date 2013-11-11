@@ -6,8 +6,8 @@ IMPORTANT: Starting with eLua 0.10, a new Lua-based build system replaces the pr
 new build system to build eLua, as per the instructions link:#buildoptions[here].
 
 If you decide to build your own binary image instead of link:downloads.html[downloading one], then you will need to download the source code 
-(see link:downloads.html#source[here] for details) and follow the platform specific eLua build instructions (provided for link:building_unix.html[Linux]
-and link:building_win.html[Windows]) to setup your build environment.
+(see link:downloads.html#source[here] for details) and follow the platform specific eLua build instructions (provided for link:building_unix.html[Linux], link:building_win.html[Windows],
+and link:building_macos.html[Macintosh OS/X]) to setup your build environment.
  
 Then follow the instructions below to configure and build your eLua binary image.
 

@@ -10,9 +10,16 @@ To generate the doc:
     1. install luarocks
       $ sudo apt-get install luarocks
     2. install both modules using luarocks
-      $ sudo luarocks install lfs md5
+      $ sudo luarocks install luafilesystem md5 lpack
     3. install source-highlight
       $ sudo apt-get install source-highlight
+  * in Mac OS/X (using homebrew; see https://github.com/mxcl/homebrew/):
+    1. install Lua and luarocks
+      $ brew install lua luarocks
+    2. install both modules using luarocks
+      $ luarocks install luafilesystem md5 lpack
+    3. install source-highlight and asciidoc
+      $ brew install source-highlight asciidoc
 - make sure you have Python installed and the Python installation directory is in your PATH (you might have to add it manually in Windows).
   Python is needed by AsciiDoc (below).
 - make sure you have AsciiDoc (http://www.methods.co.nz/asciidoc/INSTALL.html) installed. If you're using Windows you have a bit more work to do:

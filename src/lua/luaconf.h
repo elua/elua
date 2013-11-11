@@ -92,7 +92,7 @@
 #ifndef LUA_RPC
 
 #ifndef LUA_PATH_DEFAULT
-#define LUA_PATH_DEFAULT  "/rfs/?.lua;/rfs/?.lc;/mmc/?.lua;/mmc/?.lc;/wo/?.lua;/wo/?.lc;/rom/?.lua;/rom/?.lc"
+#define LUA_PATH_DEFAULT  "/rfs/?.lua;/rfs/?.lc;/mmc/?.lua;/mmc/?.lc;/wo/?.lua;/wo/?.lc;/rom/?.lua;/rom/?.lc;/semi/?.lua;/semi/?.lc;"
 #endif
 
 #define LUA_CPATH_DEFAULT ""
@@ -112,7 +112,7 @@
 
 #ifndef LUA_RPC
 #ifndef LUA_PATH_DEFAULT
-#define LUA_PATH_DEFAULT  "/mmc/?.lua;/mmc/?.lc;/wo/?.lua;/wo/?.lc;/rom/?.lua;/rom/?.lc"
+#define LUA_PATH_DEFAULT  "/mmc/?.lua;/mmc/?.lc;/wo/?.lua;/wo/?.lc;/rom/?.lua;/rom/?.lc;/semi/?.lua;/semi/?.lc;"
 #endif
 #define LUA_CPATH_DEFAULT ""
 #else // #ifndef LUA_RPC
