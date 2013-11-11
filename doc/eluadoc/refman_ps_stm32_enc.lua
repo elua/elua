@@ -16,27 +16,27 @@ data_en =
   funcs = 
   {
     { sig = "#stm32.enc.init#( id )",
-      desc = "Configure the timer in quadrature mode.",
+      desc = "Configure timer for quadrature mode.",
       args = 
       {
-        "$id$ - the timer ID"
+        "$id$ - timer ID"
       }
     },
     { sig = "#stm32.enc.setcounter#( id, count )",
-      desc = "Set the current count on a timer.",
+      desc = "Set the counter for a timer.",
       args = 
       {
-        "$id$ - the timer ID",
-        "$count$ - value to set counter to"
+        "$id$ - timer ID",
+        "$count$ - value to set counter to."
       }
     },
     { sig = "#stm32.enc.setidxtrig#( id, resnum, tmr_id, count )",
-      desc = "Set up a trigger to set the counter to a specific value when an interrupt is triggered",
+      desc = "Configure an interrupt trigger to set timer counter to a predefined value.",
       args = 
       {
-        "$id$ - the interrupt ID",
+        "$id$ - interrupt ID",
         "$resnum$ - resource ID associated with interrupt",
-        "$tmr_id$ - the timer ID",
+        "$tmr_id$ - timer ID",
         "$count$ - value to set counter to when triggered"
       }
     },
