@@ -8,7 +8,7 @@ local comps = require "components"
 -- Add specific components to the 'components' table
 function add_platform_components( t, board, cpu )
   t.cdc = comps.cdc_uart()
-  t.stm32_enc = { macro = 'ENABLE_ENC' }
+  t.stm32f4_enc = { macro = 'ENABLE_ENC' }
 end
 
 -- Add specific configuration to the 'configs' table
