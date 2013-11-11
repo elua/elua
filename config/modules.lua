@@ -195,10 +195,13 @@ function gen_module_list( desc, plconf, platform, boardname )
     -- platform module if _any_ of the modules in gen_list_platform can be enabled.
     -- In order to do this, we gather their guards in a single, long condition
     -- Count all guards first
-    local nguards = 0
+    local nguards, nmodules = 0, 0
     local pltabname = mdesc.platform_name or platform
-    for m, _ in pairs( gen_list_platform ) do nguards = nguards + #( platform_modules[ m ].guards or {} ) end
-    if nguards == 0 then -- nothing to guard
+    for m, _ in pairs( gen_list_platform ) do
+      nmodules = nmodules + 1
+      nguards = nguards + #( platform_modules[ m ].guards or {} )
+    end
+    if nguards == 0 or nguards < nmodules then -- nothing to guard or not all have guards
       gstr = gstr .. gen.print_define( "PLATFORM_MODULES_LINE", sf( '_ROM( "%s", luaopen_platform, platform_map )', pltabname ) )
       gstr = gstr .. gen.print_define( "PS_LIB_TABLE_NAME", sf( '"%s"', pltabname ) )
       gstr = gstr .. gen.print_define( "PLATFORM_MODULES_ENABLE" )
