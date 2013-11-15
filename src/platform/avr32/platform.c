@@ -391,6 +391,12 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   case PLATFORM_UART_PARITY_ODD:
     opts.paritytype = USART_ODD_PARITY;
     break;
+  case PLATFORM_UART_PARITY_SPACE:
+    opts.paritytype = USART_SPACE_PARITY;
+    break;
+  case PLATFORM_UART_PARITY_MARK:
+    opts.paritytype = USART_MARK_PARITY;
+    break;
   case PLATFORM_UART_PARITY_NONE:
     opts.paritytype = USART_NO_PARITY;
     break;

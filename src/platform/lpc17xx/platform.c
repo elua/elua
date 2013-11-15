@@ -223,6 +223,14 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
     case PLATFORM_UART_PARITY_EVEN:
       UARTConfigStruct.Parity = UART_PARITY_EVEN;
       break;
+      
+    case PLATFORM_UART_PARITY_MARK:
+      UARTConfigStruct.Parity = UART_PARITY_SP_1;
+      break;
+      
+    case PLATFORM_UART_PARITY_SPACE:
+      UARTConfigStruct.Parity = UART_PARITY_SP_0;
+      break;      
   }
 
   UART_Init(uart[ id ], &UARTConfigStruct);

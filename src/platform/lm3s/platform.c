@@ -525,6 +525,10 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
       config |= UART_CONFIG_PAR_EVEN;
     else if( parity == PLATFORM_UART_PARITY_ODD )
       config |= UART_CONFIG_PAR_ODD;
+    else if( parity == PLATFORM_UART_PARITY_MARK )
+      config |= UART_CONFIG_PAR_ONE;
+    else if( parity == PLATFORM_UART_PARITY_SPACE )
+      config |= UART_CONFIG_PAR_ZERO;
     else
       config |= UART_CONFIG_PAR_NONE;
 
