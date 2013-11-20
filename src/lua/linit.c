@@ -107,6 +107,13 @@ LUALIB_API int luaopen_platform (lua_State *L)
 // End of platform module section
 // ****************************************************************************
 
+
+// Dummy open function
+int luaopen_dummy(lua_State *L)
+{
+  return 0;
+}
+
 #undef _ROM
 #define _ROM( name, openf, table ) { name, openf },
 
@@ -142,12 +149,5 @@ LUALIB_API void luaL_openlibs (lua_State *L) {
       lua_pushstring(L, lib->name);
       lua_call(L, 1, 0);
     }
-}
-
-
-// Dummy open function
-int luaopen_dummy(lua_State *L)
-{
-  return 0;
 }
 
