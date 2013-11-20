@@ -38,10 +38,6 @@ const char *boot_order[] = {
   "/rom/autorun.lua",
   "/rom/autorun.lc",
 #endif
-#if defined(BUILD_WOFS)
-  "/wo/autorun.lua",
-  "/wo/autorun.lc",
-#endif
 #if defined(BUILD_SEMIFS)
   "/semi/autorun.lua",
   "/semi/autorun.lc",
