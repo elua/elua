@@ -96,9 +96,18 @@ static void pwms_init();
 #endif
 
 static void eth_init();
+
+#ifdef BUILD_ADC
 static void adcs_init();
+#endif
+
+#ifdef BUILD_CAN
 static void cans_init();
+#endif
+
+#ifdef BUILD_USB_CDC
 static void usb_init();
+#endif
 
 int platform_init()
 {

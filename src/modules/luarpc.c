@@ -502,6 +502,7 @@ static void write_variable( Transport *tpt, lua_State *L, int var_index )
       break;
   }
   lua_assert( lua_gettop( L ) == stack_at_start );
+  UNUSED(stack_at_start);     // Prevent compiler warning if asserts not used
 }
 
 
