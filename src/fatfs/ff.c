@@ -322,8 +322,7 @@ FRESULT sync (	/* FR_OK: successful, FR_DISK_ERR: failed */
 /* FAT access - Read value of a FAT entry                                */
 /*-----------------------------------------------------------------------*/
 
-
-DWORD get_fat (	/* 0xFFFFFFFF:Disk error, 1:Interal error, Else:Cluster status */
+static DWORD get_fat (	/* 0xFFFFFFFF:Disk error, 1:Interal error, Else:Cluster status */
 	FATFS *fs,	/* File system object */
 	DWORD clst	/* Cluster# to get the link information */
 )
@@ -365,7 +364,7 @@ DWORD get_fat (	/* 0xFFFFFFFF:Disk error, 1:Interal error, Else:Cluster status *
 /*-----------------------------------------------------------------------*/
 #if !_FS_READONLY
 
-FRESULT put_fat (
+static FRESULT put_fat (
 	FATFS *fs,	/* File system object */
 	DWORD clst,	/* Cluster# to be changed in range of 2 to fs->max_clust - 1 */
 	DWORD val	/* New value to mark the cluster */
@@ -527,7 +526,7 @@ DWORD create_chain (	/* 0:No free cluster, 1:Internal error, 0xFFFFFFFF:Disk err
 /*-----------------------------------------------------------------------*/
 
 
-DWORD clust2sect (	/* !=0: Sector number, 0: Failed - invalid cluster# */
+static DWORD clust2sect (	/* !=0: Sector number, 0: Failed - invalid cluster# */
 	FATFS *fs,		/* File system object */
 	DWORD clst		/* Cluster# to be converted */
 )
@@ -759,12 +758,11 @@ void fit_lfn (
 #endif
 
 
-
 /*-----------------------------------------------------------------------*/
 /* Create numbered name                                                  */
 /*-----------------------------------------------------------------------*/
 #if _USE_LFN
-void gen_numname (
+static void gen_numname (
 	BYTE *dst,			/* Pointer to genartated SFN */
 	const BYTE *src,	/* Pointer to source SFN to be modified */
 	const WCHAR *lfn,	/* Pointer to LFN */
@@ -1463,8 +1461,7 @@ BYTE check_fs (	/* 0:The FAT boot record, 1:Valid boot record but not an FAT, 2:
 /* Make sure that the file system is valid                               */
 /*-----------------------------------------------------------------------*/
 
-
-FRESULT chk_mounted (	/* FR_OK(0): successful, !=0: any error occured */
+static FRESULT chk_mounted (	/* FR_OK(0): successful, !=0: any error occured */
 	const XCHAR **path,	/* Pointer to pointer to the path name (drive number) */
 	FATFS **rfs,		/* Pointer to pointer to the found file system object */
 	BYTE chk_wp			/* !=0: Check media write protection for write access */

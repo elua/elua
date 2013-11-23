@@ -319,7 +319,7 @@ BYTE send_cmd (
 
 ---------------------------------------------------------------------------*/
 
-void elua_mmc_init()
+void elua_mmc_init( void )
 {
   int i;
 
