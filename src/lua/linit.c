@@ -23,6 +23,7 @@
 #endif
 
 LUALIB_API int luaopen_platform (lua_State *L);
+int luaopen_dummy(lua_State *L);
 
 // Declare table
 #if defined(LUA_PLATFORM_LIBS_ROM) && LUA_OPTIMIZE_MEMORY == 2
