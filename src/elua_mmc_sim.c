@@ -77,7 +77,7 @@ DSTATUS disk_initialize (
   return Stat;
 }
 
-void elua_mmc_init()
+void elua_mmc_init( void )
 {
 }
 

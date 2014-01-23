@@ -1,4 +1,4 @@
-// AVR32 interrupt support
+// lm3s interrupt support
 
 #include "platform_conf.h"
 #if defined( BUILD_C_INT_HANDLERS ) || defined( BUILD_LUA_INT_HANDLERS )

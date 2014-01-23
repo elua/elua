@@ -223,6 +223,14 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
     case PLATFORM_UART_PARITY_EVEN:
       UARTConfigStruct.Parity = UART_PARITY_EVEN;
       break;
+      
+    case PLATFORM_UART_PARITY_MARK:
+      UARTConfigStruct.Parity = UART_PARITY_SP_1;
+      break;
+      
+    case PLATFORM_UART_PARITY_SPACE:
+      UARTConfigStruct.Parity = UART_PARITY_SP_0;
+      break;      
   }
 
   UART_Init(uart[ id ], &UARTConfigStruct);
@@ -403,7 +411,7 @@ void ADC_IRQHandler(void)
 {
   elua_adc_dev_state *d = adc_get_dev_state( 0 );
   elua_adc_ch_state *s = d->ch_state[ d->seq_ctr ];
-  int i;
+//int i;
   
   // Disable sampling & current sequence channel
   ADC_StartCmd( LPC_ADC, 0 );
@@ -766,7 +774,7 @@ void platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *dat
   }
 
   // Wait for outgoing messages to clear
-  while( canx->GSR & (1<<3) == 0 );
+  while( (canx->GSR & (1<<3)) == 0 );
 
   msg_tx.type = DATA_FRAME;
   msg_tx.format = idtype == ELUA_CAN_ID_EXT ? EXT_ID_FORMAT : STD_ID_FORMAT;

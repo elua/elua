@@ -239,6 +239,10 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
     mode |= AT91C_US_PAR_EVEN;
   else if( parity == PLATFORM_UART_PARITY_ODD )
     mode |= AT91C_US_PAR_ODD;
+  else if( parity == PLATFORM_UART_PARITY_MARK )
+    mode |= AT91C_US_PAR_MARK;
+  else if( parity == PLATFORM_UART_PARITY_SPACE )
+    mode |= AT91C_US_PAR_SPACE;
   else
     mode |= AT91C_US_PAR_NONE;
   if( stopbits == PLATFORM_UART_STOPBITS_1 )
