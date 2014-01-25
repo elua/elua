@@ -956,13 +956,15 @@ u32 platform_can_setup( unsigned id, u32 clock )
   return clock;
 }
 
-void platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *data )
+int platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *data )
 {
   TxCanMsg.IdType = idtype;
   TxCanMsg.Id = canid;
   TxCanMsg.Dlc = len;
   memcpy(TxCanMsg.Data, data, len);
-  CAN_SendMessage((idtype & ELUA_CAN_ID_EXT) ? CAN_TX_EXT_MSGOBJ : CAN_TX_STD_MSGOBJ, &TxCanMsg);
+  if ( CAN_SendMessage((idtype & ELUA_CAN_ID_EXT) ? CAN_TX_EXT_MSGOBJ : CAN_TX_STD_MSGOBJ, &TxCanMsg) == SUCCESS )
+    return PLATFORM_OK;
+  return PLATFORM_ERR;
 }
 
 int platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )

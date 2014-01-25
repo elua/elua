@@ -48,7 +48,7 @@ enum
       ret = "the actual speed set for the CAN interface. Depending on the hardware, this may have a different value than the $clock$ argument."
     },
 
-    {  sig = "void #platform_can_send#( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *data );",
+    {  sig = "int #platform_can_send#( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *data );",
        desc = "Send message over the CAN bus.",
        args =
        {
@@ -58,6 +58,7 @@ enum
           "$len$ - message length in bytes (8 or fewer)",
           "$message$ - pointer to message, 8 or fewer bytes in length"
        },
+       ret = "PLATFORM_OK for success, PLATFORM_ERR if the message wasn't sent."
     },
 
      {  sig = "int #platform_can_recv#( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data );",

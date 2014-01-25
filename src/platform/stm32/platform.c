@@ -376,7 +376,7 @@ u32 platform_can_op( unsigned id, int op, u32 data )
 }
 */
 
-void platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *data )
+int platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *data )
 {
   CanTxMsg TxMessage;
   const char *s = ( char * )data;
@@ -399,8 +399,11 @@ void platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *dat
   
   d = ( char * )TxMessage.Data;
   DUFF_DEVICE_8( len,  *d++ = *s++ );
-  
-  CAN_Transmit( CAN1, &TxMessage );
+
+  if( CAN_Transmit( CAN1, &TxMessage ) == CAN_TxStatus_NoMailBox )
+    return PLATFORM_ERR;
+
+  return PLATFORM_OK;
 }
 
 void USB_LP_CAN_RX0_IRQHandler(void)
