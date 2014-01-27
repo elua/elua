@@ -21,7 +21,7 @@ static int can_setup( lua_State* L )
   return 1;
 }
 
-// Lua: send( id, canid, canidtype, message )
+// Lua: success = send( id, canid, canidtype, message )
 static int can_send( lua_State* L )
 {
   size_t len;
@@ -36,9 +36,12 @@ static int can_send( lua_State* L )
   if ( len > PLATFORM_CAN_MAXLEN )
     return luaL_error( L, "message exceeds max length" );
   
-  platform_can_send( id, canid, idtype, len, ( const u8 * )data );
+  if( platform_can_send( id, canid, idtype, len, ( const u8 * )data ) == PLATFORM_OK )
+    lua_pushboolean( L, 1 );
+  else
+    lua_pushboolean( L, 0 );
   
-  return 0;
+  return 1;
 }
 
 // Lua: canid, canidtype, message = recv( id )

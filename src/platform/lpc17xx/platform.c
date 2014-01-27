@@ -761,7 +761,7 @@ u32 platform_can_setup( unsigned id, u32 clock )
   return (SystemCoreClock / 20) / ((div & 0x3FF)+1);
 }
 
-void platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *data )
+int platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *data )
 {
   CAN_MSG_Type msg_tx;
   LPC_CAN_TypeDef * canx;
@@ -770,7 +770,7 @@ void platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *dat
   {
     case 0: canx = LPC_CAN1; break;
     case 1: canx = LPC_CAN2; break;
-    default: return;
+    default: return PLATFORM_ERR;
   }
 
   // Wait for outgoing messages to clear
@@ -790,6 +790,8 @@ void platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *dat
   }
 
   CAN_SendMsg(canx, &msg_tx);
+
+  return PLATFORM_OK;
 }
 
 int platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )
