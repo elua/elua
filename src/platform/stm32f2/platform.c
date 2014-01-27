@@ -1007,7 +1007,7 @@ u32 platform_can_op( unsigned id, int op, u32 data )
   return res;
 }
 
-void platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *data )
+int platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *data )
 {
   CanTxMsg TxMessage;
   const char *s = ( char * )data;
