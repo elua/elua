@@ -305,7 +305,10 @@ timer_data_type platform_timer_get_diff_us( unsigned id, timer_data_type start, 
   freq = platform_timer_op( id, PLATFORM_TIMER_OP_GET_CLOCK, 0 );
   if( tstart > tend )
     tend += platform_timer_op( id, PLATFORM_TIMER_OP_GET_MAX_CNT, 0 ) + 1;
-  tstart = ( ( tend - tstart ) * 1000000 ) / freq;
+  if( freq == 1000000 )
+    tstart = tend - tstart;
+  else
+    tstart = ( ( tend - tstart ) * 1000000 ) / freq;
   return UMIN( tstart, PLATFORM_TIMER_SYS_MAX );
 }
 
