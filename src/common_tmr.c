@@ -435,7 +435,7 @@ timer_data_type cmn_systimer_get(void)
   crtsys += tempcnt / cmn_systimer_ticks_for_us;
   if( crtsys > PLATFORM_TIMER_SYS_MAX ) // timer overflow
   {
-    crtsys %= PLATFORM_TIMER_SYS_MAX;
+    crtsys -= PLATFORM_TIMER_SYS_MAX;
     platform_timer_sys_disable_int();
     cmn_systimer_counter = 0;
     platform_timer_sys_enable_int();
