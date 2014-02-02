@@ -437,7 +437,8 @@ timer_data_type cmn_systimer_get(void)
   {
     crtsys -= PLATFORM_TIMER_SYS_MAX;
     platform_timer_sys_disable_int();
-    cmn_systimer_counter = 0;
+    if( cmn_systimer_counter > PLATFORM_TIMER_SYS_MAX )
+      cmn_systimer_counter -= PLATFORM_TIMER_SYS_MAX;
     platform_timer_sys_enable_int();
   }
   return ( timer_data_type )crtsys;
