@@ -506,7 +506,7 @@ void ADC_IRQHandler( void )
     while( d->seq_ctr < d->seq_len )
     {
       s = d->ch_state[ d->seq_ctr ];
-      d->sample_buf[ d->seq_ctr ] = ( u16 )ADC_GetConversionValue( s->id );
+      d->sample_buf[ s->id ] = ( u16 )ADC_GetConversionValue( s->id );
       s->value_fresh = 1;
     
       // Fill in smoothing buffer until warmed up

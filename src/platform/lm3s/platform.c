@@ -878,7 +878,7 @@ void ADCIntHandler( void )
   while( d->seq_ctr < d->seq_len )
   {
     s = d->ch_state[ d->seq_ctr ];
-    d->sample_buf[ d->seq_ctr ] = ( u16 )tmpbuff[ d->seq_ctr ];
+    d->sample_buf[ s->id ] = ( u16 )tmpbuff[ d->seq_ctr ];
     s->value_fresh = 1; // Mark sample as fresh
     
     // Fill in smoothing buffer until warmed up

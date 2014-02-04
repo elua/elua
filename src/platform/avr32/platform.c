@@ -855,7 +855,7 @@ __attribute__((__interrupt__)) static void adc_int_handler()
 
     if( adc_check_eoc( adc, s->id ) )
     {
-      d->sample_buf[ d->seq_ctr ] = ( u16 )adc_get_value(adc, s->id );
+      d->sample_buf[ s->id ] = ( u16 )adc_get_value(adc, s->id );
       s->value_fresh = 1;
 
       if ( s->logsmoothlen > 0 && s->smooth_ready == 0)
