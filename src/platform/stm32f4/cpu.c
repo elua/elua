@@ -11,6 +11,8 @@
 #include "auxmods.h"
 #include "cpu.h"
 
+#include "stm32f4xx.h"
+
 //Lua: reset()
 static int cpu_reset( lua_State *L )
 {
@@ -19,13 +21,88 @@ static int cpu_reset( lua_State *L )
   return 0;
 }
 
+//Lua: freqtable = getclocksfreq()
+static int cpu_getclocksfreq( lua_State *L )
+{
+  RCC_ClocksTypeDef rcc_clocks;
+  RCC_GetClocksFreq( &rcc_clocks );
+  lua_newtable( L );
+  lua_pushinteger( L, rcc_clocks.SYSCLK_Frequency );
+  lua_setfield( L , -2, "SYSCLK" );
+  lua_pushinteger( L, rcc_clocks.HCLK_Frequency );
+  lua_setfield( L , -2, "HCLK" );
+  lua_pushinteger( L, rcc_clocks.PCLK1_Frequency );
+  lua_setfield( L , -2, "PCLK1" );
+  lua_pushinteger( L, rcc_clocks.PCLK2_Frequency );
+  lua_setfield( L , -2, "PCLK2" );
+  return 1;
+}
+
+//Lua: wfe()
+static int cpu_wfe( lua_State *L )
+{
+  __WFE();
+  return 0;
+}
+
+//Lua: wfi()
+static int cpu_wfi( lua_State *L )
+{
+  __WFI();
+
+  return 0;
+}
+
+static int rng_initialised = 0;
+
+static int cpu_rng_setup( lua_State *L )
+{
+  RCC_AHB2PeriphClockCmd(RCC_AHB2Periph_RNG, ENABLE);
+  RNG_DeInit();
+  RNG_ClearFlag( RNG_FLAG_CECS | RNG_FLAG_SECS );
+  RNG_Cmd(ENABLE);
+  rng_initialised = 1;
+
+  return 0;
+}
+
+static int cpu_rng_read( lua_State *L )
+{
+  if( !rng_initialised )
+    cpu_rng_setup( L );
+
+  while( RNG_GetFlagStatus( RNG_FLAG_DRDY ) == RESET ) {
+    if( RNG_GetFlagStatus( RNG_FLAG_CECS ) == SET ||
+        RNG_GetFlagStatus( RNG_FLAG_SECS ) == SET )
+    {
+      rng_initialised = 0;
+      lua_pushnil( L );
+      return 1;
+    }
+  }
+
+  lua_pushinteger( L, RNG_GetRandomNumber() );
+  return 1;
+}
+
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"  
+
+const LUA_REG_TYPE stm32_cpu_rng_map[] =
+{
+  { LSTRKEY( "setup" ), LFUNCVAL( cpu_rng_setup ) },
+  { LSTRKEY( "read" ), LFUNCVAL( cpu_rng_read ) },
+  { LNILKEY, LNILVAL }
+};
 
 // Module function map
 const LUA_REG_TYPE stm32_cpu_map[] =
 { 
+  { LSTRKEY( "getclocksfreq" ),  LFUNCVAL( cpu_getclocksfreq ) },
   { LSTRKEY( "reset" ),  LFUNCVAL( cpu_reset ) },
+  { LSTRKEY( "wfe" ),  LFUNCVAL( cpu_wfe ) },
+  { LSTRKEY( "wfi" ),  LFUNCVAL( cpu_wfi ) },
+  { LSTRKEY( "rng" ), LROVAL( stm32_cpu_rng_map ) },
   { LNILKEY, LNILVAL }
 };
 
