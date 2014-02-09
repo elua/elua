@@ -305,7 +305,10 @@ timer_data_type platform_timer_get_diff_us( unsigned id, timer_data_type start, 
   freq = platform_timer_op( id, PLATFORM_TIMER_OP_GET_CLOCK, 0 );
   if( tstart > tend )
     tend += platform_timer_op( id, PLATFORM_TIMER_OP_GET_MAX_CNT, 0 ) + 1;
-  tstart = ( ( tend - tstart ) * 1000000 ) / freq;
+  if( freq == 1000000 )
+    tstart = tend - tstart;
+  else
+    tstart = ( ( tend - tstart ) * 1000000 ) / freq;
   return UMIN( tstart, PLATFORM_TIMER_SYS_MAX );
 }
 
@@ -432,9 +435,10 @@ timer_data_type cmn_systimer_get(void)
   crtsys += tempcnt / cmn_systimer_ticks_for_us;
   if( crtsys > PLATFORM_TIMER_SYS_MAX ) // timer overflow
   {
-    crtsys %= PLATFORM_TIMER_SYS_MAX;
+    crtsys -= PLATFORM_TIMER_SYS_MAX;
     platform_timer_sys_disable_int();
-    cmn_systimer_counter = 0;
+    if( cmn_systimer_counter > PLATFORM_TIMER_SYS_MAX )
+      cmn_systimer_counter -= PLATFORM_TIMER_SYS_MAX;
     platform_timer_sys_enable_int();
   }
   return ( timer_data_type )crtsys;

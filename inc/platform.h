@@ -76,7 +76,7 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op );
 
 #if defined( LUA_NUMBER_INTEGRAL ) && !defined( LUA_INTEGRAL_LONGLONG )
 // Maximum values of the system timer
-#define PLATFORM_TIMER_SYS_MAX                ( ( 1LL << 31 ) - 2 )
+#define PLATFORM_TIMER_SYS_MAX                ( ( 1LL << 32 ) - 2 )
 // Timer data type
 typedef u32 timer_data_type;
 #else
