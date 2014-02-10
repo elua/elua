@@ -51,7 +51,7 @@ Restrictions:
 #define STM32F4_ACTUAL_SYSCLK_FREQ_MHZ            ( F_VCO / PLL_P )
 #define PLL_Q                                     ( F_VCO / STM32F4_F_OTHER_FREQ_MHZ )
 #if ( F_VCO % STM32F4_F_OTHER_FREQ_MHZ ) != 0
-#warn Non-integer value detected for PLL_Q, USB might not work properly
+#warning Non-integer value detected for PLL_Q, USB might not work properly
 #endif
 #if PLL_Q < 2 || PLL_Q > 15
 #error PLL_Q out of range, unable to compute PLL parameters
