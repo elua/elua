@@ -42,7 +42,7 @@ static int i2c_stop( lua_State *L )
   return 0;
 }
 
-// Lua: i2c.address( id, address, direction )
+// Lua: status = i2c.address( id, address, direction )
 static int i2c_address( lua_State *L )
 {
   unsigned id = luaL_checkinteger( L, 1 );

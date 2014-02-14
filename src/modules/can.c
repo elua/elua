@@ -7,7 +7,7 @@
 #include "auxmods.h"
 #include "lrotable.h"
 
-// Lua: setup( id, clock )
+// Lua: result = setup( id, clock )
 static int can_setup( lua_State* L )
 {
   unsigned id;
