@@ -81,7 +81,7 @@ static int cpu_rng_read( lua_State *L )
     }
   }
 
-  lua_pushinteger( L, RNG_GetRandomNumber() );
+  lua_pushnumber( L, RNG_GetRandomNumber() );
   return 1;
 }
 
