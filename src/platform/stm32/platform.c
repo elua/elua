@@ -400,7 +400,7 @@ int platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *data
   d = ( char * )TxMessage.Data;
   DUFF_DEVICE_8( len,  *d++ = *s++ );
 
-  if( CAN_Transmit( CAN1, &TxMessage ) == CAN_TxStatus_NoMailBox )
+  if( CAN_Transmit( CAN1, &TxMessage ) == CAN_NO_MB )
     return PLATFORM_ERR;
 
   return PLATFORM_OK;
