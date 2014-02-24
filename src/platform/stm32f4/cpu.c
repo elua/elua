@@ -53,8 +53,29 @@ static int cpu_wfi( lua_State *L )
   return 0;
 }
 
+//Lua: string = read_mcu_device_id()
+static int cpu_read_mcu_device_id( lua_State *L )
+{
+  lua_pushnumber( L, *(uint32_t *)0xe0042000 );
+  return 1;
+}
+
+//Lua: string = read_unique_device_id()
+static int cpu_read_unique_device_id( lua_State *L )
+{
+  uint32_t *id_addr = (uint32_t *)0x1fff7a10;
+  lua_newtable( L );
+  int i;
+  for( i = 1; i <= 3; ++i ) {
+    lua_pushnumber( L, *id_addr++ );
+    lua_rawseti( L, -2, i );
+  }
+  return 1;
+}
+
 static int rng_initialised = 0;
 
+//Lua: rng.setup()
 static int cpu_rng_setup( lua_State *L )
 {
   RCC_AHB2PeriphClockCmd(RCC_AHB2Periph_RNG, ENABLE);
@@ -66,6 +87,7 @@ static int cpu_rng_setup( lua_State *L )
   return 0;
 }
 
+//Lua: num = rng.read()
 static int cpu_rng_read( lua_State *L )
 {
   if( !rng_initialised )
@@ -99,6 +121,8 @@ const LUA_REG_TYPE stm32_cpu_rng_map[] =
 const LUA_REG_TYPE stm32_cpu_map[] =
 { 
   { LSTRKEY( "getclocksfreq" ),  LFUNCVAL( cpu_getclocksfreq ) },
+  { LSTRKEY( "read_mcu_device_id" ), LFUNCVAL( cpu_read_mcu_device_id ) },
+  { LSTRKEY( "read_unique_device_id" ), LFUNCVAL( cpu_read_unique_device_id ) },
   { LSTRKEY( "reset" ),  LFUNCVAL( cpu_reset ) },
   { LSTRKEY( "wfe" ),  LFUNCVAL( cpu_wfe ) },
   { LSTRKEY( "wfi" ),  LFUNCVAL( cpu_wfi ) },
