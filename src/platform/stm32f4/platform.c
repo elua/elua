@@ -910,6 +910,9 @@ void cans_init( void )
   RCC_APB1PeriphClockCmd(can_clock[1], ENABLE);
 }
 
+
+#if ELUA_BOARD_CPU_CLOCK_HZ == 168000000
+
 /*       BS1 BS2 SJW Pre
 1M:      12  8   1   2
 500k:    8   5   1   6
@@ -922,6 +925,43 @@ static const u8 can_baud_bs1[]    = { CAN_BS1_12tq, CAN_BS1_12tq, CAN_BS1_8tq, C
 static const u8 can_baud_bs2[]    = { CAN_BS1_8tq,  CAN_BS1_8tq,  CAN_BS1_5tq, CAN_BS1_5tq, CAN_BS1_8tq };
 static const u8 can_baud_sjw[]    = { CAN_SJW_1tq,  CAN_SJW_1tq,  CAN_SJW_1tq, CAN_SJW_1tq, CAN_SJW_1tq };
 static const u8 can_baud_pre[]    = { 20, 16, 12, 6, 2 };
+
+#endif
+
+#if ELUA_BOARD_CPU_CLOCK_HZ == 120000000
+
+/*       BS1 BS2 SJW Pre
+1M:      6   3   1   3
+500k:    12  7   1   3
+250k:    12  7   1   6
+125k:    12  7   1   12
+100k:    12  7   1   15 */
+
+#define CAN_BAUD_COUNT 5
+static const u8 can_baud_bs1[]    = { CAN_BS1_12tq, CAN_BS1_12tq, CAN_BS1_12tq, CAN_BS1_12tq, CAN_BS1_6tq };
+static const u8 can_baud_bs2[]    = { CAN_BS1_7tq,  CAN_BS1_7tq,  CAN_BS1_7tq, CAN_BS1_7tq, CAN_BS1_3tq };
+static const u8 can_baud_sjw[]    = { CAN_SJW_1tq,  CAN_SJW_1tq,  CAN_SJW_1tq, CAN_SJW_1tq, CAN_SJW_1tq };
+static const u8 can_baud_pre[]    = { 15, 12, 6, 3, 3 };
+
+#endif
+
+#if ELUA_BOARD_CPU_CLOCK_HZ == 96000000
+
+/*       BS1 BS2 SJW Pre
+1M:      4   3   1   3
+500k:    9   6   1   3
+250k:    9   6   1   6
+125k:    9   6   1   12
+100k:    9   6   1   15 */
+
+#define CAN_BAUD_COUNT 5
+static const u8 can_baud_bs1[]    = { CAN_BS1_9tq, CAN_BS1_9tq, CAN_BS1_9tq, CAN_BS1_9tq, CAN_BS1_4tq };
+static const u8 can_baud_bs2[]    = { CAN_BS1_6tq,  CAN_BS1_6tq,  CAN_BS1_6tq, CAN_BS1_6tq, CAN_BS1_3tq };
+static const u8 can_baud_sjw[]    = { CAN_SJW_1tq,  CAN_SJW_1tq,  CAN_SJW_1tq, CAN_SJW_1tq, CAN_SJW_1tq };
+static const u8 can_baud_pre[]    = { 15, 12, 6, 3, 3 };
+
+#endif
+
 static const u32 can_baud_rate[]  = { 100000, 125000, 250000, 500000, 1000000 };
 
 u32 platform_can_setup( unsigned id, u32 clock )
