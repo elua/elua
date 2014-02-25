@@ -425,12 +425,12 @@ timer_data_type cmn_systimer_get(void)
 {
   u64 tempsys, tempcnt, crtsys;
 
-  tempcnt = platform_timer_sys_raw_read();
   tempsys = cmn_systimer_counter;
+  tempcnt = platform_timer_sys_raw_read();
   while( ( crtsys = cmn_systimer_counter ) != tempsys )
   {
-    tempcnt = platform_timer_sys_raw_read();
     tempsys = crtsys;
+    tempcnt = platform_timer_sys_raw_read();
   }
   crtsys += tempcnt / cmn_systimer_ticks_for_us;
   if( crtsys > PLATFORM_TIMER_SYS_MAX ) // timer overflow
