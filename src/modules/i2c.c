@@ -163,7 +163,7 @@ LUALIB_API int luaopen_i2c( lua_State *L )
 #else // #if LUA_OPTIMIZE_MEMORY > 0
   luaL_register( L, AUXLIB_I2C, i2c_map );
   
-  // Add the stop bits and parity constants (for uart.setup)
+  // Add the stop bits and parity constants (for i2c.setup)
   MOD_REG_NUMBER( L, "FAST", PLATFORM_I2C_SPEED_FAST );
   MOD_REG_NUMBER( L, "SLOW", PLATFORM_I2C_SPEED_SLOW ); 
   MOD_REG_NUMBER( L, "TRANSMITTER", PLATFORM_I2C_DIRECTION_TRANSMITTER );
