@@ -261,6 +261,10 @@ ResetISR(void)
 #include "sysctl.h"
 #include "uart.h"
 
+// FIXME: Use console UART for error indicators
+// Instead of UART0_BASE, should use uart_base[CON_UART_ID]
+// Still would not be right for USB_CDC
+
 //*****************************************************************************
 //
 // This is the code that gets called when the processor receives a NMI.  This
@@ -271,12 +275,15 @@ ResetISR(void)
 static void
 NmiSR(void)
 {
+    MAP_UARTCharPut( UART0_BASE, 'N' );
+    MAP_UARTCharPut( UART0_BASE, 'M' );
+    MAP_UARTCharPut( UART0_BASE, 'I' );
     //
     // Enter an infinite loop.
     //
     while(1)
     {
-      UARTCharPut( UART0_BASE, '!' );
+      MAP_UARTCharPut( UART0_BASE, '!' );
     }
 }
 
@@ -293,11 +300,11 @@ FaultISR(void)
     //
     // Enter an infinite loop.
     //
-   UARTCharPut( UART0_BASE, '#' );
-   UARTCharPut( UART0_BASE, '#' );
-   UARTCharPut( UART0_BASE, '#' );
-   UARTCharPut( UART0_BASE, '#' );
-   UARTCharPut( UART0_BASE, '#' );
+   MAP_UARTCharPut( UART0_BASE, 'F' );
+   MAP_UARTCharPut( UART0_BASE, 'a' );
+   MAP_UARTCharPut( UART0_BASE, 'u' );
+   MAP_UARTCharPut( UART0_BASE, 'l' );
+   MAP_UARTCharPut( UART0_BASE, 't' );
    while(1)
    {
    }
@@ -313,11 +320,14 @@ FaultISR(void)
 static void
 IntDefaultHandler(void)
 {
+  MAP_UARTCharPut( UART0_BASE, 'I' );
+  MAP_UARTCharPut( UART0_BASE, 'n' );
+  MAP_UARTCharPut( UART0_BASE, 't' );
     //
     // Go into an infinite loop.
     //
     while(1)
     {
-      UARTCharPut( UART0_BASE, '*' );
+      MAP_UARTCharPut( UART0_BASE, '*' );
     }
 }
