@@ -333,9 +333,14 @@ static void SetSysClock(void)
 /*            PLL (clocked by HSE) used as System clock source                */
 /******************************************************************************/
   __IO uint32_t StartUpCounter = 0, HSEStatus = 0;
-  
+
+#ifdef FORSTM32F4NUCLEO
+  /* Enable HSE bypass as board provides external 8MHz clock to MCU */
+  RCC->CR |= ((uint32_t)RCC_CR_HSEBYP);
+#else
   /* Enable HSE */
   RCC->CR |= ((uint32_t)RCC_CR_HSEON);
+#endif
  
   /* Wait till HSE is ready and if Time out is reached exit */
   do
