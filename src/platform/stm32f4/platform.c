@@ -25,10 +25,12 @@
 // Platform specific includes
 #include "stm32f4xx_conf.h"
 #include "pll_config.h"
+#ifdef BUILD_USB_CDC
 #include "usbd_cdc_core.h"
 #include "usbd_usr.h"
 #include "usb_conf.h"
 #include "usbd_desc.h"
+#endif
 
 #define HCLK        ( (HSE_VALUE / PLL_M) * PLL_N / PLL_P)
 #define PCLK1_DIV   4
@@ -959,6 +961,23 @@ static const u8 can_baud_bs1[]    = { CAN_BS1_9tq, CAN_BS1_9tq, CAN_BS1_9tq, CAN
 static const u8 can_baud_bs2[]    = { CAN_BS1_6tq,  CAN_BS1_6tq,  CAN_BS1_6tq, CAN_BS1_6tq, CAN_BS1_3tq };
 static const u8 can_baud_sjw[]    = { CAN_SJW_1tq,  CAN_SJW_1tq,  CAN_SJW_1tq, CAN_SJW_1tq, CAN_SJW_1tq };
 static const u8 can_baud_pre[]    = { 15, 12, 6, 3, 3 };
+
+#endif
+
+#if ELUA_BOARD_CPU_CLOCK_HZ == 84000000
+
+/*       BS1 BS2 SJW Pre
+1M:      13   7   1   1
+500k:    13   7   1   2
+250k:     7   4   1   7
+125k:    15   8   1   7
+100k:    13   7   1  10 */
+
+#define CAN_BAUD_COUNT 5
+static const u8 can_baud_bs1[]    = { CAN_BS1_13tq, CAN_BS1_15tq, CAN_BS1_7tq, CAN_BS1_13tq, CAN_BS1_13tq };
+static const u8 can_baud_bs2[]    = { CAN_BS1_7tq,  CAN_BS1_8tq,  CAN_BS1_4tq, CAN_BS1_7tq,  CAN_BS1_7tq };
+static const u8 can_baud_sjw[]    = { CAN_SJW_1tq,  CAN_SJW_1tq,  CAN_SJW_1tq, CAN_SJW_1tq,  CAN_SJW_1tq };
+static const u8 can_baud_pre[]    = { 10, 7, 7, 2, 1 };
 
 #endif
 
