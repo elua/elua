@@ -22,6 +22,7 @@ function add_platform_configs( t, board, cpu )
     },
     required = { con_rx_port = 1, con_rx_pin = 7, con_tx_port = 1, con_tx_pin = 6 }
   }
+  t.clocks.attrs.internal = at.make_optional( at.int_attr( 'ELUA_BOARD_INTERNAL_CLOCK_HZ', 1 ) )
 end
 
 -- Return an array of all the available platform modules for the given cpu

@@ -332,9 +332,8 @@ static void SetSysClock(void)
 /******************************************************************************/
 /*            PLL (clocked by HSE) used as System clock source                */
 /******************************************************************************/
-#ifdef FORSTM32F4NUCLEO
-  // by default, the STM32F4 Nucleo board doesn't have an external crystal
-  // or clock source attached to the F4 so use the HSI clock instead
+#ifdef ELUA_BOARD_INTERNAL_CLOCK_HZ
+  // we're using the HSI clock so just fake HSE good status
   uint32_t HSEStatus = 0x01;
 #else
   __IO uint32_t StartUpCounter = 0, HSEStatus = 0;
@@ -375,7 +374,7 @@ static void SetSysClock(void)
     RCC->CFGR |= RCC_CFGR_PPRE1_DIV4;
 
     /* Configure the main PLL */
-#ifdef FORSTM32F4NUCLEO
+#ifdef ELUA_BOARD_INTERNAL_CLOCK_HZ
     RCC->PLLCFGR = PLL_M | (PLL_N << 6) | (((PLL_P >> 1) -1) << 16) |
                    (RCC_PLLCFGR_PLLSRC_HSI) | (PLL_Q << 24);
 #else
