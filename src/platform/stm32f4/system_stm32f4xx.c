@@ -332,15 +332,15 @@ static void SetSysClock(void)
 /******************************************************************************/
 /*            PLL (clocked by HSE) used as System clock source                */
 /******************************************************************************/
+#ifdef FORSTM32F4NUCLEO
+  // by default, the STM32F4 Nucleo board doesn't have an external crystal
+  // or clock source attached to the F4 so use the HSI clock instead
+  uint32_t HSEStatus = 0x01;
+#else
   __IO uint32_t StartUpCounter = 0, HSEStatus = 0;
 
-#ifdef FORSTM32F4NUCLEO
-  /* Enable HSE bypass as board provides external 8MHz clock to MCU */
-  RCC->CR |= ((uint32_t)RCC_CR_HSEBYP);
-#else
   /* Enable HSE */
   RCC->CR |= ((uint32_t)RCC_CR_HSEON);
-#endif
  
   /* Wait till HSE is ready and if Time out is reached exit */
   do
@@ -357,6 +357,7 @@ static void SetSysClock(void)
   {
     HSEStatus = (uint32_t)0x00;
   }
+#endif
 
   if (HSEStatus == (uint32_t)0x01)
   {
@@ -374,8 +375,13 @@ static void SetSysClock(void)
     RCC->CFGR |= RCC_CFGR_PPRE1_DIV4;
 
     /* Configure the main PLL */
+#ifdef FORSTM32F4NUCLEO
+    RCC->PLLCFGR = PLL_M | (PLL_N << 6) | (((PLL_P >> 1) -1) << 16) |
+                   (RCC_PLLCFGR_PLLSRC_HSI) | (PLL_Q << 24);
+#else
     RCC->PLLCFGR = PLL_M | (PLL_N << 6) | (((PLL_P >> 1) -1) << 16) |
                    (RCC_PLLCFGR_PLLSRC_HSE) | (PLL_Q << 24);
+#endif
 
     /* Enable the main PLL */
     RCC->CR |= RCC_CR_PLLON;
