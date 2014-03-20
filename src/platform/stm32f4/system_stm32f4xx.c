@@ -392,11 +392,16 @@ static void SetSysClock(void)
     }
    
     /* Configure Flash prefetch, Instruction cache, Data cache and wait state */
-#ifdef FORSTM32F4NUCLEO
-    FLASH->ACR = FLASH_ACR_PRFTEN |FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_2WS;
+#if STM32F4_DESIRED_SYSCLK_FREQ_MHZ <= 90
+    const int flash_latency = FLASH_ACR_LATENCY_2WS;
+#elif STM32F4_DESIRED_SYSCLK_FREQ_MHZ <= 120
+    const int flash_latency = FLASH_ACR_LATENCY_3WS;
+#elif STM32F4_DESIRED_SYSCLK_FREQ_MHZ <= 150
+    const int flash_latency = FLASH_ACR_LATENCY_4WS;
 #else
-    FLASH->ACR = FLASH_ACR_PRFTEN |FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_5WS;
+    const int flash_latency = FLASH_ACR_LATENCY_5WS;
 #endif
+    FLASH->ACR = FLASH_ACR_PRFTEN |FLASH_ACR_ICEN |FLASH_ACR_DCEN | flash_latency;
 
     /* Select the main PLL as system clock source */
     RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_SW));
