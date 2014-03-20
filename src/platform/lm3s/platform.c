@@ -37,7 +37,6 @@
 #include "driverlib/ethernet.h"
 #include "driverlib/systick.h"
 #include "driverlib/flash.h"
-#include "driverlib/interrupt.h"
 #include "elua_net.h"
 #include "dhcpc.h"
 #include "buf.h"
