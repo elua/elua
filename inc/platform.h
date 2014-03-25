@@ -162,6 +162,7 @@ int platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data );
 
 // There are 4 "virtual" SPI ports (SPI0...SPI3).
 #define PLATFORM_SPI_TOTAL                    4
+// TODO: PLATFORM_SPI_TOTAL is not used - figure out purpose, or remove?
 
 // SPI mode
 #define PLATFORM_SPI_MASTER                   1
@@ -187,6 +188,8 @@ void platform_spi_select( unsigned id, int is_select );
 
 // There are 4 "virtual" UART ports (UART0...UART3).
 #define PLATFORM_UART_TOTAL                   4
+// TODO: PLATFORM_UART_TOTAL is not used - figure out purpose, or remove?
+// Note: Some CPUs (e.g. LM4F/TM4C) have more than 4 hardware UARTs
 
 // Pseudo ID of UART over CDC
 #define CDC_UART_ID     0xB0
@@ -230,6 +233,7 @@ int platform_s_uart_set_flow_control( unsigned id, int type );
 
 // There are 16 "virtual" PWM channels (PWM0...PWM15)
 #define PLATFORM_PWM_TOTAL                    16
+// TODO: PLATFORM_PWM_TOTAL is not used - figure out purpose, or remove?
 
 // The platform PWM functions
 int platform_pwm_exists( unsigned id );

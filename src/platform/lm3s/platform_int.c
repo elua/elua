@@ -87,7 +87,7 @@ static void gpio_common_handler( int port )
   u32 iev = HWREG( base + GPIO_O_IEV );
 
   // Check each pin in turn
-  for( pin = 0, pinmask = 1; pin < 8; pin ++, pinmask <<= 1 )
+  for( pin = 0, pinmask = 1; pin < platform_pio_get_num_pins( port ); pin ++, pinmask <<= 1 )
     if( HWREG( base + GPIO_O_MIS ) & pinmask ) // interrupt on pin
     {
       if( MAP_GPIOPinRead( base, pinmask ) && ( ( ibe & pinmask ) || ( iev & pinmask ) ) ) // high level and posedge interrupt enabled 

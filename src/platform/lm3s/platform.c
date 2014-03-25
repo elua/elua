@@ -37,7 +37,6 @@
 #include "driverlib/ethernet.h"
 #include "driverlib/systick.h"
 #include "driverlib/flash.h"
-#include "driverlib/interrupt.h"
 #include "elua_net.h"
 #include "dhcpc.h"
 #include "buf.h"
@@ -296,24 +295,24 @@ void CANIntHandler(void)
 
   if(status == CAN_INT_INTID_STATUS)
   {
-    status = CANStatusGet(CAN0_BASE, CAN_STS_CONTROL);
+    status = MAP_CANStatusGet(CAN0_BASE, CAN_STS_CONTROL);
     can_err_flag = 1;
     can_tx_flag = 0;
   }
   else if( status == CAN_MSG_OBJ_RX ) // Message receive
   {
-    CANIntClear(CAN0_BASE, CAN_MSG_OBJ_RX);
+    MAP_CANIntClear(CAN0_BASE, CAN_MSG_OBJ_RX);
     can_rx_flag = 1;
     can_err_flag = 0;
   }
   else if( status == CAN_MSG_OBJ_TX ) // Message send
   {
-    CANIntClear(CAN0_BASE, CAN_MSG_OBJ_TX);
+    MAP_CANIntClear(CAN0_BASE, CAN_MSG_OBJ_TX);
     can_tx_flag = 0;
     can_err_flag = 0;
   }
   else
-    CANIntClear(CAN0_BASE, status);
+    MAP_CANIntClear(CAN0_BASE, status);
 }
 
 
@@ -321,7 +320,7 @@ void cans_init( void )
 {
   MAP_SysCtlPeripheralEnable( SYSCTL_PERIPH_CAN0 ); 
   MAP_CANInit( CAN0_BASE );
-  CANBitRateSet(CAN0_BASE, LM3S_CAN_CLOCK, CAN_INIT_SPEED);
+  MAP_CANBitRateSet(CAN0_BASE, LM3S_CAN_CLOCK, CAN_INIT_SPEED);
   MAP_CANIntEnable( CAN0_BASE, CAN_INT_MASTER | CAN_INT_ERROR | CAN_INT_STATUS );
   MAP_IntEnable(INT_CAN0);
   MAP_CANEnable(CAN0_BASE);
@@ -337,12 +336,12 @@ void cans_init( void )
 
 u32 platform_can_setup( unsigned id, u32 clock )
 {  
-  GPIOPinConfigure(GPIO_PD0_CAN0RX);
-  GPIOPinConfigure(GPIO_PD1_CAN0TX);
+  MAP_GPIOPinConfigure(GPIO_PD0_CAN0RX);
+  MAP_GPIOPinConfigure(GPIO_PD1_CAN0TX);
   MAP_GPIOPinTypeCAN(GPIO_PORTD_BASE, GPIO_PIN_0 | GPIO_PIN_1);
 
   MAP_CANDisable(CAN0_BASE);
-  CANBitRateSet(CAN0_BASE, LM3S_CAN_CLOCK, clock );
+  MAP_CANBitRateSet(CAN0_BASE, LM3S_CAN_CLOCK, clock );
   MAP_CANEnable(CAN0_BASE);
   return clock;
 }
@@ -370,7 +369,7 @@ int platform_can_send( unsigned id, u32 canid, u8 idtype, u8 len, const u8 *data
   DUFF_DEVICE_8( len,  *d++ = *s++ );
 
   can_tx_flag = 1;
-  CANMessageSet(CAN0_BASE, CAN_MSG_OBJ_TX, &msg_tx, MSG_OBJ_TYPE_TX);
+  MAP_CANMessageSet(CAN0_BASE, CAN_MSG_OBJ_TX, &msg_tx, MSG_OBJ_TYPE_TX);
 
   return PLATFORM_OK;
 }
@@ -381,7 +380,7 @@ int platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )
   if( can_rx_flag != 0 )
   {
     can_msg_rx.pucMsgData = data;
-    CANMessageGet(CAN0_BASE, CAN_MSG_OBJ_RX, &can_msg_rx, 0);
+    MAP_CANMessageGet(CAN0_BASE, CAN_MSG_OBJ_RX, &can_msg_rx, 0);
     can_rx_flag = 0;
 
     *canid = ( u32 )can_msg_rx.ulMsgID;
@@ -431,9 +430,9 @@ static void spis_init()
   unsigned i;
 
 #if defined( ELUA_BOARD_SOLDERCORE )
-  GPIOPinConfigure( GPIO_PH4_SSI1CLK );
-  GPIOPinConfigure( GPIO_PF4_SSI1RX );
-  GPIOPinConfigure( GPIO_PF5_SSI1TX );
+  MAP_GPIOPinConfigure( GPIO_PH4_SSI1CLK );
+  MAP_GPIOPinConfigure( GPIO_PF4_SSI1RX );
+  MAP_GPIOPinConfigure( GPIO_PF5_SSI1TX );
 #endif
 
   for( i = 0; i < NUM_SPI; i ++ )
@@ -455,8 +454,8 @@ u32 platform_spi_setup( unsigned id, int mode, u32 clock, unsigned cpol, unsigne
   MAP_GPIOPinTypeSSI( spi_gpio_clk_base[ id ], spi_gpio_clk_pin[ id ] );
 
   // FIXME: not sure this is always "right"
-  GPIOPadConfigSet( spi_gpio_base[ id ], spi_gpio_pins[ id ], GPIO_STRENGTH_4MA, GPIO_PIN_TYPE_STD_WPU );
-  GPIOPadConfigSet( spi_gpio_clk_base[ id ], spi_gpio_clk_pin[ id ], GPIO_STRENGTH_4MA, GPIO_PIN_TYPE_STD_WPU );
+  MAP_GPIOPadConfigSet( spi_gpio_base[ id ], spi_gpio_pins[ id ], GPIO_STRENGTH_4MA, GPIO_PIN_TYPE_STD_WPU );
+  MAP_GPIOPadConfigSet( spi_gpio_clk_base[ id ], spi_gpio_clk_pin[ id ], GPIO_STRENGTH_4MA, GPIO_PIN_TYPE_STD_WPU );
 
   MAP_SSIConfigSetExpClk( spi_base[ id ], MAP_SysCtlClockGet(), protocol, mode, clock, databits );
   MAP_SSIEnable( spi_base[ id ] );
@@ -783,7 +782,7 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
   u32 period;
 
 #if defined( FORLM3S9B92 ) || defined(FORLM3S9D92)
-  GPIOPinConfigure( pwm_configs[ id ] );
+  MAP_GPIOPinConfigure( pwm_configs[ id ] );
 #endif
 
   // Set pin as PWM
@@ -1083,8 +1082,8 @@ static void eth_init()
   MAP_SysCtlPeripheralReset( SYSCTL_PERIPH_ETH );
 
 #if defined( FORLM3S9B92 ) || defined(FORLM3S9D92)
-  GPIOPinConfigure(GPIO_PF2_LED1);
-  GPIOPinConfigure(GPIO_PF3_LED0);
+  MAP_GPIOPinConfigure(GPIO_PF2_LED1);
+  MAP_GPIOPinConfigure(GPIO_PF3_LED0);
 #endif
 
   // Enable Ethernet LEDs
@@ -1207,8 +1206,8 @@ void EthernetIntHandler()
   u32 temp;
 
   // Read and Clear the interrupt.
-  temp = EthernetIntStatus( ETH_BASE, false );
-  EthernetIntClear( ETH_BASE, temp );
+  temp = MAP_EthernetIntStatus( ETH_BASE, false );
+  MAP_EthernetIntClear( ETH_BASE, temp );
 
   // Call the UIP main loop
   elua_uip_mainloop();
@@ -1407,7 +1406,7 @@ u32 platform_s_flash_write( const void *from, u32 toaddr, u32 size )
 
 int platform_flash_erase_sector( u32 sector_id )
 {
-  return FlashErase( sector_id * INTERNAL_FLASH_SECTOR_SIZE ) == 0 ? PLATFORM_OK : PLATFORM_ERR;
+  return MAP_FlashErase( sector_id * INTERNAL_FLASH_SECTOR_SIZE ) == 0 ? PLATFORM_OK : PLATFORM_ERR;
 }
 #endif // #ifdef BUILD_WOFS
 

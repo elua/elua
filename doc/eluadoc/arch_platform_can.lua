@@ -38,7 +38,7 @@ enum
       ret = "1 if the CAN interface exists, 0 otherwise"
     },
 
-    { sig = "u32 #platform_can_setup#( unsigned id, u23 clock );",
+    { sig = "u32 #platform_can_setup#( unsigned id, u32 clock );",
       desc = [[This function is used to initialize the CAN hardware and set the bus clock.]],
       args = 
       {
