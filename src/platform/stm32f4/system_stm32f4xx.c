@@ -332,15 +332,14 @@ static void SetSysClock(void)
 /******************************************************************************/
 /*            PLL (clocked by HSE) used as System clock source                */
 /******************************************************************************/
+#ifdef ELUA_BOARD_INTERNAL_CLOCK_HZ
+  // we're using the HSI clock so just fake HSE good status
+  uint32_t HSEStatus = 0x01;
+#else
   __IO uint32_t StartUpCounter = 0, HSEStatus = 0;
 
-#ifdef FORSTM32F4NUCLEO
-  /* Enable HSE bypass as board provides external 8MHz clock to MCU */
-  RCC->CR |= ((uint32_t)RCC_CR_HSEBYP);
-#else
   /* Enable HSE */
   RCC->CR |= ((uint32_t)RCC_CR_HSEON);
-#endif
  
   /* Wait till HSE is ready and if Time out is reached exit */
   do
@@ -357,6 +356,7 @@ static void SetSysClock(void)
   {
     HSEStatus = (uint32_t)0x00;
   }
+#endif
 
   if (HSEStatus == (uint32_t)0x01)
   {
@@ -374,8 +374,13 @@ static void SetSysClock(void)
     RCC->CFGR |= RCC_CFGR_PPRE1_DIV4;
 
     /* Configure the main PLL */
+#ifdef ELUA_BOARD_INTERNAL_CLOCK_HZ
+    RCC->PLLCFGR = PLL_M | (PLL_N << 6) | (((PLL_P >> 1) -1) << 16) |
+                   (RCC_PLLCFGR_PLLSRC_HSI) | (PLL_Q << 24);
+#else
     RCC->PLLCFGR = PLL_M | (PLL_N << 6) | (((PLL_P >> 1) -1) << 16) |
                    (RCC_PLLCFGR_PLLSRC_HSE) | (PLL_Q << 24);
+#endif
 
     /* Enable the main PLL */
     RCC->CR |= RCC_CR_PLLON;
@@ -386,7 +391,16 @@ static void SetSysClock(void)
     }
    
     /* Configure Flash prefetch, Instruction cache, Data cache and wait state */
-    FLASH->ACR = FLASH_ACR_PRFTEN |FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_5WS;
+#if STM32F4_DESIRED_SYSCLK_FREQ_MHZ <= 90
+    const int flash_latency = FLASH_ACR_LATENCY_2WS;
+#elif STM32F4_DESIRED_SYSCLK_FREQ_MHZ <= 120
+    const int flash_latency = FLASH_ACR_LATENCY_3WS;
+#elif STM32F4_DESIRED_SYSCLK_FREQ_MHZ <= 150
+    const int flash_latency = FLASH_ACR_LATENCY_4WS;
+#else
+    const int flash_latency = FLASH_ACR_LATENCY_5WS;
+#endif
+    FLASH->ACR = FLASH_ACR_PRFTEN |FLASH_ACR_ICEN |FLASH_ACR_DCEN | flash_latency;
 
     /* Select the main PLL as system clock source */
     RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_SW));

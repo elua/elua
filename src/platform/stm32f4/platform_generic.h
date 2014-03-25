@@ -3,6 +3,16 @@
 #ifndef __PLATFORM_GENERIC_H__
 #define __PLATFORM_GENERIC_H__
 
+#if defined(ELUA_BOARD_EXTERNAL_CLOCK_HZ)
+ #if defined(ELUA_BOARD_INTERNAL_CLOCK_HZ)
+  #error You must not specify both external and internal clock frequencies in 'clocks = { ... }'
+ #endif
+#elif defined(ELUA_BOARD_INTERNAL_CLOCK_HZ)
+ #define ELUA_BOARD_EXTERNAL_CLOCK_HZ ELUA_BOARD_INTERNAL_CLOCK_HZ
+#else
+ #error You must specify either an external or internal clock frequency in 'clocks = { ... }'
+#endif
+
 #define PLATFORM_HAS_SYSTIMER
 #define ENABLE_JTAG_SWD
 
