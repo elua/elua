@@ -81,6 +81,7 @@ typedef unsigned short uip_stats_t;
 // UDP checksums on or off
 // (not currently supported ... should be 0)
 //
+// FIXME: Either above comment is wrong, or following should be 0
 #define UIP_CONF_UDP_CHECKSUMS      1
 
 //
