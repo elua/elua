@@ -813,8 +813,6 @@ int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int 
   if( period_us == 0 )
   {
     TIM_ITConfig( base, TIM_IT_CC1, DISABLE );
-    base->CR1 = 0; // Why are we doing this?
-    base->CR2 = 0;
     return PLATFORM_TIMER_INT_OK;
   }
 
