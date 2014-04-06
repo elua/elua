@@ -656,6 +656,22 @@ const TIM_TypeDef * const timer[] = {
   TIM13,  // ID: 10
   TIM14   // ID: 11
 };
+
+const u8 timer_width[] = {
+  16,  // ID: 0
+  32,  // ID: 1
+  16,  // ID: 2
+  16,  // ID: 3
+  32,  // ID: 4
+  16,  // ID: 5
+  16,  // ID: 6
+  16,  // ID: 7
+  16,  // ID: 8
+  16,  // ID: 9
+  16,  // ID: 10
+  16   // ID: 11
+};
+
 #define TIM_GET_PRESCALE( id ) ( (((id) == 0) || ((id) == 5)|| ((id) == 6)|| ((id) == 7)|| ((id) == 8)) ? ( PCLK2_DIV ) : ( PCLK1_DIV ) )
 #define TIM_GET_BASE_CLK( id ) ( HCLK / ( TIM_GET_PRESCALE( id ) / 2 ) )
 #define TIM_STARTUP_CLOCK       50000
@@ -717,7 +733,7 @@ static u32 platform_timer_set_clock( unsigned id, u32 clock )
   if( pre > 65535 ) // Limit prescaler to 16-bits
     pre = 65535;
 
-  timer_base_struct.TIM_Period = 0xFFFF;
+  timer_base_struct.TIM_Period = ( timer_width[id] == 32 ? 0xFFFFFFFF : 0xFFFF );
   timer_base_struct.TIM_Prescaler = ( u16 )pre;
   timer_base_struct.TIM_ClockDivision = TIM_CKD_DIV1;
   timer_base_struct.TIM_CounterMode = TIM_CounterMode_Up;
@@ -767,7 +783,7 @@ timer_data_type platform_s_timer_op( unsigned id, int op, timer_data_type data )
       break;
 
     case PLATFORM_TIMER_OP_GET_MAX_CNT:
-      res = 0xFFFF;
+      res = ( timer_width[id] == 32 ? 0xFFFFFFFF : 0xFFFF );
       break;
 
   }
@@ -777,7 +793,8 @@ timer_data_type platform_s_timer_op( unsigned id, int op, timer_data_type data )
 int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int type )
 {
   TIM_TypeDef* base = ( TIM_TypeDef* )timer[ id ];
-  u32 period, prescaler, freq;
+  u64 period;
+  u32 prescaler, freq;
   timer_data_type final;
   TIM_OCInitTypeDef  TIM_OCInitStructure;
 
@@ -791,8 +808,10 @@ int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int 
 
   period = ( ( u64 )TIM_GET_BASE_CLK( id ) * period_us ) / 1000000;
 
-  prescaler = ( period / 0x10000 ) + 1;
-  period /= prescaler;
+  prescaler = (u32)( period / ((u64)1 << timer_width[id]) ) + 1;
+
+  if( prescaler > 0xFFFF )
+    return PLATFORM_TIMER_INT_TOO_LONG;
 
   platform_timer_set_clock( id, TIM_GET_BASE_CLK( id  ) / prescaler );
   freq = platform_timer_get_clock( id );
@@ -800,8 +819,6 @@ int platform_s_timer_set_match_int( unsigned id, timer_data_type period_us, int 
 
   if( final == 0 )
     return PLATFORM_TIMER_INT_TOO_SHORT;
-  if( final > 0xFFFF )
-    return PLATFORM_TIMER_INT_TOO_LONG;
 
   TIM_Cmd( base, DISABLE );
 
