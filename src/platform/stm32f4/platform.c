@@ -752,8 +752,20 @@ void platform_s_timer_delay( unsigned id, timer_data_type delay_us )
 
   final = ( ( u64 )delay_us * platform_timer_get_clock( id ) ) / 1000000;
   TIM_SetCounter( ptimer, 0 );
+  // clear update flag so we can detect when it wraps
+  ptimer->SR &= ~TIM_SR_UIF;
   for( dummy = 0; dummy < 200; dummy ++ );
-  while( TIM_GetCounter( ptimer ) < final );
+  u64 timer_period = (u64)1 << timer_width[id];
+  while( TIM_GetCounter( ptimer ) < final )
+  {
+    if ( ptimer->SR & TIM_SR_UIF )
+    {
+      // timer has wrapped
+      ptimer->SR &= ~TIM_SR_UIF;
+      if ( final >= timer_period )
+        final -= timer_period;
+    }
+  }
 }
 
 timer_data_type platform_s_timer_op( unsigned id, int op, timer_data_type data )
