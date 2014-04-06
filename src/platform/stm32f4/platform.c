@@ -755,7 +755,7 @@ void platform_s_timer_delay( unsigned id, timer_data_type delay_us )
   // clear update flag so we can detect when it wraps
   ptimer->SR &= ~TIM_SR_UIF;
   for( dummy = 0; dummy < 200; dummy ++ );
-  u64 timer_period = (u64)1 << timer_width[id];
+  u64 timer_period = (u64)ptimer->ARR + 1;
   while( TIM_GetCounter( ptimer ) < final )
   {
     if ( ptimer->SR & TIM_SR_UIF )
