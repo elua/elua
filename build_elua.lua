@@ -267,7 +267,8 @@ if comp.romfs == 'compile' then
   local cmdpath = { lfs.currentdir(), sf( 'luac.cross%s -ccn %s -cce %s -o %%s -s %%s', suffix, toolset[ "cross_" .. comp.target:lower() ], toolset.cross_cpumode:lower() ) }
   fscompcmd = table.concat( cmdpath, utils.dir_sep )
 elseif comp.romfs == 'compress' then
-  fscompcmd = 'lua luasrcdiet.lua --quiet --maximum --opt-comments --opt-whitespace --opt-emptylines --opt-eols --opt-strings --opt-numbers --opt-locals -o %s %s'
+  if comp.target == 'lualong' or comp.target == 'lualonglong' then fscompoptnums = '' else fscompoptnums = '--opt-numbers' end
+  fscompcmd = 'lua luasrcdiet.lua --quiet --maximum --opt-comments --opt-whitespace --opt-emptylines --opt-eols --opt-strings ' .. fscompoptnums .. ' --opt-locals -o %s %s'
 end
 
 -- Determine build version
