@@ -57,7 +57,7 @@ void UART5_IRQHandler()
 // ****************************************************************************
 // External interrupt handlers
 
-static const u32 exti_line[] = { EXTI_Line0, EXTI_Line1, EXTI_Line2, EXTI_Line3, EXTI_Line4, EXTI_Line5, EXTI_Line6, EXTI_Line7, EXTI_Line8, EXTI_Line9, EXTI_Line10, EXTI_Line12, EXTI_Line13, EXTI_Line14, EXTI_Line15 };
+static const u32 exti_line[] = { EXTI_Line0, EXTI_Line1, EXTI_Line2, EXTI_Line3, EXTI_Line4, EXTI_Line5, EXTI_Line6, EXTI_Line7, EXTI_Line8, EXTI_Line9, EXTI_Line10, EXTI_Line11, EXTI_Line12, EXTI_Line13, EXTI_Line14, EXTI_Line15 };
 
 static u16 exti_line_to_gpio( u32 line )
 {
