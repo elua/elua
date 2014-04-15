@@ -794,7 +794,7 @@ static int handle_index (lua_State *L)
   if( lua_type( L, 2 ) != LUA_TSTRING )
     return luaL_error( L, "can't index a handle with a non-string" );
   s = lua_tostring( L, 2 );
-  if ( strlen( s ) > NUM_FUNCNAME_CHARS - 1 )
+  if ( strlen( s ) > NUM_FUNCNAME_CHARS )
     return luaL_error( L, errorString( ERR_LONGFNAME ) );
 
   helper_create( L, ( Handle * )lua_touserdata( L, 1 ), s );
