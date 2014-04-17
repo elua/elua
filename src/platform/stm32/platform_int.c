@@ -138,7 +138,7 @@ void EXTI15_10_IRQHandler()
 const TIM_TypeDef * const timer[] = { TIM1, TIM2, TIM3, TIM4, TIM5 };
 extern u8 stm32_timer_int_periodic_flag[ NUM_PHYS_TIMER ];
 
-static void tmr_int_handler( int id )
+static void tmr_int_handler( unsigned id )
 {
   TIM_TypeDef *base = ( TIM_TypeDef* )timer[ id ];
 

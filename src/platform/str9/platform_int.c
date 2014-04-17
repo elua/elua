@@ -86,7 +86,7 @@ void WIU_IRQHandler(void)
 extern TIM_TypeDef* const str9_timer_data[];
 extern u8 str9_timer_int_periodic_flag[ NUM_PHYS_TIMER ];
 
-static void tmr_int_handler( int id )
+static void tmr_int_handler( unsigned id )
 {
   TIM_TypeDef *base = ( TIM_TypeDef* )str9_timer_data[ id ];
 

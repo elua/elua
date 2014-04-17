@@ -151,7 +151,7 @@ const TIM_TypeDef * const timer[] = {
  };
 extern u8 stm32_timer_int_periodic_flag[ NUM_PHYS_TIMER ];
 
-static void tmr_int_handler( int id )
+static void tmr_int_handler( unsigned id )
 {
   TIM_TypeDef *base = ( TIM_TypeDef* )timer[ id ];
 
