@@ -57,6 +57,7 @@ static int enc_set_index_handler( lua_State *L )
 
   platform_cpu_set_interrupt( id, index_resnum, PLATFORM_CPU_ENABLE );
   prev_handler = elua_int_set_c_handler( id, index_handler );
+  return 0;
 }
 
 static void index_handler( elua_int_resnum resnum )
