@@ -211,6 +211,14 @@ static int romfs_open_r( struct _reent *r, const char *path, int flags, int mode
       r->_errno = ENOSPC;
       return -1;
     }
+
+    // Make sure we can get a file descriptor before writing
+    if( ( i = romfs_find_empty_fd() ) < 0 )
+    {
+      r->_errno = ENFILE;
+      return -1;
+    }
+
     // Write the name of the file
     pfsdata->writef( path, firstfree, strlen( path ) + 1, pfsdata );
     firstfree += strlen( path ) + 1; // skip over the name
@@ -229,10 +237,15 @@ static int romfs_open_r( struct _reent *r, const char *path, int flags, int mode
       r->_errno = ENOENT;
       return -1;
     }
+
+    if( ( i = romfs_find_empty_fd() ) < 0 )
+    {
+      r->_errno = ENFILE;
+      return -1;
+    }
   }
-  // Find a free FD and copy the descriptor information
+  // Copy the descriptor information
   tempfs.flags = lflags;
-  i = romfs_find_empty_fd();
   memcpy( fd_table + i, &tempfs, sizeof( FD ) );
   romfs_num_fd ++;
   return i;
