@@ -338,7 +338,7 @@ int cmn_tmr_int_set_status( elua_int_resnum resnum, int status )
 #endif
   if( resnum == PLATFORM_TIMER_SYS_ID )
     return PLATFORM_INT_BAD_RESNUM;
-#ifdef INT_TMR_MATCH    
+#if defined( INT_TMR_MATCH ) && ( INT_TMR_MATCH != ELUA_INT_INVALID_INTERRUPT )
   elua_int_p_set_status ps;
   if( ( ps = elua_int_table[ INT_TMR_MATCH - ELUA_INT_FIRST_ID ].int_set_status ) == NULL )
     return PLATFORM_INT_NOT_HANDLED;
@@ -356,7 +356,7 @@ int cmn_tmr_int_get_status( elua_int_resnum resnum )
 #endif
   if( resnum == PLATFORM_TIMER_SYS_ID )
     return PLATFORM_INT_BAD_RESNUM;
-#ifdef INT_TMR_MATCH    
+#if defined( INT_TMR_MATCH ) && ( INT_TMR_MATCH != ELUA_INT_INVALID_INTERRUPT )
   elua_int_p_get_status pg;
   if( ( pg = elua_int_table[ INT_TMR_MATCH - ELUA_INT_FIRST_ID ].int_get_status ) == NULL )
     return PLATFORM_INT_NOT_HANDLED;
@@ -374,7 +374,7 @@ int cmn_tmr_int_get_flag( elua_int_resnum resnum, int clear )
 #endif
   if( resnum == PLATFORM_TIMER_SYS_ID )
     return PLATFORM_INT_BAD_RESNUM;
-#ifdef INT_TMR_MATCH    
+#if defined( INT_TMR_MATCH ) && ( INT_TMR_MATCH != ELUA_INT_INVALID_INTERRUPT )
   elua_int_p_get_flag pf;
   if( ( pf = elua_int_table[ INT_TMR_MATCH - ELUA_INT_FIRST_ID ].int_get_flag ) == NULL )
     return PLATFORM_INT_NOT_HANDLED;
