@@ -67,6 +67,8 @@ static int bitarray_new( lua_State *L )
       elsize = luaL_checkinteger( L, 2 );
     else
       elsize = 8;
+    if( elsize == 0 )
+      return luaL_error( L, "length is zero." );
     if( ( temp << 3 ) % elsize )
       return luaL_error( L, "length is not a multiple of element size." );
     capacity = ( u32 )( temp << 3 ) / elsize;  
