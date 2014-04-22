@@ -164,7 +164,7 @@ struct dm_dirent* dm_readdir( DM_DIR *d )
 {
   const DM_DEVICE *pdev;
 
-  if( d->devid < 0 || d->devid >= dm_num_devs )
+  if( d->devid >= dm_num_devs )
   {
     _REENT->_errno = EBADF;
     return NULL;
@@ -184,7 +184,7 @@ int dm_closedir( DM_DIR *d )
   int res = -1;
   const DM_DEVICE *pdev;
 
-  if( d->devid < 0 || d->devid >= dm_num_devs )
+  if( d->devid >= dm_num_devs )
   {
     _REENT->_errno = EBADF;
     return -1;

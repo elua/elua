@@ -79,7 +79,7 @@ static int uart_write( lua_State* L )
     if( lua_type( L, s ) == LUA_TNUMBER )
     {
       len = lua_tointeger( L, s );
-      if( ( len < 0 ) || ( len > 255 ) )
+      if( len > 255 )
         return luaL_error( L, "invalid number" );
       platform_uart_send( id, ( u8 )len );
     }
