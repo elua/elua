@@ -361,7 +361,7 @@ static int int_uart_rx_get_flag( elua_int_resnum resnum, int clear )
 // UART IRQ table
 #if defined( STM32F10X_LD )
 static const u8 uart_irq_table[] = { USART1_IRQn, USART2_IRQn };
-#elseif defined( STM32F10X_MD )
+#elif defined( STM32F10X_MD )
 static const u8 uart_irq_table[] = { USART1_IRQn, USART2_IRQn, USART3_IRQn };
 #else // high density devices
 static const u8 uart_irq_table[] = { USART1_IRQn, USART2_IRQn, USART3_IRQn, UART4_IRQn, UART5_IRQn };
@@ -373,7 +373,7 @@ static const u8 exti_irq_table[] = { EXTI0_IRQn, EXTI1_IRQn, EXTI2_IRQn, EXTI3_I
 // EXTI IRQ table
 #if defined( STM32F10X_LD )
 static const u8 timer_irq_table[] = { TIM1_CC_IRQn, TIM2_IRQn, TIM3_IRQn };
-#elseif defined( STM32F10X_MD )
+#elif defined( STM32F10X_MD )
 static const u8 timer_irq_table[] = { TIM1_CC_IRQn, TIM2_IRQn, TIM3_IRQn, TIM4_IRQn };
 #else
 static const u8 timer_irq_table[] = { TIM1_CC_IRQn, TIM2_IRQn, TIM3_IRQn, TIM4_IRQn, TIM5_IRQn };
