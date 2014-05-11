@@ -4,6 +4,7 @@ return {
   cpu = 'lm3s9d92',
   components = {
     sercon = { uart = "cdc", speed = 115200 },
+    cdc = true,
     wofs = true,
     romfs = true,
     shell = true,

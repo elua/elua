@@ -1161,12 +1161,12 @@ static int eth_timer_fired;
 
 void platform_eth_send_packet( const void* src, u32 size )
 {
-  MAP_EthernetPacketPut( ETH_BASE, uip_buf, uip_len );
+  MAP_EthernetPacketPut( ETH_BASE, src, size );
 }
 
 u32 platform_eth_get_packet_nb( void* buf, u32 maxlen )
 {
-  return MAP_EthernetPacketGetNonBlocking( ETH_BASE, uip_buf, sizeof( uip_buf ) );
+  return MAP_EthernetPacketGetNonBlocking( ETH_BASE, buf, maxlen );
 }
 
 void platform_eth_force_interrupt()
