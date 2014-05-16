@@ -36,6 +36,12 @@
   #endif // #ifdef BUILD_TERM
 #endif // #ifdef BUILD_CON_TCP
 
+// If console is on USB serial port, check that USB serial port is also enabled
+#if CON_UART_ID == CDC_UART_ID && !defined(BUILD_USB_CDC)
+#error The console is directed to USB, but the USB CDC module is not enabled.
+#error Add cdc=true to the board file.
+#endif
+
 // For DHCP we need to have TCP/IP support
 #ifdef BUILD_DHCPC
   #ifndef BUILD_UIP
