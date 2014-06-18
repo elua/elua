@@ -136,6 +136,8 @@ int platform_init()
   #else
     USBD_Init( &USB_OTG_dev, USB_OTG_FS_CORE_ID, &USR_desc, &USBD_CDC_cb, &USR_cb );
   #endif
+    DCD_DevDisconnect( &USB_OTG_dev );
+    DCD_DevConnect( &USB_OTG_dev );
 #endif
 
   cmn_platform_init();
