@@ -1195,7 +1195,7 @@ int platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )
 
 void stm32_enc_init( unsigned id )
 {
-  TIM_TypeDef *ptimer = timer[ id ];
+  TIM_TypeDef *ptimer = (TIM_TypeDef *)timer[ id ];
 
   TIM_Cmd( ptimer, DISABLE );
   TIM_DeInit( ptimer );
@@ -1206,7 +1206,7 @@ void stm32_enc_init( unsigned id )
 
 void stm32_enc_set_counter( unsigned id, unsigned count )
 {
-  TIM_TypeDef *ptimer = timer[ id ];
+  TIM_TypeDef *ptimer = (TIM_TypeDef *)timer[ id ];
 
   TIM_SetCounter( ptimer, ( u16 )count );
 }
