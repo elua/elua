@@ -34,6 +34,7 @@ SHELL_HELP( lua );
 SHELL_HELP( ver );
 SHELL_HELP( mkdir );
 SHELL_HELP( wofmt );
+SHELL_HELP( vi );
 // 'mv' is special, as it uses the main help text from 'cp'
 extern const char shell_help_summary_mv[];
 
@@ -64,6 +65,7 @@ static const SHELL_HELP_DATA shell_help_data[] =
   SHELL_INFO( ver ),
   SHELL_INFO( mkdir ),
   SHELL_INFO( wofmt ),
+  SHELL_INFO( vi ),
   SHELL_INFO( exit ),
   { NULL, NULL, NULL }
 };
