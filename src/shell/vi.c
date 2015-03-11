@@ -419,7 +419,9 @@ enum {
 /* busybox build system provides that, but it's better */
 /* to audit and fix the source */
 
-static struct globals {
+typedef struct globals globals;
+
+struct globals {
 	/* many references - keep near the top of globals */
 	char *text, *end;       // pointers to the user data in memory
 	char *dot;              // where all the action takes place
@@ -557,7 +559,7 @@ static struct globals {
 	} *undo_stack_tail;
 #endif /* ENABLE_FEATURE_VI_UNDO */
 
-} my_globals;
+};
 
 #define G_BUSY (*ptr_to_globals)
 #define text           (G_BUSY.text          )
@@ -771,7 +773,8 @@ void shell_vi( int argc, char **argv )
 {
 	int c;
 
-  ptr_to_globals = & my_globals;
+  ptr_to_globals = malloc(sizeof(globals));
+  memset(ptr_to_globals,'\0',sizeof(globals));
 
 #if ENABLE_FEATURE_VI_UNDO
 	/* undo_stack_tail = NULL; - already is */
@@ -850,6 +853,7 @@ void shell_vi( int argc, char **argv )
 	// "Use normal screen buffer, restore cursor"
 	write1("\033[?1049l");
 	//-----------------------------------------------------------
+  free(ptr_to_globals);
 
 	return 0;
 }
@@ -1038,7 +1042,16 @@ static void edit_file(char *fn)
 #endif
 	}
 	//-------------------------------------------------------------------
-
+  //elua free memory
+  free(text);
+  free(screen);
+  int i;
+  for(i=0;i<28;i++){
+    free(reg[i]);
+    //free(mark[i]);
+  }
+  free(current_filename);
+  
 	go_bottom_and_clear_to_eol();
 	cookmode();
 #undef cur_line
