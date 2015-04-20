@@ -19,5 +19,7 @@ typedef unsigned int   BOOL;
 
 typedef volatile unsigned long* PREG;
 
+typedef enum {FALSE = 0, TRUE = !FALSE} Bool;
+
 #endif
 
