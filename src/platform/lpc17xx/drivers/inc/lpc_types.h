@@ -32,17 +32,12 @@
 
 /* Includes ------------------------------------------------------------------- */
 #include <stdint.h>
-
+#include <type.h>
 
 /* Public Types --------------------------------------------------------------- */
 /** @defgroup LPC_Types_Public_Types
  * @{
  */
-
-/**
- * @brief Boolean Type definition
- */
-typedef enum {FALSE = 0, TRUE = !FALSE} Bool;
 
 /**
  * @brief Flag Status and Interrupt Flag Status type definition
