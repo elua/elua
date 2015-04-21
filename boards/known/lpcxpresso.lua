@@ -10,12 +10,12 @@ return {
     linenoise = { shell_lines = 10, lua_lines = 50 },
     rpc = { uart = 0, speed = 115200 },
     adc = { buf_size = 4 },
-    xmodem = true,
-    lpc17xx_semifs = true
+    xmodem = true
   },
   config = {
     egc = { mode = "alloc" },
-    ram = { internal_rams = 2 }
+    ram = { internal_rams = 2 },
+    clocks = { external = 12000000, cpu = 120000000 }
   },
   modules = {
     generic = { 'all', "-spi", "-i2c", "-net" },

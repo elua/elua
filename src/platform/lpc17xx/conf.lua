@@ -3,7 +3,13 @@
 addi( sf( 'src/platform/%s/drivers/inc', platform ) )
 
 local fwlib_files = utils.get_files( sf( "src/platform/%s/drivers/src", platform ), ".*%.c$" )
-specific_files = "startup_LPC17xx.c system_LPC17xx.c core_cm3.c platform.c mbed_pio.c"
+specific_files = "startup_LPC17xx.c system_LPC17xx.c core_cm3.c platform.c"
+
+local board = comp.board:upper()
+
+if board == "MBED" then
+  specific_files = specific_files .. " mbed_pio.c"
+end
 
 local ldscript = "LPC17xx.ld"
  

@@ -15,7 +15,8 @@ return {
   },
   config = {
     egc = { mode = "alloc" },
-    ram = { internal_rams = 2 }
+    ram = { internal_rams = 2 },
+    clocks = { external = 12000000, cpu = 100000000 }
   },
   modules = {
     generic = { 'all', "-spi", "-i2c", "-net" },
