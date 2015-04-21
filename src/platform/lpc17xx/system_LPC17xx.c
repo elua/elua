@@ -296,7 +296,7 @@
  *----------------------------------------------------------------------------*/
 #define XTAL        ((DWORD)(ELUA_BOARD_EXTERNAL_CLOCK_HZ))        /* Oscillator frequency               */
 #define OSC_CLK     ((DWORD)(                        XTAL))        /* Main oscillator frequency          */
-#define RTC_CLK     ((DWORD)(     ELUA_BOARD_RTC_CLOCK_HZ))        /* RTC oscillator frequency           */
+#define RTC_CLK     ((DWORD)(                     32768UL))        /* RTC oscillator frequency           */
 #define IRC_OSC     ((DWORD)(                   4000000UL))        /* Internal RC oscillator frequency   */
 #define CPU_CLK             (     ELUA_BOARD_CPU_CLOCK_HZ)         /* Desired CPU clock                  */
 
