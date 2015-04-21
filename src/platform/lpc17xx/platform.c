@@ -74,11 +74,11 @@ int platform_init()
   cans_init();
 
   // System timer setup
-  cmn_systimer_set_base_freq( mbed_get_cpu_frequency() );
+  cmn_systimer_set_base_freq( lpc17xx_get_cpu_frequency() );
   cmn_systimer_set_interrupt_freq( SYSTICKHZ );
 
   // Enable SysTick
-  SysTick_Config( mbed_get_cpu_frequency() / SYSTICKHZ );
+  SysTick_Config( lpc17xx_get_cpu_frequency() / SYSTICKHZ );
 
   // Common platform initialization code
   cmn_platform_init();
@@ -87,7 +87,7 @@ int platform_init()
 } 
 
 extern u32 SystemCoreClock;
-u32 mbed_get_cpu_frequency()
+u32 lpc17xx_get_cpu_frequency()
 {
   return SystemCoreClock;
 }

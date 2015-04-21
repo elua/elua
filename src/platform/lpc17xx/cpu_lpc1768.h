@@ -17,8 +17,8 @@
 #define ADC_BIT_RESOLUTION    12
 
 // CPU frequency (needed by the CPU module, 0 if not used)
-u32 mbed_get_cpu_frequency();
-#define CPU_FREQUENCY         mbed_get_cpu_frequency()
+u32 lpc17xx_get_cpu_frequency();
+#define CPU_FREQUENCY         lpc17xx_get_cpu_frequency()
 
 // PIO prefix ('0' for P0, P1, ... or 'A' for PA, PB, ...)
 #define PIO_PREFIX            '0'
