@@ -159,11 +159,28 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 // ****************************************************************************
 // UART section
 
-// UART0: Rx = P0.3, Tx = P0.2
-// The other UARTs have assignable Rx/Tx pins and thus have to be configured
-// by the user
+// UART0: Rx = P0.3,  Tx = P0.2,  function 1
+// UART1: Rx = P0.16, Tx = P0.15, function 1
+// UART2: Rx = P0.11, Tx = P0.10, function 1
+// UART3: Rx = P0.1,  Tx = P0.0,  function 2
+
+static void PINSEL_SetInput(PINSEL_CFG_Type *PinCfg)
+{
+  PINSEL_ConfigPin(PinCfg);
+  GPIO_SetDir(PinCfg->Portnum, 1<<(PinCfg->Pinnum), 0);
+}
+
+static void PINSEL_SetOutput(PINSEL_CFG_Type *PinCfg)
+{
+  PINSEL_ConfigPin(PinCfg);
+  GPIO_SetDir(PinCfg->Portnum, 1<<(PinCfg->Pinnum), 1);
+}
 
 static LPC_UART_TypeDef* const uart[] = { LPC_UART0, LPC_UART1, LPC_UART2, LPC_UART3 };
+
+// Tx pins, Rx are +1
+static int const           uart_pin[] = { 2, 15, 10, 0 };
+static int const      uart_function[] =  {1,  1,  1, 2 };
 
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )
 {
@@ -171,18 +188,17 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   UART_CFG_Type UARTConfigStruct;
   // UART FIFO configuration Struct variable
   UART_FIFO_CFG_Type UARTFIFOConfigStruct;
-  // Pin configuration for UART0
+  // Pin configuration for UART
   PINSEL_CFG_Type PinCfg;
 
-  // UART0 Pin Config
-  PinCfg.Funcnum = 1;
-  PinCfg.OpenDrain = 0;
-  PinCfg.Pinmode = 0;
-  PinCfg.Pinnum = 2;
-  PinCfg.Portnum = 0;
-  PINSEL_ConfigPin(&PinCfg);
-  PinCfg.Pinnum = 3;
-  PINSEL_ConfigPin(&PinCfg);
+  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
+  PinCfg.Pinmode   = PINSEL_PINMODE_PULLUP;
+  PinCfg.Portnum   = PINSEL_PORT_0;
+  PinCfg.Funcnum   = uart_function[id];
+  PinCfg.Pinnum    = uart_pin[id];
+  PINSEL_SetOutput(&PinCfg);
+  PinCfg.Pinnum++;
+  PINSEL_SetInput(&PinCfg);
 
   UARTConfigStruct.Baud_rate = ( uint32_t )baud;
   
