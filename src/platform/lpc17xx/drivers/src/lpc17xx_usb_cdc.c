@@ -402,8 +402,10 @@ int VCOM_getchar(void)
 	Interrupt handler
 
 	Simply calls the USB ISR
+
+	This gets installed by overriding a WEAK linker symbol
+
  */
-//void USBIntHandler(void)
 void USB_IRQHandler(void)
 {
 	USBHwISR();
@@ -451,24 +453,8 @@ void platform_setup_usb_cdc(void)
 	VCOM_init();
 	printf("Starting USB communication\n");
 
-/* CodeRed - comment out original interrupt setup code
-	// set up USB interrupt
-	VICIntSelect &= ~(1<<22);               // select IRQ for USB
-	VICIntEnable |= (1<<22);
-
-	(*(&VICVectCntl0+INT_VECT_NUM)) = 0x20 | 22; // choose highest priority ISR slot
-	(*(&VICVectAddr0+INT_VECT_NUM)) = (int)USBIntHandler;
-
-	enableIRQ();
-*/
-
-// CodeRed - add in interrupt setup code for RDB1768
-
-#ifndef POLLED_USBSERIAL
-	//enable_USB_interrupts();
+	// enable IRQ
 	NVIC_EnableIRQ(USB_IRQn);
-
-#endif
 
 	// connect to bus
 
