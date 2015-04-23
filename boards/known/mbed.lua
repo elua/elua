@@ -16,7 +16,12 @@ return {
   config = {
     egc = { mode = "alloc" },
     ram = { internal_rams = 2 },
-    clocks = { external = 12000000, cpu = 100000000 }
+    clocks = { external = 12000000, cpu = 100000000 },
+    map_pins = {
+       port        = { 0, 0 },
+       pin         = { 2, 2 },
+       pinfunction = { 1, 1 }
+    }
   },
   modules = {
     generic = { 'all', "-spi", "-i2c", "-net" },

@@ -38,12 +38,13 @@ static void platform_setup_timers();
 static void platform_setup_pwm();
 static void platform_setup_adcs();
 static void cans_init( void );
+static void platform_setup_pins();
 
 int platform_init()
 {
   // Set up microcontroller system and SystemCoreClock variable
   SystemInit();
-  
+
   // DeInit NVIC and SCBNVIC
   NVIC_DeInit();
   NVIC_SCBDeInit();
@@ -73,6 +74,9 @@ int platform_init()
   // Setup CANs
   cans_init();
 
+  // Setup pin routing
+  platform_setup_pins();
+
   // System timer setup
   cmn_systimer_set_base_freq( lpc17xx_get_cpu_frequency() );
   cmn_systimer_set_interrupt_freq( SYSTICKHZ );
@@ -84,7 +88,7 @@ int platform_init()
   cmn_platform_init();
 
   return PLATFORM_OK;
-} 
+}
 
 extern u32 SystemCoreClock;
 u32 lpc17xx_get_cpu_frequency()
@@ -104,7 +108,28 @@ void SysTick_Handler()
 
 // ****************************************************************************
 // PIO section
-   
+
+static const u8 map_ports[] = LPC17XX_MAP_PORT;
+static const u8 map_pins [] = LPC17XX_MAP_PIN;
+static const u8 map_funcs[] = LPC17XX_MAP_PINFUNCTION;
+
+static void platform_setup_pins(void)
+{
+  PINSEL_CFG_Type PinCfg;
+  u8 i;
+
+  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
+  PinCfg.Pinmode   = PINSEL_PINMODE_PULLUP;
+
+  for(i=0; i<sizeof(map_ports); i++)
+  {
+    PinCfg.Portnum = map_ports[i];
+    PinCfg.Pinnum  = map_pins [i];
+    PinCfg.Funcnum = map_funcs[i];
+    PINSEL_ConfigPin(&PinCfg);
+  }
+}
+
 // The platform I/O functions
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 {
@@ -170,6 +195,8 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   UART_CFG_Type UARTConfigStruct;
   // UART FIFO configuration Struct variable
   UART_FIFO_CFG_Type UARTFIFOConfigStruct;
+
+  UARTConfigStruct.Baud_rate = ( uint32_t )baud;
  
   switch( databits )
   {

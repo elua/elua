@@ -16,10 +16,10 @@ return {
     egc = { mode = "alloc" },
     ram = { internal_rams = 2 },
     clocks = { external = 12000000, cpu = 120000000 },
-    map_pins = { 
-       port        = {0,0}, 
-       pin         = {0,1}, 
-       pinfunction = {1,1}
+    map_pins = {
+       port        = { 0, 0 },
+       pin         = { 0, 1 },
+       pinfunction = { 2, 2 }
     }
   },
   modules = {
