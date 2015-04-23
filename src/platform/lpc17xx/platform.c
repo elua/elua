@@ -39,6 +39,9 @@ static void platform_setup_pwm();
 static void platform_setup_adcs();
 static void cans_init( void );
 static void platform_setup_pins();
+#ifdef BUILD_USB_CDC
+static void platform_setup_usb_cdc();
+#endif
 
 int platform_init()
 {
@@ -83,6 +86,11 @@ int platform_init()
 
   // Enable SysTick
   SysTick_Config( lpc17xx_get_cpu_frequency() / SYSTICKHZ );
+
+#ifdef BUILD_USB_CDC
+// Setup USB CDC
+  platform_setup_usb_cdc();
+#endif
 
   // Common platform initialization code
   cmn_platform_init();

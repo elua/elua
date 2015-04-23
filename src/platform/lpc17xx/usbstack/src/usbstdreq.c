@@ -25,6 +25,9 @@
 	THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "platform_conf.h"
+
+#ifdef BUILD_USB_CDC
 
 /** @file
 	Standard request handler.
@@ -429,3 +432,5 @@ void USBRegisterCustomReqHandler(TFnHandleRequest *pfnHandler)
 {
 	pfnHandleCustomReq = pfnHandler;
 }
+
+#endif

@@ -25,6 +25,9 @@
 	THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "platform_conf.h"
+
+#ifdef BUILD_USB_CDC
 
 /** @file
 	Control transfer handler.
@@ -55,7 +58,7 @@
 #include "usbstruct.h"
 #include "usbapi.h"
 
-
+#include "utils.h"
 
 #define	MAX_CONTROL_SIZE	128	/**< maximum total size of control transfer data */
 #define	MAX_REQ_HANDLERS	4	/**< standard, class, vendor, reserved */
@@ -130,7 +133,7 @@ static void DataIn(void)
 {
 	int iChunk;
 
-	iChunk = MIN(MAX_PACKET_SIZE0, iResidue);
+	iChunk = UMIN(MAX_PACKET_SIZE0, iResidue);
 	USBHwEPWrite(0x80, pbData, iChunk);
 	pbData += iChunk;
 	iResidue -= iChunk;
@@ -169,7 +172,7 @@ void USBHandleControlTransfer(u8 bEP, u8 bEPStat)
 					return;
 				}
 				// send smallest of requested and offered length
-				iResidue = MIN(iLen, Setup.wLength);
+				iResidue = UMIN(iLen, Setup.wLength);
 				// send first part (possibly a zero-length status message)
 				DataIn();
 			}
@@ -229,3 +232,5 @@ void USBRegisterRequestHandler(int iType, TFnHandleRequest *pfnHandler, u8 *pbDa
 	apfnReqHandlers[iType] = pfnHandler;
 	apbDataStore[iType] = pbDataStore;
 }
+
+#endif

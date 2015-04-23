@@ -1,5 +1,5 @@
 /*
-	LPCUSB, an USB device driver for LPC microcontrollers	
+	LPCUSB, an USB device driver for LPC microcontrollers
 	Copyright (C) 2006 Bertrik Sikken (bertrik@sikken.nl)
 
 	Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
 	THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
 	IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
 	OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-	IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
+	IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
 	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
 	NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
 	DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
@@ -29,8 +29,7 @@
 	@file
 */
 
-// CodeRed - include the LPCUSB type.h file rather than NXP one directly
-#include "lpcusb_type.h"
+#include "type.h"
 
 #include "usbstruct.h"		// for TSetupPacket
 
@@ -68,30 +67,30 @@
 BOOL USBHwInit			(void);
 void USBHwISR			(void);
 
-void USBHwNakIntEnable	(U8 bIntBits);
+void USBHwNakIntEnable	(u8 bIntBits);
 
 void USBHwConnect		(BOOL fConnect);
 
-void USBHwSetAddress	(U8 bAddr);
+void USBHwSetAddress	(u8 bAddr);
 void USBHwConfigDevice	(BOOL fConfigured);
 
 // endpoint operations
-void USBHwEPConfig		(U8 bEP, U16 wMaxPacketSize);
-int  USBHwEPRead		(U8 bEP, U8 *pbBuf, int iMaxLen);
-int	 USBHwEPWrite		(U8 bEP, U8 *pbBuf, int iLen);
-void USBHwEPStall		(U8 bEP, BOOL fStall);
-U8   USBHwEPGetStatus	(U8 bEP);
+void USBHwEPConfig		(u8 bEP, u16 wMaxPacketSize);
+int  USBHwEPRead		(u8 bEP, u8 *pbBuf, int iMaxLen);
+int	 USBHwEPWrite		(u8 bEP, u8 *pbBuf, int iLen);
+void USBHwEPStall		(u8 bEP, BOOL fStall);
+u8   USBHwEPGetStatus	(u8 bEP);
 
 /** Endpoint interrupt handler callback */
-typedef void (TFnEPIntHandler)	(U8 bEP, U8 bEPStatus);
-void USBHwRegisterEPIntHandler	(U8 bEP, TFnEPIntHandler *pfnHandler);
+typedef void (TFnEPIntHandler)	(u8 bEP, u8 bEPStatus);
+void USBHwRegisterEPIntHandler	(u8 bEP, TFnEPIntHandler *pfnHandler);
 
 /** Device status handler callback */
-typedef void (TFnDevIntHandler)	(U8 bDevStatus);
+typedef void (TFnDevIntHandler)	(u8 bDevStatus);
 void USBHwRegisterDevIntHandler	(TFnDevIntHandler *pfnHandler);
 
 /** Frame event handler callback */
-typedef void (TFnFrameHandler)(U16 wFrame);
+typedef void (TFnFrameHandler)(u16 wFrame);
 void USBHwRegisterFrameHandler(TFnFrameHandler *pfnHandler);
 
 
@@ -103,19 +102,19 @@ void USBHwRegisterFrameHandler(TFnFrameHandler *pfnHandler);
 BOOL USBInit(void);
 
 /** Request handler callback (standard, vendor, class) */
-typedef BOOL (TFnHandleRequest)(TSetupPacket *pSetup, int *piLen, U8 **ppbData);
-void USBRegisterRequestHandler(int iType, TFnHandleRequest *pfnHandler, U8 *pbDataStore);
+typedef BOOL (TFnHandleRequest)(TSetupPacket *pSetup, int *piLen, u8 **ppbData);
+void USBRegisterRequestHandler(int iType, TFnHandleRequest *pfnHandler, u8 *pbDataStore);
 void USBRegisterCustomReqHandler(TFnHandleRequest *pfnHandler);
 
 /** Descriptor handler callback */
-typedef BOOL (TFnGetDescriptor)(U16 wTypeIndex, U16 wLangID, int *piLen, U8 **ppbData);
+typedef BOOL (TFnGetDescriptor)(u16 wTypeIndex, u16 wLangID, int *piLen, u8 **ppbData);
 
 /** Default standard request handler */
-BOOL USBHandleStandardRequest(TSetupPacket *pSetup, int *piLen, U8 **ppbData);
+BOOL USBHandleStandardRequest(TSetupPacket *pSetup, int *piLen, u8 **ppbData);
 
 /** Default EP0 handler */
-void USBHandleControlTransfer(U8 bEP, U8 bEPStat);
+void USBHandleControlTransfer(u8 bEP, u8 bEPStat);
 
 /** Descriptor handling */
-void USBRegisterDescriptors(const U8 *pabDescriptors);
-BOOL USBGetDescriptor(U16 wTypeIndex, U16 wLangID, int *piLen, U8 **ppbData);
+void USBRegisterDescriptors(const u8 *pabDescriptors);
+BOOL USBGetDescriptor(u16 wTypeIndex, u16 wLangID, int *piLen, u8 **ppbData);

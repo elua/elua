@@ -25,6 +25,9 @@
 	THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "platform_conf.h"
+
+#ifdef BUILD_USB_CDC
 
 /** @file
 	USB hardware layer
@@ -622,3 +625,5 @@ BOOL USBHwInit(void)
 
 	return TRUE;
 }
+
+#endif
