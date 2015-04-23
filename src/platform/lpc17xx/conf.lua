@@ -3,7 +3,7 @@
 addi( sf( 'src/platform/%s/drivers/inc', platform ) )
 
 local fwlib_files = utils.get_files( sf( "src/platform/%s/drivers/src", platform ), ".*%.c$" )
-specific_files = "startup_LPC17xx.c system_LPC17xx.c core_cm3.c platform.c"
+specific_files = "startup_LPC17xx.c system_LPC17xx.c core_cm3.c platform.c lpc17xx_pio.c"
 
 local board = comp.board:upper()
 

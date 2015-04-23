@@ -159,9 +159,8 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 // ****************************************************************************
 // UART section
 
-// UART0: Rx = P0.3, Tx = P0.2
-// The other UARTs have assignable Rx/Tx pins and thus have to be configured
-// by the user
+// If you want to use an UART, make sure it is routed to your desired output
+// pin. See section 8.5 of the LPC17xx User Manual.
 
 static LPC_UART_TypeDef* const uart[] = { LPC_UART0, LPC_UART1, LPC_UART2, LPC_UART3 };
 
@@ -171,21 +170,7 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   UART_CFG_Type UARTConfigStruct;
   // UART FIFO configuration Struct variable
   UART_FIFO_CFG_Type UARTFIFOConfigStruct;
-  // Pin configuration for UART0
-  PINSEL_CFG_Type PinCfg;
-
-  // UART0 Pin Config
-  PinCfg.Funcnum = 1;
-  PinCfg.OpenDrain = 0;
-  PinCfg.Pinmode = 0;
-  PinCfg.Pinnum = 2;
-  PinCfg.Portnum = 0;
-  PINSEL_ConfigPin(&PinCfg);
-  PinCfg.Pinnum = 3;
-  PINSEL_ConfigPin(&PinCfg);
-
-  UARTConfigStruct.Baud_rate = ( uint32_t )baud;
-  
+ 
   switch( databits )
   {
     case 5:
@@ -524,7 +509,7 @@ u32 platform_adc_set_clock( unsigned id, u32 frequency )
 }
 
 static const u8 adc_ports[] = {  0, 0,   0,  0,  1,  1, 0, 0 };
-static const u8 adc_pins[] =  { 23, 24, 25, 26, 30, 31, 3, 2 };
+static const u8 adc_pins[]  = { 23, 24, 25, 26, 30, 31, 3, 2 };
 static const u8 adc_funcs[] = {  1,  1,  1,  1,  3,  3, 2, 2 };
 
 // Prepare Hardware Channel
@@ -544,7 +529,7 @@ int platform_adc_update_sequence( )
     id = d->ch_state[ seq_tmp ]->id;
        
     PinCfg.Funcnum = adc_funcs[ id ];
-    PinCfg.Pinnum = adc_pins[ id ];
+    PinCfg.Pinnum  = adc_pins[ id ];
     PinCfg.Portnum = adc_ports[ id ];
     PINSEL_ConfigPin(&PinCfg);
   }
