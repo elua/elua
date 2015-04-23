@@ -1,8 +1,10 @@
 -- Configuration file for the LPC17xx backend
 
 addi( sf( 'src/platform/%s/drivers/inc', platform ) )
+addi( sf( 'src/platform/%s/usbstack/inc', platform ) )
 
 local fwlib_files = utils.get_files( sf( "src/platform/%s/drivers/src", platform ), ".*%.c$" )
+fwlib_files = fwlib_files .. " " .. utils.get_files( sf( "src/platform/%s/usbstack/src", platform ), ".*%.c$" )
 specific_files = "startup_LPC17xx.c system_LPC17xx.c core_cm3.c platform.c"
 
 local board = comp.board:upper()
