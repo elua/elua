@@ -134,45 +134,45 @@ static void platform_setup_pins(void)
 pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 {
   pio_type retval = 1;
-  
+
   switch( op )
   {
-    case PLATFORM_IO_PORT_SET_VALUE:   
+    case PLATFORM_IO_PORT_SET_VALUE:
       GPIO_SetValue(port, pinmask);
       break;
-    
+
     case PLATFORM_IO_PIN_SET:
       GPIO_SetValue(port, pinmask);
       break;
-    
+
     case PLATFORM_IO_PIN_CLEAR:
       GPIO_ClearValue(port, pinmask);
       break;
-    
+
     case PLATFORM_IO_PORT_DIR_OUTPUT:
       GPIO_SetDir(port, 0xFFFFFFFF, 1);
-      break;    
+      break;
 
     case PLATFORM_IO_PIN_DIR_OUTPUT:
       GPIO_SetDir(port, pinmask, 1);
       break;
-    
+
     case PLATFORM_IO_PORT_DIR_INPUT:
       GPIO_SetDir(port, 0xFFFFFFFF, 0);
       break;
 
     case PLATFORM_IO_PIN_DIR_INPUT:
       GPIO_SetDir(port, pinmask, 0);
-      break;    
-          
+      break;
+
     case PLATFORM_IO_PORT_GET_VALUE:
       retval = GPIO_ReadValue(port);
       break;
-    
+
     case PLATFORM_IO_PIN_GET:
       retval = ( GPIO_ReadValue(port) & pinmask ) ? 1 : 0;
       break;
-    
+
     default:
       retval = 0;
       break;
@@ -197,13 +197,13 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   UART_FIFO_CFG_Type UARTFIFOConfigStruct;
 
   UARTConfigStruct.Baud_rate = ( uint32_t )baud;
- 
+
   switch( databits )
   {
     case 5:
       UARTConfigStruct.Databits = UART_DATABIT_5;
       break;
-      
+
     case 6:
       UARTConfigStruct.Databits = UART_DATABIT_6;
       break;
@@ -216,33 +216,33 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
       UARTConfigStruct.Databits = UART_DATABIT_8;
       break;
   }
-  
+
   if( stopbits == PLATFORM_UART_STOPBITS_2 )
     UARTConfigStruct.Stopbits = UART_STOPBIT_2;
   else
     UARTConfigStruct.Stopbits = UART_STOPBIT_1;
-  
+
   switch( parity )
   {
     case PLATFORM_UART_PARITY_NONE:
       UARTConfigStruct.Parity = UART_PARITY_NONE;
       break;
-    
+
     case PLATFORM_UART_PARITY_ODD:
       UARTConfigStruct.Parity = UART_PARITY_ODD;
       break;
-    
+
     case PLATFORM_UART_PARITY_EVEN:
       UARTConfigStruct.Parity = UART_PARITY_EVEN;
       break;
-      
+
     case PLATFORM_UART_PARITY_MARK:
       UARTConfigStruct.Parity = UART_PARITY_SP_1;
       break;
-      
+
     case PLATFORM_UART_PARITY_SPACE:
       UARTConfigStruct.Parity = UART_PARITY_SP_0;
-      break;      
+      break;
   }
 
   UART_Init(uart[ id ], &UARTConfigStruct);
@@ -250,10 +250,10 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
   // Get default FIFO config and initialize
   UART_FIFOConfigStructInit(&UARTFIFOConfigStruct);
   UART_FIFOConfig(uart[ id ], &UARTFIFOConfigStruct);
-  
+
   // Enable Transmit
   UART_TxCmd(uart[ id ], ENABLE);
-  
+
   return baud; // FIXME: find a way to actually get baud
 }
 
@@ -265,7 +265,7 @@ void platform_s_uart_send( unsigned id, u8 data )
 int platform_s_uart_recv( unsigned id, timer_data_type timeout )
 {
   u8 buffer;
-  
+
   if( timeout == 0 )
   {
     if ( UART_Receive(uart[ id ], &buffer, 1, NONE_BLOCKING) == 0 )
@@ -273,7 +273,7 @@ int platform_s_uart_recv( unsigned id, timer_data_type timeout )
     else
       return ( int )buffer;
   }
-  
+
   UART_Receive(uart[ id ], &buffer, 1, BLOCKING);
   return ( int )buffer;
 }
@@ -309,7 +309,7 @@ static u32 platform_timer_set_clock( unsigned id, u32 clock )
   TIM_Init( tmr[ id ], TIM_TIMER_MODE, &TIM_ConfigStruct );
   TIM_Cmd( tmr[ id ], ENABLE );
   TIM_ResetCounter( tmr[ id ] );
-  
+
   return clock;
 }
 
@@ -317,11 +317,11 @@ static u32 platform_timer_set_clock( unsigned id, u32 clock )
 static void platform_setup_timers()
 {
   unsigned i;
-  
+
   // Power on clocks on APB1
   CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCTIM2, ENABLE);
   CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCTIM3, ENABLE);
-  
+
   // Set base frequency to 1MHz, as we can't use a better resolution anyway
   for( i = 0; i < 4; i ++ )
     platform_timer_set_clock( i, 1000000ULL );
@@ -336,7 +336,7 @@ void platform_s_timer_delay( unsigned id, timer_data_type delay_us )
   TIM_ResetCounter( tmr[ id ] );
   while( tmr[ id ]->TC < last );
 }
-      
+
 timer_data_type platform_s_timer_op( unsigned id, int op, timer_data_type data )
 {
   u32 res = 0;
@@ -347,7 +347,7 @@ timer_data_type platform_s_timer_op( unsigned id, int op, timer_data_type data )
       TIM_Cmd( tmr[ id ], ENABLE );
       TIM_ResetCounter( tmr[ id ] );
       break;
-      
+
     case PLATFORM_TIMER_OP_READ:
       res = tmr[ id ]->TC;
       break;
@@ -355,7 +355,7 @@ timer_data_type platform_s_timer_op( unsigned id, int op, timer_data_type data )
     case PLATFORM_TIMER_OP_SET_CLOCK:
       res = platform_timer_set_clock( id, data );
       break;
-      
+
     case PLATFORM_TIMER_OP_GET_CLOCK:
       res = platform_timer_get_clock( id );
       break;
@@ -402,13 +402,13 @@ int platform_adc_check_timer_id( unsigned id, unsigned timer_id )
 }
 
 void platform_adc_stop( unsigned id )
-{  
+{
   elua_adc_ch_state *s = adc_get_ch_state( id );
   elua_adc_dev_state *d = adc_get_dev_state( 0 );
-    
+
   s->op_pending = 0;
   INACTIVATE_CHANNEL( d, id );
-  
+
   // If there are no more active channels, stop the sequencer
   if( d->ch_active == 0 && d->running == 1 )
   {
@@ -424,17 +424,17 @@ void ADC_IRQHandler(void)
   elua_adc_dev_state *d = adc_get_dev_state( 0 );
   elua_adc_ch_state *s = d->ch_state[ d->seq_ctr ];
 //int i;
-  
+
   // Disable sampling & current sequence channel
   ADC_StartCmd( LPC_ADC, 0 );
   ADC_ChannelCmd( LPC_ADC, s->id, DISABLE );
   ADC_IntConfig( LPC_ADC, s->id, DISABLE );
 
   if ( ADC_ChannelGetStatus( LPC_ADC, s->id, ADC_DATA_DONE ) )
-  { 
+  {
     d->sample_buf[ d->seq_ctr ] = ( u16 )ADC_ChannelGetData( LPC_ADC, s->id );
     s->value_fresh = 1;
-            
+
     if ( s->logsmoothlen > 0 && s->smooth_ready == 0)
       adc_smooth_data( s->id );
 #if defined( BUF_ENABLE_ADC )
@@ -444,11 +444,11 @@ void ADC_IRQHandler(void)
       s->value_fresh = 0;
     }
 #endif
-        
+
     if ( adc_samples_available( s->id ) >= s->reqsamples && s->freerunning == 0 )
-      platform_adc_stop( s->id );      
+      platform_adc_stop( s->id );
   }
-    
+
   // Set up for next channel acquisition if we're still running
   if( d->running == 1 )
   {
@@ -456,14 +456,14 @@ void ADC_IRQHandler(void)
     if( d->seq_ctr < ( d->seq_len - 1 ) )
       d->seq_ctr++;
     else if( d->seq_ctr == ( d->seq_len - 1 ) )
-    { 
+    {
       adc_update_dev_sequence( 0 );
       d->seq_ctr = 0; // reset sequence counter if on last sequence entry
     }
-          
+
     ADC_ChannelCmd( LPC_ADC, d->ch_state[ d->seq_ctr ]->id, ENABLE );
     ADC_IntConfig( LPC_ADC, d->ch_state[ d->seq_ctr ]->id, ENABLE );
-         
+
     if( d->clocked == 1  && d->seq_ctr == 0 ) // always use clock for first in clocked sequence
       ADC_StartCmd( LPC_ADC, adc_trig[ d->timer_id ] );
 
@@ -477,20 +477,20 @@ void ADC_IRQHandler(void)
 static void platform_setup_adcs()
 {
   unsigned id;
-  
+
   for( id = 0; id < NUM_ADC; id ++ )
     adc_init_ch_state( id );
-  
+
   NVIC_SetPriority(ADC_IRQn, ((0x01<<3)|0x01));
 
   ADC_Init(LPC_ADC, 13000000);
-  
+
   // Default enables CH0, disable channel
   ADC_ChannelCmd( LPC_ADC, 0, DISABLE );
-  
+
   // Default enables ADC interrupt only on global, switch to per-channel
   ADC_IntConfig( LPC_ADC, ADC_ADGINTEN, DISABLE );
-    
+
   platform_adc_set_clock( 0, 0 );
 }
 
@@ -505,15 +505,15 @@ u32 platform_adc_set_clock( unsigned id, u32 frequency )
   if ( frequency > 0 )
   {
     d->clocked = 1;
-    
+
     // Max Sampling Rate on LPC1768 is 200 kS/s
     if ( frequency > 200000 )
       frequency = 200000;
-        
+
     // Run timer at 1MHz
     TIM_ConfigStruct.PrescaleOption = TIM_PRESCALE_USVAL;
     TIM_ConfigStruct.PrescaleValue     = 1;
-    
+
     TIM_MatchConfigStruct.MatchChannel = 1;
     TIM_MatchConfigStruct.IntOnMatch   = FALSE;
     TIM_MatchConfigStruct.ResetOnMatch = TRUE;
@@ -521,9 +521,9 @@ u32 platform_adc_set_clock( unsigned id, u32 frequency )
     TIM_MatchConfigStruct.ExtMatchOutputType = TIM_EXTMATCH_TOGGLE;
     // Set match value to period (in uS) associated with frequency
     TIM_MatchConfigStruct.MatchValue   = ( 1000000ULL / ( frequency * 2 ) ) - 1;
-        
+
     frequency = 1000000ULL / (TIM_MatchConfigStruct.MatchValue + 1);
-  
+
     // Set configuration for Tim_config and Tim_MatchConfig
     TIM_Init( tmr[ d->timer_id ], TIM_TIMER_MODE, &TIM_ConfigStruct );
     TIM_ConfigMatch( tmr[ d->timer_id ], &TIM_MatchConfigStruct );
@@ -531,7 +531,7 @@ u32 platform_adc_set_clock( unsigned id, u32 frequency )
   }
   else
     d->clocked = 0;
-    
+
   return frequency;
 }
 
@@ -541,38 +541,38 @@ static const u8 adc_funcs[] = {  1,  1,  1,  1,  3,  3, 2, 2 };
 
 // Prepare Hardware Channel
 int platform_adc_update_sequence( )
-{ 
-  elua_adc_dev_state *d = adc_get_dev_state( 0 ); 
+{
+  elua_adc_dev_state *d = adc_get_dev_state( 0 );
   PINSEL_CFG_Type PinCfg;
   u8 seq_tmp;
   unsigned id;
-  
+
   // Enable Needed Pins
   PinCfg.OpenDrain = 0;
   PinCfg.Pinmode = 0;
-  
+
   for( seq_tmp = 0; seq_tmp < d->seq_len; seq_tmp++ )
   {
     id = d->ch_state[ seq_tmp ]->id;
-       
+
     PinCfg.Funcnum = adc_funcs[ id ];
     PinCfg.Pinnum  = adc_pins[ id ];
     PinCfg.Portnum = adc_ports[ id ];
     PINSEL_ConfigPin(&PinCfg);
   }
-  
+
   return PLATFORM_OK;
 }
 
 
 int platform_adc_start_sequence()
-{ 
+{
   elua_adc_dev_state *d = adc_get_dev_state( 0 );
-  
+
   if( d->running != 1 )
   {
     adc_update_dev_sequence( 0 );
-    
+
     // Start sampling on first channel
     d->seq_ctr = 0;
     ADC_ChannelCmd( LPC_ADC, d->ch_state[ d->seq_ctr ]->id, ENABLE );
@@ -580,7 +580,7 @@ int platform_adc_start_sequence()
 
     d->running = 1;
     NVIC_EnableIRQ( ADC_IRQn );
-    
+
     if( d->clocked == 1 )
     {
       ADC_StartCmd( LPC_ADC, adc_trig[ d->timer_id ] );
@@ -590,7 +590,7 @@ int platform_adc_start_sequence()
     else
       ADC_StartCmd( LPC_ADC, ADC_START_NOW );
   }
-  
+
   return PLATFORM_OK;
 }
 
@@ -611,7 +611,7 @@ u32 platform_pwm_get_clock( unsigned id )
 u32 platform_pwm_set_clock( unsigned id, u32 clock )
 {
   PWM_TIMERCFG_Type PWMCfgDat;
-  
+
   PWMCfgDat.PrescaleOption = PWM_TIMER_PRESCALE_USVAL;
   PWMCfgDat.PrescaleValue = 1000000ULL / clock;
   PWM_Init( LPC_PWM1, PWM_MODE_TIMER, &PWMCfgDat );
@@ -623,10 +623,10 @@ u32 platform_pwm_set_clock( unsigned id, u32 clock )
 static void platform_setup_pwm()
 {
   PWM_MATCHCFG_Type PWMMatchCfgDat;
-  
+
   // Keep clock in reset, set PWM code
   PWM_ResetCounter( LPC_PWM1 );
-  
+
   // Set match mode (reset on MR0 match)
   PWMMatchCfgDat.IntOnMatch = DISABLE;
   PWMMatchCfgDat.MatchChannel = 0;
@@ -642,13 +642,13 @@ u32 platform_pwm_setup( unsigned id, u32 frequency, unsigned duty )
 {
   PWM_MATCHCFG_Type PWMMatchCfgDat;
   u32 divisor = platform_pwm_get_clock( id ) / frequency - 1;
-    
+
   PWM_MatchUpdate( LPC_PWM1, 0, divisor, PWM_MATCH_UPDATE_NOW ); // PWM1 cycle rate
   PWM_MatchUpdate( LPC_PWM1, id, ( divisor * duty ) / 100, PWM_MATCH_UPDATE_NOW ); // PWM1 channel edge position
-  
+
   if ( id > 1 ) // Channel one is permanently single-edge
     PWM_ChannelConfig( LPC_PWM1, id, PWM_CHANNEL_SINGLE_EDGE );
-  
+
   PWMMatchCfgDat.IntOnMatch = DISABLE;
   PWMMatchCfgDat.MatchChannel = id;
   PWMMatchCfgDat.ResetOnMatch = DISABLE;
@@ -685,7 +685,7 @@ void CAN_IRQHandler(void)
   // CAN1 Error (bits 1~10 cleared when read)
   if (LPC_CAN1->ICR & (1<<2 | 1<<5 | 1<<7))
     can_err_flag[0] = 1;
-  
+
   // CAN1 Receive
   if (LPC_CAN1->ICR & (1<<0))
   {
@@ -713,7 +713,7 @@ void cans_init( void )
 
 
 u32 platform_can_setup( unsigned id, u32 clock )
-{  
+{
   LPC_CAN_TypeDef * canx;
   uint32_t div;
 
@@ -724,13 +724,13 @@ u32 platform_can_setup( unsigned id, u32 clock )
     default: return 0;
   }
 
-  CAN_DeInit(canx); 
+  CAN_DeInit(canx);
   CAN_Init(canx, clock);
-  CAN_ModeConfig(canx, CAN_OPERATING_MODE, ENABLE); 
-  CAN_IRQCmd(canx, CANINT_RIE, ENABLE);   // Receive IRQ 
-  CAN_IRQCmd(canx, CANINT_EIE, ENABLE);   // Error IRQ 
-  CAN_IRQCmd(canx, CANINT_BEIE, ENABLE);  // Bus error IRQ 
-  LPC_CANAF->AFMR = 2;                    // Filter bypass (receive all messages) 
+  CAN_ModeConfig(canx, CAN_OPERATING_MODE, ENABLE);
+  CAN_IRQCmd(canx, CANINT_RIE, ENABLE);   // Receive IRQ
+  CAN_IRQCmd(canx, CANINT_EIE, ENABLE);   // Error IRQ
+  CAN_IRQCmd(canx, CANINT_BEIE, ENABLE);  // Bus error IRQ
+  LPC_CANAF->AFMR = 2;                    // Filter bypass (receive all messages)
   NVIC_EnableIRQ(CAN_IRQn);               // Enable IRQs
 
   // Fix clock
@@ -812,7 +812,7 @@ int platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )
   if( can_rx_flag[id] != 0 )
   {
     memcpy(data, &(can_msg_rx[id].dataA), 4);
-    memcpy(data+4, &(can_msg_rx[id].dataB), 4); 
+    memcpy(data+4, &(can_msg_rx[id].dataB), 4);
 
     can_rx_flag[id] = 0;
 
@@ -825,4 +825,3 @@ int platform_can_recv( unsigned id, u32 *canid, u8 *idtype, u8 *len, u8 *data )
   else
     return PLATFORM_UNDERFLOW;
 }
-
