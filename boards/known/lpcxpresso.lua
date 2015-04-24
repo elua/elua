@@ -3,7 +3,7 @@
 return {
   cpu = 'lpc1769',
   components = {
-    sercon = { uart = 3, speed = 115200 },
+    sercon = { uart = "cdc", speed = 115200 },
     romfs = true,
     shell = true,
     cdc = true,
