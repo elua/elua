@@ -19,7 +19,7 @@ return {
     clocks = { external = 12000000, cpu = 100000000 },
     map_pins = {
        port        = { 0, 0 },
-       pin         = { 2, 2 },
+       pin         = { 2, 3 },
        pinfunction = { 1, 1 }
     }
   },
