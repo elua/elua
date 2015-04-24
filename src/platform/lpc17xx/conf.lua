@@ -9,10 +9,12 @@ local board = comp.board:upper()
 
 if board == "MBED" then
   specific_files = specific_files .. " mbed_pio.c"
+else
+  specific_files = specific_files .. " lpc17xx_pio.c"
 end
 
 local ldscript = "LPC17xx.ld"
- 
+
 -- Prepend with path
 specific_files = fwlib_files .. " " .. utils.prepend_path( specific_files, sf( "src/platform/%s", platform ) )
 specific_files = specific_files .. " src/platform/cortex_utils.s src/platform/arm_cortex_interrupts.c"

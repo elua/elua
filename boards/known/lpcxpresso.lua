@@ -3,7 +3,7 @@
 return {
   cpu = 'lpc1769',
   components = {
-    sercon = { uart = 0, speed = 115200 },
+    sercon = { uart = 3, speed = 115200 },
     romfs = true,
     shell = true,
     term = { lines = 25, cols = 80 },
@@ -15,7 +15,12 @@ return {
   config = {
     egc = { mode = "alloc" },
     ram = { internal_rams = 2 },
-    clocks = { external = 12000000, cpu = 120000000 }
+    clocks = { external = 12000000, cpu = 120000000 },
+    map_pins = {
+       port        = { 0, 0 },
+       pin         = { 0, 1 },
+       pinfunction = { 2, 2 }
+    }
   },
   modules = {
     generic = { 'all', "-spi", "-i2c", "-net" },
