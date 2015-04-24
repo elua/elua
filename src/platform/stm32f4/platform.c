@@ -263,9 +263,6 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
   GPIO_InitTypeDef GPIO_InitStructure;
   GPIO_TypeDef * base = pio_port[ port ];
 
-
-  GPIO_StructInit(&GPIO_InitStructure);
-
   switch( op )
   {
     case PLATFORM_IO_PORT_SET_VALUE:
@@ -283,6 +280,7 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
     case PLATFORM_IO_PORT_DIR_INPUT:
       pinmask = GPIO_Pin_All;
     case PLATFORM_IO_PIN_DIR_INPUT:
+      GPIO_StructInit(&GPIO_InitStructure);
       GPIO_InitStructure.GPIO_Pin  = pinmask;
       GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
 
@@ -292,6 +290,7 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
     case PLATFORM_IO_PORT_DIR_OUTPUT:
       pinmask = GPIO_Pin_All;
     case PLATFORM_IO_PIN_DIR_OUTPUT:
+      GPIO_StructInit(&GPIO_InitStructure);
       GPIO_InitStructure.GPIO_Pin   = pinmask;
       GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;
       GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
@@ -308,6 +307,7 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
       break;
 
     case PLATFORM_IO_PIN_PULLUP:
+      GPIO_StructInit(&GPIO_InitStructure);
       GPIO_InitStructure.GPIO_Pin   = pinmask;
       GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
 
@@ -315,6 +315,7 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
       break;
 
     case PLATFORM_IO_PIN_PULLDOWN:
+      GPIO_StructInit(&GPIO_InitStructure);
       GPIO_InitStructure.GPIO_Pin   = pinmask;
       GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_DOWN;
 
@@ -322,6 +323,7 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
       break;
 
     case PLATFORM_IO_PIN_NOPULL:
+      GPIO_StructInit(&GPIO_InitStructure);
       GPIO_InitStructure.GPIO_Pin   = pinmask;
       GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;
 
