@@ -28,6 +28,7 @@
 #include "lpc17xx_pwm.h"
 #include "lpc17xx_adc.h"
 #include "lpc17xx_can.h"
+#include "lpc17xx_usb_cdc.h"
 
 #define SYSTICKHZ             10
 
@@ -83,6 +84,11 @@ int platform_init()
 
   // Enable SysTick
   SysTick_Config( lpc17xx_get_cpu_frequency() / SYSTICKHZ );
+
+#ifdef BUILD_USB_CDC
+// Setup USB CDC
+  platform_setup_usb_cdc();
+#endif
 
   // Common platform initialization code
   cmn_platform_init();
@@ -198,6 +204,11 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
 
   UARTConfigStruct.Baud_rate = ( uint32_t )baud;
 
+#ifdef BUILD_USB_CDC
+  if( id == CDC_UART_ID )
+    return 0;
+#endif
+
   switch( databits )
   {
     case 5:
@@ -259,12 +270,34 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
 
 void platform_s_uart_send( unsigned id, u8 data )
 {
-  UART_Send(uart[ id ], &data, 1, BLOCKING);
+#ifdef BUILD_USB_CDC
+  if( id == CDC_UART_ID )
+    VCOM_putchar( data );
+  else
+#endif
+  {
+    UART_Send(uart[ id ], &data, 1, BLOCKING);
+  }
 }
 
 int platform_s_uart_recv( unsigned id, timer_data_type timeout )
 {
   u8 buffer;
+  int rc;
+
+  /* Polling is bad style. Replace me with something interrupt-driven. */
+#ifdef BUILD_USB_CDC
+  if( id == CDC_UART_ID )
+  {
+    do
+    {
+      rc = VCOM_getchar();
+      if( (timeout == 0) && (rc == EOF) )
+	return -1;
+    } while( rc == EOF );
+    return rc;
+  }
+#endif
 
   if( timeout == 0 )
   {
