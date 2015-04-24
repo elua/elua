@@ -27,8 +27,6 @@
 
 # include <stdio.h>
 
-#define DEBUG_MESSAGES 1
-
 #ifdef DEBUG_MESSAGES
 #define DBG	printf
 #define ASSERT(x)	if(!(x)){DBG("\nAssertion '%s' failed in %s:%s#%d!\n",#x,__FILE__,__FUNCTION__,__LINE__);while(1);}
