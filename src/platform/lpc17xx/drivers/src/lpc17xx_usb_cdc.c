@@ -420,9 +420,6 @@ static void USBFrameHandler(u16 wFrame)
 	}
 }
 
-void enable_USB_interrupts(void);
-
-
 void platform_setup_usb_cdc(void)
 {
 	int c;

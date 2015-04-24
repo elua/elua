@@ -17,10 +17,11 @@ return {
     egc = { mode = "alloc" },
     ram = { internal_rams = 2 },
     clocks = { external = 12000000, cpu = 120000000 },
+    -- P0.0 UART3 TX, P0.1 UART3 RX, P0.29 USB D+, P0.30 USB D-, P1.18 USB_UP_LED, P2.9 USB CONNECT
     map_pins = {
-       port        = { 0, 0 },
-       pin         = { 0, 1 },
-       pinfunction = { 2, 2 }
+       port        = { 0, 0,  0,  0,  1, 2 },
+       pin         = { 0, 1, 29, 30, 18, 9 },
+       pinfunction = { 2, 2,  1,  1,  1, 1 }
     }
   },
   modules = {
