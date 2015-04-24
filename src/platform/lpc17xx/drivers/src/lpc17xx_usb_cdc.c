@@ -157,8 +157,8 @@ static const u8 abDescriptors[] = {
 	0x00,						// bDeviceSubClass
 	0x00,						// bDeviceProtocol
 	MAX_PACKET_SIZE0,			// bMaxPacketSize
-	LE_WORD(0xFFFF),			// idVendor
-	LE_WORD(0x0005),			// idProduct
+	LE_WORD(0x1fc9),			// idVendor
+	LE_WORD(0x2047),			// idProduct
 	LE_WORD(0x0100),			// bcdDevice
 	0x01,						// iManufacturer
 	0x02,						// iProduct
