@@ -167,7 +167,7 @@
 #define LUA_INTEGER ptrdiff_t
 #else
   #if !defined LUA_INTEGRAL_LONGLONG
-  #define LUA_INTEGER	long
+  #define LUA_INTEGER	int
   #else
   #define LUA_INTEGER long long
   #endif // #if !defined LUA_INTEGRAL_LONGLONG
@@ -862,8 +862,8 @@ union luai_Cast { double l_d; long l_l; };
 
 #else
 
-#define LUA_INTFRMLEN		"l"
-#define LUA_INTFRM_T		long
+#define LUA_INTFRMLEN		""
+#define LUA_INTFRM_T		int
 
 #endif
 
