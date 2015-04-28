@@ -41,9 +41,9 @@ const char *const luaX_tokens [] = {
     "end", "false", "for", "function", "if",
     "in", "local", "nil", "not", "or", "repeat",
     "return", "then", "true", "until", "while",
-    "..", "...", "==", ">=", "<=", "~=",
+    "//", "..", "...", "==", ">=", "<=", "~=",
+    "<<", ">>",
     "<number>", "<name>", "<string>", "<eof>",
-    NULL
 };
 
 
@@ -377,18 +377,25 @@ static int llex (LexState *ls, SemInfo *seminfo) {
       }
       case '<': {
         next(ls);
-        if (ls->current != '=') return '<';
-        else { next(ls); return TK_LE; }
+        if (ls->current == '=') { next(ls); return TK_LE; }
+        else if (ls->current == '<') { next(ls); return TK_SHL; }
+        else return '<';
       }
       case '>': {
         next(ls);
-        if (ls->current != '=') return '>';
-        else { next(ls); return TK_GE; }
+        if (ls->current == '=') { next(ls); return TK_GE; }
+        else if (ls->current == '>') { next(ls); return TK_SHR; }
+        else return '>';
+      }
+      case '/': {
+        next(ls);
+        if (ls->current == '/') { next(ls); return TK_IDIV; }
+        else return '/';
       }
       case '~': {
         next(ls);
-        if (ls->current != '=') return '~';
-        else { next(ls); return TK_NE; }
+        if (ls->current == '=') { next(ls); return TK_NE; }
+        else return '~';
       }
       case '"':
       case '\'': {

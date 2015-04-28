@@ -535,16 +535,40 @@ void luaV_execute (lua_State *L, int nexeccalls) {
         arith_op(luai_nummul, TM_MUL);
         continue;
       }
-      case OP_DIV: {
-        arith_op(luai_lnumdiv, TM_DIV);
-        continue;
-      }
       case OP_MOD: {
         arith_op(luai_lnummod, TM_MOD);
         continue;
       }
       case OP_POW: {
         arith_op(luai_numpow, TM_POW);
+        continue;
+      }
+      case OP_DIV: {
+        arith_op(luai_lnumdiv, TM_DIV);
+        continue;
+      }
+      case OP_IDIV: {
+        arith_op(luai_lnumidiv, TM_IDIV);
+        continue;
+      }
+      case OP_BAND: {
+        arith_op(luai_numband, TM_BAND);
+        continue;
+      }
+      case OP_BOR: {
+        arith_op(luai_numbor, TM_BOR);
+        continue;
+      }
+      case OP_BXOR: {
+        arith_op(luai_numbxor, TM_BXOR);
+        continue;
+      }
+      case OP_SHL: {
+        arith_op(luai_numshl, TM_SHL);
+        continue;
+      }
+      case OP_SHR: {
+        arith_op(luai_numshr, TM_SHR);
         continue;
       }
       case OP_UNM: {
@@ -555,6 +579,17 @@ void luaV_execute (lua_State *L, int nexeccalls) {
         }
         else {
           Protect(Arith(L, ra, rb, rb, TM_UNM));
+        }
+        continue;
+      }
+      case OP_BNOT: {
+        TValue *rb = RB(i);
+        if (ttisnumber(rb)) {
+          lua_Number nb = nvalue(rb);
+          setnvalue(ra, luai_numunm(nb));
+        }
+        else {
+          Protect(Arith(L, ra, rb, rb, TM_BNOT));
         }
         continue;
       }
