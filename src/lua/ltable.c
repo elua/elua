@@ -18,7 +18,9 @@
 ** Hence even when the load factor reaches 100%, performance remains good.
 */
 
+#ifndef LUA_NUMBER_INTEGRAL
 #include <math.h>
+#endif
 #include <string.h>
 
 #define ltable_c

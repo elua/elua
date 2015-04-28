@@ -6,9 +6,11 @@
 
 
 #include <assert.h>
-#include <math.h>
 #include <stdarg.h>
 #include <string.h>
+#ifndef LUA_NUMBER_INTEGRAL
+#include <math.h>
+#endif
 
 #define lapi_c
 #define LUA_CORE
