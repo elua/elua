@@ -617,7 +617,6 @@
 @@ The luai_num* macros define the primitive operations over numbers.
 */
 #if defined(LUA_CORE)
-#include <math.h>
 #define luai_numadd(a,b)	((a)+(b))
 #define luai_numsub(a,b)	((a)-(b))
 #define luai_nummul(a,b)	((a)*(b))
@@ -645,6 +644,7 @@
 LUA_NUMBER luai_ipow(LUA_NUMBER, LUA_NUMBER);
 #define luai_numpow(a,b)	(luai_ipow(a,b))
 #else
+#include <math.h>
 #define luai_numdiv(a,b)	((a)/(b))
 #define luai_nummod(a,b)	((a) - floor((a)/(b))*(b))
 #define luai_lnumdiv(a,b)	(luai_numdiv(a,b))
@@ -707,7 +707,11 @@ union luai_Cast { double l_d; long l_l; };
 ** aligned in 16-byte boundaries, then you should add long double in the
 ** union.) Probably you do not need to change this.
 */
+#ifndef LUA_NUMBER_INTEGRAL
 #define LUAI_USER_ALIGNMENT_T	union { double u; void *s; long l; }
+#else
+#define LUAI_USER_ALIGNMENT_T	union { void *s; long l; }
+#endif
 
 
 /*
