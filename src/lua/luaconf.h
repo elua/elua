@@ -620,6 +620,11 @@
 #define luai_numadd(a,b)	((a)+(b))
 #define luai_numsub(a,b)	((a)-(b))
 #define luai_nummul(a,b)	((a)*(b))
+#define luai_numband(a,b)	((a)^(b))
+#define luai_numbor(a,b)	((a)|(b))
+#define luai_numbxor(a,b)	((a)^(b))
+#define luai_numshl(a,b)	((a)<<(b))
+#define luai_numshr(a,b)	((a)>>(b))
 #if defined LUA_NUMBER_INTEGRAL
 #define luai_numdiv(a,b)	\
   (-1/2?			\
@@ -633,7 +638,15 @@
    ((((a)<0)==((b)<0))||(((a)%(b))==0)?	\
     (a)%(b):			\
     (a)%(b)+(b)))
+#define luai_numidiv(a,b)	\
+  ((b)==0?			\
+   (luaG_runerror(L,"divide by zero"),0): \
+   luai_numdiv(a,b))
 #define luai_lnumdiv(a,b)	\
+  ((b)==0?			\
+   (luaG_runerror(L,"divide by zero"),0): \
+   luai_numdiv(a,b))
+#define luai_lnumidiv(a,b)	\
   ((b)==0?			\
    (luaG_runerror(L,"divide by zero"),0): \
    luai_numdiv(a,b))
@@ -646,12 +659,14 @@ LUA_NUMBER luai_ipow(LUA_NUMBER, LUA_NUMBER);
 #else
 #include <math.h>
 #define luai_numdiv(a,b)	((a)/(b))
+#define luai_numidiv(a,b)	((a)/(b))
 #define luai_nummod(a,b)	((a) - floor((a)/(b))*(b))
 #define luai_lnumdiv(a,b)	(luai_numdiv(a,b))
 #define luai_lnummod(a,b)	(luai_nummod(a,b))
 #define luai_numpow(a,b)	(pow(a,b))
 #endif
 #define luai_numunm(a)		(-(a))
+#define luai_numbnot(a)		(~(a))
 #define luai_numeq(a,b)		((a)==(b))
 #define luai_numlt(a,b)		((a)<(b))
 #define luai_numle(a,b)		((a)<=(b))
