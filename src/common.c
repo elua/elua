@@ -24,6 +24,8 @@ extern const elua_int_descriptor elua_int_table[ INT_ELUA_LAST ];
 #define CON_BUF_SIZE          0
 #endif // #ifndef CON_BUF_SIZE
 
+static unsigned int skip_0A = 0;
+
 // ****************************************************************************
 // XMODEM support code
 
@@ -55,10 +57,23 @@ static void term_out( u8 data )
 
 static int term_in( int mode )
 {
-  if( mode == TERM_INPUT_DONT_WAIT )
-    return platform_uart_recv( CON_UART_ID, CON_TIMER_ID, 0 );
-  else
-    return platform_uart_recv( CON_UART_ID, CON_TIMER_ID, PLATFORM_TIMER_INF_TIMEOUT );
+  int c;
+  do{
+    if( mode == TERM_INPUT_DONT_WAIT )
+      c = platform_uart_recv( CON_UART_ID, CON_TIMER_ID, 0 );
+    else
+      c = platform_uart_recv( CON_UART_ID, CON_TIMER_ID, PLATFORM_TIMER_INF_TIMEOUT );
+    // CR/LF sequence, skip the second char (LF) if applicable
+    if( skip_0A > 0 )
+    {
+      skip_0A=0;
+      if( c == 0x0A )
+        continue;
+    }
+    
+    break;
+  }while( TRUE );
+  return c;
 }
 
 static int term_translate( int data )
@@ -107,8 +122,11 @@ static int term_translate( int data )
   }
   else if( data == 0x0D )
   {
-    // CR/LF sequence, read the second char (LF) if applicable
-    platform_uart_recv( CON_UART_ID, CON_TIMER_ID, TERM_TIMEOUT );
+    skip_0A=1;
+    return KC_ENTER;
+  }
+  else if( data == 0x0A )
+  {
     return KC_ENTER;
   }
   else

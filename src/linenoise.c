@@ -131,7 +131,7 @@ static void refreshLine(const char *prompt, char *buf, size_t len, size_t pos, s
     }
 
     /* Cursor to left edge */
-    snprintf(seq,MAX_SEQ_LEN,"\x1b[0G");
+    snprintf(seq,MAX_SEQ_LEN,"\r");
     term_putstr( seq, strlen( seq ) );
     /* Write the prompt and the current buffer content */
     term_putstr( prompt, strlen( prompt ) );
@@ -140,7 +140,7 @@ static void refreshLine(const char *prompt, char *buf, size_t len, size_t pos, s
     snprintf(seq,MAX_SEQ_LEN,"\x1b[0K");
     term_putstr( seq, strlen( seq ) );
     /* Move cursor to original position. */
-    snprintf(seq,MAX_SEQ_LEN,"\x1b[0G\x1b[%dC", (int)(pos+plen));
+    snprintf(seq,MAX_SEQ_LEN,"\r\x1b[%dC", (int)(pos+plen));
     term_putstr( seq, strlen( seq ) );
 }
 
