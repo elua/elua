@@ -20,15 +20,15 @@
  * ARM SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
  * CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
  *
+ * @par
+ * Modified for usage in eLua.
+ *
  ******************************************************************************/
 
 
 #include <stdint.h>
 #include "LPC17xx.h"
-
-/*
-//-------- <<< Use Configuration Wizard in Context Menu >>> ------------------
-*/
+#include <platform_conf.h>
 
 /*--------------------- Clock Configuration ----------------------------------
 //
@@ -279,23 +279,6 @@
 //   </h>
 //
 // </e>
-*/
-#define CLOCK_SETUP           1
-#define SCS_Val               0x00000020
-#define CLKSRCSEL_Val         0x00000001
-#define PLL0_SETUP            1
-#define PLL0CFG_Val           0x00050063
-#define PLL1_SETUP            1
-#define PLL1CFG_Val           0x00000023
-#define CCLKCFG_Val           0x00000003
-#define USBCLKCFG_Val         0x00000000
-#define PCLKSEL0_Val          0x00000000
-#define PCLKSEL1_Val          0x00000000
-#define PCONP_Val             0x042887DE
-#define CLKOUTCFG_Val         0x00000000
-
-
-/*--------------------- Flash Accelerator Configuration ----------------------
 //
 // <e> Flash Accelerator Configuration
 //   <o1.0..11>  Reserved
@@ -304,12 +287,43 @@
 //               <1=> 2 CPU clocks (for CPU clock up to 40 MHz)
 //               <2=> 3 CPU clocks (for CPU clock up to 60 MHz)
 //               <3=> 4 CPU clocks (for CPU clock up to 80 MHz)
-//               <4=> 5 CPU clocks (for CPU clock up to 100 MHz)
+//               <4=> 5 CPU clocks (for CPU clock up to 100 MHz, or 1769 up to 120MHz)
 //               <5=> 6 CPU clocks (for any CPU clock)
 // </e>
 */
+/*----------------------------------------------------------------------------
+  Define clocks
+ *----------------------------------------------------------------------------*/
+#define XTAL        ((DWORD)(ELUA_BOARD_EXTERNAL_CLOCK_HZ))        /* Oscillator frequency               */
+#define OSC_CLK     ((DWORD)(                        XTAL))        /* Main oscillator frequency          */
+#define RTC_CLK     ((DWORD)(                     32768UL))        /* RTC oscillator frequency           */
+#define IRC_OSC     ((DWORD)(                   4000000UL))        /* Internal RC oscillator frequency   */
+#define CPU_CLK             (     ELUA_BOARD_CPU_CLOCK_HZ)         /* Desired CPU clock                  */
+
+#define CLOCK_SETUP           1
+#define SCS_Val               0x00000020
+#define CLKSRCSEL_Val         0x00000001
+#define PLL0_SETUP            1
+/* In a perfect world, we'd calculate the PLL configuration from the information above.
+ * For now, just handle the two cases we actually know about. */
+#if CPU_CLK==100000000
+    #define PLL0CFG_Val           0x00050063
+#elif CPU_CLK==120000000
+    #define PLL0CFG_Val           0x00050077
+#else
+    #error "Unsupported CPU clock, please provide PLL configuration"
+#endif
+#define PLL1_SETUP            1
+#define PLL1CFG_Val           0x00000023
+#define CCLKCFG_Val           0x00000003
+#define USBCLKCFG_Val         0x00000000
+#define PCLKSEL0_Val          0x00000000
+#define PCLKSEL1_Val          0x00000000
+#define PCONP_Val             0x042887DE
+#define CLKOUTCFG_Val         0x00000000
 #define FLASH_SETUP           1
-#define FLASHCFG_Val          0x0000303A
+#define FLASHCFG_Val          0x0000403A
+
 
 /*
 //-------- <<< end of configuration section >>> ------------------------------
@@ -371,15 +385,6 @@
 /*----------------------------------------------------------------------------
   DEFINES
  *----------------------------------------------------------------------------*/
-
-/*----------------------------------------------------------------------------
-  Define clocks
- *----------------------------------------------------------------------------*/
-#define XTAL        (12000000UL)        /* Oscillator frequency               */
-#define OSC_CLK     (      XTAL)        /* Main oscillator frequency          */
-#define RTC_CLK     (   32000UL)        /* RTC oscillator frequency           */
-#define IRC_OSC     ( 4000000UL)        /* Internal RC oscillator frequency   */
-
 
 /* F_cco0 = (2 * M * F_in) / N  */
 #define __M               (((PLL0CFG_Val      ) & 0x7FFF) + 1)

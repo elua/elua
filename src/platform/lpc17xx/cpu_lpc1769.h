@@ -1,7 +1,7 @@
 // eLua platform configuration
 
-#ifndef __CPU_LPC1768_H__
-#define __CPU_LPC1768_H__
+#ifndef __CPU_LPC1769_H__
+#define __CPU_LPC1769_H__
 
 #include "stacks.h"
 
@@ -39,5 +39,5 @@ u32 lpc17xx_get_cpu_frequency();
 #define INTERNAL_RAM2_FIRST_FREE  SRAM2_ORIGIN 
 #define INTERNAL_RAM2_LAST_FREE   ( SRAM2_ORIGIN + SRAM2_SIZE - 1 )
  
-#endif // #ifndef __CPU_LPC1768_H__
+#endif // #ifndef __CPU_LPC1769_H__
 

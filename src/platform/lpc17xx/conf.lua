@@ -1,12 +1,22 @@
 -- Configuration file for the LPC17xx backend
 
 addi( sf( 'src/platform/%s/drivers/inc', platform ) )
+addi( sf( 'src/platform/%s/usbstack/inc', platform ) )
 
 local fwlib_files = utils.get_files( sf( "src/platform/%s/drivers/src", platform ), ".*%.c$" )
-specific_files = "startup_LPC17xx.c system_LPC17xx.c core_cm3.c platform.c mbed_pio.c"
+fwlib_files = fwlib_files .. " " .. utils.get_files( sf( "src/platform/%s/usbstack/src", platform ), ".*%.c$" )
+specific_files = "startup_LPC17xx.c system_LPC17xx.c core_cm3.c platform.c"
+
+local board = comp.board:upper()
+
+if board == "MBED" then
+  specific_files = specific_files .. " mbed_pio.c"
+else
+  specific_files = specific_files .. " lpc17xx_pio.c"
+end
 
 local ldscript = "LPC17xx.ld"
- 
+
 -- Prepend with path
 specific_files = fwlib_files .. " " .. utils.prepend_path( specific_files, sf( "src/platform/%s", platform ) )
 specific_files = specific_files .. " src/platform/cortex_utils.s src/platform/arm_cortex_interrupts.c"

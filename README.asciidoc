@@ -91,4 +91,4 @@ Dado Sutter: dadosutter -at- eluaproject -dot- net
 James Snyder: jbsnyder -at- eluaproject -dot- net
 
 You are also welcomed to share your questions and suggestions on our
-link:http://www.eluaproject.net/en_comunity.html#lists[Mail Discussion List]
+link:http://www.eluaproject.net/get-involved/community-resources[Mail Discussion List]
