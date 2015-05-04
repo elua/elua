@@ -8,7 +8,7 @@ addi( sf( 'src/platform/%s/FWLib/USB/STM32_USB_Device_Library/Core/inc', platfor
 addi( sf( 'src/platform/%s/FWLib/USB/VCP/inc', platform ) )
 
 local fwlib_files = utils.get_files( "src/platform/" .. platform .. "/FWLib/library/src", ".*%.c$" )
-if comp.board ~= "stm32f4-nucleo" then
+if comp.board ~= "stm32f4-nucleo" and comp.board ~= "nucleo-f411re" then
   fwlib_files = fwlib_files .. " " .. utils.get_files( "src/platform/" .. platform .. "/FWLib/USB/", "%.c$" )
 end
 specific_files = "system_stm32f4xx.c startup_stm32f4xx.s stm32f4xx_it.c platform.c platform_int.c cpu.c stm32_pio.c enc.c"

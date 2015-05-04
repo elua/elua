@@ -41,7 +41,7 @@ Restrictions:
 #error PLL_M out of range, unable to compute PLL parameters
 #endif
 
-#if STM32F4_DESIRED_SYSCLK_FREQ_MHZ < 96
+#if STM32F4_DESIRED_SYSCLK_FREQ_MHZ <= 100
 #define PLL_P                                     4
 #else
 #define PLL_P                                     2
