@@ -11,8 +11,8 @@
 #define NUM_PIO               5
 #define NUM_SPI               3
 #define NUM_UART              3
-#define NUM_TIMER             12
-#define NUM_PHYS_TIMER        12
+#define NUM_TIMER             8
+#define NUM_PHYS_TIMER        8
 #define NUM_PWM               4
 #define NUM_ADC               18
 #define NUM_CAN               0

@@ -3,7 +3,7 @@
 return {
   cpu = 'stm32f411re',
   components = {
-    sercon = { uart = "1", speed = 115200 },
+    sercon = { uart = "1", speed = 115200, buf_size = 128 },
     romfs = true,
     cdc = false,
     advanced_shell = true,
