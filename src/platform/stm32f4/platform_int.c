@@ -135,20 +135,8 @@ void EXTI15_10_IRQHandler()
 // ----------------------------------------------------------------------------
 // Timer interrupt handlers
 
-const TIM_TypeDef * const timer[] = { 
-   TIM1,   // ID: 0
-   TIM2,   // ID: 1
-   TIM3,   // ID: 2
-   TIM4,   // ID: 3
-   TIM5,   // ID: 4
-   TIM8,   // ID: 5
-   TIM9,   // ID: 5
-   TIM10,  // ID: 6
-   TIM11,  // ID: 7
-   TIM12,  // ID: 8
-   TIM13,  // ID: 10
-   TIM14   // ID: 11
- };
+extern const TIM_TypeDef * const timer[];
+
 extern u8 stm32_timer_int_periodic_flag[ NUM_PHYS_TIMER ];
 
 static void tmr_int_handler( unsigned id )

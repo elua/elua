@@ -32,9 +32,19 @@
 #include "usbd_desc.h"
 #endif
 
+#if defined( ELUA_BOARD_INTERNAL_CLOCK_HZ )
+#define HCLK        ( (HSI_VALUE / PLL_M) * PLL_N / PLL_P)
+#else
 #define HCLK        ( (HSE_VALUE / PLL_M) * PLL_N / PLL_P)
+#endif
+
+#if defined( FORSTM32F411RE ) || defined( FORSTM32F401RE )
+#define PCLK1_DIV   2
+#define PCLK2_DIV   1
+#else
 #define PCLK1_DIV   4
 #define PCLK2_DIV   2
+#endif
 
 // SysTick Config Data
 // NOTE: when using virtual timers, SYSTICKHZ and VTMR_FREQ_HZ should have the
@@ -650,6 +660,32 @@ int platform_s_uart_set_flow_control( unsigned id, int type )
 
 u8 stm32_timer_int_periodic_flag[ NUM_PHYS_TIMER ];
 
+#if defined( FORSTM32F411RE ) || defined( FORSTM32F401RE )
+const TIM_TypeDef * const timer[] = {
+  TIM1,   // ID: 0
+  TIM2,   // ID: 1
+  TIM3,   // ID: 2
+  TIM4,   // ID: 3
+  TIM5,   // ID: 4
+  TIM9,   // ID: 5
+  TIM10,  // ID: 6
+  TIM11   // ID: 7
+};
+
+const u8 timer_width[] = {
+  16,  // ID: 0
+  32,  // ID: 1
+  16,  // ID: 2
+  16,  // ID: 3
+  32,  // ID: 4
+  16,  // ID: 5
+  16,  // ID: 6
+  16,  // ID: 7
+};
+
+#define TIM_GET_PRESCALE( id ) ( (((id) == 0) || ((id) == 5)|| ((id) == 6)|| ((id) == 7)) ? ( PCLK2_DIV ) : ( PCLK1_DIV ) )
+#define TIM_GET_BASE_CLK( id ) ( HCLK / ( TIM_GET_PRESCALE( id ) ) )
+#else
 // We leave out TIM6/TIM for now, as they are dedicated
 const TIM_TypeDef * const timer[] = {
   TIM1,   // ID: 0
@@ -683,6 +719,8 @@ const u8 timer_width[] = {
 
 #define TIM_GET_PRESCALE( id ) ( (((id) == 0) || ((id) == 5)|| ((id) == 6)|| ((id) == 7)|| ((id) == 8)) ? ( PCLK2_DIV ) : ( PCLK1_DIV ) )
 #define TIM_GET_BASE_CLK( id ) ( HCLK / ( TIM_GET_PRESCALE( id ) / 2 ) )
+#endif
+
 #define TIM_STARTUP_CLOCK       50000
 
 static u32 platform_timer_set_clock( unsigned id, u32 clock );
@@ -706,6 +744,19 @@ static void timers_init()
 {
   unsigned i;
 
+#if defined( FORSTM32F411RE ) || defined( FORSTM32F401RE )
+  // Enable PHB2 Clocks
+  RCC_APB2PeriphClockCmd( RCC_APB2Periph_TIM1, ENABLE );
+  RCC_APB2PeriphClockCmd( RCC_APB2Periph_TIM9, ENABLE );
+  RCC_APB2PeriphClockCmd( RCC_APB2Periph_TIM10, ENABLE );
+  RCC_APB2PeriphClockCmd( RCC_APB2Periph_TIM11, ENABLE );
+
+  // Enable PHB1 Clocks
+  RCC_APB1PeriphClockCmd( RCC_APB1Periph_TIM2, ENABLE );
+  RCC_APB1PeriphClockCmd( RCC_APB1Periph_TIM3, ENABLE );
+  RCC_APB1PeriphClockCmd( RCC_APB1Periph_TIM4, ENABLE );
+  RCC_APB1PeriphClockCmd( RCC_APB1Periph_TIM5, ENABLE );
+#else
   // Enable PHB2 Clocks
   RCC_APB2PeriphClockCmd( RCC_APB2Periph_TIM1, ENABLE );
   RCC_APB2PeriphClockCmd( RCC_APB2Periph_TIM8, ENABLE );
@@ -721,6 +772,7 @@ static void timers_init()
   RCC_APB1PeriphClockCmd( RCC_APB1Periph_TIM12, ENABLE );
   RCC_APB1PeriphClockCmd( RCC_APB1Periph_TIM13, ENABLE );
   RCC_APB1PeriphClockCmd( RCC_APB1Periph_TIM14, ENABLE );
+#endif
 
   // Configure timers
   for( i = 0; i < NUM_TIMER; i ++ )
