@@ -45,7 +45,7 @@ Some aspects of eLua are:
   Use your desktop programming skills to become an embedded systems developer
   in no time and with a lot of fun.
 
-* *Embedded RAD:* Prototype and experiment on a Rapid Aplication Develop
+* *Embedded RAD:* Prototype and experiment on a Rapid Application Develop
   model. Test your ideas directly on the target platforms and cheap
   development kits. No need for simulators or future code adaptations.
 
