@@ -281,33 +281,39 @@ typedef TValuefields TValue;
   { TValue *i_o=(obj); i_o->value.b=(x); i_o->_ts.tt_sig=add_sig(LUA_TBOOLEAN);}
 
 #define setsvalue(L,obj,x) \
-  { TValue *i_o=(obj); \
-    i_o->value.gc=cast(GCObject *, (x)); i_o->_ts.tt_sig=add_sig(LUA_TSTRING); \
+  { GCObject *i_x=cast(GCObject *, (x)); \
+    TValue *i_o=(obj); \
+    i_o->value.gc=i_x; i_o->_ts.tt_sig=add_sig(LUA_TSTRING); \
     checkliveness(G(L),i_o); }
 
 #define setuvalue(L,obj,x) \
-  { TValue *i_o=(obj); \
-    i_o->value.gc=cast(GCObject *, (x)); i_o->_ts.tt_sig=add_sig(LUA_TUSERDATA); \
+  { GCObject *i_x=cast(GCObject *, (x)); \
+    TValue *i_o=(obj); \
+    i_o->value.gc=i_x; i_o->_ts.tt_sig=add_sig(LUA_TUSERDATA); \
     checkliveness(G(L),i_o); }
 
 #define setthvalue(L,obj,x) \
-  { TValue *i_o=(obj); \
-    i_o->value.gc=cast(GCObject *, (x)); i_o->_ts.tt_sig=add_sig(LUA_TTHREAD); \
+  { GCObject *i_x=cast(GCObject *, (x)); \
+    TValue *i_o=(obj); \
+    i_o->value.gc=i_x; i_o->_ts.tt_sig=add_sig(LUA_TTHREAD); \
     checkliveness(G(L),i_o); }
 
 #define setclvalue(L,obj,x) \
-  { TValue *i_o=(obj); \
-    i_o->value.gc=cast(GCObject *, (x)); i_o->_ts.tt_sig=add_sig(LUA_TFUNCTION); \
+  { GCObject *i_x=cast(GCObject *, (x)); \
+    TValue *i_o=(obj); \
+    i_o->value.gc=i_x; i_o->_ts.tt_sig=add_sig(LUA_TFUNCTION); \
     checkliveness(G(L),i_o); }
 
 #define sethvalue(L,obj,x) \
-  { TValue *i_o=(obj); \
-    i_o->value.gc=cast(GCObject *, (x)); i_o->_ts.tt_sig=add_sig(LUA_TTABLE); \
+  { GCObject *i_x=cast(GCObject *, (x)); \
+    TValue *i_o=(obj); \
+    i_o->value.gc=i_x; i_o->_ts.tt_sig=add_sig(LUA_TTABLE); \
     checkliveness(G(L),i_o); }
 
 #define setptvalue(L,obj,x) \
-  { TValue *i_o=(obj); \
-    i_o->value.gc=cast(GCObject *, (x)); i_o->_ts.tt_sig=add_sig(LUA_TPROTO); \
+  { GCObject *i_x=cast(GCObject *, (x)); \
+    TValue *i_o=(obj); \
+    i_o->value.gc=i_x; i_o->_ts.tt_sig=add_sig(LUA_TPROTO); \
     checkliveness(G(L),i_o); }
 
 
