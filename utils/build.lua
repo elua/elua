@@ -283,7 +283,7 @@ _target.build = function( self )
         code = 0
       end
     end
-    if code ~= 0 then 
+    if code ~= 0 and code ~= true then 
       print( utils.col_red( "[builder] Error building target" ) )
       if self.builder.disp_mode ~= 'all' and type( cmd ) == "string" then
         print( utils.col_red( "[builder] Last executed command was: " ) )

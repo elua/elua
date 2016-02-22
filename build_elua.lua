@@ -233,7 +233,7 @@ else
     local c = usable_chains[ i ]
     local t = bd.get_toolchain_data( c )
     local res = utils.check_command( t.compile .. " " .. t.version )
-    if res == 0 then chain = c break end
+    if res == 0 or res == true then chain = c break end
   end
   if chain then
     comp.toolchain = chain
