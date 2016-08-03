@@ -15,8 +15,8 @@
 #include "platform_conf.h"
 
 // Platform includes
-#include "DAVE3.h"
-#include "UART001.h"
+#include "DAVE.h"
+#include "uart.h"
 #include "xmc_elua.h"
 
 #define SYSTICKHZ             10
@@ -25,10 +25,21 @@
 #define SYSTM001_SYS_CORE_CLOCK  120U 
 #define SYSTM001_SYSTICK_INTERVAL SYSTICKMS
 
+/*
+ * Don't know why - the compiler complains that
+ * _init doesn't exist. I define the symbol now
+ * so he stops nagging me.
+ */
+void _init (void)
+{
+
+}
+
+// Handles uart receive
+uint8_t recv_byte;
+
 // ****************************************************************************
 // Platform initialization
-
-extern const UART001_HandleType UART001_Handle0;
 
 int platform_init()
 {
@@ -68,7 +79,6 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
 {
   pio_type retval = 1;
   PORT_Type* base = pio_port[ port ];
-  unsigned i;
 
   switch( op )
   {
@@ -126,11 +136,11 @@ pio_type platform_pio_op( unsigned port, pio_type pinmask, int op )
   return retval;
 }
 
-void SysTick_Handler( void )
+/* void SysTick_Handler( void )
 {
   // Handle system timer call
   cmn_systimer_periodic();
-}
+  } */
 
 u64 platform_timer_sys_raw_read()
 {
@@ -160,14 +170,13 @@ timer_data_type platform_s_timer_op( unsigned id, int op,timer_data_type data )
 
 void platform_s_uart_send( unsigned id, u8 data )
 {
-  u16 temp = ( u16 )data;
-
-  UART001_WriteDataMultiple( &UART001_Handle0, &temp, 1 );
+  UART_Transmit( &UART_0, &data, 1 );
 }
 
 int platform_s_uart_recv( unsigned id, timer_data_type timeout )
 {
-  return UART001_ReadChar( &UART001_Handle0, timeout != 0 );
+  UART_Receive( &UART_0, &recv_byte, 1 );
+  return recv_byte;
 }
 
 int platform_s_uart_set_flow_control( unsigned id, int type )
