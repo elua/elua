@@ -8,7 +8,7 @@
 #define NUM_PIO               16
 #define NUM_SPI               0
 #define NUM_UART              1
-#define NUM_TIMER             0
+#define NUM_TIMER             1
 #define NUM_PWM               0
 #define NUM_ADC               0
 #define NUM_CAN               0
