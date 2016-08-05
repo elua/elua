@@ -1,5 +1,5 @@
 
--- Infineon XMC4500 Relax boot-kit build configuration
+-- Infineon XMC4500 Hexagon boot-kit build configuration
 
 --[[
 
