@@ -33,6 +33,7 @@ return {
   cpu = 'xmc4500f144k1024',
   components = {
     sercon = { uart = 0, speed = 115200 },
+    xmc45_dts = true,
     wofs = false,
     romfs = true,
     mmcfs = { spi = 0, cs_port = 0, cs_pin = 0 },

@@ -21,6 +21,7 @@ function add_platform_components( t, board, cpu )
   if board == 'XMC4500-HEXAGON' then
     t.xmc45_pot = { macro = 'ENABLE_POTENTIOMETER' }
   end
+  t.xmc45_dts = { macro = 'ENABLE_DTS' }
 end
 
 -- Add specific configuration to the 'configs' table
@@ -35,5 +36,6 @@ function get_platform_modules( board, cpu )
   if board == 'XMC4500-HEXAGON' then
     m.pot = { guards = { 'ENABLE_POTENTIOMETER' }, lib = '"pot"', open = false }
   end
+  m.dts = { guards = { 'ENABLE_DTS' }, lib = '"dts"', open = false }
   return m
 end

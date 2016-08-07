@@ -19,6 +19,7 @@ return {
   components = {
     sercon = { uart = 0, speed = 115200 },
     xmc45_pot = true,
+    xmc45_dts = true,
     wofs = false,
     romfs = true,
     mmcfs = { spi = 0, cs_port = 0, cs_pin = 0 },
