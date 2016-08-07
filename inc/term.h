@@ -80,5 +80,6 @@ enum
 };
 
 int term_getch( int mode );
+int term_getch_nt( int mode );
 
 #endif // #ifndef __TERM_H__

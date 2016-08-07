@@ -201,6 +201,8 @@ function init()
   components.romfs = { macro = 'BUILD_ROMFS' }
   -- WOFS
   components.wofs = { macro = "BUILD_WOFS" }
+  -- The `iv' text editor
+  components.editor_iv = { macro = "BUILD_EDITOR_IV" }
   -- All done
   return components
 end

@@ -152,6 +152,17 @@ int term_getch( int mode )
     return term_translate( ch );
 }
 
+// Same as above but without terminal translations. (for the 'iv' text
+// editor)
+#ifdef BUILD_EDITOR_IV
+
+int term_getch_nt( int mode )
+{
+  return term_in( mode );
+}
+
+#endif
+
 void term_init( unsigned lines, unsigned cols, p_term_out term_out_func, 
                 p_term_in term_in_func, p_term_translate term_translate_func )
 {

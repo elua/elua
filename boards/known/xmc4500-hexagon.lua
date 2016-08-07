@@ -25,7 +25,8 @@ return {
     shell = true,
     term = { lines = 25, cols = 80 },
     linenoise = { shell_lines = 10, lua_lines = 50 },
-    xmodem = false
+    xmodem = false,
+    editor_iv = true
   },
   config = {
     egc = { mode = "alloc" },
