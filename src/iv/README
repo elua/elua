@@ -1,0 +1,103 @@
+iv - embedded editor                                                May 2, 2010
+-------------------------------------------------------------------------------
+(C) 2003-2010 Christopher Cole, Cole Design and Development, LLC
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation; either version 2 of the License, or (at your
+option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
+Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+-------------------------------------------------------------------------------
+AUTHOR / MAINTAINER
+
+Christopher Cole, Cole Design and Development, LLC
+email: cole@coledd.com
+http://www.coledd.com
+
+-------------------------------------------------------------------------------
+ABOUT
+
+This program is a tiny editor aimed at embedded applications.  It was designed 
+to have an extremely small footprint - at just over 15KB, it is perfect for any 
+embedded Linux distribution. Most embedded editors currently available are over 
+100KB in size! Flash memory is not cheap, hence the creation of this program. 
+It has most of the features of Bill Joy's vi editor, yet remains lightweight.  
+This code is released under the terms of the GPL (see COPYING).  Please send 
+any bug reports or patches that you would like to contribute to this open-
+source project to the maintainer.
+
+-------------------------------------------------------------------------------
+INSTALLING
+
+To build, issue the following commands:
+
+	make
+	make install
+
+If cross compiling, specify which cross compiler to use.  For example:
+
+	make CROSS=arm-linux-
+	make install
+
+The binary, iv, will be placed in /bin.
+
+-------------------------------------------------------------------------------
+KNOWN BUGS / TODO:
+
+This is a work in progress!  Please understand that there may exist bugs in
+the current version of this program.  Please also note that many features of
+comparable editors might not be found in this program.  This is either
+because that feature has not been added yet but will be; or it may be a
+feature deliberately left out in the interest of maintaining a lightweight
+executable.
+
+Please send any bug reports or patches that you would like to contribute
+to this open-source project to the maintainer.
+
+The following is the current TODO list for iv (bugs marked with *):
+
+* need to handle line wrap
+* catch SIGINT and exit nicely
+* some esc chars not mapping properly ( PGUP= ^[[3~ or ^[[5~ ) in teraTerm
+* line length (end) realization problem when cursor up/down on various lines
+- make use of prev ptr in each structure for tracing back through lines
+- undo capability ('u') (necessitates cmd history audit trail)
+- Implement: !, yy
+- capability to edit multiple files / paging b/t file buffers
+- don't corrupt binary files when saving them after an edit attempt
+- get rid of all the global variables that needn't be
+
+-------------------------------------------------------------------------------
+DEVELOPMENT / DEBUGGING
+
+Whilst in development, should the urge strike you to contribute to this 
+project, there are a couple of things to be aware of.  First, debugging may be 
+enabled by uncommenting the "-DDEBUG" flag in the Makefile.  This will do a 
+couple of helpful things:
+
+* DEBUG uses a wrapped version of malloc() and free() that will log the 
+function calls, as well as make a note when a null pointer is attempted
+to be freed.
+
+* DEBUG also creates a file in the current directory called ".debug" that 
+contains the malloc() and free() activity, as well as anything else that the 
+developer wants to place in this file to aid in tracking down a bug.  This 
+facility was originally used to debug the linked-list functions within this 
+application.
+
+The '-g' flag may be included in the CFLAGS in the Makefile to produce a 
+binary that is stuffed with debugging symbols that can be utilized by gdb.  
+Note that the '-s' flag must be left out of the LDFLAGS in this case, as
+stripping the binary leaves it devoid of its symbols.
+
+-------------------------------------------------------------------------------
+
