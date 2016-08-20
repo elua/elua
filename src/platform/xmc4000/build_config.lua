@@ -22,6 +22,7 @@ function add_platform_components( t, board, cpu )
     t.xmc45_pot = { macro = 'ENABLE_POTENTIOMETER' }
     t.xmc45_dts = { macro = 'ENABLE_DTS' }
     t.xmc45_rtc = { macro = 'ENABLE_RTC' }
+    t.xmc45_disp = { macro = 'ENABLE_OLED_DISPLAY' }
   end
 end
 
@@ -38,6 +39,7 @@ function get_platform_modules( board, cpu )
     m.pot = { guards = { 'ENABLE_POTENTIOMETER' }, lib = '"pot"', open = false }
     m.dts = { guards = { 'ENABLE_DTS' }, lib = '"dts"', open = false }
     m.rtc = { guards = { 'ENABLE_RTC' }, lib = '"rtc"', open = false }
+    m.disp = { guards = { 'ENABLE_OLED_DISPLAY' }, lib = '"disp"', open = false }
   end
   return m
 end
