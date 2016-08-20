@@ -21,6 +21,7 @@ return {
     xmc45_pot = true,
     xmc45_dts = true,
     xmc45_rtc = true,
+    xmc45_disp = true,
     wofs = false,
     romfs = true,
     mmcfs = { spi = 0, cs_port = 0, cs_pin = 0 },

@@ -1,0 +1,33 @@
+
+Notes:
+
+The OLED display on the XMC4500's extension HMI board can be
+programmed by using the GUI_SEGGERLIBRARY APP within the DAVE IDE from
+Infineon. While the GUI_SEGGERLIBRARY's code is available, it relies
+on the non-free (free as in freedom) graphics archive library from
+Segger (GUI_basic_xmc4.a and its advanced counterpart). The library is
+shipped with DAVE and is linked with the user's program (in our case,
+eLua) when the project is configured to use the OLED.
+
+From a section in Segger's terms:
+
+> This file has been licensed to Infineon Technologies AG, a german
+> company at the address Am Campeon 1-12 in 85579 Neubiberg, Germany
+> and is sublicensed and distributed by Infineon Technologies AG in
+> accordance with the DAVE (TM) 3 Software License Agreement to be
+> used for and with Infineon's Cortex-M0, M0+ and M4 based 32-bit
+> microcon-troller products only.
+> 
+> Full source code is available at: www.segger.com
+
+So, as long as this library is used by an Infineon Cortex device, they
+are OK.
+
+I would only assume that it is OK to move the non-free (yuck!) archive
+outside the context of DAVE. I'm sorry Segger and Infineon but
+SpaceShip is a lot of fun! Only if you gave us the source code.
+
+For Segger's terms, please see one of their header files in
+xmclib/gui. The non-free library belongs to Segger. The
+GUI_SEGGERLIBRARY APP is shipped by Infineon as a DAVE APP. The terms
+for that can be found in gen/GUI_SEGGERLIBRARY.
