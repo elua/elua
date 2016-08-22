@@ -4,7 +4,13 @@
 #ifndef __XMC_ELUA_H__
 #define __XMC_ELUA_H__
 
-#include "XMC4500.h"
+#if defined ( XMC4500_F144x1024 )
+# include "XMC4500.h"
+#endif
+
+#if defined ( XMC4700_F144x2048 )
+# include "XMC4700.h"
+#endif
 
 // Generic port definition
 

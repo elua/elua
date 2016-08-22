@@ -6,7 +6,7 @@
 // web site by Jesus Alvarez & James Snyder for eLua.
  
 #include "platform_conf.h"
-#if defined( BUILD_MMCFS ) && !defined( ELUA_SIMULATOR ) && !defined( XMC4500_F144x1024 )
+#if defined( BUILD_MMCFS ) && !defined( ELUA_SIMULATOR ) && !defined( XMC4500_F144x1024 ) && !defined( XMC4700_F144x2048 )
 #include "platform.h"
 #include "diskio.h"
 #include "mmcfs.h"
