@@ -7,7 +7,7 @@ local ldscript = ""
 local target_files = ""
 local cpu = comp.cpu:upper()
 
-if cpu == 'XMC4500F144K1024' then
+if cpu == 'XMC4500F144K1024' or cpu == 'XMC4500E144K1024' then
   ldscript = "xmc4500_linker_script.ld"
   target_files = " startup_XMC4500.S system_XMC4500.c"
 end
@@ -42,6 +42,10 @@ addm( { "FOR" .. cnorm( comp.cpu ), "FOR" .. cnorm( comp.board ), 'gcc', 'CORTEX
 
 if cpu == 'XMC4500F144K1024' then
   addm( { "XMC4500_F144x1024" } )
+end
+
+if cpu == 'XMC4500E144K1024' then
+  addm( { "XMC4500_E144x1024" } )
 end
 
 if cpu == 'XMC4700F144K2048' then

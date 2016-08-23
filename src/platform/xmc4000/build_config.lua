@@ -18,7 +18,7 @@ local at = require "attributes"
 -- Add specific components to the 'components' table
 function add_platform_components( t, board, cpu )
   board = board:upper()
-  if board == 'XMC4500-HEXAGON' then
+  if board == 'XMC4500-HEXAGON' or board == 'XMC4500-HEXAGON-SDRAM' then
     t.xmc45_pot = { macro = 'ENABLE_POTENTIOMETER' }
     t.xmc45_dts = { macro = 'ENABLE_DTS' }
     t.xmc45_rtc = { macro = 'ENABLE_RTC' }
@@ -35,7 +35,7 @@ end
 function get_platform_modules( board, cpu )
   m = { }
   board = board:upper()
-  if board == 'XMC4500-HEXAGON' then
+  if board == 'XMC4500-HEXAGON' or board == 'XMC4500-HEXAGON' then
     m.pot = { guards = { 'ENABLE_POTENTIOMETER' }, lib = '"pot"', open = false }
     m.dts = { guards = { 'ENABLE_DTS' }, lib = '"dts"', open = false }
     m.rtc = { guards = { 'ENABLE_RTC' }, lib = '"rtc"', open = false }
