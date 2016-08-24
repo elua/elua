@@ -41,6 +41,8 @@ uint8_t recv_byte;
 // ****************************************************************************
 // Platform initialization
 
+extern void ebu_main (void);
+
 int platform_init()
 {
   DAVE_Init();
@@ -52,6 +54,11 @@ int platform_init()
 
   SysTick_Config((uint32_t)(SYSTM001_SYSTICK_INTERVAL * SYSTM001_SYS_CORE_CLOCK * 1000U));
   NVIC_SetPriority(SysTick_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),10,0));
+
+  /* Initialize the EBU if we're using the XMC45 SDRAM kit */
+#if defined ( XMC4500_E144x1024 )
+  ebu_main();
+#endif
 
   return PLATFORM_OK;
 }
