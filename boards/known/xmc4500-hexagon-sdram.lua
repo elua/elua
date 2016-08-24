@@ -33,7 +33,7 @@ return {
   },
   config = {
     egc = { mode = "alloc" },
-    ram = { internal_rams = 3 },
+    ram = { internal_rams = 4 },
   },
   modules = {
     generic = { 'all', '-i2c', '-net', '-adc', '-spi', '-uart', '-can', '-pwm', '-rpc' },
