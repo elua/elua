@@ -26,12 +26,12 @@
 
 // Allocator data: define your free memory zones here in two arrays
 // (start address and end address)
-#define DSRAM1_SIZE           ( 64 * 1024 )
+#define DSRAM1_SIZE           ( 128 * 1024 )
 #define DSRAM1_BASE           0x20000000
-#define DSRAM2_SIZE           ( 32 * 1024 )
-#define DSRAM2_BASE           0x30000000
-#define PSRAM_SIZE            ( 64 * 1024 )
-#define PSRAM_BASE            0x10000000
+#define DSRAM2_SIZE           ( 128 * 1024 )
+#define DSRAM2_BASE           0x20020000
+#define PSRAM_SIZE            ( 96 * 1024 )
+#define PSRAM_BASE            0x1FFE8000
 #define INTERNAL_RAM1_FIRST_FREE end
 #define INTERNAL_RAM1_LAST_FREE  ( DSRAM1_BASE + DSRAM1_SIZE - STACK_SIZE_TOTAL - 1 )
 #define INTERNAL_RAM2_FIRST_FREE DSRAM2_BASE
