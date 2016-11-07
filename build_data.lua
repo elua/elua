@@ -115,7 +115,7 @@ local platform_list =
   avr32 = { cpus = { 'AT32UC3A0128', 'AT32UC3A0256', 'AT32UC3A0512', 'AT32UC3B0256' }, arch = 'avr32' },
   lpc23xx = { cpus = { 'LPC2368' }, arch = 'arm' },
   lpc24xx = { cpus = { 'LPC2468' }, arch = 'arm' },
-  lpc17xx = { cpus = { 'LPC1768' }, arch = 'cortexm' },
+  lpc17xx = { cpus = { 'LPC1768', 'LPC1769' }, arch = 'cortexm' },
   xmc4000 = { cpus = { 'XMC4500F144K1024', 'XMC4500E144K1024', 'XMC4700F144K2048' }, arch = 'cortexm' },
 }
 
