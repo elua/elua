@@ -127,7 +127,7 @@ static void USBD_SetFeature(USB_OTG_CORE_HANDLE  *pdev,
 static void USBD_ClrFeature(USB_OTG_CORE_HANDLE  *pdev, 
                             USB_SETUP_REQ *req);
 
-static uint8_t USBD_GetLen(uint8_t *buf);
+static uint8_t USBD_GetLen(const char *buf);
 /**
   * @}
   */ 
@@ -815,7 +815,7 @@ void USBD_CtlError( USB_OTG_CORE_HANDLE  *pdev,
   * @param  len : descriptor length
   * @retval None
   */
-void USBD_GetString(uint8_t *desc, uint8_t *unicode, uint16_t *len)
+void USBD_GetString(const char *desc, uint8_t *unicode, uint16_t *len)
 {
   uint8_t idx = 0;
   
@@ -825,7 +825,7 @@ void USBD_GetString(uint8_t *desc, uint8_t *unicode, uint16_t *len)
     unicode[idx++] = *len;
     unicode[idx++] =  USB_DESC_TYPE_STRING;
     
-    while (*desc != NULL) 
+    while (*desc != '\0') 
     {
       unicode[idx++] = *desc++;
       unicode[idx++] =  0x00;
@@ -839,11 +839,11 @@ void USBD_GetString(uint8_t *desc, uint8_t *unicode, uint16_t *len)
    * @param  buf : pointer to the ascii string buffer
   * @retval string length
   */
-static uint8_t USBD_GetLen(uint8_t *buf)
+static uint8_t USBD_GetLen(const char *buf)
 {
     uint8_t  len = 0;
 
-    while (*buf != NULL) 
+    while (*buf != '\0') 
     {
         len++;
         buf++;

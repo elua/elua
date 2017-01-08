@@ -63,7 +63,7 @@ static int enc_set_index_handler( lua_State *L )
 static void index_handler( elua_int_resnum resnum )
 {
   if( prev_handler )
-    prev_handler;
+    prev_handler( resnum );
 
   if( resnum != index_resnum )
     return;
