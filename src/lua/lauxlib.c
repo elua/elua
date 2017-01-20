@@ -654,7 +654,7 @@ LUALIB_API int luaL_loadfile (lua_State *L, const char *filename) {
     if (lf.f == NULL) return errfile(L, "reopen", fnameindex);
     /* skip eventual `#!...' */
    while ((c = getc(lf.f)) != EOF && c != LUA_SIGNATURE[0]) ;
-    lf.extraline = 0;
+   lf.extraline = 0;
   }
   ungetc(c, lf.f);
   if (srcp) {
