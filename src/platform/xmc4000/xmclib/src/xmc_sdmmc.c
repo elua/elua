@@ -1,11 +1,11 @@
 
 /**
  * @file xmc_sdmmc.c
- * @date 2016-03-14
+ * @date 2016-07-11
  *
  * @cond
  *********************************************************************************************************************
- * XMClib v2.1.6 - XMC Peripheral Driver Library 
+ * XMClib v2.1.8 - XMC Peripheral Driver Library 
  *
  * Copyright (c) 2015-2016, Infineon Technologies AG
  * All rights reserved.                        
@@ -46,6 +46,9 @@
  *
  * 2016-03-14:
  *     - Values are directly assigned to the int status registers <br>
+ *
+ * 2016-07-11:
+ *     - XMC_SDMMC_SetDataTransferMode() shall not invoke SetDateLineTimeout() <br>
  *
  * @endcond
  */
@@ -312,9 +315,6 @@ void XMC_SDMMC_SetDataTransferMode(XMC_SDMMC_t *const sdmmc, XMC_SDMMC_TRANSFER_
   XMC_ASSERT("XMC_SDMMC_SetDataTransferMode: Invalid module pointer", XMC_SDMMC_CHECK_MODULE_PTR(sdmmc));
   XMC_ASSERT("XMC_SDMMC_SetDataTransferMode: Invalid transfer type", XMC_SDMMC_CHECK_TRANSFER_MODE(response->type));
   
-  /* Data line time-out */
-  XMC_SDMMC_SetDataLineTimeout(sdmmc, XMC_SDMMC_DAT_TIMEOUT_COUNTER_2_POW_27);
-
   /* Block size */
   sdmmc->BLOCK_SIZE = (uint16_t)(response->block_size);
   

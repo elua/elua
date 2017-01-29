@@ -4,7 +4,7 @@
  *
  * @cond
   *********************************************************************************************************************
- * XMClib v2.1.6 - XMC Peripheral Driver Library 
+ * XMClib v2.1.8 - XMC Peripheral Driver Library 
  *
  * Copyright (c) 2015-2016, Infineon Technologies AG
  * All rights reserved.                        
@@ -38,7 +38,8 @@
  *
  * 2015-06-20:
  *     - Initial
- * 2015-06-20:
+ *
+ * 2016-03-30:
  *     - Added ebu_data_hold_cycles_for_read_accesses to XMC_EBU_BUS_READ_CONFIG_t
  *     - Added ebu_device_addressing_mode and ebu_data_hold_cycles_for_write_accesses to XMC_EBU_BUS_WRITE_CONFIG_t
  *      

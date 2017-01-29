@@ -1,10 +1,10 @@
 /**
  * @file xmc_rtc.c
- * @date 2015-06-20
+ * @date 2015-05-19
  *
  * @cond
  *********************************************************************************************************************
- * XMClib v2.1.6 - XMC Peripheral Driver Library 
+ * XMClib v2.1.8 - XMC Peripheral Driver Library 
  *
  * Copyright (c) 2015-2016, Infineon Technologies AG
  * All rights reserved.                        
@@ -41,6 +41,10 @@
  *      
  * 2015-06-20:
  *     - Removed GetDriverVersion API
+ * 
+ * 2016-05-19:
+ *     - Added XMC_RTC_SetTimeStdFormat() and XMC_RTC_SetAlarmStdFormat()
+ *
  * @endcond 
  *
  */
@@ -168,6 +172,25 @@ void XMC_RTC_GetTime(XMC_RTC_TIME_t *const time)
 }
 
 /*
+ * Sets the RTC module time values in standard format
+ */
+void XMC_RTC_SetTimeStdFormat(const struct tm *const stdtime)
+{
+
+  XMC_RTC_TIME_t time;
+
+  time.seconds = stdtime->tm_sec;
+  time.minutes = stdtime->tm_min;
+  time.hours = stdtime->tm_hour;
+  time.days = stdtime->tm_mday - 1;
+  time.month = stdtime->tm_mon;
+  time.year = stdtime->tm_year + XMC_RTC_YEAR_OFFSET;
+  time.daysofweek = stdtime->tm_wday;
+
+  XMC_RTC_SetTime(&time);
+}
+
+/*
  * Gets the RTC module time values in standard format
  */
 void XMC_RTC_GetTimeStdFormat(struct tm *const stdtime)
@@ -229,6 +252,24 @@ void XMC_RTC_GetAlarm(XMC_RTC_ALARM_t *const alarm)
   alarm->raw1 = RTC->ATIM1;
 }
 
+
+/*
+ * Sets the RTC module alarm time value in standard format
+ */
+void XMC_RTC_SetAlarmStdFormat(const struct tm *const stdtime)
+{
+  XMC_RTC_ALARM_t alarm;
+  
+
+  alarm.seconds = stdtime->tm_sec;
+  alarm.minutes = stdtime->tm_min;
+  alarm.hours = stdtime->tm_hour;
+  alarm.days = stdtime->tm_mday - 1;
+  alarm.month = stdtime->tm_mon;
+  alarm.year = stdtime->tm_year + XMC_RTC_YEAR_OFFSET;
+
+  XMC_RTC_SetAlarm(&alarm);
+}
 
 /*
  * Gets the RTC module alarm time value in standard format

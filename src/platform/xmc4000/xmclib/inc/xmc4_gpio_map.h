@@ -1,10 +1,10 @@
 /**
  * @file xmc4_gpio_map.h
- * @date 2016-03-22
+ * @date 2016-08-22
  *
  * @cond
   *********************************************************************************************************************
- * XMClib v2.1.6 - XMC Peripheral Driver Library 
+ * XMClib v2.1.8 - XMC Peripheral Driver Library 
  *
  * Copyright (c) 2015-2016, Infineon Technologies AG
  * All rights reserved.                        
@@ -61,6 +61,9 @@
  *
  * 2016-03-22:
  *     - Fixed EBU CS signal names
+ *
+ * 2016-08-22:
+ *     - Added P2_0_AF_CAN_N0_TXD for XMC4300
  *
  * @endcond
  *
@@ -1259,6 +1262,7 @@
 #define P1_14_AF_U0C1_SELO2 	XMC_GPIO_MODE_OUTPUT_ALT2
 #define P1_14_AF_ECAT0_SYNC0	XMC_GPIO_MODE_OUTPUT_ALT4
 #define P1_15_AF_SCU_EXTCLK 	XMC_GPIO_MODE_OUTPUT_ALT1
+#define P2_0_AF_CAN_N0_TXD  	XMC_GPIO_MODE_OUTPUT_ALT1
 #define P2_0_AF_LEDTS0_COL1 	XMC_GPIO_MODE_OUTPUT_ALT4
 #define P2_1_AF_LEDTS0_COL0 	XMC_GPIO_MODE_OUTPUT_ALT4
 #define P2_2_AF_VADC_EMUX00 	XMC_GPIO_MODE_OUTPUT_ALT1
@@ -7527,6 +7531,5 @@
 #define P6_6_HWCTRL_DB_ETM_TRACEDATA0 	XMC_GPIO_HWCTRL_PERIPHERAL1
 #define P6_6_HWCTRL_EBU_BC3           	XMC_GPIO_HWCTRL_PERIPHERAL2
 #endif
-
 
 #endif /* XMC4_GPIO_MAP_H */

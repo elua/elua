@@ -1,10 +1,10 @@
 /**
  * @file xmc_common.h
- * @date 2016-02-26
+ * @date 2016-05-30
  *
  * @cond
   *********************************************************************************************************************
- * XMClib v2.1.6 - XMC Peripheral Driver Library 
+ * XMClib v2.1.8 - XMC Peripheral Driver Library 
  *
  * Copyright (c) 2015-2016, Infineon Technologies AG
  * All rights reserved.                        
@@ -44,6 +44,9 @@
  * 2016-02-26:
  *     - Updated XMC_LIB_VERSION macro to v2.1.6
  *      
+ * 2016-05-30:
+ *     - Updated XMC_LIB_VERSION macro to v2.1.8
+ *
  * @endcond 
  *
  */
@@ -74,7 +77,7 @@
  *********************************************************************************************************************/
 #define XMC_LIB_MAJOR_VERSION	(2U)
 #define XMC_LIB_MINOR_VERSION	(1U)
-#define XMC_LIB_PATCH_VERSION	(6U)
+#define XMC_LIB_PATCH_VERSION	(8U)
  
 #define XMC_LIB_VERSION         ((XMC_LIB_MAJOR_VERSION << 16U) + (XMC_LIB_MINOR_VERSION << 8U) + XMC_LIB_PATCH_VERSION)
 

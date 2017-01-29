@@ -1,10 +1,10 @@
 /**
  * @file xmc_can.h
- * @date 2015-09-15
+ * @date 2016-06-07
  *
  * @cond
  *********************************************************************************************************************
- * XMClib v2.1.6 - XMC Peripheral Driver Library 
+ * XMClib v2.1.8 - XMC Peripheral Driver Library 
  *
  * Copyright (c) 2015-2016, Infineon Technologies AG
  * All rights reserved.                        
@@ -57,6 +57,10 @@
  *
  * 2015-09-15:
  *     - Added "xmc_can_map.h" include <br>
+ *
+ * 2016-06-07:
+ *     - Added XMC_CAN_IsPanelControlReady()
+ *
  * <b>Details of use for node configuration related APIs</b><br>
  * Please use the XMC_CAN_NODE_SetInitBit() and XMC_CAN_NODE_EnableConfigurationChange() before calling node configuration
  * related APIs.
@@ -80,6 +84,8 @@
  * XMC_CAN_NODE_ResetInitBit(CAN_NODE0)
  * @endcode
  *
+ * 2016-06-20:
+ *     - Fixed bug in XMC_CAN_MO_Config() <br>  
  * @endcond
  *
  */
@@ -640,6 +646,25 @@ void XMC_CAN_Enable(XMC_CAN_t *const obj);
  */
 
 void XMC_CAN_AllocateMOtoNodeList(XMC_CAN_t *const obj, const uint8_t node_num, const uint8_t mo_num);
+
+/**
+ *
+ * @param obj Pointer pointing to XMC_CAN Global Initialization structure. Defines CAN global registers,refer CAN_NODE_TypeDef
+ *       for details.
+ *
+ * @return Ready status of list controller
+ *
+ * \par<b>Description:</b><br>
+ *  Returns ready status of the list controller
+ *
+ * \par<b>Related APIs:</b><BR>
+ *  XMC_CAN_PanelControl()
+ *
+ */
+__STATIC_INLINE bool XMC_CAN_IsPanelControlReady(XMC_CAN_t *const obj)
+{
+  return (bool)((obj->PANCTR & (CAN_PANCTR_BUSY_Msk | CAN_PANCTR_RBUSY_Msk)) == 0);
+}
 
 /**
  *

@@ -1,10 +1,10 @@
 /**
  * @file xmc_i2c.h
- * @date 2015-10-07
+ * @date 2016-05-20
  *
  * @cond
  *********************************************************************************************************************
- * XMClib v2.1.6 - XMC Peripheral Driver Library 
+ * XMClib v2.1.8 - XMC Peripheral Driver Library 
  *
  * Copyright (c) 2015-2016, Infineon Technologies AG
  * All rights reserved.                        
@@ -63,6 +63,12 @@
  *     - Fix register access in XMC_I2C_CH_EnableSlaveAcknowledgeTo00() and XMC_I2C_CH_DisableSlaveAcknowledgeTo00() APIs.
  *     - Naming of APIs modified: from XMC_I2C_CH_EnableSlaveAcknowledgeTo00() to  XMC_I2C_CH_EnableAcknowledgeAddress0()
  *       and from XMC_I2C_CH_DisableSlaveAcknowledgeTo00() to XMC_I2C_CH_DisableAcknowledgeAddress0().
+ *
+ * 2016-05-20:
+ *     - Added XMC_I2C_CH_EnableDataTransmission() and XMC_I2C_CH_DisableDataTransmission()
+ *
+ * 2016-08-17:
+ *     - Improved documentation of slave address passing
  *
  * @endcond 
  *
@@ -359,8 +365,8 @@ __STATIC_INLINE void XMC_I2C_CH_SetInterruptNodePointer(XMC_USIC_CH_t *const cha
  * @param channel Pointer to USIC channel handler of type @ref XMC_USIC_CH_t \n
  * 				  \b Range: @ref XMC_I2C0_CH0, @ref XMC_I2C0_CH1,@ref XMC_I2C1_CH0,@ref XMC_I2C1_CH1,@ref XMC_I2C2_CH0,@ref XMC_I2C2_CH1 @note Availability of I2C1 and I2C2 depends on device selection
  * @param  interrupt_node Interrupt node pointer to be configured. \n
- * 						  \b Range: @ref XMC_SPI_CH_INTERRUPT_NODE_POINTER_TRANSMIT_SHIFT,
- * 						  			@ref XMC_SPI_CH_INTERRUPT_NODE_POINTER_TRANSMIT_BUFFER etc.
+ * 						  \b Range: @ref XMC_I2C_CH_INTERRUPT_NODE_POINTER_TRANSMIT_SHIFT,
+ * 						  			@ref XMC_I2C_CH_INTERRUPT_NODE_POINTER_TRANSMIT_BUFFER etc.
  * @param service_request Service request number.\n
  * 						  \b Range: 0 to 5.
  * @return None
@@ -434,7 +440,10 @@ __STATIC_INLINE void XMC_I2C_CH_SetInputSource(XMC_USIC_CH_t *const channel, con
  *
  * \par
  * Address is set in PCR_IICMode register by checking if it is in 10-bit address group or 7-bit address group.
- * (If first five bits of address are assigned with 0xF0, then address mode is 10-bit mode otherwise it is 7-bit mode)
+ * (If first five bits of address are assigned with 0xF0, then address mode is 10-bit mode otherwise it is 7-bit mode)\n
+ * @note A 7-bit address should include an additional bit at the LSB for read/write indication. For example, address 0x05 should
+ * be provided as 0x0a. A 10-bit address should be provided with the identifier 0b11110xx at the most significant bits. For example,
+ * address 0x305 should be provided as 0x7b05(bitwise OR with 0x7800).
  *
  * \par<b>Related APIs:</b><br>
  * XMC_I2C_CH_GetSlaveAddress()\n\n
@@ -450,7 +459,9 @@ void XMC_I2C_CH_SetSlaveAddress(XMC_USIC_CH_t *const channel, const uint16_t add
  *
  * \par
  * Returns the address using PCR_IICMode register by checking if it is in 10-bit address group or 7-bit address group.<br>
- * (If first five bits of address are assigned with 0xF0, then address mode is considered as 10-bit mode otherwise it is 7-bit mode)
+ * (If first five bits of address are assigned with 0xF0, then address mode is considered as 10-bit mode otherwise it is 7-bit mode)\n
+ * @note A 7-bit address will include an additional bit at the LSB. For example, address 0x05 will be returned as 0x0a.
+ * 10-bit address will not include the 10-bit address identifier 0b11110xx at the most signifcant bits.
  *
  * \par<b>Related APIs:</b><br>
  * XMC_I2C_CH_SetSlaveAddress()\n\n
@@ -467,7 +478,11 @@ uint16_t XMC_I2C_CH_GetSlaveAddress(const XMC_USIC_CH_t *const channel);
  * Starts the I2C master \a channel.<br>
  *
  * \par
- * Sends the Start condition with read/write command by updating IN/TBUF register based on FIFO/non-FIFO modes.
+ * Sends the Start condition with read/write command by updating IN/TBUF register based on FIFO/non-FIFO modes.\n
+ * @note Address(addr) should reserve an additional bit at the LSB for read/write indication. For example, address 0x05 should
+ * be provided as 0x0a. If the address is 10-bit, only most significant bits with the 10-bit identifier should be sent using this function.
+ * For example, if the 10-bit address is 0x305, the address should be provided as 0xf6(prepend with 0b11110, upper two bits of address 0b11,
+ * followed by 1-bit field for read/write).
  *
  * \par<b>Related APIs:</b><br>
  * XMC_I2C_CH_MasterTransmit(), XMC_USIC_CH_GetTransmitBufferStatus()\n\n
@@ -484,7 +499,11 @@ void XMC_I2C_CH_MasterStart(XMC_USIC_CH_t *const channel, const uint16_t addr, c
  * Sends the repeated start condition from I2C master \a channel.<br>
  *
  * \par
- * Sends the repeated start condition with read/write command by updating IN/TBUF register based on FIFO/non-FIFO modes.
+ * Sends the repeated start condition with read/write command by updating IN/TBUF register based on FIFO/non-FIFO modes.\n
+ * @note Address(addr) should reserve an additional bit at the LSB for read/write indication. For example, address 0x05 should
+ * be provided as 0x0a. If the address is 10-bit, only most significant bits with the 10-bit identifier should be sent using this function.
+ * For example, if the 10-bit address is 0x305, the address should be provided as 0xf6(prepend with 0b11110, upper two bits of address 0b11,
+ * followed by 1-bit field for read/write).
  *
  * \par<b>Related APIs:</b><br>
  * XMC_I2C_CH_MasterTransmit(), XMC_USIC_CH_GetTransmitBufferStatus()\n\n
@@ -709,6 +728,43 @@ __STATIC_INLINE void XMC_I2C_CH_EnableAcknowledgeAddress0(XMC_USIC_CH_t *const c
 __STATIC_INLINE void XMC_I2C_CH_DisableAcknowledgeAddress0(XMC_USIC_CH_t *const channel)
 {
   channel->PCR_IICMode &= ~USIC_CH_PCR_IICMode_ACK00_Msk;
+}
+
+/**
+ * @param channel Constant pointer to USIC channel handle of type @ref XMC_USIC_CH_t \n
+ *          \b Range: @ref XMC_I2C0_CH0, @ref XMC_I2C0_CH1,@ref XMC_I2C1_CH0,@ref XMC_I2C1_CH1,@ref XMC_I2C2_CH0,@ref XMC_I2C2_CH1 @note Availability of I2C1 and I2C2 depends on device selection
+ * @return None
+ *
+ * \par<b>Description</b><br>
+ * Enable data transmission.\n\n
+ * Use this function in combination with XMC_I2C_CH_DisableDataTransmission() to fill the FIFO and send the FIFO content without gaps in the transmission.
+ * FIFO is filled using XMC_USIC_CH_TXFIFO_PutData().
+ * @note If you need more control over the start of transmission use XMC_USIC_CH_SetStartTransmisionMode()
+ *
+ * \par<b>Related APIs:</b><BR>
+ * XMC_I2C_CH_DisableDataTransmission()\n\n\n
+ */
+__STATIC_INLINE void XMC_I2C_CH_EnableDataTransmission(XMC_USIC_CH_t *const channel)
+{
+  XMC_USIC_CH_SetStartTransmisionMode(channel, XMC_USIC_CH_START_TRANSMISION_ON_TDV);
+}
+
+/**
+ * @param channel Constant pointer to USIC channel handle of type @ref XMC_USIC_CH_t \n
+ *          \b Range: @ref XMC_I2C0_CH0, @ref XMC_I2C0_CH1,@ref XMC_I2C1_CH0,@ref XMC_I2C1_CH1,@ref XMC_I2C2_CH0,@ref XMC_I2C2_CH1 @note Availability of I2C1 and I2C2 depends on device selection
+ * @return None
+ *
+ * \par<b>Description</b><br>
+ * Disable data transmission.\n\n
+ * Use this function in combination with XMC_I2C_CH_EnableDataTransmission() to fill the FIFO and send the FIFO content without gaps in the transmission.
+ * FIFO is filled using XMC_USIC_CH_TXFIFO_PutData().
+ *
+ * \par<b>Related APIs:</b><BR>
+ * XMC_I2C_CH_EnableDataTransmission()\n\n\n
+ */
+__STATIC_INLINE void XMC_I2C_CH_DisableDataTransmission(XMC_USIC_CH_t *const channel)
+{
+  XMC_USIC_CH_SetStartTransmisionMode(channel, XMC_USIC_CH_START_TRANSMISION_DISABLED); 
 }
 
 #ifdef __cplusplus

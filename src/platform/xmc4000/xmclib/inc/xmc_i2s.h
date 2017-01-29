@@ -1,10 +1,10 @@
 /**
  * @file xmc_i2s.h
- * @date 2015-09-14
+ * @date 2016-06-30
  *
  * @cond
  *********************************************************************************************************************
- * XMClib v2.1.6 - XMC Peripheral Driver Library 
+ * XMClib v2.1.8 - XMC Peripheral Driver Library 
  *
  * Copyright (c) 2015-2016, Infineon Technologies AG
  * All rights reserved.
@@ -50,6 +50,12 @@
  *
  * 2015-09-14:
  *     - Modified XMC_I2S_CH_SetSystemWordLength for supporting up to 63 system word length<br>
+ *
+ * 2016-05-20:
+ *     - Added XMC_I2S_CH_EnableDataTransmission() and XMC_I2S_CH_DisableDataTransmission()
+ *
+ * 2016-06-30:
+ *     - Documentation updates.
  *
  * @endcond
  *
@@ -222,13 +228,15 @@ typedef enum XMC_I2S_CH_BUS_MODE
  */
 typedef struct XMC_I2S_CH_CONFIG
 {
-  uint32_t baudrate;					   /**< Module baud rate for communication */
-  uint8_t data_bits;                       /**< Number of bits for the data field. Value configured as USIC channel word length. \n
+  uint32_t baudrate;					             /**< Module baud rate for communication */
+  uint8_t data_bits;                       /**< Data word length. A data frame can consists of several data words. \n
+                                                Value configured as USIC channel word length. \n
                                                   \b Range: minimum= 1, maximum= 16*/
-  uint8_t frame_length;                    /**< Indicates number of bits in a frame. Configured as USIC channel frame length. \n
+  uint8_t frame_length;                    /**< Number of data bits transferred after a change of signal WA (data frame). \n
+                                                Configured as USIC channel frame length. \n
                                                   \b Range: minimum= 1, maximum= 63*/
-  uint8_t data_delayed_sclk_periods;       /**< Data delay defined in sclk periods*/
-  XMC_I2S_CH_WA_POLARITY_t wa_inversion;   /**< Enable inversion of Slave select signal relative to the internal WA*/
+  uint8_t data_delayed_sclk_periods;       /**< Data delay defined in sclk periods */
+  XMC_I2S_CH_WA_POLARITY_t wa_inversion;   /**< Enable inversion of Slave select signal relative to the internal WA */
   XMC_I2S_CH_BUS_MODE_t	bus_mode;          /**< Bus mode MASTER/SLAVE */
 } XMC_I2S_CH_CONFIG_t;
 
@@ -239,6 +247,29 @@ typedef struct XMC_I2S_CH_CONFIG
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * @param channel Constant pointer to USIC channel handle of type @ref XMC_USIC_CH_t \n
+ *          \b Range: @ref XMC_I2S0_CH0, XMC_I2S0_CH1,XMC_I2S1_CH0, XMC_I2S1_CH1,XMC_I2S2_CH0, XMC_I2S2_CH1 @note Availability of I2S1 and I2S2 depends on device selection
+ * @param config Constant pointer to I2S configuration structure of type @ref XMC_I2S_CH_CONFIG_t.
+ * @return XMC_I2S_CH_STATUS_t Status of initializing the USIC channel for I2S protocol.\n
+ *          \b Range: @ref XMC_I2S_CH_STATUS_OK if initialization is successful.\n
+ *                    @ref XMC_I2S_CH_STATUS_ERROR if configuration of baudrate failed.
+ *
+ * \par<b>Description</b><br>
+ * Initializes the USIC channel for I2S protocol.\n\n
+ * During the initialization, USIC channel is enabled and baudrate is configured.
+ * After each change of the WA signal, a complete data frame is intended to be transferred (frame length <= system word length).
+ * The number of data bits transferred after a change of signal WA is defined by config->frame_length.
+ * A data frame can consist of several data words with a data word length defined by config->data_bits.
+ * The changes of signal WA define the system word length as the number of SCLK cycles between two changes of WA.
+ * The system word length is set by default to the frame length defined by config->frame_length.
+ *
+ * XMC_I2S_CH_Start() should be invoked after the initialization to enable the channel.
+ *
+ * \par<b>Related APIs:</b><BR>
+ * XMC_I2S_CH_Start(), XMC_I2S_CH_Stop(), XMC_I2S_CH_Transmit(), XMC_I2S_CH_SetSystemWordLength()\n\n\n
+ */
 void XMC_I2S_CH_Init(XMC_USIC_CH_t *const channel, const XMC_I2S_CH_CONFIG_t *const config);
 
 /**
@@ -753,6 +784,43 @@ __STATIC_INLINE void XMC_I2S_CH_EnableDelayCompensation(XMC_USIC_CH_t *const cha
 __STATIC_INLINE void XMC_I2S_CH_DisableDelayCompensation(XMC_USIC_CH_t *const channel)
 {
   XMC_USIC_CH_DisableDelayCompensation(channel);
+}
+
+/**
+ * @param channel Constant pointer to USIC channel handle of type @ref XMC_USIC_CH_t \n
+ *          \b Range: @ref XMC_I2S0_CH0, @ref XMC_I2S0_CH1,@ref XMC_I2S1_CH0,@ref XMC_I2S1_CH1,@ref XMC_I2S2_CH0,@ref XMC_I2S2_CH1 @note Availability of I2S1 and I2S2 depends on device selection
+ * @return None
+ *
+ * \par<b>Description</b><br>
+ * Enable data transmission.\n\n
+ * Use this function in combination with XMC_I2S_CH_DisableDataTransmission() to fill the FIFO and send the FIFO content without gaps in the transmission.
+ * FIFO is filled using XMC_USIC_CH_TXFIFO_PutData().
+ * @note If you need more control over the start of transmission use XMC_USIC_CH_SetStartTransmisionMode()
+ *
+ * \par<b>Related APIs:</b><BR>
+ * XMC_I2S_CH_DisableDataTransmission()\n\n\n
+ */
+__STATIC_INLINE void XMC_I2S_CH_EnableDataTransmission(XMC_USIC_CH_t *const channel)
+{
+  XMC_USIC_CH_SetStartTransmisionMode(channel, XMC_USIC_CH_START_TRANSMISION_ON_TDV);
+}
+
+/**
+ * @param channel Constant pointer to USIC channel handle of type @ref XMC_USIC_CH_t \n
+ *          \b Range: @ref XMC_I2S0_CH0, @ref XMC_I2S0_CH1,@ref XMC_I2S1_CH0,@ref XMC_I2S1_CH1,@ref XMC_I2S2_CH0,@ref XMC_I2S2_CH1 @note Availability of I2S1 and I2S2 depends on device selection
+ * @return None
+ *
+ * \par<b>Description</b><br>
+ * Disable data transmission.\n\n
+ * Use this function in combination with XMC_I2S_CH_EnableDataTransmission() to fill the FIFO and send the FIFO content without gaps in the transmission.
+ * FIFO is filled using XMC_USIC_CH_TXFIFO_PutData().
+ *
+ * \par<b>Related APIs:</b><BR>
+ * XMC_I2S_CH_EnableDataTransmission()\n\n\n
+ */
+__STATIC_INLINE void XMC_I2S_CH_DisableDataTransmission(XMC_USIC_CH_t *const channel)
+{
+  XMC_USIC_CH_SetStartTransmisionMode(channel, XMC_USIC_CH_START_TRANSMISION_DISABLED); 
 }
 
 #ifdef __cplusplus

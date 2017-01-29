@@ -1,11 +1,11 @@
 
 /**
  * @file xmc_sdmmc.h
- * @date 2016-04-07
+ * @date 2016-07-11
  *
  * @cond
  *********************************************************************************************************************
- * XMClib v2.1.6 - XMC Peripheral Driver Library 
+ * XMClib v2.1.8 - XMC Peripheral Driver Library 
  *
  * Copyright (c) 2015-2016, Infineon Technologies AG
  * All rights reserved.                        
@@ -53,7 +53,13 @@
  *         5) XMC_SDMMC_DisableHighSpeed <br>
  *
  * 2016-04-07:
- *     - Added XMC_SDMMC_COMMAND_RESPONSE_t
+ *     - Added XMC_SDMMC_COMMAND_RESPONSE_t <br>
+ *
+ * 2016-07-11:
+ *     - Adjust masks for the following functions: <br>
+ *       1) XMC_SDMMC_SetBusVoltage <br>
+ *       2) XMC_SDMMC_SetDataLineTimeout <br>
+ *       3) XMC_SDMMC_SDClockFreqSelect <br>
  *
  * @endcond
  */
@@ -1396,8 +1402,8 @@ __STATIC_INLINE void XMC_SDMMC_SDClockFreqSelect(XMC_SDMMC_t *const sdmmc, XMC_S
   XMC_ASSERT("XMC_SDMMC_SDClockFreqSelect: Invalid module pointer", XMC_SDMMC_CHECK_MODULE_PTR(sdmmc));
   XMC_ASSERT("XMC_SDMMC_SDClockFreqSelect: Invalid clock frequency selection", XMC_SDMMC_CHECK_SDCLK_FREQ(clk));
 
-  sdmmc->CLOCK_CTRL |= (uint16_t)((uint32_t)SDMMC_CLOCK_CTRL_SDCLK_FREQ_SEL_Msk &
-                                  (uint32_t)((uint32_t)clk << SDMMC_CLOCK_CTRL_SDCLK_FREQ_SEL_Pos));
+  sdmmc->CLOCK_CTRL = (uint16_t)((sdmmc->CLOCK_CTRL & (uint32_t)~SDMMC_CLOCK_CTRL_SDCLK_FREQ_SEL_Msk) |
+                                 (uint32_t)(clk << SDMMC_CLOCK_CTRL_SDCLK_FREQ_SEL_Pos));
 }
 
 /**
@@ -1418,7 +1424,8 @@ __STATIC_INLINE void XMC_SDMMC_SetBusVoltage(XMC_SDMMC_t *const sdmmc, XMC_SDMMC
   XMC_ASSERT("XMC_SDMMC_SetBusVoltage: Invalid module pointer", XMC_SDMMC_CHECK_MODULE_PTR(sdmmc));
   XMC_ASSERT("XMC_SDMMC_SetBusVoltage: Invalid bus voltage", XMC_SDMMC_CHECK_BUS_VOLTAGE(bus_voltage));
 
-  sdmmc->POWER_CTRL |= (uint8_t)((uint32_t)bus_voltage << SDMMC_POWER_CTRL_SD_BUS_VOLTAGE_SEL_Pos);
+  sdmmc->POWER_CTRL = (uint8_t)((sdmmc->POWER_CTRL & (uint32_t)~SDMMC_POWER_CTRL_SD_BUS_VOLTAGE_SEL_Msk) |
+                                (uint32_t)(bus_voltage << SDMMC_POWER_CTRL_SD_BUS_VOLTAGE_SEL_Pos));
 }
 
 /**
@@ -1439,8 +1446,8 @@ __STATIC_INLINE void XMC_SDMMC_SetDataLineTimeout(XMC_SDMMC_t *const sdmmc, XMC_
   XMC_ASSERT("XMC_SDMMC_SetDataLineTimeout: Invalid module pointer", XMC_SDMMC_CHECK_MODULE_PTR(sdmmc));
   XMC_ASSERT("XMC_SDMMC_SetDataLineTimeout: Invalid timeout", XMC_SDMMC_CHECK_DAT_TIMEOUT_COUNTER(timeout));
 
-  sdmmc->TIMEOUT_CTRL |= (uint8_t)(((uint32_t)timeout << SDMMC_TIMEOUT_CTRL_DAT_TIMEOUT_CNT_VAL_Pos) &
-                                   (uint32_t)SDMMC_TIMEOUT_CTRL_DAT_TIMEOUT_CNT_VAL_Msk);
+  sdmmc->TIMEOUT_CTRL = (uint8_t)((sdmmc->TIMEOUT_CTRL & (uint32_t)~SDMMC_TIMEOUT_CTRL_DAT_TIMEOUT_CNT_VAL_Msk) |
+                                  (uint32_t)(timeout << SDMMC_TIMEOUT_CTRL_DAT_TIMEOUT_CNT_VAL_Pos));
 }
 
 /**

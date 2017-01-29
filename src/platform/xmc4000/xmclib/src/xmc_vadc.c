@@ -1,10 +1,10 @@
 /**
  * @file xmc_vadc.c
- * @date 2015-12-01
+ * @date 2016-06-17
  *
  * @cond
 *********************************************************************************************************************
- * XMClib v2.1.6 - XMC Peripheral Driver Library 
+ * XMClib v2.1.8 - XMC Peripheral Driver Library 
  *
  * Copyright (c) 2015-2016, Infineon Technologies AG
  * All rights reserved.                        
@@ -71,6 +71,20 @@
  * 2015-12-01:
  *     - Fixed the analog calibration voltage for XMC1100 to external reference upper supply range.
  *     - Fixed the XMC_VADC_GLOBAL_StartupCalibration() for XMC1100.
+ *
+ * 2016-06-17:
+ *     - New macros added XMC_VADC_SHS_FULL_SET_REG, XMC_VADC_RESULT_PRIORITY_AVAILABLE 
+ *       and XMC_VADC_SYNCTR_START_LOCATION
+ *     - New Enum added XMC_VADC_SHS_GAIN_LEVEL_t and XMC_VADC_SYNCTR_EVAL_t
+ *     - Fixed the EVAL configuration in API XMC_VADC_GROUP_CheckSlaveReadiness and XMC_VADC_GROUP_IgnoreSlaveReadiness
+ *     - New APIs added are:
+ *           - XMC_VADC_GROUP_SetSyncSlaveReadySignal
+ *           - XMC_VADC_GROUP_ChannelGetAssertedEvents
+ *           - XMC_VADC_GROUP_GetAssertedResultEvents
+ *           - XMC_VADC_GROUP_SetResultRegPriority
+ *           - XMC_VADC_GROUP_SetSyncReadySignal
+ *           - XMC_VADC_GROUP_GetSyncReadySignal
+ *           - XMC_VADC_GROUP_GetResultRegPriority
  * @endcond 
  *
  */
@@ -86,8 +100,10 @@
 #define XMC_VADC_MAX_ICLASS_SET          (2U)  /**< Defines the maximum number of conversion parameter sets */
 #define XMC_VADC_NUM_EMUX_INTERFACES     (2U)  /**< Defines the maximum number of external multiplexer  interfaces */
 
-#define XMC_VADC_RESULT_LEFT_ALIGN_10BIT (2U)  /**< Defines the 10 bit converted result register left align mask. It
-                                                    is used in the XMC_VADC_GLOBAL_SetCompareValue() API*/
+#define XMC_VADC_RESULT_LEFT_ALIGN_10BIT (2U)  /**< Defines the 10 bit converted result register left align mask. It \
+                                                    is used in the XMC_VADC_GLOBAL_SetCompareValue() API */
+
+#define XMC_VADC_SYNCTR_START_LOCATION (3U)  /**< Defines the location in SYNCTR needed for calculations*/
 /*********************************************************************************************************************
  * ENUMS
  ********************************************************************************************************************/
@@ -551,86 +567,66 @@ void XMC_VADC_GROUP_SetSyncMaster(XMC_VADC_GROUP_t *const group_ptr)
 /* API to enable checking of readiness of slaves before a synchronous conversion request is issued */
 void XMC_VADC_GROUP_CheckSlaveReadiness(XMC_VADC_GROUP_t *const group_ptr, uint32_t slave_group)
 {
-#if (XMC_VADC_MAXIMUM_NUM_GROUPS == 4U)
-  uint32_t slave_kernel;
-  uint32_t adc_ready;
-  uint8_t ready_pos;
-#endif
- 
+  uint32_t i,master_grp_num;
   XMC_ASSERT("XMC_VADC_GROUP_CheckSlaveReadiness:Wrong Group Pointer", XMC_VADC_CHECK_GROUP_PTR(group_ptr))
- 
-#if(XMC_VADC_MAXIMUM_NUM_GROUPS == 4U)
- 
-  slave_kernel  =  slave_group;
 
-  if (0U == slave_kernel)
+  master_grp_num =0;
+  for(i=0; i<XMC_VADC_MAXIMUM_NUM_GROUPS; i++)
   {
-    adc_ready = 1U;
-  }
-  else
-  {
-    adc_ready = slave_kernel;
+    if(g_xmc_vadc_group_array[i] == group_ptr)
+    {
+      master_grp_num = i;
+    }
   }
 
-  if (1U == adc_ready)
-  {
-    ready_pos = (uint8_t)VADC_G_SYNCTR_EVALR1_Pos;
-  }
-  else if (2U == adc_ready)
-  {
-    ready_pos = (uint8_t)VADC_G_SYNCTR_EVALR2_Pos;
-  }
-  else
-  {
-    ready_pos = (uint8_t)VADC_G_SYNCTR_EVALR3_Pos;
-  }
+  XMC_ASSERT("XMC_VADC_GROUP_CheckSlaveReadiness:Wrong Slave group", (master_grp_num == slave_group ))
 
-  group_ptr->SYNCTR |= (uint32_t)((uint32_t)1 << ready_pos);
-#else
-  group_ptr->SYNCTR |= ((uint32_t)VADC_G_SYNCTR_EVALR1_Msk);
-#endif
+  if(slave_group < master_grp_num)
+  {
+    slave_group++;
+  }
+  group_ptr->SYNCTR |= (1U << (slave_group + XMC_VADC_SYNCTR_START_LOCATION));
 }
 
 /* API to disable checking of readiness of slaves during synchronous conversions */
 void XMC_VADC_GROUP_IgnoreSlaveReadiness(XMC_VADC_GROUP_t *const group_ptr, uint32_t slave_group)
 {
-#if(XMC_VADC_MAXIMUM_NUM_GROUPS == 4U)
-  uint32_t slave_kernel;
-  uint32_t adc_ready;
-  uint8_t ready_pos;
-#endif
+  uint32_t i,master_grp_num;
   XMC_ASSERT("XMC_VADC_GROUP_IgnoreSlaveReadiness:Wrong Group Pointer", XMC_VADC_CHECK_GROUP_PTR(group_ptr))
 
-#if(XMC_VADC_MAXIMUM_NUM_GROUPS == 4U)
-  slave_kernel = slave_group;
-
-  if (0U == slave_kernel)
+  master_grp_num =0;
+  for(i=0; i<XMC_VADC_MAXIMUM_NUM_GROUPS; i++)
   {
-    adc_ready = 1U;
-  }
-  else
-  {
-    adc_ready = slave_kernel;
+	if(g_xmc_vadc_group_array[i] == group_ptr)
+	{
+	  master_grp_num = i;
+	}
   }
 
-  if (1U == adc_ready)
-  {
-    ready_pos = (uint8_t)VADC_G_SYNCTR_EVALR1_Pos;
-  }
-  else if (2U == adc_ready)
-  {
-    ready_pos = (uint8_t)VADC_G_SYNCTR_EVALR2_Pos;
-  }
-  else
-  {
-    ready_pos = (uint8_t)VADC_G_SYNCTR_EVALR3_Pos;
-  }
+  XMC_ASSERT("XMC_VADC_GROUP_IgnoreSlaveReadiness:Wrong Slave group", (master_grp_num == slave_group ))
 
-  group_ptr->SYNCTR &= ~((uint32_t)((uint32_t)1 << ready_pos));
-#else
-  group_ptr->SYNCTR &= ~((uint32_t)VADC_G_SYNCTR_EVALR1_Msk);
-#endif
+  if(slave_group < master_grp_num)
+  {
+	slave_group++;
+  }
+  group_ptr->SYNCTR &= ~(1U << (slave_group + XMC_VADC_SYNCTR_START_LOCATION));
 }
+
+/* API to configure EVAL bit in the slave groups*/
+void XMC_VADC_GROUP_SetSyncSlaveReadySignal(XMC_VADC_GROUP_t *const group_ptr,
+                                            uint32_t eval_waiting_group,
+                                            uint32_t eval_origin_group)
+{
+  XMC_ASSERT("XMC_VADC_GROUP_SetSyncSlaveReadySignal:Wrong Group Pointer", XMC_VADC_CHECK_GROUP_PTR(group_ptr))
+  XMC_ASSERT("XMC_VADC_GROUP_SetSyncSlaveReadySignal:Wrong Group numbers", (eval_waiting_group == eval_origin_group ))
+
+  if(eval_origin_group < eval_waiting_group)
+  {
+	  eval_origin_group++;
+  }
+  group_ptr->SYNCTR |= (1U << (eval_origin_group + XMC_VADC_SYNCTR_START_LOCATION));
+}
+
 
 /* API to enable the synchronous conversion feature - Applicable only to kernel configured as master */
 void XMC_VADC_GROUP_EnableChannelSyncRequest(XMC_VADC_GROUP_t *const group_ptr, const uint32_t ch_num)
@@ -770,9 +766,9 @@ void XMC_VADC_GROUP_SetBoundaryEventInterruptNode(XMC_VADC_GROUP_t *const group_
   group_ptr->BFLNP |= (uint32_t)sr << flag_pos;
 }
 
-#endif /* XMC_VADC_BOUNDARY_FLAG_SELECT */
+#endif
 
-#endif /* XMC_VADC_GROUP_AVAILABLE */
+#endif
 
 #if(XMC_VADC_SHS_AVAILABLE == 1U)
 
@@ -785,11 +781,14 @@ void XMC_VADC_GLOBAL_SHS_Init(XMC_VADC_GLOBAL_SHS_t *const shs_ptr, const XMC_VA
   /* Initialize the SHS Configuration register*/
   shs_ptr->SHSCFG = (uint32_t)((uint32_t)config->shscfg | (uint32_t)SHS_SHSCFG_SCWC_Msk);
 
+#if(XMC_VADC_SHS_FULL_SET_REG == 1U)
   /* Select the Calibration order*/
   shs_ptr->CALCTR &= ~((uint32_t)SHS_CALCTR_CALORD_Msk);
   shs_ptr->CALCTR |=  (uint32_t) ((uint32_t)config->calibration_order << SHS_CALCTR_CALORD_Pos);
+#endif
 }
 
+#if(XMC_VADC_SHS_FULL_SET_REG == 1U)
 /* API to enable the accelerated mode of conversion */
 void XMC_VADC_GLOBAL_SHS_EnableAcceleratedMode(XMC_VADC_GLOBAL_SHS_t *const shs_ptr, XMC_VADC_GROUP_INDEX_t group_num)
 {
@@ -860,6 +859,7 @@ void XMC_VADC_GLOBAL_SHS_SetShortSampleTime(XMC_VADC_GLOBAL_SHS_t *const shs_ptr
   /* for MISRA*/
   }
 }
+#endif
 
 /* API to set the gain factor of the Sample and hold module*/
 void XMC_VADC_GLOBAL_SHS_SetGainFactor(XMC_VADC_GLOBAL_SHS_t *const shs_ptr,
@@ -890,6 +890,7 @@ void XMC_VADC_GLOBAL_SHS_SetGainFactor(XMC_VADC_GLOBAL_SHS_t *const shs_ptr,
   }
 }
 
+#if(XMC_VADC_SHS_FULL_SET_REG == 1U)
 /* API to enable the gain and offset calibration of the Sample and hold module*/
 void XMC_VADC_GLOBAL_SHS_EnableGainAndOffsetCalibrations(XMC_VADC_GLOBAL_SHS_t *const shs_ptr,
                                                          XMC_VADC_GROUP_INDEX_t group_num)
@@ -998,6 +999,7 @@ void XMC_VADC_GLOBAL_SHS_SetOffsetCalibrationValue(XMC_VADC_GLOBAL_SHS_t *const 
     /* for MISRA */
   }
 }
+#endif
 
 /* API to set the values of sigma delta loop of the Sample and hold module*/
 void XMC_VADC_GLOBAL_SHS_SetSigmaDeltaLoop(XMC_VADC_GLOBAL_SHS_t *const shs_ptr,
@@ -1020,7 +1022,7 @@ void XMC_VADC_GLOBAL_SHS_SetSigmaDeltaLoop(XMC_VADC_GLOBAL_SHS_t *const shs_ptr,
 
 }
 
-#endif /* XMC_VADC_SHS_AVAILABLE */
+#endif
 
 #if (XMC_VADC_GSCAN_AVAILABLE == 1U)   
 /* API to initialize the group scan hardware of a kernel */
@@ -1193,7 +1195,7 @@ void XMC_VADC_GROUP_ScanRemoveChannel(XMC_VADC_GROUP_t *const group_ptr, const u
   assel &= (~( 1 << channel_num));
   group_ptr->ASSEL  = assel;
 }
-#endif /* XMC_VADC_GSCAN_AVAILABLE */
+#endif
 
 /* API to initialize background scan request source hardware */
 void XMC_VADC_GLOBAL_BackgroundInit(XMC_VADC_GLOBAL_t *const global_ptr, const XMC_VADC_BACKGROUND_CONFIG_t *config)
@@ -1640,7 +1642,7 @@ void XMC_VADC_GROUP_QueueSetReqSrcEventInterruptNode(XMC_VADC_GROUP_t *const gro
   group_ptr->SEVNP = sevnp;
 
 }
-#endif /* XMC_VADC_QUEUE_AVAILABLE*/
+#endif
 
 #if (XMC_VADC_GROUP_AVAILABLE ==1U)
 /* API to initialize a channel unit */
@@ -2113,4 +2115,4 @@ bool XMC_VADC_GROUP_IsResultRegisterFifoHead(XMC_VADC_GROUP_t *const group_ptr, 
   return ret_val;
 }
 
-#endif /*XMC_VADC_GROUP_AVAILABLE */
+#endif
