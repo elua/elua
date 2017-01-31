@@ -1,10 +1,10 @@
 /**
  * @file xmc_uart.c
- * @date 2015-09-01
+ * @date 2016-07-22
  *
  * @cond
  *********************************************************************************************************************
- * XMClib v2.1.6 - XMC Peripheral Driver Library 
+ * XMClib v2.1.8 - XMC Peripheral Driver Library 
  *
  * Copyright (c) 2015-2016, Infineon Technologies AG
  * All rights reserved.                        
@@ -48,6 +48,11 @@
  *
  * 2015-09-01:
  *     - Modified XMC_UART_CH_EnableEvent() and XMC_UART_CH_DisableEvent() for supporting multiple events configuration <br>
+ * 
+ * 2016-07-22:
+ *     - Modified XMC_UART_CH_Init() to enable transfer status BUSY
+ *     - Modified XMC_UART_CH_Stop() to check for transfer status
+ *
  * @endcond 
  *
  */
@@ -90,10 +95,13 @@ void XMC_UART_CH_Init(XMC_USIC_CH_t *channel, const XMC_UART_CH_CONFIG_t *const 
    * Pulse length is set to 0 to have standard UART signaling, 
    * i.e. the 0 level is signaled during the complete bit time
    * Sampling point set equal to the half of the oversampling period
-   * Enable Sample Majority Decision */
+   * Enable Sample Majority Decision 
+   * Enable Transfer Status BUSY
+   */
   channel->PCR_ASCMode = (uint32_t)(((config->stop_bits - 1UL) << USIC_CH_PCR_ASCMode_STPB_Pos) |
-			             (((oversampling >> 1UL) + 1UL) << USIC_CH_PCR_ASCMode_SP_Pos) |
-			             USIC_CH_PCR_ASCMode_SMD_Msk);
+                                    (((oversampling >> 1UL) + 1UL) << USIC_CH_PCR_ASCMode_SP_Pos) |
+                                    USIC_CH_PCR_ASCMode_SMD_Msk |
+                                    USIC_CH_PCR_ASCMode_RSTEN_Msk | USIC_CH_PCR_ASCMode_TSTEN_Msk);
 
   /* Set passive data level, high
      Set word length. Data bits - 1
@@ -101,7 +109,7 @@ void XMC_UART_CH_Init(XMC_USIC_CH_t *channel, const XMC_UART_CH_CONFIG_t *const 
      Transmission Mode: The shift control signal is considered active if it
      is at 1-level. This is the setting to be programmed to allow data transfers */
   channel->SCTR = (uint32_t)((((uint32_t)config->data_bits - 1UL) << USIC_CH_SCTR_WLE_Pos) |
-		              ((0x1UL << USIC_CH_SCTR_TRM_Pos) | USIC_CH_SCTR_PDL_Msk));
+                             ((0x1UL << USIC_CH_SCTR_TRM_Pos) | USIC_CH_SCTR_PDL_Msk));
 
   if (config->frame_length != 0U)
   {
@@ -181,14 +189,16 @@ uint16_t XMC_UART_CH_GetReceivedData(XMC_USIC_CH_t *const channel)
 XMC_UART_CH_STATUS_t XMC_UART_CH_Stop(XMC_USIC_CH_t *const channel)
 {
   XMC_UART_CH_STATUS_t status = XMC_UART_CH_STATUS_OK;
-  if ((XMC_USIC_CH_GetTransmitBufferStatus(channel) & (uint32_t) XMC_USIC_CH_TBUF_STATUS_BUSY) != 0U)
+
+  if (((XMC_USIC_CH_GetTransmitBufferStatus(channel) & (uint32_t) XMC_USIC_CH_TBUF_STATUS_BUSY) != 0U) ||
+      ((XMC_UART_CH_GetStatusFlag(channel) & XMC_UART_CH_STATUS_FLAG_TRANSFER_STATUS_BUSY) != 0))
   {
-	status = XMC_UART_CH_STATUS_BUSY;
+    status = XMC_UART_CH_STATUS_BUSY;
   }
   else
   {
-	/* USIC channel in IDLE mode */
-	XMC_USIC_CH_SetMode(channel, XMC_USIC_CH_OPERATING_MODE_IDLE);
+    /* USIC channel in IDLE mode */
+    XMC_USIC_CH_SetMode(channel, XMC_USIC_CH_OPERATING_MODE_IDLE);
   }
   return status;
 }

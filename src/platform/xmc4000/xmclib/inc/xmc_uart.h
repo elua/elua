@@ -1,10 +1,10 @@
  /**
  * @file xmc_uart.h
- * @date 2015-09-01
+ * @date 2016-05-20
  *
  * @cond
 *********************************************************************************************************************
- * XMClib v2.1.6 - XMC Peripheral Driver Library 
+ * XMClib v2.1.8 - XMC Peripheral Driver Library 
  *
  * Copyright (c) 2015-2016, Infineon Technologies AG
  * All rights reserved.                        
@@ -50,6 +50,10 @@
  *     - Modified XMC_UART_CH_SetInputSource() for avoiding complete DXCR register overwriting. <br>
  *     - Modified XMC_UART_CH_EVENT_t enum for supporting XMC_UART_CH_EnableEvent() and XMC_UART_CH_DisableEvent()
  *       for supporting multiple events configuration <br>
+ * 
+ * 2016-05-20:
+ *     - Added XMC_UART_CH_EnableDataTransmission() and XMC_UART_CH_DisableDataTransmission()
+ *
  * @endcond 
  *
  */
@@ -752,6 +756,43 @@ __STATIC_INLINE void XMC_UART_CH_SetInputSamplingFreq(XMC_USIC_CH_t *const chann
                                                       const XMC_UART_CH_INPUT_SAMPLING_FREQ_t sampling_freq)
 {
   XMC_USIC_CH_SetInputSamplingFreq(channel, (XMC_USIC_CH_INPUT_t)input, (XMC_USIC_CH_INPUT_SAMPLING_FREQ_t)sampling_freq);
+}
+
+/**
+ * @param channel Constant pointer to USIC channel handle of type @ref XMC_USIC_CH_t \n
+ *          \b Range: @ref XMC_UART0_CH0, @ref XMC_UART0_CH1,@ref XMC_UART1_CH0,@ref XMC_UART1_CH1,@ref XMC_UART2_CH0,@ref XMC_UART2_CH1 @note Availability of UART1 and UART2 depends on device selection
+ * @return None
+ *
+ * \par<b>Description</b><br>
+ * Enable data transmission.\n\n
+ * Use this function in combination with XMC_UART_CH_DisableDataTransmission() to fill the FIFO and send the FIFO content without gaps in the transmission.
+ * FIFO is filled using XMC_USIC_CH_TXFIFO_PutData().
+ * @note If you need more control over the start of transmission use XMC_USIC_CH_SetStartTransmisionMode()
+ *
+ * \par<b>Related APIs:</b><BR>
+ * XMC_UART_CH_DisableDataTransmission()\n\n\n
+ */
+__STATIC_INLINE void XMC_UART_CH_EnableDataTransmission(XMC_USIC_CH_t *const channel)
+{
+  XMC_USIC_CH_SetStartTransmisionMode(channel, XMC_USIC_CH_START_TRANSMISION_ON_TDV);
+}
+
+/**
+ * @param channel Constant pointer to USIC channel handle of type @ref XMC_USIC_CH_t \n
+ *          \b Range: @ref XMC_UART0_CH0, @ref XMC_UART0_CH1,@ref XMC_UART1_CH0,@ref XMC_UART1_CH1,@ref XMC_UART2_CH0,@ref XMC_UART2_CH1 @note Availability of UART1 and UART2 depends on device selection
+ * @return None
+ *
+ * \par<b>Description</b><br>
+ * Disable data transmission.\n\n
+ * Use this function in combination with XMC_UART_CH_EnableDataTransmission() to fill the FIFO and send the FIFO content without gaps in the transmission.
+ * FIFO is filled using XMC_USIC_CH_TXFIFO_PutData().
+ *
+ * \par<b>Related APIs:</b><BR>
+ * XMC_UART_CH_EnableDataTransmission()\n\n\n
+ */
+__STATIC_INLINE void XMC_UART_CH_DisableDataTransmission(XMC_USIC_CH_t *const channel)
+{
+  XMC_USIC_CH_SetStartTransmisionMode(channel, XMC_USIC_CH_START_TRANSMISION_DISABLED); 
 }
 
 #ifdef __cplusplus

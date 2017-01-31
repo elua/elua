@@ -1,10 +1,10 @@
 /**
  * @file xmc_can.c
- * @date 2015-09-08
+ * @date 2016-06-20
  *
  * @cond
  *********************************************************************************************************************
- * XMClib v2.1.6 - XMC Peripheral Driver Library 
+ * XMClib v2.1.8 - XMC Peripheral Driver Library 
  *
  * Copyright (c) 2015-2016, Infineon Technologies AG
  * All rights reserved.                        
@@ -53,6 +53,11 @@
  * 2015-09-08:
  *     - Fixed bug in XMC_CAN_Init() <br>
  *
+ * 2016-06-07:
+ *     - Changed XMC_CAN_AllocateMOtoNodeList to wait for ready status of list controller
+ *
+ * 2015-06-20:
+ *     - Fixed bug in XMC_CAN_MO_Config() <br> 
  * @endcond
  *
  */ 
@@ -205,13 +210,14 @@ void XMC_CAN_NODE_NominalBitTimeConfigure (XMC_CAN_NODE_t *const can_node,
 /* Function to allocate message object from free list to node list */
 void XMC_CAN_AllocateMOtoNodeList(XMC_CAN_t *const obj, const uint8_t node_num, const uint8_t mo_num)
 {
-  /* Panel Command for  allocation of MO to node list */
-  XMC_CAN_PanelControl(obj, XMC_CAN_PANCMD_STATIC_ALLOCATE,mo_num,(node_num + 1U));
-  /* wait until panel as done the command */
-  while (obj->PANCTR & CAN_PANCTR_BUSY_Msk)
+  /* wait while panel operation is in progress. */
+  while (XMC_CAN_IsPanelControlReady(obj) == false)
   {
     /*Do nothing*/
   };
+
+  /* Panel Command for  allocation of MO to node list */
+  XMC_CAN_PanelControl(obj, XMC_CAN_PANCMD_STATIC_ALLOCATE,mo_num,(node_num + 1U));
 }
 
 /* Disable XMC_CAN Peripheral */
@@ -433,10 +439,13 @@ void XMC_CAN_MO_SetAcceptanceMask(XMC_CAN_MO_t *const can_mo,const uint32_t can_
 void XMC_CAN_MO_Config(const XMC_CAN_MO_t *const can_mo)
 {
   uint32_t reg;
+  
   /* Configure MPN */
   uint32_t num = ((uint32_t)(can_mo->can_mo_ptr) - CAN_BASE - 0x1000U)/0x0020U;
-  can_mo->can_mo_ptr->MOIPR = (((uint32_t)(num/32) << (CAN_MO_MOIPR_MPN_Pos + 5U)) | ((uint32_t)(num%32) << CAN_MO_MOIPR_MPN_Pos));
-
+  uint32_t set = (((uint32_t)(num/32) << (CAN_MO_MOIPR_MPN_Pos + 5U)) | ((uint32_t)(num%32) << CAN_MO_MOIPR_MPN_Pos));
+  can_mo->can_mo_ptr->MOIPR &= ~(CAN_MO_MOIPR_MPN_Msk);
+  can_mo->can_mo_ptr->MOIPR |= set;
+  
   if (((can_mo->can_id_mode != (uint32_t) XMC_CAN_FRAME_TYPE_STANDARD_11BITS) &&
        (can_mo->can_id_mode != (uint32_t) XMC_CAN_FRAME_TYPE_EXTENDED_29BITS)) ||
       ((can_mo->can_mo_type != XMC_CAN_MO_TYPE_RECMSGOBJ) &&

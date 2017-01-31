@@ -1,10 +1,10 @@
 /**
  * @file xmc_ecat_map.h
- * @date 2015-09-09
+ * @date 2016-07-20
  *
  * @cond
  *********************************************************************************************************************
- * XMClib v2.1.6 - XMC Peripheral Driver Library 
+ * XMClib v2.1.8 - XMC Peripheral Driver Library 
  *
  * Copyright (c) 2015-2016, Infineon Technologies AG
  * All rights reserved.                        
@@ -38,6 +38,9 @@
  *
  * 2015-09-09:
  *     - Initial
+ *
+ * 2015-07-20:
+ *     - Added XMC_ECAT_PORT_CTRL_LATCHIN0_P9_0 and XMC_ECAT_PORT_CTRL_LATCHIN0_P9_1
  *
  * @endcond
  */
@@ -241,7 +244,8 @@ typedef enum XMC_ECAT_PORT_CTRL_MDIO
 typedef enum XMC_ECAT_PORT_CTRL_LATCHIN0
 {
   XMC_ECAT_PORT_CTRL_LATCHIN0_P14_5 = 0U, /**< LATCH0A line */
-  XMC_ECAT_PORT_CTRL_LATCHIN0_9_0   = 1U, /**< LATCH0B line */
+  XMC_ECAT_PORT_CTRL_LATCHIN0_9_0   = 1U, /**< LATCH0B line @deprecated Please use instead XMC_ECAT_PORT_CTRL_LATCHIN0_P9_0 */
+  XMC_ECAT_PORT_CTRL_LATCHIN0_P9_0   = 1U, /**< LATCH0B line */
   XMC_ECAT_PORT_CTRL_LATCHIN0_ERU0_PDOUT0   = 2U, /**< LATCH0C line */
   XMC_ECAT_PORT_CTRL_LATCHIN0_ERU1_PDOUT0   = 3U, /**< LATCH0D line */  
 } XMC_ECAT_PORT_CTRL_LATCHIN0_t;
@@ -252,7 +256,8 @@ typedef enum XMC_ECAT_PORT_CTRL_LATCHIN0
 typedef enum XMC_ECAT_PORT_CTRL_LATCHIN1
 {
   XMC_ECAT_PORT_CTRL_LATCHIN1_P14_4 = 0U, /**< LATCH1 A line */
-  XMC_ECAT_PORT_CTRL_LATCHIN1_9_1   = 1U, /**< LATCH1 B line */
+  XMC_ECAT_PORT_CTRL_LATCHIN1_9_1   = 1U, /**< LATCH1 B line @deprecated Please use instead XMC_ECAT_PORT_CTRL_LATCHIN1_P9_1 */
+  XMC_ECAT_PORT_CTRL_LATCHIN1_P9_1   = 1U, /**< LATCH1 B line */
   XMC_ECAT_PORT_CTRL_LATCHIN1_ERU0_PDOUT1   = 2U, /**< LATCH1C line */
   XMC_ECAT_PORT_CTRL_LATCHIN1_ERU1_PDOUT1   = 3U, /**< LATCH1D line */  
 } XMC_ECAT_PORT_CTRL_LATCHIN1_t;

@@ -1,10 +1,10 @@
 /**
  * @file xmc_rtc.h
- * @date 2015-06-20
+ * @date 2016-05-19
  *
  * @cond
 *********************************************************************************************************************
- * XMClib v2.1.6 - XMC Peripheral Driver Library 
+ * XMClib v2.1.8 - XMC Peripheral Driver Library 
  *
  * Copyright (c) 2015-2016, Infineon Technologies AG
  * All rights reserved.                        
@@ -46,6 +46,10 @@
  *   
  * 2015-06-20:
  *     - Removed version macros and declaration of GetDriverVersion API
+ *
+ * 2016-05-19:
+ *     - Added XMC_RTC_SetTimeStdFormat() and XMC_RTC_SetAlarmStdFormat()
+ *
  * @endcond 
  *
  */
@@ -464,6 +468,23 @@ void XMC_RTC_SetTime(const XMC_RTC_TIME_t *const timeval);
 void XMC_RTC_GetTime(XMC_RTC_TIME_t *const time);
 
 /**
+ * @param stdtime Pointer to a ::tm structure containing the time parameters seconds,
+ *                minutes, hours, days, daysofweek, month, year(since 1900) and days in a   
+ *                year in standard format.           
+ * @return None
+ *
+ * \par<b>Description: </b><br>
+ * Sets the RTC module time value in standard format <br>
+ *
+ * \par
+ * The function sets the time values from TIM0, TIM1 registers. 
+ *
+ * \par<b>Related APIs:</b><br>
+ * XMC_RTC_SetTime(), XMC_RTC_GetTime()
+ */     
+void XMC_RTC_SetTimeStdFormat(const struct tm *const stdtime);
+
+/**
  * @param stdtime Pointer to a constant ::tm structure containing the time parameters seconds,
  *                minutes, hours, days, daysofweek, month, year(since 1900) and days in a   
  *                year in standard format.           
@@ -518,6 +539,23 @@ void XMC_RTC_SetAlarm(const XMC_RTC_ALARM_t *const alarm);
  * XMC_RTC_SetAlarm()
  */    
 void XMC_RTC_GetAlarm(XMC_RTC_ALARM_t *const alarm);
+
+/**
+ * @param stdtime Pointer to a ::tm structure containing the time parameters alarm seconds,
+ *                alarm minutes, alarm hours, alarm days, alarm daysofweek, alarm month,  
+ *                alarm year(since 1900) and alarm days in a year in standard format.           
+ * @return None
+ *
+ * \par<b>Description: </b><br>
+ * Sets the RTC module alarm time value in standard format <br>
+ *
+ * \par
+ * The function sets the alarm time values from ATIM0, ATIM1 registers. 
+ *
+ * \par<b>Related APIs:</b><br>
+ * XMC_RTC_SetAlarm(), XMC_RTC_GetAlarm()
+ */     
+void XMC_RTC_SetAlarmStdFormat(const struct tm *const stdtime);
 
 /**
  * @param stdtime Pointer to a constant ::tm structure containing the time parameters alarm seconds,

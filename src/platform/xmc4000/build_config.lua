@@ -35,7 +35,7 @@ end
 function get_platform_modules( board, cpu )
   m = { }
   board = board:upper()
-  if board == 'XMC4500-HEXAGON' or board == 'XMC4500-HEXAGON' then
+  if board == 'XMC4500-HEXAGON' or board == 'XMC4500-HEXAGON-SDRAM' then
     m.pot = { guards = { 'ENABLE_POTENTIOMETER' }, lib = '"pot"', open = false }
     m.dts = { guards = { 'ENABLE_DTS' }, lib = '"dts"', open = false }
     m.rtc = { guards = { 'ENABLE_RTC' }, lib = '"rtc"', open = false }

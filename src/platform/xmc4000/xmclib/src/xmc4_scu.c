@@ -1,10 +1,10 @@
 /**
  * @file xmc4_scu.c
- * @date 2016-04-06
+ * @date 2016-06-15
  *
  * @cond
  *********************************************************************************************************************
- * XMClib v2.1.6 - XMC Peripheral Driver Library 
+ * XMClib v2.1.8 - XMC Peripheral Driver Library 
  *
  * Copyright (c) 2015-2016, Infineon Technologies AG
  * All rights reserved.                        
@@ -69,6 +69,21 @@
  *
  * 2016-04-06:
  *     - Fixed XMC_SCU_ReadFromRetentionMemory functionality
+ *
+ * 2016-05-19:
+ *     - Changed XMC_SCU_CLOCK_StartSystemPll to avoid using floating point calculation which might have an impact on interrupt latency if ISR uses also the FPU
+ *     - Added XMC_SCU_CLOCK_IsLowPowerOscillatorStable() and XMC_SCU_CLOCK_IsHighPerformanceOscillatorStable()
+ *     - Added XMC_SCU_CLOCK_EnableLowPowerOscillatorGeneralPurposeInput(), 
+ *             XMC_SCU_CLOCK_DisableLowPowerOscillatorGeneralPurposeInput(),
+ *             XMC_SCU_CLOCK_GetLowPowerOscillatorGeneralPurposeInputStatus()
+ *     - Added XMC_SCU_CLOCK_EnableHighPerformanceOscillatorGeneralPurposeInput(), 
+ *             XMC_SCU_CLOCK_DisableHighPerformanceOscillatorGeneralPurposeInput(),
+ *             XMC_SCU_CLOCK_GetHighPerformanceOscillatorGeneralPurposeInputStatus()
+ *
+ * 2016-06-15:
+ *     - Added XMC_SCU_HIB_EnterHibernateStateEx() which allows to select between external or internal hibernate mode. This last mode only available in XMC44, XMC42 and XMC41 series.
+ *     - Extended wakeup hibernate events using LPAC wakeup on events. Only available in XMC44, XMC42 and XMC41 series
+ *     - Added LPAC APIs. Only available in XMC44, XMC42 and XMC41 series.
  *
  * @endcond 
  *
@@ -159,6 +174,8 @@
 #define XMC_SCU_INTERRUPT_EVENT_MAX            (32U)      /**< Maximum supported SCU events. */
 
 #define SCU_HIBERNATE_HDCR_HIBIOSEL_Size (4U)
+
+#define SCU_HIBERNATE_OSCULCTRL_MODE_OSC_POWER_DOWN (0x2U)
 
 #define XMC_SCU_POWER_LSB13V (0.0058F)
 #define XMC_SCU_POWER_LSB33V (0.0225F)
@@ -509,6 +526,7 @@ void XMC_SCU_CLOCK_Init(const XMC_SCU_CLOCK_CONFIG_t *const config)
   if (config->enable_osculp == true)
   {
     XMC_SCU_CLOCK_EnableLowPowerOscillator();
+    while(XMC_SCU_CLOCK_IsLowPowerOscillatorStable() == false);
   }
   XMC_SCU_HIB_SetStandbyClockSource(config->fstdby_clksrc);
 
@@ -522,6 +540,7 @@ void XMC_SCU_CLOCK_Init(const XMC_SCU_CLOCK_CONFIG_t *const config)
   if (config->enable_oschp == true)
   {
     XMC_SCU_CLOCK_EnableHighPerformanceOscillator();
+    while(XMC_SCU_CLOCK_IsHighPerformanceOscillatorStable() == false);
   }
 
   if (config->syspll_config.mode == XMC_SCU_CLOCK_SYSPLL_MODE_DISABLED)
@@ -1236,9 +1255,6 @@ void XMC_SCU_HIB_DisableInternalSlowClock(void)
   SCU_HIBERNATE->OSCSICTRL |= (uint32_t)SCU_HIBERNATE_OSCSICTRL_PWD_Msk;
 }
 
-/** TODO
- *
- */
 void XMC_SCU_HIB_ClearEventStatus(int32_t event)
 {
   while((SCU_GENERAL->MIRRSTS) & SCU_GENERAL_MIRRSTS_HDCLR_Msk)
@@ -1248,9 +1264,6 @@ void XMC_SCU_HIB_ClearEventStatus(int32_t event)
   SCU_HIBERNATE->HDCLR = event;
 }
 
-/** TODO
- *
- */
 void XMC_SCU_HIB_TriggerEvent(int32_t event)
 {
   while((SCU_GENERAL->MIRRSTS) & SCU_GENERAL_MIRRSTS_HDSET_Msk)
@@ -1260,11 +1273,19 @@ void XMC_SCU_HIB_TriggerEvent(int32_t event)
   SCU_HIBERNATE->HDSET = event;
 }
 
-/** TODO
- *
- */
 void XMC_SCU_HIB_EnableEvent(int32_t event)
 {
+#if (defined(DOXYGEN) || (UC_SERIES == XMC44) || (UC_SERIES == XMC42) || (UC_SERIES == XMC41))
+  event = ((event & XMC_SCU_HIB_EVENT_LPAC_VBAT_POSEDGE) << (SCU_HIBERNATE_HDCR_VBATHI_Pos - SCU_HIBERNATE_HDSTAT_VBATPEV_Pos)) | (event & (uint32_t)~XMC_SCU_HIB_EVENT_LPAC_VBAT_POSEDGE);
+  event = ((event & XMC_SCU_HIB_EVENT_LPAC_VBAT_NEGEDGE) << (SCU_HIBERNATE_HDCR_VBATLO_Pos - SCU_HIBERNATE_HDSTAT_VBATNEV_Pos)) | (event & (uint32_t)~XMC_SCU_HIB_EVENT_LPAC_VBAT_NEGEDGE);
+  event = ((event & XMC_SCU_HIB_EVENT_LPAC_HIB_IO_0_POSEDGE) << (SCU_HIBERNATE_HDCR_AHIBIO0HI_Pos - SCU_HIBERNATE_HDSTAT_AHIBIO0PEV_Pos)) | (event & (uint32_t)~XMC_SCU_HIB_EVENT_LPAC_HIB_IO_0_POSEDGE);
+  event = ((event & XMC_SCU_HIB_EVENT_LPAC_HIB_IO_0_NEGEDGE) << (SCU_HIBERNATE_HDCR_AHIBIO0LO_Pos - SCU_HIBERNATE_HDSTAT_AHIBIO0NEV_Pos)) | (event & (uint32_t)~XMC_SCU_HIB_EVENT_LPAC_HIB_IO_0_NEGEDGE);
+#if (defined(DOXYGEN) || ((UC_SERIES == XMC44) && (UC_PACKAGE == LQFP100)))
+  event = ((event & XMC_SCU_HIB_EVENT_LPAC_HIB_IO_1_POSEDGE) << (SCU_HIBERNATE_HDCR_AHIBIO1HI_Pos - SCU_HIBERNATE_HDSTAT_AHIBIO1PEV_Pos)) | (event & (uint32_t)~XMC_SCU_HIB_EVENT_LPAC_HIB_IO_1_POSEDGE);
+  event = ((event & XMC_SCU_HIB_EVENT_LPAC_HIB_IO_1_NEGEDGE) << (SCU_HIBERNATE_HDCR_AHIBIO1LO_Pos - SCU_HIBERNATE_HDSTAT_AHIBIO1NEV_Pos)) | (event & (uint32_t)~XMC_SCU_HIB_EVENT_LPAC_HIB_IO_1_NEGEDGE);
+#endif
+#endif
+
   while((SCU_GENERAL->MIRRSTS) & SCU_GENERAL_MIRRSTS_HDCR_Msk)
   {
     /* Wait until HDCR register in hibernate domain is ready to accept a write */    
@@ -1272,11 +1293,19 @@ void XMC_SCU_HIB_EnableEvent(int32_t event)
   SCU_HIBERNATE->HDCR |= event;
 }
 
-/** TODO
- *
- */
 void XMC_SCU_HIB_DisableEvent(int32_t event)
 {
+#if (defined(DOXYGEN) || (UC_SERIES == XMC44) || (UC_SERIES == XMC42) || (UC_SERIES == XMC41))
+  event = ((event & XMC_SCU_HIB_EVENT_LPAC_VBAT_POSEDGE) << (SCU_HIBERNATE_HDCR_VBATHI_Pos - SCU_HIBERNATE_HDSTAT_VBATPEV_Pos)) | (event & (uint32_t)~XMC_SCU_HIB_EVENT_LPAC_VBAT_POSEDGE);
+  event = ((event & XMC_SCU_HIB_EVENT_LPAC_VBAT_NEGEDGE) << (SCU_HIBERNATE_HDCR_VBATLO_Pos - SCU_HIBERNATE_HDSTAT_VBATNEV_Pos)) | (event & (uint32_t)~XMC_SCU_HIB_EVENT_LPAC_VBAT_NEGEDGE);
+  event = ((event & XMC_SCU_HIB_EVENT_LPAC_HIB_IO_0_POSEDGE) << (SCU_HIBERNATE_HDCR_AHIBIO0HI_Pos - SCU_HIBERNATE_HDSTAT_AHIBIO0PEV_Pos)) | (event & (uint32_t)~XMC_SCU_HIB_EVENT_LPAC_HIB_IO_0_POSEDGE);
+  event = ((event & XMC_SCU_HIB_EVENT_LPAC_HIB_IO_0_NEGEDGE) << (SCU_HIBERNATE_HDCR_AHIBIO0LO_Pos - SCU_HIBERNATE_HDSTAT_AHIBIO0NEV_Pos)) | (event & (uint32_t)~XMC_SCU_HIB_EVENT_LPAC_HIB_IO_0_NEGEDGE);
+#if (defined(DOXYGEN) || ((UC_SERIES == XMC44) && (UC_PACKAGE == LQFP100)))
+  event = ((event & XMC_SCU_HIB_EVENT_LPAC_HIB_IO_1_POSEDGE) << (SCU_HIBERNATE_HDCR_AHIBIO1HI_Pos - SCU_HIBERNATE_HDSTAT_AHIBIO1PEV_Pos)) | (event & (uint32_t)~XMC_SCU_HIB_EVENT_LPAC_HIB_IO_1_POSEDGE);
+  event = ((event & XMC_SCU_HIB_EVENT_LPAC_HIB_IO_1_NEGEDGE) << (SCU_HIBERNATE_HDCR_AHIBIO1LO_Pos - SCU_HIBERNATE_HDSTAT_AHIBIO1NEV_Pos)) | (event & (uint32_t)~XMC_SCU_HIB_EVENT_LPAC_HIB_IO_1_NEGEDGE);
+#endif
+#endif
+
   while((SCU_GENERAL->MIRRSTS) & SCU_GENERAL_MIRRSTS_HDCR_Msk)
   {
     /* Wait until HDCR register in hibernate domain is ready to accept a write */    
@@ -1291,6 +1320,24 @@ void XMC_SCU_HIB_EnterHibernateState(void)
     /* Wait until HDCR register in hibernate domain is ready to accept a write */    
   }
   SCU_HIBERNATE->HDCR |= SCU_HIBERNATE_HDCR_HIB_Msk;
+}
+
+void XMC_SCU_HIB_EnterHibernateStateEx(XMC_SCU_HIB_HIBERNATE_MODE_t mode)
+{
+  if (mode == XMC_SCU_HIB_HIBERNATE_MODE_EXTERNAL)
+  {
+    XMC_SCU_HIB_EnterHibernateState();
+  }
+#if ((UC_SERIES == XMC44) || (UC_SERIES == XMC42) || (UC_SERIES == XMC41))
+  if (mode == XMC_SCU_HIB_HIBERNATE_MODE_INTERNAL)
+  {
+    while((SCU_GENERAL->MIRRSTS) & SCU_GENERAL_MIRRSTS_HINTSET_Msk)
+    {
+      /* Wait until HDCR register in hibernate domain is ready to accept a write */
+    }
+    SCU_HIBERNATE->HINTSET = SCU_HIBERNATE_HINTSET_HIBNINT_Msk;
+  }
+#endif
 }
 
 void XMC_SCU_HIB_SetWakeupTriggerInput(XMC_SCU_HIB_IO_t pin)
@@ -1347,35 +1394,174 @@ void XMC_SCU_HIB_SetInput0(XMC_SCU_HIB_IO_t pin)
   }
 }
 
+void XMC_SCU_HIB_SetSR0Input(XMC_SCU_HIB_SR0_INPUT_t input)
+{
+  while((SCU_GENERAL->MIRRSTS) & SCU_GENERAL_MIRRSTS_HDCR_Msk)
+  {
+    /* Wait until HDCR register in hibernate domain is ready to accept a write */
+  }
+#if ((UC_SERIES == XMC44) || (UC_SERIES == XMC42) || (UC_SERIES == XMC41))
+  SCU_HIBERNATE->HDCR = (SCU_HIBERNATE->HDCR & (uint32_t)~(SCU_HIBERNATE_HDCR_GPI0SEL_Msk | SCU_HIBERNATE_HDCR_ADIG0SEL_Msk)) | 
+#else
+  SCU_HIBERNATE->HDCR = (SCU_HIBERNATE->HDCR & (uint32_t)~(SCU_HIBERNATE_HDCR_GPI0SEL_Msk)) | 
+#endif  
+                        input;
+}
+
+#if ((UC_SERIES == XMC44) || (UC_SERIES == XMC42) || (UC_SERIES == XMC41))
+
+#if ((UC_SERIES == XMC44) && (UC_PACKAGE == LQFP100))
+void XMC_SCU_HIB_SetSR1Input(XMC_SCU_HIB_SR1_INPUT_t input)
+{
+  while((SCU_GENERAL->MIRRSTS) & SCU_GENERAL_MIRRSTS_HDCR_Msk)
+  {
+    /* Wait until HDCR register in hibernate domain is ready to accept a write */
+  }
+  SCU_HIBERNATE->HDCR = (SCU_HIBERNATE->HDCR & (uint32_t)~(SCU_HIBERNATE_HDCR_GPI0SEL_Msk | SCU_HIBERNATE_HDCR_ADIG0SEL_Msk | SCU_HIBERNATE_HDCR_XTALGPI1SEL_Msk)) | 
+                        input;
+}
+#endif
+
+void XMC_SCU_HIB_LPAC_SetInput(XMC_SCU_HIB_LPAC_INPUT_t input)
+{
+  while((SCU_GENERAL->MIRRSTS) & SCU_GENERAL_MIRRSTS_LPACCONF_Msk)
+  {
+    /* Wait until HDCR register in hibernate domain is ready to accept a write */
+  }
+  SCU_HIBERNATE->LPACCONF = (SCU_HIBERNATE->LPACCONF &  (uint32_t)~SCU_HIBERNATE_LPACCONF_CMPEN_Msk) |
+                            input;
+}
+
+void XMC_SCU_HIB_LPAC_SetTrigger(XMC_SCU_HIB_LPAC_TRIGGER_t trigger)
+{
+  while((SCU_GENERAL->MIRRSTS) & SCU_GENERAL_MIRRSTS_LPACCONF_Msk)
+  {
+    /* Wait until HDCR register in hibernate domain is ready to accept a write */
+  }
+  SCU_HIBERNATE->LPACCONF = (SCU_HIBERNATE->LPACCONF &  (uint32_t)~SCU_HIBERNATE_LPACCONF_TRIGSEL_Msk) |
+                            trigger;
+}
+
+void XMC_SCU_HIB_LPAC_SetTiming(bool enable_delay, uint16_t interval_count, uint8_t settle_count)
+{
+  uint32_t config = 0;
+
+  if (enable_delay)
+  {
+    config = SCU_HIBERNATE_LPACCONF_CONVDEL_Msk;
+  }
+
+  config |= interval_count << SCU_HIBERNATE_LPACCONF_INTERVCNT_Pos;
+  config |= settle_count << SCU_HIBERNATE_LPACCONF_SETTLECNT_Pos;
+
+  while((SCU_GENERAL->MIRRSTS) & SCU_GENERAL_MIRRSTS_LPACCONF_Msk)
+  {
+    /* Wait until HDCR register in hibernate domain is ready to accept a write */
+  }
+
+  SCU_HIBERNATE->LPACCONF = (SCU_HIBERNATE->LPACCONF &  (uint32_t)~(SCU_HIBERNATE_LPACCONF_CONVDEL_Msk |
+                                                                    SCU_HIBERNATE_LPACCONF_INTERVCNT_Msk |
+                                                                    SCU_HIBERNATE_LPACCONF_SETTLECNT_Msk)) |
+                            config;
+
+}
+
+void XMC_SCU_HIB_LPAC_SetVBATThresholds(uint8_t lower, uint8_t upper)
+{
+
+  while((SCU_GENERAL->MIRRSTS) & SCU_GENERAL_MIRRSTS_LPACTH0_Msk)
+  {
+    /* Wait until HDCR register in hibernate domain is ready to accept a write */
+  }
+
+  SCU_HIBERNATE->LPACTH0 = (lower << SCU_HIBERNATE_LPACTH0_VBATLO_Pos) | (upper << SCU_HIBERNATE_LPACTH0_VBATHI_Pos);
+
+
+
+}
+
+void XMC_SCU_HIB_LPAC_SetHIBIO0Thresholds(uint8_t lower, uint8_t upper)
+{
+
+  while((SCU_GENERAL->MIRRSTS) & SCU_GENERAL_MIRRSTS_LPACTH1_Msk)
+  {
+    /* Wait until HDCR register in hibernate domain is ready to accept a write */
+  }
+
+  SCU_HIBERNATE->LPACTH1 = (SCU_HIBERNATE->LPACTH1 & (uint32_t)~(SCU_HIBERNATE_LPACTH1_AHIBIO0LO_Msk | SCU_HIBERNATE_LPACTH1_AHIBIO0HI_Msk)) |
+                           (lower << SCU_HIBERNATE_LPACTH1_AHIBIO0LO_Pos) |
+                           (upper << SCU_HIBERNATE_LPACTH1_AHIBIO0HI_Pos);
+
+}
+#if ((UC_SERIES == XMC44) && (UC_PACKAGE == LQFP100))
+void XMC_SCU_HIB_LPAC_SetHIBIO1Thresholds(uint8_t lower, uint8_t upper)
+{
+
+  while((SCU_GENERAL->MIRRSTS) & SCU_GENERAL_MIRRSTS_LPACTH1_Msk)
+  {
+    /* Wait until HDCR register in hibernate domain is ready to accept a write */
+  }
+
+  SCU_HIBERNATE->LPACTH1 = (SCU_HIBERNATE->LPACTH1 & (uint32_t)~(SCU_HIBERNATE_LPACTH1_AHIBIO1LO_Msk | SCU_HIBERNATE_LPACTH1_AHIBIO1HI_Msk)) |
+                           (lower << SCU_HIBERNATE_LPACTH1_AHIBIO1LO_Pos) |
+                           (upper << SCU_HIBERNATE_LPACTH1_AHIBIO1HI_Pos);
+
+}
+#endif
+int32_t XMC_SCU_HIB_LPAC_GetStatus(void)
+{
+  return SCU_HIBERNATE->LPACST;
+}
+
+void XMC_SCU_HIB_LPAC_ClearStatus(int32_t status)
+{
+  while((SCU_GENERAL->MIRRSTS) & SCU_GENERAL_MIRRSTS_LPACCLR_Msk)
+  {
+    /* Wait until LPACCLR register in hibernate domain is ready to accept a write */
+  }
+  SCU_HIBERNATE->LPACCLR = status;;
+}
+
+void XMC_SCU_HIB_LPAC_TriggerCompare(XMC_SCU_HIB_LPAC_INPUT_t input)
+{
+  while((SCU_GENERAL->MIRRSTS) & SCU_GENERAL_MIRRSTS_LPACSET_Msk)
+  {
+    /* Wait until LPACSET register in hibernate domain is ready to accept a write */
+  }
+
+  SCU_HIBERNATE->LPACSET = input;
+}
+
+#endif
+
+bool XMC_SCU_CLOCK_IsLowPowerOscillatorStable(void)
+{
+  return ((SCU_HIBERNATE->HDSTAT & SCU_HIBERNATE_HDSTAT_ULPWDG_Msk) == 0UL);
+}
+
 /* API to configure the 32khz Ultra Low Power oscillator */
 void XMC_SCU_CLOCK_EnableLowPowerOscillator(void)
 {
+  /* Enable OSC_ULP */
   while((SCU_GENERAL->MIRRSTS) & SCU_GENERAL_MIRRSTS_OSCULCTRL_Msk)
   {
     /* Wait until the update of OSCULCTRL register in hibernate domain is completed */
   }
   SCU_HIBERNATE->OSCULCTRL &= ~SCU_HIBERNATE_OSCULCTRL_MODE_Msk;
 
-  /* Check if the input clock is OK using OSCULP Oscillator Watchdog*/
+  /* Enable OSC_ULP Oscillator Watchdog*/
   while (SCU_GENERAL->MIRRSTS & SCU_GENERAL_MIRRSTS_HDCR_Msk)
   {
     /* check SCU_MIRRSTS to ensure that no transfer over serial interface is pending */
   }
   SCU_HIBERNATE->HDCR |= (uint32_t)SCU_HIBERNATE_HDCR_ULPWDGEN_Msk;
 
-  /* wait till clock is stable */
-  do
+  /* Enable OSC_ULP Oscillator Watchdog*/
+  while (SCU_GENERAL->MIRRSTS & SCU_GENERAL_MIRRSTS_HDSET_Msk)
   {
-    while (SCU_GENERAL->MIRRSTS & SCU_GENERAL_MIRRSTS_HDCLR_Msk)
-    {
-      /* check SCU_MIRRSTS to ensure that no transfer over serial interface is pending */
-    }
-    SCU_HIBERNATE->HDCLR |= (uint32_t)SCU_HIBERNATE_HDCLR_ULPWDG_Msk;
-
-    XMC_SCU_lDelay(50U);
-
-  } while ((SCU_HIBERNATE->HDSTAT & SCU_HIBERNATE_HDSTAT_ULPWDG_Msk) != 0UL);
-
+    /* check SCU_MIRRSTS to ensure that no transfer over serial interface is pending */
+  }
+  SCU_HIBERNATE->HDSET = (uint32_t)SCU_HIBERNATE_HDSET_ULPWDG_Msk;
 }
 
 /* API to configure the 32khz Ultra Low Power oscillator */
@@ -1388,6 +1574,30 @@ void XMC_SCU_CLOCK_DisableLowPowerOscillator(void)
   SCU_HIBERNATE->OSCULCTRL |= (uint32_t)SCU_HIBERNATE_OSCULCTRL_MODE_Msk;
 }
 
+void XMC_SCU_CLOCK_EnableLowPowerOscillatorGeneralPurposeInput(void)
+{
+  while((SCU_GENERAL->MIRRSTS) & SCU_GENERAL_MIRRSTS_OSCULCTRL_Msk)
+  {
+    /* Wait until OSCULCTRL register in hibernate domain is ready to accept a write */    
+  }
+  SCU_HIBERNATE->OSCULCTRL |= SCU_HIBERNATE_OSCULCTRL_X1DEN_Msk | SCU_HIBERNATE_OSCULCTRL_MODE_Msk;
+}
+
+void XMC_SCU_CLOCK_DisableLowPowerOscillatorGeneralPurposeInput(void)
+{
+  while((SCU_GENERAL->MIRRSTS) & SCU_GENERAL_MIRRSTS_OSCULCTRL_Msk)
+  {
+    /* Wait until OSCULCTRL register in hibernate domain is ready to accept a write */    
+  }
+  SCU_HIBERNATE->OSCULCTRL = (SCU_HIBERNATE->OSCULCTRL & ~(uint32_t)(SCU_HIBERNATE_OSCULCTRL_X1DEN_Msk | SCU_HIBERNATE_OSCULCTRL_MODE_Msk)) |
+                             (SCU_HIBERNATE_OSCULCTRL_MODE_OSC_POWER_DOWN << SCU_HIBERNATE_OSCULCTRL_MODE_Pos);                       
+}
+
+uint32_t XMC_SCU_CLOCK_GetLowPowerOscillatorGeneralPurposeInputStatus(void)
+{
+  return (SCU_HIBERNATE->OSCULSTAT & SCU_HIBERNATE_OSCULSTAT_X1D_Msk);
+}
+
 /* API to enable High Precision High Speed oscillator */
 void XMC_SCU_CLOCK_EnableHighPerformanceOscillator(void)
 {
@@ -1398,17 +1608,32 @@ void XMC_SCU_CLOCK_EnableHighPerformanceOscillator(void)
 
   /* restart OSC Watchdog */
   SCU_PLL->PLLCON0 &= (uint32_t)~SCU_PLL_PLLCON0_OSCRES_Msk;
+}
 
-  while ((SCU_PLL->PLLSTAT & XMC_SCU_PLL_PLLSTAT_OSC_USABLE) != XMC_SCU_PLL_PLLSTAT_OSC_USABLE)
-  {
-      /* wait till OSC_HP output frequency is usable */
-  }
+bool XMC_SCU_CLOCK_IsHighPerformanceOscillatorStable(void)
+{
+  return ((SCU_PLL->PLLSTAT & XMC_SCU_PLL_PLLSTAT_OSC_USABLE) == XMC_SCU_PLL_PLLSTAT_OSC_USABLE);
 }
 
 /* API to disable High Precision High Speed oscillator */
 void XMC_SCU_CLOCK_DisableHighPerformanceOscillator(void)
 {
   SCU_OSC->OSCHPCTRL |= (uint32_t)SCU_OSC_OSCHPCTRL_MODE_Msk;
+}
+
+void XMC_SCU_CLOCK_EnableHighPerformanceOscillatorGeneralPurposeInput(void)
+{
+  SCU_OSC->OSCHPCTRL |= SCU_OSC_OSCHPCTRL_X1DEN_Msk;
+}
+
+void XMC_SCU_CLOCK_DisableHighPerformanceOscillatorGeneralPurposeInput(void)
+{
+  SCU_OSC->OSCHPCTRL &= ~SCU_OSC_OSCHPCTRL_X1DEN_Msk;
+}
+
+uint32_t XMC_SCU_CLOCK_GetHighPerformanceOscillatorGeneralPurposeInputStatus(void)
+{
+  return (SCU_OSC->OSCHPSTAT & SCU_OSC_OSCHPSTAT_X1D_Msk);
 }
 
 /* API to enable main PLL */
@@ -1431,7 +1656,7 @@ void XMC_SCU_CLOCK_StartSystemPll(XMC_SCU_CLOCK_SYSPLLCLKSRC_t source,
                                   uint32_t kdiv)
 {
 
-  float vco_frequency;
+  uint32_t vco_frequency; /* Q10.22, max VCO frequency = 520MHz */
   uint32_t kdiv_temp;
 
   XMC_SCU_CLOCK_SetSystemPllClockSource(source);
@@ -1441,14 +1666,14 @@ void XMC_SCU_CLOCK_StartSystemPll(XMC_SCU_CLOCK_SYSPLLCLKSRC_t source,
     /* Calculate initial step to be close to fOFI */
     if (source == XMC_SCU_CLOCK_SYSPLLCLKSRC_OSCHP)
     {
-      vco_frequency = (float)OSCHP_GetFrequency();
+      vco_frequency = (OSCHP_GetFrequency() / 1000000U) << 22;
     }
     else
     {
-      vco_frequency = (float)OFI_FREQUENCY;
+      vco_frequency = (OFI_FREQUENCY / 1000000U) << 22;
     }
-    vco_frequency = (float)((vco_frequency * (float)ndiv) / (float)pdiv);
-    kdiv_temp = (uint32_t)((uint32_t)vco_frequency / OFI_FREQUENCY);
+    vco_frequency = ((vco_frequency * ndiv) / pdiv);
+    kdiv_temp = (vco_frequency / (OFI_FREQUENCY / 1000000U)) >> 22;
 
     /* Switch to prescaler mode */
     SCU_PLL->PLLCON0 |= (uint32_t)SCU_PLL_PLLCON0_VCOBYP_Msk;
@@ -1483,13 +1708,13 @@ void XMC_SCU_CLOCK_StartSystemPll(XMC_SCU_CLOCK_SYSPLLCLKSRC_t source,
     }
 
     /* Ramp up PLL frequency in steps */
-    kdiv_temp = (uint32_t)((uint32_t)vco_frequency / 60000000UL);
+    kdiv_temp = (vco_frequency / 60UL) >> 22;
     if (kdiv < kdiv_temp)
     {
       XMC_SCU_CLOCK_StepSystemPllFrequency(kdiv_temp);
     }
 
-    kdiv_temp = (uint32_t)((uint32_t)vco_frequency / 90000000UL);
+    kdiv_temp = (vco_frequency / 90UL) >> 22;
     if (kdiv < kdiv_temp)
     {
       XMC_SCU_CLOCK_StepSystemPllFrequency(kdiv_temp);
