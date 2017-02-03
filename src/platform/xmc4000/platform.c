@@ -66,7 +66,16 @@ int platform_init()
 
 // ****************************************************************************
 // PIO
+
+#if defined ( XMC4400_F100x512 )
+
+static PORT_Type* const pio_port[] = { PORT_0, PORT_1, PORT_2, PORT_3, PORT_4, PORT_5, PORT_14, PORT_15 };
+
+#else
+
 static PORT_Type* const pio_port[] = { PORT_0, PORT_1, PORT_2, PORT_3, PORT_4, PORT_5, PORT_6, PORT_14, PORT_15 };
+
+#endif
 
 static void platformh_setup_pins( unsigned port, pio_type pinmask, u8 mask )
 {

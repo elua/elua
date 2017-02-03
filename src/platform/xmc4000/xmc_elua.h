@@ -4,6 +4,10 @@
 #ifndef __XMC_ELUA_H__
 #define __XMC_ELUA_H__
 
+#if defined ( XMC4400_F100x512 )
+# include "XMC4400.h"
+#endif
+
 #if defined ( XMC4500_F144x1024 )
 # include "XMC4500.h"
 #endif
@@ -37,7 +41,9 @@ typedef struct {                                    /*!< (@ 0x48028000) PORT0 St
 #define PORT_3                           ((PORT_Type*) PORT3_BASE)
 #define PORT_4                           ((PORT_Type*) PORT4_BASE)
 #define PORT_5                           ((PORT_Type*) PORT5_BASE)
+#if !defined ( XMC4400_F100x512 )
 #define PORT_6                           ((PORT_Type*) PORT6_BASE)
+#endif
 #define PORT_14                          ((PORT_Type*) PORT14_BASE)
 #define PORT_15                          ((PORT_Type*) PORT15_BASE)
 

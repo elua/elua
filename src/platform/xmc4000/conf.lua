@@ -12,6 +12,11 @@ if cpu == 'XMC4500F144K1024' or cpu == 'XMC4500E144K1024' then
   target_files = " startup_XMC4500.S system_XMC4500.c"
 end
 
+if cpu == 'XMC4400F100X512' then
+  ldscript = "xmc4400_linker_script.ld"
+  target_files = " startup_XMC4400.S system_XMC4400.c"
+end
+
 if cpu == 'XMC4700F144K2048' then
   ldscript = "xmc4700_linker_script.ld"
   target_files = " startup_XMC4700.S system_XMC4700.c"
@@ -39,6 +44,10 @@ specific_files = specific_files .. " src/platform/cortex_utils.s src/platform/ar
 ldscript = sf( "src/platform/%s/%s", platform, ldscript )
 
 addm( { "FOR" .. cnorm( comp.cpu ), "FOR" .. cnorm( comp.board ), 'gcc', 'CORTEX_M4' } )
+
+if cpu == 'XMC4400F100X512' then
+  addm( { "XMC4400_F100x512" } )
+end
 
 if cpu == 'XMC4500F144K1024' then
   addm( { "XMC4500_F144x1024" } )

@@ -99,7 +99,11 @@ const UART_TX_CONFIG_t UART_0_tx_pin =
 {
   .port = (XMC_GPIO_PORT_t *)PORT1_BASE,
   .config = &UART_0_tx_pin_config,
+#if defined ( XMC4400_F100x512 )
+  .pin = 7U
+#else
   .pin = 5U
+#endif
 };
 
 /*UART APP configuration structure*/
@@ -151,7 +155,11 @@ UART_STATUS_t UART_0_init()
 {
   UART_STATUS_t status = UART_STATUS_SUCCESS;
   /*Configure Receive pin*/
+#if defined ( XMC4400_F100x512 )
+  XMC_GPIO_Init((XMC_GPIO_PORT_t *)PORT1_BASE, 5U, &UART_0_rx_pin_config);
+#else
   XMC_GPIO_Init((XMC_GPIO_PORT_t *)PORT1_BASE, 4U, &UART_0_rx_pin_config);
+#endif
   /* Initialize USIC channel in UART mode*/
   XMC_UART_CH_Init(XMC_UART0_CH0, &UART_0_channel_config);
   /*Set input source path*/
@@ -170,7 +178,11 @@ UART_STATUS_t UART_0_init()
   XMC_UART_CH_Start(XMC_UART0_CH0);
 
   /* Initialize UART TX pin */
+#if defined ( XMC4400_F100x512 )
+  XMC_GPIO_Init((XMC_GPIO_PORT_t *)PORT1_BASE, 7U, &UART_0_tx_pin_config);
+#else
   XMC_GPIO_Init((XMC_GPIO_PORT_t *)PORT1_BASE, 5U, &UART_0_tx_pin_config);
+#endif
 
   /*Set service request for UART protocol events*/
   XMC_USIC_CH_SetInterruptNodePointer(XMC_UART0_CH0, XMC_USIC_CH_INTERRUPT_NODE_POINTER_PROTOCOL,

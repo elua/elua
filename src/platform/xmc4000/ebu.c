@@ -38,6 +38,8 @@
  *
  */
 
+#if defined ( XMC4500_E144x1024 )
+
 #include <xmc_gpio.h>
 #include <xmc_ebu.h>
 
@@ -500,3 +502,5 @@ void ebu_main (void) {
 
   sdram_test();
 }
+
+#endif // #if defined ( XMC4500_E144x1024 )
