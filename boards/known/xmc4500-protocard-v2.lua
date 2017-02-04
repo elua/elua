@@ -27,7 +27,6 @@ return {
     xmc45_disp = true,
     wofs = false,
     romfs = true,
-    mmcfs = { spi = 0, cs_port = 0, cs_pin = 0 },
     shell = true,
     term = { lines = 25, cols = 80 },
     linenoise = { shell_lines = 10, lua_lines = 50 },
