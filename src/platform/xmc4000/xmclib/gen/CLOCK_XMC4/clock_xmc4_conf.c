@@ -131,7 +131,7 @@ void SystemCoreClockSetup(void)
   XMC_SCU_CLOCK_SetWdtClockDivider(1U);
 #endif
 
-#ifdef CLOCK_XMC4_EBUCLK_ENABLED 
+#if defined ( CLOCK_XMC4_EBUCLK_ENABLED ) && defined ( XMC4500_E144x1024 )
   /* EBU divider setting */
   XMC_SCU_CLOCK_SetEbuClockDivider(1U);
 #endif

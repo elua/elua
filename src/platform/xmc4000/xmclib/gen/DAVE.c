@@ -70,12 +70,21 @@ DAVE_STATUS_t DAVE_Init(void)
   {
 	 /**  Initialization of UART APP instance UART_0 */
 	 init_status = (DAVE_STATUS_t)UART_Init(&UART_0); 
-   } 
+   }
+
+  /*
+   * Raman: We use regular SPI for the XMC44 OR the XMC4500 SDRAM board.
+   */
+#if !defined ( XMC4400_F100x512 )  && !defined ( XMC4500_E144x1024 )
+
   if (init_status == DAVE_STATUS_SUCCESS)
   {
 	 /**  Initialization of FATFS APP instance FATFS_0 */
 	 init_status = (DAVE_STATUS_t)FATFS_Init(&FATFS_0); 
-   }  
+   }
+
+#endif
+
   return init_status;
 } /**  End of function DAVE_Init */
 

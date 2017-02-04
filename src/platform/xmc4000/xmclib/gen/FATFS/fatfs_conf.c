@@ -56,6 +56,8 @@
  * DATA STRUCTURES
  **********************************************************************************************************************/
 
+#if !defined ( XMC4400_F100x512 )
+
 SDMMC_BLOCK_t *const sdmmc_block[FATFS_VOLUMES] = {&SDMMC_BLOCK_0};
 FATFS_t FATFS_0 =
 {
@@ -65,3 +67,4 @@ FATFS_t FATFS_0 =
   .initialized = false
 };
 
+#endif
