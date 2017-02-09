@@ -69,6 +69,47 @@
 #define LUA_CPATH       "LUA_CPATH"
 #define LUA_INIT	"LUA_INIT"
 
+// eLua path - pieces for various file systems
+
+#ifndef ELUA_PATH_RFS
+#ifdef BUILD_RFS
+#define ELUA_PATH_RFS	"/rfs/?.lua;/rfs/?.lc;"
+#else
+#define ELUA_PATH_RFS
+#endif //BUILD_RFS
+#endif
+
+#ifndef ELUA_PATH_MMC
+#ifdef BUILD_MMCFS
+#define ELUA_PATH_MMC	"/mmc/?.lua;/mmc/?.lc;"
+#else
+#define ELUA_PATH_MMC
+#endif
+#endif
+
+#ifndef ELUA_PATH_WO
+#ifdef BUILD_WOFS
+#define ELUA_PATH_WO	"/wo/?.lua;/wo/?.lc;"
+#else
+#define ELUA_PATH_WO
+#endif
+#endif
+
+#ifndef ELUA_PATH_MBED
+#ifdef BUILD_SEMIFS
+#define ELUA_PATH_MBED	"/semi/?.lua;/semi/?.lc;"
+#else
+#define ELUA_PATH_MBED
+#endif
+#endif
+
+#ifndef ELUA_PATH_ROM
+#ifdef BUILD_ROMFS
+#define ELUA_PATH_ROM	"/rom/?.lua;/rom/?.lc"
+#else
+#define ELUA_PATH_ROM
+#endif
+#endif
 
 /*
 @@ LUA_PATH_DEFAULT is the default path that Lua uses to look for
@@ -89,11 +130,13 @@
 
 //## Modified for eLua
 //## Defaults search modules path to our ROM File System
+
 #ifndef LUA_RPC
 
 #ifndef LUA_PATH_DEFAULT
-#define LUA_PATH_DEFAULT  "/rfs/?.lua;/rfs/?.lc;/mmc/?.lua;/mmc/?.lc;/wo/?.lua;/wo/?.lc;/rom/?.lua;/rom/?.lc;/semi/?.lua;/semi/?.lc;"
+#define LUA_PATH_DEFAULT  ELUA_PATH_RFS ELUA_PATH_MMC ELUA_PATH_WO ELUA_PATH_MBED ELUA_PATH_ROM ""
 #endif
+
 
 #define LUA_CPATH_DEFAULT ""
 #else // #ifndef LUA_RPC
@@ -112,8 +155,9 @@
 
 #ifndef LUA_RPC
 #ifndef LUA_PATH_DEFAULT
-#define LUA_PATH_DEFAULT  "/mmc/?.lua;/mmc/?.lc;/wo/?.lua;/wo/?.lc;/rom/?.lua;/rom/?.lc;/semi/?.lua;/semi/?.lc;"
+#define LUA_PATH_DEFAULT  ELUA_PATH_MMC ELUA_PATH_WO ELUA_PATH_MBED ELUA_PATH_ROM ""
 #endif
+
 #define LUA_CPATH_DEFAULT ""
 #else // #ifndef LUA_RPC
 #define LUA_PATH_DEFAULT  \
