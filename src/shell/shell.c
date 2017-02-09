@@ -210,6 +210,7 @@ static const SHELL_COMMAND shell_commands[] =
   { "mkdir", shell_mkdir },
   { "rm", shell_adv_rm },
   { "mv", shell_adv_mv },
+  { "vi", shell_vi },
   { NULL, NULL }
 };
 
