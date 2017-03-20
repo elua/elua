@@ -7,8 +7,8 @@
 #include "platform.h"
 
 // XMODEM constants
-#define XMODEM_INITIAL_BUFFER_SIZE    1024
-#define XMODEM_INCREMENT_AMMOUNT      512
+#define XMODEM_INITIAL_BUFFER_SIZE    4096 // TH
+#define XMODEM_INCREMENT_AMMOUNT      4096 // TH
 
 // xmodem timeout/retry parameters
 #define XMODEM_TIMEOUT                1000000
@@ -19,6 +19,7 @@
 #define XMODEM_ERROR_OUTOFSYNC        (-2)
 #define XMODEM_ERROR_RETRYEXCEED      (-3)
 #define XMODEM_ERROR_OUTOFMEM         (-4)
+#define XMODEM_ERROR_INTERNAL         (-5) // TH
 
 typedef void ( *p_xm_send_func )( u8 );
 typedef int ( *p_xm_recv_func )( timer_data_type );
