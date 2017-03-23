@@ -135,7 +135,10 @@ static int uart_read( lua_State* L )
   luaL_buffinit( L, &b );
   while( 1 )
   {
-    if( ( res = platform_uart_recv( id, timer_id, timeout ) ) == -1 )
+	// TH: First try without timeout to avoid recv FIFO overflows because of timer overhead
+	res=platform_uart_recv( id, timer_id, 0 );
+	if ( res== -1 && timeout>0 )  res = platform_uart_recv( id, timer_id, timeout ); // Now try with timeout if one was given
+    if( res  == -1 ) // still no char ...
       break; 
     cres = ( char )res;
     count ++;
