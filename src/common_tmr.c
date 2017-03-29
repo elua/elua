@@ -79,6 +79,10 @@ static void vtmr_reset_timer( unsigned vid )
   unsigned id = VTMR_GET_ID( vid );
 
   vtmr_reset_idx = ( s8 )id;
+  
+  // TH: Ensure that Interrupts are enabled before timer is reset, otherwise eLua will hang forever....
+  platform_cpu_set_global_interrupts(PLATFORM_CPU_ENABLE);
+  // End TH
   while( vtmr_reset_idx != -1 );  
 }
 
@@ -102,15 +106,24 @@ static int vtmr_set_match_int( unsigned vid, timer_data_type period_us, int type
   unsigned id = VTMR_GET_ID( vid );
   u8 msk = 1 << ( id & 0x07 );
 
-  if( period_us > VTMR_MAX_PERIOD )
-    return PLATFORM_TIMER_INT_TOO_LONG;
+  
   if( period_us == 0 )
   {
     vtmr_int_enabled[ id >> 3 ] &= ( u8 )~msk;
     vtmr_int_flag[ id >> 3 ] &= ( u8 )~msk;
+    //TH: Bugfix: period_flag should also be cleared, so counter will not be reset anymore
+    //    So clearing the match interrupt resets the timer to its initial state
+    vtmr_int_periodic_flag[ id >> 3 ] &= ( u8 )~msk;
+   //End TH
     return PLATFORM_TIMER_INT_OK;
   }
-  if( ( final = ( ( u64 )period_us * VTMR_FREQ_HZ ) / 1000000 ) == 0 )
+  final = ( u64 )((period_us * VTMR_FREQ_HZ ) / 1000000); // TH
+  // TH: To get the implementation correctly working, the converted input value need to be compared 
+  // Of course this is more a theoretical problem, because the time is way to long to be of pratical use...
+  if( final > VTMR_MAX_PERIOD ) 
+    return PLATFORM_TIMER_INT_TOO_LONG;
+    
+  if(  final  == 0 )
     return PLATFORM_TIMER_INT_TOO_SHORT;
   vtmr_period_limit[ id ] = final;
   if( type == PLATFORM_TIMER_INT_ONESHOT )
