@@ -14,12 +14,21 @@
 #include "lrotable.h"
 
 /* FIXME: Assume size_t is an unsigned lua_Integer */
-typedef size_t lua_UInteger;
+typedef u32 lua_UInteger;
 #define LUA_UINTEGER_MAX SIZE_MAX
+
+
+//TH: Local Push unsigned integer
+void  bit_pushuinteger(lua_State *L, lua_UInteger n)
+{
+	
+	lua_pushnumber( L, ( lua_Number )n);
+	
+}	
 
 /* Define TOBIT to get a bit value */
 #define TOBIT(L, n)                    \
-  (luaL_checkinteger((L), (n)))
+  ((lua_UInteger)luaL_checknumber((L), (n)))
 
 /* Operations
 
@@ -35,30 +44,30 @@ typedef size_t lua_UInteger;
   
 #define MONADIC(name, op)                                       \
   static int bit_ ## name(lua_State *L) {                       \
-    lua_pushinteger(L, op TOBIT(L, 1));                         \
+    bit_pushuinteger(L, op TOBIT(L, 1));                         \
     return 1;                                                   \
   }
 
 #define VARIADIC(name, op)                      \
   static int bit_ ## name(lua_State *L) {       \
     int n = lua_gettop(L), i;                   \
-    lua_Integer w = TOBIT(L, 1);                \
+    lua_UInteger w = TOBIT(L, 1);                \
     for (i = 2; i <= n; i++)                    \
       w op TOBIT(L, i);                         \
-    lua_pushinteger(L, w);                      \
+    bit_pushuinteger(L, w);                      \
     return 1;                                   \
   }
 
 #define LOGICAL_SHIFT(name, op)                                         \
   static int bit_ ## name(lua_State *L) {                               \
-    lua_pushinteger(L, (lua_UInteger)TOBIT(L, 1) op                     \
+    bit_pushuinteger(L, (lua_UInteger)TOBIT(L, 1) op                     \
                           (unsigned)luaL_checknumber(L, 2));            \
     return 1;                                                           \
   }
 
 #define ARITHMETIC_SHIFT(name, op)                                      \
   static int bit_ ## name(lua_State *L) {                               \
-    lua_pushinteger(L, (lua_Integer)TOBIT(L, 1) op                      \
+    bit_pushuinteger(L, (lua_UInteger)TOBIT(L, 1) op                      \
                           (unsigned)luaL_checknumber(L, 2));            \
     return 1;                                                           \
   }
@@ -74,14 +83,14 @@ ARITHMETIC_SHIFT(arshift, >>)
 // Lua: res = bit( position )
 static int bit_bit( lua_State* L )
 {
-  lua_pushinteger( L, ( lua_Integer )( 1 << luaL_checkinteger( L, 1 ) ) );
+  bit_pushuinteger( L, ( lua_UInteger )( 1 << luaL_checkinteger( L, 1 ) ) );
   return 1;
 }
 
 // Lua: res = isset( value, position )
 static int bit_isset( lua_State* L )
 {
-  lua_UInteger val = ( lua_UInteger )luaL_checkinteger( L, 1 );
+  lua_UInteger val = ( lua_UInteger )TOBIT( L, 1 );
   unsigned pos = ( unsigned )luaL_checkinteger( L, 2 );
   
   lua_pushboolean( L, val & ( 1 << pos ) ? 1 : 0 );
@@ -91,7 +100,7 @@ static int bit_isset( lua_State* L )
 // Lua: res = isclear( value, position )
 static int bit_isclear( lua_State* L )
 {
-  lua_UInteger val = ( lua_UInteger )luaL_checkinteger( L, 1 );
+  lua_UInteger val = ( lua_UInteger )TOBIT( L, 1 );
   unsigned pos = ( unsigned )luaL_checkinteger( L, 2 );
   
   lua_pushboolean( L, val & ( 1 << pos ) ? 0 : 1 );
@@ -101,24 +110,24 @@ static int bit_isclear( lua_State* L )
 // Lua: res = set( value, pos1, pos2, ... )
 static int bit_set( lua_State* L )
 { 
-  lua_UInteger val = ( lua_UInteger )luaL_checkinteger( L, 1 );
+  lua_UInteger val = ( lua_UInteger )TOBIT( L, 1 );
   unsigned total = lua_gettop( L ), i;
   
   for( i = 2; i <= total; i ++ )
     val |= 1 << ( unsigned )luaL_checkinteger( L, i );
-  lua_pushinteger( L, ( lua_Integer )val );
+  bit_pushuinteger( L, ( lua_UInteger )val );
   return 1;
 }
 
 // Lua: res = clear( value, pos1, pos2, ... )
 static int bit_clear( lua_State* L )
 {
-  lua_UInteger val = ( lua_UInteger )luaL_checkinteger( L, 1 );
+  lua_UInteger val = ( lua_UInteger )TOBIT( L, 1 );
   unsigned total = lua_gettop( L ), i;
   
   for( i = 2; i <= total; i ++ )
     val &= ~( 1 << ( unsigned )luaL_checkinteger( L, i ) );
-  lua_pushinteger( L, ( lua_Integer )val );
+  bit_pushuinteger( L, ( lua_UInteger )val );
   return 1; 
 }
 
