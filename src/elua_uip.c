@@ -54,7 +54,7 @@ void elua_uip_mainloop()
   arp_timer += temp;
 
   // Check for an RX packet and read it
-  if( ( packet_len = platform_eth_get_packet_nb( uip_buf, sizeof( uip_buf ) ) ) > 0 )
+  while( ( packet_len = platform_eth_get_packet_nb( uip_buf, sizeof( uip_buf ) ) ) > 0 )
   {
     // Set uip_len for uIP stack usage.
     uip_len = ( unsigned short )packet_len;
@@ -258,22 +258,19 @@ static elua_net_size elua_uip_telnet_prep_send( const char* src, elua_net_size s
 // *****************************************************************************
 // eLua UIP application (used to implement the eLua TCP/IP services)
 
-// Special handling for "accept"
-//volatile static u8 elua_uip_accept_request;
-//volatile static int elua_uip_accept_sock;
-//volatile static elua_net_ip elua_uip_accept_remote;
+
 
 typedef struct {
-  u8 accept_request; // 0=accepted 1=pending, 255=not used
+  u8 accept_request; // 0=accepted/not used 1=pending
   int sock;   // socket number when accepted
   elua_net_ip remote; // remote IP
   int port; // local port bound to
 
 } elua_uip_accept_pending_t;
 
-static elua_uip_accept_pending_t elua_uip_accept_pending[UIP_CONF_MAX_CONNECTIONS];
+volatile static elua_uip_accept_pending_t elua_uip_accept_pending[UIP_CONF_MAX_CONNECTIONS];
 
-static struct uip_conn *elua_net_connecting=NULL;
+volatile static struct uip_conn *elua_net_connecting=NULL;
 
 
 void elua_uip_appcall()
@@ -296,10 +293,10 @@ void elua_uip_appcall()
   if( uip_connected() )
   {
     // check if we are currenty in a conncet call and the socket
-    // is the connection is the right one...
-    if  ( s->state == ELUA_UIP_STATE_CONNECT  && uip_conn==elua_net_connecting )
+    // in the connection is the right one...
+    if  ( s->state == ELUA_UIP_STATE_CONNECT  && uip_conn==elua_net_connecting ) {
       s->state = ELUA_UIP_STATE_IDLE;
-
+    }
 
 #ifdef BUILD_CON_TCP
     else if( uip_conn->lport == HTONS( ELUA_NET_TELNET_PORT ) ) // special case: telnet server
@@ -314,22 +311,25 @@ void elua_uip_appcall()
     }
 
 #endif
-   else { // add to list of pending accepts
+   else {
+     // If we have no active connect call, the event can only come
+     // from a connection to a listening port. In this case add it
+     // to the pending request array, so it can later be taken by a
+     // call to elua_accept
      int i;
      BOOL found=FALSE;
-     for(i=0;i<UIP_CONF_MAX_CONNECTIONS && !found;i++)
+     for( i=0;i<UIP_CONF_MAX_CONNECTIONS && !found;i++ )
      {
-        if (elua_uip_accept_pending[i].accept_request!=1) {// free slot
+        if ( elua_uip_accept_pending[i].accept_request!=1 ) {// free slot
           elua_uip_accept_pending[i].sock=sockno;
           elua_uip_accept_pending[i].remote.ipwords[0]=uip_conn->ripaddr[ 0 ];
           elua_uip_accept_pending[i].remote.ipwords[1]=uip_conn->ripaddr[ 1 ];
           elua_uip_accept_pending[i].accept_request=1;
-          elua_uip_accept_pending[i].port= HTONS(uip_conn->lport);
-          //printk("Pending accept for port %d, index %d\n", elua_uip_accept_pending[i].port,i);
+          elua_uip_accept_pending[i].port= HTONS( uip_conn->lport );
           found=TRUE;
         }
      }
-     if (!found) { // no free slot
+     if ( !found ) { // no free slot
        uip_close();
        return;
      }
@@ -496,9 +496,10 @@ void elua_uip_init( const struct uip_eth_addr *paddr )
   uip_init();
   uip_arp_init();
 
+  // Initalize the pending accept array
   int i;
-  for(i=0;i<UIP_CONF_MAX_CONNECTIONS;i++) {
-    elua_uip_accept_pending[i].accept_request=255;
+  for( i=0;i<UIP_CONF_MAX_CONNECTIONS;i++ ) {
+    elua_uip_accept_pending[i].accept_request=0;
   }
 
 
@@ -688,14 +689,14 @@ int old_status;
 }
 
 
-int elua_net_find_pending(u16 port)
+static int elua_net_find_pending( u16 port )
 {
 int i;
 
 
-  for(i=0;i<UIP_CONF_MAX_CONNECTIONS;i++)
+  for( i=0;i<UIP_CONF_MAX_CONNECTIONS;i++ )
   {
-    if (elua_uip_accept_pending[i].accept_request==1
+    if ( elua_uip_accept_pending[i].accept_request==1
         && elua_uip_accept_pending[i].port==port )
       return i;
   }
@@ -704,6 +705,9 @@ int i;
 
 
 // Accept a connection on the given port, return its socket id (and the IP of the remote host by side effect)
+// TH: Changed behaviour: Does no own listen to the port, this has to be done before with a call to elua_listen
+// accept will just look for pending connections to the port and will return the socket of the first one
+// so it can also be called with a timeout of 0 and return in a polled loop
 int elua_accept( u16 port, unsigned timer_id, timer_data_type to_us, elua_net_ip* pfrom )
 {
   timer_data_type tmrstart = 0;
@@ -714,13 +718,12 @@ int elua_accept( u16 port, unsigned timer_id, timer_data_type to_us, elua_net_ip
   if( !elua_uip_configured )
     return -1;
 
-  elua_listen(port,TRUE); // Need to be changed....
 
   if( to_us > 0 )
     tmrstart = platform_timer_start( timer_id );
   while( 1 )
   {
-    i=elua_net_find_pending(port);
+    i=elua_net_find_pending( port );
     if( i >= 0 ) {
       *pfrom = elua_uip_accept_pending[i].remote;
       old_status=platform_cpu_set_global_interrupts( PLATFORM_CPU_DISABLE );
@@ -729,13 +732,11 @@ int elua_accept( u16 port, unsigned timer_id, timer_data_type to_us, elua_net_ip
       return elua_uip_accept_pending[i].sock;
     }
 
-    if( to_us > 0 && platform_timer_get_diff_crt( timer_id, tmrstart ) >= to_us )
+    if( to_us == 0 || platform_timer_get_diff_crt( timer_id, tmrstart ) >= to_us )
     {
       return -1;
     }
   }
-
-
 }
 
 
