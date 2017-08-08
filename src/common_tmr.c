@@ -36,7 +36,7 @@ static volatile s8 vtmr_reset_idx = -1;
 #endif // #if defined( BUILD_INT_HANDLERS ) && defined( INT_TMR_MATCH )
 
 #ifdef CMN_TIMER_INT_SUPPORT
-static volatile u32 vtmr_period_limit[ VTMR_NUM_TIMERS ];  
+static volatile u32 vtmr_period_limit[ VTMR_NUM_TIMERS ];
 static volatile u8 vtmr_int_periodic_flag[ ( VTMR_NUM_TIMERS + 7 ) >> 3 ];
 static volatile u8 vtmr_int_enabled[ ( VTMR_NUM_TIMERS + 7 ) >> 3 ];
 static volatile u8 vtmr_int_flag[ ( VTMR_NUM_TIMERS + 7 ) >> 3 ];
@@ -52,21 +52,21 @@ void cmn_virtual_timer_cb(void)
 
   for( i = 0; i < VTMR_NUM_TIMERS; i ++ )
   {
-    vtmr_counters[ i ] ++;  
+    vtmr_counters[ i ] ++;
 #ifdef CMN_TIMER_INT_SUPPORT
     msk = 1 << ( i & 0x07 );
     if( vtmr_counters[ i ] >= vtmr_period_limit[ i ] )
     {
       vtmr_int_flag[ i >> 3 ] |= msk;
-      if( vtmr_int_enabled[ i >> 3 ] & msk )      
+      if( vtmr_int_enabled[ i >> 3 ] & msk )
         elua_int_add( INT_TMR_MATCH, i + VTMR_FIRST_ID );
       if( vtmr_int_periodic_flag[ i >> 3 ] & msk )
         vtmr_counters[ i ] = 0;
       else
-        vtmr_int_enabled[ i >> 3 ] &= ( u8 )~msk;    
+        vtmr_int_enabled[ i >> 3 ] &= ( u8 )~msk;
     }
 #endif // #ifdef CMN_TIMER_INT_SUPPORT
-  }    
+  }
   if( vtmr_reset_idx != -1 )
   {
     vtmr_counters[ vtmr_reset_idx ] = 0;
@@ -79,23 +79,27 @@ static void vtmr_reset_timer( unsigned vid )
   unsigned id = VTMR_GET_ID( vid );
 
   vtmr_reset_idx = ( s8 )id;
-  
+
   // TH: Ensure that Interrupts are enabled before timer is reset, otherwise eLua will hang forever....
-  platform_cpu_set_global_interrupts(PLATFORM_CPU_ENABLE);
+  int oldstate = platform_cpu_set_global_interrupts(PLATFORM_CPU_ENABLE);
   // End TH
-  while( vtmr_reset_idx != -1 );  
+  while( vtmr_reset_idx != -1 );
+  platform_cpu_set_global_interrupts(oldstate);
 }
 
 static void vtmr_delay( unsigned vid, timer_data_type delay_us )
 {
   timer_data_type final;
   unsigned id = VTMR_GET_ID( vid );
-  
+
   if( delay_us > VTMR_MAX_PERIOD )
     return;
   final = ( ( u64 )delay_us * VTMR_FREQ_HZ ) / 1000000;
   vtmr_reset_timer( vid );
-  while( vtmr_counters[ id ] < final );  
+  // TH: Ensure that Interrupts are enabled otherwise eLua will hang forever....
+  int oldstate = platform_cpu_set_global_interrupts(PLATFORM_CPU_ENABLE); // TH
+  while( vtmr_counters[ id ] < final );
+  platform_cpu_set_global_interrupts(oldstate); // TH
 }
 
 #ifdef CMN_TIMER_INT_SUPPORT
@@ -106,7 +110,7 @@ static int vtmr_set_match_int( unsigned vid, timer_data_type period_us, int type
   unsigned id = VTMR_GET_ID( vid );
   u8 msk = 1 << ( id & 0x07 );
 
-  
+
   if( period_us == 0 )
   {
     vtmr_int_enabled[ id >> 3 ] &= ( u8 )~msk;
@@ -118,11 +122,11 @@ static int vtmr_set_match_int( unsigned vid, timer_data_type period_us, int type
     return PLATFORM_TIMER_INT_OK;
   }
   final = ( u64 )((period_us * VTMR_FREQ_HZ ) / 1000000); // TH
-  // TH: To get the implementation correctly working, the converted input value need to be compared 
+  // TH: To get the implementation correctly working, the converted input value need to be compared
   // Of course this is more a theoretical problem, because the time is way to long to be of pratical use...
-  if( final > VTMR_MAX_PERIOD ) 
+  if( final > VTMR_MAX_PERIOD )
     return PLATFORM_TIMER_INT_TOO_LONG;
-    
+
   if(  final  == 0 )
     return PLATFORM_TIMER_INT_TOO_SHORT;
   vtmr_period_limit[ id ] = final;
@@ -131,7 +135,7 @@ static int vtmr_set_match_int( unsigned vid, timer_data_type period_us, int type
   else
     vtmr_int_periodic_flag[ id >> 3 ] |= msk;
   vtmr_int_flag[ id >> 3 ] &= ( u8 )~msk;
-  vtmr_reset_timer( vid ); 
+  vtmr_reset_timer( vid );
   vtmr_int_enabled[ id >> 3 ] |= msk;
   return PLATFORM_TIMER_INT_OK;
 }
@@ -166,7 +170,7 @@ static int vtmr_int_get_status( elua_int_resnum resnum )
   u8 msk = 1 << ( id & 0x07 );
   return ( vtmr_int_enabled[ id >> 3 ] & msk ) != 0;
 }
-#endif // #ifdef CMN_TIMER_INT_SUPPORT 
+#endif // #ifdef CMN_TIMER_INT_SUPPORT
 
 #else // #if VTMR_NUM_TIMERS > 0
 
@@ -227,7 +231,7 @@ void platform_timer_delay( unsigned id, timer_data_type delay_us )
   else
     platform_s_timer_delay( id, delay_us );
 }
-      
+
 timer_data_type platform_timer_op( unsigned id, int op, timer_data_type data )
 {
   timer_data_type res = 0;
@@ -284,15 +288,15 @@ timer_data_type platform_timer_op( unsigned id, int op, timer_data_type data )
       vtmr_reset_timer( id );
       res = 0;
       break;
-      
+
     case PLATFORM_TIMER_OP_READ:
       res = vtmr_counters[ VTMR_GET_ID( id ) ];
       break;
-      
+
     case PLATFORM_TIMER_OP_GET_MAX_DELAY:
       res = platform_timer_get_diff_us( id, 0, 0xFFFFFFFF );
       break;
-      
+
     case PLATFORM_TIMER_OP_GET_MIN_DELAY:
       res = platform_timer_get_diff_us( id, 0, 1 );
       break;
@@ -300,11 +304,11 @@ timer_data_type platform_timer_op( unsigned id, int op, timer_data_type data )
     case PLATFORM_TIMER_OP_GET_MAX_CNT:
       res = VTMR_MAX_PERIOD;
       break;
-      
+
     case PLATFORM_TIMER_OP_SET_CLOCK:
     case PLATFORM_TIMER_OP_GET_CLOCK:
       res = VTMR_FREQ_HZ;
-      break;      
+      break;
   }
 #endif
   return res;
@@ -314,7 +318,7 @@ timer_data_type platform_timer_get_diff_us( unsigned id, timer_data_type start, 
 {
   u32 freq;
   u64 tstart = ( u64 )start, tend = ( u64 )end;
-    
+
   freq = platform_timer_op( id, PLATFORM_TIMER_OP_GET_CLOCK, 0 );
   if( tstart > tend )
     tend += platform_timer_op( id, PLATFORM_TIMER_OP_GET_MAX_CNT, 0 ) + 1;
