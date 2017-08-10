@@ -38,12 +38,15 @@
 #include "platform_conf.h"
 #ifdef BUILD_XMODEM
 
-#define PXM_ACKET_SIZE    128
+
+
+//#define PXM_ACKET_SIZE    128 // TH: removed
 static p_xm_send_func xmodem_out_func;
 static p_xm_recv_func xmodem_in_func;
 
 // Line control codes
 #define XM_SOH  0x01
+#define XM_STX  0x02 // TH: Marker for 1K Blocks
 #define XM_ACK  0x06
 #define XM_NAK  0x15
 #define XM_CAN  0x18
@@ -76,16 +79,24 @@ static void xmodem_flush( int how )
 
 // This private function receives a x-modem record to the pointer and
 // returns 1 on success and 0 on error
-static int xmodem_get_record( unsigned char blocknum, unsigned char *pbuf )
+static int xmodem_get_record( unsigned char blocknum, unsigned char *pbuf,/*TH*/unsigned pack_sz /*TH*/ )
 {
   unsigned chk, j, size;
   int ch;
   
   // Read packet
-  for( j = 0; j < PXM_ACKET_SIZE + 4; j ++ )
+  for( j = 0; j < (pack_sz + 4); j ++ )
   {
-    if( ( ch = xmodem_in_func( XMODEM_TIMEOUT ) ) == -1 )
-      goto err;
+	//TH : First read with zero timeout until the input fifo is empty  
+	// This should avoid FIFO overflows caused by the overhead of the eLua timers. 
+	ch =xmodem_in_func( 0 );
+	if (ch== -1) {
+	  // When no char available wait for XMODEM_TIMEOUT if a char arrives	
+	  ch = xmodem_in_func( XMODEM_TIMEOUT );
+	  // If not we have a timout error
+	  if( ch == -1 )
+       goto err; 
+    }		
     pbuf[ j ] = ( unsigned char )ch;
   }
 
@@ -95,7 +106,7 @@ static int xmodem_get_record( unsigned char blocknum, unsigned char *pbuf )
   if( *pbuf ++ != ( unsigned char )~blocknum )
     goto err;
   // Check CRC
-  for( size = chk = 0; size < PXM_ACKET_SIZE; size++, pbuf ++ ) 
+  for( size = chk = 0; size < pack_sz; size++, pbuf ++ ) 
   {
     chk = chk ^ *pbuf << 8;
     for( j = 0; j < 8; j ++ ) 
@@ -112,10 +123,11 @@ static int xmodem_get_record( unsigned char blocknum, unsigned char *pbuf )
   if( *pbuf ++ != ( chk & 0xFF ) )
     goto err;
   return 1;
-  
+
 err:
   xmodem_out_func( XM_NAK );
   return 0;
+
 }
 
 // This global function receives a x-modem transmission consisting of
@@ -124,42 +136,57 @@ err:
 long xmodem_receive( char **dest )
 {
   int starting = 1, ch;
-  unsigned char packnum = 1, buf[ PXM_ACKET_SIZE + 4 ];
+  unsigned char packnum = 1, buf[ 1024 + 4 ];
   unsigned retries = XMODEM_RETRY_LIMIT;
   u32 limit = XMODEM_INITIAL_BUFFER_SIZE, size = 0;
   void *p;
+  unsigned pack_sz; // TH
   
   while( retries-- ) 
   {
     if( starting )
       xmodem_out_func( 'C' );
-    if( ( ( ch = xmodem_in_func( XMODEM_TIMEOUT ) ) == -1 ) || ( ch != XM_SOH && ch != XM_EOT && ch != XM_CAN ) )
+    if( ( ( ch = xmodem_in_func( XMODEM_TIMEOUT ) ) == -1 ) || ( ch != XM_SOH  && /* TH */ ch != XM_STX && /*TH*/  ch != XM_EOT && ch != XM_CAN ) )
       continue;
-    if( ch == XM_EOT ) 
-    {
+      
+    switch(ch) { // TH
+	  case XM_EOT:	  
+    //if( ch == XM_EOT ) 
+    //{
       // End of transmission
       xmodem_out_func( XM_ACK );
       xmodem_flush( XMODEM_FLUSH_ONLY );
       return size;
-    }
-    else if( ch == XM_CAN )
-    {
+    //}
+      case XM_CAN:
+    //else if( ch == XM_CAN )
+    //{
       // The remote part ended the transmission
       xmodem_out_func( XM_ACK );
       xmodem_flush( XMODEM_FLUSH_ONLY );
       return XMODEM_ERROR_REMOTECANCEL;      
-    }
+    //}
+      case XM_SOH: 
+        pack_sz=128;
+        break;
+      case XM_STX: 
+        pack_sz=1024;
+        break;
+      default: // TH: Should never happen
+        return XMODEM_ERROR_INTERNAL;
+    }       
     starting = 0;
     
+    
     // Get XMODEM packet
-    if( !xmodem_get_record( packnum, buf ) )
+    if( !xmodem_get_record( packnum, buf,pack_sz ) )
       continue; // allow for retransmission
     xmodem_flush( XMODEM_FLUSH_ONLY );      
     retries = XMODEM_RETRY_LIMIT;
     packnum ++;
       
     // Got a valid packet
-    if( size + PXM_ACKET_SIZE > limit )
+    if( size + pack_sz > limit )
     {
       limit += XMODEM_INCREMENT_AMMOUNT;
       if( ( p = realloc( *dest, limit ) ) == NULL )
@@ -171,9 +198,10 @@ long xmodem_receive( char **dest )
       *dest = ( char* )p;
     }    
     // Acknowledge and consume packet
+  
+    memcpy( *dest + size, buf + 2, pack_sz );
+    size += pack_sz;
     xmodem_out_func( XM_ACK );
-    memcpy( *dest + size, buf + 2, PXM_ACKET_SIZE );
-    size += PXM_ACKET_SIZE;
   }
   
   // Exceeded retry count
