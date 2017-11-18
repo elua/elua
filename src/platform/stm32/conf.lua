@@ -4,7 +4,7 @@ addi( sf( 'src/platform/%s/FWLib/library/inc', platform ) )
 
 local fwlib_files = utils.get_files( "src/platform/" .. platform .. "/FWLib/library/src", ".*%.c$" )
 
-specific_files = "core_cm3.c system_stm32f10x.c startup_stm32f10x_hd.s platform.c stm32f10x_it.c lcd.c lua_lcd.c platform_int.c enc.c"
+specific_files = "core_cm3.c system_stm32f10x.c startup_stm32f10x_hd.s platform.c stm32f10x_it.c lcd.c lua_lcd.c platform_int.c enc.c buzzer.c"
 
 local ldscript = "stm32.ld"
   
