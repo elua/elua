@@ -1,7 +1,5 @@
 
-// eLua Module for STM32 timer encoder mode support
-// enc is a platform-dependent (STM32) module, that binds to Lua the basic API
-// from ST
+// Buzzer eLua module for elua-zeisig-gemacht target platform
 
 #include "lua.h"
 #include "lualib.h"
