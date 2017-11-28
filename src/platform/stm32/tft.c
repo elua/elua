@@ -50,13 +50,17 @@
  * TFT module code
  *******************************************************************************/
 
-//Lua: init()
+//Lua: init( baud, databits, parity, stopbits )
 static int tft_init( lua_State *L )
 {
-  u32 res;
+  unsigned databits, parity, stopbits;
+  u32 baud, res;
 
-  /* TODO: Expose configuration details */
-  res = platform_uart_setup( TFT_INTERFACE, CON_UART_SPEED, 8, PLATFORM_UART_PARITY_NONE, PLATFORM_UART_STOPBITS_1 );
+  baud = luaL_checkinteger( L, 1 );
+  databits = luaL_checkinteger( L, 2 );
+  parity = luaL_checkinteger( L, 3 );
+  stopbits = luaL_checkinteger( L, 4 );
+  res = platform_uart_setup( TFT_INTERFACE, baud, databits, parity, stopbits );
   lua_pushinteger( L, res );
 
   return 1;
@@ -144,7 +148,6 @@ static int tft_calibrate( lua_State *L )
 //Lua: loadicon( id, xstart, xend, ystart, yend, x, y )
 static int tft_load_icon( lua_State *L )
 {
-
   uint16_t id = luaL_checkinteger( L, 1 );
   uint16_t xs = luaL_checkinteger( L, 2 );
   uint16_t ys = luaL_checkinteger( L, 3 );
