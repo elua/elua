@@ -249,6 +249,14 @@ const LUA_REG_TYPE tft_map[] =
   { LSTRKEY( "loadicon" ),  LFUNCVAL( tft_load_icon ) },
   { LSTRKEY( "calibrate" ),  LFUNCVAL( tft_calibrate ) },
   { LSTRKEY( "print" ),  LFUNCVAL( tft_print ) },
+  //
+  // Expose colors: The monster's interface is (for most people -
+  // boring) simple. It should work just fine for echo of process
+  // control parameters and the few tiny games I care about.
+  //
+  { LSTRKEY( "COLOR_WHITE" ), LNUMVAL( COLOR_WHITE ) },
+  { LSTRKEY( "COLOR_BLACK" ), LNUMVAL( COLOR_BLACK ) },
+  { LSTRKEY( "COLOR_ORANGE" ), LNUMVAL( COLOR_ORANGE ) },
   { LNILKEY, LNILVAL }
 };
 
