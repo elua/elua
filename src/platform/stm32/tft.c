@@ -247,6 +247,24 @@ static int tft_brightness( lua_State *L )
   return 0;
 }
 
+//Lua: putpoint( x, y )
+static int tft_put_point( lua_State *L )
+{
+  uint16_t x0, y0;
+
+  x0 = luaL_checkinteger( L, 1 );
+  y0 = luaL_checkinteger( L, 2 );
+  START_FRAME;
+  SERIAL_WRITE( 0x51 );
+  SERIAL_WRITE( highByte( x0 ) );
+  SERIAL_WRITE( lowByte( x0 ) );
+  SERIAL_WRITE( highByte( y0 ) );
+  SERIAL_WRITE( lowByte( y0 ) );
+  END_FRAME;
+
+  return 0;
+}
+
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
 
@@ -263,6 +281,7 @@ const LUA_REG_TYPE tft_map[] =
   { LSTRKEY( "calibrate" ),  LFUNCVAL( tft_calibrate ) },
   { LSTRKEY( "print" ),  LFUNCVAL( tft_print ) },
   { LSTRKEY( "brightness" ),  LFUNCVAL( tft_brightness ) },
+  { LSTRKEY( "putpoint" ),  LFUNCVAL( tft_put_point ) },
   //
   // Expose colors: The monster's interface is (for most people -
   // boring) simple. It should work just fine for echo of process
