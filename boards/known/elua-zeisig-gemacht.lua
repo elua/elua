@@ -32,6 +32,7 @@ return {
     rpc = { uart = 0, speed = 115200 },
     adc = { buf_size = 4 },
     stm32_buzzer = true,
+    stm32_tft = true,
     xmodem = true
   },
   config = {

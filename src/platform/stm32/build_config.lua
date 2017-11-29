@@ -11,6 +11,7 @@ function add_platform_components( t, board, cpu )
   end
   if board == 'ELUA-ZEISIG-GEMACHT' then
      t.stm32_buzzer = { macro = 'ENABLE_BUZZER' }
+     t.stm32_tft = { macro = 'ENABLE_TFT' }
   end
 end
 
@@ -27,6 +28,7 @@ function get_platform_modules( board, cpu )
   end
   if board == 'ELUA-ZEISIG-GEMACHT' then
     m.buzzer = { guards = { 'ENABLE_BUZZER' }, lib = '"buzzer"' }
+    m.tft = { guards = { 'ENABLE_TFT' }, lib = '"tft"' }
   end
   return m
 end
