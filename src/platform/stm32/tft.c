@@ -21,6 +21,12 @@
 #define UD_DIGITAL_40X80_CDOTS   (0x11)
 #define UD_DIGITAL_40X80_CMODE   (0xC0)
 
+/* Default fonts */
+#define DEFAULT_FONT_8X16        (0x54)
+#define DEFAULT_FONT_16X32       (0x55)
+#define DEFAULT_FONT_6X12        (0x6E)
+#define DEFAULT_FONT_12X24       (0x6F)
+
 /* Colors */
 #define COLOR_BLACK              (0x0000)
 #define COLOR_WHITE              (0xFFFF)
@@ -178,32 +184,27 @@ static int tft_load_icon( lua_State *L )
   return 0;
 }
 
-/* Text display */
-static void text_display( uint16_t x,
-			  uint16_t y,
-			  uint8_t font,
-			  uint8_t cmode,
-			  uint8_t cdots,
-			  uint16_t fgc,
-			  uint16_t bgc,
-			  const char *str,
-			  uint8_t len )
+// TFT print helper
+static void tft_print_helper( const char *str, uint16_t x, uint16_t y, uint16_t color )
 {
-  uint8_t i;
+  uint16_t len = strlen( str );
+  uint32_t i;
+
+  // Assume black background for now
+  START_FRAME;
+  SERIAL_WRITE( 0x40 );
+  SERIAL_WRITE( highByte( color ) );
+  SERIAL_WRITE( lowByte( color ) );
+  SERIAL_WRITE( highByte( COLOR_BLACK ) );
+  SERIAL_WRITE( lowByte( COLOR_BLACK ) );
+  END_FRAME;
 
   START_FRAME;
-  SERIAL_WRITE( 0x98 );
+  SERIAL_WRITE( DEFAULT_FONT_12X24 );
   SERIAL_WRITE( highByte( x ) );
   SERIAL_WRITE( lowByte( x ) );
   SERIAL_WRITE( highByte( y ) );
   SERIAL_WRITE( lowByte( y ) );
-  SERIAL_WRITE( font );
-  SERIAL_WRITE( cmode );
-  SERIAL_WRITE( cdots );
-  SERIAL_WRITE( highByte( fgc ) );
-  SERIAL_WRITE( lowByte( fgc) );
-  SERIAL_WRITE( highByte( bgc ) );
-  SERIAL_WRITE( lowByte( bgc ) );
 
   /* Transmit the string */
   for ( i = 0; i < len; i++ )
@@ -212,25 +213,28 @@ static void text_display( uint16_t x,
   END_FRAME;
 }
 
-//Lua: print( str, x, y )
+/*
+ * Text print (only relies on default TFT fonts)
+ *
+ * The function written by TP assumes a specific font. I am going to
+ * let that be for a while and only use default TFT fonts. The idea is
+ * to get the lm3s pong game (and SpaceShip) working on the ezg target
+ * really quickly.
+ *
+ * Lua: print( str, x, y, color )
+ */
 static int tft_print( lua_State *L )
 {
   const char *str;
-  uint16_t x, y;
+  uint16_t x, y, color;
 
   str = luaL_checkstring( L, 1 );
   x = luaL_checkinteger( L, 2 );
   y = luaL_checkinteger( L, 3 );
+  color = luaL_checkinteger( L, 4 );
 
-  text_display( x,
-		y,
-		UD_DIGITAL_40X80_INDEX,
-		UD_DIGITAL_40X80_CMODE,
-		UD_DIGITAL_40X80_CDOTS,
-		COLOR_WHITE,
-		COLOR_BLACK,
-		str,
-		strlen( str ) );
+  tft_print_helper( str, x, y, color );
+
   return 0;
 }
 
@@ -290,6 +294,10 @@ const LUA_REG_TYPE tft_map[] =
   { LSTRKEY( "COLOR_WHITE" ), LNUMVAL( COLOR_WHITE ) },
   { LSTRKEY( "COLOR_BLACK" ), LNUMVAL( COLOR_BLACK ) },
   { LSTRKEY( "COLOR_ORANGE" ), LNUMVAL( COLOR_ORANGE ) },
+  { LSTRKEY( "FONT_8X16" ), LNUMVAL( DEFAULT_FONT_8X16 ) },
+  { LSTRKEY( "FONT_16X32" ), LNUMVAL( DEFAULT_FONT_16X32 ) },
+  { LSTRKEY( "FONT_6X12" ), LNUMVAL( DEFAULT_FONT_6X12 ) },
+  { LSTRKEY( "FONT_12X24" ), LNUMVAL( DEFAULT_FONT_12X24 ) },
   { LNILKEY, LNILVAL }
 };
 
