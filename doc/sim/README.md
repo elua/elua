@@ -23,7 +23,7 @@ To build the toolchain:
 
 1. Follow the [crosstool-ng installation instructions](https://crosstool-ng.github.io/docs/install/) to install crosstool-ng. [Version 1.23.0](http://crosstool-ng.org/download/crosstool-ng/crosstool-ng-1.23.0.tar.xz) of crosstool-ng was used for generating the toolchain used in this document, but newer version should work too.
 2. Add the directory with the 'ct-ng' executable to your PATH.
-3. Create a new directory and copy the crossstool-ng configuation file from [here](.config) to that directory.
+3. Create a new directory and copy the crossstool-ng configuation file from [here](https://raw.githubusercontent.com/elua/elua/master/doc/sim/.config) to that directory.
 4. Execute `ct-ng menuconfig` in that directory. At this point you can examine and even (carefully!) modify the crosstool-ng configuration. When you're done, press "Exit".
 5. Execute `ct-ng build` to build the toolchain. This step will take a while, as it will build the whole toolchain and install it. By default, it will install it to `$HOME/x-tools/i386-unknown-elf` (the installation path can be changed by modifying the configuration in step 4 above).
 6. Add the toolchain's `bin` directory to your PATH:
