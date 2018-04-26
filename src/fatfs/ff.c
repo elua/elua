@@ -285,7 +285,7 @@ FRESULT move_window (
 /*-----------------------------------------------------------------------*/
 #if !_FS_READONLY
 static
-FRESULT sync (	/* FR_OK: successful, FR_DISK_ERR: failed */
+FRESULT ff_sync (	/* FR_OK: successful, FR_DISK_ERR: failed */
 	FATFS *fs	/* File system object */
 )
 {
@@ -2000,7 +2000,7 @@ FRESULT f_sync (
 				ST_DWORD(dir+DIR_WrtTime, tim);
 				fp->flag &= ~FA__WRITTEN;
 				fp->fs->wflag = 1;
-				res = sync(fp->fs);
+				res = ff_sync(fp->fs);
 			}
 		}
 	}
@@ -2465,7 +2465,7 @@ FRESULT f_unlink (
 	if (res == FR_OK) {
 		if (dclst)
 			res = remove_chain(dj.fs, dclst);	/* Remove the cluster chain */
-		if (res == FR_OK) res = sync(dj.fs);
+		if (res == FR_OK) res = ff_sync(dj.fs);
 	}
 
 	LEAVE_FF(dj.fs, res);
@@ -2544,7 +2544,7 @@ FRESULT f_mkdir (
 		ST_WORD(dir+DIR_FstClusLO, dclst);		/* Table start cluster */
 		ST_WORD(dir+DIR_FstClusHI, dclst >> 16);
 		dj.fs->wflag = 1;
-		res = sync(dj.fs);
+		res = ff_sync(dj.fs);
 	}
 
 	LEAVE_FF(dj.fs, res);
@@ -2583,7 +2583,7 @@ FRESULT f_chmod (
 				mask &= AM_RDO|AM_HID|AM_SYS|AM_ARC;	/* Valid attribute mask */
 				dir[DIR_Attr] = (value & mask) | (dir[DIR_Attr] & (BYTE)~mask);	/* Apply attribute change */
 				dj.fs->wflag = 1;
-				res = sync(dj.fs);
+				res = ff_sync(dj.fs);
 			}
 		}
 	}
@@ -2623,7 +2623,7 @@ FRESULT f_utime (
 				ST_WORD(dir+DIR_WrtTime, fno->ftime);
 				ST_WORD(dir+DIR_WrtDate, fno->fdate);
 				dj.fs->wflag = 1;
-				res = sync(dj.fs);
+				res = ff_sync(dj.fs);
 			}
 		}
 	}
@@ -2691,7 +2691,7 @@ FRESULT f_rename (
 			if (res == FR_OK) {
 				res = dir_remove(&dj_old);			/* Remove old entry */
 				if (res == FR_OK)
-					res = sync(dj_old.fs);
+					res = ff_sync(dj_old.fs);
 			}
 		}
 	}
