@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdio.h>
 #include "term.h"
 
 // Platform specific includes
@@ -91,12 +92,13 @@ void *memory_end_address = 0;
 void platform_ll_init( void )
 {
   // Initialise heap memory region.
-  memory_start_address = hostif_getmem( MEM_LENGTH ); 
-  memory_end_address = memory_start_address + MEM_LENGTH;
+  memory_start_address = hostif_getmem( SIM_MEM_SIZE );
+  memory_end_address = memory_start_address + SIM_MEM_SIZE;
 }
 
 int platform_init()
-{ 
+{
+  char memdata[80];
   if( memory_start_address == NULL ) 
   {
     hostif_putstr( "platform_init(): mmap failed\n" );
@@ -115,7 +117,10 @@ int platform_init()
 
   term_clrscr();
   term_gotoxy( 1, 1 );
- 
+  // Show memory information
+  snprintf( memdata, 80, "RAM size is %u bytes (%uKB)\r\n", (unsigned)SIM_MEM_SIZE, (unsigned)SIM_MEM_SIZE / 1024 );
+  hostif_putstr( memdata );
+
   // All done
   return PLATFORM_OK;
 }

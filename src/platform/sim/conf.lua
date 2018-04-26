@@ -15,6 +15,7 @@ local ldscript = sf( "src/platform/%s/%s", platform, ldscript )
 addcf{ '-ffunction-sections', '-fdata-sections', '-fno-strict-aliasing', '-Wall' }
 addlf{ '-nostartfiles', '-nostdlib', '-T', ldscript, '-Wl,--gc-sections', '-Wl,--allow-multiple-definition' }
 addlib{ 'c','gcc','m' }
+addm({"_READ_WRITE_RETURN_TYPE=_ssize_t"})
 
 local target_flags = { '-march=i386','-mfpmath=387','-m32' }
 
