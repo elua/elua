@@ -24,7 +24,7 @@ static FD fd_table[ TOTAL_MAX_FDS ];
 static int romfs_num_fd;
 #ifdef ELUA_CPU_LINUX
 static int wofs_sim_fd;
-#define WOFS_FNAME    "/tmp/wofs.dat"
+#define WOFS_FNAME    "wofs.img"
 #define WOFS_SIZE     (256 * 1024)
 #endif
 

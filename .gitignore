@@ -26,3 +26,4 @@ sdcard.img
 core
 luarpc*
 *.map
+wofs.img
