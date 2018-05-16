@@ -18,7 +18,7 @@ uart_flow =
 uart_values = {}
 
 -- Add a sufficient number of virtual and real UARTs
-for i = 0, 127 do
+for i = 0, 255 do
   uart_values[ sf( 'vuart%d', i ) ] = sf( '( SERMUX_SERVICE_ID_FIRST + %d )', i )
   uart_values[ tostring( i ) ] = i
 end

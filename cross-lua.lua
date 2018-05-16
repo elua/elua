@@ -6,7 +6,8 @@ local sf = string.format
 builder:init( args )
 builder:set_build_mode( builder.BUILD_DIR_LINEARIZED )
 
-local output = 'luac.cross'
+local suffix = utils.is_windows() and '.exe' or ''
+local output = 'luac.cross' .. suffix
 local cdefs = '-DLUA_CROSS_COMPILER'
 
 -- Lua source files and include path
