@@ -96,6 +96,14 @@ local function _validate_ip( adesc, aname, aval, elname, sectname )
   return aval
 end
 
+-- Validator for a boolean value
+local function _validate_bool( adesc, aname, aval, elname, sectname )
+  if type( aval ) ~= "boolean" then
+    return false, sf( "attribute '%s' of element '%s' in section '%s' must be a boolean", aname, elname, sectname)
+  end
+  return aval and 1 or 0
+end
+
 -- Builds a validator with the given array element checker
 local function build_validator( realvname )
   return function( adesc, aname, aval, elname, sectname )
@@ -124,6 +132,7 @@ local validate_choice = build_validator( _validate_choice )
 local validate_log2 = build_validator( _validate_log2 ) 
 local validate_string = build_validator( _validate_string )
 local validate_ip = build_validator( _validate_ip )
+local validate_bool = build_validator( _validate_bool )
 
 -- Composite validator: run each validator in turn
 local function composite_validator( adesc, aname, aval, elname, sectname )
@@ -217,5 +226,10 @@ end
 function nostr( attr )
   attr.allow_string = false
   return attr
+end
+
+-- Returns a new boolean attr (can be either true or false)
+function bool_attr( macro, default )
+    return { macro = macro, validator = validate_bool, default = default }
 end
 
