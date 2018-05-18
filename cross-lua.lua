@@ -22,6 +22,13 @@ local local_include = "-Isrc/lua -Iinc/desktop -Iinc"
 builder:set_compile_cmd( sf( "gcc -O2 %s -Wall %s -c $(FIRST) -o $(TARGET)", local_include, cdefs ) )
 builder:set_link_cmd( "gcc -o $(TARGET) $(DEPENDS) -lm" )
 
+if not utils.is_dir( ".build" ) then
+  if not utils.full_mkdir( ".build" ) then
+    print( "[builder] Unable to create directory .build" )
+    os.exit( 1 )
+  end
+end
+
 -- Build everything
 builder:make_exe_target( output, lua_full_files )
 builder:build()
