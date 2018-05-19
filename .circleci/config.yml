@@ -2,12 +2,32 @@ version: 2
 jobs:
   build:
     docker:
-      - image: debian:stretch
+      - image: circleci/python:2.7-stretch
     steps:
       - checkout
+      - restore_cache:
+          key: bindir
       - run:
-          name: Greeting
-          command: echo Hello, world.
+          name: Install extra software
+          command: |
+            sudo apt-get install lua5.1
+            sudo apt-get install luarocks
+            sudo luarocks install luafilesystem
+            sudo luarocks install lpack
+            sudo luarocks install md5
+            if [ ! -d bin ]; then
+                mkdir bin
+                cd bin
+                wget https://developer.arm.com/-/media/Files/downloads/gnu-rm/7-2017q4/gcc-arm-none-eabi-7-2017-q4-major-linux.tar.bz2
+                tar xvfj gcc-arm-none-eabi-7-2017-q4-major-linux.tar.bz2
+            fi
+      - save_cache:
+          key: bindir
+          paths:
+            - "bin"
       - run:
-          name: Print the Current Time
-          command: date
+          name: Build cross compiler
+          command: lua cross-lua.lua
+      - run:
+          name: Build eLua for EK-LM3S8962
+          command: PATH=$PATH:$(readlink -f bin/gcc-arm-none-eabi-7-2017-q4-major/bin) lua build_elua.lua board=ek-lm3s8962
