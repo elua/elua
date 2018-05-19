@@ -18,6 +18,7 @@ return {
     dhcp = true,
     xmodem = true,
     mmcfs = { spi = 0, cs_port = 6, cs_pin = 0 },
+    niffs = { linear_area = true },
   },
   config = {
     vtmr = { num = 4, freq = 4 },

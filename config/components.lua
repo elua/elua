@@ -201,6 +201,14 @@ function init()
   components.romfs = { macro = 'BUILD_ROMFS' }
   -- WOFS
   components.wofs = { macro = "BUILD_WOFS" }
+  -- NIFFS
+  components.niffs = {
+    macro = "BUILD_NIFFS",
+    attrs = {
+      linear_area = at.make_optional( at.bool_attr( 'NIFFS_LINEAR_AREA' ) )
+    }
+  }
+
   -- All done
   return components
 end

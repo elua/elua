@@ -39,6 +39,7 @@ local elua_generic_modules = {
   term = { guards = { "BUILD_TERM" } },
   tmr = { guards = { "NUM_TIMER > 0" } },
   uart = { guards = { "NUM_UART > 0" } },
+  fs = { guards = { "BUILD_NIFFS" } }
 }
 
 -- All generic modules (Lua and eLua) in a single table
