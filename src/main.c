@@ -22,6 +22,7 @@
 #include "mmcfs.h"
 #include "romfs.h"
 #include "semifs.h"
+#include "nffs.h"
 
 // Define here your autorun/boot files, 
 // in the order you want eLua to search for them
@@ -33,6 +34,10 @@ const char *boot_order[] = {
 #if defined(BUILD_WOFS)
   "/wo/autorun.lua",
   "/wo/autorun.lc",
+#endif
+#if defined(BUILD_NIFFS)
+  "/f/autorun.lua",
+  "/f/autorun.lc",
 #endif
 #if defined(BUILD_ROMFS)
   "/rom/autorun.lua",
@@ -93,6 +98,9 @@ int main( void )
 
   // Register the remote filesystem
   remotefs_init();
+
+  // Register NIFFS
+  nffs_init();
 
   // Search for autorun files in the defined order and execute the 1st if found
   for( i = 0; i < sizeof( boot_order ) / sizeof( *boot_order ); i++ )
