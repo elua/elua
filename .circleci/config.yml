@@ -26,17 +26,5 @@ jobs:
           paths:
             - "bin"
       - run:
-          name: Build cross compiler
-          command: lua cross-lua.lua
-      - run:
-          name: Build eLua for EK-LM3S8962
-          command: PATH=$PATH:$(readlink -f bin/gcc-arm-none-eabi-7-2017-q4-major/bin) lua build_elua.lua board=ek-lm3s8962
-      - run:
-          name: Build eLua for mbed LCP 1768
-          command: PATH=$PATH:$(readlink -f bin/gcc-arm-none-eabi-7-2017-q4-major/bin) lua build_elua.lua board=mbed
-      - run:
-          name: Build eLua for elua-puc
-          command: PATH=$PATH:$(readlink -f bin/gcc-arm-none-eabi-7-2017-q4-major/bin) lua build_elua.lua board=elua-puc
-      - run:
-          name: Build eLua for arm2368
-          command: PATH=$PATH:$(readlink -f bin/gcc-arm-none-eabi-7-2017-q4-major/bin) lua build_elua.lua board=arm2368
+          name: Build eLua
+          command: PATH=$PATH:$(readlink -f bin/gcc-arm-none-eabi-7-2017-q4-major/bin) lua .circleci/ci_builder.lua
