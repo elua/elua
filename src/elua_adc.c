@@ -44,7 +44,7 @@ void adc_update_dev_sequence( unsigned dev_id  )
       {
         s = adc_get_ch_state( id );
         d->ch_state[ d->seq_ctr ] = s;
-        s->value_ptr = &( d->sample_buf[ d->seq_ctr ] );
+        s->value_ptr = &( d->sample_buf[ s->id ] );
         s->value_fresh = 0;
         if( s->id == previd )
           tmp_seq_ctr = d->seq_ctr;

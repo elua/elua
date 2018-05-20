@@ -542,7 +542,7 @@ static void adc_int_handler()
   dreg_t =  *( PREG )adc_dr[ s->id ];
   if ( dreg_t & ( 1UL << 31 ) )
   { 
-    d->sample_buf[ d->seq_ctr ] = ( u16 )( ( dreg_t >> 6 ) & 0x3FF );
+    d->sample_buf[ s->id ] = ( u16 )( ( dreg_t >> 6 ) & 0x3FF );
     AD0CR &= 0xF8FFFF00;        // stop ADC, disable channels
     s->value_fresh = 1;
             

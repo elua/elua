@@ -465,7 +465,7 @@ void ADC_IRQHandler(void)
 
   if ( ADC_ChannelGetStatus( LPC_ADC, s->id, ADC_DATA_DONE ) )
   {
-    d->sample_buf[ d->seq_ctr ] = ( u16 )ADC_ChannelGetData( LPC_ADC, s->id );
+    d->sample_buf[ s->id ] = ( u16 )ADC_ChannelGetData( LPC_ADC, s->id );
     s->value_fresh = 1;
 
     if ( s->logsmoothlen > 0 && s->smooth_ready == 0)
