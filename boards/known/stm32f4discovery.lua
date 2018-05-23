@@ -6,7 +6,7 @@ return {
     sercon = { uart = "cdc", speed = 115200 },
     romfs = true,
     cdc = { buf_size = 128 },
-    advanced_shell = true,
+    shell = { advanced = true },
     term = { lines = 25, cols = 80 },
     linenoise = { shell_lines = 10, lua_lines = 50 },
     stm32f4_enc = true,

@@ -41,7 +41,7 @@ function config_element( section, sectname, name, data, req )
   end
   -- Set default values where needed
   for name, data in pairs( attrs ) do
-    if not conf[ data.macro ] and data.default then
+    if not conf[ data.macro ] and ( data.default ~= nil ) then
       conf[ data.macro ] = { name = name, desc = data, value = data.default, sectname = sectname, elname = name, from_default = true }
     end
   end
