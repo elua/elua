@@ -21,11 +21,10 @@ extern void* elua_sbrk( ptrdiff_t incr );
 /*
   This is a version (aka dlmalloc) of malloc/free/realloc written by
   Doug Lea and released to the public domain, as explained at
-  http://creativecommons.org/licenses/publicdomain.  Send questions,
+  http://creativecommons.org/publicdomain/zero/1.0/ Send questions,
   comments, complaints, performance data, etc to dl@cs.oswego.edu
 
-* Version 2.8.3 Thu Sep 22 11:16:15 2005  Doug Lea  (dl at gee)
-
+* Version 2.8.6 Wed Aug 29 06:57:58 2012  Doug Lea
    Note: There may be an updated version of this malloc obtainable at
            ftp://gee.cs.oswego.edu/pub/misc/malloc.c
          Check before installing!
@@ -39,7 +38,7 @@ extern void* elua_sbrk( ptrdiff_t incr );
   compile-time and dynamic tuning options.
 
   For convenience, an include file for code using this malloc is at:
-     ftp://gee.cs.oswego.edu/pub/misc/malloc-2.8.3.h
+     ftp://gee.cs.oswego.edu/pub/misc/malloc-2.8.6.h
   You don't really need this .h file unless you call functions not
   defined in your system include files.  The .h file contains only the
   excerpts from this file needed for using this malloc on ANSI C/C++
@@ -61,7 +60,7 @@ extern void* elua_sbrk( ptrdiff_t incr );
        than pointers, you can use a previous release of this malloc
        (e.g. 2.7.2) supporting these.)
 
-  Alignment:                                     8 bytes (default)
+  Alignment:                                     8 bytes (minimum)
        This suffices for nearly all current machines and C compilers.
        However, you can define MALLOC_ALIGNMENT to be wider than this
        if necessary (up to 128bytes), at the expense of using more space.
@@ -124,15 +123,28 @@ extern void* elua_sbrk( ptrdiff_t incr );
        no errors or vulnerabilities, you can define INSECURE to 1,
        which might (or might not) provide a small performance improvement.
 
-  Thread-safety: NOT thread-safe unless USE_LOCKS defined
+       It is also possible to limit the maximum total allocatable
+       space, using malloc_set_footprint_limit. This is not
+       designed as a security feature in itself (calls to set limits
+       are not screened or privileged), but may be useful as one
+       aspect of a secure implementation.
+
+  Thread-safety: NOT thread-safe unless USE_LOCKS defined non-zero
        When USE_LOCKS is defined, each public call to malloc, free,
-       etc is surrounded with either a pthread mutex or a win32
-       spinlock (depending on WIN32). This is not especially fast, and
-       can be a major bottleneck.  It is designed only to provide
-       minimal protection in concurrent environments, and to provide a
-       basis for extensions.  If you are using malloc in a concurrent
-       program, consider instead using ptmalloc, which is derived from
-       a version of this malloc. (See http://www.malloc.de).
+       etc is surrounded with a lock. By default, this uses a plain
+       pthread mutex, win32 critical section, or a spin-lock if if
+       available for the platform and not disabled by setting
+       USE_SPIN_LOCKS=0.  However, if USE_RECURSIVE_LOCKS is defined,
+       recursive versions are used instead (which are not required for
+       base functionality but may be needed in layered extensions).
+       Using a global lock is not especially fast, and can be a major
+       bottleneck.  It is designed only to provide minimal protection
+       in concurrent environments, and to provide a basis for
+       extensions.  If you are using malloc in a concurrent program,
+       consider instead using nedmalloc
+       (http://www.nedprod.com/programs/portable/nedmalloc/) or
+       ptmalloc (See http://www.malloc.de), which are derived from
+       versions of this malloc.
 
   System requirements: Any combination of MORECORE and/or MMAP/MUNMAP
        This malloc can use unix sbrk or any emulation (invoked using
@@ -173,7 +185,11 @@ extern void* elua_sbrk( ptrdiff_t incr );
   a size_t, not counting any clearing in calloc or copying in realloc,
   or actions surrounding MORECORE and MMAP that have times
   proportional to the number of non-contiguous regions returned by
-  system allocation routines, which is often just 1.
+  system allocation routines, which is often just 1. In real-time
+  applications, you can optionally suppress segment traversals using
+  NO_SEGMENT_TRAVERSAL, which assures bounded execution even when
+  system allocators return non-contiguous spaces, at the typical
+  expense of carrying around more memory and increased fragmentation.
 
   The implementation is not very modular and seriously overuses
   macros. Perhaps someday all C compilers will do as good a job
@@ -217,19 +233,39 @@ extern void* elua_sbrk( ptrdiff_t incr );
   conformance is only weakly checked, so usage errors are not always
   caught). If FOOTERS is defined, then each chunk carries around a tag
   indicating its originating mspace, and frees are directed to their
-  originating spaces.
+  originating spaces. Normally, this requires use of locks.
 
  -------------------------  Compile-time options ---------------------------
 
 Be careful in setting #define values for numerical constants of type
 size_t. On some systems, literal values are not automatically extended
-to size_t precision unless they are explicitly casted.
+to size_t precision unless they are explicitly casted. You can also
+use the symbolic values MAX_SIZE_T, SIZE_T_ONE, etc below.
 
 WIN32                    default: defined if _WIN32 defined
   Defining WIN32 sets up defaults for MS environment and compilers.
-  Otherwise defaults are for unix.
+  Otherwise defaults are for unix. Beware that there seem to be some
+  cases where this malloc might not be a pure drop-in replacement for
+  Win32 malloc: Random-looking failures from Win32 GDI API's (eg;
+  SetDIBits()) may be due to bugs in some video driver implementations
+  when pixel buffers are malloc()ed, and the region spans more than
+  one VirtualAlloc()ed region. Because dlmalloc uses a small (64Kb)
+  default granularity, pixel buffers may straddle virtual allocation
+  regions more often than when using the Microsoft allocator.  You can
+  avoid this by using VirtualAlloc() and VirtualFree() for all pixel
+  buffers rather than using malloc().  If this is not possible,
+  recompile this malloc with a larger DEFAULT_GRANULARITY. Note:
+  in cases where MSC and gcc (cygwin) are known to differ on WIN32,
+  conditions use _MSC_VER to distinguish them.
 
-MALLOC_ALIGNMENT         default: (size_t)8
+DLMALLOC_EXPORT       default: extern
+  Defines how public APIs are declared. If you want to export via a
+  Windows DLL, you might define this as
+    #define DLMALLOC_EXPORT extern  __declspec(dllexport)
+  If you want a POSIX ELF shared object, you might use
+    #define DLMALLOC_EXPORT extern __attribute__((visibility("default")))
+
+MALLOC_ALIGNMENT         default: (size_t)(2 * sizeof(void *))
   Controls the minimum alignment for malloc'ed chunks.  It must be a
   power of two and at least 8, even on machines for which smaller
   alignments would suffice. It may be defined as larger than this
@@ -246,7 +282,27 @@ ONLY_MSPACES             default: 0 (false)
 USE_LOCKS                default: 0 (false)
   Causes each call to each public routine to be surrounded with
   pthread or WIN32 mutex lock/unlock. (If set true, this can be
-  overridden on a per-mspace basis for mspace versions.)
+  overridden on a per-mspace basis for mspace versions.) If set to a
+  non-zero value other than 1, locks are used, but their
+  implementation is left out, so lock functions must be supplied manually,
+  as described below.
+
+USE_SPIN_LOCKS           default: 1 iff USE_LOCKS and spin locks available
+  If true, uses custom spin locks for locking. This is currently
+  supported only gcc >= 4.1, older gccs on x86 platforms, and recent
+  MS compilers.  Otherwise, posix locks or win32 critical sections are
+  used.
+
+USE_RECURSIVE_LOCKS      default: not defined
+  If defined nonzero, uses recursive (aka reentrant) locks, otherwise
+  uses plain mutexes. This is not required for malloc proper, but may
+  be needed for layered allocators such as nedmalloc.
+
+LOCK_AT_FORK            default: not defined
+  If defined nonzero, performs pthread_atfork upon initialization
+  to initialize child lock while holding parent lock. The implementation
+  assumes that pthread locks (not custom locks) are being used. In other
+  cases, you may need to customize the implementation.
 
 FOOTERS                  default: 0
   If true, provide extra checking and dispatching by placing
@@ -260,6 +316,12 @@ USE_DL_PREFIX            default: NOT defined
   Causes compiler to prefix all public routines with the string 'dl'.
   This can be useful when you only want to use this malloc in one part
   of a program, using your regular system malloc elsewhere.
+
+MALLOC_INSPECT_ALL       default: NOT defined
+  If defined, compiles malloc_inspect_all and mspace_inspect_all, that
+  perform traversal of all heap space.  Unless access to these
+  functions is otherwise restricted, you probably do not want to
+  include them in secure implementations.
 
 ABORT                    default: defined as abort()
   Defines how to abort on failed checks.  On most systems, a failed
@@ -317,11 +379,9 @@ MORECORE                  default: sbrk
   size_t (sometimes declared as "intptr_t").  It doesn't much matter
   though. Internally, we only call it with arguments less than half
   the max value of a size_t, which should work across all reasonable
-  possibilities, although sometimes generating compiler warnings.  See
-  near the end of this file for guidelines for creating a custom
-  version of MORECORE.
+  possibilities, although sometimes generating compiler warnings.
 
-MORECORE_CONTIGUOUS       default: 1 (true)
+MORECORE_CONTIGUOUS       default: 1 (true) if HAVE_MORECORE
   If true, take advantage of fact that consecutive calls to MORECORE
   with positive arguments always return contiguous increasing
   addresses.  This is true of unix sbrk. It does not hurt too much to
@@ -334,6 +394,12 @@ MORECORE_CANNOT_TRIM      default: NOT defined
   negative arguments. This is generally necessary only if you are
   using a hand-crafted MORECORE function that cannot handle negative
   arguments.
+
+NO_SEGMENT_TRAVERSAL       default: 0
+  If non-zero, suppresses traversals of memory segments
+  returned by either MORECORE or CALL_MMAP. This disables
+  merging of segments that are contiguous, and selectively
+  releasing them to the OS if unused, but bounds execution times.
 
 HAVE_MMAP                 default: 1 (true)
   True if this system supports mmap or an emulation of it.  If so, and
@@ -349,17 +415,17 @@ HAVE_MREMAP               default: 1 on linux, else 0
   If true realloc() uses mremap() to re-allocate large blocks and
   extend or shrink allocation spaces.
 
-MMAP_CLEARS               default: 1 on unix
+MMAP_CLEARS               default: 1 except on WINCE.
   True if mmap clears memory so calloc doesn't need to. This is true
-  for standard unix mmap using /dev/zero.
+  for standard unix mmap using /dev/zero and on WIN32 except for WINCE.
 
 USE_BUILTIN_FFS            default: 0 (i.e., not used)
   Causes malloc to use the builtin ffs() function to compute indices.
   Some compilers may recognize and intrinsify ffs to be faster than the
   supplied C version. Also, the case of x86 using gcc is special-cased
   to an asm instruction, so is already as fast as it can be, and so
-  this setting has no effect. (On most x86s, the asm version is only
-  slightly faster than the C version.)
+  this setting has no effect. Similarly for Win32 under recent MS compilers.
+  (On most x86s, the asm version is only slightly faster than the C version.)
 
 malloc_getpagesize         default: derive from system includes, or 4096.
   The system page size. To the extent possible, this malloc manages
@@ -382,15 +448,19 @@ MALLINFO_FIELD_TYPE        default: size_t
   defined as "int" in SVID etc, but is more usefully defined as
   size_t. The value is used only if  HAVE_USR_INCLUDE_MALLOC_H is not set
 
+NO_MALLOC_STATS            default: 0
+  If defined, don't compile "malloc_stats". This avoids calls to
+  fprintf and bringing in stdio dependencies you might not want.
+
 REALLOC_ZERO_BYTES_FREES    default: not defined
-  This should be set if a call to realloc with zero bytes should 
-  be the same as a call to free. Some people think it should. Otherwise, 
-  since this malloc returns a unique pointer for malloc(0), so does 
+  This should be set if a call to realloc with zero bytes should
+  be the same as a call to free. Some people think it should. Otherwise,
+  since this malloc returns a unique pointer for malloc(0), so does
   realloc(p, 0).
 
 LACKS_UNISTD_H, LACKS_FCNTL_H, LACKS_SYS_PARAM_H, LACKS_SYS_MMAN_H
 LACKS_STRINGS_H, LACKS_STRING_H, LACKS_SYS_TYPES_H,  LACKS_ERRNO_H
-LACKS_STDLIB_H                default: NOT defined unless on WIN32
+LACKS_STDLIB_H LACKS_SCHED_H LACKS_TIME_H  default: NOT defined unless on WIN32
   Define these if your system does not have these header files.
   You might need to manually insert some of the declarations they provide.
 
@@ -456,16 +526,43 @@ DEFAULT_MMAP_THRESHOLD       default: 256K
   empirically derived value that works well in most systems. You can
   disable mmap by setting to MAX_SIZE_T.
 
+MAX_RELEASE_CHECK_RATE   default: 4095 unless not HAVE_MMAP
+  The number of consolidated frees between checks to release
+  unused segments when freeing. When using non-contiguous segments,
+  especially with multiple mspaces, checking only for topmost space
+  doesn't always suffice to trigger trimming. To compensate for this,
+  free() will, with a period of MAX_RELEASE_CHECK_RATE (or the
+  current number of segments, if greater) try to release unused
+  segments to the OS when freeing chunks that result in
+  consolidation. The best value for this parameter is a compromise
+  between slowing down frees with relatively costly checks that
+  rarely trigger versus holding on to unused memory. To effectively
+  disable, set to MAX_SIZE_T. This may lead to a very slight speed
+  improvement at the expense of carrying around more memory.
 */
+
+/* Version identifier to allow people to support multiple versions */
+#ifndef DLMALLOC_VERSION
+#define DLMALLOC_VERSION 20806
+#endif /* DLMALLOC_VERSION */
+
+#ifndef DLMALLOC_EXPORT
+#define DLMALLOC_EXPORT extern
+#endif
 
 #ifndef WIN32
 #ifdef _WIN32
 #define WIN32 1
 #endif  /* _WIN32 */
+#ifdef _WIN32_WCE
+#define LACKS_FCNTL_H
+#define WIN32 1
+#endif /* _WIN32_WCE */
 #endif  /* WIN32 */
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <tchar.h>
 #define HAVE_MMAP 1
 #define HAVE_MORECORE 0
 #define LACKS_UNISTD_H
@@ -475,8 +572,17 @@ DEFAULT_MMAP_THRESHOLD       default: 256K
 #define LACKS_STRINGS_H
 #define LACKS_SYS_TYPES_H
 #define LACKS_ERRNO_H
+#define LACKS_SCHED_H
+#ifndef MALLOC_FAILURE_ACTION
 #define MALLOC_FAILURE_ACTION
-#define MMAP_CLEARS 0 /* WINCE and some others apparently don't clear */
+#endif /* MALLOC_FAILURE_ACTION */
+#ifndef MMAP_CLEARS
+#ifdef _WIN32_WCE /* WINCE reportedly does not clear */
+#define MMAP_CLEARS 0
+#else
+#define MMAP_CLEARS 1
+#endif /* _WIN32_WCE */
+#endif /*MMAP_CLEARS */
 #endif  /* WIN32 */
 
 #if defined(DARWIN) || defined(_DARWIN)
@@ -484,6 +590,10 @@ DEFAULT_MMAP_THRESHOLD       default: 256K
 #ifndef HAVE_MORECORE
 #define HAVE_MORECORE 0
 #define HAVE_MMAP 1
+/* OSX allocators provide 16 byte alignment */
+#ifndef MALLOC_ALIGNMENT
+#define MALLOC_ALIGNMENT ((size_t)16U)
+#endif
 #endif  /* HAVE_MORECORE */
 #endif  /* DARWIN */
 
@@ -493,6 +603,26 @@ DEFAULT_MMAP_THRESHOLD       default: 256K
 
 /* The maximum possible size_t value has all bits set */
 #define MAX_SIZE_T           (~(size_t)0)
+
+#ifndef USE_LOCKS /* ensure true if spin or recursive locks set */
+#define USE_LOCKS  ((defined(USE_SPIN_LOCKS) && USE_SPIN_LOCKS != 0) || \
+                    (defined(USE_RECURSIVE_LOCKS) && USE_RECURSIVE_LOCKS != 0))
+#endif /* USE_LOCKS */
+
+#if USE_LOCKS /* Spin locks for gcc >= 4.1, older gcc on x86, MSC >= 1310 */
+#if ((defined(__GNUC__) &&                                              \
+      ((__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1)) ||      \
+       defined(__i386__) || defined(__x86_64__))) ||                    \
+     (defined(_MSC_VER) && _MSC_VER>=1310))
+#ifndef USE_SPIN_LOCKS
+#define USE_SPIN_LOCKS 1
+#endif /* USE_SPIN_LOCKS */
+#elif USE_SPIN_LOCKS
+#error "USE_SPIN_LOCKS defined without implementation"
+#endif /* ... locks available... */
+#elif !defined(USE_SPIN_LOCKS)
+#define USE_SPIN_LOCKS 0
+#endif /* USE_LOCKS */
 
 #ifndef ONLY_MSPACES
 #define ONLY_MSPACES 0
@@ -505,7 +635,7 @@ DEFAULT_MMAP_THRESHOLD       default: 256K
 #endif  /* ONLY_MSPACES */
 #endif  /* MSPACES */
 #ifndef MALLOC_ALIGNMENT
-#define MALLOC_ALIGNMENT ((size_t)8U)
+#define MALLOC_ALIGNMENT ((size_t)(2 * sizeof(void *)))
 #endif  /* MALLOC_ALIGNMENT */
 #ifndef FOOTERS
 #define FOOTERS 0
@@ -519,12 +649,13 @@ DEFAULT_MMAP_THRESHOLD       default: 256K
 #ifndef PROCEED_ON_ERROR
 #define PROCEED_ON_ERROR 0
 #endif  /* PROCEED_ON_ERROR */
-#ifndef USE_LOCKS
-#define USE_LOCKS 0
-#endif  /* USE_LOCKS */
+
 #ifndef INSECURE
 #define INSECURE 0
 #endif  /* INSECURE */
+#ifndef MALLOC_INSPECT_ALL
+#define MALLOC_INSPECT_ALL 0
+#endif  /* MALLOC_INSPECT_ALL */
 #ifndef HAVE_MMAP
 #define HAVE_MMAP 1
 #endif  /* HAVE_MMAP */
@@ -534,6 +665,7 @@ DEFAULT_MMAP_THRESHOLD       default: 256K
 #ifndef HAVE_MREMAP
 #ifdef linux
 #define HAVE_MREMAP 1
+#define _GNU_SOURCE /* Turns on mremap() definition */
 #else   /* linux */
 #define HAVE_MREMAP 0
 #endif  /* linux */
@@ -551,15 +683,13 @@ DEFAULT_MMAP_THRESHOLD       default: 256K
 #if !HAVE_MORECORE
 #define MORECORE_CONTIGUOUS 0
 #else   /* !HAVE_MORECORE */
-#ifndef MORECORE
-#define MORECORE sbrk
-#endif  /* MORECORE */
+#define MORECORE_DEFAULT sbrk
 #ifndef MORECORE_CONTIGUOUS
 #define MORECORE_CONTIGUOUS 1
 #endif  /* MORECORE_CONTIGUOUS */
 #endif  /* HAVE_MORECORE */
 #ifndef DEFAULT_GRANULARITY
-#if MORECORE_CONTIGUOUS
+#if (MORECORE_CONTIGUOUS || defined(WIN32))
 #define DEFAULT_GRANULARITY (0)  /* 0 means to compute in init_mparams */
 #else   /* MORECORE_CONTIGUOUS */
 #define DEFAULT_GRANULARITY ((size_t)64U * (size_t)1024U)
@@ -579,6 +709,13 @@ DEFAULT_MMAP_THRESHOLD       default: 256K
 #define DEFAULT_MMAP_THRESHOLD MAX_SIZE_T
 #endif  /* HAVE_MMAP */
 #endif  /* DEFAULT_MMAP_THRESHOLD */
+#ifndef MAX_RELEASE_CHECK_RATE
+#if HAVE_MMAP
+#define MAX_RELEASE_CHECK_RATE 4095
+#else
+#define MAX_RELEASE_CHECK_RATE MAX_SIZE_T
+#endif /* HAVE_MMAP */
+#endif /* MAX_RELEASE_CHECK_RATE */
 #ifndef USE_BUILTIN_FFS
 #define USE_BUILTIN_FFS 0
 #endif  /* USE_BUILTIN_FFS */
@@ -591,6 +728,12 @@ DEFAULT_MMAP_THRESHOLD       default: 256K
 #ifndef MALLINFO_FIELD_TYPE
 #define MALLINFO_FIELD_TYPE size_t
 #endif  /* MALLINFO_FIELD_TYPE */
+#ifndef NO_MALLOC_STATS
+#define NO_MALLOC_STATS 0
+#endif  /* NO_MALLOC_STATS */
+#ifndef NO_SEGMENT_TRAVERSAL
+#define NO_SEGMENT_TRAVERSAL 0
+#endif /* NO_SEGMENT_TRAVERSAL */
 
 /*
   mallopt tuning options.  SVID/XPG defines four standard parameter
@@ -633,7 +776,10 @@ DEFAULT_MMAP_THRESHOLD       default: 256K
 #ifdef HAVE_USR_INCLUDE_MALLOC_H
 #include "/usr/include/malloc.h"
 #else /* HAVE_USR_INCLUDE_MALLOC_H */
-
+#ifndef STRUCT_MALLINFO_DECLARED
+/* HP-UX (and others?) redefines mallinfo unless _STRUCT_MALLINFO is defined */
+#define _STRUCT_MALLINFO
+#define STRUCT_MALLINFO_DECLARED 1
 struct mallinfo {
   MALLINFO_FIELD_TYPE arena;    /* non-mmapped space allocated from system */
   MALLINFO_FIELD_TYPE ordblks;  /* number of free chunks */
@@ -646,13 +792,41 @@ struct mallinfo {
   MALLINFO_FIELD_TYPE fordblks; /* total free space */
   MALLINFO_FIELD_TYPE keepcost; /* releasable (via malloc_trim) space */
 };
-
+#endif /* STRUCT_MALLINFO_DECLARED */
 #endif /* HAVE_USR_INCLUDE_MALLOC_H */
 #endif /* NO_MALLINFO */
 
+/*
+  Try to persuade compilers to inline. The most critical functions for
+  inlining are defined as macros, so these aren't used for them.
+*/
+
+#ifndef FORCEINLINE
+  #if defined(__GNUC__)
+#define FORCEINLINE __inline __attribute__ ((always_inline))
+  #elif defined(_MSC_VER)
+    #define FORCEINLINE __forceinline
+  #endif
+#endif
+#ifndef NOINLINE
+  #if defined(__GNUC__)
+    #define NOINLINE __attribute__ ((noinline))
+  #elif defined(_MSC_VER)
+    #define NOINLINE __declspec(noinline)
+  #else
+    #define NOINLINE
+  #endif
+#endif
+
 #ifdef __cplusplus
 extern "C" {
+#ifndef FORCEINLINE
+ #define FORCEINLINE inline
+#endif
 #endif /* __cplusplus */
+#ifndef FORCEINLINE
+ #define FORCEINLINE
+#endif
 
 #if !ONLY_MSPACES
 
@@ -663,7 +837,9 @@ extern "C" {
 #define dlfree                 free
 #define dlmalloc               malloc
 #define dlmemalign             memalign
+#define dlposix_memalign       posix_memalign
 #define dlrealloc              realloc
+#define dlrealloc_in_place     realloc_in_place
 #define dlvalloc               valloc
 #define dlpvalloc              pvalloc
 #define dlmallinfo             mallinfo
@@ -673,10 +849,13 @@ extern "C" {
 #define dlmalloc_usable_size   malloc_usable_size
 #define dlmalloc_footprint     malloc_footprint
 #define dlmalloc_max_footprint malloc_max_footprint
+#define dlmalloc_footprint_limit malloc_footprint_limit
+#define dlmalloc_set_footprint_limit malloc_set_footprint_limit
+#define dlmalloc_inspect_all   malloc_inspect_all
 #define dlindependent_calloc   independent_calloc
 #define dlindependent_comalloc independent_comalloc
+#define dlbulk_free            bulk_free
 #endif /* USE_DL_PREFIX */
-
 
 /*
   malloc(size_t n)
@@ -692,7 +871,7 @@ extern "C" {
   maximum supported value of n differs across systems, but is in all
   cases less than the maximum representable value of a size_t.
 */
-void* dlmalloc(size_t);
+DLMALLOC_EXPORT void* dlmalloc(size_t);
 
 /*
   free(void* p)
@@ -701,14 +880,14 @@ void* dlmalloc(size_t);
   It has no effect if p is null. If p was not malloced or already
   freed, free(p) will by default cause the current program to abort.
 */
-void  dlfree(void*);
+DLMALLOC_EXPORT void  dlfree(void*);
 
 /*
   calloc(size_t n_elements, size_t element_size);
   Returns a pointer to n_elements * element_size bytes, with all locations
   set to zero.
 */
-void* dlcalloc(size_t, size_t);
+DLMALLOC_EXPORT void* dlcalloc(size_t, size_t);
 
 /*
   realloc(void* p, size_t n)
@@ -732,8 +911,22 @@ void* dlcalloc(size_t, size_t);
   The old unix realloc convention of allowing the last-free'd chunk
   to be used as an argument to realloc is not supported.
 */
+DLMALLOC_EXPORT void* dlrealloc(void*, size_t);
 
-void* dlrealloc(void*, size_t);
+/*
+  realloc_in_place(void* p, size_t n)
+  Resizes the space allocated for p to size n, only if this can be
+  done without moving p (i.e., only if there is adjacent space
+  available if n is greater than p's current allocated size, or n is
+  less than or equal to p's size). This may be used instead of plain
+  realloc if an alternative allocation strategy is needed upon failure
+  to expand space; for example, reallocation of a buffer that must be
+  memory-aligned or cleared. You can use realloc_in_place to trigger
+  these alternatives only when needed.
+
+  Returns p if successful; otherwise null.
+*/
+DLMALLOC_EXPORT void* dlrealloc_in_place(void*, size_t);
 
 /*
   memalign(size_t alignment, size_t n);
@@ -747,14 +940,24 @@ void* dlrealloc(void*, size_t);
 
   Overreliance on memalign is a sure way to fragment space.
 */
-void* dlmemalign(size_t, size_t);
+DLMALLOC_EXPORT void* dlmemalign(size_t, size_t);
+
+/*
+  int posix_memalign(void** pp, size_t alignment, size_t n);
+  Allocates a chunk of n bytes, aligned in accord with the alignment
+  argument. Differs from memalign only in that it (1) assigns the
+  allocated memory to *pp rather than returning it, (2) fails and
+  returns EINVAL if the alignment is not a power of two (3) fails and
+  returns ENOMEM if memory cannot be allocated.
+*/
+DLMALLOC_EXPORT int dlposix_memalign(void**, size_t, size_t);
 
 /*
   valloc(size_t n);
   Equivalent to memalign(pagesize, n), where pagesize is the page
   size of the system. If the pagesize is unknown, 4096 is used.
 */
-void* dlvalloc(size_t);
+DLMALLOC_EXPORT void* dlvalloc(size_t);
 
 /*
   mallopt(int parameter_number, int parameter_value)
@@ -762,7 +965,11 @@ void* dlvalloc(size_t);
   (parameter-number, parameter-value) pair.  mallopt then sets the
   corresponding parameter to the argument value if it can (i.e., so
   long as the value is meaningful), and returns 1 if successful else
-  0.  SVID/XPG/ANSI defines four standard param numbers for mallopt,
+  0.  To workaround the fact that mallopt is specified to use int,
+  not size_t parameters, the value -1 is specially treated as the
+  maximum unsigned size_t value.
+
+  SVID/XPG/ANSI defines four standard param numbers for mallopt,
   normally defined in malloc.h.  None of these are use in this malloc,
   so setting them has no effect. But this malloc also supports other
   options in mallopt. See below for details.  Briefly, supported
@@ -770,11 +977,11 @@ void* dlvalloc(size_t);
   configurations).
 
   Symbol            param #  default    allowed param values
-  M_TRIM_THRESHOLD     -1   2*1024*1024   any   (MAX_SIZE_T disables)
+  M_TRIM_THRESHOLD     -1   2*1024*1024   any   (-1 disables)
   M_GRANULARITY        -2     page size   any power of 2 >= page size
   M_MMAP_THRESHOLD     -3      256*1024   any   (or 0 if no MMAP support)
 */
-int dlmallopt(int, int);
+DLMALLOC_EXPORT int dlmallopt(int, int);
 
 /*
   malloc_footprint();
@@ -785,7 +992,7 @@ int dlmallopt(int, int);
   Even if locks are otherwise defined, this function does not use them,
   so results might not be up to date.
 */
-size_t dlmalloc_footprint(void);
+DLMALLOC_EXPORT size_t dlmalloc_footprint(void);
 
 /*
   malloc_max_footprint();
@@ -798,7 +1005,66 @@ size_t dlmalloc_footprint(void);
   otherwise defined, this function does not use them, so results might
   not be up to date.
 */
-size_t dlmalloc_max_footprint(void);
+DLMALLOC_EXPORT size_t dlmalloc_max_footprint(void);
+
+/*
+  malloc_footprint_limit();
+  Returns the number of bytes that the heap is allowed to obtain from
+  the system, returning the last value returned by
+  malloc_set_footprint_limit, or the maximum size_t value if
+  never set. The returned value reflects a permission. There is no
+  guarantee that this number of bytes can actually be obtained from
+  the system.
+*/
+DLMALLOC_EXPORT size_t dlmalloc_footprint_limit();
+
+/*
+  malloc_set_footprint_limit();
+  Sets the maximum number of bytes to obtain from the system, causing
+  failure returns from malloc and related functions upon attempts to
+  exceed this value. The argument value may be subject to page
+  rounding to an enforceable limit; this actual value is returned.
+  Using an argument of the maximum possible size_t effectively
+  disables checks. If the argument is less than or equal to the
+  current malloc_footprint, then all future allocations that require
+  additional system memory will fail. However, invocation cannot
+  retroactively deallocate existing used memory.
+*/
+DLMALLOC_EXPORT size_t dlmalloc_set_footprint_limit(size_t bytes);
+
+#if MALLOC_INSPECT_ALL
+/*
+  malloc_inspect_all(void(*handler)(void *start,
+                                    void *end,
+                                    size_t used_bytes,
+                                    void* callback_arg),
+                      void* arg);
+  Traverses the heap and calls the given handler for each managed
+  region, skipping all bytes that are (or may be) used for bookkeeping
+  purposes.  Traversal does not include include chunks that have been
+  directly memory mapped. Each reported region begins at the start
+  address, and continues up to but not including the end address.  The
+  first used_bytes of the region contain allocated data. If
+  used_bytes is zero, the region is unallocated. The handler is
+  invoked with the given callback argument. If locks are defined, they
+  are held during the entire traversal. It is a bad idea to invoke
+  other malloc functions from within the handler.
+
+  For example, to count the number of in-use chunks with size greater
+  than 1000, you could write:
+  static int count = 0;
+  void count_chunks(void* start, void* end, size_t used, void* arg) {
+    if (used >= 1000) ++count;
+  }
+  then:
+    malloc_inspect_all(count_chunks, NULL);
+
+  malloc_inspect_all is compiled only if MALLOC_INSPECT_ALL is defined.
+*/
+DLMALLOC_EXPORT void dlmalloc_inspect_all(void(*handler)(void*, void *, size_t, void*),
+                           void* arg);
+
+#endif /* MALLOC_INSPECT_ALL */
 
 #if !NO_MALLINFO
 /*
@@ -823,7 +1089,7 @@ size_t dlmalloc_max_footprint(void);
   be kept as longs, the reported values may wrap around zero and
   thus be inaccurate.
 */
-struct mallinfo dlmallinfo(void);
+DLMALLOC_EXPORT struct mallinfo dlmallinfo(void);
 #endif /* NO_MALLINFO */
 
 /*
@@ -850,11 +1116,8 @@ struct mallinfo dlmallinfo(void);
   is null, it returns a chunk representing an array with zero elements
   (which should be freed if not wanted).
 
-  Each element must be individually freed when it is no longer
-  needed. If you'd like to instead be able to free all at once, you
-  should instead use regular calloc and assign pointers into this
-  space to represent elements.  (In this case though, you cannot
-  independently free elements.)
+  Each element must be freed when it is no longer needed. This can be
+  done all at once using bulk_free.
 
   independent_calloc simplifies and speeds up implementations of many
   kinds of pools.  It may also be useful when constructing large data
@@ -878,7 +1141,7 @@ struct mallinfo dlmallinfo(void);
     return first;
   }
 */
-void** dlindependent_calloc(size_t, size_t, void**);
+DLMALLOC_EXPORT void** dlindependent_calloc(size_t, size_t, void**);
 
 /*
   independent_comalloc(size_t n_elements, size_t sizes[], void* chunks[]);
@@ -902,11 +1165,8 @@ void** dlindependent_calloc(size_t, size_t, void**);
   null, it returns a chunk representing an array with zero elements
   (which should be freed if not wanted).
 
-  Each element must be individually freed when it is no longer
-  needed. If you'd like to instead be able to free all at once, you
-  should instead use a single regular malloc, and assign pointers at
-  particular offsets in the aggregate space. (In this case though, you
-  cannot independently free elements.)
+  Each element must be freed when it is no longer needed. This can be
+  done all at once using bulk_free.
 
   independent_comallac differs from independent_calloc in that each
   element may have a different size, and also that it does not
@@ -939,15 +1199,25 @@ void** dlindependent_calloc(size_t, size_t, void**);
   since it cannot reuse existing noncontiguous small chunks that
   might be available for some of the elements.
 */
-void** dlindependent_comalloc(size_t, size_t*, void**);
+DLMALLOC_EXPORT void** dlindependent_comalloc(size_t, size_t*, void**);
 
+/*
+  bulk_free(void* array[], size_t n_elements)
+  Frees and clears (sets to null) each non-null pointer in the given
+  array.  This is likely to be faster than freeing them one-by-one.
+  If footers are used, pointers that have been allocated in different
+  mspaces are not freed or cleared, and the count of all such pointers
+  is returned.  For large arrays of pointers with poor locality, it
+  may be worthwhile to sort this array before calling bulk_free.
+*/
+DLMALLOC_EXPORT size_t  dlbulk_free(void**, size_t n_elements);
 
 /*
   pvalloc(size_t n);
   Equivalent to valloc(minimum-page-that-holds(n)), that is,
   round up n to nearest pagesize.
  */
-void*  dlpvalloc(size_t);
+DLMALLOC_EXPORT void*  dlpvalloc(size_t);
 
 /*
   malloc_trim(size_t pad);
@@ -970,23 +1240,7 @@ void*  dlpvalloc(size_t);
 
   Malloc_trim returns 1 if it actually released any memory, else 0.
 */
-int  dlmalloc_trim(size_t);
-
-/*
-  malloc_usable_size(void* p);
-
-  Returns the number of bytes you can actually use in
-  an allocated chunk, which may be more than you requested (although
-  often not) due to alignment and minimum size constraints.
-  You can use this many bytes without worrying about
-  overwriting other allocated objects. This is not a particularly great
-  programming practice. malloc_usable_size can be more useful in
-  debugging and assertions, for example:
-
-  p = malloc(n);
-  assert(malloc_usable_size(p) >= 256);
-*/
-size_t dlmalloc_usable_size(void*);
+DLMALLOC_EXPORT int  dlmalloc_trim(size_t);
 
 /*
   malloc_stats();
@@ -1007,7 +1261,23 @@ size_t dlmalloc_usable_size(void*);
   malloc_stats prints only the most commonly interesting statistics.
   More information can be obtained by calling mallinfo.
 */
-void  dlmalloc_stats(void);
+DLMALLOC_EXPORT void  dlmalloc_stats(void);
+
+/*
+  malloc_usable_size(void* p);
+
+  Returns the number of bytes you can actually use in
+  an allocated chunk, which may be more than you requested (although
+  often not) due to alignment and minimum size constraints.
+  You can use this many bytes without worrying about
+  overwriting other allocated objects. This is not a particularly great
+  programming practice. malloc_usable_size can be more useful in
+  debugging and assertions, for example:
+
+  p = malloc(n);
+  assert(malloc_usable_size(p) >= 256);
+*/
+size_t dlmalloc_usable_size(void*);
 
 #endif /* ONLY_MSPACES */
 
@@ -1030,7 +1300,7 @@ typedef void* mspace;
   compiling with a different DEFAULT_GRANULARITY or dynamically
   setting with mallopt(M_GRANULARITY, value).
 */
-mspace create_mspace(size_t capacity, int locked);
+DLMALLOC_EXPORT mspace create_mspace(size_t capacity, int locked);
 
 /*
   destroy_mspace destroys the given space, and attempts to return all
@@ -1038,7 +1308,7 @@ mspace create_mspace(size_t capacity, int locked);
   bytes freed. After destruction, the results of access to all memory
   used by the space become undefined.
 */
-size_t destroy_mspace(mspace msp);
+DLMALLOC_EXPORT size_t destroy_mspace(mspace msp);
 
 /*
   create_mspace_with_base uses the memory supplied as the initial base
@@ -1049,13 +1319,27 @@ size_t destroy_mspace(mspace msp);
   Destroying this space will deallocate all additionally allocated
   space (if possible) but not the initial base.
 */
-mspace create_mspace_with_base(void* base, size_t capacity, int locked);
+DLMALLOC_EXPORT mspace create_mspace_with_base(void* base, size_t capacity, int locked);
+
+/*
+  mspace_track_large_chunks controls whether requests for large chunks
+  are allocated in their own untracked mmapped regions, separate from
+  others in this mspace. By default large chunks are not tracked,
+  which reduces fragmentation. However, such chunks are not
+  necessarily released to the system upon destroy_mspace.  Enabling
+  tracking by setting to true may increase fragmentation, but avoids
+  leakage when relying on destroy_mspace to release all memory
+  allocated using this space.  The function returns the previous
+  setting.
+*/
+DLMALLOC_EXPORT int mspace_track_large_chunks(mspace msp, int enable);
+
 
 /*
   mspace_malloc behaves as malloc, but operates within
   the given space.
 */
-void* mspace_malloc(mspace msp, size_t bytes);
+DLMALLOC_EXPORT void* mspace_malloc(mspace msp, size_t bytes);
 
 /*
   mspace_free behaves as free, but operates within
@@ -1065,7 +1349,7 @@ void* mspace_malloc(mspace msp, size_t bytes);
   free may be called instead of mspace_free because freed chunks from
   any space are handled by their originating spaces.
 */
-void mspace_free(mspace msp, void* mem);
+DLMALLOC_EXPORT void mspace_free(mspace msp, void* mem);
 
 /*
   mspace_realloc behaves as realloc, but operates within
@@ -1076,45 +1360,45 @@ void mspace_free(mspace msp, void* mem);
   realloced chunks from any space are handled by their originating
   spaces.
 */
-void* mspace_realloc(mspace msp, void* mem, size_t newsize);
+DLMALLOC_EXPORT void* mspace_realloc(mspace msp, void* mem, size_t newsize);
 
 /*
   mspace_calloc behaves as calloc, but operates within
   the given space.
 */
-void* mspace_calloc(mspace msp, size_t n_elements, size_t elem_size);
+DLMALLOC_EXPORT void* mspace_calloc(mspace msp, size_t n_elements, size_t elem_size);
 
 /*
   mspace_memalign behaves as memalign, but operates within
   the given space.
 */
-void* mspace_memalign(mspace msp, size_t alignment, size_t bytes);
+DLMALLOC_EXPORT void* mspace_memalign(mspace msp, size_t alignment, size_t bytes);
 
 /*
   mspace_independent_calloc behaves as independent_calloc, but
   operates within the given space.
 */
-void** mspace_independent_calloc(mspace msp, size_t n_elements,
+DLMALLOC_EXPORT void** mspace_independent_calloc(mspace msp, size_t n_elements,
                                  size_t elem_size, void* chunks[]);
 
 /*
   mspace_independent_comalloc behaves as independent_comalloc, but
   operates within the given space.
 */
-void** mspace_independent_comalloc(mspace msp, size_t n_elements,
+DLMALLOC_EXPORT void** mspace_independent_comalloc(mspace msp, size_t n_elements,
                                    size_t sizes[], void* chunks[]);
 
 /*
   mspace_footprint() returns the number of bytes obtained from the
   system for this space.
 */
-size_t mspace_footprint(mspace msp);
+DLMALLOC_EXPORT size_t mspace_footprint(mspace msp);
 
 /*
   mspace_max_footprint() returns the peak number of bytes obtained from the
   system for this space.
 */
-size_t mspace_max_footprint(mspace msp);
+DLMALLOC_EXPORT size_t mspace_max_footprint(mspace msp);
 
 
 #if !NO_MALLINFO
@@ -1122,30 +1406,36 @@ size_t mspace_max_footprint(mspace msp);
   mspace_mallinfo behaves as mallinfo, but reports properties of
   the given space.
 */
-struct mallinfo mspace_mallinfo(mspace msp);
+DLMALLOC_EXPORT struct mallinfo mspace_mallinfo(mspace msp);
 #endif /* NO_MALLINFO */
+
+/*
+  malloc_usable_size(void* p) behaves the same as malloc_usable_size;
+*/
+DLMALLOC_EXPORT size_t mspace_usable_size(const void* mem);
 
 /*
   mspace_malloc_stats behaves as malloc_stats, but reports
   properties of the given space.
 */
-void mspace_malloc_stats(mspace msp);
+DLMALLOC_EXPORT void mspace_malloc_stats(mspace msp);
 
 /*
   mspace_trim behaves as malloc_trim, but
   operates within the given space.
 */
-int mspace_trim(mspace msp, size_t pad);
+DLMALLOC_EXPORT int mspace_trim(mspace msp, size_t pad);
 
 /*
   An alias for mallopt.
 */
-int mspace_mallopt(int, int);
+DLMALLOC_EXPORT int mspace_mallopt(int, int);
 
 #endif /* MSPACES */
 
 #ifdef __cplusplus
-};  /* end of extern "C" */
+}  /* end of extern "C" */
 #endif /* __cplusplus */
+
 
 #endif
