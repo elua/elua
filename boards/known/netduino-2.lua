@@ -8,7 +8,7 @@ return {
     cdc = { buf_size = 128 },
     wofs = true,
     romfs = true,
-    advanced_shell = true,
+    shell = { advanced = true },
     term = { lines = 25, cols = 80 },
     cints = true,
     luaints = true,

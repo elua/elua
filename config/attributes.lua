@@ -115,15 +115,16 @@ local function build_validator( realvname )
         return false, sf( "value of attribute '%s' for element '%s' in section '%s' must be an array", aname, elname, sectname )
       end
     end
+    local newv = {}
     for i = 1, #aval do
       local res, err = realvname( adesc, aname, aval[ i ], elname, sectname )
       if not res then
         return false, sf( "error at index %d: %s", i, err )
       else
-        aval[ i ] = res
+        newv[ #newv + 1 ] = res
       end
     end
-    return aval
+    return newv
   end
 end
 

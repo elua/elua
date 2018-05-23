@@ -3,7 +3,7 @@ local utils = require "utils.utils"
 local sf = string.format
 
 -- List of platforms to build
-local ci_boards = {"ek-lm3s8962", "elua-puc", "mbed", "arm2368"}
+local ci_boards = {"ek-lm3s8962", "elua-puc", "mbed", "arm2368", "stm32f4discovery"}
 
 -- Variants to build for each platform
 -- TODO: is "lualong" also needed here?

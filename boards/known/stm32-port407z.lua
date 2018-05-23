@@ -5,7 +5,7 @@ return {
   components = {
     sercon = { uart = 0, speed = 115200 },
     romfs = true,
-    advanced_shell = true,
+    shell = { advanced = true },
     term = { lines = 25, cols = 80 },
     linenoise = { shell_lines = 10, lua_lines = 50 },
     stm32f4_enc = true,

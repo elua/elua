@@ -22,7 +22,7 @@ local function sermux_auxgen( eldesc, data, generated )
 end
 
 -------------------------------------------------------------------------------
--- MMXFS support
+-- MMCFS support
 
 local function mmcfs_auxcheck( eldesc, data, enabled )
   local ports, pins, spis = data.MMCFS_CS_PORT.value, data.MMCFS_CS_PIN.value, data.MMCFS_SPI_NUM.value
@@ -48,6 +48,28 @@ local function mmcfs_gen( eldesc, data, generated )
 end
 
 -------------------------------------------------------------------------------
+-- Shell support
+
+-- Mapping between shell commands and their corresponding functions in shell.c
+local shell_cmd_map = {
+  help = "shell_help", lua = "shell_lua", recv = "shell_recv", ver = "shell_ver",
+  exit = "NULL", ls = "shell_ls", dir = "shell_ls", cat = "shell_cat",
+  type = "shell_cat", cp = "shell_cp", wofmt = "shell_wofmt", mkdir = "shell_mkdir",
+  rm = "shell_adv_rm", mv = "shell_adv_mv"
+}
+
+local function shell_gen( eldesc, data, generated )
+  local cmds, advv = data._DUMMY_SHELL_DATA.value, data.BUILD_ADVANCED_SHELL.value
+  local data = '#define SHELL_COMMAND_LIST\\\n'
+  for i, c in pairs( cmds ) do
+      data = data .. sf('  { "%s", %s },\\\n', c, shell_cmd_map[c] )
+  end
+  data = data .. "  { NULL, NULL }\n"
+  if advv == 1 then data = data .. "#define BUILD_ADVANCED_SHELL\n" end
+  return data
+end
+
+-------------------------------------------------------------------------------
 -- Return a CDC component
 -- This should be included by each backend that supports USB UARTs
 
@@ -68,7 +90,7 @@ function init()
   local components = {}
 
   -- Serial console
-  components.sercon = { 
+  components.sercon = {
     macro = 'BUILD_CON_GENERIC',
     attrs = {
       uart = at.uart_attr( 'CON_UART_ID' ),
@@ -96,9 +118,14 @@ function init()
     }
   }
   -- Shell
-  components.shell = { macro = 'BUILD_SHELL' }
-  -- Advanced shell
-  components.advanced_shell = { macro = 'BUILD_ADVANCED_SHELL', autoenable = 'shell' }
+  local shell_cmds_attr = at.choice_attr( '_DUMMY_SHELL_DATA', utils.table_keys( shell_cmd_map ), utils.table_keys( shell_cmd_map ))
+  components.shell = { macro = 'BUILD_SHELL',
+    attrs = {
+      commands = at.array_of( shell_cmds_attr, false ),
+      advanced = at.bool_attr( 'BUILD_ADVANCED_SHELL', false )
+    },
+    gen = shell_gen
+  }
   -- Term
   components.term = {
     macro = 'BUILD_TERM',
@@ -123,7 +150,7 @@ function init()
     needs = 'cints'
   }
   -- Linenoise
-  components.linenoise = { 
+  components.linenoise = {
     macro = 'BUILD_LINENOISE',
     attrs = {
       shell_lines = at.int_attr( 'LINENOISE_HISTORY_SIZE_SHELL' ),
