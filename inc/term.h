@@ -43,6 +43,9 @@ void term_putch( u8 ch );
 void term_putstr( const char* str, unsigned size );
 unsigned term_get_cx(void);
 unsigned term_get_cy(void);
+void term_savepos();
+void term_restorepos();
+void term_setscroll( unsigned start, unsigned end );
 
 #define TERM_KEYCODES\
   _D( KC_UP ),\

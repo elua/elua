@@ -33,9 +33,8 @@ static void term_ansi( const char* fmt, ... )
     
   seq[ TERM_MAX_ANSI_SIZE ] = '\0';
   seq[ 0 ] = '\x1B';
-  seq[ 1 ] = '[';
   va_start( ap, fmt );
-  vsnprintf( seq + 2, TERM_MAX_ANSI_SIZE - 2, fmt, ap );
+  vsnprintf( seq + 1, TERM_MAX_ANSI_SIZE - 1, fmt, ap );
   va_end( ap );
   term_putstr( seq, strlen( seq ) );
 }
@@ -43,20 +42,38 @@ static void term_ansi( const char* fmt, ... )
 // Clear the screen
 void term_clrscr()
 {
-  term_ansi( "2J" );
+  term_ansi( "[2J" );
   term_cx = term_cy = 0;
+}
+
+void term_savepos()
+{
+  term_ansi( "7" );
+}
+
+void term_restorepos()
+{
+  term_ansi( "8" );
+}
+
+void term_setscroll( unsigned start, unsigned end )
+{
+  if( ( start > 0 ) && ( end > 0 ) )
+    term_ansi( "[%u;%ur", start, end );
+  else
+    term_ansi( "[r" );
 }
 
 // Clear to end of line
 void term_clreol()
 {
-  term_ansi( "K" );
+  term_ansi( "[K" );
 }
 
 // Move cursor to (x, y)
 void term_gotoxy( unsigned x, unsigned y )
 {
-  term_ansi( "%u;%uH", y, x );
+  term_ansi( "[%u;%uH", y, x );
   term_cx = x;
   term_cy = y;
 }
@@ -64,28 +81,28 @@ void term_gotoxy( unsigned x, unsigned y )
 // Move cursor up "delta" lines
 void term_up( unsigned delta )
 {
-  term_ansi( "%uA", delta );  
+  term_ansi( "[%uA", delta );
   term_cy -= delta;
 }
 
 // Move cursor down "delta" lines
 void term_down( unsigned delta )
 {
-  term_ansi( "%uB", delta );  
+  term_ansi( "[%uB", delta );
   term_cy += delta;
 }
 
 // Move cursor right "delta" chars
 void term_right( unsigned delta )
 {
-  term_ansi( "%uC", delta );  
+  term_ansi( "[%uC", delta );
   term_cx -= delta;
 }
 
 // Move cursor left "delta" chars
 void term_left( unsigned delta )
 {
-  term_ansi( "%uD", delta );  
+  term_ansi( "[%uD", delta );
   term_cx += delta;
 }
 
