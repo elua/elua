@@ -47,6 +47,10 @@ local all_generic_modules = {}
 utils.concat_tables( all_generic_modules, lua_modules )
 utils.concat_tables( all_generic_modules, elua_generic_modules )
 
+function add_extra_modules( exmodules )
+  utils.concat_tables( all_generic_modules, exmodules )
+end
+
 -- Return the auxlib name of a given module
 local function get_auxlib( m, t )
   t = t or all_generic_modules

@@ -124,6 +124,9 @@ builder:add_option( 'boot', 'boot mode, standard will boot to shell, luarpc boot
 builder:add_option( 'romfs', 'ROMFS compilation mode', 'verbatim', { 'verbatim' , 'compress', 'compile' } )
 builder:add_option( 'cpumode', 'ARM CPU compilation mode (only affects certain ARM targets)', nil, { 'arm', 'thumb' } )
 builder:add_option( 'bootloader', 'Build for bootloader usage (AVR32 only)', 'none', { 'none', 'emblod' } )
+builder:add_option( 'debug', 'Enable debug build', false )
+builder:add_option( 'extras', 'Path to directory containing build extras', '' )
+builder:add_option( 'extrasconf', 'Config file for build extras, defaults to conf.lua', '' )
 builder:add_option( "output_dir", "choose executable directory", "." )
 builder:add_option( "romfs_dir", 'choose ROMFS directory', 'romfs' )
 builder:add_option( "board_config_file", "choose board configuration file", "" )
@@ -265,9 +268,10 @@ if comp.romfs == 'compile' then
     os.exit( -1 )
   end
   local cmdpath = { lfs.currentdir(), sf( 'luac.cross%s -ccn %s -cce %s -o %%s -s %%s', suffix, toolset[ "cross_" .. comp.target:lower() ], toolset.cross_cpumode:lower() ) }
+  dprint( "Cross compile command: " .. cmdpath[ 2 ] )
   fscompcmd = table.concat( cmdpath, utils.dir_sep )
 elseif comp.romfs == 'compress' then
-  if comp.target == 'lualong' or comp.target == 'lualonglong' then fscompoptnums = '' else fscompoptnums = '--opt-numbers' end
+  if comp.target == 'lualong' or comp.target == 'lualonglong' then fscompoptnums = '--noopt-numbers' else fscompoptnums = '--opt-numbers' end
   fscompcmd = 'lua luasrcdiet.lua --quiet --maximum --opt-comments --opt-whitespace --opt-emptylines --opt-eols --opt-strings ' .. fscompoptnums .. ' --opt-locals -o %s %s'
 end
 
@@ -313,6 +317,13 @@ dprint( "Boot Mode:      ", comp.boot )
 dprint( "Target:         ", comp.target  )
 dprint( "Toolchain:      ", comp.toolchain )
 dprint( "ROMFS mode:     ", comp.romfs )
+dprint( "Debug:          ", comp.debug )
+if comp.extras ~= '' then
+  dprint( "Extras:         ", comp.extras )
+end
+if comp.extrasconf ~= '' then
+  dprint( "Extras conf:         ", comp.extrasconf )
+end
 dprint( "Version:        ", elua_vers )
 dprint "*********************************"
 dprint ""
@@ -359,15 +370,30 @@ addi{ { 'inc', 'inc/newlib',  'inc/remotefs', 'src/platform', 'src/lua' }, { 'sr
 addm( "LUA_OPTIMIZE_MEMORY=" .. ( comp.optram and "2" or "0" ) )
 addcf( { '-Os','-fomit-frame-pointer' } )
 
+if comp.debug == true then
+   addcf( { '-g' } )
+end
+
 -- Toolset data (filled by each platform in part)
 tools = {}
 specific_files = ''
+extras_files = ''
 
 -- We get platform-specific data by executing the platform script
 dofile( sf( "src/platform/%s/conf.lua", platform ) )
 
+-- Read the extra configuration if needed. This can set
+-- the extra files to compile in the 'extras_files' variable.
+if comp.extras ~= '' then
+  if comp.extrasconf ~= '' then
+    dofile( sf( "%s/%s", comp.extras, comp.extrasconf ) )
+  else
+    dofile( sf( "%s/conf.lua", comp.extras ) )
+  end
+end
+
 -- Complete file list
-source_files = source_files .. uip_files .. specific_files
+source_files = source_files .. uip_files .. specific_files .. extras_files
 
 -------------------------------------------------------------------------------
 -- Create compiler/linker/assembler command lines and build
