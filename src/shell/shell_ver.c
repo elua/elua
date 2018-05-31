@@ -17,9 +17,24 @@
 #include "version.h"
 #endif
 
-const char shell_help_ver[] = "\n"
-  "This displays the git revision of the tree used to build eLua or an official version number if applicable.\n";
-const char shell_help_summary_ver[] = "show version information";
+#ifndef SHELL_HELP_VER_STRING
+#define SHELL_HELP_VER_STRING "\nThis displays the git revision of the tree used to build eLua or an official version number if applicable.\n"
+#endif
+
+#ifndef SHELL_HELP_SUMMARY_STRING
+#define SHELL_HELP_SUMMARY_STRING "show version information"
+#endif
+
+#ifndef SHELL_HELP_LINE1_STRING
+#define SHELL_HELP_LINE1_STRING "eLua version %s\n"
+#endif
+
+#ifndef SHELL_HELP_LINE2_STRING
+#define SHELL_HELP_LINE2_STRING "For more information visit www.eluaproject.net and wiki.eluaproject.net\n"
+#endif
+
+const char shell_help_ver[] = SHELL_HELP_VER_STRING;
+const char shell_help_summary_ver[] = SHELL_HELP_SUMMARY_STRING;
 
 void shell_ver( int argc, char **argv )
 {
@@ -28,7 +43,7 @@ void shell_ver( int argc, char **argv )
     SHELL_SHOW_HELP( ver );
     return;
   }
-  printf( "eLua version %s\n", ELUA_STR_VERSION );
-  printf( "For more information visit www.eluaproject.net and wiki.eluaproject.net\n" );
+  printf( SHELL_HELP_LINE1_STRING, ELUA_STR_VERSION );
+  printf( SHELL_HELP_LINE2_STRING );
 }
 
