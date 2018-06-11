@@ -97,6 +97,10 @@ local function ram_generator( desc, vals, generated )
   use_multiple_allocator = #startvals > 1
   local gstr = gen.simple_gen( "MEM_START_ADDRESS", vals, generated )
   gstr = gstr .. gen.simple_gen( "MEM_END_ADDRESS", vals, generated )
+  if vals.MEM_ERROR_CALLBACK then
+    gstr = gstr .. gen.simple_gen( "MEM_ERROR_CALLBACK", vals, generated )
+    gstr = gstr .. sf( "void %s( size_t );\n", vals.MEM_ERROR_CALLBACK.value )
+  end
   return gstr
 end
 
@@ -168,6 +172,7 @@ function init()
       internal_rams = at.int_attr( '_NUM_INTERNAL_RAMS', 0, nil, 1 ), 
       ext_start = at.array_of( at.combine_attr( 'MEM_START_ADDRESS', { at.int_attr( '' ), at.string_attr( '' ) } ) ),
       ext_size = at.array_of( at.combine_attr( 'MEM_END_ADDRESS', { at.int_attr( '', 1 ), at.string_attr( '' ) } ) ),
+      memory_error_callback = at.string_attr( 'MEM_ERROR_CALLBACK', 120, '' ),
     },
     required = { internal_rams = 1, ext_start = {}, ext_size = {} }
   }
