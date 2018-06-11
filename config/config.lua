@@ -111,7 +111,7 @@ local default_platform_conf = {
   pre_generate_section = function() return true end,
 }
 
--- Default table for extra configuration (same as above)s
+-- Default table for extra configuration (same as above)
 local default_extra_conf  = {
   get_extra_modules = function() end,
 }
