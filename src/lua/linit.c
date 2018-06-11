@@ -22,6 +22,10 @@
 #include "desktop_conf.h"
 #endif
 
+#ifdef EXTRA_LIBS_INCLUDE
+#include "extra_libs.h"
+#endif
+
 LUALIB_API int luaopen_platform (lua_State *L);
 int luaopen_dummy(lua_State *L);
 
