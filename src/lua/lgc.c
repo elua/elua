@@ -639,7 +639,6 @@ void luaC_step (lua_State *L) {
     }
   }
   else {
-    lua_assert(g->totalbytes >= g->estimate);
     setthreshold(g);
   }
   unset_block_gc(L);
