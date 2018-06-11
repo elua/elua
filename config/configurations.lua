@@ -97,7 +97,7 @@ local function ram_generator( desc, vals, generated )
   use_multiple_allocator = #startvals > 1
   local gstr = gen.simple_gen( "MEM_START_ADDRESS", vals, generated )
   gstr = gstr .. gen.simple_gen( "MEM_END_ADDRESS", vals, generated )
-  if vals.MEM_ERROR_CALLBACK then
+  if vals.MEM_ERROR_CALLBACK and not generated.MEM_ERROR_CALLBACK and #vals.MEM_ERROR_CALLBACK.value > 0 then
     gstr = gstr .. gen.simple_gen( "MEM_ERROR_CALLBACK", vals, generated )
     gstr = gstr .. sf( "void %s( size_t );\n", vals.MEM_ERROR_CALLBACK.value )
   end
