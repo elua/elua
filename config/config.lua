@@ -201,6 +201,8 @@ function compile_board( fname, boardname )
 #ifndef __GENERATED_%s_H__
 #define __GENERATED_%s_H__
 
+#include <stddef.h>
+
 ]], cboardname, cboardname )
   local desc, err = dofile( fname )
   if not desc then return false, err end

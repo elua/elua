@@ -493,12 +493,22 @@ struct mallinfo mallinfo( void )
 
 void* _malloc_r( struct _reent* r, size_t size )
 {
-  return CNAME( malloc )( size );
+  void *res = CNAME( malloc )( size );
+#ifdef MEM_ERROR_CALLBACK
+  if ( res == NULL )
+    MEM_ERROR_CALLBACK( size );
+#endif
+  return res;
 }
 
 void* _calloc_r( struct _reent* r, size_t nelem, size_t elem_size )
 {
-  return CNAME( calloc )( nelem, elem_size );
+  void *res = CNAME( calloc )( nelem, elem_size );
+#ifdef MEM_ERROR_CALLBACK
+  if ( res == NULL )
+    MEM_ERROR_CALLBACK( nelem * elem_size );
+#endif
+  return res;
 }
 
 void _free_r( struct _reent* r, void* ptr )
@@ -508,7 +518,12 @@ void _free_r( struct _reent* r, void* ptr )
 
 void* _realloc_r( struct _reent* r, void* ptr, size_t size )
 {
-  return CNAME( realloc )( ptr, size );
+  void *res = CNAME( realloc )( ptr, size );
+#ifdef MEM_ERROR_CALLBACK
+  if ( res == NULL && size > 0 )
+    MEM_ERROR_CALLBACK( size );
+#endif
+  return res;
 }
 
 #endif // #ifdef USE_MULTIPLE_ALLOCATOR

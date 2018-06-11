@@ -98,6 +98,12 @@
 #if defined( BUILD_ADVANCED_SHELL ) && !defined( BUILD_SHELL )
   #error "BUILD_ADVANCED_SHELL needs BUILD_SHELL"
 #endif
+
+// The memory error callback can only be enabled when using either the muliple allocator or the simple allocator
+// (but not the built-in allocator)
+#if defined( MEM_ERROR_CALLBACK ) && !defined( USE_MULTIPLE_ALLOCATOR ) && !defined( USE_SIMPLE_ALLOCATOR )
+  #error "A memory error callback can only be specified when using the multiple allocator or the simple allocator, but not the built-in allocator"
+#endif
   
 #endif // #ifndef __VALIDATE_H__
 
