@@ -208,7 +208,7 @@ static int gpioh_set_int_status( elua_int_id id, elua_int_resnum resnum, int sta
   if( status == PLATFORM_CPU_ENABLE )
   {
     // Configure port for interrupt line
-    //GPIO_EXTILineConfig( PLATFORM_IO_GET_PORT( resnum ), PLATFORM_IO_GET_PIN( resnum ) );
+    SYSCFG_EXTILineConfig( PLATFORM_IO_GET_PORT( resnum ), PLATFORM_IO_GET_PIN( resnum ) );
 
     EXTI_StructInit(&exti_init_struct);
     exti_init_struct.EXTI_Line = exti_line[ exint_gpio_to_src( resnum ) ];
