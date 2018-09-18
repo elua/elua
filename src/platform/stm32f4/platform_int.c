@@ -74,17 +74,20 @@ static int exint_gpio_to_src( pio_type piodata )
 static void all_exti_irqhandler( int line )
 {
   u16 v, port, pin;
-  
-  v = exti_line_to_gpio( line );
-  port = PLATFORM_IO_GET_PORT( v );
-  pin = PLATFORM_IO_GET_PIN( v );
 
-  if( EXTI->RTSR & (1 << line ) && platform_pio_op( port, 1 << pin, PLATFORM_IO_PIN_GET ) )
-    cmn_int_handler( INT_GPIO_POSEDGE, v );
-  if( EXTI->FTSR & (1 << line ) && ( platform_pio_op( port, 1 << pin, PLATFORM_IO_PIN_GET ) == 0 ) )
-    cmn_int_handler( INT_GPIO_NEGEDGE, v );
+  if( EXTI_GetITStatus( exti_line[ line ] ) == SET )
+  {
+    v = exti_line_to_gpio( line );
+    port = PLATFORM_IO_GET_PORT( v );
+    pin = PLATFORM_IO_GET_PIN( v );
 
-  EXTI_ClearITPendingBit( exti_line[ line ] );
+    if( EXTI->RTSR & (1 << line ) && platform_pio_op( port, 1 << pin, PLATFORM_IO_PIN_GET ) )
+      cmn_int_handler( INT_GPIO_POSEDGE, v );
+    if( EXTI->FTSR & (1 << line ) && ( platform_pio_op( port, 1 << pin, PLATFORM_IO_PIN_GET ) == 0 ) )
+      cmn_int_handler( INT_GPIO_NEGEDGE, v );
+
+    EXTI_ClearITPendingBit( exti_line[ line ] );
+  }
 }
 
 void EXTI0_IRQHandler()
