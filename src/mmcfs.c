@@ -8,6 +8,7 @@
 
 #include "platform_conf.h"
 #ifdef BUILD_MMCFS
+#pragma message "BUILD_MMCFS"
 #include "ff.h"
 #include "diskio.h"
 #include <fcntl.h>
@@ -42,7 +43,7 @@ static int mmcfs_find_empty_fd( void )
   int i;
 
   for (i = 0; i < MMCFS_MAX_FDS; i ++)
-    if (mmcfs_fd_table[i].fs == NULL)
+    if (mmcfs_fd_table[i].obj.fs == NULL)
       return i;
   return -1;
 }
@@ -123,8 +124,8 @@ static int mmcfs_open_r( struct _reent *r, const char *path, int flags, int mode
     return -1;
   }
 
-  if (mode & O_APPEND)
-    mmc_fileObject.fptr = mmc_fileObject.fsize;
+  if (mode & O_APPEND) 
+     mmc_fileObject.fptr = mmc_fileObject.obj.objsize;
   fd = mmcfs_find_empty_fd();
   memcpy(mmcfs_fd_table + fd, &mmc_fileObject, sizeof(FIL));
   mmcfs_num_fd ++;
@@ -195,7 +196,8 @@ static off_t mmcfs_lseek_r( struct _reent *r, int fd, off_t off, int whence, voi
 
     case SEEK_END:
       // seek from end of file
-      newpos = pFile->fsize + off;
+      // TODO : Check of this is correct !!
+      newpos = pFile->obj.objsize - off;
       break;
 
     default:
@@ -329,7 +331,7 @@ int mmcfs_init()
 #if NUM_CARDS == 1
   static int cid = 0;
   // A single MMCFS
-  if ( f_mount( 0, mmc_fs ) != FR_OK )
+  if ( f_mount(mmc_fs,"0:",1 ) != FR_OK )
     return DM_ERR_INIT;
   return dm_register( "/mmc", &cid, &mmcfs_device );
 #else // #if NUM_CARDS == 1
@@ -339,7 +341,9 @@ int mmcfs_init()
 
   // [TODO] add more error checking!
   for( i = 0; i < NUM_CARDS; i ++ )
-    if( f_mount( i, mmc_fs + i ) == FR_OK )
+    char volume[4];
+    snprintf(volume,sizeof(volume),"%d:",i); // Volume name
+    if( f_mount(mmc_fs + i,volume,1) == FR_OK )
     {
       ids[ i ] = i;
       sprintf( names[ i ], "/mmc%d", i );
