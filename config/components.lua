@@ -25,26 +25,58 @@ end
 -- MMCFS support
 
 local function mmcfs_auxcheck( eldesc, data, enabled )
-  local ports, pins, spis = data.MMCFS_CS_PORT.value, data.MMCFS_CS_PIN.value, data.MMCFS_SPI_NUM.value
-  if #ports ~= #pins or #pins ~= #spis then
-    return false, "non-equal sizes for values of 'cs_port', 'cs_pin' and 'spi' of element 'mmcfs' in secetion 'components'"
-  end
+
+  -- Only check when cs_port is defined 
+  if  data.MMCFS_CS_PORT then 
+    if not data.MMCFS_CS_PIN then
+      return false, " section mmc : cs_port defined without cs_pin"
+    end   
+    local ports, pins, spis = data.MMCFS_CS_PORT.value, data.MMCFS_CS_PIN.value, data.MMCFS_SPI_NUM.value
+    if #ports ~= #pins or #pins ~= #spis then
+      return false, "non-equal sizes for values of 'cs_port', 'cs_pin' and 'spi' of element 'mmcfs' in secetion 'components'"
+    end
+  end   
   return true
 end
 
 local function mmcfs_gen( eldesc, data, generated )
-  local ports, pins, spis = data.MMCFS_CS_PORT.value, data.MMCFS_CS_PIN.value, data.MMCFS_SPI_NUM.value
-  local data = ''
-  if #ports == 1 then -- single card
-    data = data .. gen.print_define( 'MMCFS_CS_PORT', ports[ 1 ] )
-    data = data .. gen.print_define( 'MMCFS_CS_PIN', pins[ 1 ] )
-    data = data .. gen.print_define( 'MMCFS_SPI_NUM', spis[ 1 ] )
+
+  local function get_boolean(v)
+  
+    return v and v ~= 0  
+  end    
+  
+  local ports, pins, spis 
+  spis= data.MMCFS_SPI_NUM.value
+  if data.MMCFS_CS_PORT then 
+    ports,pins = data.MMCFS_CS_PORT.value, data.MMCFS_CS_PIN.value
+  end   
+  local out = ''
+  if #spis == 1 then -- single card
+    if ports then 
+      out = out .. gen.print_define( 'MMCFS_CS_PORT', ports[ 1 ] )
+      out = out .. gen.print_define( 'MMCFS_CS_PIN', pins[ 1 ] )
+    end   
+    out = out .. gen.print_define( 'MMCFS_SPI_NUM', spis[ 1 ] )
   else -- multiple cards
-    data = data .. gen.print_define( 'MMCFS_CS_PORT_ARRAY', ports )
-    data = data .. gen.print_define( 'MMCFS_CS_PIN_ARRAY', pins )
-    data = data .. gen.print_define( 'MMCFS_SPI_NUM_ARRAY', spis )
+    if ports then 
+      out = out .. gen.print_define( 'MMCFS_CS_PORT_ARRAY', ports )
+      out = out .. gen.print_define( 'MMCFS_CS_PIN_ARRAY', pins )
+    end   
+    out = out .. gen.print_define( 'MMCFS_SPI_NUM_ARRAY', spis )
   end
-  return data
+   
+  local lfn_unicode= get_boolean(data.MMCFS_API_MODE.value) and '2' or '0' 
+  local tiny = get_boolean(data.MMFCFS_TINY.value) and '1' or '0'
+
+  out = out .. gen.print_define('MMCFS_CODEPAGE',data.MMCFS_CODEPAGE.value) ..
+    
+        gen.simple_gen('MMCFS_USE_LFN',data,generated) ..
+        gen.simple_gen('MMCFS_MAX_LFN',data,generated) ..
+        gen.print_define('MMCFS_API_MODE',lfn_unicode) ..
+        gen.print_define('MMFCFS_TINY',tiny)
+               
+  return out
 end
 
 -------------------------------------------------------------------------------
@@ -176,9 +208,19 @@ function init()
     auxcheck = mmcfs_auxcheck,
     gen = mmcfs_gen,
     attrs = {
-      cs_port = at.array_of( at.int_attr( 'MMCFS_CS_PORT' ), true ),
-      cs_pin = at.array_of( at.int_attr( 'MMCFS_CS_PIN' ), true ),
-      spi = at.array_of( at.int_attr( 'MMCFS_SPI_NUM' ), true )
+      cs_port =at.make_optional(at.array_of( at.int_attr( 'MMCFS_CS_PORT' ), true )),
+      cs_pin = at.make_optional(at.array_of( at.int_attr( 'MMCFS_CS_PIN' ), true )),
+
+      spi = at.array_of( at.int_attr( 'MMCFS_SPI_NUM' ), true ),
+
+      codepage = at.choice_attr('MMCFS_CODEPAGE',{
+        437,720,737,771,775,850,852,855,857,860,861,862,863,864,865,
+        866,869,932,936,949,950,0
+      },437),
+      lfn = at.choice_attr('MMCFS_USE_LFN',{0,1,2},1),
+      lfn_length=at.int_attr('MMCFS_MAX_LFN',63,255,255),
+      use_utf8_api=at.bool_attr('MMCFS_API_MODE',false),
+      tiny=at.bool_attr('MMFCFS_TINY',true)
     }
   }
   -- RPC

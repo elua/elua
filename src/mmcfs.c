@@ -1,4 +1,6 @@
 // MMC filesystem implementation using FatFs
+#define _GNU_SOURCE // to make shure that asprintf is defined 
+
 #include "mmcfs.h"
 #include <string.h>
 #include <errno.h>
@@ -8,7 +10,7 @@
 
 #include "platform_conf.h"
 #ifdef BUILD_MMCFS
-#pragma message "BUILD_MMCFS"
+#pragma message "Adding MMCFS (FAT Filesystem on SD Card)"
 #include "ff.h"
 #include "diskio.h"
 #include <fcntl.h>
@@ -29,9 +31,9 @@ extern void elua_mmc_init( void );
 
 // Data structures used by FatFs
 static FATFS mmc_fs[ NUM_CARDS ];
-static FIL mmc_fileObject;
-//static DIR mmc_dir;
-//static FILINFO mmc_fileInfo;
+//static FIL mmc_fileObject;
+
+
 typedef struct
 {
   DIR *dir;
@@ -54,6 +56,7 @@ static int mmcfs_open_r( struct _reent *r, const char *path, int flags, int mode
   int mmc_mode;
   char *mmc_pathBuf;
   int drv_num = *( int* )pdata;
+  FIL mmc_fileObject;
 
   if (mmcfs_num_fd == MMCFS_MAX_FDS)
   {
@@ -116,6 +119,9 @@ static int mmcfs_open_r( struct _reent *r, const char *path, int flags, int mode
   }
 #endif  // _FS_READONLY
 
+  if (mode & O_APPEND) 
+     mmc_mode|=FA_OPEN_APPEND;
+
   // Open the file for reading
   if (f_open(&mmc_fileObject, mmc_pathBuf, mmc_mode) != FR_OK)
   {
@@ -124,8 +130,7 @@ static int mmcfs_open_r( struct _reent *r, const char *path, int flags, int mode
     return -1;
   }
 
-  if (mode & O_APPEND) 
-     mmc_fileObject.fptr = mmc_fileObject.obj.objsize;
+
   fd = mmcfs_find_empty_fd();
   memcpy(mmcfs_fd_table + fd, &mmc_fileObject, sizeof(FIL));
   mmcfs_num_fd ++;
@@ -331,7 +336,7 @@ int mmcfs_init()
 #if NUM_CARDS == 1
   static int cid = 0;
   // A single MMCFS
-  if ( f_mount(mmc_fs,"0:",1 ) != FR_OK )
+  if ( f_mount(mmc_fs,"0:",0 ) != FR_OK )
     return DM_ERR_INIT;
   return dm_register( "/mmc", &cid, &mmcfs_device );
 #else // #if NUM_CARDS == 1
