@@ -54,27 +54,32 @@ local function mmcfs_gen( eldesc, data, generated )
   local out = ''
   if #spis == 1 then -- single card
     if ports then 
-      out = out .. gen.print_define( 'MMCFS_CS_PORT', ports[ 1 ] )
-      out = out .. gen.print_define( 'MMCFS_CS_PIN', pins[ 1 ] )
+      out = out .. gen.print_define( 'MMCFS_CS_PORT', ports[ 1 ] ) ..
+                   gen.print_define( 'MMCFS_CS_PIN', pins[ 1 ] )
     end   
     out = out .. gen.print_define( 'MMCFS_SPI_NUM', spis[ 1 ] )
   else -- multiple cards
     if ports then 
-      out = out .. gen.print_define( 'MMCFS_CS_PORT_ARRAY', ports )
-      out = out .. gen.print_define( 'MMCFS_CS_PIN_ARRAY', pins )
+      out = out .. gen.print_define( 'MMCFS_CS_PORT_ARRAY', ports ) ..
+                   gen.print_define( 'MMCFS_CS_PIN_ARRAY', pins )
     end   
     out = out .. gen.print_define( 'MMCFS_SPI_NUM_ARRAY', spis )
   end
    
   local lfn_unicode= get_boolean(data.MMCFS_API_MODE.value) and '2' or '0' 
   local tiny = get_boolean(data.MMFCFS_TINY.value) and '1' or '0'
+  if get_boolean(data.MMCFS_USE_LOCKING.value) then
+    out= out .. gen.print_define('MMCFS_USE_LOCKING')
+  end 
 
   out = out .. gen.print_define('MMCFS_CODEPAGE',data.MMCFS_CODEPAGE.value) ..
     
         gen.simple_gen('MMCFS_USE_LFN',data,generated) ..
         gen.simple_gen('MMCFS_MAX_LFN',data,generated) ..
+        gen.simple_gen('MMCFS_MAX_FDS',data,generated) ..
         gen.print_define('MMCFS_API_MODE',lfn_unicode) ..
-        gen.print_define('MMFCFS_TINY',tiny)
+        gen.print_define('MMFCFS_TINY',tiny) ..
+        gen.print_define('MMCFS_NUM_CARDS',#spis)
                
   return out
 end
@@ -218,9 +223,11 @@ function init()
         866,869,932,936,949,950,0
       },437),
       lfn = at.choice_attr('MMCFS_USE_LFN',{0,1,2},1),
-      lfn_length=at.int_attr('MMCFS_MAX_LFN',63,255,255),
+      lfn_length=at.int_attr('MMCFS_MAX_LFN',30,255,30),
       use_utf8_api=at.bool_attr('MMCFS_API_MODE',false),
-      tiny=at.bool_attr('MMFCFS_TINY',true)
+      tiny=at.bool_attr('MMFCFS_TINY',true),
+      files=at.int_attr('MMCFS_MAX_FDS',4,32,4),
+      use_locking=at.bool_attr('MMCFS_USE_LOCKING',true)
     }
   }
   -- RPC
