@@ -67,7 +67,7 @@ local function mmcfs_gen( eldesc, data, generated )
   end
    
   local lfn_unicode= get_boolean(data.MMCFS_API_MODE.value) and '2' or '0' 
-  local tiny = get_boolean(data.MMFCFS_TINY.value) and '1' or '0'
+  local tiny = get_boolean(data.MMCFS_TINY.value) and '1' or '0'
   if get_boolean(data.MMCFS_USE_LOCKING.value) then
     out= out .. gen.print_define('MMCFS_USE_LOCKING')
   end 
@@ -78,7 +78,7 @@ local function mmcfs_gen( eldesc, data, generated )
         gen.simple_gen('MMCFS_MAX_LFN',data,generated) ..
         gen.simple_gen('MMCFS_MAX_FDS',data,generated) ..
         gen.print_define('MMCFS_API_MODE',lfn_unicode) ..
-        gen.print_define('MMFCFS_TINY',tiny) ..
+        gen.print_define('MMCFS_TINY',tiny) ..
         gen.print_define('MMCFS_NUM_CARDS',#spis)
                
   return out
@@ -225,7 +225,7 @@ function init()
       lfn = at.choice_attr('MMCFS_USE_LFN',{0,1,2},1),
       lfn_length=at.int_attr('MMCFS_MAX_LFN',30,255,30),
       use_utf8_api=at.bool_attr('MMCFS_API_MODE',false),
-      tiny=at.bool_attr('MMFCFS_TINY',true),
+      tiny=at.bool_attr('MMCFS_TINY',true),
       files=at.int_attr('MMCFS_MAX_FDS',4,32,4),
       use_locking=at.bool_attr('MMCFS_USE_LOCKING',true)
     }
