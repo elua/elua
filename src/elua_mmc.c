@@ -87,6 +87,7 @@ void DESELECT (BYTE id)
     platform_spi_select( mmcfs_spi_nums[ id ], 0 );
 #else
     platform_pio_op( mmcfs_cs_ports[ id ], ( ( u32 ) 1 << mmcfs_cs_pins[ id ] ), PLATFORM_IO_PIN_SET );
+#endif    
 }
 
 
