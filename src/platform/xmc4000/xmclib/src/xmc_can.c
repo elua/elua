@@ -1,12 +1,12 @@
 /**
  * @file xmc_can.c
- * @date 2016-06-20
+ * @date 2017-11-09
  *
  * @cond
  *********************************************************************************************************************
- * XMClib v2.1.8 - XMC Peripheral Driver Library 
+ * XMClib v2.1.18 - XMC Peripheral Driver Library 
  *
- * Copyright (c) 2015-2016, Infineon Technologies AG
+ * Copyright (c) 2015-2017, Infineon Technologies AG
  * All rights reserved.                        
  *                                             
  * Redistribution and use in source and binary forms, with or without modification,are permitted provided that the 
@@ -56,8 +56,14 @@
  * 2016-06-07:
  *     - Changed XMC_CAN_AllocateMOtoNodeList to wait for ready status of list controller
  *
- * 2015-06-20:
+ * 2016-06-20:
  *     - Fixed bug in XMC_CAN_MO_Config() <br> 
+ *
+ * 2017-11-09:
+ *     - Added XMC_CAN_InitEx() and XMC_CAN_NODE_NominalBitTimeConfigureEx()
+ *     - Make XMC_CAN_GetBaudrateClockSource(), XMC_CAN_SetBaudrateClockSource() and XMC_CAN_GetBaudrateClockFrequency() available to all devices
+ *     - Changed refactoring XMC_CAN_MO_Config() to configure MOCTR depending on transmit or receive message type
+ *
  * @endcond
  *
  */ 
@@ -84,6 +90,84 @@ __STATIC_INLINE uint32_t min(uint32_t a, uint32_t b)
  * API IMPLEMENTATION
  *******************************************************************************/
 
+/* The max prescaler is the equal to max BRP setting (64) multiply by 8 (DIV8) */
+#define XMC_CAN_NODE_MAX_PRESCALER 512
+
+/* maximum TSEG1 is 16 and maximum TSEG2 is 8, plus one fix sync tq */
+#define XMC_CAN_NODE_MAX_NTQ 25
+#define XMC_CAN_NODE_MIN_NTQ 8
+
+#define XMC_CAN_NODE_MIN_TSEG1 3
+#define XMC_CAN_NODE_MIN_TSEG2 2
+
+int32_t XMC_CAN_NODE_NominalBitTimeConfigureEx(XMC_CAN_NODE_t *const can_node,
+                                               const XMC_CAN_NODE_NOMINAL_BIT_TIME_CONFIG_t *const bit_time_config)
+{
+  /* Check that the CAN frequency is a multiple of the required baudrate */
+  if ((bit_time_config->can_frequency % bit_time_config->baudrate) == 0)
+  {
+  uint32_t prescaler;
+  uint32_t div8 = 0;
+
+  /* Calculate the factor between can frequency and required baudrate, this is equal to (prescaler x ntq) */
+    uint32_t fcan_div = bit_time_config->can_frequency / bit_time_config->baudrate;
+
+    /* start with highest ntq, i.e as much as possible time quanta should be used to construct a bit time */
+    uint32_t ntq = XMC_CAN_NODE_MAX_NTQ;
+    while (ntq >= XMC_CAN_NODE_MIN_NTQ)
+    {
+      /* consider this ntq, only if fcan_div is multiple of ntq */
+    if ((fcan_div % ntq) == 0)
+    {
+        prescaler = fcan_div / ntq;
+        if ((prescaler > 0) && (prescaler <= XMC_CAN_NODE_MAX_PRESCALER))
+        {
+          if (prescaler >= 64)
+          {
+          /* consider prescaler >=64, if it is integer divisible by 8*/
+            if ((prescaler & 0x7U) == 0)
+        {
+              div8 = 1;
+              break;
+        }
+          }
+          else
+          {
+            break;
+          }
+        }
+      }
+      --ntq;
+    }
+
+    if (ntq >= XMC_CAN_NODE_MIN_NTQ)
+    {
+      uint32_t tseg1 = ((ntq - 1) * bit_time_config->sample_point) / 1000;
+      uint32_t tseg2 = ntq - tseg1 - 1;
+
+      if ((tseg1 < XMC_CAN_NODE_MIN_TSEG1) || (tseg2 < XMC_CAN_NODE_MIN_TSEG2) || (tseg2 < bit_time_config->sjw))
+      {
+      return XMC_CAN_STATUS_ERROR;
+      }
+
+      XMC_CAN_NODE_EnableConfigurationChange(can_node);
+
+      /* Configure bit timing register */
+      can_node->NBTR = (((tseg2 - 1u) << CAN_NODE_NBTR_TSEG2_Pos) & (uint32_t)CAN_NODE_NBTR_TSEG2_Msk) |
+                        (((bit_time_config->sjw - 1U) << CAN_NODE_NBTR_SJW_Pos) & (uint32_t)CAN_NODE_NBTR_SJW_Msk) |
+                        (((tseg1 - 1U) << CAN_NODE_NBTR_TSEG1_Pos) & (uint32_t)CAN_NODE_NBTR_TSEG1_Msk) |
+                        (((prescaler - 1U) << CAN_NODE_NBTR_BRP_Pos) & (uint32_t)CAN_NODE_NBTR_BRP_Msk) |
+                        ((div8 << CAN_NODE_NBTR_DIV8_Pos) & (uint32_t)CAN_NODE_NBTR_DIV8_Msk);
+
+      XMC_CAN_NODE_DisableConfigurationChange(can_node);
+
+      return XMC_CAN_STATUS_SUCCESS;
+    }
+  }
+
+  return XMC_CAN_STATUS_ERROR;
+}
+
 /* Baudrate Configuration */
 void XMC_CAN_NODE_NominalBitTimeConfigure (XMC_CAN_NODE_t *const can_node,
                                            const XMC_CAN_NODE_NOMINAL_BIT_TIME_CONFIG_t *const can_bit_time)
@@ -104,7 +188,7 @@ void XMC_CAN_NODE_NominalBitTimeConfigure (XMC_CAN_NODE_t *const can_node,
              can_bit_time->can_frequency > 5000000U);
   XMC_ASSERT("XMC_CAN_NODE_NOMINAL_BIT_TIME_Configure: sample point not supported",
              (can_bit_time->sample_point < 10000U) && ((can_bit_time->sample_point > 0U)));
-			 
+       
   /*
    * Bit timing & sampling
    * Tq = (BRP+1)/Fcan if DIV8 = 0
@@ -131,12 +215,12 @@ void XMC_CAN_NODE_NominalBitTimeConfigure (XMC_CAN_NODE_t *const can_node,
 
   if((temp_tbaud % 10U) > 5U)
   {
-	temp_tbaud = (uint32_t)(temp_tbaud / 10U);
-	temp_tbaud++;
+  temp_tbaud = (uint32_t)(temp_tbaud / 10U);
+  temp_tbaud++;
   }
   else
   {
-	temp_tbaud = (uint32_t)(temp_tbaud / 10U);
+  temp_tbaud = (uint32_t)(temp_tbaud / 10U);
   }
 
   if(temp_tbaud > 0U)
@@ -146,16 +230,16 @@ void XMC_CAN_NODE_NominalBitTimeConfigure (XMC_CAN_NODE_t *const can_node,
   else
   {
     temp_baudrate = f_quanta / 10U;
-	temp_tbaud = 1;
+  temp_tbaud = 1;
   }
 
   if(temp_baudrate >= can_bit_time->baudrate)
   {
-	error = temp_baudrate - can_bit_time->baudrate;
+  error = temp_baudrate - can_bit_time->baudrate;
   }
   else
   {
-	error = can_bit_time->baudrate - temp_baudrate;
+  error = can_bit_time->baudrate - temp_baudrate;
   }
 
   if ((temp_tbaud <= 20U) && (best_error > error))
@@ -176,15 +260,15 @@ void XMC_CAN_NODE_NominalBitTimeConfigure (XMC_CAN_NODE_t *const can_node,
   for (temp_tseg1 = 64U; temp_tseg1 >= 3U; temp_tseg1--)
   {
     uint32_t tempSamplePoint = ((temp_tseg1 + 1U) * 10000U) / best_tbaud;
-	uint32_t error;
-	if (tempSamplePoint >= can_bit_time->sample_point)
-	{
+  uint32_t error;
+  if (tempSamplePoint >= can_bit_time->sample_point)
+  {
       error = tempSamplePoint  - can_bit_time->sample_point;
-	}
-	else
-	{
-	  error = can_bit_time->sample_point  - tempSamplePoint;
-	}
+  }
+  else
+  {
+    error = can_bit_time->sample_point  - tempSamplePoint;
+  }
     if (best_error > error)
     {
       best_tseg1 = temp_tseg1;
@@ -249,34 +333,8 @@ void XMC_CAN_Enable(XMC_CAN_t *const obj)
     /*Do nothing*/
   };
 }
+
 #if defined(MULTICAN_PLUS)
-uint32_t XMC_CAN_GetBaudrateClockFrequency(XMC_CAN_t *const obj)
-{
-  uint32_t frequency;
-
-  switch(XMC_CAN_GetBaudrateClockSource(obj))
-  {
-#if UC_FAMILY == XMC4
-    case XMC_CAN_CANCLKSRC_FPERI:
-         frequency = XMC_SCU_CLOCK_GetPeripheralClockFrequency();
-         break;
-#else
-    case XMC_CAN_CANCLKSRC_MCLK:
-           frequency = XMC_SCU_CLOCK_GetPeripheralClockFrequency();
-           break;
-#endif
-    case XMC_CAN_CANCLKSRC_FOHP:
-         frequency = OSCHP_GetFrequency();
-         break;
-
-    default:
-         frequency = 0;
-         break;
-  }
-
-  return frequency;
-}
-
 void XMC_CAN_Init(XMC_CAN_t *const obj, XMC_CAN_CANCLKSRC_t clksrc, uint32_t can_frequency)
 {
   uint32_t  step_n, step_f;
@@ -317,16 +375,6 @@ void XMC_CAN_Init(XMC_CAN_t *const obj, XMC_CAN_CANCLKSRC_t clksrc, uint32_t can
   obj->FDR &= (uint32_t) ~(CAN_FDR_DM_Msk | CAN_FDR_STEP_Msk);
   obj->FDR |= ((uint32_t)can_divider_mode << CAN_FDR_DM_Pos) | ((uint32_t)step << CAN_FDR_STEP_Pos);
 
-}
-
-void XMC_CAN_SetBaudrateClockSource(XMC_CAN_t *const obj,const XMC_CAN_CANCLKSRC_t source)
-{
-  obj->MCR = (obj->MCR & ~CAN_MCR_CLKSEL_Msk) | source ;
-}
-
-XMC_CAN_CANCLKSRC_t XMC_CAN_GetBaudrateClockSource(XMC_CAN_t *const obj)
-{
-  return ((XMC_CAN_CANCLKSRC_t)((obj->MCR & CAN_MCR_CLKSEL_Msk) >> CAN_MCR_CLKSEL_Pos));
 }
 
 #else
@@ -370,18 +418,89 @@ void XMC_CAN_Init(XMC_CAN_t *const obj, uint32_t can_frequency)
 }
 #endif
 
+void XMC_CAN_SetBaudrateClockSource(XMC_CAN_t *const obj,const XMC_CAN_CANCLKSRC_t source)
+{
+#if defined(MULTICAN_PLUS)
+  obj->MCR = (obj->MCR & ~CAN_MCR_CLKSEL_Msk) | source ;
+#endif  
+}
+
+XMC_CAN_CANCLKSRC_t XMC_CAN_GetBaudrateClockSource(XMC_CAN_t *const obj)
+{
+#if defined(MULTICAN_PLUS)
+  return ((XMC_CAN_CANCLKSRC_t)((obj->MCR & CAN_MCR_CLKSEL_Msk) >> CAN_MCR_CLKSEL_Pos));
+#elif (UC_FAMILY == XMC4) 
+  return XMC_CAN_CANCLKSRC_FPERI;
+#endif    
+}
+
+uint32_t XMC_CAN_GetBaudrateClockFrequency(XMC_CAN_t *const obj)
+{
+  uint32_t frequency;
+
+#if defined(MULTICAN_PLUS)
+  switch(XMC_CAN_GetBaudrateClockSource(obj))
+  {
+#if UC_FAMILY == XMC4
+    case XMC_CAN_CANCLKSRC_FPERI:
+      frequency = XMC_SCU_CLOCK_GetPeripheralClockFrequency();
+      break;
+#else
+    case XMC_CAN_CANCLKSRC_MCLK:
+      frequency = XMC_SCU_CLOCK_GetPeripheralClockFrequency();
+      break;
+#endif
+    case XMC_CAN_CANCLKSRC_FOHP:
+      frequency = OSCHP_GetFrequency();
+      break;
+
+    default:
+      frequency = 0;
+      break;
+  }
+#else
+  frequency = XMC_SCU_CLOCK_GetPeripheralClockFrequency();
+#endif  
+
+  return frequency;
+}
+
+uint32_t XMC_CAN_InitEx(XMC_CAN_t *const obj, XMC_CAN_CANCLKSRC_t clksrc, uint32_t can_frequency)
+{
+  uint32_t step_n;
+  uint32_t freq_n;
+  uint32_t peripheral_frequency;
+
+  XMC_ASSERT("XMC_CAN_Init: frequency not supported", can_frequency <= peripheral_frequency);
+
+  /*Enabling the module*/
+  XMC_CAN_Enable(obj);
+
+  XMC_CAN_SetBaudrateClockSource(obj, clksrc);
+  peripheral_frequency = XMC_CAN_GetBaudrateClockFrequency(obj);
+
+  /* Normal divider mode */
+  step_n = (uint32_t)min(max(0U, (1024U - (peripheral_frequency / can_frequency))), 1023U);
+  freq_n = (uint32_t)(peripheral_frequency / (1024U - step_n));
+
+  obj->FDR &= (uint32_t) ~(CAN_FDR_DM_Msk | CAN_FDR_STEP_Msk);
+  obj->FDR |= ((uint32_t)XMC_CAN_DM_NORMAL << CAN_FDR_DM_Pos) | ((uint32_t)step_n << CAN_FDR_STEP_Pos);
+
+  return freq_n;
+}
+
 /* Sets the Identifier of the MO */
 void XMC_CAN_MO_SetIdentifier(XMC_CAN_MO_t *const can_mo, const uint32_t can_identifier)
 {
   if ((can_mo->can_mo_ptr->MOAR & CAN_MO_MOAR_IDE_Msk) != (uint32_t)CAN_MO_MOAR_IDE_Msk)
   {
     can_mo->can_mo_ptr->MOAR = ((can_mo->can_mo_ptr->MOAR) & ~(uint32_t)(CAN_MO_MOAR_ID_Msk)) |
-	                           ((can_identifier << XMC_CAN_MO_MOAR_STDID_Pos) & (uint32_t)CAN_MO_MOAR_ID_Msk);
+                             ((can_identifier << XMC_CAN_MO_MOAR_STDID_Pos) & (uint32_t)CAN_MO_MOAR_ID_Msk);
   }
   else
   {
     can_mo->can_mo_ptr->MOAR = ((can_mo->can_mo_ptr->MOAR) & ~(uint32_t)(CAN_MO_MOAR_ID_Msk)) |
-    		                   (can_identifier & (uint32_t)CAN_MO_MOAR_ID_Msk);
+                           (can_identifier & (uint32_t)CAN_MO_MOAR_ID_Msk);
   }
   can_mo->can_identifier = can_identifier;
 }
@@ -393,11 +512,11 @@ uint32_t XMC_CAN_MO_GetIdentifier(const XMC_CAN_MO_t *const can_mo)
   uint32_t identifier;
   if ((can_mo->can_mo_ptr->MOAR & CAN_MO_MOAR_IDE_Msk) != (uint32_t)CAN_MO_MOAR_IDE_Msk)
   {
-	identifier = ((can_mo->can_mo_ptr->MOAR) & (uint32_t)(CAN_MO_MOAR_ID_Msk)) >> XMC_CAN_MO_MOAR_STDID_Pos;
+  identifier = ((can_mo->can_mo_ptr->MOAR) & (uint32_t)(CAN_MO_MOAR_ID_Msk)) >> XMC_CAN_MO_MOAR_STDID_Pos;
   }
   else
   {
-	identifier = ((can_mo->can_mo_ptr->MOAR) & (uint32_t)(CAN_MO_MOAR_ID_Msk));
+  identifier = ((can_mo->can_mo_ptr->MOAR) & (uint32_t)(CAN_MO_MOAR_ID_Msk));
   }
   return identifier;
 }
@@ -424,13 +543,13 @@ void XMC_CAN_MO_SetAcceptanceMask(XMC_CAN_MO_t *const can_mo,const uint32_t can_
   if (((can_mo->can_mo_ptr->MOAMR & CAN_MO_MOAMR_MIDE_Msk) != (uint32_t)CAN_MO_MOAMR_MIDE_Msk)
           && ((can_mo->can_mo_ptr->MOAR & CAN_MO_MOAR_IDE_Msk) != (uint32_t)CAN_MO_MOAR_IDE_Msk))
   {
-	can_mo->can_mo_ptr->MOAMR = ((can_mo->can_mo_ptr->MOAMR) & ~(uint32_t)(CAN_MO_MOAMR_AM_Msk)) |
-							    (can_id_mask << XMC_CAN_MO_MOAR_STDID_Pos);
+  can_mo->can_mo_ptr->MOAMR = ((can_mo->can_mo_ptr->MOAMR) & ~(uint32_t)(CAN_MO_MOAMR_AM_Msk)) |
+                  (can_id_mask << XMC_CAN_MO_MOAR_STDID_Pos);
   }
   else
   {
-	can_mo->can_mo_ptr->MOAMR = ((can_mo->can_mo_ptr->MOAMR) & ~(uint32_t)(CAN_MO_MOAMR_AM_Msk)) |
-							    (can_id_mask & (uint32_t)CAN_MO_MOAMR_AM_Msk);
+  can_mo->can_mo_ptr->MOAMR = ((can_mo->can_mo_ptr->MOAMR) & ~(uint32_t)(CAN_MO_MOAMR_AM_Msk)) |
+                  (can_id_mask & (uint32_t)CAN_MO_MOAMR_AM_Msk);
   }
   can_mo->can_id_mask = can_id_mask;
 }
@@ -481,16 +600,21 @@ void XMC_CAN_MO_Config(const XMC_CAN_MO_t *const can_mo)
       /* Set MO as Transmit message object  */
       XMC_CAN_MO_UpdateData(can_mo);
       can_mo->can_mo_ptr->MOCTR = CAN_MO_MOCTR_SETDIR_Msk;
+
+      /* Reset RTSEL and Set MSGVAL, TXEN0 and TXEN1 bits */
+      can_mo->can_mo_ptr->MOCTR = (CAN_MO_MOCTR_SETTXEN0_Msk | CAN_MO_MOCTR_SETTXEN1_Msk | CAN_MO_MOCTR_SETMSGVAL_Msk |
+                                   CAN_MO_MOCTR_RESRXEN_Msk  | CAN_MO_MOCTR_RESRTSEL_Msk);
     }
     else
     {
       /* Set MO as Receive message object and set RXEN bit */
       can_mo->can_mo_ptr->MOCTR = CAN_MO_MOCTR_RESDIR_Msk;
+
+      /* Reset RTSEL, TXEN1 and TXEN2 and Set MSGVAL and RXEN bits */
+      can_mo->can_mo_ptr->MOCTR = (CAN_MO_MOCTR_RESTXEN0_Msk | CAN_MO_MOCTR_RESTXEN1_Msk | CAN_MO_MOCTR_SETMSGVAL_Msk |
+                                   CAN_MO_MOCTR_SETRXEN_Msk | CAN_MO_MOCTR_RESRTSEL_Msk);
     }
 
-    /* Reset RTSEL and Set MSGVAL ,TXEN0 and TXEN1 bits */
-    can_mo->can_mo_ptr->MOCTR = (CAN_MO_MOCTR_SETTXEN0_Msk | CAN_MO_MOCTR_SETTXEN1_Msk | CAN_MO_MOCTR_SETMSGVAL_Msk |
-                                 CAN_MO_MOCTR_SETRXEN_Msk | CAN_MO_MOCTR_RESRTSEL_Msk);
   }
 }
 

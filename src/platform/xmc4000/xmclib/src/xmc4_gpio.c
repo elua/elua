@@ -1,12 +1,12 @@
 /**
  * @file xmc4_gpio.c
- * @date 2015-06-20
+ * @date 2017-09-15
  *
  * @cond
-  *********************************************************************************************************************
- * XMClib v2.1.8 - XMC Peripheral Driver Library 
+ *********************************************************************************************************************
+ * XMClib v2.1.18 - XMC Peripheral Driver Library 
  *
- * Copyright (c) 2015-2016, Infineon Technologies AG
+ * Copyright (c) 2015-2017, Infineon Technologies AG
  * All rights reserved.                        
  *                                             
  * Redistribution and use in source and binary forms, with or without modification,are permitted provided that the 
@@ -42,6 +42,9 @@
  * 2015-06-20:
  *     - Removed version macros and declaration of GetDriverVersion API
  *
+ * 2017-09-15:
+ *     - Fix side effects on output level when programming a pin as input after the same pin in another port has been configured as output
+ *  
  * @endcond
  *
  */
@@ -57,6 +60,7 @@
 #define PORT_PDR_Msk              PORT0_PDR0_PD0_Msk
 #define PORT_PDR_Size             (4U)
 #define PORT_HWSEL_Msk            PORT0_HWSEL_HW0_Msk
+#define XMC_GPIO_MODE_OE          XMC_GPIO_MODE_OUTPUT_PUSH_PULL
 
 /*******************************************************************************
  * API IMPLEMENTATION
@@ -81,12 +85,17 @@ void XMC_GPIO_Init(XMC_GPIO_PORT_t *const port, const uint8_t pin, const XMC_GPI
   }
   else
   {
-    /* Set output level */
-    port->OMR = (uint32_t)config->output_level << pin;
+    if ((config->mode & XMC_GPIO_MODE_OE) != 0)
+    {
+      /* If output is enabled */
 
-    /* Set output driver strength */
-    port->PDR[pin >> 3U] &= (uint32_t)~(PORT_PDR_Msk << ((uint32_t)PORT_PDR_Size * ((uint32_t)pin & 0x7U)));
-    port->PDR[pin >> 3U] |= (uint32_t)config->output_strength << ((uint32_t)PORT_PDR_Size * ((uint32_t)pin & 0x7U));
+      /* Set output level */
+      port->OMR = (uint32_t)config->output_level << pin;
+
+      /* Set output driver strength */
+      port->PDR[pin >> 3U] &= (uint32_t)~(PORT_PDR_Msk << ((uint32_t)PORT_PDR_Size * ((uint32_t)pin & 0x7U)));
+      port->PDR[pin >> 3U] |= (uint32_t)config->output_strength << ((uint32_t)PORT_PDR_Size * ((uint32_t)pin & 0x7U));
+    }
   }
 
   /* Set mode */

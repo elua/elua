@@ -3,10 +3,10 @@
  * @date 2016-06-15
  *
  * @cond
-  *********************************************************************************************************************
- * XMClib v2.1.8 - XMC Peripheral Driver Library 
+ *********************************************************************************************************************
+ * XMClib v2.1.18 - XMC Peripheral Driver Library 
  *
- * Copyright (c) 2015-2016, Infineon Technologies AG
+ * Copyright (c) 2015-2017, Infineon Technologies AG
  * All rights reserved.                        
  *                                             
  * Redistribution and use in source and binary forms, with or without modification,are permitted provided that the 
@@ -1763,6 +1763,10 @@ __STATIC_INLINE XMC_SCU_CLOCK_WDTCLKSRC_t XMC_SCU_CLOCK_GetWdtClockSource(void)
  * Selects the source of Standby clock (fSTDBY).\n\n
  * Clock source is configured by setting the \a STDBYSEL bits of \a HDCR register.
  * Hibernate domain should be enabled explicitly before using the API.
+ *
+ * \note
+ * The register update in HIB domain is indicated by the MIRRST register which can be polled using XMC_SCU_GetMirrorStatus()
+ *
  * \par<b>Related APIs:</b><BR>
  * XMC_SCU_HIB_GetStdbyClockSource(), XMC_SCU_HIB_EnableHibernateDomain() \n\n\n
  */
@@ -1799,6 +1803,10 @@ __STATIC_INLINE XMC_SCU_HIB_RTCCLKSRC_t XMC_SCU_HIB_GetStdbyClockSource(void)
  * The value is configured to \a RCS bit of \a HDCR register.
  * fULP needs external input powered by VBAT or VDDP. fOSI is internal clock.
  * The frequency of the clock will be 32.768 kHz.
+ *
+ * \note
+ * The register update in HIB domain is indicated by the MIRRST register which can be polled using XMC_SCU_GetMirrorStatus()
+ *
  * \par<b>Related APIs:</b><BR>
  * XMC_SCU_HIB_GetRtcClockSource() \n\n\n
  */
@@ -2377,6 +2385,10 @@ bool XMC_SCU_CLOCK_IsLowPowerOscillatorStable(void);
  * Enables XTAL1 input of OSC_ULP as general purpose input.
  * Use XMC_SCU_CLOCK_GetLowPowerOscillatorGeneralPurposeInputStatus to monitor the status of OSC_ULP XTAL1 pin.
  * @Note OSC_ULP should be disabled previously using XMC_SCU_CLOCK_DisableLowPowerOscillator().
+ *
+ * \note
+ * The register update in HIB domain is indicated by the MIRRST register which can be polled using XMC_SCU_GetMirrorStatus()
+ *
  * \par<b>Related APIs:</b><BR>
  * XMC_SCU_CLOCK_DisableLowPowerOscillator() \n\n\n
  */
@@ -2389,6 +2401,10 @@ void XMC_SCU_CLOCK_EnableLowPowerOscillatorGeneralPurposeInput(void);
  * \par<b>Description</b><br>
  * Disables XTAL1 input of OSC_ULP as general purpose input.
  * \par<b>Related APIs:</b><BR>
+ *
+ * \note
+ * The register update in HIB domain is indicated by the MIRRST register which can be polled using XMC_SCU_GetMirrorStatus()
+ *
  * XMC_SCU_CLOCK_EnableLowPowerOscillatorGeneralPurposeInput() \n\n\n
  */
 void XMC_SCU_CLOCK_DisableLowPowerOscillatorGeneralPurposeInput(void);
@@ -3010,6 +3026,13 @@ __STATIC_INLINE int32_t XMC_SCU_HIB_GetEventStatus(void)
  * \par<b>Description</b><br>
  * Clear hibernate wakeup event status 
  *
+ * \note
+ * The register update in HIB domain is indicated by the MIRRST register which can be polled using XMC_SCU_GetMirrorStatus()
+ *
+ * \par<b>Related APIs:</b><BR>
+ * XMC_SCU_HIB_TriggerEvent(), XMC_SCU_HIB_EnableEvent(), 
+ * XMC_SCU_HIB_DisableEvent(), XMC_SCU_GetMirrorStatus() \n\n\n
+ *
  */
 void XMC_SCU_HIB_ClearEventStatus(int32_t event);
 
@@ -3019,6 +3042,14 @@ void XMC_SCU_HIB_ClearEventStatus(int32_t event);
  * 
  * \par<b>Description</b><br>
  * Trigger hibernate wakeup event
+ *
+ *
+ * \note
+ * The register update in HIB domain is indicated by the MIRRST register which can be polled using XMC_SCU_GetMirrorStatus()
+ *
+ * \par<b>Related APIs:</b><BR>
+ * XMC_SCU_HIB_ClearEventStatus(), XMC_SCU_HIB_EnableEvent(), 
+ * XMC_SCU_HIB_DisableEvent(), XMC_SCU_GetMirrorStatus() \n\n\n
  *
  */
 void XMC_SCU_HIB_TriggerEvent(int32_t event);
@@ -3030,6 +3061,14 @@ void XMC_SCU_HIB_TriggerEvent(int32_t event);
  * \par<b>Description</b><br>
  * Enable hibernate wakeup event source 
  *
+ *
+ * \note
+ * The register update in HIB domain is indicated by the MIRRST register which can be polled using XMC_SCU_GetMirrorStatus()
+ *
+ * \par<b>Related APIs:</b><BR>
+ * XMC_SCU_HIB_TriggerEvent(), XMC_SCU_HIB_ClearEventStatus(), 
+ * XMC_SCU_HIB_DisableEvent(), XMC_SCU_GetMirrorStatus() \n\n\n
+ *
  */
 void XMC_SCU_HIB_EnableEvent(int32_t event);
 
@@ -3040,6 +3079,14 @@ void XMC_SCU_HIB_EnableEvent(int32_t event);
  * \par<b>Description</b><br>
  * Disable hibernate wakeup event source 
  *
+ *
+ * \note
+ * The register update in HIB domain is indicated by the MIRRST register which can be polled using XMC_SCU_GetMirrorStatus()
+ *
+ * \par<b>Related APIs:</b><BR>
+ * XMC_SCU_HIB_TriggerEvent(), XMC_SCU_HIB_EnableEvent(), 
+ * XMC_SCU_HIB_ClearEventStatus(), XMC_SCU_GetMirrorStatus() \n\n\n
+ *
  */
 void XMC_SCU_HIB_DisableEvent(int32_t event);
 
@@ -3048,6 +3095,12 @@ void XMC_SCU_HIB_DisableEvent(int32_t event);
  * 
  * \par<b>Description</b><br>
  * Request enter external hibernate state
+ *
+ * \note
+ * The register update in HIB domain is indicated by the MIRRST register which can be polled using XMC_SCU_GetMirrorStatus()
+ *
+ * \par<b>Related APIs:</b><BR>
+ * XMC_SCU_GetMirrorStatus() \n\n\n
  *
  */
 void XMC_SCU_HIB_EnterHibernateState(void);
@@ -3058,6 +3111,12 @@ void XMC_SCU_HIB_EnterHibernateState(void);
  *
  * \par<b>Description</b><br>
  * Request enter external hibernate state
+ *
+ * \note
+ * The register update in HIB domain is indicated by the MIRRST register which can be polled using XMC_SCU_GetMirrorStatus()
+ *
+ * \par<b>Related APIs:</b><BR>
+ * XMC_SCU_GetMirrorStatus() \n\n\n
  *
  */
 void XMC_SCU_HIB_EnterHibernateStateEx(XMC_SCU_HIB_HIBERNATE_MODE_t mode);
@@ -3091,6 +3150,12 @@ __STATIC_INLINE void XMC_SCU_HIB_ClearWakeupEventDetectionStatus(void)
  * \par<b>Description</b><br>
  * Selects input for Wake-Up from Hibernate
  *
+ * \note
+ * The register update in HIB domain is indicated by the MIRRST register which can be polled using XMC_SCU_GetMirrorStatus()
+ *
+ * \par<b>Related APIs:</b><BR>
+ * XMC_SCU_GetMirrorStatus() \n\n\n
+ *
  */
 void XMC_SCU_HIB_SetWakeupTriggerInput(XMC_SCU_HIB_IO_t pin);
 
@@ -3101,6 +3166,12 @@ void XMC_SCU_HIB_SetWakeupTriggerInput(XMC_SCU_HIB_IO_t pin);
  * 
  * \par<b>Description</b><br>
  * Selects mode of hibernate domain dedicated pins HIB_IOx
+ *
+ * \note
+ * The register update in HIB domain is indicated by the MIRRST register which can be polled using XMC_SCU_GetMirrorStatus()
+ *
+ * \par<b>Related APIs:</b><BR>
+ * XMC_SCU_GetMirrorStatus() \n\n\n
  *
  */
 void XMC_SCU_HIB_SetPinMode(XMC_SCU_HIB_IO_t pin, XMC_SCU_HIB_PIN_MODE_t mode);
@@ -3113,6 +3184,12 @@ void XMC_SCU_HIB_SetPinMode(XMC_SCU_HIB_IO_t pin, XMC_SCU_HIB_PIN_MODE_t mode);
  * \par<b>Description</b><br>
  * Selects the output polarity of the hibernate domain dedicated pins HIB_IOx
  *
+ * \note
+ * The register update in HIB domain is indicated by the MIRRST register which can be polled using XMC_SCU_GetMirrorStatus()
+ *
+ * \par<b>Related APIs:</b><BR>
+ * XMC_SCU_GetMirrorStatus() \n\n\n
+ *
  */
 void XMC_SCU_HIB_SetPinOutputLevel(XMC_SCU_HIB_IO_t pin, XMC_SCU_HIB_IO_OUTPUT_LEVEL_t level);
 
@@ -3123,8 +3200,11 @@ void XMC_SCU_HIB_SetPinOutputLevel(XMC_SCU_HIB_IO_t pin, XMC_SCU_HIB_IO_OUTPUT_L
  * \par<b>Description</b><br>
  * Selects input to ERU0 module (HIB_SR0) that optionally can be used with software as a general purpose input.
  *
+ * \note
+ * The register update in HIB domain is indicated by the MIRRST register which can be polled using XMC_SCU_GetMirrorStatus()
+ *
  * \par<b>Related APIs:</b><BR>
- * XMC_SCU_HIB_SetSR0Input()
+ * XMC_SCU_HIB_SetSR0Input(), XMC_SCU_GetMirrorStatus() \n\n\n
  *
  */
 void XMC_SCU_HIB_SetInput0(XMC_SCU_HIB_IO_t pin);
@@ -3136,8 +3216,11 @@ void XMC_SCU_HIB_SetInput0(XMC_SCU_HIB_IO_t pin);
  * \par<b>Description</b><br>
  * Selects input to ERU0 module (HIB_SR0).
  *
+ * \note
+ * The register update in HIB domain is indicated by the MIRRST register which can be polled using XMC_SCU_GetMirrorStatus()
+ *
  * \par<b>Related APIs:</b><BR>
- * XMC_SCU_HIB_SetInput0()
+ * XMC_SCU_HIB_SetInput0(),XMC_SCU_GetMirrorStatus() \n\n\n
  *
  */
 void XMC_SCU_HIB_SetSR0Input(XMC_SCU_HIB_SR0_INPUT_t input);
@@ -3151,6 +3234,10 @@ void XMC_SCU_HIB_SetSR0Input(XMC_SCU_HIB_SR0_INPUT_t input);
  *
  * \par<b>Description</b><br>
  * Configures HIB_SR1 input to ERU0 module.
+ *
+ * \note
+ * The register update in HIB domain is indicated by the MIRRST register which can be polled using XMC_SCU_GetMirrorStatus()
+ *
  * @note Only available in XMC44 series and LQFP100 package
  *
  */
@@ -3163,6 +3250,10 @@ void XMC_SCU_HIB_SetSR1Input(XMC_SCU_HIB_SR1_INPUT_t input);
  *
  * \par<b>Description</b><br>
  * Selects inputs to the LPAC comparator. Several inputs can be selected (time multiplexing).
+ *
+ * \note
+ * The register update in HIB domain is indicated by the MIRRST register which can be polled using XMC_SCU_GetMirrorStatus()
+ *
  * @note Only available in XMC44, XMC42 and XMC41 series
  *
  */
@@ -3174,6 +3265,10 @@ void XMC_SCU_HIB_LPAC_SetInput(XMC_SCU_HIB_LPAC_INPUT_t input);
  *
  * \par<b>Description</b><br>
  * Selects trigger mechanism to start a comparison.
+ *
+ * \note
+ * The register update in HIB domain is indicated by the MIRRST register which can be polled using XMC_SCU_GetMirrorStatus()
+ *
  * @note Only available in XMC44, XMC42 and XMC41 series
  *
  */
@@ -3187,6 +3282,10 @@ void XMC_SCU_HIB_LPAC_SetTrigger(XMC_SCU_HIB_LPAC_TRIGGER_t trigger);
  *
  * \par<b>Description</b><br>
  * Configures timing behavior of comparator.
+ *
+ * \note
+ * The register update in HIB domain is indicated by the MIRRST register which can be polled using XMC_SCU_GetMirrorStatus()
+ *
  * @note Only available in XMC44, XMC42 and XMC41 series
  *
  */
@@ -3202,6 +3301,10 @@ void XMC_SCU_HIB_LPAC_SetTiming(bool enable_delay, uint16_t interval_count, uint
  * After the reset of HCU the upper threshold is applied to LPAC for all consecutive measurements until it has been crossed upwards.
  * Once upper threshold crossed upwards the lower threshold gets applied and remains applied for all consecutive measuremements
  * until it has been crossed downwards and the threshold values gets swapped again.
+ *
+ * \note
+ * The register update in HIB domain is indicated by the MIRRST register which can be polled using XMC_SCU_GetMirrorStatus()
+ *
  * @note Only available in XMC44, XMC42 and XMC41 series
  *
  */
@@ -3217,6 +3320,10 @@ void XMC_SCU_HIB_LPAC_SetVBATThresholds(uint8_t lower, uint8_t upper);
  * After the reset of HCU the upper threshold is applied to LPAC for all consecutive measurements until it has been crossed upwards.
  * Once upper threshold crossed upwards the lower threshold gets applied and remains applied for all consecutive measuremements
  * until it has been crossed downwards and the threshold values gets swapped again.
+ *
+ * \note
+ * The register update in HIB domain is indicated by the MIRRST register which can be polled using XMC_SCU_GetMirrorStatus()
+ *
  * @note Only available in XMC44, XMC42 and XMC41 series
  *
  */
@@ -3233,6 +3340,10 @@ void XMC_SCU_HIB_LPAC_SetHIBIO0Thresholds(uint8_t lower, uint8_t upper);
  * After the reset of HCU the upper threshold is applied to LPAC for all consecutive measurements until it has been crossed upwards.
  * Once upper threshold crossed upwards the lower threshold gets applied and remains applied for all consecutive measuremements
  * until it has been crossed downwards and the threshold values gets swapped again.
+ *
+ * \note
+ * The register update in HIB domain is indicated by the MIRRST register which can be polled using XMC_SCU_GetMirrorStatus()
+ *
  * @note Only available in XMC44 series and LQFP100 package
  *
  */
@@ -3255,6 +3366,10 @@ int32_t XMC_SCU_HIB_LPAC_GetStatus(void);
  *
  * \par<b>Description</b><br>
  * Clear status of HIB LPAC.
+ *
+ * \note
+ * The register update in HIB domain is indicated by the MIRRST register which can be polled using XMC_SCU_GetMirrorStatus()
+ *
  * @note Only available in XMC44, XMC42 and XMC41 series
  *
  */
@@ -3266,6 +3381,10 @@ void XMC_SCU_HIB_LPAC_ClearStatus(int32_t status);
  *
  * \par<b>Description</b><br>
  * Trigger comparasion on the selected inputs.
+ *
+ * \note
+ * The register update in HIB domain is indicated by the MIRRST register which can be polled using XMC_SCU_GetMirrorStatus()
+ *
  * @note Only available in XMC44, XMC42 and XMC41 series
  *
  */
@@ -3286,9 +3405,13 @@ void XMC_SCU_HIB_LPAC_TriggerCompare(XMC_SCU_HIB_LPAC_INPUT_t input);
  * The API waits for the mirror register update of the configured register. 
  * The slow internal oscillator registers are in hibernate domain.
  * Ensure that the hibernate domain is enabled before changing the configuration.
+ *
+ * \note
+ * The register update in HIB domain is indicated by the MIRRST register which can be polled using XMC_SCU_GetMirrorStatus()
+ *
  * \par<b>Related APIs:</b><BR>
  * XMC_SCU_HIB_DisableInternalSlowClock(), XMC_SCU_CLOCK_SetBackupClockCalibrationMode(), 
- * XMC_SCU_HIB_EnableHibernateDomain() \n\n\n
+ * XMC_SCU_HIB_EnableHibernateDomain(), XMC_SCU_GetMirrorStatus() \n\n\n
  */
 void XMC_SCU_HIB_EnableInternalSlowClock(void);
 
@@ -3305,9 +3428,13 @@ void XMC_SCU_HIB_EnableInternalSlowClock(void);
  * The API waits for the mirror register update of the configured register. 
  * The slow internal oscillator registers are in hibernate domain.
  * Ensure that the hibernate domain is enabled before changing the configuration.
+ *
+ * \note
+ * The register update in HIB domain is indicated by the MIRRST register which can be polled using XMC_SCU_GetMirrorStatus()
+ *
  * \par<b>Related APIs:</b><BR>
  * XMC_SCU_HIB_EnableInternalSlowClock(), XMC_SCU_CLOCK_SetBackupClockCalibrationMode(), 
- * XMC_SCU_HIB_EnableHibernateDomain() \n\n\n
+ * XMC_SCU_HIB_EnableHibernateDomain(), XMC_SCU_GetMirrorStatus() \n\n\n
  */
 void XMC_SCU_HIB_DisableInternalSlowClock(void);
 

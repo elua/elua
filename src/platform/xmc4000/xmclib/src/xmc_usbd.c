@@ -4,9 +4,9 @@
  *
  * @cond
  **********************************************************************************
- * XMClib v2.1.8 - XMC Peripheral Driver Library 
+ * XMClib v2.1.18 - XMC Peripheral Driver Library 
  *
- * Copyright (c) 2015-2016, Infineon Technologies AG
+ * Copyright (c) 2015-2017, Infineon Technologies AG
  * All rights reserved.                        
  *                                             
  * Redistribution and use in source and binary forms, with or without           
@@ -96,20 +96,33 @@ uint32_t XMC_USBD_EP_IN_BUFFERSIZE[7] = {0U,0U,0U,0U,0U,0U,0U};
 /*
  * Endpoint Out Fifo
  */
-uint8_t XMC_USBD_EP_OUT_BUFFER[7][256] __attribute__((section("USB_RAM")));
+static __attribute__((aligned(4))) uint8_t XMC_USBD_EP_OUT_BUFFER[7][256] __attribute__((section("USB_RAM")));
 /*
  * Endpoint In Fifo
  */
-uint8_t XMC_USBD_EP_IN_BUFFER[7][256] __attribute__((section("USB_RAM")));
-#else
+static __attribute__((aligned(4))) uint8_t XMC_USBD_EP_IN_BUFFER[7][256] __attribute__((section("USB_RAM")));
+#endif
+#if defined(__ICCARM__)
+#pragma data_alignment=4
 /*
  * Endpoint Out Fifo
  */
-uint8_t XMC_USBD_EP_OUT_BUFFER[7][256];
+static uint8_t XMC_USBD_EP_OUT_BUFFER[7][256] @ ".dram";
 /*
  * Endpoint In Fifo
  */
-uint8_t XMC_USBD_EP_IN_BUFFER[7][256];
+#pragma data_alignment=4
+static uint8_t XMC_USBD_EP_IN_BUFFER[7][256] @ ".dram";
+#endif
+#if defined(__CC_ARM)
+/*
+ * Endpoint Out Fifo
+ */
+static __attribute__((aligned(4))) uint8_t XMC_USBD_EP_OUT_BUFFER[7][256] __attribute__((section ("RW_IRAM1")));
+/*
+ * Endpoint In Fifo
+ */
+static __attribute__((aligned(4))) uint8_t XMC_USBD_EP_IN_BUFFER[7][256] __attribute__((section ("RW_IRAM1")));
 #endif
 XMC_USBD_t *usbd_init;
 

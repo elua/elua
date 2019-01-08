@@ -1,12 +1,12 @@
 /**
  * @file xmc_common.c
- * @date 2015-02-20
+ * @date 2017-02-25
  *
  * @cond
  *********************************************************************************************************************
- * XMClib v2.1.8 - XMC Peripheral Driver Library 
+ * XMClib v2.1.18 - XMC Peripheral Driver Library 
  *
- * Copyright (c) 2015-2016, Infineon Technologies AG
+ * Copyright (c) 2015-2017, Infineon Technologies AG
  * All rights reserved.                        
  *                                             
  * Redistribution and use in source and binary forms, with or without modification,are permitted provided that the 
@@ -39,6 +39,10 @@
  * 2015-02-20:
  *     - Initial <br>
  *      
+ * 2017-02-25:
+ *     - Remove the need to define XMC_USER_ASSERT_FUNCTION
+ *     - XMC_AssertHandler fixed compilation warnings
+ *
  * @endcond 
  *
  */
@@ -56,16 +60,18 @@ struct list
 /*******************************************************************************
  * API IMPLEMENTATION
  *******************************************************************************/
-#if defined(XMC_ASSERT_ENABLE) && !defined(XMC_USER_ASSERT_FUNCTION)
-
+#if defined(XMC_ASSERT_ENABLE)
 __WEAK void XMC_AssertHandler(const char *const msg, const char *const file, uint32_t line)
 {
+  XMC_UNUSED_ARG(msg);
+  XMC_UNUSED_ARG(file);
+  XMC_UNUSED_ARG(line);
+
   while(1)
   {
     /* Endless loop */
   }
 }
-
 #endif
 
 void XMC_LIST_Init(XMC_LIST_t *list)

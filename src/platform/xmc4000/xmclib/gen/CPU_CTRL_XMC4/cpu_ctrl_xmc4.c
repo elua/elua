@@ -7,9 +7,9 @@
 /**
  * @cond
  ***********************************************************************************************************************
- * CPU_CTRL_XMC4 v4.0.12 - Sets the priority grouping for NVIC
+ * CPU_CTRL_XMC4 v4.0.14 - Sets the priority grouping for NVIC
  *
- * Copyright (c) 2015, Infineon Technologies AG
+ * Copyright (c) 2015-2016, Infineon Technologies AG
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,are permitted provided that the
@@ -41,9 +41,14 @@
  *
  * 2015-02-16:
  *     - Initial version<br>
+ *
  * 2015-08-31:
  *     - Added hard fault handler
  *     - Added CPU_CTRL_XMC4_MPU_Enable, CPU_CTRL_XMC4_MPU_Disable APIs
+ *
+ * 2016-11-29:
+ *     - Changed hard fault handler to avoid reading from the stack in case an stack overflow caused the fault.
+ *
  * @endcond
  *
  */
@@ -82,6 +87,7 @@ DAVE_APP_VERSION_t CPU_CTRL_XMC4_GetAppVersion(void)
 /* Dummy Init API to maintain backward compatibility */
 CPU_CTRL_XMC4_STATUS_t CPU_CTRL_XMC4_Init(CPU_CTRL_XMC4_t *const handler)
 {
+  (void)handler;
   return CPU_CTRL_XMC4_STATUS_SUCCESS;
 }
 
@@ -105,6 +111,22 @@ void CPU_CTRL_XMC4_MPU_Disable(void)
 }
 
 #if (HARDFAULT_ENABLED == 1)
+
+volatile uint32_t stacked_r0;
+volatile uint32_t stacked_r1;
+volatile uint32_t stacked_r2;
+volatile uint32_t stacked_r3;
+volatile uint32_t stacked_r12;
+volatile uint32_t stacked_lr;
+volatile uint32_t stacked_pc;
+volatile uint32_t stacked_psr;
+volatile uint32_t _CFSR;
+volatile uint32_t _HFSR;
+volatile uint32_t _DFSR;
+volatile uint32_t _AFSR;
+volatile uint32_t _BFAR;
+volatile uint32_t _MMAR;
+
 /**
  * This is called from the HardFault_Handler with a pointer the Fault stack
  * as the parameter. We can then read the values from the stack and place them
@@ -117,51 +139,38 @@ void CPU_CTRL_XMC4_MPU_Disable(void)
 #if defined(__GNUC__)
 #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #endif
-void __HardFault_Handler(uint32_t args[])
+__attribute__((naked)) void __HardFault_Handler(uint32_t args[])
 {
-  volatile uint32_t stacked_r0 ;
-  volatile uint32_t stacked_r1 ;
-  volatile uint32_t stacked_r2 ;
-  volatile uint32_t stacked_r3 ;
-  volatile uint32_t stacked_r12 ;
-  volatile uint32_t stacked_lr ;
-  volatile uint32_t stacked_pc ;
-  volatile uint32_t stacked_psr ;
-  volatile unsigned long _CFSR ;
-  volatile unsigned long _HFSR ;
-  volatile unsigned long _DFSR ;
-  volatile unsigned long _AFSR ;
-  volatile unsigned long _BFAR ;
-  volatile unsigned long _MMAR ;
-
-  stacked_r0 = ((uint32_t)args[0]) ;
-  stacked_r1 = ((uint32_t)args[1]) ;
-  stacked_r2 = ((uint32_t)args[2]) ;
-  stacked_r3 = ((uint32_t)args[3]) ;
-  stacked_r12 = ((uint32_t)args[4]) ;
-  stacked_lr = ((uint32_t)args[5]) ;
-  stacked_pc = ((uint32_t)args[6]) ;
-  stacked_psr = ((uint32_t)args[7]) ;
 
   // Configurable Fault Status Register
   // Consists of MMSR, BFSR and UFSR
-  _CFSR = (*((volatile unsigned long *)(0xE000ED28))) ;
+  _CFSR = SCB->CFSR;
 
   // Hard Fault Status Register
-  _HFSR = (*((volatile unsigned long *)(0xE000ED2C))) ;
+  _HFSR = SCB->HFSR;
 
   // Debug Fault Status Register
-  _DFSR = (*((volatile unsigned long *)(0xE000ED30))) ;
+  _DFSR = SCB->DFSR;
 
   // Auxiliary Fault Status Register
-  _AFSR = (*((volatile unsigned long *)(0xE000ED3C))) ;
+  _AFSR = SCB->AFSR;
 
   // Read the Fault Address Registers. These may not contain valid values.
   // Check BFARVALID/MMARVALID to see if they are valid values
   // MemManage Fault Address Register
-  _MMAR = (*((volatile unsigned long *)(0xE000ED34))) ;
+  _MMAR = SCB->MMFAR;
+
   // Bus Fault Address Register
-  _BFAR = (*((volatile unsigned long *)(0xE000ED38))) ;
+  _BFAR = SCB->BFAR;
+
+  stacked_r0 = ((uint32_t)args[0]);
+  stacked_r1 = ((uint32_t)args[1]);
+  stacked_r2 = ((uint32_t)args[2]);
+  stacked_r3 = ((uint32_t)args[3]);
+  stacked_r12 = ((uint32_t)args[4]);
+  stacked_lr = ((uint32_t)args[5]);
+  stacked_pc = ((uint32_t)args[6]);
+  stacked_psr = ((uint32_t)args[7]);
 
   __asm("BKPT 0\n") ; // Break into the debugger
 

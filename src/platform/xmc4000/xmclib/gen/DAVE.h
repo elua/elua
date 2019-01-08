@@ -52,26 +52,27 @@
 #include "CLOCK_XMC4/clock_xmc4.h"
   
 
+#include "CPU_CTRL_XMC4/cpu_ctrl_xmc4.h"
+  
+
+#include "GLOBAL_DMA/global_dma.h"
+  
+
 #include "UART/uart.h"
   
 
 #include "RTC/rtc.h"
   
 
-#include "CPU_CTRL_XMC4/cpu_ctrl_xmc4.h"
-  
-
 #include "SYSTIMER/systimer.h"
+  
 
 #include "SDMMC_BLOCK/sdmmc_block.h"
+  
 
 #include "FATFS/fatfs.h"
-
   
-#include "GUI_SEGGERLIBRARY/gui_seggerlibrary.h"
-
-
-#include "SPI_MASTER/spi_master.h"
+	
 
 /**********************************************************************************************************************
  * ENUMS
@@ -79,8 +80,7 @@
 typedef enum DAVE_STATUS
 {
   DAVE_STATUS_SUCCESS = 0,
-  DAVE_STATUS_FAILURE,
-  DAVE_STATUS_ALREADY_INITIALIZED
+  DAVE_STATUS_FAILURE
 } DAVE_STATUS_t;
 
 /***********************************************************************************************************************

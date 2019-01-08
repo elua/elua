@@ -2,8 +2,10 @@
 // eLua module for Syncoam (SEPS525F) OLED display on the Infineon HMI
 // hexagonal extension board
 //
-// Taken from platform/lm3s/disp.c. Adapted for Infineon XMC4500 by
-// Raman
+// Taken from platform/lm3s/disp.c. Adapted for Infineon XMC4500 Hexagonal
+// kit by Raman
+
+#if !defined( XMC4700_F144x2048 )
 
 #include "lua.h"
 #include "lualib.h"
@@ -81,3 +83,5 @@ const LUA_REG_TYPE disp_map[] =
   { LSTRKEY( "GUI_TRANSPARENT" ), LNUMVAL( GUI_TRANSPARENT ) },
   { LNILKEY, LNILVAL }
 };
+
+#endif /* #if !defined( XMC4700_F144x2048 ) */

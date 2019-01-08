@@ -1,12 +1,12 @@
 /**
  * @file xmc4_rtc.c
- * @date 2016-03-09
+ * @date 2017-08-04
  *
  * @cond
  *********************************************************************************************************************
- * XMClib v2.1.8 - XMC Peripheral Driver Library 
+ * XMClib v2.1.18 - XMC Peripheral Driver Library 
  *
- * Copyright (c) 2015-2016, Infineon Technologies AG
+ * Copyright (c) 2015-2017, Infineon Technologies AG
  * All rights reserved.                        
  *                                             
  * Redistribution and use in source and binary forms, with or without modification,are permitted provided that the 
@@ -42,6 +42,10 @@
  * 2016-03-09:
  *     - Optimize write only registers
  *      
+ * 2017-08-04:
+ *     - Changed XMC_RTC_EnableHibernationWakeUp() and XMC_RTC_DisableHibernationWakeUpcheck() 
+ *       Check SCU_MIRRSTS to ensure that no transfer over serial interface is pending to the RTC_CTR register
+ *
  * @endcond 
  *
  */
@@ -103,18 +107,18 @@ XMC_RTC_STATUS_t XMC_RTC_Init(const XMC_RTC_CONFIG_t *const config)
     }
     
     XMC_RTC_SetPrescaler(config->prescaler);
-		
-	  while ((XMC_SCU_GetMirrorStatus() & SCU_GENERAL_MIRRSTS_RTC_TIM0_Msk) != 0U)
-	  {
+    
+    while ((XMC_SCU_GetMirrorStatus() & SCU_GENERAL_MIRRSTS_RTC_TIM0_Msk) != 0U)
+    {
       /* check SCU_MIRRSTS to ensure that no transfer over serial interface is pending */
     }
-	  RTC->TIM0 = config->time.raw0;
+    RTC->TIM0 = config->time.raw0;
     
     while ((XMC_SCU_GetMirrorStatus() & SCU_GENERAL_MIRRSTS_RTC_TIM1_Msk) != 0U)
-	  {
+    {
       /* check SCU_MIRRSTS to ensure that no transfer over serial interface is pending */
     }
-	  RTC->TIM1 = config->time.raw1;
+    RTC->TIM1 = config->time.raw1;
     
     while ((XMC_SCU_GetMirrorStatus() & SCU_GENERAL_MIRRSTS_RTC_ATIM0_Msk) != 0U)
     {
@@ -165,6 +169,24 @@ void XMC_RTC_ClearEvent(const uint32_t event)
     /* check SCU_MIRRSTS to ensure that no transfer over serial interface is pending */
   }
   RTC->CLRSR = event;
+}
+
+void XMC_RTC_EnableHibernationWakeUp(const uint32_t event)
+{
+  while((XMC_SCU_GetMirrorStatus() & SCU_GENERAL_MIRRSTS_RTC_CTR_Msk) != 0U)
+  {
+    /* check SCU_MIRRSTS to ensure that no transfer over serial interface is pending */
+  }
+  RTC->CTR |= event;
+}
+
+void XMC_RTC_DisableHibernationWakeUp(const uint32_t event)
+{
+  while((XMC_SCU_GetMirrorStatus() & SCU_GENERAL_MIRRSTS_RTC_CTR_Msk) != 0U)
+  {
+    /* check SCU_MIRRSTS to ensure that no transfer over serial interface is pending */
+  }
+  RTC->CTR &= ~event;
 }
 
 #endif /* UC_FAMILY == XMC4 */

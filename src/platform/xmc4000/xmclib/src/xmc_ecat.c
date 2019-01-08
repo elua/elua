@@ -1,13 +1,13 @@
 
 /**
  * @file xmc_ecat.c
- * @date 2015-10-21
+ * @date 2017-04-27
  *
  * @cond
  *********************************************************************************************************************
- * XMClib v2.1.8 - XMC Peripheral Driver Library 
+ * XMClib v2.1.18 - XMC Peripheral Driver Library
  *
- * Copyright (c) 2015-2016, Infineon Technologies AG
+ * Copyright (c) 2015-2017, Infineon Technologies AG
  * All rights reserved.                        
  *                                             
  * Redistribution and use in source and binary forms, with or without modification,are permitted provided that the 
@@ -37,11 +37,14 @@
  * Change History
  * --------------
  *
+ * 2015-10-21:
+ *     - Initial Version
+ *
  * 2015-12-27:
  *     - Add clock gating control in enable/disable APIs
  *
- * 2015-10-21:
- *     - Initial Version
+ * 2017-04-27:
+ *     - Changed XMC_ECAT_ReadPhy() and XMC_ECAT_WritePhy() to release the MII access and check that the master enables take over of MII management control
  *
  * @endcond
  */
@@ -66,7 +69,12 @@
 /* The function defines the access state to the MII management for the PDI interface*/
 __STATIC_INLINE void XMC_ECAT_lRequestPhyAccessToMII(void)
 {
-  ECAT0->MII_PDI_ACS_STATE |= 0x01;
+  ECAT0->MII_PDI_ACS_STATE = 0x1;
+}
+
+__STATIC_INLINE void XMC_ECAT_lReleasePhyAccessToMII(void)
+{
+  ECAT0->MII_PDI_ACS_STATE = 0x0;
 }
 
 /* EtherCAT module clock ungating and deassert reset API (Enables ECAT) */
@@ -146,23 +154,32 @@ XMC_ECAT_STATUS_t XMC_ECAT_ReadPhy(uint8_t phy_addr, uint8_t reg_addr, uint16_t 
 {
   XMC_ECAT_STATUS_t status;
 
-  XMC_ECAT_lRequestPhyAccessToMII();
-
-  ECAT0->MII_PHY_ADR = phy_addr;
-  ECAT0->MII_PHY_REG_ADR = reg_addr;
-
-  ECAT0->MII_CONT_STAT |= 0x0100U;  /* read instruction */
-  while ((ECAT0->MII_CONT_STAT & ECAT_MII_CONT_STAT_BUSY_Msk) != 0U){}
-  
-  if ((ECAT0->MII_CONT_STAT & ECAT_MII_CONT_STAT_ERROR_Msk) != 0U)
+  if ((ECAT0->MII_ECAT_ACS_STATE != 0) || ((ECAT0->MII_PDI_ACS_STATE & ECAT_MII_PDI_ACS_STATE_FORCE_PDI_ACS_S_Msk) != 0))
   {
-    ECAT0->MII_CONT_STAT &= ~ECAT_MII_CONT_STAT_CMD_REG_Msk; /* Clear error */
-    status = XMC_ECAT_STATUS_ERROR;
+  status =  XMC_ECAT_STATUS_ERROR;
   }
   else
   {
-    *data = (uint16_t)ECAT0->MII_PHY_DATA;
-    status = XMC_ECAT_STATUS_OK;
+    XMC_ECAT_lRequestPhyAccessToMII();
+
+    ECAT0->MII_PHY_ADR = phy_addr;
+    ECAT0->MII_PHY_REG_ADR = reg_addr;
+
+    ECAT0->MII_CONT_STAT = 0x0100U;  /* read instruction */
+    while ((ECAT0->MII_CONT_STAT & ECAT_MII_CONT_STAT_BUSY_Msk) != 0U){}
+
+    if ((ECAT0->MII_CONT_STAT & ECAT_MII_CONT_STAT_ERROR_Msk) != 0U)
+    {
+      ECAT0->MII_CONT_STAT = 0; /* Clear error */
+      status = XMC_ECAT_STATUS_ERROR;
+    }
+    else
+    {
+      *data = (uint16_t)ECAT0->MII_PHY_DATA;
+      status = XMC_ECAT_STATUS_OK;
+    }
+
+    XMC_ECAT_lReleasePhyAccessToMII();
   }
 
   return status;
@@ -173,23 +190,32 @@ XMC_ECAT_STATUS_t XMC_ECAT_WritePhy(uint8_t phy_addr, uint8_t reg_addr, uint16_t
 {
   XMC_ECAT_STATUS_t status;
 
-  XMC_ECAT_lRequestPhyAccessToMII();
-
-  ECAT0->MII_PHY_ADR = phy_addr;
-  ECAT0->MII_PHY_REG_ADR = reg_addr;
-  ECAT0->MII_PHY_DATA = data;
-
-  ECAT0->MII_CONT_STAT |= 0x0200U;  /* write instruction */
-  while ((ECAT0->MII_CONT_STAT & ECAT_MII_CONT_STAT_BUSY_Msk) != 0U){}
-
-  if ((ECAT0->MII_CONT_STAT & ECAT_MII_CONT_STAT_ERROR_Msk) != 0U)
+  if ((ECAT0->MII_ECAT_ACS_STATE != 0) || ((ECAT0->MII_PDI_ACS_STATE & ECAT_MII_PDI_ACS_STATE_FORCE_PDI_ACS_S_Msk) != 0))
   {
-    ECAT0->MII_CONT_STAT &= ~ECAT_MII_CONT_STAT_CMD_REG_Msk; /* Clear error */
-    status = XMC_ECAT_STATUS_ERROR;
+  status =  XMC_ECAT_STATUS_ERROR;
   }
   else
   {
-    status = XMC_ECAT_STATUS_OK;
+    XMC_ECAT_lRequestPhyAccessToMII();
+
+    ECAT0->MII_PHY_ADR = phy_addr;
+    ECAT0->MII_PHY_REG_ADR = reg_addr;
+    ECAT0->MII_PHY_DATA = data;
+
+    ECAT0->MII_CONT_STAT = 0x0200U;  /* write instruction */
+    while ((ECAT0->MII_CONT_STAT & ECAT_MII_CONT_STAT_BUSY_Msk) != 0U){}
+
+    if ((ECAT0->MII_CONT_STAT & ECAT_MII_CONT_STAT_ERROR_Msk) != 0U)
+    {
+      ECAT0->MII_CONT_STAT = 0; /* Clear error */
+      status = XMC_ECAT_STATUS_ERROR;
+    }
+    else
+    {
+      status = XMC_ECAT_STATUS_OK;
+    }
+
+    XMC_ECAT_lReleasePhyAccessToMII();
   }
 
   return status;

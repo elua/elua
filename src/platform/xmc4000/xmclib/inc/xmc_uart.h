@@ -1,12 +1,12 @@
  /**
  * @file xmc_uart.h
- * @date 2016-05-20
+ * @date 2017-10-25
  *
  * @cond
-*********************************************************************************************************************
- * XMClib v2.1.8 - XMC Peripheral Driver Library 
+ *********************************************************************************************************************
+ * XMClib v2.1.18 - XMC Peripheral Driver Library 
  *
- * Copyright (c) 2015-2016, Infineon Technologies AG
+ * Copyright (c) 2015-2017, Infineon Technologies AG
  * All rights reserved.                        
  *                                             
  * Redistribution and use in source and binary forms, with or without modification,are permitted provided that the 
@@ -53,6 +53,9 @@
  * 
  * 2016-05-20:
  *     - Added XMC_UART_CH_EnableDataTransmission() and XMC_UART_CH_DisableDataTransmission()
+ *
+ * 2017-10-25:
+ *     - Added XMC_UART_CH_EnableMasterClock() and XMC_UART_CH_DisableMasterClock()
  *
  * @endcond 
  *
@@ -604,6 +607,39 @@ __STATIC_INLINE void XMC_UART_CH_SetPulseLength(XMC_USIC_CH_t *const channel, co
 {
   channel->PCR_ASCMode = (uint32_t)(channel->PCR_ASCMode & (~USIC_CH_PCR_ASCMode_PL_Msk)) |
                          ((uint32_t)pulse_length << USIC_CH_PCR_ASCMode_PL_Pos);
+}
+
+
+/**
+ * @param channel Constant pointer to USIC channel handle of type @ref XMC_USIC_CH_t \n
+ * 				  \b Range: @ref XMC_UART0_CH0, @ref XMC_UART0_CH1,@ref XMC_UART1_CH0,@ref XMC_UART1_CH1,@ref XMC_UART2_CH0,@ref XMC_UART2_CH1 @note Availability of UART1 and UART2 depends on device selection
+ * @return None
+ *
+ * \par<b>Description</b><br>
+ * Enables the generation of the master clock MCLK.\n\n
+ * \par<b>Related APIs:</b><BR>
+ * XMC_USIC_CH_SetMclkOutputPassiveLevel()\n\n\n
+ *
+*/
+__STATIC_INLINE void XMC_UART_CH_EnableMasterClock(XMC_USIC_CH_t *const channel)
+{
+  channel->PCR_ASCMode |= USIC_CH_PCR_ASCMode_MCLK_Msk;
+}
+
+/**
+ * @param channel Constant pointer to USIC channel handle of type @ref XMC_USIC_CH_t \n
+ * 				  \b Range: @ref XMC_UART0_CH0, @ref XMC_UART0_CH1,@ref XMC_UART1_CH0,@ref XMC_UART1_CH1,@ref XMC_UART2_CH0,@ref XMC_UART2_CH1 @note Availability of UART1 and UART2 depends on device selection
+ * @return None
+ *
+ * \par<b>Description</b><br>
+ * Disables the generation of the master clock MCLK.\n\n
+ * \par<b>Related APIs:</b><BR>
+ * XMC_USIC_CH_SetMclkOutputPassiveLevel()\n\n\n
+ *
+*/
+__STATIC_INLINE void XMC_UART_CH_DisableMasterClock(XMC_USIC_CH_t *const channel)
+{
+  channel->PCR_ASCMode &= (uint32_t)~USIC_CH_PCR_ASCMode_MCLK_Msk;
 }
 
 /**

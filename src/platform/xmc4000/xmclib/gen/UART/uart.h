@@ -7,9 +7,9 @@
  *
  * @cond
  ***********************************************************************************************************************
- * UART v4.1.4 - Configures a USIC channel to perform transmit & receive operations using UART protocol.
+ * UART v4.1.10 - Configures a USIC channel to perform transmit & receive operations using UART protocol.
  *
- * Copyright (c) 2015, Infineon Technologies AG
+ * Copyright (c) 2015-2016, Infineon Technologies AG
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,are permitted provided that the
@@ -71,9 +71,9 @@
 #include <xmc_uart.h>
 
 #if (!((XMC_LIB_MAJOR_VERSION == 2U) && \
-       (XMC_LIB_MINOR_VERSION >= 0U) && \
-       (XMC_LIB_PATCH_VERSION >= 0U)))
-#error "UART requires XMC Peripheral Library v2.0.0 or higher"
+       (XMC_LIB_MINOR_VERSION >= 1U) && \
+       (XMC_LIB_PATCH_VERSION >= 10U)))
+#error "UART requires XMC Peripheral Library v2.1.10 or higher"
 #endif
 
 #include <DAVE_common.h>
@@ -2047,6 +2047,141 @@ __STATIC_INLINE void UART_ClearFlag(const UART_t *const handle, const uint32_t p
 {
   XMC_ASSERT("UART APP handle invalid", (handle != NULL))
   XMC_UART_CH_ClearStatusFlag(handle->channel, protocol_status);
+}
+
+/**
+ * @brief Checks if the transmission is in progress.
+ *
+ * @param handle UART APP handle pointer of type @ref UART_t
+ * @return bool: Status of data transmission.\n
+ *               <b>Range:</b> true - if transmission is ongoing.\n
+ *                             false- if transmission is not active.\n
+ *
+ * \par<b>Description:</b><br>
+ * Indicates if the communication channel is busy in transmitting data provided using UART_Transmit, UART_StartTransmitIRQ or
+ * UART_StartTransmitDMA API.
+ * <BR>
+ *
+ * Example Usage:
+ * @code
+ * #include <DAVE.h>
+ *   //Pre-condition:
+ *   //Transmit mode should be configured as "Interrupt".
+ *   //Description:
+ *   //Initiates the transmission of one string, aborts the transmission immediately and
+ *   //starts transmission of another string. The receiver might see traces of first string followed,
+ *   //by the complete second string.
+ *
+ *   int main(void)
+ *   {
+ *     UART_STATUS_t init_status;
+ *     //String1
+ *     uint8_t Send_Data[] = "Infineon DAVE application.";
+ *     //String2
+ *     uint8_t NewData[] = "New data message";
+ *
+ *     init_status = (UART_STATUS_t)UART_Init(&UART_0);
+ *     if(init_status == UART_STATUS_SUCCESS)
+ *     {
+ *       //Initiate transmission of first string.
+ *       UART_Transmit(&UART_0, Send_Data, sizeof(Send_Data));
+ *     //When the first string is being transmitted,
+ *       if(UART_IsTxBusy(&UART_0))
+ *       {
+ *         //Stop the transmission of first string.
+ *         if(UART_AbortTransmit(&UART_0) == UART_STATUS_SUCCESS)
+ *         {
+ *           //Start the transmission of second string
+ *           UART_Transmit(&UART_0, NewData, sizeof(NewData));
+ *           //Wait till the transmission is finished.
+ *           while(UART_IsTxBusy(&UART_0));
+ *         }
+ *       }
+ *       while(1)
+ *       {
+ *       }
+ *     }
+ *     else
+ *     {
+ *      XMC_DEBUG("main: Application initialization failed");
+ *      while(1U)
+ *      {
+ *      }
+ *     }
+ *      return 1U;
+ *  }
+ * @endcode
+ *
+ * */
+__STATIC_INLINE bool UART_IsTxBusy(const UART_t *const handle)
+{
+  XMC_ASSERT("UART APP handle invalid", (handle != NULL))
+  return (handle->runtime->tx_busy);
+}
+
+/**
+ * @brief Checks if data reception is in progress.
+ *
+ * @param handle UART APP handle pointer of type @ref UART_t
+ * @return bool: Status of data reception.\n
+ *               <b>Range:</b> true - if reception is ongoing.\n
+ *                             false- if reception is not active.\n
+ *
+ * \par<b>Description:</b><br>
+ * Indicates if the communication channel is configured for receiving data, initiated using UART_Receive, UART_StartReceiveIRQ or
+ * UART_StartReceiveDMA API.
+ * <BR>
+ *
+ * Example Usage:
+ * @code
+ * #include <DAVE.h>
+ *
+ *   //Pre-condition:
+ *   //Transmit mode and receive mode should be configured as "Interrupt".
+ *   //Description:
+ *   //Receives 10 bytes of data and transmits the same.
+ *
+ *   int main(void)
+ *   {
+ *     UART_STATUS_t init_status;
+ *     uint8_t ReadData[10];
+ *
+ *     init_status = (UART_STATUS_t)UART_Init(&UART_0);
+ *     if(init_status == UART_STATUS_SUCCESS)
+ *     {
+ *       while(1)
+ *       {
+ *       //Start reception of 10 bytes. The status will be returned success, if the channel is not busy.
+ *       if(UART_StartReceiveIRQ(&UART_0, ReadData, 10) == UART_STATUS_SUCCESS)
+ *       {
+ *         //Wait till the data is received.
+ *         while(UART_IsRxBusy(&UART_0))
+ *         {
+ *         }
+ *         //Transmit the received data.
+ *         UART_Transmit(&UART_0, ReadData, 10);
+ *         while(UART_IsTxBusy(&UART_0))
+ *         {
+ *         }
+ *       }
+ *       }
+ *     }
+ *     else
+ *     {
+ *      XMC_DEBUG("main: Application initialization failed");
+ *      while(1U)
+ *      {
+ *      }
+ *     }
+ *      return 1U;
+ *  }
+ * @endcode
+ *
+ * */
+__STATIC_INLINE bool UART_IsRxBusy(const UART_t *const handle)
+{
+  XMC_ASSERT("UART APP handle invalid", (handle != NULL))
+  return (handle->runtime->rx_busy);
 }
 
 /**

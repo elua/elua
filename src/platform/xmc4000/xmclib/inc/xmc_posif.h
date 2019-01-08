@@ -1,44 +1,37 @@
 /**
  * @file xmc_posif.h
- * @date 2016-03-09
+ * @date 2017-06-24
  *
  * @cond
- **********************************************************************************
- * XMClib v2.1.8 - XMC Peripheral Driver Library 
+ *********************************************************************************************************************
+ * XMClib v2.1.18 - XMC Peripheral Driver Library 
  *
- * Copyright (c) 2015-2016, Infineon Technologies AG
+ * Copyright (c) 2015-2017, Infineon Technologies AG
  * All rights reserved.                        
  *                                             
- * Redistribution and use in source and binary forms, with or without           
- * modification,are permitted provided that the following conditions are met:   
+ * Redistribution and use in source and binary forms, with or without modification,are permitted provided that the 
+ * following conditions are met:   
  *                                                                              
- *   Redistributions of source code must retain the above copyright notice,      
- *   this list of conditions and the following disclaimer.                        
+ * Redistributions of source code must retain the above copyright notice, this list of conditions and the following 
+ * disclaimer.                        
  * 
- *   Redistributions in binary form must reproduce the above copyright notice,   
- *   this list of conditions and the following disclaimer in the documentation    
- *   and/or other materials provided with the distribution.                       
+ * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following 
+ * disclaimer in the documentation and/or other materials provided with the distribution.                       
  * 
- *   Neither the name of the copyright holders nor the names of its contributors 
- *   may be used to endorse or promote products derived from this software without
- *   specific prior written permission.                                           
+ * Neither the name of the copyright holders nor the names of its contributors may be used to endorse or promote 
+ * products derived from this software without specific prior written permission.                                           
  *                                                                              
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   
- * ARE  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE   
- * LIABLE  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR         
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         
- * SUBSTITUTE GOODS OR  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS    
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      
- * CONTRACT, STRICT LIABILITY,OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)       
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   
- * POSSIBILITY OF SUCH DAMAGE.                                                  
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE  
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE  FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR  
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+ * WHETHER IN CONTRACT, STRICT LIABILITY,OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                                  
  *                                                                              
- * To improve the quality of the software, users are encouraged to share        
- * modifications, enhancements or bug fixes with Infineon Technologies AG       
- * dave@infineon.com).                                                          
- **********************************************************************************
+ * To improve the quality of the software, users are encouraged to share modifications, enhancements or bug fixes with 
+ * Infineon Technologies AG dave@infineon.com).                                                          
+ *********************************************************************************************************************
  *
  * Change History
  * --------------
@@ -58,6 +51,9 @@
  * 2016-03-09:
  *     - Optimization of write only registers
  *
+ * 2017-06-24
+ *     - Added posif map connectivity file<br>
+ *
  * @endcond 
  *
  */
@@ -73,15 +69,15 @@
 
 #if defined(POSIF0)
 #include <xmc_scu.h>
+#include "xmc_posif_map.h"
 
 /**
- * @addtogroup XMClib
+ * @addtogroup XMClib XMC Peripheral Library
  * @{
  */
 
 /**
  * @addtogroup POSIF
- * @{
  * @brief Position Interface Unit (POSIF) driver for the XMC microcontroller family <br>
  *
  * The POSIF unit is a flexible and powerful component for motor control systems that use
@@ -110,17 +106,15 @@
  * -# User need to call respective init functions to configure POSIF operating mode. e.g to configure POSIF in hall sensor control with multichannel mode
  * call both XMC_POSIF_HSC_Init() and XMC_POSIF_MCM_Init().
  * -# Allows to enable and disable interrupt sources and assign to service request node using XMC_POSIF_EnableEvent(), XMC_POSIF_DisableEvent() and XMC_POSIF_SetInterruptNode()
-
+ * 
+ * @note POSIF is not available on XMC11 and XMC12 devices
+ *
+ * @{
  */
-/* POSIF is not available on XMC11 and XMC12 devices */
 
 /*********************************************************************************************************************
  * MACROS
  ********************************************************************************************************************/
-#define XMC_POSIF_PCONF_INSEL_Msk        (0x3fUL << POSIF_PCONF_INSEL0_Pos) /*< Mask for input pins selection */
-#define XMC_POSIF_INSEL_MAX              (4U) /*< Maximum possible input selector */
-#define XMC_POSIF_HALPS_HALLPAT_Msk      (0x3FUL)
-
 #if ((UC_SERIES == XMC45) || (UC_SERIES == XMC44) || (UC_SERIES == XMC47) || (UC_SERIES == XMC48) || (UC_SERIES == XMC14))
 #define XMC_POSIF_CHECK_MODULE_PTR(PTR)  ( ((PTR)== POSIF0) || ((PTR)== POSIF1) ) /*< Check for valid module pointer */
 #else
@@ -1031,16 +1025,16 @@ void XMC_POSIF_SetInterruptNode(XMC_POSIF_t *const peripheral, const XMC_POSIF_I
 
 #ifdef __cplusplus
 }
-#endif /* #if defined(POSIF0) */
-
-/**
- * @}
- */
-
-/**
- * @}
- */
-
 #endif
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+#endif /* #if defined(POSIF0) */
 
 #endif /* XMC_POSIF_H */
