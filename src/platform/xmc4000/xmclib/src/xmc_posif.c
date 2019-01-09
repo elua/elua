@@ -1,12 +1,12 @@
 /**
  * @file xmc_posif.c
- * @date 2015-06-19
+ * @date 2017-02-25
  *
  * @cond
  **********************************************************************************
- * XMClib v2.1.8 - XMC Peripheral Driver Library 
+ * XMClib v2.1.18 - XMC Peripheral Driver Library 
  *
- * Copyright (c) 2015-2016, Infineon Technologies AG
+ * Copyright (c) 2015-2017, Infineon Technologies AG
  * All rights reserved.                        
  *                                             
  * Redistribution and use in source and binary forms, with or without           
@@ -54,6 +54,10 @@
  *
  * 2015-06-19:
  *     - Removed GetDriverVersion API <BR> 
+ *
+ * 2017-02-25:
+ *     - XMC_POSIF_Enable() and XMC_POSIF_Disable() fixed compilation warnings
+ *
  * @endcond 
  *
  */
@@ -97,65 +101,61 @@ __STATIC_INLINE bool XMC_POSIF_IsPeripheralValid(const XMC_POSIF_t *const periph
 void XMC_POSIF_Enable(XMC_POSIF_t *const peripheral)
 {
 #if UC_FAMILY == XMC4
-   XMC_SCU_CLOCK_EnableClock(XMC_SCU_CLOCK_CCU);
+  XMC_SCU_CLOCK_EnableClock(XMC_SCU_CLOCK_CCU);
 #endif
 
-  switch ((uint32_t)peripheral)
+  if (peripheral == POSIF0)
   {
-    case (uint32_t)POSIF0:
 #if defined(CLOCK_GATING_SUPPORTED)
-      XMC_SCU_CLOCK_UngatePeripheralClock(XMC_SCU_PERIPHERAL_CLOCK_POSIF0);
+    XMC_SCU_CLOCK_UngatePeripheralClock(XMC_SCU_PERIPHERAL_CLOCK_POSIF0);
 #endif
 #if defined(PERIPHERAL_RESET_SUPPORTED)
       XMC_SCU_RESET_DeassertPeripheralReset(XMC_SCU_PERIPHERAL_RESET_POSIF0);
 #endif
-      break;
-      
+  }
 #if defined(POSIF1)
-    case (uint32_t)POSIF1:
+  else if (peripheral == POSIF1)
+  {
 #if defined(CLOCK_GATING_SUPPORTED)
       XMC_SCU_CLOCK_UngatePeripheralClock(XMC_SCU_PERIPHERAL_CLOCK_POSIF1);
 #endif
 #if defined(PERIPHERAL_RESET_SUPPORTED)
       XMC_SCU_RESET_DeassertPeripheralReset(XMC_SCU_PERIPHERAL_RESET_POSIF1);
 #endif
-      break;
+  }
 #endif
-
-    default:
-      XMC_ASSERT("XMC_POSIF_Disable:Invalid module pointer", 0);
-      break;      
+  else
+  {
+    XMC_ASSERT("XMC_POSIF_Disable:Invalid module pointer", 0);
   }
 }
 
 /* API to disable the POSIF module */
 void XMC_POSIF_Disable(XMC_POSIF_t *const peripheral)
 {
-  switch ((uint32_t)peripheral)
+  if (peripheral == POSIF0)
   {
-    case (uint32_t)POSIF0:
 #if defined(PERIPHERAL_RESET_SUPPORTED)
       XMC_SCU_RESET_AssertPeripheralReset(XMC_SCU_PERIPHERAL_RESET_POSIF0);
 #endif
 #if defined(CLOCK_GATING_SUPPORTED)
       XMC_SCU_CLOCK_GatePeripheralClock(XMC_SCU_PERIPHERAL_CLOCK_POSIF0);
 #endif
-      break;
-      
+  }
 #if defined(POSIF1)
-    case (uint32_t)POSIF1:
+  else if (peripheral == POSIF1)
+  {
 #if defined(PERIPHERAL_RESET_SUPPORTED)
       XMC_SCU_RESET_AssertPeripheralReset(XMC_SCU_PERIPHERAL_RESET_POSIF1);
 #endif
 #if defined(CLOCK_GATING_SUPPORTED)
       XMC_SCU_CLOCK_GatePeripheralClock(XMC_SCU_PERIPHERAL_CLOCK_POSIF1);
 #endif
-      break;
+  }
 #endif
-    
-    default:
-      XMC_ASSERT("XMC_POSIF_Disable:Invalid module pointer", 0);
-      break;      
+  else
+  {
+    XMC_ASSERT("XMC_POSIF_Disable:Invalid module pointer", 0);
   }
 }
 

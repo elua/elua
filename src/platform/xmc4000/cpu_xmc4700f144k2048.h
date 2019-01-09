@@ -3,6 +3,7 @@
 #define __CPU_XMC4700F144K2048_H__
 
 #include "stacks.h"
+#include "DAVE.h"
 
 // Number of resources (0 if not available/not implemented)
 #define NUM_PIO               16

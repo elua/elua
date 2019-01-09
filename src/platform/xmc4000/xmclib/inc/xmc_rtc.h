@@ -3,10 +3,10 @@
  * @date 2016-05-19
  *
  * @cond
-*********************************************************************************************************************
- * XMClib v2.1.8 - XMC Peripheral Driver Library 
+ *********************************************************************************************************************
+ * XMClib v2.1.18 - XMC Peripheral Driver Library 
  *
- * Copyright (c) 2015-2016, Infineon Technologies AG
+ * Copyright (c) 2015-2017, Infineon Technologies AG
  * All rights reserved.                        
  *                                             
  * Redistribution and use in source and binary forms, with or without modification,are permitted provided that the 

@@ -4,9 +4,9 @@
  *
  * @cond
  *********************************************************************************************************************
- * XMClib v2.1.8 - XMC Peripheral Driver Library 
+ * XMClib v2.1.18 - XMC Peripheral Driver Library 
  *
- * Copyright (c) 2015-2016, Infineon Technologies AG
+ * Copyright (c) 2015-2017, Infineon Technologies AG
  * All rights reserved.                        
  *                                             
  * Redistribution and use in source and binary forms, with or without modification,are permitted provided that the 
@@ -523,12 +523,18 @@ void XMC_SCU_CLOCK_Init(const XMC_SCU_CLOCK_CONFIG_t *const config)
   XMC_SCU_CLOCK_SetSystemClockSource(XMC_SCU_CLOCK_SYSCLKSRC_OFI);
 
   XMC_SCU_HIB_EnableHibernateDomain();
+
   if (config->enable_osculp == true)
   {
     XMC_SCU_CLOCK_EnableLowPowerOscillator();
-    while(XMC_SCU_CLOCK_IsLowPowerOscillatorStable() == false);
+    while (XMC_SCU_CLOCK_IsLowPowerOscillatorStable() == false);
   }
-  XMC_SCU_HIB_SetStandbyClockSource(config->fstdby_clksrc);
+  
+  XMC_SCU_HIB_SetStandbyClockSource(config->fstdby_clksrc);  
+  while (XMC_SCU_GetMirrorStatus() != 0)
+  {
+    /* Wait until update of the stanby clock source is done in the HIB domain */    
+  }
 
   XMC_SCU_CLOCK_SetBackupClockCalibrationMode(config->calibration_mode);
 
@@ -1545,7 +1551,7 @@ void XMC_SCU_CLOCK_EnableLowPowerOscillator(void)
   /* Enable OSC_ULP */
   while((SCU_GENERAL->MIRRSTS) & SCU_GENERAL_MIRRSTS_OSCULCTRL_Msk)
   {
-    /* Wait until the update of OSCULCTRL register in hibernate domain is completed */
+    /* Wait until no pending update to OSCULCTRL register in hibernate domain */
   }
   SCU_HIBERNATE->OSCULCTRL &= ~SCU_HIBERNATE_OSCULCTRL_MODE_Msk;
 
@@ -1562,6 +1568,11 @@ void XMC_SCU_CLOCK_EnableLowPowerOscillator(void)
     /* check SCU_MIRRSTS to ensure that no transfer over serial interface is pending */
   }
   SCU_HIBERNATE->HDSET = (uint32_t)SCU_HIBERNATE_HDSET_ULPWDG_Msk;
+
+  while (XMC_SCU_GetMirrorStatus() != 0)
+  {
+    /* Wait until update of the stanby clock source is done in the HIB domain */    
+  }
 }
 
 /* API to configure the 32khz Ultra Low Power oscillator */

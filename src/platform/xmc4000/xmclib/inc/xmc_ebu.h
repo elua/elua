@@ -1,12 +1,12 @@
 /**
  * @file xmc_ebu.h
- * @date 2016-03-30
+ * @date 2017-06-24
  *
  * @cond
-  *********************************************************************************************************************
- * XMClib v2.1.8 - XMC Peripheral Driver Library 
+ *********************************************************************************************************************
+ * XMClib v2.1.18 - XMC Peripheral Driver Library 
  *
- * Copyright (c) 2015-2016, Infineon Technologies AG
+ * Copyright (c) 2015-2017, Infineon Technologies AG
  * All rights reserved.                        
  *                                             
  * Redistribution and use in source and binary forms, with or without modification,are permitted provided that the 
@@ -43,6 +43,9 @@
  *     - Added ebu_data_hold_cycles_for_read_accesses to XMC_EBU_BUS_READ_CONFIG_t
  *     - Added ebu_device_addressing_mode and ebu_data_hold_cycles_for_write_accesses to XMC_EBU_BUS_WRITE_CONFIG_t
  *      
+ * 2017-06-24:
+ *     - Changed XMC_EBU_AddressSelectEnable() to make sure arbitartion mode is active
+ *
  * @endcond 
  *
  */
@@ -65,7 +68,7 @@
 
 /**
  * @addtogroup EBU
- * @brief External Bus Unit (EBU) driver for the XMC4500 microcontroller
+ * @brief External Bus Unit (EBU) driver for the XMC45/XMC47/XMC48 microcontroller
  *
  * The External Bus Unit (EBU) controls the transactions between external memories or 
  * peripheral units, and the internal memories and peripheral units. Several external 
@@ -500,13 +503,13 @@ typedef struct XMC_EBU_CLK_CONFIG
 {
   union
   { 
-	  uint32_t raw0;
-	  struct
+    uint32_t raw0;
+    struct
     {
       uint32_t                        : 16;
-      uint32_t ebu_clk_mode           : 1; /**< Clocking mode */
-      uint32_t ebu_div2_clk_mode      : 1; /**< DIV2 clocking mode */
-      uint32_t ebu_clock_divide_ratio : 2; /**< Clock divide ratio */
+      uint32_t ebu_clk_mode           : 1; /**< Clocking mode (::XMC_EBU_CLK_MODE_t) */
+      uint32_t ebu_div2_clk_mode      : 1; /**< DIV2 clocking mode (::XMC_EBU_DIV2_CLK_MODE_t) */
+      uint32_t ebu_clock_divide_ratio : 2; /**< Clock divide ratio (::XMC_EBU_CLOCK_DIVIDE_RATIO_t) */
       uint32_t                        : 12;
     };
   };
@@ -524,26 +527,22 @@ typedef struct XMC_EBU_MODE_CONFIG
 { 
   union
   {
-	  uint32_t raw0;
-	  struct
-	  {
+    uint32_t raw0;
+    struct
+    {
       uint32_t                      : 2;
       uint32_t ebu_sdram_tristate   : 1; /**< 0 - SDRAM cannot be shared; 1 - SDRAM can be shared */
       uint32_t                      : 1;
       uint32_t ebu_extlock          : 1; /**< 0 - ext bus is not locked after the EBU gains ownership; 1 - ext bus is not locked */
       uint32_t ebu_arbsync          : 1; /**< 0 - arbitration inputs are sync; 1 - arbitration inputs are async */
-      uint32_t ebu_arbitration_mode : 2; /**< Arbitration mode */
-                                         /**< Determines num of inactive cycles leading to a bus timeout after the EBU gains ownership <br>
-											                        00H: Timeout is disabled <br>
-											                        01H: Timeout is generated after 1 x 8 clock cycles <br>
-											                        FFH: Timeout is generated after 255 x 8 clock cycles */
+      uint32_t ebu_arbitration_mode : 2; /**< Arbitration mode selection (::XMC_EBU_ARB_MODE_t) */
       uint32_t bus_timeout_control  : 8; /**< Determines num of inactive cycles leading to a bus timeout after the EBU gains ownership <br>
-											                        00H: Timeout is disabled <br>
-											                        01H: Timeout is generated after 1 x 8 clock cycles <br>
-											                        FFH: Timeout is generated after 255 x 8 clock cycles <br> */
+                                              00H: Timeout is disabled <br>
+                                              01H: Timeout is generated after 1 x 8 clock cycles <br>
+                                              FFH: Timeout is generated after 255 x 8 clock cycles <br> */
       uint32_t                      : 15;
-      uint32_t ebu_ale_mode         : 1; /**< ALE mode */
-	  };
+      uint32_t ebu_ale_mode         : 1; /**< ALE mode. Switch the ADV output to be an active high ALE signal instead of active low ADV. (::XMC_EBU_ALE_MODE_t) */
+    };
   };
 } XMC_EBU_MODE_CONFIG_t;
 
@@ -557,14 +556,14 @@ typedef struct XMC_EBU_FREE_PINS_TO_GPIO
 {
   union
   {
-	  uint32_t raw0;
-	  struct
-	  {
-	    uint32_t                   : 16;
+    uint32_t raw0;
+    struct
+    {
+      uint32_t                   : 16;
       uint32_t address_pins_gpio : 9; /**< 0 - Address bit required for addressing memory; 1 - Address bit available as GPIO */
       uint32_t adv_pin_gpio      : 1; /**< Adv pin to GPIO mode */
       uint32_t                   : 6;
-	  };
+    };
   };
 } XMC_EBU_FREE_PINS_TO_GPIO_t;
 
@@ -580,94 +579,109 @@ typedef struct XMC_EBU_BUS_READ_CONFIG
   /* EBU read configuration parameters */
   union
   {
-	  uint32_t raw0;
-	  struct
-	  {
-	    uint32_t ebu_burst_length_sync                         : 3; /**< Burst length for synchronous burst */
-	    uint32_t ebu_burst_buffer_sync_mode                    : 1; /**< Burst buffer mode */
-	    uint32_t ebu_read_stages_synch                         : 1; /**< Read single stage synchronization */
-	    uint32_t ebu_burst_flash_clock_feedback                : 1; /**< Burst flash clock feedback enable/disable */
-	    uint32_t ebu_burst_flash_clock_mode                    : 1; /**< Burst flash clock mode select */
-	    uint32_t ebu_flash_non_array_access                    : 1; /**< flash non-array access */
-	    uint32_t                                               : 8;
-	    uint32_t ebu_early_chip_select_sync_burst              : 1; /**< Early chip select for sync burst */
-	    uint32_t ebu_burst_signal_sync                         : 1; /**< Early burst signal enable for synchronous burst */
-	    uint32_t ebu_burst_address_wrapping                    : 1; /**< Burst address wrapping */
-	    uint32_t ebu_wait_signal_polarity                      : 1; /**< Reversed polarity at WAIT */
-	    uint32_t ebu_byte_control                              : 2; /**< Byte control signal control */
-	    uint32_t ebu_device_addressing_mode                    : 2; /**< Device addressing mode */
-	    uint32_t ebu_wait_control                              : 2; /**< External wait control */
-	    uint32_t ebu_asynchronous_address_phase                : 1; /**< Asynchronous address phase */
-	    uint32_t                                               : 1;
-	    uint32_t ebu_device_type                               : 4; /**< Device type for region */
-	  };
+    uint32_t raw0;
+    struct
+    {
+      uint32_t ebu_burst_length_sync                         : 3; /**< Burst length for synchronous burst (::XMC_EBU_BURST_LENGTH_SYNC_t) */
+      uint32_t ebu_burst_buffer_sync_mode                    : 1; /**< Burst buffer mode (::XMC_EBU_BURST_BUFFER_SYNC_MODE_t) */
+      uint32_t ebu_read_stages_synch                         : 1; /**< Read single stage synchronization */
+      uint32_t ebu_burst_flash_clock_feedback                : 1; /**< Burst flash clock feedback enable/disable (::XMC_EBU_BURST_FLASH_CLOCK_FEEDBACK_t) */
+      uint32_t ebu_burst_flash_clock_mode                    : 1; /**< Burst flash clock mode select (::XMC_EBU_BURST_FLASH_CLOCK_MODE_t) */
+      uint32_t ebu_flash_non_array_access                    : 1; /**< flash non-array access (::XMC_EBU_FLASH_NON_ARRAY_ACCESS_t) */
+      uint32_t                                               : 8;
+      uint32_t ebu_early_chip_select_sync_burst              : 1; /**< Early chip select for sync burst (::XMC_EBU_EARLY_CHIP_SELECT_SYNC_BURST_t) */
+      uint32_t ebu_burst_signal_sync                         : 1; /**< Early burst signal enable for synchronous burst (::XMC_EBU_BURST_SIGNAL_SYNC_BURST_t) */
+      uint32_t ebu_burst_address_wrapping                    : 1; /**< Burst address wrapping (::XMC_EBU_BURST_ADDRESS_WRAPPING_t) */
+      uint32_t ebu_wait_signal_polarity                      : 1; /**< Reversed polarity at WAIT (::XMC_EBU_WAIT_SIGNAL_POLARITY_t) */
+      uint32_t ebu_byte_control                              : 2; /**< Byte control signal control (::XMC_EBU_BYTE_CONTROL_t) */
+      uint32_t ebu_device_addressing_mode                    : 2; /**< Device addressing mode (::XMC_EBU_DEVICE_ADDRESSING_MODE_t) */
+      uint32_t ebu_wait_control                              : 2; /**< External wait control (::XMC_EBU_WAIT_CONTROL_t) */
+      uint32_t ebu_asynchronous_address_phase                : 1; /**< Asynchronous address phase (::XMC_EBU_ASYNCHRONOUS_ADDRESS_PHASE_t) */
+      uint32_t                                               : 1;
+      uint32_t ebu_device_type                               : 4; /**< Device type for region (::XMC_EBU_DEVICE_TYPE_t) */
+    };
   };  
   /* EBU read access parameters */
   union
   {
-  	uint32_t raw1;
-  	struct
-  	{
-  	  uint32_t ebu_recovery_cycles_between_different_regions : 4;
-  	  /**
+    uint32_t raw1;
+    struct
+    {
+      /**
+       * Recovery Cycles between Different Regions:     <br>
+       * This bit field determines the number of clock cycles of the Recovery Phase between consecutive accesses directed to different regions or different types of access.<br>
+       * 0000B: No recovery phase clock cycles available <br>
+       * 0001B: 1 clock cycle selected                   <br>
+       * ...                                            <br>
+       * 1110B: 14 clock cycles selected                <br>
+       * 1111B: 15 clock cycles selected                <br>
+       */
+      uint32_t ebu_recovery_cycles_between_different_regions : 4;
+      /**
        * Recovery cycles after read accesses:           <br>
-  	   * 000B: No recovery phase clock cycles available <br>
-  	   * 001B: 1 clock cycle selected                   <br>
-  	   * ...                                            <br>
-  	   * 110B: 6 clock cycles selected                  <br>
-  	   * 111B: 7 clock cycles selected                  <br>
+       * This bit field determines the basic number of clock cycles of the Recovery Phase at the end of read accesses.<br>
+       * 000B: No recovery phase clock cycles available <br>
+       * 001B: 1 clock cycle selected                   <br>
+       * ...                                            <br>
+       * 110B: 6 clock cycles selected                  <br>
+       * 111B: 7 clock cycles selected                  <br>
        */
-  	  uint32_t ebu_recovery_cycles_after_read_accesses       : 3;
-  	  /**
+      uint32_t ebu_recovery_cycles_after_read_accesses       : 3;
+      /**
        * Programmed wait states for read accesses: <br>
-  	   * 00000B:  1 wait state                     <br>
-  	   * 00001B:  1 wait state                     <br>
-  	   * 00010B:  2 wait state                     <br>
-  	   * ...                                       <br>
-  	   * 11110B:  30 wait states                   <br>
-  	   * 11111B:  31 wait states                   <br>
+       * Number of programmed wait states for read accesses. For synchronous accesses, this will always be adjusted so that the phase exits on a rising edge of the external clock.<br>
+       * 00000B:  1 wait state                     <br>
+       * 00001B:  1 wait state                     <br>
+       * 00010B:  2 wait state                     <br>
+       * ...                                       <br>
+       * 11110B:  30 wait states                   <br>
+       * 11111B:  31 wait states                   <br>
        */
-  	  uint32_t ebu_programmed_wait_states_for_read_accesses  : 5;
-  	  /**
-  	   *
-  	   */
-  	  uint32_t ebu_data_hold_cycles_for_read_accesses: 4;
-  	  /**
-       * Frequency of external clock at pin BFCLKO
+      uint32_t ebu_programmed_wait_states_for_read_accesses  : 5;
+      /**
+       * Data Hold Cycles for Read Accesses <br>
+       * This bit field determines the basic number of Data Hold phase clock cycles during read accesses. It has no effect in the current implementation<br>
        */
-  	  uint32_t ebu_freq_ext_clk_pin                          : 2;
-  	  /**
-       * EBU Extended data
+      uint32_t ebu_data_hold_cycles_for_read_accesses: 4;
+      /**
+       * Frequency of external clock at pin BFCLKO (::XMC_EBU_FREQ_EXT_CLK_PIN_t)
        */
-  	  uint32_t ebu_ext_data                                  : 2;
-  	  /**
+      uint32_t ebu_freq_ext_clk_pin                          : 2;
+      /**
+       * EBU Extended data (::XMC_EBU_EXT_DATA_t)
+       */
+      uint32_t ebu_ext_data                                  : 2;
+      /**
        * Command delay cycles:            <br>
-  	   * 0000B: 0 clock cycle selected    <br>
-  	   * 0001B: 1 clock cycle selected    <br>
-  	   * ...                              <br>
-  	   * 1110B: 14 clock cycles selected  <br>
-  	   * 1111B: 15 clock cycles selected  <br>
+       * This bit field determines the basic number of Command Delay phase clock cycles.<br>
+       * 0000B: 0 clock cycle selected    <br>
+       * 0001B: 1 clock cycle selected    <br>
+       * ...                              <br>
+       * 1110B: 14 clock cycles selected  <br>
+       * 1111B: 15 clock cycles selected  <br>
        */
-  	   uint32_t command_delay_lines                          : 4;
-  	   /**
+       uint32_t command_delay_lines                          : 4;
+       /**
         * Address hold cycles:            <br>
-  	    * 0000B: 0 clock cycle selected   <br>
-  	    * 0001B: 1 clock cycle selected   <br>
-  	    * ...                             <br>
-  	    * 1110B: 14 clock cycles selected <br>
-  	    * 1111B: 15 clock cycles selected <br>
+        * This bit field determines the number of clock cycles of the address hold phase.<br>
+        * 0000B: 0 clock cycle selected   <br>
+        * 0001B: 1 clock cycle selected   <br>
+        * ...                             <br>
+        * 1110B: 14 clock cycles selected <br>
+        * 1111B: 15 clock cycles selected <br>
         */
-  	   uint32_t address_hold_cycles                          : 4;
-  	    /**
+       uint32_t address_hold_cycles                          : 4;
+        /**
          * Address Cycles:
-  	     * 0000B: 1 clock cycle selected   <br>
-  	     * 0001B: 1 clock cycle selected   <br>
-  	     * ...                             <br>
-  	     * 1110B: 14 clock cycles selected <br>
-  	     * 1111B: 15 clock cycles selected <br>
+         * This bit field determines the number of clock cycles of the address phase.<br>
+         * 0000B: 1 clock cycle selected   <br>
+         * 0001B: 1 clock cycle selected   <br>
+         * ...                             <br>
+         * 1110B: 14 clock cycles selected <br>
+         * 1111B: 15 clock cycles selected <br>
          */
-  	   uint32_t address_cycles                               : 4;
-  	};
+       uint32_t address_cycles                               : 4;
+    };
   };
 } XMC_EBU_BUS_READ_CONFIG_t;
 
@@ -683,100 +697,112 @@ typedef struct XMC_EBU_BUS_WRITE_CONFIG
   /* EBU write configuration parameters */
   union
   {
-	  uint32_t raw0;
-	  struct
-	  {
-	    uint32_t ebu_burst_length_sync                         : 3;  /**< Burst length for synchronous burst */
-	    uint32_t ebu_burst_buffer_sync_mode                    : 1;  /**< Burst buffer mode */
-	    uint32_t                                               : 12;
-	    uint32_t ebu_early_chip_select_sync_burst              : 1;  /**< Early chip select for sync burst*/
-	    uint32_t ebu_burst_signal_sync                         : 1;  /**< Early burst signal enable for synchronous burst */
-	    uint32_t                                               : 1;
-	    uint32_t ebu_wait_signal_polarity                      : 1;  /**< Reversed polarity at WAIT */
-	    uint32_t ebu_byte_control                              : 2;  /**< Byte control signal control */
-      uint32_t ebu_device_addressing_mode                    : 2; /**< Device addressing mode */
-	    uint32_t ebu_wait_control                              : 2;  /**< External wait control */
-	    uint32_t ebu_asynchronous_address_phase                : 1;  /**< Asynchronous address phase */
-	    uint32_t ebu_lock_chip_select                          : 1;  /**< Lock chip select */
-	    uint32_t ebu_device_type                               : 4;  /**< Device type for region */
-	  };
+    uint32_t raw0;
+    struct
+    {
+      uint32_t ebu_burst_length_sync                         : 3;  /**< Burst length for synchronous burst (::XMC_EBU_BURST_LENGTH_SYNC_t) */
+      uint32_t ebu_burst_buffer_sync_mode                    : 1;  /**< Burst buffer mode (::XMC_EBU_BURST_BUFFER_SYNC_MODE_t) */
+      uint32_t                                               : 12;
+      uint32_t ebu_early_chip_select_sync_burst              : 1;  /**< Early chip select for sync burst (::XMC_EBU_EARLY_CHIP_SELECT_SYNC_BURST_t) */
+      uint32_t ebu_burst_signal_sync                         : 1;  /**< Early burst signal enable for synchronous burst  (::XMC_EBU_BURST_SIGNAL_SYNC_BURST_t) */
+      uint32_t                                               : 1;
+      uint32_t ebu_wait_signal_polarity                      : 1;  /**< Reversed polarity at WAIT (::XMC_EBU_WAIT_SIGNAL_POLARITY_t) */
+      uint32_t ebu_byte_control                              : 2;  /**< Byte control signal control (::XMC_EBU_BYTE_CONTROL_t) */
+      uint32_t ebu_device_addressing_mode                    : 2;  /**< Device addressing mode (::XMC_EBU_DEVICE_ADDRESSING_MODE_t) */
+      uint32_t ebu_wait_control                              : 2;  /**< External wait control (::XMC_EBU_WAIT_CONTROL_t) */
+      uint32_t ebu_asynchronous_address_phase                : 1;  /**< Asynchronous address phase (::XMC_EBU_ASYNCHRONOUS_ADDRESS_PHASE_t) */
+      uint32_t ebu_lock_chip_select                          : 1;  /**< Lock chip select (::XMC_EBU_LOCK_CHIP_SELECT_t) */
+      uint32_t ebu_device_type                               : 4;  /**< Device type for region (::XMC_EBU_DEVICE_TYPE_t) */
+    };
   };
   /* EBU write access parameters */
   union
   {
- 	  uint32_t raw1;
- 	  struct
+    uint32_t raw1;
+    struct
     {
- 	    /**
+      /**
        * Recovery cycles between different regions:       <br>
- 	     * 0000B: No recovery phase clock cycles available  <br>
- 	     * 0001B: 1 clock cycle selected                    <br>
- 	     * ...                                              <br>
- 	     * 1110B: 14 clock cycles selected                  <br>
- 	     * 1111B: 15 clock cycles selected                  <br>
+       * This bit field determines the number of clock cycles of the Recovery Phase between consecutive accesses directed to different regions or different types of access.<br>
+       * 0000B: No recovery phase clock cycles available  <br>
+       * 0001B: 1 clock cycle selected                    <br>
+       * ...                                              <br>
+       * 1110B: 14 clock cycles selected                  <br>
+       * 1111B: 15 clock cycles selected                  <br>
        */
- 	    uint32_t ebu_recovery_cycles_between_different_regions : 4;
+      uint32_t ebu_recovery_cycles_between_different_regions : 4;
 
- 	    /**
+      /**
        * Recovery cycles after write accesses:          <br>
- 	     * 000B: No recovery phase clock cycles available <br>
- 	     * 001B: 1 clock cycle selected                   <br> 
- 	     * ...                                            <br>
- 	     * 110B: 6 clock cycles selected                  <br>
- 	     * 111B: 7 clock cycles selected                  <br>
+       * This bit field determines the basic number of clock cycles of the Recovery Phase at the end of write accesses.<br>
+       * 000B: No recovery phase clock cycles available <br>
+       * 001B: 1 clock cycle selected                   <br> 
+       * ...                                            <br>
+       * 110B: 6 clock cycles selected                  <br>
+       * 111B: 7 clock cycles selected                  <br>
        */
- 	    uint32_t ebu_recovery_cycles_after_write_accesses      : 3;
+      uint32_t ebu_recovery_cycles_after_write_accesses      : 3;
 
- 	    /**
+      /**
        * Programmed wait states for write accesses: <br>
- 	     * 00000B:  1 wait state                      <br>
- 	     * 00001B:  1 wait state                      <br>
- 	     * 00010B:  2 wait state                      <br>
- 	     * ...                                        <br>
- 	     * 11110B:  30 wait states                    <br>
- 	     * 11111B:  31 wait states                    <br>
+       * Number of programmed wait states for write accesses. For synchronous accesses, this will always be adjusted so that the phase exits on a rising edge of the external clock.<br>
+       * 00000B:  1 wait state                      <br>
+       * 00001B:  1 wait state                      <br>
+       * 00010B:  2 wait state                      <br>
+       * ...                                        <br>
+       * 11110B:  30 wait states                    <br>
+       * 11111B:  31 wait states                    <br>
       */
- 	    uint32_t ebu_programmed_wait_states_for_write_accesses : 5;
+      uint32_t ebu_programmed_wait_states_for_write_accesses : 5;
 
- 	    /**
- 	     *
- 	     */
- 	    uint32_t ebu_data_hold_cycles_for_write_accesses : 4;
- 	    /**<
-       * Frequency of external clock at pin BFCLKO
+      /**
+       * Data Hold Cycles for Write Accesses
+       * This bit field determines the basic number of Data Hold phase clock cycles during write accesses.<br>
+       * 0000B: No recovery phase clock cycles available  <br>
+       * 0001B: 1 clock cycle selected                    <br>
+       * ...                                              <br>
+       * 1110B: 14 clock cycles selected                  <br>
+       * 1111B: 15 clock cycles selected                  <br>
        */
- 	    uint32_t ebu_freq_ext_clk_pin                          : 2;
- 	    /**
-       * EBU extended data
+      uint32_t ebu_data_hold_cycles_for_write_accesses : 4;
+      /**<
+       * Frequency of external clock at pin BFCLKO (::XMC_EBU_FREQ_EXT_CLK_PIN_t)
        */
- 	    uint32_t ebu_ext_data                                  : 2;
- 	    /**
+      uint32_t ebu_freq_ext_clk_pin                          : 2;
+      /**
+       * EBU extended data (::XMC_EBU_EXT_DATA_t)
+       */
+      uint32_t ebu_ext_data                                  : 2;
+      /**
        * Command delay cycles:           <br>
- 	     * 0000B: 0 clock cycle selected   <br>
- 	     * 0001B: 1 clock cycle selected   <br>
- 	     * ...                             <br>
- 	     * 1110B: 14 clock cycles selected <br>
- 	     * 1111B: 15 clock cycles selected <br>
+       * This bit field determines the basic number of Command Delay phase clock cycles.<br>
+       * 0000B: 0 clock cycle selected   <br>
+       * 0001B: 1 clock cycle selected   <br>
+       * ...                             <br>
+       * 1110B: 14 clock cycles selected <br>
+       * 1111B: 15 clock cycles selected <br>
        */
- 	    uint32_t command_delay_lines                           : 4;
- 	    /** Address hold cycles:           <br>
- 	     * 0000B: 0 clock cycle selected   <br>
- 	     * 0001B: 1 clock cycle selected   <br>
- 	     * ...                             <br>
- 	     * 1110B: 14 clock cycles selected <br>
- 	     * 1111B: 15 clock cycles selected <br>
+      uint32_t command_delay_lines                           : 4;
+      /** Address hold cycles:           <br>
+       * This bit field determines the number of clock cycles of the address hold phase.<br>
+       * 0000B: 0 clock cycle selected   <br>
+       * 0001B: 1 clock cycle selected   <br>
+       * ...                             <br>
+       * 1110B: 14 clock cycles selected <br>
+       * 1111B: 15 clock cycles selected <br>
        */
- 	    uint32_t address_hold_cycles                           : 4;
- 	    /**
+      uint32_t address_hold_cycles                           : 4;
+      /**
        * Address cycles:                 <br>
- 	     * 0000B: 1 clock cycle selected   <br>
- 	     * 0001B: 1 clock cycle selected   <br>
- 	     * ...                             <br>
- 	     * 1110B: 14 clock cycles selected <br>
- 	     * 1111B: 15 clock cycles selected <br>
+       * This bit field determines the number of clock cycles of the address phase.<br>
+       * 0000B: 1 clock cycle selected   <br>
+       * 0001B: 1 clock cycle selected   <br>
+       * ...                             <br>
+       * 1110B: 14 clock cycles selected <br>
+       * 1111B: 15 clock cycles selected <br>
        */
- 	   uint32_t address_cycles                                 : 4;
- 	  };
+     uint32_t address_cycles                                 : 4;
+    };
   };
 }XMC_EBU_BUS_WRITE_CONFIG_t;
 
@@ -793,156 +819,156 @@ typedef struct XMC_EBU_SDRAM_CONFIG
   /* EBU SDRAM control parameters */
   union
   {
-	  uint32_t raw0;
-	  struct
-	  {
-	    /**
+    uint32_t raw0;
+    struct
+    {
+      /**
        * Number of clock cycles between row activate command and a precharge
        * command 
        */
-	    uint32_t ebu_row_precharge_delay_counter            : 4;
-	    /** 
+      uint32_t ebu_row_precharge_delay_counter            : 4;
+      /** 
        * (CRFSH) Number of refresh commands issued during powerup init sequence:
        * Perform CRFSH + 1 refresh cycles
        */
-	    uint32_t ebu_init_refresh_commands_counter          : 4;
-	    /**
+      uint32_t ebu_init_refresh_commands_counter          : 4;
+      /**
        * (CRSC) Number of NOP cycles after a mode register set command:
        * Insert CRSC + 1 NOP cycles 
        */
-	    uint32_t ebu_mode_register_set_up_time              : 2;
-	    /**
+      uint32_t ebu_mode_register_set_up_time              : 2;
+      /**
        * (CRP) Number of NOP cycles inserted after a precharge command:
        * Insert CRP + 1 NOP cycles 
        */
-	    uint32_t ebu_row_precharge_time_counter             : 2;
-	    /**
+      uint32_t ebu_row_precharge_time_counter             : 2;
+      /**
        * Number of address bits from bit 0 to be used for column address
        */
-	    uint32_t ebu_sdram_width_of_column_address          : 2;
-	    /**
+      uint32_t ebu_sdram_width_of_column_address          : 2;
+      /**
        * (CRCD) Number of NOP cycles between a row address and a column
        * address: Insert CRCD + 1 NOP cycles
        */
-	    uint32_t ebu_sdram_row_to_column_delay_counter      : 2;
-	    /**
+      uint32_t ebu_sdram_row_to_column_delay_counter      : 2;
+      /**
        * Row cycle time counter: Insert (CRCE * 8) + CRC + 1 NOP cycles
        */
-	    uint32_t ebu_sdram_row_cycle_time_counter           : 3;
-	    /**
+      uint32_t ebu_sdram_row_cycle_time_counter           : 3;
+      /**
        * Mask for row tag
        */
-	    uint32_t ebu_sdram_mask_for_row_tag                 : 3;
-	    /**
+      uint32_t ebu_sdram_mask_for_row_tag                 : 3;
+      /**
        * Mask for bank tag
        */
-	    uint32_t ebu_sdram_mask_for_bank_tag                : 3;
-	    /**
+      uint32_t ebu_sdram_mask_for_bank_tag                : 3;
+      /**
        * Extension to the Row cycle time counter (CRCE)
        */
-	    uint32_t ebu_sdram_row_cycle_time_counter_extension : 3;
-	    /**
+      uint32_t ebu_sdram_row_cycle_time_counter_extension : 3;
+      /**
        * Disable SDRAM clock output
        */
-	    uint32_t ebu_sdram_clk_output                       : 1;
-	    /**
+      uint32_t ebu_sdram_clk_output                       : 1;
+      /**
        * Power Save Mode used for gated clock mode
        */
-	    uint32_t ebu_sdram_pwr_mode                         : 2;
-	    /**
+      uint32_t ebu_sdram_pwr_mode                         : 2;
+      /**
        * SDRAM clock mode select
        */
-	    uint32_t ebu_sdram_clk_mode                         : 1;
-	  };
+      uint32_t ebu_sdram_clk_mode                         : 1;
+    };
   };
   /* EBU SDRAM mode parameters */
   union
   {
- 	  uint32_t raw1;
- 	  struct
- 	  {
- 	    /**
+    uint32_t raw1;
+    struct
+    {
+      /**
        * Number of locations can be accessed with a single command
        */
- 	    uint32_t ebu_sdram_burst_length                     : 3;
- 	    uint32_t                                            : 1;
- 	    /**
+      uint32_t ebu_sdram_burst_length                     : 3;
+      uint32_t                                            : 1;
+      /**
        * Number of clocks between a READ command and the availability
        * of data
        */
- 	    uint32_t ebu_sdram_casclk_mode                      : 3;
- 	    uint32_t                                            : 8;
- 	    /**
+      uint32_t ebu_sdram_casclk_mode                      : 3;
+      uint32_t                                            : 8;
+      /**
        * Cold start
        */
- 	    uint32_t ebu_sdram_cold_start: 1;
- 	    /**
+      uint32_t ebu_sdram_cold_start: 1;
+      /**
        * Value to be written to the extended mode register of a mobile
        * SDRAM device
        */
- 	    uint32_t ebu_sdram_extended_operation_mode          : 12;
- 	    /**
+      uint32_t ebu_sdram_extended_operation_mode          : 12;
+      /**
        * Value to be written to the bank select pins of a mobile SDRAM
        * device during an extended mode register write operation
        */
- 	    uint32_t ebu_sdram_extended_operation_bank_select   : 4;
- 	  };
+      uint32_t ebu_sdram_extended_operation_bank_select   : 4;
+    };
   };
   /* EBU SDRAM refresh parameters */
   union
     {
-  	uint32_t raw2;
-  	struct
-  	{
-  	  /**
+    uint32_t raw2;
+    struct
+    {
+      /**
        * Number of refresh counter period:
-  	   * Refresh period is 'num_refresh_counter_period' x 64 clock cycles
+       * Refresh period is 'num_refresh_counter_period' x 64 clock cycles
        */
-  	  uint32_t ebu_sdram_num_refresh_counter_period       : 6;
-  	  /**
+      uint32_t ebu_sdram_num_refresh_counter_period       : 6;
+      /**
        * Number of refresh commands
        */
-  	  uint32_t ebu_sdram_num_refresh_cmnds                : 3;
-  	  uint32_t                                            : 1;
-  	  /**
+      uint32_t ebu_sdram_num_refresh_cmnds                : 3;
+      uint32_t                                            : 1;
+      /**
        * If 1, the self refresh exit command is issued to all SDRAM devices
-  	   * regardless of their attachment to type 0 or type 1
-  	   */
-  	  uint32_t ebu_sdram_self_refresh_exit                : 1;
-  	  uint32_t                                            : 1;
-  	  /**
+       * regardless of their attachment to type 0 or type 1
+       */
+      uint32_t ebu_sdram_self_refresh_exit                : 1;
+      uint32_t                                            : 1;
+      /**
        * If "1", the self refresh entry command is issued to all SDRAM devices,
-  	   * regardless regardless of their attachment to type 0 or type 1
-  	   */
-  	  uint32_t ebu_sdram_self_refresh_entry               : 1;
-  	  /**
+       * regardless regardless of their attachment to type 0 or type 1
+       */
+      uint32_t ebu_sdram_self_refresh_entry               : 1;
+      /**
        * If 1, memory controller will automatically issue the "self refresh
        * entry" command to all SDRAM devices when it gives up control of the
        * external bus. It will also automatically issue "self refresh exit"
        * when it regains control of the bus
-  	   */
-  	  uint32_t ebu_sdram_auto_self_refresh                : 1;
-  	  /**
+       */
+      uint32_t ebu_sdram_auto_self_refresh                : 1;
+      /**
        * Extended number of refresh counter period
        */
-  	  uint32_t ebu_sdram_extended_refresh_counter_period  : 2;
-  	  /**
+      uint32_t ebu_sdram_extended_refresh_counter_period  : 2;
+      /**
        * Number of NOP cycles inserted after a self refresh exit before a
        * command is permitted to the SDRAM/DDRAM
        */
-  	  uint32_t ebu_sdram_self_refresh_exit_delay          : 8;
-  	  /**
+      uint32_t ebu_sdram_self_refresh_exit_delay          : 8;
+      /**
        * If 1, an auto refresh cycle will be performed; If 0, no refresh will
        * be performed
        */
-  	  uint32_t ebu_sdram_auto_refresh                     : 1;
-  	  /**
+      uint32_t ebu_sdram_auto_refresh                     : 1;
+      /**
        * Number of NOPs after the SDRAM controller exits power down before an
        * active command is permitted
        */
-  	  uint32_t ebu_sdram_delay_on_power_down_exit         : 3;
-  	  uint32_t : 4;
-  	};
+      uint32_t ebu_sdram_delay_on_power_down_exit         : 3;
+      uint32_t : 4;
+    };
   };
 } XMC_EBU_SDRAM_CONFIG_t;
 
@@ -1026,10 +1052,10 @@ typedef struct
   __IO uint32_t  ADDRSEL[4];
   struct
   {
- 	  __IO uint32_t  RDCON;
- 	  __IO uint32_t  RDAPR;
- 	  __IO uint32_t  WRCON;
- 	  __IO uint32_t  WRAPR;
+    __IO uint32_t  RDCON;
+    __IO uint32_t  RDAPR;
+    __IO uint32_t  WRCON;
+    __IO uint32_t  WRAPR;
   } BUS[4];
   __IO uint32_t  SDRMCON;
   __IO uint32_t  SDRMOD;
@@ -1349,6 +1375,32 @@ __STATIC_INLINE void XMC_EBU_SdramDisableAutomaticSelfRefresh(XMC_EBU_t *const e
 
 /**
  * @param ebu Constant pointer to ::XMC_EBU_t, pointing to the EBU base address 
+ * @return bool Returns if the arbitration mode is selected or not
+ *
+ * \par<b>Description: </b><br>
+ * Check if arbitration mode of EBU peripheral is selected
+ *
+ * \par
+ * The bit field ARBMODE of MODCON indicates the selected arbitration mode of the
+ * EBU. The follwing are the supported arbitration modes: <br>
+ * 1) Arbiter Mode arbitration mode <br>
+ * 2) Participant arbitration mode  <br>
+ * 3) Sole Master arbitration mode  <br>
+ *
+ * If any of the above modes are selected, the function returns "true". It returns
+ * false otherwise.
+ *
+ * \par<b>Related APIs: </b><br>
+ * XMC_EBU_Init() \n\n\n
+ */
+__STATIC_INLINE bool XMC_EBU_IsBusAribitrationSelected(XMC_EBU_t *const ebu)
+{
+  XMC_ASSERT("XMC_EBU_IsBusAribitrationSelected: Invalid module pointer", XMC_EBU_CHECK_MODULE_PTR(ebu));
+  return (bool)((ebu->MODCON & EBU_MODCON_ARBMODE_Msk) != 0);
+}
+
+/**
+ * @param ebu Constant pointer to ::XMC_EBU_t, pointing to the EBU base address
  * @param ebu_addr_select_en Choose between a memory region enable or an alternate region enable
  * @param ebu_region_n A valid region number for which enable and protection settings
  *                     need to be configured
@@ -1372,6 +1424,7 @@ __STATIC_INLINE void XMC_EBU_AddressSelectEnable(XMC_EBU_t *const ebu,
 {
   XMC_ASSERT("XMC_EBU_AddressSelectEnable: Invalid module pointer", XMC_EBU_CHECK_MODULE_PTR(ebu));
   ebu->ADDRSEL[ebu_region_n] |= ebu_addr_select_en;
+  while (!XMC_EBU_IsBusAribitrationSelected(ebu));
 }
 
 /**
@@ -1475,31 +1528,6 @@ __STATIC_INLINE uint32_t XMC_EBU_SdramGetRefreshStatus(XMC_EBU_t *const ebu,
   return (uint32_t)(ebu->SDRMREF & sdram_rfrsh_status);
 }
 
-/**
- * @param ebu Constant pointer to ::XMC_EBU_t, pointing to the EBU base address 
- * @return bool Returns if the arbitration mode is selected or not
- *
- * \par<b>Description: </b><br>
- * Check if arbitration mode of EBU peripheral is selected
- *
- * \par
- * The bit field ARBMODE of MODCON indicates the selected arbitration mode of the
- * EBU. The follwing are the supported arbitration modes: <br>
- * 1) Arbiter Mode arbitration mode <br>
- * 2) Participant arbitration mode  <br>
- * 3) Sole Master arbitration mode  <br>
- * 
- * If any of the above modes are selected, the function returns "true". It returns
- * false otherwise.
- *
- * \par<b>Related APIs: </b><br>
- * XMC_EBU_Init() \n\n\n
- */  
-__STATIC_INLINE bool XMC_EBU_IsBusAribitrationSelected(XMC_EBU_t *const ebu)
-{
-  XMC_ASSERT("XMC_EBU_IsBusAribitrationSelected: Invalid module pointer", XMC_EBU_CHECK_MODULE_PTR(ebu));
-  return (bool)(ebu->MODCON & EBU_MODCON_ARBMODE_Msk);
-}
 
 #ifdef __cplusplus
 }

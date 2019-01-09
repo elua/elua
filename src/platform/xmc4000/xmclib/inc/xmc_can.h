@@ -1,12 +1,12 @@
 /**
  * @file xmc_can.h
- * @date 2016-06-07
+ * @date 2017-11-09
  *
  * @cond
  *********************************************************************************************************************
- * XMClib v2.1.8 - XMC Peripheral Driver Library 
+ * XMClib v2.1.18 - XMC Peripheral Driver Library 
  *
- * Copyright (c) 2015-2016, Infineon Technologies AG
+ * Copyright (c) 2015-2017, Infineon Technologies AG
  * All rights reserved.                        
  *                                             
  * Redistribution and use in source and binary forms, with or without modification,are permitted provided that the 
@@ -60,6 +60,10 @@
  *
  * 2016-06-07:
  *     - Added XMC_CAN_IsPanelControlReady()
+ * 
+ * 2017-11-09:
+ *     - Added XMC_CAN_InitEx() and XMC_CAN_NODE_NominalBitTimeConfigureEx()
+ *     - Make XMC_CAN_GetBaudrateClockSource(), XMC_CAN_SetBaudrateClockSource() and XMC_CAN_GetBaudrateClockFrequency() available to all devices
  *
  * <b>Details of use for node configuration related APIs</b><br>
  * Please use the XMC_CAN_NODE_SetInitBit() and XMC_CAN_NODE_EnableConfigurationChange() before calling node configuration
@@ -158,13 +162,13 @@
 /*********************************************************************************************************************
  * MACROS
  ********************************************************************************************************************/
-#define XMC_CAN_MO_MOAR_STDID_Pos (18U)		/**< Standard Identifier bitposition */
+#define XMC_CAN_MO_MOAR_STDID_Pos (18U)   /**< Standard Identifier bitposition */
 
 #define XMC_CAN_MO_MOAR_STDID_Msk ((0x000007FFUL) << XMC_CAN_MO_MOAR_STDID_Pos) /**< Standard Identifier bitMask */
 
-#define CAN_NODE_NIPR_Msk         (0x7UL)	/**< Node event mask */
+#define CAN_NODE_NIPR_Msk         (0x7UL) /**< Node event mask */
 
-#define CAN_MO_MOIPR_Msk          (0x7U)	/**< Message Object event mask */
+#define CAN_MO_MOIPR_Msk          (0x7U)  /**< Message Object event mask */
 
 /*********************************************************************************************************************
  * ENUMS
@@ -190,7 +194,7 @@ typedef enum XMC_CAN_PANCMD
   XMC_CAN_PANCMD_STATIC_ALLOCATE = 2U,        /**< Command to activate static allocation */
   XMC_CAN_PANCMD_DYNAMIC_ALLOCATE = 3U,       /**< Command to activate dynamic allocation */
 
-  XMC_CAN_PANCMD_STATIC_INSERT_BEFORE = 4U,	  /**< Remove a message object from the list and insert it before a given object.*/
+  XMC_CAN_PANCMD_STATIC_INSERT_BEFORE = 4U,   /**< Remove a message object from the list and insert it before a given object.*/
   XMC_CAN_PANCMD_DYNAMIC_INSERT_BEFORE = 5U,  /**< Command to activate dynamic allocation */
   XMC_CAN_PANCMD_STATIC_INSERT_BEHIND = 6U,   /**< Command to activate dynamic allocation */
   XMC_CAN_PANCMD_DYNAMIC_INSERT_BEHIND = 7U   /**< Command to activate dynamic allocation */
@@ -240,7 +244,7 @@ typedef enum XMC_CAN_ARBITRATION_MODE
  */
 typedef enum XMC_CAN_FRAME_COUNT_MODE
 {
-  XMC_CAN_FRAME_COUNT_MODE = 0U, 			 /**< Frame Count Mode */
+  XMC_CAN_FRAME_COUNT_MODE = 0U,       /**< Frame Count Mode */
   XMC_CAN_FRAME_COUNT_MODE_TIME_STAMP = 1U,  /**< The frame counter is incremented with the beginning of a new bit time*/
   XMC_CAN_FRAME_COUNT_MODE_BIT_TIMING = 2U   /**< Used for baud rate detection and analysis of the bit timing */
 } XMC_CAN_FRAME_COUNT_MODE_t;
@@ -311,7 +315,7 @@ typedef enum XMC_CAN_MO_STATUS
   XMC_CAN_MO_STATUS_TX_ENABLE1 = CAN_MO_MOSTAT_TXEN1_Msk,                   /**< Transmit enable 1 */
   XMC_CAN_MO_STATUS_MESSAGE_DIRECTION = CAN_MO_MOSTAT_DIR_Msk,              /**< Message direction */
   XMC_CAN_MO_STATUS_LIST = CAN_MO_MOSTAT_LIST_Msk,                          /**< List allocation */
-  XMC_CAN_MO_STATUS_POINTER_TO_PREVIOUS_MO = CAN_MO_MOSTAT_PPREV_Msk,    	/**< Pointer to previous Message Object */
+  XMC_CAN_MO_STATUS_POINTER_TO_PREVIOUS_MO = CAN_MO_MOSTAT_PPREV_Msk,     /**< Pointer to previous Message Object */
   XMC_CAN_MO_STATUS_POINTER_TO_NEXT_MO = (int32_t)CAN_MO_MOSTAT_PNEXT_Msk   /**< Pointer to next Message Object */
 } XMC_CAN_MO_STATUS_t;
 
@@ -325,7 +329,7 @@ typedef enum XMC_CAN_NODE_STATUS
   XMC_CAN_NODE_STATUS_RX_OK = CAN_NODE_NSR_RXOK_Msk,                /**< Message received successfully */
   XMC_CAN_NODE_STATUS_ALERT_WARNING = CAN_NODE_NSR_ALERT_Msk,       /**< Alert warning */
   XMC_CAN_NODE_STATUS_ERROR_WARNING_STATUS = CAN_NODE_NSR_EWRN_Msk, /**< Error warning status */
-  XMC_CAN_NODE_STATUS_BUS_OFF= CAN_NODE_NSR_BOFF_Msk,				/**< Bus-off status */
+  XMC_CAN_NODE_STATUS_BUS_OFF= CAN_NODE_NSR_BOFF_Msk,       /**< Bus-off status */
   XMC_CAN_NODE_STATUS_LIST_LENGTH_ERROR = CAN_NODE_NSR_LLE_Msk,     /**< List length error */
   XMC_CAN_NODE_STATUS_LIST_OBJECT_ERROR = CAN_NODE_NSR_LOE_Msk,     /**< List object error */
 #if !defined(MULTICAN_PLUS)
@@ -397,14 +401,14 @@ typedef enum XMC_CAN_MO_EVENT
  */
 typedef enum XMC_CAN_NODE_RECEIVE_INPUT
 {
-  XMC_CAN_NODE_RECEIVE_INPUT_RXDCA, 	/**< CAN Receive Input A */
-  XMC_CAN_NODE_RECEIVE_INPUT_RXDCB,		/**< CAN Receive Input B */
-  XMC_CAN_NODE_RECEIVE_INPUT_RXDCC,		/**< CAN Receive Input C */
-  XMC_CAN_NODE_RECEIVE_INPUT_RXDCD,		/**< CAN Receive Input D */
-  XMC_CAN_NODE_RECEIVE_INPUT_RXDCE,		/**< CAN Receive Input E */
-  XMC_CAN_NODE_RECEIVE_INPUT_RXDCF,		/**< CAN Receive Input F */
-  XMC_CAN_NODE_RECEIVE_INPUT_RXDCG,		/**< CAN Receive Input G */
-  XMC_CAN_NODE_RECEIVE_INPUT_RXDCH		/**< CAN Receive Input H */
+  XMC_CAN_NODE_RECEIVE_INPUT_RXDCA,   /**< CAN Receive Input A */
+  XMC_CAN_NODE_RECEIVE_INPUT_RXDCB,   /**< CAN Receive Input B */
+  XMC_CAN_NODE_RECEIVE_INPUT_RXDCC,   /**< CAN Receive Input C */
+  XMC_CAN_NODE_RECEIVE_INPUT_RXDCD,   /**< CAN Receive Input D */
+  XMC_CAN_NODE_RECEIVE_INPUT_RXDCE,   /**< CAN Receive Input E */
+  XMC_CAN_NODE_RECEIVE_INPUT_RXDCF,   /**< CAN Receive Input F */
+  XMC_CAN_NODE_RECEIVE_INPUT_RXDCG,   /**< CAN Receive Input G */
+  XMC_CAN_NODE_RECEIVE_INPUT_RXDCH    /**< CAN Receive Input H */
 } XMC_CAN_NODE_RECEIVE_INPUT_t;
 
 /**
@@ -441,21 +445,22 @@ typedef enum XMC_CAN_NODE_INTERRUPT_TRIGGER
   XMC_CAN_NODE_INTR_TRIGGER_7 = 0x128U,
 } XMC_CAN_NODE_INTERRUPT_TRIGGER_t;
 
-#if defined(MULTICAN_PLUS) || defined(DOXYGEN)
 /**
- * Defines the Clock source used for the MCAN peripheral. @note Only available for XMC1400, XMC4800 and XMC4700 series
+ * Defines the Clock source used for the MCAN baudrate generator 
  */
 typedef enum XMC_CAN_CANCLKSRC
-{
-#if UC_FAMILY == XMC4
-  XMC_CAN_CANCLKSRC_FPERI = 0x1U,
-  XMC_CAN_CANCLKSRC_FOHP = 0x2U,
+{  
+#if defined(MULTICAN_PLUS) || defined(DOXYGEN)
+#if (UC_FAMILY == XMC4)
+  XMC_CAN_CANCLKSRC_FPERI = 0x1U, /**< Use peripheral clock as MCAN baudrate generator input clock. */
 #else
-  XMC_CAN_CANCLKSRC_MCLK = 0x1U,
-  XMC_CAN_CANCLKSRC_FOHP = 0x2U
+  XMC_CAN_CANCLKSRC_MCLK = 0x1U, /**< Use peripheral clock as MCAN baudrate generator input clock. */
+#endif
+  XMC_CAN_CANCLKSRC_FOHP = 0x2U, /**< Use high performance oscillator (fOHP) as MCAN baudrate generator input clock. @note Only available for XMC1400, XMC4800 and XMC4700 series*/
+#else
+  XMC_CAN_CANCLKSRC_FPERI = 0x1U, /**< Use peripheral clock as MCAN baudrate generator input clock. */
 #endif
 } XMC_CAN_CANCLKSRC_t;
-#endif
 
 /*********************************************************************************************************************
  * DATA STRUCTURES
@@ -465,11 +470,11 @@ typedef enum XMC_CAN_CANCLKSRC
 */
 typedef struct XMC_CAN_NODE_NOMINAL_BIT_TIME_CONFIG
 {
-  uint32_t can_frequency;       /**< Frequency of the CAN module(fCAN). \a can_frequency shall be range of 5MHz to 120MHz */
-  uint32_t baudrate;        	/**< Specifies the node baud rate. Unit: baud \a baudrate shall be range of 100Kbps to 1000Kbps*/
-  uint16_t sample_point;    	/**< Sample point is used to compensate mismatch between transmitter and receiver clock phases detected in
-									 the synchronization segment. Sample point. Range = [0, 10000] with respect [0%, 100%] of the total bit time.*/
-  uint16_t sjw;             	/**< (Re) Synchronization Jump Width. Range:0-3 */
+  uint32_t can_frequency;       /**< Frequency of the CAN module(fCAN). \a can_frequency shall be range of 5MHz to 144MHz */
+  uint32_t baudrate;          /**< Specifies the node baud rate. Unit: baud \a baudrate shall be range of 100Kbps to 1000Kbps*/
+  uint16_t sample_point;      /**< Sample point is used to compensate mismatch between transmitter and receiver clock phases detected in
+                   the synchronization segment. Sample point. Range = [0, 10000] with respect [0%, 100%] of the total bit time.*/
+  uint16_t sjw;               /**< (Re) Synchronization Jump Width. Range:0-3 */
 } XMC_CAN_NODE_NOMINAL_BIT_TIME_CONFIG_t;
 
 /**
@@ -478,9 +483,9 @@ typedef struct XMC_CAN_NODE_NOMINAL_BIT_TIME_CONFIG
  */
 typedef struct XMC_CAN_FIFO_CONFIG
 {
-  uint8_t fifo_bottom;		/**< points to the first element(slave object) in a FIFO structure.Range :0-63*/
-  uint8_t fifo_top;			/**< points to the last element(slave object) in a FIFO structure. Range :0-63*/
-  uint8_t fifo_base;		/**< points to the actual target object(Base object) within a FIFO/Gateway structure. Range :0-63*/
+  uint8_t fifo_bottom;    /**< points to the first element(slave object) in a FIFO structure.Range :0-63*/
+  uint8_t fifo_top;     /**< points to the last element(slave object) in a FIFO structure. Range :0-63*/
+  uint8_t fifo_base;    /**< points to the actual target object(Base object) within a FIFO/Gateway structure. Range :0-63*/
 } XMC_CAN_FIFO_CONFIG_t;
 
 /**
@@ -489,18 +494,18 @@ typedef struct XMC_CAN_FIFO_CONFIG
  */
 typedef struct XMC_CAN_GATEWAY_CONFIG
 {
-  uint8_t gateway_bottom; 			/**< points to the first element(gateway destination object) in a FIFO structure. Range :0-63*/
-  uint8_t gateway_top;				/**< points to the last element(gateway destination object) in a FIFO structure.  Range :0-63*/
-  uint8_t gateway_base;				/**< points to the actual target object within a FIFO/Gateway structure. Range :0-63*/
-  bool gateway_data_frame_send;		/**< TXRQ updated in the gateway destination object after the internal transfer from the gateway source
-  	  	  	  	  	  	  	  	  	  	 to the gateway destination object */
-  bool gateway_identifier_copy;		/**< The identifier of the gateway source object (after storing the received frame in the source) is copied
-  	  	  	  	  	  	  	  	  	  	 to the gateway destination object. */
+  uint8_t gateway_bottom;       /**< points to the first element(gateway destination object) in a FIFO structure. Range :0-63*/
+  uint8_t gateway_top;        /**< points to the last element(gateway destination object) in a FIFO structure.  Range :0-63*/
+  uint8_t gateway_base;       /**< points to the actual target object within a FIFO/Gateway structure. Range :0-63*/
+  bool gateway_data_frame_send;   /**< TXRQ updated in the gateway destination object after the internal transfer from the gateway source
+                                         to the gateway destination object */
+  bool gateway_identifier_copy;   /**< The identifier of the gateway source object (after storing the received frame in the source) is copied
+                                         to the gateway destination object. */
 
   bool gateway_data_length_code_copy; /**< Data length code of the gateway source object (after storing the received frame in the source) is copied to the
-  	  	  	  	  	  	  	  	  	  	   gateway destination object */
+                                           gateway destination object */
   bool gateway_data_copy;  /**< Data fields in registers MODATALn and MODATAHn of the gateway source object (after storing the received frame in the source)
-  	  	  	  	  	  	  	  	are copied to the gateway destination.*/
+                                are copied to the gateway destination.*/
 
 } XMC_CAN_GATEWAY_CONFIG_t;
 
@@ -526,13 +531,13 @@ typedef struct XMC_CAN_NODE_FRAME_COUNTER
 {
 
   union{
-	  struct{
-		  uint32_t : 16;
-		  uint32_t can_frame_count_selection:3;		/**<   Defines function of the frame counter  */
-		  uint32_t can_frame_count_mode:2;			/**<   Determines the operation mode of the frame counter */
-		  uint32_t : 11;
-	  };
-	  uint32_t nfcr;
+    struct{
+      uint32_t : 16;
+      uint32_t can_frame_count_selection:3;   /**<   Defines function of the frame counter  */
+      uint32_t can_frame_count_mode:2;      /**<   Determines the operation mode of the frame counter */
+      uint32_t : 11;
+    };
+    uint32_t nfcr;
 
   };
 } XMC_CAN_NODE_FRAME_COUNTER_t;
@@ -547,32 +552,32 @@ typedef CAN_NODE_TypeDef  XMC_CAN_NODE_t;            /**<  pointer to the Node C
  */
 typedef struct XMC_CAN_MO
 {
-	CAN_MO_TypeDef *can_mo_ptr;                     /**< Pointer to the Message Object CAN register */
-	union{
-		struct{
-			uint32_t can_identifier:29;            /**< standard (11 bit)/Extended (29 bit) message identifier */
-			uint32_t can_id_mode:1;                /**< Standard/Extended identifier support */
-			uint32_t can_priority:2;               /**< Arbitration Mode/Priority */
-		};
-		uint32_t mo_ar;
-	};
-	union{
-		struct{
-			uint32_t can_id_mask:29;              /**< CAN Identifier of Message Object */
-			uint32_t can_ide_mask:1;              /**< Identifier Extension Bit of Message Object */
-		};
-		uint32_t mo_amr;
-	};
+  CAN_MO_TypeDef *can_mo_ptr;                     /**< Pointer to the Message Object CAN register */
+  union{
+    struct{
+      uint32_t can_identifier:29;            /**< standard (11 bit)/Extended (29 bit) message identifier */
+      uint32_t can_id_mode:1;                /**< Standard/Extended identifier support */
+      uint32_t can_priority:2;               /**< Arbitration Mode/Priority */
+    };
+    uint32_t mo_ar;
+  };
+  union{
+    struct{
+      uint32_t can_id_mask:29;              /**< CAN Identifier of Message Object */
+      uint32_t can_ide_mask:1;              /**< Identifier Extension Bit of Message Object */
+    };
+    uint32_t mo_amr;
+  };
   uint8_t can_data_length;                        /**< Message data length, Range:0-8 */
 
   union{
 
-  		uint8_t can_data_byte[8];                 /**< Each position of the array represents a data byte*/
-  		uint16_t can_data_word[4];                /**< Each position of the array represents a 16 bits data word*/
-  		uint32_t can_data[2];                     /**< can_data[0] lower 4 bytes of the data. can_data[1], higher 4 bytes
-  		 	 	 	 	 	 	 	 	 	 	    of the data */
-  		uint64_t can_data_long;                   /** Data of the Message Object*/
-  	  };
+      uint8_t can_data_byte[8];                 /**< Each position of the array represents a data byte*/
+      uint16_t can_data_word[4];                /**< Each position of the array represents a 16 bits data word*/
+      uint32_t can_data[2];                     /**< can_data[0] lower 4 bytes of the data. can_data[1], higher 4 bytes
+                              of the data */
+      uint64_t can_data_long;                   /** Data of the Message Object*/
+      };
 
   XMC_CAN_MO_TYPE_t can_mo_type;                  /**<  Message Type */
 
@@ -592,8 +597,8 @@ extern "C" {
 
 /**
  *
- * @param obj	Pointer pointing to XMC_CAN Global Initialization structure. Defines CAN global registers,refer CAN_NODE_TypeDef
- * 				for details.
+ * @param obj Pointer pointing to XMC_CAN Global Initialization structure. Defines CAN global registers,refer CAN_NODE_TypeDef
+ *        for details.
  *
  * @return None
  *
@@ -610,7 +615,7 @@ void XMC_CAN_Disable(XMC_CAN_t *const obj);
 /**
  *
  * @param obj Pointer pointing to XMC_CAN Global Initialization structure. Defines CAN global registers,refer CAN_NODE_TypeDef
- * 			   for details.
+ *         for details.
  *
  * @return None
  *
@@ -628,10 +633,10 @@ void XMC_CAN_Enable(XMC_CAN_t *const obj);
 /**
  *
  * @param obj Pointer pointing to XMC_CAN Global Initialization structure. Defines CAN global registers,refer CAN_NODE_TypeDef
- * 		   for details.
+ *       for details.
  *
- * @param node_num	CAN node number,Range : 0-2
- * @param mo_num 	CAN Message Object number,Range : 0-63
+ * @param node_num  CAN node number,Range : 0-2
+ * @param mo_num  CAN Message Object number,Range : 0-63
  *
  * @return None
  *
@@ -669,11 +674,11 @@ __STATIC_INLINE bool XMC_CAN_IsPanelControlReady(XMC_CAN_t *const obj)
 /**
  *
  * @param obj Pointer pointing to XMC_CAN Global Initialization structure. Defines CAN global registers,refer CAN_NODE_TypeDef
- * 			  for details.
+ *        for details.
  *
  * @param pancmd panal command selection. Refer @ref XMC_CAN_PANCMD_t for valid values.
- * @param arg1	 Panel Argument 1,Range : 0-2
- * @param arg2 	 Panel Argument 2, Range : 0-63
+ * @param arg1   Panel Argument 1,Range : 0-2
+ * @param arg2   Panel Argument 2, Range : 0-63
  *
  * @return None
  *
@@ -691,22 +696,22 @@ __STATIC_INLINE bool XMC_CAN_IsPanelControlReady(XMC_CAN_t *const obj)
 
 __STATIC_INLINE void XMC_CAN_PanelControl(XMC_CAN_t *const obj,
                                           const XMC_CAN_PANCMD_t pancmd,
-		                                  const uint8_t arg1,
-		                                  const uint8_t arg2)
+                                      const uint8_t arg1,
+                                      const uint8_t arg2)
 {
   obj->PANCTR = (((uint32_t)pancmd << CAN_PANCTR_PANCMD_Pos) & (uint32_t)CAN_PANCTR_PANCMD_Msk) |
-		        (((uint32_t)arg1 << CAN_PANCTR_PANAR1_Pos) & (uint32_t)CAN_PANCTR_PANAR1_Msk) |
-		        (((uint32_t)arg2 << CAN_PANCTR_PANAR2_Pos) & (uint32_t)CAN_PANCTR_PANAR2_Msk);
+            (((uint32_t)arg1 << CAN_PANCTR_PANAR1_Pos) & (uint32_t)CAN_PANCTR_PANAR1_Msk) |
+            (((uint32_t)arg2 << CAN_PANCTR_PANAR2_Pos) & (uint32_t)CAN_PANCTR_PANAR2_Msk);
 }
 
 
 /**
  *
  * @param obj Pointer pointing to XMC_CAN Global Initialization structure. Defines CAN global registers,refer CAN_NODE_TypeDef
- * 			  for details.
+ *        for details.
  *
- * @param service_requestr	Interrupt trigger number selection. Refer @ref XMC_CAN_NODE_INTERRUPT_TRIGGER_t for valid values.
- * 							 Multiple interrupt trigger events can be ORed.
+ * @param service_requestr  Interrupt trigger number selection. Refer @ref XMC_CAN_NODE_INTERRUPT_TRIGGER_t for valid values.
+ *               Multiple interrupt trigger events can be ORed.
  *
  * @return None
  *
@@ -725,42 +730,101 @@ __STATIC_INLINE void XMC_CAN_EventTrigger(XMC_CAN_t *const obj,const XMC_CAN_NOD
 }
 
 
-
-								/*INIT APIs*/
-
 /**
  *
  * @param obj Pointer pointing to XMC_CAN Global Initialization structure. Defines CAN global registers,refer CAN_NODE_TypeDef
- * 			  for details.
+ *        for details.
  *
- * @param can_frequency	CAN module frequency(fCAN). Range : 5MHz to 120MHz
+ * @param clksrc CAN module frequency clock source
+ * @param can_frequency CAN module frequency(fCAN). 
+ *        The can_frequency shall be an integer divisor of the CAN clock source frequency (fPERI/fMCLK or fOHP) and 
+ *        it should be selected such that if fulfills the minimum operating frequency specified in the clock control section of the reference manual.
+ *        In addition the can_frequency shall be an integer multiple of the baudrate.
+ *        Max. value: Max. clock source frequency, i.e. if using fOHP and using a XTAL of 20MHz then fCAN max. value is 20MHz.
+ *
+ * @return Actual frequency
+ *
+ * \par<b>Description:</b><br>
+ * Similar to XMC_CAN_Init() configures clock rate of the module timer clock fCAN. 
+ * The difference being that only the normal divider is used to avoid jitter.
+ * In addition the actual achievable frequency is returned.
+ * @note Use XMC_CAN_InitEx() for new projects. XMC_CAN_Init() is kept for backward compatibility reasons.
+ *
+ * Altering CAN module \a can_frequency shall affects baud rate, call XMC_CAN_NODE_NominalBitTimeConfigureEx() to configure baud rate for current CAN frequency.
+ * It configures FDR register.
+ *
+ * \par<b>Related APIs:</b><BR>
+ * XMC_CAN_NODE_NominalBitTimeConfigure(), XMC_CAN_NODE_NominalBitTimeConfigureEx()\n\n\n
+ *
+ */
+uint32_t XMC_CAN_InitEx(XMC_CAN_t *const obj, XMC_CAN_CANCLKSRC_t clksrc, uint32_t can_frequency);
+
+/**
+ * @param obj Pointer pointing to XMC_CAN Global Initialization structure. Defines CAN global registers,refer CAN_NODE_TypeDef
+ *        for details.
+ *
+ * @return Baudrate generator clock source
+ *
+ * \par<b>Description:</b><br>
+ * Returns CAN baudrate generator clock source
+ *
+ * @note Use only for XMC1400 series and XMC47/4800 series projects
+ *
+ */
+XMC_CAN_CANCLKSRC_t XMC_CAN_GetBaudrateClockSource(XMC_CAN_t *const obj);
+
+/**
+ * @param obj Pointer pointing to XMC_CAN Global Initialization structure. Defines CAN global registers,refer CAN_NODE_TypeDef
+ *        for details.
+ *
+ * @return None
+ * 
+ * \par<b>Description:</b><br>
+ * Sets CAN baudrate generator clock source
+ *
+ * @note Use only for XMC1400 series and XMC47/4800 series projects
+ *
+ */
+void XMC_CAN_SetBaudrateClockSource(XMC_CAN_t *const obj,const XMC_CAN_CANCLKSRC_t source);
+
+/**
+ * @param obj Pointer pointing to XMC_CAN Global Initialization structure. Defines CAN global registers,refer CAN_NODE_TypeDef
+ *        for details.
+ *
+ * @return baudrate generator input clock frequency 
+ *
+ * \par<b>Description:</b><br>
+ * Gets CAN baudrate generator input clock frequency
+ *
+ * @note Use only for XMC1400 series and XMC47/4800 series projects
+ *
+ */
+uint32_t XMC_CAN_GetBaudrateClockFrequency(XMC_CAN_t *const obj);
+
+#if defined(MULTICAN_PLUS) || defined(DOXYGEN)
+/**
+ *
+ * @param obj Pointer pointing to XMC_CAN Global Initialization structure. Defines CAN global registers,refer CAN_NODE_TypeDef
+ *        for details.
+ *
+ * @param clksrc CAN module frequency clock source.
+ * @param can_frequency CAN module frequency(fCAN). Max. value: Max. clock source frequency, i.e. if using fOHP and using a XTAL of 20MHz then fCAN max. value is 20MHz.
+ * @note Use clksrc parameter only for XMC1400 series and XMC47/4800 series projects, otherwise omit this parameter.
  *
  * @return None
  *
  * \par<b>Description:</b><br>
  * Configures clock rate of the module timer clock fCAN. Altering CAN module \a can_frequency shall affects baud rate,
- * call XMC_CAN_NODE_NominalBitTimeConfigure() to configure baud rate for current CAN frequency.It configures FDR register.
+ * call XMC_CAN_NODE_NominalBitTimeConfigure() or XMC_CAN_NODE_NominalBitTimeConfigureEx() to configure baud rate for current CAN frequency.
+ * It configures FDR register.
+ *
+ * @note Use XMC_CAN_InitEx() for new projects. XMC_CAN_Init() is kept for backward compatibility reasons.
  *
  * \par<b>Related APIs:</b><BR>
- * XMC_CAN_NODE_NominalBitTimeConfigure()\n\n\n
+ * XMC_CAN_NODE_NominalBitTimeConfigure(), XMC_CAN_NODE_NominalBitTimeConfigureEx(), XMC_CAN_InitEx()\n\n\n
  *
  */
-
-
-#if defined(MULTICAN_PLUS)
 void XMC_CAN_Init(XMC_CAN_t *const obj, XMC_CAN_CANCLKSRC_t clksrc, uint32_t can_frequency);
-/**
- *
- */
-XMC_CAN_CANCLKSRC_t XMC_CAN_GetBaudrateClockSource(XMC_CAN_t *const obj);
-/**
- *
- */
-void XMC_CAN_SetBaudrateClockSource(XMC_CAN_t *const obj,const XMC_CAN_CANCLKSRC_t source);
-/**
- *
- */
-uint32_t XMC_CAN_GetBaudrateClockFrequency(XMC_CAN_t *const obj);
 #else
 void XMC_CAN_Init(XMC_CAN_t *const obj, uint32_t can_frequency);
 #endif
@@ -779,17 +843,14 @@ void XMC_CAN_Init(XMC_CAN_t *const obj, uint32_t can_frequency);
  * None
  *
  */
-
 void XMC_CAN_MO_Config(const XMC_CAN_MO_t *const can_mo);
 
-
-	  /*NODE APIs*/
-
+/* NODE APIs */
 
 /**
  *
- * @param can_node  	  Pointer pointing to CAN_NODE Structure. Defines CAN_NODE registers.
- * @param ptr_event		  CAN_NODE interrupt pointer position. Refer @ref XMC_CAN_NODE_POINTER_EVENT_t structure for valid values.
+ * @param can_node      Pointer pointing to CAN_NODE Structure. Defines CAN_NODE registers.
+ * @param ptr_event     CAN_NODE interrupt pointer position. Refer @ref XMC_CAN_NODE_POINTER_EVENT_t structure for valid values.
  * @param service_request Interrupt service request number. Range : 0-7
  *
  * @return None
@@ -803,8 +864,8 @@ void XMC_CAN_MO_Config(const XMC_CAN_MO_t *const can_mo);
  */
 
 __STATIC_INLINE void XMC_CAN_NODE_SetEventNodePointer(XMC_CAN_NODE_t *const can_node,
-		                                      const XMC_CAN_NODE_POINTER_EVENT_t ptr_event,
-		                                      const uint32_t service_request)
+                                          const XMC_CAN_NODE_POINTER_EVENT_t ptr_event,
+                                          const uint32_t service_request)
 {
   can_node->NIPR = (uint32_t)((can_node->NIPR) & ~(uint32_t)(CAN_NODE_NIPR_Msk << (uint32_t)ptr_event)) | (service_request << (uint32_t)ptr_event);
 }
@@ -812,8 +873,8 @@ __STATIC_INLINE void XMC_CAN_NODE_SetEventNodePointer(XMC_CAN_NODE_t *const can_
 
 /**
  *
- * @param can_node		Pointer pointing to CAN_NODE Structure. Defines CAN_NODE registers. Range :CAN_NODE0-CAN_NODE2
- * @param can_bit_time	Nominal bit time configuration data structure. Refer @ref XMC_CAN_NODE_NOMINAL_BIT_TIME_CONFIG_t for details.
+ * @param can_node    Pointer pointing to CAN_NODE Structure. Defines CAN_NODE registers. Range :CAN_NODE0-CAN_NODE2
+ * @param can_bit_time  Nominal bit time configuration data structure. Refer @ref XMC_CAN_NODE_NOMINAL_BIT_TIME_CONFIG_t for details.
  *
  * @return None
  *
@@ -825,8 +886,30 @@ __STATIC_INLINE void XMC_CAN_NODE_SetEventNodePointer(XMC_CAN_NODE_t *const can_
  * None
  *
  */
-void XMC_CAN_NODE_NominalBitTimeConfigure (XMC_CAN_NODE_t *const can_node,
-                                           const XMC_CAN_NODE_NOMINAL_BIT_TIME_CONFIG_t *const can_bit_time);
+void XMC_CAN_NODE_NominalBitTimeConfigure(XMC_CAN_NODE_t *const can_node,
+                                          const XMC_CAN_NODE_NOMINAL_BIT_TIME_CONFIG_t *const can_bit_time);
+
+/**
+ *
+ * @param can_node    Pointer pointing to CAN_NODE Structure. Defines CAN_NODE registers. Range :CAN_NODE0-CAN_NODE2
+ * @param can_bit_time  Nominal bit time configuration data structure. Refer @ref XMC_CAN_NODE_NOMINAL_BIT_TIME_CONFIG_t for details.
+ *
+ * @return Status on the sucess setting the desired bitrate XMC_CAN_STATUS_t
+ *
+ * \par<b>Description:</b><br>
+ * Similar to XMC_CAN_NODE_NominalBitTimeConfigure() configures the CAN node baudrate. 
+ * The difference being that allows bitrates below 100kpbs.
+ * @note Consider using the new API for new projects. XMC_CAN_NODE_NominalBitTimeConfigure() is kept for backward compatibility reasons.
+ *
+ * Configures CAN node Baudrate. \a can_bit_time specifies required baudrate for a specified \a can_node.
+ * It configures NBTR register.
+ *
+ * \par<b>Related APIs:</b><BR>
+ * XMC_CAN_InitEx()
+ *
+ */
+int32_t XMC_CAN_NODE_NominalBitTimeConfigureEx(XMC_CAN_NODE_t *const can_node,
+                                               const XMC_CAN_NODE_NOMINAL_BIT_TIME_CONFIG_t *const can_bit_time);
 
 /**
  * @param can_node Pointer pointing to CAN_NODE Structure. Defines CAN_NODE registers, Range :CAN_NODE0-CAN_NODE2.
@@ -849,7 +932,7 @@ void XMC_CAN_NODE_NominalBitTimeConfigure (XMC_CAN_NODE_t *const can_node,
  */
 
 __STATIC_INLINE void XMC_CAN_NODE_SetReceiveInput(XMC_CAN_NODE_t *const can_node,
-		                                          const XMC_CAN_NODE_RECEIVE_INPUT_t input)
+                                              const XMC_CAN_NODE_RECEIVE_INPUT_t input)
 {
   can_node->NPCR = ((can_node->NPCR) & ~(uint32_t)(CAN_NODE_NPCR_RXSEL_Msk)) |
                    (((uint32_t)input << CAN_NODE_NPCR_RXSEL_Pos) & (uint32_t)CAN_NODE_NPCR_RXSEL_Msk);
@@ -857,7 +940,7 @@ __STATIC_INLINE void XMC_CAN_NODE_SetReceiveInput(XMC_CAN_NODE_t *const can_node
 
 
 /**
- * @param can_node	Pointer Pointing to CAN_NODE Structure. Defines CAN_NODE registers, Range :CAN_NODE0-CAN_NODE2.
+ * @param can_node  Pointer Pointing to CAN_NODE Structure. Defines CAN_NODE registers, Range :CAN_NODE0-CAN_NODE2.
  *
  * @return None
  *
@@ -910,8 +993,8 @@ __STATIC_INLINE void XMC_CAN_NODE_DisableLoopBack(XMC_CAN_NODE_t *const can_node
 /**
  *
  * @param can_node Pointer Pointing to CAN_NODE Structure. Defines CAN_NODE registers, Range :CAN_NODE0-CAN_NODE2.
- * @param event	   CAN node event mask value. Refer @ref XMC_CAN_NODE_EVENT_t structure for valid values.
- * 				   multiple events can be ORed.
+ * @param event    CAN node event mask value. Refer @ref XMC_CAN_NODE_EVENT_t structure for valid values.
+ *           multiple events can be ORed.
  *
  * @return None
  *
@@ -929,8 +1012,8 @@ void XMC_CAN_NODE_EnableEvent(XMC_CAN_NODE_t *const can_node, const XMC_CAN_NODE
 /**
  *
  * @param can_node Pointer Pointing to CAN_NODE Structure. Defines CAN_NODE registers, Range :CAN_NODE0-CAN_NODE2.
- * @param event	   CAN node event mask value. Refer @ref XMC_CAN_NODE_EVENT_t structure for valid values.
- * 				   multiple events can be ORed.
+ * @param event    CAN node event mask value. Refer @ref XMC_CAN_NODE_EVENT_t structure for valid values.
+ *           multiple events can be ORed.
  *
  * @return None
  *
@@ -988,7 +1071,7 @@ __STATIC_INLINE XMC_CAN_NODE_LAST_ERROR_INC_t XMC_CAN_NODE_GetLastErrTransferInc
 /**
  *
  * @param can_node Pointer Pointing to CAN_NODE Structure. Defines CAN_NODE registers, Range :CAN_NODE0-CAN_NODE2.
- * @param  error_warning_level	Error Warning level value. Range :0-255.
+ * @param  error_warning_level  Error Warning level value. Range :0-255.
  *
  * @return None
  *
@@ -1071,8 +1154,8 @@ __STATIC_INLINE void XMC_CAN_NODE_SetReceiveErrorCounter(XMC_CAN_NODE_t *const c
  * @return uint8_t Error Warning Level. Range :0 - 255
  *
  * \par<b>Description:</b><br>
- *	Returns error warning level. This determines the threshold value (warning level, default 96) to be reached in order
- *	to set the corresponding error warning bit EWRN. It reads NECNT register.
+ *  Returns error warning level. This determines the threshold value (warning level, default 96) to be reached in order
+ *  to set the corresponding error warning bit EWRN. It reads NECNT register.
  *
  * \par<b>Related APIs:</b><BR>
  * XMC_CAN_NODE_SetErrorWarningLevel()\n\n\n
@@ -1093,9 +1176,9 @@ __STATIC_INLINE uint8_t XMC_CAN_NODE_GetErrorWarningLevel(XMC_CAN_NODE_t *const 
  * @return uint8_t transmit error counter value. Range :0 - 255
  *
  * \par<b>Description:</b><br>
- *	Returns Transmit Error Counter value. If the Bitstream Processor detects an error while a transmit operation is
- *	running, the Transmit Error Counter is incremented by 8. An increment of 1 is used when the error condition was
- *	reported by an external CAN node via an Error Frame generation. It reads NECNT register.
+ *  Returns Transmit Error Counter value. If the Bitstream Processor detects an error while a transmit operation is
+ *  running, the Transmit Error Counter is incremented by 8. An increment of 1 is used when the error condition was
+ *  reported by an external CAN node via an Error Frame generation. It reads NECNT register.
  *
  * \par<b>Related APIs:</b><BR>
  * XMC_CAN_NODE_SetTransmitErrorCounter()
@@ -1115,10 +1198,10 @@ __STATIC_INLINE uint8_t XMC_CAN_NODE_GetTransmitErrorCounter(XMC_CAN_NODE_t *con
  *
  * @param can_node Pointer Pointing to CAN_NODE Structure. Defines CAN_NODE registers, Range :CAN_NODE0-CAN_NODE2.
  *
- * @return uint8_t	receive error counter value.
+ * @return uint8_t  receive error counter value.
  *
  * \par<b>Description:</b><br>
- *	Returns Receive Error Counter value. It reads NECNT register.
+ *  Returns Receive Error Counter value. It reads NECNT register.
  *
  * \par<b>Related APIs:</b><BR>
  * XMC_CAN_NODE_SetReceiveErrorCounter()
@@ -1199,7 +1282,7 @@ __STATIC_INLINE void XMC_CAN_NODE_EnableConfigurationChange(XMC_CAN_NODE_t *cons
  * @return None
  *
  * \par<b>Description:</b><br>
- *	Forbid to change the configuration of the CAN node. It configures NCRx.CCE bit.
+ *  Forbid to change the configuration of the CAN node. It configures NCRx.CCE bit.
  *
  * \par<b>Related API's:</b><br>
  * XMC_CAN_NODE_EnableConfigurationChange()
@@ -1379,7 +1462,7 @@ __STATIC_INLINE void XMC_CAN_NODE_DisableTransmit(XMC_CAN_NODE_t *const can_node
 /**
  *
  * @param can_node Pointer Pointing to CAN_NODE Structure. Defines CAN_NODE registers, Range :CAN_NODE0-CAN_NODE2.
- * @param can_node_init	frame counter mode selection. Refer @ref XMC_CAN_NODE_FRAME_COUNTER_t for valid values.
+ * @param can_node_init frame counter mode selection. Refer @ref XMC_CAN_NODE_FRAME_COUNTER_t for valid values.
  *
  * @return None
  *
@@ -1406,7 +1489,7 @@ __STATIC_INLINE void XMC_CAN_NODE_FrameCounterConfigure(XMC_CAN_NODE_t *const ca
  *
  * @param can_node Pointer Pointing to CAN_NODE Structure. Defines CAN_NODE registers, Range :CAN_NODE0-CAN_NODE2.
  *
- * @return uint16_t	current value of the CAN frame counter. Range :0-65535
+ * @return uint16_t current value of the CAN frame counter. Range :0-65535
  *
  * \par<b>Description:</b><br>
  *  Returns the frame counter value \a can_node of the CAN node. In Frame Count Mode (CFMOD = 00B), this API returns the frame
@@ -1430,7 +1513,7 @@ __STATIC_INLINE uint16_t XMC_CAN_NODE_GetCANFrameCounter(XMC_CAN_NODE_t *const c
  *
  * @param can_mo Pointer to Message Object structure. Refer @ref XMC_CAN_MO_t data structure for details.
  *
- * @return XMC_CAN_STATUS_t	CAN Node status. Refer @ref XMC_CAN_STATUS_t structure for details.
+ * @return XMC_CAN_STATUS_t CAN Node status. Refer @ref XMC_CAN_STATUS_t structure for details.
  *
  * @return None
  *
@@ -1449,7 +1532,7 @@ XMC_CAN_STATUS_t XMC_CAN_MO_UpdateData(const XMC_CAN_MO_t *const can_mo);
  *
  * @param can_mo Pointer to Message Object structure. Refer @ref XMC_CAN_MO_t data structure for details.
  *
- * @return XMC_CAN_STATUS_t	CAN Node status. Refer @ref XMC_CAN_STATUS_t structure for details.
+ * @return XMC_CAN_STATUS_t CAN Node status. Refer @ref XMC_CAN_STATUS_t structure for details.
  *
  * \par<b>Description:</b><br>
  *  Configures transmit request for sending data frame. It configures MOCTR register. Data shall be updated
@@ -1466,7 +1549,7 @@ XMC_CAN_STATUS_t XMC_CAN_MO_Transmit(const XMC_CAN_MO_t *const can_mo);
 /**
  * @param can_mo Pointer to Message Object structure. Refer @ref XMC_CAN_MO_t data structure for details.
  *
- * @return XMC_CAN_STATUS_t	CAN Node status. Refer @ref XMC_CAN_STATUS_t structure for details.
+ * @return XMC_CAN_STATUS_t CAN Node status. Refer @ref XMC_CAN_STATUS_t structure for details.
  *
  * \par<b>Description:</b><br>
  *  Reads the Message Object data bytes, into message pointer passed as input parameter \a can_mo.
@@ -1483,7 +1566,7 @@ XMC_CAN_STATUS_t XMC_CAN_MO_Receive(XMC_CAN_MO_t *can_mo);
 /**
  * @param can_mo Pointer to Message Object structure. Refer @ref XMC_CAN_MO_t data structure for details.
  *
- * @return XMC_CAN_STATUS_t	CAN Node status. Refer @ref XMC_CAN_STATUS_t structure for details.
+ * @return XMC_CAN_STATUS_t CAN Node status. Refer @ref XMC_CAN_STATUS_t structure for details.
  *
  * \par<b>Description:</b><br>
  *  Reads the Message Object data bytes, into message pointer passed as input parameter \a can_mo.
@@ -1495,10 +1578,10 @@ XMC_CAN_STATUS_t XMC_CAN_MO_Receive(XMC_CAN_MO_t *can_mo);
  */
 XMC_CAN_STATUS_t XMC_CAN_MO_ReceiveData (XMC_CAN_MO_t *can_mo);
 /**
- * @param can_mo 		 	 Pointer to Message Object structure. Refer @ref XMC_CAN_MO_t data structure for details.
- * @param can_mo_ptr_int 	 Message Object event node pointer selection. Refer @ref XMC_CAN_MO_POINTER_EVENT_t structure
- * 					 	    for valid values.
- * @param service_request	interrupt output line of multiCAN module.
+ * @param can_mo       Pointer to Message Object structure. Refer @ref XMC_CAN_MO_t data structure for details.
+ * @param can_mo_ptr_int   Message Object event node pointer selection. Refer @ref XMC_CAN_MO_POINTER_EVENT_t structure
+ *                for valid values.
+ * @param service_request interrupt output line of multiCAN module.
  *
  * @return None
  *
@@ -1511,17 +1594,17 @@ XMC_CAN_STATUS_t XMC_CAN_MO_ReceiveData (XMC_CAN_MO_t *can_mo);
  */
 
 __STATIC_INLINE void XMC_CAN_MO_SetEventNodePointer(const XMC_CAN_MO_t *const can_mo,
-		                                            const XMC_CAN_MO_POINTER_EVENT_t can_mo_ptr_int,
-		                                            const uint32_t service_request)
+                                                const XMC_CAN_MO_POINTER_EVENT_t can_mo_ptr_int,
+                                                const uint32_t service_request)
 {
   can_mo->can_mo_ptr->MOIPR = ((can_mo->can_mo_ptr->MOIPR ) & ~(uint32_t)((uint32_t)CAN_MO_MOIPR_Msk << (uint32_t)can_mo_ptr_int)) |
-		                      (service_request << (uint32_t)can_mo_ptr_int);
+                          (service_request << (uint32_t)can_mo_ptr_int);
 }
 
 /**
  * @param can_mo Pointer to Message Object structure. Refer @ref XMC_CAN_MO_t data structure for details.
  *
- * @return uint32_t	Current Message Object status.
+ * @return uint32_t Current Message Object status.
  *
  * \par<b>Description:</b><br>
  *  Returns Message Object status, that indicates message object transfer status and message object list status
@@ -1542,7 +1625,7 @@ __STATIC_INLINE uint32_t XMC_CAN_MO_GetStatus(const XMC_CAN_MO_t *const can_mo)
  *
  * @param can_mo Pointer to Message Object structure. Refer @ref XMC_CAN_MO_t data structure for details.
  * @param mask   Message Object set status selection. Refer @ref XMC_CAN_MO_SET_STATUS_t for details.
- * 				 Multiple enums can be ORed.
+ *         Multiple enums can be ORed.
  * @return None
  *
  * \par<b>Description:</b><br>
@@ -1562,7 +1645,7 @@ __STATIC_INLINE void XMC_CAN_MO_SetStatus(const XMC_CAN_MO_t *const can_mo, cons
  *
  * @param can_mo Pointer to Message Object structure. Refer @ref XMC_CAN_MO_t data structure for details.
  * @param mask   Message Object set status selection. Refer @ref XMC_CAN_MO_RESET_STATUS_t for details.
- * 						 Multiple enums can be ORed.
+ *             Multiple enums can be ORed.
  * @return None
  *
  * \par<b>Description:</b><br>
@@ -1582,7 +1665,7 @@ __STATIC_INLINE void XMC_CAN_MO_ResetStatus(const XMC_CAN_MO_t *const can_mo,con
 
 /**
  * @param can_mo Pointer to Message Object structure. Refer @ref XMC_CAN_MO_t data structure for details.
- * @param event	 CAN node Message Object event selection. Refer @ref XMC_CAN_MO_EVENT_t for details.
+ * @param event  CAN node Message Object event selection. Refer @ref XMC_CAN_MO_EVENT_t for details.
  *
  * @return None
  *
@@ -1595,7 +1678,7 @@ __STATIC_INLINE void XMC_CAN_MO_ResetStatus(const XMC_CAN_MO_t *const can_mo,con
  */
 
 __STATIC_INLINE void XMC_CAN_MO_EnableEvent(const XMC_CAN_MO_t *const can_mo,
-		                                    const uint32_t event)
+                                        const uint32_t event)
 {
   can_mo->can_mo_ptr->MOFCR |= event;
 }
@@ -1617,7 +1700,7 @@ __STATIC_INLINE void XMC_CAN_MO_EnableEvent(const XMC_CAN_MO_t *const can_mo,
  */
 
 __STATIC_INLINE void XMC_CAN_MO_DisableEvent(const XMC_CAN_MO_t *const can_mo,
-		                                     const uint32_t event)
+                                         const uint32_t event)
 {
   can_mo->can_mo_ptr->MOFCR &= ~event;
 }
@@ -1665,7 +1748,7 @@ __STATIC_INLINE void XMC_CAN_MO_DisableSingleTransmitTrial(const XMC_CAN_MO_t *c
 /**
  *
  * @param can_mo            Pointer to Message Object structure. Refer @ref XMC_CAN_MO_t data structure for details.
- * @param data_length_code	transfer data length. Range:0-8
+ * @param data_length_code  transfer data length. Range:0-8
  *
  * @return None
  *
@@ -1686,7 +1769,7 @@ __STATIC_INLINE void XMC_CAN_MO_DataLengthCode(const XMC_CAN_MO_t *const can_mo,
 /**
  *
  * @param can_mo            Pointer to Message Object structure. Refer @ref XMC_CAN_MO_t data structure for details.
- * @param data_length_code	transfer data length. Range:0-8
+ * @param data_length_code  transfer data length. Range:0-8
  *
  * @return None
  *
@@ -1727,7 +1810,7 @@ __STATIC_INLINE uint8_t XMC_CAN_MO_GetDataLengthCode(const XMC_CAN_MO_t *const c
 /**
  *
  * @param can_mo            Pointer to Message Object structure. Refer @ref XMC_CAN_MO_t data structure for details.
- * @param can_identifier	Identifier.
+ * @param can_identifier  Identifier.
  *
  * @return None
  *
@@ -1776,7 +1859,7 @@ uint32_t XMC_CAN_MO_GetAcceptanceMask(const XMC_CAN_MO_t *const can_mo);
 /**
  *
  * @param can_mo            Pointer to Message Object structure. Refer @ref XMC_CAN_MO_t data structure for details.
- * @param can_id_mask	    CAN MO acceptance mask.
+ * @param can_id_mask     CAN MO acceptance mask.
  *
  * @return None
  *
@@ -1930,7 +2013,7 @@ __STATIC_INLINE void XMC_CAN_FIFO_DisableForeingRemoteRequest(const XMC_CAN_MO_t
  * XMC_CAN_FIFO_DisableRemoteMonitoring()\n\n\n
  *
  * \par<b>Note:</b><br>
- *	Remote monitoring(RMM) applies only to transmit objects and has no effect on receive objects.
+ *  Remote monitoring(RMM) applies only to transmit objects and has no effect on receive objects.
  *
  */
 __STATIC_INLINE void XMC_CAN_FIFO_EnableRemoteMonitoring(const XMC_CAN_MO_t *const can_mo)
@@ -1953,7 +2036,7 @@ __STATIC_INLINE void XMC_CAN_FIFO_EnableRemoteMonitoring(const XMC_CAN_MO_t *con
  * XMC_CAN_FIFO_EnableRemoteMonitoring()\n\n\n
  *
  * \par<b>Note:</b><br>
- *	Remote monitoring(RMM) applies only to transmit objects and has no effect on receive objects.
+ *  Remote monitoring(RMM) applies only to transmit objects and has no effect on receive objects.
  *
  */
 
@@ -1964,7 +2047,7 @@ __STATIC_INLINE void XMC_CAN_FIFO_DisableRemoteMonitoring(const XMC_CAN_MO_t *co
 
 
 /**
- * @param can_mo 		 Pointer to Message Object structure. Refer @ref XMC_CAN_MO_t data structure for details.
+ * @param can_mo     Pointer to Message Object structure. Refer @ref XMC_CAN_MO_t data structure for details.
  * @param select_pointer Selected Message Object number. Range:0-63
  *
  * @return None
@@ -1989,7 +2072,7 @@ __STATIC_INLINE void XMC_CAN_FIFO_SetSELMO(const XMC_CAN_MO_t *const can_mo,cons
  *
  * @param can_mo Pointer to Message Object structure. Refer @ref XMC_CAN_MO_t data structure for details.
  *
- * @return uint8_t	Current Message Object Number. Range:0-63
+ * @return uint8_t  Current Message Object Number. Range:0-63
  *
  * \par<b>Description:</b><br>
  * Returns the current FIFO Message Object,points to the actual target object within a FIFO/Gateway structure.
@@ -2086,8 +2169,8 @@ void XMC_CAN_RXFIFO_ConfigMOBaseObject(const XMC_CAN_MO_t *const can_mo,const XM
 
 /**
  *
- * @param can_mo 	Pointer to Message Object structure. Refer @ref XMC_CAN_MO_t data structure for details.
- * @param can_fifo	CAN FIFO configuration data structure. Refer @ref XMC_CAN_FIFO_CONFIG_t data structure for details.
+ * @param can_mo  Pointer to Message Object structure. Refer @ref XMC_CAN_MO_t data structure for details.
+ * @param can_fifo  CAN FIFO configuration data structure. Refer @ref XMC_CAN_FIFO_CONFIG_t data structure for details.
  *
  * @return None
  *
@@ -2123,7 +2206,7 @@ __STATIC_INLINE void XMC_CAN_RXFIFO_ConfigMOSlaveObject(const XMC_CAN_MO_t *cons
 
 /**
  *
- * @param can_mo 	  Pointer to Message Object structure. Refer @ref XMC_CAN_MO_t data structure for details.
+ * @param can_mo    Pointer to Message Object structure. Refer @ref XMC_CAN_MO_t data structure for details.
  * @param can_gateway CAN  gateway configuration data structure. Refer XMC_CAN_GATEWAY_CONFIG_t data structure for details.
  *
  * @return None
@@ -2143,7 +2226,7 @@ void XMC_CAN_GATEWAY_InitSourceObject(const XMC_CAN_MO_t *const can_mo,const XMC
 
 /**
  *
- * @param can_mo 	  Pointer to Message Object structure. Refer @ref XMC_CAN_MO_t data structure for details.
+ * @param can_mo    Pointer to Message Object structure. Refer @ref XMC_CAN_MO_t data structure for details.
  *
  * @return None
  *
@@ -2160,7 +2243,7 @@ void XMC_CAN_GATEWAY_InitSourceObject(const XMC_CAN_MO_t *const can_mo,const XMC
 __STATIC_INLINE void XMC_CAN_GATEWAY_InitDesObject(const XMC_CAN_MO_t *const can_mo)
 {
   can_mo->can_mo_ptr->MOCTR  = CAN_MO_MOCTR_RESRXEN_Msk |
-		                       CAN_MO_MOCTR_RESNEWDAT_Msk;
+                           CAN_MO_MOCTR_RESNEWDAT_Msk;
 }
 
 /**

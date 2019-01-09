@@ -1,12 +1,12 @@
 /**
  * @file xmc_usic.h
- * @date 2016-04-10
+ * @date 2017-09-08
  *
  * @cond
-  *********************************************************************************************************************
- * XMClib v2.1.8 - XMC Peripheral Driver Library 
+ *********************************************************************************************************************
+ * XMClib v2.1.18 - XMC Peripheral Driver Library 
  *
- * Copyright (c) 2015-2016, Infineon Technologies AG
+ * Copyright (c) 2015-2017, Infineon Technologies AG
  * All rights reserved.                        
  *                                             
  * Redistribution and use in source and binary forms, with or without modification,are permitted provided that the 
@@ -72,6 +72,13 @@
  *
  * 2016-04-10:
  *     - Added an API to put the data into FIFO when hardware port control is enabled: XMC_USIC_CH_TXFIFO_PutDataHPCMode() <br>
+ *
+ * 2017-02-10:
+ *     - Added XMC_USIC_CH_SetShiftDirection() to allow selection of shift direction of the data words for transmision and reception
+ *     - Added XMC_USIC_CH_GetCaptureTimerValue() and XMC_USIC_CH_SetFractionalDivider()
+ *
+ * 2017-09-08:
+ *     - Fixed value of macro XMC_USIC_CH_SHIFT_DIRECTION_MSB_FIRST used in XMC_USIC_CH_SetShiftDirection()
  *
  * @endcond
  *
@@ -438,6 +445,17 @@ typedef enum XMC_USIC_CH_BRG_SHIFT_CLOCK_OUTPUT
   XMC_USIC_CH_BRG_SHIFT_CLOCK_OUTPUT_SCLK = 0x0UL, /**< Baudrate generator shift clock output: SCL.(Internally generated shift clock)*/
   XMC_USIC_CH_BRG_SHIFT_CLOCK_OUTPUT_DX1 = 0x1UL << USIC_CH_BRG_SCLKOSEL_Pos   /**< Baudrate generator shift clock output: DX1. (External input shift clock)*/
 } XMC_USIC_CH_BRG_SHIFT_CLOCK_OUTPUT_t;
+
+/**
+* USIC channel shift direction.
+* Defines the shift direction of the data words for transmission and reception
+*/
+typedef enum XMC_USIC_CH_SHIFT_DIRECTION
+{
+  XMC_USIC_CH_SHIFT_DIRECTION_LSB_FIRST = 0x0UL, /**< Shift LSB first. The first data bit of a data word is located at bit position 0. */
+  XMC_USIC_CH_SHIFT_DIRECTION_MSB_FIRST = 0x1UL << USIC_CH_SCTR_SDIR_Pos /**< Shift MSB first. The first data bit of a data word is located at the bit position given by the configured word length. */ 
+} XMC_USIC_CH_SHIFT_DIRECTION_t;
+
 
 /*******************************************************************************
  * DATA STRUCTURES
@@ -1000,6 +1018,60 @@ __STATIC_INLINE void XMC_USIC_CH_SetWordLength(XMC_USIC_CH_t *const channel, con
 {
   channel->SCTR = (uint32_t)(channel->SCTR & (~USIC_CH_SCTR_WLE_Msk)) |
                   (uint32_t)(((uint32_t)word_length - 1UL)  << USIC_CH_SCTR_WLE_Pos);
+}
+
+/**
+ * @param  channel Pointer to USIC channel handler of type @ref XMC_USIC_CH_t \n
+ *           \b Range: @ref XMC_USIC0_CH0, @ref XMC_USIC0_CH1 to @ref XMC_USIC2_CH1 based on device support.
+ * @param  word_length Number of bits to be configured for a data word. \n
+ *             \b Range: minimum= 1, maximum= 16. \n
+ *             e.g: For word length of 8, \a word_length should be provided as 8.
+ * @return None
+ *
+ * \par<b>Description</b><br>
+ * Sets the data word length in number of bits. \n\n
+ * Sets the number of bits to represent a data word. Frame length should be a multiple of word length.
+ *
+ * \par<b>Related APIs:</b><BR>
+ * XMC_USIC_CH_SetFrameLength()\n\n\n
+ */
+__STATIC_INLINE void XMC_USIC_CH_SetShiftDirection(XMC_USIC_CH_t *const channel, const XMC_USIC_CH_SHIFT_DIRECTION_t shift_direction)
+{
+  channel->SCTR = (uint32_t)(channel->SCTR & (~USIC_CH_SCTR_SDIR_Msk)) | (uint32_t)shift_direction;
+}
+
+
+/**
+ * @param  channel Pointer to USIC channel handler of type @ref XMC_USIC_CH_t \n
+ *           \b Range: @ref XMC_USIC0_CH0, @ref XMC_USIC0_CH1 to @ref XMC_USIC2_CH1 based on device support.
+ * @return Captured counter value 
+ *
+ *
+ * \par<b>Description</b><br>
+ * The value of the counter is captured if one of the trigger signals DX0T or DX1T are activated by the corresponding input stage.
+ */
+__STATIC_INLINE uint32_t XMC_USIC_CH_GetCaptureTimerValue(const XMC_USIC_CH_t *const channel)
+{
+  return channel->CMTR;
+}
+
+/**
+ * @param  channel Pointer to USIC channel handler of type @ref XMC_USIC_CH_t \n
+ *           \b Range: @ref XMC_USIC0_CH0, @ref XMC_USIC0_CH1 to @ref XMC_USIC2_CH1 based on device support.
+ * @param  mode divider mode ::XMC_USIC_CH_BRG_CLOCK_DIVIDER_MODE_t \n
+ * @param  step divider \n
+ *             \b XMC_USIC_CH_BRG_CLOCK_DIVIDER_MODE_NORMAL resulting divider = 1023 - step \n
+ *             \b XMC_USIC_CH_BRG_CLOCK_DIVIDER_MODE_FRACTIONAL resulting divider = 1023 / step \n
+ * 
+ * @return None
+ * 
+ * \par<b>Description</b><br>
+ * The fractional divider generates its output frequency fFD by either dividing the input frequency fPERIPH by an integer factor n or by multiplication of n/1024.
+ *
+ */
+__STATIC_INLINE void XMC_USIC_CH_SetFractionalDivider(XMC_USIC_CH_t *const channel, const XMC_USIC_CH_BRG_CLOCK_DIVIDER_MODE_t mode, const uint16_t step)
+{
+  channel->FDR = mode | step;
 }
 
 /**

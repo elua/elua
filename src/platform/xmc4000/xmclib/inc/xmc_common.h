@@ -1,12 +1,12 @@
 /**
  * @file xmc_common.h
- * @date 2016-05-30
+ * @date 2017-08-03
  *
  * @cond
   *********************************************************************************************************************
- * XMClib v2.1.8 - XMC Peripheral Driver Library 
+ * XMClib v2.1.18 - XMC Peripheral Driver Library 
  *
- * Copyright (c) 2015-2016, Infineon Technologies AG
+ * Copyright (c) 2015-2017, Infineon Technologies AG
  * All rights reserved.                        
  *                                             
  * Redistribution and use in source and binary forms, with or without modification,are permitted provided that the 
@@ -47,6 +47,20 @@
  * 2016-05-30:
  *     - Updated XMC_LIB_VERSION macro to v2.1.8
  *
+ * 2016-11-18:
+ *     - Updated XMC_LIB_VERSION macro to v2.1.10
+ *     - Changed type of size in XMC_PRIOARRAY_t to fix compilation warnings
+ *
+ * 2017-04-04:
+ *     - Updated XMC_LIB_VERSION macro to v2.1.12
+ *
+ * 2017-06-24:
+ *     - Updated XMC_LIB_VERSION macro to v2.1.14
+ *
+ * 2017-08-03:
+ *     - Updated XMC_LIB_VERSION macro to v2.1.16
+ *     - Added __RAM_FUNC macro
+ *
  * @endcond 
  *
  */
@@ -77,7 +91,7 @@
  *********************************************************************************************************************/
 #define XMC_LIB_MAJOR_VERSION	(2U)
 #define XMC_LIB_MINOR_VERSION	(1U)
-#define XMC_LIB_PATCH_VERSION	(8U)
+#define XMC_LIB_PATCH_VERSION	(18U)
  
 #define XMC_LIB_VERSION         ((XMC_LIB_MAJOR_VERSION << 16U) + (XMC_LIB_MINOR_VERSION << 8U) + XMC_LIB_PATCH_VERSION)
 
@@ -85,12 +99,30 @@
 #if !defined(__WEAK)
 #if defined ( __CC_ARM )
 #define __WEAK __attribute__ ((weak))
+#elif defined (__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050)
+#define __WEAK __attribute__ ((weak))
 #elif defined ( __ICCARM__ )
 #define __WEAK __weak
 #elif defined ( __GNUC__ )
 #define __WEAK __attribute__ ((weak))
 #elif defined ( __TASKING__ )
 #define __WEAK __attribute__ ((weak))
+#endif
+#endif
+
+#if !defined(__RAM_FUNC)
+#if defined ( __CC_ARM )
+// http://www.keil.com/support/docs/3723.htm
+#define __RAM_FUNC __attribute__((section("RAMCODESECTION")))
+#elif defined (__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050)
+#define __RAM_FUNC __attribute__((section("RAMCODESECTION")))
+#elif defined ( __ICCARM__ )
+// https://www.iar.com/support/tech-notes/linker/controlling-placement-of-the-section-where-__ramfunc-functions-reside-ewarm-5.x--6.x/
+#define __RAM_FUNC __ramfunc
+#elif defined ( __GNUC__ )
+#define __RAM_FUNC __attribute__((section(".ram_code"), long_call))
+#elif defined ( __TASKING__ )
+#define __RAM_FUNC __attribute__((section(".ram_code")))
 #endif
 #endif
 
@@ -151,7 +183,7 @@ typedef struct XMC_PRIOARRAY_ITEM
  */
 typedef struct XMC_PRIOARRAY
 {
-  uint32_t size;
+  int32_t size;
   XMC_PRIOARRAY_ITEM_t *items;
 } XMC_PRIOARRAY_t;
 

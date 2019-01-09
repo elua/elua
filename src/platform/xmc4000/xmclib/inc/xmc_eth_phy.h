@@ -4,9 +4,9 @@
  *
  * @cond
  *********************************************************************************************************************
- * XMClib v2.1.8 - XMC Peripheral Driver Library 
+ * XMClib v2.1.18 - XMC Peripheral Driver Library 
  *
- * Copyright (c) 2015-2016, Infineon Technologies AG
+ * Copyright (c) 2015-2017, Infineon Technologies AG
  * All rights reserved.                        
  *                                             
  * Redistribution and use in source and binary forms, with or without modification,are permitted provided that the 
@@ -43,6 +43,19 @@
  *     - Added XMC_ETH_PHY_ExitPowerDown and XMC_ETH_PHY_Reset
  *
  * @endcond
+ */
+
+/**
+ * @addtogroup XMClib XMC Peripheral Library
+ * @{
+ */
+
+/**
+ * @addtogroup ETH_PHY
+ * @brief Ethernet PHY driver for XMC4000 microcontroller family.
+ *
+ * The XMC_ETH_PHY low level driver provides functions used by XMC_ETH_MAC.
+ * @{
  */
 
 #ifndef XMC_ETH_PHY_H
@@ -197,5 +210,13 @@ bool XMC_ETH_PHY_IsAutonegotiationCompleted(XMC_ETH_MAC_t *const eth_mac, uint8_
 #ifdef __cplusplus
 }
 #endif
+
+/**
+ * @}
+ */
+ 
+/**
+ * @}
+ */
 
 #endif /* XMC_ETH_PHY_H */

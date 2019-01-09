@@ -1,12 +1,12 @@
 /**
  * @file xmc_i2c.h
- * @date 2016-05-20
+ * @date 2017-10-27
  *
  * @cond
  *********************************************************************************************************************
- * XMClib v2.1.8 - XMC Peripheral Driver Library 
+ * XMClib v2.1.18 - XMC Peripheral Driver Library 
  *
- * Copyright (c) 2015-2016, Infineon Technologies AG
+ * Copyright (c) 2015-2017, Infineon Technologies AG
  * All rights reserved.                        
  *                                             
  * Redistribution and use in source and binary forms, with or without modification,are permitted provided that the 
@@ -70,6 +70,10 @@
  * 2016-08-17:
  *     - Improved documentation of slave address passing
  *
+ * 2017-10-25:
+ *     - Added XMC_I2C_CH_EnableMasterClock() and XMC_I2C_CH_DisableMasterClock()
+ *
+ * 
  * @endcond 
  *
  */
@@ -765,6 +769,42 @@ __STATIC_INLINE void XMC_I2C_CH_EnableDataTransmission(XMC_USIC_CH_t *const chan
 __STATIC_INLINE void XMC_I2C_CH_DisableDataTransmission(XMC_USIC_CH_t *const channel)
 {
   XMC_USIC_CH_SetStartTransmisionMode(channel, XMC_USIC_CH_START_TRANSMISION_DISABLED); 
+}
+
+/**
+ * @param channel A constant pointer to XMC_USIC_CH_t, pointing to the USIC channel base address.
+ *
+ * @return None
+ *
+ * \par<b>Description:</b><br>
+ * Enables the generation of Master clock by setting PCR.MCLK bit.\n\n
+ * This clock can be used as a clock reference for external devices. This is not enabled during initialization in
+ * XMC_I2C_CH_Init(). Invoke XMC_I2C_CH_EnableMasterClock() to enable as needed in the program, or if it is disabled by
+ * XMC_I2C_CH_DisableMasterClock().
+ *
+ * \par<b>Related APIs:</b><BR>
+ * XMC_I2C_CH_DisableMasterClock()
+ */
+__STATIC_INLINE void XMC_I2C_CH_EnableMasterClock(XMC_USIC_CH_t *const channel)
+{
+  channel->PCR_IICMode |= (uint32_t)USIC_CH_PCR_IICMode_MCLK_Msk;
+}
+
+/**
+ * @param channel A constant pointer to XMC_USIC_CH_t, pointing to the USIC channel base address.
+ *
+ * @return None
+ *
+ * \par<b>Description:</b><br>
+ * Disables the generation of Master clock by clearing PCR.MCLK bit.\n\n
+ * This clock can be enabled by invoking XMC_I2C_CH_EnableMasterClock() as needed in the program.
+ *
+ * \par<b>Related APIs:</b><BR>
+ * XMC_I2C_CH_EnableMasterClock()
+ */
+__STATIC_INLINE void XMC_I2C_CH_DisableMasterClock(XMC_USIC_CH_t *const channel)
+{
+  channel->PCR_IICMode &= (uint32_t)~USIC_CH_PCR_IICMode_MCLK_Msk;
 }
 
 #ifdef __cplusplus

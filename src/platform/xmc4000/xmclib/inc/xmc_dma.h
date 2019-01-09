@@ -1,13 +1,12 @@
-
 /**
  * @file xmc_dma.h
- * @date 2015-06-20
+ * @date 2017-09-28
  *
  * @cond
  *********************************************************************************************************************
- * XMClib v2.1.8 - XMC Peripheral Driver Library 
+ * XMClib v2.1.18 - XMC Peripheral Driver Library
  *
- * Copyright (c) 2015-2016, Infineon Technologies AG
+ * Copyright (c) 2015-2017, Infineon Technologies AG
  * All rights reserved.                        
  *                                             
  * Redistribution and use in source and binary forms, with or without modification,are permitted provided that the 
@@ -47,6 +46,12 @@
  *       XMC_DMA_CH_ClearDestinationPeripheralRequest <br>
  *     - Documentation updates <br>
  *     - Removed version macros and declaration of GetDriverVersion API <br>
+ *
+ * 2016-10-28:
+ *     - Fix documentation on maximum block size
+ *
+ * 2017-09-28:
+ *     - Improved documentation and added XMC_DMA_CH_EnableFifo() and XMC_DMA_CH_DisableFifo()
  *
  * @endcond
  */
@@ -344,16 +349,16 @@ typedef struct XMC_DMA_LLI
     struct
     {
       uint32_t enable_interrupt: 1;             /**< Enable interrupts? */
-      uint32_t dst_transfer_width: 3;           /**< Destination transfer width */
-      uint32_t src_transfer_width: 3;           /**< Source transfer width */
-      uint32_t dst_address_count_mode: 2;       /**< Destination address count mode */
-      uint32_t src_address_count_mode: 2;       /**< Source address count mode */
-      uint32_t dst_burst_length: 3;             /**< Destination burst length */
-      uint32_t src_burst_length: 3;             /**< Source burst length */
+      uint32_t dst_transfer_width: 3;           /**< Destination transfer width (:: XMC_DMA_CH_TRANSFER_WIDTH_t) */
+      uint32_t src_transfer_width: 3;           /**< Source transfer width (:: XMC_DMA_CH_TRANSFER_WIDTH_t) */
+      uint32_t dst_address_count_mode: 2;       /**< Destination address count mode (:: XMC_DMA_CH_ADDRESS_COUNT_MODE_t) */
+      uint32_t src_address_count_mode: 2;       /**< Source address count mode (:: XMC_DMA_CH_ADDRESS_COUNT_MODE_t) */
+      uint32_t dst_burst_length: 3;             /**< Destination burst length (:: XMC_DMA_CH_BURST_LENGTH_t) */
+      uint32_t src_burst_length: 3;             /**< Source burst length (:: XMC_DMA_CH_BURST_LENGTH_t) */
       uint32_t enable_src_gather: 1;            /**< Enable source gather? */
       uint32_t enable_dst_scatter: 1;           /**< Enable destination scatter? */
       uint32_t : 1;                             /**< Reserved bits */
-      uint32_t transfer_flow: 3;                /**< DMA transfer flow */
+      uint32_t transfer_flow: 3;                /**< DMA transfer flow (:: XMC_DMA_CH_TRANSFER_FLOW_t) */
       uint32_t : 4;                             /**< Reserved bits */
       uint32_t enable_dst_linked_list: 1;       /**< Enable destination linked list? */
       uint32_t enable_src_linked_list: 1;       /**< Enable source linked list? */
@@ -379,16 +384,16 @@ typedef struct XMC_DMA_CH_CONFIG
     struct
     {
       uint32_t enable_interrupt: 1;             /**< Enable interrupts? */
-      uint32_t dst_transfer_width: 3;           /**< Destination transfer width */
-      uint32_t src_transfer_width: 3;           /**< Source transfer width */
-      uint32_t dst_address_count_mode: 2;       /**< Destination address count mode */
-      uint32_t src_address_count_mode: 2;       /**< Source address count mode */
-      uint32_t dst_burst_length: 3;             /**< Destination burst length */
-      uint32_t src_burst_length: 3;             /**< Source burst length */
+      uint32_t dst_transfer_width: 3;           /**< Destination transfer width (:: XMC_DMA_CH_TRANSFER_WIDTH_t) */
+      uint32_t src_transfer_width: 3;           /**< Source transfer width (:: XMC_DMA_CH_TRANSFER_WIDTH_t) */
+      uint32_t dst_address_count_mode: 2;       /**< Destination address count mode (:: XMC_DMA_CH_ADDRESS_COUNT_MODE_t) */
+      uint32_t src_address_count_mode: 2;       /**< Source address count mode (:: XMC_DMA_CH_ADDRESS_COUNT_MODE_t) */
+      uint32_t dst_burst_length: 3;             /**< Destination burst length (:: XMC_DMA_CH_BURST_LENGTH_t) */
+      uint32_t src_burst_length: 3;             /**< Source burst length (:: XMC_DMA_CH_BURST_LENGTH_t) */
       uint32_t enable_src_gather: 1;            /**< Enable source gather? */
       uint32_t enable_dst_scatter: 1;           /**< Enable destination scatter? */
       uint32_t : 1;                             
-      uint32_t transfer_flow: 3;                /**< DMA transfer flow */
+      uint32_t transfer_flow: 3;                /**< DMA transfer flow (:: XMC_DMA_CH_TRANSFER_FLOW_t) */
       uint32_t : 9;                             
     };
   };
@@ -417,13 +422,13 @@ typedef struct XMC_DMA_CH_CONFIG
     };
   };
   
-  uint16_t block_size;                          /**< Block size for DMA controlled transfers [1-2048]*/
-  XMC_DMA_CH_TRANSFER_TYPE_t transfer_type;     /**< DMA transfer type */
-  XMC_DMA_CH_PRIORITY_t priority;               /**< DMA channel priority */
-  XMC_DMA_CH_SRC_HANDSHAKING_t src_handshaking; /**< DMA source handshaking interface */
-  uint8_t src_peripheral_request;               /**< Source peripheral request */
-  XMC_DMA_CH_DST_HANDSHAKING_t dst_handshaking; /**< DMA destination handshaking interface */
-  uint8_t dst_peripheral_request;               /**< Destination peripheral request */
+  uint16_t block_size;                          /**< Block size for DMA controlled transfers [max. 4095] */
+  XMC_DMA_CH_TRANSFER_TYPE_t transfer_type;     /**< DMA transfer type (:: XMC_DMA_CH_TRANSFER_TYPE_t) */
+  XMC_DMA_CH_PRIORITY_t priority;               /**< DMA channel priority (::XMC_DMA_CH_PRIORITY_t) */
+  XMC_DMA_CH_SRC_HANDSHAKING_t src_handshaking; /**< DMA source handshaking interface (:: XMC_DMA_CH_SRC_HANDSHAKING_t) */
+  uint8_t src_peripheral_request;               /**< Source peripheral request. See xmc_dma_map.h */
+  XMC_DMA_CH_DST_HANDSHAKING_t dst_handshaking; /**< DMA destination handshaking interface (:: XMC_DMA_CH_DST_HANDSHAKING_t) */
+  uint8_t dst_peripheral_request;               /**< Destination peripheral request. See xmc_dma_map.h */
 } XMC_DMA_CH_CONFIG_t;
 
 /* Anonymous structure/union guard end */
@@ -1230,6 +1235,49 @@ void XMC_DMA_CH_ClearSourcePeripheralRequest(XMC_DMA_t *const dma, uint8_t chann
  * channel.
  */
 void XMC_DMA_CH_ClearDestinationPeripheralRequest(XMC_DMA_t *const dma, uint8_t channel);
+
+/**
+ * @param dma A constant pointer to XMC_DMA_t, pointing to the GPDMA base address
+ * @param channel The destination peripheral request for which DMA channel is to be cleared?
+ * @return None
+ *
+ * \par<b>Description: </b><br>
+ * Enable FIFO mode <br>
+ *
+ * \par
+ * Special mode to improve bandwidth. When enabled, the channel waits until the FIFO <br>
+ * is less than half full to fetch the data from the source peripheral, and waits until the FIFO is greater <br>
+ * than or equal to half full in order to send data to the destination peripheral. Because of this, the <br>
+ * channel can transfer the data using bursts, which eliminates the need to arbitrate for the AHB master <br>
+ * interface in each single AHB transfer.
+ *
+ * \par<b>Related APIs:</b><br>
+ * XMC_DMA_CH_DisableFifoMode()\n\n
+ */
+__STATIC_INLINE void XMC_DMA_CH_EnableFifoMode(XMC_DMA_t *const dma, uint8_t channel)
+{
+  dma->CH[channel].CFGH |= GPDMA0_CH_CFGH_FIFO_MODE_Msk;
+}
+
+/**
+ * @param dma A constant pointer to XMC_DMA_t, pointing to the GPDMA base address
+ * @param channel The destination peripheral request for which DMA channel is to be cleared?
+ * @return None
+ *
+ * \par<b>Description: </b><br>
+ * Disable FIFO mode <br>
+ *
+ * \par
+ * When the FIFO mode is not enabled, the channel waits only until <br>
+ * the FIFO can transmit or accept a single AHB transfer before it requests the master bus interface. <br>
+ *
+ * \par<b>Related APIs:</b><br>
+ * XMC_DMA_CH_EnableFifoMode()\n\n
+ */
+__STATIC_INLINE void XMC_DMA_CH_DisableFifoMode(XMC_DMA_t *const dma, uint8_t channel)
+{
+  dma->CH[channel].CFGH &= ~GPDMA0_CH_CFGH_FIFO_MODE_Msk;
+}
 
 /**
  * @param dma A constant pointer to XMC_DMA_t, pointing to the GPDMA base address

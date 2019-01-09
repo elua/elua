@@ -1,12 +1,12 @@
 /**
  * @file xmc_ccu4.h
- * @date 2016-05-20
+ * @date 2017-09-15
  *
  * @cond
  *********************************************************************************************************************
- * XMClib v2.1.8 - XMC Peripheral Driver Library 
+ * XMClib v2.1.18 - XMC Peripheral Driver Library 
  *
- * Copyright (c) 2015-2016, Infineon Technologies AG
+ * Copyright (c) 2015-2017, Infineon Technologies AG
  * All rights reserved.                        
  *                                             
  * Redistribution and use in source and binary forms, with or without modification,are permitted provided that the 
@@ -67,6 +67,12 @@
  * 2016-05-20:
  *     - Added XMC_CCU4_SLICE_StopClearTimer()
  *     - Changed implementation of XMC_CCU4_SLICE_StopTimer() and XMC_CCU4_SLICE_ClearTimer() to avoid RMW access
+ *
+ * 2017-04-27:
+ *     - XMC_CCU4_SLICE_SetPrescaler() changed div_val parameter to type XMC_CCU4_SLICE_PRESCALER_t 
+ * 
+ * 2017-09-15:
+ *     - Fix XMC_CCU4_SLICE_SetShadowTransferMode()
  *
  * @endcond
  */
@@ -1859,7 +1865,7 @@ __STATIC_INLINE void XMC_CCU4_SLICE_SetDitherCompareValue(XMC_CCU4_SLICE_t *cons
 }
 /**
  * @param slice Constant pointer to CC4 Slice
- * @param div_val Prescaler divider value
+ * @param div_val Prescaler divider value. Accepts enum :: XMC_CCU4_SLICE_PRESCALER_t
  *                 Range: [0x0 to 0xF]
  * @return <BR>
  *    None<BR>
@@ -1872,7 +1878,7 @@ __STATIC_INLINE void XMC_CCU4_SLICE_SetDitherCompareValue(XMC_CCU4_SLICE_t *cons
  * \par<b>Related APIs:</b><br>
  *  XMC_CCU4_SLICE_SetFloatingPrescalerCompareValue().
  */
-void XMC_CCU4_SLICE_SetPrescaler(XMC_CCU4_SLICE_t *const slice, const uint8_t div_val);
+void XMC_CCU4_SLICE_SetPrescaler(XMC_CCU4_SLICE_t *const slice, const XMC_CCU4_SLICE_PRESCALER_t div_val);
 
 /**
  * @param slice Constant pointer to CC4 Slice
@@ -2261,7 +2267,7 @@ __STATIC_INLINE void XMC_CCU4_SLICE_SetShadowTransferMode(XMC_CCU4_SLICE_t *cons
                                                           const XMC_CCU4_SLICE_SHADOW_TRANSFER_MODE_t shadow_transfer_mode)
 {
   XMC_ASSERT("XMC_CCU4_SLICE_SetShadowTransferMode:Invalid Slice Pointer", XMC_CCU4_IsValidSlice(slice));
-  slice->STC = ((slice->STC) & ~(uint32_t)((uint32_t)CCU4_CC4_STC_STM_Msk << (uint32_t)CCU4_CC4_STC_STM_Pos)) |
+  slice->STC = ((slice->STC) & (uint32_t)~CCU4_CC4_STC_STM_Msk) |
                ((shadow_transfer_mode << CCU4_CC4_STC_STM_Pos) & (uint32_t)CCU4_CC4_STC_STM_Msk);
 }
 

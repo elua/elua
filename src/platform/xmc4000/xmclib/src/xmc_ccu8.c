@@ -1,12 +1,12 @@
 /**
  * @file xmc_ccu8.c
- * @date 2015-10-07
+ * @date 2017-04-27
  *
  * @cond
  *********************************************************************************************************************
- * XMClib v2.1.8 - XMC Peripheral Driver Library 
+ * XMClib v2.1.18 - XMC Peripheral Driver Library 
  *
- * Copyright (c) 2015-2016, Infineon Technologies AG
+ * Copyright (c) 2015-2017, Infineon Technologies AG
  * All rights reserved.                        
  *                                             
  * Redistribution and use in source and binary forms, with or without modification,are permitted provided that the 
@@ -57,6 +57,12 @@
  * 2015-10-07:
  *     - XMC_CCU8_SLICE_GetEvent() is made as inline.
  *     - DOC updates for the newly added APIs.
+ *
+ * 2017-02-25:
+ *     - XMC_CCU8_lAssertReset(), XMC_CCU8_lDeassertReset(), XMC_CCU8_lGateClock() and XMC_CCU8_lUngateClock() fix compilation warnings.
+ *
+ * 2017-04-27:
+ *     - XMC_CCU8_SLICE_SetPrescaler() changed div_val parameter to type XMC_CCU8_SLICE_PRESCALER_t 
  *
  * @endcond
  */
@@ -175,41 +181,37 @@
 #if defined(PERIPHERAL_RESET_SUPPORTED)
 __STATIC_INLINE void XMC_CCU8_lAssertReset(const XMC_CCU8_MODULE_t *const module)
 {
-  switch ((uint32_t)module)
+  if (module == CCU80)
   {
-    case (uint32_t)CCU80:
-      XMC_SCU_RESET_AssertPeripheralReset(XMC_SCU_PERIPHERAL_RESET_CCU80);
-      break;
-      
+    XMC_SCU_RESET_AssertPeripheralReset(XMC_SCU_PERIPHERAL_RESET_CCU80);
+  }
 #if defined(CCU81)
-    case (uint32_t)CCU81:
-      XMC_SCU_RESET_AssertPeripheralReset(XMC_SCU_PERIPHERAL_RESET_CCU81);
-      break;
+  else if (module == CCU81)
+  {
+    XMC_SCU_RESET_AssertPeripheralReset(XMC_SCU_PERIPHERAL_RESET_CCU81);
+  }
 #endif
-
-    default:
-      XMC_ASSERT("XMC_CCU8_lAssertReset:Invalid Module Pointer", 0);
-      break;   
+  else
+  {
+    XMC_ASSERT("XMC_CCU8_lAssertReset:Invalid Module Pointer", 0);
   }
 }
 
 __STATIC_INLINE void XMC_CCU8_lDeassertReset(const XMC_CCU8_MODULE_t *const module)
 {
-  switch ((uint32_t)module)
+  if (module == CCU80)
   {
-    case (uint32_t)CCU80:
-      XMC_SCU_RESET_DeassertPeripheralReset(XMC_SCU_PERIPHERAL_RESET_CCU80);
-      break;
-      
+    XMC_SCU_RESET_DeassertPeripheralReset(XMC_SCU_PERIPHERAL_RESET_CCU80);
+  }
 #if defined(CCU81)
-    case (uint32_t)CCU81:
-      XMC_SCU_RESET_DeassertPeripheralReset(XMC_SCU_PERIPHERAL_RESET_CCU81);
-      break;
+  else if (module == CCU81)
+  {
+    XMC_SCU_RESET_DeassertPeripheralReset(XMC_SCU_PERIPHERAL_RESET_CCU81);
+  }
 #endif
-
-    default:
-      XMC_ASSERT("XMC_CCU8_lDeassertReset:Invalid Module Pointer", 0);
-      break;   
+  else
+  {
+    XMC_ASSERT("XMC_CCU8_lDeassertReset:Invalid Module Pointer", 0);
   }
 }
 #endif
@@ -217,41 +219,37 @@ __STATIC_INLINE void XMC_CCU8_lDeassertReset(const XMC_CCU8_MODULE_t *const modu
 #if defined(CLOCK_GATING_SUPPORTED)
 __STATIC_INLINE void XMC_CCU8_lGateClock(XMC_CCU8_MODULE_t *const module)
 {
-  switch ((uint32_t)module)
+  if (module == CCU80)
   {
-    case (uint32_t)CCU80:
-      XMC_SCU_CLOCK_GatePeripheralClock(XMC_SCU_PERIPHERAL_CLOCK_CCU80);
-      break;
-      
-#if defined(CCU81)      
-    case (uint32_t)CCU81:
-      XMC_SCU_CLOCK_GatePeripheralClock(XMC_SCU_PERIPHERAL_CLOCK_CCU81);
-      break;
+    XMC_SCU_CLOCK_GatePeripheralClock(XMC_SCU_PERIPHERAL_CLOCK_CCU80);
+  }
+#if defined(CCU81)
+  else if (module == CCU81)
+  {
+    XMC_SCU_CLOCK_GatePeripheralClock(XMC_SCU_PERIPHERAL_CLOCK_CCU81);
+  }
 #endif
-
-    default:
-      XMC_ASSERT("XMC_CCU8_lGateClock:Invalid Module Pointer", 0);
-      break;   
+  else
+  {
+    XMC_ASSERT("XMC_CCU8_lGateClock:Invalid Module Pointer", 0);
   }
 }
 
 __STATIC_INLINE void XMC_CCU8_lUngateClock(XMC_CCU8_MODULE_t *const module)
 {
-  switch ((uint32_t)module)
+  if (module == CCU80)
   {
-    case (uint32_t)CCU80:
-      XMC_SCU_CLOCK_UngatePeripheralClock(XMC_SCU_PERIPHERAL_CLOCK_CCU80);
-      break;
-      
-#if defined(CCU81)      
-    case (uint32_t)CCU81:
-      XMC_SCU_CLOCK_UngatePeripheralClock(XMC_SCU_PERIPHERAL_CLOCK_CCU81);
-      break;
+    XMC_SCU_CLOCK_UngatePeripheralClock(XMC_SCU_PERIPHERAL_CLOCK_CCU80);
+  }
+#if defined(CCU81)
+  else if (module == CCU81)
+  {
+    XMC_SCU_CLOCK_UngatePeripheralClock(XMC_SCU_PERIPHERAL_CLOCK_CCU81);
+  }
 #endif
-
-    default:
-      XMC_ASSERT("XMC_CCU8_lUngateClock:Invalid Module Pointer", 0);
-      break;   
+  else
+  {
+    XMC_ASSERT("XMC_CCU8_lUngateClock:Invalid Module Pointer", 0);
   }
 }
 #endif
@@ -723,7 +721,7 @@ void XMC_CCU8_SLICE_ConfigureStatusBitOverrideEvent(XMC_CCU8_SLICE_t *const slic
 
   XMC_ASSERT("XMC_CCU8_SLICE_ConfigureStatusBitOverrideEvent:Invalid Slice Pointer", XMC_CCU8_IsValidSlice(slice));
   XMC_ASSERT("XMC_CCU8_SLICE_ConfigureStatusBitOverrideEvent:Invalid Input",
-		     XMC_CCU8_SLICE_IsInputvalid(ev1_config->mapped_input));
+         XMC_CCU8_SLICE_IsInputvalid(ev1_config->mapped_input));
   XMC_ASSERT("XMC_CCU8_SLICE_ConfigureStatusBitOverrideEvent:Invalid Edge Sensitivity", 
              XMC_CCU8_SLICE_CHECK_EDGE_SENSITIVITY(ev1_config->edge));
   XMC_ASSERT("XMC_CCU8_SLICE_ConfigureStatusBitOverrideEvent:Invalid Level Sensitivity", 
@@ -732,7 +730,7 @@ void XMC_CCU8_SLICE_ConfigureStatusBitOverrideEvent(XMC_CCU8_SLICE_t *const slic
   XMC_ASSERT("XMC_CCU8_SLICE_ConfigureStatusBitOverrideEvent:Invalid Debounce Period",
               XMC_CCU8_SLICE_CHECK_EVENT_FILTER(ev1_config->duration));
   XMC_ASSERT("XMC_CCU8_SLICE_ConfigureStatusBitOverrideEvent:Invalid Input",
-		      XMC_CCU8_SLICE_IsInputvalid(ev2_config->mapped_input));
+          XMC_CCU8_SLICE_IsInputvalid(ev2_config->mapped_input));
   XMC_ASSERT("XMC_CCU8_SLICE_ConfigureStatusBitOverrideEvent:Invalid Edge Sensitivity",
               XMC_CCU8_SLICE_CHECK_EDGE_SENSITIVITY(ev2_config->edge));
   XMC_ASSERT("XMC_CCU8_SLICE_ConfigureStatusBitOverrideEvent:Invalid Level Sensitivity",
@@ -1083,11 +1081,11 @@ uint32_t XMC_CCU8_SLICE_GetCapturedValueFromFifo(const XMC_CCU8_SLICE_t *const s
 
   if(XMC_CCU8_SLICE_CAP_REG_SET_LOW == set)
   {
-	  cap = slice->ECRD0;
+    cap = slice->ECRD0;
   }
   else
   {
-	  cap = slice->ECRD1;
+    cap = slice->ECRD1;
   }
 
   return cap;
@@ -1122,7 +1120,7 @@ void XMC_CCU8_SLICE_EnableDithering(XMC_CCU8_SLICE_t *const slice,
 }
 
 /* Programs Pre-scaler divider  */
-void XMC_CCU8_SLICE_SetPrescaler(XMC_CCU8_SLICE_t *const slice, const uint8_t div_val)
+void XMC_CCU8_SLICE_SetPrescaler(XMC_CCU8_SLICE_t *const slice, const XMC_CCU8_SLICE_PRESCALER_t div_val)
 {
   uint32_t fpc;
 

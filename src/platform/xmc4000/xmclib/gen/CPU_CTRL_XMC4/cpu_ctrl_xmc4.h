@@ -8,9 +8,9 @@
 /**
  * @cond
  ***********************************************************************************************************************
- * CPU_CTRL_XMC4 v4.0.12 - Sets the priority grouping for NVIC
+ * CPU_CTRL_XMC4 v4.0.14 - Sets the priority grouping for NVIC
  *
- * Copyright (c) 2015, Infineon Technologies AG
+ * Copyright (c) 2015-2016, Infineon Technologies AG
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,are permitted provided that the
@@ -61,7 +61,7 @@
  * HEADER FILES
  **********************************************************************************************************************/
 #include <xmc_common.h>
-#include "DAVE_common.h"
+#include <DAVE_Common.h>
 #include "cpu_ctrl_xmc4_conf.h"
 /***********************************************************************************************************************
  * MACROS

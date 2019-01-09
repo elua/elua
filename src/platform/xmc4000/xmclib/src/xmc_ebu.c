@@ -1,12 +1,12 @@
 /**
  * @file xmc_ebu.c
- * @date 2015-06-20
+ * @date 2017-06-24
  *
  * @cond
  *********************************************************************************************************************
- * XMClib v2.1.8 - XMC Peripheral Driver Library 
+ * XMClib v2.1.18 - XMC Peripheral Driver Library 
  *
- * Copyright (c) 2015-2016, Infineon Technologies AG
+ * Copyright (c) 2015-2017, Infineon Technologies AG
  * All rights reserved.                        
  *                                             
  * Redistribution and use in source and binary forms, with or without modification,are permitted provided that the 
@@ -41,6 +41,10 @@
  *      
  * 2015-06-20:
  *     - Removed GetDriverVersion API
+ *
+ * 2017-06-24:
+ *     - Changed XMC_EBU_Init() adding checks for the clock acknoledgment. 
+ *
  * @endcond 
  *
  */
@@ -70,10 +74,12 @@ XMC_EBU_STATUS_t XMC_EBU_Init(XMC_EBU_t *const ebu,const XMC_EBU_CONFIG_t *const
 
   /* Clock configuration */
   ebu->CLC  =  config->ebu_clk_config.raw0;
+  while (((ebu->CLC & (EBU_CLC_SYNCACK_Msk | EBU_CLC_DIV2ACK_Msk | EBU_CLC_EBUDIVACK_Msk)) >> 4) !=
+         (config->ebu_clk_config.raw0 & (EBU_CLC_SYNC_Msk | EBU_CLC_DIV2_Msk | EBU_CLC_EBUDIV_Msk)));
 
   /*EBU Mode Configuration */
-  ebu->MODCON =   config->ebu_mode_config.raw0;
-
+  ebu->MODCON = config->ebu_mode_config.raw0;
+ 
   /* Address Bits available for GPIO function */
   ebu->USERCON = config->ebu_free_pins_to_gpio.raw0;
 

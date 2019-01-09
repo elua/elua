@@ -1,12 +1,12 @@
 /**
  * @file xmc_vadc.h
- * @date 2016-06-17
+ * @date 2017-06-24
  *
  * @cond
-*********************************************************************************************************************
- * XMClib v2.1.8 - XMC Peripheral Driver Library 
+ *********************************************************************************************************************
+ * XMClib v2.1.18 - XMC Peripheral Driver Library 
  *
- * Copyright (c) 2015-2016, Infineon Technologies AG
+ * Copyright (c) 2015-2017, Infineon Technologies AG
  * All rights reserved.                        
  *                                             
  * Redistribution and use in source and binary forms, with or without modification,are permitted provided that the 
@@ -102,6 +102,17 @@
  *           - XMC_VADC_GROUP_SetSyncReadySignal
  *           - XMC_VADC_GROUP_GetSyncReadySignal
  *           - XMC_VADC_GROUP_GetResultRegPriority
+ *
+ * 2017-02-06:
+ *     - Added new functions to remove channels from background request source, XMC_VADC_GLOBAL_BackgroundRemoveChannelFromSequence() and XMC_VADC_GLOBAL_BackgndRemoveMultipleChannels()
+ *
+ * 2017-06-24:
+ *     - Added new function XMC_VADC_GLOBAL_SHS_SetAnalogReference() for XMC1 family
+ *
+ * 2017-08-14:
+ *     - Added XMC_VADC_GLOBAL_DETAILED_RESULT_t
+ *       You can cast the return of XMC_VADC_GLOBAL_GetDetailedResult() to a varible of type XMC_VADC_GLOBAL_DETAILED_RESULT_t to easily access the register bit fields
+ *
  * @endcond 
  *
  */
@@ -699,6 +710,16 @@ typedef enum XMC_VADC_CHANNEL_ALIAS
 
 #if(XMC_VADC_SHS_AVAILABLE == 1U)
 
+/**
+ * Selection of the reference voltage that is required for conversions (VREF).
+ */
+typedef enum XMC_VADC_GLOBAL_SHS_AREF
+{
+  XMC_VADC_GLOBAL_SHS_AREF_EXTERNAL_VDD_UPPER_RANGE = 0, /**< External reference, upper supply range, e.g. VDD >= 3.0V */
+  XMC_VADC_GLOBAL_SHS_AREF_INTERNAL_VDD_UPPER_RANGE = 2, /**< Internal reference, upper supply range, e.g. VDD >= 3.0V  */
+  XMC_VADC_GLOBAL_SHS_AREF_INTERNAL_VDD_LOWER_RANGE = 3, /**< Internal reference, lower supply range, e.g. VDD <  3.0V  */
+} XMC_VADC_GLOBAL_SHS_AREF_t;
+
 #if(XMC_VADC_SHS_FULL_SET_REG == 1U)
 /**
  * Defines the gain calibration selection.
@@ -1268,10 +1289,13 @@ typedef struct XMC_VADC_GLOBAL_SHS_CONFIG
   {
     struct
     {
+#if(XMC_VADC_SHS_FULL_SET_REG == 1U)
       uint32_t shs_clock_divider        :4; /**< The divider value for the SHS clock. Range: [0x0 to 0xF]*/
       uint32_t                          :6;
-      uint32_t analog_reference_select  :2; /**< It is possible to different reference voltage for the SHS module
-                                                 */
+#else
+      uint32_t                          :10;
+#endif      
+      uint32_t analog_reference_select  :2; /**< It is possible to different reference voltage for the SHS modules*/
       uint32_t                          :20;
     };
     uint32_t shscfg;
@@ -1282,10 +1306,33 @@ typedef struct XMC_VADC_GLOBAL_SHS_CONFIG
 }XMC_VADC_GLOBAL_SHS_CONFIG_t;
 
 #endif
+
 /**
- * Detailed result structure
+ * Detailed global result structure
  */
- typedef struct XMC_VADC_DETAILED_RESULT
+typedef struct XMC_VADC_GLOBAL_DETAILED_RESULT
+{
+  union
+  {
+    struct
+    {
+      uint32_t result                   :16;  /**< Result of the Analog to digital conversion*/
+      uint32_t group_number             :4;   /**< Indicates the group to which the channel_number refers*/
+      uint32_t channel_number           :5;   /**< Converted channel number*/
+      uint32_t emux_channel_number      :3;   /**< Converted external multiplexer channel number.
+                                                 Only applicable for GxRES[0] result register*/
+      uint32_t converted_request_source :2;   /**< Converted request source*/
+      uint32_t fast_compare_result      :1;   /**< Fast compare result if conversion mode is fast compare mode.*/
+      uint32_t vaild_result             :1;   /**< Valid flag is set when a new result is available*/
+    };
+    uint32_t res;
+  };
+} XMC_VADC_GLOBAL_DETAILED_RESULT_t;
+
+/**
+ * Detailed channel result structure
+ */
+typedef struct XMC_VADC_DETAILED_RESULT
 {
   union
   {
@@ -1302,7 +1349,7 @@ typedef struct XMC_VADC_GLOBAL_SHS_CONFIG
     };
     uint32_t res;
   };
-}XMC_VADC_DETAILED_RESULT_t;
+} XMC_VADC_DETAILED_RESULT_t;
  
 
 /*Anonymous structure/union guard end*/
@@ -1711,6 +1758,8 @@ void XMC_VADC_GLOBAL_BindGroupToEMux(XMC_VADC_GLOBAL_t *const global_ptr, const 
  * the result register GLOBRES for the validity of the data. If the validity is assured, data is first read
  * the global result register, cached locally next and subsequently returned to the caller.
  *
+ * @note You can cast the return to a varible of type XMC_VADC_GLOBAL_DETAILED_RESULT_t to easily access the register bit fields
+ *
  * \par<b>Related APIs:</b><BR>
  * XMC_VADC_GLOBAL_GetResult()
  */
@@ -1876,6 +1925,27 @@ void XMC_VADC_GLOBAL_BackgroundSetReqSrcEventInterruptNode(XMC_VADC_GLOBAL_t *co
  * None.
  */
  void XMC_VADC_GLOBAL_SHS_Init(XMC_VADC_GLOBAL_SHS_t *const shs_ptr, const XMC_VADC_GLOBAL_SHS_CONFIG_t *config);
+
+/**
+ * @param shs_ptr Constant pointer to the VADC Sample and hold module
+ * @param aref    Analog reference used for conversions. Refer @ref XMC_VADC_GLOBAL_SHS_AREF_t enum
+ *
+ * @return None
+ *
+ * \par<b>Description:</b><br>
+ * Selection of the reference voltage that is required for conversions (VREF).
+ *
+ * \par<b>Related APIs:</b><BR>
+ * None.
+ */
+ __STATIC_INLINE void XMC_VADC_GLOBAL_SHS_SetAnalogReference(XMC_VADC_GLOBAL_SHS_t *const shs_ptr,
+                                                            const XMC_VADC_GLOBAL_SHS_AREF_t aref)
+ {
+  XMC_ASSERT("XMC_VADC_GLOBAL_SHS_StepperInit:Wrong SHS Pointer",
+             (shs_ptr == (XMC_VADC_GLOBAL_SHS_t*)(void*)SHS0))
+
+  shs_ptr->SHSCFG |=  (shs_ptr->SHSCFG & (uint32_t)~SHS_SHSCFG_AREF_Msk) | (uint32_t)aref;  
+ }
 
 #if(XMC_VADC_SHS_FULL_SET_REG == 1U)
  /**
@@ -3449,6 +3519,65 @@ __STATIC_INLINE void XMC_VADC_GLOBAL_BackgndAddMultipleChannels(XMC_VADC_GLOBAL_
 
 /**
  * @param global_ptr       Pointer to the VADC module
+ * @param grp_num    ID of the VADC group whose unprioritized channels have been assigned to background scan
+ *                   Request source
+ * @param ch_num     The unprioritized channel meant to be added to the scan sequence
+ *                   <BR>Range: [0x0 to 0x7]
+ * @return
+ *    None
+ *
+ * \par<b>Description:</b><br>
+ * Removes a channel to the background scan sequence.<BR>\n
+ * Call this API to insert a new single channel into the background scan request source. This will be added to the scan
+ * sequence. The added channel will be part of the conversion sequence when the next load event occurs.
+ * A call to this API would configure the register bit fields of BRSSEL.
+ *
+ * \par<b>Related APIs:</b><br>
+ *  XMC_VADC_GLOBAL_BackgroundAddChannelToSequence()<BR>
+ */
+__STATIC_INLINE void XMC_VADC_GLOBAL_BackgroundRemoveChannelFromSequence(XMC_VADC_GLOBAL_t *const global_ptr,
+                                                                         const uint32_t grp_num,
+                                                                         const uint32_t ch_num)
+{
+  XMC_ASSERT("XMC_VADC_GLOBAL_BackgroundAddChannelToSequence:Wrong Module Pointer", (global_ptr == VADC))
+  XMC_ASSERT("XMC_VADC_GLOBAL_BackgroundAddChannelToSequence:Wrong Group Number",((grp_num) < XMC_VADC_MAXIMUM_NUM_GROUPS))
+  XMC_ASSERT("XMC_VADC_GLOBAL_BackgroundAddChannelToSequence:Wrong Channel Number",
+             ((ch_num) < XMC_VADC_NUM_CHANNELS_PER_GROUP))
+
+  global_ptr->BRSSEL[grp_num] &= (uint32_t)~((uint32_t)1 << ch_num);
+}
+
+/**
+ * @param global_ptr       Pointer to the VADC module
+ * @param grp_num    ID of the VADC group whose unprioritized channels have been assigned to background scan
+ * @param ch_mask    Mask word indicating channels which form part of scan conversion sequence
+ *                   Bit location 0/1/2/3/4/5/6/7 represents channels-0/1/2/3/4/5/6/7 respectively.
+ *                   To Add the channel to the scan sequence enable the respective bit.
+ *                   Passing a 0x0 will clear all the previously selected channels
+ *                   <BR>Range: [0x0 to 0xFF]
+ * @return
+ *    None
+ *
+ * \par<b>Description:</b><br>
+ * Removes multiple channels to the scan sequence.<BR>\n
+ * Call this API to insert a multiple channels into the scan request source. This will be added to a scan
+ * sequence. The added channels will be a part of the conversion sequence when the next load event occurs.
+ * A call to this API would configure the register bit fields of BRSSEL.
+ *
+ * \par<b>Related APIs:</b><br>
+ *  XMC_VADC_GLOBAL_BackgroundAddChannelToSequence()<BR>
+ */
+__STATIC_INLINE void XMC_VADC_GLOBAL_BackgndRemoveMultipleChannels(XMC_VADC_GLOBAL_t *const global_ptr,
+                                                                   const uint32_t grp_num,
+                                                                   const uint32_t ch_mask)
+{
+  XMC_ASSERT("XMC_VADC_GLOBAL_BackgndAddMultipleChannels:Wrong Module Pointer", (global_ptr == VADC))
+  XMC_ASSERT("XMC_VADC_GLOBAL_BackgndAddMultipleChannels:Wrong Group Number",   ((grp_num) < XMC_VADC_MAXIMUM_NUM_GROUPS))
+  global_ptr->BRSSEL[grp_num] &= (uint32_t)~ch_mask;
+}
+
+/**
+ * @param global_ptr       Pointer to the VADC module
  * @param grp_num    ID of the VADC group whose unprioritized channels have been assigned to background scan RS
  * @param ch_num     The channel being audited for completion of conversion
  *                   <BR>Range: [0x0 to 0x7]
@@ -4568,6 +4697,8 @@ __STATIC_INLINE void XMC_VADC_GROUP_DisableResultEvent(XMC_VADC_GROUP_t *const g
  * if the result is valid, if the fast compare bit, Data Reduction Counter, and the request source information.
  * All these information will be returned back. And if the user is polling for the result he can use the
  * result if the valid bit is set. A call to this API would return the complete register GxRES.
+ *
+ * @note You can cast the return to a varible of type XMC_VADC_DETAILED_RESULT_t to easily access the register bit fields
  *
  * \par<b>Related APIs:</b><br>
  * XMC_VADC_GROUP_GetResult().

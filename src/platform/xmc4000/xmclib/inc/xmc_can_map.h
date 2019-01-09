@@ -1,12 +1,12 @@
 /**
  * @file xmc_can_map.h
- * @date 2015-10-20
+ * @date 2017-10-30
  *
  * @cond
-*********************************************************************************************************************
- * XMClib v2.1.8 - XMC Peripheral Driver Library 
+ *********************************************************************************************************************
+ * XMClib v2.1.18 - XMC Peripheral Driver Library 
  *
- * Copyright (c) 2015-2016, Infineon Technologies AG
+ * Copyright (c) 2015-2017, Infineon Technologies AG
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,are permitted provided that the
@@ -36,11 +36,14 @@
  * Change History
  * --------------
  *
+ * 2015-09-15:
+ *     - Initial version
+ *
  * 2015-10-20:
  *     - Removed "const" in the MOs for avoiding compiler warnings
  *
- * 2015-09-15:
- *     - Initial version
+ * 2017-10-30:
+ *     - Added support for XMC4700
  *
  * @endcond
  *
@@ -289,7 +292,7 @@
 #define CAN_NODE2_RXD_CAN1INS   XMC_CAN_NODE_RECEIVE_INPUT_RXDCF
 #endif
 
-#if (UC_DEVICE == XMC4800) && (UC_PACKAGE == LQFP144)
+#if ((UC_DEVICE == XMC4800) || (UC_SERIES == XMC47)) && (UC_PACKAGE == LQFP144)
 #define CAN_NODE0_RXD_P1_5   	XMC_CAN_NODE_RECEIVE_INPUT_RXDCA
 #define CAN_NODE0_RXD_P14_3   	XMC_CAN_NODE_RECEIVE_INPUT_RXDCB
 #define CAN_NODE0_RXD_P3_12   	XMC_CAN_NODE_RECEIVE_INPUT_RXDCC
@@ -310,7 +313,7 @@
 #define CAN_NODE5_RXD_P2_6   	XMC_CAN_NODE_RECEIVE_INPUT_RXDCB
 #endif
 
-#if (UC_DEVICE == XMC4800) && (UC_PACKAGE == LQFP100)
+#if ((UC_DEVICE == XMC4800) || (UC_SERIES == XMC47)) && (UC_PACKAGE == LQFP100)
 #define CAN_NODE0_RXD_P1_5   	XMC_CAN_NODE_RECEIVE_INPUT_RXDCA
 #define CAN_NODE0_RXD_P14_3   	XMC_CAN_NODE_RECEIVE_INPUT_RXDCB
 #define CAN_NODE0_RXD_P3_12   	XMC_CAN_NODE_RECEIVE_INPUT_RXDCC
@@ -327,7 +330,7 @@
 #define CAN_NODE5_RXD_P2_6   	XMC_CAN_NODE_RECEIVE_INPUT_RXDCB
 #endif
 
-#if (UC_DEVICE == XMC4800) && (UC_PACKAGE == LFBGA196)
+#if ((UC_DEVICE == XMC4800) || (UC_SERIES == XMC47)) && (UC_PACKAGE == LFBGA196)
 #define CAN_NODE0_RXD_P1_5   	XMC_CAN_NODE_RECEIVE_INPUT_RXDCA
 #define CAN_NODE0_RXD_P14_3   	XMC_CAN_NODE_RECEIVE_INPUT_RXDCB
 #define CAN_NODE0_RXD_P3_12   	XMC_CAN_NODE_RECEIVE_INPUT_RXDCC
