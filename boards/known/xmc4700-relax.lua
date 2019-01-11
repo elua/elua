@@ -31,7 +31,7 @@ return {
     ram = { internal_rams = 3 },
   },
   modules = {
-    generic = { 'all', '-pio', '-tmr', '-i2c', '-net', '-adc', '-spi', '-uart', '-can', '-pwm', '-rpc' },
+    generic = { 'all', '-tmr', '-i2c', '-net', '-adc', '-spi', '-uart', '-can', '-pwm', '-rpc' },
     platform = 'all',
   }
 }
