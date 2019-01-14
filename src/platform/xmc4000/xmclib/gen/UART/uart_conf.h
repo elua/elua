@@ -61,8 +61,8 @@
 #define UART_PATCH_VERSION (10U)
 
 
-#define UART_TX_DIRECT_USED
-#define UART_RX_DIRECT_USED
+#define UART_TX_DMA_USED
+#define UART_RX_DMA_USED
 
 #endif /* End of UART_CONF_H */
 /*CODE_BLOCK_END*/

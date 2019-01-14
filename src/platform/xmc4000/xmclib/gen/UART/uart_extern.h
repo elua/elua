@@ -65,6 +65,8 @@ extern "C" {
 #endif
   
 /*Extern declaration for callback functions and UART APP instance handles*/
+  extern void elua_uart_tx_callback(void);
+  extern void elua_uart_rx_callback(void);
 
   extern UART_t UART_0; 
                     

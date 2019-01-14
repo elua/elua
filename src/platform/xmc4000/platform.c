@@ -178,14 +178,28 @@ timer_data_type platform_s_timer_op( unsigned id, int op,timer_data_type data )
 // ****************************************************************************
 // UART
 
+void elua_uart_rx_callback( void )
+{
+  // Empty for now.
+}
+
+void elua_uart_tx_callback( void )
+{
+  // Empty for now.
+}
+
 void platform_s_uart_send( unsigned id, u8 data )
 {
+  // Internally invokes DMA for transmit
   UART_Transmit( &UART_0, &data, 1 );
+  while( UART_0.runtime->tx_busy );
 }
 
 int platform_s_uart_recv( unsigned id, timer_data_type timeout )
 {
+  // Internally invokes DMA for receive
   UART_Receive( &UART_0, &recv_byte, 1 );
+  while( UART_0.runtime->rx_busy );
   return recv_byte;
 }
 
