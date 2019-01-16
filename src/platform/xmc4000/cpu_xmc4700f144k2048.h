@@ -13,9 +13,10 @@
 #define NUM_PWM               0
 #define NUM_ADC               0
 #define NUM_CAN               0
+#define NUM_DAC               2
 
 // CPU frequency (needed by the CPU module and MMCFS code, 0 if not used)
-#define CPU_FREQUENCY         120000000
+#define CPU_FREQUENCY         144000000
 
 // PIO prefix ('0' for P0, P1, ... or 'A' for PA, PB, ...)
 #define PIO_PREFIX            '0'
