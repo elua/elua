@@ -25,6 +25,7 @@ return {
     linenoise = { shell_lines = 10, lua_lines = 50 },
     xmodem = false,
     niffs = false,
+    xmc47_dac = true,
   },
   config = {
     egc = { mode = "alloc" },

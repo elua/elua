@@ -26,6 +26,9 @@ function add_platform_components( t, board, cpu )
     t.xmc45_rtc = { macro = 'ENABLE_RTC' }
     t.xmc45_disp = { macro = 'ENABLE_OLED_DISPLAY' }
   end
+  if board == 'XMC4700-RELAX' then
+    t.xmc47_dac = { macro = 'ENABLE_DAC' }
+  end
 end
 
 -- Add specific configuration to the 'configs' table
@@ -42,6 +45,9 @@ function get_platform_modules( board, cpu )
     m.dts = { guards = { 'ENABLE_DTS' }, lib = '"dts"', open = false }
     m.rtc = { guards = { 'ENABLE_RTC' }, lib = '"rtc"', open = false }
     m.disp = { guards = { 'ENABLE_OLED_DISPLAY' }, lib = '"disp"', open = false }
+  end
+  if board == 'XMC4700-RELAX' then
+    m.dac = { guards = { 'ENABLE_DAC' }, lib = '"dac"', open = false }
   end
   return m
 end
