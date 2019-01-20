@@ -16,7 +16,6 @@
 
 // Platform includes
 #include "DAVE.h"
-#include "xmc_dac.h"
 
 #if defined ( XMC4500_F144k1024 )
 # include "XMC4500.h"
@@ -25,6 +24,9 @@
 #if defined ( XMC4700_F144x2048 )
 # include "XMC4700.h"
 #endif
+
+// Peripheral includes
+#include "xmc_dac.h"
 
 // Handles uart receive
 uint8_t recv_byte;
@@ -69,7 +71,7 @@ int platform_init()
 // ****************************************************************************
 // PIO
 
-#if defined ( XMC4700_F144x2048 )
+#if defined ( ELUA_CPU_XMC4700F144K2048 ) || defined ( ELUA_CPU_XMC4500F144K1024 )
 
 static XMC_GPIO_PORT_t *const pio_port[] =
 {
