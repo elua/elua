@@ -40,13 +40,14 @@ return {
     term = { lines = 25, cols = 80 },
     linenoise = { shell_lines = 10, lua_lines = 50 },
     xmodem = false,
+    niffs = false,
   },
   config = {
     egc = { mode = "alloc" },
     ram = { internal_rams = 3 },
   },
   modules = {
-    generic = { 'all', '-i2c', '-net', '-adc', '-spi', '-uart', '-can', '-pwm', '-rpc' },
+    generic = { 'all', '-tmr', '-i2c', '-net', '-adc', '-spi', '-uart', '-can', '-pwm', '-rpc' },
     platform = 'all',
   }
 }

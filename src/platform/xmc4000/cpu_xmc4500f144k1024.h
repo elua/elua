@@ -3,6 +3,7 @@
 #define __CPU_XMC4500F144K1024_H__
 
 #include "stacks.h"
+#include "DAVE.h"
 
 // Number of resources (0 if not available/not implemented)
 #define NUM_PIO               16
@@ -12,6 +13,7 @@
 #define NUM_PWM               0
 #define NUM_ADC               0
 #define NUM_CAN               0
+#define NUM_DAC               2
 
 // CPU frequency (needed by the CPU module and MMCFS code, 0 if not used)
 #define CPU_FREQUENCY         120000000

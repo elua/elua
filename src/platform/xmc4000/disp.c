@@ -5,7 +5,7 @@
 // Taken from platform/lm3s/disp.c. Adapted for Infineon XMC4500 Hexagonal
 // kit by Raman
 
-#if !defined( XMC4700_F144x2048 )
+#if defined( ELUA_BOARD_XMC4500HEXAGON )
 
 #include "lua.h"
 #include "lualib.h"

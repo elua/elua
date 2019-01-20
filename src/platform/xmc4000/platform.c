@@ -17,9 +17,30 @@
 // Platform includes
 #include "DAVE.h"
 
+#if defined ( XMC4500_F144k1024 )
+# include "XMC4500.h"
+#endif
+
 #if defined ( XMC4700_F144x2048 )
 # include "XMC4700.h"
 #endif
+
+// Peripheral includes
+#include "xmc_dac.h"
+
+// Handles uart receive
+uint8_t recv_byte;
+
+// ****************************************************************************
+// Function references
+
+extern void ebu_main( void );
+
+// Cleanup later: This should in theory be in inc/platform.h
+void dacs_init( void );
+
+// ****************************************************************************
+// Platform initialization
 
 /*
  * Don't know why - the compiler complains that _init doesn't exist. I define the
@@ -29,14 +50,7 @@ void _init (void)
 {
 }
 
-// Handles uart receive
-uint8_t recv_byte;
-
-// ****************************************************************************
-// Platform initialization
-
-extern void ebu_main (void);
-
+/* Main platform initialization */
 int platform_init()
 {
   DAVE_Init();
@@ -48,14 +62,16 @@ int platform_init()
   ebu_main();
 #endif
 
+  /* DAC */
+  dacs_init();
+
   return PLATFORM_OK;
 }
-
 
 // ****************************************************************************
 // PIO
 
-#if defined ( XMC4700_F144x2048 )
+#if defined ( ELUA_CPU_XMC4700F144K2048 ) || defined ( ELUA_CPU_XMC4500F144K1024 )
 
 static XMC_GPIO_PORT_t *const pio_port[] =
 {
@@ -211,5 +227,14 @@ int platform_s_uart_set_flow_control( unsigned id, int type )
 u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits )
 {
   return 0;
+}
+
+// ****************************************************************************
+// DAC
+
+void dacs_init( void )
+{
+  /* SCU: Enable the DAC peripheral */
+  XMC_DAC_Enable( (XMC_DAC_t  *)(void *)DAC );
 }
 
