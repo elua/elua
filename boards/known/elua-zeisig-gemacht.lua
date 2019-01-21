@@ -22,7 +22,7 @@ return {
   components = {
     mmcfs = { spi = 0, cs_port = 0, cs_pin = 4 },
     sercon = { uart = 0, speed = 115200, buf_size = 128 },
-    wofs = false,
+    wofs = true,
     romfs = false,
     shell = true,
     term = { lines = 25, cols = 80 },
@@ -33,7 +33,8 @@ return {
     adc = { buf_size = 4 },
     stm32_buzzer = true,
     stm32_tft = true,
-    xmodem = true
+    xmodem = true,
+    niffs = { linear_area = true },
   },
   config = {
     egc = { mode = "alloc" },
