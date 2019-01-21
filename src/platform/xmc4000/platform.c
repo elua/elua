@@ -71,7 +71,9 @@ int platform_init()
 // ****************************************************************************
 // PIO
 
-#if defined ( ELUA_CPU_XMC4700F144K2048 ) || defined ( ELUA_CPU_XMC4500F144K1024 )
+#if defined ( ELUA_CPU_XMC4700F144K2048 ) ||\
+    defined ( ELUA_CPU_XMC4500F144K1024 ) ||\
+    defined ( ELUA_CPU_XMC4500E144K1024 )
 
 static XMC_GPIO_PORT_t *const pio_port[] =
 {

@@ -19,13 +19,11 @@ return {
   cpu = 'xmc4500e144k1024',
   components = {
     sercon = { uart = 0, speed = 115200 },
-    xmc45_pot = true,
     xmc45_dts = true,
     xmc45_rtc = true,
-    xmc45_disp = false,
     wofs = false,
     romfs = true,
-    -- mmcfs = { spi = 0, cs_port = 0, cs_pin = 0 },
+    mmcfs = { spi = 0, cs_port = 0, cs_pin = 0 },
     shell = true,
     term = { lines = 25, cols = 80 },
     linenoise = { shell_lines = 10, lua_lines = 50 },
@@ -36,7 +34,7 @@ return {
     ram = { internal_rams = 4 },
   },
   modules = {
-    generic = { 'all', '-i2c', '-net', '-adc', '-spi', '-uart', '-can', '-pwm', '-rpc' },
+    generic = { 'all', '-tmr', '-i2c', '-net', '-adc', '-spi', '-uart', '-can', '-pwm', '-rpc' },
     platform = 'all',
   }
 }
