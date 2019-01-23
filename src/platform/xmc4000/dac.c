@@ -172,9 +172,7 @@ static int dac_pattern_setup( lua_State *L )
 
 static const LUA_REG_TYPE dac_pattern_map[] =
 {
-  { LSTRKEY( "start" ), LFUNCVAL ( dac_pattern_start ) },
   { LSTRKEY( "setup" ), LFUNCVAL( dac_pattern_setup ) },
-  { LSTRKEY( "stop" ), LFUNCVAL( dac_pattern_stop ) },
   { LNILKEY, LNILVAL }
 };
 
@@ -182,6 +180,8 @@ const LUA_REG_TYPE dac_map[] =
 {
 #if LUA_OPTIMIZE_MEMORY > 0
   /* { LSTRKEY( "noise" ), LROVAL( dac_noise_map ) }, */
+  { LSTRKEY( "start" ), LFUNCVAL ( dac_pattern_start ) },
+  { LSTRKEY( "stop" ), LFUNCVAL( dac_pattern_stop ) },
   { LSTRKEY( "pattern" ), LROVAL( dac_pattern_map ) },
   { LSTRKEY( "MILLI_VOLTS_1" ), LNUMVAL( DAC_AMP_MILLI_VOLTS_1 ) },
   { LSTRKEY( "MILLI_VOLTS_2" ), LNUMVAL( DAC_AMP_MILLI_VOLTS_2 ) },
