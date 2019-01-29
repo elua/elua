@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <math.h>
 #include "xmc_dac.h"
 
 /* Local reference for a global DAC */
@@ -164,6 +165,71 @@ static int dac_pattern_setup( lua_State *L )
   
 }
 
+// Lua: dac.noise.setup( id, amplitude, period )
+static int dac_noise_setup( lua_State *L )
+{
+  XMC_DAC_CH_CONFIG_t dac_config;
+  uint32_t output_scale = 0;
+  DAC_AMP_MILLI_VOLTS_t amp;
+  uint32_t freq;
+  unsigned id;
+
+  id = luaL_checkinteger( L, 1 );
+  if( !( id < NUM_DAC ) )
+    return luaL_error( L, "dac %d does not exist", ( unsigned )id );
+
+  amp = luaL_checkinteger( L, 2 );
+  if( amp < DAC_AMP_MILLI_VOLTS_17 || amp > DAC_AMP_MILLI_VOLTS_2200 )
+    return luaL_error( L, "Invalid DAC amplitude setting" );
+
+  freq = luaL_checkinteger( L, 3 );
+  if( freq <= 0 )
+    return luaL_error( L, "DAC noise period must be > 0" );
+
+  dac_config.data_type = XMC_DAC_CH_DATA_TYPE_SIGNED;
+  dac_config.output_negation = XMC_DAC_CH_OUTPUT_NEGATION_DISABLED;
+  dac_config.output_offset = 0U;
+
+  switch( amp )
+  {
+    case DAC_AMP_MILLI_VOLTS_1:
+    case DAC_AMP_MILLI_VOLTS_2:
+    case DAC_AMP_MILLI_VOLTS_4:
+    case DAC_AMP_MILLI_VOLTS_9:
+    case DAC_AMP_MILLI_VOLTS_17:
+      output_scale = XMC_DAC_CH_OUTPUT_SCALE_DIV_128;
+      break;
+    case DAC_AMP_MILLI_VOLTS_34:
+      output_scale = XMC_DAC_CH_OUTPUT_SCALE_DIV_64;
+      break;
+    case DAC_AMP_MILLI_VOLTS_69:
+      output_scale = XMC_DAC_CH_OUTPUT_SCALE_DIV_32;
+      break;
+    case DAC_AMP_MILLI_VOLTS_138:
+      output_scale = XMC_DAC_CH_OUTPUT_SCALE_DIV_16;
+      break;
+    case DAC_AMP_MILLI_VOLTS_275:
+      output_scale = XMC_DAC_CH_OUTPUT_SCALE_DIV_8;
+      break;
+    case DAC_AMP_MILLI_VOLTS_550:
+      output_scale = XMC_DAC_CH_OUTPUT_SCALE_DIV_4;
+      break;
+    case DAC_AMP_MILLI_VOLTS_1100:
+      output_scale = XMC_DAC_CH_OUTPUT_SCALE_DIV_2;
+      break;
+    case DAC_AMP_MILLI_VOLTS_2200:
+      output_scale = XMC_DAC_CH_OUTPUT_SCALE_NONE;
+      break;
+  }
+  dac_config.output_scale = output_scale;
+
+  XMC_DAC_CH_Init( ELUA_XMC_DAC, id, &dac_config );
+  XMC_DAC_CH_StartNoiseMode( ELUA_XMC_DAC, id, XMC_DAC_CH_TRIGGER_INTERNAL, (uint32_t)roundf(1000000/ freq));
+
+  return 0;
+
+}
+
 // *****************************************************************************
 // DAC function map
 
@@ -172,17 +238,23 @@ static int dac_pattern_setup( lua_State *L )
 
 static const LUA_REG_TYPE dac_pattern_map[] =
 {
-  { LSTRKEY( "start" ), LFUNCVAL ( dac_pattern_start ) },
   { LSTRKEY( "setup" ), LFUNCVAL( dac_pattern_setup ) },
-  { LSTRKEY( "stop" ), LFUNCVAL( dac_pattern_stop ) },
+  { LNILKEY, LNILVAL }
+};
+
+static const LUA_REG_TYPE dac_noise_map[] =
+{
+  { LSTRKEY( "setup" ), LFUNCVAL( dac_noise_setup ) },
   { LNILKEY, LNILVAL }
 };
 
 const LUA_REG_TYPE dac_map[] =
 {
 #if LUA_OPTIMIZE_MEMORY > 0
-  /* { LSTRKEY( "noise" ), LROVAL( dac_noise_map ) }, */
+  { LSTRKEY( "start" ), LFUNCVAL ( dac_pattern_start ) },
+  { LSTRKEY( "stop" ), LFUNCVAL( dac_pattern_stop ) },
   { LSTRKEY( "pattern" ), LROVAL( dac_pattern_map ) },
+  { LSTRKEY( "noise" ), LROVAL( dac_noise_map ) },
   { LSTRKEY( "MILLI_VOLTS_1" ), LNUMVAL( DAC_AMP_MILLI_VOLTS_1 ) },
   { LSTRKEY( "MILLI_VOLTS_2" ), LNUMVAL( DAC_AMP_MILLI_VOLTS_2 ) },
   { LSTRKEY( "MILLI_VOLTS_4" ), LNUMVAL( DAC_AMP_MILLI_VOLTS_4 ) },
@@ -230,9 +302,9 @@ LUALIB_API int luaopen_dac( lua_State *L )
   luaL_register( L, NULL, dac_pattern_map );
   lua_setfield( L, -2, "pattern" );
 
-  // lua_newtable( L );
-  // luaL_register( L, NULL, dac_noise_map );
-  // lua_setfield( L, -2, "noise" );
+  lua_newtable( L );
+  luaL_register( L, NULL, dac_noise_map );
+  lua_setfield( L, -2, "noise" );
 
   return 1;
 #endif // #if LUA_OPTIMIZE_MEMORY > 0

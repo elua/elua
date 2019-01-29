@@ -84,4 +84,4 @@ const LUA_REG_TYPE disp_map[] =
   { LNILKEY, LNILVAL }
 };
 
-#endif /* #if !defined( XMC4700_F144x2048 ) */
+#endif
