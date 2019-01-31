@@ -59,10 +59,13 @@
  * HEADER FILES
  **********************************************************************************************************************/
 
-#include "xmc_scu.h"
-#include "xmc_sdmmc.h"
-
-#include "./SYSTIMER/systimer.h"
+#if !defined ( XMC4500_E144x1024 )
+# include "xmc_scu.h"
+# include "xmc_sdmmc.h"
+# include "./SYSTIMER/systimer.h"
+#else
+# include "./SPI_MASTER/spi_master.h"
+#endif
 
 /**********************************************************************************************************************
  * MACROS
@@ -72,9 +75,16 @@
 #define SDMMC_BLOCK_MINOR_VERSION (0U) /**< Minor version */
 #define SDMMC_BLOCK_PATCH_VERSION (22U) /**< Patch version */
 
-#define SDMMC_BLOCK_SD
-
-#define SDMMC_BLOCK_SD_SUPPORT_4_BUS_WIDTH (1U)
-#define SDMMC_BLOCK_RTOS_MODE_SELECT (0U)
+/*
+ * Adapted by Raman Gopalan <ramangopalan@gmail.com> for eLua
+ */
+#if !defined ( XMC4500_E144x1024 )
+# define SDMMC_BLOCK_SD
+# define SDMMC_BLOCK_SD_SUPPORT_4_BUS_WIDTH (1U)
+# define SDMMC_BLOCK_RTOS_MODE_SELECT (0U)
+#else
+# define SDMMC_BLOCK_SPI
+# define SDMMC_BLOCK_RTOS_MODE_SELECT (0U)
+#endif /* #if !defined ( XMC4500_E144x1024 ) */
 
 #endif  /* ifndef SDMMC_BLOCK_CONF_H */
