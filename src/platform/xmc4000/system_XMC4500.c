@@ -1,30 +1,49 @@
-/******************************************************************************
+/*********************************************************************************************************************
  * @file     system_XMC4500.c
- * @brief    CMSIS Cortex-M4 Device Peripheral Access Layer Header File
- *           for the Infineon XMC4500 Device Series
- * @version  V3.1.0
- * @date     20. Dec 2014
+ * @brief    CMSIS Cortex-M4 Device Peripheral Access Layer Header File for the Infineon XMC4500 Device Series
+ * @version  V3.1.4
+ * @date     26. Sep 2017
  *
- * Copyright (C) 2014 Infineon Technologies AG. All rights reserved.
+ * @cond
+ *********************************************************************************************************************
+ * Copyright (c) 2014-2017, Infineon Technologies AG
+ * All rights reserved.
  *
+ * Redistribution and use in source and binary forms, with or without modification,are permitted provided that the
+ * following conditions are met:
  *
- * @par
- * Infineon Technologies AG (Infineon) is supplying this software for use with 
- * Infineon's microcontrollers.  This file can be freely distributed
- * within development tools that are supporting such microcontrollers.
+ * Redistributions of source code must retain the above copyright notice, this list of conditions and the following
+ * disclaimer.
  *
- * @par
- * THIS SOFTWARE IS PROVIDED AS IS.  NO WARRANTIES, WHETHER EXPRESS, IMPLIED
- * OR STATUTORY, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE.
- * ARM SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
- * CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
+ * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
+ * disclaimer in the documentation and/or other materials provided with the distribution.
  *
- ******************************************************************************/
-
-/********************** Version History ***************************************
+ * Neither the name of the copyright holders nor the names of its contributors may be used to endorse or promote
+ * products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE  FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY,OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * To improve the quality of the software, users are encouraged to share modifications, enhancements or bug fixes with
+ * Infineon Technologies AG dave@infineon.com).
+ *********************************************************************************************************************
+ *
+ ********************** Version History ***************************************
  * V3.1.0, Dec 2014, Added options to configure clock settings
- ******************************************************************************/
+ * V3.1.1, 01. Jun 2016, Fix masking of OSCHPCTRL value 
+ * V3.1.2, 09. Feb 2017, Fix activation of USBPLL when SDMMC clock is enabled
+ * V3.1.3, 19. Jun 2017, Rely on cmsis_compiler.h instead of defining __WEAK
+ *                       Added support for ARM Compiler 6 (armclang)
+ * V3.1.4, 26. Sep 2017, Disable FPU if FPU_USED is zero   
+ *                       Fixed include files
+ ******************************************************************************
+ * @endcond
+ */
 
 /*******************************************************************************
  * HEADER FILES
@@ -37,21 +56,7 @@
 /*******************************************************************************
  * MACROS
  *******************************************************************************/
-
 #define CHIPID_LOC ((uint8_t *)0x20000000UL)
-
-/* Define WEAK attribute */
-#if !defined(__WEAK)
-#if defined ( __CC_ARM )
-#define __WEAK __attribute__ ((weak))
-#elif defined ( __ICCARM__ )
-#define __WEAK __weak
-#elif defined ( __GNUC__ )
-#define __WEAK __attribute__ ((weak))
-#elif defined ( __TASKING__ )
-#define __WEAK __attribute__ ((weak))
-#endif
-#endif
 
 #define PMU_FLASH_WS          (0x3U)
 
@@ -186,9 +191,10 @@
 
 #define SCU_CLK_CLKCLR_ENABLE_USBCLK SCU_CLK_CLKCLR_USBCDI_Msk
 #define SCU_CLK_CLKCLR_ENABLE_MMCCLK SCU_CLK_CLKCLR_MMCCDI_Msk
-#define SCU_CLK_CLKCLR_ENABLE_ETHCLK SCU_CLK_CLKCLR_USBCDI_Msk
+#define SCU_CLK_CLKCLR_ENABLE_ETHCLK SCU_CLK_CLKCLR_ETH0CDI_Msk
 #define SCU_CLK_CLKCLR_ENABLE_EBUCLK SCU_CLK_CLKCLR_EBUCDI_Msk
 #define SCU_CLK_CLKCLR_ENABLE_CCUCLK SCU_CLK_CLKCLR_CCUCDI_Msk
+#define SCU_CLK_CLKCLR_ENABLE_WDTCLK SCU_CLK_CLKCLR_WDTCDI_Msk
 
 #define SCU_CLK_USBCLKCR_USBSEL_USBPLL (0U << SCU_CLK_USBCLKCR_USBSEL_Pos)
 #define SCU_CLK_USBCLKCR_USBSEL_PLL    (1U << SCU_CLK_USBCLKCR_USBSEL_Pos)
@@ -265,6 +271,9 @@
     (((ENABLE_SCUCLK & SCU_CLK_CLKSET_USBCEN_Msk) != 0) && ((USBCLKDIV & SCU_CLK_USBCLKCR_USBSEL_Msk) == SCU_CLK_USBCLKCR_USBSEL_PLL)) || \
     (((ENABLE_SCUCLK & SCU_CLK_CLKSET_WDTCEN_Msk) != 0) && ((WDTCLKDIV & SCU_CLK_WDTCLKCR_WDTSEL_Msk) == SCU_CLK_WDTCLKCR_WDTSEL_PLL))
 
+#define ENABLE_USBPLL \
+    ((((ENABLE_SCUCLK & SCU_CLK_CLKSET_USBCEN_Msk) != 0) && ((USBCLKDIV & SCU_CLK_USBCLKCR_USBSEL_Msk) == SCU_CLK_USBCLKCR_USBSEL_USBPLL)) ||\
+     (((ENABLE_SCUCLK & SCU_CLK_CLKCLR_ENABLE_MMCCLK) != 0) && ((USBCLKDIV & SCU_CLK_USBCLKCR_USBSEL_Msk) == SCU_CLK_USBCLKCR_USBSEL_USBPLL)))
 /*
 // </h>
 */
@@ -279,6 +288,9 @@
 #if defined ( __CC_ARM )
 uint32_t SystemCoreClock __attribute__((at(0x2000FFC0)));
 uint8_t g_chipid[16] __attribute__((at(0x2000FFC4)));
+#elif defined (__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050)
+uint32_t SystemCoreClock __attribute__((section(".ARM.__at_0x2000FFC0")));
+uint8_t g_chipid[16] __attribute__((section(".ARM.__at_0x2000FFC4")));
 #elif defined ( __ICCARM__ )
 __no_init uint32_t SystemCoreClock;
 __no_init uint8_t g_chipid[16];
@@ -327,9 +339,16 @@ __WEAK void SystemCoreSetup(void)
   __DSB();
   __enable_irq();
     
+  /* __FPU_PRESENT = 1 in device header file */
+  /* __FPU_USED value depends on compiler options. */
+  /* __FPU_USED = 0 if -mfloat-abi=soft is selected */
+  /* __FPU_USED = 0 if -mfloat-abi=softfp or –mfloat-abi=hard */
+
 #if ((__FPU_PRESENT == 1) && (__FPU_USED == 1))
   SCB->CPACR |= ((3UL << 10*2) |                 /* set CP10 Full Access */
                  (3UL << 11*2)  );               /* set CP11 Full Access */
+#else
+  SCB->CPACR = 0;
 #endif
 
   /* Enable unaligned memory access - SCB_CCR.UNALIGN_TRP = 0 */
@@ -426,7 +445,7 @@ __WEAK void SystemCoreClockSetup(void)
   /* enable OSC_HP */
   if ((SCU_OSC->OSCHPCTRL & SCU_OSC_OSCHPCTRL_MODE_Msk) != 0U)
   {
-    SCU_OSC->OSCHPCTRL &= ~(SCU_OSC_OSCHPCTRL_MODE_Msk | SCU_OSC_OSCHPCTRL_OSCVAL_Pos);
+    SCU_OSC->OSCHPCTRL &= ~(SCU_OSC_OSCHPCTRL_MODE_Msk | SCU_OSC_OSCHPCTRL_OSCVAL_Msk);
     SCU_OSC->OSCHPCTRL |= ((OSCHP_GetFrequency() / FOSCREF) - 1UL) << SCU_OSC_OSCHPCTRL_OSCVAL_Pos;
 
     /* select OSC_HP clock as PLL input */
@@ -536,7 +555,7 @@ __WEAK void SystemCoreClockSetup(void)
   SCU_TRAP->TRAPCLR = SCU_TRAP_TRAPCLR_SOSCWDGT_Msk | SCU_TRAP_TRAPCLR_SVCOLCKT_Msk;
 #endif /* ENABLE_PLL */
 
-#if (((ENABLE_SCUCLK & SCU_CLK_CLKSET_USBCEN_Msk) != 0) && ((USBCLKDIV & SCU_CLK_USBCLKCR_USBSEL_Msk) == SCU_CLK_USBCLKCR_USBSEL_USBPLL))
+#if ENABLE_USBPLL
   /* enable USB PLL first */
   SCU_PLL->USBPLLCON &= ~(SCU_PLL_USBPLLCON_VCOPWD_Msk | SCU_PLL_USBPLLCON_PLLPWD_Msk);
 
@@ -551,7 +570,7 @@ __WEAK void SystemCoreClockSetup(void)
       SCU_PLL->PLLCON0 &= ~(SCU_PLL_PLLCON0_VCOPWD_Msk | SCU_PLL_PLLCON0_PLLPWD_Msk);
     }
 
-    SCU_OSC->OSCHPCTRL &= ~(SCU_OSC_OSCHPCTRL_MODE_Msk | SCU_OSC_OSCHPCTRL_OSCVAL_Pos);
+    SCU_OSC->OSCHPCTRL &= ~(SCU_OSC_OSCHPCTRL_MODE_Msk | SCU_OSC_OSCHPCTRL_OSCVAL_Msk);
     SCU_OSC->OSCHPCTRL |= ((OSCHP_GetFrequency() / FOSCREF) - 1UL) << SCU_OSC_OSCHPCTRL_OSCVAL_Pos;
 
     /* restart OSC Watchdog */
