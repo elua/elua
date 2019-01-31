@@ -1,21 +1,30 @@
-/****************************************************************************/
-/**
-Copyright (C) 2011-2015 Infineon Technologies AG. All rights reserved.
-* 
-*
-* @par
-* Infineon Technologies AG (Infineon) is supplying this software for use with 
-* Infineon's microcontrollers.  This file can be freely distributed within
-* development tools that are supporting such microcontrollers.
-*
-* @par
-* THIS SOFTWARE IS PROVIDED AS IS. NO WARRANTIES, WHETHER EXPRESS, IMPLIED
-* OR STATUTORY, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF
-* MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE.
-* INFINEON SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL,
-* OR CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
-*
-******************************************************************************/
+/*********************************************************************************************************************
+ * Copyright (c) 2011-2017, Infineon Technologies AG
+ * All rights reserved.                        
+ *                                             
+ * Redistribution and use in source and binary forms, with or without modification,are permitted provided that the 
+ * following conditions are met:   
+ *                                                                              
+ * Redistributions of source code must retain the above copyright notice, this list of conditions and the following 
+ * disclaimer.                        
+ * 
+ * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following 
+ * disclaimer in the documentation and/or other materials provided with the distribution.                       
+ * 
+ * Neither the name of the copyright holders nor the names of its contributors may be used to endorse or promote 
+ * products derived from this software without specific prior written permission.                                           
+ *                                                                              
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE  
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE  FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR  
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+ * WHETHER IN CONTRACT, STRICT LIABILITY,OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                                  
+ *                                                                              
+ * To improve the quality of the software, users are encouraged to share modifications, enhancements or bug fixes with 
+ * Infineon Technologies AG dave@infineon.com).                                                          
+ *********************************************************************************************************************/
 
 
 /****************************************************************************************************//**
@@ -24,11 +33,12 @@ Copyright (C) 2011-2015 Infineon Technologies AG. All rights reserved.
  * @brief    CMSIS Cortex-M4 Peripheral Access Layer Header File for
  *           XMC4500 from Infineon.
  *
- * @version  V1.5.3 (Reference Manual v1.5)
- * @date     1. February 2016
+ * @version  V1.6.1 (Reference Manual v1.6)
+ * @date     19. June 2017
  *
- * @note     Generated with SVDConv V2.87g 
- *           from CMSIS SVD File 'XMC4500_Processed_SVD.xml' Version 1.5.3 (Reference Manual v1.5),
+ * @note     Generated with SVDConv V2.87l 
+ *           from CMSIS SVD File 'XMC4500_Processed_SVD.xml' Version 1.6.0 (Reference Manual v1.6),
+ *           added support for ARM Compiler 6 (armclang) 
  *******************************************************************************************************/
 
 
@@ -66,107 +76,107 @@ typedef enum {
   PendSV_IRQn                   =  -2,              /*!<  14  Pendable request for system service                              */
   SysTick_IRQn                  =  -1,              /*!<  15  System Tick Timer                                                */
 /* ---------------------  XMC4500 Specific Interrupt Numbers  --------------------- */
-  SCU_0_IRQn                    =   0,              /*!<   0  SCU_0                                                            */
-  ERU0_0_IRQn                   =   1,              /*!<   1  ERU0_0                                                           */
-  ERU0_1_IRQn                   =   2,              /*!<   2  ERU0_1                                                           */
-  ERU0_2_IRQn                   =   3,              /*!<   3  ERU0_2                                                           */
-  ERU0_3_IRQn                   =   4,              /*!<   4  ERU0_3                                                           */
-  ERU1_0_IRQn                   =   5,              /*!<   5  ERU1_0                                                           */
-  ERU1_1_IRQn                   =   6,              /*!<   6  ERU1_1                                                           */
-  ERU1_2_IRQn                   =   7,              /*!<   7  ERU1_2                                                           */
-  ERU1_3_IRQn                   =   8,              /*!<   8  ERU1_3                                                           */
-  PMU0_0_IRQn                   =  12,              /*!<  12  PMU0_0                                                           */
-  VADC0_C0_0_IRQn               =  14,              /*!<  14  VADC0_C0_0                                                       */
-  VADC0_C0_1_IRQn               =  15,              /*!<  15  VADC0_C0_1                                                       */
-  VADC0_C0_2_IRQn               =  16,              /*!<  16  VADC0_C0_2                                                       */
-  VADC0_C0_3_IRQn               =  17,              /*!<  17  VADC0_C0_3                                                       */
-  VADC0_G0_0_IRQn               =  18,              /*!<  18  VADC0_G0_0                                                       */
-  VADC0_G0_1_IRQn               =  19,              /*!<  19  VADC0_G0_1                                                       */
-  VADC0_G0_2_IRQn               =  20,              /*!<  20  VADC0_G0_2                                                       */
-  VADC0_G0_3_IRQn               =  21,              /*!<  21  VADC0_G0_3                                                       */
-  VADC0_G1_0_IRQn               =  22,              /*!<  22  VADC0_G1_0                                                       */
-  VADC0_G1_1_IRQn               =  23,              /*!<  23  VADC0_G1_1                                                       */
-  VADC0_G1_2_IRQn               =  24,              /*!<  24  VADC0_G1_2                                                       */
-  VADC0_G1_3_IRQn               =  25,              /*!<  25  VADC0_G1_3                                                       */
-  VADC0_G2_0_IRQn               =  26,              /*!<  26  VADC0_G2_0                                                       */
-  VADC0_G2_1_IRQn               =  27,              /*!<  27  VADC0_G2_1                                                       */
-  VADC0_G2_2_IRQn               =  28,              /*!<  28  VADC0_G2_2                                                       */
-  VADC0_G2_3_IRQn               =  29,              /*!<  29  VADC0_G2_3                                                       */
-  VADC0_G3_0_IRQn               =  30,              /*!<  30  VADC0_G3_0                                                       */
-  VADC0_G3_1_IRQn               =  31,              /*!<  31  VADC0_G3_1                                                       */
-  VADC0_G3_2_IRQn               =  32,              /*!<  32  VADC0_G3_2                                                       */
-  VADC0_G3_3_IRQn               =  33,              /*!<  33  VADC0_G3_3                                                       */
-  DSD0_M_0_IRQn                 =  34,              /*!<  34  DSD0_M_0                                                         */
-  DSD0_M_1_IRQn                 =  35,              /*!<  35  DSD0_M_1                                                         */
-  DSD0_M_2_IRQn                 =  36,              /*!<  36  DSD0_M_2                                                         */
-  DSD0_M_3_IRQn                 =  37,              /*!<  37  DSD0_M_3                                                         */
-  DSD0_A_4_IRQn                 =  38,              /*!<  38  DSD0_A_4                                                         */
-  DSD0_A_5_IRQn                 =  39,              /*!<  39  DSD0_A_5                                                         */
-  DSD0_A_6_IRQn                 =  40,              /*!<  40  DSD0_A_6                                                         */
-  DSD0_A_7_IRQn                 =  41,              /*!<  41  DSD0_A_7                                                         */
-  DAC0_0_IRQn                   =  42,              /*!<  42  DAC0_0                                                           */
-  DAC0_1_IRQn                   =  43,              /*!<  43  DAC0_1                                                           */
-  CCU40_0_IRQn                  =  44,              /*!<  44  CCU40_0                                                          */
-  CCU40_1_IRQn                  =  45,              /*!<  45  CCU40_1                                                          */
-  CCU40_2_IRQn                  =  46,              /*!<  46  CCU40_2                                                          */
-  CCU40_3_IRQn                  =  47,              /*!<  47  CCU40_3                                                          */
-  CCU41_0_IRQn                  =  48,              /*!<  48  CCU41_0                                                          */
-  CCU41_1_IRQn                  =  49,              /*!<  49  CCU41_1                                                          */
-  CCU41_2_IRQn                  =  50,              /*!<  50  CCU41_2                                                          */
-  CCU41_3_IRQn                  =  51,              /*!<  51  CCU41_3                                                          */
-  CCU42_0_IRQn                  =  52,              /*!<  52  CCU42_0                                                          */
-  CCU42_1_IRQn                  =  53,              /*!<  53  CCU42_1                                                          */
-  CCU42_2_IRQn                  =  54,              /*!<  54  CCU42_2                                                          */
-  CCU42_3_IRQn                  =  55,              /*!<  55  CCU42_3                                                          */
-  CCU43_0_IRQn                  =  56,              /*!<  56  CCU43_0                                                          */
-  CCU43_1_IRQn                  =  57,              /*!<  57  CCU43_1                                                          */
-  CCU43_2_IRQn                  =  58,              /*!<  58  CCU43_2                                                          */
-  CCU43_3_IRQn                  =  59,              /*!<  59  CCU43_3                                                          */
-  CCU80_0_IRQn                  =  60,              /*!<  60  CCU80_0                                                          */
-  CCU80_1_IRQn                  =  61,              /*!<  61  CCU80_1                                                          */
-  CCU80_2_IRQn                  =  62,              /*!<  62  CCU80_2                                                          */
-  CCU80_3_IRQn                  =  63,              /*!<  63  CCU80_3                                                          */
-  CCU81_0_IRQn                  =  64,              /*!<  64  CCU81_0                                                          */
-  CCU81_1_IRQn                  =  65,              /*!<  65  CCU81_1                                                          */
-  CCU81_2_IRQn                  =  66,              /*!<  66  CCU81_2                                                          */
-  CCU81_3_IRQn                  =  67,              /*!<  67  CCU81_3                                                          */
-  POSIF0_0_IRQn                 =  68,              /*!<  68  POSIF0_0                                                         */
-  POSIF0_1_IRQn                 =  69,              /*!<  69  POSIF0_1                                                         */
-  POSIF1_0_IRQn                 =  70,              /*!<  70  POSIF1_0                                                         */
-  POSIF1_1_IRQn                 =  71,              /*!<  71  POSIF1_1                                                         */
-  CAN0_0_IRQn                   =  76,              /*!<  76  CAN0_0                                                           */
-  CAN0_1_IRQn                   =  77,              /*!<  77  CAN0_1                                                           */
-  CAN0_2_IRQn                   =  78,              /*!<  78  CAN0_2                                                           */
-  CAN0_3_IRQn                   =  79,              /*!<  79  CAN0_3                                                           */
-  CAN0_4_IRQn                   =  80,              /*!<  80  CAN0_4                                                           */
-  CAN0_5_IRQn                   =  81,              /*!<  81  CAN0_5                                                           */
-  CAN0_6_IRQn                   =  82,              /*!<  82  CAN0_6                                                           */
-  CAN0_7_IRQn                   =  83,              /*!<  83  CAN0_7                                                           */
-  USIC0_0_IRQn                  =  84,              /*!<  84  USIC0_0                                                          */
-  USIC0_1_IRQn                  =  85,              /*!<  85  USIC0_1                                                          */
-  USIC0_2_IRQn                  =  86,              /*!<  86  USIC0_2                                                          */
-  USIC0_3_IRQn                  =  87,              /*!<  87  USIC0_3                                                          */
-  USIC0_4_IRQn                  =  88,              /*!<  88  USIC0_4                                                          */
-  USIC0_5_IRQn                  =  89,              /*!<  89  USIC0_5                                                          */
-  USIC1_0_IRQn                  =  90,              /*!<  90  USIC1_0                                                          */
-  USIC1_1_IRQn                  =  91,              /*!<  91  USIC1_1                                                          */
-  USIC1_2_IRQn                  =  92,              /*!<  92  USIC1_2                                                          */
-  USIC1_3_IRQn                  =  93,              /*!<  93  USIC1_3                                                          */
-  USIC1_4_IRQn                  =  94,              /*!<  94  USIC1_4                                                          */
-  USIC1_5_IRQn                  =  95,              /*!<  95  USIC1_5                                                          */
-  USIC2_0_IRQn                  =  96,              /*!<  96  USIC2_0                                                          */
-  USIC2_1_IRQn                  =  97,              /*!<  97  USIC2_1                                                          */
-  USIC2_2_IRQn                  =  98,              /*!<  98  USIC2_2                                                          */
-  USIC2_3_IRQn                  =  99,              /*!<  99  USIC2_3                                                          */
-  USIC2_4_IRQn                  = 100,              /*!< 100  USIC2_4                                                          */
-  USIC2_5_IRQn                  = 101,              /*!< 101  USIC2_5                                                          */
-  LEDTS0_0_IRQn                 = 102,              /*!< 102  LEDTS0_0                                                         */
-  FCE0_0_IRQn                   = 104,              /*!< 104  FCE0_0                                                           */
-  GPDMA0_0_IRQn                 = 105,              /*!< 105  GPDMA0_0                                                         */
-  SDMMC0_0_IRQn                 = 106,              /*!< 106  SDMMC0_0                                                         */
-  USB0_0_IRQn                   = 107,              /*!< 107  USB0_0                                                           */
-  ETH0_0_IRQn                   = 108,              /*!< 108  ETH0_0                                                           */
-  GPDMA1_0_IRQn                 = 110               /*!< 110  GPDMA1_0                                                         */
+  SCU_0_IRQn                    =   0,              /*!<   0  System Control                                                   */
+  ERU0_0_IRQn                   =   1,              /*!<   1  External Request Unit 0                                          */
+  ERU0_1_IRQn                   =   2,              /*!<   2  External Request Unit 0                                          */
+  ERU0_2_IRQn                   =   3,              /*!<   3  External Request Unit 0                                          */
+  ERU0_3_IRQn                   =   4,              /*!<   4  External Request Unit 0                                          */
+  ERU1_0_IRQn                   =   5,              /*!<   5  External Request Unit 1                                          */
+  ERU1_1_IRQn                   =   6,              /*!<   6  External Request Unit 1                                          */
+  ERU1_2_IRQn                   =   7,              /*!<   7  External Request Unit 1                                          */
+  ERU1_3_IRQn                   =   8,              /*!<   8  External Request Unit 1                                          */
+  PMU0_0_IRQn                   =  12,              /*!<  12  Program Management Unit                                          */
+  VADC0_C0_0_IRQn               =  14,              /*!<  14  Analog to Digital Converter Common Block 0                       */
+  VADC0_C0_1_IRQn               =  15,              /*!<  15  Analog to Digital Converter Common Block 0                       */
+  VADC0_C0_2_IRQn               =  16,              /*!<  16  Analog to Digital Converter Common Block 0                       */
+  VADC0_C0_3_IRQn               =  17,              /*!<  17  Analog to Digital Converter Common Block 0                       */
+  VADC0_G0_0_IRQn               =  18,              /*!<  18  Analog to Digital Converter Group 0                              */
+  VADC0_G0_1_IRQn               =  19,              /*!<  19  Analog to Digital Converter Group 0                              */
+  VADC0_G0_2_IRQn               =  20,              /*!<  20  Analog to Digital Converter Group 0                              */
+  VADC0_G0_3_IRQn               =  21,              /*!<  21  Analog to Digital Converter Group 0                              */
+  VADC0_G1_0_IRQn               =  22,              /*!<  22  Analog to Digital Converter Group 1                              */
+  VADC0_G1_1_IRQn               =  23,              /*!<  23  Analog to Digital Converter Group 1                              */
+  VADC0_G1_2_IRQn               =  24,              /*!<  24  Analog to Digital Converter Group 1                              */
+  VADC0_G1_3_IRQn               =  25,              /*!<  25  Analog to Digital Converter Group 1                              */
+  VADC0_G2_0_IRQn               =  26,              /*!<  26  Analog to Digital Converter Group 2                              */
+  VADC0_G2_1_IRQn               =  27,              /*!<  27  Analog to Digital Converter Group 2                              */
+  VADC0_G2_2_IRQn               =  28,              /*!<  28  Analog to Digital Converter Group 2                              */
+  VADC0_G2_3_IRQn               =  29,              /*!<  29  Analog to Digital Converter Group 2                              */
+  VADC0_G3_0_IRQn               =  30,              /*!<  30  Analog to Digital Converter Group 3                              */
+  VADC0_G3_1_IRQn               =  31,              /*!<  31  Analog to Digital Converter Group 3                              */
+  VADC0_G3_2_IRQn               =  32,              /*!<  32  Analog to Digital Converter Group 3                              */
+  VADC0_G3_3_IRQn               =  33,              /*!<  33  Analog to Digital Converter Group 3                              */
+  DSD0_M_0_IRQn                 =  34,              /*!<  34  Delta Sigma Demodulator Main                                     */
+  DSD0_M_1_IRQn                 =  35,              /*!<  35  Delta Sigma Demodulator Main                                     */
+  DSD0_M_2_IRQn                 =  36,              /*!<  36  Delta Sigma Demodulator Main                                     */
+  DSD0_M_3_IRQn                 =  37,              /*!<  37  Delta Sigma Demodulator Main                                     */
+  DSD0_A_4_IRQn                 =  38,              /*!<  38  Delta Sigma Demodulator Auxiliary                                */
+  DSD0_A_5_IRQn                 =  39,              /*!<  39  Delta Sigma Demodulator Auxiliary                                */
+  DSD0_A_6_IRQn                 =  40,              /*!<  40  Delta Sigma Demodulator Auxiliary                                */
+  DSD0_A_7_IRQn                 =  41,              /*!<  41  Delta Sigma Demodulator Auxiliary                                */
+  DAC0_0_IRQn                   =  42,              /*!<  42  Digital to Analog Converter                                      */
+  DAC0_1_IRQn                   =  43,              /*!<  43  Digital to Analog Converter                                      */
+  CCU40_0_IRQn                  =  44,              /*!<  44  Capture Compare Unit 4 (Module 0)                                */
+  CCU40_1_IRQn                  =  45,              /*!<  45  Capture Compare Unit 4 (Module 0)                                */
+  CCU40_2_IRQn                  =  46,              /*!<  46  Capture Compare Unit 4 (Module 0)                                */
+  CCU40_3_IRQn                  =  47,              /*!<  47  Capture Compare Unit 4 (Module 0)                                */
+  CCU41_0_IRQn                  =  48,              /*!<  48  Capture Compare Unit 4 (Module 1)                                */
+  CCU41_1_IRQn                  =  49,              /*!<  49  Capture Compare Unit 4 (Module 1)                                */
+  CCU41_2_IRQn                  =  50,              /*!<  50  Capture Compare Unit 4 (Module 1)                                */
+  CCU41_3_IRQn                  =  51,              /*!<  51  Capture Compare Unit 4 (Module 1)                                */
+  CCU42_0_IRQn                  =  52,              /*!<  52  Capture Compare Unit 4 (Module 2)                                */
+  CCU42_1_IRQn                  =  53,              /*!<  53  Capture Compare Unit 4 (Module 2)                                */
+  CCU42_2_IRQn                  =  54,              /*!<  54  Capture Compare Unit 4 (Module 2)                                */
+  CCU42_3_IRQn                  =  55,              /*!<  55  Capture Compare Unit 4 (Module 2)                                */
+  CCU43_0_IRQn                  =  56,              /*!<  56  Capture Compare Unit 4 (Module 3)                                */
+  CCU43_1_IRQn                  =  57,              /*!<  57  Capture Compare Unit 4 (Module 3)                                */
+  CCU43_2_IRQn                  =  58,              /*!<  58  Capture Compare Unit 4 (Module 3)                                */
+  CCU43_3_IRQn                  =  59,              /*!<  59  Capture Compare Unit 4 (Module 3)                                */
+  CCU80_0_IRQn                  =  60,              /*!<  60  Capture Compare Unit 8 (Module 0)                                */
+  CCU80_1_IRQn                  =  61,              /*!<  61  Capture Compare Unit 8 (Module 0)                                */
+  CCU80_2_IRQn                  =  62,              /*!<  62  Capture Compare Unit 8 (Module 0)                                */
+  CCU80_3_IRQn                  =  63,              /*!<  63  Capture Compare Unit 8 (Module 0)                                */
+  CCU81_0_IRQn                  =  64,              /*!<  64  Capture Compare Unit 8 (Module 1)                                */
+  CCU81_1_IRQn                  =  65,              /*!<  65  Capture Compare Unit 8 (Module 1)                                */
+  CCU81_2_IRQn                  =  66,              /*!<  66  Capture Compare Unit 8 (Module 1)                                */
+  CCU81_3_IRQn                  =  67,              /*!<  67  Capture Compare Unit 8 (Module 1)                                */
+  POSIF0_0_IRQn                 =  68,              /*!<  68  Position Interface (Module 0)                                    */
+  POSIF0_1_IRQn                 =  69,              /*!<  69  Position Interface (Module 0)                                    */
+  POSIF1_0_IRQn                 =  70,              /*!<  70  Position Interface (Module 1)                                    */
+  POSIF1_1_IRQn                 =  71,              /*!<  71  Position Interface (Module 1)                                    */
+  CAN0_0_IRQn                   =  76,              /*!<  76  MultiCAN                                                         */
+  CAN0_1_IRQn                   =  77,              /*!<  77  MultiCAN                                                         */
+  CAN0_2_IRQn                   =  78,              /*!<  78  MultiCAN                                                         */
+  CAN0_3_IRQn                   =  79,              /*!<  79  MultiCAN                                                         */
+  CAN0_4_IRQn                   =  80,              /*!<  80  MultiCAN                                                         */
+  CAN0_5_IRQn                   =  81,              /*!<  81  MultiCAN                                                         */
+  CAN0_6_IRQn                   =  82,              /*!<  82  MultiCAN                                                         */
+  CAN0_7_IRQn                   =  83,              /*!<  83  MultiCAN                                                         */
+  USIC0_0_IRQn                  =  84,              /*!<  84  Universal Serial Interface Channel (Module 0)                    */
+  USIC0_1_IRQn                  =  85,              /*!<  85  Universal Serial Interface Channel (Module 0)                    */
+  USIC0_2_IRQn                  =  86,              /*!<  86  Universal Serial Interface Channel (Module 0)                    */
+  USIC0_3_IRQn                  =  87,              /*!<  87  Universal Serial Interface Channel (Module 0)                    */
+  USIC0_4_IRQn                  =  88,              /*!<  88  Universal Serial Interface Channel (Module 0)                    */
+  USIC0_5_IRQn                  =  89,              /*!<  89  Universal Serial Interface Channel (Module 0)                    */
+  USIC1_0_IRQn                  =  90,              /*!<  90  Universal Serial Interface Channel (Module 1)                    */
+  USIC1_1_IRQn                  =  91,              /*!<  91  Universal Serial Interface Channel (Module 1)                    */
+  USIC1_2_IRQn                  =  92,              /*!<  92  Universal Serial Interface Channel (Module 1)                    */
+  USIC1_3_IRQn                  =  93,              /*!<  93  Universal Serial Interface Channel (Module 1)                    */
+  USIC1_4_IRQn                  =  94,              /*!<  94  Universal Serial Interface Channel (Module 1)                    */
+  USIC1_5_IRQn                  =  95,              /*!<  95  Universal Serial Interface Channel (Module 1)                    */
+  USIC2_0_IRQn                  =  96,              /*!<  96  Universal Serial Interface Channel (Module 2)                    */
+  USIC2_1_IRQn                  =  97,              /*!<  97  Universal Serial Interface Channel (Module 2)                    */
+  USIC2_2_IRQn                  =  98,              /*!<  98  Universal Serial Interface Channel (Module 2)                    */
+  USIC2_3_IRQn                  =  99,              /*!<  99  Universal Serial Interface Channel (Module 2)                    */
+  USIC2_4_IRQn                  = 100,              /*!< 100  Universal Serial Interface Channel (Module 2)                    */
+  USIC2_5_IRQn                  = 101,              /*!< 101  Universal Serial Interface Channel (Module 2)                    */
+  LEDTS0_0_IRQn                 = 102,              /*!< 102  LED and Touch Sense Control Unit (Module 0)                      */
+  FCE0_0_IRQn                   = 104,              /*!< 104  Flexible CRC Engine                                              */
+  GPDMA0_0_IRQn                 = 105,              /*!< 105  General Purpose DMA Unit 0                                       */
+  SDMMC0_0_IRQn                 = 106,              /*!< 106  Multi Media Card Interface                                       */
+  USB0_0_IRQn                   = 107,              /*!< 107  Universal Serial Bus (Module 0)                                  */
+  ETH0_0_IRQn                   = 108,              /*!< 108  Ethernet (Module 0)                                              */
+  GPDMA1_0_IRQn                 = 110               /*!< 110  General Purpose DMA Unit 1                                       */
 } IRQn_Type;
 
 
@@ -343,6 +353,10 @@ reg = (uint##size##_t) (VAL2 | VAL4);\
 #if defined(__CC_ARM)
   #pragma push
   #pragma anon_unions
+#elif defined(__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050)
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wc11-extensions"
+  #pragma clang diagnostic ignored "-Wreserved-id-macro"
 #elif defined(__ICCARM__)
   #pragma language=extended
 #elif defined(__GNUC__)
@@ -2394,6 +2408,8 @@ typedef struct {                                    /*!< (@ 0x48028F00) PORT15 S
 /* --------------------  End of section using anonymous unions  ------------------- */
 #if defined(__CC_ARM)
   #pragma pop
+#elif defined(__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050)
+  #pragma clang diagnostic pop
 #elif defined(__ICCARM__)
   /* leave anonymous unions enabled */
 #elif defined(__GNUC__)
@@ -5424,8 +5440,6 @@ typedef struct {                                    /*!< (@ 0x48028F00) PORT15 S
 #define SCU_GENERAL_MIRRSTS_HDCR_Msk          (0x8UL)                   /*!< SCU_GENERAL MIRRSTS: HDCR (Bitfield-Mask: 0x01)             */
 #define SCU_GENERAL_MIRRSTS_OSCSICTRL_Pos     (5UL)                     /*!< SCU_GENERAL MIRRSTS: OSCSICTRL (Bit 5)                      */
 #define SCU_GENERAL_MIRRSTS_OSCSICTRL_Msk     (0x20UL)                  /*!< SCU_GENERAL MIRRSTS: OSCSICTRL (Bitfield-Mask: 0x01)        */
-#define SCU_GENERAL_MIRRSTS_OSCULSTAT_Pos     (6UL)                     /*!< SCU_GENERAL MIRRSTS: OSCULSTAT (Bit 6)                      */
-#define SCU_GENERAL_MIRRSTS_OSCULSTAT_Msk     (0x40UL)                  /*!< SCU_GENERAL MIRRSTS: OSCULSTAT (Bitfield-Mask: 0x01)        */
 #define SCU_GENERAL_MIRRSTS_OSCULCTRL_Pos     (7UL)                     /*!< SCU_GENERAL MIRRSTS: OSCULCTRL (Bit 7)                      */
 #define SCU_GENERAL_MIRRSTS_OSCULCTRL_Msk     (0x80UL)                  /*!< SCU_GENERAL MIRRSTS: OSCULCTRL (Bitfield-Mask: 0x01)        */
 #define SCU_GENERAL_MIRRSTS_RTC_CTR_Pos       (8UL)                     /*!< SCU_GENERAL MIRRSTS: RTC_CTR (Bit 8)                        */
@@ -5470,8 +5484,6 @@ typedef struct {                                    /*!< (@ 0x48028F00) PORT15 S
 #define SCU_INTERRUPT_SRSTAT_AI_Msk           (0x4UL)                   /*!< SCU_INTERRUPT SRSTAT: AI (Bitfield-Mask: 0x01)              */
 #define SCU_INTERRUPT_SRSTAT_DLROVR_Pos       (3UL)                     /*!< SCU_INTERRUPT SRSTAT: DLROVR (Bit 3)                        */
 #define SCU_INTERRUPT_SRSTAT_DLROVR_Msk       (0x8UL)                   /*!< SCU_INTERRUPT SRSTAT: DLROVR (Bitfield-Mask: 0x01)          */
-#define SCU_INTERRUPT_SRSTAT_HDSTAT_Pos       (16UL)                    /*!< SCU_INTERRUPT SRSTAT: HDSTAT (Bit 16)                       */
-#define SCU_INTERRUPT_SRSTAT_HDSTAT_Msk       (0x10000UL)               /*!< SCU_INTERRUPT SRSTAT: HDSTAT (Bitfield-Mask: 0x01)          */
 #define SCU_INTERRUPT_SRSTAT_HDCLR_Pos        (17UL)                    /*!< SCU_INTERRUPT SRSTAT: HDCLR (Bit 17)                        */
 #define SCU_INTERRUPT_SRSTAT_HDCLR_Msk        (0x20000UL)               /*!< SCU_INTERRUPT SRSTAT: HDCLR (Bitfield-Mask: 0x01)           */
 #define SCU_INTERRUPT_SRSTAT_HDSET_Pos        (18UL)                    /*!< SCU_INTERRUPT SRSTAT: HDSET (Bit 18)                        */
@@ -5480,8 +5492,6 @@ typedef struct {                                    /*!< (@ 0x48028F00) PORT15 S
 #define SCU_INTERRUPT_SRSTAT_HDCR_Msk         (0x80000UL)               /*!< SCU_INTERRUPT SRSTAT: HDCR (Bitfield-Mask: 0x01)            */
 #define SCU_INTERRUPT_SRSTAT_OSCSICTRL_Pos    (21UL)                    /*!< SCU_INTERRUPT SRSTAT: OSCSICTRL (Bit 21)                    */
 #define SCU_INTERRUPT_SRSTAT_OSCSICTRL_Msk    (0x200000UL)              /*!< SCU_INTERRUPT SRSTAT: OSCSICTRL (Bitfield-Mask: 0x01)       */
-#define SCU_INTERRUPT_SRSTAT_OSCULSTAT_Pos    (22UL)                    /*!< SCU_INTERRUPT SRSTAT: OSCULSTAT (Bit 22)                    */
-#define SCU_INTERRUPT_SRSTAT_OSCULSTAT_Msk    (0x400000UL)              /*!< SCU_INTERRUPT SRSTAT: OSCULSTAT (Bitfield-Mask: 0x01)       */
 #define SCU_INTERRUPT_SRSTAT_OSCULCTRL_Pos    (23UL)                    /*!< SCU_INTERRUPT SRSTAT: OSCULCTRL (Bit 23)                    */
 #define SCU_INTERRUPT_SRSTAT_OSCULCTRL_Msk    (0x800000UL)              /*!< SCU_INTERRUPT SRSTAT: OSCULCTRL (Bitfield-Mask: 0x01)       */
 #define SCU_INTERRUPT_SRSTAT_RTC_CTR_Pos      (24UL)                    /*!< SCU_INTERRUPT SRSTAT: RTC_CTR (Bit 24)                      */
@@ -5506,8 +5516,6 @@ typedef struct {                                    /*!< (@ 0x48028F00) PORT15 S
 #define SCU_INTERRUPT_SRRAW_AI_Msk            (0x4UL)                   /*!< SCU_INTERRUPT SRRAW: AI (Bitfield-Mask: 0x01)               */
 #define SCU_INTERRUPT_SRRAW_DLROVR_Pos        (3UL)                     /*!< SCU_INTERRUPT SRRAW: DLROVR (Bit 3)                         */
 #define SCU_INTERRUPT_SRRAW_DLROVR_Msk        (0x8UL)                   /*!< SCU_INTERRUPT SRRAW: DLROVR (Bitfield-Mask: 0x01)           */
-#define SCU_INTERRUPT_SRRAW_HDSTAT_Pos        (16UL)                    /*!< SCU_INTERRUPT SRRAW: HDSTAT (Bit 16)                        */
-#define SCU_INTERRUPT_SRRAW_HDSTAT_Msk        (0x10000UL)               /*!< SCU_INTERRUPT SRRAW: HDSTAT (Bitfield-Mask: 0x01)           */
 #define SCU_INTERRUPT_SRRAW_HDCLR_Pos         (17UL)                    /*!< SCU_INTERRUPT SRRAW: HDCLR (Bit 17)                         */
 #define SCU_INTERRUPT_SRRAW_HDCLR_Msk         (0x20000UL)               /*!< SCU_INTERRUPT SRRAW: HDCLR (Bitfield-Mask: 0x01)            */
 #define SCU_INTERRUPT_SRRAW_HDSET_Pos         (18UL)                    /*!< SCU_INTERRUPT SRRAW: HDSET (Bit 18)                         */
@@ -5516,8 +5524,6 @@ typedef struct {                                    /*!< (@ 0x48028F00) PORT15 S
 #define SCU_INTERRUPT_SRRAW_HDCR_Msk          (0x80000UL)               /*!< SCU_INTERRUPT SRRAW: HDCR (Bitfield-Mask: 0x01)             */
 #define SCU_INTERRUPT_SRRAW_OSCSICTRL_Pos     (21UL)                    /*!< SCU_INTERRUPT SRRAW: OSCSICTRL (Bit 21)                     */
 #define SCU_INTERRUPT_SRRAW_OSCSICTRL_Msk     (0x200000UL)              /*!< SCU_INTERRUPT SRRAW: OSCSICTRL (Bitfield-Mask: 0x01)        */
-#define SCU_INTERRUPT_SRRAW_OSCULSTAT_Pos     (22UL)                    /*!< SCU_INTERRUPT SRRAW: OSCULSTAT (Bit 22)                     */
-#define SCU_INTERRUPT_SRRAW_OSCULSTAT_Msk     (0x400000UL)              /*!< SCU_INTERRUPT SRRAW: OSCULSTAT (Bitfield-Mask: 0x01)        */
 #define SCU_INTERRUPT_SRRAW_OSCULCTRL_Pos     (23UL)                    /*!< SCU_INTERRUPT SRRAW: OSCULCTRL (Bit 23)                     */
 #define SCU_INTERRUPT_SRRAW_OSCULCTRL_Msk     (0x800000UL)              /*!< SCU_INTERRUPT SRRAW: OSCULCTRL (Bitfield-Mask: 0x01)        */
 #define SCU_INTERRUPT_SRRAW_RTC_CTR_Pos       (24UL)                    /*!< SCU_INTERRUPT SRRAW: RTC_CTR (Bit 24)                       */
@@ -5542,8 +5548,6 @@ typedef struct {                                    /*!< (@ 0x48028F00) PORT15 S
 #define SCU_INTERRUPT_SRMSK_AI_Msk            (0x4UL)                   /*!< SCU_INTERRUPT SRMSK: AI (Bitfield-Mask: 0x01)               */
 #define SCU_INTERRUPT_SRMSK_DLROVR_Pos        (3UL)                     /*!< SCU_INTERRUPT SRMSK: DLROVR (Bit 3)                         */
 #define SCU_INTERRUPT_SRMSK_DLROVR_Msk        (0x8UL)                   /*!< SCU_INTERRUPT SRMSK: DLROVR (Bitfield-Mask: 0x01)           */
-#define SCU_INTERRUPT_SRMSK_HDSTAT_Pos        (16UL)                    /*!< SCU_INTERRUPT SRMSK: HDSTAT (Bit 16)                        */
-#define SCU_INTERRUPT_SRMSK_HDSTAT_Msk        (0x10000UL)               /*!< SCU_INTERRUPT SRMSK: HDSTAT (Bitfield-Mask: 0x01)           */
 #define SCU_INTERRUPT_SRMSK_HDCLR_Pos         (17UL)                    /*!< SCU_INTERRUPT SRMSK: HDCLR (Bit 17)                         */
 #define SCU_INTERRUPT_SRMSK_HDCLR_Msk         (0x20000UL)               /*!< SCU_INTERRUPT SRMSK: HDCLR (Bitfield-Mask: 0x01)            */
 #define SCU_INTERRUPT_SRMSK_HDSET_Pos         (18UL)                    /*!< SCU_INTERRUPT SRMSK: HDSET (Bit 18)                         */
@@ -5552,8 +5556,6 @@ typedef struct {                                    /*!< (@ 0x48028F00) PORT15 S
 #define SCU_INTERRUPT_SRMSK_HDCR_Msk          (0x80000UL)               /*!< SCU_INTERRUPT SRMSK: HDCR (Bitfield-Mask: 0x01)             */
 #define SCU_INTERRUPT_SRMSK_OSCSICTRL_Pos     (21UL)                    /*!< SCU_INTERRUPT SRMSK: OSCSICTRL (Bit 21)                     */
 #define SCU_INTERRUPT_SRMSK_OSCSICTRL_Msk     (0x200000UL)              /*!< SCU_INTERRUPT SRMSK: OSCSICTRL (Bitfield-Mask: 0x01)        */
-#define SCU_INTERRUPT_SRMSK_OSCULSTAT_Pos     (22UL)                    /*!< SCU_INTERRUPT SRMSK: OSCULSTAT (Bit 22)                     */
-#define SCU_INTERRUPT_SRMSK_OSCULSTAT_Msk     (0x400000UL)              /*!< SCU_INTERRUPT SRMSK: OSCULSTAT (Bitfield-Mask: 0x01)        */
 #define SCU_INTERRUPT_SRMSK_OSCULCTRL_Pos     (23UL)                    /*!< SCU_INTERRUPT SRMSK: OSCULCTRL (Bit 23)                     */
 #define SCU_INTERRUPT_SRMSK_OSCULCTRL_Msk     (0x800000UL)              /*!< SCU_INTERRUPT SRMSK: OSCULCTRL (Bitfield-Mask: 0x01)        */
 #define SCU_INTERRUPT_SRMSK_RTC_CTR_Pos       (24UL)                    /*!< SCU_INTERRUPT SRMSK: RTC_CTR (Bit 24)                       */
@@ -5578,8 +5580,6 @@ typedef struct {                                    /*!< (@ 0x48028F00) PORT15 S
 #define SCU_INTERRUPT_SRCLR_AI_Msk            (0x4UL)                   /*!< SCU_INTERRUPT SRCLR: AI (Bitfield-Mask: 0x01)               */
 #define SCU_INTERRUPT_SRCLR_DLROVR_Pos        (3UL)                     /*!< SCU_INTERRUPT SRCLR: DLROVR (Bit 3)                         */
 #define SCU_INTERRUPT_SRCLR_DLROVR_Msk        (0x8UL)                   /*!< SCU_INTERRUPT SRCLR: DLROVR (Bitfield-Mask: 0x01)           */
-#define SCU_INTERRUPT_SRCLR_HDSTAT_Pos        (16UL)                    /*!< SCU_INTERRUPT SRCLR: HDSTAT (Bit 16)                        */
-#define SCU_INTERRUPT_SRCLR_HDSTAT_Msk        (0x10000UL)               /*!< SCU_INTERRUPT SRCLR: HDSTAT (Bitfield-Mask: 0x01)           */
 #define SCU_INTERRUPT_SRCLR_HDCLR_Pos         (17UL)                    /*!< SCU_INTERRUPT SRCLR: HDCLR (Bit 17)                         */
 #define SCU_INTERRUPT_SRCLR_HDCLR_Msk         (0x20000UL)               /*!< SCU_INTERRUPT SRCLR: HDCLR (Bitfield-Mask: 0x01)            */
 #define SCU_INTERRUPT_SRCLR_HDSET_Pos         (18UL)                    /*!< SCU_INTERRUPT SRCLR: HDSET (Bit 18)                         */
@@ -5588,8 +5588,6 @@ typedef struct {                                    /*!< (@ 0x48028F00) PORT15 S
 #define SCU_INTERRUPT_SRCLR_HDCR_Msk          (0x80000UL)               /*!< SCU_INTERRUPT SRCLR: HDCR (Bitfield-Mask: 0x01)             */
 #define SCU_INTERRUPT_SRCLR_OSCSICTRL_Pos     (21UL)                    /*!< SCU_INTERRUPT SRCLR: OSCSICTRL (Bit 21)                     */
 #define SCU_INTERRUPT_SRCLR_OSCSICTRL_Msk     (0x200000UL)              /*!< SCU_INTERRUPT SRCLR: OSCSICTRL (Bitfield-Mask: 0x01)        */
-#define SCU_INTERRUPT_SRCLR_OSCULSTAT_Pos     (22UL)                    /*!< SCU_INTERRUPT SRCLR: OSCULSTAT (Bit 22)                     */
-#define SCU_INTERRUPT_SRCLR_OSCULSTAT_Msk     (0x400000UL)              /*!< SCU_INTERRUPT SRCLR: OSCULSTAT (Bitfield-Mask: 0x01)        */
 #define SCU_INTERRUPT_SRCLR_OSCULCTRL_Pos     (23UL)                    /*!< SCU_INTERRUPT SRCLR: OSCULCTRL (Bit 23)                     */
 #define SCU_INTERRUPT_SRCLR_OSCULCTRL_Msk     (0x800000UL)              /*!< SCU_INTERRUPT SRCLR: OSCULCTRL (Bitfield-Mask: 0x01)        */
 #define SCU_INTERRUPT_SRCLR_RTC_CTR_Pos       (24UL)                    /*!< SCU_INTERRUPT SRCLR: RTC_CTR (Bit 24)                       */
@@ -5614,8 +5612,6 @@ typedef struct {                                    /*!< (@ 0x48028F00) PORT15 S
 #define SCU_INTERRUPT_SRSET_AI_Msk            (0x4UL)                   /*!< SCU_INTERRUPT SRSET: AI (Bitfield-Mask: 0x01)               */
 #define SCU_INTERRUPT_SRSET_DLROVR_Pos        (3UL)                     /*!< SCU_INTERRUPT SRSET: DLROVR (Bit 3)                         */
 #define SCU_INTERRUPT_SRSET_DLROVR_Msk        (0x8UL)                   /*!< SCU_INTERRUPT SRSET: DLROVR (Bitfield-Mask: 0x01)           */
-#define SCU_INTERRUPT_SRSET_HDSTAT_Pos        (16UL)                    /*!< SCU_INTERRUPT SRSET: HDSTAT (Bit 16)                        */
-#define SCU_INTERRUPT_SRSET_HDSTAT_Msk        (0x10000UL)               /*!< SCU_INTERRUPT SRSET: HDSTAT (Bitfield-Mask: 0x01)           */
 #define SCU_INTERRUPT_SRSET_HDCRCLR_Pos       (17UL)                    /*!< SCU_INTERRUPT SRSET: HDCRCLR (Bit 17)                       */
 #define SCU_INTERRUPT_SRSET_HDCRCLR_Msk       (0x20000UL)               /*!< SCU_INTERRUPT SRSET: HDCRCLR (Bitfield-Mask: 0x01)          */
 #define SCU_INTERRUPT_SRSET_HDCRSET_Pos       (18UL)                    /*!< SCU_INTERRUPT SRSET: HDCRSET (Bit 18)                       */
@@ -5624,8 +5620,6 @@ typedef struct {                                    /*!< (@ 0x48028F00) PORT15 S
 #define SCU_INTERRUPT_SRSET_HDCR_Msk          (0x80000UL)               /*!< SCU_INTERRUPT SRSET: HDCR (Bitfield-Mask: 0x01)             */
 #define SCU_INTERRUPT_SRSET_OSCSICTRL_Pos     (21UL)                    /*!< SCU_INTERRUPT SRSET: OSCSICTRL (Bit 21)                     */
 #define SCU_INTERRUPT_SRSET_OSCSICTRL_Msk     (0x200000UL)              /*!< SCU_INTERRUPT SRSET: OSCSICTRL (Bitfield-Mask: 0x01)        */
-#define SCU_INTERRUPT_SRSET_OSCULSTAT_Pos     (22UL)                    /*!< SCU_INTERRUPT SRSET: OSCULSTAT (Bit 22)                     */
-#define SCU_INTERRUPT_SRSET_OSCULSTAT_Msk     (0x400000UL)              /*!< SCU_INTERRUPT SRSET: OSCULSTAT (Bitfield-Mask: 0x01)        */
 #define SCU_INTERRUPT_SRSET_OSCULCTRL_Pos     (23UL)                    /*!< SCU_INTERRUPT SRSET: OSCULCTRL (Bit 23)                     */
 #define SCU_INTERRUPT_SRSET_OSCULCTRL_Msk     (0x800000UL)              /*!< SCU_INTERRUPT SRSET: OSCULCTRL (Bitfield-Mask: 0x01)        */
 #define SCU_INTERRUPT_SRSET_RTC_CTR_Pos       (24UL)                    /*!< SCU_INTERRUPT SRSET: RTC_CTR (Bit 24)                       */
