@@ -60,6 +60,12 @@
 
 #include "sdmmc_block.h"
 
+/*
+ * Pick SPI_MASTER for the XMC4500_E144x1024 CPU. The SDMMC pins
+ * conflict with the SDRAM pins.
+ */
+#if !defined ( XMC4500_E144x1024 )
+
 /**********************************************************************************************************************
  * LOCAL ROUTINES
  **********************************************************************************************************************/
@@ -319,3 +325,31 @@ static void SDMMC_BLOCK_0_Config_Init(void)
   XMC_SDMMC_SetCardDetectionSource(XMC_SDMMC, XMC_SDMMC_CD_SOURCE_SW);
   XMC_SDMMC_SetCardDetectionStatus(XMC_SDMMC, XMC_SDMMC_CD_STATUS_INSERTED);
 }
+
+#else
+
+/* SDMMC SPI instance */
+SDMMC_BLOCK_SPI_t SDMMC_BLOCK_0_SPI =
+{
+  .spi_master_handle = &spi_uSD_sdram_kit, /* SDMMC SPI instance */
+  .mode_init_flag = false,
+};
+
+/* SDMMC_BLOCK APP instance */
+SDMMC_BLOCK_t SDMMC_BLOCK_0 =
+{
+  .interface_mode = SDMMC_BLOCK_CARD_INTERFACE_SPI, /* SPI interface */
+  .sdmmc_spi = &SDMMC_BLOCK_0_SPI, /* SDMMC_SPI instance */
+  .rtos_mode = SDMMC_BLOCK_RTOS_MODE_DISABLED, /* RTOS mose is not used */
+
+  #if SDMMC_BLOCK_RTOS_MODE_SELECT
+  .cmsis_rtos = NULL, /* RTOS mose is not used */
+  #endif /* SDMMC_BLOCK_RTOS_MODE_SELECT */
+
+  .init_pins = NULL, /* true: Initialized; false: Uninitialized */
+  .init_flag = false, /* true: Initialized; false: Uninitialized */
+  .card_state = ((uint8_t)SDMMC_BLOCK_CARD_STATE_NOT_INITIALIZED |
+                 (uint8_t)SDMMC_BLOCK_CARD_STATE_NO_CARD) /* Card state */
+};
+
+#endif /* #if !defined ( XMC4500_E144x1024 ) */

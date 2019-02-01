@@ -7,9 +7,9 @@
  *
  * @cond
  ***********************************************************************************************************************
- * SPI_MASTER v4.3.14 - Configures the properties of USIC channel to support SPI mode of communication.
+ * SPI_MASTER v4.3.22 - Configures the properties of USIC channel to support SPI mode of communication.
  *
- * Copyright (c) 2016, Infineon Technologies AG
+ * Copyright (c) 2015-2017, Infineon Technologies AG
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,are permitted provided that the
@@ -93,7 +93,7 @@
 #include <xmc_gpio.h>
 #include <xmc_scu.h>
 #include <xmc_spi.h>
-#include <DAVE_common.h>
+#include <DAVE_Common.h>
 #include "spi_master_conf.h"
 
 #if((SPI_MASTER_DMA_TRANSMIT_MODE == 1U) || (SPI_MASTER_DMA_RECEIVE_MODE == 1U))
@@ -106,7 +106,7 @@
 #if (!((XMC_LIB_MAJOR_VERSION == 2U) && \
        (XMC_LIB_MINOR_VERSION >= 1U) && \
        (XMC_LIB_PATCH_VERSION >= 6U)))
-#error "SPI_MASTER requires XMC Peripheral Library v2.0.0 or higher"
+#error "SPI_MASTER requires XMC Peripheral Library v2.1.6 or higher"
 #endif
 
 
@@ -1267,7 +1267,7 @@ __STATIC_INLINE bool SPI_MASTER_IsRxBusy(const SPI_MASTER_t* const handle)
  *   {
  *     SPI_MASTER_Transmit(&SPI_MASTER_0, Send_Data, sizeof(Send_Data));
  *     SPI_MASTER_DisableSlaveSelectSignal(&SPI_MASTER_0);
- *     SPI_MASTER_EnableSlaveSelectSignal(&SPI_MASTER_0, SPI_MASTER_0.config->slave_select_pin_config[1]->slave_select_ch);
+ *     SPI_MASTER_EnableSlaveSelectSignal(&SPI_MASTER_0, SPI_MASTER_SS_SIGNAL_1);
  *     SPI_MASTER_Transmit(&SPI_MASTER_0, Send_Data, sizeof(Send_Data));
  *   }
  *   else
@@ -1325,7 +1325,7 @@ __STATIC_INLINE void SPI_MASTER_EnableSlaveSelectSignal(const SPI_MASTER_t* hand
  *   {
  *     SPI_MASTER_Transmit(&SPI_MASTER_0, Send_Data, sizeof(Send_Data));
  *     SPI_MASTER_DisableSlaveSelectSignal(&SPI_MASTER_0);
- *     SPI_MASTER_EnableSlaveSelectSignal(&SPI_MASTER_0, SPI_MASTER_0.config->slave_select_pin_config[1]->slave_select_ch);
+ *     SPI_MASTER_EnableSlaveSelectSignal(&SPI_MASTER_0, SPI_MASTER_SS_SIGNAL_1);
  *     SPI_MASTER_Transmit(&SPI_MASTER_0, Send_Data, sizeof(Send_Data));
  *   }
  *
