@@ -27,14 +27,18 @@ return {
     shell = true,
     term = { lines = 25, cols = 80 },
     linenoise = { shell_lines = 10, lua_lines = 50 },
-    xmodem = false
+    xmodem = true
   },
   config = {
     egc = { mode = "alloc" },
-    ram = { internal_rams = 4 },
+    ram = {
+      internal_rams = 3,
+      ext_start = { 0x60000000 },
+      ext_size = { ( 8 * 1048576 ) },
+    },
   },
   modules = {
-    generic = { 'all', '-tmr', '-i2c', '-net', '-adc', '-spi', '-uart', '-can', '-pwm', '-rpc' },
+    generic = { 'all', '-tmr', '-i2c', '-net', '-adc', '-spi', '-uart', '-can', '-pwm', '-rpc', '-fs' },
     platform = 'all',
   }
 }
