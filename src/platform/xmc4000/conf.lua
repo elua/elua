@@ -22,6 +22,11 @@ if cpu == 'XMC4700F144K2048' then
   target_files = " startup_XMC4700.S system_XMC4700.c"
 end
 
+if cpu == 'XMC4300F100K256' then
+  ldscript = "xmc4300_linker_script.ld"
+  target_files = " startup_XMC4300.S system_XMC4300.c"
+end
+
 specific_files = specific_files .. target_files
 
 addi( "src/platform/" .. platform .. "/xmclib/inc" )
@@ -60,6 +65,10 @@ end
 
 if cpu == 'XMC4700F144K2048' then
   addm( { "XMC4700_F144x2048" } )
+end
+
+if cpu == 'XMC4300F100K256' then
+  addm( { "XMC4300_F100x256" } )
 end
 
 -- Standard GCC Flags

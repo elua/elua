@@ -59,6 +59,26 @@
 #include "uart.h"
 
 /***********************************************************************************************************************
+ * MACROS
+ ***********************************************************************************************************************/
+
+#if defined ( XMC4300_F100x256 )
+# define TX_PIN_PORT_BASE PORT0_BASE
+# define RX_PIN_PORT_BASE PORT0_BASE
+# define DMA_DEST_PERIPHERAL_RQST_CH 11U
+# define DMA_SRC_PERIPHERAL_RQST_CH 12U
+# define SELECTED_UART_CHANNEL XMC_UART1_CH0
+# define SOURCE_INPUT_SELECT 0
+#else
+# define TX_PIN_PORT_BASE PORT1_BASE
+# define RX_PIN_PORT_BASE PORT1_BASE
+# define DMA_DEST_PERIPHERAL_RQST_CH 10U
+# define DMA_SRC_PERIPHERAL_RQST_CH 11U
+# define SELECTED_UART_CHANNEL XMC_UART0_CH0
+# define SOURCE_INPUT_SELECT 1
+#endif
+
+/***********************************************************************************************************************
  * EXTERN DECLARATIONS
  ***********************************************************************************************************************/
 
@@ -99,7 +119,7 @@ const XMC_GPIO_CONFIG_t UART_0_tx_pin_config   =
 /*Transmit pin configuration used for initializing*/
 const UART_TX_CONFIG_t UART_0_tx_pin = 
 {
-  .port = (XMC_GPIO_PORT_t *)PORT1_BASE,
+  .port = (XMC_GPIO_PORT_t *)TX_PIN_PORT_BASE,
   .config = &UART_0_tx_pin_config,
   .pin = 5U
 };
@@ -116,7 +136,7 @@ const XMC_DMA_CH_CONFIG_t UART_0_tx_dma_ch_config =
   .transfer_flow = (uint32_t)XMC_DMA_CH_TRANSFER_FLOW_M2P_DMA,
   .transfer_type = (uint32_t)XMC_DMA_CH_TRANSFER_TYPE_SINGLE_BLOCK,
   .dst_handshaking = (uint32_t)XMC_DMA_CH_DST_HANDSHAKING_HARDWARE,
-  .dst_peripheral_request = DMA_PERIPHERAL_REQUEST(5U, 10U), /*DMA0_PERIPHERAL_REQUEST_USIC0_SR0_5*/
+  .dst_peripheral_request = DMA_PERIPHERAL_REQUEST(5U, DMA_DEST_PERIPHERAL_RQST_CH), /*DMA0_PERIPHERAL_REQUEST_USIC0_SR0_5*/
 };
 
 const UART_DMA_CONFIG_t UART_0_tx_dma_config =
@@ -137,7 +157,7 @@ const XMC_DMA_CH_CONFIG_t UART_0_rx_dma_ch_config =
   .transfer_flow = (uint32_t)XMC_DMA_CH_TRANSFER_FLOW_P2M_DMA,
   .transfer_type = (uint32_t)XMC_DMA_CH_TRANSFER_TYPE_SINGLE_BLOCK,
   .src_handshaking = (uint32_t)XMC_DMA_CH_SRC_HANDSHAKING_HARDWARE,
-  .src_peripheral_request = DMA_PERIPHERAL_REQUEST(2U, 11U), /*DMA0_PERIPHERAL_REQUEST_USIC0_SR1_2*/
+  .src_peripheral_request = DMA_PERIPHERAL_REQUEST(2U, DMA_SRC_PERIPHERAL_RQST_CH), /*DMA0_PERIPHERAL_REQUEST_USIC0_SR1_2*/
 };
 
 const UART_DMA_CONFIG_t UART_0_rx_dma_config =
@@ -178,7 +198,7 @@ UART_RUNTIME_t UART_0_runtime =
 /*APP handle structure*/
 UART_t UART_0 = 
 {
-  .channel = XMC_UART0_CH0,
+  .channel = SELECTED_UART_CHANNEL,
   .config  = &UART_0_config,
   .runtime = &UART_0_runtime
 };
@@ -204,34 +224,34 @@ UART_STATUS_t UART_0_init()
   XMC_DMA_CH_EnableEvent(XMC_DMA0,  4U, XMC_DMA_CH_EVENT_TRANSFER_COMPLETE);
 
   /*Configure Receive pin*/
-  XMC_GPIO_Init((XMC_GPIO_PORT_t *)PORT1_BASE, 4U, &UART_0_rx_pin_config);
+  XMC_GPIO_Init((XMC_GPIO_PORT_t *)RX_PIN_PORT_BASE, 4U, &UART_0_rx_pin_config);
   /* Initialize USIC channel in UART mode*/
-  XMC_UART_CH_Init(XMC_UART0_CH0, &UART_0_channel_config);
+  XMC_UART_CH_Init(SELECTED_UART_CHANNEL, &UART_0_channel_config);
   /*Set input source path*/
-  XMC_USIC_CH_SetInputSource(XMC_UART0_CH0, XMC_USIC_CH_INPUT_DX0, 1U);
+  XMC_USIC_CH_SetInputSource(SELECTED_UART_CHANNEL, XMC_USIC_CH_INPUT_DX0, SOURCE_INPUT_SELECT);
   /* Start UART */
-  XMC_UART_CH_Start(XMC_UART0_CH0);
+  XMC_UART_CH_Start(SELECTED_UART_CHANNEL);
 
   /* Initialize UART TX pin */
-  XMC_GPIO_Init((XMC_GPIO_PORT_t *)PORT1_BASE, 5U, &UART_0_tx_pin_config);
+  XMC_GPIO_Init((XMC_GPIO_PORT_t *)TX_PIN_PORT_BASE, 5U, &UART_0_tx_pin_config);
 
   /*Set service request for transmit interrupt*/
-  XMC_USIC_CH_SetInterruptNodePointer(XMC_UART0_CH0, XMC_USIC_CH_INTERRUPT_NODE_POINTER_TRANSMIT_BUFFER,
+  XMC_USIC_CH_SetInterruptNodePointer(SELECTED_UART_CHANNEL, XMC_USIC_CH_INTERRUPT_NODE_POINTER_TRANSMIT_BUFFER,
      0U);
   /*Set service request for receive interrupt*/
-  XMC_USIC_CH_SetInterruptNodePointer(XMC_UART0_CH0, XMC_USIC_CH_INTERRUPT_NODE_POINTER_RECEIVE,
+  XMC_USIC_CH_SetInterruptNodePointer(SELECTED_UART_CHANNEL, XMC_USIC_CH_INTERRUPT_NODE_POINTER_RECEIVE,
      1U);
-  XMC_USIC_CH_SetInterruptNodePointer(XMC_UART0_CH0, XMC_USIC_CH_INTERRUPT_NODE_POINTER_ALTERNATE_RECEIVE,
+  XMC_USIC_CH_SetInterruptNodePointer(SELECTED_UART_CHANNEL, XMC_USIC_CH_INTERRUPT_NODE_POINTER_ALTERNATE_RECEIVE,
      1U);
   /*Set service request for UART protocol events*/
-  XMC_USIC_CH_SetInterruptNodePointer(XMC_UART0_CH0, XMC_USIC_CH_INTERRUPT_NODE_POINTER_PROTOCOL,
+  XMC_USIC_CH_SetInterruptNodePointer(SELECTED_UART_CHANNEL, XMC_USIC_CH_INTERRUPT_NODE_POINTER_PROTOCOL,
      2U);
   /*Register transfer complete event handler*/
   XMC_DMA_CH_SetEventHandler(XMC_DMA0, 4U, UART_0_dma_rx_handler);
   /*Register transfer complete event handler*/
   XMC_DMA_CH_SetEventHandler(XMC_DMA0, 5U, UART_0_dma_tx_handler);
   /* make DMA ready for transmission*/
-  XMC_USIC_CH_TriggerServiceRequest(XMC_UART0_CH0, 0U); 
+  XMC_USIC_CH_TriggerServiceRequest(SELECTED_UART_CHANNEL, 0U);
   return status;
 }
 

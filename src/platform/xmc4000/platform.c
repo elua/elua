@@ -25,6 +25,10 @@
 # include "XMC4700.h"
 #endif
 
+#if defined ( XMC4300_F100x256 )
+# include "XMC4300.h"
+#endif
+
 // Peripheral includes
 #include "xmc_dac.h"
 
@@ -84,6 +88,20 @@ static XMC_GPIO_PORT_t *const pio_port[] =
   XMC_GPIO_PORT4,
   XMC_GPIO_PORT5,
   XMC_GPIO_PORT6,
+  XMC_GPIO_PORT14,
+  XMC_GPIO_PORT15
+};
+
+#elif defined ( ELUA_CPU_XMC4300F100K256 )
+
+static XMC_GPIO_PORT_t *const pio_port[] =
+{
+  XMC_GPIO_PORT0,
+  XMC_GPIO_PORT1,
+  XMC_GPIO_PORT2,
+  XMC_GPIO_PORT3,
+  XMC_GPIO_PORT4,
+  XMC_GPIO_PORT5,
   XMC_GPIO_PORT14,
   XMC_GPIO_PORT15
 };
