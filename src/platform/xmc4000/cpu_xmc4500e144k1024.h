@@ -16,7 +16,7 @@
 #define NUM_DAC               2
 
 // CPU frequency (needed by the CPU module and MMCFS code, 0 if not used)
-#define CPU_FREQUENCY         120000000
+#define CPU_FREQUENCY         OSCHP_GetFrequency()
 
 // PIO prefix ('0' for P0, P1, ... or 'A' for PA, PB, ...)
 #define PIO_PREFIX            '0'
