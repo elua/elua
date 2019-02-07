@@ -64,7 +64,7 @@
  * Pick SPI_MASTER for the XMC4500_E144x1024 CPU. The SDMMC pins
  * conflict with the SDRAM pins.
  */
-#if !defined ( XMC4500_E144x1024 )
+#if !defined ( XMC4500_E144x1024 ) && !defined ( XMC4300_F100x256 )
 
 /**********************************************************************************************************************
  * LOCAL ROUTINES
@@ -352,4 +352,4 @@ SDMMC_BLOCK_t SDMMC_BLOCK_0 =
                  (uint8_t)SDMMC_BLOCK_CARD_STATE_NO_CARD) /* Card state */
 };
 
-#endif /* #if !defined ( XMC4500_E144x1024 ) */
+#endif /* #if !defined ( XMC4500_E144x1024 ) && !defined ( XMC4300_F100x256 ) */

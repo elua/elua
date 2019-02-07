@@ -61,7 +61,7 @@ OUTPUT_FORMAT("elf32-littlearm")
 OUTPUT_ARCH(arm)
 ENTRY(Reset_Handler)
 
-stack_size = DEFINED(stack_size) ? stack_size : 2048;
+stack_size = DEFINED(stack_size) ? stack_size : 10240;
 no_init_size = 64;
 
 MEMORY
@@ -79,6 +79,7 @@ SECTIONS
 
     .text :
     {
+        PROVIDE(stext = .);
         sText = .;
         KEEP(*(.reset));
         *(.text .text.* .gnu.linkonce.t.*);
@@ -106,7 +107,8 @@ SECTIONS
         
         *(vtable)        
 
-        . = ALIGN(4);        
+        . = ALIGN(4);
+        PROVIDE(etext = .);
     } > FLASH_1_cached AT > FLASH_1_uncached
 
     .eh_frame_hdr : ALIGN (4)
@@ -180,6 +182,7 @@ SECTIONS
 
         . = ALIGN(4);
         /* finit data */
+        _fini = .;
         PROVIDE_HIDDEN (__fini_array_start = .);
         KEEP(*(SORT(.fini_array.*)))
         KEEP(*(.fini_array))
@@ -239,6 +242,8 @@ SECTIONS
         Heap_Bank1_End = .;
         * (.no_init);
     } > SRAM_combined
+
+    end = .;
 
     /* Heap - Bank1*/
     Heap_Bank1_Size  = Heap_Bank1_End - Heap_Bank1_Start;
