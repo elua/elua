@@ -13,6 +13,7 @@
 #include "utils.h"
 #include "common.h"
 #include "platform_conf.h"
+#include "dwt.h"
 
 // Platform includes
 #include "DAVE.h"

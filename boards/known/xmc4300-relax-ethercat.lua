@@ -28,6 +28,8 @@ return {
     linenoise = { shell_lines = 10, lua_lines = 50 },
     xmodem = false,
     niffs = false,
+    xmc43_dac = true,
+    xmc43_lcd = true,
   },
   config = {
     egc = { mode = "alloc" },
