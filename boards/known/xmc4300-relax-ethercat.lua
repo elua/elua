@@ -30,6 +30,7 @@ return {
     niffs = false,
     xmc43_dac = true,
     xmc43_lcd = true,
+    xmc43_capture = true,
   },
   config = {
     egc = { mode = "alloc" },
