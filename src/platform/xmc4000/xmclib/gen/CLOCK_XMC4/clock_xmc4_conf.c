@@ -95,11 +95,11 @@ void SystemCoreClockSetup(void)
   const XMC_SCU_CLOCK_CONFIG_t CLOCK_XMC4_0_CONFIG =
   {
     /* N-Divider Value */
-    .syspll_config.n_div = 80U,
+    .syspll_config.n_div = 48U,
     /* P-Divider Value */
     .syspll_config.p_div = 2U,
     /* K2-Divider Value */
-    .syspll_config.k_div = 4U,
+    .syspll_config.k_div = 1U,
     /* PLL Operating Mode */
     .syspll_config.mode = XMC_SCU_CLOCK_SYSPLL_MODE_NORMAL,
     /* PLL Clock Source */
@@ -115,7 +115,7 @@ void SystemCoreClockSetup(void)
     /* System Clock Source */
     .fsys_clksrc = XMC_SCU_CLOCK_SYSCLKSRC_PLL,
     /* System Clock Divider Value */
-    .fsys_clkdiv = 1U,
+    .fsys_clkdiv = 2U,
     /* CPU Clock Divider Value */
     .fcpu_clkdiv = 1U,
 #ifdef CLOCK_XMC4_CCUCLK_ENABLED  

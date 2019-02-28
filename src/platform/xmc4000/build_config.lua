@@ -29,6 +29,11 @@ function add_platform_components( t, board, cpu )
   if board == 'XMC4700-RELAX' then
     t.xmc47_dac = { macro = 'ENABLE_DAC' }
   end
+  if board == 'XMC4300-RELAX-ETHERCAT' then
+    t.xmc43_dac = { macro = 'ENABLE_DAC' }
+    t.xmc43_lcd = { macro = 'ENABLE_LCD' }
+    t.xmc43_capture = { macro = 'ENABLE_CAPTURE' }
+  end
 end
 
 -- Add specific configuration to the 'configs' table
@@ -48,8 +53,10 @@ function get_platform_modules( board, cpu )
     m.pot = { guards = { 'ENABLE_POTENTIOMETER' }, lib = '"pot"', open = false }
     m.disp = { guards = { 'ENABLE_OLED_DISPLAY' }, lib = '"disp"', open = false }
   end
-  if board == 'XMC4700-RELAX' then
+  if board == 'XMC4700-RELAX' or board == 'XMC4300-RELAX-ETHERCAT' then
     m.dac = { guards = { 'ENABLE_DAC' }, lib = '"dac"', open = false }
+    m.lcd = { guards = { 'ENABLE_LCD' }, lib = '"lcd"', open = false }
+    m.capture = { guards = { 'ENABLE_CAPTURE' }, lib = '"capture"', open = false }
   end
   return m
 end
