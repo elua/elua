@@ -14,6 +14,10 @@ Notes:
 2) The board simply looks beautiful! It certainly reminds me of the
    EK-LM3S8962 days with Edelstoff! :)
 
+3) DFRobot LCD keypad shield: LCD_DATA7: To get an Arduino 16x2 LCD
+   working with the XMC4300 Relax kit, you must short the pins P15_9
+   and P2_4. For pin allocation, see xmc4000/lcd.h.
+
 --]]
 
 
