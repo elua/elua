@@ -535,35 +535,29 @@ static int xmc_lcd_cursor( lua_State *L )
   return 0;
 }
 
-/* // Perform display operations, selected by a string parameter. */
-/* static int lcd_display( lua_State *L ) */
-/* { */
-/*   static const char const *args[] = */
-/*     { "off", "on", "left", "right", NULL }; */
+// Perform display operations, selected by a string parameter.
+// xmc4000.lcd.display( control_string )
+static int xmc_lcd_display( lua_State *L )
+{
+  static const char const *args[] =
+    { "off", "on", "left", "right", NULL };
 
-/*   switch ( luaL_checkoption( L, 1, NULL, args ) ) */
-/*   { */
-/*   case 0: display_is_off = 1; */
-/* 	  send_command( LCD_CMD_DISPLAY_OFF ); */
-/*           break; */
-/*   case 1: display_is_off = 0; */
-/*           send_command( cursor_type );	// Turns display on */
-/*           break; */
-/*   case 2: send_command( LCD_CMD_SHIFT_DISPLAY_LEFT ); */
-/*           break; */
-/*   case 3: send_command( LCD_CMD_SHIFT_DISPLAY_RIGHT ); */
-/*           break; */
-/*   default: return luaL_argerror( L, 1, NULL ); */
-/*   } */
-/*   return 0; */
-/* } */
+  switch( luaL_checkoption( L, 1, NULL, args ) )
+  {
+    case 0: lcd_no_display( &xmc_lcd ); break;
+    case 1: lcd_display( &xmc_lcd ); break;
+    case 2: lcd_scroll_display_left( &xmc_lcd ); break;
+    case 3: lcd_scroll_display_right( &xmc_lcd ); break;
+    default: return luaL_argerror( L, 1, NULL );
+  }
+  return 0;
+}
 
 // Lua: xmc4000.lcd.definechar( code, glyph )
 // code: 0-7
 // glyph: a table of up to 8 numbers with values 0-31.
 //        If less than 8 are supplied, the bottom rows are blanked.
 //        If more than 8 are supplied, the extra are ignored.
-
 static int xmc_lcd_definechar( lua_State *L ) {
   int code;        // The character code we are defining, 0-7
   size_t datalen;  // The number of elements in the glyph table
@@ -608,5 +602,6 @@ const LUA_REG_TYPE lcd_map[] =
   { LSTRKEY( "print" ),      LFUNCVAL( xmc_lcd_print ) },
   { LSTRKEY( "cursor" ),     LFUNCVAL( xmc_lcd_cursor ) },
   { LSTRKEY( "definechar" ), LFUNCVAL( xmc_lcd_definechar ) },
+  { LSTRKEY( "display" ),    LFUNCVAL( xmc_lcd_display ) },
   { LNILKEY, LNILVAL }
 };
