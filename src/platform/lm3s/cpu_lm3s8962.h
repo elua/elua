@@ -9,6 +9,7 @@
 #include "hw_memmap.h"
 #include "platform_ints.h"
 #include "hw_ints.h"
+#include <stdint.h>
 
 #define NUM_PIO               7
 #define NUM_SPI               1
