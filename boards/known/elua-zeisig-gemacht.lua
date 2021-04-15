@@ -13,6 +13,9 @@ computation of Billmeyer viscosity of ploymers dissolved in Formic
 acid), I personally also love to see eLua on every target platform I
 work with. What is fun without SpaceShip OR Game of life?
 
+2) User LEDs (LED0 and LED1) are mapped to pins PB.0 and PB.1
+respectively.
+
 R
 
 --]]

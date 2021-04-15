@@ -1,6 +1,8 @@
 #ifndef __TYPE_H__
 #define __TYPE_H__
 
+#include <stdint.h>
+
 #ifndef NULL
 #define NULL    ((void *)0)
 #endif
