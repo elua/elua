@@ -245,7 +245,7 @@ USBHKeyboardUsageToChar(unsigned long ulInstance,
     //
     // Handle the case where CAPS lock has been set.
     //
-    if(pUSBHKeyboard->ucKeyModSticky &= HID_KEYB_CAPS_LOCK)
+    if(pUSBHKeyboard->ucKeyModSticky & HID_KEYB_CAPS_LOCK)
     {
         //
         // See if this usage ID is modified by Caps Lock by checking the packed

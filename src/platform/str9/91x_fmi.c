@@ -465,7 +465,7 @@ FlagStatus FMI_GetWriteProtectionStatus(u32 FMI_Sector_Mask)
   /* Write a read array command */
   *(vu16 *)FMI_BANK_1 = 0xFF;
  
-  if (Protection_Level_1_Register &= FMI_Sector_Mask)
+  if (Protection_Level_1_Register & FMI_Sector_Mask)
   {
     return SET;
   }
