@@ -7,7 +7,7 @@
    See http://www.eluaproject.net/en_building.html
 
    The only required option is the target board or CPU. e.g.:
-     lua build_elua.lua board=MIZAR32
+     lua build_elua.lua board=mizar32b
 
    This script requires some well-known Lua libraries to run.
    To install them on Ubuntu/Debian, go (as root):
