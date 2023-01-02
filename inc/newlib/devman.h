@@ -16,7 +16,12 @@
 #define DM_MAX_DEV_NAME       12
 
 // GLOBAL maximum file length (on ALL supported filesystem)
+//TH: Overwrite max filename length with config from mmcfs 
+#ifdef MMCFS_MAX_LFN
+#define DM_MAX_FNAME_LENGTH MMCFS_MAX_LFN
+#else
 #define DM_MAX_FNAME_LENGTH   30
+#endif 
 
 // Pack/unpack descriptions
 // Even if a file descriptor is an 'int', newlib treats it as a short, so we need to stuff

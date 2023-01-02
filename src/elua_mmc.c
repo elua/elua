@@ -38,28 +38,56 @@
   #error "MMC not supported on this board"
 #endif
 
+
+
 #if defined( MMCFS_CS_PORT )
+  #if !defined( MMCFS_CS_PIN )
+    #error "mmcfs cs_port parameter without cs_pin parameter" 
+  #endif 
+
 const u8 mmcfs_cs_ports[ NUM_CARDS ] = { MMCFS_CS_PORT };
 static const u8 mmcfs_cs_pins[ NUM_CARDS ] = { MMCFS_CS_PIN };
-static const u8 mmcfs_spi_nums[ NUM_CARDS ] = { MMCFS_SPI_NUM };
+
 #elif defined( MMCFS_CS_PORT_ARRAY )
+  #if !defined( MMCFS_CS_PIN_ARRAY )
+    #error "mmcfs cs_port parameter without cs_pin parameter" 
+  #endif 
+
 const u8 mmcfs_cs_ports[ NUM_CARDS ] = MMCFS_CS_PORT_ARRAY;
 static const u8 mmcfs_cs_pins[ NUM_CARDS ] = MMCFS_CS_PIN_ARRAY;
-static const u8 mmcfs_spi_nums[ NUM_CARDS ] = MMCFS_SPI_NUM_ARRAY;
+
+#else 
+#pragma message "MMC driver using platform_spi_select for SD card CS"
+#define __MMC_USE_SPI_SELECT 
+
 #endif
+
+#if defined( MMCFS_SPI_NUM )
+static const u8 mmcfs_spi_nums[ NUM_CARDS ] = { MMCFS_SPI_NUM };
+#elif defined( MMCFS_SPI_NUM_ARRAY )
+static const u8 mmcfs_spi_nums[ NUM_CARDS ] = MMCFS_SPI_NUM_ARRAY;
+#endif 
 
 // asserts the CS pin to the card
 static
 void SELECT (BYTE id)
 {
-    platform_pio_op( mmcfs_cs_ports[ id ] , ( ( u32 ) 1 << mmcfs_cs_pins[ id ] ), PLATFORM_IO_PIN_CLEAR );    
+#if defined ( __MMC_USE_SPI_SELECT )
+    platform_spi_select( mmcfs_spi_nums[ id ], 1 );
+#else
+    platform_pio_op( mmcfs_cs_ports[ id ] , ( ( u32 ) 1 << mmcfs_cs_pins[ id ] ), PLATFORM_IO_PIN_CLEAR );
+#endif
 }
 
 // de-asserts the CS pin to the card
 static
 void DESELECT (BYTE id)
 {
+#if defined ( __MMC_USE_SPI_SELECT )
+    platform_spi_select( mmcfs_spi_nums[ id ], 0 );
+#else
     platform_pio_op( mmcfs_cs_ports[ id ], ( ( u32 ) 1 << mmcfs_cs_pins[ id ] ), PLATFORM_IO_PIN_SET );
+#endif    
 }
 
 
@@ -602,25 +630,5 @@ DRESULT disk_ioctl (
 }
 
 
-
-/*---------------------------------------------------------*/
-/* User Provided Timer Function for FatFs module           */
-/*---------------------------------------------------------*/
-/* This is a real time clock service to be called from     */
-/* FatFs module. Any valid time must be returned even if   */
-/* the system does not support a real time clock.          */
-
-DWORD get_fattime (void)
-{
-
-    return    ((2007UL-1980) << 25)    // Year = 2007
-            | (6UL << 21)            // Month = June
-            | (5UL << 16)            // Day = 5
-            | (11U << 11)            // Hour = 11
-            | (38U << 5)            // Min = 38
-            | (0U >> 1)                // Sec = 0
-            ;
-
-}
 #endif // #if defined( BUILD_MMCFS ) && !defined( ELUA_SIMULATOR )
 

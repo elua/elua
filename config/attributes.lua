@@ -11,7 +11,9 @@ local sf = string.format
 local function _validate_choice( adesc, aname, aval, elname, sectname )
   aval = tostring( aval ):lower()
   for k, v in pairs( adesc.attrvals ) do
-    if v == aval then return v end
+    --TH: Fix to allow numerical values as value table
+    local _v = tostring( v ):lower()
+    if _v == aval then return _v end
   end
   return false, sf( "invalid value '%s' for attribute '%s' of element '%s' in section '%s'", aval, aname, elname, sectname )
 end
