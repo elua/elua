@@ -617,9 +617,10 @@ static l_mem singlestep (lua_State *L) {
 
 void luaC_step (lua_State *L) {
   global_State *g = G(L);
+  l_mem lim;
   if(is_block_gc(L)) return;
   set_block_gc(L);
-  l_mem lim = (GCSTEPSIZE/100) * g->gcstepmul;
+  lim = (GCSTEPSIZE/100) * g->gcstepmul;
   if (lim == 0)
     lim = (MAX_LUMEM-1)/2;  /* no limit */
   g->gcdept += g->totalbytes - g->GCthreshold;

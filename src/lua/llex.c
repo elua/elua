@@ -6,7 +6,9 @@
 
 
 #include <ctype.h>
+#ifndef LUA_NUMBER_INTEGRAL
 #include <locale.h>
+#endif
 #include <string.h>
 
 #define llex_c
@@ -39,9 +41,9 @@ const char *const luaX_tokens [] = {
     "end", "false", "for", "function", "if",
     "in", "local", "nil", "not", "or", "repeat",
     "return", "then", "true", "until", "while",
-    "..", "...", "==", ">=", "<=", "~=",
+    "//", "..", "...", "==", ">=", "<=", "~=",
+    "<<", ">>",
     "<number>", "<name>", "<string>", "<eof>",
-    NULL
 };
 
 
@@ -160,7 +162,7 @@ static int check_next (LexState *ls, const char *set) {
   return 1;
 }
 
-
+#ifndef LUA_NUMBER_INTEGRAL
 static void buffreplace (LexState *ls, char from, char to) {
   size_t n = luaZ_bufflen(ls->buff);
   char *p = luaZ_buffer(ls->buff);
@@ -181,7 +183,7 @@ static void trydecpoint (LexState *ls, SemInfo *seminfo) {
     luaX_lexerror(ls, "malformed number", TK_NUMBER);
   }
 }
-
+#endif
 
 /* LUA_NUMBER */
 static void read_numeral (LexState *ls, SemInfo *seminfo) {
@@ -194,9 +196,16 @@ static void read_numeral (LexState *ls, SemInfo *seminfo) {
   while (isalnum(ls->current) || ls->current == '_')
     save_and_next(ls);
   save(ls, '\0');
+#ifndef LUA_NUMBER_INTEGRAL
   buffreplace(ls, '.', ls->decpoint);  /* follow locale for decimal point */
   if (!luaO_str2d(luaZ_buffer(ls->buff), &seminfo->r))  /* format error? */
     trydecpoint(ls, seminfo); /* try to update decimal point separator */
+#else
+  if (!luaO_str2d(luaZ_buffer(ls->buff), &seminfo->r)) {
+    /* format error: no more options */
+    luaX_lexerror(ls, "malformed number", TK_NUMBER);
+  }
+#endif
 }
 
 
@@ -368,18 +377,25 @@ static int llex (LexState *ls, SemInfo *seminfo) {
       }
       case '<': {
         next(ls);
-        if (ls->current != '=') return '<';
-        else { next(ls); return TK_LE; }
+        if (ls->current == '=') { next(ls); return TK_LE; }
+        else if (ls->current == '<') { next(ls); return TK_SHL; }
+        else return '<';
       }
       case '>': {
         next(ls);
-        if (ls->current != '=') return '>';
-        else { next(ls); return TK_GE; }
+        if (ls->current == '=') { next(ls); return TK_GE; }
+        else if (ls->current == '>') { next(ls); return TK_SHR; }
+        else return '>';
+      }
+      case '/': {
+        next(ls);
+        if (ls->current == '/') { next(ls); return TK_IDIV; }
+        else return '/';
       }
       case '~': {
         next(ls);
-        if (ls->current != '=') return '~';
-        else { next(ls); return TK_NE; }
+        if (ls->current == '=') { next(ls); return TK_NE; }
+        else return '~';
       }
       case '"':
       case '\'': {
@@ -393,11 +409,15 @@ static int llex (LexState *ls, SemInfo *seminfo) {
             return TK_DOTS;   /* ... */
           else return TK_CONCAT;   /* .. */
         }
+#ifdef LUA_NUMBER_INTEGRAL
+        return '.';
+#else
         else if (!isdigit(ls->current)) return '.';
         else {
           read_numeral(ls, seminfo);
           return TK_NUMBER;
         }
+#endif
       }
       case EOZ: {
         return TK_EOS;

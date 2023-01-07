@@ -59,7 +59,7 @@ static void MaybeByteSwap(char *number, size_t numbersize, DumpState *D)
  int platform_little_endian = *(char*)&x;
  if (platform_little_endian != D->target.little_endian)
  {
-  unsigned long i;
+  int i;
   for (i=0; i<numbersize/2; i++)
   {
    char temp = number[i];
@@ -78,15 +78,17 @@ static void DumpIntWithSize(int x, int sizeof_int, DumpState* D)
    DumpChar(x,D);
   } break;
   case 2: {
+   int16_t y;
    if (x>0x7FFF || x<(-0x8000)) D->status=LUA_ERR_CC_INTOVERFLOW; 
-   int16_t y=(int16_t)x;
+   y=(int16_t)x;
    MaybeByteSwap((char*)&y,2,D);
    DumpVar(y,D);
   } break;
   case 4: {
+   int32_t y;
    /* Need to reduce bounds by 1 to avoid messing 32-bit compilers up */
    if (x>0x7FFFFFFE || x<(-0x7FFFFFFF)) D->status=LUA_ERR_CC_INTOVERFLOW; 
-   int32_t y=(int32_t)x;
+   y=(int32_t)x;
    MaybeByteSwap((char*)&y,4,D);
    DumpVar(y,D);
   } break;
@@ -108,15 +110,17 @@ static void DumpSize(uint32_t x, DumpState* D)
    DumpChar(x,D);
   } break;
   case 2: {
+   uint16_t y;
    if (x>0xFFFF) D->status=LUA_ERR_CC_INTOVERFLOW;
-   uint16_t y=(uint16_t)x;
+   y=(uint16_t)x;
    MaybeByteSwap((char*)&y,2,D);
    DumpVar(y,D);
   } break;
   case 4: {
+   uint32_t y;
    /* Reduce bounds to avoid messing 32-bit compilers up */
    if (x>0xFFFFFFFE) D->status=LUA_ERR_CC_INTOVERFLOW;
-   uint32_t y=x;
+   y=x;
    MaybeByteSwap((char*)&y,4,D);
    DumpVar(y,D);
   } break;
@@ -167,9 +171,10 @@ static void DumpNumber(lua_Number x, DumpState* D)
 
 static void DumpCode(const Proto *f, DumpState* D)
 {
- DumpInt(f->sizecode,D);
  char buf[10];
  int i;
+
+ DumpInt(f->sizecode,D);
  Align4(D);
  for (i=0; i<f->sizecode; i++)
  {
