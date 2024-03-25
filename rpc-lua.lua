@@ -26,8 +26,8 @@ else
 end
 
 -- Compiler/linker options
-builder:set_compile_cmd( sf( "gcc -O2 -g %s -Wall %s -c $(FIRST) -o $(TARGET)", local_include, cdefs ) )
-builder:set_link_cmd( "gcc -o $(TARGET) $(DEPENDS) -lm" )
+builder:set_compile_cmd( sf( "gcc -m32 -O2 -g %s -Wall %s -c $(FIRST) -o $(TARGET)", local_include, cdefs ) )
+builder:set_link_cmd( "gcc -m32 -o $(TARGET) $(DEPENDS) -lm" )
 
 -- Build everything
 builder:make_exe_target( output, lua_full_files )
