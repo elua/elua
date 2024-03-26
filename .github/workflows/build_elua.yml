@@ -1,0 +1,25 @@
+name: Build and Test
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+          sudo apt-get install lua5.1
+          sudo apt-get install luarocks
+          sudo apt-get install gcc-arm-none-eabi
+          sudo luarocks install luafilesystem
+          sudo luarocks install lpack
+          sudo luarocks install md5
+          
+
+    - name: Build elua
+      run: |
+        lua .circleci/ci_builder.lua
