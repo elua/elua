@@ -1,4 +1,6 @@
 // MMC filesystem implementation using FatFs
+#define _GNU_SOURCE // to make shure that asprintf is defined 
+
 #include "mmcfs.h"
 #include <string.h>
 #include <errno.h>
@@ -8,13 +10,14 @@
 
 #include "platform_conf.h"
 #ifdef BUILD_MMCFS
+#pragma message "Adding MMCFS (FAT Filesystem on SD Card)"
 #include "ff.h"
 #include "diskio.h"
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <stdlib.h>
 
-#define MMCFS_MAX_FDS   4
+//#define MMCFS_MAX_FDS   4
 static FIL mmcfs_fd_table[ MMCFS_MAX_FDS ];
 static int mmcfs_num_fd;
 
@@ -28,9 +31,9 @@ extern void elua_mmc_init( void );
 
 // Data structures used by FatFs
 static FATFS mmc_fs[ NUM_CARDS ];
-static FIL mmc_fileObject;
-//static DIR mmc_dir;
-//static FILINFO mmc_fileInfo;
+//static FIL mmc_fileObject;
+
+
 typedef struct
 {
   DIR *dir;
@@ -42,9 +45,58 @@ static int mmcfs_find_empty_fd( void )
   int i;
 
   for (i = 0; i < MMCFS_MAX_FDS; i ++)
-    if (mmcfs_fd_table[i].fs == NULL)
+    if (mmcfs_fd_table[i].obj.fs == NULL)
       return i;
   return -1;
+}
+
+static int map_error( FRESULT r )
+{
+  switch ( r )
+  {
+      case FR_OK:
+        return 0;
+      case FR_DISK_ERR:
+      case FR_INT_ERR:
+      case FR_NOT_READY:
+      case FR_MKFS_ABORTED:    
+      case FR_TIMEOUT:             
+         return EIO;
+
+      case FR_NO_FILE:
+      case FR_NO_PATH:
+      case FR_INVALID_NAME:
+         return ENOENT;
+
+      case FR_DENIED:
+      case FR_WRITE_PROTECTED:
+         return EACCES;
+
+      case FR_EXIST:
+         return EEXIST;
+      case FR_INVALID_OBJECT:
+         return EFAULT;
+
+      case FR_INVALID_DRIVE:
+      case FR_NOT_ENABLED:        
+      case FR_NO_FILESYSTEM:       
+        return ENODEV;
+
+      case FR_LOCKED:             
+        return EACCES;
+
+      case FR_NOT_ENOUGH_CORE:     
+        return ENOMEM;
+
+      case FR_TOO_MANY_OPEN_FILES: 
+        return EMFILE;
+
+      case FR_INVALID_PARAMETER:
+        return EINVAL;
+        
+      default:
+        return EIO;
+  }
 }
 
 static int mmcfs_open_r( struct _reent *r, const char *path, int flags, int mode, void *pdata )
@@ -53,6 +105,7 @@ static int mmcfs_open_r( struct _reent *r, const char *path, int flags, int mode
   int mmc_mode;
   char *mmc_pathBuf;
   int drv_num = *( int* )pdata;
+  FIL mmc_fileObject;
 
   if (mmcfs_num_fd == MMCFS_MAX_FDS)
   {
@@ -115,16 +168,19 @@ static int mmcfs_open_r( struct _reent *r, const char *path, int flags, int mode
   }
 #endif  // _FS_READONLY
 
+  if (mode & O_APPEND) 
+     mmc_mode|=FA_OPEN_APPEND;
+
   // Open the file for reading
-  if (f_open(&mmc_fileObject, mmc_pathBuf, mmc_mode) != FR_OK)
+  FRESULT res = f_open(&mmc_fileObject, mmc_pathBuf, mmc_mode);
+  if ( res != FR_OK )
   {
-    r->_errno = ENOENT;
+    r->_errno = map_error(res);
     free( mmc_pathBuf );
     return -1;
   }
 
-  if (mode & O_APPEND)
-    mmc_fileObject.fptr = mmc_fileObject.fsize;
+
   fd = mmcfs_find_empty_fd();
   memcpy(mmcfs_fd_table + fd, &mmc_fileObject, sizeof(FIL));
   mmcfs_num_fd ++;
@@ -152,9 +208,10 @@ static _ssize_t mmcfs_write_r( struct _reent *r, int fd, const void* ptr, size_t
 #else
   UINT bytesWritten;
 
-  if (f_write(mmcfs_fd_table + fd, ptr, len, &bytesWritten) != FR_OK)
+  FRESULT res = f_write(mmcfs_fd_table + fd, ptr, len, &bytesWritten);
+  if ( res  != FR_OK )
   {
-    r->_errno = EIO;
+    r->_errno = map_error( res );
     return -1;
   }
 
@@ -166,9 +223,10 @@ static _ssize_t mmcfs_read_r( struct _reent *r, int fd, void* ptr, size_t len, v
 {
   UINT bytesRead;
 
-  if (f_read(mmcfs_fd_table + fd, ptr, len, &bytesRead) != FR_OK)
+  FRESULT res = f_read(mmcfs_fd_table + fd, ptr, len, &bytesRead);
+  if ( res != FR_OK)
   {
-    r->_errno = EIO;
+    r->_errno = map_error( res );
     return -1;
   }
 
@@ -195,14 +253,19 @@ static off_t mmcfs_lseek_r( struct _reent *r, int fd, off_t off, int whence, voi
 
     case SEEK_END:
       // seek from end of file
-      newpos = pFile->fsize + off;
+      // TODO : Check of this is correct !!
+      newpos = pFile->obj.objsize - off;
       break;
 
     default:
+      r->_errno = EINVAL;
       return -1;
   }
-  if (f_lseek (pFile, newpos) != FR_OK)
+  FRESULT res = f_lseek (pFile, newpos);
+  if ( res  != FR_OK ) {
+    r->_errno = map_error( res );
     return -1;
+  }  
   return newpos;
 }
 
@@ -292,17 +355,17 @@ static int mmcfs_closedir_r( struct _reent *r, void *d, void *pdata )
 
 static int mmcfs_mkdir_r( struct _reent *r, const char *name, mkdir_mode_t mode, void *pdata )
 {
-  return f_mkdir( name );
+  return  map_error( f_mkdir( name ) );
 }
 
 static int mmcfs_unlink_r( struct _reent *r, const char *fname, void *pdata )
 {
-  return f_unlink( fname );
+  return map_error( f_unlink( fname ) );
 }
 
 static int mmcfs_rename_r( struct _reent *r, const char *oldname, const char *newname, void *pdata )
 {
-  return f_rename( oldname, newname );
+  return map_error( f_rename( oldname, newname ) );
 }
 
 // MMC device descriptor structure
@@ -329,7 +392,7 @@ int mmcfs_init()
 #if NUM_CARDS == 1
   static int cid = 0;
   // A single MMCFS
-  if ( f_mount( 0, mmc_fs ) != FR_OK )
+  if ( f_mount(mmc_fs,"0:",0 ) != FR_OK )
     return DM_ERR_INIT;
   return dm_register( "/mmc", &cid, &mmcfs_device );
 #else // #if NUM_CARDS == 1
@@ -339,7 +402,9 @@ int mmcfs_init()
 
   // [TODO] add more error checking!
   for( i = 0; i < NUM_CARDS; i ++ )
-    if( f_mount( i, mmc_fs + i ) == FR_OK )
+    char volume[4];
+    snprintf(volume,sizeof(volume),"%d:",i); // Volume name
+    if( f_mount(mmc_fs + i,volume,1) == FR_OK )
     {
       ids[ i ] = i;
       sprintf( names[ i ], "/mmc%d", i );
