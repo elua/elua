@@ -6,9 +6,11 @@
 
 
 #include <assert.h>
-#include <math.h>
 #include <stdarg.h>
 #include <string.h>
+#ifndef LUA_NUMBER_INTEGRAL
+#include <math.h>
+#endif
 
 #define lapi_c
 #define LUA_CORE
@@ -976,11 +978,12 @@ LUA_API int lua_gc (lua_State *L, int what, int data) {
       break;
     }
     case LUA_GCSTEP: {
+      lu_mem a;
       if(is_block_gc(L)) {
         res = 1; /* gc is block so we need to pretend that the collection cycle finished. */
         break;
       }
-      lu_mem a = (cast(lu_mem, data) << 10);
+      a = (cast(lu_mem, data) << 10);
       if (a <= g->totalbytes)
         g->GCthreshold = g->totalbytes - a;
       else

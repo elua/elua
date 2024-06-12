@@ -171,10 +171,18 @@ OP_SELF,/*	A B C	R(A+1) := R(B); R(A) := R(B)[RK(C)]		*/
 OP_ADD,/*	A B C	R(A) := RK(B) + RK(C)				*/
 OP_SUB,/*	A B C	R(A) := RK(B) - RK(C)				*/
 OP_MUL,/*	A B C	R(A) := RK(B) * RK(C)				*/
-OP_DIV,/*	A B C	R(A) := RK(B) / RK(C)				*/
 OP_MOD,/*	A B C	R(A) := RK(B) % RK(C)				*/
 OP_POW,/*	A B C	R(A) := RK(B) ^ RK(C)				*/
+OP_DIV,/*	A B C	R(A) := RK(B) / RK(C)				*/
+OP_IDIV,/*	A B C	R(A) := RK(B) // RK(C)				*/
+OP_BAND,/*	A B C	R(A) := RK(B) & RK(C)				*/
+OP_BOR,/*	A B C	R(A) := RK(B) | RK(C)				*/
+OP_BXOR,/*	A B C	R(A) := RK(B) ~ RK(C)				*/
+OP_SHL,/*	A B C	R(A) := RK(B) << RK(C)				*/
+OP_SHR,/*	A B C	R(A) := RK(B) >> RK(C)				*/
+
 OP_UNM,/*	A B	R(A) := -R(B)					*/
+OP_BNOT,/*	A B	R(A) := ~R(B)					*/
 OP_NOT,/*	A B	R(A) := not R(B)				*/
 OP_LEN,/*	A B	R(A) := length of R(B)				*/
 

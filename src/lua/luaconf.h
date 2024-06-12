@@ -167,7 +167,7 @@
 #define LUA_INTEGER ptrdiff_t
 #else
   #if !defined LUA_INTEGRAL_LONGLONG
-  #define LUA_INTEGER	long
+  #define LUA_INTEGER	int
   #else
   #define LUA_INTEGER long long
   #endif // #if !defined LUA_INTEGRAL_LONGLONG
@@ -540,7 +540,7 @@
 /*
 @@ LUAL_BUFFERSIZE is the buffer size used by the lauxlib buffer system.
 */
-#define LUAL_BUFFERSIZE		BUFSIZ
+#define LUAL_BUFFERSIZE		512
 
 /* }================================================================== */
 
@@ -617,10 +617,14 @@
 @@ The luai_num* macros define the primitive operations over numbers.
 */
 #if defined(LUA_CORE)
-#include <math.h>
 #define luai_numadd(a,b)	((a)+(b))
 #define luai_numsub(a,b)	((a)-(b))
 #define luai_nummul(a,b)	((a)*(b))
+#define luai_numband(a,b)	((a)^(b))
+#define luai_numbor(a,b)	((a)|(b))
+#define luai_numbxor(a,b)	((a)^(b))
+#define luai_numshl(a,b)	((a)<<(b))
+#define luai_numshr(a,b)	((a)>>(b))
 #if defined LUA_NUMBER_INTEGRAL
 #define luai_numdiv(a,b)	\
   (-1/2?			\
@@ -634,7 +638,15 @@
    ((((a)<0)==((b)<0))||(((a)%(b))==0)?	\
     (a)%(b):			\
     (a)%(b)+(b)))
+#define luai_numidiv(a,b)	\
+  ((b)==0?			\
+   (luaG_runerror(L,"divide by zero"),0): \
+   luai_numdiv(a,b))
 #define luai_lnumdiv(a,b)	\
+  ((b)==0?			\
+   (luaG_runerror(L,"divide by zero"),0): \
+   luai_numdiv(a,b))
+#define luai_lnumidiv(a,b)	\
   ((b)==0?			\
    (luaG_runerror(L,"divide by zero"),0): \
    luai_numdiv(a,b))
@@ -645,13 +657,16 @@
 LUA_NUMBER luai_ipow(LUA_NUMBER, LUA_NUMBER);
 #define luai_numpow(a,b)	(luai_ipow(a,b))
 #else
+#include <math.h>
 #define luai_numdiv(a,b)	((a)/(b))
+#define luai_numidiv(a,b)	((a)/(b))
 #define luai_nummod(a,b)	((a) - floor((a)/(b))*(b))
 #define luai_lnumdiv(a,b)	(luai_numdiv(a,b))
 #define luai_lnummod(a,b)	(luai_nummod(a,b))
 #define luai_numpow(a,b)	(pow(a,b))
 #endif
 #define luai_numunm(a)		(-(a))
+#define luai_numbnot(a)		(~(a))
 #define luai_numeq(a,b)		((a)==(b))
 #define luai_numlt(a,b)		((a)<(b))
 #define luai_numle(a,b)		((a)<=(b))
@@ -707,7 +722,11 @@ union luai_Cast { double l_d; long l_l; };
 ** aligned in 16-byte boundaries, then you should add long double in the
 ** union.) Probably you do not need to change this.
 */
+#ifndef LUA_NUMBER_INTEGRAL
 #define LUAI_USER_ALIGNMENT_T	union { double u; void *s; long l; }
+#else
+#define LUAI_USER_ALIGNMENT_T	union { void *s; long l; }
+#endif
 
 
 /*
@@ -858,8 +877,8 @@ union luai_Cast { double l_d; long l_l; };
 
 #else
 
-#define LUA_INTFRMLEN		"l"
-#define LUA_INTFRM_T		long
+#define LUA_INTFRMLEN		""
+#define LUA_INTFRM_T		int
 
 #endif
 
@@ -874,7 +893,7 @@ union luai_Cast { double l_d; long l_l; };
 
 #if !defined(LUA_CROSS_COMPILER)
 typedef short int16_t;
-typedef long int32_t;
+typedef int int32_t;
 #endif
 
 /* If you define the next macro you'll get the ability to set rotables as

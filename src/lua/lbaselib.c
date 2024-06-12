@@ -64,9 +64,9 @@ static int luaB_tonumber (lua_State *L) {
   else {
     const char *s1 = luaL_checkstring(L, 1);
     char *s2;
-    unsigned long n;
+    lua_Number n;
     luaL_argcheck(L, 2 <= base && base <= 36, 2, "base out of range");
-    n = strtoul(s1, &s2, base);
+    n = (lua_Number)strtoul(s1, &s2, base);
     if (s1 != s2) {  /* at least one valid digit? */
       while (isspace((unsigned char)(*s2))) s2++;  /* skip trailing spaces */
       if (*s2 == '\0') {  /* no invalid trailing characters? */
@@ -485,17 +485,19 @@ const LUA_REG_TYPE base_funcs_list[] = {
 
 
 static int luaB_index(lua_State *L) {
+  const char *keyname;
+  void *res;
 #if LUA_OPTIMIZE_MEMORY == 2
   int fres;
   if ((fres = luaR_findfunction(L, base_funcs_list)) != 0)
     return fres;
 #endif  
-  const char *keyname = luaL_checkstring(L, 2);
+  keyname = luaL_checkstring(L, 2);
   if (!strcmp(keyname, "_VERSION")) {
     lua_pushliteral(L, LUA_VERSION);
     return 1;
   }
-  void *res = luaR_findglobal(keyname, strlen(keyname));
+  res = luaR_findglobal(keyname, strlen(keyname));
   if (!res)
     return 0;
   else {
